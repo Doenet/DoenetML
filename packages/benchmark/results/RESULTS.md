@@ -1,6 +1,6 @@
 # Results
 
-Rendered by `scripts/render-results.mjs` on 2026-10-15 at commit `b9c97db54`. CPU: Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz. Raw records: `raw/node-2026-10-15.jsonl`, `raw/browser-2026-10-15.jsonl`, `raw/bundle-2026-10-15.jsonl`, `raw/memory-*.json`.
+Rendered by `scripts/render-results.mjs` on 2026-10-15 at commit `d6cc07c3f`. CPU: Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz. Raw records: `raw/node-2026-10-15.jsonl`, `raw/browser-2026-10-15.jsonl`, `raw/bundle-2026-10-15.jsonl`, `raw/memory-*.json`.
 
 A decision suite comparing the JS core, the Rust core and the cells core (see `PLAN.md`). A blank or "unsupported" cell is a result: that core cannot run the document or the action. "> 60 s" is the budget per measurement.
 
@@ -29,7 +29,7 @@ _Hand-written; included verbatim by `scripts/render-results.mjs`. Numbers quoted
 
 **Things the suite found about itself, fixed before these numbers.** A chain of `<math>` elements is one symbolic expression in every core, so the generator's chain shape, once its input became a `<mathInput>` for the JS core, measured symbolic growth rather than dependency depth (the cells tick grew 200× from 100 to 1,000; the JS core hit a recursion limit); the shapes now use `<number>`. The repeat shape's draggable points sat 5 px apart on one line, so the pointer grabbed a neighbour of the point being watched; the shape now has one free point beside the repeat. A synthetic drag sent 61 moves in a burst; paced at 16 ms, a slow core is measured against real input timing. The cells viewer failed every lookup after the first symbolic edit because its component columns are views over wasm memory and detached when it grew; the table now re-reads them.
 
-**Caveats.** Run-to-run spread on this laptop is large: two Node sweeps a few hours apart differed by 30 to 50 percent on loads and ticks (chain-100 in the JS core ticked at 200 ms in one and 320 ms in the other; the cells core loaded chain-1000 in 170 ms and 270 ms), and several JS-core documents that finished loading in one sweep exceeded the budget in the other. Ratios between cores are stable; absolute figures are not, and a comparison between runs needs `scripts/perf-diff.sh`'s interleaving. The Node figures include the test-core adapters, which are parity tools, not production paths; the browser figures are the fair ones. Each Node measurement runs in a fresh vite-node process, about ten seconds of startup that appears only in `wall_ms`. The error-component check after load is skipped when the budget runs out, so a slow JS-core document may carry errors unnoticed; the corpus was validated for errors in the JS core separately. The memory benchmark's repeat document uses `mod`, which the cells core's math cells do not support, so its document-scaling rows are blank for cells. The JS core's `direct-N` memory scenario puts N viewers in one realm, which the cells viewer cannot do; its rows are iframe only.
+**Caveats.** Run-to-run spread on this laptop is large: two Node sweeps a few hours apart differed by 30 to 50 percent on loads and ticks (chain-100 in the JS core ticked at 200 ms in one and 320 ms in the other; the cells core loaded chain-1000 in 170 ms and 270 ms), and several JS-core documents that finished loading in one sweep exceeded the budget in the other. Ratios between cores are stable; absolute figures are not, and a comparison between runs needs `scripts/perf-diff.sh`'s interleaving. The Node figures include the test-core adapters, which are parity tools, not production paths; the browser figures are the fair ones. Each Node measurement runs in a fresh process, about a second of startup since the driver was prebundled (it was ten seconds under vite-node for the runs recorded here); startup appears only in `wall_ms`. The error-component check after load is skipped when the budget runs out, so a slow JS-core document may carry errors unnoticed; the corpus was validated for errors in the JS core separately. The memory benchmark's repeat document uses `mod`, which the cells core's math cells do not support, so its document-scaling rows are blank for cells. The JS core's `direct-N` memory scenario puts N viewers in one realm, which the cells viewer cannot do; its rows are iframe only.
 
 ## Core only, in Node (ms)
 
@@ -37,28 +37,28 @@ Each core through the shared test-core interface, one process per measurement (`
 
 | fixture | javascript load | javascript tick | javascript rebuild | rust load | rust tick | rust rebuild | cells load | cells tick | cells rebuild |
 |---|---|---|---|---|---|---|---|---|---|
-| adventure-500 | > 60 s at steps |  |  | unsupported: action `mathInput.updateRawValue` |  |  | 258 | 0.29 | 0.22 |
-| answers-10 | 836 | 11.3 |  | unsupported: action `mathInput.updateRawValue` |  |  | 84.8 | 0.36 |  |
-| answers-100 | 4400 | 12.1 |  | unsupported: action `mathInput.updateRawValue` |  |  | 176 | 0.62 |  |
-| answers-1000 | > 60 s at load |  |  | unsupported: action `mathInput.updateRawValue` |  |  | 529 | 0.93 |  |
-| chain-100 | 3899 | 320 |  | unsupported: action `point.movePoint` |  |  | 139 | 0.15 |  |
-| chain-1000 | > 60 s at steps |  |  | unsupported: action `point.movePoint` |  |  | 272 | 0.31 |  |
-| chain-10000 | > 60 s at load |  |  | error: unreachable |  |  | 1296 | 2.57 |  |
-| fanout-100 | 5530 | 341 |  | unsupported: action `mathInput.updateRawValue` |  |  | 118 | 0.37 |  |
-| fanout-1000 | > 60 s at load |  |  | unsupported: action `mathInput.updateRawValue` |  |  | 331 | 0.35 |  |
-| fanout-10000 | > 60 s at load |  |  | error: unreachable |  |  | 1504 | 0.72 |  |
-| homework | 1556 | 11.0 |  | unsupported: action `mathInput.updateRawValue` |  |  | unsupported: unsupported tag <feedback> |  |  |
-| lesson | 1466 | 29.0 |  | unsupported: action `point.movePoint` |  |  | unsupported: unsupported tag <em> |  |  |
-| repeat-100 | 7652 | 8.50 | 317 | unsupported: action `point.movePoint` |  |  | 86.8 | 0.05 | 1.43 |
-| repeat-1000 | > 60 s at load |  |  | unsupported: action `point.movePoint` |  |  | 87.6 | 0.09 | 3.11 |
-| repeat-10000 | > 60 s at load |  |  | unsupported: action `point.movePoint` |  |  | 224 | 0.84 | 36.2 |
-| rust-thousand-chain | 11328 | 0.20 |  | unsupported: action `textInput.updateRawValue` |  |  | unsupported: <textInput> with content other than one reference |  |  |
-| rust-thousand-star | 8069 | 0.22 |  | unsupported: action `textInput.updateRawValue` |  |  | unsupported: <textInput> with content other than one reference |  |  |
-| sir | > 60 s at load |  |  | unsupported: action `point.movePoint` |  |  | 132 | 0.30 | 4.60 |
-| symchain-10 | 712 | 39.7 |  | unsupported: action `mathInput.updateRawValue` |  |  | 117 | 2.03 |  |
-| symchain-100 | 3684 | 333 |  | unsupported: action `mathInput.updateRawValue` |  |  | 164 | 6.33 |  |
-| symchain-1000 | > 60 s at steps |  |  | > 60 s at load |  |  | 418 | 37.5 |  |
-| venn | 4818 | 218 |  | unsupported: action `triggerSet.triggerActions` |  |  | unsupported: unsupported tag <styleDefinition> |  |  |
+| adventure-500 | > 60 s at structural |  |  | unsupported: action `mathInput.updateRawValue` |  |  | 294 | 0.32 | 0.24 |
+| answers-10 | 802 | 12.3 |  | unsupported: action `mathInput.updateRawValue` |  |  | 108 | 0.46 |  |
+| answers-100 | 4740 | 13.0 |  | unsupported: action `mathInput.updateRawValue` |  |  | 170 | 0.53 |  |
+| answers-1000 | 47820 | 20.0 |  | unsupported: action `mathInput.updateRawValue` |  |  | 459 | 0.65 |  |
+| chain-100 | 3352 | 339 |  | unsupported: action `point.movePoint` |  |  | 120 | 0.12 |  |
+| chain-1000 | 24099 | 3870 |  | unsupported: action `point.movePoint` |  |  | 411 | 0.41 |  |
+| chain-10000 | > 60 s at load |  |  | error: unreachable |  |  | 1168 | 2.25 |  |
+| fanout-100 | 6534 | 395 |  | unsupported: action `mathInput.updateRawValue` |  |  | 147 | 0.28 |  |
+| fanout-1000 | > 60 s at load |  |  | unsupported: action `mathInput.updateRawValue` |  |  | 417 | 0.36 |  |
+| fanout-10000 | > 60 s at load |  |  | error: unreachable |  |  | 1820 | 1.14 |  |
+| homework | 2170 | 14.6 |  | unsupported: action `mathInput.updateRawValue` |  |  | unsupported: unsupported tag <feedback> |  |  |
+| lesson | 1294 | 22.1 |  | unsupported: action `point.movePoint` |  |  | unsupported: unsupported tag <em> |  |  |
+| repeat-100 | 8109 | 11.0 | 387 | unsupported: action `point.movePoint` |  |  | 80.5 | 0.04 | 1.02 |
+| repeat-1000 | > 60 s at load |  |  | unsupported: action `point.movePoint` |  |  | 86.0 | 0.09 | 2.53 |
+| repeat-10000 | > 60 s at load |  |  | unsupported: action `point.movePoint` |  |  | 128 | 0.46 | 19.7 |
+| rust-thousand-chain | 7497 | 0.10 |  | unsupported: action `textInput.updateRawValue` |  |  | unsupported: <textInput> with content other than one reference |  |  |
+| rust-thousand-star | 6502 | 0.08 |  | unsupported: action `textInput.updateRawValue` |  |  | unsupported: <textInput> with content other than one reference |  |  |
+| sir | > 60 s at load |  |  | unsupported: action `point.movePoint` |  |  | 122 | 0.19 | 2.67 |
+| symchain-10 | 696 | 31.9 |  | unsupported: action `mathInput.updateRawValue` |  |  | 131 | 2.84 |  |
+| symchain-100 | 4113 | 357 |  | unsupported: action `mathInput.updateRawValue` |  |  | 172 | 6.48 |  |
+| symchain-1000 | > 60 s at steps |  |  | unsupported: action `mathInput.updateRawValue` |  |  | 372 | 28.4 |  |
+| venn | 4005 | 160 |  | unsupported: action `triggerSet.triggerActions` |  |  | unsupported: unsupported tag <styleDefinition> |  |  |
 
 ### Memory and saved state, in Node
 
@@ -66,28 +66,28 @@ Each core through the shared test-core interface, one process per measurement (`
 
 | fixture | javascript memory MB | javascript state | rust memory MB | rust state | cells memory MB | cells state |
 |---|---|---|---|---|---|---|
-| adventure-500 |  |  |  |  | 3.9 | 18 B / 38 B |
-| answers-10 | 10.5 | 650 B / 349 B (1577 B) |  |  | 1.6 | 61 B / 70 B |
-| answers-100 | 50.2 | 650 B / 350 B (1577 B) |  |  | 2.1 | 61 B / 70 B |
-| answers-1000 |  |  |  |  | 7.7 | 61 B / 70 B |
-| chain-100 | 45.5 | 190 B / 131 B (1089 B) |  |  | 1.7 | 49 B / 69 B |
-| chain-1000 |  |  |  |  | 3.1 | 48 B / 68 B |
-| chain-10000 |  |  |  |  | 17.1 | 46 B / 66 B |
-| fanout-100 | 82.3 | 173 B / 135 B (1074 B) |  |  | 1.9 | 31 B / 51 B |
-| fanout-1000 |  |  |  |  | 4.9 | 31 B / 51 B |
-| fanout-10000 |  |  |  |  | 37.4 | 31 B / 51 B |
-| homework | 25.7 | 642 B / 342 B (3207 B) |  |  |  |  |
-| lesson | 25.6 | 189 B / 129 B (1688 B) |  |  |  |  |
-| repeat-100 | 113.9 | 319 B / 202 B (11.4 KB) |  |  | 1.8 | 46 B / 62 B |
-| repeat-1000 |  |  |  |  | 3.3 | 46 B / 62 B |
-| repeat-10000 |  |  |  |  | 17.1 | 46 B / 62 B |
-| rust-thousand-chain | 120.5 | 2 B / 22 B (860 B) |  |  |  |  |
-| rust-thousand-star | 99.4 | 2 B / 22 B (860 B) |  |  |  |  |
-| sir |  |  |  |  | 4.0 | 50 B / 70 B |
-| symchain-10 | 13.7 | 256 B / 160 B (1166 B) |  |  | 1.7 | 37 B / 57 B |
-| symchain-100 | 61.8 | 256 B / 160 B (1166 B) |  |  | 2.0 | 37 B / 57 B |
-| symchain-1000 |  |  |  |  | 4.9 | 37 B / 57 B |
-| venn | 79.1 | 281 B / 82 B (3835 B) |  |  |  |  |
+| adventure-500 |  |  |  |  | 5.7 | 18 B / 38 B |
+| answers-10 | 13.0 | 650 B / 349 B (1577 B) |  |  | 3.5 | 61 B / 70 B |
+| answers-100 | 52.8 | 650 B / 350 B (1577 B) |  |  | 3.9 | 61 B / 70 B |
+| answers-1000 | 454.1 | 650 B / 351 B (1577 B) |  |  | 9.4 | 61 B / 70 B |
+| chain-100 | 48.2 | 190 B / 131 B (1089 B) |  |  | 3.5 | 49 B / 69 B |
+| chain-1000 | 374.0 | 188 B / 131 B (1087 B) |  |  | 4.8 | 48 B / 68 B |
+| chain-10000 |  |  |  |  | 18.8 | 46 B / 66 B |
+| fanout-100 | 84.9 | 173 B / 135 B (1074 B) |  |  | 3.7 | 31 B / 51 B |
+| fanout-1000 |  |  |  |  | 6.7 | 31 B / 51 B |
+| fanout-10000 |  |  |  |  | 39.2 | 31 B / 51 B |
+| homework | 28.3 | 642 B / 342 B (3207 B) |  |  |  |  |
+| lesson | 28.1 | 189 B / 129 B (1688 B) |  |  |  |  |
+| repeat-100 | 116.9 | 319 B / 202 B (11.4 KB) |  |  | 3.6 | 46 B / 62 B |
+| repeat-1000 |  |  |  |  | 5.2 | 46 B / 62 B |
+| repeat-10000 |  |  |  |  | 19.0 | 46 B / 62 B |
+| rust-thousand-chain | 123.7 | 2 B / 22 B (860 B) |  |  |  |  |
+| rust-thousand-star | 101.9 | 2 B / 22 B (860 B) |  |  |  |  |
+| sir |  |  |  |  | 5.9 | 50 B / 70 B |
+| symchain-10 | 16.1 | 256 B / 160 B (1166 B) |  |  | 3.5 | 37 B / 57 B |
+| symchain-100 | 64.7 | 256 B / 160 B (1166 B) |  |  | 3.8 | 37 B / 57 B |
+| symchain-1000 |  |  |  |  | 6.6 | 37 B / 57 B |
+| venn | 81.9 | 281 B / 82 B (3835 B) |  |  |  |  |
 
 ## Browser end to end (headless Chromium, ms)
 
