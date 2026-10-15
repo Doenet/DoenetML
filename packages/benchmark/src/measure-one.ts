@@ -23,6 +23,9 @@ type Step = {
     value?: string;
 };
 
+/** The core could not name the manifest's target: a gap in that core, like the adapters' own. */
+class TargetGap extends Error {}
+
 const progress = (stage: string) =>
     console.log(JSON.stringify({ progress: stage }));
 const gc = () => (globalThis as any).gc?.();

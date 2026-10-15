@@ -41,7 +41,10 @@ function measure(core, fixture) {
                 try {
                     const j = JSON.parse(s);
                     if (j.progress) stage = j.progress;
-                    else { result = j; setTimeout(() => child.kill("SIGKILL"), 2000).unref(); }
+                    else {
+                        result = j;
+                        if (j.error_components !== "unchecked") setTimeout(() => child.kill("SIGKILL"), 2000).unref();
+                    }
                 } catch { /* not ours */ }
             }
             buf = buf.slice(buf.lastIndexOf("\n") + 1);
@@ -50,7 +53,8 @@ function measure(core, fixture) {
         const timer = setTimeout(() => child.kill("SIGKILL"), TIMEOUT_MS);
         child.on("close", (code, signal) => {
             clearTimeout(timer);
-            if (signal === "SIGKILL" && !result) result = { core, fixture, status: "timeout", stage, timeout_ms: TIMEOUT_MS };
+            if (signal === "SIGKILL" && result?.error_components === "unchecked") result.timed_out_at = stage;
+            else if (signal === "SIGKILL" && !result) result = { core, fixture, status: "timeout", stage, timeout_ms: TIMEOUT_MS };
             else if (!result) result = { core, fixture, status: "error", stage, message: (stderr.trim().split("\n").slice(-3).join(" | ") || `exit ${code}`).slice(0, 500) };
             done(result);
         });

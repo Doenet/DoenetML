@@ -20,5 +20,5 @@
         }
     ],
     "structural": null,
-    "notes": "Dragging p inverts the whole chain back to the input n."
+    "notes": "Numbers, not maths: a <math> chain is one symbolic expression in every core. Dragging p inverts the whole chain back to the input n."
 }
