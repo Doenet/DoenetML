@@ -85,6 +85,39 @@ Each run is one vite-node process, which costs about ten seconds of
 startup per measurement; that is harness overhead and appears only in
 `wall_ms`.
 
+## The browser harness
+
+```bash
+npm run build -w packages/standalone -w packages/cells-viewer
+BENCH_CORES=javascript,cells BENCH_FIXTURES=chain-100 npm run browser
+```
+
+`browser/perf.spec.ts` runs each fixture in each core's viewer under
+headless Chromium: the JS core through the standalone bundle on
+`browser/js.html`, the cells core through its own viewer build with
+`browser/cells-adapter.js` installed. Both pages implement one
+`window.__bench` protocol (`load`, `locate`, `position`, `act`), served by
+`browser/serve.mjs`. One record per (core, fixture) goes to
+`results/raw/browser-<date>.jsonl`, with a 60 s budget per fixture; the
+measurements taken before the budget ran out stand, marked
+`timed_out_at`.
+
+| Field | Meaning |
+|---|---|
+| `load_ms` | DoenetML text to first render: for the cells viewer its own `firstRender`; for the JS core from the render call to the first frame after the core is initialized and the fixture's target (its board, or its first step's element) is in the DOM. |
+| `drag` | 60 real pointer moves paced at 16 ms. `latency` is, for each frame in which the dragged point moved on screen, the time since the oldest pointer move it answers: the lag the user saw. `frames / moves` says how many of the moves got a frame of their own. For the cells core, `cells` adds the viewer's own per-tick core, commit and paint times. |
+| `steps`, `structural` | Steps that are not drags go through the core (`act`), each timed to the next animation frame (`frame`) and to a task after it (`paint`). |
+
+If this machine's Playwright is newer than its installed browsers, set
+`BENCH_CHROMIUM` to an installed executable (the memory benchmark reads
+the same variable).
+
+## Memory in the browser
+
+`packages/memory-benchmark` takes `--core cells` and runs the scenarios
+that have an equivalent for a viewer without an embed API: `blank`,
+`iframe-N` and `repeat-S`. See its README.
+
 ## Bundle size
 
 ```bash

@@ -10,13 +10,13 @@
             "action": "movePoint",
             "target": "r[1].q",
             "x": 1,
-            "y": 1
+            "y": -9
         },
         {
             "action": "movePoint",
             "target": "r[1].q",
             "x": 2,
-            "y": 2
+            "y": -9
         }
     ],
     "structural": [
@@ -31,5 +31,5 @@
             "value": "1000"
         }
     ],
-    "notes": "r[1].q is the fixed point in the first iteration. The structural change alternates the count between N-1 and N so every step rebuilds."
+    "notes": "r[1].q is the first iteration's point; its x is free and its y is the iteration value, so the points do not stack. The structural change alternates the count between N-1 and N so every step rebuilds."
 }

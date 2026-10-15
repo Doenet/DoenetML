@@ -29,7 +29,7 @@ const shapes = {
         lines.push("</graph>");
         return lines.join("\n") + "\n";
     },
-    /** A repeat whose length is an input; the first iteration's q is dragged. */
+    /** A repeat whose length is an input; the first iteration's q is dragged (its x; y is the iteration value). */
     repeat(n) {
         return [
             `<mathInput name="n" prefill="${n}"/>`,
@@ -37,7 +37,9 @@ const shapes = {
             '<repeatForSequence name="r" from="-9" step="0.18" length="$n" valueName="v">',
             '<number name="h">0.5 $v</number>',
             '<point name="p" x="$v" y="$h"/>',
-            '<point name="q" x="0" y="0"/>',
+            // q's x is free to drag; its y spreads the iterations out so a
+            // drag grabs the intended one.
+            '<point name="q" x="0" y="$v"/>',
             "</repeatForSequence>",
             "</graph>",
         ].join("\n") + "\n";

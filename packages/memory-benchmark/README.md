@@ -21,6 +21,13 @@ node src/measure.mjs --doenetml path/to/doc.doenetml
 
 # Run a subset of scenarios (regex over scenario names)
 node src/measure.mjs --only 'workers' --sizes ""
+
+# The cells core instead of the JS core (packages/benchmark's comparison).
+# Only the scenarios with an equivalent run: blank, iframe-N and repeat-S;
+# the cells viewer has no embed API, so one-realm, shared-worker, raw-worker
+# and windowed scenarios are the JS core's alone. Build it first:
+# npm run build -w packages/cells-viewer
+node src/measure.mjs --core cells
 ```
 
 Playwright's Chromium must be installed once: `npx playwright install chromium`.

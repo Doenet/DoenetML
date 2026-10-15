@@ -11,6 +11,10 @@
         "fixtures": "node scripts/list-fixtures.mjs",
         "test": "echo \"No tests\"",
         "node": "node src/run.mjs",
-        "bundle": "node src/bundle.mjs"
+        "bundle": "node src/bundle.mjs",
+        "browser": "playwright test -c browser/playwright.config.ts"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.61.1"
     }
 }
