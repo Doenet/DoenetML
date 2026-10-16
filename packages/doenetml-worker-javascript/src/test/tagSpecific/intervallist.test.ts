@@ -157,7 +157,8 @@ describe("IntervalList tag tests @group4", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        // all but copied list become ordered
+        // all become ordered, the copied list too: a copy keeps the
+        // `unordered="$unordered"` its source wrote, as pasted DoenetML would
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
         ).eq(false);
@@ -169,11 +170,11 @@ describe("IntervalList tag tests @group4", async () => {
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
                 .text,
-        ).eq("false, false, true");
+        ).eq("false, false, false");
     });
 });

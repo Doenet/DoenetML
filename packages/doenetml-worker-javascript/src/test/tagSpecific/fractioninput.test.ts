@@ -587,4 +587,51 @@ describe("FractionInput tag tests @group3", async () => {
         await checkBoxCredit("7", "3", 0, 1, 0.5);
         await checkBoxCredit("7", "5", 0, 0, 0);
     });
+
+    it("colorInputsSeparately: a correct box is fully credited when its award's credit is above 1", async () => {
+        // Each award caps its earned credit at 1, so a satisfied award with
+        // credit="2" must give its box credit 1, not 1/2.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <fractionInput name="fi" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+    <award credit="2"><when>$fi.numerator = 2</when></award>
+    <award credit="2"><when>$fi.denominator = 3</when></award>
+  </answer>
+  `,
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const fiIdx = await resolvePathToNodeIdx("fi");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        const subBoxes = (
+            sv[fiIdx].activeChildren as {
+                componentIdx: number;
+                componentType: string;
+            }[]
+        ).filter((c) => c.componentType === "_fractionInputComponent");
+        expect(subBoxes.length).eq(2);
+        const numBoxIdx = subBoxes[0].componentIdx;
+        const denBoxIdx = subBoxes[1].componentIdx;
+
+        await updateFractionInputValue({
+            latex: "2",
+            componentIdx: fiIdx,
+            part: "numerator",
+            core,
+        });
+        await updateFractionInputValue({
+            latex: "5",
+            componentIdx: fiIdx,
+            part: "denominator",
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).eq(1);
+        expect(sv[numBoxIdx].stateValues.creditAchieved).eq(1);
+        expect(sv[denBoxIdx].stateValues.creditAchieved).eq(0);
+    });
 });

@@ -150,10 +150,11 @@ describe("Automatic commas between composite replacements @group3", () => {
     });
 
     it("records one range per composite that contributed children", async () => {
-        // The array every consumer reads. An outer composite comes first and
-        // the ranges after it, with indices inside its own, are its
-        // replacements' — here, the repeat separates its two items, and the
-        // list inside each item separates its own numbers.
+        // The array every consumer reads, in the order they read it. An
+        // outer composite comes first and the ranges after it, with indices
+        // inside its own, are its replacements' — here, the repeat separates
+        // its two items, and the list inside each item separates its own
+        // numbers.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><numberList name="nl">$v 9</numberList></repeatForSequence></p>`,
         });

@@ -197,7 +197,10 @@ export function compareExtractedValues(a, b, numeric) {
  *
  * Defines:
  * - `componentIndicesForValues` — the component index of each value, in
- *   document order. One per child, so the indices are distinct.
+ *   document order. One per child, so the indices are distinct, except that
+ *   an entry of a list component is `{ componentIdx, listInd, componentType,
+ *   valuesVariable }`, read from the list's array of values, and its value
+ *   in `listValues` carries its `listInd`.
  * - `listValues` — the extracted values in that same order, skipping any child
  *   whose type has no comparable value.
  * - `allAreNumeric` — whether the list should be compared numerically.
@@ -252,6 +255,17 @@ export function returnListValueStateVariableDefinitions({
                     );
                     continue;
                 }
+                // An entry of a list component is read from the list's array
+                // of values, at its index.
+                if (child.listEntryIndex !== undefined) {
+                    componentIndicesForValues.push({
+                        componentIdx: child.componentIdx,
+                        listInd: child.listEntryIndex,
+                        componentType: child.componentType,
+                        valuesVariable: child.listValuesVariable,
+                    });
+                    continue;
+                }
                 // A child that publishes `componentIndicesInList` contributes
                 // one index per item it holds. No component defines that
                 // variable today, so in practice this is one index per child.
@@ -274,9 +288,14 @@ export function returnListValueStateVariableDefinitions({
     stateVariableDefinitions.listValues = {
         additionalStateVariablesDefined: ["allAreNumeric"],
         stateVariablesDeterminingDependencies: supportProps
-            ? ["componentIndicesForValues", "sortByComponent", "propName"]
+            ? [
+                  "componentIndicesForValues",
+                  "sortByComponent",
+                  "sortVectorsBy",
+                  "propName",
+              ]
             : ["componentIndicesForValues"],
-        returnDependencies({ stateValues }) {
+        returnDependencies({ stateValues, componentInfoObjects }) {
             let dependencies = {
                 componentIndicesForValues: {
                     dependencyType: "stateVariable",
@@ -299,11 +318,30 @@ export function returnListValueStateVariableDefinitions({
                 };
             }
 
+            // One dependency on the values of each list component, which
+            // all of its entries read.
+            for (let item of stateValues.componentIndicesForValues) {
+                if (typeof item === "object") {
+                    dependencies[`listValues${item.componentIdx}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: item.componentIdx,
+                        variableName: item.valuesVariable,
+                    };
+                }
+            }
+
             if (supportProps && stateValues.propName) {
                 for (let [
                     ind,
                     cIdx,
                 ] of stateValues.componentIndicesForValues.entries()) {
+                    if (typeof cIdx === "object") {
+                        // The property of an entry of a list component, read
+                        // as `$l[2].prop` reads it.
+                        dependencies[`component${ind}`] =
+                            entryPropertyDependency(cIdx, stateValues.propName);
+                        continue;
+                    }
                     dependencies[`component${ind}`] = {
                         dependencyType: "stateVariable",
                         componentIdx: cIdx,
@@ -322,6 +360,23 @@ export function returnListValueStateVariableDefinitions({
                     ind,
                     cIdx,
                 ] of stateValues.componentIndicesForValues.entries()) {
+                    if (typeof cIdx === "object") {
+                        // A point or vector entry is compared by the
+                        // coordinate a point or vector is (`$l[2].x1`).
+                        const coordinateName = entryCoordinateName({
+                            componentType: cIdx.componentType,
+                            componentInfoObjects,
+                            sortVectorsBy: supportProps
+                                ? stateValues.sortVectorsBy
+                                : undefined,
+                            sortByComponent,
+                        });
+                        if (coordinateName !== undefined) {
+                            dependencies[`component${ind}`] =
+                                entryPropertyDependency(cIdx, coordinateName);
+                        }
+                        continue;
+                    }
                     dependencies[`component${ind}`] = {
                         dependencyType: "multipleStateVariables",
                         componentIdx: cIdx,
@@ -343,7 +398,52 @@ export function returnListValueStateVariableDefinitions({
             let numValues = dependencyValues.componentIndicesForValues.length;
 
             for (let ind = 0; ind < numValues; ind++) {
+                const item = dependencyValues.componentIndicesForValues[ind];
                 let component = dependencyValues[`component${ind}`];
+                if (
+                    typeof item === "object" &&
+                    !dependencyValues.propName &&
+                    component
+                ) {
+                    // A point or vector entry, which compares by the
+                    // coordinate read for it, as a point or vector does.
+                    const coordinateName = entryCoordinateName({
+                        componentType: item.componentType,
+                        componentInfoObjects,
+                        sortVectorsBy: dependencyValues.sortVectorsBy,
+                        sortByComponent: dependencyValues.sortByComponent,
+                    });
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: {
+                            [coordinateName]: Object.values(
+                                component.stateValues,
+                            )[0],
+                        },
+                    };
+                } else if (
+                    typeof item === "object" &&
+                    !dependencyValues.propName
+                ) {
+                    // An entry of a list component, which compares as a
+                    // component of its type holding its value does.
+                    const values =
+                        dependencyValues[`listValues${item.componentIdx}`];
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: { value: values?.[item.listInd] },
+                    };
+                } else if (typeof item === "object" && !component) {
+                    // An entry without the property is kept, as a child
+                    // without it is, and compares as having no value.
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: {},
+                    };
+                }
                 if (!component) {
                     continue;
                 }
@@ -365,6 +465,9 @@ export function returnListValueStateVariableDefinitions({
                 // both compare as the text `NaN`.
                 listValues.push({
                     ...result.value,
+                    ...(typeof item === "object"
+                        ? { listInd: item.listInd }
+                        : {}),
                     numericByType: result.stillNumeric,
                 });
                 if (!result.stillNumeric) {
@@ -377,6 +480,55 @@ export function returnListValueStateVariableDefinitions({
     };
 
     return stateVariableDefinitions;
+}
+
+/**
+ * A dependency on property `name` of the entry `item` of a list component
+ * (`{ componentIdx, listInd }`), read as `$l[2].name` reads it.
+ */
+function entryPropertyDependency(item, name) {
+    return {
+        dependencyType: "stateVariableFromUnresolvedPath",
+        componentIdx: item.componentIdx,
+        unresolvedPath: [
+            {
+                name: "",
+                index: [{ value: [`${item.listInd + 1}`] }],
+            },
+            { name, index: [] },
+        ],
+        variablesOptional: true,
+        caseInsensitiveVariableMatch: true,
+        publicStateVariablesOnly: true,
+        returnAsComponentObject: true,
+    };
+}
+
+/**
+ * The coordinate a point or vector of `componentType` is compared by
+ * (`x1`, or `tailX1` for a vector with `sortVectorsBy="tail"`), as
+ * `extractComparableValue` reads it; `undefined` for another type.
+ */
+function entryCoordinateName({
+    componentType,
+    componentInfoObjects,
+    sortVectorsBy = "displacement",
+    sortByComponent = 1,
+}) {
+    const isVector = componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: componentType,
+        baseComponentType: "vector",
+    });
+    const isPoint = componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: componentType,
+        baseComponentType: "point",
+    });
+    if (!isPoint && !isVector) {
+        return undefined;
+    }
+    return isVector && sortVectorsBy !== "displacement"
+        ? `tailX${sortByComponent}`
+        : `x${sortByComponent}`;
 }
 
 /**
@@ -621,6 +773,21 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
         });
 
         if (result.success) {
+            // A component made from a piece of text alone records the text,
+            // which a `<sort>` or `<shuffle>` made a list reads itself
+            // (`utils/dast/listForms.ts`).
+            for (const child of result.newChildren) {
+                if (
+                    typeof child === "object" &&
+                    !matchedChildren.includes(child) &&
+                    child.children.length > 0 &&
+                    child.children.every((piece) => typeof piece === "string")
+                ) {
+                    child.doenetAttributes.textPiece = child.children
+                        .join("")
+                        .trim();
+                }
+            }
             return {
                 success: true,
                 newChildren: result.newChildren,

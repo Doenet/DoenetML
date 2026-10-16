@@ -2452,4 +2452,125 @@ describe("Spreadsheet tag tests @group1", async () => {
             [false, false],
         ]);
     });
+
+    it("<col> children set column widths, as in a tabular", async () => {
+        // The nth `<col>` applies to the nth column; an empty `<col />` holds
+        // a column's place without setting anything.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumColumns="3">
+    <col width="30%" />
+    <col />
+    <col width="120px" />
+    <row><cell>a</cell><cell>b</cell></row>
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ssIdx].stateValues.columnWidths).eqls([
+            { size: 30, isAbsolute: false },
+            null,
+            { size: 120, isAbsolute: true },
+        ]);
+    });
+
+    it("<column width> sets the width of the column it is placed in", async () => {
+        // A `<column>` is placed by `colNum` or, without one, one past the
+        // previous `<column>`; its width lands at that position, and outranks
+        // a `<col>` for the same column.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumColumns="2">
+    <col width="10%" />
+    <col width="20%" />
+    <column width="40%"><cell>a</cell></column>
+    <column colNum="D" width="50%"><cell>d</cell></column>
+    <column width="60%"><cell>e</cell></column>
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ssIdx].stateValues.columnWidths).eqls([
+            { size: 40, isAbsolute: false },
+            { size: 20, isAbsolute: false },
+            null,
+            { size: 50, isAbsolute: false },
+            { size: 60, isAbsolute: false },
+        ]);
+        expect(stateVariables[ssIdx].stateValues.numColumns).eq(5);
+    });
+
+    it("a column given a width exists even while it is empty", async () => {
+        // The situation that prompted column widths: a label column and an
+        // empty column for students to type in, which must still be drawn at
+        // its width.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="viaCol" minNumColumns="1">
+    <col width="40%" />
+    <col width="60%" />
+    <row><cell fixed>Candidates:</cell></row>
+  </spreadsheet>
+  <spreadsheet name="viaColumn" minNumColumns="1">
+    <row><cell fixed>Candidates:</cell></row>
+    <column colNum="2" width="60%" />
+  </spreadsheet>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["viaCol", "viaColumn"]) {
+            const idx = await resolvePathToNodeIdx(name);
+            expect(stateVariables[idx].stateValues.numColumns).eq(2);
+            expect(stateVariables[idx].stateValues.cells[0]).eqls([
+                "Candidates:",
+                "",
+            ]);
+        }
+    });
+
+    it("a width that is not positive counts as no width", async () => {
+        // Handsontable cannot draw a zero or negative width at that size, so
+        // such a column is sized automatically instead.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumColumns="4">
+    <col width="0" />
+    <col width="-10%" />
+    <col width="0%" />
+    <col width="20%" />
+    <column colNum="4" width="-5px" />
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ssIdx].stateValues.columnWidths).eqls([
+            null,
+            null,
+            null,
+            { size: 20, isAbsolute: false },
+        ]);
+    });
+
+    it("a column's width is available as a property", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet>
+    <column name="c" width="35%"><cell>x</cell></column>
+  </spreadsheet>
+  <p name="p">$c.width</p>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("35%");
+    });
 });

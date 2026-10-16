@@ -69,3 +69,29 @@ Compare with [`<row>{:dn}`](row_table), which populates row by row.
 
 Setting `colNum` anchors the column to a specific column letter (or number).
 Without it, columns fill from the left in the order they appear.
+
+
+
+---
+
+### Attribute Example: width
+
+
+```doenet-editor-horiz
+<spreadsheet columnHeaders="false" rowHeaders="false" minNumColumns="2">
+  <column>
+    <cell fixed>Candidates:</cell>
+    <cell fixed>Outcome:</cell>
+  </column>
+  <column width="70%" />
+</spreadsheet>
+```
+
+
+The `width` attribute sets the width of the column as a percentage of the width
+of the spreadsheet; the columns without one share out the rest. It is the same
+attribute, with the same values, as the `width` of a [`<col>{:dn}`](col), so
+the width of a column is written the same way whether or not it has a
+`<column>{:dn}` of its own. As with `<col>{:dn}`, express it as a percentage
+rather than as a number of pixels: a percentage is what survives conversion of
+the document to PreTeXt, so a printed spreadsheet keeps its column widths.

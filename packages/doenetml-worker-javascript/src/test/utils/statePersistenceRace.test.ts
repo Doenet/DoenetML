@@ -88,6 +88,7 @@ function makePersistence() {
         reportScoreAndStateCallback: (report: any) => {
             reports.push(report);
         },
+        processQueue: { stoppedByError: null },
     } as unknown as Core;
 
     const persistence = new StatePersistence({ core });

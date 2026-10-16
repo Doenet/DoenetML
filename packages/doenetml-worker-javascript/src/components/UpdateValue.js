@@ -6,6 +6,7 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
@@ -33,6 +34,7 @@ export default class UpdateValue extends InlineComponent {
         summary: "Updates one or more state variables on a target component",
     };
     static rendererType = "button";
+    static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -160,6 +162,10 @@ export default class UpdateValue extends InlineComponent {
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
@@ -235,7 +241,10 @@ export default class UpdateValue extends InlineComponent {
         };
 
         stateVariableDefinitions.targetIdentities = {
-            stateVariablesDeterminingDependencies: ["targetComponent"],
+            stateVariablesDeterminingDependencies: [
+                "targetComponent",
+                "unresolvedPath",
+            ],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -243,7 +252,29 @@ export default class UpdateValue extends InlineComponent {
                 let dependencies = {};
 
                 if (stateValues.targetComponent !== null) {
+                    const targetClass =
+                        componentInfoObjects.allComponentClasses[
+                            stateValues.targetComponent.componentType
+                        ];
                     if (
+                        targetClass?.listEntryComponentType !== undefined &&
+                        !picksListEntry(stateValues.unresolvedPath)
+                    ) {
+                        // A list component is as many targets as it has
+                        // entries, as a composite is its replacements,
+                        // unless the path picks one (`$l[2].x`). An index
+                        // on a property (`$l.xs[2]`) applies to every entry.
+                        dependencies.numEntries = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.targetComponent.componentIdx,
+                            variableName: targetClass.listEntryCountVariable,
+                        };
+                        dependencies.targets = {
+                            dependencyType: "stateVariable",
+                            variableName: "targetComponent",
+                        };
+                    } else if (
                         componentInfoObjects.isCompositeComponent({
                             componentType:
                                 stateValues.targetComponent.componentType,
@@ -272,6 +303,18 @@ export default class UpdateValue extends InlineComponent {
                     if (!Array.isArray(targetIdentities)) {
                         targetIdentities = [targetIdentities];
                     }
+                }
+                if (dependencyValues.numEntries !== undefined) {
+                    // each entry of a list component
+                    const list = dependencyValues.targets;
+                    targetIdentities = Array.from(
+                        { length: dependencyValues.numEntries ?? 0 },
+                        (_, listEntryIndex) => ({
+                            componentIdx: list.componentIdx,
+                            componentType: list.componentType,
+                            listEntryIndex,
+                        }),
+                    );
                 }
                 let diagnostics = [];
                 if (
@@ -319,7 +362,38 @@ export default class UpdateValue extends InlineComponent {
                     ] of stateValues.targetIdentities.entries()) {
                         let thisTarget;
 
-                        if (stateValues.unresolvedPath) {
+                        if (target.listEntryIndex !== undefined) {
+                            // an entry of a list component, read as
+                            // `$l[2]` and `$l[2].x` read it
+                            const entryPath = [
+                                {
+                                    name: "",
+                                    index: [
+                                        {
+                                            value: [
+                                                `${target.listEntryIndex + 1}`,
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ];
+                            thisTarget = {
+                                dependencyType:
+                                    "stateVariableFromUnresolvedPath",
+                                componentIdx: target.componentIdx,
+                                unresolvedPath: [
+                                    ...entryPath,
+                                    ...(stateValues.unresolvedPath ?? []),
+                                ],
+                                referenceOriginalPath:
+                                    stateValues.targetOriginalPath,
+                                returnAsComponentObject: true,
+                                variablesOptional: true,
+                                caseInsensitiveVariableMatch: true,
+                                publicStateVariablesOnly: true,
+                                useMappedVariableNames: true,
+                            };
+                        } else if (stateValues.unresolvedPath) {
                             let propIndex = stateValues.propIndex;
                             if (propIndex) {
                                 // make propIndex be a shallow copy
@@ -558,8 +632,18 @@ export default class UpdateValue extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });
     }
+}
+
+/**
+ * Whether `unresolvedPath` starts with an index of its own (`$l[2]...`),
+ * which picks one entry of a list.
+ */
+function picksListEntry(unresolvedPath) {
+    const first = unresolvedPath?.[0];
+    return first?.name === "" && first.index?.length > 0;
 }

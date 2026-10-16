@@ -3,6 +3,10 @@ import {
     SectioningComponentNumberWithSiblings,
     UnnumberedSectioningComponent,
 } from "./abstract/SectioningComponent";
+import {
+    DIVISION_SEQUENCE,
+    returnSequencePassThroughDefinitions,
+} from "../utils/sequenceNumbering";
 
 export class Section extends SectioningComponentNumberWithSiblings {
     static componentType = "section";
@@ -340,9 +344,15 @@ export class Proof extends UnnumberedSectioningComponent {
     }
 }
 
-export class Problems extends SectioningComponent {
+export class Problems extends SectioningComponentNumberWithSiblings {
     static componentType = "problems";
     static rendererType = "section";
+
+    // `<problems>` groups divisions and is one itself, so it is numbered among
+    // its sibling divisions rather than in the sequence that runs through the
+    // document's figures and tables. Unlike those siblings it is named by a
+    // word the author may replace.
+    static allowRenameTo = true;
 
     static componentDocs = {
         summary:
@@ -382,6 +392,13 @@ export class StandinForFutureLayoutTag extends SectioningComponent {
             setValue: { containerTag: "aside" },
         });
 
+        // It shows no number, so the divisions inside it are numbered among
+        // the divisions beside it.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequencePassThroughDefinitions(DIVISION_SEQUENCE),
+        );
+
         return stateVariableDefinitions;
     }
 }
@@ -397,5 +414,19 @@ export class externalContent extends SectioningComponent {
         attributes.includeAutoNameIfNoTitle.defaultValue = false;
         attributes.includeAutoNumberIfNoTitle.defaultValue = false;
         return attributes;
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // It shows no number, so the divisions it brings in are numbered among
+        // the divisions beside it, as they would be had they been written
+        // there.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequencePassThroughDefinitions(DIVISION_SEQUENCE),
+        );
+
+        return stateVariableDefinitions;
     }
 }

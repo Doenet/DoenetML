@@ -27,6 +27,8 @@ import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
 } from "../utils/componentIndices";
+import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
 /**
  * Loose-typed bag describing one entry in the `componentChanges` array
@@ -276,10 +278,16 @@ export class CompositeReplacementUpdater {
                     originalEffectiveLength,
                     firstIndex,
                 );
-                const updateOldReplacementsEnd = Math.min(
-                    originalEffectiveLength,
-                    firstIndex + (numberToDelete ?? 0),
-                );
+                // A replacement deleted along with its source is spliced out
+                // of `component.replacements` but keeps its place in the
+                // resolver, so `$composite[n]` still counts it. A change that
+                // recreates such replacements in place says how many of those
+                // places its new replacements take.
+                const updateOldReplacementsEnd =
+                    Math.min(
+                        originalEffectiveLength,
+                        firstIndex + (numberToDelete ?? 0),
+                    ) + (change.numberDeletedReplacementsToReplace ?? 0);
 
                 // determine which replacements are blank strings before deleting replacements
                 const blankStringReplacements = component.replacements!.map(
@@ -357,6 +365,7 @@ export class CompositeReplacementUpdater {
 
                     newComponents = createResult.components;
                 } catch (e: any) {
+                    rethrowIfCircular(e);
                     console.error(e);
                     // throw e;
                     newComponents = await this.setErrorReplacements({
@@ -603,6 +612,12 @@ export class CompositeReplacementUpdater {
                 await this.processChildChangesAndRecurseToShadows(component);
             }
         }
+
+        // A list component among the items is indexed by its entries.
+        await giveListEntriesToIndexParent({
+            core: this.core,
+            composite: component,
+        });
 
         const results = {
             success: true,
@@ -1059,6 +1074,7 @@ export class CompositeReplacementUpdater {
                         }
                     }
                 } catch (e: any) {
+                    rethrowIfCircular(e);
                     registrationFailure = e;
                 }
 
@@ -1093,6 +1109,7 @@ export class CompositeReplacementUpdater {
                         });
                         newComponents = createResult.components;
                     } catch (e: any) {
+                        rethrowIfCircular(e);
                         console.error(e);
                         // throw e;
                         newComponents = await this.setErrorReplacements({
@@ -1339,6 +1356,7 @@ export class CompositeReplacementUpdater {
                 }
             }
         } catch (e: any) {
+            rethrowIfCircular(e);
             console.error(e);
             this.markCompositeInError({
                 composite: component,
@@ -1432,8 +1450,8 @@ export class CompositeReplacementUpdater {
             // to report rather than the document's to die of.
             //
             // `addBlockersFromChangedReplacements` is deliberately *outside*
-            // the guard. It reaches `checkForCircularResolveBlocker`, whose
-            // throw is how a circular reference is reported today (#387) and
+            // the guard. It reaches `addBlocker`, whose cycle check throws
+            // the `CircularDependencyError` that reports a cycle (#387) and
             // is what several documents rely on to fail to build at all.
             // Catching that here would turn a reported cycle into a document
             // that carries on resolving one.
@@ -1495,6 +1513,7 @@ export class CompositeReplacementUpdater {
                     }
                 }
             } catch (e: any) {
+                rethrowIfCircular(e);
                 console.error(e);
                 this.markCompositeInError({
                     composite: component,

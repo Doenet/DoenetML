@@ -30,23 +30,25 @@ completed. Entries further down show nothing until their turn comes.
 
 
 ```doenet-editor-horiz
-<cascade name="walkthrough">
+<section>
   <title>Step-by-step</title>
 
-  <section boxed>
-    <title>Step 1</title>
-    <p><answer><label>What is <m>10 \div 2</m>?</label>5</answer></p>
-  </section>
+  <cascade name="walkthrough">
+    <section boxed>
+      <title>Step 1</title>
+      <p><answer><label>What is <m>10 \div 2</m>?</label>5</answer></p>
+    </section>
 
-  <cascadeMessage>
-    <em>Solve the previous step to continue.</em>
-  </cascadeMessage>
+    <cascadeMessage>
+      <em>Solve the previous step to continue.</em>
+    </cascadeMessage>
 
-  <section boxed>
-    <title>Step 2</title>
-    <p><answer><label>What is <m>10 \times 2</m>?</label>20</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Step 2</title>
+      <p><answer><label>What is <m>10 \times 2</m>?</label>20</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
@@ -62,31 +64,33 @@ correctly, the message disappears and Step 2 is revealed.
 
 
 ```doenet-editor-horiz
-<cascade name="quiz">
+<section>
   <title>A quiz with per-section prompts</title>
 
-  <section boxed>
-    <title>Part 1</title>
-    <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
-    <p><answer><label>What is <m>1 - 1</m>?</label>0</answer></p>
-  </section>
+  <cascade name="quiz">
+    <section boxed>
+      <title>Part 1</title>
+      <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
+      <p><answer><label>What is <m>1 - 1</m>?</label>0</answer></p>
+    </section>
 
-  <section boxed>
-    <title>Part 2</title>
-    <p><answer><label>What is <m>3 + 4</m>?</label>7</answer></p>
-    <cascadeMessage>
-      <em>Finish Part 1 before continuing.</em>
-    </cascadeMessage>
-  </section>
+    <section boxed>
+      <title>Part 2</title>
+      <p><answer><label>What is <m>3 + 4</m>?</label>7</answer></p>
+      <cascadeMessage>
+        <em>Finish Part 1 before continuing.</em>
+      </cascadeMessage>
+    </section>
 
-  <section boxed>
-    <title>Part 3</title>
-    <cascadeMessage>
-      <em>Finish Part 2 to unlock Part 3.</em>
-    </cascadeMessage>
-    <p><answer><label>What is <m>3 - 4</m>?</label>-1</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Part 3</title>
+      <cascadeMessage>
+        <em>Finish Part 2 to unlock Part 3.</em>
+      </cascadeMessage>
+      <p><answer><label>What is <m>3 - 4</m>?</label>-1</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
@@ -101,9 +105,9 @@ Of the two placements — nested inside a section, or a child of the
 the next section has one it is shown and any `<cascadeMessage>{:dn}` child of
 the cascade itself stays hidden while it is. Nesting the message inside the section
 is also the only placement that survives a list layout — inside a
-[`<problems>{:dn}`](problems) or any other section with `asList`, only sectioning
-children are rendered, so a `<cascadeMessage>{:dn}` child of the cascade would
-never appear.
+[`<problems>{:dn}`](problems) or any other section with `asList`, a cascade
+renders only its sections (and any nested cascades), so a
+`<cascadeMessage>{:dn}` child of the cascade would never appear.
 
 
 

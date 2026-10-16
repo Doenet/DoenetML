@@ -454,6 +454,11 @@ answer-max-num-attempts-in-section-wide-check-work = Setting `maxNumAttempts` on
 
 nested-section-wide-check-work-max-num-attempts = Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the outer container. Set `maxNumAttempts` on the outer container instead.
 
+# Raised by a `<title>` written inside a `<cascade>`. A cascade only reveals its
+# children step by step; it has no heading of its own, so the title is not
+# shown. Translators: cascade, section and title are element names.
+cascade-title-not-shown = A `<cascade>` has no heading, so this `<title>` is not shown. To give it one, wrap the `<cascade>` in a `<section>` and move the `<title>` to the `<section>`.
+
 # $attributes is a list of attribute names; $attributesCount is its length.
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -652,6 +657,15 @@ reference-multiple-referents = Multiple referents found for reference: `{ $refer
 # reference then found nothing, so the two read together rather than the reference
 # failing silently.
 reference-index-not-a-number = The index of `{ $reference }` did not work out to a number, so the reference found nothing.
+
+# An `extend` of a composite or a list (a `<sequence>`, a `<repeat>`) shows the
+# same content as the component it extends, so an attribute that would set
+# that content, and children written inside it, are not used. $attribute and
+# $componentType are an attribute name and an element name, part of the
+# DoenetML language, so they stay in English, as does `extend`.
+extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` with `extend` shows the same content as the component it extends.
+
+extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
 
 ## Children that do not match
 

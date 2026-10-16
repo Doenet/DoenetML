@@ -10,6 +10,7 @@ export const TimerLabels = {
     visibilityPeriodicSend: "visibility periodic send",
     visibilityResumeSend: "visibility resume send",
     visibilityAutoSuspend: "visibility auto-suspend",
+    visibilityHideSuspend: "visibility suspend on hide",
     firstVisibleSend: "first-visible visibility send",
     generateDastSaveState: "saveState (generateDast epilogue)",
     navigateToComponent: "navigate to component",

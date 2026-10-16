@@ -184,6 +184,50 @@ fn add_nodes_with_no_parent() {
 }
 
 #[test]
+fn name_table_of_a_fragment_is_the_size_of_the_fragment() {
+    // A composite's expansion is added after everything else, so its indices are as large
+    // as the document, which is why a table indexed by node index has the document's size.
+    let dast_root = dast_root_no_position(
+        r#"<e><a name="x">
+            <b name="y" />
+        </a></e>
+        <d name="y" /><f name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+
+    let c_idx = 10_000;
+    let g_idx = c_idx + 1;
+    let flat_fragment = flat_fragment_from_str(
+        r#"<c name="z">
+          <g name="w" />
+        </c>"#,
+        c_idx,
+        Some(b_idx),
+    );
+
+    // `c` reaches `w`, and the fragment parent `b` reaches `z` and `w`. `g` reaches no name.
+    let name_table = Resolver::build_name_map(&FlatRootOrFragment::Fragment(&flat_fragment));
+    let mut keys = name_table.keys().copied().collect::<Vec<_>>();
+    keys.sort();
+    assert_eq!(keys, vec![b_idx + 1, c_idx + 1]);
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: g_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "w"], None),
+            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
+        })
+    );
+}
+
+#[test]
 fn delete_nodes() {
     let dast_root = dast_root_no_position(
         r#"<e><a name="x">

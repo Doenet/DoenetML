@@ -2049,9 +2049,11 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
+            // `n` is a `<selectFromSequence>`, which holds its values in an
+            // array
             let n =
-                stateVariables[await win.resolvePath1("problem1.n[1]")]
-                    .stateValues.value;
+                stateVariables[await win.resolvePath1("problem1.n")].stateValues
+                    .numbers[0];
 
             let mathInput1Idx =
                 stateVariables[await win.resolvePath1(`problem1.cc.answer`)]

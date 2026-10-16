@@ -73,6 +73,7 @@ export type MessageKey =
     | "core-start-failed-retry"
     | "core-start-failed-busy-retry"
     | "core-start-failed-document"
+    | "document-stopped"
     | "core-start-retry"
     | "saved-state-unavailable"
     | "saved-state-from-older-version"
@@ -412,6 +413,7 @@ export type MessageKey =
     | "answer-award-depends-on-own-response"
     | "answer-max-num-attempts-in-section-wide-check-work"
     | "nested-section-wide-check-work-max-num-attempts"
+    | "cascade-title-not-shown"
     | "answer-attributes-need-symbolic-equality"
     | "answer-invalid-type"
     | "module-attribute-child-needs-name"
@@ -463,6 +465,8 @@ export type MessageKey =
     | "reference-no-referent"
     | "reference-multiple-referents"
     | "reference-index-not-a-number"
+    | "extend-attribute-ignored"
+    | "extend-children-ignored"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -708,6 +712,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "core-start-failed-retry",
     "core-start-failed-busy-retry",
     "core-start-failed-document",
+    "document-stopped",
     "core-start-retry",
     "saved-state-unavailable",
     "saved-state-from-older-version",
@@ -1047,6 +1052,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "answer-award-depends-on-own-response",
     "answer-max-num-attempts-in-section-wide-check-work",
     "nested-section-wide-check-work-max-num-attempts",
+    "cascade-title-not-shown",
     "answer-attributes-need-symbolic-equality",
     "answer-invalid-type",
     "module-attribute-child-needs-name",
@@ -1098,6 +1104,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-no-referent",
     "reference-multiple-referents",
     "reference-index-not-a-number",
+    "extend-attribute-ignored",
+    "extend-children-ignored",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",

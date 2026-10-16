@@ -14,6 +14,10 @@ import {
 } from "../utils/scoredSection";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { returnSubmitLabelStateVariableDefinitions } from "../utils/answer";
+import {
+    DIVISION_SEQUENCE,
+    returnSequenceNumbersOfChildrenDefinition,
+} from "../utils/sequenceNumbering";
 
 export default class Document extends BaseComponent {
     constructor(args) {
@@ -128,6 +132,14 @@ export default class Document extends BaseComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // How the document numbers the top-level divisions, counting through
+        // any `<div>` or `<cascade>` among them, from the `initializeCounters`
+        // the hosting page passed in. See `utils/sequenceNumbering.js`.
+        stateVariableDefinitions.divisionNumbersOfChildren =
+            returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE, {
+                isDocument: true,
+            });
 
         // Note: style definition state variables allow one to redefine the style
         // via styledefinitions inside a setup in the document

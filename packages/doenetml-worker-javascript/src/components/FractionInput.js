@@ -681,6 +681,10 @@ export class FractionInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition({ dependencyValues }) {
                 const childIndicesToRender = [0, 1];
@@ -689,6 +693,9 @@ export class FractionInput extends Input {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {

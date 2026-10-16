@@ -42,9 +42,6 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     let lastPausedTime = useRef<number>(0);
     let lastPlayedTime = useRef<number | null>(null);
     let pollIntervalId = useRef<any>(null);
-    // The deferred pause of the cued-seek workaround below. Held in a ref so
-    // it can be cancelled when the player is torn down.
-    let cueSeekTimeoutId = useRef<any>(null);
     let lastSetTimeAction = useRef<number | null>(null);
 
     let lastSVsState = useRef<any>(null);
@@ -99,7 +96,6 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             // against a destroyed/null player.current.
             clearInterval(pollIntervalId.current);
             clearTimeout(pauseTimeoutId.current);
-            clearTimeout(cueSeekTimeoutId.current);
             player.current?.destroy();
             player.current = null;
             // Reset state tracked across the previous player's lifetime so it
@@ -465,7 +461,10 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             let time = SVs.time ?? 0;
             let duration = player.current.getDuration();
 
-            if (time > duration) {
+            // Until the video's metadata loads, the player reports a duration
+            // of 0; clamping to it would overwrite the viewer's saved position
+            // with 0.
+            if (duration > 0 && time > duration) {
                 time = Math.floor(duration);
                 callAction({
                     action: actions.setTime,
@@ -475,32 +474,23 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                 });
             }
             if (time !== Number(lastSetTimeAction.current)) {
-                if (player.current.getPlayerState() === PlayerState.CUED) {
-                    // if cued, seeking will automatically start the video.
-                    // Pausing it first doesn't seem to work
-                    // so, instead pause it 200 ms after hitting play
-                    // (If pause immediately, then always get a black screen with spinning arrow.
-                    // Pausing after 200 ms sometimes prevents black screen, but it is imperfect.)
-                    // TODO: find a better solution
-                    // See also: https://issuetracker.google.com/issues/77752719
-
-                    player.current.pauseVideo(); // doesn't seem to do anything!
-                    player.current.seekTo(time, true);
-                    clearTimeout(cueSeekTimeoutId.current);
-                    cueSeekTimeoutId.current = window.setTimeout(() => {
-                        // Only re-pause if nothing has asked the video to play
-                        // in the meantime. Without this guard the deferred
-                        // pause lands on top of a user's play and cancels it,
-                        // leaving the player stuck in UNSTARTED: it never
-                        // reaches PLAYING, so `onPlayerStateChange` never
-                        // starts the 200ms time poll or the watch telemetry.
-                        if (
-                            player.current &&
-                            lastSVsState.current !== "playing"
-                        ) {
-                            player.current.pauseVideo();
-                        }
-                    }, 200);
+                if (
+                    player.current.getPlayerState() === PlayerState.CUED &&
+                    SVs.state !== "playing"
+                ) {
+                    // Seeking a cued player starts playing it (YouTube
+                    // documents this). Viewers restoring a saved position
+                    // this way were left with a black frame with no poster
+                    // and no controls. A browser blocking that autoplay is
+                    // the likely cause, but it has not been reproduced. Cue
+                    // the video at the offset instead, which keeps the
+                    // player CUED and usable. (Not when it has been told to
+                    // play: re-cueing would cancel that play, and a seek into
+                    // a starting video is what was asked for.)
+                    player.current.cueVideoById({
+                        videoId: SVs.youtube,
+                        startSeconds: time,
+                    });
                 } else {
                     player.current.seekTo(time, true);
                 }

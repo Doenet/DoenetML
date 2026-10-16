@@ -5,6 +5,7 @@ import { addComponents } from "./ComponentBuilder";
 import { deleteComponents } from "./DeletionEngine";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
+import { listEntryActionNames } from "./RendererInstructionBuilder";
 
 /**
  * Source-side metadata about *how* an update originated. Indexed by
@@ -220,6 +221,46 @@ export class UpdateExecutor {
 
         if (actionName === "recordVisibilityChange" && args) {
             this.core.recordRenderVisibility(componentIdx!, args);
+        }
+
+        // An entry of a list component is drawn with a renderer of its own
+        // (`RendererInstructionBuilder.rendererIdxForListEntry`), and what
+        // that renderer sends goes to the list, with the entry's index.
+        const listEntry =
+            this.core.rendererInstructionBuilder.listEntryOfRenderer(
+                componentIdx!,
+            );
+        if (listEntry) {
+            // Only an action of a component of the entries' type: the list
+            // has actions of its own (copying its DoenetML) that are not
+            // the entry's.
+            const listActions = listEntry.list?.actions ?? {};
+            const entryActionNames = listEntryActionNames(
+                listEntry.list?.constructor.listEntryComponentType,
+            );
+            const actionNameLower = actionName.toLowerCase();
+            const matched = entryActionNames.find((aName) =>
+                caseInsensitiveMatch
+                    ? aName.toLowerCase() === actionNameLower
+                    : aName === actionName,
+            );
+            const action = matched ? listActions[matched] : undefined;
+            if (action) {
+                if (event) {
+                    this.core.requestRecordEvent(event);
+                }
+                await action({
+                    ...args,
+                    listEntryIndex: listEntry.entryIndex,
+                });
+                return { actionId: args?.actionId };
+            }
+            // A `<callAction>` naming an action the entry does not have, as
+            // for a component below. An action the renderer of an entry
+            // sends that its list does not take is ignored.
+            return caseInsensitiveMatch && listEntry.list
+                ? { actionUnavailable: true }
+                : { actionId: args?.actionId };
         }
 
         let component = this.core._components[componentIdx!];

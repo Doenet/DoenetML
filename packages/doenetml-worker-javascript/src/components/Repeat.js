@@ -33,11 +33,7 @@ export default class Repeat extends CompositeComponent {
     static addAttributeToResolver = "for";
 
     static keepChildrenSerialized({ serializedComponent }) {
-        if (serializedComponent.children === undefined) {
-            return [];
-        } else {
-            return Object.keys(serializedComponent.children);
-        }
+        return templateChildIndices(serializedComponent);
     }
 
     // since don't have child groups, tell schema about children here
@@ -124,6 +120,10 @@ export default class Repeat extends CompositeComponent {
                             compositeIdx: stateValues.sourcesComponentIdx,
                             recursive: true,
                             recurseNonStandardComposites: true,
+                            // how many entries a list component among the
+                            // sources has (`ValueListComponent`)
+                            variableNames: ["numEntries"],
+                            variablesOptional: true,
                         },
                     };
                 } else {
@@ -136,10 +136,17 @@ export default class Repeat extends CompositeComponent {
                         (s) => typeof s !== "string" || s.trim() !== "",
                     );
 
-                    let numIterates = nonBlankSources.length;
-                    let sourcesChildIndices = nonBlankSources.map(
-                        (x) => x.componentIdx,
+                    // A list component among the sources is one item per
+                    // entry.
+                    let sourcesChildIndices = nonBlankSources.flatMap((x) =>
+                        x.stateValues?.numEntries !== undefined
+                            ? [...Array(x.stateValues.numEntries).keys()].map(
+                                  (entryInd) =>
+                                      listEntrySource(x.componentIdx, entryInd),
+                              )
+                            : [x.componentIdx],
                     );
+                    let numIterates = sourcesChildIndices.length;
 
                     return {
                         setValue: {
@@ -317,10 +324,12 @@ export default class Repeat extends CompositeComponent {
         }
 
         const numIterates = await component.stateValues.numIterates;
+        const sourcesChildIndices =
+            await component.stateValues.sourcesChildIndices;
 
         workspace.lastReplacementParameters = {
-            sourcesChildIndices:
-                await component.stateValues.sourcesChildIndices,
+            sourcesChildIndices,
+            sourcesOfReplacements: sourcesChildIndices.slice(0, numIterates),
             numIterates,
             replacementsToWithhold: 0,
             withheldSubstitutionChildNames: [],
@@ -458,9 +467,17 @@ export default class Repeat extends CompositeComponent {
             if (currentNIters !== prevNIters) {
                 allSameChildSubstitutionNames = false;
             }
-            let minNiters = Math.min(currentNIters, prevNIters);
-            for (let ind = 0; ind < minNiters; ind++) {
-                if (sourcesChildIndices[ind] != lrp.sourcesChildIndices[ind]) {
+            // Each replacement's `valueName` points at the source it was
+            // created for, so compare every replacement that will be shown,
+            // including withheld ones about to be shown again.
+            let numToCompare = Math.min(
+                currentNIters,
+                lrp.sourcesOfReplacements.length,
+            );
+            for (let ind = 0; ind < numToCompare; ind++) {
+                if (
+                    sourcesChildIndices[ind] != lrp.sourcesOfReplacements[ind]
+                ) {
                     recreateReplacements = true;
                     allSameChildSubstitutionNames = false;
                     break;
@@ -500,6 +517,10 @@ export default class Repeat extends CompositeComponent {
 
             workspace.lastReplacementParameters = {
                 sourcesChildIndices,
+                sourcesOfReplacements: sourcesChildIndices.slice(
+                    0,
+                    numIterates,
+                ),
                 numIterates,
                 replacementsToWithhold: 0,
                 withheldSubstitutionChildNames: [],
@@ -516,6 +537,7 @@ export default class Repeat extends CompositeComponent {
             currentReplacementsToWithhold = 0;
         }
         let withheldSubstitutionChildNames = lrp.withheldSubstitutionChildNames;
+        let sourcesOfReplacements = [...lrp.sourcesOfReplacements];
 
         // Check if any previous substitution child names
         // or any previously withheld child names
@@ -524,7 +546,11 @@ export default class Repeat extends CompositeComponent {
         let foundDeletedSourcesChild = false;
         if (currentNumIterates < prevNumIterates) {
             for (let ind = currentNumIterates; ind < prevNumIterates; ind++) {
-                if (components[lrp.sourcesChildIndices[ind]] === undefined) {
+                if (
+                    components[
+                        sourceComponentIdx(lrp.sourcesChildIndices[ind])
+                    ] === undefined
+                ) {
                     foundDeletedSourcesChild = true;
                 }
             }
@@ -532,7 +558,7 @@ export default class Repeat extends CompositeComponent {
             if (!foundDeletedSourcesChild) {
                 // check if any of the previously withheld substitutionChildNames are deleted
                 for (let name of lrp.withheldSubstitutionChildNames) {
-                    if (components[name] === undefined) {
+                    if (components[sourceComponentIdx(name)] === undefined) {
                         foundDeletedSourcesChild = true;
                     }
                 }
@@ -557,6 +583,10 @@ export default class Repeat extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
 
             withheldSubstitutionChildNames = [];
+            sourcesOfReplacements = sourcesOfReplacements.slice(
+                0,
+                firstReplacementToDelete,
+            );
             currentReplacementsToWithhold = 0;
         }
 
@@ -631,6 +661,7 @@ export default class Repeat extends CompositeComponent {
                     replacements.push(...res.replacements);
                     diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
+                    sourcesOfReplacements[iter] = sourcesChildIndices[iter];
                 }
 
                 let replacementInstruction = {
@@ -646,6 +677,7 @@ export default class Repeat extends CompositeComponent {
 
         workspace.lastReplacementParameters = {
             sourcesChildIndices,
+            sourcesOfReplacements,
             numIterates,
             replacementsToWithhold: newReplacementsToWithhold,
             withheldSubstitutionChildNames,
@@ -777,12 +809,15 @@ export async function copyStateFromUnlinkedSource({
     }
 }
 
+// A copy can have more children than its source: children written inside
+// `<repeat copy="$r">` follow the copied template and have no source.
 function copyStateFromUnlinkedSourceSub(replacements, sources) {
     for (let [i, repl] of replacements.entries()) {
         let src = sources[i];
 
         if (
             typeof repl === "object" &&
+            typeof src === "object" &&
             repl.componentType === src.componentType
         ) {
             repl.state = src.state;
@@ -800,6 +835,26 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
                         [repl.attributes[attrName].component],
                         [src.attributes[attrName].component],
                     );
+                } else if (
+                    repl.attributes[attrName].type === "literal" &&
+                    ("value" in repl.attributes[attrName] ||
+                        repl.attributes[attrName].componentType === "point") &&
+                    src.attributes[attrName]?.type === "literal" &&
+                    "value" in src.attributes[attrName]
+                ) {
+                    // A literal held as its value (a boolean, or an attribute
+                    // written with no value) takes the value the source's
+                    // literal has now, with a reader's write over it, as the
+                    // essential state of the attribute component it stands
+                    // for was taken. So does a point written as numbers
+                    // (`anchor="(1,2)"`): its point kept a write in the
+                    // essential state of its coordinates. A literal written
+                    // as text is not: the component kept a write in its text
+                    // child, not its state.
+                    repl.attributes[attrName] = {
+                        ...repl.attributes[attrName],
+                        value: src.attributes[attrName].value,
+                    };
                 }
             }
         }
@@ -831,7 +886,7 @@ async function addAndLinkAliasComponents(
     // a mapping from the dummy or value component indices to the new alias components we're creating
     const extendIdxMapping = {};
 
-    if (valueName) {
+    if (valueName && !hasIterationList(component, "_repeatValues")) {
         const valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
@@ -860,24 +915,19 @@ async function addAndLinkAliasComponents(
             children: [],
             state: {},
             extending: {
-                Ref: {
-                    nodeIdx: sourcesComponentIdx,
-                    originalPath: [
-                        { name: "", index: [{ value: [`${iter + 1}`] }] },
-                    ],
-                    unresolvedPath: [
-                        // get the item from the sources
-                        { name: "", index: [{ value: [`${iter + 1}`] }] },
-                    ],
-                    nodesInResolvedPath: [sourcesComponentIdx],
-                },
+                Ref: sourceRefForIter({
+                    sourcesChildIndices:
+                        await component.stateValues.sourcesChildIndices,
+                    sourcesComponentIdx,
+                    iter,
+                }),
             },
         });
     }
 
     const indexName = await component.stateValues.indexName;
 
-    if (indexName) {
+    if (indexName && !hasIterationList(component, "_repeatIndices")) {
         const indexComponentIdx = nComponents++;
         const indexDummyIdx = await component.stateValues.indexDummyIdx;
         if (indexDummyIdx != null) {
@@ -904,19 +954,158 @@ async function addAndLinkAliasComponents(
 
     const newRepl = { ...thisRepl };
 
-    if (Object.keys(extendIdxMapping).length > 0) {
+    // The value and index that are lists of the repeat's own
+    // (`_repeatValues`, `_repeatIndices`) are read at this iteration's entry.
+    const entryIdxMapping = iterationEntryMapping(component, iter);
+
+    if (
+        Object.keys(extendIdxMapping).length > 0 ||
+        Object.keys(entryIdxMapping).length > 0
+    ) {
         newRepl.children = remapExtendIndices(
             thisRepl.children,
             extendIdxMapping,
+            entryIdxMapping,
         );
     }
 
-    newRepl.children.push(setupComponent);
+    // A `<setup>` only for the components named after the value and index
+    // that are not lists of the repeat's.
+    if (setupComponent.children.length > 0) {
+        newRepl.children.push(setupComponent);
+    }
 
     return { replacement: newRepl, nComponents };
 }
 
-export function remapExtendIndices(components, extendIdxMapping) {
+/**
+ * The item of `sourcesChildIndices` for entry `entryInd` of the list
+ * component `listIdx`, which has no component of its own.
+ */
+function listEntrySource(listIdx, entryInd) {
+    return `${listIdx}|${entryInd}`;
+}
+
+/**
+ * The component an item of `sourcesChildIndices` is or is in: itself, or the
+ * list component of a list entry (`listEntrySource`).
+ */
+function sourceComponentIdx(source) {
+    if (typeof source === "string" && source.includes("|")) {
+        return Number(source.split("|")[0]);
+    }
+    return source;
+}
+
+/**
+ * The reference that the `valueName` of iteration `iter` extends.
+ *
+ * It points straight at the item the iteration was counted from: entry `iter`
+ * of `sourcesChildIndices`. Every composite among the sources has been replaced
+ * by its items there, including one written inside a group, such as the
+ * `<mathList>` in `<group><mathList>1 2 3</mathList></group>`, so iteration
+ * `iter` gets the `iter`-th item that the group displays. An entry of a list
+ * component is the list at the entry's index.
+ *
+ * A source that is text has no component to point at, so it is looked up at
+ * position `iter + 1` in the `for` group's index.
+ */
+function sourceRefForIter({ sourcesChildIndices, sourcesComponentIdx, iter }) {
+    const sourceIdx = sourcesChildIndices[iter];
+
+    if (typeof sourceIdx === "string" && sourceIdx.includes("|")) {
+        const [listIdx, entryInd] = sourceIdx.split("|").map(Number);
+        const index = [{ value: [`${entryInd + 1}`] }];
+        return {
+            nodeIdx: listIdx,
+            originalPath: [{ name: "", index }],
+            unresolvedPath: [{ name: "", index }],
+            nodesInResolvedPath: [listIdx],
+        };
+    }
+
+    if (typeof sourceIdx === "number") {
+        return {
+            nodeIdx: sourceIdx,
+            originalPath: [{ name: "", index: [] }],
+            unresolvedPath: null,
+            nodesInResolvedPath: [sourceIdx],
+        };
+    }
+
+    return {
+        nodeIdx: sourcesComponentIdx,
+        originalPath: [{ name: "", index: [{ value: [`${iter + 1}`] }] }],
+        unresolvedPath: [
+            // get the item from the sources
+            { name: "", index: [{ value: [`${iter + 1}`] }] },
+        ],
+        nodesInResolvedPath: [sourcesComponentIdx],
+    };
+}
+
+/**
+ * The children of a repeat that its template is made of, which it keeps
+ * serialized and copies for each iteration: all but the lists of its values
+ * and indices (`_repeatValues`, `_repeatIndices`), which it creates once.
+ */
+export function templateChildIndices(serializedComponent) {
+    if (serializedComponent.children === undefined) {
+        return [];
+    }
+    return Object.keys(serializedComponent.children).filter(
+        (ind) =>
+            !ITERATION_LIST_TYPES.includes(
+                serializedComponent.children[ind].componentType,
+            ),
+    );
+}
+
+const ITERATION_LIST_TYPES = ["_repeatValues", "_repeatIndices"];
+
+/**
+ * Whether `component` holds its values (`_repeatValues`) or indices
+ * (`_repeatIndices`) as a list, which its iterations read their entries of,
+ * in place of a component of each iteration's own; or nothing reads them, so
+ * that it holds them nowhere (`unreadIterationNames`, from
+ * `utils/dast/valueReferences.ts`).
+ */
+export function hasIterationList(component, listType) {
+    return (
+        component.doenetAttributes.unreadIterationNames?.includes(listType) ||
+        component.definingChildren.some(
+            (child) => child.componentType === listType,
+        )
+    );
+}
+
+/**
+ * For iteration `iter` of `component`, the entry of each list of its values
+ * or indices that the iteration reads, by the list's index: what
+ * `remapExtendIndices` points the iteration's references to the list at.
+ */
+export function iterationEntryMapping(component, iter) {
+    const entryIdxMapping = {};
+    for (const child of component.definingChildren) {
+        if (ITERATION_LIST_TYPES.includes(child.componentType)) {
+            entryIdxMapping[child.componentIdx] = iter + 1;
+        }
+    }
+    return entryIdxMapping;
+}
+
+/**
+ * Point the references in `components` at the components an iteration made
+ * for the value and index: `extendIdxMapping` maps the component the
+ * repeat's sugar named for each to the iteration's own. A reference to a
+ * list of the repeat's values or indices instead reads the iteration's entry
+ * of it, `entryIdxMapping[listIdx]`, as `$v[2]`.
+ */
+export function remapExtendIndices(
+    components,
+    extendIdxMapping,
+    entryIdxMapping = {},
+) {
     const newComponents = [];
     for (const comp of components) {
         if (typeof comp === "string") {
@@ -927,43 +1116,20 @@ export function remapExtendIndices(components, extendIdxMapping) {
         let newComponent = { ...comp };
         const extending = newComponent.extending;
         if (extending) {
-            const refResolution = unwrapSource(extending);
-
-            const newRefResolution = { ...refResolution };
-
-            const remapIdx = extendIdxMapping[refResolution.nodeIdx];
-            if (remapIdx != undefined) {
-                newRefResolution.nodeIdx = remapIdx;
-            }
-
-            if (refResolution.unresolvedPath) {
-                newRefResolution.unresolvedPath = remapExtendIndicesInPath(
-                    refResolution.unresolvedPath,
+            newComponent.extending = addSource(
+                remapRefResolutionForIteration(
+                    unwrapSource(extending),
                     extendIdxMapping,
-                );
-            }
-
-            newRefResolution.originalPath = remapExtendIndicesInPath(
-                refResolution.originalPath,
-                extendIdxMapping,
+                    entryIdxMapping,
+                ),
+                extending,
             );
-
-            newRefResolution.nodesInResolvedPath =
-                refResolution.nodesInResolvedPath.map((idx) => {
-                    const remapIdx = extendIdxMapping[idx];
-                    if (remapIdx != undefined) {
-                        return remapIdx;
-                    } else {
-                        return idx;
-                    }
-                });
-
-            newComponent.extending = addSource(newRefResolution, extending);
         }
 
         newComponent.children = remapExtendIndices(
             newComponent.children,
             extendIdxMapping,
+            entryIdxMapping,
         );
 
         const attributes = { ...newComponent.attributes };
@@ -973,17 +1139,33 @@ export function remapExtendIndices(components, extendIdxMapping) {
                 attr.component = remapExtendIndices(
                     [attr.component],
                     extendIdxMapping,
+                    entryIdxMapping,
                 )[0];
             } else if (attr.type === "references") {
                 attr.references = remapExtendIndices(
                     attr.references,
                     extendIdxMapping,
+                    entryIdxMapping,
                 );
             } else if (attr.type === "unresolved") {
                 attr.children = remapExtendIndices(
                     attr.children,
                     extendIdxMapping,
+                    entryIdxMapping,
                 );
+            } else if (attr.type === "expression") {
+                // the references the component resolves itself
+                attributes[attrName] = {
+                    ...attr,
+                    slots: attr.slots.map((slot) => ({
+                        ...slot,
+                        refResolution: remapRefResolutionForIteration(
+                            slot.refResolution,
+                            extendIdxMapping,
+                            entryIdxMapping,
+                        ),
+                    })),
+                };
             }
         }
 
@@ -994,7 +1176,64 @@ export function remapExtendIndices(components, extendIdxMapping) {
 
     return newComponents;
 }
-function remapExtendIndicesInPath(path, extendIdxMapping) {
+/**
+ * `refResolution` pointed at what an iteration made for the value and index
+ * (`remapExtendIndices`).
+ */
+function remapRefResolutionForIteration(
+    refResolution,
+    extendIdxMapping,
+    entryIdxMapping,
+) {
+    const newRefResolution = { ...refResolution };
+
+    const remapIdx = extendIdxMapping[refResolution.nodeIdx];
+    if (remapIdx != undefined) {
+        newRefResolution.nodeIdx = remapIdx;
+    }
+
+    if (refResolution.unresolvedPath) {
+        newRefResolution.unresolvedPath = remapExtendIndicesInPath(
+            refResolution.unresolvedPath,
+            extendIdxMapping,
+            entryIdxMapping,
+        );
+    }
+
+    newRefResolution.originalPath = remapExtendIndicesInPath(
+        refResolution.originalPath,
+        extendIdxMapping,
+        entryIdxMapping,
+    );
+
+    newRefResolution.nodesInResolvedPath =
+        refResolution.nodesInResolvedPath.map((idx) => {
+            const remapIdx = extendIdxMapping[idx];
+            if (remapIdx != undefined) {
+                return remapIdx;
+            } else {
+                return idx;
+            }
+        });
+
+    const entry = entryIdxMapping[refResolution.nodeIdx];
+    if (entry !== undefined) {
+        const entryIndex = { value: [`${entry}`] };
+        newRefResolution.unresolvedPath = [
+            { name: "", index: [entryIndex] },
+            ...(newRefResolution.unresolvedPath ?? []),
+        ];
+        const [first, ...rest] = newRefResolution.originalPath;
+        newRefResolution.originalPath = [
+            { ...first, index: [entryIndex, ...first.index] },
+            ...rest,
+        ];
+    }
+
+    return newRefResolution;
+}
+
+function remapExtendIndicesInPath(path, extendIdxMapping, entryIdxMapping) {
     const unresolvedPath = [];
     for (const pathPath of path) {
         const newPathPart = { ...pathPath };
@@ -1005,6 +1244,7 @@ function remapExtendIndicesInPath(path, extendIdxMapping) {
             newIndexPart.value = remapExtendIndices(
                 newIndexPart.value,
                 extendIdxMapping,
+                entryIdxMapping,
             );
             index.push(newIndexPart);
         }

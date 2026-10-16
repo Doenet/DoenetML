@@ -33,6 +33,14 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         }
     };
 
+    // The points a graph holds: the entries of the one `<pointList>` it
+    // holds, which keeps them in its `points` array rather than as `<point>`
+    // components.
+    function pointsIn(stateVariables, graphIdx) {
+        const listIdx = stateVariables[graphIdx].activeChildren[0].componentIdx;
+        return stateVariables[listIdx].stateValues.points;
+    }
+
     it("copy extracted points from spreadsheet", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -102,36 +110,36 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[0][2],
             ).eq("5");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
-            ).eq(0);
-            expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
                     .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
+                    .length,
+            ).eq(0);
+            expect(
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
             ).eq(0);
         });
 
@@ -172,36 +180,36 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[0][2],
             ).eq("5");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([4, 9]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
-            ).eq(0);
-            expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
                     .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
+                    .length,
+            ).eq(0);
+            expect(
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[0],
             ).eqls([4, 9]);
             expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
             ).eq(0);
         });
 
@@ -233,54 +241,51 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[2][1],
             ).eq("(5,4)");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(2);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([4, 9]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[1],
             ).eqls([5, 4]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inCellB3")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
                     .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[0],
             ).eqls([4, 9]);
             expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[0],
             ).eqls([5, 4]);
         });
 
@@ -327,42 +332,39 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[2][1],
             ).eq("(5,4)");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inCellB3")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
                     .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[0],
             ).eqls([5, 4]);
         });
 
@@ -398,60 +400,57 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[3][0],
             ).eq("(3,2)");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(2);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[1],
             ).eqls([3, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inCellB3")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
                     .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[0],
             ).eqls([3, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
             ).eq(2);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[1],
             ).eqls([3, 2]);
         });
 
@@ -487,72 +486,69 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[3][0],
             ).eq("(3,2)");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(3);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([7, 3]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[1],
             ).eqls([5, 4]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[2].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[2],
             ).eqls([3, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
+                    .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inCellB3")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
                     .length,
             ).eq(0);
             expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
             ).eq(2);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[0],
             ).eqls([7, 3]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[1],
             ).eqls([3, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
             ).eq(2);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[1],
             ).eqls([3, 2]);
         });
 
@@ -592,84 +588,78 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     .stateValues.cells[1][3],
             ).eq("(x,q)");
             expect(
-                stateVariables[await win.resolvePath1("inAllCells")]
-                    .activeChildren.length,
+                pointsIn(stateVariables, await win.resolvePath1("inAllCells"))
+                    .length,
             ).eq(4);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[0],
             ).eqls([7, 3]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[1],
             ).eqls(["x", "q"]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[2].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[2],
             ).eqls([5, 4]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inAllCells")]
-                        .activeChildren[3].componentIdx
-                ].stateValues.xs,
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inAllCells"),
+                )[3],
             ).eqls([3, 2]);
             expect(
-                stateVariables[await win.resolvePath1("inCellB3")]
-                    .activeChildren.length,
-            ).eq(1);
-            expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inCellB3")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
-            ).eqls([5, 4]);
-            expect(
-                stateVariables[await win.resolvePath1("inRow2")].activeChildren
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))
                     .length,
             ).eq(1);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRow2")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
-            ).eqls(["x", "q"]);
-            expect(
-                stateVariables[await win.resolvePath1("inColumn1")]
-                    .activeChildren.length,
-            ).eq(2);
-            expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
-            ).eqls([7, 3]);
-            expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inColumn1")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
-            ).eqls([3, 2]);
-            expect(
-                stateVariables[await win.resolvePath1("inRangeA2B4")]
-                    .activeChildren.length,
-            ).eq(2);
-            expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[0].componentIdx
-                ].stateValues.xs,
+                pointsIn(stateVariables, await win.resolvePath1("inCellB3"))[0],
             ).eqls([5, 4]);
             expect(
-                stateVariables[
-                    stateVariables[await win.resolvePath1("inRangeA2B4")]
-                        .activeChildren[1].componentIdx
-                ].stateValues.xs,
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))
+                    .length,
+            ).eq(1);
+            expect(
+                pointsIn(stateVariables, await win.resolvePath1("inRow2"))[0],
+            ).eqls(["x", "q"]);
+            expect(
+                pointsIn(stateVariables, await win.resolvePath1("inColumn1"))
+                    .length,
+            ).eq(2);
+            expect(
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[0],
+            ).eqls([7, 3]);
+            expect(
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inColumn1"),
+                )[1],
+            ).eqls([3, 2]);
+            expect(
+                pointsIn(stateVariables, await win.resolvePath1("inRangeA2B4"))
+                    .length,
+            ).eq(2);
+            expect(
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[0],
+            ).eqls([5, 4]);
+            expect(
+                pointsIn(
+                    stateVariables,
+                    await win.resolvePath1("inRangeA2B4"),
+                )[1],
             ).eqls([3, 2]);
         });
 
@@ -2048,5 +2038,92 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         cy.get("#bi").click();
         cy.get(cell(1, 1)).should("not.have.attr", "role");
         cy.get(cell(1, 1)).should("not.have.css", "font-weight", "700");
+    });
+
+    it("column widths hold after the table stretches to its width", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet name="viaCol" columnHeaders="false" rowHeaders="false" width="400px" minNumColumns="2">
+      <col width="35%" />
+      <col width="65%" />
+      <row><cell fixed>Candidates:</cell></row>
+      <row><cell fixed>Outcome:</cell></row>
+    </spreadsheet>
+    <spreadsheet name="wrapping" columnHeaders="false" rowHeaders="false" width="400px" minNumColumns="2">
+      <col width="30%" />
+      <col width="70%" />
+      <row><cell fixed>Voting Method, a label long enough to wrap:</cell></row>
+      <row><cell fixed>Outcome:</cell></row>
+    </spreadsheet>
+    <spreadsheet name="viaColumn" columnHeaders="false" rowHeaders="false" width="400px" minNumColumns="3">
+      <row><cell fixed>Candidates:</cell></row>
+      <column colNum="2" width="120px" />
+    </spreadsheet>
+    <spreadsheet name="auto" columnHeaders="false" rowHeaders="false" width="400px" minNumColumns="2">
+      <row><cell fixed>Candidates:</cell></row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cellWidth = (id, column) =>
+            cy
+                .get(
+                    `#${id} .ht_master tbody > :nth-child(1) > :nth-child(${column})`,
+                )
+                .then(($td) => $td[0].getBoundingClientRect().width);
+
+        // Percentages are of the spreadsheet's width, so the empty column
+        // students type into is wider than the label column, even though
+        // automatic sizing alone would make it the narrower of the two.
+        cellWidth("viaCol", 1).should("be.closeTo", 140, 3);
+        cellWidth("viaCol", 2).should("be.closeTo", 260, 3);
+
+        // A label too long for its column wraps, and the taller rows give
+        // the spreadsheet a vertical scrollbar. The percentages are then of
+        // the width beside the scrollbar, so the columns still fit and no
+        // horizontal scrollbar is added.
+        cy.get("#wrapping .ht_master .wtHolder").should(($holder) => {
+            const holder = $holder[0];
+            expect(holder.clientWidth).lt(holder.offsetWidth);
+            expect(holder.scrollWidth).lte(holder.clientWidth);
+        });
+        cy.get("#wrapping .ht_master .wtHolder").then(($holder) => {
+            const holder = $holder[0];
+            cellWidth("wrapping", 1).should(
+                "be.closeTo",
+                0.3 * holder.clientWidth,
+                3,
+            );
+            cellWidth("wrapping", 2).should(
+                "be.closeTo",
+                0.7 * holder.clientWidth,
+                3,
+            );
+        });
+
+        // A column given a width keeps it; the columns left alone share the
+        // rest, the label column still wider than the empty third column.
+        cellWidth("viaColumn", 2).should("be.closeTo", 120, 3);
+        cellWidth("viaColumn", 1).then((labelWidth) => {
+            cellWidth("viaColumn", 3).then((emptyWidth) => {
+                expect(labelWidth).gt(emptyWidth);
+                expect(labelWidth + emptyWidth).closeTo(280, 3);
+            });
+        });
+
+        // without widths, automatic sizing leaves the empty column narrower
+        cellWidth("auto", 1).then((labelWidth) => {
+            cellWidth("auto", 2).then((emptyWidth) => {
+                expect(labelWidth).gt(emptyWidth);
+            });
+        });
     });
 });

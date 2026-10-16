@@ -244,6 +244,15 @@ export const CORE_START_FAILED_DOCUMENT_MESSAGE =
     "This document could not be built. There is a problem in the document itself, " +
     "so reloading will not help.";
 
+/**
+ * English fallback for `document-stopped` -- shown in place of a document that
+ * was working until an update created a circular dependency in it, which stops
+ * the document (the core's `documentStopped` notice). `DocViewer` appends the
+ * cause, as it does for `core-start-failed-document`.
+ */
+export const DOCUMENT_STOPPED_MESSAGE =
+    "This document stopped working because of a problem in the document itself.";
+
 /** English fallback for `core-start-retry` — the retry button's label. */
 export const CORE_START_RETRY_MESSAGE = "Try again";
 

@@ -1,10 +1,9 @@
 import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
-import { evaluateToNumber, textToAst } from "../../utils/math";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { convertValueToType } from "../../utils/selectableType";
 
 /**
  * The `type` a child inherits from its parent, as the parent will actually use
@@ -707,36 +706,5 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
         };
 
         return stateVariableDefinitions;
-    }
-}
-
-function convertValueToType(value, type) {
-    if (Array.isArray(value)) {
-        value = value[0];
-    }
-    if (type === "number") {
-        // Both branches have to spell "not a number" the same way, and for a
-        // `number`-typed value that spelling is `NaN`. The sibling
-        // `Number(value)` already gives `NaN` for anything unconvertible. The
-        // engine used to report an expression it cannot evaluate as `null`,
-        // which is `0` to arithmetic and which `Number.isNaN` answers `false`
-        // for; it answers `NaN` now, and `evaluateToNumber` still maps the
-        // `Complex` arm onto the same spelling.
-        if (value instanceof me.class) {
-            return evaluateToNumber(value);
-        }
-        return Number(value);
-    } else if (type === "math") {
-        if (typeof value === "string") {
-            try {
-                return me.fromAst(textToAst.convert(value));
-            } catch (e) {}
-        }
-        return convertValueToMathExpression(value);
-    } else if (type === "boolean") {
-        return Boolean(value);
-    } else {
-        // type is letters or text
-        return String(value);
     }
 }

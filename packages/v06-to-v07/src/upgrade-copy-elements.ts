@@ -1,13 +1,20 @@
 import { Plugin } from "unified";
 import {
     DastElement,
+    DastNodes,
     DastRoot,
     isDastElement,
+    lezerToDast,
     toXml,
     visit,
 } from "@doenet/parser";
 import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
+import {
+    FetchExternalDoenetML,
+    plainAttributeText,
+    upgradeDoenetUri,
+} from "./doenet-uri";
 import { isV06True } from "./utils";
 import { breakStringInPiecesBySpacesOrParens } from "./assign-names/break-into-pieces";
 import {
@@ -29,34 +36,42 @@ import {
  * the host's `fetchExternalDoenetML` (see `expandExternalReferences` in `@doenet/parser`).
  *
  * The v0.7 mechanism requires the element to be the *same component type* as the single
- * top-level element of the fetched document. When the v0.6 `<copy uri>` passes extra
- * attributes, they are the `<customAttribute>`s of a `<module>` — that is the only thing
- * v0.6 let you parameterize this way — so such a copy becomes a `<module>`:
+ * top-level element of the fetched document. Given a `fetchExternalDoenetML`, the
+ * document is loaded and its root element says the type. Otherwise, when the v0.6
+ * `<copy uri>` passes extra attributes, they are the `<customAttribute>`s of a `<module>`
+ * — that is the only thing v0.6 let you parameterize this way — so such a copy becomes
+ * a `<module>`:
  *
  * ```xml
- *   <copy uri="doenet:cid=bafkre..." vmin="-1" var="u" assignNames="a" />
+ *   <copy uri="doenet:activityId=abc&amp;cid=bafkre..." vmin="-1" var="u" assignNames="a" />
  * ```
  * becomes
  * ```xml
- *   <module copy="doenet:cid=bafkre..." vmin="-1" var="u" name="a" />
+ *   <module copy="doenet:abc" vmin="-1" var="u" name="a" />
  * ```
  *
- * Two things this cannot do on its own, both of which are reported: the v0.6 identifier in
- * the URI (`cid=`/`activityId=`/`doenetId=`) is not a v0.7 content id, and a `<copy uri>`
- * that passes no attributes gives no clue what component type its target is.
+ * The URI is rewritten to `doenet:<id>` by `upgradeDoenetUri`, assuming the id is the
+ * document's doenet.org id. What this cannot do, and reports: a URI with no such id (a
+ * bare `cid`, a `pageId`, a legacy id) is kept as written; a `<copy uri>` that passes no
+ * attributes and whose document was not loaded gives no clue what component type its
+ * target is; and a loaded document that is not a single component cannot be copied.
  */
 export const upgradeCopyElements: Plugin<
-    [AssignNamesContext],
+    [AssignNamesContext, FetchExternalDoenetML | undefined],
     DastRoot,
     DastRoot
-> = (context) => {
-    return (tree, file) => {
+> = (context, fetchExternalDoenetML) => {
+    return async (tree, file) => {
+        const targets = fetchExternalDoenetML
+            ? await lookUpExternalTargets(tree, fetchExternalDoenetML)
+            : new Map<DastElement, ExternalTarget>();
+
         visit(tree, (node, info) => {
             if (!isDastElement(node)) {
                 return;
             }
             if (node.name.toLowerCase() === "ref") {
-                warnAboutExternalRef(node, file);
+                upgradeExternalRef(node, file);
                 return;
             }
             if (node.name.toLowerCase() !== "copy") {
@@ -80,14 +95,41 @@ export const upgradeCopyElements: Plugin<
             if (!uri.toLowerCase().startsWith("doenet:")) {
                 return;
             }
+            const rawUri = plainAttributeText(node.attributes[uriKey]);
+            const upgraded =
+                rawUri === undefined ? undefined : upgradeDoenetUri(rawUri);
+            const target = targets.get(node);
 
             const passedAttributes = Object.keys(node.attributes).filter(
                 (key) => !COPY_OWN_ATTRIBUTES.has(key.toLowerCase()),
             );
 
-            if (passedAttributes.length === 0) {
+            if (target?.kind === "unusable") {
                 file.message(
-                    `<copy uri="${uri}"> could not be converted: v0.7 loads external content with a "copy" attribute on an element of the same component type as the external document, and this copy passes no attributes to indicate what that type is. Replace it with, for example, <problem copy="doenet:<contentId>" /> once the target has been converted.`,
+                    `<copy uri="${uri}"> could not be converted: ${target.reason}`,
+                    {
+                        place: node.position,
+                        ruleId: "external-copy/unusable-target",
+                        source: "v06-to-v07",
+                    },
+                );
+                return;
+            }
+
+            // The element has to be the type of the external document's root element.
+            // When the document could be read, that says it; otherwise parameters
+            // passed to a v0.6 `<copy uri>` are a module's custom attributes, the only
+            // thing v0.6 let you parameterize this way.
+            const elementType =
+                target?.kind === "found"
+                    ? target.rootType
+                    : passedAttributes.length > 0
+                      ? "module"
+                      : undefined;
+
+            if (elementType === undefined) {
+                file.message(
+                    `<copy uri="${uri}"> could not be converted: v0.7 loads external content with a "copy" attribute on an element of the same component type as the external document, and this copy passes no attributes to indicate what that type is.${target?.kind === "not-found" ? ` The document could not be loaded to find out: ${target.reason}` : ""} Replace it with, for example, <problem copy="doenet:<contentId>" /> once the target has been converted.`,
                     {
                         place: node.position,
                         ruleId: "external-copy/unknown-component-type",
@@ -142,15 +184,20 @@ export const upgradeCopyElements: Plugin<
                 delete node.attributes[linkKey];
             }
 
-            // Parameters passed to a v0.6 `<copy uri>` are a module's custom attributes.
-            node.name = "module";
+            node.name = elementType;
             renameAttrInPlace(node, uriKey, targetTag);
+            const newUri = upgraded?.uri ?? uri;
+            if (upgraded) {
+                node.attributes[targetTag].children = [
+                    { type: "text", value: upgraded.uri },
+                ];
+            }
 
             if (dropped.length > 0) {
                 file.message(
                     `Dropped ${dropped.join(
                         ", ",
-                    )} from <copy uri="${uri}">: they controlled how v0.6 copied, and a <module ${targetTag}="doenet:..."> has no equivalent.`,
+                    )} from <copy uri="${uri}">: they controlled how v0.6 copied, and a <${elementType} ${targetTag}="doenet:..."> has no equivalent.`,
                     {
                         place: node.position,
                         ruleId: "external-copy/dropped-copy-controls",
@@ -159,6 +206,21 @@ export const upgradeCopyElements: Plugin<
                 );
             }
 
+            if (target?.kind === "found") {
+                // The document was found and its root is what the element now says.
+                return;
+            }
+            if (upgraded) {
+                file.message(
+                    `Converted <copy uri="${uri}"> to <module ${targetTag}="${newUri}">, passing ${passedAttributes.join(", ")}.${upgraded.dropped.length > 0 ? ` The v0.6 ${upgraded.dropped.join(", ")} was dropped.` : ""} This assumes the id is the one the document has on doenet.org, as it is for content copied from legacy.doenet.org, and that its root element is a <module>.${target?.kind === "not-found" ? ` The document could not be loaded to check: ${target.reason}` : ""}`,
+                    {
+                        place: node.position,
+                        ruleId: "external-copy/assumed-content-id",
+                        source: "v06-to-v07",
+                    },
+                );
+                return;
+            }
             file.message(
                 `Converted <copy uri="${uri}"> to <module ${targetTag}="${uri}">, passing ${passedAttributes.join(", ")}. The identifier in the URI is a v0.6 one; replace it with the v0.7 content id of the converted module, and check that the target really is a <module>.`,
                 {
@@ -170,6 +232,79 @@ export const upgradeCopyElements: Plugin<
         });
     };
 };
+
+type ExternalTarget =
+    | { kind: "found"; rootType: string }
+    | { kind: "not-found"; reason: string }
+    | { kind: "unusable"; reason: string };
+
+/**
+ * Load the document each `<copy uri="doenet:...">` names, through the same
+ * `fetchExternalDoenetML` the viewer will use, to learn the component type the converted
+ * element must have.
+ */
+async function lookUpExternalTargets(
+    tree: DastRoot,
+    fetchExternalDoenetML: FetchExternalDoenetML,
+): Promise<Map<DastElement, ExternalTarget>> {
+    const lookups: Promise<[DastElement, ExternalTarget] | undefined>[] = [];
+    visit(tree, (node) => {
+        if (!isDastElement(node) || node.name.toLowerCase() !== "copy") {
+            return;
+        }
+        const uriKey = findKey(node, "uri");
+        const raw = uriKey && plainAttributeText(node.attributes[uriKey]);
+        if (!raw) {
+            return;
+        }
+        const uri = upgradeDoenetUri(raw)?.uri ?? raw.trim();
+        // Only a `doenet:<id>` is something the viewer can fetch.
+        if (!/^doenet:[A-Za-z0-9]+$/.test(uri)) {
+            return;
+        }
+        lookups.push(
+            fetchExternalDoenetML(uri).then(
+                (doenetML) => [node, describeExternalRoot(doenetML, uri)],
+                (e) => [node, { kind: "not-found", reason: String(e) }],
+            ),
+        );
+    });
+    const found = await Promise.all(lookups);
+    return new Map(found.filter((entry) => entry !== undefined));
+}
+
+/**
+ * What the viewer will accept from the document at `uri`: a single root element, or a
+ * `<document>` holding a single element, whose type the copying element must share
+ * (`findMatchingChild` in `@doenet/parser`'s `expand-external-references.ts`).
+ */
+function describeExternalRoot(doenetML: string, uri: string): ExternalTarget {
+    const isBlank = (node: DastNodes) =>
+        node.type === "text" && node.value.trim() === "";
+    let roots = lezerToDast(doenetML).children.filter((node) => !isBlank(node));
+    if (
+        roots.length === 1 &&
+        isDastElement(roots[0]) &&
+        roots[0].name === "document"
+    ) {
+        const children = roots[0].children.filter((node) => !isBlank(node));
+        if (children.length === 1 && isDastElement(children[0])) {
+            roots = children;
+        } else {
+            return {
+                kind: "unusable",
+                reason: `the document at "${uri}" is a whole <document> rather than one component, and v0.7 can only load a single component from another document. Wrap its content in one element, such as a <module>, and copy that.`,
+            };
+        }
+    }
+    if (roots.length !== 1 || !isDastElement(roots[0])) {
+        return {
+            kind: "unusable",
+            reason: `the document at "${uri}" does not consist of a single element, and v0.7 can only load a single component from another document. Wrap its content in one element, such as a <module>, and copy that.`,
+        };
+    }
+    return { kind: "found", rootType: roots[0].name };
+}
 
 /**
  * Attributes that belong to the `<copy>` itself rather than to whatever it copies. Only
@@ -380,11 +515,27 @@ export function convertAssignNames(
 
 /**
  * `<ref uri="doenet:...">` has already become `<ref to="doenet:...">` by this point, but
- * the identifier inside is still a v0.6 one.
+ * the URI is still in its v0.6 form. v0.7 only recognizes `doenet:<id>`.
  */
-function warnAboutExternalRef(node: DastElement, file: any) {
+function upgradeExternalRef(node: DastElement, file: VFile) {
     const toKey = findKey(node, "to");
     if (!toKey) {
+        return;
+    }
+    const value = plainAttributeText(node.attributes[toKey]);
+    const upgraded = value === undefined ? undefined : upgradeDoenetUri(value);
+    if (upgraded) {
+        node.attributes[toKey].children = [
+            { type: "text", value: upgraded.uri },
+        ];
+        file.message(
+            `<ref> now links to "${upgraded.uri}"${upgraded.dropped.length > 0 ? `, without the v0.6 ${upgraded.dropped.join(", ")}` : ""}. This assumes the id is the one the document has on doenet.org, as it is for content copied from legacy.doenet.org.`,
+            {
+                place: node.position,
+                ruleId: "external-ref/assumed-content-id",
+                source: "v06-to-v07",
+            },
+        );
         return;
     }
     const target = toXml(node.attributes[toKey].children).trim();

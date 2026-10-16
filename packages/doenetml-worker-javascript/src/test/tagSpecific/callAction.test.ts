@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     callAction,
@@ -120,13 +121,24 @@ describe("callAction tag tests @group4", async () => {
             for (let i = 1; i <= n; i++) {
                 expect(
                     cleanLatex(
-                        stateVariables[await resolvePathToNodeIdx(`ps[${i}]`)]
-                            .stateValues.latex,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `ps[${i}]`,
+                            )
+                        ).stateValues.latex,
                     ),
                 ).eq(`(${points[i - 1][0]},${points[i - 1][1]})`);
             }
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ps[${n + 1}]`)],
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    `ps[${n + 1}]`,
+                ),
             ).eq(undefined);
 
             const g1 =
@@ -398,8 +410,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -423,8 +441,14 @@ describe("callAction tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -538,9 +562,14 @@ describe("callAction tag tests @group4", async () => {
 
             expect(
                 cleanLatex(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`sets[${ind}].ps[2]`)
-                    ].stateValues.latex,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `sets[${ind}].ps[2]`,
+                        )
+                    ).stateValues.latex,
                 ),
             ).eq("(3,4)");
 
@@ -570,9 +599,14 @@ describe("callAction tag tests @group4", async () => {
 
             expect(
                 cleanLatex(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`sets[${ind}].ps[2]`)
-                    ].stateValues.latex,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `sets[${ind}].ps[2]`,
+                        )
+                    ).stateValues.latex,
                 ),
             ).eq("(-2,5)");
 
@@ -663,8 +697,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -688,8 +728,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -728,8 +774,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[3]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -759,8 +811,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[3]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(7,-9)");
 
@@ -2106,8 +2164,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -2132,8 +2196,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -2245,8 +2315,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -2271,8 +2347,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 
@@ -2370,8 +2452,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(3,4)");
 
@@ -2396,8 +2484,14 @@ describe("callAction tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ps[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("(-2,5)");
 

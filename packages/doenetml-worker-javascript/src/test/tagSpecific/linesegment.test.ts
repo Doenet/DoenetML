@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import {
+    createTestCore as createTestCoreWithoutListEntries,
+    ResolvePathToNodeIdx,
+} from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import {
     moveLineSegment,
     movePoint,
@@ -15,6 +19,16 @@ import type { Expression } from "math-expressions";
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 /**
  * Whether a coordinate has no value — the segment is underdetermined there.

@@ -7,19 +7,70 @@ export function gatherDescendants({
     skipOverAdapters = false,
     ignoreReplacementsOfMatchedComposites = false,
     ignoreReplacementsOfEncounteredComposites = false,
+    matchListsByEntryType = false,
+    listsAreOpaque = false,
     init = true,
     componentInfoObjects,
 }) {
     // Note: ignoreReplacementsOfEncounteredComposites means ignore replacements
     // of all composites except copies of external content
 
+    // With `matchListsByEntryType`, a list component
+    // (`listEntryComponentType`) is matched by the type of its entries too,
+    // as the composite it replaced was matched by its replacements. A value
+    // reference that is drawn (`$n` in a `<p>`, `ValueRef.isDrawn`) is
+    // matched as the type it is drawn as, as the component a copy made for
+    // it was; one that is not drawn (`$n` in a `<math>`) is matched only as
+    // a `_ref`.
     let matchChildToTypes = (child) =>
-        descendantTypes.some((ct) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: child.componentType,
-                baseComponentType: ct,
-            }),
+        descendantTypes.some(
+            (ct) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: child.isDrawn
+                        ? child.presentedComponentType
+                        : child.componentType,
+                    baseComponentType: ct,
+                }) ||
+                (matchListsByEntryType &&
+                    child.constructor?.listEntryComponentType !== undefined &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType:
+                            child.constructor.listEntryComponentType,
+                        baseComponentType: ct,
+                    })),
         );
+
+    // With `listsAreOpaque`, the children of a list component are not
+    // searched: the list stands for what it draws, its entries, which hold
+    // its authored points or vectors (and nested lists) already.
+    //
+    // With `useReplacementsForComposites`, a list component
+    // (`listEntryComponentType`) stands for its entries, as a composite
+    // stands for its replacements: its own children are not searched, and a
+    // search that starts at a list finds the list if it matches by the type
+    // of its entries.
+    let isList = (component) =>
+        component.constructor?.listEntryComponentType !== undefined;
+
+    if (useReplacementsForComposites && init && isList(ancestor)) {
+        const entryType = ancestor.constructor.listEntryComponentType;
+        const matchesByEntries =
+            matchListsByEntryType &&
+            descendantTypes.some((ct) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: entryType,
+                    baseComponentType: ct,
+                }),
+            );
+        return matchesByEntries
+            ? [
+                  {
+                      componentIdx: ancestor.componentIdx,
+                      componentType: ancestor.componentType,
+                  },
+              ]
+            : [];
+    }
 
     let childrenToCheck = [];
 
@@ -163,7 +214,8 @@ export function gatherDescendants({
 
         if (
             (!matchedChild || recurseToMatchedChildren) &&
-            child.placeholderInd === undefined
+            child.placeholderInd === undefined &&
+            !((useReplacementsForComposites || listsAreOpaque) && isList(child))
         ) {
             // recurse
             let additionalDescendants = gatherDescendants({
@@ -175,6 +227,8 @@ export function gatherDescendants({
                 skipOverAdapters,
                 ignoreReplacementsOfMatchedComposites,
                 ignoreReplacementsOfEncounteredComposites,
+                matchListsByEntryType,
+                listsAreOpaque,
                 init: false,
                 componentInfoObjects,
             });

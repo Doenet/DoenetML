@@ -126,6 +126,10 @@ export default class Spreadsheet extends BlockComponent {
                 componentTypes: ["cellBlock"],
             },
             {
+                group: "cols",
+                componentTypes: ["col"],
+            },
+            {
                 group: "dataFrames",
                 componentTypes: ["dataFrame"],
             },
@@ -170,6 +174,64 @@ export default class Spreadsheet extends BlockComponent {
                         cellIndicesByRowCol: result.cellIndicesByRowCol,
                     },
                 };
+            },
+        };
+
+        // One entry per column, left to right, through the last column that
+        // has a `<col>` or a `<column>` with a width: a `componentSize`, or
+        // `null` for a column with no width. Widths come from two places,
+        // which spell the attribute identically:
+        //  - `<col width="…">` children, as in a `<tabular>`, the nth `<col>`
+        //    applying to the nth column. Every `<col>` counts, including an
+        //    empty placeholder, because that is how one reaches column 3.
+        //  - `<column width="…">` children, at the column they are placed in
+        //    (`colNum`, or one past the previous `<column>`, matching
+        //    `determineCellMapping`). These win over a `<col>` for the same
+        //    column. A `<column>` inside a `<cellBlock>` is not consulted.
+        // A width that is not positive counts as no width. Handsontable reads
+        // a zero width as "use the default" and draws a negative one at some
+        // other size, while stretching still sizes the other columns around
+        // the authored value, so either would scroll the table sideways.
+        stateVariableDefinitions.columnWidths = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                colChildren: {
+                    dependencyType: "child",
+                    childGroups: ["cols"],
+                    variableNames: ["width"],
+                },
+                columnChildren: {
+                    dependencyType: "child",
+                    childGroups: ["columns"],
+                    variableNames: ["colNum", "width"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const usable = (width) =>
+                    width != null && width.size > 0 ? width : null;
+                const columnWidths = dependencyValues.colChildren.map((col) =>
+                    usable(col.stateValues.width),
+                );
+                let nextColIndex = 0;
+                for (const column of dependencyValues.columnChildren) {
+                    let colIndex = normalizeIndex(column.stateValues.colNum);
+                    if (colIndex === undefined) {
+                        colIndex = nextColIndex;
+                    }
+                    nextColIndex = colIndex + 1;
+                    const width = usable(column.stateValues.width);
+                    if (
+                        width != null &&
+                        Number.isInteger(colIndex) &&
+                        colIndex >= 0
+                    ) {
+                        while (columnWidths.length < colIndex) {
+                            columnWidths.push(null);
+                        }
+                        columnWidths[colIndex] = width;
+                    }
+                }
+                return { setValue: { columnWidths } };
             },
         };
 
@@ -242,12 +304,23 @@ export default class Spreadsheet extends BlockComponent {
                     childGroups: ["dataFrames"],
                     variableNames: ["numColumns"],
                 },
+                columnWidths: {
+                    dependencyType: "stateVariable",
+                    variableName: "columnWidths",
+                },
             }),
             definition({ dependencyValues }) {
                 let numColumns = dependencyValues.minNumColumns;
                 if (!Number.isFinite(numColumns)) {
                     numColumns = 4;
                 }
+                // Every column `columnWidths` reaches exists even if it is
+                // still empty, an empty `<col />` placeholder included, as a
+                // `<col>` makes a column of a `<tabular>`.
+                numColumns = Math.max(
+                    numColumns,
+                    dependencyValues.columnWidths.length,
+                );
                 for (let row of dependencyValues.cellIndicesByRowCol) {
                     if (row) {
                         numColumns = Math.max(numColumns, row.length);

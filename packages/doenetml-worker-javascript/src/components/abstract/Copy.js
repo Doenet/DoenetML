@@ -1,5 +1,7 @@
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
+import ValueListComponent from "./ValueListComponent";
+import Group from "../Group";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -10,11 +12,31 @@ import {
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import {
     convertAttributeValuesForComponentType,
+    primaryEssentialStateVariableOf,
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
+import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
+import { isListEntryArrayVariable } from "../../utils/listEntryReference";
+import {
+    attributeShadowIsReference,
+    shadowAttributeReference,
+} from "../../utils/variableRefAttribute";
 import { errorComponentState } from "../../utils/dast/errors";
+import {
+    CONTEXT_ATTRIBUTES,
+    writtenEntryAttributeComponent,
+} from "../../utils/contextAttribute";
+import { applyCopySnapshot, copySnapshotOf } from "../../utils/copySnapshot";
+import {
+    copiesReferent,
+    planValueReference,
+    separateResponseMarks,
+    serializeValueReference,
+    valueReferenceDiffers,
+} from "../../utils/valueReference";
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -36,6 +58,7 @@ export default class Copy extends CompositeComponent {
         delete attributes.disabled;
         delete attributes.modifyIndirectly;
         delete attributes.fixed;
+        delete attributes.fixLocation;
         delete attributes.styleNumber;
         delete attributes.isResponse;
         delete attributes.isPotentialResponse;
@@ -577,15 +600,31 @@ export default class Copy extends CompositeComponent {
                 "replacementSourceIdentities",
                 "unresolvedPath",
                 "implicitProp",
+                "usedReplacements",
+                "extendedComponent",
             ],
             additionalStateVariablesDefined: ["effectivePropNameBySource"],
-            returnDependencies: function ({ stateValues }) {
+            returnDependencies: function ({
+                stateValues,
+                componentInfoObjects,
+            }) {
                 let dependencies = {
                     replacementSourceIdentities: {
                         dependencyType: "stateVariable",
                         variableName: "replacementSourceIdentities",
                     },
                 };
+
+                // An index left over on a composite (`$g[2]`) is past the items
+                // it is indexed by, and is passed on to each replacement. A list
+                // component (`listEntryComponentType`) among them takes one of
+                // those items, so the index would read one of its entries as an
+                // item past the list (`$g[2]` of `<group name="g"><sequence /></group>`).
+                const indexPastComposite =
+                    stateValues.usedReplacements &&
+                    stateValues.extendedComponent?.componentType !== "_copy" &&
+                    !stateValues.implicitProp &&
+                    stateValues.unresolvedPath?.[0]?.name === "";
 
                 if (stateValues.replacementSourceIdentities !== null) {
                     for (let [
@@ -613,7 +652,13 @@ export default class Copy extends CompositeComponent {
                                 value: thisUnresolvedPath,
                             };
 
-                            if (typeof source === "string") {
+                            if (
+                                typeof source === "string" ||
+                                (indexPastComposite &&
+                                    componentInfoObjects.allComponentClasses[
+                                        source.componentType
+                                    ]?.listEntryComponentType !== undefined)
+                            ) {
                                 continue;
                             }
 
@@ -1025,7 +1070,43 @@ export default class Copy extends CompositeComponent {
         return stateVariableDefinitions;
     }
 
-    static async createSerializedReplacements({
+    /**
+     * The replacements (`createReplacementsFromSources`). An unlinked copy
+     * keeps what it made of its source through a reload: it takes the
+     * snapshot a save holds for it, and records its own, with how to make it
+     * again, for a save to compare (`utils/copySnapshot.js`). The snapshot
+     * holds state by `stateId` and `componentType`, not the replacements'
+     * shape, and a copy made again need not make what it made before (a copy
+     * of a `<conditionalContent>` is made from whichever case is active). A
+     * copy made again with a different shape is made from its source as
+     * restored, and keeps nothing it cannot apply: it records only its own
+     * snapshot.
+     */
+    static async createSerializedReplacements(args) {
+        const result = await this.createReplacementsFromSources(args);
+        const { component } = args;
+        if ((await component.stateValues.link) === false) {
+            const saved = component.coreFunctions.savedCopySnapshot?.(
+                component.stateId,
+            );
+            if (saved) {
+                applyCopySnapshot(result.replacements, saved);
+            }
+            component.unlinkedSnapshot = copySnapshotOf(result.replacements);
+            component.freshUnlinkedSnapshot = async () =>
+                copySnapshotOf(
+                    (
+                        await this.createReplacementsFromSources({
+                            ...args,
+                            workspace: {},
+                        })
+                    ).replacements,
+                );
+        }
+        return result;
+    }
+
+    static async createReplacementsFromSources({
         component,
         components,
         nComponents,
@@ -1476,6 +1557,11 @@ export default class Copy extends CompositeComponent {
         try {
             serializedReplacements = [
                 await replacementSourceComponent.serialize({
+                    // a value reference is copied as a component of its
+                    // type (`ValueRef.serialize`); unlinked, it reads the
+                    // settings it takes from its referent here
+                    valueReferenceAsComponent: true,
+                    components: link ? undefined : components,
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
@@ -1571,13 +1657,21 @@ export default class Copy extends CompositeComponent {
             return { serializedReplacements, diagnostics, nComponents };
         }
 
-        // when copying with link=false, ignore fixed if from essential state
-        // so that, for example, a copy from a sequence with link=false is not fixed
-        // TODO: also now removing the `fixed` attribute. Is that the right choice?
-        if (!link && serializedReplacements[0].state) {
-            delete serializedReplacements[0].state.fixed;
-            delete serializedReplacements[0].state.fixedPreliminary;
-            delete serializedReplacements[0].attributes.fixed;
+        // An unlinked copy (`copy`, not `extend`) is the DoenetML of its
+        // source pasted where it sits: it takes the `fixed` and `fixLocation`
+        // written on its source, or on what its source is a reference to, as
+        // its own attributes (`serialize`), and the rest from where it sits
+        // (`utils/contextAttribute.js`). What fixed its source otherwise (its
+        // parent, a write to it, the composite that made it, as a
+        // `<sequence>` its entries and a `<repeat>` its index) is not
+        // carried.
+        if (!link && typeof serializedReplacements[0] === "object") {
+            for (const attributeName of CONTEXT_ATTRIBUTES) {
+                delete serializedReplacements[0].state?.[attributeName];
+                delete serializedReplacements[0].state?.[
+                    `${attributeName}Preliminary`
+                ];
+            }
         }
 
         // console.log(`serializedReplacements for ${component.componentIdx}`);
@@ -1612,17 +1706,30 @@ export default class Copy extends CompositeComponent {
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            // Since if either displayDigits or displayDecimals is supplied in the composite,
-            // it should override both displayDigits and displayDecimals from the source,
-            // we delete the attributes from the source in this special case.
-            // TODO: is there a more generic way to accomplish this?
-            if (
-                attributesFromComposite.displayDigits ||
-                attributesFromComposite.displayDecimals
-            ) {
-                delete repl.attributes.displayDigits;
-                delete repl.attributes.displayDecimals;
+            deleteReplacedAttributes({
+                attributes: repl.attributes,
+                attributesFromComposite,
+                componentType: repl.componentType,
+                componentInfoObjects,
+            });
+
+            if (link && copyInChildren) {
+                const ignored = extendIgnoresAttributesAndChildren({
+                    replacementType: repl.componentType,
+                    attributeNames: Object.keys(attributesFromComposite),
+                    copyAttributeNames: Object.keys(compositeAttributesObj),
+                    children: component.serializedChildren,
+                    componentInfoObjects,
+                });
+                diagnostics.push(...ignored.diagnostics);
+                // Keep the source's value of an ignored attribute, so that,
+                // for example, `type` on a sequence's extend does not change
+                // the class its values are made for.
+                for (const attrName of ignored.attributeNames) {
+                    delete attributesFromComposite[attrName];
+                }
             }
+
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -2227,9 +2334,17 @@ export default class Copy extends CompositeComponent {
                                     numReplacementsSoFar + ind
                                 ];
 
+                            // Two value references share the type `_ref`;
+                            // one that stands in for another type must be
+                            // remade all the same.
                             if (
                                 currentReplacement.componentType !==
-                                newSerializedReplacements[ind].componentType
+                                    newSerializedReplacements[ind]
+                                        .componentType ||
+                                valueReferenceDiffers(
+                                    currentReplacement,
+                                    newSerializedReplacements[ind],
+                                )
                             ) {
                                 foundDifference = true;
                             }
@@ -2446,10 +2561,14 @@ export async function replacementFromProp({
     if (replacementSource) {
         target = components[replacementSource.componentIdx];
 
-        varName = publicCaseInsensitiveAliasSubstitutions({
-            stateVariables: [propName],
-            componentClass: target.constructor,
-        })[0];
+        // An entry of a list component, or a property of its entries, was
+        // resolved to an array of the list (`utils/listEntryReference.ts`).
+        varName = isListEntryArrayVariable(target, propName)
+            ? propName
+            : publicCaseInsensitiveAliasSubstitutions({
+                  stateVariables: [propName],
+                  componentClass: target.constructor,
+              })[0];
     }
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {
@@ -2502,6 +2621,19 @@ export async function replacementFromProp({
     let stateVarValue = await stateVarObj.value;
 
     let link = await component.stateValues.link;
+    const implicitProp = await component.stateValues.implicitProp;
+
+    // The component that will hold the replacements. When it reads only
+    // values from its children, or draws them (`<p>`), a linked reference to
+    // one state variable can be a value reference (`_ref`) instead of a full
+    // component with shadow attribute components (Doenet/DoenetML#2128).
+    // Not when the reference was
+    // given a type: an `extend` or `copy` (`<number extend="$P.x" />`) and an
+    // index both set `createComponentOfType`, and the component they ask for
+    // is made as it always was.
+    const parentClass = component.ancestors[0]?.componentClass;
+    const mayBeValueReference =
+        link && !component.attributes.createComponentOfType?.primitive;
 
     if (stateVarObj.isArray || stateVarObj.isArrayEntry) {
         let arrayStateVarObj, unflattenedArrayKeys, arraySize, arrayKeys;
@@ -2574,6 +2706,35 @@ export async function replacementFromProp({
                     nLevelsToFlatten,
                 ).length;
             }
+        }
+
+        // A reference to a whole array of values (`$P.xs`, `$l.text`) whose
+        // parent takes components rather than values is one list component
+        // shadowing the array (Doenet/DoenetML#2160).
+        const listReplacement = stateVarObj.isArray
+            ? await arrayListReplacement({
+                  component,
+                  components,
+                  target,
+                  varName,
+                  arrayStateVarObj,
+                  numWrappingComponents,
+                  link,
+                  mayBeValueReference,
+                  parentClass,
+                  componentInfoObjects,
+                  compositeAttributesObj,
+                  nComponents,
+                  stateIdInfo,
+              })
+            : undefined;
+        if (listReplacement) {
+            return {
+                serializedReplacements: [listReplacement.serializedComponent],
+                propVariablesCopiedByReplacement: [[varName]],
+                diagnostics,
+                nComponents: listReplacement.nComponents,
+            };
         }
 
         if (numWrappingComponents === 0) {
@@ -2717,8 +2878,51 @@ export async function replacementFromProp({
                         }
                     }
 
-                    if (link) {
+                    const { responseMarks, otherAttributes } =
+                        separateResponseMarks(attributesFromComposite);
+                    const valueReference = mayBeValueReference
+                        ? planValueReference({
+                              parentClass,
+                              targetComponentType: target.componentType,
+                              valueComponentType: createComponentOfType,
+                              // An adapter's variable lives on the referent
+                              // only for its implicit prop, never for an
+                              // entry of one of its arrays.
+                              fromImplicitProp: false,
+                              hasAttributes:
+                                  Object.keys(otherAttributes).length > 0,
+                              allowDrawn: true,
+                              componentInfoObjects,
+                          })
+                        : undefined;
+
+                    if (valueReference) {
+                        serializedReplacements.push(
+                            serializeValueReference({
+                                ...valueReference,
+                                referencedVariable: propVariable,
+                                valueComponentType: createComponentOfType,
+                                target,
+                                componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                                responseMarks,
+                            }),
+                        );
+                    } else if (link) {
                         let attributesForReplacement = {};
+
+                        const doenetAttributesForReplacement =
+                            listEntrySourceDoenetAttributes({
+                                arrayStateVarObj,
+                                arrayKey,
+                                target,
+                            });
+                        // a variable read from the list is not also an
+                        // attribute, which would override the component's
+                        // parent's (`fixed`)
+                        const readFromList =
+                            doenetAttributesForReplacement.listEntrySource
+                                ?.variables ?? {};
 
                         if (attributeComponentsShadowingStateVariables) {
                             let classOfComponentToCreate =
@@ -2729,6 +2933,9 @@ export async function replacementFromProp({
                                 classOfComponentToCreate.createAttributesObject();
 
                             for (let attrName in attributeComponentsShadowingStateVariables) {
+                                if (attrName in readFromList) {
+                                    continue;
+                                }
                                 let stateVariableToShadow =
                                     attributeComponentsShadowingStateVariables[
                                         attrName
@@ -2736,7 +2943,19 @@ export async function replacementFromProp({
                                 let attributeComponentType =
                                     attrObj[attrName]?.createComponentOfType;
 
-                                if (attributeComponentType) {
+                                if (
+                                    attributeShadowIsReference(
+                                        attributeComponentType,
+                                    )
+                                ) {
+                                    attributesForReplacement[attrName] =
+                                        shadowAttributeReference({
+                                            attrName,
+                                            attributeComponentType,
+                                            target,
+                                            stateVariableToShadow,
+                                        });
+                                } else if (attributeComponentType) {
                                     let shadowComponent = {
                                         type: "serialized",
                                         componentType: attributeComponentType,
@@ -2767,6 +2986,13 @@ export async function replacementFromProp({
                             }
                         }
 
+                        deleteReplacedAttributes({
+                            attributes: attributesForReplacement,
+                            attributesFromComposite,
+                            componentType: createComponentOfType,
+                            componentInfoObjects,
+                        });
+
                         Object.assign(
                             attributesForReplacement,
                             attributesFromComposite,
@@ -2778,7 +3004,7 @@ export async function replacementFromProp({
                             componentIdx: nComponents++,
                             stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes: attributesForReplacement,
-                            doenetAttributes: {},
+                            doenetAttributes: doenetAttributesForReplacement,
                             children: [],
                             state: {},
                             downstreamDependencies: {
@@ -2815,19 +3041,40 @@ export async function replacementFromProp({
                                         ].stateVariableToShadow;
                                     let attributeStateVarObj =
                                         target.state[vName];
-                                    let attributeValue =
-                                        await attributeStateVarObj.value;
-                                    if (attributeStateVarObj.isArray) {
-                                        // Assume attribute has same dimensions as original
-                                        // TODO: multidimensional arrays?
+                                    let attributeValue;
+                                    let usedDefault;
+                                    if (attributeStateVarObj) {
                                         attributeValue =
-                                            attributeValue[
-                                                attributeStateVarObj.keyToIndex[
-                                                    arrayKey
-                                                ]
+                                            await attributeStateVarObj.value;
+                                        usedDefault =
+                                            attributeStateVarObj.usedDefault;
+                                    } else {
+                                        // an entry, not read yet, of an
+                                        // array holding the companion of
+                                        // each entry: read from the array
+                                        const companionArray =
+                                            target.state[
+                                                arrayStateVarObj
+                                                    .shadowingInstructions
+                                                    .addAttributeComponentsShadowingStateVariables[
+                                                    attrName
+                                                ].stateVariableToShadow
                                             ];
+                                        attributeValue = (
+                                            await companionArray.value
+                                        )[
+                                            arrayStateVarObj.keyToIndex(
+                                                arrayKey,
+                                            )
+                                        ];
+                                        usedDefault = Boolean(
+                                            companionArray
+                                                .usedDefaultByArrayKey?.[
+                                                arrayKey
+                                            ],
+                                        );
                                     }
-                                    if (!target.state[vName].usedDefault) {
+                                    if (!usedDefault) {
                                         additionalAttributes[attrName] =
                                             attributeValue;
                                     }
@@ -2870,13 +3117,27 @@ export async function replacementFromProp({
                                         nComponents = res.nComponents;
 
                                         attributesFromComponent[attrName] = {
+                                            type: "component",
+                                            name: attrName,
                                             component: res.components[0],
                                         };
+                                    } else if (
+                                        target.attributes[attrName]?.type ===
+                                        "literal"
+                                    ) {
+                                        // a literal: copied as its attribute component was
+                                        attributesFromComponent[attrName] =
+                                            copyOfLiteralAttribute(
+                                                target.attributes[attrName],
+                                                target,
+                                            );
                                     } else if (
                                         target.attributes[attrName]
                                             ?.primitive !== undefined
                                     ) {
                                         attributesFromComponent[attrName] = {
+                                            type: "primitive",
+                                            name: attrName,
                                             primitive: JSON.parse(
                                                 JSON.stringify(
                                                     target.attributes[attrName]
@@ -2894,25 +3155,76 @@ export async function replacementFromProp({
                             );
                         }
 
+                        // A copy of an entry, pasted, takes the `fixed` and
+                        // `fixLocation` written on the list
+                        // (`<mathList fixed="$b">`), or else, for a list of
+                        // points or vectors, on the entry's source
+                        // (`writtenEntryAttributeComponent`).
+                        const entryAttributes =
+                            componentInfoObjects.allComponentClasses[
+                                createComponentOfType
+                            ].createAttributesObject();
+                        const entryIndex =
+                            arrayStateVarObj.keyToIndex(arrayKey);
+                        for (const attrName of CONTEXT_ATTRIBUTES) {
+                            if (
+                                !entryAttributes[attrName] ||
+                                !Number.isInteger(entryIndex) ||
+                                !isListEntryArrayVariable(target, varName)
+                            ) {
+                                continue;
+                            }
+                            const written =
+                                await writtenEntryAttributeComponent({
+                                    list: target,
+                                    index: entryIndex,
+                                    attributeName: attrName,
+                                    components,
+                                });
+                            if (!written) {
+                                continue;
+                            }
+                            if (written.literal) {
+                                attributesForReplacement[attrName] =
+                                    written.literal;
+                                continue;
+                            }
+                            const res = createNewComponentIndices(
+                                [
+                                    await written.serialize({
+                                        copyAll: true,
+                                        copyVariants: true,
+                                        components,
+                                    }),
+                                ],
+                                nComponents,
+                                stateIdInfo,
+                            );
+                            nComponents = res.nComponents;
+                            attributesForReplacement[attrName] = {
+                                type: "component",
+                                name: attrName,
+                                component: res.components[0],
+                            };
+                        }
+
+                        deleteReplacedAttributes({
+                            attributes: attributesForReplacement,
+                            attributesFromComposite,
+                            componentType: createComponentOfType,
+                            componentInfoObjects,
+                        });
+
                         Object.assign(
                             attributesForReplacement,
                             attributesFromComposite,
                         );
 
-                        let primaryEssentialStateVariable = "value";
-                        let componentClass =
-                            componentInfoObjects.allComponentClasses[
-                                createComponentOfType
-                            ];
-                        if (componentClass.primaryEssentialStateVariable) {
-                            primaryEssentialStateVariable =
-                                componentClass.primaryEssentialStateVariable;
-                        } else if (
-                            componentClass.primaryStateVariableForDefinition
-                        ) {
-                            primaryEssentialStateVariable =
-                                componentClass.primaryStateVariableForDefinition;
-                        }
+                        const primaryEssentialStateVariable =
+                            primaryEssentialStateVariableOf({
+                                componentType: createComponentOfType,
+                                componentInfoObjects,
+                            });
 
                         let arrayIndex = arrayStateVarObj.keyToIndex(arrayKey);
                         if (!Array.isArray(arrayIndex)) {
@@ -2923,17 +3235,33 @@ export async function replacementFromProp({
                             propStateValue = propStateValue[ind2];
                         }
 
+                        // The copy takes its index and stateId before its
+                        // `<label>` child, so its stateId is the same whether
+                        // or not the entry has a label.
+                        const componentIdx = nComponents++;
+                        const stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
+
+                        const entrySource = await listEntrySourceSnapshot({
+                            arrayStateVarObj,
+                            arrayKey,
+                            target,
+                            nComponents,
+                            stateIdInfo,
+                        });
+                        nComponents = entrySource.nComponents;
+
                         let serializedComponent = {
                             type: "serialized",
                             componentType: createComponentOfType,
-                            componentIdx: nComponents++,
-                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                            componentIdx,
+                            stateId,
                             attributes: attributesForReplacement,
                             doenetAttributes: {},
                             state: {
+                                ...entrySource.state,
                                 [primaryEssentialStateVariable]: propStateValue,
                             },
-                            children: [],
+                            children: entrySource.children,
                         };
 
                         serializedReplacements.push(serializedComponent);
@@ -3084,7 +3412,19 @@ export async function replacementFromProp({
                                         attrObj[attrName]
                                             ?.createComponentOfType;
 
-                                    if (attributeComponentType) {
+                                    if (
+                                        attributeShadowIsReference(
+                                            attributeComponentType,
+                                        )
+                                    ) {
+                                        attributesForReplacement[attrName] =
+                                            shadowAttributeReference({
+                                                attrName,
+                                                attributeComponentType,
+                                                target,
+                                                stateVariableToShadow,
+                                            });
+                                    } else if (attributeComponentType) {
                                         let shadowComponent = {
                                             type: "serialized",
                                             componentType:
@@ -3217,15 +3557,29 @@ export async function replacementFromProp({
 
                                             attributesFromComponent[attrName] =
                                                 {
+                                                    type: "component",
+                                                    name: attrName,
                                                     component:
                                                         res.components[0],
                                                 };
+                                        } else if (
+                                            target.attributes[attrName]
+                                                ?.type === "literal"
+                                        ) {
+                                            // a literal: copied as its attribute component was
+                                            attributesFromComponent[attrName] =
+                                                copyOfLiteralAttribute(
+                                                    target.attributes[attrName],
+                                                    target,
+                                                );
                                         } else if (
                                             target.attributes[attrName]
                                                 ?.primitive !== undefined
                                         ) {
                                             attributesFromComponent[attrName] =
                                                 {
+                                                    type: "primitive",
+                                                    name: attrName,
                                                     primitive: JSON.parse(
                                                         JSON.stringify(
                                                             target.attributes[
@@ -3244,20 +3598,11 @@ export async function replacementFromProp({
                                 );
                             }
 
-                            let primaryEssentialStateVariable = "value";
-                            let componentClass =
-                                componentInfoObjects.allComponentClasses[
-                                    createComponentOfType
-                                ];
-                            if (componentClass.primaryEssentialStateVariable) {
-                                primaryEssentialStateVariable =
-                                    componentClass.primaryEssentialStateVariable;
-                            } else if (
-                                componentClass.primaryStateVariableForDefinition
-                            ) {
-                                primaryEssentialStateVariable =
-                                    componentClass.primaryStateVariableForDefinition;
-                            }
+                            const primaryEssentialStateVariable =
+                                primaryEssentialStateVariableOf({
+                                    componentType: createComponentOfType,
+                                    componentInfoObjects,
+                                });
 
                             let arrayIndex =
                                 arrayStateVarObj.keyToIndex(arrayKey);
@@ -3396,7 +3741,19 @@ export async function replacementFromProp({
                                         attrObj[attrName]
                                             ?.createComponentOfType;
 
-                                    if (attributeComponentType) {
+                                    if (
+                                        attributeShadowIsReference(
+                                            attributeComponentType,
+                                        )
+                                    ) {
+                                        attributesForReplacement[attrName] =
+                                            shadowAttributeReference({
+                                                attrName,
+                                                attributeComponentType,
+                                                target,
+                                                stateVariableToShadow,
+                                            });
+                                    } else if (attributeComponentType) {
                                         let shadowComponent = {
                                             type: "serialized",
                                             componentType:
@@ -3510,6 +3867,12 @@ export async function replacementFromProp({
                 const attributesFromComposite = res.attributes;
                 nComponents = res.nComponents;
 
+                deleteReplacedAttributes({
+                    attributes: replacement.attributes,
+                    attributesFromComposite,
+                    componentType: replacement.componentType,
+                    componentInfoObjects,
+                });
                 Object.assign(replacement.attributes, attributesFromComposite);
 
                 if (link) {
@@ -3644,7 +4007,43 @@ export async function replacementFromProp({
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            if (link) {
+            const { responseMarks, otherAttributes } = separateResponseMarks(
+                attributesFromComposite,
+            );
+            const valueReference = mayBeValueReference
+                ? planValueReference({
+                      parentClass,
+                      targetComponentType: target.componentType,
+                      valueComponentType:
+                          stateVarObj.shadowingInstructions
+                              .createComponentOfType,
+                      fromImplicitProp: Boolean(implicitProp),
+                      hasAttributes: Object.keys(otherAttributes).length > 0,
+                      allowDrawn: true,
+                      componentInfoObjects,
+                  })
+                : undefined;
+
+            if (valueReference) {
+                serializedReplacements.push(
+                    serializeValueReference({
+                        ...valueReference,
+                        referencedVariable: varName,
+                        valueComponentType:
+                            stateVarObj.shadowingInstructions
+                                .createComponentOfType,
+                        target,
+                        componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                        responseMarks,
+                        copiesReferent: copiesReferent({
+                            fromImplicitProp: Boolean(implicitProp),
+                            targetClass: target.constructor,
+                            plan: valueReference,
+                        }),
+                    }),
+                );
+            } else if (link) {
                 let attributesForReplacement = {};
 
                 if (
@@ -3669,7 +4068,17 @@ export async function replacementFromProp({
                         let attributeComponentType =
                             attrObj[attrName]?.createComponentOfType;
 
-                        if (attributeComponentType) {
+                        if (
+                            attributeShadowIsReference(attributeComponentType)
+                        ) {
+                            attributesForReplacement[attrName] =
+                                shadowAttributeReference({
+                                    attrName,
+                                    attributeComponentType,
+                                    target,
+                                    stateVariableToShadow,
+                                });
+                        } else if (attributeComponentType) {
                             let shadowComponent = {
                                 type: "serialized",
                                 componentType: attributeComponentType,
@@ -3697,6 +4106,14 @@ export async function replacementFromProp({
                         }
                     }
                 }
+
+                deleteReplacedAttributes({
+                    attributes: attributesForReplacement,
+                    attributesFromComposite,
+                    componentType:
+                        stateVarObj.shadowingInstructions.createComponentOfType,
+                    componentInfoObjects,
+                });
 
                 Object.assign(
                     attributesForReplacement,
@@ -3746,9 +4163,10 @@ export async function replacementFromProp({
                     for (let attrName in stateVarObj.shadowingInstructions
                         .addAttributeComponentsShadowingStateVariables) {
                         if (attrObj[attrName]?.createComponentOfType) {
-                            // when copying with link=false, don't copy fixed attribute
-                            // so that, for example, a copy from a sequence with link=false is not fixed
-                            if (attrName !== "fixed") {
+                            // a copy of a prop holds its value, not the
+                            // `fixed` and `fixLocation` of what it is a
+                            // prop of
+                            if (!CONTEXT_ATTRIBUTES.includes(attrName)) {
                                 let vName =
                                     stateVarObj.shadowingInstructions
                                         .addAttributeComponentsShadowingStateVariables[
@@ -3805,6 +4223,15 @@ export async function replacementFromProp({
                                     component: res.components[0],
                                 };
                             } else if (
+                                target.attributes[attrName]?.type === "literal"
+                            ) {
+                                // a literal: copied as its attribute component was
+                                attributesFromComponent[attrName] =
+                                    copyOfLiteralAttribute(
+                                        target.attributes[attrName],
+                                        target,
+                                    );
+                            } else if (
                                 target.attributes[attrName]?.primitive !==
                                 undefined
                             ) {
@@ -3828,23 +4255,26 @@ export async function replacementFromProp({
                     );
                 }
 
+                deleteReplacedAttributes({
+                    attributes: attributesForReplacement,
+                    attributesFromComposite,
+                    componentType:
+                        stateVarObj.shadowingInstructions.createComponentOfType,
+                    componentInfoObjects,
+                });
+
                 Object.assign(
                     attributesForReplacement,
                     attributesFromComposite,
                 );
 
-                let primaryEssentialStateVariable = "value";
-                let componentClass =
-                    componentInfoObjects.allComponentClasses[
-                        stateVarObj.shadowingInstructions.createComponentOfType
-                    ];
-                if (componentClass.primaryEssentialStateVariable) {
-                    primaryEssentialStateVariable =
-                        componentClass.primaryEssentialStateVariable;
-                } else if (componentClass.primaryStateVariableForDefinition) {
-                    primaryEssentialStateVariable =
-                        componentClass.primaryStateVariableForDefinition;
-                }
+                const primaryEssentialStateVariable =
+                    primaryEssentialStateVariableOf({
+                        componentType:
+                            stateVarObj.shadowingInstructions
+                                .createComponentOfType,
+                        componentInfoObjects,
+                    });
 
                 let serializedComponent = {
                     type: "serialized",
@@ -3865,8 +4295,15 @@ export async function replacementFromProp({
         }
     }
 
-    if (await component.stateValues.implicitProp) {
+    if (implicitProp) {
         for (let repl of serializedReplacements) {
+            // A value reference is never marked: the mark would make it
+            // shadow the referent's standard variables under its own names
+            // (reading `n.value` where it should read `n.math`) and have
+            // essential writes to the referent mirrored into it.
+            if (repl.componentType === "_ref") {
+                continue;
+            }
             if (!repl.doenetAttributes) {
                 repl.doenetAttributes = {};
             }
@@ -3891,6 +4328,113 @@ export async function replacementFromProp({
     };
 }
 
+/**
+ * Warnings for what an `extend` of a composite or a list cannot apply
+ * (#2041). `copyInChildren` marks a `_copy` an author wrote as `extend=` or
+ * `copy=`, and a linked one is an `extend`.
+ *
+ * Such an extend is a shadow of what it extends: a composite copies the
+ * replacements of the composite it shadows (`expandShadowingComposite`), and a
+ * list reads the values of the list it shadows (`shadowVariable`). So an
+ * attribute that its own class declares, beyond what every composite or list
+ * has, cannot change what it shows: `to` on `<sequence extend="$s" to="5"/>`,
+ * `for` on a `<repeat>`. Such an attribute is returned in `attributeNames`, for
+ * the caller to leave off the extend, which then keeps the source's value. Set
+ * on the extend, some would break it instead: `type` on a sequence's extend
+ * picks the class its values are made for. `asList` is read by the parent,
+ * and the number-display attributes, where declared, by the replacements
+ * themselves, so those still apply. Children written inside the extend of a
+ * composite are dropped as well, except by a class that adds them after the
+ * replacements it copies (`<group>`). A list takes no children, which is
+ * already reported as invalid children. A `<group>`, or a class built on it,
+ * makes its replacements again on its extend, so the attributes a group
+ * declares (`rendered`) apply there too.
+ */
+function extendIgnoresAttributesAndChildren({
+    replacementType,
+    attributeNames,
+    copyAttributeNames,
+    children,
+    componentInfoObjects,
+}) {
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacementType];
+    if (!replacementClass) {
+        return { attributeNames: [], diagnostics: [] };
+    }
+
+    const isComposite = componentInfoObjects.isCompositeComponent({
+        componentType: replacementType,
+    });
+    const isList = replacementClass.prototype instanceof ValueListComponent;
+    if (!isComposite && !isList) {
+        return { attributeNames: [], diagnostics: [] };
+    }
+
+    const declaredAttributes = replacementClass.createAttributesObject();
+    const sharedAttributes = new Set([
+        ...Object.keys(
+            (isComposite
+                ? CompositeComponent
+                : ValueListComponent
+            ).createAttributesObject(),
+        ),
+        // The number-display attributes, where they apply: a class that
+        // declares them, and a `<collect>`, which passes them on to the
+        // copies it makes. A `<module>` reads one only as a parameter of
+        // its own, which its extend ignores as any other.
+        ...Object.keys(returnNumberDisplayAttributes()).filter(
+            (attrName) =>
+                replacementType === "collect" || attrName in declaredAttributes,
+        ),
+        // A `<group>`, and a `<module>`, shadows by making its replacements
+        // again (`addExtraSerializedChildrenWhenShadowing`), so it reads the
+        // attributes a group declares, such as `rendered`, on its extend.
+        ...(replacementClass === Group ||
+        replacementClass.prototype instanceof Group
+            ? Object.keys(Group.createAttributesObject())
+            : []),
+        // The `_copy`'s own attributes (`createComponentIdx`,
+        // `copyInChildren`, …), which a class that accepts any attribute
+        // (`<module>`, `<collect>`) is handed along with the author's.
+        ...copyAttributeNames,
+    ]);
+
+    const diagnostics = [];
+    const ignoredAttributeNames = attributeNames.filter(
+        (attrName) => !sharedAttributes.has(attrName),
+    );
+
+    for (const attrName of ignoredAttributeNames) {
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0168",
+                args: {
+                    attribute: attrName,
+                    componentType: replacementType,
+                },
+            }),
+        );
+    }
+
+    if (
+        isComposite &&
+        !replacementClass.addExtraSerializedChildrenWhenShadowing &&
+        children.some((x) => typeof x !== "string" || x.trim() !== "")
+    ) {
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0169",
+                args: { componentType: replacementType },
+            }),
+        );
+    }
+
+    return { attributeNames: ignoredAttributeNames, diagnostics };
+}
+
 export function addChildrenFromComposite({
     replacements,
     children,
@@ -3911,4 +4455,301 @@ export function addChildrenFromComposite({
     }
 
     repl.children.push(...newChildren);
+}
+
+/**
+ * The list component of each type of value that an array of such values is
+ * read as (`arrayListReplacement`).
+ */
+const LIST_TYPE_OF_VALUE_TYPE = {
+    math: "mathList",
+    number: "numberList",
+    text: "textList",
+    boolean: "booleanList",
+};
+
+/**
+ * The replacement for a reference to the whole array `varName` of `target`
+ * (`$P.xs`): one list component of the array's values, which shadows the
+ * array and whose entries a parent reads, and the viewer draws, as one child
+ * per value, each of the type a value of the array has on its own. It carries
+ * the companions the array's values have (`displayDigits` of a `<point>`),
+ * shadowing them. `undefined`, for one replacement per value as before, when
+ * the array is not one dimension of math, number, text or boolean values,
+ * when the reference is not linked, was given a type or attributes of its
+ * own, skips empty entries, or sits where a parent reads values, where each
+ * value is a value reference of its own, or must have a replacement.
+ */
+async function arrayListReplacement({
+    component,
+    components,
+    target,
+    varName,
+    arrayStateVarObj,
+    numWrappingComponents,
+    link,
+    mayBeValueReference,
+    parentClass,
+    componentInfoObjects,
+    compositeAttributesObj,
+    nComponents,
+    stateIdInfo,
+}) {
+    const valueType =
+        arrayStateVarObj.shadowingInstructions?.createComponentOfType;
+    const listType =
+        typeof valueType === "string"
+            ? LIST_TYPE_OF_VALUE_TYPE[valueType]
+            : undefined;
+    if (
+        listType === undefined ||
+        (arrayStateVarObj.numDimensions ?? 1) !== 1 ||
+        numWrappingComponents > 0 ||
+        !link ||
+        !mayBeValueReference ||
+        (await component.stateValues.removeEmptyArrayEntries) ||
+        // where a reference must have a replacement, an empty array is one
+        // blank replacement, which a value written to it fills
+        components[component.parentIdx]?.sharedParameters
+            ?.compositesMustHaveAReplacement ||
+        // values whose display settings differ from value to value (the
+        // `number` of each entry of a `<mathList>`) each keep their own
+        Object.values(
+            arrayStateVarObj.shadowingInstructions
+                .addAttributeComponentsShadowingStateVariables ?? {},
+        ).some(
+            ({ stateVariableToShadow }) =>
+                target.state[stateVariableToShadow]?.companionOfEachEntry,
+        )
+    ) {
+        return undefined;
+    }
+
+    const res = convertUnresolvedAttributesForComponentType({
+        attributes: component.attributes,
+        componentType: listType,
+        componentInfoObjects,
+        compositeAttributesObj,
+        nComponents: 0,
+        stateIdInfo: { prefix: "", num: 0 },
+    });
+    const { otherAttributes } = separateResponseMarks(res.attributes);
+    if (
+        Object.keys(otherAttributes).length > 0 ||
+        planValueReference({
+            parentClass,
+            targetComponentType: target.componentType,
+            valueComponentType: valueType,
+            fromImplicitProp: false,
+            hasAttributes: false,
+            componentInfoObjects,
+        })
+    ) {
+        return undefined;
+    }
+
+    const converted = convertUnresolvedAttributesForComponentType({
+        attributes: component.attributes,
+        componentType: listType,
+        componentInfoObjects,
+        compositeAttributesObj,
+        nComponents,
+        stateIdInfo,
+    });
+    nComponents = converted.nComponents;
+    const attributes = {};
+
+    const listAttributes =
+        componentInfoObjects.allComponentClasses[
+            listType
+        ].createAttributesObject();
+    const shadowing =
+        arrayStateVarObj.shadowingInstructions
+            .addAttributeComponentsShadowingStateVariables ?? {};
+    for (const attrName in shadowing) {
+        const stateVariableToShadow = shadowing[attrName].stateVariableToShadow;
+        const attributeComponentType =
+            listAttributes[attrName]?.createComponentOfType;
+        // a companion that differs from value to value has no place on the
+        // list
+        if (
+            !attributeComponentType ||
+            target.state[stateVariableToShadow]?.isArray
+        ) {
+            continue;
+        }
+        if (attributeShadowIsReference(attributeComponentType)) {
+            attributes[attrName] = shadowAttributeReference({
+                attrName,
+                attributeComponentType,
+                target,
+                stateVariableToShadow,
+            });
+            continue;
+        }
+        attributes[attrName] = {
+            component: {
+                type: "serialized",
+                componentType: attributeComponentType,
+                componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [],
+                downstreamDependencies: {
+                    [target.componentIdx]: [
+                        {
+                            compositeIdx: component.componentIdx,
+                            dependencyType: "referenceShadow",
+                            propVariable: stateVariableToShadow,
+                        },
+                    ],
+                },
+            },
+        };
+    }
+    Object.assign(attributes, converted.attributes);
+
+    return {
+        serializedComponent: {
+            type: "serialized",
+            componentType: listType,
+            componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+            attributes,
+            doenetAttributes: {},
+            children: [],
+            state: {},
+            downstreamDependencies: {
+                [target.componentIdx]: [
+                    {
+                        dependencyType: "referenceShadow",
+                        compositeIdx: component.componentIdx,
+                        propVariable: varName,
+                    },
+                ],
+            },
+        },
+        nComponents,
+    };
+}
+
+/**
+ * The `doenetAttributes` of a component made from entry `arrayKey` of the
+ * array `arrayStateVarObj` of `target`: when the array is a list's values
+ * and the list holds, for each entry, variables of the entry's source that
+ * the component reads from the list rather than takes as attributes
+ * (`listEntrySourceVariables`, a list of points or vectors: the label,
+ * `fixed`, `fixLocation`, and a vector's draggable head and tail),
+ * `listEntrySource`, which names the list, the arrays holding them, and the
+ * entry's index into them, so that the component reads them as the copy of
+ * the source it stood for had them (`utils/label.ts`,
+ * `utils/listEntrySource.ts`).
+ */
+function listEntrySourceDoenetAttributes({
+    arrayStateVarObj,
+    arrayKey,
+    target,
+}) {
+    const variables =
+        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
+    const index = arrayStateVarObj.keyToIndex(arrayKey);
+    if (!variables || !Number.isInteger(index)) {
+        return {};
+    }
+    return {
+        listEntrySource: {
+            componentIdx: target.componentIdx,
+            index,
+            variables,
+        },
+    };
+}
+
+/**
+ * For an unlinked copy of entry `arrayKey` of a list (`copy="$pl[1]"`), the
+ * variables of the entry's source that a linked component reads from the list
+ * (`listEntrySourceVariables`) and that the copy does not take as attributes,
+ * as they are when it is made: the label, as a
+ * `<label>` child as an unlinked copy of a labeled point has, and any other
+ * (a vector's `headDraggable` and `tailDraggable`) the source sets, as state.
+ * A linked component reads them from the list instead
+ * (`listEntrySourceDoenetAttributes`).
+ */
+async function listEntrySourceSnapshot({
+    arrayStateVarObj,
+    arrayKey,
+    target,
+    nComponents,
+    stateIdInfo,
+}) {
+    const children = [];
+    const state = {};
+    const variables =
+        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
+    const index = arrayStateVarObj.keyToIndex(arrayKey);
+    if (!variables || !Number.isInteger(index)) {
+        return { children, state, nComponents };
+    }
+
+    // what an unlinked copy takes as attributes, and `fixed` and
+    // `fixLocation`, which it takes as written on the list or the entry's
+    // source
+    const attributes =
+        arrayStateVarObj.shadowingInstructions
+            .addAttributeComponentsShadowingStateVariables ?? {};
+
+    for (const [variable, arrayName] of Object.entries(variables)) {
+        if (variable === "labelHasLatex") {
+            // carried by the label's text (`Label`'s `hasLatex`)
+            continue;
+        }
+        if (variable in attributes || CONTEXT_ATTRIBUTES.includes(variable)) {
+            continue;
+        }
+        const value = (await target.state[arrayName].value)[index];
+        if (variable === "label") {
+            if (typeof value === "string" && value !== "") {
+                children.push({
+                    type: "serialized",
+                    componentType: "label",
+                    componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: { valueShadow: value },
+                    children: [],
+                });
+            }
+        } else if (value !== null && value !== undefined) {
+            state[variable] = value;
+        }
+    }
+
+    return { children, state, nComponents };
+}
+
+/**
+ * Remove from `attributes`, those a copy or extend takes from its source,
+ * the ones that an attribute written on it (`attributesFromComposite`)
+ * replaces as well as itself (`replacesOnReference`): with `variable="t"`,
+ * a copy takes none of its source's `variables`, as an extend does not.
+ */
+function deleteReplacedAttributes({
+    attributes,
+    attributesFromComposite,
+    componentType,
+    componentInfoObjects,
+}) {
+    const attributesObj =
+        componentInfoObjects.allComponentClasses[
+            componentType
+        ]?.createAttributesObject() ?? {};
+    for (const attrName in attributesFromComposite) {
+        for (const replaced of attributesObj[attrName]?.replacesOnReference ??
+            []) {
+            delete attributes[replaced];
+        }
+    }
 }

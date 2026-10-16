@@ -1,9 +1,16 @@
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import CompositeComponent from "./abstract/CompositeComponent";
+import ValueListComponent from "./abstract/ValueListComponent";
 
-export default class SamplePrimeNumbers extends CompositeComponent {
+/**
+ * Samples prime numbers. It is a list component (`ValueListComponent`): it
+ * holds the samples in one array, `sampledValues`, and a parent sees one
+ * `<integer>` per sample. With `fixed="false"`, a value written to a sample
+ * (`$ns[2]`, a point dragged) is kept for that sample (`entryWrites`) until
+ * it is drawn again.
+ */
+export default class SamplePrimeNumbers extends ValueListComponent {
     constructor(args) {
         super(args);
 
@@ -12,6 +19,12 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         });
     }
     static componentType = "samplePrimeNumbers";
+
+    static listEntryComponentType = "integer";
+
+    static listEntryValuesVariable = "sampledValues";
+
+    static listEntriesTakeWrites = true;
 
     // `variantDeterminesSeed` is false by default, so these samples are drawn
     // from a date-seeded generator and a fresh build of the same document
@@ -23,16 +36,13 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     static componentDocs = {
         summary: "Samples random prime numbers",
     };
-    static takesIndex = true;
-
     static allowInSchemaAsComponent = ["integer"];
 
-    static createsVariants = true;
-
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
-
+    // Saved samples are read back on load rather than drawn afresh
+    // (`sampledValues`).
     static processWhenJustUpdatedForNewComponent = true;
+
+    static createsVariants = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -197,19 +207,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                sampledValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "sampledValues",
-                },
-            }),
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         stateVariableDefinitions.isVariantComponent = {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { isVariantComponent: true } }),
@@ -239,125 +236,6 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         };
 
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        workspace,
-        startNum = 0,
-        nComponents,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
-        }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let replacements = [];
-
-        for (let value of (await component.stateValues.sampledValues).slice(
-            startNum,
-        )) {
-            replacements.push({
-                type: "serialized",
-                componentType: "integer",
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                state: { value, fixed: true },
-                attributes: {},
-                doenetAttributes: {},
-                children: [],
-            });
-        }
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        componentInfoObjects,
-        flags,
-        nComponents,
-        workspace,
-    }) {
-        let diagnostics = [];
-
-        let replacementChanges = [];
-
-        let sampledValues = await component.stateValues.sampledValues;
-
-        // if have fewer result than samples, adjust replacementsToWithhold
-        if (sampledValues.length < component.replacements.length) {
-            let numberToWithhold =
-                component.replacements.length - sampledValues.length;
-
-            if (numberToWithhold !== component.replacementsToWithhold) {
-                let replacementInstruction = {
-                    changeType: "changeReplacementsToWithhold",
-                    replacementsToWithhold: numberToWithhold,
-                };
-                replacementChanges.push(replacementInstruction);
-            }
-        } else {
-            // need to reuse all previous samples, don't withhold any
-            if (component.replacementsToWithhold > 0) {
-                let replacementInstruction = {
-                    changeType: "changeReplacementsToWithhold",
-                    replacementsToWithhold: 0,
-                };
-                replacementChanges.push(replacementInstruction);
-            }
-
-            if (sampledValues.length > component.replacements.length) {
-                let result = await this.createSerializedReplacements({
-                    component,
-                    componentInfoObjects,
-                    startNum: component.replacements.length,
-                    flags,
-                    nComponents,
-                    workspace,
-                });
-                diagnostics.push(...result.diagnostics);
-                nComponents = result.nComponents;
-
-                let replacementInstruction = {
-                    changeType: "add",
-                    changeTopLevelReplacements: true,
-                    firstReplacementInd: component.replacements.length,
-                    numberReplacementsToReplace: 0,
-                    serializedReplacements: result.replacements,
-                };
-                replacementChanges.push(replacementInstruction);
-            }
-        }
-
-        // update values of the remainder of the replacements
-        let numUpdate = Math.min(
-            component.replacements.length,
-            sampledValues.length,
-        );
-
-        for (let ind = 0; ind < numUpdate; ind++) {
-            let replacementInstruction = {
-                changeType: "updateStateVariables",
-                component: component.replacements[ind],
-                stateChanges: { value: sampledValues[ind] },
-            };
-            replacementChanges.push(replacementInstruction);
-        }
-
-        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

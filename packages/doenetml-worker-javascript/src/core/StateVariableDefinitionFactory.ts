@@ -64,7 +64,16 @@ const classStateVariableDefinitionsCache: WeakMap<
     >
 > = new WeakMap();
 
-function getClassStateVariableDefinitions(core: Core, componentClass: any) {
+/**
+ * The state-variable definitions of `componentClass`, attribute-derived and
+ * class-declared, built once per core and shared by every instance. A value
+ * reference (`_ref`) borrows from here the definitions of the type it stands
+ * in for (`createOnDemandStateVariableDefinitions`).
+ */
+export function getClassStateVariableDefinitions(
+    core: Core,
+    componentClass: any,
+) {
     let perCore = classStateVariableDefinitionsCache.get(core);
     if (!perCore) {
         perCore = new Map();
@@ -1228,7 +1237,9 @@ function modifyStateDefToDeleteVariableReferences({
  * single-key dependency entry for an attribute-derived state variable.
  * The shape is determined by the attribute spec: `createPrimitiveOfType`
  * → primitive, `createReferences` → ref-resolutions, otherwise →
- * the attribute component (reading `stateVariableForAttributeValue`).
+ * the attribute component (reading `stateVariableForAttributeValue`),
+ * which a shadow takes from its source, except that a reference does not
+ * take an attribute that is `notFromReferenceSource`.
  */
 function _buildAttributeValueDependency(
     attributeSpecification: any,
@@ -1255,6 +1266,9 @@ function _buildAttributeValueDependency(
                 dependencyType: "attributeComponent",
                 attributeName: attrName,
                 variableNames: [stateVariableForAttributeValue],
+                ...(attributeSpecification.notFromReferenceSource
+                    ? { notFromReferenceSource: true }
+                    : {}),
             },
         };
     }
@@ -1565,6 +1579,14 @@ function _copyPassthroughAttributes(
         if (attrName2 in attributeSpecification) {
             stateVarDef[attrName2] = attributeSpecification[attrName2];
         }
+    }
+    // An essential value of an attribute a reference does not take from its
+    // source is not mirrored into the reference either, nor copied into a
+    // reference when it is made (`BaseComponent.serialize`); it is mirrored
+    // into components inside copies (`EssentialValueWriter`).
+    if (attributeSpecification.notFromReferenceSource) {
+        stateVarDef.doNotShadowEssential = true;
+        stateVarDef.notFromReferenceSource = true;
     }
 }
 

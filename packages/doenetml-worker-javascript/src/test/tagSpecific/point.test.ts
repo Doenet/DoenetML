@@ -4,6 +4,7 @@ import {
     clickPoint,
     focusPoint,
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -13,6 +14,7 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { componentOrListEntry } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3675,8 +3677,11 @@ describe("Point tag tests @group4", async () => {
             await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
+        // The sequence is a list component, which stays a child however
+        // many entries it has, and the math reads its entries as children.
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(
@@ -3694,10 +3699,7 @@ describe("Point tag tests @group4", async () => {
             core,
         });
 
-        let math3 =
-            core.core!.components![await resolvePathToNodeIdx("seq")]
-                .replacements[0].adapterUsed;
-        let math3Name = math3.componentIdx;
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             await resolvePathToNodeIdx("seq"),
@@ -3705,7 +3707,7 @@ describe("Point tag tests @group4", async () => {
         ]);
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
-            math3Name,
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(
@@ -4615,9 +4617,14 @@ describe("Point tag tests @group4", async () => {
                 ).eq(nDim);
 
                 expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`coordsAll[${i}]`)
-                    ].stateValues.text,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `coordsAll[${i}]`,
+                        )
+                    ).stateValues.text,
                 ).eq(coordsString);
             }
 
@@ -4670,10 +4677,12 @@ describe("Point tag tests @group4", async () => {
                         .stateValues.text,
                 ).eq(`y-coordinates: ${Array(3).fill(xString[1]).join(", ")}`);
             } else {
+                // Collected as a list of points, which share one number of
+                // dimensions, a coordinate past them is blank (#2162).
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pAllY`)]
                         .stateValues.text,
-                ).eq(`y-coordinates: `);
+                ).eq(`y-coordinates: ${Array(3).fill("＿").join(", ")}`);
             }
             if (nDim > 2) {
                 expect(
@@ -4681,10 +4690,12 @@ describe("Point tag tests @group4", async () => {
                         .stateValues.text,
                 ).eq(`z-coordinates: ${Array(3).fill(xString[2]).join(", ")}`);
             } else {
+                // Collected as a list of points, which share one number of
+                // dimensions, a coordinate past them is blank (#2162).
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pAllZ`)]
                         .stateValues.text,
-                ).eq(`z-coordinates: `);
+                ).eq(`z-coordinates: ${Array(3).fill("＿").join(", ")}`);
             }
 
             expect(
@@ -5596,13 +5607,13 @@ describe("Point tag tests @group4", async () => {
         ).eq("(32.25, 0.0673, 5)");
         // TODO: fix display digits propagation for math lists
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[1]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[1]")).stateValues.text,
         // ).eq("32");
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[2]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[2]")).stateValues.text,
         // ).eq("0.067");
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[3]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[3]")).stateValues.text,
         // ).eq("5");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qx1")].stateValues.text,
@@ -6419,6 +6430,289 @@ describe("Point tag tests @group4", async () => {
         await check_items(params);
     });
 
+    it("fixLocation written on an extend or copy of a point takes precedence", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="F" fixLocation>(5,6)</point>
+      <point name="H">(1,1)</point>
+    </graph>
+    <graph>
+      <point name="XF" extend="$F" fixLocation="false" />
+      <point name="CF" copy="$F" fixLocation="false" />
+      <point name="XH" extend="$H" fixLocation />
+      <point name="XF2" extend="$F" />
+      <point name="CF2" copy="$F" />
+    </graph>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["F", "H", "XF", "CF", "XH", "XF2", "CF2"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        expect(fixLocations).eqls({
+            F: true,
+            H: false,
+            XF: false,
+            CF: false,
+            XH: true,
+            XF2: true,
+            CF2: true,
+        });
+
+        const positions = {
+            F: [5, 6],
+            H: [1, 1],
+            XF: [5, 6],
+            CF: [5, 6],
+            XH: [1, 1],
+            XF2: [5, 6],
+            CF2: [5, 6],
+        };
+        await check_items(positions);
+
+        // The unlinked copy is its own point, so it moves.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CF"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        positions.CF = [9, 9];
+        await check_items(positions);
+
+        // A drag of the extend lands on `F`, whose `fixLocation` refuses it,
+        // as `fixed="false"` on an extend of a fixed point does.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("XF"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+
+        // The extend of `H` has its own `fixLocation`.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("XH"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
+    it("fixLocation written on a copy or extend takes precedence over an enclosing group's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="Q">(1,2)</point>
+    </graph>
+    <group fixLocation>
+      <graph>
+        <point name="GC" copy="$Q" fixLocation="false" />
+        <point name="GX" extend="$Q" fixLocation="false" />
+        <point name="GP" copy="$Q" />
+        <point name="GD" fixLocation="false">(3,4)</point>
+      </graph>
+    </group>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["Q", "GC", "GX", "GP", "GD"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        // As on `GD`, written directly, the copy's and extend's own
+        // `fixLocation="false"` wins over the group's. A copy with none
+        // inherits the group's.
+        expect(fixLocations).eqls({
+            Q: false,
+            GC: false,
+            GX: false,
+            GP: true,
+            GD: false,
+        });
+
+        const positions = {
+            Q: [1, 2],
+            GC: [1, 2],
+            GX: [1, 2],
+            GP: [1, 2],
+            GD: [3, 4],
+        };
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GC"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        positions.GC = [5, 6];
+        await check_items(positions);
+
+        // A drag of the extend lands on `Q`, which is not location-fixed.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GX"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        positions.Q = [7, 8];
+        positions.GX = [7, 8];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GP"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
+    it("fixLocation written on an extend or copy of a list entry takes precedence", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <pointList name="L" fixLocation>(1,2) (3,4)</pointList>
+      <point name="E" extend="$L[1]" />
+    </graph>
+    <graph>
+      <point name="CE" copy="$E" fixLocation="false" />
+      <point name="XE" extend="$E" fixLocation="false" />
+      <point name="CL" copy="$L[1]" fixLocation="false" />
+      <point name="XL" extend="$L[1]" fixLocation="false" />
+      <point name="CE2" copy="$E" />
+      <point name="XL2" extend="$L[1]" />
+    </graph>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["E", "CE", "XE", "CL", "XL", "CE2", "XL2"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        expect(fixLocations).eqls({
+            E: true,
+            CE: false,
+            XE: false,
+            CL: false,
+            XL: false,
+            CE2: true,
+            XL2: true,
+        });
+
+        const positions = {
+            E: [1, 2],
+            CE: [1, 2],
+            XE: [1, 2],
+            CL: [1, 2],
+            XL: [1, 2],
+            CE2: [1, 2],
+            XL2: [1, 2],
+        };
+        await check_items(positions);
+
+        // The unlinked copies are their own points, so they move.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CE"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        positions.CE = [9, 9];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CL"),
+            x: 8,
+            y: 8,
+            core,
+        });
+        positions.CL = [8, 8];
+        await check_items(positions);
+
+        // A drag of an extend lands on the list's entry, whose
+        // `fixLocation` refuses it.
+        for (const name of ["XE", "XL"]) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x: 7,
+                y: 7,
+                core,
+            });
+            await check_items(positions);
+        }
+
+        // A copy with no `fixLocation` of its own keeps the list's.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CE2"),
+            x: 7,
+            y: 7,
+            core,
+        });
+        await check_items(positions);
+    });
+
     it("fix location or fixed is communicated so know math from point can't be changed", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -7061,14 +7355,15 @@ describe("Point tag tests @group4", async () => {
         );
     });
 
-    it("self-reference inside a non-sensical context like <answer> still errors", async () => {
-        // Components like <answer> are not in the recognized rendering-context
-        // list and don't make sense inside a <label>. The circular-dependency
-        // error is the expected outcome in such cases.
+    it("self-reference inside a nonsensical context like <section> still errors", async () => {
+        // Components like <section> are not in the recognized rendering-context
+        // list and don't make sense inside a <label>. The reference there is
+        // a copy of the point inside its own label, and the
+        // circular-dependency error is the expected outcome in such cases.
         const { core } = await createTestCore({
             doenetML: `
 <point name="a">(2,3)
-  <label><answer>$a</answer></label>
+  <label><section>$a</section></label>
 </point>
 `,
         });
@@ -7078,6 +7373,46 @@ describe("Point tag tests @group4", async () => {
         expect(diagnostics.errors[0].message).contain(
             "Circular dependency detected",
         );
+    });
+
+    it("self-reference as an <answer>'s award compares the point's coordinates", async () => {
+        // The award reads the point through its `coords` adapter, so the
+        // reference reads `a.coords` (a value reference, Doenet/DoenetML#2128)
+        // rather than copying the point into its own label: no cycle.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="a">(2,3)
+  <label><answer name="ans">$a</answer></label>
+</point>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[ansIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "(2,3)",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            x: 5,
+            y: -1,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(0);
     });
 
     // A constrained point whose position is essential used to be unloadable

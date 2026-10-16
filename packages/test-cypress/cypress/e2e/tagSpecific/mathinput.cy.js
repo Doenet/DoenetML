@@ -1184,4 +1184,68 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
                 expect(sum, `field text color ${color}`).to.be.greaterThan(450);
             });
     });
+
+    for (const [theme, canvas] of [
+        ["light", [255, 255, 255]],
+        ["dark", [18, 18, 18]],
+    ]) {
+        it(`empty prefill slots are visible against the canvas in ${theme} mode`, () => {
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+    <mathInput name="mi" prefillLatex="\\frac{}{} \\cdot a^{}" />
+    `,
+                        darkMode: theme,
+                    },
+                    "*",
+                );
+            });
+            cy.get(`[data-theme="${theme}"]`).should("exist");
+
+            // The numerator, denominator and exponent are each an empty slot,
+            // shaded at least as visibly as the light-mode slots have always
+            // been.
+            cy.get("#mi .mq-empty:not(.mq-root-block)")
+                .should("have.length", 3)
+                .each(($el) => {
+                    const background = getComputedStyle($el[0]).backgroundColor;
+                    const slot = compositeOver(parseColor(background), canvas);
+                    const ratio = contrastRatio(slot, canvas);
+                    expect(
+                        ratio,
+                        `contrast of slot ${background} with canvas`,
+                    ).to.be.at.least(1.5);
+                });
+        });
+    }
 });
+
+// Parse a computed color, which is `rgb()`/`rgba()` with 0-255 channels or,
+// for a `color-mix()`, `color(srgb ...)` with 0-1 channels.
+function parseColor(color) {
+    const numbers = (color.match(/\d*\.?\d+/g) || []).map(Number);
+    if (color.startsWith("color(")) {
+        const [r, g, b, a = 1] = numbers;
+        return [r * 255, g * 255, b * 255, a];
+    }
+    const [r, g, b, a = 1] = numbers;
+    return [r, g, b, a];
+}
+
+function compositeOver([r, g, b, a], background) {
+    return [r, g, b].map((c, i) => c * a + background[i] * (1 - a));
+}
+
+function contrastRatio(color1, color2) {
+    const luminance = (rgb) => {
+        const [r, g, b] = rgb.map((c) => {
+            const s = c / 255;
+            return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const l1 = luminance(color1);
+    const l2 = luminance(color2);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}

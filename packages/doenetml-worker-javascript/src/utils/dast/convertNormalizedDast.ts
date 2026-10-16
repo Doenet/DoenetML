@@ -8,6 +8,10 @@ import {
     Source,
     UntaggedContent,
 } from "@doenet/doenetml-worker";
+import {
+    convertLiteralAttributes,
+    literalFromAttributeComponent,
+} from "../literalAttribute";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     AttributeDefinition,
@@ -29,6 +33,10 @@ import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
+import { convertCopiesToValueReferences } from "./valueReferences";
+import { convertToListForms } from "./listForms";
+import { convertRepeatsToLists } from "./repeatLists";
+import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     codedDiagnostic,
@@ -329,7 +337,45 @@ export async function normalizedDastToSerializedComponents(
     //     nComponents,
     // );
 
-    const document = sugarResult.components[0] as SerializedComponent;
+    // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
+    // the values it reads, and before the value references, so that a
+    // reference among the children of a list made here is one.
+    nComponents = convertToListForms({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        nComponents,
+    }).nComponents;
+
+    // After sugar, so that each reference is judged by the parent it will
+    // have: the `$n` of `<number>$n+1</number>` sits in the `<math>` sugar
+    // made.
+    convertCopiesToValueReferences({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
+
+    // After the value references, which decide whether a repeat's value and
+    // index are lists and make the references that read them value
+    // references, a repeat whose template is one value becomes a list.
+    nComponents = convertRepeatsToLists({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        nComponents,
+    }).nComponents;
+
+    // After everything that reads an attribute component's written text, an
+    // attribute that is only a literal becomes the literal.
+    const document = convertLiteralAttributes(
+        sugarResult.components,
+        componentInfoObjects,
+    )[0] as SerializedComponent;
+
+    // After the literal attributes, an attribute that is text and value
+    // references is held by its component (`expressionAttributes.ts`).
+    convertExpressionAttributes([document], {
+        numResolverNodes: normalized_root.nodes.length,
+        componentInfoObjects,
+    });
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added
@@ -1492,6 +1538,20 @@ export function convertUnresolvedAttributesForComponentType({
 
                     newAttributes[attrName].component = sugarResult
                         .components[0] as SerializedComponent;
+
+                    // an attribute that is only a literal becomes the literal
+                    const literal =
+                        attrName === newClass.addAttributeToResolver
+                            ? undefined
+                            : literalFromAttributeComponent({
+                                  name: attrName,
+                                  component: newAttributes[attrName].component,
+                                  attrDef,
+                                  sourceDoc: newAttributes[attrName].sourceDoc,
+                              });
+                    if (literal) {
+                        newAttributes[attrName] = literal;
+                    }
                 }
             } else {
                 // The attribute is already resolved.
@@ -1503,6 +1563,37 @@ export function convertUnresolvedAttributesForComponentType({
     }
 
     return { attributes: newAttributes, nComponents };
+}
+
+/**
+ * The name of the essential value that a component of type `componentType`
+ * starts from when it is made from a value (an unlinked copy of a property,
+ * an attribute given a value): the essential name of its
+ * `primaryStateVariableForDefinition`, which a point (`coords` for
+ * `coordsShadow`) or vector (`displacement` for `displacementShadow`) keeps
+ * under a name of its own, as `BaseComponent.serialize` writes it.
+ */
+export function primaryEssentialStateVariableOf({
+    componentType,
+    componentInfoObjects,
+}: {
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}): string {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (componentClass.primaryEssentialStateVariable) {
+        return componentClass.primaryEssentialStateVariable;
+    }
+    const varName: string | undefined =
+        componentClass.primaryStateVariableForDefinition;
+    if (!varName) {
+        return "value";
+    }
+    return (
+        componentInfoObjects.stateVariableInfo[componentType]
+            ?.stateVariableDescriptions[varName]?.essentialVarName ?? varName
+    );
 }
 
 /**
@@ -1570,7 +1661,12 @@ export function convertAttributeValuesForComponentType({
                     componentType: attrDef.createComponentOfType,
                     attributes: {},
                     doenetAttributes: {},
-                    state: { value: attributeVal },
+                    state: {
+                        [primaryEssentialStateVariableOf({
+                            componentType: attrDef.createComponentOfType,
+                            componentInfoObjects,
+                        })]: attributeVal,
+                    },
                     children: [],
                 },
             };

@@ -1,3 +1,5 @@
+import { targetIdxOfRefResolution } from "./refTargets";
+
 export function returnStandardTriggeringAttributes(triggerActionOnChange) {
     return {
         triggerWhen: {
@@ -82,33 +84,24 @@ export function addStandardTriggeringStateVariableDefinitions(
             ) {
                 return { setValue: { triggerWith: null } };
             } else {
+                // A reference to one entry of a list component (`$pl[2]`)
+                // names the entry (`targetIdxOfRefResolution`).
                 let triggerWith = [];
-                if (dependencyValues.triggerWith !== null) {
-                    for (let refResolution of dependencyValues.triggerWith) {
-                        if (refResolution.unresolvedPath === null) {
-                            triggerWith.push({
-                                target: refResolution.componentIdx,
-                            });
-                        }
-                    }
-                }
-                if (dependencyValues.triggerWhenObjectsClicked !== null) {
-                    for (let refResolution of dependencyValues.triggerWhenObjectsClicked) {
-                        if (refResolution.unresolvedPath === null) {
-                            triggerWith.push({
-                                target: refResolution.componentIdx,
-                                triggeringAction: "click",
-                            });
-                        }
-                    }
-                }
-                if (dependencyValues.triggerWhenObjectsFocused !== null) {
-                    for (let refResolution of dependencyValues.triggerWhenObjectsFocused) {
-                        if (refResolution.unresolvedPath === null) {
-                            triggerWith.push({
-                                target: refResolution.componentIdx,
-                                triggeringAction: "focus",
-                            });
+                for (const [attributeName, triggeringAction] of [
+                    ["triggerWith", undefined],
+                    ["triggerWhenObjectsClicked", "click"],
+                    ["triggerWhenObjectsFocused", "focus"],
+                ]) {
+                    for (const refResolution of dependencyValues[
+                        attributeName
+                    ] ?? []) {
+                        const target = targetIdxOfRefResolution(refResolution);
+                        if (target !== null) {
+                            triggerWith.push(
+                                triggeringAction === undefined
+                                    ? { target }
+                                    : { target, triggeringAction },
+                            );
                         }
                     }
                 }
@@ -187,5 +180,87 @@ export function addStandardTriggeringStateVariableDefinitions(
         } else {
             return originalHiddenDefinition(args);
         }
+    };
+}
+
+/**
+ * Add the `clickTarget` state variable, which tells the renderer whether
+ * clicking this component fires an action. It is true when another
+ * component lists this one in `triggerWhenObjectsClicked` and that
+ * component acts on clicks, or when this component is a bare reference
+ * (such as `$t`) to a component that is a click target, since clicking the
+ * reference fires the same actions.
+ */
+export function addClickTargetStateVariableDefinition(
+    stateVariableDefinitions,
+) {
+    stateVariableDefinitions.componentsReferencingForClick = {
+        returnDependencies: () => ({
+            componentsReferencing: {
+                dependencyType: "componentsReferencingAttribute",
+                attributeName: "triggerWhenObjectsClicked",
+            },
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    componentsReferencingForClick:
+                        dependencyValues.componentsReferencing ?? [],
+                },
+            };
+        },
+    };
+
+    stateVariableDefinitions.clickTarget = {
+        forRenderer: true,
+        stateVariablesDeterminingDependencies: [
+            "componentsReferencingForClick",
+        ],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                shadowSourceClickTarget: {
+                    dependencyType: "shadowSourceStateVariable",
+                    variableName: "clickTarget",
+                    onlyBareReferences: true,
+                },
+            };
+
+            // A referencing component ignores its own triggering attributes
+            // when it has `triggerWhen` or is inside a `<triggerSet>`.
+            for (const [
+                ind,
+                comp,
+            ] of stateValues.componentsReferencingForClick.entries()) {
+                dependencies[`referencerTriggerWhen${ind}`] = {
+                    dependencyType: "attributeComponent",
+                    parentIdx: comp.componentIdx,
+                    attributeName: "triggerWhen",
+                };
+                dependencies[`referencerTriggerSet${ind}`] = {
+                    dependencyType: "parentIdentity",
+                    childIdx: comp.componentIdx,
+                    parentComponentType: "triggerSet",
+                };
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            let clickTarget = dependencyValues.shadowSourceClickTarget === true;
+            for (
+                let ind = 0;
+                `referencerTriggerSet${ind}` in dependencyValues;
+                ind++
+            ) {
+                if (
+                    !dependencyValues[`referencerTriggerWhen${ind}`] &&
+                    !dependencyValues[`referencerTriggerSet${ind}`]
+                ) {
+                    clickTarget = true;
+                }
+            }
+
+            return { setValue: { clickTarget } };
+        },
     };
 }

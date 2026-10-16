@@ -302,6 +302,17 @@ export async function deleteComponents({
 
         // delete from cumulativeStateVariableChanges
         delete core.cumulativeStateVariableChanges[component.stateId];
+        // and the snapshot a save held of it as an unlinked copy, with the
+        // key once it holds none: a save with no unlinked copies left does
+        // not reach `recordCopySnapshots` to remove it
+        const copySnapshots =
+            core.cumulativeStateVariableChanges.__copySnapshots;
+        if (copySnapshots) {
+            delete copySnapshots[component.stateId];
+            if (Object.keys(copySnapshots).length === 0) {
+                delete core.cumulativeStateVariableChanges.__copySnapshots;
+            }
+        }
         core.readerTouchedStateIds.delete(component.stateId);
         core.definitionSetStateIds.delete(component.stateId);
 

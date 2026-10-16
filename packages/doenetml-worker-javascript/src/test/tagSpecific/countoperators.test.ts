@@ -1328,9 +1328,9 @@ describe("Counting operator tag tests @group4", async () => {
 
     describe("counts are numbers", async () => {
         it("tally declares the number renderer with no children", async () => {
-            // A composite has to declare the renderer its replacements will
-            // need before it has any, or an empty list that later fills in
-            // would render nothing.
+            // An operator has to declare the renderer its counts will need
+            // before it has any, or an empty list that later fills in would
+            // render nothing.
             let { core } = await createTestCore({
                 doenetML: `
     <textList name="tl" />

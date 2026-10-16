@@ -43,6 +43,7 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Collect from "./components/Collect";
+import CollectList from "./components/CollectList";
 import Ref from "./components/Ref";
 import Point from "./components/Point";
 import Coords from "./components/Coords";
@@ -86,6 +87,9 @@ import Option from "./components/Option";
 import Sequence from "./components/Sequence";
 import Repeat from "./components/Repeat";
 import RepeatForSequence from "./components/RepeatForSequence";
+import { RepeatValues, RepeatIndices } from "./components/RepeatIterationLists";
+import RepeatValueList from "./components/RepeatValueList";
+import RepeatPointList from "./components/RepeatPointList";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -153,7 +157,9 @@ import Footnote from "./components/Footnote";
 import Caption from "./components/Caption";
 import Endpoint from "./components/Endpoint";
 import Sort from "./components/Sort";
+import SortList from "./components/SortList";
 import Shuffle from "./components/Shuffle";
+import ShuffleList from "./components/ShuffleList";
 import SortIndices from "./components/SortIndices";
 import SolveEquations from "./components/SolveEquations";
 import PostponeRenderContainer from "./components/PostponeRenderContainer";
@@ -184,6 +190,7 @@ import StickyGroup from "./components/StickyGroup";
 import Pretzel from "./components/Pretzel";
 import PretzelArranger from "./components/PretzelArranger";
 import Cascade from "./components/Cascade";
+import Page from "./components/Page";
 import DynamicChildren from "./components/DynamicChildren";
 import ShortDescription from "./components/ShortDescription";
 
@@ -192,6 +199,7 @@ import * as ComponentSize from "./components/abstract/ComponentSize";
 import * as SectioningComponent from "./components/abstract/SectioningComponent";
 import BaseComponent from "./components/abstract/BaseComponent";
 import Copy from "./components/abstract/Copy";
+import ValueRef from "./components/abstract/ValueRef";
 import InlineComponent from "./components/abstract/InlineComponent";
 import BlockComponent from "./components/abstract/BlockComponent";
 import BlockScoredComponent from "./components/abstract/BlockScoredComponent";
@@ -260,7 +268,9 @@ const componentTypeArray = [
     TupleList,
     NumberList,
     Copy,
+    ValueRef,
     Collect,
+    CollectList,
     Ref,
     Point,
     Coords,
@@ -313,6 +323,10 @@ const componentTypeArray = [
     Panel,
     Repeat,
     RepeatForSequence,
+    RepeatValues,
+    RepeatValueList,
+    RepeatPointList,
+    RepeatIndices,
     Pegboard,
     Constraints,
     ConstrainToGrid,
@@ -366,8 +380,10 @@ const componentTypeArray = [
     Caption,
     Endpoint,
     Sort,
+    SortList,
     SortIndices,
     Shuffle,
+    ShuffleList,
     SolveEquations,
     PostponeRenderContainer,
     SubsetOfRealsInput,
@@ -397,6 +413,7 @@ const componentTypeArray = [
     Pretzel,
     PretzelArranger,
     Cascade,
+    Page,
     DynamicChildren,
     ShortDescription,
 

@@ -19,12 +19,14 @@ import {
     wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
 import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
 import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
+import { NoClickTargetContext } from "./utils/ClickTarget";
 
 // type guard
 const isMultiValue = <T,>(
@@ -98,6 +100,7 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
 
@@ -328,6 +331,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 {label}
             </MathJax>
         );
+    }
+    if (renderedLabel) {
+        label = renderedLabel;
     }
 
     let shortDescription = SVs.shortDescription || undefined;
@@ -626,7 +632,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     verticalAlign: "baseline",
                 }}
             >
-                {selectWithDynamicWidth}
+                {/* Every choice is shown inside the select, so none can be a click target. */}
+                <NoClickTargetContext.Provider value={true}>
+                    {selectWithDynamicWidth}
+                </NoClickTargetContext.Provider>
                 {checkWorkComponent}
                 {description}
             </span>
@@ -777,7 +786,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 />
                                 <span className={radioClassName} />
                                 <span style={{ marginInlineStart: "2px" }}>
-                                    {child}
+                                    <NoClickTargetContext.Provider value={true}>
+                                        {child}
+                                    </NoClickTargetContext.Provider>
                                 </span>
                             </label>
                         </li>
@@ -815,7 +826,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 />
                                 <span className={checkboxClassName} />
                                 <span style={{ marginInlineStart: "2px" }}>
-                                    {child}
+                                    <NoClickTargetContext.Provider value={true}>
+                                        {child}
+                                    </NoClickTargetContext.Provider>
                                 </span>
                             </label>
                         </li>

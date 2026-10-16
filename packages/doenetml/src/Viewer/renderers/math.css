@@ -47,3 +47,43 @@
 .doenet-viewer .doenet-math-slot-label {
     visibility: hidden;
 }
+
+/*
+ * A displayed equation of several rows (an `<md>`, `<mdn>`, or an `<me>` that
+ * is nothing but an `array`, `aligned` or the like) is an inline table that
+ * MathJax centers on the math axis, so its line's baseline falls in the middle
+ * row. A list item's number sits on the first line's baseline — the `<li>`
+ * marker, and a section number through its grid's `align-items: baseline` —
+ * so it landed beside the middle row. Aligning the table on its own baseline,
+ * which for a table is its first row's, puts the number beside the first row.
+ *
+ * `line-height: 0` keeps the container's strut from then pushing the table
+ * down: with the baseline near the top of the table, a strut of normal line
+ * height would reach above it and grow the line. The table is taller than any
+ * strut, so the display's height and row positions do not change. A single-row
+ * table is left alone: its baseline is already its row's, and there the strut
+ * is what sets the display's height. A table nested in a row, such as a
+ * `pmatrix` or `cases`, keeps MathJax's centering, which is what holds it
+ * between its delimiters. So does a table with other math beside it, as in
+ * `x = \begin{array}…`: its centering is what puts the `x =` beside its
+ * middle row.
+ */
+.doenet-viewer
+    mjx-container[display="true"]:has(
+        > mjx-math
+            > mjx-mtable:only-child
+            > mjx-table
+            > mjx-itable
+            > :nth-child(2)
+    ) {
+    line-height: 0;
+}
+
+.doenet-viewer
+    mjx-container[display="true"]
+    > mjx-math
+    > mjx-mtable:only-child:has(> mjx-table > mjx-itable > :nth-child(2))
+    > mjx-table
+    > mjx-itable {
+    vertical-align: baseline;
+}

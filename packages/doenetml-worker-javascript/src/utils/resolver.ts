@@ -282,22 +282,22 @@ function getEffectiveComponentName(
  * Async because `isInactiveCompositeReplacement` is a state-value getter that
  * may resolve asynchronously.
  *
- * Behaviour preserved verbatim from the original closure form in
- * `ResolverAdapter`:
+ * Behavior:
  * - Withheld replacements (`stateValues.isInactiveCompositeReplacement`)
- *   and blank-string replacements are skipped.
+ *   and blank-string replacements are skipped, as is everything inside them.
  * - Expanded `_copy` replacements are substituted in place by their own
  *   replacements (recursively); unexpanded copies remain. An expanded copy
  *   missing `replacements` (shouldn't happen at runtime, but the type allows
  *   it) is treated as having no replacements.
- * - When `copyComponentIdx` matches at the current level, `startIdx`/`endIdx`
- *   are set to the position in the current level's flattened result. A match
- *   at the current level overrides any match found in a recursive call (the
- *   original code mutated outer-scope variables, so the last write — the
- *   parent level — won).
- * - When `updateStart`/`updateEnd` are provided and the match falls inside an
- *   expanded copy, the indices are offset by `updateStart`/`updateEnd` instead
- *   of spanning the whole expansion.
+ * - `startIdx`/`endIdx` are the matched copy's position in this level's
+ *   flattened result, including when the match is a copy nested inside an
+ *   expanded copy. A match at the current level overrides any match found in
+ *   a recursive call.
+ * - When `updateStart`/`updateEnd` are provided and the matched copy is
+ *   expanded, the indices are offset from the copy's start by
+ *   `updateStart`/`updateEnd` instead of spanning the whole expansion.
+ * - When the copy is not found, because it is inside a replacement that is
+ *   not a copy or inside a withheld one, `startIdx`/`endIdx` are undefined.
  */
 export async function calcStartEndIdx({
     replacements,
@@ -364,12 +364,13 @@ export async function calcStartEndIdx({
         const recurFlattened = recursionResult.flattenedReplacements;
         const n = recurFlattened.length;
 
-        // The recursion may have produced a match. The current level's own
+        // The recursion may have produced a match, at a position within
+        // `recurFlattened`, which starts at `i` here. The current level's own
         // match (below) overrides it — preserving the closure-mutation
         // semantics of the original code.
         if (recursionResult.startIdx !== undefined) {
-            startIdx = recursionResult.startIdx;
-            endIdx = recursionResult.endIdx;
+            startIdx = i + recursionResult.startIdx;
+            endIdx = i + recursionResult.endIdx!;
         }
 
         if (repl.componentIdx === copyComponentIdx) {

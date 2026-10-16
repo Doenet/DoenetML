@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { callAction, updateMathInputValue } from "../utils/actions";
+import {
+    childrenAsPresented,
+    componentOrListEntry,
+    entriesOrReplacements,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -34,12 +39,14 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
                 true,
             );
             for (let idx = 0; idx < num_samples; idx++) {
-                let value =
-                    stateVariables[
-                        await resolvePathToNodeIdx(
-                            `${componentName}[${idx + 1}]`,
-                        )
-                    ].stateValues.value;
+                let value = (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `${componentName}[${idx + 1}]`,
+                    )
+                ).stateValues.value;
                 expect(
                     is_math
                         ? valid_values[idx].some((v) => v.equals(value))
@@ -49,20 +56,24 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
             if (must_be_distinct) {
                 for (let idx1 = 0; idx1 < num_samples; idx1++) {
-                    let val1 =
-                        stateVariables[
-                            await resolvePathToNodeIdx(
-                                `${componentName}[${idx1 + 1}]`,
-                            )
-                        ].stateValues.value;
+                    let val1 = (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${componentName}[${idx1 + 1}]`,
+                        )
+                    ).stateValues.value;
                     for (let idx2 = 0; idx2 < num_samples; idx2++) {
                         if (idx2 !== idx1) {
-                            let val2 =
-                                stateVariables[
-                                    await resolvePathToNodeIdx(
-                                        `${componentName}[${idx2 + 1}]`,
-                                    )
-                                ].stateValues.value;
+                            let val2 = (
+                                await componentOrListEntry(
+                                    core,
+                                    stateVariables,
+                                    resolvePathToNodeIdx,
+                                    `${componentName}[${idx2 + 1}]`,
+                                )
+                            ).stateValues.value;
                             if (is_math) {
                                 expect(val2.equals(val1)).eq(false);
                             } else {
@@ -102,11 +113,14 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
             const values: any[] = [];
             for (let idx = 0; idx < num_samples; idx++) {
                 values.push(
-                    stateVariables[
-                        await resolvePathToNodeIdx(
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
                             `${componentName}[${idx + 1}]`,
                         )
-                    ].stateValues.value,
+                    ).stateValues.value,
                 );
             }
 
@@ -160,11 +174,11 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let samples = stateVariables[
-            await resolvePathToNodeIdx("s")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let samples = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("s"),
+        ).map((x) => x.stateValues.value);
         expect(samples.length).eq(50);
 
         for (let sample of samples) {
@@ -221,17 +235,23 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements =
-            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
-        let sample2replacements =
-            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
+        let sample1replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        );
+        let sample2replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        );
         expect(sample1replacements.length).eq(50);
         expect(sample2replacements.length).eq(180);
         let sample1numbers = sample1replacements.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+            (x) => x.stateValues.value,
         );
         let sample2numbers = sample2replacements.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+            (x) => x.stateValues.value,
         );
 
         for (let num of sample1numbers) {
@@ -256,22 +276,16 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersb = stateVariables[
-            await resolvePathToNodeIdx("sample1")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let sample2numbersb = stateVariables[
-            await resolvePathToNodeIdx("sample2")
-        ]
-            .replacements!.slice(
-                0,
-                stateVariables[await resolvePathToNodeIdx("sample2")]
-                    .replacements!.length -
-                    (stateVariables[await resolvePathToNodeIdx("sample2")]
-                        .replacementsToWithhold ?? 0),
-            )
-            .map((x) => stateVariables[x.componentIdx].stateValues.value);
+        let sample1numbersb = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        ).map((x) => x.stateValues.value);
+        let sample2numbersb = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        ).map((x) => x.stateValues.value);
         expect(sample1numbersb.length).eq(70);
         expect(sample2numbersb.length).eq(160);
 
@@ -305,22 +319,16 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersc = stateVariables[
-            await resolvePathToNodeIdx("sample1")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let sample2numbersc = stateVariables[
-            await resolvePathToNodeIdx("sample2")
-        ]
-            .replacements!.slice(
-                0,
-                stateVariables[await resolvePathToNodeIdx("sample2")]
-                    .replacements!.length -
-                    (stateVariables[await resolvePathToNodeIdx("sample2")]
-                        .replacementsToWithhold ?? 0),
-            )
-            .map((x) => stateVariables[x.componentIdx].stateValues.value);
+        let sample1numbersc = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        ).map((x) => x.stateValues.value);
+        let sample2numbersc = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        ).map((x) => x.stateValues.value);
         expect(sample1numbersc.length).eq(70);
         expect(sample2numbersc.length).eq(160);
 
@@ -368,57 +376,51 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
             );
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p1")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p1"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p2")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p2"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p3")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p3"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p4")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p4"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p5")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p5"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p6")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p6"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
         }
 
@@ -436,8 +438,14 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "repeat1[1].n[1]",
+                )
+            ).stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
@@ -465,15 +473,30 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
-                .stateValues.value;
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
-                .stateValues.value;
-        let n3 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
-                .stateValues.value;
+        let n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[1].n[1]",
+            )
+        ).stateValues.value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[2].n[1]",
+            )
+        ).stateValues.value;
+        let n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[3].n[1]",
+            )
+        ).stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -503,24 +526,54 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        n1 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
-                .stateValues.value;
-        n2 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
-                .stateValues.value;
-        n3 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
-                .stateValues.value;
-        let n4 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[4].n[1]")]
-                .stateValues.value;
-        let n5 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[5].n[1]")]
-                .stateValues.value;
-        let n6 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[6].n[1]")]
-                .stateValues.value;
+        n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[1].n[1]",
+            )
+        ).stateValues.value;
+        n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[2].n[1]",
+            )
+        ).stateValues.value;
+        n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[3].n[1]",
+            )
+        ).stateValues.value;
+        let n4 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[4].n[1]",
+            )
+        ).stateValues.value;
+        let n5 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[5].n[1]",
+            )
+        ).stateValues.value;
+        let n6 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[6].n[1]",
+            )
+        ).stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -559,24 +612,54 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[1]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[2]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[3]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[3]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[4]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[4]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[5]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[5]",
+                )
+            ).stateValues.value,
         );
 
         for (let num of results) {
@@ -606,11 +689,11 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let samples = stateVariables[
-            await resolvePathToNodeIdx("p1")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let samples = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("p1"),
+        ).map((x) => x.stateValues.value);
 
         expect(samples.length).eq(100);
 
@@ -630,11 +713,11 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let samples2 = stateVariables[
-            await resolvePathToNodeIdx("p1")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let samples2 = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("p1"),
+        ).map((x) => x.stateValues.value);
 
         expect(samples2).eqls(samples);
 
@@ -645,11 +728,11 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        samples2 = stateVariables[
-            await resolvePathToNodeIdx("p1")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        samples2 = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("p1"),
+        ).map((x) => x.stateValues.value);
 
         expect(samples2.length).eq(100);
 
@@ -685,23 +768,44 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        pn1 =
-            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
-                .value;
-        pn2 =
-            stateVariables[await resolvePathToNodeIdx("spn1[2]")].stateValues
-                .value;
-        pn3 =
-            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
-                .value;
+        pn1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn1[1]",
+            )
+        ).stateValues.value;
+        pn2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn1[2]",
+            )
+        ).stateValues.value;
+        pn3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn2[1]",
+            )
+        ).stateValues.value;
 
         expect(pn1).gt(1).lt(1000);
         expect(pn2).gt(1).lt(1000);
         expect(pn3).gt(1000).lt(10000);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "spn1[1]",
+                )
+            ).stateValues.text,
         ).eq(pn1.toString());
 
         await callAction({
@@ -711,15 +815,30 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        pn1b =
-            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
-                .value;
-        pn2b =
-            stateVariables[await resolvePathToNodeIdx("spn1[2]")].stateValues
-                .value;
-        pn3b =
-            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
-                .value;
+        pn1b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn1[1]",
+            )
+        ).stateValues.value;
+        pn2b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn1[2]",
+            )
+        ).stateValues.value;
+        pn3b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn2[1]",
+            )
+        ).stateValues.value;
 
         expect(pn1b).gt(1).lt(1000);
         expect(pn2b).gt(1).lt(1000);
@@ -729,8 +848,14 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         expect(pn3b).eq(pn3);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "spn2[1]",
+                )
+            ).stateValues.text,
         ).eq(pn3.toString());
 
         await callAction({
@@ -740,15 +865,30 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let pn1c =
-            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
-                .value;
-        let pn2c =
-            stateVariables[await resolvePathToNodeIdx("spn1[2]")].stateValues
-                .value;
-        let pn3c =
-            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
-                .value;
+        let pn1c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn1[1]",
+            )
+        ).stateValues.value;
+        let pn2c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn1[2]",
+            )
+        ).stateValues.value;
+        let pn3c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "spn2[1]",
+            )
+        ).stateValues.value;
 
         expect(pn1c).gt(1).lt(1000);
         expect(pn2c).gt(1).lt(1000);

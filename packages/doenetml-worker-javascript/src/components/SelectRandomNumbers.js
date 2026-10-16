@@ -1,7 +1,5 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
-import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import SampleRandomNumbers from "./SampleRandomNumbers";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     // `<sampleRandomNumbers>` offers a `resample` action, and this component
     // has no use for it: it draws once from the variant's generator, and
@@ -24,6 +22,8 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
 
     static componentType = "selectRandomNumbers";
 
+    static listEntryValuesVariable = "selectedValues";
+
     // Unlike `<sampleRandomNumbers>`, which it extends, this draws from the
     // variant's generator -- it deletes `variantDeterminesSeed` and takes
     // `sharedParameters.variantRng` unconditionally -- so a fresh build of the
@@ -35,8 +35,6 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         summary:
             "Selects a fixed set of random numbers to create document variants",
     };
-    static takesIndex = true;
-
     static allowInSchemaAsComponent = ["number"];
 
     static createsVariants = true;
@@ -295,87 +293,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                selectedValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedValues",
-                },
-            }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        nComponents,
-        workspace,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
-        }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let attributesToConvert = {};
-        for (let attr of Object.keys(returnNumberDisplayAttributes())) {
-            if (attr in component.attributes) {
-                attributesToConvert[attr] = component.attributes[attr];
-            }
-        }
-
-        let replacements = [];
-
-        for (let value of await component.stateValues.selectedValues) {
-            let attributesFromComposite = {};
-
-            if (Object.keys(attributesToConvert).length > 0) {
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "number",
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                });
-
-                attributesFromComposite = res.attributes;
-                nComponents = res.nComponents;
-            }
-            replacements.push({
-                type: "serialized",
-                componentType: "number",
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes: attributesFromComposite,
-                state: { value, fixed: true },
-                doenetAttributes: {},
-                children: [],
-            });
-        }
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
     }
 
     static determineNumberOfUniqueVariants() {
         return { success: false };
     }
 }
-
-delete SelectRandomNumbers.stateVariableToEvaluateAfterReplacements;
-delete SelectRandomNumbers.calculateReplacementChanges;

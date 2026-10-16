@@ -130,8 +130,10 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     isNumber: {
         component: PretextComponent.Boolean,
     },
-    // Labels should be inside of things and removed from the DAST tree, but if someone happens to put a top-level label, show something
-    label: showAttrOnly("value"),
+    // The label of an input or answer is printed by that component (see
+    // `detachLabelChildren`); a slider's or button's is not printed. A label written on
+    // its own is printed where it stands.
+    label: { component: PretextComponent.Label, passthroughChildren: true },
     latex: showAttrOnly("text"),
     matrix: {
         component: PretextComponent.Math,
@@ -209,6 +211,36 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     mdn: { component: PretextComponent.DisplayMathNumbered },
     math: { component: PretextComponent.Math },
     derivative: { component: PretextComponent.Math },
+    // Operators that core renders as a math. The lookup is by tag name, so
+    // each one left unlisted falls through to the pass-through renderer and
+    // prints as an empty tag.
+    argMax: { component: PretextComponent.Math },
+    argMin: { component: PretextComponent.Math },
+    ceil: { component: PretextComponent.Math },
+    clampFunction: { component: PretextComponent.Math },
+    clampNumber: { component: PretextComponent.Math },
+    convertSetToList: { component: PretextComponent.Math },
+    count: { component: PretextComponent.Math },
+    electronConfiguration: { component: PretextComponent.Math },
+    floor: { component: PretextComponent.Math },
+    gcd: { component: PretextComponent.Math },
+    lcm: { component: PretextComponent.Math },
+    max: { component: PretextComponent.Math },
+    mean: { component: PretextComponent.Math },
+    median: { component: PretextComponent.Math },
+    min: { component: PretextComponent.Math },
+    mod: { component: PretextComponent.Math },
+    piecewiseFunction: { component: PretextComponent.Math },
+    product: { component: PretextComponent.Math },
+    rightHandSide: { component: PretextComponent.Math },
+    round: { component: PretextComponent.Math },
+    setSmallToZero: { component: PretextComponent.Math },
+    sign: { component: PretextComponent.Math },
+    standardDeviation: { component: PretextComponent.Math },
+    sum: { component: PretextComponent.Math },
+    variance: { component: PretextComponent.Math },
+    wrapFunctionPeriodic: { component: PretextComponent.Math },
+    wrapNumberPeriodic: { component: PretextComponent.Math },
     graph: { component: PretextComponent.Graph },
     point: { component: PretextComponent.PointInText },
     division: {
@@ -223,6 +255,14 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     displayMathNumbered: { component: PretextComponent.DisplayMathNumbered },
     text: { component: PretextComponent.Text },
     boolean: { component: PretextComponent.Boolean },
+    // Operators that core renders as a boolean; see the math operators above.
+    and: { component: PretextComponent.Boolean },
+    iff: { component: PretextComponent.Boolean },
+    implies: { component: PretextComponent.Boolean },
+    matchesPattern: { component: PretextComponent.Boolean },
+    not: { component: PretextComponent.Boolean },
+    or: { component: PretextComponent.Boolean },
+    xor: { component: PretextComponent.Boolean },
     title: { component: PretextComponent.Title, passthroughChildren: true },
     _fragment: {
         component: PretextComponent._Fragment,
@@ -249,11 +289,16 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     aside: TheoremLikeConverter,
     note: TheoremLikeConverter,
     problem: TheoremLikeConverter,
+    // An item of a `<problems>` or `<exercises>` printed on a worksheet; see
+    // `arrangePrintoutPages`.
+    exercise: TheoremLikeConverter,
 
     // Inline text formatting elements. These are the same in Doenet and Pretext
     alert: NoProcessingConverter,
     attr: NoProcessingConverter,
+    delete: NoProcessingConverter,
     em: NoProcessingConverter,
+    insert: NoProcessingConverter,
     c: NoProcessingConverter,
     q: NoProcessingConverter,
     pre: NoProcessingConverter,
@@ -285,10 +330,25 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },
+    // Inserted around a document written in pages, which are its children; see
+    // `arrangePrintoutPages`.
+    worksheet: {
+        component: PretextComponent._PassThroughWithTagAndNewline,
+        passthroughChildren: true,
+    },
+    page: {
+        component: PretextComponent._PassThroughWithTagAndNewline,
+        passthroughChildren: true,
+    },
 
     // Tags where only the capitalization changes
     sideBySide: passThroughWithRenamedTag("sidebyside"),
     blockQuote: passThroughWithRenamedTag("blockquote"),
+
+    // Tags PreTeXt spells differently. A footnote is `<fn>` there; left unmapped it
+    // reaches the fallback renderer, which emits a literal `<footnote>` that PreTeXt has
+    // no template for, so the note's text runs on inside the sentence that cited it.
+    footnote: passThroughWithRenamedTag("fn"),
 
     // Tags with no representation in PreTeXt
     br: OmitElementConverter,
@@ -301,10 +361,8 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     div: PassThroughWithoutTagConverter,
     cascade: PassThroughWithoutTagConverter,
 
-    // XXX: Currently we have no access to the children of <solution>. Update this to a passthrough when we do.
-    solution: _DEBUG_PassThroughWithLoggingConverter,
-    // XXX: <givenAnswer> should be renamed to <answer> in PreTeXt, but we currently don't have access to the children. Update this when we do.
-    givenAnswer: _DEBUG_PassThroughWithLoggingConverter,
+    // A given answer is what PreTeXt calls an `<answer>`.
+    givenAnswer: passThroughWithRenamedTag("answer"),
 
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.

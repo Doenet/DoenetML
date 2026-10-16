@@ -24,6 +24,10 @@ import {
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    listEntrySourceDependencies,
+    listEntrySourceValue,
+} from "../utils/listEntrySource";
 
 export default class Vector extends GraphicalComponent {
     constructor(args) {
@@ -45,6 +49,10 @@ export default class Vector extends GraphicalComponent {
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
+
+    // The attributes that define the value an unlinked copy of a reference
+    // to this component computes rather than holds (`BaseComponent.serialize`)
+    static attributesDefiningPrimaryValue = ["xs"];
     static variableForIndexAsProp = "displacement";
 
     static createAttributesObject() {
@@ -401,18 +409,25 @@ export default class Vector extends GraphicalComponent {
             },
             hasEssential: true,
             forRenderer: true,
-            returnDependencies: () => ({
-                tailDraggableAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "tailDraggable",
-                    variableNames: ["value"],
-                },
-                draggable: {
-                    dependencyType: "stateVariable",
-                    variableName: "draggable",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    tailDraggableAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "tailDraggable",
+                        variableNames: ["value"],
+                    },
+                    draggable: {
+                        dependencyType: "stateVariable",
+                        variableName: "draggable",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "tailDraggable",
+                    ),
+                };
+            },
             definition({ dependencyValues }) {
+                const fromListEntry = listEntrySourceValue(dependencyValues);
                 if (dependencyValues.tailDraggableAttr) {
                     return {
                         setValue: {
@@ -421,6 +436,8 @@ export default class Vector extends GraphicalComponent {
                                     .value,
                         },
                     };
+                } else if (typeof fromListEntry === "boolean") {
+                    return { setValue: { tailDraggable: fromListEntry } };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
@@ -442,18 +459,25 @@ export default class Vector extends GraphicalComponent {
             },
             hasEssential: true,
             forRenderer: true,
-            returnDependencies: () => ({
-                headDraggableAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "headDraggable",
-                    variableNames: ["value"],
-                },
-                draggable: {
-                    dependencyType: "stateVariable",
-                    variableName: "draggable",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    headDraggableAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "headDraggable",
+                        variableNames: ["value"],
+                    },
+                    draggable: {
+                        dependencyType: "stateVariable",
+                        variableName: "draggable",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "headDraggable",
+                    ),
+                };
+            },
             definition({ dependencyValues }) {
+                const fromListEntry = listEntrySourceValue(dependencyValues);
                 if (dependencyValues.headDraggableAttr) {
                     return {
                         setValue: {
@@ -462,6 +486,8 @@ export default class Vector extends GraphicalComponent {
                                     .value,
                         },
                     };
+                } else if (typeof fromListEntry === "boolean") {
+                    return { setValue: { headDraggable: fromListEntry } };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {

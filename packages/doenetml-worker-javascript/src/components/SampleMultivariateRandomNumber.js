@@ -3,10 +3,8 @@ import {
     sampleFromMultivariateDistribution,
     validMultivariateHypergeometricParameters,
 } from "../utils/randomNumbers";
-import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import CompositeComponent from "./abstract/CompositeComponent";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import ValueListComponent from "./abstract/ValueListComponent";
 
 /**
  * The parameters the `means` and `variances` arrays are computed from. They are
@@ -53,7 +51,14 @@ function hasHypergeometricMoments(globalDependencyValues) {
     );
 }
 
-export default class SampleMultivariateRandomNumber extends CompositeComponent {
+/**
+ * Samples one number per category, drawn together. It is a list component
+ * (`ValueListComponent`): it holds the sample in one array, `sampledValues`,
+ * and a parent sees one `<number>` per category. With `fixed="false"`, a
+ * value written to an entry is kept for that entry (`entryWrites`) until the
+ * sample is drawn again.
+ */
+export default class SampleMultivariateRandomNumber extends ValueListComponent {
     constructor(args) {
         super(args);
 
@@ -63,6 +68,12 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
     }
 
     static componentType = "sampleMultivariateRandomNumber";
+
+    static listEntryComponentType = "number";
+
+    static listEntryValuesVariable = "sampledValues";
+
+    static listEntriesTakeWrites = true;
 
     // `variantDeterminesSeed` is false by default, so these samples are drawn
     // from a date-seeded generator and a fresh build of the same document
@@ -76,16 +87,13 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             "Samples one number per category from a multivariate distribution, drawn together rather than independently",
     };
 
-    static takesIndex = true;
-
     static allowInSchemaAsComponent = ["number"];
 
-    static createsVariants = true;
-
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
-
+    // Saved samples are read back on load rather than drawn afresh
+    // (`sampledValues`).
     static processWhenJustUpdatedForNewComponent = true;
+
+    static createsVariants = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -134,14 +142,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                 "Number of items drawn without replacement from the population.",
         };
 
-        const numberDisplayAttrs = returnNumberDisplayAttributes();
-        for (let attrName in numberDisplayAttrs) {
-            attributes[attrName] = {
-                leaveRaw: true,
-                description: numberDisplayAttrs[attrName].description,
-            };
-        }
-
         attributes.variantDeterminesSeed = {
             description:
                 "Whether the document's variant index determines the random seed.",
@@ -149,14 +149,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             createStateVariable: "variantDeterminesSeed",
             defaultPrimitiveValue: false,
             public: true,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-            description:
-                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -384,19 +376,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                sampledValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "sampledValues",
-                },
-            }),
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         stateVariableDefinitions.isVariantComponent = {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { isVariantComponent: true } }),
@@ -426,146 +405,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
         };
 
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        startNum = 0,
-        nComponents,
-        workspace,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
-        }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let attributesToConvert = {};
-        for (let attr of Object.keys(returnNumberDisplayAttributes())) {
-            if (attr in component.attributes) {
-                attributesToConvert[attr] = component.attributes[attr];
-            }
-        }
-
-        let replacements = [];
-
-        for (let value of (await component.stateValues.sampledValues).slice(
-            startNum,
-        )) {
-            let attributesFromComposite = {};
-
-            if (Object.keys(attributesToConvert).length > 0) {
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "number",
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                });
-
-                attributesFromComposite = res.attributes;
-                nComponents = res.nComponents;
-            }
-
-            replacements.push({
-                type: "serialized",
-                componentType: "number",
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes: attributesFromComposite,
-                state: { value, fixed: true },
-                doenetAttributes: {},
-                children: [],
-            });
-        }
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        componentInfoObjects,
-        nComponents,
-        workspace,
-    }) {
-        let diagnostics = [];
-
-        let replacementChanges = [];
-
-        let sampledValues = await component.stateValues.sampledValues;
-
-        // if have fewer results than replacements, adjust replacementsToWithhold
-        if (sampledValues.length < component.replacements.length) {
-            let numberToWithhold =
-                component.replacements.length - sampledValues.length;
-
-            if (numberToWithhold !== component.replacementsToWithhold) {
-                let replacementInstruction = {
-                    changeType: "changeReplacementsToWithhold",
-                    replacementsToWithhold: numberToWithhold,
-                };
-                replacementChanges.push(replacementInstruction);
-            }
-        } else {
-            // need to reuse all previous samples, don't withhold any
-            if (component.replacementsToWithhold > 0) {
-                let replacementInstruction = {
-                    changeType: "changeReplacementsToWithhold",
-                    replacementsToWithhold: 0,
-                };
-                replacementChanges.push(replacementInstruction);
-            }
-
-            if (sampledValues.length > component.replacements.length) {
-                let result = await this.createSerializedReplacements({
-                    component,
-                    componentInfoObjects,
-                    startNum: component.replacements.length,
-                    nComponents,
-                    workspace,
-                });
-                diagnostics.push(...result.diagnostics);
-                nComponents = result.nComponents;
-
-                let replacementInstruction = {
-                    changeType: "add",
-                    changeTopLevelReplacements: true,
-                    firstReplacementInd: component.replacements.length,
-                    numberReplacementsToReplace: 0,
-                    serializedReplacements: result.replacements,
-                };
-                replacementChanges.push(replacementInstruction);
-            }
-        }
-
-        // update values of the remainder of the replacements
-        let numUpdate = Math.min(
-            component.replacements.length,
-            sampledValues.length,
-        );
-
-        for (let ind = 0; ind < numUpdate; ind++) {
-            let replacementInstruction = {
-                changeType: "updateStateVariables",
-                component: component.replacements[ind],
-                stateChanges: { value: sampledValues[ind] },
-            };
-            replacementChanges.push(replacementInstruction);
-        }
-
-        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

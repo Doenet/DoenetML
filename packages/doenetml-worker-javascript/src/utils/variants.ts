@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "./literalAttribute";
 import {
     numberToLetters,
     enumerateCombinations,
@@ -340,10 +341,9 @@ export function determineVariantsForSection({
 
     let specifiedVariantNames: string[] = [];
     if (variantControlChild?.attributes.variantNames) {
-        specifiedVariantNames =
-            variantControlChild.attributes.variantNames.component.children.map(
-                (x: any) => x.toLowerCase(),
-            );
+        specifiedVariantNames = serializedAttributeComponent(
+            variantControlChild.attributes.variantNames,
+        )!.children.map((x: any) => x.toLowerCase());
     }
 
     if (
@@ -384,8 +384,9 @@ export function determineVariantsForSection({
         variantNames = variantNames.slice(0, numVariantsSpecified);
     }
 
-    let variantsToInclude: string[] | undefined =
-        variantControlChild?.attributes.variantsToInclude?.component.children;
+    let variantsToInclude: string[] | undefined = serializedAttributeComponent(
+        variantControlChild?.attributes.variantsToInclude,
+    )?.children as string[] | undefined;
     if (variantsToInclude) {
         if (variantsToInclude.length === 0) {
             throw Error(
@@ -408,8 +409,9 @@ export function determineVariantsForSection({
     }
 
     let variantsToExclude: string[] =
-        variantControlChild?.attributes.variantsToExclude?.component.children ||
-        [];
+        (serializedAttributeComponent(
+            variantControlChild?.attributes.variantsToExclude,
+        )?.children as string[] | undefined) || [];
     variantsToExclude = variantsToExclude.map((x) => x.toLowerCase());
 
     for (let variant of variantsToExclude) {
@@ -433,8 +435,9 @@ export function determineVariantsForSection({
     // determine seeds
     let specifiedSeeds: string[] = [];
     if (variantControlChild?.attributes.seeds) {
-        specifiedSeeds =
-            variantControlChild.attributes.seeds.component.children;
+        specifiedSeeds = serializedAttributeComponent(
+            variantControlChild.attributes.seeds,
+        )!.children as string[];
     }
 
     let variantSeeds = [...specifiedSeeds];
@@ -592,7 +595,9 @@ export function extractConstantSortAttribute(
 ): { success: boolean; sort?: string } {
     let sort;
 
-    let sortComponent = serializedComponent.attributes.sort?.component;
+    let sortComponent = serializedAttributeComponent(
+        serializedComponent.attributes.sort,
+    );
     if (sortComponent) {
         // only implemented if have a single string child
 

@@ -14,6 +14,16 @@ import { PtxCompiler } from "../src/index";
 
 const FRAGMENT_MODE_STORAGE_KEY = "doenetml-print-fragment-mode";
 const SOURCE_STORAGE_KEY = "doenetml-print-source";
+const VARIANT_STORAGE_KEY = "doenetml-print-variant";
+
+function getInitialVariantIndex(): number {
+    try {
+        const stored = Number(localStorage.getItem(VARIANT_STORAGE_KEY));
+        return Number.isInteger(stored) && stored >= 1 ? stored : 1;
+    } catch {
+        return 1;
+    }
+}
 
 function getInitialFragmentMode(): boolean {
     try {
@@ -44,6 +54,9 @@ function App() {
     const [fragment, setFragment] = React.useState<boolean>(
         getInitialFragmentMode,
     );
+    const [variantIndex, setVariantIndex] = React.useState<number>(
+        getInitialVariantIndex,
+    );
     const doenetMLToPretextInstance = React.useRef(
         new DoenetMLToPretext(),
     ).current;
@@ -62,6 +75,14 @@ function App() {
 
     React.useEffect(() => {
         try {
+            localStorage.setItem(VARIANT_STORAGE_KEY, String(variantIndex));
+        } catch {
+            // Ignore localStorage failures in constrained environments.
+        }
+    }, [variantIndex]);
+
+    React.useEffect(() => {
+        try {
             localStorage.setItem(SOURCE_STORAGE_KEY, source);
         } catch {
             // Ignore localStorage failures in constrained environments.
@@ -72,11 +93,13 @@ function App() {
         try {
             localStorage.removeItem(FRAGMENT_MODE_STORAGE_KEY);
             localStorage.removeItem(SOURCE_STORAGE_KEY);
+            localStorage.removeItem(VARIANT_STORAGE_KEY);
         } catch {
             // Ignore localStorage failures in constrained environments.
         }
 
         setFragment(false);
+        setVariantIndex(1);
         setSource(doenetMLstring);
         setPretextOutput("");
     }
@@ -95,7 +118,11 @@ function App() {
                                 const ret =
                                     await doenetMLToPretextInstance.convert(
                                         source,
-                                        { fragment, throwOnError: false },
+                                        {
+                                            fragment,
+                                            throwOnError: false,
+                                            variantIndex,
+                                        },
                                     );
                                 setPretextOutput(ret);
                                 setOutputMode("pretext");
@@ -122,6 +149,7 @@ function App() {
                                         {
                                             fragment: false,
                                             throwOnError: false,
+                                            variantIndex,
                                         },
                                     );
                                 await pretexCompiler.init();
@@ -138,6 +166,25 @@ function App() {
                     >
                         Compile with PtxCompiler
                     </UiButton>
+                    <label
+                        className="fragment-toggle"
+                        title="Which variant of the document to convert. A document that selects or samples at random differs from one variant to the next."
+                    >
+                        Variant
+                        <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={variantIndex}
+                            onChange={(e) => {
+                                const value = Number(e.target.value);
+                                if (Number.isInteger(value) && value >= 1) {
+                                    setVariantIndex(value);
+                                }
+                            }}
+                            style={{ width: "4em" }}
+                        />
+                    </label>
                     <label
                         className="fragment-toggle"
                         title="Render a PreTeXt fragment (without a root <pretext> tag)."

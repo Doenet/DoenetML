@@ -13605,4 +13605,102 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.number,
         ).eqls({ re: 0, im: 2 });
     });
+
+    it("a math with a unary plus can be modified", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <mathInput name="a" prefill="3" />
+  <math name="m">+$a</math>
+  <mathInput name="mi" bindValueTo="$m" />
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .canBeModified,
+        ).eq(true);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
+        ).eq(5);
+    });
+
+    it("fixLocation keeps a math where it is drawn, not at its value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <math name="m" fixLocation anchor="(1,2)" draggable>x</math>
+    </graph>
+    <math name="m2" extend="$m" />
+    <mathInput name="mi" bindValueTo="$m2" />
+    `,
+        });
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        await moveMath({ componentIdx: mIdx, x: 5, y: 6, core });
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[mIdx].stateValues.anchor.toString()).eq("(1, 2)");
+        expect(stateVariables[mIdx].stateValues.value.tree).eq("y");
+        expect(stateVariables[mIdx].stateValues.canBeModified).eq(true);
+    });
+    it("a move giving one coordinate keeps the anchor's others", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+        <math name="m" anchor="(1,2)">x</math>
+        <text name="t" anchor="(1,2,3)">hi</text>
+        <number name="n" anchor="(a,2)">1</number>
+        <point name="P">(1,2,3)</point>
+        <label name="l" anchor="$P">hi</label>
+    </graph>
+    `,
+        });
+        const anchorOf = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.anchor.tree;
+
+        for (const [name, actionName] of [
+            ["m", "moveMath"],
+            ["t", "moveText"],
+            ["n", "moveNumber"],
+            ["l", "moveLabel"],
+        ]) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName,
+                args: { y: 5 },
+            });
+        }
+        expect(await anchorOf("m")).eqls(["vector", 1, 5]);
+        expect(await anchorOf("t")).eqls(["vector", 1, 5, 3]);
+        expect(await anchorOf("n")).eqls(["vector", "a", 5]);
+        // An anchor referencing a point moves that point.
+        expect(await anchorOf("l")).eqls(["vector", 1, 5, 3]);
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("P")
+            ].stateValues.xs.map((v: any) => v.tree),
+        ).eqls([1, 5, 3]);
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("t"),
+            actionName: "moveText",
+            args: { x: 7 },
+        });
+        expect(await anchorOf("t")).eqls(["vector", 7, 5, 3]);
+    });
 });

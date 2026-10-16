@@ -423,6 +423,8 @@ export default class Graph extends BlockComponent {
         // state variable below already matches the names case-insensitively.)
         attributes.grid = {
             createComponentOfType: "text",
+            // read by component (`gridAttrCompName`), not only as a value
+            keepAttributeComponent: true,
             valueForTrue: "medium",
             suggestedValues: [
                 { value: "none", description: "Draw no grid lines." },
@@ -633,9 +635,11 @@ export default class Graph extends BlockComponent {
         stateVariableDefinitions.graphicalDescendants = {
             forRenderer: true,
             returnDependencies: () => ({
+                // a list of points or vectors is one of them, as a whole
                 graphicalDescendants: {
                     dependencyType: "descendant",
                     componentTypes: ["_graphical"],
+                    matchListsByEntryType: true,
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -655,11 +659,13 @@ export default class Graph extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "addControls",
                 },
+                // each entry of a list of points or vectors has its controls
                 controlDescendants: {
                     dependencyType: "descendant",
                     componentTypes: GRAPH_CONTROL_COMPONENT_TYPES,
                     variableNames: GRAPH_CONTROL_VARIABLE_NAMES,
                     variablesOptional: true,
+                    presentListsAsEntries: true,
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {

@@ -22,6 +22,8 @@ import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
 } from "../utils/componentIndices";
+import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
 /**
  * Expands composite components into their replacements: walks descendants
@@ -512,9 +514,18 @@ async function expandShadowingComposite({
         }
     }
 
+    // A copy given a type (`<text extend="$cc"/>`) makes components of
+    // that type, so a value reference among the replacements it copies is
+    // copied as a component (`ValueRef.serialize`); a copy that is not
+    // given one stands where the composite it copies does, and copies a
+    // value reference as one.
+    const valueReferenceAsComponent =
+        component.attributes.createComponentOfType?.primitive != null;
     for (let [idx, repl] of shadowedComposite.replacements.entries()) {
         if (typeof repl === "object") {
-            const serializedComponent = await repl.serialize();
+            const serializedComponent = await repl.serialize({
+                valueReferenceAsComponent,
+            });
 
             if (component.constructor.useSerializedChildrenComponentIndices) {
                 const res = createComponentIndicesFromSerializedChildren(
@@ -811,6 +822,7 @@ export async function createAndSetReplacements({
             component,
         });
     } catch (e: any) {
+        rethrowIfCircular(e);
         registrationFailure = e;
     }
 
@@ -829,6 +841,7 @@ export async function createAndSetReplacements({
             });
             component.replacements = replacementResult.components;
         } catch (e: any) {
+            rethrowIfCircular(e);
             await setReplacementsToError(core, component, e);
         }
     }
@@ -837,6 +850,9 @@ export async function createAndSetReplacements({
     await core.dependencies.addBlockersFromChangedReplacements(component);
 
     component.isExpanded = true;
+
+    // A list component among the items is indexed by its entries.
+    await giveListEntriesToIndexParent({ core, composite: component });
 }
 
 /**
@@ -986,12 +1002,14 @@ export async function replaceCompositeChildren({
             // then it may be turned into a list if all the components can be list elements.
 
             // All inline components and any components with canBeInList set
-            // are considered potential components for a list.
+            // are considered potential components for a list. A value
+            // reference (`_ref`) counts as the type it stands in for.
             let replacementsCanBeInList = replacements.map((repl: any) =>
                 Boolean(
                     typeof repl !== "object" ||
                     (core.componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: repl.componentType,
+                        inheritedComponentType:
+                            repl.presentedComponentType ?? repl.componentType,
                         baseComponentType: "_inline",
                     }) &&
                         repl.constructor.canBeInList !== false) ||

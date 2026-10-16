@@ -7,6 +7,8 @@
  */
 
 import { Dependency, cloneChangeMetadataIfNeeded } from "./Dependency";
+import { listEntryPropertyPath } from "../../utils/listEntryReference";
+import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
 
 export class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
@@ -60,7 +62,11 @@ export class StateVariableDependency extends Dependency {
         return {
             success: true,
             downstreamComponentIndices: [this.componentIdx],
-            downstreamComponentTypes: [component.componentType],
+            // A value reference (`_ref`) reads as the type it stands in for,
+            // as it does to a child dependency.
+            downstreamComponentTypes: [
+                component.presentedComponentType ?? component.componentType,
+            ],
         };
     }
 
@@ -127,7 +133,31 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
             };
         }
 
-        let unresolvedPath = [...this.definition.unresolvedPath];
+        // A property of a list component's entries (`$l[2].text`,
+        // `$l.text`) is read from an array of the list, whose name is
+        // resolved here, so it is not matched again against the list's
+        // public variables.
+        const listEntryPath = listEntryPropertyPath({
+            listClass: component.constructor,
+            unresolvedPath: this.definition.unresolvedPath,
+            componentInfoObjects: this.dependencyHandler.componentInfoObjects,
+        });
+        if (listEntryPath) {
+            ensureListEntryPropertyArray({
+                core: this.dependencyHandler.core,
+                component,
+                arrayName: listEntryPath.path[0].name,
+            });
+        }
+        this.publicStateVariablesOnly =
+            Boolean(this.definition.publicStateVariablesOnly) && !listEntryPath;
+        this.caseInsensitiveVariableMatch =
+            Boolean(this.definition.caseInsensitiveVariableMatch) &&
+            !listEntryPath;
+
+        let unresolvedPath = [
+            ...(listEntryPath?.path ?? this.definition.unresolvedPath),
+        ];
         let nextPart = unresolvedPath.shift();
 
         let variableName = nextPart.name;
@@ -339,7 +369,11 @@ export class MultipleStateVariablesDependency extends Dependency {
         return {
             success: true,
             downstreamComponentIndices: [this.componentIdx],
-            downstreamComponentTypes: [component.componentType],
+            // A value reference (`_ref`) reads as the type it stands in for,
+            // as it does to a child dependency.
+            downstreamComponentTypes: [
+                component.presentedComponentType ?? component.componentType,
+            ],
         };
     }
 
@@ -525,6 +559,30 @@ export class StateVariableArraySizeDependency extends StateVariableDependency {
     static convertToArraySize = true;
 }
 
+/**
+ * Whether `varName` of `component`, or the array it is an entry of, is a
+ * boundary for `recursiveDependencyValues` (`recursiveDependencyBoundary`):
+ * it stands for values that components held as their own essential values,
+ * as the values of a list component (`ValueListComponent`) stand for those
+ * of the components a composite created, one per entry. It is collected as
+ * an essential value is, and what it is computed from is not followed, so
+ * that a change elsewhere in the list (its number of entries) is not a
+ * change to an entry that did not change.
+ */
+function isRecursiveDependencyBoundary(component: any, varName: string) {
+    const stateVarObj = component.state[varName];
+    if (!stateVarObj) {
+        return false;
+    }
+    if (stateVarObj.isArrayEntry) {
+        return Boolean(
+            component.state[stateVarObj.arrayStateVariable]
+                ?.recursiveDependencyBoundary,
+        );
+    }
+    return Boolean(stateVarObj.recursiveDependencyBoundary);
+}
+
 export class RecursiveDependencyValuesDependency extends Dependency {
     static dependencyType = "recursiveDependencyValues";
 
@@ -587,7 +645,10 @@ export class RecursiveDependencyValuesDependency extends Dependency {
                     this.dependencyHandler._components[componentIdx];
                 for (let vName of result.components[componentIdx]
                     .variableNames) {
-                    if (component.state[vName]?.hasEssential) {
+                    if (
+                        component.state[vName]?.hasEssential ||
+                        isRecursiveDependencyBoundary(component, vName)
+                    ) {
                         essentialVarNames.push(vName);
                     } else if (component.state[vName]?.isArrayEntry) {
                         if (
@@ -766,10 +827,16 @@ export class RecursiveDependencyValuesDependency extends Dependency {
                         }
                     }
 
-                    let downDeps =
-                        this.dependencyHandler.downstreamDependencies[
-                            component.componentIdx
-                        ][varName];
+                    // A boundary is read as an essential value is, and
+                    // what it is computed from is not followed.
+                    let downDeps = isRecursiveDependencyBoundary(
+                        component,
+                        varName,
+                    )
+                        ? {}
+                        : this.dependencyHandler.downstreamDependencies[
+                              component.componentIdx
+                          ][varName];
 
                     for (let dependencyName in downDeps) {
                         let dep = downDeps[dependencyName];

@@ -141,6 +141,28 @@ lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
 <p>The first section's n is $s1.n and the second's is $s2.n.</p>
 ```
 
+### References in a copy's attributes
+
+A reference in an attribute of a copy resolves as it would outside the copy,
+even when the copied content has a component with the same name. Below,
+`$h` on `copy1` finds the `h` in the "Copies" section, so `copy1` is hidden.
+To reach a component inside the copy, reference it through the copy's name, as
+`copy2` does with `$copy2.h`.
+
+```doenet-editor-horiz
+<section name="orig">
+  <title>Original</title>
+  <setup><boolean name="h">false</boolean></setup>
+  <p>Some content.</p>
+</section>
+<section>
+  <title>Copies</title>
+  <setup><boolean name="h">true</boolean></setup>
+  <section copy="$orig" hide="$h" name="copy1" />
+  <section copy="$orig" hide="$copy2.h" name="copy2" />
+</section>
+```
+
 ### When a name doesn't exist
 
 If nothing with the referenced name can be found, the reference fails. A common

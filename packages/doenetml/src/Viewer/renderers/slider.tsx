@@ -6,6 +6,7 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
 import { renderLabelWithLatex } from "./utils/labelWithLatex";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { useT } from "../../utils/i18n";
 import { ltrIslandProps } from "./utils/direction";
 
@@ -195,8 +196,9 @@ interface SliderSVs {
 }
 
 export default React.memo(function Slider(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, ignoreUpdate, rendererName, callAction } =
+    let { id, SVs, actions, children, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer<SliderSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
 
@@ -335,10 +337,12 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // Conditional label and showValue attributes
     let myLabel = null;
     if (SVs.label) {
-        const label = renderLabelWithLatex({
-            label: SVs.label,
-            labelHasLatex: SVs.labelHasLatex,
-        });
+        const label =
+            renderedLabel ??
+            renderLabelWithLatex({
+                label: SVs.label,
+                labelHasLatex: SVs.labelHasLatex,
+            });
         if (SVs.showValue) {
             myLabel = (
                 <>

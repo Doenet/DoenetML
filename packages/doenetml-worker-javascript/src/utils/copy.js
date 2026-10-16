@@ -28,7 +28,31 @@ export function postProcessCopy({
             componentIndicesFound.push(component.componentIdx);
         }
 
-        if (component.originalIdx != undefined) {
+        if (component.shadowsVariableOf) {
+            // made by a serialization to shadow one state variable of a
+            // component (`ValueRef.serialize`), which a linked copy keeps
+            if (addShadowDependencies) {
+                const {
+                    componentIdx: shadowedIdx,
+                    variableName,
+                    fromImplicitProp,
+                } = component.shadowsVariableOf;
+                const dependency = {
+                    dependencyType: "referenceShadow",
+                    compositeIdx: componentIdx,
+                    propVariable: variableName,
+                };
+                if (fromImplicitProp) {
+                    dependency.fromImplicitProp = true;
+                }
+                component.downstreamDependencies = {
+                    [shadowedIdx]: [dependency],
+                };
+            } else if (component.originalIdx != undefined) {
+                component.unlinkedCopySource = component.originalIdx;
+            }
+            delete component.shadowsVariableOf;
+        } else if (component.originalIdx != undefined) {
             // preserializedNamesFound[component.originalIdx] = component;
 
             if (!component.dontShadowOriginalIndex) {
@@ -44,6 +68,7 @@ export function postProcessCopy({
                             },
                         ],
                     };
+
                     if (init) {
                         downDep[
                             component.originalIdx
@@ -700,7 +725,12 @@ export function addAttributesToSingleReplacement(
 
 /**
  * Recurse through all `components` and substitute `newComponentIdx` for `prevComponentIdx`,
- * both for a component's `componentIdx` and also for any `nodeIdx` in an `extending` attribute.
+ * both for a component's `componentIdx` and also for any `nodeIdx` or `nodesInResolvedPath` entry
+ * in an `extending` attribute.
+ *
+ * The `nodesInResolvedPath` entries matter for the origin of a reference in the replacement's attributes,
+ * which is the replacement itself (see `convertRefsToCopies`). Left unsubstituted, that reference would be resolved
+ * from a component that does not exist.
  */
 function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
     for (const component of components) {
@@ -717,6 +747,10 @@ function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
             if (refResolution.nodeIdx === prevComponentIdx) {
                 refResolution.nodeIdx = newComponentIdx;
             }
+            refResolution.nodesInResolvedPath =
+                refResolution.nodesInResolvedPath.map((idx) =>
+                    idx === prevComponentIdx ? newComponentIdx : idx,
+                );
         }
 
         substituteComponentIdx(
@@ -733,6 +767,17 @@ function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
                     prevComponentIdx,
                     newComponentIdx,
                 );
+            } else if (attribute.type === "expression") {
+                // references the component resolves itself, from itself
+                for (const { refResolution } of attribute.slots) {
+                    if (refResolution.nodeIdx === prevComponentIdx) {
+                        refResolution.nodeIdx = newComponentIdx;
+                    }
+                    refResolution.nodesInResolvedPath =
+                        refResolution.nodesInResolvedPath.map((idx) =>
+                            idx === prevComponentIdx ? newComponentIdx : idx,
+                        );
+                }
             }
         }
     }

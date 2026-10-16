@@ -3,6 +3,7 @@ import type { ComponentIdx } from "@doenet/utils";
 import type { ComponentInstance } from "../../types/componentInstance";
 import type { DependencyHandler } from "./DependencyHandler";
 import {
+    addOnDemandStateVariables,
     arrayEntryNamesFromPropIndex,
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
@@ -41,6 +42,19 @@ export function cloneChangeMetadataIfNeeded({
  * (dependency, downstream component, variable).
  */
 export const INITIAL_CHANGE_RECORD = Object.freeze({ changed: true });
+
+/**
+ * A new mutable change record, with every field a record can hold, so that
+ * every record made here has the same shape. Records built up field by field
+ * (`{}`, then `potentialChange`, `freshnessInfo`, `changed`) or copied from
+ * the frozen initial record are ones on which V8 kept generalizing `changed`
+ * (from a constant field to a mutable one) as it was written, tens of
+ * thousands of times in a few dozen drags of `dot-plot-drag-50`
+ * (`--trace-generalization`), and those drags were slower.
+ */
+export function newChangeRecord(changed?: any): Record<string, any> {
+    return { changed, potentialChange: undefined, freshnessInfo: undefined };
+}
 
 export class Dependency {
     [key: string]: any;
@@ -147,6 +161,49 @@ export class Dependency {
 
     setUpParameters() {}
 
+    /**
+     * Whether this dependency records the variables it reads from each
+     * downstream component (`mappedDownstreamVariableNamesByComponent`).
+     * A dependency that reads none records nothing unless
+     * `mapsVariablesForEveryComponent` is set, as a child dependency sets it
+     * for the list components it may meet.
+     */
+    hasVariableMapping() {
+        return (
+            this.originalDownstreamVariableNames.length > 0 ||
+            Boolean(this.originalVariablesByComponent) ||
+            Boolean(this.mapsVariablesForEveryComponent)
+        );
+    }
+
+    /**
+     * For a list component downstream (`listEntryComponentType`), the
+     * variables of the list that the variables `originalVarNames` of one of
+     * its entries read, followed by the list's count variable. `undefined`
+     * for any other component, and for a dependency that does not present a
+     * list as its entries. Overridden by `ChildDependency`.
+     */
+    mapListEntryVariables(
+        _downComponent: any,
+        _originalVarNames: string[],
+    ): string[] | undefined {
+        return undefined;
+    }
+
+    /**
+     * The variables of `downComponent` that the variables `originalVarNames`
+     * read, where a dependency reads them under other names. `undefined`
+     * (the default) reads them as named. Overridden by
+     * `AttributeComponentDependency`, whose attribute may be a reference to
+     * another component's variable.
+     */
+    renameDownstreamVariables(
+        _downComponent: any,
+        _originalVarNames: string[],
+    ): string[] | undefined {
+        return undefined;
+    }
+
     async determineDownstreamComponents(_args?: any): Promise<any> {
         return {
             success: true,
@@ -208,10 +265,7 @@ export class Dependency {
             upCompDownDeps[varName][this.dependencyName] = this;
         }
 
-        if (
-            this.originalDownstreamVariableNames.length === 0 &&
-            !this.originalVariablesByComponent
-        ) {
+        if (!this.hasVariableMapping()) {
             delete this.mappedDownstreamVariableNamesByComponent;
             delete this.upValuesChanged;
         } else {
@@ -401,10 +455,30 @@ export class Dependency {
                     });
             }
 
+            const renamedVarNames = this.renameDownstreamVariables(
+                downComponent,
+                originalVarNames,
+            );
+
+            // A value reference (`_ref`) answers to the aliases of the type it
+            // stands in for: `latex` asked of one presenting as a `latex` is
+            // its `value`.
+            const aliasClass = downComponent.presentedComponentType
+                ? this.dependencyHandler.componentInfoObjects
+                      .allComponentClasses[downComponent.presentedComponentType]
+                : downComponent.constructor;
             let mappedVarNames = this.dependencyHandler.core.substituteAliases({
-                stateVariables: originalVarNames,
-                componentClass: downComponent.constructor,
+                stateVariables: renamedVarNames ?? originalVarNames,
+                componentClass: aliasClass,
             });
+
+            const listMappedVarNames = this.mapListEntryVariables(
+                downComponent,
+                originalVarNames,
+            );
+            if (listMappedVarNames) {
+                mappedVarNames = listMappedVarNames;
+            }
 
             if ((this.constructor as typeof Dependency).convertToArraySize) {
                 // `arraySizeStateVariable` exists only once the array has
@@ -531,9 +605,28 @@ export class Dependency {
             // (If not variablesOptional and variable doesn't exist, will eventually get an error)
             let downVarNames = mappedVarNames;
 
+            if (listMappedVarNames) {
+                // An entry variable the list does not provide is absent from
+                // the entries, so there is nothing of the list's to read.
+                downVarNames = downVarNames.filter(
+                    (downVar: string) => downVar in downComponent.state,
+                );
+            }
+
+            // A value reference (`_ref`) defines almost nothing itself. A
+            // variable asked of it that it lacks is made now, from the
+            // definitions of the type it stands in for, so that the reads
+            // and the optional-variable filter below find it like any other.
+            addOnDemandStateVariables({
+                core: this.dependencyHandler.core,
+                component: downComponent,
+                stateVariables: downVarNames,
+            });
+
             if (
                 originalVarNames.length > 0 ||
-                this.originalVariablesByComponent
+                this.originalVariablesByComponent ||
+                this.mapsVariablesForEveryComponent
             ) {
                 // Intern the (frozen) name list: most dependencies map the
                 // same few lists, so share one array per distinct list.
@@ -641,13 +734,27 @@ export class Dependency {
                     downCompUpDeps[varName] = existingUpDeps.concat(this);
                 }
 
-                if (varName !== this.downstreamVariableNameIfNoVariables) {
+                if (varName === this.downstreamVariableNameIfNoVariables) {
+                    continue;
+                }
+                if (
+                    this.dependencyHandler.edgeCanCloseCycle(
+                        this,
+                        downstreamComponentIdx,
+                        varName,
+                    )
+                ) {
                     for (let upstreamVarName of this.upstreamVariableNames) {
                         this.dependencyHandler.resetCircularCheckPassed(
                             this.upstreamComponentIdx,
                             upstreamVarName,
                         );
                     }
+                } else {
+                    this.dependencyHandler.markLeafPassed(
+                        downstreamComponentIdx,
+                        varName,
+                    );
                 }
             }
         }
@@ -705,6 +812,13 @@ export class Dependency {
                     this.mappedDownstreamVariableNamesByComponent[
                         indexToRemove
                     ];
+                if (affectedDownstreamVariableNames.length === 0) {
+                    // Nothing was read, so the edge was recorded as an
+                    // identity (see `addDownstreamComponent`).
+                    affectedDownstreamVariableNames = [
+                        this.downstreamVariableNameIfNoVariables,
+                    ];
+                }
                 this.mappedDownstreamVariableNamesByComponent.splice(
                     indexToRemove,
                     1,
@@ -749,16 +863,6 @@ export class Dependency {
                                 .slice(0, ind)
                                 .concat(downCompUpDeps.slice(ind + 1));
                         }
-                    }
-                }
-
-                if (vName !== this.downstreamVariableNameIfNoVariables) {
-                    for (let upstreamVarName of this.upstreamVariableNames) {
-                        // TODO: check why have to do this when remove a component from a dependency
-                        this.dependencyHandler.resetCircularCheckPassed(
-                            this.upstreamComponentIdx,
-                            upstreamVarName,
-                        );
                     }
                 }
             }
@@ -806,10 +910,7 @@ export class Dependency {
             this.downstreamComponentTypes[index1],
         ];
 
-        if (
-            this.originalDownstreamVariableNames.length > 0 ||
-            this.originalVariablesByComponent
-        ) {
+        if (this.hasVariableMapping()) {
             [
                 this.mappedDownstreamVariableNamesByComponent[index1],
                 this.mappedDownstreamVariableNamesByComponent[index2],
@@ -854,7 +955,12 @@ export class Dependency {
             ).fill([this.downstreamVariableNameIfNoVariables]);
         } else {
             affectedDownstreamVariableNamesByUpstreamComponent =
-                this.mappedDownstreamVariableNamesByComponent;
+                this.mappedDownstreamVariableNamesByComponent.map(
+                    (names: string[]) =>
+                        names.length > 0
+                            ? names
+                            : [this.downstreamVariableNameIfNoVariables],
+                );
             if (this.variablesOptional) {
                 let newVarNames = [];
                 for (let [
@@ -928,16 +1034,6 @@ export class Dependency {
                         blockerCode: downCompIdx + "|" + vName,
                     });
                 }
-
-                if (vName !== this.downstreamVariableNameIfNoVariables) {
-                    for (let upstreamVarName of this.upstreamVariableNames) {
-                        // TODO: check why have to do this when delete a dependency
-                        this.dependencyHandler.resetCircularCheckPassed(
-                            this.upstreamComponentIdx,
-                            upstreamVarName,
-                        );
-                    }
-                }
             }
         }
 
@@ -983,11 +1079,16 @@ export class Dependency {
         consumeChanges?: boolean;
     } = {}): Promise<any> {
         let value: any = [];
-        let changes: any = {};
+        // What changed, collected in locals and put on `changes` once at
+        // the end. Assigning `changes.valuesChanged` again as it is
+        // narrowed below is a write V8 kept generalizing the field for,
+        // as for the change records (`newChangeRecord`).
+        let componentIdentitiesChanged = false;
+        let valuesChanged: any = undefined;
         let usedDefault: any = [];
 
         if (this.componentIdentitiesChanged) {
-            changes.componentIdentitiesChanged = true;
+            componentIdentitiesChanged = true;
             if (consumeChanges) {
                 this.componentIdentitiesChanged = false;
             }
@@ -1002,8 +1103,12 @@ export class Dependency {
             usedDefault[componentInd] = false;
 
             if (depComponent) {
+                // The type recorded when the component was found, which for a
+                // value reference (`_ref`) is the type it stands in for.
                 let componentObj: any = {
-                    componentType: depComponent.componentType,
+                    componentType:
+                        this.downstreamComponentTypes[componentInd] ??
+                        depComponent.componentType,
                 };
 
                 if (!this.skipComponentIndices) {
@@ -1011,9 +1116,10 @@ export class Dependency {
                 }
 
                 if (depComponent.position) {
-                    componentObj.position = JSON.parse(
-                        JSON.stringify(depComponent.position),
-                    );
+                    componentObj.position =
+                        this.dependencyHandler.frozenPositionCopy(
+                            depComponent.position,
+                        );
 
                     componentObj.sourceDoc = depComponent.sourceDoc;
                 }
@@ -1048,7 +1154,9 @@ export class Dependency {
                             : originalVarName;
 
                         if (
-                            !this.variablesOptional ||
+                            (!this.variablesOptional &&
+                                depComponent.constructor
+                                    .listEntryComponentType === undefined) ||
                             mappedVarName in depComponent.state
                         ) {
                             let mappedStateVarObj =
@@ -1063,19 +1171,17 @@ export class Dependency {
                                         mappedVarName
                                     ];
                                 if (valueChanged?.changed) {
-                                    if (!changes.valuesChanged) {
-                                        changes.valuesChanged = {};
+                                    if (!valuesChanged) {
+                                        valuesChanged = {};
                                     }
-                                    if (!changes.valuesChanged[componentInd]) {
-                                        changes.valuesChanged[componentInd] =
-                                            {};
+                                    if (!valuesChanged[componentInd]) {
+                                        valuesChanged[componentInd] = {};
                                     }
-                                    changes.valuesChanged[componentInd][
-                                        nameForOutput
-                                    ] = cloneChangeMetadataIfNeeded({
-                                        changeMetadata: valueChanged,
-                                        consumeChanges,
-                                    });
+                                    valuesChanged[componentInd][nameForOutput] =
+                                        cloneChangeMetadataIfNeeded({
+                                            changeMetadata: valueChanged,
+                                            consumeChanges,
+                                        });
                                 }
                                 if (consumeChanges) {
                                     this.consumeChangeRecord(
@@ -1087,19 +1193,20 @@ export class Dependency {
                                 if (mappedStateVarObj.usedDefault) {
                                     usedDefaultObj[nameForOutput] = true;
                                     foundOneUsedDefault = true;
-                                } else if (
-                                    mappedStateVarObj.isArrayEntry &&
-                                    mappedStateVarObj.arrayKeys.length === 1
-                                ) {
+                                } else if (mappedStateVarObj.isArrayEntry) {
                                     // if have an array entry with just one arrayKey,
                                     // check if used default for that arrayKey
+                                    // (`arrayKeys` of an entry is a promise)
+                                    const entryArrayKeys =
+                                        await mappedStateVarObj.arrayKeys;
                                     let arrayStateVarObj =
                                         depComponent.state[
                                             mappedStateVarObj.arrayStateVariable
                                         ];
                                     if (
+                                        entryArrayKeys.length === 1 &&
                                         arrayStateVarObj.usedDefaultByArrayKey[
-                                            mappedStateVarObj.arrayKeys[0]
+                                            entryArrayKeys[0]
                                         ]
                                     ) {
                                         usedDefaultObj[nameForOutput] = true;
@@ -1129,11 +1236,7 @@ export class Dependency {
             if (this.returnSingleVariableValue) {
                 if (value.length === 1) {
                     value = value[0];
-                    if (changes.valuesChanged && changes.valuesChanged[0]) {
-                        changes.valuesChanged = changes.valuesChanged[0];
-                    } else {
-                        delete changes.valuesChanged;
-                    }
+                    valuesChanged = valuesChanged?.[0] || undefined;
                     usedDefault = usedDefault[0];
 
                     let stateVariables = Object.keys(value.stateValues);
@@ -1141,12 +1244,8 @@ export class Dependency {
                         let nameForOutput = stateVariables[0];
                         value = value.stateValues[nameForOutput];
 
-                        if (
-                            changes.valuesChanged &&
-                            changes.valuesChanged[nameForOutput]
-                        ) {
-                            changes.valuesChanged =
-                                changes.valuesChanged[nameForOutput];
+                        if (valuesChanged && valuesChanged[nameForOutput]) {
+                            valuesChanged = valuesChanged[nameForOutput];
                         }
 
                         if (usedDefault) {
@@ -1154,22 +1253,20 @@ export class Dependency {
                         }
                     } else {
                         value = null;
-                        changes = {};
+                        componentIdentitiesChanged = false;
+                        valuesChanged = undefined;
                         usedDefault = false;
                     }
                 } else {
                     value = null;
-                    changes = {};
+                    componentIdentitiesChanged = false;
+                    valuesChanged = undefined;
                     usedDefault = false;
                 }
             } else if (this.returnSingleComponent) {
                 if (value.length === 1) {
                     value = value[0];
-                    if (changes.valuesChanged && changes.valuesChanged[0]) {
-                        changes.valuesChanged = changes.valuesChanged[0];
-                    } else {
-                        delete changes.valuesChanged;
-                    }
+                    valuesChanged = valuesChanged?.[0] || undefined;
                     usedDefault = usedDefault[0];
                 } else {
                     value = null;
@@ -1184,10 +1281,48 @@ export class Dependency {
         //   value = new Proxy(value, readOnlyProxyHandler)
         // }
 
+        const changes: any = {};
+        if (componentIdentitiesChanged) {
+            changes.componentIdentitiesChanged = true;
+        }
+        if (valuesChanged !== undefined) {
+            changes.valuesChanged = valuesChanged;
+        }
+
         return { value, changes, usedDefault };
     }
 
+    /**
+     * Check the edges this dependency has just added for a cycle (see
+     * `DependencyHandler.checkForCircularDependency`). If none of them can
+     * close one (`DependencyHandler.edgeCanCloseCycle`), there is nothing to
+     * check.
+     */
     checkForCircular() {
+        const indices = this.downstreamComponentIndices;
+        const mappedNames = this.mappedDownstreamVariableNamesByComponent;
+        if (!indices || !mappedNames) {
+            return;
+        }
+        let canCloseCycle = false;
+        for (let ind = 0; ind < indices.length && !canCloseCycle; ind++) {
+            for (const varName of mappedNames[ind]) {
+                if (
+                    this.dependencyHandler.edgeCanCloseCycle(
+                        this,
+                        indices[ind],
+                        varName,
+                    )
+                ) {
+                    canCloseCycle = true;
+                    break;
+                }
+            }
+        }
+        if (!canCloseCycle) {
+            return;
+        }
+
         for (let varName of this.upstreamVariableNames) {
             this.dependencyHandler.resetCircularCheckPassed(
                 this.upstreamComponentIdx,

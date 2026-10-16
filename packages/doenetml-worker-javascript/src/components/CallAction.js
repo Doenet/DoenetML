@@ -1,3 +1,4 @@
+import { literalAttributeValue } from "../utils/literalAttribute";
 import { deepClone } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -7,6 +8,7 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
     addStandardTriggeringStateVariableDefinitions,
@@ -15,6 +17,7 @@ import {
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { targetIdxOfRefResolution } from "../utils/refTargets";
 
 export default class CallAction extends InlineComponent {
     constructor(args) {
@@ -34,6 +37,7 @@ export default class CallAction extends InlineComponent {
             "Triggers an action when clicked or in response to a specified user interaction",
     };
     static rendererType = "button";
+    static renderChildren = true;
 
     // The children of a `<callAction>` are kept serialized (see
     // `keepChildrenSerialized`) and passed to the invoked action — e.g. as the
@@ -141,6 +145,10 @@ export default class CallAction extends InlineComponent {
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
@@ -170,11 +178,15 @@ export default class CallAction extends InlineComponent {
                 if (dependencyValues.target?.length === 1) {
                     const target = dependencyValues.target[0];
 
-                    if (target.unresolvedPath == null) {
+                    // One entry of a list component (`$pl[2]`) is the index
+                    // reserved for it, to which an action for the entry goes
+                    // (`targetIdxOfRefResolution`).
+                    const targetComponentIdx = targetIdxOfRefResolution(target);
+                    if (targetComponentIdx !== null) {
                         return {
                             setValue: {
-                                targetComponentIdx: target.componentIdx,
-                                unresolvedPath: target.unresolvedPath,
+                                targetComponentIdx,
+                                unresolvedPath: null,
                                 targetOriginalPath: target.originalPath,
                             },
                         };
@@ -207,7 +219,13 @@ export default class CallAction extends InlineComponent {
             }
             if (this.attributes.number) {
                 args.number =
-                    await this.attributes.number.component.stateValues.value;
+                    this.attributes.number.type === "literal"
+                        ? literalAttributeValue(
+                              this.attributes.number,
+                              this.componentInfoObjects,
+                          )
+                        : await this.attributes.number.component.stateValues
+                              .value;
             }
             if (this.attributes.numbers) {
                 args.numbers =
@@ -312,6 +330,7 @@ export default class CallAction extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

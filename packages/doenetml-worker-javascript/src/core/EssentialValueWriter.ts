@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { literalWriteValue } from "../utils/literalAttribute";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
@@ -11,6 +12,8 @@ import {
     removeFunctionsMathExpressionClass,
     isUnspecifiedComponentValue,
 } from "../utils/math";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
+import { isReferenceShadow } from "../utils/referenceShadow";
 
 /**
  * Loose-typed bag of `componentIdx → varName → newValue` entries that the
@@ -124,6 +127,81 @@ export class EssentialValueWriter {
         // If so, how would we end the loop?
     }
 
+    /**
+     * A list component (`ValueListComponent`) is queued here when its values
+     * change. Its `numEntries` stays fresh through such a change, so that
+     * what depends on the number of entries is left where it is, and is
+     * marked stale here only when the number of values did change.
+     */
+    async updateListEntryCount(list: any) {
+        if (list.state.numEntries.shadowOfComponentIdx !== undefined) {
+            // a reference's number is the list's, and follows it
+            return;
+        }
+        const computedNumEntries = await list.stateValues.computedNumEntries;
+        const previousNumEntries = await list.stateValues.numEntries;
+        if (computedNumEntries === previousNumEntries) {
+            return;
+        }
+        // A repeat made a list keeps them, as it kept the iterations it
+        // withheld (`RepeatValueList`).
+        if (
+            computedNumEntries < previousNumEntries &&
+            !list.constructor.listKeepsEntryWritesPastEnd
+        ) {
+            this.dropListEntryWritesFrom(list, computedNumEntries);
+        }
+        list.entryCountChanged = true;
+        try {
+            await this.core.markStateVariableAndUpstreamDependentsStale({
+                component: list,
+                varName: "numEntries",
+            });
+        } finally {
+            list.entryCountChanged = false;
+        }
+
+        // A composite indexed by the entries of the list, or of a reference
+        // to it, is indexed by their new number.
+        const lists = [list];
+        for (const changed of lists) {
+            lists.push(...(changed.shadowedBy ?? []));
+            if (changed.replacementOf) {
+                await giveListEntriesToIndexParent({
+                    core: this.core,
+                    composite: changed.replacementOf,
+                    changedOwnItems: true,
+                });
+            }
+        }
+    }
+
+    /**
+     * Drop the values written to the entries of `list` from `numEntries` on
+     * (`ValueListComponent`'s `entryWrites`), when it has fewer entries
+     * than before. An entry it gets back later shows the value the list
+     * computes, as a composite gave a replacement it stopped withholding a
+     * newly computed value (`<sequence fixed="false">` shortened and
+     * lengthened again), and a saved state holds no write past the end.
+     */
+    dropListEntryWritesFrom(list: any, numEntries: number) {
+        const writes = list.essentialState?.entryWrites;
+        if (Array.isArray(writes) && writes.length > numEntries) {
+            writes.length = numEntries;
+        }
+        const saved =
+            this.core.cumulativeStateVariableChanges[list.stateId]?.entryWrites;
+        if (Array.isArray(saved)) {
+            saved.length = Math.min(saved.length, numEntries);
+        } else if (typeof saved === "object" && saved !== null) {
+            for (const key of Object.keys(saved)) {
+                if (key !== "mergeObject" && Number(key) >= numEntries) {
+                    delete saved[key];
+                }
+            }
+        }
+    }
+
     async replacementChangesFromCompositesToUpdate() {
         let compositesToUpdateReplacements = [
             ...this.core.updateInfo.compositesToUpdateReplacements,
@@ -179,6 +257,10 @@ export class EssentialValueWriter {
                     } else {
                         compositesNotReady.add(cIdx);
                     }
+                } else if (
+                    composite?.constructor.listEntryComponentType !== undefined
+                ) {
+                    await this.updateListEntryCount(composite);
                 }
             }
             // Is it possible that could ever get an infinite loop here?
@@ -390,6 +472,24 @@ export class EssentialValueWriter {
                         let set = (x: any) => x;
                         if (compStateObj.set) {
                             set = compStateObj.set;
+                        }
+
+                        // A repeat made a list keeps what was written to
+                        // entries past its end (`listKeepsEntryWritesPastEnd`),
+                        // so a saved one is restored past its end too, and
+                        // shown when it grows.
+                        if (
+                            newComponent &&
+                            comp.constructor.listKeepsEntryWritesPastEnd &&
+                            compStateObj.numDimensions === 1
+                        ) {
+                            const ind = compStateObj.keyToIndex(arrayKey);
+                            if (Number.isInteger(ind) && ind >= arraySize[0]) {
+                                essentialArray[ind] = set(
+                                    newComponentStateVariables[vName][arrayKey],
+                                );
+                                continue;
+                            }
                         }
 
                         let setResult = compStateObj.setArrayValue({
@@ -699,8 +799,37 @@ export class EssentialValueWriter {
             return;
         }
 
+        // A shadow's location is its source's, so the source's `fixLocation`
+        // keeps it put even when the shadow's own is false, as on
+        // `<point extend="$F" fixLocation="false"/>`. The change may reach
+        // the source only through components whose values are not locations
+        // (the coordinates of a point given as a `<math>`), so check here.
+        if (!instruction.overrideFixed && stateVarObj.isLocation) {
+            let source = component;
+            while (
+                source.shadows &&
+                source.shadows.propVariable === undefined
+            ) {
+                source = this.core._components[source.shadows.componentIdx];
+                if (!source) {
+                    break;
+                }
+                if (await source.stateValues.fixLocation) {
+                    reportInternalError(
+                        `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation of ${source.componentIdx} is true.`,
+                    );
+                    return;
+                }
+            }
+        }
+
         if (!(
             initialChange ||
+            // a write to a literal attribute (`literalAttribute.ts`): its
+            // attribute component took it whatever the owner's
+            // `modifyIndirectly`, since it had its own, true by default,
+            // which it did not take from the owner
+            stateVariable === "literalAttributeWrites" ||
             (await component.stateValues.modifyIndirectly) !== false
         )) {
             reportInternalError(
@@ -985,6 +1114,34 @@ export class EssentialValueWriter {
 
                 if (
                     component.state[newInstruction.setEssentialValue]
+                        .notFromReferenceSource
+                ) {
+                    // The essential value of an attribute a reference does
+                    // not take from its source (`fixed`) is kept in sync
+                    // between a component and the components inside copies
+                    // of it, but not given to the references to it
+                    // (`isReferenceShadow`), as for them it would decide
+                    // over where they sit.
+                    let baseComponent = component;
+                    while (
+                        baseComponent.shadows &&
+                        baseComponent.shadows.propVariable === undefined &&
+                        !isReferenceShadow(baseComponent)
+                    ) {
+                        baseComponent =
+                            this.core._components[
+                                baseComponent.shadows.componentIdx
+                            ];
+                    }
+                    this.calculateEssentialVariableChanges({
+                        component: baseComponent,
+                        varName: newInstruction.setEssentialValue,
+                        value,
+                        newStateVariableValues,
+                        onlyInsideCopies: true,
+                    });
+                } else if (
+                    component.state[newInstruction.setEssentialValue]
                         .doNotShadowEssential ||
                     component.state[newInstruction.setEssentialValue]
                         .shadowVariable
@@ -1032,10 +1189,10 @@ export class EssentialValueWriter {
                             return;
                         }
 
-                        // if any of the shadow sources of a locatoin are fixLocation, reject this change
+                        // if any of the shadow sources of a location are fixLocation, reject this change
                         if (
                             !instruction.overrideFixed &&
-                            !stateVarObj.isLocation &&
+                            stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
                             reportInternalError(
@@ -1070,7 +1227,58 @@ export class EssentialValueWriter {
 
                     let childInd = newInstruction.childIndex;
 
-                    if (dep.downstreamPrimitives[childInd] !== null) {
+                    // With a list component among the children, child `k` of
+                    // the dependency's value is counted after the list was
+                    // expanded into its entries (`expandListChildren`).
+                    const childSource = dep.expandedChildSources?.[childInd];
+                    if (childSource?.primitiveInd !== undefined) {
+                        childInd = childSource.primitiveInd;
+                    }
+
+                    if (
+                        childSource?.primitiveInd === undefined &&
+                        childSource !== undefined
+                    ) {
+                        // A list entry writes to the list's array, at the
+                        // entry's index; any other child as below.
+                        const downstreamInd = childSource.downstreamInd;
+                        const cIdx =
+                            dep.downstreamComponentIndices[downstreamInd];
+                        const varName =
+                            dep.mappedDownstreamVariableNamesByComponent[
+                                downstreamInd
+                            ][newInstruction.variableIndex];
+                        if (cIdx == undefined || !varName) {
+                            throw Error(
+                                `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
+                            );
+                        }
+                        let value = newInstruction.desiredValue;
+                        const list = this.core._components[cIdx];
+                        if (
+                            childSource.entryIndex !== undefined &&
+                            (list.state[varName]?.isArray ||
+                                list.constructor.listPerEntryVariables.includes(
+                                    varName,
+                                ))
+                        ) {
+                            // An array of the list, or a variable holding a
+                            // plain array of one value per entry, is written
+                            // at the entry alone.
+                            value = { [childSource.entryIndex]: value };
+                        }
+                        await this._recurseInto({
+                            inst: {
+                                componentIdx: cIdx,
+                                stateVariable: varName,
+                                value,
+                                overrideFixed: instruction.overrideFixed,
+                            },
+                            newInstruction,
+                            workspace,
+                            newStateVariableValues,
+                        });
+                    } else if (dep.downstreamPrimitives[childInd] !== null) {
                         // have a primitive child
                         // if desiredValue is same type of primitive, set it as a state variable
 
@@ -1155,10 +1363,14 @@ export class EssentialValueWriter {
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
                         }
-                        let varName =
-                            dep.mappedDownstreamVariableNamesByComponent[
-                                newInstruction.childIndex
-                            ][newInstruction.variableIndex];
+                        // `childIndex` counts the primitive children too;
+                        // the variables are by downstream component.
+                        let varName = (dep
+                            .mappedDownstreamVariableNamesByComponent?.[
+                            downstreamInd
+                        ] ?? dep.originalDownstreamVariableNames)[
+                            newInstruction.variableIndex
+                        ];
                         if (!varName) {
                             throw Error(
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
@@ -1195,12 +1407,31 @@ export class EssentialValueWriter {
                             `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                         );
                     }
+                    // A literal attribute (`literalAttribute.ts`) is written
+                    // as an entry of its owner's `literalAttributeWrites`,
+                    // unless the attribute component it stands for would
+                    // have ignored the value.
+                    const literal = dep.literal;
+                    const literalValue = literal
+                        ? literalWriteValue(
+                              literal,
+                              newInstruction.desiredValue,
+                              dep.literalCurrentValue,
+                          )
+                        : undefined;
+                    if (literal && literalValue === undefined) {
+                        continue;
+                    }
                     await this._recurseInto({
                         inst: {
                             componentIdx: cIdx,
                             stateVariable: varName,
-                            value: newInstruction.desiredValue,
-                            overrideFixed: instruction.overrideFixed,
+                            value: literal
+                                ? { [literal.name]: literalValue }
+                                : newInstruction.desiredValue,
+                            overrideFixed:
+                                instruction.overrideFixed ||
+                                (literal && dep.literalIgnoresFixed),
                             arrayKey: newInstruction.arrayKey,
                         },
                         newInstruction,
@@ -1210,9 +1441,13 @@ export class EssentialValueWriter {
                 } else if (
                     [
                         "stateVariable",
+                        // read through a path, as a repeat made a list reads
+                        // a coordinate of an entry (`$l[2][1]`)
+                        "stateVariableFromUnresolvedPath",
                         "parentStateVariable",
                         "adapterSourceStateVariable",
                         "sourceCompositeStateVariable",
+                        "shadowSourceStateVariable",
                     ].includes(dep.dependencyType) &&
                     dep.downstreamComponentIndices.length === 1
                 ) {
@@ -1318,12 +1553,14 @@ export class EssentialValueWriter {
         value,
         newStateVariableValues,
         recurseToShadows = true,
+        onlyInsideCopies = false,
     }: {
         component: ComponentInstance;
         varName: string;
         value: any;
         newStateVariableValues: NewStateVariableValues;
         recurseToShadows?: boolean;
+        onlyInsideCopies?: boolean;
     }) {
         if (!newStateVariableValues[component.componentIdx]) {
             newStateVariableValues[component.componentIdx] = {};
@@ -1349,9 +1586,30 @@ export class EssentialValueWriter {
 
         if (recurseToShadows && component.shadowedBy) {
             for (let shadow of component.shadowedBy) {
+                // A shadow without the variable has nothing to keep in step:
+                // one a component has for an attribute it holds itself
+                // (`expressionAttribute.js`), which a linked copy reads from
+                // its source rather than holds.
+                if (!(varName in shadow.state)) {
+                    continue;
+                }
                 // Don't include shadows due to propVariable
                 // unless it is a plain copy marked as returning the same type
-                if (
+                // (with `onlyInsideCopies`, only components inside copies)
+                if (onlyInsideCopies) {
+                    if (
+                        shadow.shadows!.propVariable === undefined &&
+                        !isReferenceShadow(shadow)
+                    ) {
+                        this.calculateEssentialVariableChanges({
+                            component: shadow,
+                            varName,
+                            value,
+                            newStateVariableValues,
+                            onlyInsideCopies,
+                        });
+                    }
+                } else if (
                     shadow.shadows!.propVariable === undefined ||
                     (shadow.doenetAttributes.fromImplicitProp &&
                         component.constructor.implicitPropReturnsSameType)

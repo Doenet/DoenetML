@@ -192,6 +192,54 @@ jobs:
             - name: Test doenetml-worker-javascript
               run: npm run test:${{ matrix.test-group }} -w packages/doenetml-worker-javascript
 
+    # The performance harness (packages/doenetml-worker-javascript/src/test/perf,
+    # Doenet/DoenetML#2126): loads each benchmark fixture once and writes the
+    # component census and load time per fixture to the job summary. Counts and
+    # times are reported, never asserted; the census snapshot in the ordinary
+    # test groups is what gates. The job's only assertion is that every fixture
+    # loads, so it fails when a fixture throws (or the test's 30-minute timeout
+    # is hit), not when a number moves.
+    perf-bench:
+        name: Perf Bench
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js 24.x
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: build-artifacts
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml-worker
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Measure the census and load time of each fixture
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  export PERFBENCH_SUMMARY="$GITHUB_STEP_SUMMARY"
+                  npm run test -w packages/doenetml-worker-javascript -- --run src/test/perf/perf-bench.test.ts
+              env:
+                  PERFBENCH_RESULT: ${{ github.workspace }}/perf-bench.json
+
+            - name: Upload the bench result
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: perf-bench
+                  path: perf-bench.json
+                  if-no-files-found: ignore
+
     test-cypress:
         name: Cypress Tests
         runs-on: ubuntu-latest

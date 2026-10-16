@@ -98,8 +98,9 @@ describe("the summaryStatistics table", () => {
     });
 
     it("spaces its cells the way a tabular spaces its own", () => {
-        // `<cell>` gives a `<tabular>`'s cells `3px 10px`; a statistics table
-        // sits among those in a document and is spaced like them.
+        // `<cell>` gives a `<tabular>` cell of ordinary width `3px 10px`; a
+        // statistics table sits among those in a document and is spaced like
+        // them.
         const html = render({ summaryStatistics: { mean: "5", count: 1 } });
 
         const cells = [...html.matchAll(/<t[hd][^>]*style="([^"]*)"/g)].map(

@@ -18,6 +18,7 @@ import {
 } from "../utils/graphical";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 
 export default class Image extends BlockComponent {
     constructor(args) {
@@ -739,6 +740,8 @@ export default class Image extends BlockComponent {
             },
         };
 
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
+
         return stateVariableDefinitions;
     }
 
@@ -760,6 +763,7 @@ export default class Image extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

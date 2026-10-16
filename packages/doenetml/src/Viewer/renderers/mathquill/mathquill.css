@@ -212,7 +212,11 @@
     box-sizing: border-box;
 }
 .mq-math-mode .mq-empty {
+    /* Tint empty slots with the text color so they show in both themes. The
+       tint is kept light so a slot next to a fraction bar still reads as
+       separate from it. Browsers without color-mix() use the translucent gray. */
     background: rgba(0, 0, 0, 0.2);
+    background: color-mix(in srgb, currentColor 25%, transparent);
 }
 .mq-math-mode .mq-empty.mq-root-block {
     background: transparent;

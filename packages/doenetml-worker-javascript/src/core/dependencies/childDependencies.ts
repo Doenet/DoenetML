@@ -5,8 +5,10 @@
  * `gatherDescendants`).
  */
 
-import { Dependency } from "./Dependency";
+import { Dependency, INITIAL_CHANGE_RECORD } from "./Dependency";
 import { gatherDescendants } from "../../utils/descendants";
+import { LIST_ENTRY_ARRAY_PREFIX } from "../../utils/listEntryReference";
+import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
 
 export class ChildDependency extends Dependency {
     static dependencyType = "child";
@@ -52,6 +54,12 @@ export class ChildDependency extends Dependency {
             this.definition.proceedIfAllChildrenNotMatched;
 
         this.dontRecurseToShadows = this.definition.dontRecurseToShadows;
+
+        // Whether a change in the composites the children are replacements
+        // of (`compositeReplacementRange`) is a change of the dependency,
+        // as for a parent that keys its children's text by the composite
+        // the text came from.
+        this.reportCompositeChanges = this.definition.reportCompositeChanges;
     }
 
     async determineDownstreamComponents() {
@@ -138,10 +146,25 @@ export class ChildDependency extends Dependency {
         // Note: indices are relative to the selected ones
         // (not actual index in activeChildren)
         // so filter uses the i argument, not the x argument
+        // A list component is several children of the value, one per
+        // entry, so with one among the children the indices pick from the
+        // value once the lists are expanded (`expandListChildren`).
+        this.childIndicesAfterExpansion = false;
         if (this.childIndices) {
-            activeChildrenIndices = activeChildrenIndices.filter(
-                (x: any, i: number) => this.childIndices.includes(i),
-            );
+            if (
+                activeChildrenIndices.some(
+                    (x: any) =>
+                        parent.activeChildren[x]?.constructor
+                            ?.listEntryComponentType !== undefined &&
+                        !parent.listChildrenMatchedWhole?.has(x),
+                )
+            ) {
+                this.childIndicesAfterExpansion = true;
+            } else {
+                activeChildrenIndices = activeChildrenIndices.filter(
+                    (x: any, i: number) => this.childIndices.includes(i),
+                );
+            }
         }
 
         if (!parent.childrenMatched && !this.proceedIfAllChildrenNotMatched) {
@@ -398,6 +421,10 @@ export class ChildDependency extends Dependency {
                     if (translatedLastInd !== undefined) {
                         this.compositeReplacementRange.push({
                             compositeIdx: compositeInfo.compositeIdx,
+                            compositeStateId:
+                                this.dependencyHandler._components[
+                                    compositeInfo.compositeIdx
+                                ]?.stateId,
                             extendIdx: compositeInfo.extendIdx,
                             unresolvedPath: compositeInfo.unresolvedPath,
                             firstInd: translatedFirstInd,
@@ -436,10 +463,29 @@ export class ChildDependency extends Dependency {
         let downstreamComponentIndices = [];
         let downstreamComponentTypes = [];
 
+        // What each list component among the children presents its entries
+        // as, which `ChildMatcher` decided when it matched the list.
+        this.listChildPresentedTypes = {};
+        this.hasListChildren = false;
+
         for (let [ind, child] of activeChildrenMatched.entries()) {
             if (typeof child !== "object") {
                 this.downstreamPrimitives.push(child);
                 continue;
+            }
+
+            const listEntryType = child.constructor?.listEntryComponentType;
+            if (
+                listEntryType !== undefined &&
+                !parent.listChildrenMatchedWhole?.has(
+                    activeChildrenIndices[ind],
+                )
+            ) {
+                this.listChildPresentedTypes[child.componentIdx] = parent
+                    .listChildPresentedTypes?.[activeChildrenIndices[ind]] ?? {
+                    componentType: listEntryType,
+                };
+                this.hasListChildren = true;
             }
 
             this.downstreamPrimitives.push(null);
@@ -449,7 +495,13 @@ export class ChildDependency extends Dependency {
                     ? child.componentIdx
                     : `__placeholder_${ind}`,
             );
-            downstreamComponentTypes.push(child.componentType);
+            downstreamComponentTypes.push(
+                child.presentedComponentType ?? child.componentType,
+            );
+        }
+
+        if (this.hasListChildren) {
+            this.recordVariablesForEveryComponent();
         }
 
         if (
@@ -534,7 +586,35 @@ export class ChildDependency extends Dependency {
         resultValueWithPrimitives.compositeReplacementRange =
             compositeReplacementRange;
 
+        if (this.hasListChildren) {
+            resultValueWithPrimitives = await this.expandListChildren({
+                values: resultValueWithPrimitives,
+                result,
+                consumeChanges,
+            });
+        } else {
+            delete this.expandedChildSources;
+        }
+
         result.value = resultValueWithPrimitives;
+
+        if (this.reportCompositeChanges) {
+            const compositeRanges = JSON.stringify(
+                (resultValueWithPrimitives.compositeReplacementRange ?? []).map(
+                    (range: any) => [
+                        range.compositeIdx,
+                        range.firstInd,
+                        range.lastInd,
+                    ],
+                ),
+            );
+            if (compositeRanges !== this.previousCompositeRanges) {
+                result.changes.componentIdentitiesChanged = true;
+                if (consumeChanges) {
+                    this.previousCompositeRanges = compositeRanges;
+                }
+            }
+        }
 
         if (
             this.downstreamPrimitives.length !==
@@ -557,6 +637,402 @@ export class ChildDependency extends Dependency {
         // }
 
         return result;
+    }
+
+    /**
+     * A list component among the children is read through variables of its
+     * own (its count, at the least) even when nothing is asked of its
+     * entries, so once one is met, every child has its variables recorded.
+     * A child already downstream, from before, read none.
+     */
+    recordVariablesForEveryComponent() {
+        if (this.hasVariableMapping()) {
+            return;
+        }
+        this.mapsVariablesForEveryComponent = true;
+        if (this.downstreamComponentIndices === undefined) {
+            // still being initialized, which sets up the records
+            return;
+        }
+        this.mappedDownstreamVariableNamesByComponent =
+            this.downstreamComponentIndices.map(() =>
+                this.dependencyHandler.internVariableNameList([]),
+            );
+        this.valuesChanged = this.downstreamComponentIndices.map(() =>
+            this.dependencyHandler.internInitialValuesChangedRecord(
+                this.dependencyHandler.internVariableNameList([]),
+                INITIAL_CHANGE_RECORD,
+            ),
+        );
+    }
+
+    mapListEntryVariables(downComponent: any, originalVarNames: string[]) {
+        const listClass = downComponent.constructor;
+        const presented =
+            this.listChildPresentedTypes?.[downComponent.componentIdx];
+        if (
+            listClass.listEntryComponentType === undefined ||
+            presented === undefined
+        ) {
+            return undefined;
+        }
+
+        // An entry answers to the aliases of the type it presents as.
+        const names: string[] = this.dependencyHandler.core.substituteAliases({
+            stateVariables: originalVarNames,
+            componentClass:
+                this.dependencyHandler.componentInfoObjects.allComponentClasses[
+                    presented.componentType
+                ],
+        });
+
+        const mapped = names.map((name) => {
+            // An entry presenting as an adapter's type reads, as its value,
+            // the variable of the entry that the adapter would have read.
+            const entryVariable =
+                presented.adapterVariable !== undefined && name === "value"
+                    ? presented.adapterVariable
+                    : name;
+            const listVariable =
+                listClass.listEntryStateVariables[entryVariable];
+            if (listVariable !== undefined) {
+                return listVariable;
+            }
+            // A property the list computes for each entry from its value
+            // (`numDimensions`, `x2` of a math read as a point) is an array
+            // made on the list when first asked for.
+            if (listClass.derivedEntryProperty(entryVariable) !== undefined) {
+                const arrayName = `${LIST_ENTRY_ARRAY_PREFIX}${entryVariable}`;
+                ensureListEntryPropertyArray({
+                    core: this.dependencyHandler.core,
+                    component: downComponent,
+                    arrayName,
+                });
+                return arrayName;
+            }
+            return `__${entryVariable}_not_a_list_entry_variable`;
+        });
+        mapped.push(listClass.listEntryCountVariable);
+
+        return mapped;
+    }
+
+    /**
+     * Replace the record of each list component among `values` with one
+     * record per entry, of the type the entry presents as, whose variables
+     * are the list's (an array variable giving the entry its own value).
+     * An entry's record also names its index (`listEntryIndex`) and the
+     * list's array of values (`listValuesVariable`), for a parent that reads
+     * the entries' values by itself.
+     * The ranges of `values.compositeReplacementRange` are moved to match,
+     * and each list gets a range of its own, so its entries are separated as
+     * a composite's replacements are. The change records and `usedDefault`
+     * are renumbered by the new downstream positions.
+     *
+     * Records, in `expandedChildSources`, where each child of the result
+     * comes from, for `EssentialValueWriter` to route a write to child `k`.
+     */
+    async expandListChildren({
+        values,
+        result,
+        consumeChanges,
+    }: {
+        values: any;
+        result: any;
+        consumeChanges: boolean;
+    }) {
+        const expanded: any = [];
+        const childSources: any[] = [];
+
+        const ranges = (values.compositeReplacementRange ?? []).map(
+            (range: any) => ({
+                ...range,
+                potentialListComponents: [
+                    ...(range.potentialListComponents ?? []),
+                ],
+            }),
+        );
+
+        const valuesChanged = result.changes.valuesChanged;
+        const newValuesChanged: any = {};
+        const usedDefault = result.usedDefault;
+        const newUsedDefault: any[] = [];
+
+        if (!this.previousListEntryCounts) {
+            this.previousListEntryCounts = {};
+        }
+
+        let downInd = 0;
+        let newDownInd = 0;
+
+        for (let [pos, item] of values.entries()) {
+            if (this.downstreamPrimitives[pos] !== null) {
+                expanded.push(item);
+                childSources.push({ primitiveInd: pos });
+                continue;
+            }
+
+            const componentIdx = this.downstreamComponentIndices[downInd];
+            const comp = this.dependencyHandler._components[componentIdx];
+            const presented =
+                comp && this.listChildPresentedTypes[componentIdx];
+
+            if (!presented) {
+                expanded.push(item);
+                childSources.push({ downstreamInd: downInd });
+                if (valuesChanged?.[downInd]) {
+                    newValuesChanged[newDownInd] = valuesChanged[downInd];
+                }
+                newUsedDefault[newDownInd] = usedDefault[downInd];
+                downInd++;
+                newDownInd++;
+                continue;
+            }
+
+            const mappedNames =
+                this.mappedDownstreamVariableNamesByComponent[downInd];
+            const countVariable = mappedNames[mappedNames.length - 1];
+            const numEntries = await comp.state[countVariable].value;
+            if (consumeChanges) {
+                this.consumeChangeRecord(downInd, countVariable);
+            }
+
+            if (this.previousListEntryCounts[componentIdx] !== numEntries) {
+                result.changes.componentIdentitiesChanged = true;
+                if (consumeChanges) {
+                    this.previousListEntryCounts[componentIdx] = numEntries;
+                }
+            }
+
+            // Which variables hold one value per entry (`listPerEntryVariables`);
+            // the rest are shared by every entry.
+            const perEntryVariables = comp.constructor.listPerEntryVariables;
+            const isArray: Record<string, boolean> = {};
+            for (const [
+                varInd,
+                originalName,
+            ] of this.originalDownstreamVariableNames.entries()) {
+                isArray[originalName] =
+                    perEntryVariables.includes(mappedNames[varInd]) ||
+                    mappedNames[varInd].startsWith(LIST_ENTRY_ARRAY_PREFIX);
+            }
+
+            const firstInd = expanded.length;
+
+            if (numEntries === 0 && this.listMustHaveAnEntry(comp)) {
+                expanded.push(
+                    this.blankListEntry({ comp, item, isArray, presented }),
+                );
+                childSources.push({ downstreamInd: downInd });
+                if (valuesChanged?.[downInd]) {
+                    newValuesChanged[newDownInd] = valuesChanged[downInd];
+                }
+                newUsedDefault[newDownInd] = usedDefault[downInd];
+                newDownInd++;
+                // One child for one child, so no range moves.
+                ranges.push({
+                    compositeIdx: componentIdx,
+                    firstInd,
+                    lastInd: firstInd,
+                    asList: true,
+                    potentialListComponents: [true],
+                });
+                downInd++;
+                continue;
+            }
+
+            for (let entryInd = 0; entryInd < numEntries; entryInd++) {
+                const entry: any = {
+                    componentType: presented.componentType,
+                    listEntryIndex: entryInd,
+                    listValuesVariable:
+                        comp.constructor.listEntryStateVariables.value,
+                };
+                if (item.componentIdx !== undefined) {
+                    entry.componentIdx = item.componentIdx;
+                }
+                if (item.position) {
+                    entry.position = item.position;
+                    entry.sourceDoc = item.sourceDoc;
+                }
+                if (item.stateValues) {
+                    entry.stateValues = {};
+                    for (const name in item.stateValues) {
+                        const value = item.stateValues[name];
+                        entry.stateValues[name] = isArray[name]
+                            ? value?.[entryInd]
+                            : value;
+                    }
+                }
+                expanded.push(entry);
+                childSources.push({
+                    downstreamInd: downInd,
+                    entryIndex: entryInd,
+                });
+                if (valuesChanged?.[downInd]) {
+                    newValuesChanged[newDownInd] = valuesChanged[downInd];
+                }
+                newUsedDefault[newDownInd] = usedDefault[downInd];
+                newDownInd++;
+            }
+
+            // The list was one child at `firstInd` and is now `numEntries`.
+            for (const range of ranges) {
+                if (range.firstInd <= firstInd && range.lastInd >= firstInd) {
+                    range.potentialListComponents.splice(
+                        firstInd - range.firstInd,
+                        1,
+                        ...Array(numEntries).fill(true),
+                    );
+                    range.lastInd += numEntries - 1;
+                } else if (range.firstInd > firstInd) {
+                    range.firstInd += numEntries - 1;
+                    range.lastInd += numEntries - 1;
+                }
+            }
+            ranges.push({
+                compositeIdx: componentIdx,
+                firstInd,
+                lastInd: firstInd + numEntries - 1,
+                asList:
+                    "asList" in comp.state
+                        ? await comp.stateValues.asList
+                        : true,
+                potentialListComponents: Array(numEntries).fill(true),
+            });
+
+            downInd++;
+        }
+
+        if (this.childIndicesAfterExpansion) {
+            return this.selectChildIndices({
+                expanded,
+                childSources,
+                newValuesChanged: valuesChanged ? newValuesChanged : undefined,
+                newUsedDefault,
+                result,
+            });
+        }
+
+        expanded.compositeReplacementRange = ranges;
+
+        if (valuesChanged) {
+            result.changes.valuesChanged = newValuesChanged;
+        }
+        result.usedDefault = newUsedDefault;
+
+        this.expandedChildSources = childSources;
+
+        return expanded;
+    }
+
+    /**
+     * Whether a list with no entries is seen as one blank child: a reference
+     * to the list (the replacement of a `_copy`) where composites must have a
+     * replacement, as a copy of an empty composite gets one there
+     * (`utils/copy.js`).
+     */
+    listMustHaveAnEntry(comp: any) {
+        if (comp.replacementOf?.componentType !== "_copy") {
+            return false;
+        }
+        const listParent = this.dependencyHandler._components[comp.parentIdx];
+        return Boolean(
+            listParent?.sharedParameters?.compositesMustHaveAReplacement,
+        );
+    }
+
+    /**
+     * The record of the blank child `listMustHaveAnEntry` gives: of the type
+     * a composite's default replacement has there, holding that type's blank,
+     * with the variables the list shares among its entries.
+     */
+    blankListEntry({
+        comp,
+        item,
+        isArray,
+        presented,
+    }: {
+        comp: any;
+        item: any;
+        isArray: Record<string, boolean>;
+        presented: any;
+    }) {
+        const listParent = this.dependencyHandler._components[comp.parentIdx];
+        const componentType =
+            listParent?.sharedParameters?.compositesDefaultReplacementType ??
+            presented.componentType;
+        const blank = comp.constructor.listBlankEntryStateValues(componentType);
+        const entry: any = { componentType };
+        if (item.componentIdx !== undefined) {
+            entry.componentIdx = item.componentIdx;
+        }
+        if (item.stateValues) {
+            entry.stateValues = {};
+            for (const name in item.stateValues) {
+                if (!isArray[name]) {
+                    entry.stateValues[name] = item.stateValues[name];
+                } else if (name in blank) {
+                    entry.stateValues[name] = blank[name];
+                }
+            }
+        }
+        return entry;
+    }
+
+    /**
+     * Keep the children of an expanded value at `childIndices`, renumbering
+     * the change records and `usedDefault` to match. The kept children are
+     * not a run of the parent's children, so no composite ranges are kept.
+     */
+    selectChildIndices({
+        expanded,
+        childSources,
+        newValuesChanged,
+        newUsedDefault,
+        result,
+    }: {
+        expanded: any[];
+        childSources: any[];
+        newValuesChanged: any;
+        newUsedDefault: any[];
+        result: any;
+    }) {
+        const selected: any = [];
+        const selectedSources: any[] = [];
+        const selectedValuesChanged: any = {};
+        const selectedUsedDefault: any[] = [];
+
+        let downInd = -1;
+        for (const [ind, child] of expanded.entries()) {
+            const isComponent = childSources[ind].primitiveInd === undefined;
+            if (isComponent) {
+                downInd++;
+            }
+            if (!this.childIndices.includes(ind)) {
+                continue;
+            }
+            if (isComponent) {
+                const newInd = selectedUsedDefault.length;
+                if (newValuesChanged?.[downInd]) {
+                    selectedValuesChanged[newInd] = newValuesChanged[downInd];
+                }
+                selectedUsedDefault.push(newUsedDefault[downInd]);
+            }
+            selected.push(child);
+            selectedSources.push(childSources[ind]);
+        }
+
+        selected.compositeReplacementRange = [];
+
+        if (newValuesChanged) {
+            result.changes.valuesChanged = selectedValuesChanged;
+        }
+        result.usedDefault = selectedUsedDefault;
+
+        this.expandedChildSources = selectedSources;
+
+        return selected;
     }
 
     deleteFromUpdateTriggers() {
@@ -615,6 +1091,16 @@ export class DescendantDependency extends Dependency {
             this.definition.recurseToMatchedChildren;
         this.useReplacementsForComposites =
             this.definition.useReplacementsForComposites;
+        this.matchListsByEntryType = this.definition.matchListsByEntryType;
+        // A list component among the descendants (`listEntryComponentType`)
+        // is found by the type of its entries and presented as its entries,
+        // one record each, as a child dependency presents it (`getValue`).
+        this.presentListsAsEntries = Boolean(
+            this.definition.presentListsAsEntries,
+        );
+        if (this.presentListsAsEntries) {
+            this.matchListsByEntryType = true;
+        }
         this.includeNonActiveChildren =
             this.definition.includeNonActiveChildren;
         this.includeAttributeChildren =
@@ -784,8 +1270,30 @@ export class DescendantDependency extends Dependency {
                 this.ignoreReplacementsOfMatchedComposites,
             ignoreReplacementsOfEncounteredComposites:
                 this.ignoreReplacementsOfEncounteredComposites,
+            matchListsByEntryType: this.matchListsByEntryType,
+            // an authored point in a list is drawn as its entry, not again
+            listsAreOpaque: this.presentListsAsEntries,
             componentInfoObjects: this.dependencyHandler.componentInfoObjects,
         });
+
+        if (this.presentListsAsEntries) {
+            this.listChildPresentedTypes = {};
+            this.hasListChildren = false;
+            for (const descendant of descendants) {
+                const entryType =
+                    this.dependencyHandler._components[descendant.componentIdx]
+                        ?.constructor?.listEntryComponentType;
+                if (entryType !== undefined) {
+                    this.listChildPresentedTypes[descendant.componentIdx] = {
+                        componentType: entryType,
+                    };
+                    this.hasListChildren = true;
+                }
+            }
+            if (this.hasListChildren) {
+                this.recordVariablesForEveryComponent();
+            }
+        }
 
         if (this.sourceIndex !== undefined) {
             let theDescendant = descendants[this.sourceIndex - 1];
@@ -801,10 +1309,131 @@ export class DescendantDependency extends Dependency {
             downstreamComponentIndices: descendants.map(
                 (x: any) => x.componentIdx,
             ),
+            // a value reference as the type it stands in for, as for a child
             downstreamComponentTypes: descendants.map(
-                (x: any) => x.componentType,
+                (x: any) =>
+                    this.dependencyHandler._components[x.componentIdx]
+                        ?.presentedComponentType ?? x.componentType,
             ),
         };
+    }
+
+    recordVariablesForEveryComponent() {
+        ChildDependency.prototype.recordVariablesForEveryComponent.call(this);
+    }
+
+    mapListEntryVariables(downComponent: any, originalVarNames: string[]) {
+        return ChildDependency.prototype.mapListEntryVariables.call(
+            this,
+            downComponent,
+            originalVarNames,
+        );
+    }
+
+    /**
+     * With `presentListsAsEntries`, each list component among the
+     * descendants is replaced by one record per entry, of the entries' type,
+     * whose variables are the list's (one value of an array for those that
+     * hold a value per entry), as `ChildDependency.expandListChildren` does
+     * for children. An entry has no component; its record's `componentIdx`
+     * is the index its renderer is given (`rendererIdxForListEntry`), to
+     * which an action for the entry goes, with `listIdx` and
+     * `listEntryIndex`. The change records and `usedDefault` are renumbered.
+     */
+    async getValue({
+        verbose = false,
+        consumeChanges = true,
+    }: { verbose?: boolean; consumeChanges?: boolean } = {}) {
+        const result = await Dependency.prototype.getValue.call(this, {
+            verbose,
+            skipProxy: true,
+            consumeChanges,
+        });
+        if (!this.hasListChildren) {
+            return result;
+        }
+
+        const builder = this.dependencyHandler.core.rendererInstructionBuilder;
+        const expanded: any[] = [];
+        const valuesChanged = result.changes.valuesChanged;
+        const newValuesChanged: any = {};
+        const newUsedDefault: any[] = [];
+        if (!this.previousListEntryCounts) {
+            this.previousListEntryCounts = {};
+        }
+
+        for (const [downInd, item] of (result.value as any[]).entries()) {
+            const componentIdx = this.downstreamComponentIndices[downInd];
+            const comp = this.dependencyHandler._components[componentIdx];
+            const presented =
+                comp && this.listChildPresentedTypes[componentIdx];
+            if (!presented) {
+                if (valuesChanged?.[downInd]) {
+                    newValuesChanged[expanded.length] = valuesChanged[downInd];
+                }
+                newUsedDefault[expanded.length] = result.usedDefault[downInd];
+                expanded.push(item);
+                continue;
+            }
+
+            const mappedNames =
+                this.mappedDownstreamVariableNamesByComponent[downInd];
+            const countVariable = mappedNames[mappedNames.length - 1];
+            const numEntries = await comp.state[countVariable].value;
+            if (consumeChanges) {
+                this.consumeChangeRecord(downInd, countVariable);
+            }
+            if (this.previousListEntryCounts[componentIdx] !== numEntries) {
+                result.changes.componentIdentitiesChanged = true;
+                if (consumeChanges) {
+                    this.previousListEntryCounts[componentIdx] = numEntries;
+                }
+            }
+
+            const perEntryVariables = comp.constructor.listPerEntryVariables;
+            const isArray: Record<string, boolean> = {};
+            for (const [
+                varInd,
+                originalName,
+            ] of this.originalDownstreamVariableNames.entries()) {
+                isArray[originalName] =
+                    perEntryVariables.includes(mappedNames[varInd]) ||
+                    mappedNames[varInd].startsWith(LIST_ENTRY_ARRAY_PREFIX);
+            }
+
+            for (let entryInd = 0; entryInd < numEntries; entryInd++) {
+                const entry: any = {
+                    componentType: presented.componentType,
+                    componentIdx: builder.rendererIdxForListEntry(
+                        comp,
+                        entryInd,
+                    ),
+                    listIdx: componentIdx,
+                    listEntryIndex: entryInd,
+                };
+                if (item.stateValues) {
+                    entry.stateValues = {};
+                    for (const name in item.stateValues) {
+                        const value = item.stateValues[name];
+                        entry.stateValues[name] = isArray[name]
+                            ? value?.[entryInd]
+                            : value;
+                    }
+                }
+                if (valuesChanged?.[downInd]) {
+                    newValuesChanged[expanded.length] = valuesChanged[downInd];
+                }
+                newUsedDefault[expanded.length] = result.usedDefault[downInd];
+                expanded.push(entry);
+            }
+        }
+
+        result.value = expanded;
+        if (valuesChanged) {
+            result.changes.valuesChanged = newValuesChanged;
+        }
+        result.usedDefault = newUsedDefault;
+        return result;
     }
 
     gatherUnexpandedComposites(component: any) {

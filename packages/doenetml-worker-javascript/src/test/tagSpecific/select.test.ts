@@ -6,6 +6,11 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import {
+    childrenAsPresented,
+    componentOrListEntry,
+    entriesOrReplacements,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -90,24 +95,28 @@ describe("Select tag tests @group2", async () => {
                         select_num1 < num_to_select;
                         select_num1++
                     ) {
-                        const val1 =
-                            stateVariables[
-                                await resolvePathToNodeIdx(
-                                    `${select_name}[${select_num1 + 1}][${option_num + 1}]`,
-                                )
-                            ].stateValues.value;
+                        const val1 = (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `${select_name}[${select_num1 + 1}][${option_num + 1}]`,
+                            )
+                        ).stateValues.value;
                         for (
                             let select_num2 = 0;
                             select_num2 < num_to_select;
                             select_num2++
                         ) {
                             if (select_num2 !== select_num1) {
-                                const val2 =
-                                    stateVariables[
-                                        await resolvePathToNodeIdx(
-                                            `${select_name}[${select_num2 + 1}][${option_num + 1}]`,
-                                        )
-                                    ].stateValues.value;
+                                const val2 = (
+                                    await componentOrListEntry(
+                                        core,
+                                        stateVariables,
+                                        resolvePathToNodeIdx,
+                                        `${select_name}[${select_num2 + 1}][${option_num + 1}]`,
+                                    )
+                                ).stateValues.value;
                                 if (is_math) {
                                     expect(val2.equals(val1)).eq(false);
                                 } else {
@@ -359,24 +368,54 @@ describe("Select tag tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[1][1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[1][1]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[2][1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[2][1]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[3][1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[3][1]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[4][1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[4][1]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[5][1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[5][1]",
+                )
+            ).stateValues.value,
         );
 
         for (let num of results) {
@@ -413,54 +452,92 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let num1 =
-            stateVariables[await resolvePathToNodeIdx("sample1[1][1]")]
-                .stateValues.value;
-        let num2 =
-            stateVariables[await resolvePathToNodeIdx("sample2[1][1]")]
-                .stateValues.value;
+        let num1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "sample1[1][1]",
+            )
+        ).stateValues.value;
+        let num2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "sample2[1][1]",
+            )
+        ).stateValues.value;
         expect(Number.isInteger(num1) && num1 >= 1 && num1 <= 7).eq(true);
         expect(Number.isInteger(num2) && num2 >= 1 && num2 <= 7).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("noresample1[1][1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "noresample1[1][1]",
+                )
+            ).stateValues.value,
         ).eq(num1);
         expect(
-            stateVariables[await resolvePathToNodeIdx("noresample2[1][1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "noresample2[1][1]",
+                )
+            ).stateValues.value,
         ).eq(num2);
         expect(
-            stateVariables[await resolvePathToNodeIdx("noreresample1[1][1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "noreresample1[1][1]",
+                )
+            ).stateValues.value,
         ).eq(num1);
         expect(
-            stateVariables[await resolvePathToNodeIdx("noreresample2[1][1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "noreresample2[1][1]",
+                )
+            ).stateValues.value,
         ).eq(num2);
 
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("noresamplep")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("noresamplep"),
+            )[1].stateValues.value,
         ).eq(num1);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("noresamplep")]
-                    .activeChildren[3].componentIdx
-            ].stateValues.value,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("noresamplep"),
+            )[3].stateValues.value,
         ).eq(num2);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("noreresamplep")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("noreresamplep"),
+            )[1].stateValues.value,
         ).eq(num1);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("noreresamplep")]
-                    .activeChildren[3].componentIdx
-            ].stateValues.value,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("noreresamplep"),
+            )[3].stateValues.value,
         ).eq(num2);
     });
 
@@ -589,57 +666,51 @@ describe("Select tag tests @group2", async () => {
             );
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p1")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p1"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p2")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p2"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p3")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p3"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p4")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p4"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p5")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p5"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p6")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p6"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
         }
 
@@ -657,8 +728,14 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1][1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "repeat1[1].n[1][1]",
+                )
+            ).stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
@@ -686,15 +763,30 @@ describe("Select tag tests @group2", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1][1]")]
-                .stateValues.value;
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1][1]")]
-                .stateValues.value;
-        let n3 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1][1]")]
-                .stateValues.value;
+        let n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[1].n[1][1]",
+            )
+        ).stateValues.value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[2].n[1][1]",
+            )
+        ).stateValues.value;
+        let n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[3].n[1][1]",
+            )
+        ).stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -724,24 +816,54 @@ describe("Select tag tests @group2", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        n1 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1][1]")]
-                .stateValues.value;
-        n2 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1][1]")]
-                .stateValues.value;
-        n3 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1][1]")]
-                .stateValues.value;
-        let n4 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[4].n[1][1]")]
-                .stateValues.value;
-        let n5 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[5].n[1][1]")]
-                .stateValues.value;
-        let n6 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[6].n[1][1]")]
-                .stateValues.value;
+        n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[1].n[1][1]",
+            )
+        ).stateValues.value;
+        n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[2].n[1][1]",
+            )
+        ).stateValues.value;
+        n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[3].n[1][1]",
+            )
+        ).stateValues.value;
+        let n4 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[4].n[1][1]",
+            )
+        ).stateValues.value;
+        let n5 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[5].n[1][1]",
+            )
+        ).stateValues.value;
+        let n6 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[6].n[1][1]",
+            )
+        ).stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -953,10 +1075,11 @@ describe("Select tag tests @group2", async () => {
         expect(qx).eq(xoption[q2string]);
         let repeatqmath =
             stateVariables[
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx("repeat")]
-                        .activeChildren[0].componentIdx
-                ].activeChildren[1].componentIdx
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("repeat"),
+                )[0].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatqmath.equals(option[q2string])).eq(true);
 
@@ -971,10 +1094,11 @@ describe("Select tag tests @group2", async () => {
         expect(rx).eq(xoption[r2string]);
         let repeatrmath =
             stateVariables[
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx("repeat")]
-                        .activeChildren[1].componentIdx
-                ].activeChildren[1].componentIdx
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("repeat"),
+                )[1].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatrmath.equals(option[r2string])).eq(true);
 
@@ -989,10 +1113,11 @@ describe("Select tag tests @group2", async () => {
         expect(sx).eq(xoption[s2string]);
         let repeatsmath =
             stateVariables[
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx("repeat")]
-                        .activeChildren[2].componentIdx
-                ].activeChildren[1].componentIdx
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("repeat"),
+                )[2].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatsmath.equals(option[s2string])).eq(true);
 
@@ -1007,10 +1132,11 @@ describe("Select tag tests @group2", async () => {
         expect(tx).eq(xoption[t2string]);
         let repeattmath =
             stateVariables[
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx("repeat")]
-                        .activeChildren[3].componentIdx
-                ].activeChildren[1].componentIdx
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("repeat"),
+                )[3].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeattmath.equals(option[t2string])).eq(true);
 
@@ -1025,10 +1151,11 @@ describe("Select tag tests @group2", async () => {
         expect(ux).eq(xoption[u2string]);
         let repeatumath =
             stateVariables[
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx("repeat")]
-                        .activeChildren[4].componentIdx
-                ].activeChildren[1].componentIdx
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("repeat"),
+                )[4].activeChildren[1].componentIdx
             ].stateValues.value;
         expect(repeatumath.equals(option[u2string])).eq(true);
     });
@@ -1060,9 +1187,14 @@ describe("Select tag tests @group2", async () => {
         // let expectedx = variantName.substring(0, 1);
         let expectedx = "b";
 
-        let x =
-            stateVariables[await resolvePathToNodeIdx("s1[1][1]")].stateValues
-                .value.tree;
+        let x = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][1]",
+            )
+        ).stateValues.value.tree;
 
         expect(x).eq(expectedx);
 
@@ -1128,22 +1260,37 @@ describe("Select tag tests @group2", async () => {
         let variantName = "carrot";
         let variantVars = variantMap[variantName];
 
-        let x =
-            stateVariables[await resolvePathToNodeIdx("s1[1][1]")].stateValues
-                .value.tree;
+        let x = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][1]",
+            )
+        ).stateValues.value.tree;
 
         expect(variantVars.includes(x)).eq(true);
         variantVars.splice(variantVars.indexOf(x), 1);
 
-        let y =
-            stateVariables[await resolvePathToNodeIdx("s1[2][1]")].stateValues
-                .value.tree;
+        let y = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[2][1]",
+            )
+        ).stateValues.value.tree;
         expect(variantVars.includes(y)).eq(true);
         variantVars.splice(variantVars.indexOf(y), 1);
 
-        let z =
-            stateVariables[await resolvePathToNodeIdx("s1[3][1]")].stateValues
-                .value.tree;
+        let z = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[3][1]",
+            )
+        ).stateValues.value.tree;
         expect(z).eq(variantVars[0]);
 
         let xorig =
@@ -1492,10 +1639,12 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 0; ind < 200; ind++) {
-            let theText =
-                stateVariables[
-                    await resolvePathToNodeIdx(`repeat1[${ind + 1}][1][1][1]`)
-                ];
+            let theText = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                `repeat1[${ind + 1}][1][1][1]`,
+            );
             let x = theText.stateValues.value;
             if (x === "z") {
                 numZ++;
@@ -1530,9 +1679,14 @@ describe("Select tag tests @group2", async () => {
             numY = 0,
             numZ = 0;
         for (let ind = 0; ind < 200; ind++) {
-            let x =
-                stateVariables[await resolvePathToNodeIdx(`sel[${ind + 1}][1]`)]
-                    .stateValues.value;
+            let x = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    `sel[${ind + 1}][1]`,
+                )
+            ).stateValues.value;
             if (x === "x") {
                 numX++;
             } else if (x === "y") {
@@ -1573,10 +1727,12 @@ describe("Select tag tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let ind = 0; ind < 200; ind++) {
-            let theText1 =
-                stateVariables[
-                    await resolvePathToNodeIdx(`repeat1[${ind + 1}][1][1][1]`)
-                ];
+            let theText1 = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                `repeat1[${ind + 1}][1][1][1]`,
+            );
 
             let x = theText1.stateValues.value;
 
@@ -1589,10 +1745,12 @@ describe("Select tag tests @group2", async () => {
             } else {
                 numUVW++;
             }
-            let theText2 =
-                stateVariables[
-                    await resolvePathToNodeIdx(`repeat1[${ind + 1}][1][2][1]`)
-                ];
+            let theText2 = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                `repeat1[${ind + 1}][1][2][1]`,
+            );
 
             let y = theText2.stateValues.value;
             if (y === "z") {
@@ -1646,80 +1804,80 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let qs = stateVariables[
-            await resolvePathToNodeIdx("o[1][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let qs = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[1][1]"),
+        ).map((x) => x.stateValues.value);
         //console.log({ qs });
-        let rs = stateVariables[
-            await resolvePathToNodeIdx("o[2][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let rs = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[2][1]"),
+        ).map((x) => x.stateValues.value);
 
         //console.log({ rs });
-        let ss = stateVariables[
-            await resolvePathToNodeIdx("o[3][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ts = stateVariables[
-            await resolvePathToNodeIdx("o[4][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let us = stateVariables[
-            await resolvePathToNodeIdx("o[5][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let vs = stateVariables[
-            await resolvePathToNodeIdx("o[6][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let ws = stateVariables[
-            await resolvePathToNodeIdx("o[7][1]")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let ss = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[3][1]"),
+        ).map((x) => x.stateValues.value);
+        let ts = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[4][1]"),
+        ).map((x) => x.stateValues.value);
+        let us = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[5][1]"),
+        ).map((x) => x.stateValues.value);
+        let vs = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[6][1]"),
+        ).map((x) => x.stateValues.value);
+        let ws = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[7][1]"),
+        ).map((x) => x.stateValues.value);
 
-        let q2s = stateVariables[
-            await resolvePathToNodeIdx("q2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let r2s = stateVariables[
-            await resolvePathToNodeIdx("r2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let s2s = stateVariables[
-            await resolvePathToNodeIdx("s2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let t2s = stateVariables[
-            await resolvePathToNodeIdx("t2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let u2s = stateVariables[
-            await resolvePathToNodeIdx("u2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let v2s = stateVariables[
-            await resolvePathToNodeIdx("v2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let w2s = stateVariables[
-            await resolvePathToNodeIdx("w2")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let q2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("q2"),
+        ).map((x) => x.stateValues.value);
+        let r2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("r2"),
+        ).map((x) => x.stateValues.value);
+        let s2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("s2"),
+        ).map((x) => x.stateValues.value);
+        let t2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("t2"),
+        ).map((x) => x.stateValues.value);
+        let u2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("u2"),
+        ).map((x) => x.stateValues.value);
+        let v2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("v2"),
+        ).map((x) => x.stateValues.value);
+        let w2s = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("w2"),
+        ).map((x) => x.stateValues.value);
 
         expect(q2s).eqls(qs);
         expect(r2s).eqls(rs);
@@ -1809,88 +1967,108 @@ describe("Select tag tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         console.log("o[1][1] idx", await resolvePathToNodeIdx("o[1][1]"));
-        let qs = stateVariables[await resolvePathToNodeIdx("o[1][1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
+        let qs = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[1][1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
 
-        let rs = stateVariables[await resolvePathToNodeIdx("o[2][1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let ss = stateVariables[await resolvePathToNodeIdx("o[3][1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let ts = stateVariables[await resolvePathToNodeIdx("o[4][1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let us = stateVariables[await resolvePathToNodeIdx("o[5][1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
+        let rs = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[2][1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let ss = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[3][1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let ts = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[4][1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let us = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("o[5][1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
 
-        let q2s = stateVariables[await resolvePathToNodeIdx("q2[1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let r2s = stateVariables[await resolvePathToNodeIdx("r2[1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let s2s = stateVariables[await resolvePathToNodeIdx("s2[1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let t2s = stateVariables[await resolvePathToNodeIdx("t2[1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
-        let u2s = stateVariables[await resolvePathToNodeIdx("u2[1]")]
-            .replacements!.map((x) => stateVariables[x.componentIdx])
-            .map((x) =>
-                x.replacements
-                    ? stateVariables[x.replacements[0].componentIdx].stateValues
-                          .value
-                    : x.stateValues.value,
-            );
+        let q2s = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("q2[1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let r2s = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("r2[1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let s2s = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("s2[1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let t2s = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("t2[1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
+        let u2s = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("u2[1]"),
+        ).map((x) =>
+            x.replacements
+                ? stateVariables[x.replacements[0].componentIdx].stateValues
+                      .value
+                : x.stateValues.value,
+        );
 
         expect(q2s).eqls(qs);
         expect(r2s).eqls(rs);
@@ -1971,13 +2149,17 @@ describe("Select tag tests @group2", async () => {
             "o[1].p[3].s[1]",
             "o[1].p[3].s[2]",
         ]) {
-            const cIdx = await resolvePathToNodeIdx(name);
+            const component = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                name,
+            );
             qs.push(
-                stateVariables[cIdx].replacements
-                    ? stateVariables[
-                          stateVariables[cIdx].replacements[0].componentIdx
-                      ].stateValues.value
-                    : stateVariables[cIdx].stateValues.value,
+                component.replacements
+                    ? stateVariables[component.replacements[0].componentIdx]
+                          .stateValues.value
+                    : component.stateValues.value,
             );
         }
 
@@ -1991,13 +2173,17 @@ describe("Select tag tests @group2", async () => {
             "o[2].p[3].s[1]",
             "o[2].p[3].s[2]",
         ]) {
-            const cIdx = await resolvePathToNodeIdx(name);
+            const component = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                name,
+            );
             rs.push(
-                stateVariables[cIdx].replacements
-                    ? stateVariables[
-                          stateVariables[cIdx].replacements[0].componentIdx
-                      ].stateValues.value
-                    : stateVariables[cIdx].stateValues.value,
+                component.replacements
+                    ? stateVariables[component.replacements[0].componentIdx]
+                          .stateValues.value
+                    : component.stateValues.value,
             );
         }
 
@@ -2011,13 +2197,17 @@ describe("Select tag tests @group2", async () => {
             "o[3].p[3].s[1]",
             "o[3].p[3].s[2]",
         ]) {
-            const cIdx = await resolvePathToNodeIdx(name);
+            const component = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                name,
+            );
             ss.push(
-                stateVariables[cIdx].replacements
-                    ? stateVariables[
-                          stateVariables[cIdx].replacements[0].componentIdx
-                      ].stateValues.value
-                    : stateVariables[cIdx].stateValues.value,
+                component.replacements
+                    ? stateVariables[component.replacements[0].componentIdx]
+                          .stateValues.value
+                    : component.stateValues.value,
             );
         }
 
@@ -2126,7 +2316,14 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let chosenChildren = stateVariables[await resolvePathToNodeIdx("o[1]")]
+        let chosenChildren = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "o[1]",
+            )
+        )
             .replacements!.filter((x) => typeof x !== "string")
             .map((x) => stateVariables[x.componentIdx])
             .map((v, i) =>
@@ -2315,12 +2512,22 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c =
-            await stateVariables[await resolvePathToNodeIdx("s1[1][1]")]
-                .stateValues.value;
-        let d =
-            await stateVariables[await resolvePathToNodeIdx("s2[1][1]")]
-                .stateValues.value;
+        let c = await (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][1]",
+            )
+        ).stateValues.value;
+        let d = await (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s2[1][1]",
+            )
+        ).stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
@@ -2369,21 +2576,46 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a =
-            stateVariables[await resolvePathToNodeIdx("s1[1][1]")].stateValues
-                .value;
-        let b =
-            stateVariables[await resolvePathToNodeIdx("s1[1][2]")].stateValues
-                .value;
-        let c =
-            stateVariables[await resolvePathToNodeIdx("s1[1][3]")].stateValues
-                .value;
-        let d =
-            stateVariables[await resolvePathToNodeIdx("s2[1][1]")].stateValues
-                .value;
-        let e =
-            stateVariables[await resolvePathToNodeIdx("s2[1][2]")].stateValues
-                .value;
+        let a = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][1]",
+            )
+        ).stateValues.value;
+        let b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][2]",
+            )
+        ).stateValues.value;
+        let c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][3]",
+            )
+        ).stateValues.value;
+        let d = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s2[1][1]",
+            )
+        ).stateValues.value;
+        let e = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s2[1][2]",
+            )
+        ).stateValues.value;
         expect(["a", "d"].includes(a)).eq(true);
         expect(["b", "e"].includes(b)).eq(true);
         expect(["c", "f"].includes(c)).eq(true);
@@ -2435,21 +2667,46 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a =
-            stateVariables[await resolvePathToNodeIdx("s1[1][1]")].stateValues
-                .value;
-        let b =
-            stateVariables[await resolvePathToNodeIdx("s1[1][2]")].stateValues
-                .value;
-        let c =
-            stateVariables[await resolvePathToNodeIdx("s1[1][3]")].stateValues
-                .value;
-        let d =
-            stateVariables[await resolvePathToNodeIdx("s2[1][1]")].stateValues
-                .value;
-        let e =
-            stateVariables[await resolvePathToNodeIdx("s2[1][2]")].stateValues
-                .value;
+        let a = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][1]",
+            )
+        ).stateValues.value;
+        let b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][2]",
+            )
+        ).stateValues.value;
+        let c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s1[1][3]",
+            )
+        ).stateValues.value;
+        let d = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s2[1][1]",
+            )
+        ).stateValues.value;
+        let e = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s2[1][2]",
+            )
+        ).stateValues.value;
         expect(["a", "d"].includes(a)).eq(true);
         expect(["b", "e"].includes(b)).eq(true);
         expect(["c", "f"].includes(c)).eq(true);
@@ -2494,12 +2751,22 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c =
-            await stateVariables[await resolvePathToNodeIdx("c[1][1]")]
-                .stateValues.value;
-        let d =
-            await stateVariables[await resolvePathToNodeIdx("d[1][1]")]
-                .stateValues.value;
+        let c = await (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "c[1][1]",
+            )
+        ).stateValues.value;
+        let d = await (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "d[1][1]",
+            )
+        ).stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
@@ -2794,21 +3061,46 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 =
-            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
-                .value;
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
-                .value;
-        let n3 =
-            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
-                .value;
-        let n4 =
-            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
-                .value;
-        let n5 =
-            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
-                .value;
+        let n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n1[1]",
+            )
+        ).stateValues.value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n2[1]",
+            )
+        ).stateValues.value;
+        let n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n3[1]",
+            )
+        ).stateValues.value;
+        let n4 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n4[1]",
+            )
+        ).stateValues.value;
+        let n5 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n5[1]",
+            )
+        ).stateValues.value;
 
         let vars1 = stateVariables[
             await resolvePathToNodeIdx("vars1")

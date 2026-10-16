@@ -19,6 +19,72 @@ export function determinePropType(
      */
     nIndices = 0,
 ) {
+    return describeProp(componentType, propName, nIndices).componentType;
+}
+
+/**
+ * A prop exists, but the components it gives have no single type — an `<answer>`'s
+ * `submittedResponses`, say — so no one element type can stand for it.
+ */
+export class VariableComponentTypeError extends Error {}
+
+/**
+ * `propName` as a `componentType` spells it. v0.6 matched prop names however they were
+ * capitalized, so `prop="numericalsolution"` found `numericalSolution`; v0.7 does not.
+ * A name that starts with an array entry's prefix, however capitalized, gets that prefix
+ * spelled as v0.7 spells it (`VERTEX2` is `vertex2`), whether or not the rest names an
+ * entry. Any other name that matches nothing is returned as it is, and `describeProp`
+ * rejects it. `describeProp` does not check what follows an array entry's prefix, so
+ * a name that only starts with one, such as a point's `xylophone` (prefix `x`), is
+ * typed as that array's entry rather than rejected.
+ */
+export function canonicalPropName(
+    componentType: string,
+    propName: string,
+): string {
+    const info = componentInfoObjects.publicStateVariableInfo[componentType];
+    if (
+        !info ||
+        propName in info.aliases ||
+        propName in info.stateVariableDescriptions
+    ) {
+        return propName;
+    }
+    const lower = propName.toLowerCase();
+    for (const name of [
+        ...Object.keys(info.stateVariableDescriptions),
+        ...Object.keys(info.aliases),
+    ]) {
+        if (name.toLowerCase() === lower) {
+            return name;
+        }
+    }
+    // An array entry, such as `vertex1`, is matched by its prefix.
+    const prefixes = Object.keys(info.arrayEntryPrefixes).sort(
+        (a, b) => b.length - a.length,
+    );
+    if (prefixes.some((prefix) => propName.startsWith(prefix))) {
+        return propName;
+    }
+    const prefix = prefixes.find((prefix) =>
+        lower.startsWith(prefix.toLowerCase()),
+    );
+    return prefix ? prefix + propName.slice(prefix.length) : propName;
+}
+
+/**
+ * Like `determinePropType`, but also says whether the prop copies to several components
+ * rather than one.
+ *
+ * `$poly.vertices` is a list of points and `$c.iterateValues` a list of maths, while
+ * `$poly.vertex1` is one point and `$m.matrix` one matrix. The component type alone does
+ * not tell these apart: it is the type of *each* component the prop copies to.
+ */
+export function describeProp(
+    componentType: string,
+    propName: string,
+    nIndices = 0,
+): { componentType: string; isMultiple: boolean } {
     const publicStateVariableInfo =
         componentInfoObjects.publicStateVariableInfo[componentType];
 
@@ -51,6 +117,12 @@ export function determinePropType(
                         arrayEntryPrefix
                     ];
 
+                const isMultiple = copiesToMultiple(
+                    prefixInfo.wrappingComponents,
+                    prefixInfo.numDimensions,
+                    nIndices,
+                );
+
                 // if the array entry is wrapped with a different component type, return that component type
                 const wrapResult = componentTypeFromWrapping(
                     prefixInfo.wrappingComponents,
@@ -58,14 +130,21 @@ export function determinePropType(
                     nIndices,
                 );
                 if (wrapResult.foundComponentType) {
-                    return wrapResult.componentType;
+                    return {
+                        componentType: wrapResult.componentType,
+                        isMultiple,
+                    };
                 }
 
                 if (nIndices <= prefixInfo.numDimensions) {
                     // otherwise, use the component type of the array itself
-                    return publicStateVariableInfo.stateVariableDescriptions[
-                        prefixInfo.arrayVariableName
-                    ].createComponentOfType;
+                    return {
+                        componentType: publicStateVariableInfo
+                            .stateVariableDescriptions[
+                            prefixInfo.arrayVariableName
+                        ].createComponentOfType as string,
+                        isMultiple,
+                    };
                 } else {
                     throw Error(
                         `"${propName}" with ${nIndices} indices is not a valid prop for a component of type ${componentType} as ${propName} has fewer than ${nIndices} dimensions`,
@@ -79,7 +158,13 @@ export function determinePropType(
         );
     }
 
+    let isMultiple = false;
     if (stateVarInfo.isArray) {
+        isMultiple = copiesToMultiple(
+            stateVarInfo.wrappingComponents ?? [],
+            stateVarInfo.numDimensions ?? 1,
+            nIndices,
+        );
         if (stateVarInfo.wrappingComponents) {
             const wrapResult = componentTypeFromWrapping(
                 stateVarInfo.wrappingComponents,
@@ -87,7 +172,7 @@ export function determinePropType(
                 nIndices,
             );
             if (wrapResult.foundComponentType) {
-                return wrapResult.componentType;
+                return { componentType: wrapResult.componentType, isMultiple };
             }
         }
 
@@ -105,12 +190,32 @@ export function determinePropType(
     if (!stateVarInfo.createComponentOfType) {
         // Note: there are some prop that have variable component type.
         // This script will fail in those cases
-        throw Error(
+        throw new VariableComponentTypeError(
             `Case not implemented for prop "${propName}" a component of type ${componentType} because it has a variable component type!`,
         );
     }
 
-    return stateVarInfo.createComponentOfType;
+    return { componentType: stateVarInfo.createComponentOfType, isMultiple };
+}
+
+/**
+ * Whether copying an array with `nIndices` of its `nDimensions` indexed gives several
+ * components.
+ *
+ * Copy wraps the outermost dimension left over only when `wrappingComponents` has a
+ * non-empty entry for it (see `wrappingComponents[numDimensionsLeft - 1]` in the worker's
+ * `Copy.js`); otherwise each entry along it becomes a component of its own.
+ */
+function copiesToMultiple(
+    wrappingComponents: unknown[][],
+    nDimensions: number,
+    nIndices: number,
+) {
+    const dimensionsLeft = nDimensions - nIndices;
+    if (dimensionsLeft < 1) {
+        return false;
+    }
+    return !(wrappingComponents[dimensionsLeft - 1]?.length > 0);
 }
 
 /**
@@ -151,6 +256,27 @@ function componentTypeFromWrapping(
     }
 
     return { foundComponentType: false as const };
+}
+
+/**
+ * Whether `componentType` names a component an author can write.
+ */
+export function isComponentType(componentType: string): boolean {
+    return (
+        !componentType.startsWith("_") &&
+        componentType in componentInfoObjects.allComponentClasses
+    );
+}
+
+/**
+ * Whether `componentType` is a composite, which stands for what it expands to rather
+ * than a component of its own type.
+ */
+export function isCompositeComponentType(componentType: string): boolean {
+    return componentInfoObjects.isCompositeComponent({
+        componentType,
+        includeNonStandard: true,
+    });
 }
 
 /**

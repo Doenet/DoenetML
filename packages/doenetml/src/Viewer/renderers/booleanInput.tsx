@@ -19,6 +19,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
 
@@ -44,6 +45,11 @@ interface BooleanInputSVs {
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<BooleanInputSVs>(props);
+    const renderedLabel = useRenderedLabel({
+        SVs,
+        children,
+        inheritTextColor: SVs.asToggleButton,
+    });
 
     // The check-work button follows the document's language, not the
     // reader's — see `useContentT`.
@@ -516,14 +522,19 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+    if (renderedLabel) {
+        label = renderedLabel;
+    }
 
     let shortDescription = SVs.shortDescription || undefined;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-label`;
 
-    // description will be the one non-null child
-    const descriptionChild = children.find((child) => child);
+    // description will be the one non-null child other than the label
+    const descriptionChild = children.find(
+        (child, ind) => child && ind !== SVs.labelChildInd,
+    );
 
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;
@@ -606,17 +617,23 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         input = checkboxControl;
     }
 
+    // The label's spacing from the checkbox is padding, so clicking anywhere
+    // between the label text and the checkbox toggles it. The negative margin
+    // pulls the label's edge onto the checkbox container's margin, leaving the
+    // visible gap unchanged (6px at the start, 4px at the end). An end label
+    // that follows a check-work button or description keeps a plain margin.
+    let labelStyle: React.CSSProperties;
+    if (SVs.labelPosition === "start") {
+        labelStyle = { paddingInlineEnd: "6px", marginInlineEnd: "-4px" };
+    } else if (!checkWorkComponent && !description) {
+        labelStyle = { paddingInlineStart: "4px", marginInlineStart: "-2px" };
+    } else {
+        labelStyle = { marginInlineStart: "2px" };
+    }
+
     const labelComponent =
         hasLabel && !SVs.asToggleButton ? (
-            <label
-                id={labelId}
-                htmlFor={inputKey}
-                style={
-                    SVs.labelPosition === "start"
-                        ? { marginInlineEnd: "2px" }
-                        : { marginInlineStart: "2px" }
-                }
-            >
+            <label id={labelId} htmlFor={inputKey} style={labelStyle}>
                 {label}
             </label>
         ) : null;

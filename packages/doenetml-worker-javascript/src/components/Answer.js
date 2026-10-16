@@ -9,12 +9,20 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnLabelChildIndDefinition,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
 } from "../utils/listItemChild";
+
+/**
+ * How far short of 1 a sum of award credits may fall and still count as full
+ * credit. Far larger than the round-off of any realistic number of additions,
+ * and far smaller than any credit an author would write.
+ */
+const CREDIT_ROUNDOFF_TOLERANCE = 1e-12;
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -982,6 +990,10 @@ export default class Answer extends InlineComponent {
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnLabelChildIndDefinition(),
+        );
 
         stateVariableDefinitions.haveAwardThatRequiresInput = {
             returnDependencies: () => ({
@@ -1183,6 +1195,10 @@ export default class Answer extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [
@@ -1193,6 +1209,9 @@ export default class Answer extends InlineComponent {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {
@@ -1739,6 +1758,9 @@ export default class Answer extends InlineComponent {
                                 "values",
                                 "formula",
                                 "componentType",
+                                // only a value reference (`_ref`) has these
+                                "valueAsResponse",
+                                "componentTypeAsResponse",
                             ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
@@ -1837,6 +1859,23 @@ export default class Answer extends InlineComponent {
                 }
 
                 for (let component of responseComponents) {
+                    if (
+                        component.stateValues.componentTypeAsResponse !==
+                        undefined
+                    ) {
+                        // A value reference: the referenced value as it is
+                        // on the referent, not what the reference presents
+                        // (`$n` in a `<math>` is the number), and a blank
+                        // math when it has nothing to read.
+                        currentResponses.push(
+                            component.stateValues.valueAsResponse,
+                        );
+                        componentType.push(
+                            component.stateValues.componentTypeAsResponse,
+                        );
+                        continue;
+                    }
+
                     let ct = component.stateValues.componentType;
                     if (!ct) {
                         ct = component.componentType;
@@ -1850,6 +1889,10 @@ export default class Answer extends InlineComponent {
                         ct = "text";
                     } else if (ct === "booleanList") {
                         ct = "boolean";
+                    } else if (ct === "pointList") {
+                        ct = "point";
+                    } else if (ct === "vectorList") {
+                        ct = "vector";
                     }
 
                     if (Array.isArray(component.stateValues.values)) {
@@ -2262,10 +2305,16 @@ export default class Answer extends InlineComponent {
                         }
                     }
 
-                    creditAchieved = Math.min(
-                        1,
-                        awardCredits.reduce((a, c) => a + c, 0),
-                    );
+                    const creditSum = awardCredits.reduce((a, c) => a + c, 0);
+
+                    // Credits that should add up to exactly 1, such as six
+                    // awards of credit="1/6", can fall short of it by
+                    // floating-point round-off. Count a total that close to 1
+                    // as full credit.
+                    creditAchieved =
+                        creditSum > 1 - CREDIT_ROUNDOFF_TOLERANCE
+                            ? 1
+                            : creditSum;
                 }
 
                 // remove any trailing null's in awardsUsed

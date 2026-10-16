@@ -1,0 +1,962 @@
+<title>Measures of spread</title>
+
+<setup>
+  <module name="dotPlot">
+    <moduleAttributes>
+      <numberList name="values" />
+      <label name="label" />
+      <number name="dx">1</number>
+      <number name="xMin">-10</number>
+      <number name="xMax">45</number>
+      <number name="yMax">5</number>
+      <boolean name="showMean">false</boolean>
+      <boolean name="showMedian">false</boolean>
+      <boolean name="showStd">false</boolean>
+      <boolean name="showRange">false</boolean>
+    </moduleAttributes>
+
+    <setup>
+      <count name="n">$values</count>
+      <numberList name="valuesBinned">$Ps.x</numberList>
+      <sequence name="indices" from="1" to="$n" />
+      <sortIndices name="perm">$valuesBinned</sortIndices>
+      <indexOf name="sortedPos" target="$indices">$perm</indexOf>
+      <searchSorted name="first" allowUnsorted target="$valuesBinned">
+        $valuesBinned
+      </searchSorted>
+      <number name="mean"><mean>$valuesBinned</mean></number>
+      <number name="median"><median>$valuesBinned</median></number>
+      <number name="std">
+        <standardDeviation>$valuesBinned</standardDeviation>
+      </number>
+      <max name="max">$valuesBinned</max>
+      <min name="min">$valuesBinned</min>
+      <number name="range">$max - $min</number>
+    </setup>
+
+    <graph
+      size="medium"
+      aspectRatio="2"
+      displayYAxis="false"
+      fixAxes
+      xMin="$xMin"
+      xmax="$xMax"
+      showBorder="false"
+      yMin="-3"
+      yMax="$yMax"
+      xLabelPosition="left"
+    >
+      <shortDescription>A dot plot of the values: $values</shortDescription>
+      <xLabel>$label</xLabel>
+      <repeatForSequence from="1" to="$n" indexName="i" name="Ps">
+        <point name="P" labelPosition="top">
+          ($values[$i], <number fixed>0.5 ($sortedPos[$i] - $first[$i])</number>)
+          <constrainToGraph /> <constrainToGrid dx="$dx" dy="0.5" />
+        </point>
+      </repeatForSequence>
+
+      <line styleNumber="2" hide="not $showMean" fixed labelPosition="right">
+        x=$mean <label>Mean = $mean</label>
+      </line>
+      <line
+        styleNumber="3"
+        hide="not $showMedian"
+        fixed
+        labelPosition="upperRight"
+      >
+        x=$median <label>Median = $median</label>
+      </line>
+      <rectangle
+        fixed
+        filled
+        styleNumber="4"
+        hide="not $showStd"
+        vertices="($mean-$std,2) ($mean+$std, 3)"
+      />
+      <label
+        fixed
+        hide="not $showStd"
+        anchor="($mean-$std,2.5)"
+        positionFromAnchor="right"
+      >
+        std=$std
+      </label>
+
+      <lineSegment
+        fixed
+        styleNumber="5"
+        hide="not $showRange"
+        endpoints="($min, 2) ($max,2)"
+        lineWidth="2"
+      />
+      <label
+        fixed
+        hide="not $showRange"
+        anchor="($min, 2)"
+        positionFromAnchor="lowerRight"
+      >
+        range=$range
+      </label>
+    </graph>
+  </module>
+</setup>
+
+<p>
+  For all three of these data sets, the mean is 5 and the median is 5. But the
+  data vary in how much they are spread out.
+</p>
+<ol marker="A">
+  <li><numberList name="values1">5 5 5 5 5 5 5 5 5 5</numberList></li>
+  <li><numberList name="values2">0 0 0 0 0 10 10 10 10 10</numberList></li>
+  <li><numberList name="values3">4 4 4 5 5 5 5 6 6 6</numberList></li>
+  <li><numberList name="values4">0 2 3 4 5 5 6 7 8 10</numberList></li>
+</ol>
+
+<setup>
+  <number name="mean1"><mean>$values1</mean></number>
+  <number name="mean2"><mean>$values2</mean></number>
+  <number name="mean3"><mean>$values3</mean></number>
+  <number name="mean4"><mean>$values4</mean></number>
+</setup>
+
+<sideBySide margins="1%">
+  <module
+    copy="$dotPlot"
+    values="$values1"
+    xMax="10.6"
+    xmin="-0.6"
+    showmean="true"
+    showmedian="true"
+    fixed="true"
+  />
+  <module
+    copy="$dotPlot"
+    values="$values2"
+    xMax="10.6"
+    xmin="-0.6"
+    showmean="true"
+    showmedian="true"
+    fixed="true"
+  />
+  <module
+    copy="$dotPlot"
+    values="$values3"
+    xMax="10.6"
+    xmin="-0.6"
+    showmean="true"
+    showmedian="true"
+    fixed="true"
+  />
+  <module
+    copy="$dotPlot"
+    values="$values4"
+    xMax="10.6"
+    xmin="-0.6"
+    showmean="true"
+    showmedian="true"
+    fixed="true"
+  />
+</sideBySide>
+
+<p>
+  If these values represented scores on a five-point quiz, they each correspond
+  to very different outcomes: A. everyone getting 50%, B. half getting 100% and
+  the other half 0%, C. everyone scoring close to 50%, and D. scores all over
+  the map.
+</p>
+
+<p>
+  To distinguish these scenarios, we need measures of how spread out the data
+  set it.
+</p>
+
+<cascade revealAll>
+  <exercise>
+    <title>Range</title>
+
+    <p>
+      The <term>range</term> of a data set is the difference between the maximum
+      value and minimum value of the data set.
+    </p>
+
+    <p>Calculate the range of each data set.</p>
+
+    <ol marker="A">
+      <li>
+        <answer>
+          <shortDescription>Range of data set A</shortDescription>0
+        </answer>
+      </li>
+      <li>
+        <answer>
+          <shortDescription>Range of data set B</shortDescription>10
+        </answer>
+      </li>
+      <li>
+        <answer>
+          <shortDescription>Range of data set C</shortDescription>2
+        </answer>
+      </li>
+      <li>
+        <answer>
+          <shortDescription>Range of data set D</shortDescription>10
+        </answer>
+      </li>
+    </ol>
+  </exercise>
+
+  
+<exercise>
+  <title>Standard deviation</title>
+
+  <cascade>
+    <p>
+      The range was pretty simple. But it doesn't distinguish between B and D; B
+      is definitely more spread out than D.
+    </p>
+
+    <p>
+      The standard deviation is much more sophisticated. It's also a pain in the
+      neck to calculate by hand. Let's do calculate it for data sets B and D to
+      show how it can tell those a part.
+    </p>
+
+    <p>
+      To calculate the standard deviation, you first have to subtract off the
+      mean. Adding 100 to every data point doesn't change how spread out it is.
+      By subtracting off the mean, we are ignoring any shifts left or right. We
+      call these differences "deviations", as they are deviations from the mean
+      value.
+    </p>
+
+    <p>Calculate the deviations data sets B and D</p>
+
+    <div>
+      <spreadsheet
+        minNumColumns="2"
+        columnHeaders="false"
+        rowHeaders="false"
+        width="300px"
+        name="Bdeviations"
+      >
+        <row header fixed>
+          <cell />
+          <cell>Data set B</cell>
+        </row>
+        <row header fixed>
+          <cell>data value</cell>
+          <cell>deviation: data value - mean</cell>
+        </row>
+        <repeat for="$values2" valueName="v">
+          <row>
+            <cell fixed>$v</cell>
+          </row>
+        </repeat>
+      </spreadsheet>
+
+      <answer matchPartial>
+        <award>
+          <when>
+            <number>$Bdeviations.cells[3][2]</number> = $values2[1]-$mean2 and
+            <number>$Bdeviations.cells[4][2]</number> = $values2[2]-$mean2 and
+            <number>$Bdeviations.cells[5][2]</number> = $values2[3]-$mean2 and
+            <number>$Bdeviations.cells[6][2]</number> = $values2[4]-$mean2 and
+            <number>$Bdeviations.cells[7][2]</number> = $values2[5]-$mean2 and
+            <number>$Bdeviations.cells[8][2]</number> = $values2[6]-$mean2 and
+            <number>$Bdeviations.cells[9][2]</number> = $values2[7]-$mean2 and
+            <number>$Bdeviations.cells[10][2]</number> = $values2[8]-$mean2 and
+            <number>$Bdeviations.cells[11][2]</number> = $values2[9]-$mean2 and
+            <number>$Bdeviations.cells[12][2]</number> = $values2[10]-$mean2
+          </when>
+        </award>
+      </answer>
+
+      <spreadsheet
+        minNumColumns="2"
+        columnHeaders="false"
+        rowHeaders="false"
+        width="300px"
+        name="Ddeviations"
+      >
+        <row header fixed>
+          <cell />
+          <cell>Data set D</cell>
+        </row>
+        <row header fixed>
+          <cell>data value</cell>
+          <cell>deviation: data value - mean</cell>
+        </row>
+        <repeat for="$values4" valueName="v">
+          <row>
+            <cell fixed>$v</cell>
+          </row>
+        </repeat>
+      </spreadsheet>
+      <answer matchPartial>
+        <award>
+          <when>
+            <number>$Ddeviations.cells[3][2]</number> = $values4[1]-$mean4 and
+            <number>$Ddeviations.cells[4][2]</number> = $values4[2]-$mean4 and
+            <number>$Ddeviations.cells[5][2]</number> = $values4[3]-$mean4 and
+            <number>$Ddeviations.cells[6][2]</number> = $values4[4]-$mean4 and
+            <number>$Ddeviations.cells[7][2]</number> = $values4[5]-$mean4 and
+            <number>$Ddeviations.cells[8][2]</number> = $values4[6]-$mean4 and
+            <number>$Ddeviations.cells[9][2]</number> = $values4[7]-$mean4 and
+            <number>$Ddeviations.cells[10][2]</number> = $values4[8]-$mean4 and
+            <number>$Ddeviations.cells[11][2]</number> = $values4[9]-$mean4 and
+            <number>$Ddeviations.cells[12][2]</number> = $values4[10]-$mean4
+          </when>
+        </award>
+      </answer>
+    </div>
+
+    <p>Now for each of these data sets, take the average of the devations.</p>
+
+    <div>
+      <p>
+        <answer>
+          <label>Average of the deviations for data set B</label> 0
+        </answer>
+      </p>
+      <p>
+        <answer>
+          <label>Average of the deviations for data set D</label> 0
+        </answer>
+      </p>
+    </div>
+
+    <p>
+      Well, that wasn't very useful! It appears all the negative deviations
+      canceled all the positive deviations and we were left with nothing.
+    </p>
+
+    <div>
+      <p>
+        We should probably do something with the deviations before we take their
+        average so that positives and negatives don't cancel. What should we do
+        to remove those pesky negative signs? <answer inline>
+          <shortDescription>How to address the negative signs</shortDescription>
+          <choice name="ignore">ignore the negative signs</choice>
+          <choice name="abs">take the absolute value of each deviation</choice>
+          <choice name="dist">
+            calculate the distance of each deviation from zero
+          </choice>
+          <choice name="square" credit="1">square each deviation</choice>
+        </answer>
+      </p>
+
+      <feedback condition="$ignore">
+        I think that is a great idea. Unfortunately, there are problems with
+        just ignoring the negative signs, but nature of the problem is way over
+        our heads. We have to look for other alternatives.
+      </feedback>
+      <feedback condition="$abs">
+        I'm with you <mdash /> it'd be so much simpler if we could just take
+        absolute values. But, those who know more about statistics tell us that
+        is a bad idea and that taking absolute values would make the result too
+        hard to work with.
+      </feedback>
+      <feedback condition="$dist">
+        The distances from zero seems like a good idea. But, since it is the
+        same thing as taking the absolute value or ignoring the negative signs,
+        it suffers from the same inexplicable problems.
+      </feedback>
+      <feedback condition="$square">
+        Who would have thought that squaring is the right idea? Well, it turns
+        out the squaring will make sure the standard deviation has some nice
+        properties. But, since we won't discuss those nice properties, you'll
+        have to do your own research, take it on faith, or just pretend we
+        didn't have this conversation.
+      </feedback>
+    </div>
+
+    <p>
+      Square all the deviations you calculated above for data set B and data set
+      D.
+    </p>
+
+    <div>
+      <spreadsheet
+        minNumColumns="3"
+        columnHeaders="false"
+        rowHeaders="false"
+        width="400px"
+        name="Bdeviations2"
+      >
+        <row header fixed>
+          <cell />
+          <cell>Data set B</cell>
+        </row>
+        <row header fixed>
+          <cell>data value</cell>
+          <cell>deviation</cell>
+          <cell>squared deviation</cell>
+        </row>
+        <repeat for="$values2" valueName="v" indexName="i">
+          <row>
+            <cell fixed>$v</cell>
+            <cell fixed extend="$Bdeviations.cells[$i+2][2]" />
+          </row>
+        </repeat>
+      </spreadsheet>
+
+      <answer matchPartial>
+        <award>
+          <when>
+            <number>$Bdeviations2.cells[3][3]</number> = ($values2[1]-$mean2)^2
+            and <number>$Bdeviations2.cells[4][3]</number> = ($values2[2]-$mean2)^2
+            and <number>$Bdeviations2.cells[5][3]</number> = ($values2[3]-$mean2)^2
+            and <number>$Bdeviations2.cells[6][3]</number> = ($values2[4]-$mean2)^2
+            and <number>$Bdeviations2.cells[7][3]</number> = ($values2[5]-$mean2)^2
+            and <number>$Bdeviations2.cells[8][3]</number> = ($values2[6]-$mean2)^2
+            and <number>$Bdeviations2.cells[9][3]</number> = ($values2[7]-$mean2)^2
+            and <number>$Bdeviations2.cells[10][3]</number> = ($values2[8]-$mean2)^2
+            and <number>$Bdeviations2.cells[11][3]</number> = ($values2[9]-$mean2)^2
+            and <number>$Bdeviations2.cells[12][3]</number> = ($values2[10]-$mean2)^2
+          </when>
+        </award>
+      </answer>
+
+      <spreadsheet
+        minNumColumns="3"
+        columnHeaders="false"
+        rowHeaders="false"
+        width="300px"
+        name="Ddeviations2"
+      >
+        <row header fixed>
+          <cell />
+          <cell>Data set D</cell>
+        </row>
+        <row header fixed>
+          <cell>data value</cell>
+          <cell>deviation</cell>
+          <cell>squared deviation</cell>
+        </row>
+        <repeat for="$values4" valueName="v" indexName="i">
+          <row>
+            <cell fixed>$v</cell>
+            <cell fixed extend="$Ddeviations.cells[$i+2][2]" />
+          </row>
+        </repeat>
+      </spreadsheet>
+      <answer matchPartial>
+        <award>
+          <when>
+            <number>$Ddeviations2.cells[3][3]</number> = ($values4[1]-$mean4)^2
+            and <number>$Ddeviations2.cells[4][3]</number> = ($values4[2]-$mean4)^2
+            and <number>$Ddeviations2.cells[5][3]</number> = ($values4[3]-$mean4)^2
+            and <number>$Ddeviations2.cells[6][3]</number> = ($values4[4]-$mean4)^2
+            and <number>$Ddeviations2.cells[7][3]</number> = ($values4[5]-$mean4)^2
+            and <number>$Ddeviations2.cells[8][3]</number> = ($values4[6]-$mean4)^2
+            and <number>$Ddeviations2.cells[9][3]</number> = ($values4[7]-$mean4)^2
+            and <number>$Ddeviations2.cells[10][3]</number> = ($values4[8]-$mean4)^2
+            and <number>$Ddeviations2.cells[11][3]</number> = ($values4[9]-$mean4)^2
+            and <number>$Ddeviations2.cells[12][3]</number> = ($values4[10]-$mean4)^2
+          </when>
+        </award>
+      </answer>
+    </div>
+
+    <div>
+      <p>
+        Now we need to summarize all those squared devations. We're going to
+        take their average (i.e., their mean). To do this, sum up all the
+        squared deviations.
+      </p>
+
+      <setup>
+        <sum name="sumSq2">
+          <repeat for="$values2" valueName="v">
+            <number>($v-$mean2)^2</number>
+          </repeat>
+        </sum>
+        <sum name="sumSq4">
+          <repeat for="$values4" valueName="v">
+            <number>($v-$mean4)^2</number>
+          </repeat>
+        </sum>
+      </setup>
+
+      <p>
+        <answer>
+          <label>Sum of squared deviations for data set B</label>$sumSq2
+        </answer>
+      </p>
+      <p>
+        <answer>
+          <label>Sum of squared deviations for data set D</label>$sumSq4
+        </answer>
+      </p>
+    </div>
+
+    <div>
+      <p>
+        Next, we need to divide by some number. Since there are 10 numbers in a
+        list, we should divide by the number <answer inline>
+          <shortDescription>divide by</shortDescription>
+          <choice credit="1" name="div9">9</choice>
+          <choice name="div10">10</choice>
+        </answer>
+      </p>
+
+      <feedback condition="$div10">
+        Sorry, I lied. We're not exactly going to calculate the average. We're
+        living a strange world where we have to divide by a slightly smaller
+        number.
+      </feedback>
+      <feedback condition="$div9">
+        Right, we actually going to divide by one less than the number of items.
+        There's actually a good rationale for doing this. I'm just not going to
+        tell you.
+      </feedback>
+    </div>
+
+    <p>
+      When we sum all the squared deviations and then divide by one less than
+      the number of items, we have calculated something called the (sample)
+      <term>variance</term>.
+    </p>
+
+    <div>
+      <p>
+        Calculate the variance of data sets B and D. Include at least two digits
+        after the decimal point (more is OK).
+      </p>
+      <p>
+        <answer allowedErrorInNumbers="2" allowedErrorIsAbsolute>
+          <label>Variance of data set B</label> <variance>$values2</variance>
+        </answer>
+      </p>
+      <p>
+        <answer allowedErrorInNumbers="2" allowedErrorIsAbsolute>
+          <label>Variance of data set D</label> <variance>$values4</variance>
+        </answer>
+      </p>
+    </div>
+
+    <p>
+      Sorry, this tedious calculation isn't done yet. Variance is great and all,
+      but it's hard to compare to our original numbers. The squaring makes it so
+      that the variance isn't on the same scale as are number. We can take of
+      that, though. We can undo squaring by taking the <answer inline>
+        <shortDescription>square root</shortDescription>
+        <choice credit="1">square root.</choice>
+      </answer>
+    </p>
+
+    <p>
+      When we take the square root, the result is the (sample)
+      <term>standard deviation</term>, which is the whole point of this exercise.
+    </p>
+
+    <div>
+      <p>
+        Calculate the standard deviation of data sets B and D. Include at least
+        one digit after the decimal point.
+      </p>
+
+      <p>
+        <answer allowedErrorInNumbers="1" allowedErrorIsAbsolute>
+          <label>Standard deviation of data set B</label>
+          <standardDeviation>$values2</standardDeviation>
+        </answer>
+      </p>
+      <p>
+        <answer allowedErrorInNumbers="1" allowedErrorIsAbsolute>
+          <label>Standard deviation of data set D</label>
+          <standardDeviation>$values4</standardDeviation>
+        </answer>
+      </p>
+    </div>
+
+    <p>
+      Below, we have added a rectangle to the dot plots illustrating the
+      standard deviation (abbreviated std). It extends one standard deviation
+      from the right and the left of the mean, illustrating the spread of the
+      data. We also added a line to illustrate the range.
+    </p>
+
+    <p>
+      In these plots, you can drag the points to change the data and see how the
+      standard deviation responds.
+    </p>
+
+    <setup>
+      <numberList name="values2A" copy="$values2" />
+      <numberList name="values4A" copy="$values4" />
+    </setup>
+    <sideBySide margins="1%">
+      <module
+        copy="$dotPlot"
+        values="$values2A"
+        xMax="10.6"
+        xmin="-0.6"
+        showmean="true"
+        showmedian="true"
+        showstd="true"
+        showrange="true"
+      />
+      <module
+        copy="$dotPlot"
+        values="$values4A"
+        xMax="10.6"
+        xmin="-0.6"
+        showmean="true"
+        showmedian="true"
+        showstd="true"
+        showrange="2"
+      />
+    </sideBySide>
+
+    <cascadeMessage>
+      <em>Complete the above part to continue...</em>
+    </cascadeMessage>
+  </cascade>
+</exercise>
+
+  <exercise>
+    <title>Analyze Amazon Bestselling List</title>
+
+    <p>
+      Make a copy of the
+      <ref
+        to="https://docs.google.com/spreadsheets/d/1QAI9kNTtFXlj19P8T5L-llTGmJwqwQ8M6jGx1q6xPvA/edit?gid=908356580#gid=908356580"
+      >
+        Amazon Bestselling List
+      </ref>
+      data if you haven't already. We will analyze the user ratings, the number
+      of reviews, and the price.
+    </p>
+
+    <p>
+      In Google Sheets, the `stdev` function will give the standard deviation.
+      For example, typing `=stdev(E1:E651)` in a cell will give you the standard
+      deviation of the price, though you can use the mouse to select the range
+      `E1:E651` if you prefer. Recall that you use the `average` function to
+      calculate the mean.
+    </p>
+
+    <p>
+      <answer allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>
+        <label>
+          What is the standard deviation of the price? (You can round to the
+          nearest cent.)
+        </label>
+        10.17639154
+      </answer>
+    </p>
+
+    <p>
+      <answer allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>
+        <label>
+          What is the mean price? (You can round to the nearest cent.)
+        </label>
+        12.76416923
+      </answer>
+    </p>
+
+    <p>
+      Note that the standard deviation is <answer inline>
+        <shortDescription>
+          size of standard deviation relative to the mean
+        </shortDescription>
+        <choice>much smaller than</choice>
+        <choice credit="1">just a bit smaller than</choice>
+        <choice>larger than</choice>
+      </answer> than the mean, which indicates a fair amount of spread in the
+      values.
+    </p>
+
+    <p>
+      <answer allowedErrorInNumbers="1" allowedErrorIsAbsolute>
+        <label>
+          What is the standard deviation in number of reviews? (You can round to
+          the nearest integer.)
+        </label>
+        20715.65058
+      </answer>
+    </p>
+
+    <p>
+      <answer allowedErrorInNumbers="1" allowedErrorIsAbsolute>
+        <label>
+          What is the mean number of reviews? (You can round to the nearest
+          integer.)
+        </label>
+        17204.85385
+      </answer>
+    </p>
+
+    <p>
+      Note that the standard deviation is <answer inline>
+        <shortDescription>
+          size of standard deviation relative to the mean
+        </shortDescription>
+        <choice>much smaller than</choice>
+        <choice>just a bit smaller than</choice>
+        <choice credit="1">larger than</choice>
+      </answer> than the mean, which indicates a quite a bit of spread in the
+      values.
+    </p>
+
+    <p>
+      <answer allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>
+        <label>
+          What is the standard deviation of the user ratings? (You can round to
+          two decimals.)
+        </label>
+        0.2215165332
+      </answer>
+    </p>
+
+    <p>
+      <answer allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>
+        <label>
+          What is the mean user rating? (You can round to two decimals.)
+        </label>
+        4.635384615
+      </answer>
+    </p>
+
+    <p>
+      Note that the standard deviation is <answer inline>
+        <shortDescription>
+          size of standard deviation relative to the mean
+        </shortDescription>
+        <choice credit="1">much smaller than</choice>
+        <choice>just a bit smaller than</choice>
+        <choice>larger than</choice>
+      </answer> than the mean, which indicates that the spread in the values
+      isn't that large, compared to the values themselves.
+    </p>
+  </exercise>
+
+  
+  <exercise>
+    <title>Understanding standard deviation</title>
+
+    <sideBySide margins="1%">
+      <stack>
+        <setup>
+          <selectRandomNumbers
+            type="gaussian"
+            mean="10"
+            standardDeviation="3"
+            numToSelect="20"
+            name="valuesG1"
+          />
+        </setup>
+
+        A.
+
+        <module
+          fixed
+          copy="$dotPlot"
+          values="$valuesG1"
+          xMax="20.6"
+          xmin="-0.6"
+          yMax="9"
+        />
+      </stack>
+      <stack>
+        <setup>
+          <selectRandomNumbers
+            type="gaussian"
+            mean="15"
+            standardDeviation="1"
+            numToSelect="20"
+            name="valuesG2"
+          />
+        </setup>
+
+        B.
+
+        <module
+          fixed
+          copy="$dotPlot"
+          values="$valuesG2"
+          xMax="20.6"
+          xmin="-0.6"
+          yMax="9"
+        />
+      </stack>
+    </sideBySide>
+    
+    <sideBySide margins="1%">
+      <stack>
+        <setup>
+          <selectRandomNumbers
+            type="gaussian"
+            mean="5"
+            standardDeviation="0.3"
+            numToSelect="20"
+            name="valuesG3"
+          />
+        </setup>
+
+        C.
+
+        <module
+          fixed
+          copy="$dotPlot"
+          values="$valuesG3"
+          xMax="20.6"
+          xmin="-0.6"
+          yMax="9"
+        />
+      </stack>
+      <stack>
+        <setup>
+          <selectRandomNumbers
+            type="gaussian"
+            mean="14"
+            standardDeviation="8"
+            numToSelect="20"
+            name="valuesG4"
+          />
+        </setup>
+
+        D.
+
+        <module
+          fixed
+          copy="$dotPlot"
+          values="$valuesG4"
+          xMax="20.6"
+          xmin="-0.6"
+          yMax="9"
+        />
+      </stack>
+    </sideBySide>
+
+    <p>The above dot plots represent four data sets. Arrange them in order of increasing standard deviation.</p>
+
+    <ul>
+      <li>
+        <choiceInput inline name="ds1" forAnswer="$ansSort">
+          <shortDescription>data set 1</shortDescription>
+          <choice>A</choice>
+          <choice>B</choice>
+          <choice>C</choice>
+          <choice>D</choice>
+        </choiceInput>
+      </li>
+      <li>
+        <choiceInput inline name="ds2" forAnswer="$ansSort">
+          <shortDescription>data set 2</shortDescription>
+          <choice>A</choice>
+          <choice>B</choice>
+          <choice>C</choice>
+          <choice>D</choice>
+        </choiceInput>
+      </li>
+      <li>
+        <choiceInput inline name="ds3" forAnswer="$ansSort">
+          <shortDescription>data set 3</shortDescription>
+          <choice>A</choice>
+          <choice>B</choice>
+          <choice>C</choice>
+          <choice>D</choice>
+        </choiceInput>
+      </li>
+      <li>
+        <choiceInput inline name="ds4" forAnswer="$ansSort">
+          <shortDescription>data set 4</shortDescription>
+          <choice>A</choice>
+          <choice>B</choice>
+          <choice>C</choice>
+          <choice>D</choice>
+        </choiceInput>
+      </li>
+    </ul>
+
+    <answer name="ansSort">
+      <award><when>
+        $ds1 = C and
+        $ds2 = B and
+        $ds3 = A and
+        $ds4 = D
+      </when></award>
+    </answer>
+
+
+    <sideBySide>
+        <module
+          fixed
+          copy="$dotPlot"
+          values="0 1 1 1 2 2 2 2 3 3 3 3 3 4 4 4 4 5 5 5 6"
+          xMax="20.6"
+          xmin="-0.6"
+        />
+        <module
+          fixed
+          copy="$dotPlot"
+          values="5 6 6 6 7 7 7 7 8 8 8 8 8 9 9 9 9 10 10 10 11"
+          xMax="20.6"
+          xmin="-0.6"
+        />
+        <module
+          fixed
+          copy="$dotPlot"
+          values="12 13 13 13 14 14 14 14 15 15 15 15 15 16 16 16 16 17 17 17 18"
+          xMax="20.6"
+          xmin="-0.6"
+        />
+    </sideBySide>
+
+    <p>The above dot plots represent three data sets. Explain how the standard deviation changes as one moves from the left plot to the right plot.</p>
+
+    <p>Moving from left to right, the data sets
+      <choiceInput forAnswer="$shiftWords" inline name="spread">
+        <shortDescription>how data set changes</shortDescription>
+        <choice>spread out</choice>
+        <choice>stay the same shape</choice>
+        <choice>get more compact</choice>
+      </choiceInput>
+      and the values
+      <choiceInput forAnswer="$shiftWords" inline name="changeSize">
+        <shortDescription>how data set shifts</shortDescription>
+        <choice>get larger by the same amount</choice>
+        <choice>get larger by different amounts</choice>
+        <choice>don't get larger or smaller</choice>
+        <choice>get smaller by different amounts</choice>
+        <choice>get smaller by the same amount</choice>
+      </choiceInput>.
+      Since the standard deviation
+      <choiceInput forAnswer="$shiftWords" inline name="influence">
+        <shortDescription>how data set is sensitive to changes</shortDescription>
+        <choice>is sensitive to the size of the data values if they all change by the same amount</choice>
+        <choice>is not influenced by the size of the data values if they all change by the same amount</choice>
+        <choice>is not influenced the size of the data values when just some values change</choice>
+      </choiceInput>
+      (after all the first step is to
+        <choiceInput forAnswer="$shiftWords" inline name="meanOperation">
+          <shortDescription>how mean is used in the standard deviation</shortDescription>
+          <choice>multiply by the mean</choice>
+          <choice>ignore the mean</choice>
+          <choice>divide by the mean</choice>
+          <choice>subtract off the mean</choice>
+          <choice>add the mean</choice>
+        </choiceInput>
+      ), we can conclude that the standard deviation
+      <choiceInput forAnswer="$shiftWords" inline name="stdChange">
+        <shortDescription>how standard deviation changes among the data sets</shortDescription>
+        <choice>increases from left to right</choice>
+        <choice>is the same for all three data sets</choice>
+        <choice>decreases from left to right</choice>
+      </choiceInput>.
+    </p>
+
+    <answer name="shiftWords">
+      <award><when>
+        $spread.selectedIndex = 2 and
+        $changeSize.selectedIndex = 1 and
+        $influence.selectedIndex = 2 and
+        $meanOperation.selectedIndex = 4 and
+        $stdChange.selectedIndex = 2
+      </when></award>
+    </answer>
+    
+  </exercise>
+</cascade>

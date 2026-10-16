@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { newChangeRecord } from "./dependencies/Dependency";
 import type { ComponentInstance } from "../types/componentInstance";
 import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
 import {
@@ -197,10 +198,7 @@ export class StalenessPropagator {
     }) {
         // console.log(`mark state variable ${varName} of ${component.componentIdx} and updeps stale`)
 
-        if (
-            varName in
-            this.core.rendererVariablesByComponentType[component.componentType]
-        ) {
+        if (varName in this.core.rendererVariablesOf(component)) {
             this.core.updateInfo.componentsToUpdateRenderers.add(
                 component.componentIdx,
             );
@@ -423,7 +421,11 @@ export class StalenessPropagator {
                         continue;
                     }
 
-                    if (upDep.mappedDownstreamVariableNamesByComponent) {
+                    if (
+                        upDep.mappedDownstreamVariableNamesByComponent?.[
+                            componentInd
+                        ]?.length > 0
+                    ) {
                         // if have multiple components, there must be multiple variables
                         // ensure that varName is one of them
                         let varInd =
@@ -453,9 +455,7 @@ export class StalenessPropagator {
                             // shared frozen initial record — (re)create it
                             changeRecord = upDep.valuesChanged[componentInd][
                                 varName
-                            ] = changeRecord
-                                ? { changed: changeRecord.changed }
-                                : {};
+                            ] = newChangeRecord(changeRecord?.changed);
                         }
                         changeRecord.potentialChange = true;
 
@@ -475,7 +475,8 @@ export class StalenessPropagator {
 
                         if (!upDep.valuesChanged) {
                             upDep.valuesChanged = {
-                                [upDep.downstreamVariableNameIfNoVariables]: {},
+                                [upDep.downstreamVariableNameIfNoVariables]:
+                                    newChangeRecord(),
                             };
                         }
 
@@ -496,9 +497,7 @@ export class StalenessPropagator {
                     for (const upstreamVar of upDep.upstreamVariableNames) {
                         if (
                             upstreamVar in
-                            this.core.rendererVariablesByComponentType[
-                                upDepComponent.componentType
-                            ]
+                            this.core.rendererVariablesOf(upDepComponent)
                         ) {
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 upDep.upstreamComponentIdx,

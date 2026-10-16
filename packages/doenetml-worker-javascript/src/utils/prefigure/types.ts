@@ -102,6 +102,7 @@ export interface Descendant {
 export interface AnnotationRefResolution {
     componentIdx?: number;
     unresolvedPath?: unknown;
+    listEntry?: { componentIdx: number; listIdx: number; entryIndex: number };
     position?: Position;
 }
 

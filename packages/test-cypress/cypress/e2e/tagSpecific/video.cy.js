@@ -601,6 +601,133 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
         });
     }
 
+    // These tests replace the YouTube IFrame API with a fake player so they
+    // can check what the renderer asks the player to do without depending on
+    // youtube.com. `useYouTubeApi` sees `window.YT.Player` already defined
+    // and never loads the real script.
+    function visitWithFakeYouTube({ duration }) {
+        cy.visit("/", {
+            onBeforeLoad(win) {
+                win.fakeYouTubeCalls = [];
+                const CUED = 5;
+                class FakePlayer {
+                    constructor(id, { events }) {
+                        this.state = CUED;
+                        setTimeout(() => events.onReady({ target: this }), 0);
+                    }
+                    getPlayerState() {
+                        return this.state;
+                    }
+                    getDuration() {
+                        return duration;
+                    }
+                    getCurrentTime() {
+                        return 0;
+                    }
+                    getPlaybackRate() {
+                        return 1;
+                    }
+                    seekTo(seconds) {
+                        win.fakeYouTubeCalls.push(["seekTo", seconds]);
+                        // A seek takes the real player out of CUED.
+                        this.state = -1;
+                    }
+                    cueVideoById(args) {
+                        win.fakeYouTubeCalls.push(["cueVideoById", args]);
+                        this.state = CUED;
+                    }
+                    playVideo() {
+                        // Stays CUED, like a real player whose play has not
+                        // taken effect yet.
+                        win.fakeYouTubeCalls.push(["playVideo"]);
+                    }
+                    pauseVideo() {
+                        win.fakeYouTubeCalls.push(["pauseVideo"]);
+                    }
+                    destroy() {}
+                }
+                win.YT = {
+                    Player: FakePlayer,
+                    PlayerState: {
+                        UNSTARTED: -1,
+                        ENDED: 0,
+                        PLAYING: 1,
+                        PAUSED: 2,
+                        BUFFERING: 3,
+                        CUED,
+                    },
+                };
+            },
+        });
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <video youtube="tJ4ypc5L6uU" name="v" />
+  <p>Time: <number extend="$v.time" name="time" /></p>
+  <p>Duration: <number extend="$v.duration" name="duration" /></p>
+  <p>Change time: <mathInput bindValueTo="$v.time" name="mi" /></p>
+  <callAction target="$v" actionName="playVideo" name="playAction"><label>Play</label></callAction>
+  `,
+                },
+                "*",
+            );
+        });
+        cy.get("#duration").should("have.text", String(duration));
+    }
+
+    it("moving a cued youtube video cues it at the new time rather than seeking it", () => {
+        visitWithFakeYouTube({ duration: 300 });
+
+        cy.get("#mi textarea").type("{end}{backspace}60{enter}", {
+            force: true,
+        });
+        cy.get("#time").should("have.text", "60");
+
+        cy.window().then((win) => {
+            expect(win.fakeYouTubeCalls).to.deep.eq([
+                ["cueVideoById", { videoId: "tJ4ypc5L6uU", startSeconds: 60 }],
+            ]);
+        });
+    });
+
+    it("moving a cued youtube video that was asked to play seeks it rather than cueing it", () => {
+        visitWithFakeYouTube({ duration: 300 });
+
+        cy.get("#playAction").click();
+        cy.window().should((win) => {
+            expect(win.fakeYouTubeCalls).to.deep.eq([["playVideo"]]);
+        });
+
+        cy.get("#mi textarea").type("{end}{backspace}60{enter}", {
+            force: true,
+        });
+        cy.get("#time").should("have.text", "60");
+
+        // Cueing here would cancel the play that was just requested.
+        cy.window().then((win) => {
+            expect(win.fakeYouTubeCalls).to.deep.eq([
+                ["playVideo"],
+                ["seekTo", 60],
+            ]);
+        });
+    });
+
+    it("a youtube player that reports no duration yet does not reset the time", () => {
+        visitWithFakeYouTube({ duration: 0 });
+
+        cy.get("#mi textarea").type("{end}{backspace}60{enter}", {
+            force: true,
+        });
+        cy.get("#time").should("have.text", "60");
+
+        cy.window().then((win) => {
+            expect(win.fakeYouTubeCalls).to.deep.eq([
+                ["cueVideoById", { videoId: "tJ4ypc5L6uU", startSeconds: 60 }],
+            ]);
+        });
+    });
+
     it("with description", () => {
         cy.window().then(async (win) => {
             win.postMessage(

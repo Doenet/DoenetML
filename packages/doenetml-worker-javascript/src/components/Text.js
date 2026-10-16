@@ -11,13 +11,15 @@ import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
 } from "../utils/text";
-import {
-    textToMathFactory,
-    latexToMathFactory,
-    plainComplex,
-} from "../utils/math";
+import { plainComplex } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
+import {
+    textChildValuesFromDesired,
+    textFromMath,
+    textToMath,
+} from "../utils/valueFunctions/text";
 
 export default class Text extends InlineComponent {
     constructor(args) {
@@ -140,16 +142,6 @@ export default class Text extends InlineComponent {
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
-                // the reason we create a attribute component from the state variable,
-                // rather than just shadowing the attribute,
-                // is that a sequence creates a text where it sets fixed directly in the state
-                // TODO: how to deal with this in general?  Should we disallow that way to set state?
-                // Or should we always shadow attributes this way?
-                addAttributeComponentsShadowingStateVariables: {
-                    fixed: {
-                        stateVariableToShadow: "fixed",
-                    },
-                },
             },
             hasEssential: true,
             returnDependencies: () => ({
@@ -180,58 +172,25 @@ export default class Text extends InlineComponent {
             }) {
                 let numChildren = dependencyValues.textLikeChildren.length;
 
-                if (numChildren > 1) {
-                    // if have multiple children, then we could still update them if
-                    // 1. all children come from a single composite with asList set to true, and
-                    // 2. the desired value is a comma-separated list with the number of entries
-                    //    matching the number of children.
-                    // In that case, we will attempt to update each child to the corresponding entry
-                    // from the desired value.
-
-                    // Check if all text children are from a composite with asList set to true
-                    let foundAllFromListComposite = false;
-                    for (let range of dependencyValues.textLikeChildren
-                        .compositeReplacementRange) {
-                        if (
-                            range.asList &&
-                            range.firstInd === 0 &&
-                            range.lastInd === numChildren - 1
-                        ) {
-                            foundAllFromListComposite = true;
-                        }
+                if (numChildren > 0) {
+                    const childValues = textChildValuesFromDesired({
+                        desiredValue: desiredStateVariableValues.value,
+                        numChildren,
+                        compositeReplacementRange:
+                            dependencyValues.textLikeChildren
+                                .compositeReplacementRange,
+                    });
+                    if (childValues === null) {
+                        return { success: false };
                     }
-
-                    if (foundAllFromListComposite) {
-                        // Check if desired value is a comma-separated list with the same number of entries as children
-                        let splitValues = desiredStateVariableValues.value
-                            .split(",")
-                            .map((v) => v.trim());
-
-                        if (splitValues.length === numChildren) {
-                            // All conditions are met, so we attempt to update the children
-                            let instructions = splitValues.map((v, i) => ({
-                                setDependency: "textLikeChildren",
-                                desiredValue: v,
-                                childIndex: i,
-                                variableIndex: 0,
-                            }));
-                            return { success: true, instructions };
-                        }
-                    }
-                    return { success: false };
-                }
-
-                if (numChildren === 1) {
                     return {
                         success: true,
-                        instructions: [
-                            {
-                                setDependency: "textLikeChildren",
-                                desiredValue: desiredStateVariableValues.value,
-                                childIndex: 0,
-                                variableIndex: 0,
-                            },
-                        ],
+                        instructions: childValues.map((v, i) => ({
+                            setDependency: "textLikeChildren",
+                            desiredValue: v,
+                            childIndex: i,
+                            variableIndex: 0,
+                        })),
                     };
                 }
                 // no children, so set essential value to the desired value
@@ -295,27 +254,16 @@ export default class Text extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let parser = dependencyValues.isLatex
-                    ? latexToMathFactory()
-                    : textToMathFactory();
-                let expression;
-                try {
-                    expression = parser(dependencyValues.value);
-                } catch (e) {
-                    expression = me.fromAst("\uFF3F");
-                }
-                return { setValue: { math: expression } };
+                return { setValue: { math: textToMath(dependencyValues) } };
             },
             inverseDefinition({
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                let text;
-                if (dependencyValues.isLatex) {
-                    text = desiredStateVariableValues.math.toLatex();
-                } else {
-                    text = desiredStateVariableValues.math.toString();
-                }
+                const text = textFromMath({
+                    math: desiredStateVariableValues.math,
+                    isLatex: dependencyValues.isLatex,
+                });
                 return {
                     success: true,
                     instructions: [
@@ -380,6 +328,8 @@ export default class Text extends InlineComponent {
         let pieceDefs = returnTextPieceStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, pieceDefs);
 
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
+
         return stateVariableDefinitions;
     }
 
@@ -403,6 +353,7 @@ export default class Text extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

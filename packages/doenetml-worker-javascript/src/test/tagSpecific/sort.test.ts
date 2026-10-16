@@ -7,6 +7,11 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import {
+    childrenAsPresented,
+    componentOrListEntry,
+    typeAsPresented,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -34,10 +39,16 @@ describe("Sort tag tests @group4", async () => {
         ).eq(pText);
 
         if (replacements_all_of_type) {
-            let replacementTypes = stateVariables[
-                await resolvePathToNodeIdx(pName)
-            ].activeChildren.map(
-                (child) => stateVariables[child.componentIdx].componentType,
+            // an entry copied from a list is drawn as a value reference of
+            // its type, and an entry of a list as the type of its entries
+            let replacementTypes = childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx(pName),
+            ).map((child) =>
+                child.listEntryIndex === undefined
+                    ? typeAsPresented(core, stateVariables, child.componentIdx)
+                    : child.componentType,
             );
 
             expect(replacementTypes).eqls(
@@ -769,8 +780,14 @@ describe("Sort tag tests @group4", async () => {
 
         for (let i = 0; i < 12; i++) {
             result.push(
-                stateVariables[await resolvePathToNodeIdx(`xs[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `xs[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             );
         }
 
@@ -926,11 +943,11 @@ describe("Sort tag tests @group4", async () => {
                 false,
                 true,
             );
-            return stateVariables[
-                await resolvePathToNodeIdx("pList")
-            ].activeChildren.map((child: any) =>
-                stateVariables[child.componentIdx].stateValues.value.toString(),
-            );
+            return childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pList"),
+            ).map((child: any) => child.stateValues.value.toString());
         }
 
         const live = await sortedValues(first);
@@ -1001,8 +1018,11 @@ describe("Sort tag tests @group4", async () => {
         // to be worth rearranging — recreates every replacement with fresh
         // ids, so this says nothing about work done on a replacement such a
         // rebuild recreates (see `Sort.js`).
+        //
+        // A mix of numbers and maths, which it copies; values of one type it
+        // would hold as a list.
         const doenetML = `
-    <sort name="s">5 3 1</sort>
+    <sort name="s"><number>5</number><math>3</math><number>1</number></sort>
     <p name="pList">$s</p>
   `;
 
@@ -1070,6 +1090,9 @@ describe("Sort tag tests @group4", async () => {
             ),
         ).eq(true);
     });
+    // A composite's replacements. A `<sort>` of points or values of one type
+    // is a list (`listcomponentcollections.test.ts`); `hide="false"`, which
+    // changes nothing, keeps it a composite.
     describe("reordering reuses the replacements", async () => {
         async function replacementIndices(
             core: PublicDoenetMLCore,
@@ -1420,7 +1443,7 @@ describe("Sort tag tests @group4", async () => {
       <point name="D">(200,0)</point>
       <point name="E">(300,0)</point>
     </graph>
-    <sort name="s">$A $B $C $D $E</sort>
+    <sort name="s" hide="false">$A $B $C $D $E</sort>
     <p name="pList">$s</p>
     <p name="pProp">$s.x</p>
   `,
@@ -1648,7 +1671,7 @@ describe("Sort tag tests @group4", async () => {
       <point name="E">(200,0)</point>
       <point name="F">(300,0)</point>
     </graph>
-    <graph name="g2"><sort name="s">$A $B $C $D $E $F</sort></graph>
+    <graph name="g2"><sort name="s" hide="false">$A $B $C $D $E $F</sort></graph>
     <p name="pList">$s</p>
   `,
             });
@@ -1723,5 +1746,56 @@ describe("Sort tag tests @group4", async () => {
                 ],
             });
         });
+    });
+
+    it("keeps a copy whose source is rebuilt under the same index", async () => {
+        // The first submission rebuilds `$ans.submittedResponse1` under the
+        // same component index, deleting its sorted copy, while the indices
+        // sorted stay the same.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans"><mathInput name="mi" /><award><math>x</math></award></answer>
+    <p name="pList"><sort name="s">
+        <math>1</math><math>2</math><math>3</math>
+        <math extend="$ans.submittedResponse1" />
+        <math>4</math><math>5</math><math>6</math>
+    </sort></p>
+    <p name="pCopy">$s</p>
+  `,
+        });
+
+        async function submit(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+        }
+
+        async function check(sorted_result: string[]) {
+            for (const pName of ["pList", "pCopy"]) {
+                await test_sort({
+                    core,
+                    resolvePathToNodeIdx,
+                    sorted_result,
+                    pName,
+                    replacements_all_of_type: "math",
+                });
+            }
+        }
+
+        await submit("x");
+        await check(["1", "2", "3", "4", "5", "6", "x"]);
+
+        // a small move, which rearranges rather than rebuilds
+        await submit("5.5");
+        await check(["1", "2", "3", "4", "5", "5.5", "6"]);
+
+        await submit("0");
+        await check(["0", "1", "2", "3", "4", "5", "6"]);
     });
 });

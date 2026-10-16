@@ -113,6 +113,7 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 - **Cargo** for the Rust core in `packages/doenetml-worker-rust` — reference resolution, the flattener, the resolver and the name maps (files: `lib-doenetml-core/src/**/*.test.rs`, `lib-doenetml-core/tests/`)
 - **Rust-core parity**: `npm run parity -w @doenet/rust-parity` runs the worker's Vitest suite on the Rust core (`DOENET_TEST_CORE=rust`) and writes a dashboard of what the Rust core is missing to `packages/rust-parity/out/`. See that package's README.
 - **Cells-core parity**: `npm run parity:cells -w @doenet/doenetml-worker-javascript` runs the same suite on the cells core (`DOENET_TEST_CORE=cells`, after `npm run build:rust -w @doenet/cells-core`) and writes the gap list to `packages/doenetml-worker-javascript/CELLS_CORE_PARITY.md`. One file: `npm run test:cells-core -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/answer.test.ts`.
+- **Performance harness** (`packages/doenetml-worker-javascript/src/test/perf/`): a component census of twelve one-construct documents, snapshotted in the ordinary test groups, and an opt-in bench (`PERFBENCH_RESULT=<path>`) over the slow-document fixtures, with drag timing on a 50-point dot plot, that CI writes to the `Perf Bench` job summary. A change to what a reference, attribute or repeat creates shows up as a snapshot change: update it deliberately and paste the before/after bench rows in the PR. See the README there.
 - Tests are grouped; run by group number to parallelize CI
 
 ### Common Test Commands

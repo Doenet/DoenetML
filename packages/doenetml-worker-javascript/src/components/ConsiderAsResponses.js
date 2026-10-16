@@ -42,7 +42,16 @@ export default class ConsiderAsResponses extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["value", "values", "componentType"],
+                    variableNames: [
+                        "value",
+                        "values",
+                        "componentType",
+                        // only a value reference (`_ref`) has these; the
+                        // answer records it from its referent, as it records
+                        // one in an award (`currentResponses` in `Answer.js`)
+                        "valueAsResponse",
+                        "componentTypeAsResponse",
+                    ],
                     variablesOptional: true,
                 },
             }),

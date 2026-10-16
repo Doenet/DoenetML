@@ -20,11 +20,15 @@ import { createTestCore } from "./test-core";
  * `typingDoenetML` below. A keystroke does hold back what is offscreen.
  */
 
-/** Three points whose y stacks them by rank, so moving one moves the others. */
+/**
+ * Three points whose y stacks them by rank, so moving one moves the others.
+ * The `<group>` keeps the repeat a composite whose points are components of
+ * their own (`utils/dast/repeatLists.ts`), which these tests find by name.
+ */
 const doenetML = `
 <graph>
   <repeatForSequence from="1" to="3" indexName="i" name="Ps">
-    <point name="P">($xs[$i], <number fixed>$sortedPos[$i]</number>)</point>
+    <group><point name="P">($xs[$i], <number fixed>$sortedPos[$i]</number>)</point></group>
   </repeatForSequence>
 </graph>
 <setup>

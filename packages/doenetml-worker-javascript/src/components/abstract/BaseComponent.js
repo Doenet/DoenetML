@@ -3,6 +3,15 @@ import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefin
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
+import { variableRefSnapshot } from "../../utils/variableRefAttribute";
+import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
+import { copyOfExpressionAttribute } from "../../utils/expressionAttributeNames";
+import {
+    addContextAttributeDefinitions,
+    CONTEXT_ATTRIBUTES,
+    pastedShadowSource,
+    writtenEntryAttributeComponent,
+} from "../../utils/contextAttribute";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -150,6 +159,85 @@ export default class BaseComponent {
      * definition-set essential values are persisted like the reader's own.
      */
     static definitionEssentialValuesAreReproducible = true;
+
+    /**
+     * Set on a list component: one component that holds its entries as
+     * arrays, but that a parent sees as one child of this type per entry,
+     * and that the viewer draws as one renderer of this type per entry
+     * (`RendererInstructionBuilder`). Its parent's child groups match it by
+     * this type, and a child dependency gives one record per entry
+     * (`childDependencies.ts`). Part of Doenet/DoenetML#2157.
+     */
+    static listEntryComponentType = undefined;
+
+    /**
+     * For a list component, the variable of its own that each variable of an
+     * entry reads. An entry variable not named here is absent from an entry
+     * that a parent reads, as an optional variable is.
+     *
+     * `listPerEntryVariables` names the variables of the list that hold one
+     * value per entry, in an array; entry `j` reads the `j`th. Every other
+     * variable is shared by all the entries. `listEntryCountVariable` names
+     * the variable that holds the number of entries.
+     */
+    static listEntryStateVariables = {};
+    static listPerEntryVariables = [];
+    static listEntryCountVariable = undefined;
+
+    /**
+     * For a list component, the properties of an entry that a reference
+     * computes from another entry property (`from`) with `compute`, as a
+     * component of the entries' type computes them from its value
+     * (`$l[2].numDimensions`), held in a component of `componentType`
+     * (`utils/listEntryReference.ts`).
+     */
+    static listEntryDerivedProperties = {};
+
+    /**
+     * The derived property `name` of an entry
+     * (`listEntryDerivedProperties`), or `undefined`.
+     */
+    static derivedEntryProperty(name) {
+        return Object.hasOwn(this.listEntryDerivedProperties, name)
+            ? this.listEntryDerivedProperties[name]
+            : undefined;
+    }
+
+    /**
+     * For a list component, the properties that a reference to the whole
+     * list reads once, from the list (`$l.styleNumber`), where a reference
+     * to the whole list reads every other entry property once per entry
+     * (`utils/listEntryReference.ts`).
+     */
+    static listOwnProperties = [];
+
+    /**
+     * Whether a linked copy of this component (a shadow, `serialize`
+     * without `copyAll`) is made without its children, since everything it
+     * shows is shadowed from the component it copies.
+     */
+    static serializeChildrenOnlyIfUnlinked = false;
+
+    /**
+     * For a list component, whether an unlinked copy of it (`copy=`) is made
+     * holding the list's values as they are, in the state variable that
+     * takes the values of a shadowed array (`primaryStateVariableForDefinition`),
+     * without its children, as the copies of a composite's replacements
+     * were.
+     */
+    static serializeUnlinkedAsValues = false;
+
+    /**
+     * The class a component serialized as `serializedComponent` is created
+     * as: this one, unless a subclass decides it from the component's
+     * primitive attributes, which the document fixes for the component's
+     * life (`<sequence type="letters">` is a list of texts; see
+     * `ValueListComponent.classForEntryType`). The subclass keeps this
+     * class's `componentType`.
+     */
+    static classForSerializedComponent(serializedComponent) {
+        return this;
+    }
 
     static get rendererType() {
         return this.componentType;
@@ -335,6 +423,19 @@ export default class BaseComponent {
                 this.componentInfoObjects.allComponentClasses[
                     comp.componentType
                 ];
+            // a value reference may be drawn as the type it presents as
+            const presentedClass =
+                comp.componentType === "_ref"
+                    ? this.componentInfoObjects.allComponentClasses[
+                          comp.doenetAttributes?.presentedComponentType
+                      ]
+                    : undefined;
+            if (
+                presentedClass?.rendererType &&
+                !potentialRendererTypes.includes(presentedClass.rendererType)
+            ) {
+                potentialRendererTypes.push(presentedClass.rendererType);
+            }
             if (compClass) {
                 let rendererType = compClass.rendererType;
                 if (
@@ -468,6 +569,7 @@ export default class BaseComponent {
                 createStateVariable: "fixedPreliminary",
                 defaultValue: false,
                 ignoreFixed: true,
+                notFromReferenceSource: true,
                 description:
                     "Whether this component's value is fixed and cannot be modified.",
             },
@@ -475,6 +577,7 @@ export default class BaseComponent {
                 createComponentOfType: "boolean",
                 createStateVariable: "fixLocationPreliminary",
                 defaultValue: false,
+                notFromReferenceSource: true,
                 description:
                     "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             },
@@ -607,6 +710,45 @@ export default class BaseComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = {};
+
+        // The values a reader wrote over this component's literal attributes
+        // (`literalAttribute.ts`), by attribute name. A literal is not a
+        // component, so a write to it is kept here, where it is saved and
+        // restored as essential state, and where the `attributeComponent`
+        // dependency that reads the literal finds it, for this component and
+        // for a copy reading the attribute from it. A shadow keeps its own:
+        // a copy with a literal of its own does not take its source's writes.
+        stateVariableDefinitions.literalAttributeWrites = {
+            hasEssential: true,
+            doNotShadowEssential: true,
+            defaultValue: {},
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { literalAttributeWrites: true },
+            }),
+            async inverseDefinition({
+                desiredStateVariableValues,
+                stateValues,
+                workspace,
+            }) {
+                // merged in the workspace, so that several attributes written
+                // in one update (a graph's `xMin` and `xMax`) all stay
+                workspace.literalAttributeWrites = {
+                    ...(workspace.literalAttributeWrites ??
+                        (await stateValues.literalAttributeWrites)),
+                    ...desiredStateVariableValues.literalAttributeWrites,
+                };
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "literalAttributeWrites",
+                            value: workspace.literalAttributeWrites,
+                        },
+                    ],
+                };
+            },
+        };
 
         stateVariableDefinitions.hidden = {
             description:
@@ -848,126 +990,11 @@ export default class BaseComponent {
             hasEssential: true,
             doNotShadowEssential: true,
             ignoreFixed: true,
-            returnDependencies: () => ({
-                fixedPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "fixedPreliminary",
-                    variablesOptional: true,
-                },
-                parentFixed: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "fixed",
-                },
-                sourceCompositeFixed: {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName: "fixed",
-                },
-                adapterSourceFixed: {
-                    dependencyType: "adapterSourceStateVariable",
-                    variableName: "fixed",
-                },
-                shadowSourceFixed: {
-                    dependencyType: "shadowSourceStateVariable",
-                    variableName: "fixed",
-                },
-                shadowSource: {
-                    dependencyType: "shadowSource",
-                    givePropVariableValue: true,
-                },
-                ignoreParentFixed: {
-                    dependencyType: "doenetAttribute",
-                    attributeName: "ignoreParentFixed",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                if (!usedDefault.fixedPreliminary) {
-                    return {
-                        setValue: {
-                            fixed: dependencyValues.fixedPreliminary,
-                        },
-                    };
-                }
-
-                let fixed = false;
-                let useEssential = true;
-
-                if (
-                    dependencyValues.parentFixed !== null &&
-                    !usedDefault.parentFixed &&
-                    !dependencyValues.ignoreParentFixed
-                ) {
-                    fixed = fixed || dependencyValues.parentFixed;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.sourceCompositeFixed !== null &&
-                    !usedDefault.sourceCompositeFixed
-                ) {
-                    fixed = fixed || dependencyValues.sourceCompositeFixed;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.adapterSourceFixed !== null &&
-                    !usedDefault.adapterSourceFixed
-                ) {
-                    fixed = fixed || dependencyValues.adapterSourceFixed;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.shadowSourceFixed !== null &&
-                    !usedDefault.shadowSourceFixed
-                ) {
-                    // If the shadow source is fixed, then we fix this component, too.
-                    // Exception: if we are shadowing the `fixed` state variable itself,
-                    // then we do not fix this component, or we will be unable to change the `fixed` state variable.
-                    // In this case, the `ignoreFixed` of this state variable is insufficient,
-                    // because it will be the `value` state variable that we need to change on the shadow.
-                    if (
-                        dependencyValues.shadowSource.stateValues &&
-                        !("fixed" in dependencyValues.shadowSource.stateValues)
-                    ) {
-                        fixed = fixed || dependencyValues.shadowSourceFixed;
-                        useEssential = false;
-                    }
-                }
-
-                if (useEssential) {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            fixed: true,
-                        },
-                    };
-                } else {
-                    return { setValue: { fixed } };
-                }
-            },
-            inverseDefinition({
-                dependencyValues,
-                desiredStateVariableValues,
-            }) {
-                if (dependencyValues.fixedPreliminary !== null) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "fixedPreliminary",
-                                desiredValue: desiredStateVariableValues.fixed,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "fixed",
-                                value: desiredStateVariableValues.fixed,
-                            },
-                        ],
-                    };
-                }
-            },
         };
+        addContextAttributeDefinitions({
+            stateVariableDefinitions,
+            attributeName: "fixed",
+        });
 
         // If fixLocation is set to true, then the inverseDefinition
         // of any state variable marked with isLocation will fail.
@@ -991,115 +1018,11 @@ export default class BaseComponent {
             defaultValue: false,
             hasEssential: true,
             doNotShadowEssential: true,
-            returnDependencies: () => ({
-                fixLocationPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "fixLocationPreliminary",
-                    variablesOptional: true,
-                },
-                parentFixLocation: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "fixLocation",
-                },
-                sourceCompositeFixLocation: {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName: "fixLocation",
-                },
-                adapterSourceFixLocation: {
-                    dependencyType: "adapterSourceStateVariable",
-                    variableName: "fixLocation",
-                },
-                shadowSourceFixLocation: {
-                    dependencyType: "shadowSourceStateVariable",
-                    variableName: "fixLocation",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                if (!usedDefault.fixLocationPreliminary) {
-                    return {
-                        setValue: {
-                            fixLocation:
-                                dependencyValues.fixLocationPreliminary,
-                        },
-                    };
-                }
-
-                let fixLocation = false;
-                let useEssential = true;
-
-                if (
-                    dependencyValues.parentFixLocation !== null &&
-                    !usedDefault.parentFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation || dependencyValues.parentFixLocation;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.sourceCompositeFixLocation !== null &&
-                    !usedDefault.sourceCompositeFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation ||
-                        dependencyValues.sourceCompositeFixLocation;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.adapterSourceFixLocation !== null &&
-                    !usedDefault.adapterSourceFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation ||
-                        dependencyValues.adapterSourceFixLocation;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.shadowSourceFixLocation !== null &&
-                    !usedDefault.shadowSourceFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation || dependencyValues.shadowSourceFixLocation;
-                    useEssential = false;
-                }
-
-                if (useEssential) {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            fixLocation: true,
-                        },
-                    };
-                } else {
-                    return { setValue: { fixLocation } };
-                }
-            },
-            inverseDefinition({
-                dependencyValues,
-                desiredStateVariableValues,
-            }) {
-                if (dependencyValues.fixLocationPreliminary !== null) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "fixLocationPreliminary",
-                                desiredValue:
-                                    desiredStateVariableValues.fixLocation,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "fixLocation",
-                                value: desiredStateVariableValues.fixLocation,
-                            },
-                        ],
-                    };
-                }
-            },
         };
+        addContextAttributeDefinitions({
+            stateVariableDefinitions,
+            attributeName: "fixLocation",
+        });
 
         stateVariableDefinitions.isInactiveCompositeReplacement = {
             defaultValue: false,
@@ -1379,6 +1302,12 @@ export default class BaseComponent {
                     stateVariableDescriptions[varName].description =
                         theStateDef.description;
                 }
+                // The name its essential value is kept under, where it is not
+                // its own (`primaryEssentialStateVariableOf`).
+                if (theStateDef.essentialVarName !== undefined) {
+                    stateVariableDescriptions[varName].essentialVarName =
+                        theStateDef.essentialVarName;
+                }
                 // Propagate the state def's `excludeFromSchema` flag so the
                 // schema generator can drop this state variable from the
                 // author-facing properties list while leaving it usable at
@@ -1528,7 +1457,19 @@ export default class BaseComponent {
             );
         }
 
-        let includeDefiningChildren = true;
+        // A component whose linked copy reads everything it shows from the
+        // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
+        // without its children unless the copy is unlinked (`copyAll`).
+        // Only the list that is copied; a list inside a copied component
+        // (the coordinates of a `<point>`) is copied with its children.
+        const unlinkedAsValues =
+            this.constructor.serializeUnlinkedAsValues &&
+            Boolean(parameters.copyAll) &&
+            !parameters.serializingDescendant;
+        let includeDefiningChildren =
+            (!this.constructor.serializeChildrenOnlyIfUnlinked ||
+                Boolean(parameters.copyAll)) &&
+            !unlinkedAsValues;
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {
@@ -1544,7 +1485,10 @@ export default class BaseComponent {
 
         let serializedChildren = [];
 
-        let parametersForChildren = { ...parameters };
+        let parametersForChildren = {
+            ...parameters,
+            serializingDescendant: true,
+        };
 
         let primitiveSourceAttributesToIgnore;
         if (parameters.primitiveSourceAttributesToIgnore) {
@@ -1632,6 +1576,47 @@ export default class BaseComponent {
                         sourceDoc: attribute.component.sourceDoc,
                     };
                 }
+            } else if (attribute.type === "literal") {
+                // Like the attribute component it stands for: a linked copy
+                // reads it from its source (`AttributeComponentDependency`),
+                // where a reader's write to it is kept, so only an unlinked
+                // copy takes it, with any value written over it
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
+                    serializedComponent.attributes[attrName] =
+                        copyOfLiteralAttribute(attribute, this);
+                }
+            } else if (attribute.type === "expression") {
+                // Like the attribute component it stands for: a linked copy
+                // reads it from its source (`AttributeComponentDependency`),
+                // so only an unlinked copy takes it, with its references,
+                // resolved from where the copy is, and the text written to it
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
+                    serializedComponent.attributes[attrName] =
+                        copyOfExpressionAttribute(attribute, this);
+                }
+            } else if (attribute.type === "variableRef") {
+                // Like the attribute component it stands for: copied only
+                // when copying all, and then as the value it has now, since
+                // an unlinked copy keeps what it showed (Doenet/DoenetML#2127,
+                // decision 4)
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
+                    const snapshot = await variableRefSnapshot({
+                        attribute,
+                        components: parameters.components,
+                    });
+                    if (snapshot) {
+                        serializedComponent.attributes[attrName] = snapshot;
+                    }
+                }
             } else if (attribute.references) {
                 const references = [];
 
@@ -1665,17 +1650,65 @@ export default class BaseComponent {
             }
         }
 
-        // always copy essential state
+        if (parameters.copyAll) {
+            await serializeShadowedAttributes({
+                component: this,
+                serializedComponent,
+                parametersForChildren,
+                componentSourceAttributesToIgnore,
+            });
+        }
+
+        // always copy essential state, except, for the component a copy is
+        // made of, that of an attribute a reference does not take from its
+        // source (`notFromReferenceSource`): a write to the source's `fixed`
+        // would otherwise decide over where a reference made after it sits,
+        // as one made before it is not given it. A component inside the copy
+        // keeps it, as one made before it does (`EssentialValueWriter`).
         if (
             this.essentialState &&
             Object.keys(this.essentialState).length > 0
         ) {
             serializedComponent.state = deepClone(this.essentialState);
+            for (const varName in serializedComponent.state) {
+                if (
+                    !parameters.serializingDescendant &&
+                    this.state[varName]?.notFromReferenceSource
+                ) {
+                    delete serializedComponent.state[varName];
+                }
+            }
+            // except the writes over literal attributes, which belong to
+            // those literals: a linked copy reads them from this component,
+            // and an unlinked one takes them with the literals (above)
+            delete serializedComponent.state.literalAttributeWrites;
         }
 
+        if (unlinkedAsValues) {
+            serializedComponent.state[
+                this.constructor.primaryStateVariableForDefinition
+            ] = [
+                ...(await this.stateValues[
+                    this.constructor.listValuesArrayName
+                ]),
+            ];
+        }
+
+        // An unlinked copy of a reference (`copyPrimaryEssentialIfShadow`)
+        // holds the referent's value as it is, unless it was given an
+        // attribute of the referent's that defines that value
+        // (`attributesDefiningPrimaryValue`, the `xs` of
+        // `<point>($a, 0)</point>`): pasted as the referent's DoenetML, it
+        // computes the value from that attribute, as the referent does.
+        const definedByAttribute =
+            this.constructor.attributesDefiningPrimaryValue?.some(
+                (name) => serializedComponent.attributes?.[name],
+            );
         if (
             parameters.copyPrimaryEssential ||
-            (parameters.copyPrimaryEssentialIfShadow && this.shadows)
+            (parameters.copyPrimaryEssentialIfShadow &&
+                this.shadows &&
+                !definedByAttribute)
         ) {
             let primaryEssentialStateVariable = "value";
             if (this.constructor.primaryEssentialStateVariable) {
@@ -1725,12 +1758,21 @@ export default class BaseComponent {
             (parameters.copyEssentialStateIfShadow && this.shadows)
         ) {
             for (let varName in this.state) {
-                if (!(varName in serializedComponent.state)) {
-                    let stateVar = this.state[varName];
+                let stateVar = this.state[varName];
+                // held under the name its essential value has, which may
+                // be another variable's own name (a vector's `tail` array
+                // holds its essential value as `tail2`, as `tailShadow`
+                // holds its own as `tail`)
+                const essentialName = stateVar?.essentialVarName ?? varName;
+                if (
+                    !(essentialName in serializedComponent.state) &&
+                    // carried by the literals (above)
+                    varName !== "literalAttributeWrites"
+                ) {
                     if (stateVar.hasEssential) {
                         const value = await this.stateValues[varName];
                         if (!stateVar.usedDefault) {
-                            serializedComponent.state[varName] = value;
+                            serializedComponent.state[essentialName] = value;
                         }
                     }
                 }
@@ -1786,6 +1828,14 @@ export default class BaseComponent {
 
         // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
+        if (parameters.copyAll) {
+            await snapshotListEntrySource(
+                serializedComponent,
+                parametersForChildren,
+            );
+        } else {
+            dropListEntryLabel(serializedComponent.doenetAttributes);
+        }
 
         return serializedComponent;
     }
@@ -1862,12 +1912,23 @@ export default class BaseComponent {
                 serializedComponent.doenetAttributes,
             );
             delete serializedCopy.doenetAttributes.prescribedName;
+            dropListEntryLabel(serializedCopy.doenetAttributes);
         }
 
         if (serializedComponent.attributes != undefined) {
             serializedCopy.attributes = deepClone(
                 serializedComponent.attributes,
             );
+            // an attribute component is copied as a child is, so that one
+            // in the template of a reference to a `<repeat>`, which shadows
+            // the template of what it references, does not keep that link
+            for (const attribute of Object.values(serializedCopy.attributes)) {
+                if (attribute.component) {
+                    attribute.component = this.copySerializedComponent(
+                        attribute.component,
+                    );
+                }
+            }
             serializedCopy.originalAttributes = deepClone(
                 serializedComponent.attributes,
             );
@@ -2208,6 +2269,157 @@ export default class BaseComponent {
 
         if (doenetML) {
             this.coreFunctions.copyToClipboard({ text: doenetML, actionId });
+        }
+    }
+}
+
+/**
+ * For an unlinked copy (`copyAll`) of `component`, which is pasted as the
+ * DoenetML it is linked to: when `component` is a reference or a component
+ * inside one (a shadow, not of a prop), give `serializedComponent` the
+ * attributes `component` takes from what it shadows and does not write
+ * itself, as they are written there, so that one given as a reference
+ * (`hide="$h"`) keeps following it. These include `fixed` and `fixLocation`,
+ * which a reference reads alongside where it sits instead
+ * (`notFromReferenceSource`).
+ */
+async function serializeShadowedAttributes({
+    component,
+    serializedComponent,
+    parametersForChildren,
+    componentSourceAttributesToIgnore,
+}) {
+    const components = parametersForChildren.components;
+    const attributesObj = component.constructor.createAttributesObject();
+    // an extend of a list that names itself makes a cycle
+    // (`pastedShadowSource`)
+    const visited = new Set([component]);
+    for (
+        let from = component,
+            comp = await pastedShadowSource(component, components);
+        comp && !visited.has(comp);
+        from = comp, comp = await pastedShadowSource(comp, components)
+    ) {
+        visited.add(comp);
+        // past a list made by an `extend` of what it names, which may not
+        // be a list (`<mathList extend="$P"/>`), only the attributes it has
+        // too, as it takes only those
+        const onlyOwnAttributes = !from.shadows;
+        // what the copy already has, from `component` or a component
+        // between it and `comp`, and what those replace on a reference
+        // (`replacesOnReference`): a reference that writes `variable` does
+        // not read the `variables` of what it shadows, so neither does its
+        // copy
+        const written = new Set();
+        for (const name in serializedComponent.attributes) {
+            written.add(name);
+            for (const replaced of attributesObj[name]?.replacesOnReference ??
+                []) {
+                written.add(replaced);
+            }
+        }
+        for (const attrName in comp.attributes) {
+            const attribute = comp.attributes[attrName];
+            if (
+                !(
+                    attribute.component ||
+                    attribute.type === "literal" ||
+                    attribute.type === "expression"
+                ) ||
+                (onlyOwnAttributes && !(attrName in attributesObj)) ||
+                written.has(attrName) ||
+                componentSourceAttributesToIgnore.includes(attrName)
+            ) {
+                continue;
+            }
+            if (attribute.type === "literal") {
+                // a literal written on `comp`, with what a reader wrote over
+                // it, as an attribute component is copied with its state
+                serializedComponent.attributes[attrName] =
+                    copyOfLiteralAttribute(attribute, comp);
+                continue;
+            }
+            if (attribute.type === "expression") {
+                // text and references held by `comp`, with the text written
+                // to it, its references resolved from the copy
+                serializedComponent.attributes[attrName] =
+                    copyOfExpressionAttribute(attribute, comp);
+                continue;
+            }
+            serializedComponent.attributes[attrName] = {
+                type: "component",
+                component: await attribute.component.serialize(
+                    parametersForChildren,
+                ),
+                sourceDoc: attribute.component.sourceDoc,
+            };
+        }
+    }
+}
+
+/**
+ * Remove, from the `doenetAttributes` of a linked copy of a component made
+ * from a list entry (`listEntrySourceDoenetAttributes` in `Copy.js`), the
+ * label it reads from the list: the copy is labeled as that component is
+ * (through its shadow source). The other variables it reads from the list
+ * (`fixed`, `fixLocation`, a vector's draggable head and tail), which it has
+ * no attributes for and so are not copied with it, it keeps reading there.
+ * An unlinked copy drops the link instead (`snapshotListEntrySource`).
+ */
+function dropListEntryLabel(doenetAttributes) {
+    const listEntrySource = doenetAttributes.listEntrySource;
+    if (!listEntrySource) {
+        return;
+    }
+    const { label, labelHasLatex, ...variables } = listEntrySource.variables;
+    if (Object.keys(variables).length === 0) {
+        delete doenetAttributes.listEntrySource;
+    } else {
+        doenetAttributes.listEntrySource = { ...listEntrySource, variables };
+    }
+}
+
+/**
+ * For an unlinked copy (`copyAll`) of a component made from a list entry,
+ * remove the `listEntrySource` it would read from the list, so that it does
+ * not follow the list after it is made. The values it read there are carried
+ * by its essential state (`copyEssentialStateIfShadow`), except `fixed` and
+ * `fixLocation`, for which it takes the attributes written on the list or
+ * the entry's source, as an unlinked copy of the entry does (`Copy.js`).
+ */
+async function snapshotListEntrySource(serializedComponent, parameters) {
+    const listEntrySource =
+        serializedComponent.doenetAttributes.listEntrySource;
+    if (!listEntrySource) {
+        return;
+    }
+    delete serializedComponent.doenetAttributes.listEntrySource;
+    const components = parameters.components;
+    const list = components?.[listEntrySource.componentIdx];
+    if (!list) {
+        return;
+    }
+    for (const attributeName of CONTEXT_ATTRIBUTES) {
+        if (
+            !listEntrySource.variables[attributeName] ||
+            attributeName in serializedComponent.attributes
+        ) {
+            continue;
+        }
+        const attribute = await writtenEntryAttributeComponent({
+            list,
+            index: listEntrySource.index,
+            attributeName,
+            components,
+        });
+        if (attribute?.literal) {
+            serializedComponent.attributes[attributeName] = attribute.literal;
+        } else if (attribute) {
+            serializedComponent.attributes[attributeName] = {
+                type: "component",
+                component: await attribute.serialize(parameters),
+                sourceDoc: attribute.sourceDoc,
+            };
         }
     }
 }

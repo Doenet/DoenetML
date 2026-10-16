@@ -4,6 +4,10 @@
 		<chunking level="0" />
 		<exercise-inline statement="yes" hint="yes" answer="no" solution="no" />
 		<exercise-divisional statement="yes" hint="yes" />
+		<!-- A math fillin defaults to "shade", a grey `\colorbox` that browsers omit when
+		     printing background graphics, leaving a blank gap. Underline it instead, to match
+		     the default a text fillin already uses. -->
+		<fillin mathstyle="underline" />
 	</common>
     <html platform="web">
 		<knowl theorem="no" proof="no" definition="no" example="no" example-solution="no" project="no" task="no" remark="no" objectives="no" outcomes="no" figure="no" table="no" listing="no" list="no" exercise-inline="yes" exercise-divisional="no" exercise-worksheet="no" exercise-readingquestion="no" />

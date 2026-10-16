@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import {
+    createTestCore as createTestCoreWithoutListEntries,
+    ResolvePathToNodeIdx,
+} from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     moveMath,
@@ -13,6 +17,16 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 describe("Displayed math tag tests @group1", async () => {
     it("inline and display", async () => {

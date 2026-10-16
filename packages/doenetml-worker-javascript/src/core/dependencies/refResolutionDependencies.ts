@@ -10,6 +10,9 @@ import {
     doenetMLDollarsForReference,
     doenetMLStringForReference,
 } from "../../utils/sourceLocation";
+import { listEntryAtResolverNode } from "../listEntryResolverNodes";
+import { listEntryTargetOfResolution } from "../listEntryTargets";
+import { refResolutionAt } from "../../utils/referenceSlot";
 
 /**
  * The same path with every index emptied.
@@ -25,6 +28,31 @@ function dropPathIndices(path: any[]): any[] {
     return path.map((pathPart) => ({ ...pathPart, index: [] }));
 }
 
+/**
+ * Whether `component`, written between the brackets of a reference's path,
+ * gives the index: an `integer`, or a value reference presenting as one
+ * (`$i` of `$l[$i]`, `utils/dast/valueReferences.ts`).
+ */
+function isIndexComponent(component: any): boolean {
+    return (
+        component.componentType === "integer" ||
+        (component.componentType === "_ref" &&
+            component.presentedComponentType === "integer")
+    );
+}
+
+/**
+ * The index that `component` (see `isIndexComponent`) gives when its
+ * `value` is `value`, as the literal string the resolver takes. A value
+ * reference reads its referent's number as it is, so it is rounded here,
+ * as the `integer` a copy would have made from it rounds.
+ */
+function indexFromValue(component: any, value: any): string {
+    return (
+        component.componentType === "_ref" ? Math.round(value) : value
+    ).toString();
+}
+
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
@@ -36,7 +64,18 @@ export class RefResolutionIndexDependencies extends Dependency {
             this.compositeIdx = this.upstreamComponentIdx;
         }
 
+        // the reference of an attribute's slot, or the component's own
+        this.slot = this.definition.slot;
+
         this.missingComponentBlockers = [];
+    }
+
+    /**
+     * The reference this dependency resolves on `component`: its slot's
+     * (`refResolutionAt`), or the component's own.
+     */
+    refResolutionOf(component: any) {
+        return refResolutionAt(component, this.slot);
     }
 
     async determineDownstreamComponents() {
@@ -60,7 +99,7 @@ export class RefResolutionIndexDependencies extends Dependency {
         this.componentList = [];
 
         const gatherResult = await this.gatherComponentsInPath(
-            composite.refResolution.originalPath,
+            this.refResolutionOf(composite).originalPath,
         );
 
         if (gatherResult.success) {
@@ -82,14 +121,14 @@ export class RefResolutionIndexDependencies extends Dependency {
     // Iterate through the index of all parts of `originalPath`.
     // If encounter unexpanded composites, set up resolve blockers
     // so that this dependency will be resolved again once the composites are expanded.
-    // Otherwise, gather all the component indices of the "integer" components into `componentList`.
+    // Otherwise, gather all the component indices of the index components (`isIndexComponent`) into `componentList`.
     // If encountered unexpanded composites, return
     // - success: false
-    // If successfully found all integer components return
+    // If successfully found all index components return
     // - success: true,
-    // - componentList: a list of the component indices of the "integer" components found in the unresolved path
+    // - componentList: a list of the component indices of the index components found in the unresolved path
     //
-    // An index that did not come out as a single integer component is simply left
+    // An index that did not come out as a single index component is simply left
     // out of `componentList`. It used to throw, which blanked the document
     // (#1917): the index of a component that had already been turned into an
     // `_error` is not an integer, so an ordinary authoring slip -- a mistyped
@@ -135,10 +174,7 @@ export class RefResolutionIndexDependencies extends Dependency {
                         }
                     }
 
-                    if (
-                        !foundUnexpanded &&
-                        indexComponent.componentType !== "integer"
-                    ) {
+                    if (!foundUnexpanded && !isIndexComponent(indexComponent)) {
                         continue;
                     }
 
@@ -211,6 +247,9 @@ export class RefResolutionDependency extends Dependency {
         }
 
         this.indexDependencyValues = this.definition.indexDependencyValues;
+        // the reference of an attribute's slot, or the component's own
+        this.slot = this.definition.slot;
+
         this.missingComponentBlockers = [];
     }
 
@@ -247,12 +286,12 @@ export class RefResolutionDependency extends Dependency {
         let source = composite;
 
         while (
-            source?.refResolution &&
+            this.refResolutionOf(source) &&
             !visitedSources.has(source.componentIdx)
         ) {
             visitedSources.add(source.componentIdx);
 
-            const origin = source.refResolution.nodesInResolvedPath[0];
+            const origin = this.refResolutionOf(source).nodesInResolvedPath[0];
 
             if (origin != undefined && !yieldedOrigins.has(origin)) {
                 yieldedOrigins.add(origin);
@@ -290,6 +329,14 @@ export class RefResolutionDependency extends Dependency {
         );
     }
 
+    /**
+     * The reference this dependency resolves on `component`: its slot's
+     * (`refResolutionAt`), or the component's own.
+     */
+    refResolutionOf(component: any) {
+        return refResolutionAt(component, this.slot);
+    }
+
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
 
@@ -308,7 +355,7 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
-        let nodeIdx = composite.refResolution.nodeIdx;
+        let nodeIdx = this.refResolutionOf(composite).nodeIdx;
 
         // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
         // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
@@ -356,7 +403,7 @@ export class RefResolutionDependency extends Dependency {
         // Resolve all components in the path indices to integer values
         const resolveComponentResult =
             await this.resolveComponentsInPathIndices(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 force,
             );
 
@@ -373,10 +420,10 @@ export class RefResolutionDependency extends Dependency {
                     code: "doenet-w0163",
                     args: {
                         reference: `${doenetMLDollarsForReference(
-                            composite.refResolution.originalPath,
+                            this.refResolutionOf(composite).originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
                         )}${doenetMLStringForReference(
-                            composite.refResolution.originalPath,
+                            this.refResolutionOf(composite).originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
                         )}`,
                     },
@@ -398,7 +445,7 @@ export class RefResolutionDependency extends Dependency {
             // through an index we could not work out anyway, and the names and
             // positions the reporting paths read are all still here.
             this.originalPath = dropPathIndices(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
             );
             this.unresolvedPath = this.originalPath;
             return {
@@ -461,13 +508,13 @@ export class RefResolutionDependency extends Dependency {
         }
 
         /**
-         * Given the ref resolution `composite.refResolution`
+         * Given the ref resolution `this.refResolutionOf(composite)`
          * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
          * return the substring of DoenetML corresponding to the resolution's `originalPath`.
          */
         const getDoenetMLStringForReference = () =>
             doenetMLStringForReference(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
@@ -478,7 +525,7 @@ export class RefResolutionDependency extends Dependency {
          */
         const getDollarsForReference = () =>
             doenetMLDollarsForReference(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
@@ -567,6 +614,32 @@ export class RefResolutionDependency extends Dependency {
                 success: true,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
+            };
+        }
+
+        // An entry of a list component that a composite is indexed by is a
+        // node of the resolver with no component
+        // (`listEntryResolverNodes.ts`); it is read as an index into the
+        // list, as `$l[2]` is.
+        const listEntry = listEntryAtResolverNode(
+            this.dependencyHandler.core,
+            refResolution.nodeIdx,
+        );
+        if (listEntry) {
+            refResolution = {
+                ...refResolution,
+                nodeIdx: listEntry.listIdx,
+                unresolvedPath: [
+                    {
+                        name: "",
+                        index: [
+                            {
+                                value: [String(listEntry.entryIndex + 1)],
+                            },
+                        ],
+                    },
+                    ...(refResolution.unresolvedPath ?? []),
+                ],
             };
         }
 
@@ -723,11 +796,11 @@ export class RefResolutionDependency extends Dependency {
 
     /**
      * Iterate through the index of all parts of `path`.
-     * If any component is found, it must be an "integer".
-     * Resolve its `value` state variable, which should be an integer,
-     * and use its string value instead of the component.
+     * If any component is found, it must be an index component
+     * (`isIndexComponent`), and its `value`, rounded where it is not an
+     * `integer`'s (`indexFromValue`), replaces it as a string.
      *
-     * A component that is not an integer -- or a composite that did not produce
+     * A component that is not an index component -- or a composite that did not produce
      * exactly one replacement -- means the index cannot be worked out at all.
      * That returns `indexIsNotANumber`, and the caller reports it and leaves the
      * reference resolving to nothing. It used to throw, and since nothing between
@@ -781,16 +854,19 @@ export class RefResolutionDependency extends Dependency {
                         indexComponent = indexComponent.replacements[0];
                     }
 
-                    if (indexComponent.componentType !== "integer") {
+                    if (!isIndexComponent(indexComponent)) {
                         return { success: true, indexIsNotANumber: true };
                     }
 
                     // save index as a literal string
                     index.push({
                         value: [
-                            this.indexDependencyValues[
-                                indexComponent.componentIdx
-                            ].toString(),
+                            indexFromValue(
+                                indexComponent,
+                                this.indexDependencyValues[
+                                    indexComponent.componentIdx
+                                ],
+                            ),
                         ],
                         position: index_part.position,
                         sourceDoc: index_part.sourceDoc,
@@ -846,6 +922,12 @@ export class RefResolutionDependency extends Dependency {
  *   or `undefined` if no referent was found
  * - unresolvedPath: any unresolved path remaining after `componentIdx` was resolved
  * - originalPath: the original path corresponding to the given reference
+ * - listEntry: when the reference names one entry of a list component
+ *   (`$pl[2]`), which has no component, the entry as a target
+ *   (`listEntryTargetOfResolution`): the renderer index reserved for it, with
+ *   the list and the entry's index; `undefined` otherwise. A consumer that
+ *   needs a component as a target takes `componentIdx` when `unresolvedPath`
+ *   is `null`, and otherwise this entry's `componentIdx`, if there is one.
  */
 export class AttributeRefResolutions extends Dependency {
     static dependencyType = "attributeRefResolutions";
@@ -916,13 +998,21 @@ export class AttributeRefResolutions extends Dependency {
 
         for (const comp of result.value) {
             const extendIdx = comp.stateValues.extendIdx;
+            const unresolvedPath = comp.stateValues.unresolvedPath;
 
             newValue.push({
                 componentIdx: extendIdx,
-                unresolvedPath: comp.stateValues.unresolvedPath,
+                unresolvedPath,
                 originalPath: comp.stateValues.originalPath,
                 position: comp.position,
                 sourceDoc: comp.sourceDoc,
+                listEntry:
+                    extendIdx === -1
+                        ? undefined
+                        : listEntryTargetOfResolution(
+                              this.dependencyHandler.core,
+                              { componentIdx: extendIdx, unresolvedPath },
+                          ),
             });
 
             if (extendIdx !== -1) {

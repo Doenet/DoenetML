@@ -1,6 +1,9 @@
 import { cesc } from "@doenet/utils";
 import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
-import { verifyListItemNumbersAlign } from "./utils/listItemNumberAlignment";
+import {
+    verifyListItemNumbersAlign,
+    verifySectionNumberSharesRowWith,
+} from "./utils/listItemNumberAlignment";
 
 describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
@@ -1631,6 +1634,50 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyBeforeContent("problem3", '"3."');
     });
 
+    // The problems in a cascade and the ones around it are one list: the
+    // numbering continues through the cascade, and revealing a step moves no
+    // number.
+    it("problems number in one sequence through a cascade", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <problem name="problem1">1+1=<answer name="ans1"><mathInput name="mi1" /><award>2</award></answer></problem>
+            <cascade name="cascade">
+                <problem name="problem2">2+1=<answer name="ans2"><mathInput name="mi2" /><award>3</award></answer></problem>
+                <cascade>
+                    <problem name="problem3">3+1=<answer name="ans3"><mathInput name="mi3" /><award>4</award></answer></problem>
+                </cascade>
+            </cascade>
+            <problem name="problem4">4+1=<answer name="ans4"><mathInput name="mi4" /><award>5</award></answer></problem>
+        </problems>
+        <p name="pNum">$problem4.sectionNumber</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#problem4").should("exist");
+
+        verifyBeforeContent("problem1", '"1."');
+        verifyBeforeContent("problem2", '"2."');
+        verifyBeforeContent("problem4", '"4."');
+        cy.get("#pNum").should("have.text", "4");
+
+        // The nested cascade is a step not yet reached, so nothing of it is
+        // drawn until the problem before it is answered.
+        cy.get("#problem3").should("not.exist");
+        cy.get("#mi2 textarea").type("3{enter}", { force: true });
+        cy.get("#mi3").should("exist");
+
+        verifyBeforeContent("problem1", '"1."');
+        verifyBeforeContent("problem2", '"2."');
+        verifyBeforeContent("problem3", '"3."');
+        verifyBeforeContent("problem4", '"4."');
+    });
+
     // A list item lines its number up with its first child that renders
     // something and suppresses that child's top margin, so a child that hid
     // itself must not be picked. A `<cascade>` is where that has to be told apart
@@ -1884,5 +1931,31 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyListItemNumbersAlign(["p1", "p2", "p3", "p4"], {
             label: "cascade single- vs multi-line at 500px",
         });
+    });
+
+    // The section-number counterpart of the `<li>` marker test in `list.cy.js`:
+    // the number lines up with its content's first baseline, which for a
+    // several-row display is the middle row unless the display is aligned on
+    // its first row.
+    it("a part's number sits beside the first row of a leading md", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem>
+            <part name="part1">
+                <md><mrow>a &= b</mrow><mrow>c &= d</mrow><mrow>e &= f</mrow></md>
+            </part>
+        </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        verifySectionNumberSharesRowWith(
+            "part1",
+            `#${cesc("part1")} mjx-itable > :first-child`,
+        );
     });
 });

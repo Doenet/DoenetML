@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
@@ -46,8 +47,12 @@ async function checkMatches({
         ).eq(res !== false);
 
         for (let ind = 1; ind <= numMatches; ind++) {
-            const match =
-                stateVariables[await resolvePathToNodeIdx(`mm[${ind}]`)];
+            const match = await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                `mm[${ind}]`,
+            );
             if (res === false) {
                 expect(match, `${expr}, match ${ind}`).eq(undefined);
             } else {
@@ -247,20 +252,26 @@ describe("MatchesPattern tag tests @group3", async () => {
                     ).to.be.true;
                     expect(
                         cleanLatex(
-                            stateVariables[
-                                await resolvePathToNodeIdx(
+                            (
+                                await componentOrListEntry(
+                                    core,
+                                    stateVariables,
+                                    resolvePathToNodeIdx,
                                     `${matchNames[name][0]}`,
                                 )
-                            ].stateValues.latex,
+                            ).stateValues.latex,
                         ),
                     ).eq(res[0]);
                     expect(
                         cleanLatex(
-                            stateVariables[
-                                await resolvePathToNodeIdx(
+                            (
+                                await componentOrListEntry(
+                                    core,
+                                    stateVariables,
+                                    resolvePathToNodeIdx,
                                     `${matchNames[name][1]}`,
                                 )
-                            ].stateValues.latex,
+                            ).stateValues.latex,
                         ),
                     ).eq(res[1]);
                 } else {
@@ -269,14 +280,20 @@ describe("MatchesPattern tag tests @group3", async () => {
                             .stateValues.value,
                     ).to.be.false;
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][0]}`,
+                        ),
                     ).eq(undefined);
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][1]}`,
+                        ),
                     ).eq(undefined);
                 }
             }
@@ -421,20 +438,26 @@ describe("MatchesPattern tag tests @group3", async () => {
                     ).to.be.true;
                     expect(
                         cleanLatex(
-                            stateVariables[
-                                await resolvePathToNodeIdx(
+                            (
+                                await componentOrListEntry(
+                                    core,
+                                    stateVariables,
+                                    resolvePathToNodeIdx,
                                     `${matchNames[name][0]}`,
                                 )
-                            ].stateValues.latex,
+                            ).stateValues.latex,
                         ),
                     ).eq(res[0]);
                     expect(
                         cleanLatex(
-                            stateVariables[
-                                await resolvePathToNodeIdx(
+                            (
+                                await componentOrListEntry(
+                                    core,
+                                    stateVariables,
+                                    resolvePathToNodeIdx,
                                     `${matchNames[name][1]}`,
                                 )
-                            ].stateValues.latex,
+                            ).stateValues.latex,
                         ),
                     ).eq(res[1]);
                 } else {
@@ -443,14 +466,20 @@ describe("MatchesPattern tag tests @group3", async () => {
                             .stateValues.value,
                     ).to.be.false;
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][0]}`,
+                        ),
                     ).eq(undefined);
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][1]}`,
+                        ),
                     ).eq(undefined);
                 }
             }
@@ -587,10 +616,12 @@ describe("MatchesPattern tag tests @group3", async () => {
                         stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.true;
-                    let match1 =
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
-                        ];
+                    let match1 = await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `${matchNames[name][0]}`,
+                    );
 
                     if (match1.componentType === "copy") {
                         match1 =
@@ -599,10 +630,12 @@ describe("MatchesPattern tag tests @group3", async () => {
                             ];
                     }
                     expect(cleanLatex(match1.stateValues.latex)).eq(res[0]);
-                    let match2 =
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
-                        ];
+                    let match2 = await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `${matchNames[name][1]}`,
+                    );
 
                     if (match2.componentType === "copy") {
                         match2 =
@@ -611,10 +644,12 @@ describe("MatchesPattern tag tests @group3", async () => {
                             ];
                     }
                     expect(cleanLatex(match2.stateValues.latex)).eq(res[1]);
-                    let match3 =
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][2]}`)
-                        ];
+                    let match3 = await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `${matchNames[name][2]}`,
+                    );
                     if (match3.componentType === "copy") {
                         match3 =
                             stateVariables[
@@ -628,19 +663,28 @@ describe("MatchesPattern tag tests @group3", async () => {
                             .stateValues.value,
                     ).to.be.false;
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][0]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][0]}`,
+                        ),
                     ).eq(undefined);
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][1]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][1]}`,
+                        ),
                     ).eq(undefined);
                     expect(
-                        stateVariables[
-                            await resolvePathToNodeIdx(`${matchNames[name][2]}`)
-                        ],
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `${matchNames[name][2]}`,
+                        ),
                     ).eq(undefined);
                 }
             }
@@ -680,14 +724,26 @@ describe("MatchesPattern tag tests @group3", async () => {
         ).to.be.true;
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx(`mpsm[1]`)]
-                    .stateValues.latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `mpsm[1]`,
+                    )
+                ).stateValues.latex,
             ),
         ).eq("e");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx(`mpsm[2]`)]
-                    .stateValues.latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `mpsm[2]`,
+                    )
+                ).stateValues.latex,
             ),
         ).eq("x+2");
 
@@ -696,14 +752,26 @@ describe("MatchesPattern tag tests @group3", async () => {
         ).to.be.true;
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx(`mpmm[1]`)]
-                    .stateValues.latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `mpmm[1]`,
+                    )
+                ).stateValues.latex,
             ),
         ).eq("e");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx(`mpmm[2]`)]
-                    .stateValues.latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `mpmm[2]`,
+                    )
+                ).stateValues.latex,
             ),
         ).eq("x+2");
     });
@@ -799,14 +867,26 @@ describe("MatchesPattern tag tests @group3", async () => {
                 ).to.be.true;
                 expect(
                     cleanLatex(
-                        stateVariables[await resolvePathToNodeIdx(`m[1]`)]
-                            .stateValues.latex,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `m[1]`,
+                            )
+                        ).stateValues.latex,
                     ),
                 ).eq(res[0]);
                 expect(
                     cleanLatex(
-                        stateVariables[await resolvePathToNodeIdx(`m[2]`)]
-                            .stateValues.latex,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `m[2]`,
+                            )
+                        ).stateValues.latex,
                     ),
                 ).eq(res[1]);
             } else {
@@ -814,12 +894,22 @@ describe("MatchesPattern tag tests @group3", async () => {
                     stateVariables[await resolvePathToNodeIdx(`match`)]
                         .stateValues.value,
                 ).to.be.false;
-                expect(stateVariables[await resolvePathToNodeIdx(`m[1]`)]).eq(
-                    undefined,
-                );
-                expect(stateVariables[await resolvePathToNodeIdx(`m[2]`)]).eq(
-                    undefined,
-                );
+                expect(
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `m[1]`,
+                    ),
+                ).eq(undefined);
+                expect(
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `m[2]`,
+                    ),
+                ).eq(undefined);
             }
 
             await updateBooleanInputValue({
@@ -840,14 +930,26 @@ describe("MatchesPattern tag tests @group3", async () => {
                 ).to.be.true;
                 expect(
                     cleanLatex(
-                        stateVariables[await resolvePathToNodeIdx(`m[1]`)]
-                            .stateValues.latex,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `m[1]`,
+                            )
+                        ).stateValues.latex,
                     ),
                 ).eq(res[0]);
                 expect(
                     cleanLatex(
-                        stateVariables[await resolvePathToNodeIdx(`m[2]`)]
-                            .stateValues.latex,
+                        (
+                            await componentOrListEntry(
+                                core,
+                                stateVariables,
+                                resolvePathToNodeIdx,
+                                `m[2]`,
+                            )
+                        ).stateValues.latex,
                     ),
                 ).eq(res[1]);
             } else {
@@ -855,12 +957,22 @@ describe("MatchesPattern tag tests @group3", async () => {
                     stateVariables[await resolvePathToNodeIdx(`match`)]
                         .stateValues.value,
                 ).to.be.false;
-                expect(stateVariables[await resolvePathToNodeIdx(`m[1]`)]).eq(
-                    undefined,
-                );
-                expect(stateVariables[await resolvePathToNodeIdx(`m[2]`)]).eq(
-                    undefined,
-                );
+                expect(
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `m[1]`,
+                    ),
+                ).eq(undefined);
+                expect(
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `m[2]`,
+                    ),
+                ).eq(undefined);
             }
         }
     });
@@ -1126,8 +1238,14 @@ describe("MatchesPattern tag tests @group3", async () => {
         ).to.be.true;
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mvm[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mvm[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("a");
     });
@@ -1206,8 +1324,14 @@ describe("MatchesPattern tag tests @group3", async () => {
         ).to.be.true;
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mm2[2]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mm2[2]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("0");
     });

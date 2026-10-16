@@ -8,6 +8,7 @@ import {
     sampleMultivariateHypergeometric,
 } from "../../utils/randomNumbers";
 import seedrandom from "seedrandom";
+import { entriesOrReplacements } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -49,8 +50,8 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx(name);
-        return stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+        return entriesOrReplacements(core, stateVariables, componentIdx).map(
+            (x) => x.stateValues.value,
         );
     }
 
@@ -142,9 +143,11 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
 
-        const values = stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        const values = entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        ).map((x) => x.stateValues.value);
 
         expect(values.length).eq(3);
         expect(values.reduce((a, c) => a + c, 0)).eq(4);
@@ -294,8 +297,8 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const componentIdx = await resolvePathToNodeIdx("s");
 
         expect(
-            stateVariables[componentIdx].replacements!.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
+            entriesOrReplacements(core, stateVariables, componentIdx).map(
+                (x) => x.stateValues.value,
             ),
         ).eqls([0, 0]);
         expect(stateVariables[componentIdx].stateValues.means).eqls([0, 0]);
@@ -314,7 +317,9 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
 
-        expect(stateVariables[componentIdx].replacements!.length).eq(0);
+        expect(
+            entriesOrReplacements(core, stateVariables, componentIdx).length,
+        ).eq(0);
         expect(stateVariables[componentIdx].stateValues.means).eqls([]);
         expect(stateVariables[componentIdx].stateValues.variances).eqls([]);
 
@@ -522,12 +527,12 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         );
         expect(warnings.length).eq(1);
 
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
         for (const value of stateVariables[componentIdx].stateValues.means) {
             expect(Number.isNaN(value)).eq(true);
@@ -562,12 +567,12 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
             ).length,
         ).eq(1);
 
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
         for (const value of stateVariables[componentIdx].stateValues.means) {
             expect(Number.isNaN(value)).eq(true);
@@ -594,12 +599,12 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
             maxDraws: 1e7,
         });
 
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
         for (const value of stateVariables[componentIdx].stateValues.means) {
             expect(Number.isNaN(value)).eq(true);
@@ -624,9 +629,11 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
             draws: 3000000,
         });
 
-        const values = stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        const values = entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        ).map((x) => x.stateValues.value);
         expect(values.reduce((a, c) => a + c, 0)).eq(3000000);
         for (const value of values) {
             expect(value).closeTo(1500000, 20000);
@@ -658,12 +665,12 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
 
         // nothing is guessed: the counts and both sets of moments are NaN, even
         // though the remaining parameters would describe a usable population
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
         for (const value of stateVariables[componentIdx].stateValues.means) {
             expect(Number.isNaN(value)).eq(true);
@@ -779,14 +786,12 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // that the reuse branch said anything. The reload below is what fails when
         // it says nothing.
         expect(numExplanations(core)).eq(1);
-        for (const replacement of stateVariables[
-            await resolvePathToNodeIdx("s")
-        ].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("s"),
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
 
         // A reload begins with no diagnostics at all, so it is where an unexplained
@@ -800,14 +805,12 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(numExplanations(core)).eq(1);
-        for (const replacement of stateVariables[
-            await resolvePathToNodeIdx("s")
-        ].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("s"),
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
     });
 
@@ -836,9 +839,11 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                 true,
             );
             const componentIdx = await resolvePathToNodeIdx("s");
-            return stateVariables[componentIdx].replacements!.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            );
+            return entriesOrReplacements(
+                core,
+                stateVariables,
+                componentIdx,
+            ).map((x) => x.stateValues.value);
         }
 
         // Resampling repeatedly: with this population an identical vector is
@@ -877,9 +882,11 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                 true,
             );
             const componentIdx = await resolvePathToNodeIdx("s");
-            return stateVariables[componentIdx].replacements!.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            );
+            return entriesOrReplacements(
+                core,
+                stateVariables,
+                componentIdx,
+            ).map((x) => x.stateValues.value);
         }
 
         const first = await values_for_variant(1);

@@ -507,6 +507,7 @@ export class M extends InlineComponent {
             sourceInformation,
             skipRendererUpdate,
             componentIdx: this.componentIdx,
+            component: this,
             componentType: this.componentType,
             coreFunctions: this.coreFunctions,
         });

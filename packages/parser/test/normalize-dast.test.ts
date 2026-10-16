@@ -458,6 +458,25 @@ describe("Normalize dast", async () => {
         );
     });
 
+    it("drops the section attributes a cascade no longer has", () => {
+        const source = `<cascade name="c" boxed weight="2" forceIndividualAnswerColoring hideFutureSections><p>x</p></cascade>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><cascade name="c" hideFutureSections="true"><p>x</p></cascade></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings.map((x) => x.message).sort()).toEqual([
+            "[deprecation] Attribute `boxed` on `<cascade>` is deprecated and ignored.",
+            "[deprecation] Attribute `forceIndividualAnswerColoring` on `<cascade>` is deprecated and ignored.",
+            "[deprecation] Attribute `weight` on `<cascade>` is deprecated and ignored.",
+        ]);
+    });
+
     it("keeps non-deprecated attributes when dropping deprecated ones", () => {
         const source = `<description name="d" aggregateScores>hello</description>`;
         const dast = lezerToDast(source);

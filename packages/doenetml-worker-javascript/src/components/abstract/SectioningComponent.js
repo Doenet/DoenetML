@@ -20,10 +20,10 @@ import {
     CANVAS_LIGHT_MODE_COLOR,
     sectionTitleStateKeys,
     titleStateKeyFromCredit,
-    resolveSectionTitleLightColorSpec,
-    resolveSectionTitleDarkColorSpec,
     shouldEmitSectionTitleColorDiagnostic,
     addSectionTitleColorContrastDiagnostic,
+    returnSectionTitleStateColorAttributes,
+    returnSectionTitleStateColorStateVariableDefinitions,
 } from "../../utils/sectionTitleColors";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
@@ -31,6 +31,15 @@ import {
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
+import { returnCascadeStepStateVariableDefinitions } from "../../utils/cascadeStep";
+import {
+    DIVISION_SEQUENCE,
+    LIST_CONTAINER_TYPES,
+    LIST_ITEM_SEQUENCE,
+    returnSequenceNumbersOfChildrenDefinition,
+    sequenceNumberDependencies,
+    sequenceNumberFromParent,
+} from "../../utils/sequenceNumbering";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
@@ -157,6 +166,12 @@ export class SectioningComponent extends BlockComponent {
 
     static createsVariants = true;
 
+    // Whether the author may replace this block's auto-generated word with
+    // `renameTo`. A division that names itself from the catalog does not — see
+    // `SectioningComponentNumberWithSiblings` — while a container that groups
+    // divisions, such as `<problems>`, does.
+    static allowRenameTo = true;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -248,89 +263,15 @@ export class SectioningComponent extends BlockComponent {
                 "The heading level for this section (overrides the default level inferred from nesting).",
         };
 
-        attributes.renameTo = {
-            createComponentOfType: "text",
-            description:
-                'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
-        };
+        if (this.allowRenameTo) {
+            attributes.renameTo = {
+                createComponentOfType: "text",
+                description:
+                    'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
+            };
+        }
 
-        attributes.completedColor = {
-            createComponentOfType: "text",
-            createStateVariable: "completedColor",
-            defaultValue: "var(--lightGreen)",
-            description:
-                "Color used to indicate this section has been completed.",
-        };
-
-        // Whether the heading bar waits for a grade. The completion states are
-        // driven by `creditAchievedForProgress`, which counts a `handGraded`
-        // answer as correct once the reader has responded — a bar that stayed
-        // gray until an instructor got to it would withhold the reward for work
-        // the reader has finished, and they have no way to tell the two apart.
-        // An instructor who wants the bar to mean "graded and correct" sets
-        // this, and the real `creditAchieved` drives the states instead.
-        attributes.completedColorRequiresCredit = {
-            createComponentOfType: "boolean",
-            createStateVariable: "completedColorRequiresCreditPreliminary",
-            // See the note on `showCorrectness` in
-            // `returnScoredSectionAttributes`: this default is shown to authors
-            // but is not what resolves the value, which falls back to the
-            // enclosing section before reaching it.
-            defaultValue: false,
-            description:
-                "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
-        };
-
-        attributes.inProgressColor = {
-            createComponentOfType: "text",
-            createStateVariable: "inProgressColor",
-            defaultValue: "var(--mainGray)",
-            description: "Color used to indicate this section is in progress.",
-        };
-
-        attributes.notStartedColor = {
-            createComponentOfType: "text",
-            createStateVariable: "notStartedColor",
-            defaultValue: "var(--mainGray)",
-            description:
-                "Color used to indicate this section has not been started.",
-        };
-
-        attributes.completedColorDarkMode = {
-            createComponentOfType: "text",
-            createStateVariable: "completedColorDarkMode",
-            // Dark green; white text contrast ≈ 7.9:1 (passes WCAG AA and AAA).
-            defaultValue: "#1a5e20",
-            description:
-                "Color used to indicate this section has been completed (dark mode). " +
-                "If omitted, the dark-mode color is derived from `completedColor` when " +
-                "that attribute is explicitly set; otherwise falls back to a dark green " +
-                "that meets WCAG AA contrast for white text.",
-        };
-
-        attributes.inProgressColorDarkMode = {
-            createComponentOfType: "text",
-            createStateVariable: "inProgressColorDarkMode",
-            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
-            defaultValue: "#3a3a3a",
-            description:
-                "Color used to indicate this section is in progress (dark mode). " +
-                "If omitted, the dark-mode color is derived from `inProgressColor` when " +
-                "that attribute is explicitly set; otherwise falls back to a dark gray " +
-                "that meets WCAG AA contrast for white text.",
-        };
-
-        attributes.notStartedColorDarkMode = {
-            createComponentOfType: "text",
-            createStateVariable: "notStartedColorDarkMode",
-            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
-            defaultValue: "#3a3a3a",
-            description:
-                "Color used to indicate this section has not been started (dark mode). " +
-                "If omitted, the dark-mode color is derived from `notStartedColor` when " +
-                "that attribute is explicitly set; otherwise falls back to a dark gray " +
-                "that meets WCAG AA contrast for white text.",
-        };
+        Object.assign(attributes, returnSectionTitleStateColorAttributes());
 
         return attributes;
     }
@@ -444,8 +385,31 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        // How this section numbers the children that are its list items,
+        // counting through any `<cascade>` among them. (It numbers the
+        // divisions among its children as every block does; see
+        // `BlockComponent` and `utils/sequenceNumbering.js`.)
+        stateVariableDefinitions.listItemNumbersOfChildren =
+            returnSequenceNumbersOfChildrenDefinition(LIST_ITEM_SEQUENCE);
+
+        // The numbering of a container: a sectioning component that shows no
+        // number of its own, such as the wrapper a copy from an external URI
+        // arrives in. It takes none either, so it leaves no gap in
+        // the sequence that numbers figures and tables: a figure that is the
+        // first numbered thing in a document is Figure 1 however many wrappers
+        // enclose it. The enclosing section's enumeration passes through in
+        // place of a number of its own, so that a division written inside such
+        // a wrapper with `includeParentNumber` is prefixed with the number of
+        // the section its author sees around the wrapper. The divisions inside
+        // it are numbered among the divisions beside it (see
+        // `returnSequencePassThroughDefinitions`, which `<externalContent>` and
+        // `<standinForFutureLayoutTag>` add). The exception is a wrapper that a
+        // list-producing parent numbers as one of its items.
+        //
+        // A division that does carry a number overrides this:
+        // `SectioningComponentNumberWithSiblings` numbers among its sibling
+        // divisions, and `UnnumberedSectioningComponent` has no number at all.
         stateVariableDefinitions.enumeration = {
-            stateVariablesDeterminingDependencies: ["isListItem"],
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
@@ -457,46 +421,44 @@ export class SectioningComponent extends BlockComponent {
                     forRenderer: true,
                 },
             ],
-            mustEvaluate: true, // must evaluate to make sure all counters are accounted for
-            returnDependencies: ({ stateValues }) => {
-                let dependencies = {
-                    isListItem: {
-                        dependencyType: "stateVariable",
-                        variableName: "isListItem",
-                    },
-                };
-
-                if (stateValues.isListItem) {
-                    dependencies.countAmongSiblings = {
-                        dependencyType: "countAmongSiblings",
-                        componentType: "_sectioningComponent",
-                        includeInheritedComponentTypes: true,
-                    };
-                } else {
-                    dependencies.sectioningCounter = {
-                        dependencyType: "counter",
-                        counterName: "sectioning",
-                    };
-                }
-
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
+            stateVariablesDeterminingDependencies: ["isListItem"],
+            returnDependencies: ({ stateValues }) => ({
+                isListItem: {
+                    dependencyType: "stateVariable",
+                    variableName: "isListItem",
+                },
+                ...(stateValues.isListItem
+                    ? sequenceNumberDependencies(LIST_ITEM_SEQUENCE)
+                    : {}),
+                sectionAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "_sectioningComponent",
+                    variableNames: ["enumeration"],
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
                 if (dependencyValues.isListItem) {
-                    let sectionNumber = dependencyValues.countAmongSiblings;
-                    let enumeration = [sectionNumber];
-                    return { setValue: { enumeration, sectionNumber } };
-                } else {
-                    let sectionNumber = String(
-                        dependencyValues.sectioningCounter,
-                    );
+                    const listItemNumber = sequenceNumberFromParent({
+                        sequence: LIST_ITEM_SEQUENCE,
+                        dependencyValues,
+                        componentIdx,
+                    });
                     return {
                         setValue: {
-                            enumeration: [sectionNumber],
-                            sectionNumber,
+                            enumeration: [listItemNumber],
+                            sectionNumber: String(listItemNumber),
                         },
                     };
                 }
+
+                return {
+                    setValue: {
+                        enumeration:
+                            dependencyValues.sectionAncestor?.stateValues
+                                .enumeration ?? [],
+                        sectionNumber: null,
+                    },
+                };
             },
         };
 
@@ -554,32 +516,19 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.hideChildren = {
-            returnDependencies: () => ({
-                parentChildrenToHideChildren: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "childrenToHideChildren",
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                let hideChildren = Boolean(
-                    dependencyValues.parentChildrenToHideChildren?.includes(
-                        componentIdx,
-                    ),
-                );
-
-                return { setValue: { hideChildren } };
-            },
-        };
+        Object.assign(
+            stateVariableDefinitions,
+            returnCascadeStepStateVariableDefinitions(),
+        );
 
         /**
          * Whether this section would show a `<cascadeMessage>` of its own if the
-         * `<cascade>` holding it back gave it the turn — which, for every section
-         * but a `<cascade>`, is simply whether it has one: a held-back section
-         * whose turn it is shows all of its message children. `Cascade.js`
-         * overrides this, because a cascade shows one message of its own at most
-         * and only in a gap between its steps, and so can have message children
-         * and still have nothing to say.
+         * `<cascade>` holding it back gave it the turn — which, for a section, is
+         * simply whether it has one: a held-back section whose turn it is shows
+         * all of its message children. A nested `<cascade>` answers the same
+         * question differently (`Cascade.js`), because a cascade shows one
+         * message of its own at most and only in a gap between its steps, and so
+         * can have message children and still have nothing to say.
          *
          * A `<cascade>` reads this off each of its steps to decide which single
          * message to show: a step's own message is more specific than one of the
@@ -605,34 +554,6 @@ export class SectioningComponent extends BlockComponent {
                     setValue: {
                         hasCascadeMessageToShow:
                             dependencyValues.cascadeMessageChildren.length > 0,
-                    },
-                };
-            },
-        };
-
-        /**
-         * Whether this section is the one step of its `<cascade>` that is
-         * currently showing its `<cascadeMessage>` children.
-         *
-         * At most one message is shown per cascade, and the cascade picks which
-         * (`sectionToShowCascadeMessage` in `Cascade.js`). A section whose parent
-         * is not a cascade gets `undefined` from the dependency — `parent`
-         * dependencies are always optional — and so shows no message, which is
-         * what a `<cascadeMessage>` outside a cascade should do.
-         */
-        stateVariableDefinitions.showCascadeMessage = {
-            returnDependencies: () => ({
-                parentSectionToShowCascadeMessage: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "sectionToShowCascadeMessage",
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                return {
-                    setValue: {
-                        showCascadeMessage:
-                            dependencyValues.parentSectionToShowCascadeMessage ===
-                            componentIdx,
                     },
                 };
             },
@@ -680,13 +601,19 @@ export class SectioningComponent extends BlockComponent {
                     }
 
                     const renderChild = dependencyValues.asList
-                        ? // if asList, then only include titleChild, sections, introduction, and conclusion
+                        ? // if asList, then only include titleChild, sections,
+                          // cascades, pages, introduction, and conclusion. A
+                          // cascade or a page is not a section, but the sections
+                          // it holds are this list's items all the same (it
+                          // passes `asList` down).
                           child.componentIdx ===
                               dependencyValues.titleChildName ||
-                          componentInfoObjects.isInheritedComponentType({
-                              inheritedComponentType: child.componentType,
-                              baseComponentType: "_sectioningComponent",
-                          }) ||
+                          LIST_CONTAINER_TYPES.some((baseComponentType) =>
+                              componentInfoObjects.isInheritedComponentType({
+                                  inheritedComponentType: child.componentType,
+                                  baseComponentType,
+                              }),
+                          ) ||
                           ["introduction", "conclusion"].includes(
                               child.componentType,
                           )
@@ -1173,176 +1100,10 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.completedColorRequiresCredit = {
-            description:
-                "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({
-                completedColorRequiresCreditPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "completedColorRequiresCreditPreliminary",
-                },
-                completedColorRequiresCreditAncestor: {
-                    dependencyType: "ancestor",
-                    variableNames: ["completedColorRequiresCredit"],
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                // Set once on an enclosing section and every section within it
-                // follows: an instructor who wants graded coloring wants it for
-                // the whole activity, not one section at a time. The fallback
-                // is to the nearest *ancestor* carrying the variable, the way
-                // `showCorrectness` resolves — unlike the colors themselves,
-                // which read only their immediate parent section.
-                //
-                // Start from the attribute's own value rather than restating
-                // its default here, so the default lives in exactly one place:
-                // the attribute's `defaultValue`. Written the other way the two
-                // could drift apart unnoticed, which is a real risk on a base
-                // class this many components extend and override attributes on.
-                let completedColorRequiresCredit =
-                    dependencyValues.completedColorRequiresCreditPreliminary;
-
-                if (
-                    usedDefault.completedColorRequiresCreditPreliminary &&
-                    dependencyValues.completedColorRequiresCreditAncestor
-                ) {
-                    completedColorRequiresCredit =
-                        dependencyValues.completedColorRequiresCreditAncestor
-                            .stateValues.completedColorRequiresCredit;
-                }
-
-                return { setValue: { completedColorRequiresCredit } };
-            },
-        };
-
-        stateVariableDefinitions.sectionTitleStateColors = {
-            additionalStateVariablesDefined: [
-                "sectionTitleStateColorsDarkMode",
-                "sectionTitleStateColorSources",
-                "sectionTitleStateColorSourcesDarkMode",
-            ],
-            returnDependencies: () => ({
-                completedColor: {
-                    dependencyType: "stateVariable",
-                    variableName: "completedColor",
-                },
-                inProgressColor: {
-                    dependencyType: "stateVariable",
-                    variableName: "inProgressColor",
-                },
-                notStartedColor: {
-                    dependencyType: "stateVariable",
-                    variableName: "notStartedColor",
-                },
-                completedColorDarkMode: {
-                    dependencyType: "stateVariable",
-                    variableName: "completedColorDarkMode",
-                },
-                inProgressColorDarkMode: {
-                    dependencyType: "stateVariable",
-                    variableName: "inProgressColorDarkMode",
-                },
-                notStartedColorDarkMode: {
-                    dependencyType: "stateVariable",
-                    variableName: "notStartedColorDarkMode",
-                },
-                parentSectionTitleStateColors: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "sectionTitleStateColors",
-                },
-                parentSectionTitleStateColorsDarkMode: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "sectionTitleStateColorsDarkMode",
-                },
-                parentSectionTitleStateColorSources: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "sectionTitleStateColorSources",
-                },
-                parentSectionTitleStateColorSourcesDarkMode: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "sectionTitleStateColorSourcesDarkMode",
-                },
-                parentBoxed: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "boxed",
-                },
-                parentCollapsible: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "collapsible",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                const sectionTitleStateColors = {};
-                const sectionTitleStateColorsDarkMode = {};
-                const sectionTitleStateColorSources = {};
-                const sectionTitleStateColorSourcesDarkMode = {};
-                const parentIsBoxedOrCollapsible = Boolean(
-                    dependencyValues.parentBoxed ||
-                    dependencyValues.parentCollapsible,
-                );
-
-                const colorNamesByState = {
-                    completed: {
-                        light: "completedColor",
-                        dark: "completedColorDarkMode",
-                    },
-                    inProgress: {
-                        light: "inProgressColor",
-                        dark: "inProgressColorDarkMode",
-                    },
-                    notStarted: {
-                        light: "notStartedColor",
-                        dark: "notStartedColorDarkMode",
-                    },
-                };
-
-                for (const stateKey of sectionTitleStateKeys) {
-                    const colorNames = colorNamesByState[stateKey];
-                    const lightSpec = resolveSectionTitleLightColorSpec({
-                        dependencyValues,
-                        usedDefault,
-                        ownColorName: colorNames.light,
-                        parentColors:
-                            dependencyValues.parentSectionTitleStateColors,
-                        parentSources:
-                            dependencyValues.parentSectionTitleStateColorSources,
-                        parentIsBoxedOrCollapsible,
-                        stateKey,
-                    });
-                    sectionTitleStateColors[stateKey] = lightSpec.value;
-                    sectionTitleStateColorSources[stateKey] = lightSpec.source;
-
-                    const darkSpec = resolveSectionTitleDarkColorSpec({
-                        dependencyValues,
-                        usedDefault,
-                        ownDarkColorName: colorNames.dark,
-                        ownLightColorName: colorNames.light,
-                        parentColorsDarkMode:
-                            dependencyValues.parentSectionTitleStateColorsDarkMode,
-                        parentSourcesDarkMode:
-                            dependencyValues.parentSectionTitleStateColorSourcesDarkMode,
-                        parentIsBoxedOrCollapsible,
-                        stateKey,
-                    });
-                    sectionTitleStateColorsDarkMode[stateKey] = darkSpec.value;
-                    sectionTitleStateColorSourcesDarkMode[stateKey] =
-                        darkSpec.source;
-                }
-
-                return {
-                    setValue: {
-                        sectionTitleStateColors,
-                        sectionTitleStateColorsDarkMode,
-                        sectionTitleStateColorSources,
-                        sectionTitleStateColorSourcesDarkMode,
-                    },
-                };
-            },
-        };
+        Object.assign(
+            stateVariableDefinitions,
+            returnSectionTitleStateColorStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.titleColor = {
             // Note: currently title color is used only when boxed or collapsible
@@ -1919,10 +1680,12 @@ export class SectioningComponent extends BlockComponent {
 export class SectioningComponentNumberWithSiblings extends SectioningComponent {
     static componentType = "_sectioningComponentNumberWithSiblings";
 
+    // A division names itself from the catalog in the document's language, so
+    // its word is not the author's to replace.
+    static allowRenameTo = false;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        delete attributes.renameTo;
 
         attributes.includeParentNumber = {
             createComponentOfType: "boolean",
@@ -1951,12 +1714,8 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     forRenderer: true,
                 },
             ],
-            returnDependencies: () => ({
-                countAmongSiblings: {
-                    dependencyType: "countAmongSiblings",
-                    componentType: "_sectioningComponentNumberWithSiblings",
-                    includeInheritedComponentTypes: true,
-                },
+            stateVariablesDeterminingDependencies: ["isListItem"],
+            returnDependencies: ({ stateValues }) => ({
                 sectionAncestor: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
@@ -1970,17 +1729,23 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "isListItem",
                 },
-                countAmongSiblingsForListItem: {
-                    dependencyType: "countAmongSiblings",
-                    componentType: "_sectioningComponent",
-                    includeInheritedComponentTypes: true,
-                },
+                // A list item is numbered in the list and a division among
+                // the divisions, never both.
+                ...sequenceNumberDependencies(
+                    stateValues.isListItem
+                        ? LIST_ITEM_SEQUENCE
+                        : DIVISION_SEQUENCE,
+                ),
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentIdx }) {
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(
-                        dependencyValues.countAmongSiblingsForListItem,
+                        sequenceNumberFromParent({
+                            sequence: LIST_ITEM_SEQUENCE,
+                            dependencyValues,
+                            componentIdx,
+                        }),
                     );
                 } else {
                     if (
@@ -1992,7 +1757,13 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                                 .enumeration,
                         );
                     }
-                    enumeration.push(dependencyValues.countAmongSiblings);
+                    enumeration.push(
+                        sequenceNumberFromParent({
+                            sequence: DIVISION_SEQUENCE,
+                            dependencyValues,
+                            componentIdx,
+                        }),
+                    );
                 }
 
                 return {

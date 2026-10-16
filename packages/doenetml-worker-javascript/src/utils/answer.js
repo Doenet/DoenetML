@@ -5,6 +5,7 @@ import stringify from "json-stringify-deterministic";
 import { codedDiagnostic } from "./diagnostics";
 import { returnLocalizedDefaultStateVariableDefinition } from "./contentLocale";
 import { BLANK_PLACEHOLDER } from "./embeddedMathInputs";
+import { evaluateToNumber } from "./math";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
@@ -899,6 +900,82 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     return stateVariableDefinitions;
+}
+
+/**
+ * The attribute and state variable for the `credit` of an `<award>` or a
+ * `<choice>`.
+ *
+ * The attribute is stored in `creditPrelim`; the public `credit` is that value
+ * clamped to [0, 1], with a non-finite value counting as 0. So `$aw.credit`
+ * reports the credit the component can actually grant, and every reader of
+ * `credit` gets the capped value.
+ *
+ * @param {object} args
+ * @param {number} args.defaultValue - the credit when the attribute is omitted
+ * @param {string} args.componentDescription - what the credit is granted for,
+ *   completing "Fraction of credit (0 to 1) granted when ..."
+ */
+export function returnCreditAttributeAndStateVariableDefinition({
+    defaultValue,
+    componentDescription,
+}) {
+    const description = `Fraction of credit (0 to 1) granted when ${componentDescription}. A value above 1 counts as 1, and a negative or non-numeric value as 0.`;
+
+    const attribute = {
+        createComponentOfType: "number",
+        createStateVariable: "creditPrelim",
+        defaultValue,
+        attributesForCreatedComponent: { convertBoolean: "true" },
+        description,
+    };
+
+    const stateVariableDefinition = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "number",
+        },
+        description,
+        returnDependencies: () => ({
+            creditPrelim: {
+                dependencyType: "stateVariable",
+                variableName: "creditPrelim",
+            },
+        }),
+        definition({ dependencyValues }) {
+            const credit = dependencyValues.creditPrelim;
+            return {
+                setValue: {
+                    credit: Number.isFinite(credit)
+                        ? Math.max(0, Math.min(1, credit))
+                        : 0,
+                },
+            };
+        },
+        inverseDefinition({ desiredStateVariableValues }) {
+            // With no `credit` attribute, `creditPrelim` is stored as given,
+            // so convert to a number here: a math value (the default `type`
+            // of `<updateValue>`), a boolean (true is full credit, as with
+            // `credit="true"`) or a text value would otherwise read as 0.
+            let desiredValue = desiredStateVariableValues.credit;
+            if (typeof desiredValue?.evaluate_to_constant === "function") {
+                desiredValue = evaluateToNumber(desiredValue);
+            } else {
+                desiredValue = Number(desiredValue);
+            }
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setDependency: "creditPrelim",
+                        desiredValue,
+                    },
+                ],
+            };
+        },
+    };
+
+    return { attribute, stateVariableDefinition };
 }
 
 export function returnSimplifyExpandOnCompareWarning() {

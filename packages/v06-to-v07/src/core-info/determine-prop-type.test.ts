@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { determinePropType } from "./determine-prop-type";
+import { describeProp, determinePropType } from "./determine-prop-type";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -124,6 +124,29 @@ describe("propType tests", async () => {
             ).eq(
                 mapping.propType,
                 `Expected ${mapping.componentType}.${mapping.prop} with ${mapping.nIndices} indices to equal ${mapping.propType}`,
+            );
+        }
+    });
+
+    it("tells whether a prop copies to several components", async () => {
+        const expected: [string, string, number, boolean][] = [
+            // A whole array is one component per entry...
+            ["polygon", "vertices", 0, true],
+            ["point", "xs", 0, true],
+            ["cobwebPolyline", "iterateValues", 0, true],
+            // ...unless its outermost dimension is wrapped into one component.
+            ["matrix", "matrix", 0, false],
+            // Indexing down to an entry, or naming one, gives a single component.
+            ["polygon", "vertices", 1, false],
+            ["point", "xs", 1, false],
+            ["polygon", "vertex1", 0, false],
+            ["point", "x", 0, false],
+            ["point", "coords", 0, false],
+        ];
+        for (const [componentType, prop, nIndices, isMultiple] of expected) {
+            expect(describeProp(componentType, prop, nIndices).isMultiple).eq(
+                isMultiple,
+                `${componentType}.${prop} with ${nIndices} indices`,
             );
         }
     });

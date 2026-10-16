@@ -22,7 +22,11 @@ import {
     ancestorsIncludingComposites,
     gatherDescendants,
 } from "../../utils/descendants";
+import { newChangeRecord } from "./Dependency";
 import { dependencyTypeClasses } from "./registry";
+import { CircularCheckMarks, ON_PATH, PASSED } from "./circularCheckMarks";
+import { CircularDependencyError } from "./CircularDependencyError";
+import { BlockerOrder, type BlockerLedger } from "./blockerOrder";
 
 /**
  * Shared result for `peekNeededToResolve` / `peekResolveBlockedBy` when no
@@ -30,6 +34,25 @@ import { dependencyTypeClasses } from "./registry";
  * would corrupt every other caller.
  */
 const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
+
+/** The ledger entry for an item, created empty if there is none. */
+function ledgerEntry(
+    ledger: BlockerLedger,
+    type: string,
+    code: string,
+): Record<string, any[]> {
+    let entriesForType = ledger.get(type);
+    if (!entriesForType) {
+        entriesForType = new Map();
+        ledger.set(type, entriesForType);
+    }
+    let entry = entriesForType.get(code);
+    if (!entry) {
+        entry = {};
+        entriesForType.set(code, entry);
+    }
+    return entry;
+}
 
 /**
  * The 9 trigger tables that `DependencyHandler` exposes for cross-component
@@ -82,14 +105,31 @@ export class DependencyHandler {
     downstreamDependencies: Record<ComponentIdx, Record<string, any>>;
     switchDependencies: Record<string, any>;
 
-    circularCheckPassed: Record<string, boolean>;
-    circularResolveBlockedCheckPassed: Record<string, boolean>;
+    /**
+     * Memo of the cycle check over the state-variable graph, keyed by
+     * component index and variable name; see `checkForCircularDependency`.
+     */
+    circularCheckMarks: CircularCheckMarks<ComponentIdx>;
+    /**
+     * A topological order of the resolve-blocker graph, which is how
+     * `addBlocker` finds a blocker that closes a cycle; see `BlockerOrder`.
+     */
+    blockerOrder: BlockerOrder;
+    /**
+     * The nodes on the current search path of the state-variable cycle
+     * check, root first, kept for the error message. The search is
+     * synchronous and never nested, so one stack is enough; every visit pops
+     * in a `finally`, so the stack is empty again after a throw, and a search
+     * clears it on entry besides.
+     */
+    _circularPathComponents: ComponentIdx[];
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
+    /** The blocker ledger, one side in each direction; see `BlockerLedger`. */
     resolveBlockers: {
-        neededToResolve: Record<string, any>;
-        resolveBlockedBy: Record<string, any>;
+        neededToResolve: BlockerLedger;
+        resolveBlockedBy: BlockerLedger;
     };
     attributeRefResolutionDependenciesByReferenced: Record<ComponentIdx, any>;
 
@@ -147,6 +187,11 @@ export class DependencyHandler {
     _internedValuesChangedArrays: Map<string, Record<string, any>[]>;
     /** Shared frozen record for a fully-consumed `valuesChanged` entry. */
     emptyValuesChangedRecord: Record<string, any>;
+    /**
+     * Frozen copies of component positions, keyed by the position object;
+     * see `frozenPositionCopy`.
+     */
+    _frozenPositionCopies: WeakMap<object, any>;
 
     /**
      * Number of state-variable groups whose dependencies have been built
@@ -169,8 +214,8 @@ export class DependencyHandler {
         this.downstreamDependencies = {};
         this.switchDependencies = {};
 
-        this.circularCheckPassed = {};
-        this.circularResolveBlockedCheckPassed = {};
+        this.circularCheckMarks = new CircularCheckMarks();
+        this._circularPathComponents = [];
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -194,9 +239,10 @@ export class DependencyHandler {
         };
 
         this.resolveBlockers = {
-            neededToResolve: {},
-            resolveBlockedBy: {},
+            neededToResolve: new Map(),
+            resolveBlockedBy: new Map(),
         };
+        this.blockerOrder = new BlockerOrder(this.resolveBlockers);
 
         this.numDependencySetups = 0;
         this.numMaterializedStateVariables = 0;
@@ -212,6 +258,7 @@ export class DependencyHandler {
         this._internedValuesChangedRecords = new Map();
         this._internedValuesChangedArrays = new Map();
         this.emptyValuesChangedRecord = Object.freeze({});
+        this._frozenPositionCopies = new WeakMap();
         this._internedListIds.set(
             this.emptyValuesChangedRecord,
             this._nextInternedListId,
@@ -361,6 +408,22 @@ export class DependencyHandler {
             this._internedValuesChangedArrays.set(key, interned);
         }
         return interned;
+    }
+
+    /**
+     * The position a dependency value reports for a component (see
+     * `Dependency.getValue`): a deep copy, frozen and made once per position
+     * object, so that every read shares it rather than copying it again.
+     * Frozen so that a reader that writes to it throws instead of changing
+     * what every other reader sees.
+     */
+    frozenPositionCopy(position: object) {
+        let copy = this._frozenPositionCopies.get(position);
+        if (!copy) {
+            copy = deepFreeze(JSON.parse(JSON.stringify(position)));
+            this._frozenPositionCopies.set(position, copy);
+        }
+        return copy;
     }
 
     /**
@@ -919,108 +982,182 @@ export class DependencyHandler {
         }
     }
 
+    /**
+     * Throw if a cycle in the state-variable graph is reachable from
+     * `varName` of `componentIdx`.
+     *
+     * A depth-first search that memoizes every variable whose downstream
+     * closure it has searched. Memoized variables are not expanded again;
+     * `resetCircularCheckPassed` drops the memo of a variable and of
+     * everything upstream of it whenever an edge that could close a cycle is
+     * added below it (see `edgeCanCloseCycle`); removing an edge cannot make
+     * a memo wrong, so it leaves them as they are. A
+     * variable is marked as it is entered and keeps the mark if the search
+     * throws, so a cycle is reported once, by the search that found it.
+     */
     checkForCircularDependency({
         componentIdx,
         varName,
-        previouslyVisited = [],
-    }: any) {
-        let stateVariableIdentifier = componentIdx + ":" + varName;
+    }: {
+        componentIdx: ComponentIdx;
+        varName: string;
+    }) {
+        this._circularPathComponents.length = 0;
+        this._searchForCircularDependency(componentIdx, varName);
+    }
 
-        if (previouslyVisited.includes(stateVariableIdentifier)) {
-            // Found circular dependency
-            // Create error message with list of component types and names involved
-
-            console.log(
-                "found circular",
-                stateVariableIdentifier,
-                previouslyVisited,
+    _searchForCircularDependency(componentIdx: ComponentIdx, varName: string) {
+        const mark = this.circularCheckMarks.get(componentIdx, varName);
+        if (mark === ON_PATH) {
+            // The path runs from the variable the search started at through
+            // the variable reached twice (which is somewhere on it) to the
+            // variable that closed the cycle.
+            throw new CircularDependencyError(
+                this.getCircularDependencyMessage(
+                    this._circularPathComponents.map(
+                        (idx) => this.components[idx],
+                    ),
+                ),
             );
-
-            let componentNameRe = /^(.*):/;
-            let componentsInvolved = previouslyVisited.map(
-                (x: string) =>
-                    this.components[
-                        x.match(componentNameRe)![1] as unknown as number
-                    ],
-            );
-
-            let message = this.getCircularDependencyMessage(componentsInvolved);
-
-            throw Error(message);
-        } else {
-            // shallow copy so don't change original
-            previouslyVisited = [...previouslyVisited, stateVariableIdentifier];
+        }
+        if (mark === PASSED) {
+            return;
         }
 
-        if (!this.circularCheckPassed[stateVariableIdentifier]) {
-            this.circularCheckPassed[stateVariableIdentifier] = true;
-
-            if (componentIdx in this.downstreamDependencies) {
-                let downDeps =
-                    this.downstreamDependencies[componentIdx][varName];
-                for (let dependencyName in downDeps) {
-                    let dep = downDeps[dependencyName];
-
-                    let downstreamComponentIndices =
-                        dep.downstreamComponentIndices;
-                    if (!downstreamComponentIndices) {
-                        continue;
-                    }
-                    let mappedDownstreamVariableNamesByComponent =
-                        dep.mappedDownstreamVariableNamesByComponent;
-                    if (!mappedDownstreamVariableNamesByComponent) {
-                        continue;
-                    }
-
-                    for (let [
-                        ind,
-                        cIdx,
-                    ] of downstreamComponentIndices.entries()) {
-                        let varNames =
-                            mappedDownstreamVariableNamesByComponent[ind];
-                        for (let vname of varNames) {
-                            this.checkForCircularDependency({
-                                componentIdx: cIdx,
-                                varName: vname,
-                                previouslyVisited,
-                            });
-                        }
+        this.circularCheckMarks.set(componentIdx, varName, ON_PATH);
+        this._circularPathComponents.push(componentIdx);
+        try {
+            const downDeps =
+                this.downstreamDependencies[componentIdx]?.[varName];
+            for (const dependencyName in downDeps) {
+                const dep = downDeps[dependencyName];
+                const indices = dep.downstreamComponentIndices;
+                const mappedNames =
+                    dep.mappedDownstreamVariableNamesByComponent;
+                if (!indices || !mappedNames) {
+                    continue;
+                }
+                for (let ind = 0; ind < indices.length; ind++) {
+                    for (const vName of mappedNames[ind]) {
+                        this._searchForCircularDependency(indices[ind], vName);
                     }
                 }
             }
+        } finally {
+            this._circularPathComponents.pop();
+            this.circularCheckMarks.set(componentIdx, varName, PASSED);
         }
     }
 
     /**
-     * Drop the circular-check memo records. They are pure caches ("this
-     * state variable already passed the check"), so clearing costs only
-     * re-verification when a later dependency change re-triggers a check.
-     * Called once initial document construction finishes: at that point the
-     * memos cover every state variable created during the load (one record
-     * entry per state variable), but they regrow only for the typically few
+     * Drop the state-variable cycle check's memos and rebuild the blocker
+     * order from the blockers still outstanding. The memos are pure caches
+     * ("this node already passed the check"), so clearing costs only
+     * re-verification when a later dependency change re-triggers a check;
+     * the order keeps a position for every item that ever took part in a
+     * blocker, while few blockers outlast the build. Called once initial
+     * document construction finishes: at that point both cover everything
+     * created during the load, but they regrow only for the typically few
      * components involved in subsequent updates.
      */
     clearCircularCheckMemos() {
-        this.circularCheckPassed = {};
-        this.circularResolveBlockedCheckPassed = {};
+        this.circularCheckMarks.clear();
+        this.blockerOrder.rebuild();
     }
 
+    /**
+     * Whether an edge from the upstream variables of `dependency` to
+     * `varName` of `componentIdx` could close a cycle in the state-variable
+     * graph. It cannot when that variable depends on no state variable: no
+     * path leads out of it, so none leads back. Such an edge needs neither
+     * the memo reset nor the search. If the variable later gains an edge
+     * that can close one, that edge's reset reaches back through this one,
+     * and the search that follows a new dependency goes forward from there.
+     *
+     * The upstream variables themselves are always treated as able to close
+     * one, so a variable depending on itself is found however the edges are
+     * recorded.
+     *
+     * A skipped edge must not leave a memoized variable above an unmemoized
+     * one, which is what lets `resetCircularCheckPassed` stop early; the
+     * caller marks the target with `markLeafPassed`.
+     */
+    edgeCanCloseCycle(
+        dependency: {
+            upstreamComponentIdx: ComponentIdx;
+            upstreamVariableNames: readonly string[];
+        },
+        componentIdx: ComponentIdx,
+        varName: string,
+    ): boolean {
+        if (
+            componentIdx === dependency.upstreamComponentIdx &&
+            dependency.upstreamVariableNames.includes(varName)
+        ) {
+            return true;
+        }
+        const downDeps = this.downstreamDependencies[componentIdx]?.[varName];
+        for (const dependencyName in downDeps) {
+            const dep = downDeps[dependencyName];
+            if (
+                dep.downstreamComponentIndices?.length > 0 &&
+                dep.mappedDownstreamVariableNamesByComponent?.some(
+                    (names: string[]) => names.length > 0,
+                )
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Mark `varName` of `componentIdx`, which depends on no state variable,
+     * as having passed the cycle check, which is true of it: no cycle is
+     * reachable from a variable with no way out. Called for the target of an
+     * edge that `edgeCanCloseCycle` let skip the reset and the search, so
+     * that the upstream variable, if memoized, does not sit above an
+     * unmemoized one. When the target later gains a dependency that could
+     * close a cycle, the reset clears this mark and everything above it.
+     */
+    markLeafPassed(componentIdx: ComponentIdx, varName: string) {
+        if (this.circularCheckMarks.get(componentIdx, varName) === undefined) {
+            this.circularCheckMarks.set(componentIdx, varName, PASSED);
+        }
+    }
+
+    /**
+     * Forget that `varName` of `componentIdx` passed the cycle check, and
+     * likewise everything upstream of it, after an edge that could close a
+     * cycle was added below it (see `edgeCanCloseCycle`). Removing an edge
+     * needs no reset: a memo says that no cycle is reachable, which stays
+     * true when edges go.
+     * The walk stops at a variable that is not memoized: a search marks
+     * everything it expands, so a memoized variable has every variable
+     * downstream of it memoized too, and nothing memoized sits above an
+     * unmemoized one. The exception is a search that threw: the variables
+     * on its path stay memoized while whatever it had not yet expanded
+     * below them does not, so a reset coming up from below such a variable
+     * stops short of the path. That never matters: a cycle's throw is a
+     * `CircularDependencyError`, which no guard swallows, and it ends the
+     * document whether it is raised during load or by an update, so no check
+     * runs after it.
+     */
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
-        let stateVariableIdentifier = componentIdx + ":" + varName;
-        if (this.circularCheckPassed[stateVariableIdentifier]) {
-            delete this.circularCheckPassed[stateVariableIdentifier];
+        if (this.circularCheckMarks.get(componentIdx, varName) !== PASSED) {
+            return;
+        }
+        this.circularCheckMarks.delete(componentIdx, varName);
 
-            let upstream = this.upstreamDependencies[componentIdx][varName];
-
-            if (upstream) {
-                for (let upDep of upstream) {
-                    for (let vName of upDep.upstreamVariableNames) {
-                        if (vName !== "__identity") {
-                            this.resetCircularCheckPassed(
-                                upDep.upstreamComponentIdx,
-                                vName,
-                            );
-                        }
+        const upstream = this.upstreamDependencies[componentIdx]?.[varName];
+        if (upstream) {
+            for (const upDep of upstream) {
+                for (const vName of upDep.upstreamVariableNames) {
+                    if (vName !== "__identity") {
+                        this.resetCircularCheckPassed(
+                            upDep.upstreamComponentIdx,
+                            vName,
+                        );
                     }
                 }
             }
@@ -1449,13 +1586,12 @@ export class DependencyHandler {
                         // non-array-entry variables; change records are now
                         // deleted on consumption, so absence is normal.)
                         upValuesChanged = upDep.valuesChanged[ind][varName] =
-                            {};
+                            newChangeRecord();
                     } else if (Object.isFrozen(upValuesChanged)) {
                         // the shared initial change record — replace it
                         // before recording metadata on it
-                        upValuesChanged = upDep.valuesChanged[ind][varName] = {
-                            changed: upValuesChanged.changed,
-                        };
+                        upValuesChanged = upDep.valuesChanged[ind][varName] =
+                            newChangeRecord(upValuesChanged.changed);
                     }
 
                     if (
@@ -1611,12 +1747,10 @@ export class DependencyHandler {
     }
 
     /**
-     * Non-creating variant of `getNeededToResolve`: returns the nested entry
-     * if it exists, else `EMPTY_BLOCKERS`, without materializing intermediate
-     * levels. `getNeededToResolve` creates the whole nested chain on every
-     * lookup, and read-only callers used to leave tens of thousands of empty
-     * `{cIdx: {type: {stateVariable: {}}}}` chains behind — the bulk of
-     * `resolveBlockers`' retained memory.
+     * Read-only lookup in the blocker ledger: the entry for the item if it
+     * exists, else `EMPTY_BLOCKERS`. It creates nothing, so read-only
+     * callers leave no empty entries behind; `addBlocker` creates entries
+     * with `ledgerEntry`.
      */
     peekNeededToResolve({
         componentIdx,
@@ -1624,68 +1758,29 @@ export class DependencyHandler {
         stateVariable,
         dependency,
     }: any) {
-        let neededToResolve =
-            this.resolveBlockers.neededToResolve[componentIdx]?.[type];
-        if (neededToResolve && stateVariable) {
-            neededToResolve = neededToResolve[stateVariable];
-            if (neededToResolve && dependency) {
-                neededToResolve = neededToResolve[dependency];
-            }
-        }
-        return neededToResolve ?? EMPTY_BLOCKERS;
+        return (
+            this.resolveBlockers.neededToResolve
+                .get(type)
+                ?.get(
+                    blockerCodeFor(componentIdx, stateVariable, dependency),
+                ) ?? EMPTY_BLOCKERS
+        );
     }
 
-    /** Non-creating variant of `getResolveBlockedBy`; see `peekNeededToResolve`. */
+    /** `peekNeededToResolve` for the other side of the ledger. */
     peekResolveBlockedBy({
         componentIdx,
         type,
         stateVariable,
         dependency,
     }: any) {
-        let resolveBlockedBy =
-            this.resolveBlockers.resolveBlockedBy[componentIdx]?.[type];
-        if (resolveBlockedBy && stateVariable) {
-            resolveBlockedBy = resolveBlockedBy[stateVariable];
-            if (resolveBlockedBy && dependency) {
-                resolveBlockedBy = resolveBlockedBy[dependency];
-            }
-        }
-        return resolveBlockedBy ?? EMPTY_BLOCKERS;
-    }
-
-    getNeededToResolve({ componentIdx, type, stateVariable, dependency }: any) {
-        let neededToResolveForComponent =
-            this.resolveBlockers.neededToResolve[componentIdx];
-        if (!neededToResolveForComponent) {
-            neededToResolveForComponent = this.resolveBlockers.neededToResolve[
-                componentIdx
-            ] = {};
-        }
-
-        let neededToResolve = neededToResolveForComponent[type];
-        if (!neededToResolve) {
-            neededToResolve = neededToResolveForComponent[type] = {};
-        }
-
-        // have an extra level if include a state variable
-        if (stateVariable) {
-            let neededToResolveTemp = neededToResolve;
-            neededToResolve = neededToResolveTemp[stateVariable];
-            if (!neededToResolve) {
-                neededToResolve = neededToResolveTemp[stateVariable] = {};
-            }
-
-            // have yet another level if include a dependency
-            if (dependency) {
-                let neededToResolveTemp = neededToResolve;
-                neededToResolve = neededToResolveTemp[dependency];
-                if (!neededToResolve) {
-                    neededToResolve = neededToResolveTemp[dependency] = {};
-                }
-            }
-        }
-
-        return neededToResolve;
+        return (
+            this.resolveBlockers.resolveBlockedBy
+                .get(type)
+                ?.get(
+                    blockerCodeFor(componentIdx, stateVariable, dependency),
+                ) ?? EMPTY_BLOCKERS
+        );
     }
 
     deleteFromNeededToResolve({
@@ -1697,188 +1792,95 @@ export class DependencyHandler {
         blockerCode,
         deleteFromReciprocal = true,
     }: any) {
-        // console.log(`delete from needed to resolve ${componentIdxBlocked}, ${typeBlocked}, ${stateVariableBlocked}, ${dependencyBlocked}, ${blockerType}, ${blockerCode}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        this._deleteFromNeededToResolveByCode(
+            typeBlocked,
+            blockerCodeFor(
+                componentIdxBlocked,
+                stateVariableBlocked,
+                dependencyBlocked,
+            ),
+            blockerType,
+            blockerCode,
+            deleteFromReciprocal,
+        );
+    }
 
-        let codeBlocked = componentIdxBlocked.toString();
-        if (stateVariableBlocked) {
-            codeBlocked += "|" + stateVariableBlocked;
-            if (dependencyBlocked) {
-                codeBlocked += "|" + dependencyBlocked;
-            }
+    /**
+     * `deleteFromNeededToResolve` for a blocked item given by its code. With
+     * a `blockerCode`, removes that one blocker; with a `blockerType` alone,
+     * every blocker of that type; with neither, the whole entry. Unless
+     * `deleteFromReciprocal` is false, each blocker removed also stops
+     * recording the item in `resolveBlockedBy`.
+     */
+    _deleteFromNeededToResolveByCode(
+        typeBlocked: string,
+        codeBlocked: string,
+        blockerType: string | undefined,
+        blockerCode: string | number | undefined,
+        deleteFromReciprocal: boolean,
+    ) {
+        const neededForType =
+            this.resolveBlockers.neededToResolve.get(typeBlocked);
+        const neededObj = neededForType?.get(codeBlocked);
+        if (!neededForType || !neededObj) {
+            return;
         }
 
-        // Arrow function so `this` resolves to the surrounding class
-        // instance (the original JS authored these as `function`
-        // expressions; the calls inside use `this.deleteFromResolveBlockedBy`,
-        // so the lexical-`this` form matches the runtime behavior the
-        // tests already exercise).
-        let deleteBlockerTypeAndCode = (neededObj: any) => {
-            if (blockerType) {
-                if (neededObj[blockerType]) {
-                    if (blockerCode) {
-                        let ind = neededObj[blockerType].indexOf(blockerCode);
-                        if (ind !== -1) {
-                            neededObj[blockerType].splice(ind, 1);
-                        }
-                        if (neededObj[blockerType].length === 0) {
-                            delete neededObj[blockerType];
-                        }
-                        if (deleteFromReciprocal) {
-                            let [
-                                blockerComponentIdx,
-                                blockerStateVariable,
-                                blockerDependency,
-                            ] =
-                                typeof blockerCode === "string"
-                                    ? blockerCode.split("|")
-                                    : [blockerCode];
-                            this.deleteFromResolveBlockedBy({
-                                blockerComponentIdx,
-                                blockerType,
-                                blockerStateVariable,
-                                blockerDependency,
-                                typeBlocked,
-                                codeBlocked,
-                                deleteFromReciprocal: false,
-                            });
-                        }
-                    } else {
-                        // no blockerCode given, so deleting all for blockerType
-                        // Just delete from reciprocal here
-                        // (can't actually delete originals in this function, as need access to parent object)
-                        if (deleteFromReciprocal) {
-                            for (let code of neededObj[blockerType]) {
-                                let [
-                                    blockerComponentIdx,
-                                    blockerStateVariable,
-                                    blockerDependency,
-                                ] =
-                                    typeof code === "string"
-                                        ? code.split("|")
-                                        : [code];
-                                this.deleteFromResolveBlockedBy({
-                                    blockerComponentIdx,
-                                    blockerType,
-                                    blockerStateVariable,
-                                    blockerDependency,
-                                    typeBlocked,
-                                    codeBlocked,
-                                    deleteFromReciprocal: false,
-                                });
-                            }
-                        }
-
+        if (blockerType) {
+            const blockerCodes = neededObj[blockerType];
+            if (blockerCodes) {
+                if (blockerCode) {
+                    let ind = indexOfCode(blockerCodes, blockerCode);
+                    if (ind !== -1) {
+                        blockerCodes.splice(ind, 1);
+                    }
+                    if (blockerCodes.length === 0) {
                         delete neededObj[blockerType];
                     }
-                }
-            } else {
-                // no blockerType given, so deleting all blockerCodes for all blockerTypes
-                if (deleteFromReciprocal) {
-                    for (let type in neededObj) {
-                        for (let code of neededObj[type]) {
-                            let [
-                                blockerComponentIdx,
-                                blockerStateVariable,
-                                blockerDependency,
-                            ] =
-                                typeof code === "string"
-                                    ? code.split("|")
-                                    : [code];
-                            this.deleteFromResolveBlockedBy({
-                                blockerComponentIdx,
-                                blockerType: type,
-                                blockerStateVariable,
-                                blockerDependency,
-                                typeBlocked,
-                                codeBlocked,
-                                deleteFromReciprocal: false,
-                            });
-                        }
-                    }
-                }
-            }
-        };
-
-        let neededToResolveForComponent =
-            this.resolveBlockers.neededToResolve[componentIdxBlocked];
-
-        if (neededToResolveForComponent) {
-            let neededToResolveForType =
-                neededToResolveForComponent[typeBlocked];
-
-            if (neededToResolveForType) {
-                // have an extra level if include a state variable
-                if (stateVariableBlocked) {
-                    let neededToResolveForStateVariable =
-                        neededToResolveForType[stateVariableBlocked];
-                    if (neededToResolveForStateVariable) {
-                        // have yet another level if include a dependency
-                        if (dependencyBlocked) {
-                            let neededToResolveForDependency =
-                                neededToResolveForStateVariable[
-                                    dependencyBlocked
-                                ];
-                            if (neededToResolveForDependency) {
-                                deleteBlockerTypeAndCode(
-                                    neededToResolveForDependency,
-                                );
-                                if (
-                                    !blockerType ||
-                                    Object.keys(neededToResolveForDependency)
-                                        .length === 0
-                                ) {
-                                    delete neededToResolveForStateVariable[
-                                        dependencyBlocked
-                                    ];
-                                }
-                            }
-                            if (
-                                Object.keys(neededToResolveForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete neededToResolveForType[
-                                    stateVariableBlocked
-                                ];
-                            }
-                        } else {
-                            deleteBlockerTypeAndCode(
-                                neededToResolveForStateVariable,
-                            );
-                            if (
-                                !blockerType ||
-                                Object.keys(neededToResolveForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete neededToResolveForType[
-                                    stateVariableBlocked
-                                ];
-                            }
-                        }
-                    }
-                    if (Object.keys(neededToResolveForType).length === 0) {
-                        delete neededToResolveForComponent[typeBlocked];
+                    if (deleteFromReciprocal) {
+                        this._deleteFromResolveBlockedByCode(
+                            blockerType,
+                            normalizeBlockerCode(blockerCode),
+                            typeBlocked,
+                            codeBlocked,
+                            false,
+                        );
                     }
                 } else {
-                    deleteBlockerTypeAndCode(neededToResolveForType);
-                    if (
-                        !blockerType ||
-                        Object.keys(neededToResolveForType).length === 0
-                    ) {
-                        delete neededToResolveForComponent[typeBlocked];
+                    // no blockerCode given, so deleting all for blockerType
+                    if (deleteFromReciprocal) {
+                        for (let code of blockerCodes) {
+                            this._deleteFromResolveBlockedByCode(
+                                blockerType,
+                                normalizeBlockerCode(code),
+                                typeBlocked,
+                                codeBlocked,
+                                false,
+                            );
+                        }
                     }
+                    delete neededObj[blockerType];
                 }
             }
-
-            if (Object.keys(neededToResolveForComponent).length === 0) {
-                delete this.resolveBlockers.neededToResolve[
-                    componentIdxBlocked
-                ];
+        } else if (deleteFromReciprocal) {
+            // no blockerType given, so deleting all blockerCodes for all
+            // blockerTypes (the entry itself is deleted below)
+            for (let type in neededObj) {
+                for (let code of neededObj[type]) {
+                    this._deleteFromResolveBlockedByCode(
+                        type,
+                        normalizeBlockerCode(code),
+                        typeBlocked,
+                        codeBlocked,
+                        false,
+                    );
+                }
             }
         }
 
-        // console.log(`done deleting from needed to resolve ${componentIdxBlocked}, ${typeBlocked}, ${stateVariableBlocked}, ${dependencyBlocked}, ${blockerType}, ${blockerCode}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        if (!blockerType || Object.keys(neededObj).length === 0) {
+            neededForType.delete(codeBlocked);
+        }
     }
 
     checkIfHaveNeededToResolve({
@@ -1887,76 +1889,13 @@ export class DependencyHandler {
         stateVariable,
         dependency,
     }: any) {
-        let neededToResolveForComponent =
-            this.resolveBlockers.neededToResolve[componentIdx];
-        if (!neededToResolveForComponent) {
-            return false;
-        }
-
-        let neededToResolve = neededToResolveForComponent[type];
-        if (!neededToResolve) {
-            return false;
-        }
-
-        // have an extra level if include a state variable
-        if (stateVariable) {
-            let neededToResolveTemp = neededToResolve;
-            neededToResolve = neededToResolveTemp[stateVariable];
-            if (!neededToResolve) {
-                return false;
-            }
-
-            // have yet another level if include a dependency
-            if (dependency) {
-                let neededToResolveTemp = neededToResolve;
-                neededToResolve = neededToResolveTemp[dependency];
-                if (!neededToResolve) {
-                    return false;
-                }
-            }
-        }
-
-        return Object.keys(neededToResolve).length > 0;
-    }
-
-    getResolveBlockedBy({
-        componentIdx,
-        type,
-        stateVariable,
-        dependency,
-    }: any) {
-        let resolveBlockedByComponent =
-            this.resolveBlockers.resolveBlockedBy[componentIdx];
-        if (!resolveBlockedByComponent) {
-            resolveBlockedByComponent = this.resolveBlockers.resolveBlockedBy[
-                componentIdx
-            ] = {};
-        }
-
-        let resolveBlockedBy = resolveBlockedByComponent[type];
-        if (!resolveBlockedBy) {
-            resolveBlockedBy = resolveBlockedByComponent[type] = {};
-        }
-
-        // have an extra level if include a state variable
-        if (stateVariable) {
-            let resolveBlockedByTemp = resolveBlockedBy;
-            resolveBlockedBy = resolveBlockedByTemp[stateVariable];
-            if (!resolveBlockedBy) {
-                resolveBlockedBy = resolveBlockedByTemp[stateVariable] = {};
-            }
-
-            // have yet another level if include a dependency
-            if (dependency) {
-                let resolveBlockedByTemp = resolveBlockedBy;
-                resolveBlockedBy = resolveBlockedByTemp[dependency];
-                if (!resolveBlockedBy) {
-                    resolveBlockedBy = resolveBlockedByTemp[dependency] = {};
-                }
-            }
-        }
-
-        return resolveBlockedBy;
+        const neededToResolve = this.resolveBlockers.neededToResolve
+            .get(type)
+            ?.get(blockerCodeFor(componentIdx, stateVariable, dependency));
+        return (
+            neededToResolve !== undefined &&
+            Object.keys(neededToResolve).length > 0
+        );
     }
 
     deleteFromResolveBlockedBy({
@@ -1968,187 +1907,92 @@ export class DependencyHandler {
         codeBlocked,
         deleteFromReciprocal = true,
     }: any) {
-        // console.log(`delete from resolve blocked by ${blockerComponentIdx}, ${blockerType}, ${blockerStateVariable}, ${blockerDependency}, ${typeBlocked}, ${codeBlocked}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        this._deleteFromResolveBlockedByCode(
+            blockerType,
+            blockerCodeFor(
+                blockerComponentIdx,
+                blockerStateVariable,
+                blockerDependency,
+            ),
+            typeBlocked,
+            codeBlocked,
+            deleteFromReciprocal,
+        );
+    }
 
-        let blockerCode = blockerComponentIdx.toString();
-        if (blockerStateVariable) {
-            blockerCode += "|" + blockerStateVariable;
-            if (blockerDependency) {
-                blockerCode += "|" + blockerDependency;
-            }
+    /**
+     * `deleteFromResolveBlockedBy` for a blocker given by its code; the
+     * mirror image of `_deleteFromNeededToResolveByCode`.
+     */
+    _deleteFromResolveBlockedByCode(
+        blockerType: string,
+        blockerCode: string,
+        typeBlocked: string | undefined,
+        codeBlocked: string | number | undefined,
+        deleteFromReciprocal: boolean,
+    ) {
+        const blockedForType =
+            this.resolveBlockers.resolveBlockedBy.get(blockerType);
+        const blockedObj = blockedForType?.get(blockerCode);
+        if (!blockedForType || !blockedObj) {
+            return;
         }
 
-        // Arrow form for the same reason as `deleteBlockerTypeAndCode`
-        // above — the body uses `this.<method>` so it must lexically
-        // capture the surrounding class instance.
-        let deleteTypeAndCodeBlocked = (neededObj: any) => {
-            if (typeBlocked) {
-                if (neededObj[typeBlocked]) {
-                    if (codeBlocked) {
-                        let ind = neededObj[typeBlocked].indexOf(codeBlocked);
-                        if (ind !== -1) {
-                            neededObj[typeBlocked].splice(ind, 1);
-                        }
-                        if (neededObj[typeBlocked].length === 0) {
-                            delete neededObj[typeBlocked];
-                        }
-                        if (deleteFromReciprocal) {
-                            let [
-                                componentIdxBlocked,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                            ] =
-                                typeof codeBlocked === "string"
-                                    ? codeBlocked.split("|")
-                                    : [codeBlocked];
-
-                            this.deleteFromNeededToResolve({
-                                componentIdxBlocked,
-                                typeBlocked,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                                blockerType,
-                                blockerCode,
-                                deleteFromReciprocal: false,
-                            });
-                        }
-                    } else {
-                        // no codeBlocked given, so deleting all for typeBlocked
-                        if (deleteFromReciprocal) {
-                            for (let code of neededObj[typeBlocked]) {
-                                let [
-                                    componentIdxBlocked,
-                                    stateVariableBlocked,
-                                    dependencyBlocked,
-                                ] =
-                                    typeof code === "string"
-                                        ? code.split("|")
-                                        : [code];
-                                this.deleteFromNeededToResolve({
-                                    componentIdxBlocked,
-                                    typeBlocked,
-                                    stateVariableBlocked,
-                                    dependencyBlocked,
-                                    blockerType,
-                                    blockerCode,
-                                    deleteFromReciprocal: false,
-                                });
-                            }
-                        }
-
-                        delete neededObj[typeBlocked];
+        if (typeBlocked) {
+            const codesBlocked = blockedObj[typeBlocked];
+            if (codesBlocked) {
+                if (codeBlocked) {
+                    let ind = indexOfCode(codesBlocked, codeBlocked);
+                    if (ind !== -1) {
+                        codesBlocked.splice(ind, 1);
                     }
-                }
-            } else {
-                // no typeBlocked given, so will delete all codeBlockeds for all typeBlockeds
-                // Just delete from reciprocal here
-                // (can't actually delete originals in this function, as need access to parent object)
-                if (deleteFromReciprocal) {
-                    for (let type in neededObj) {
-                        for (let code of neededObj[type]) {
-                            let [
-                                componentIdxBlocked,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                            ] =
-                                typeof code === "string"
-                                    ? code.split("|")
-                                    : [code];
-                            this.deleteFromNeededToResolve({
-                                componentIdxBlocked,
-                                typeBlocked: type,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                                blockerType,
-                                blockerCode,
-                                deleteFromReciprocal: false,
-                            });
-                        }
+                    if (codesBlocked.length === 0) {
+                        delete blockedObj[typeBlocked];
                     }
-                }
-            }
-        };
-
-        let resolveBlockedByForComponent =
-            this.resolveBlockers.resolveBlockedBy[blockerComponentIdx];
-
-        if (resolveBlockedByForComponent) {
-            let resolveBlockedByForType =
-                resolveBlockedByForComponent[blockerType];
-
-            if (resolveBlockedByForType) {
-                // have an extra level if include a state variable
-                if (blockerStateVariable) {
-                    let resolveBlockedByForStateVariable =
-                        resolveBlockedByForType[blockerStateVariable];
-                    if (resolveBlockedByForStateVariable) {
-                        // have yet another level if include a dependency
-                        if (blockerDependency) {
-                            let resolveBlockedByForDependency =
-                                resolveBlockedByForStateVariable[
-                                    blockerDependency
-                                ];
-                            if (resolveBlockedByForDependency) {
-                                deleteTypeAndCodeBlocked(
-                                    resolveBlockedByForDependency,
-                                );
-                                if (
-                                    !typeBlocked ||
-                                    Object.keys(resolveBlockedByForDependency)
-                                        .length === 0
-                                ) {
-                                    delete resolveBlockedByForStateVariable[
-                                        blockerDependency
-                                    ];
-                                }
-                            }
-                            if (
-                                Object.keys(resolveBlockedByForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete resolveBlockedByForType[
-                                    blockerStateVariable
-                                ];
-                            }
-                        } else {
-                            deleteTypeAndCodeBlocked(
-                                resolveBlockedByForStateVariable,
-                            );
-                            if (
-                                !typeBlocked ||
-                                Object.keys(resolveBlockedByForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete resolveBlockedByForType[
-                                    blockerStateVariable
-                                ];
-                            }
-                        }
-                    }
-                    if (Object.keys(resolveBlockedByForType).length === 0) {
-                        delete resolveBlockedByForComponent[blockerType];
+                    if (deleteFromReciprocal) {
+                        this._deleteFromNeededToResolveByCode(
+                            typeBlocked,
+                            normalizeBlockerCode(codeBlocked),
+                            blockerType,
+                            blockerCode,
+                            false,
+                        );
                     }
                 } else {
-                    deleteTypeAndCodeBlocked(resolveBlockedByForType);
-                    if (
-                        !typeBlocked ||
-                        Object.keys(resolveBlockedByForType).length === 0
-                    ) {
-                        delete resolveBlockedByForComponent[blockerType];
+                    // no codeBlocked given, so deleting all for typeBlocked
+                    if (deleteFromReciprocal) {
+                        for (let code of codesBlocked) {
+                            this._deleteFromNeededToResolveByCode(
+                                typeBlocked,
+                                normalizeBlockerCode(code),
+                                blockerType,
+                                blockerCode,
+                                false,
+                            );
+                        }
                     }
+                    delete blockedObj[typeBlocked];
                 }
             }
-
-            if (Object.keys(resolveBlockedByForComponent).length === 0) {
-                delete this.resolveBlockers.resolveBlockedBy[
-                    blockerComponentIdx
-                ];
+        } else if (deleteFromReciprocal) {
+            // no typeBlocked given, so deleting all codeBlockeds for all
+            // typeBlockeds (the entry itself is deleted below)
+            for (let type in blockedObj) {
+                for (let code of blockedObj[type]) {
+                    this._deleteFromNeededToResolveByCode(
+                        type,
+                        normalizeBlockerCode(code),
+                        blockerType,
+                        blockerCode,
+                        false,
+                    );
+                }
             }
         }
 
-        // console.log(`done deleting from resolve blocked by ${blockerComponentIdx}, ${blockerType}, ${blockerStateVariable}, ${blockerDependency}, ${typeBlocked}, ${codeBlocked}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        if (!typeBlocked || Object.keys(blockedObj).length === 0) {
+            blockedForType.delete(blockerCode);
+        }
     }
 
     async addBlocker({
@@ -2177,12 +2021,11 @@ export class DependencyHandler {
             }
         }
 
-        let neededForBlocked = this.getNeededToResolve({
-            componentIdx: componentIdxBlocked,
-            type: typeBlocked,
-            stateVariable: stateVariableBlocked,
-            dependency: dependencyBlocked,
-        });
+        let neededForBlocked = ledgerEntry(
+            this.resolveBlockers.neededToResolve,
+            typeBlocked,
+            normalizeBlockerCode(codeBlocked),
+        );
 
         let neededToResolveBlocked = neededForBlocked[blockerType];
         if (!neededToResolveBlocked) {
@@ -2194,6 +2037,42 @@ export class DependencyHandler {
             return;
         } else {
             neededToResolveBlocked.push(blockerCode);
+        }
+
+        // record that blocked by blocker
+        let resolvedBlockedByBlocker = ledgerEntry(
+            this.resolveBlockers.resolveBlockedBy,
+            blockerType,
+            blockerCode,
+        );
+
+        let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
+        if (!blockedByBlocker) {
+            // exact capacity, as for `neededToResolveBlocked` above
+            resolvedBlockedByBlocker[typeBlocked] = [codeBlocked];
+        } else if (!blockedByBlocker.includes(codeBlocked)) {
+            blockedByBlocker.push(codeBlocked);
+        }
+
+        // Fit the new blocker into the order before anything else can add
+        // one: the order reads its edges from the ledger and assumes each of
+        // them already fits. This is also where a blocker that closes a cycle
+        // is found.
+        const cycle = this.blockerOrder.addBlocker(
+            { type: typeBlocked, code: normalizeBlockerCode(codeBlocked) },
+            { type: blockerType, code: blockerCode },
+        );
+        if (cycle) {
+            throw new CircularDependencyError(
+                this.getCircularDependencyMessage(
+                    cycle.map(
+                        ({ code }) =>
+                            this.components[
+                                code.split("|")[0] as unknown as number
+                            ],
+                    ),
+                ),
+            );
         }
 
         if (typeBlocked === "stateVariable") {
@@ -2238,36 +2117,6 @@ export class DependencyHandler {
                 }
             }
         }
-
-        // record that blocked by blocker
-        let resolvedBlockedByBlocker = this.getResolveBlockedBy({
-            componentIdx: blockerComponentIdx,
-            type: blockerType,
-            stateVariable: blockerStateVariable,
-            dependency: blockerDependency,
-        });
-
-        let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
-        if (!blockedByBlocker) {
-            // exact capacity, as for `neededToResolveBlocked` above
-            resolvedBlockedByBlocker[typeBlocked] = [codeBlocked];
-        } else if (!blockedByBlocker.includes(codeBlocked)) {
-            blockedByBlocker.push(codeBlocked);
-        }
-
-        this.resetCircularResolveBlockerCheckPassed({
-            componentIdx: componentIdxBlocked,
-            type: typeBlocked,
-            stateVariable: stateVariableBlocked,
-            dependency: dependencyBlocked,
-        });
-
-        this.checkForCircularResolveBlocker({
-            componentIdx: componentIdxBlocked,
-            type: typeBlocked,
-            stateVariable: stateVariableBlocked,
-            dependency: dependencyBlocked,
-        });
     }
 
     async processNewlyResolved({
@@ -2917,79 +2766,6 @@ export class DependencyHandler {
         return { nFailures };
     }
 
-    checkForCircularResolveBlocker({
-        componentIdx,
-        type,
-        stateVariable,
-        dependency,
-        previouslyVisited = [],
-    }: any) {
-        let code = componentIdx.toString();
-        if (stateVariable) {
-            code += "|" + stateVariable;
-            if (dependency) {
-                code += "|" + dependency;
-            }
-        }
-
-        let identifier = code + "|" + type;
-
-        if (previouslyVisited.includes(identifier)) {
-            // Found circular dependency
-            // Create error message with list of component types and names involved
-
-            console.log("found circular", identifier, previouslyVisited);
-
-            let componentNameRe = /^([^|]*)\|/;
-
-            let componentsInvolved = previouslyVisited.map(
-                (x: string) =>
-                    this.components[
-                        x.match(componentNameRe)![1] as unknown as number
-                    ],
-            );
-
-            let message = this.getCircularDependencyMessage(componentsInvolved);
-
-            throw Error(message);
-        } else {
-            // shallow copy so don't change original
-            previouslyVisited = [...previouslyVisited, identifier];
-        }
-
-        if (!this.circularResolveBlockedCheckPassed[identifier]) {
-            this.circularResolveBlockedCheckPassed[identifier] = true;
-
-            let neededForItem = this.peekNeededToResolve({
-                componentIdx,
-                type,
-                stateVariable,
-                dependency,
-            });
-
-            for (let blockerType in neededForItem) {
-                for (let blockerCode of neededForItem[blockerType]) {
-                    let [
-                        blockerComponentIdx,
-                        blockerStateVariable,
-                        blockerDependency,
-                    ] =
-                        typeof blockerCode === "string"
-                            ? blockerCode.split("|")
-                            : [blockerCode];
-
-                    this.checkForCircularResolveBlocker({
-                        componentIdx: blockerComponentIdx,
-                        type: blockerType,
-                        stateVariable: blockerStateVariable,
-                        dependency: blockerDependency,
-                        previouslyVisited,
-                    });
-                }
-            }
-        }
-    }
-
     getCircularDependencyMessage(componentsInvolved: any[]) {
         let uniqueComponentNames: any[] = [];
         let componentTypesForUniqueNames: any[] = [];
@@ -2998,6 +2774,11 @@ export class DependencyHandler {
         // remove internally created component names
         // and deduplicate while keeping order (so don't use Set)
         for (let comp of componentsInvolved) {
+            if (comp.componentType === "_ref") {
+                // a value reference is not something the author wrote; the
+                // component holding it is in the cycle too
+                continue;
+            }
             let name = comp.componentIdx;
             let relativeName = name;
             if (relativeName) {
@@ -3081,54 +2862,6 @@ export class DependencyHandler {
         return `Circular dependency involving these components: ${message}.`;
     }
 
-    resetCircularResolveBlockerCheckPassed({
-        componentIdx,
-        type,
-        stateVariable,
-        dependency,
-    }: any) {
-        let code = componentIdx.toString();
-        if (stateVariable) {
-            code += "|" + stateVariable;
-            if (dependency) {
-                code += "|" + dependency;
-            }
-        }
-
-        let identifier = code + "|" + type;
-
-        if (this.circularResolveBlockedCheckPassed[identifier]) {
-            delete this.circularResolveBlockedCheckPassed[identifier];
-
-            let resolveBlockedBy = this.peekResolveBlockedBy({
-                componentIdx,
-                type,
-                stateVariable,
-                dependency,
-            });
-
-            for (let typeBlocked in resolveBlockedBy) {
-                for (let codeBlocked of resolveBlockedBy[typeBlocked]) {
-                    let [
-                        componentIdxBlocked,
-                        stateVariableBlocked,
-                        dependencyBlocked,
-                    ] =
-                        typeof codeBlocked === "string"
-                            ? codeBlocked.split("|")
-                            : [codeBlocked];
-
-                    this.resetCircularResolveBlockerCheckPassed({
-                        componentIdx: componentIdxBlocked,
-                        type: typeBlocked,
-                        stateVariable: stateVariableBlocked,
-                        dependency: dependencyBlocked,
-                    });
-                }
-            }
-        }
-    }
-
     get components() {
         return this._components;
         // return new Proxy(this._components, readOnlyProxyHandler);
@@ -3138,4 +2871,59 @@ export class DependencyHandler {
         // intentional no-op — `components` is read-only by design but the
         // setter exists to match the historical API surface.
     }
+}
+
+/**
+ * The code under which `addBlocker` files an item: `"idx"`,
+ * `"idx|stateVariable"` or `"idx|stateVariable|dependency"`.
+ */
+function blockerCodeFor(
+    componentIdx: ComponentIdx | string,
+    stateVariable?: string,
+    dependency?: string,
+): string {
+    let code = componentIdx.toString();
+    if (stateVariable) {
+        code += "|" + stateVariable;
+        if (dependency) {
+            code += "|" + dependency;
+        }
+    }
+    return code;
+}
+
+/**
+ * Codes in the blocker lists are strings except for an item with no state
+ * variable filed under `resolveBlockedBy`, which `addBlocker` stores as the
+ * bare component index.
+ */
+function normalizeBlockerCode(code: string | number): string {
+    return typeof code === "string" ? code : String(code);
+}
+
+/**
+ * The index of `code` in a blocker list, or -1. A list can hold a bare
+ * component index as a number while the code asked for is the same index as
+ * a string (or the other way round), so they are compared as strings; a
+ * removal that missed one direction of the ledger would leave the other
+ * behind, which `BlockerOrder` depends on never happening.
+ */
+function indexOfCode(codes: (string | number)[], code: string | number) {
+    const ind = codes.indexOf(code);
+    if (ind !== -1) {
+        return ind;
+    }
+    const normalized = normalizeBlockerCode(code);
+    return codes.findIndex((c) => normalizeBlockerCode(c) === normalized);
+}
+
+/** Freeze a JSON value and everything in it. */
+function deepFreeze<T>(value: T): T {
+    if (value !== null && typeof value === "object") {
+        for (const child of Object.values(value)) {
+            deepFreeze(child);
+        }
+        Object.freeze(value);
+    }
+    return value;
 }

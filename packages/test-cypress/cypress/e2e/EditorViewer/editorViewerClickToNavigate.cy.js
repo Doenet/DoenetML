@@ -134,6 +134,46 @@ describe(
             expectP40OnScreen();
         });
 
+        it("cmd+clicking a line scrolls only the viewer, not the page around it", () => {
+            // A short description is visually-hidden text, which is
+            // absolutely positioned. Unless the viewer's scroll container is
+            // its containing block, these spans extend the page itself, and
+            // scrolling the viewer to an element near the end of the
+            // document (one the viewer alone can't center) scrolls the page
+            // too.
+            const doenetML = [
+                manyParagraphs(40),
+                `<p name="p41">Paragraph number 41. <mathInput><shortDescription>input 41</shortDescription></mathInput></p>`,
+                `<p name="p42">Paragraph number 42. <mathInput><shortDescription>input 42</shortDescription></mathInput></p>`,
+            ].join("\n");
+
+            cy.window().then((win) => {
+                win.postMessage({ doenetML }, "*");
+            });
+
+            cy.get("#p42").should("contain.text", "Paragraph number 42.");
+            cy.get("#p42 .visually-hidden").should("exist");
+            expectP40OffScreen();
+
+            // The test harness's own layout may overflow the page by a few
+            // pixels; the viewer's content must not add to that.
+            cy.document().then((doc) => {
+                const root = doc.documentElement;
+                const harnessOverflow = root.scrollHeight - root.clientHeight;
+                expect(harnessOverflow).to.be.lessThan(50);
+
+                cy.contains(".cm-line", `name="p40"`).click({ metaKey: true });
+                expectP40OnScreen();
+
+                cy.wait(400);
+                cy.document().should((doc) => {
+                    expect(doc.scrollingElement.scrollTop).to.be.at.most(
+                        Math.max(harnessOverflow, 0),
+                    );
+                });
+            });
+        });
+
         it("the keyboard shortcut scrolls the viewer to the cursor's line", () => {
             // The mouse gesture is Cmd/Ctrl+click, which leaves anyone
             // navigating by keyboard with no way to drive this direction at

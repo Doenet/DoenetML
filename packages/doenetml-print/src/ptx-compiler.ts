@@ -1,6 +1,7 @@
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { _PrefigBrowserApi } from "@doenet/prefigure";
 import { visit } from "unist-util-visit";
+import { preparePrintoutPages } from "./printout-pages";
 
 // The required python packages that are not part of pyodide's standard library.
 // @ts-ignore
@@ -58,6 +59,18 @@ const DECODER = new TextDecoder();
  * which PreTeXt and CSS both read as a length.
  */
 const WORKSPACE_HEIGHT = /^(\d+(\.\d+)?|\.\d+)(in|cm)$/;
+
+/**
+ * What an opened footnote looks like once nobody can close it again. PreTeXt writes a
+ * footnote as a `<details>`, and dresses the open state for a reader who can click it:
+ * the number becomes a "[x]" to close by. On paper the note is simply open, so the
+ * number comes back and the affordance goes.
+ */
+const FOOTNOTE_PRINT_CSS = `
+.ptx-footnote[open] .ptx-footnote__number::before { content: none; }
+.ptx-footnote[open] .ptx-footnote__number sup { display: inline; }
+.ptx-footnote__number { cursor: auto; }
+`;
 
 const CLASSES_TO_DROP = [
     "diagcess__instructions",
@@ -261,6 +274,15 @@ export class PtxCompiler {
                         hastMutateToEmptyString(node);
                     }
 
+                    // A footnote is a `<details>` that PreTeXt leaves closed, so a printed
+                    // page carried the marker and none of the note. Open it. The rules
+                    // that dress the open state for a reader who can click it — a "[x]"
+                    // in place of the number, and the number hidden — are undone in
+                    // `FOOTNOTE_PRINT_CSS`, since on paper there is nothing to close.
+                    if (hastElementContainsClass(node, "ptx-footnote")) {
+                        node.properties.open = true;
+                    }
+
                     // Room for a reader to write, requested by a `workspace` attribute in
                     // the PreTeXt source. PreTeXt leaves the height to the javascript that
                     // lays out its print preview, so give the space its height here.
@@ -307,6 +329,19 @@ export class PtxCompiler {
                         }
                     }
 
+                    // Carried at the end of the head so it outranks the inlined
+                    // stylesheet it corrects.
+                    if (node.tagName === "head") {
+                        node.children.push({
+                            type: "element",
+                            tagName: "style",
+                            properties: {},
+                            children: [
+                                { type: "text", value: FOOTNOTE_PRINT_CSS },
+                            ],
+                        });
+                    }
+
                     // Inline the stylesheets that are locally referenced.
                     if (
                         node.tagName === "link" &&
@@ -340,6 +375,8 @@ export class PtxCompiler {
                     }
                 });
             })
+            // A printout written in pages prints one page per sheet.
+            .use(() => (tree: HastRoot) => preparePrintoutPages(tree))
             .use(rehypeStringify)
             .process(html);
         return processedHtml.toString();

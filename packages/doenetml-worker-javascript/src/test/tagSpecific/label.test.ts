@@ -1911,4 +1911,57 @@ describe("Label tag tests @group2", async () => {
             ),
         ).eq(true);
     });
+
+    it("components render the label child that their label comes from", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="bi"><label>x <delete>A</delete></label></booleanInput>
+<textInput name="ti">hello<label><insert>B</insert></label></textInput>
+<choiceInput name="ci"><choice>a</choice><label><em>C</em></label></choiceInput>
+<slider name="s"><label><delete>D</delete></label></slider>
+<callAction name="ca" actionName="nothing"><label><delete>E</delete></label></callAction>
+<updateValue name="uv"><label><delete>F</delete></label></updateValue>
+<triggerSet name="ts"><label><delete>G</delete></label></triggerSet>
+<booleanInput name="noLabel" />
+<answer name="ans"><label><delete>H</delete></label>x</answer>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        // The label string drops the markup
+        expect((await sv("bi")).label).eq("x A");
+
+        expect((await sv("bi")).labelChildInd).eq(0);
+        expect((await sv("bi")).childIndicesToRender).eqls([0]);
+        expect((await sv("ti")).labelChildInd).eq(1);
+        expect((await sv("ti")).childIndicesToRender).eqls([1]);
+        expect((await sv("ci")).labelChildInd).eq(1);
+        expect((await sv("ci")).childIndicesToRender).eqls([0, 1]);
+        for (const name of ["s", "ca", "uv", "ts"]) {
+            expect((await sv(name)).labelChildInd).eq(0);
+            expect((await sv(name)).childIndicesToRender).eqls([0]);
+        }
+        expect((await sv("noLabel")).labelChildInd).eq(-1);
+        expect((await sv("noLabel")).childIndicesToRender).eqls([]);
+
+        for (const name of ["bi", "ti", "ci", "s", "ca", "uv", "ts"]) {
+            expect((await sv(name)).labelFromParent).eq(false);
+        }
+
+        // The answer renders its label, and the input it created from sugar
+        // takes its label from the answer
+        const ans = await sv("ans");
+        const ansChildren =
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren;
+        expect(ansChildren[ans.labelChildInd].componentType).eq("label");
+        expect(ans.childIndicesToRender).toContain(ans.labelChildInd);
+        const inputIdx = ansChildren[ans.inputChildIndices[0]].componentIdx;
+        const input = stateVariables[inputIdx].stateValues;
+        expect(input.label).eq("H");
+        expect(input.labelFromParent).eq(true);
+        expect(input.labelChildInd).eq(-1);
+    });
 });

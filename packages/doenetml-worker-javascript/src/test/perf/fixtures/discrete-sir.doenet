@@ -1,0 +1,131 @@
+<title>Simulation of a discrete SIR infectious disease model</title>
+
+<setup>
+  <function name="fSIR" variables="S I R">(S - $b S I, I + $b S I - $a I, R + $a I)</function>
+  <math name="initial">($S0, $I0, $R0)</math>
+  <number name="zeroFixed" fixed="true">0</number>
+  <functionIterates function="$fSIR" initialValue="$initial" numIterates="$nIterates" name="iteration" />
+
+  <clampNumber name="S0" lowerValue="0" upperValue="Infinity">9990</clampNumber>
+  <clampNumber name="I0" lowerValue="0" upperValue="Infinity">10</clampNumber>
+  <clampNumber name="R0" lowerValue="0" upperValue="Infinity">0</clampNumber>
+</setup>
+
+<p>The below applet is a simulation of the <ref to="TBD">discrete SIR infectious disease model</ref>
+<md>
+  <mrow>S_{t+1} - S_t\amp = -$b S_t I_t</mrow>
+  <mrow>I_{t+1} - I_t\amp = $b S_tI_t - $a I_t</mrow>
+  <mrow>R_{t+1} - R_t\amp = $a I_t.</mrow>
+</md>
+where</p>
+<ul>
+  <li><m>S_t</m> = the number of susceptibles in day <m>t</m></li>
+  <li><m>I_t</m> = the number of infectives in day <m>t</m></li>
+  <li><m>R_t</m> = the number of removed in day <m>t</m>.</li>
+</ul>
+
+<p>Initial conditions:</p>
+  <ul>
+<li><m>S_0 =</m> <mathInput bindValueTo="$S0" /></li>
+<li><m>I_0 =</m> <mathInput bindValueTo="$I0" /></li>
+<li><m>R_0 =</m> <mathInput bindValueTo="$R0" /></li>
+</ul>
+<p>Total population size: <m>N_{tot} = <math simplify="true" name="Ntot">$S0+$I0+$R0</math> </m></p>
+
+<graph xmin="$xmin" xmax="$xmax" ymin="$ymin" ymax="$ymax" name="plot">
+  <setup>
+    <repeat name="SPoints" for="$iteration.allIteratesWithInitial" valueName="x" indexName="i">
+      <point>($i-1, $x[1])</point>
+    </repeat>
+    <repeat name="IPoints" for="$iteration.allIteratesWithInitial" valueName="x" indexName="i">
+      <point>($i-1, $x[2])</point>
+    </repeat>
+    <repeat name="RPoints" for="$iteration.allIteratesWithInitial" valueName="x" indexName="i">
+      <point>($i-1, $x[3])</point>
+    </repeat>
+  </setup>
+  <polyline vertices="$SPoints" draggable="false" />
+  <polyline vertices="$IPoints" draggable="false" styleNumber="2" />
+  <polyline vertices="$RPoints" draggable="false" styleNumber="3" />
+  <point x="$zeroFixed" y="$S0" layer="1">
+    <constrainToGrid dy="1" />
+  </point>
+  <point x="$zeroFixed" y="$I0" styleNumber="2" layer="1">
+    <constrainToGrid dy="1" />
+  </point>
+  <point x="$zeroFixed" y="$R0" styleNumber="3">
+    <constrainToGrid dy="1" />
+  </point>
+  <legend>
+    <label>Susceptibles <m>S_t</m></label>
+    <label>Infectives <m>I_t</m></label>
+    <label>Removed <m>R_t</m></label>
+  </legend>
+</graph>
+
+<aside>
+<title>Values at each time</title>
+
+<spreadsheet name="table" height="200px" columnHeaders="false" rowHeaders="false" fixedRowsTop="1">
+  <row><cell>t</cell><cell>S_t</cell><cell>I_t</cell><cell>R_t</cell></row>
+  <repeat for="$iteration.allIteratesWithInitial" valueName="x" indexName="i">
+    <row>
+      <cell><number>$i-1</number></cell>
+      <cell><number displayDecimals="2">$x[1]</number></cell>
+      <cell><number displayDecimals="2">$x[2]</number></cell>
+      <cell><number displayDecimals="2">$x[3]</number></cell>
+    </row>
+  </repeat>
+</spreadsheet>
+</aside>
+
+<aside>
+  <title>Advanced options</title>
+
+  <setup>
+    <number name="defaultA">0.1</number>
+    <number name="defaultB">0.0001</number>
+    <number name="defaultNIterates">200</number>
+    <number name="defaultXmin">-2</number>
+    <number name="defaultXmax">50</number>
+    <number name="defaultYmin">-2000</number>
+    <number name="defaultYmax">12000</number>
+  </setup>
+
+  <sideBySide margins="0%" widths="40% 30% 20%">
+    <stack>
+      For the equation
+      <md>
+        <mrow>S_{t+1} - S_t\amp = -b S_t I_t</mrow>
+        <mrow>I_{t+1} - I_t\amp = b S_tI_t - a I_t</mrow>
+        <mrow>R_{t+1} - R_t\amp = a I_t.</mrow>
+      </md>
+      you can change the infection rate <m>a</m>, the recovery rate <m>b</m>, and parameters controlling the simulation.
+    </stack>
+
+    <tabular>
+      <row><cell><m>a=</m> <mathInput name="a" prefill="$defaultA" /></cell></row>
+      <row><cell><m>b=</m> <mathInput name="b" prefill="$defaultB" /></cell></row>
+      <row><cell><m>N_{iterates}=</m> <mathInput name="nIterates" prefill="$defaultNIterates" /></cell></row>
+      <row><cell><m>x_{min} =</m> <mathInput name="xmin" prefill="$defaultXmin" /></cell></row>
+      <row><cell><m>x_{max} =</m> <mathInput name="xmax" prefill="$defaultXmax" /></cell></row>
+      <row><cell><m>y_{min} =</m> <mathInput name="ymin" prefill="$defaultYmin" /></cell></row>
+      <row><cell><m>y_{max} =</m> <mathInput name="ymax" prefill="$defaultYmax" /></cell></row>
+   </tabular>
+
+    <stack>
+      <triggerSet>
+        <label>Reset parameters</label>
+        <updateValue target="$a" newValue="$defaultA" />
+        <updateValue target="$b" newValue="$defaultB" />
+        <updateValue target="$nIterates" newValue="$defaultNIterates" />
+        <updateValue target="$xmin" newValue="$defaultXmin" />
+        <updateValue target="$xmax" newValue="$defaultXmax" />
+        <updateValue target="$ymin" newValue="$defaultYmin" />
+        <updateValue target="$ymax" newValue="$defaultYmax" />
+      </triggerSet>
+    </stack>
+
+  </sideBySide>
+</aside>
+

@@ -20,6 +20,22 @@ When used on a `<graph>{:dn}`, a `<label>{:dn}` renders text or math attached to
 graphical object such as a `<point>{:dn}`, or as a standalone annotation positioned
 with the `anchor` attribute.
 
+A `<label>{:dn}` can contain math and text markup such as `<em>{:dn}`, `<c>{:dn}`,
+`<delete>{:dn}`, and `<insert>{:dn}`. Where the markup is shown:
+
+- **On screen**, the label shows its markup on the component it labels and when
+  written on its own, with one exception: a label drawn by a `<graph>{:dn}` shows only
+  its text and math. That is the label of a graphical object such as a `<point>{:dn}`,
+  a `<label>{:dn}` placed on the graph on its own, and the label of a
+  `<booleanInput>{:dn}`, `<textInput>{:dn}`, or button (`<updateValue>{:dn}`,
+  `<callAction>{:dn}`, `<triggerSet>{:dn}`) placed on a graph. A `<mathInput>{:dn}`
+  on a graph shows its label's markup.
+- **When printed**, the labels of inputs and answers, and a label written on its own in the text,
+  keep their markup. The labels of sliders, buttons, and `<fractionInput>{:dn}`s are
+  not printed, nor, for now, the label of a `<choiceInput>{:dn}` that is not inline.
+- **A copy of a component's label**, such as `$pointA.label`, has only the label's text
+  and math, wherever it is shown.
+
 A `<label>{:dn}` can be written as a child of the component it labels, or placed
 elsewhere in the document and linked to an input or answer with the `for` attribute.
 

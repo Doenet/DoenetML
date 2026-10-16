@@ -3,6 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { HotTable } from "@handsontable/react-wrapper";
+import type Handsontable from "handsontable/base";
 import { HyperFormula } from "hyperformula";
 import "handsontable/styles/handsontable.min.css";
 import "handsontable/styles/ht-theme-classic.min.css";
@@ -29,6 +30,7 @@ interface SpreadsheetSVs {
     hiddenRows: number[];
     cellsFixed: boolean[][];
     cellsInHeader: boolean[][];
+    columnWidths: ({ size: number; isAbsolute: boolean } | null)[];
     renderInlineForListItem?: boolean;
 }
 
@@ -43,6 +45,9 @@ export default React.memo(function SpreadsheetRenderer(
     const { darkMode } = useContext(DocContext) || {};
 
     const ref = useRef<HTMLDivElement | null>(null);
+    // The width of the vertical scrollbar as of the last render, which the
+    // percentage column widths are computed beside (see `afterRender`).
+    const scrollbarWidth = useRef(0);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -94,6 +99,107 @@ export default React.memo(function SpreadsheetRenderer(
         } else {
             td.removeAttribute("role");
         }
+    }
+
+    /**
+     * The width in pixels an author gave physical column `col`, or `undefined`
+     * if they gave none. A percentage is of the width Handsontable has for
+     * the data columns, which excludes the row headers — the counterpart of a
+     * `<col width="…%">` being a percentage of its `<tabular>`.
+     *
+     * It also excludes a vertical scrollbar, which `getViewportWidth` counts.
+     * A narrow column wraps its text, the taller rows can outgrow the
+     * spreadsheet's height, and percentages summing to 100% of a width that
+     * includes the scrollbar would then add a horizontal scrollbar too. The
+     * stretch plugin makes the same deduction, with a helper Handsontable
+     * does not export, so the scrollbar is measured off the master holder.
+     */
+    function authoredColumnWidth(
+        hot: Handsontable,
+        col: number,
+    ): number | undefined {
+        const width = SVs.columnWidths?.[col];
+        if (!width) {
+            return undefined;
+        }
+        if (width.isAbsolute) {
+            return width.size;
+        }
+        const viewportWidth = hot.view?.getViewportWidth();
+        if (!viewportWidth) {
+            return undefined;
+        }
+        // Rounded down, so that percentages summing to 100% never total more
+        // than the viewport: a pixel over and the stretch plugin gives up,
+        // leaving a horizontal scrollbar. It hands the spare pixels to the
+        // last column.
+        return Math.floor(
+            (width.size / 100) * (viewportWidth - scrollbarWidth.current),
+        );
+    }
+
+    /** The width of the master table's vertical scrollbar, 0 if it has none. */
+    function verticalScrollbarWidth(hot: Handsontable) {
+        const holder = hot.rootElement?.querySelector<HTMLElement>(
+            ".ht_master .wtHolder",
+        );
+        return holder
+            ? Math.max(0, holder.offsetWidth - holder.clientWidth)
+            : 0;
+    }
+
+    /**
+     * Keep `scrollbarWidth` in step with the table, rendering once more when
+     * it changes. The percentage widths are what wrap the text that makes the
+     * rows tall enough to need a scrollbar, so the scrollbar can only appear
+     * after the render that used them. The follow-up render uses the new
+     * width and settles: narrower columns wrap at least as much, so the
+     * scrollbar stays.
+     */
+    function afterRender(this: Handsontable) {
+        if (!SVs.columnWidths?.some((width) => width && !width.isAbsolute)) {
+            return;
+        }
+        const measured = verticalScrollbarWidth(this);
+        if (measured !== scrollbarWidth.current) {
+            scrollbarWidth.current = measured;
+            requestAnimationFrame(() => {
+                if (!this.isDestroyed) {
+                    // The render resizes the columns but not the scroll area
+                    // around them: Handsontable postpones that to the render
+                    // after, so it would keep the old total, and scroll
+                    // sideways, until something else rendered. Flushing it
+                    // is `adjustElementsSize`'s documented escape hatch.
+                    this.render();
+                    this.view.adjustElementsSize(true);
+                }
+            });
+        }
+    }
+
+    /**
+     * Apply the authored widths through two hooks rather than `colWidths`,
+     * because setting `colWidths` at all switches off Handsontable's
+     * automatic sizing for every column, including the ones left alone.
+     *
+     * - `modifyColWidth` replaces the automatic width of an authored column.
+     *   It runs after the auto-size plugin's hook (priority -10) and before
+     *   the stretch plugin's (10), so it sets the width stretching starts
+     *   from.
+     * - `beforeStretchingColumnWidth` then pins that column, so
+     *   `stretchH="all"` hands the remaining width to the other columns
+     *   instead of scaling the authored one along with them.
+     *
+     * Both hooks receive a visual column index; `columnWidths` is physical.
+     */
+    function applyAuthoredColumnWidth(
+        this: Handsontable,
+        width: number,
+        visualCol: number,
+    ) {
+        return (
+            authoredColumnWidth(this, this.toPhysicalColumn(visualCol)) ?? width
+        );
     }
 
     if (SVs.hidden) {
@@ -155,6 +261,9 @@ export default React.memo(function SpreadsheetRenderer(
                     indicators: false,
                 }}
                 cells={cellSettings}
+                modifyColWidth={applyAuthoredColumnWidth}
+                beforeStretchingColumnWidth={applyAuthoredColumnWidth}
+                afterRender={afterRender}
                 afterRenderer={afterRenderer}
                 // A `fixed` spreadsheet rejects every edit in the worker, so
                 // the whole grid is read-only — including the positions no

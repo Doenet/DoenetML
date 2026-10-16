@@ -26,6 +26,7 @@ import {
     isInVirtualKeyboardTray,
 } from "@doenet/virtual-keyboard";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import * as Ariakit from "@ariakit/react";
 
 import { MathJax } from "better-react-mathjax";
@@ -458,6 +459,7 @@ interface MathInputSVs {
 export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<MathInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
@@ -1256,6 +1258,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+    if (renderedLabel) {
+        label = renderedLabel;
+    }
 
     let shortDescription = SVs.shortDescription || undefined;
 
@@ -1270,8 +1275,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
             ? `${id}-short-description`
             : undefined;
 
-    // description will be the one non-null child
-    const descriptionChild = children.find((child) => child);
+    // description will be the one non-null child other than the label
+    const descriptionChild = children.find(
+        (child, ind) => child && ind !== SVs.labelChildInd,
+    );
 
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;

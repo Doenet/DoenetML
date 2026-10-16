@@ -1,5 +1,6 @@
 import {
     returnLabelAttributes,
+    returnLabelChildIndDefinition,
     returnLabelStateVariableDefinitions,
 } from "../../utils/label";
 import InlineComponent from "./InlineComponent";
@@ -93,6 +94,10 @@ export default class Input extends InlineComponent {
             getLabelFromParentIfSugared: true,
         });
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnLabelChildIndDefinition(),
+        );
 
         // how many values an input returns
         stateVariableDefinitions.numValues = {
@@ -1018,6 +1023,10 @@ export default class Input extends InlineComponent {
                     dependencyType: "child",
                     includeAllChildren: true,
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition({ dependencyValues }) {
                 const descriptionIdx =
@@ -1025,8 +1034,10 @@ export default class Input extends InlineComponent {
                         (child) => child.componentType === "description",
                     );
 
-                const childIndicesToRender =
-                    descriptionIdx === -1 ? [] : [descriptionIdx];
+                const childIndicesToRender = [
+                    descriptionIdx,
+                    dependencyValues.labelChildInd,
+                ].filter((ind) => ind !== -1);
 
                 return { setValue: { childIndicesToRender } };
             },

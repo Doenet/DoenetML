@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import {
+    createTestCore as createTestCoreWithoutListEntries,
+    ResolvePathToNodeIdx,
+} from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
+import { componentOrListEntry } from "../utils/list-entries";
 import {
     movePoint,
     movePolyline,
@@ -12,6 +17,16 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 async function testPolylineCopiedTwice({
     core,
@@ -4159,12 +4174,22 @@ describe("Polyline tag tests @group1", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
-        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
-            undefined,
-        );
-        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
-            undefined,
-        );
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "x[1]",
+            ),
+        ).eq(undefined);
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "xa[1]",
+            ),
+        ).eq(undefined);
 
         await updateMathInputValue({
             latex: "1",
@@ -4185,12 +4210,24 @@ describe("Polyline tag tests @group1", async () => {
             undefined,
         );
         expect(
-            stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues.value
-                .tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "x[1]",
+                )
+            ).stateValues.value.tree,
         ).eq(t2x);
         expect(
-            stateVariables[await resolvePathToNodeIdx("xa[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "xa[1]",
+                )
+            ).stateValues.value.tree,
         ).eq(t2x);
 
         await updateMathInputValue({
@@ -4212,12 +4249,24 @@ describe("Polyline tag tests @group1", async () => {
             undefined,
         );
         expect(
-            stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues.value
-                .tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "x[1]",
+                )
+            ).stateValues.value.tree,
         ).eq(t2y);
         expect(
-            stateVariables[await resolvePathToNodeIdx("xa[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "xa[1]",
+                )
+            ).stateValues.value.tree,
         ).eq(t2y);
 
         await updateMathInputValue({
@@ -4238,12 +4287,22 @@ describe("Polyline tag tests @group1", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
-        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
-            undefined,
-        );
-        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
-            undefined,
-        );
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "x[1]",
+            ),
+        ).eq(undefined);
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "xa[1]",
+            ),
+        ).eq(undefined);
 
         await updateMathInputValue({
             latex: "4",
@@ -4261,12 +4320,22 @@ describe("Polyline tag tests @group1", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
-        expect(stateVariables[await resolvePathToNodeIdx("x[1]")]).eq(
-            undefined,
-        );
-        expect(stateVariables[await resolvePathToNodeIdx("xa[1]")]).eq(
-            undefined,
-        );
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "x[1]",
+            ),
+        ).eq(undefined);
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "xa[1]",
+            ),
+        ).eq(undefined);
     });
 
     it("polyline from vector operations", async () => {

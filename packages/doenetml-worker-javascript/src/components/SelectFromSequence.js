@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../utils/literalAttribute";
 import Sequence from "./Sequence";
 import {
     calculateSequenceParameters,
@@ -6,8 +7,6 @@ import {
 } from "../utils/sequence";
 import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
 
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { textToMathFactory } from "../utils/math";
 import {
     extractConstantSortAttribute,
@@ -23,11 +22,11 @@ import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
     NO_SELECT_ERROR,
+    returnSelectErrorReportDefinition,
     selectError,
     selectionResult,
     takeSelectError,
 } from "../utils/selectErrors";
-import { errorComponentState } from "../utils/dast/errors";
 const { gcd } = me.math;
 
 export default class SelectFromSequence extends Sequence {
@@ -38,7 +37,13 @@ export default class SelectFromSequence extends Sequence {
             "Randomly selects values from a sequence of numbers, math expressions, or letters to create document variants",
     };
 
-    static takesIndex = true;
+    static listEntryValuesVariable = "selectedValues";
+
+    // The selection is made once and does not change, so a value written to
+    // an entry stands over the value selected there, whatever the sequence's
+    // `from` or `step` become (not `sequenceWriteBasis`, as for a
+    // `<sequence>`).
+    static listEntryWriteBasisVariable = undefined;
 
     static createsVariants = true;
 
@@ -302,124 +307,14 @@ export default class SelectFromSequence extends Sequence {
             },
         };
 
-        let originalReturnDependencies =
-            stateVariableDefinitions.readyToExpandWhenResolved
-                .returnDependencies;
-        stateVariableDefinitions.readyToExpandWhenResolved.returnDependencies =
-            function () {
-                let deps = originalReturnDependencies();
+        stateVariableDefinitions.selectErrorReported =
+            returnSelectErrorReportDefinition();
 
-                deps.selectedValues = {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedValues",
-                };
-
-                return deps;
-            };
+        // A selection draws from the sequence without listing it, which may
+        // be long.
+        delete stateVariableDefinitions.sequenceValues;
 
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        nComponents,
-        workspace,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
-        }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let errorMessage = await component.stateValues.errorMessage;
-        if (errorMessage) {
-            return {
-                replacements: [
-                    {
-                        type: "serialized",
-                        componentType: "_error",
-                        componentIdx: nComponents++,
-                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                        state: errorComponentState(
-                            errorMessage,
-                            await component.stateValues.errorDiagnostic,
-                        ),
-                        attributes: {},
-                        doenetAttributes: {},
-                        children: [],
-                    },
-                ],
-                diagnostics,
-                nComponents,
-            };
-        }
-
-        let componentType = await component.stateValues.type;
-        if (componentType === "letters") {
-            componentType = "text";
-        }
-
-        let attributesToConvert = {};
-        for (let attr of [
-            "fixed",
-            ...Object.keys(returnNumberDisplayAttributes()),
-        ]) {
-            if (attr in component.attributes) {
-                attributesToConvert[attr] = component.attributes[attr];
-            }
-        }
-
-        // allow one to override the fixed (default true) attribute
-        // as well as rounding settings
-        // by specifying it on the sequence
-        let attributesFromComposite = {};
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            const res = (attributesFromComposite =
-                convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType,
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                }));
-
-            nComponents = res.nComponents;
-            attributesFromComposite = res.attributes;
-        }
-
-        let replacements = [];
-
-        for (let value of await component.stateValues.selectedValues) {
-            replacements.push({
-                type: "serialized",
-                componentType,
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes: attributesFromComposite,
-                doenetAttributes: {},
-                children: [],
-                state: { value, fixed: true },
-            });
-        }
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
-    }
-
-    static calculateReplacementChanges({ nComponents }) {
-        return { replacementChanges: [], nComponents };
     }
 
     static determineNumberOfUniqueVariants({
@@ -433,8 +328,9 @@ export default class SelectFromSequence extends Sequence {
 
         let sequenceType = serializedComponent.attributes.type.primitive.value;
 
-        let numToSelectComponent =
-            serializedComponent.attributes.numToSelect?.component;
+        let numToSelectComponent = serializedAttributeComponent(
+            serializedComponent.attributes.numToSelect,
+        );
         if (numToSelectComponent) {
             // only implemented if have an integer with a single string child
             if (
@@ -457,8 +353,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let coprimeCombinationsComponent =
-            serializedComponent.attributes.coprime?.component;
+        let coprimeCombinationsComponent = serializedAttributeComponent(
+            serializedComponent.attributes.coprime,
+        );
         if (coprimeCombinationsComponent) {
             // unique variants is only implemented if know that coprime is false,
             // i.e., if have an boolean with a single string child that is "false"
@@ -475,8 +372,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let withReplacementComponent =
-            serializedComponent.attributes.withReplacement?.component;
+        let withReplacementComponent = serializedAttributeComponent(
+            serializedComponent.attributes.withReplacement,
+        );
         if (withReplacementComponent) {
             // only implemented if have an boolean with a boolean value or a single string child
             if (withReplacementComponent.componentType === "boolean") {
@@ -513,7 +411,9 @@ export default class SelectFromSequence extends Sequence {
             length: null,
         };
 
-        let fromComponent = serializedComponent.attributes.from?.component;
+        let fromComponent = serializedAttributeComponent(
+            serializedComponent.attributes.from,
+        );
         if (fromComponent) {
             // from itself is a component with selectable type
             let fromComponent2 = fromComponent.children[0];
@@ -582,7 +482,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let toComponent = serializedComponent.attributes.to?.component;
+        let toComponent = serializedAttributeComponent(
+            serializedComponent.attributes.to,
+        );
         if (toComponent) {
             // to itself is a component with selectable type
             let toComponent2 = toComponent.children[0];
@@ -651,7 +553,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let stepComponent = serializedComponent.attributes.step?.component;
+        let stepComponent = serializedAttributeComponent(
+            serializedComponent.attributes.step,
+        );
         if (stepComponent) {
             // only implemented if have a single string child
             if (
@@ -718,7 +622,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let lengthComponent = serializedComponent.attributes.length?.component;
+        let lengthComponent = serializedAttributeComponent(
+            serializedComponent.attributes.length,
+        );
         if (lengthComponent) {
             // only implemented if have a single string child
             if (
@@ -751,8 +657,9 @@ export default class SelectFromSequence extends Sequence {
 
         let excludes = [];
 
-        let excludeComponent =
-            serializedComponent.attributes.exclude?.component;
+        let excludeComponent = serializedAttributeComponent(
+            serializedComponent.attributes.exclude,
+        );
         if (excludeComponent) {
             if (sequenceType === "math") {
                 info({ code: "doenet-i0033", component: "selectFromSequence" });

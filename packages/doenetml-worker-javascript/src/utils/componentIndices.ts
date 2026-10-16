@@ -225,6 +225,23 @@ function newComponentIndicesForAttributes(
                 attribute.primitive = { type: "number", value: newIdx };
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
+        } else if (
+            attribute.type === "variableRef" ||
+            attribute.type === "literal"
+        ) {
+            // a reference to a component outside what is being copied, or a
+            // value: no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
@@ -404,6 +421,10 @@ function remapRefResolutions(
                 component.doenetAttributes.copyListViaComposite = newNodeIdx;
             }
         }
+        const listIdx = component.doenetAttributes.extendsList;
+        if (listIdx != undefined && idxMap[listIdx] != undefined) {
+            component.doenetAttributes.extendsList = idxMap[listIdx];
+        }
 
         remapRefResolutions(component.children, idxMap);
 
@@ -416,9 +437,38 @@ function remapRefResolutions(
                 remapRefResolutions(attribute.references, idxMap);
             } else if (attribute.type === "unresolved") {
                 remapUnflattenedRefResolutions(attribute.children, idxMap);
+            } else if (attribute.type === "expression") {
+                // The references the component resolves itself
+                // (`utils/dast/expressionAttributes.ts`), each from the copy,
+                // which the resolver is given with the rest of what is
+                // copied, also when the original resolved them from where
+                // they were written.
+                for (const slot of (attribute as any).slots) {
+                    remapRefResolution(slot.refResolution, idxMap);
+                    slot.refResolution.nodesInResolvedPath[0] =
+                        component.componentIdx;
+                }
             }
         }
     }
+}
+
+/**
+ * Renumber the components `refResolution` names (an index in its path is
+ * held as text, not as a component, for a reference a component resolves
+ * itself).
+ */
+function remapRefResolution(
+    refResolution: { nodeIdx: number; nodesInResolvedPath: number[] },
+    idxMap: Record<number, number>,
+) {
+    const newNodeIdx = idxMap[refResolution.nodeIdx];
+    if (newNodeIdx != undefined) {
+        refResolution.nodeIdx = newNodeIdx;
+    }
+    refResolution.nodesInResolvedPath = refResolution.nodesInResolvedPath.map(
+        (idx) => idxMap[idx] ?? idx,
+    );
 }
 
 function remapUnflattenedRefResolutions(
@@ -482,6 +532,59 @@ function remapUnflattenedRefResolutions(
             const attrResult = remapUnflattenedRefResolutions(
                 attribute.children,
                 idxMap,
+            );
+        }
+    }
+}
+
+/**
+ * Recurse through the unflattened components and make `originIdx` the origin
+ * (`nodesInResolvedPath[0]`) of every reference in them, including references
+ * in their attributes, their descendants, and the indices of their paths.
+ *
+ * A reference's path is re-resolved from its origin, so this makes the references
+ * resolve as though written at `originIdx`, whatever position they are later placed in.
+ *
+ * References whose path starts with an empty name are left alone:
+ * those resolve from the origin itself rather than searching from its parent,
+ * so they are only meaningful from where they were created.
+ */
+export function setUnflattenedReferenceOrigins(
+    unflattenedComponents: (UnflattenedComponent | string)[],
+    originIdx: number,
+) {
+    for (const component of unflattenedComponents) {
+        if (typeof component === "string") {
+            continue;
+        }
+
+        if (component.extending) {
+            const refResolution = unwrapSource(component.extending);
+
+            const pathParts = [
+                ...refResolution.originalPath,
+                ...(refResolution.unresolvedPath ?? []),
+            ];
+            for (const pathPart of pathParts) {
+                for (const indexPart of pathPart.index) {
+                    setUnflattenedReferenceOrigins(indexPart.value, originIdx);
+                }
+            }
+
+            if (
+                refResolution.originalPath[0]?.name &&
+                refResolution.nodesInResolvedPath.length > 0
+            ) {
+                refResolution.nodesInResolvedPath[0] = originIdx;
+            }
+        }
+
+        setUnflattenedReferenceOrigins(component.children, originIdx);
+
+        for (const attrName in component.attributes) {
+            setUnflattenedReferenceOrigins(
+                component.attributes[attrName].children,
+                originIdx,
             );
         }
     }
@@ -690,6 +793,23 @@ function newComponentIndicesForAttributesFromSerialized(
                 attribute.primitive.value = newIdx;
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
+        } else if (
+            attribute.type === "variableRef" ||
+            attribute.type === "literal"
+        ) {
+            // a reference to a component outside what is being copied, or a
+            // value: no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");

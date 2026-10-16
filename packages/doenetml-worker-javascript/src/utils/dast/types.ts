@@ -4,6 +4,8 @@ import {
     isUnflattenedComponent,
     UnflattenedComponent,
 } from "./intermediateTypes";
+import type { VariableRefAttribute } from "../variableRefAttribute";
+import type { LiteralAttribute } from "../literalAttribute";
 export type { Position };
 
 /**
@@ -21,6 +23,24 @@ export type SerializedComponent = {
     childrenPosition?: Position;
     extending?: Source<SerializedRefResolution>;
     originalIdx?: number;
+    /**
+     * Set by `ValueRef.serialize` on a component it makes to shadow one
+     * state variable of a live component instead of a live counterpart: the
+     * attribute components it adds, and the reference itself, serialized as
+     * a component, when its referent cannot move. A linked copy turns it
+     * into a `referenceShadow` (`postProcessCopy`); an unlinked one copies
+     * from `originalIdx`, if it has one.
+     */
+    shadowsVariableOf?: {
+        componentIdx: number;
+        variableName: string;
+        /**
+         * The variable is the implicit prop of a component of a type whose
+         * implicit prop is of its own type, so the shadow takes that
+         * component's attributes too, as a copy of it does.
+         */
+        fromImplicitProp?: boolean;
+    };
     state: Record<string, any>;
     skipSugar?: boolean;
     preSugarInd?: number;
@@ -216,7 +236,10 @@ export type SerializedAttribute =
     | ComponentAttribute
     | PrimitiveAttribute
     | ReferencesAttribute
-    | UnresolvedAttribute;
+    | UnresolvedAttribute
+    | VariableRefAttribute
+    | LiteralAttribute
+    | ExpressionAttribute;
 
 export function isSerializedAttribute(
     obj: unknown,
@@ -225,7 +248,78 @@ export function isSerializedAttribute(
         isComponentAttribute(obj) ||
         isPrimitiveAttribute(obj) ||
         isReferencesAttribute(obj) ||
-        isUnresolvedAttribute(obj)
+        isUnresolvedAttribute(obj) ||
+        isVariableRefAttribute(obj) ||
+        isLiteralAttribute(obj) ||
+        isExpressionAttribute(obj)
+    );
+}
+
+/**
+ * An attribute its component holds as text and references, with no
+ * attribute component (`utils/expressionAttribute.js`): the template of what
+ * the attribute component held, each reference a constant code, and a slot
+ * for each reference (`utils/referenceSlot.ts`).
+ */
+export type ExpressionAttribute = {
+    type: "expression";
+    name: string;
+    /** The type the attribute component would have been. */
+    componentType: string;
+    template: SerializedComponent;
+    slots: {
+        refResolution: SerializedRefResolution;
+        /** How the reference is read (`utils/dast/valueReferences.ts`). */
+        readPlan: Record<string, any>;
+    }[];
+    /** The text written to the template's nodes, by node, of a copy. */
+    writes?: Record<string, any>;
+    /** Where the author wrote it, for diagnostics about the attribute. */
+    position?: any;
+    sourceDoc?: number;
+};
+
+export function isExpressionAttribute(
+    obj: unknown,
+): obj is ExpressionAttribute {
+    const typedObj = obj as ExpressionAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "expression" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentType === "string" &&
+        Array.isArray(typedObj.slots)
+    );
+}
+
+export function isLiteralAttribute(obj: unknown): obj is LiteralAttribute {
+    const typedObj = obj as LiteralAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "literal" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentType === "string" &&
+        (typedObj.text === undefined || typeof typedObj.text === "string") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
+    );
+}
+
+export function isVariableRefAttribute(
+    obj: unknown,
+): obj is VariableRefAttribute {
+    const typedObj = obj as VariableRefAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "variableRef" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentIdx === "number" &&
+        typeof typedObj.stateVariable === "string" &&
+        typeof typedObj.componentType === "string" &&
+        typeof typedObj.isShadow === "boolean"
     );
 }
 
@@ -235,6 +329,20 @@ export function isSerializedAttribute(
  * Typically most fields are undefined, as many cover specialized cases.
  */
 export type AttributeDefinition<T> = {
+    /**
+     * Keep the attribute a component even when the author wrote a literal of
+     * a type that is otherwise held as the literal (`literalAttribute.ts`),
+     * for a reader that reads more of the component than its value.
+     */
+    keepAttributeComponent?: boolean;
+    /**
+     * Hold the attribute as a literal (`literalAttribute.ts`) when the author
+     * wrote plain numbers for a `math` or the coordinates of a `point`, which
+     * parse the same whatever the parse settings: `anchor="(1,2)"`. Opted in
+     * by attribute, since a reader of a `point` or `math` attribute may read
+     * its component by index.
+     */
+    literalWhenNumeric?: boolean;
     /** Create an attribute of type "component" with componentType `createComponentOfType` */
     createComponentOfType?: string;
     /** Create an attribute of type "primitive" with primitive type determined by `createPrimitiveOfType` */
@@ -262,6 +370,30 @@ export type AttributeDefinition<T> = {
     // `propagateToProps` is only on `modifyIndirectly`. It means this attribute
     // is propagated to references of props. (Normally references of props don't copy attributes.)
     propagateToProps?: boolean;
+    /**
+     * A reference does not take this attribute of its source as its own:
+     * the attribute component is not looked up past the component a
+     * reference made (`isReferenceShadow`), though it is past a component
+     * inside a copied one, where the attribute was written. For
+     * `fixed` and `fixLocation`, which a reference reads from its source
+     * alongside where it sits instead (`utils/contextAttribute.js`).
+     */
+    notFromReferenceSource?: boolean;
+    /**
+     * Attributes that this one, written on a reference (an `extend` or
+     * `copy`), replaces as well as itself: the reference takes none of them
+     * from its source. For two ways of writing one setting, such as
+     * `variable` and `variables`, or `displayDigits` and `displayDecimals`:
+     * whatever they do together on a single component (`variables` wins over
+     * `variable`; the two display attributes combine), one written on a
+     * reference replaces both of its source's. A state variable reading one
+     * of them stops looking through to the source where the reference writes
+     * another (`dontRecurseToShadowsIfHaveAttribute`). Read where a copy
+     * takes its source's attributes: of the source it names (`Copy.js`) and,
+     * for a copy of a reference, of what the reference shadows
+     * (`serializeShadowedAttributes` in `BaseComponent.js`).
+     */
+    replacesOnReference?: string[];
     excludeFromSchema?: boolean;
     /**
      * Set by the developer in the attribute definition: the *name* of a state

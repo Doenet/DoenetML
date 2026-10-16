@@ -128,6 +128,7 @@ export function returnChildrenByCodeStateVariableDefinitions() {
                     "fractionSatisfied",
                     "unordered",
                     "inUnorderedList",
+                    "valueMissing",
                 ],
                 variablesOptional: true,
             },
@@ -150,7 +151,18 @@ export function returnChildrenByCodeStateVariableDefinitions() {
                 // a math, text, or boolean
                 let code = codePre + subnum;
 
-                if (
+                if (child.stateValues.valueMissing) {
+                    // A value reference with nothing to read (an index past
+                    // the end of a list, a `<choiceInput>`'s `selectedIndex`
+                    // before a choice) is a blank math, whatever type it
+                    // presents as, as the copy it replaced made one here. Its
+                    // own empty value (`NaN`, `""`, `false`) would compare
+                    // equal to another missing value and to a blank input.
+                    mathChildrenByCode[code] = {
+                        componentType: "math",
+                        stateValues: { value: me.fromAst("\uff3f") },
+                    };
+                } else if (
                     componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType: child.componentType,
                         baseComponentType: "math",

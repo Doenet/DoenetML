@@ -4,6 +4,7 @@ import me from "math-expressions";
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
     returnNumberDisplayAttributeComponentShadowing,
@@ -21,6 +22,7 @@ export default class Slider extends BaseComponent {
         });
     }
     static componentType = "slider";
+    static renderChildren = true;
 
     static componentDocs = {
         summary: "An interactive slider input",
@@ -170,6 +172,10 @@ export default class Slider extends BaseComponent {
         let labelDefinitions = returnLabelStateVariableDefinitions();
 
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         Object.assign(
             stateVariableDefinitions,

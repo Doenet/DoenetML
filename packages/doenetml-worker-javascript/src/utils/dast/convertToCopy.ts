@@ -12,6 +12,7 @@ import {
     UnflattenedRefResolution,
 } from "./intermediateTypes";
 import { addSource, unwrapSource } from "./convertNormalizedDast";
+import { setUnflattenedReferenceOrigins } from "../componentIndices";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -166,6 +167,18 @@ export function convertRefsToCopies({
                 } else {
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;
+
+                    // The list it extends, when the reference names it with
+                    // nothing left to resolve, whose attributes it takes as
+                    // an extend takes its source's
+                    // (`AttributeComponentDependency`, `utils/contextAttribute.js`).
+                    if (
+                        refResolution.unresolvedPath === null ||
+                        refResolution.unresolvedPath.length === 0
+                    ) {
+                        wrappingComponent.doenetAttributes.extendsList =
+                            refResolution.nodeIdx;
+                    }
                 }
 
                 // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component
@@ -187,6 +200,18 @@ export function convertRefsToCopies({
                 };
                 const originalIdx = newComponent.componentIdx;
                 newComponent.componentIdx = nComponents++;
+
+                // The author wrote these attributes on the copy, and can't see the copied content inside it,
+                // so references in them resolve as they would outside the copy.
+                // Left to resolve from their own position, they would find the copied content first
+                // once the copy expands, e.g., `$h` in `<section copy="$S" hide="$h" name="S2" />`
+                // would find the `h` inside `S2`. An author reaches that one with `$S2.h`.
+                for (const attrName in outerAttributes) {
+                    setUnflattenedReferenceOrigins(
+                        outerAttributes[attrName].children,
+                        originalIdx,
+                    );
+                }
 
                 if (addNodesToResolver) {
                     const flatFragment: FlatFragment = {

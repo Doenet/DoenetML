@@ -15,7 +15,10 @@ import { upgradePathSlashesToDots } from "./slash-to-dot";
 import { lezerToDastV6 } from "@doenet/parser/v06";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
-import { upgradeMapElement } from "./upgrade-map-element";
+import {
+    inlineMapSourceGroups,
+    upgradeMapElement,
+} from "./upgrade-map-element";
 import { upgradeModuleElement } from "./upgrade-module-element";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { removeConstraintsElement } from "./remove-constraints-element";
@@ -34,10 +37,23 @@ import { convertAssignNames } from "./upgrade-copy-elements";
 import { namespaceChainOf } from "./assign-names/context";
 import { isModuleComponentType } from "./core-info/determine-prop-type";
 import { isV06True } from "./utils";
+import { FetchExternalDoenetML } from "./doenet-uri";
+import { commentOutEmbeds } from "./comment-out-embeds";
+export type { FetchExternalDoenetML } from "./doenet-uri";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
     doNotUpgradeAttributeSyntax?: boolean;
+    /**
+     * How the converted document's host will load other documents, given a
+     * `doenet:<id>` URI; it should resolve to that document's v0.7 DoenetML (see
+     * {@link FetchExternalDoenetML}). When it loads the document a
+     * `<copy uri="doenet:...">` names, the copy becomes an element of the type of that
+     * document's root element, and references into what it loads can be typed. Without
+     * it, or when the document cannot be loaded, a `<copy uri>` that passes parameters
+     * is assumed to load a `<module>`.
+     */
+    fetchExternalDoenetML?: FetchExternalDoenetML;
 };
 
 /**
@@ -62,6 +78,7 @@ export async function updateSyntaxFromV06toV07_root(
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
         .use(correctComponentTypesAttributeCapitalization)
+        .use(commentOutEmbeds)
         .use(upgradeDeprecatedAttributes)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(upgradePathSlashesToDots)
@@ -71,7 +88,11 @@ export async function updateSyntaxFromV06toV07_root(
         .use(upgradeCollectElement, assignNamesContext)
         .use(upgradeMapElement, assignNamesContext)
         .use(upgradeAssignNames, assignNamesContext)
-        .use(upgradeCopyElements, assignNamesContext)
+        .use(
+            upgradeCopyElements,
+            assignNamesContext,
+            options.fetchExternalDoenetML,
+        )
         .use(applyAssignNameRenames, assignNamesContext)
         .use(upgradeListProps)
         .use(upgradeModuleElement)
@@ -81,7 +102,16 @@ export async function updateSyntaxFromV06toV07_root(
         processor = processor.use(upgradeAttributeSyntax, assignNamesContext);
     }
     if (!options.doNotUpgradeCopyTags) {
-        processor = processor.use(upgradeCopySyntax);
+        processor = processor.use(
+            upgradeCopySyntax,
+            assignNamesContext,
+            options.fetchExternalDoenetML,
+        );
+    } else {
+        // Sources that were references to begin with still fold into the `for`.
+        processor = processor.use(() => (tree: DastRoot) => {
+            inlineMapSourceGroups(tree, assignNamesContext);
+        });
     }
 
     // Error messages are stored in a VFile
@@ -249,10 +279,25 @@ const removeNewNamespaceAttribute: Plugin<[], DastRoot, DastRoot> = () => {
  * Upgrade `<ref>`. In particular, rename the `target` attribute to `to`.
  */
 const upgradeRefElement: Plugin<[], DastRoot, DastRoot> = () => {
-    return (tree) => {
+    return (tree, file) => {
         visit(tree, (node) => {
             if (!isDastElement(node) || node.name !== "ref") {
                 return;
+            }
+            // With both, v0.6 linked to the `target` component inside the document the
+            // `uri` names. Both become `to`, and the `target` would win, pointing at a
+            // name this document does not have. The other document is what the link is
+            // for, so keep that and drop the component.
+            if (node.attributes["uri"] && node.attributes["target"]) {
+                file.message(
+                    `Dropped target="${toXml(node.attributes["target"].children).trim()}" from a <ref> that also has uri="${toXml(node.attributes["uri"].children).trim()}": a v0.7 <ref> can link to another document but not to a component inside it.`,
+                    {
+                        place: node.position,
+                        ruleId: "external-ref/target-dropped",
+                        source: "v06-to-v07",
+                    },
+                );
+                delete node.attributes["target"];
             }
             renameAttrInPlace(node, "target", "to");
             renameAttrInPlace(node, "uri", "to");

@@ -66,6 +66,7 @@ import {
     CORE_START_FAILED_BUSY_RETRY_MESSAGE,
     CORE_START_FAILED_DOCUMENT_MESSAGE,
     CORE_START_RETRY_MESSAGE,
+    DOCUMENT_STOPPED_MESSAGE,
     SAVED_STATE_UNAVAILABLE_MESSAGE,
     STATE_FROM_OLDER_VERSION_FALLBACK,
 } from "./coreWorkerBoot";
@@ -2135,6 +2136,7 @@ export function DocViewer({
         diagnostics: newDiagnostics,
         init = false,
         deferred = false,
+        documentStopped,
     }: {
         updateInstructions: Record<string, any>[];
         actionId?: string;
@@ -2165,7 +2167,26 @@ export function DocViewer({
          * is still editing keeps the value it showed until core answers it.
          */
         deferred?: boolean;
+        /**
+         * An update created a circular dependency and the core has stopped
+         * the document; this is the cycle's message. Shown in place of the
+         * document, with no retry, the way the cause of a document that
+         * could not be built is shown.
+         */
+        documentStopped?: string;
     }) {
+        if (documentStopped !== undefined) {
+            const message = translate(
+                "document-stopped",
+                undefined,
+                DOCUMENT_STOPPED_MESSAGE,
+            );
+            showFailureMessage(
+                documentStopped ? `${message} ${documentStopped}` : message,
+            );
+            return;
+        }
+
         if (newDiagnostics) {
             publishDiagnostics(newDiagnostics);
             if (

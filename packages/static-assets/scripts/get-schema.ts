@@ -231,6 +231,7 @@ type ComponentClass = {
      * container wants `allowInSchemaAnywhere` instead.
      */
     allowInSchemaAsComponent?: string[];
+    listEntryComponentType?: string;
     createAttributesObject: () => Record<string, AttributeObject>;
     /**
      * If set, then for the purpose of generating the schema,
@@ -695,15 +696,27 @@ export function getSchema(
             // then we will, in addition, treat is as though it were any of those
             // component types when determining schema relationships
 
+            // A list component (`listEntryComponentType`) is likewise treated as
+            // the type of its entries, which is how its parent sees it, unless
+            // the class itself sets `allowInSchemaAsComponent` to nothing to
+            // keep out of the schema (`<controlVectors>`, which only
+            // `<bezierControls>` holds).
             const cClass = componentClasses[type2];
-            if (
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: type2,
-                    baseComponentType: "_composite",
-                }) &&
-                cClass.allowInSchemaAsComponent
-            ) {
-                for (let alt_type of cClass.allowInSchemaAsComponent) {
+            const listOptsOut =
+                Object.hasOwn(cClass, "allowInSchemaAsComponent") &&
+                !cClass.allowInSchemaAsComponent;
+            const alternativeTypes = cClass.listEntryComponentType
+                ? listOptsOut
+                    ? undefined
+                    : [cClass.listEntryComponentType]
+                : componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: type2,
+                        baseComponentType: "_composite",
+                    })
+                  ? cClass.allowInSchemaAsComponent
+                  : undefined;
+            if (alternativeTypes) {
+                for (let alt_type of alternativeTypes) {
                     if (
                         classifyInheritOrAdapt({
                             startingType: alt_type,

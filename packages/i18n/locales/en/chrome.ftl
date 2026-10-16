@@ -235,6 +235,12 @@ core-start-failed-busy-retry = This document could not be started. Several docum
 # the same code fails the same way. The cause follows this sentence.
 core-start-failed-document = This document could not be built. There is a problem in the document itself, so reloading will not help.
 
+# Shown in place of a document that was working until something the reader
+# did created a circular dependency in it, which stops the document. It says
+# nothing about reloading: a reload starts the document again, but the same
+# step leads to the same problem. The cause follows this sentence.
+document-stopped = This document stopped working because of a problem in the document itself.
+
 # Label of the button that starts a failed document over without reloading
 # the page. Offered once per document; a retry that fails too falls back to
 # `core-start-failed` / `core-start-failed-busy`, which advise the reload.

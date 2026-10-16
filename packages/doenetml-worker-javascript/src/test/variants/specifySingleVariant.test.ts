@@ -7,6 +7,10 @@ import {
 } from "../utils/actions";
 import { numberToLetters } from "@doenet/utils";
 import me from "math-expressions";
+import {
+    componentOrListEntry,
+    childrenAsPresented,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -76,8 +80,14 @@ describe("Specifying single variant tests @group1", async () => {
                 true,
             );
             expect(
-                stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                    .value,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "n[1]",
+                    )
+                ).stateValues.value,
             ).eq(n);
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -146,10 +156,14 @@ describe("Specifying single variant tests @group1", async () => {
             requestedVariantIndex: 1,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
-        nBySeed[seeds[0]] =
-            stateVariables[
-                await resolvePathToNodeIdx("n[1]")
-            ].stateValues.value;
+        nBySeed[seeds[0]] = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
         await check_variant(1, nBySeed[seeds[0]], seeds, variantNames);
 
         // Number doesn't change with update
@@ -195,10 +209,14 @@ describe("Specifying single variant tests @group1", async () => {
             requestedVariantIndex: 2,
         }));
         stateVariables = await core.returnAllStateVariables(false, true);
-        nBySeed[seeds[1]] =
-            stateVariables[
-                await resolvePathToNodeIdx("n[1]")
-            ].stateValues.value;
+        nBySeed[seeds[1]] = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
         expect(nBySeed[seeds[1]]).not.eq(nBySeed[seeds[0]]);
         await check_variant(2, nBySeed[seeds[1]], seeds, variantNames);
 
@@ -244,10 +262,14 @@ describe("Specifying single variant tests @group1", async () => {
                 requestedVariantIndex: 3 + 77 * numVariants,
             }));
             stateVariables = await core.returnAllStateVariables(false, true);
-            nBySeed[seeds[2]] =
-                stateVariables[
-                    await resolvePathToNodeIdx("n[1]")
-                ].stateValues.value;
+            nBySeed[seeds[2]] = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value;
             expect(nBySeed[seeds[2]]).not.eq(nBySeed[seeds[0]]);
             expect(nBySeed[seeds[2]]).not.eq(nBySeed[seeds[1]]);
             await check_variant(3, nBySeed[seeds[2]], seeds, variantNames);
@@ -258,10 +280,14 @@ describe("Specifying single variant tests @group1", async () => {
                 requestedVariantIndex: 4 + -3261 * numVariants,
             }));
             stateVariables = await core.returnAllStateVariables(false, true);
-            nBySeed[seeds[3]] =
-                stateVariables[
-                    await resolvePathToNodeIdx("n[1]")
-                ].stateValues.value;
+            nBySeed[seeds[3]] = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value;
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[0]]);
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[1]]);
             expect(nBySeed[seeds[3]]).not.eq(nBySeed[seeds[2]]);
@@ -532,9 +558,11 @@ describe("Specifying single variant tests @group1", async () => {
             let variantInd = firstStringsToInd[p.activeChildren[0].trim()];
             expect(variantInd).not.eq(undefined);
 
-            let secondValue =
-                stateVariables[p.activeChildren[1].componentIdx].stateValues
-                    .value;
+            let secondValue = childrenAsPresented(
+                core,
+                stateVariables,
+                p.componentIdx,
+            )[1].stateValues.value;
 
             if (variantInd === 0) {
                 let i = [
@@ -657,8 +685,11 @@ describe("Specifying single variant tests @group1", async () => {
 
                     variantInds.push(variantInd);
 
-                    let p =
-                        stateVariables[problem.activeChildren[4].componentIdx];
+                    let p = childrenAsPresented(
+                        core,
+                        stateVariables,
+                        problem.componentIdx,
+                    )[4];
 
                     if (variantInd === 1) {
                         expect(p.activeChildren[0].trim()).eq("Word:");
@@ -670,8 +701,11 @@ describe("Specifying single variant tests @group1", async () => {
                                 "drab",
                                 "excoriated",
                             ].indexOf(
-                                stateVariables[p.activeChildren[1].componentIdx]
-                                    .stateValues.value,
+                                childrenAsPresented(
+                                    core,
+                                    stateVariables,
+                                    p.componentIdx,
+                                )[1].stateValues.value,
                             ) + 1;
                         expect(problemVariantInd).not.eq(0);
                         if (
@@ -686,9 +720,11 @@ describe("Specifying single variant tests @group1", async () => {
                         );
                     } else {
                         expect(p.activeChildren[0].trim()).eq("Number:");
-                        let num =
-                            stateVariables[p.activeChildren[1].componentIdx]
-                                .stateValues.value;
+                        let num = childrenAsPresented(
+                            core,
+                            stateVariables,
+                            p.componentIdx,
+                        )[1].stateValues.value;
                         expect(Number.isInteger(num)).eq(true);
                         expect(num >= 1 && num <= 10).eq(true);
 
@@ -703,9 +739,11 @@ describe("Specifying single variant tests @group1", async () => {
                         }
                     }
 
-                    let secondValue =
-                        stateVariables[p.activeChildren[1].componentIdx]
-                            .stateValues.value;
+                    let secondValue = childrenAsPresented(
+                        core,
+                        stateVariables,
+                        p.componentIdx,
+                    )[1].stateValues.value;
                     secondValues.push(secondValue);
                 }
 
@@ -984,12 +1022,22 @@ describe("Specifying single variant tests @group1", async () => {
                 false,
                 true,
             );
-            let m =
-                stateVariables[await resolvePathToNodeIdx("s1[1]")].stateValues
-                    .value;
-            let n =
-                stateVariables[await resolvePathToNodeIdx("s2[1]")].stateValues
-                    .value;
+            let m = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s1[1]",
+                )
+            ).stateValues.value;
+            let n = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s2[1]",
+                )
+            ).stateValues.value;
 
             await updateMathInputValue({
                 latex: `${m}`,
@@ -1103,17 +1151,32 @@ describe("Specifying single variant tests @group1", async () => {
                 true,
             );
 
-            let m =
-                stateVariables[await resolvePathToNodeIdx("s1[1]")].stateValues
-                    .value;
+            let m = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s1[1]",
+                )
+            ).stateValues.value;
 
-            let x2 =
-                stateVariables[await resolvePathToNodeIdx("s2[2]")].stateValues
-                    .value;
+            let x2 = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s2[2]",
+                )
+            ).stateValues.value;
 
-            let l1 =
-                stateVariables[await resolvePathToNodeIdx("s3[1]")].stateValues
-                    .value;
+            let l1 = (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[1]",
+                )
+            ).stateValues.value;
 
             await updateMathInputValue({
                 latex: `${m}`,
@@ -1275,8 +1338,14 @@ describe("Specifying single variant tests @group1", async () => {
                     .inputChildren[0].componentIdx;
 
             expect(
-                stateVariables[await resolvePathToNodeIdx("fruit[1][1]")]
-                    .stateValues.value,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "fruit[1][1]",
+                    )
+                ).stateValues.value,
             ).eq(fruit);
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1410,12 +1479,22 @@ describe("Specifying single variant tests @group1", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let n =
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value;
-        let a =
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree;
+        let n = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
+        let a = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "a[1][1]",
+            )
+        ).stateValues.value.tree;
 
         let doenetML2 =
             variantControl +
@@ -1433,12 +1512,24 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(n);
         expect(
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "a[1][1]",
+                )
+            ).stateValues.value.tree,
         ).eq(a);
 
         let doenetML3 =
@@ -1454,26 +1545,56 @@ describe("Specifying single variant tests @group1", async () => {
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n[1]",
+            )
+        ).stateValues.value;
         expect(n2).not.eq(n);
         n = n2;
-        a =
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree;
-        let w1 =
-            stateVariables[await resolvePathToNodeIdx("w[1]")].stateValues
-                .value;
-        let w2 =
-            stateVariables[await resolvePathToNodeIdx("w[2]")].stateValues
-                .value;
-        let w3 =
-            stateVariables[await resolvePathToNodeIdx("w[3]")].stateValues
-                .value;
-        let m =
-            stateVariables[await resolvePathToNodeIdx("m[1]")].stateValues
-                .value;
+        a = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "a[1][1]",
+            )
+        ).stateValues.value.tree;
+        let w1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "w[1]",
+            )
+        ).stateValues.value;
+        let w2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "w[2]",
+            )
+        ).stateValues.value;
+        let w3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "w[3]",
+            )
+        ).stateValues.value;
+        let m = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "m[1]",
+            )
+        ).stateValues.value;
 
         let doenetML4 =
             variantControl +
@@ -1493,28 +1614,64 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(n);
         expect(
-            stateVariables[await resolvePathToNodeIdx("a[1][1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "a[1][1]",
+                )
+            ).stateValues.value.tree,
         ).eq(a);
         expect(
-            stateVariables[await resolvePathToNodeIdx("w[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "w[1]",
+                )
+            ).stateValues.value,
         ).eq(w1);
         expect(
-            stateVariables[await resolvePathToNodeIdx("w[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "w[2]",
+                )
+            ).stateValues.value,
         ).eq(w2);
         expect(
-            stateVariables[await resolvePathToNodeIdx("w[3]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "w[3]",
+                )
+            ).stateValues.value,
         ).eq(w3);
         expect(
-            stateVariables[await resolvePathToNodeIdx("m[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "m[1]",
+                )
+            ).stateValues.value,
         ).eq(m);
     });
 
@@ -1543,8 +1700,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         values.push(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1589,8 +1752,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         values.push(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         );
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1637,8 +1806,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1682,8 +1857,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1729,8 +1910,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1778,8 +1965,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[1]);
 
         expect(
@@ -1833,8 +2026,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1885,8 +2084,14 @@ describe("Specifying single variant tests @group1", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("n[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n[1]",
+                )
+            ).stateValues.value,
         ).eq(values[1]);
 
         expect(

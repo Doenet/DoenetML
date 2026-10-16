@@ -23,6 +23,14 @@ function numericalizeVertices(vertices) {
     );
 }
 
+/**
+ * The components a constraint constrains, the nearest of which, among its
+ * ancestors, gives the graph's limits and scales the constraint is applied
+ * with: a graphical component, or a list of points, which constrains each of
+ * its points (`<pointList><constrainToGraph/>…</pointList>`).
+ */
+export const CONSTRAINED_ANCESTOR_TYPES = ["_graphical", "pointList"];
+
 export function applyConstraintFromComponentConstraints(
     variables,
     applyComponentConstraint,

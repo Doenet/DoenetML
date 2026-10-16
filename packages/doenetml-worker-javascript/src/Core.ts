@@ -275,6 +275,11 @@ export default class Core {
      * evaluation to gate definition arguments during initial document
      * construction. */
     initialAddPhase?: boolean;
+    /** Wall-clock milliseconds of each phase of the initial document build,
+     * keyed by phase name with a `total`, recorded by
+     * `ComponentBuilder.addComponents` on `initialAdd`. Read by the
+     * performance harness (Doenet/DoenetML#2026, #2126); diagnostic only. */
+    loadPhaseTimings?: Record<string, number>;
 
     // ─── Manager instances ────────────────────────────────────────────────
     diagnosticsManager: DiagnosticsManager;
@@ -412,6 +417,10 @@ export default class Core {
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
             addDiagnostic: this.addDiagnostic.bind(this),
+            // What a save holds of an unlinked copy's snapshot
+            // (`utils/copySnapshot.js`), by the copy's stateId.
+            savedCopySnapshot: (stateId: string) =>
+                this.cumulativeStateVariableChanges?.__copySnapshots?.[stateId],
         };
 
         this.updateInfo = {
@@ -758,6 +767,19 @@ export default class Core {
     get componentsWithChangedChildrenToRender(): any {
         return this.rendererInstructionBuilder
             .componentsWithChangedChildrenToRender;
+    }
+
+    /**
+     * The variables whose change `component`'s renderer is sent, keyed by
+     * name: those of its type (`rendererVariablesByComponentType`), or, for
+     * a value reference (`_ref`), the ones it names, which are none unless
+     * it is drawn (`ValueRef.rendererVariables`).
+     */
+    rendererVariablesOf(component: any): Record<string, any> {
+        return (
+            component.rendererVariables ??
+            this.rendererVariablesByComponentType[component.componentType]
+        );
     }
 
     get rendererState(): any {
@@ -1284,7 +1306,46 @@ export default class Core {
         if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
-            this.suspendVisibilityMeasuring();
+            // Not awaited, so a failure is logged here. Once the document
+            // has stopped, the queue rejects the visibility event this sends;
+            // that rejection is expected and dropped.
+            this.suspendVisibilityMeasuring().catch((e) => {
+                if (this.processQueue.stoppedByError === null) {
+                    reportTimerError(TimerLabels.visibilityHideSuspend)(e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Rethrow `e` unless a circular dependency has stopped the document (see
+     * `ProcessQueue.executeProcesses`), in which case the request queue
+     * rejects whatever is sent to it and the rejection is expected.
+     */
+    ignoreIfStopped(e: unknown): void {
+        if (this.processQueue.stoppedByError === null) {
+            throw e;
+        }
+    }
+
+    /**
+     * Tell the viewer that an update after load raised a circular dependency
+     * and the document has stopped (see `ProcessQueue.executeProcesses`). The
+     * viewer shows `message` in place of the document, as it shows the cause
+     * of a document that could not be built.
+     */
+    reportDocumentStopped(message: string): void {
+        // The viewer's callback is a proxy across the worker boundary, so it
+        // can fail either way: by throwing or by rejecting.
+        try {
+            Promise.resolve(
+                this.updateRenderersCallback({
+                    updateInstructions: [],
+                    documentStopped: message,
+                }),
+            ).catch((e) => console.error(e));
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -1295,10 +1356,17 @@ export default class Core {
             });
         };
 
-        // Suspend visibility measuring so remaining times collected are saved.
-        await this.suspendVisibilityMeasuring();
+        // Once a circular dependency has stopped the document, the request
+        // queue rejects the visibility events and auto-submits sent here.
+        // Both clear their timers before sending, so drop the rejection and
+        // finish the teardown: a terminate that throws reads to the viewer
+        // as a wedged core.
+        const ignoreIfStopped = (e: unknown) => this.ignoreIfStopped(e);
 
-        await this.autoSubmitManager.flush();
+        // Suspend visibility measuring so remaining times collected are saved.
+        await this.suspendVisibilityMeasuring().catch(ignoreIfStopped);
+
+        await this.autoSubmitManager.flush().catch(ignoreIfStopped);
 
         this.processQueue.stopProcessingRequests = true;
 
@@ -1328,7 +1396,9 @@ export default class Core {
             }
         }
 
-        await this.saveImmediately();
+        // A request still running past the wait can stop the document with
+        // a circular dependency, which rejects the save's queued work
+        await this.saveImmediately().catch(ignoreIfStopped);
     }
 
     // → autoSubmitManager

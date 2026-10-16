@@ -7,6 +7,24 @@ import {
 } from "../../utils/mathOperatorChildren";
 import { isNumericConstant } from "../../utils/math";
 
+/**
+ * The children an operator takes as operands, each with its index among
+ * `children` (which a write through the operator addresses): all but a value
+ * reference with nothing to read (`valueMissing`, `ValueRef.js`), such as
+ * `$l[$i]` with `$i` past the end of the list. The copy such a reference
+ * replaced made nothing here, so `<sum>$l[$i] 5</sum>` is 5 and
+ * `<count>$l[$i] 5</count>` is 1 while the entry is missing.
+ */
+function operandChildren(children) {
+    const operands = [];
+    for (const [childIndex, child] of children.entries()) {
+        if (!child.stateValues.valueMissing) {
+            operands.push({ child, childIndex });
+        }
+    }
+    return operands;
+}
+
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";
     static rendererType = "math";
@@ -68,8 +86,43 @@ export default class MathOperator extends MathComponent {
 
         let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths", "numbers"],
+            skipChildrenWithNothingToRead: true,
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
+
+        // `unordered` (`Math.js`): whether every math child is unordered,
+        // taken over the operands alone, so that a missing one does not make
+        // `<sum><math unordered>(1,2)</math> $ml[$i]</sum>` ordered
+        const unorderedDefinition = stateVariableDefinitions.unordered;
+        stateVariableDefinitions.unordered = {
+            ...unorderedDefinition,
+            returnDependencies(args) {
+                const dependencies =
+                    unorderedDefinition.returnDependencies.call(this, args);
+                return {
+                    ...dependencies,
+                    mathChildren: {
+                        ...dependencies.mathChildren,
+                        variableNames: [
+                            ...dependencies.mathChildren.variableNames,
+                            "valueMissing",
+                        ],
+                        variablesOptional: true,
+                    },
+                };
+            },
+            definition(args) {
+                return unorderedDefinition.definition.call(this, {
+                    ...args,
+                    dependencyValues: {
+                        ...args.dependencyValues,
+                        mathChildren: operandChildren(
+                            args.dependencyValues.mathChildren,
+                        ).map(({ child }) => child),
+                    },
+                });
+            },
+        };
 
         stateVariableDefinitions.isNumericOperator = {
             returnDependencies: () => ({
@@ -84,7 +137,7 @@ export default class MathOperator extends MathComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                    variableNames: ["isNumber"],
+                    variableNames: ["isNumber", "valueMissing"],
                     variablesOptional: true,
                 },
                 shadowSource: {
@@ -93,12 +146,15 @@ export default class MathOperator extends MathComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                const mathChildren = operandChildren(
+                    dependencyValues.mathChildren,
+                ).map(({ child }) => child);
                 let isNumericOperator;
                 if (dependencyValues.forceNumeric) {
                     isNumericOperator = true;
                 } else if (dependencyValues.forceSymbolic) {
                     isNumericOperator = false;
-                } else if (dependencyValues.mathChildren.length === 0) {
+                } else if (mathChildren.length === 0) {
                     isNumericOperator =
                         dependencyValues.shadowSource?.stateValues
                             .isNumericOperator;
@@ -108,7 +164,7 @@ export default class MathOperator extends MathComponent {
                 } else {
                     // have math children and aren't forced to be numeric or symbolic
                     // will be numeric only if have all math children are numbers
-                    isNumericOperator = dependencyValues.mathChildren.every(
+                    isNumericOperator = mathChildren.every(
                         (x) => x.stateValues.isNumber,
                     );
                 }
@@ -152,7 +208,8 @@ export default class MathOperator extends MathComponent {
                 mathNumberChildren: {
                     dependencyType: "child",
                     childGroups: ["maths", "numbers"],
-                    variableNames: ["value", "canBeModified"],
+                    variableNames: ["value", "canBeModified", "valueMissing"],
+                    variablesOptional: true,
                 },
                 isNumericOperator: {
                     dependencyType: "stateVariable",
@@ -176,14 +233,17 @@ export default class MathOperator extends MathComponent {
                 },
             }),
             definition: function ({ dependencyValues, componentInfoObjects }) {
-                if (dependencyValues.mathNumberChildren.length === 0) {
+                const operands = operandChildren(
+                    dependencyValues.mathNumberChildren,
+                );
+                if (operands.length === 0) {
                     return {
                         setValue: { unnormalizedValue: me.fromAst("\uff3f") },
                     };
                 }
 
                 let inputs = mathOperatorInputsFromChildren({
-                    children: dependencyValues.mathNumberChildren,
+                    children: operands.map(({ child }) => child),
                     isNumeric: dependencyValues.isNumericOperator,
                     componentInfoObjects,
                 });
@@ -210,17 +270,20 @@ export default class MathOperator extends MathComponent {
                 dependencyValues,
                 componentInfoObjects,
             }) {
-                if (dependencyValues.mathNumberChildren.length === 0) {
+                const operands = operandChildren(
+                    dependencyValues.mathNumberChildren,
+                );
+                if (operands.length === 0) {
                     return { success: false };
                 } else if (dependencyValues.isNumericOperator) {
                     if (dependencyValues.inverseNumericOperator) {
                         let inputs = [];
                         let canBeModified = [];
                         let inputToChildIndex = [];
-                        for (let [
-                            childInd,
+                        for (const {
                             child,
-                        ] of dependencyValues.mathNumberChildren.entries()) {
+                            childIndex: childInd,
+                        } of operands) {
                             if (
                                 componentInfoObjects.isInheritedComponentType({
                                     inheritedComponentType: child.componentType,
@@ -294,10 +357,7 @@ export default class MathOperator extends MathComponent {
                     let inputs = [];
                     let canBeModified = [];
                     let inputToChildIndex = [];
-                    for (let [
-                        childInd,
-                        child,
-                    ] of dependencyValues.mathNumberChildren.entries()) {
+                    for (const { child, childIndex: childInd } of operands) {
                         if (
                             componentInfoObjects.isInheritedComponentType({
                                 inheritedComponentType: child.componentType,
@@ -366,7 +426,8 @@ export default class MathOperator extends MathComponent {
                 mathNumberChildren: {
                     dependencyType: "child",
                     childGroups: ["maths", "numbers"],
-                    variableNames: ["canBeModified"],
+                    variableNames: ["canBeModified", "valueMissing"],
+                    variablesOptional: true,
                 },
                 isNumericOperator: {
                     dependencyType: "stateVariable",
@@ -392,14 +453,16 @@ export default class MathOperator extends MathComponent {
                     );
 
                 if (canBeModified) {
+                    const operands = operandChildren(
+                        dependencyValues.mathNumberChildren,
+                    );
                     // TODO: if there are no children, canBeModified may be incorrectly set to true
                     // But, we include this exception so that canBeModified is not set to false
                     // in macros, where children aren't copied
-                    if (dependencyValues.mathNumberChildren.length > 0) {
-                        let nModifiable =
-                            dependencyValues.mathNumberChildren.filter(
-                                (x) => x.stateValues.canBeModified,
-                            ).length;
+                    if (operands.length > 0) {
+                        let nModifiable = operands.filter(
+                            ({ child }) => child.stateValues.canBeModified,
+                        ).length;
 
                         if (nModifiable !== 1) {
                             canBeModified = false;
