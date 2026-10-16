@@ -33,10 +33,9 @@ pub(in crate::build) struct Compiler<'a> {
     /// Every string's canonical id, over the DAST table (built when first
     /// needed) and then `extra_strings`: see `intern_literal`.
     pub(in crate::build) string_ids: Option<HashMap<String, StrId>>,
-    /// Nodes an earlier attempt could not build, each with the index of
-    /// its diagnostic in the list the build is assembling: compiled as
-    /// `_error` elements with no name and no children (ADR 0013).
-    pub(in crate::build) boxed: &'a HashMap<NodeId, usize>,
+    /// Nodes an earlier attempt could not build: compiled as `_error`
+    /// elements with no name, no children and no props (ADR 0013).
+    pub(in crate::build) boxed: &'a HashSet<NodeId>,
     /// The node of the innermost element whose planning failed, set on
     /// the way out of a failed compile; `build` boxes it and tries again.
     pub(in crate::build) failed_node: Option<NodeId>,
@@ -57,7 +56,7 @@ impl<'a> Compiler<'a> {
     /// failure names the node to box next, when the failing element has one.
     pub(in crate::build) fn compile(
         dast: &'a Dast,
-        boxed: &'a HashMap<NodeId, usize>,
+        boxed: &'a HashSet<NodeId>,
     ) -> std::result::Result<Compiled<'a>, Failure> {
         let mut cp = Compiler {
             compiled: Compiled {
@@ -68,7 +67,6 @@ impl<'a> Compiler<'a> {
                 sym_text: HashMap::new(),
                 choices: Vec::new(),
                 extra_strings: Vec::new(),
-                diagnostics: Vec::new(),
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
@@ -160,13 +158,10 @@ impl<'a> Compiler<'a> {
     }
 
     /// The `_error` element standing for boxed node `node`: no name, no
-    /// children, one fixed prop holding its diagnostic's index.
-    fn push_error_elem(&mut self, t: TemplateId, node: NodeId, diagnostic: usize) -> ElemId {
-        let e = self
-            .push_elem(t, node, ComponentType::Error, NONE, ROOT_SCOPE)
-            .expect("an unnamed element never collides");
-        self.compiled.templates[t].elems[e].props = vec![SourcePlan::Fixed(diagnostic as f64)];
-        e
+    /// children, no props.
+    fn push_error_elem(&mut self, t: TemplateId, node: NodeId) -> ElemId {
+        self.push_elem(t, node, ComponentType::Error, NONE, ROOT_SCOPE)
+            .expect("an unnamed element never collides")
     }
 
     /// Children of element `e` have `e` as their parent.
@@ -263,8 +258,8 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         name_scope: ElemId,
     ) -> Result<ElemId> {
-        if let Some(&i) = self.boxed.get(&el) {
-            return Ok(self.push_error_elem(t, el, i));
+        if self.boxed.contains(&el) {
+            return Ok(self.push_error_elem(t, el));
         }
         let r = self.add_elem_inner(t, el, name_scope);
         if r.is_err() {
@@ -379,57 +374,7 @@ impl<'a> Compiler<'a> {
                 self.compiled.templates[t].elems[e].children = kids;
             }
         }
-        self.check_accessibility(el, component_type);
         Ok(e)
-    }
-
-    /// The accessibility findings about one element (ADR 0013), the
-    /// current core's rules where this core has the types: a `<graph>`
-    /// needs a `<shortDescription>` child or `decorative`; an input needs
-    /// one or a `<label>` child, a `label` attribute or `labelIsName`.
-    fn check_accessibility(&mut self, el: NodeId, component_type: ComponentType) {
-        let d = self.compiled.dast;
-        let has_child = |tag: &str| {
-            d.children(el)
-                .iter()
-                .any(|&n| d.kind(n) == NodeKind::Element && d.str(n) == tag)
-        };
-        let described = has_child("shortDescription");
-        let (code, level, message) = match component_type {
-            ComponentType::Graph if !described && d.attr(el, "decorative").is_none() => (
-                "doenet-a0001",
-                1,
-                "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
-            ),
-            ComponentType::MathInput
-            | ComponentType::NumberInput
-            | ComponentType::TextInput
-            | ComponentType::BooleanInput
-            | ComponentType::ChoiceInput
-            | ComponentType::Slider
-                if !described
-                    && !has_child("label")
-                    && d.attr(el, "label").is_none()
-                    && d.attr(el, "labelIsName").is_none() =>
-            {
-                (
-                    "doenet-a0003",
-                    1,
-                    "For accessibility, `<{tag}>` must have a short description or a label.",
-                )
-            }
-            _ => return,
-        };
-        let tag = component_type.tag();
-        let mut args = std::collections::BTreeMap::new();
-        args.insert("component", tag.to_string());
-        self.compiled.diagnostics.push(Diagnostic::accessibility(
-            level,
-            code,
-            el,
-            message.replace("{tag}", tag),
-            args,
-        ));
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as
@@ -473,8 +418,8 @@ impl<'a> Compiler<'a> {
                         && (d.str(n).contains('\n') || kids.is_empty()) => {}
                 NodeKind::Text => kids.push(Child::Text(d.str_id(n))),
                 NodeKind::Macro => {
-                    if let Some(&i) = self.boxed.get(&n) {
-                        kids.push(Child::Elem(self.push_error_elem(t, n, i)));
+                    if self.boxed.contains(&n) {
+                        kids.push(Child::Elem(self.push_error_elem(t, n)));
                         continue;
                     }
                     self.pending_macros.push((t, owner, kids.len(), n));

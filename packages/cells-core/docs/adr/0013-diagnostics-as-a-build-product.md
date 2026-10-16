@@ -76,8 +76,8 @@ flip is an ordinary tick.
   them. Each records the innermost element the error is about (the
   element being planned, the macro being resolved, the choice whose
   interface failed), and `build` boxes that node and builds again: the
-  node compiles as an `_error` element with no name, no children and one
-  fixed prop holding its diagnostic's index. A reference to a boxed
+  node compiles as an `_error` element with no name, no children and no
+  props; its DAST node names its diagnostic. A reference to a boxed
   element fails in turn and is boxed on the next round, so a document
   with k faulty elements compiles k + 1 times, which only documents with
   errors pay and only once: the errors ride in the carryover and seed
@@ -90,9 +90,9 @@ flip is an ordinary tick.
 - **Taken from an exhaustive build, by the language server.** The probe
   view (`build/cycles.rs`) gains one switch, `every_option`: with it,
   every option of every select is built, inside a repeat or not.
-  `diagnose(dast) -> Vec<Diagnostic>` compiles, builds through that view
-  with the probe's checks, boxing as `build` does, and returns the list;
-  the build itself is discarded. The list is seed- and count-independent
+  `diagnose(dast) -> Vec<Diagnostic>` runs the one box-and-retry loop
+  `build` runs (`build_boxing`), through that view with the probe's
+  checks, and returns the list; the build itself is discarded. The list is seed- and count-independent
   because the view's answers do not depend on either. A load does not
   call it. The real build still collects diagnostics for the elements it
   stamps, which the viewer needs to render error boxes; they are a subset
@@ -129,9 +129,11 @@ flip is an ordinary tick.
 - **Accessibility checks are structural.** A `<graph>` without a
   `<shortDescription>` child or `decorative` (`doenet-a0001`), an input
   without one or a `<label>` child, a `label` attribute or `labelIsName`
-  (`doenet-a0003`): each is a fact about the DAST and is checked in
-  compile, once per template (`Compiler::check_accessibility`). The
-  image, video and contrast rules wait for those types. There is no
+  (`doenet-a0003`): each is a fact about the DAST and is found by
+  `lint` (`src/lint.rs`), one walk over the elements before anything is
+  compiled, so a document whose build fails outright still has them.
+  Every DAST-only rule belongs there as it arrives; the image, video and
+  contrast rules wait for those types. There is no
   exemption for hidden content: `hide` is a cell, so an exemption would
   make the list depend on state. (A literal `hide="true"` could be
   exempted statically if wanted; it is not proposed.)

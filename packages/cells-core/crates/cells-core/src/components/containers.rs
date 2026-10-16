@@ -50,16 +50,9 @@ pub(super) const SHORT_DESCRIPTION: ComponentTypeInfo =
     info(&["shortDescription"], &[]).container();
 
 /// `_error`: what an element that could not be built stands as in the
-/// document (ADR 0013). Its one prop holds the index of its diagnostic in
+/// document (ADR 0013): no props; its DAST node names its diagnostic in
 /// the document's list. Made by the build, never by a tag.
-pub(super) const ERROR: ComponentTypeInfo = info(&["_error"], ERROR_PROPS).internal();
-
-const ERROR_PROPS: &[PropDef] = &props([planned("diagnostic")]);
-
-pub mod error {
-    use super::*;
-    pub const DIAGNOSTIC: usize = at(ERROR_PROPS, "diagnostic");
-}
+pub(super) const ERROR: ComponentTypeInfo = info(&["_error"], &[]).internal();
 
 /// `<hint>`: a container the reader opens; `open` is its own state (0 or 1).
 pub(super) const HINT: ComponentTypeInfo = info(&["hint"], HINT_PROPS).container();

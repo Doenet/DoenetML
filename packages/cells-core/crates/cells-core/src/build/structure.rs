@@ -123,8 +123,8 @@ pub struct Structure {
     /// Curves sample through the engine, not compiled tapes (see
     /// `LoadOptions`).
     pub sample_with_engine: bool,
-    /// What the build reported about the elements it stamped (ADR 0013):
-    /// the errors of the elements it boxed, then its warnings. Sorted by
+    /// What the build reported (ADR 0013): the lint findings, the errors
+    /// of the elements it boxed and the warnings of the rest, sorted by
     /// node. The errors seed the next build's boxes, so a rebuild does
     /// not rediscover them.
     pub diagnostics: Vec<crate::diagnostics::Diagnostic>,

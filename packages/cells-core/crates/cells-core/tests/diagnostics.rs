@@ -46,9 +46,9 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
         doc.components.parent[b as usize],
         doc.component("p").unwrap()
     );
+    // Its node names its diagnostic; it has no cells of its own.
     assert_eq!(doc.components.dast_node[b as usize], errs[0].node.unwrap());
-    let cell = doc.comp_cells(b)[cells_core::components::prop::error::DIAGNOSTIC];
-    assert_eq!(doc.cells[cell as usize], 0.0);
+    assert!(doc.comp_cells(b).is_empty());
     assert!(doc.component("q").is_none(), "a boxed element has no name");
 }
 

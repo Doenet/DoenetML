@@ -69,7 +69,7 @@ component table (`document/sticky.rs`).
 | `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the DAST it came from. The API a renderer or test uses. |
 | `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
-| `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code. |
+| `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `lint.rs` finds the ones that are facts about the DAST alone. |
 | `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. |
 | `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells, math-expressions-rs called directly (ADR 0008, ADR 0011): a math cell holds a `Handle` into it. `Tree` is the builder's expression; `Tape` (`sym/tape.rs`) is a curve of fixed shape compiled to numeric steps. |
 
@@ -119,18 +119,20 @@ are new. If the rebuild fails, the document is left as it was and
 `rebuild_error` says why.
 
 **An element cannot be built** (ADR 0013). The compiler or the builder
-raises an error and records the innermost element it is about; `build`
-boxes that node, so it compiles as an `_error` element with no name and
-no children, and builds again until every element builds. The errors and
-the warnings of the elements that built are `Document::diagnostics`, in
-node order, and seed the boxes of every rebuild. An error with no
-element, a cycle, still fails the load.
+raises an error and records the innermost element it is about;
+`build_boxing` (`build/mod.rs`) boxes that node, so it compiles as an
+`_error` element with no name, no children and no props, and builds
+again until every element builds. The findings of `lint` (`lint.rs`, one
+walk over the DAST before any compile: the accessibility rules), the
+errors and the warnings of the elements that built are
+`Document::diagnostics`, in node order; the errors seed the boxes of
+every rebuild. An error with no element, a cycle, still fails the load.
 
 **The language server asks for every diagnostic** (`diagnose`,
-`build/mod.rs`). One build through the probe view with every option of
-every select built, boxing as a load does, output discarded. Its list is
-a function of the DAST alone: every branch, every repeat body, at any
-seed and any count. A load never runs it.
+`build/mod.rs`). The same loop through the probe view with every option
+of every select built, output discarded. Its list is a function of the
+DAST alone: every branch, every repeat body, at any seed and any count.
+A load never runs it.
 
 **An answer is submitted** (`Document::submit`, `document/sections.rs`). This
 is an ordinary request: the response handle is copied into the answer's

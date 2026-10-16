@@ -278,7 +278,7 @@ exhaustive build that stamps every template, which the language server
 calls and a load never does; a tick never produces one (ADR 0013).
 
 **Error component** — The `_error` component an element that could not be
-built stands as: no name, no children, one cell holding the index of its
+built stands as: no name, no children, no cells; its DAST node names its
 diagnostic in the load's list. The rest of the document builds around it
 (ADR 0013).
 

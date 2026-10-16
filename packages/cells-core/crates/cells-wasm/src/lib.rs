@@ -429,8 +429,8 @@ impl Core {
 
     /// What the load reported about the elements it stamped (ADR 0013),
     /// as a JSON array of diagnostics: the errors behind the document's
-    /// `_error` components (a component's `diagnostic` cell indexes this
-    /// list) and the warnings of the rest. Per seed and per count, since
+    /// `_error` components (each names the component's DAST node) and the
+    /// lint findings and warnings of the rest. Per seed and per count, since
     /// only stamped elements are in it; the document's own list is
     /// `diagnose_json`'s.
     pub fn diagnostics_json(&self) -> String {

@@ -29,6 +29,7 @@ pub mod dast;
 pub mod diagnostics;
 mod document;
 mod error;
+pub mod lint;
 pub mod program;
 pub mod sym;
 pub mod testing;
@@ -41,6 +42,7 @@ pub use document::{
     CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings, NONE, TEXT_BIT,
 };
 pub use error::{Error, Result};
+pub use lint::lint;
 pub use tick::eval::{DirtyClosure, Evaluator, FullRecompute};
 pub use tick::invert::PointRequest;
 pub use tick::{Request, TickOutcome};

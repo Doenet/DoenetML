@@ -138,14 +138,64 @@ pub(in crate::build) fn build_with(
     Ok(u)
 }
 
-/// The errors a carryover's diagnostics hold, as the boxes the next build
-/// starts from: node to index in `list`.
-fn boxes_of(list: &[Diagnostic]) -> HashMap<NodeId, usize> {
-    list.iter()
-        .enumerate()
-        .filter(|(_, d)| d.kind == crate::diagnostics::Kind::Error)
-        .filter_map(|(i, d)| d.node.map(|n| (n, i)))
-        .collect()
+/// Compile and build through `view`, boxing every element that fails
+/// until every element builds (ADR 0013). `list` holds the boxes an
+/// earlier build found (their error diagnostics, each with a node) and
+/// receives the whole list on return: the lint findings, the boxed
+/// errors and the builder's warnings, sorted by node. With
+/// `cycle_check`, a document with repeats is first checked through the
+/// probe (ADR 0012), which can box too. A failure with no element to box
+/// (a cycle) ends the build: it is pushed to `list` without a node and
+/// returned.
+fn build_boxing(
+    dast: &Dast,
+    carryover: &Carryover,
+    engine: &mut Engine,
+    view: &dyn View,
+    probe_checks: bool,
+    cycle_check: bool,
+    list: &mut Vec<Diagnostic>,
+) -> Result<BuildOutput> {
+    let profile = profile_enabled();
+    list.retain(|d| d.kind == crate::diagnostics::Kind::Error && d.node.is_some());
+    let mut boxed: HashSet<NodeId> = list.iter().filter_map(|d| d.node).collect();
+    let mut found = crate::lint::lint(dast);
+    let outcome = loop {
+        let clock = web_time::Instant::now();
+        let attempt = Compiler::compile(dast, &boxed).and_then(|compiled| {
+            if profile {
+                eprintln!("  build/compile: {:.2?}", clock.elapsed());
+            }
+            let mut checked = std::time::Duration::ZERO;
+            if cycle_check && compiled.has_repeats() {
+                let clock = web_time::Instant::now();
+                cycles::check(&compiled, carryover)?;
+                checked = clock.elapsed();
+                if profile {
+                    eprintln!("  build/cycle check: {checked:.2?}");
+                }
+            }
+            let mut u = build_with(&compiled, carryover, engine, view, probe_checks)?;
+            u.cycle_check = checked;
+            Ok(u)
+        });
+        match attempt {
+            Ok(u) => break Ok(u),
+            Err(f) => {
+                let node = f.node.filter(|n| boxed.insert(*n));
+                list.push(Diagnostic::error(node, &f.error));
+                if node.is_none() {
+                    break Err(f.error);
+                }
+            }
+        }
+    };
+    if let Ok(u) = &outcome {
+        found.extend(u.structure.diagnostics.iter().cloned());
+    }
+    list.append(&mut found);
+    crate::diagnostics::sort(list);
+    outcome
 }
 
 /// Build with `engine` holding the document's expressions (the same engine
@@ -155,72 +205,30 @@ fn boxes_of(list: &[Diagnostic]) -> HashMap<NodeId, usize> {
 /// so a load does this once, on its first pass.
 ///
 /// An element that cannot be built does not fail the build: it is boxed
-/// (an `_error` component carrying its diagnostic) and the build runs
-/// again, until every element builds or one fails without an element to
-/// box, such as a cycle (ADR 0013). The output's diagnostics are the
-/// boxed errors and the warnings of the elements that built, in node
-/// order, and they seed the boxes of the next build of the document.
+/// (an `_error` component) and the build runs again, until every element
+/// builds or one fails without an element to box, such as a cycle
+/// (ADR 0013). The output's diagnostics are the lint findings, the boxed
+/// errors and the warnings of the elements that built, in node order,
+/// and they seed the boxes of the next build of the document.
 pub fn build(
     dast: &Dast,
     carryover: &Carryover,
     engine: &mut Engine,
     check_cycles: bool,
 ) -> Result<BuildOutput> {
-    let profile = profile_enabled();
-    let mut list: Vec<Diagnostic> = carryover
-        .structure
-        .diagnostics
-        .iter()
-        .filter(|d| d.kind == crate::diagnostics::Kind::Error && d.node.is_some())
-        .cloned()
-        .collect();
-    loop {
-        let boxed = boxes_of(&list);
-        let clock = web_time::Instant::now();
-        let compiled = match Compiler::compile(dast, &boxed) {
-            Ok(c) => c,
-            Err(f) => {
-                list.push(box_or_fail(f, &boxed)?);
-                continue;
-            }
-        };
-        if profile {
-            eprintln!("  build/compile: {:.2?}", clock.elapsed());
-        }
-        let mut cycle_check = std::time::Duration::ZERO;
-        if check_cycles && compiled.has_repeats() {
-            let clock = web_time::Instant::now();
-            if let Err(f) = cycles::check(&compiled, carryover) {
-                list.push(box_or_fail(f, &boxed)?);
-                continue;
-            }
-            cycle_check = clock.elapsed();
-            if profile {
-                eprintln!("  build/cycle check: {cycle_check:.2?}");
-            }
-        }
-        let view = Stamped(carryover);
-        match build_with(&compiled, carryover, engine, &view, false) {
-            Ok(mut u) => {
-                u.cycle_check = cycle_check;
-                list.extend(compiled.diagnostics.iter().cloned());
-                list.append(&mut u.structure.diagnostics);
-                crate::diagnostics::sort(&mut list);
-                u.structure.diagnostics = list;
-                return Ok(u);
-            }
-            Err(f) => list.push(box_or_fail(f, &boxed)?),
-        }
-    }
-}
-
-/// The diagnostic of a failure that names an element not yet boxed; the
-/// error itself when there is nothing left to box.
-fn box_or_fail(f: Failure, boxed: &HashMap<NodeId, usize>) -> Result<Diagnostic> {
-    match f.node {
-        Some(n) if !boxed.contains_key(&n) => Ok(Diagnostic::error(Some(n), &f.error)),
-        _ => Err(f.error),
-    }
+    let mut list = carryover.structure.diagnostics.clone();
+    let view = Stamped(carryover);
+    let mut u = build_boxing(
+        dast,
+        carryover,
+        engine,
+        &view,
+        false,
+        check_cycles,
+        &mut list,
+    )?;
+    u.structure.diagnostics = list;
+    Ok(u)
 }
 
 /// Every diagnostic of the document, from one build through the
@@ -232,31 +240,9 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let carryover = Carryover::new(0, false);
     let mut engine = Engine::new();
     let view = cycles::Probe::exhaustive();
-    let mut list: Vec<Diagnostic> = Vec::new();
-    loop {
-        let boxed = boxes_of(&list);
-        let outcome = Compiler::compile(dast, &boxed).and_then(|compiled| {
-            build_with(&compiled, &carryover, &mut engine, &view, true)
-                .map(|u| (compiled.diagnostics, u))
-        });
-        match outcome {
-            Ok((compile_diagnostics, mut u)) => {
-                list.extend(compile_diagnostics);
-                list.append(&mut u.structure.diagnostics);
-                break;
-            }
-            Err(f) => match f.node {
-                Some(n) if !boxed.contains_key(&n) => {
-                    list.push(Diagnostic::error(Some(n), &f.error))
-                }
-                _ => {
-                    list.push(Diagnostic::error(f.node, &f.error));
-                    break;
-                }
-            },
-        }
-    }
-    crate::diagnostics::sort(&mut list);
+    let mut list = Vec::new();
+    // A failure is in the list; the build itself is not wanted.
+    let _ = build_boxing(dast, &carryover, &mut engine, &view, true, false, &mut list);
     list
 }
 

@@ -105,6 +105,12 @@ export class ComponentTable {
         return this.cols.propCells[this.cols.propBase[c] + i];
     }
 
+    /** The DAST node the component was made from, or NONE for a
+     * synthesized one. */
+    node(c: number): number {
+        return this.cols.node[c];
+    }
+
     /** A literal attribute of the element the component was made from
      * (attribute names ignore case), or null. Copies have no element. */
     attr(c: number, name: string): string | null {

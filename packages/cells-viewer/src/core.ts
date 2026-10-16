@@ -77,7 +77,7 @@ export class CellStore {
     private pendingCommit: { start: number; sample: TickSample } | null = null;
 
     /** What the load reported about the elements it stamped (ADR 0013);
-     * an `_error` component's `diagnostic` cell indexes it. */
+     * an `_error` component's DAST node names its entry. */
     diagnostics: Diagnostic[];
 
     constructor(

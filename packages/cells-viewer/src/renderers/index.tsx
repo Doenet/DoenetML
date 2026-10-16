@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
-import { useCell, useStore } from "../hooks";
+import { useStore } from "../hooks";
 import type { Child } from "../components";
 import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
@@ -176,10 +176,13 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
 }
 
 /** The box an element that could not be built stands as (ADR 0013): the
- * message of the diagnostic its `diagnostic` cell indexes. */
+ * message of the error diagnostic about its DAST node. */
 function ErrorBox({ idx }: { idx: number }) {
     const store = useStore();
-    const d = store.diagnostics[useCell(store.comps.cell(idx, "diagnostic"))];
+    const node = store.comps.node(idx);
+    const d = store.diagnostics.find(
+        (d) => d.kind === "error" && d.node === node,
+    );
     return (
         <span className="error-box" data-comp={idx} role="alert">
             {d ? d.message : "error"}
