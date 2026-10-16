@@ -36,8 +36,8 @@ export interface GraphSVs extends GraphFrameSVs {
     xMax: number;
     yMin: number;
     grid?: unknown;
-    displayXAxis?: boolean;
-    displayYAxis?: boolean;
+    displayXAxis?: string;
+    displayYAxis?: string;
     prefigureXML: string | null;
     hasAuthorAnnotations: boolean;
 }
