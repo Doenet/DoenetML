@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Cycles are rejected for every iteration count, not the count at load
