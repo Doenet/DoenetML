@@ -262,8 +262,9 @@ function App() {
     );
 }
 
-/** The load timings and, once there has been one, the last tick's, on one
- * line with the detail in the tooltips. */
+/** The load time and, once there has been one, the last tick's, one
+ * number each with the detail in the tooltips. Each sits in a fixed slot
+ * (`.editor-viewer-status`) so a tick appearing does not move the rest. */
 function Timings({
     t,
     store,
@@ -282,17 +283,18 @@ function Timings({
         .join("\n");
     return (
         <>
-            <span title={detail}>
-                {store?.comps.nCells ?? "?"} cells · load: core{" "}
-                {ms(t.coreTotal)}, first render {ms(t.firstRender)}
+            <span className="status-slot" title={detail}>
+                {store?.comps.nCells ?? "?"} cells · load {ms(t.firstRender)}
             </span>
-            {store && <LastTick store={store} />}
+            <span className="status-slot">
+                {store && <LastTick store={store} />}
+            </span>
         </>
     );
 }
 
-/** The last tick's sample (`CellStore.samples`): the core's time, the
- * React commit, and the frame and paint after it. */
+/** The last tick's sample (`CellStore.samples`): the time until its
+ * changes were painted. */
 function LastTick({ store }: { store: CellStore }) {
     const [, bump] = React.useReducer((n: number) => n + 1, 0);
     React.useEffect(() => {
@@ -316,23 +318,18 @@ function LastTick({ store }: { store: CellStore }) {
     }, [store]);
     const s = store.samples.at(-1);
     if (!s) return null;
-    const n = store.samples.length;
     const detail = [
-        `tick ${n}: ${s.changed} cells changed${s.rebuilt ? ", document rebuilt" : ""}`,
+        `tick ${store.samples.length}: ${s.changed} cells changed${s.rebuilt ? ", document rebuilt" : ""}`,
         `core ${ms(s.core)} (inversion and recompute)`,
         `round trip ${ms(s.roundTrip)} (changed cells available to the renderer)`,
         `commit ${ms(s.commit)} (React committed the update)`,
         `frame ${ms(s.frame)} (next animation frame)`,
         `paint ${ms(s.paint)} (a task after that frame: the DOM changes painted)`,
     ].join("\n");
-    return (
-        <span title={detail}>
-            {" "}
-            · tick {n}: core {ms(s.core)}, commit {ms(s.commit)}, paint{" "}
-            {ms(s.paint)}, {s.changed} changed{s.rebuilt ? ", rebuilt" : ""}
-        </span>
-    );
+    return <span title={detail}>tick {ms(s.paint)}</span>;
 }
 
 const ms = (v?: number) =>
-    v === undefined || Number.isNaN(v) ? "…" : `${v.toFixed(1)} ms`;
+    v === undefined || Number.isNaN(v)
+        ? "…"
+        : `${v < 10 ? v.toFixed(1) : Math.round(v)} ms`;

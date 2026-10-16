@@ -34,12 +34,21 @@
 
 .editor-viewer-status {
     margin-left: auto;
+    display: flex;
+    gap: 1em;
     font-size: 0.85em;
     color: #334155;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+/* Fixed widths, so a slot filling in does not move the others. */
+.status-slot:first-child {
+    min-width: 13em;
+}
+
+.status-slot:last-child {
+    min-width: 6em;
 }
 
 .editor-viewer-panels {
