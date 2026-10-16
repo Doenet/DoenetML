@@ -3,9 +3,10 @@ import type { CellStore, TickSample } from "../src/core";
 
 /** One frame at 60 Hz, the budget a tick should fit in. */
 const BUDGET_MS = 1000 / 60;
-const BARS = 100;
-const BAR_PX = 2;
-const HEIGHT_PX = 24;
+const BARS = 80;
+/** Column width per tick; the bar is a pixel narrower, for a gap. */
+const BAR_PX = 4;
+const HEIGHT_PX = 40;
 
 /** The stacked segments of a tick, bottom to top: busy time, not latency.
  * The wait from React's commit to the next animation frame is idle and is
@@ -37,7 +38,7 @@ function durations(s: TickSample): number[] {
 const busy = (s: TickSample) => durations(s).reduce((sum, v) => sum + v, 0);
 
 /**
- * The last hundred ticks as stacked bars of busy time, newest at the
+ * The last eighty ticks as stacked bars of busy time, newest at the
  * right: the core's time, the JSXGraph boards' redraw, React's commit, and
  * the browser's layout and paint, on a square-root scale against a line
  * at one frame's budget. Hover a bar for its numbers. Redrawn after each tick and again once that tick's frame
@@ -92,12 +93,12 @@ export function TickSparkline({ store }: { store: CellStore }) {
             durations(s).forEach((d, k) => {
                 const to = from + d;
                 ctx.fillStyle = SEGMENTS[k].color;
-                ctx.fillRect(x, y(to), BAR_PX, y(from) - y(to));
+                ctx.fillRect(x, y(to), BAR_PX - 1, y(from) - y(to));
                 from = to;
             });
             if (busy(s) > BUDGET_MS) {
                 ctx.fillStyle = "#dc2626";
-                ctx.fillRect(x, 0, BAR_PX, 2);
+                ctx.fillRect(x, 0, BAR_PX - 1, 2);
             }
         });
         ctx.strokeStyle = "#dc2626";

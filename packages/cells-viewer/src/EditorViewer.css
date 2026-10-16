@@ -14,7 +14,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px;
+    padding: 4px 8px;
     background: #cbd5e1;
     border-bottom: 1px solid #64748b;
 }
@@ -48,7 +48,7 @@
 }
 
 .status-slot:last-child {
-    min-width: 200px;
+    min-width: 320px;
     display: inline-flex;
     align-items: center;
 }
