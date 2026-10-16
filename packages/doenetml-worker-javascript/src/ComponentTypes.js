@@ -193,6 +193,7 @@ import Cascade from "./components/Cascade";
 import Page from "./components/Page";
 import DynamicChildren from "./components/DynamicChildren";
 import ShortDescription from "./components/ShortDescription";
+import StatusMessage from "./components/StatusMessage";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -416,6 +417,7 @@ const componentTypeArray = [
     Page,
     DynamicChildren,
     ShortDescription,
+    StatusMessage,
 
     BaseComponent,
     InlineComponent,

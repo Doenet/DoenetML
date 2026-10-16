@@ -34,7 +34,11 @@ export type UseDoenetRendererProps = {
     rendererClasses: Record<string, any>;
     docId: string;
     activityId: string;
-    callAction: (argObj: CallActionArgs) => void;
+    /**
+     * Settles `true` once core has carried out the action and its updates
+     * are in the store, or `false` if the action was skipped.
+     */
+    callAction: (argObj: CallActionArgs) => Promise<boolean> | void;
     doenetViewerUrl?: string;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
@@ -53,7 +57,11 @@ export interface DoenetRendererResult<SVs = Record<string, any>> {
     ignoreUpdate: boolean;
     rendererName: string;
     initializeChildren: () => void;
-    callAction: (argObj: CallActionArgs) => void;
+    /**
+     * Settles `true` once core has carried out the action and its updates
+     * are in the store, or `false` if the action was skipped.
+     */
+    callAction: (argObj: CallActionArgs) => Promise<boolean> | void;
     doenetViewerUrl: string | undefined;
     fetchExternalDoenetML: ((arg: string) => Promise<string>) | undefined;
     requestScrollTo: ((offset: number) => void) | undefined;
