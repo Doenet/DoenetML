@@ -86,6 +86,7 @@ impl<'a> Compiler<'a> {
                     ],
                     prop: Some(TUPLE_PROPS[j + 1].to_string()),
                     display: format!("(previous iterate).{}", vars[j]),
+                    node: NONE,
                 });
                 self.compiled.refs.len() - 1
             })
@@ -262,6 +263,7 @@ impl<'a> Compiler<'a> {
                         steps: steps.clone(),
                         prop: Some(prop.to_string()),
                         display: format!("({}[i]).{prop}", base.display),
+                        node: NONE,
                     });
                     SourcePlan::reference(self.compiled.refs.len() - 1)
                 })

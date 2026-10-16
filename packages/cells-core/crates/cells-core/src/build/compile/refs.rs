@@ -346,6 +346,7 @@ impl<'a> Compiler<'a> {
             steps,
             prop,
             display,
+            node: m,
         });
         Ok(self.compiled.refs.len() - 1)
     }

@@ -7,7 +7,7 @@ mod common;
 use cells_core::Document;
 use cells_core::program::Op;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_error};
 use common::req;
 
 fn has_evaluate(doc: &Document) -> bool {
@@ -98,10 +98,10 @@ fn math_of_math_lowers_through_and_a_symbolic_leaf_stays_symbolic() {
 
 #[test]
 fn math_parse_errors_are_reported() {
-    let err = load(r#"<math name="m">3 +</math>"#).unwrap_err();
-    assert!(matches!(err, cells_core::Error::BadMath { .. }), "{err}");
-    let err = load(r#"<math name="m">(1 + 2</math>"#).unwrap_err();
-    assert!(matches!(err, cells_core::Error::BadMath { .. }), "{err}");
+    let (code, m) = load_error(r#"<math name="m">3 +</math>"#);
+    assert_eq!(code, "cells-bad-math", "{m}");
+    let (code, m) = load_error(r#"<math name="m">(1 + 2</math>"#);
+    assert_eq!(code, "cells-bad-math", "{m}");
 }
 
 #[test]
@@ -165,13 +165,9 @@ fn function_call_errors_are_reported() {
         "max($a, 1",
         "round(x)",
     ] {
-        let err = load(&format!(
+        let (code, m) = load_error(&format!(
             r#"<numberInput name="a" value="2"/><math name="m">{text}</math>"#
-        ))
-        .unwrap_err();
-        assert!(
-            matches!(err, cells_core::Error::BadMath { .. }),
-            "{text}: {err}"
-        );
+        ));
+        assert_eq!(code, "cells-bad-math", "{text}: {m}");
     }
 }

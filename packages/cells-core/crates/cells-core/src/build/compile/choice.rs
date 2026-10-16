@@ -309,23 +309,38 @@ impl<'a> Compiler<'a> {
                     }
                 }
             }
+            let mut failure = None;
             for name in &def.used {
                 match iface.get(name) {
                     Some((component_type, _))
                         if !component_type.copyable() || component_type.symbolic() =>
                     {
-                        return Err(Error::Unsupported(format!(
+                        failure = Some(Error::Unsupported(format!(
                             "a <{}> in a branch interface ('{name}')",
                             component_type.tag()
                         )));
+                        break;
                     }
                     Some(_) => {}
-                    None => return Err(self.not_in_interface(cid, name, empty_branch)),
+                    None => {
+                        failure = Some(self.not_in_interface(cid, name, empty_branch));
+                        break;
+                    }
                 }
+            }
+            if let Some(e) = failure {
+                self.fail_at_choice(cid);
+                return Err(e);
             }
             self.compiled.choices[cid].iface = iface;
         }
         Ok(())
+    }
+
+    /// A failure of the interface check is reported on the choice element.
+    fn fail_at_choice(&mut self, cid: ChoiceId) {
+        let (t, e) = self.compiled.choices[cid].at;
+        self.fail_at(self.compiled.templates[t].elems[e].node);
     }
 
     /// Why `name` is not in a choice's branch interface.

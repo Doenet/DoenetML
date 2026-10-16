@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
-import { useStore } from "../hooks";
+import { useCell, useStore } from "../hooks";
 import type { Child } from "../components";
 import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
@@ -168,9 +168,23 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return <Children idx={idx} inGraph={inGraph} />;
         case "sequenceValue":
             return <NumberView idx={idx} />;
+        case "_error":
+            return <ErrorBox idx={idx} />;
         default:
             return null; // <op> has no rendering
     }
+}
+
+/** The box an element that could not be built stands as (ADR 0013): the
+ * message of the diagnostic its `diagnostic` cell indexes. */
+function ErrorBox({ idx }: { idx: number }) {
+    const store = useStore();
+    const d = store.diagnostics[useCell(store.comps.cell(idx, "diagnostic"))];
+    return (
+        <span className="error-box" data-comp={idx} role="alert">
+            {d ? d.message : "error"}
+        </span>
+    );
 }
 
 /** React clones every child fiber of a parent on the update path, so a flat

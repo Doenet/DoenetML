@@ -3,10 +3,10 @@
 
 mod common;
 
+use cells_core::Document;
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
-use cells_core::{Document, Error};
+use cells_core::testing::test_utils::{load, load_error};
 use common::{set, type_into};
 
 fn submit(doc: &mut Document, answer: &str) {
@@ -228,11 +228,10 @@ fn answers_with_awards_count_in_the_document_credit() {
 #[test]
 fn unsupported_answer_forms_are_refused() {
     let refused = |src: &str, what: &str| {
-        let e = load(src).err().unwrap_or_else(|| panic!("{src} loaded"));
+        let (code, m) = load_error(src);
         assert!(
-            matches!(e, Error::Unsupported(ref m) if m.contains(what))
-                || matches!(e, Error::UnsupportedTag(ref m) if m.contains(what)),
-            "{src}: {e}"
+            matches!(code, "cells-unsupported" | "doenet-e0002") && m.contains(what),
+            "{src}: {code} {m}"
         );
     };
     refused(

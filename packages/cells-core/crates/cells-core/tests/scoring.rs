@@ -5,7 +5,7 @@
 mod common;
 
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_error};
 use cells_core::{CompIdx, Document};
 use common::{close, set, type_into};
 
@@ -316,11 +316,9 @@ fn repeated_sections_number_in_order() {
 
 #[test]
 fn section_flags_must_be_literals() {
-    let e = load(r#"<booleanInput name="b"/><section aggregateScores="$b"/>"#)
-        .err()
-        .unwrap();
+    let (code, m) = load_error(r#"<booleanInput name="b"/><section aggregateScores="$b"/>"#);
     assert!(
-        matches!(e, cells_core::Error::Unsupported(ref m) if m.contains("aggregateScores")),
-        "{e}"
+        code == "cells-unsupported" && m.contains("aggregateScores"),
+        "{code} {m}"
     );
 }

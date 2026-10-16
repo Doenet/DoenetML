@@ -6,7 +6,7 @@ mod common;
 
 use cells_core::Error;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_error};
 use cells_core::{Document, Request};
 use common::{set, v};
 
@@ -90,10 +90,11 @@ fn text_inside_math_is_refused() {
         r#"<textInput name="ti"/><math>$ti</math>"#,
         r#"<text name="t">3</text><number>$t + 1</number>"#,
     ] {
-        match load(src) {
-            Err(Error::Unsupported(what)) => assert!(what.contains("text value"), "{what}"),
-            other => panic!("{src}: {:?}", other.map(|_| ())),
-        }
+        let (code, what) = load_error(src);
+        assert!(
+            code == "cells-unsupported" && what.contains("text value"),
+            "{src}: {code} {what}"
+        );
     }
 }
 
@@ -200,17 +201,18 @@ fn text_never_compares_as_a_number() {
         r#"<textInput name="ti"/><boolean>$ti + 1 = 2</boolean>"#,
         r#"<textInput name="ti"/><number name="n">3</number><boolean>$ti = $n</boolean>"#,
     ] {
-        match load(src) {
-            Err(Error::Unsupported(what)) => assert!(what.contains("text value"), "{what}"),
-            other => panic!("{src}: {:?}", other.map(|_| ())),
-        }
+        let (code, what) = load_error(src);
+        assert!(
+            code == "cells-unsupported" && what.contains("text value"),
+            "{src}: {code} {what}"
+        );
     }
 }
 
 #[test]
 fn mixed_text_input_content_is_refused() {
-    assert!(matches!(
-        load(r#"<textInput name="ti">hello</textInput>"#),
-        Err(Error::Unsupported(_))
-    ));
+    assert_eq!(
+        load_error(r#"<textInput name="ti">hello</textInput>"#).0,
+        "cells-unsupported"
+    );
 }

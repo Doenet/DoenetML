@@ -275,8 +275,12 @@ document can reach, not only the count at load. Rejected at load time
 document: a kind, a code, its arguments and the node it is about. A
 function of the document text alone, computed by `diagnose`, an
 exhaustive build that stamps every template, which the language server
-calls and a load never does; a tick never produces one (ADR 0013,
-proposed).
+calls and a load never does; a tick never produces one (ADR 0013).
+
+**Error component** — The `_error` component an element that could not be
+built stands as: no name, no children, one cell holding the index of its
+diagnostic in the load's list. The rest of the document builds around it
+(ADR 0013).
 
 **Branch** — One alternative of a choice: a `<case>`, `<else>` or `<option>`
 and the content inside it. A branch is a naming region, like an iteration.

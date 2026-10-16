@@ -99,6 +99,10 @@ component_types! {
     PointList => geometry::POINT_LIST,
     /// `<p>`.
     P => containers::P,
+    /// `<shortDescription>`: an accessible description, text only.
+    ShortDescription => containers::SHORT_DESCRIPTION,
+    /// `_error`: an element that could not be built (ADR 0013).
+    Error => containers::ERROR,
     /// `<hint>`.
     Hint => containers::HINT,
     /// `<setup>`.

@@ -51,6 +51,19 @@ pub fn load(source: &str) -> crate::Result<crate::Document> {
     crate::Document::from_bytes(dast_json(source).as_bytes())
 }
 
+/// The first error the load reported (ADR 0013): its code and message.
+/// An element that cannot be built no longer fails the load; it becomes
+/// an `_error` component with this diagnostic. Panics when the document
+/// loads without one, or does not load at all.
+pub fn load_error(source: &str) -> (&'static str, String) {
+    let doc = load(source).unwrap_or_else(|e| panic!("{source}: did not load: {e}"));
+    doc.diagnostics()
+        .iter()
+        .find(|d| d.kind == crate::DiagnosticKind::Error)
+        .map(|d| (d.code, d.message.clone()))
+        .unwrap_or_else(|| panic!("{source}: loaded without an error"))
+}
+
 /// Parse to DAST JSON, convert to the binary wire format in Rust, and load
 /// from that; lets tests check both loaders agree.
 pub fn load_via_binary(source: &str) -> crate::Result<crate::Document> {

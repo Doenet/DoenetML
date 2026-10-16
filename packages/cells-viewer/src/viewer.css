@@ -100,3 +100,15 @@ button.triggerSet {
 .JXG_navigation_button {
     color: #666;
 }
+
+/* An element that could not be built (ADR 0013). */
+.error-box {
+    display: inline-block;
+    padding: 0.1em 0.4em;
+    border: 1px solid #c62828;
+    border-radius: 3px;
+    background: #fdecea;
+    color: #7f1d1d;
+    font-family: monospace;
+    font-size: 0.9em;
+}

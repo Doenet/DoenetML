@@ -243,6 +243,9 @@ pub(in crate::build) struct RefPlan {
     pub(in crate::build) prop: Option<String>,
     /// For error messages.
     pub(in crate::build) display: String,
+    /// The macro node the plan came from, or NONE for a plan the build
+    /// made itself; what an error in resolving it is reported on.
+    pub(in crate::build) node: NodeId,
 }
 
 /// An element's own slot as `Arg::Own` stores it.
@@ -360,6 +363,10 @@ pub(in crate::build) struct Compiled<'a> {
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
     pub(in crate::build) sym_text: HashMap<ExprId, String>,
     pub(in crate::build) choices: Vec<ChoiceDef>,
+    /// Warnings, infos and accessibility findings about elements that
+    /// were planned (ADR 0013). Errors are not here: an element that fails
+    /// to plan is boxed and the build runs again (`Compiler::boxed`).
+    pub(in crate::build) diagnostics: Vec<Diagnostic>,
     /// Text the build needs that is not a DAST string (a textInput's
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.

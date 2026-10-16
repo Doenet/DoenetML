@@ -239,6 +239,24 @@ impl<'c, 'a> Builder<'c, 'a> {
 
         let (depths, cross_reads) = self.structural_depths();
         lap("structural depth");
+        for (r, (&d, &cross)) in self.repeats.iter().zip(depths.iter().zip(&cross_reads)) {
+            if cross {
+                let name = self.components.name[r.comp as usize];
+                let name = if name == NONE {
+                    format!(
+                        "<{}>",
+                        self.components.component_type[r.comp as usize].tag()
+                    )
+                } else {
+                    self.compiled.dast.strings.get(name).trim().to_string()
+                };
+                self.diagnostics.push(Diagnostic::warning(
+                    "cells-repeat-count-reads-iterations",
+                    Some(r.node),
+                    format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"),
+                ));
+            }
+        }
 
         // The value store grows with the scope table; rows fill lazily.
         let mut values = self.carryover.structure.essential_values.clone();
@@ -258,6 +276,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             repeats: self.repeats,
             seed: self.carryover.structure.seed,
             sample_with_engine: self.carryover.structure.sample_with_engine,
+            diagnostics: self.diagnostics,
         };
 
         // Lazy labels for cycle errors.

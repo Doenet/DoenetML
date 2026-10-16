@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Diagnostics are a product of one exhaustive build, never of a tick
@@ -61,65 +61,94 @@ flip is an ordinary tick.
 
 ## The design
 
-- **Collected, not thrown.** The build carries a `Vec<Diagnostic>`. A
-  diagnostic is a kind (error, warning, info, accessibility with its
-  level 1 or 2), a stable code from the registry the i18n catalogs
-  already define (`doenet-eNNNN`, `doenet-wNNNN`, ...), its arguments as
-  data, and the node it is about (a `NodeId`, and the attribute when it
-  is about one). `Result` is kept only for what the build cannot continue
-  past: a malformed wire format, a cycle.
-- **Recovered, not aborted.** An element that fails to compile becomes an
-  error component in the component table, carrying the index of its
-  diagnostic, and the rest of the document builds and reports. One bad
-  element no longer renders nothing and no longer masks every other
-  problem. This is what the current core does with `_error`, and what the
-  parity suite's error tests expect.
+- **Collected, not thrown.** The build carries a `Vec<Diagnostic>`
+  (`src/diagnostics.rs`). A diagnostic is a kind (error, warning, info,
+  accessibility with its level 1 or 2), a stable code, its arguments as
+  data, and the node it is about. The code is the i18n registry's
+  (`packages/i18n/src/diagnostics.ts`) where it names the same situation,
+  whatever letter the current core gives it (an unknown reference is its
+  warning `doenet-w0104` and our error, since the element did not build);
+  a `cells-` code otherwise, to be registered. `Error::code` is the map.
+  A `Result` is kept for what the build cannot continue past: a malformed
+  wire format, a cycle.
+- **Recovered, not aborted, by building again.** The compiler and the
+  builder keep raising errors as they do; what changed is who catches
+  them. Each records the innermost element the error is about (the
+  element being planned, the macro being resolved, the choice whose
+  interface failed), and `build` boxes that node and builds again: the
+  node compiles as an `_error` element with no name, no children and one
+  fixed prop holding its diagnostic's index. A reference to a boxed
+  element fails in turn and is boxed on the next round, so a document
+  with k faulty elements compiles k + 1 times, which only documents with
+  errors pay and only once: the errors ride in the carryover and seed
+  the boxes of every rebuild. This is simpler than unwinding a half-built
+  element out of the compiler's name tables and side tables, and the
+  golden diff is identical, since a document without errors builds once
+  as before. One bad element no longer renders nothing and no longer
+  masks every other problem. The renderer shows the box
+  (`cells-viewer/src/renderers/index.tsx`).
 - **Taken from an exhaustive build, by the language server.** The probe
-  view (`build/cycles.rs`) gets a sibling, the *exhaustive* view: one
-  iteration per repeat and `Options::Every` everywhere, inside and outside
-  a repeat. `diagnose(dast) -> Vec<Diagnostic>` compiles, builds through
-  it, and returns the build's diagnostics; the build itself is discarded.
-  They are seed- and count-independent because the view's answers do not
-  depend on either. A load does not call it. The real build still collects
-  diagnostics for the elements it stamps, which the viewer needs to render
-  error boxes; they must be a subset of `diagnose`'s, which the tests
-  check. The cycle check keeps running at load, as ADR 0012 requires: a
-  cycle is the one finding a load cannot proceed past.
+  view (`build/cycles.rs`) gains one switch, `every_option`: with it,
+  every option of every select is built, inside a repeat or not.
+  `diagnose(dast) -> Vec<Diagnostic>` compiles, builds through that view
+  with the probe's checks, boxing as `build` does, and returns the list;
+  the build itself is discarded. The list is seed- and count-independent
+  because the view's answers do not depend on either. A load does not
+  call it. The real build still collects diagnostics for the elements it
+  stamps, which the viewer needs to render error boxes; they are a subset
+  of `diagnose`'s, which the tests check. The cycle check keeps running
+  at load, as ADR 0012 requires: a cycle is the one finding a load cannot
+  proceed past, and it is reported with no node.
+
+  Two of the three holes turned out narrower than described above.
+  Compile walks every branch, so a name that does not exist is found
+  whatever a select draws; only what expand and resolve raise (an arity
+  mismatch, an unknown prop, math that does not lower) stays per seed.
+  And the cycle probe stamps every repeat body once at load, so a body at
+  count zero is already boxed by the load. What `diagnose` adds over a
+  load is the unchosen options, and a list for a document that has no
+  load at all, in the language server.
 - **Static where the current core is dynamic.** Whether a prop can be
   written is known when its producing operator is bound (an `Op` carries
   its inverse or does not); whether an action's target prop exists is
   known at resolve. So "cannot change the radius of a circle through
   non-numerical points" and "no state variable named `bad` on a
   `<number>`" are load-time diagnostics here, not findings of a later
-  request. What is genuinely dynamic stays in `TickOutcome`: a dropped
-  request, an infinite value, a rebuild that failed. The renderer may show
-  it; the document's list never grows. The tick's contract gains one line
-  beside "never consults the DAST": never produces a diagnostic.
+  request. Neither is emitted yet: the first needs a rule for which
+  essential cells an author expects to be writable, the second an
+  `<updateValue>` planner that reports instead of refusing. What is
+  genuinely dynamic stays in `TickOutcome`: a dropped request, an
+  infinite value, a rebuild that failed. The renderer may show it; the
+  document's list never grows. The tick's contract gains one line beside
+  "never consults the DAST": never produces a diagnostic.
 - **Positions outside the core.** A diagnostic names a node, not a
   position. The viewer and the language server hold the parser's DAST and
   map a node to its position; the binary format needs only to keep node
   ids in correspondence, which its parallel arrays already do. The core
   stays free of positions (ADR 0002).
-- **Accessibility checks are structural.** A `<graph>`, `<image>` or
-  `<video>` without a short description, an input without a label, a
-  contrast failure in authored styles: each is a fact about the DAST and
-  is checked in compile, once per template. There is no exemption for
-  hidden content: `hide` is a cell, so an exemption would make the list
-  depend on state. (A literal `hide="true"` could be exempted statically
-  if wanted; it is not proposed.)
-- **Two wire calls, one package.** `crates/cells-wasm` gains a free
+- **Accessibility checks are structural.** A `<graph>` without a
+  `<shortDescription>` child or `decorative` (`doenet-a0001`), an input
+  without one or a `<label>` child, a `label` attribute or `labelIsName`
+  (`doenet-a0003`): each is a fact about the DAST and is checked in
+  compile, once per template (`Compiler::check_accessibility`). The
+  image, video and contrast rules wait for those types. There is no
+  exemption for hidden content: `hide` is a cell, so an exemption would
+  make the list depend on state. (A literal `hide="true"` could be
+  exempted statically if wanted; it is not proposed.)
+- **Two wire calls, one package.** `crates/cells-wasm` has a free
   function `diagnose_json(bytes)`, the typed list for a wire-format
-  document, with no `Core` constructed; and `Core` gains
-  `diagnostics_json()`, the real build's own findings, replacing
-  `warnings_json`. Both map to the `DiagnosticRecord` the current core
-  emits, with code and arguments, so the i18n catalogs render them in the
+  document, with no `Core` constructed; and `Core::diagnostics_json()`,
+  the real build's own findings, which replaced `warnings_json`. Both
+  carry what the current core's `DiagnosticRecord` needs, kind, code,
+  message and arguments, so the i18n catalogs can render them in the
   reader's language and the code-based parity tests can pass. Everything
-  here, the view, `diagnose`, the binding and the tests, lives in
-  `packages/cells-core`. The language server (`packages/lsp`) already
-  spawns one core per open document and merges what it reports into its
-  own diagnostics (`features/validate.ts`, `additionalDiagnostics`);
-  pointing that at `diagnose_json` is the only change outside this
-  package, and it is a later one.
+  here, the view switch, `diagnose`, the binding and the tests, lives in
+  `packages/cells-core`; the viewer (`packages/cells-viewer`) reads the
+  load's list and renders the boxes. The language server
+  (`packages/lsp`) already spawns one core per open document and merges
+  what it reports into its own diagnostics (`features/validate.ts`,
+  `additionalDiagnostics`); pointing that at `diagnose_json` is the only
+  change still outside this package.
 
 ## Cost
 
@@ -147,19 +176,21 @@ Where it runs decides whether a reader pays it:
 
 All in `packages/cells-core`, under `cargo test`:
 
-- `tests/diagnostics.rs`: for every golden document, fixture and the
-  documents of ADR 0012, `diagnose` returns the same list at four seeds,
-  at counts 0 to 4 per repeat, with carried-over state, and after the
-  golden request script; and the real build's diagnostics at each of
-  those are a subset of it. A document with a select reports the problems
-  of every option; one with a repeat at count zero reports the problems
-  of its body.
-- Per-finding tests beside the existing ones in `tests/` (`choice.rs`,
-  `answer.rs`, ...): the text, the code, the node, and that the element
-  still builds as an error component.
-- `crates/cells-wasm`: `diagnose_json` is a thin serialization over
-  `diagnose` and is covered by the Rust tests; its JSON shape is pinned
-  by one test that parses the output of a fixture.
+- `tests/diagnostics.rs`: for every golden document and fixture,
+  `diagnose` returns the same list each time, and what a load at four
+  seeds reports, before and after every repeat's count is driven to 0 and
+  to 3, is within it. A select reports the problems of an option no seed
+  draws; a repeat body at count zero is reported; a boxed element leaves
+  the rest of the document loading, with its box where it stood; a
+  reference to a boxed element is boxed in turn, in document order; a
+  rebuild keeps the boxes and adds nothing; a cycle is reported with no
+  node; the accessibility findings are the same from `diagnose` and from
+  a load.
+- The tests that asserted a load *fails* on an authoring error
+  (`build.rs`, `choice.rs`, `math.rs`, ...) now assert the error
+  diagnostic the load reports, through `test_utils::load_error`.
+- `crates/cells-wasm`: `diagnose_json`'s JSON shape is pinned by one
+  test that parses its output; the names of its fields are the contract.
 
 ## Considered options
 
@@ -203,7 +234,8 @@ All in `packages/cells-core`, under `cargo test`:
   component table says which error components the real build stamped.
 - A document with an error now loads and renders around it instead of
   failing to construct. `Core::new` stops returning an error for
-  authoring mistakes.
+  authoring mistakes; the parity adapter's "load error" rows become
+  documents with `_error` components.
 - Load time is unchanged: `diagnose` is a separate entry point the viewer
   never calls. The language server pays one compile and one template-sized
   stamping per edit.
@@ -219,6 +251,9 @@ All in `packages/cells-core`, under `cargo test`:
 - The parity test for hidden components changes its expectation; the
   tests that assert a diagnostic appears only after an interaction become
   tests that it is present at load.
+- A document with k faulty elements compiles k + 1 times at load. Errors
+  are rare and compile is milliseconds; a document that compiles clean
+  pays nothing.
 - `CONTEXT.md`: a diagnostic is a function of the document text alone,
   computed by `diagnose` from the exhaustive build; a tick never produces
   one.

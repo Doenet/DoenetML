@@ -114,28 +114,23 @@ impl Document {
         *self.program.sym.engine.get_mut() = engine;
     }
 
-    /// Authoring warnings about the loaded document. Today: repeats whose
-    /// count reads a cell inside another repeat's iterations, since each
-    /// such link costs a full extra build pass and, unlike nesting, is
-    /// avoidable (see `Structure::repeat_depths`).
+    /// What the build reported about the elements it stamped (ADR 0013):
+    /// the errors of the elements that became `_error` components and the
+    /// warnings of the rest, in node order. This is the list for rendering
+    /// error boxes. It is per seed and per count, since only stamped
+    /// elements are in it; the document's diagnostics, every branch and
+    /// every body included, are [`crate::diagnose`]'s.
+    pub fn diagnostics(&self) -> &[crate::Diagnostic] {
+        &self.structure.diagnostics
+    }
+
+    /// The warnings among `diagnostics`, as sentences.
     pub fn warnings(&self) -> Vec<String> {
-        let st = &self.structure;
-        let mut out = Vec::new();
-        for ((r, &d), &cross) in st
-            .repeats
+        self.diagnostics()
             .iter()
-            .zip(&st.repeat_depths)
-            .zip(&st.repeat_cross_reads)
-        {
-            if cross {
-                let name = self
-                    .name(r.comp)
-                    .map(str::to_string)
-                    .unwrap_or_else(|| format!("<repeatForSequence>#{}", r.comp));
-                out.push(format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"));
-            }
-        }
-        out
+            .filter(|d| d.kind == crate::DiagnosticKind::Warning)
+            .map(|d| d.message.clone())
+            .collect()
     }
 
     /// Whether every repeat was expanded with the iteration count its

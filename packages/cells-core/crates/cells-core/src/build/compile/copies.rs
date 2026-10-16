@@ -98,6 +98,7 @@ impl<'a> Compiler<'a> {
                         steps: vec![Step::Elem(c)],
                         prop: None,
                         display: label,
+                        node: NONE,
                     });
                     let ep = self.compiled.refs.len() - 1;
                     {

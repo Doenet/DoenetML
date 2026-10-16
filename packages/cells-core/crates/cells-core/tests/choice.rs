@@ -4,7 +4,7 @@
 mod common;
 
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{dast_json, load};
+use cells_core::testing::test_utils::{dast_json, load, load_error};
 use cells_core::{Document, Error};
 use common::{set, v};
 
@@ -88,11 +88,10 @@ fn built_cases_report_which_is_active() {
     );
 }
 
-fn load_err(src: &str) -> Error {
-    match load(src) {
-        Ok(_) => panic!("expected an error"),
-        Err(e) => e,
-    }
+/// The error the load reports (ADR 0013): the choice, or the reference
+/// into it, is an `_error` component and the rest of the document loads.
+fn load_err(src: &str) -> (&'static str, String) {
+    load_error(src)
 }
 
 #[test]
@@ -107,8 +106,8 @@ fn a_name_whose_kind_depends_on_the_branch_is_not_in_the_interface() {
 <math>$cc.x</math>"#,
     );
     assert!(
-        matches!(&e, Error::NotInInterface { reason, .. } if reason.contains("<math> in case 1 but a <text> in case 2")),
-        "{e}"
+        e.0 == "cells-not-in-interface" && e.1.contains("<math> in case 1 but a <text> in case 2"),
+        "{e:?}"
     );
 }
 
@@ -124,8 +123,8 @@ fn a_name_missing_from_a_branch_or_without_an_else_is_not_in_the_interface() {
 <number>$cc.x</number>"#,
     );
     assert!(
-        matches!(&e, Error::NotInInterface { reason, .. } if reason.contains("case 2 has no 'x'")),
-        "{e}"
+        e.0 == "cells-not-in-interface" && e.1.contains("case 2 has no 'x'"),
+        "{e:?}"
     );
     let e = load_err(
         r#"
@@ -134,8 +133,8 @@ fn a_name_missing_from_a_branch_or_without_an_else_is_not_in_the_interface() {
 <number>$cc.x</number>"#,
     );
     assert!(
-        matches!(&e, Error::NotInInterface { reason, .. } if reason.contains("no <else>")),
-        "{e}"
+        e.0 == "cells-not-in-interface" && e.1.contains("no <else>"),
+        "{e:?}"
     );
     // A bare name inside a branch is private.
     let e = load_err(
@@ -144,7 +143,7 @@ fn a_name_missing_from_a_branch_or_without_an_else_is_not_in_the_interface() {
 <conditionalContent name="cc"><case condition="$n > 0"><number name="x">1</number></case><else><number name="x">2</number></else></conditionalContent>
 <number>$x</number>"#,
     );
-    assert!(matches!(e, Error::UnknownName(_)), "{e}");
+    assert_eq!(e.0, "doenet-w0104", "{}", e.1);
 }
 
 #[test]
@@ -200,13 +199,15 @@ fn a_condition_may_read_another_choices_interface() {
 
 #[test]
 fn a_condition_reading_its_own_interface_is_a_cycle() {
-    let e = load_err(
+    // A cycle has no element to box, so it still fails the load.
+    let e = load(
         r#"
 <conditionalContent name="cc">
   <case condition="$cc.x > 0"><number name="x">1</number></case>
   <else><number name="x">2</number></else>
 </conditionalContent>"#,
-    );
+    )
+    .expect_err("a cycle fails the load");
     assert!(matches!(e, Error::Cycle(_)), "{e}");
 }
 
@@ -326,17 +327,17 @@ fn a_select_inside_a_repeat_draws_per_iteration_and_keeps_its_draw_across_rebuil
 #[test]
 fn select_references_by_position_are_banned_and_bare_names_need_one_pick() {
     let e = load_err(&format!("{SELECT}<number>$s[1][1]</number>"));
-    assert!(matches!(e, Error::Banned(_)), "{e}");
+    assert_eq!(e.0, "cells-banned", "{}", e.1);
     let e = load_err(&format!("{SELECT}<number>$s.v</number>"));
-    assert!(matches!(e, Error::Banned(_)), "{e}");
+    assert_eq!(e.0, "cells-banned", "{}", e.1);
     let e = load_err(
         r#"<select name="s" numToSelect="$n"><option><number>1</number></option></select><numberInput name="n"/>"#,
     );
-    assert!(matches!(e, Error::Banned(_)), "{e}");
+    assert_eq!(e.0, "cells-banned", "{}", e.1);
     let e = load_err(
         r#"<numberInput name="n"/><conditionalContent name="cc" condition="$n>0"><number>1</number></conditionalContent><conditionalContent extend="$cc"/>"#,
     );
-    assert!(matches!(e, Error::Banned(_)), "{e}");
+    assert_eq!(e.0, "cells-banned", "{}", e.1);
 }
 
 #[test]

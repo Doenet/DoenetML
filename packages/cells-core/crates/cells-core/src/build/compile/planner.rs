@@ -36,6 +36,9 @@ impl<'a> Compiler<'a> {
             K::Document => Props,
             K::Graph => Props,
             K::P => Props,
+            K::ShortDescription => Props,
+            // Made boxed by `add_elem`, already planned.
+            K::Error => Whole(|_, _, _| Ok(())),
             K::Hint => Props,
             K::Setup => Props,
             K::Group => Props,

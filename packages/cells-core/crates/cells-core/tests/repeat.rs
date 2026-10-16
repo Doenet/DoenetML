@@ -1,7 +1,7 @@
 //! `<repeatForSequence>`, `<collect>`, indexed references and rebuilds.
 
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{load, load_via_binary};
+use cells_core::testing::test_utils::{load, load_error, load_via_binary};
 use cells_core::{Child, Document, Request};
 
 fn req(_doc: &Document, cell: u32, value: f64) -> Request {
@@ -175,8 +175,10 @@ fn a_forward_lag_is_a_cycle_and_a_dynamic_index_is_rejected() {
     );
     let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><op name="x" kind="negate" args="$r[$i+1].y"/><op name="y" kind="negate" args="$r[$i-1].x"/></repeatForSequence>"#).unwrap_err();
     assert!(matches!(err, cells_core::Error::Cycle(_)), "{err}");
-    let err = load(r#"<numberInput name="k" value="1"/><repeatForSequence name="r" length="3"><point name="p"/></repeatForSequence><number>$r[$k].p.x</number>"#).unwrap_err();
-    assert!(matches!(err, cells_core::Error::DynamicIndex(_)), "{err}");
+    let (code, m) = load_error(
+        r#"<numberInput name="k" value="1"/><repeatForSequence name="r" length="3"><point name="p"/></repeatForSequence><number>$r[$k].p.x</number>"#,
+    );
+    assert_eq!(code, "cells-dynamic-index", "{m}");
 }
 
 #[test]

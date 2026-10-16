@@ -43,8 +43,10 @@ pub(in crate::build) enum Coord {
 
 /// The probe's structure view: one iteration per repeat, standing for
 /// every iteration.
-struct Probe {
+pub(super) struct Probe {
     seed: u64,
+    /// Build every option of a select outside a repeat too.
+    every_option: bool,
 }
 
 impl View for Probe {
@@ -75,7 +77,7 @@ impl View for Probe {
     /// Inside a repeat each iteration draws its own options, so every one
     /// is built; outside, the real pick, so load errors stay per seed.
     fn options(&self, in_iteration: bool) -> Options {
-        if in_iteration {
+        if in_iteration || self.every_option {
             Options::Every
         } else {
             Options::Drawn
@@ -95,17 +97,28 @@ impl View for Probe {
 /// Run the check over the compiled templates: build through the probe,
 /// test its graph, then emit it so emit's rules run on the referents of
 /// every count, and discard the output.
-pub(super) fn check(compiled: &Compiled, carryover: &Carryover) -> Result<()> {
+pub(super) fn check(
+    compiled: &Compiled,
+    carryover: &Carryover,
+) -> std::result::Result<(), Failure> {
     let mut engine = Engine::new();
     let probe = Probe {
         seed: carryover.structure.seed,
+        every_option: false,
     };
-    let mut b = Builder::new(compiled, carryover, &mut engine, &probe);
-    b.expand_all()?;
-    b.resolve_all()?;
-    b.check_counts()?;
-    b.check_loops()?;
-    b.finish().map(drop)
+    build_with(compiled, carryover, &mut engine, &probe, true).map(drop)
+}
+
+impl Probe {
+    /// The exhaustive view behind `diagnose` (ADR 0013): the probe with
+    /// every option of every select built, inside a repeat or not, so a
+    /// finding in an option no seed draws is still reported.
+    pub(super) fn exhaustive() -> Probe {
+        Probe {
+            seed: 0,
+            every_option: true,
+        }
+    }
 }
 
 impl Compiled<'_> {
@@ -179,7 +192,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// when `r`'s count reads a cell inside `s`'s iterations, unless `r`
     /// itself sits inside them (an inner count reading its outer iteration
     /// is legal). A self-loop is a count reading its own iterations.
-    fn check_counts(&self) -> Result<()> {
+    pub(in crate::build) fn check_counts(&self) -> Result<()> {
         let n = self.repeats.len();
         let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
         let mut seen = vec![false; self.sources.len()];
@@ -277,7 +290,7 @@ impl<'c, 'a> Builder<'c, 'a> {
 
     /// Strongly connected components of the probe graph, each tested for
     /// a loop that closes at some count.
-    fn check_loops(&self) -> Result<()> {
+    pub(in crate::build) fn check_loops(&self) -> Result<()> {
         let n = self.sources.len();
         // Adjacency, compact.
         let mut adj_start = Vec::with_capacity(n + 1);

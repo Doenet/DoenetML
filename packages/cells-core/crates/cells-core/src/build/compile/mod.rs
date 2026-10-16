@@ -33,6 +33,13 @@ pub(in crate::build) struct Compiler<'a> {
     /// Every string's canonical id, over the DAST table (built when first
     /// needed) and then `extra_strings`: see `intern_literal`.
     pub(in crate::build) string_ids: Option<HashMap<String, StrId>>,
+    /// Nodes an earlier attempt could not build, each with the index of
+    /// its diagnostic in the list the build is assembling: compiled as
+    /// `_error` elements with no name and no children (ADR 0013).
+    pub(in crate::build) boxed: &'a HashMap<NodeId, usize>,
+    /// The node of the innermost element whose planning failed, set on
+    /// the way out of a failed compile; `build` boxes it and tries again.
+    pub(in crate::build) failed_node: Option<NodeId>,
 }
 
 /// The ways an element is planned; see `Compiler::elem_shape`.
@@ -46,7 +53,12 @@ enum ElemShape {
 }
 
 impl<'a> Compiler<'a> {
-    pub(in crate::build) fn compile(dast: &'a Dast) -> Result<Compiled<'a>> {
+    /// Compile `dast`, with the nodes in `boxed` as `_error` elements. A
+    /// failure names the node to box next, when the failing element has one.
+    pub(in crate::build) fn compile(
+        dast: &'a Dast,
+        boxed: &'a HashMap<NodeId, usize>,
+    ) -> std::result::Result<Compiled<'a>, Failure> {
         let mut cp = Compiler {
             compiled: Compiled {
                 dast,
@@ -56,12 +68,27 @@ impl<'a> Compiler<'a> {
                 sym_text: HashMap::new(),
                 choices: Vec::new(),
                 extra_strings: Vec::new(),
+                diagnostics: Vec::new(),
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
             ref_subst: HashMap::new(),
             string_ids: None,
+            boxed,
+            failed_node: None,
         };
+        match cp.compile_all() {
+            Ok(()) => Ok(cp.compiled),
+            Err(error) => Err(Failure {
+                error,
+                node: cp.failed_node,
+            }),
+        }
+    }
+
+    fn compile_all(&mut self) -> Result<()> {
+        let cp = self;
+        let dast = cp.compiled.dast;
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
             .children(Dast::ROOT)
@@ -94,7 +121,13 @@ impl<'a> Compiler<'a> {
                     Some(e) => cp.child_scope(t, e),
                     None => ROOT_SCOPE,
                 };
-                let plan = cp.plan_ref(t, scope, m)?;
+                let plan = match cp.plan_ref(t, scope, m) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        cp.fail_at(m);
+                        return Err(e);
+                    }
+                };
                 let has_index = dast.macro_has_index(m);
                 match owner {
                     Some(e) => {
@@ -115,7 +148,25 @@ impl<'a> Compiler<'a> {
             }
             tpl.n_slots = off;
         }
-        Ok(cp.compiled)
+        Ok(())
+    }
+
+    /// Record `node` as the element to box if the compile fails: the
+    /// innermost one wins, so a failure inside a child boxes the child.
+    pub(in crate::build) fn fail_at(&mut self, node: NodeId) {
+        if node != NONE {
+            self.failed_node.get_or_insert(node);
+        }
+    }
+
+    /// The `_error` element standing for boxed node `node`: no name, no
+    /// children, one fixed prop holding its diagnostic's index.
+    fn push_error_elem(&mut self, t: TemplateId, node: NodeId, diagnostic: usize) -> ElemId {
+        let e = self
+            .push_elem(t, node, ComponentType::Error, NONE, ROOT_SCOPE)
+            .expect("an unnamed element never collides");
+        self.compiled.templates[t].elems[e].props = vec![SourcePlan::Fixed(diagnostic as f64)];
+        e
     }
 
     /// Children of element `e` have `e` as their parent.
@@ -203,13 +254,26 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// Create an element (and, for a repeat, its template) from a DAST element.
+    /// Create an element (and, for a repeat, its template) from a DAST
+    /// element. A boxed node becomes an `_error` element; a failure
+    /// anywhere under `el` marks the innermost failing element.
     pub(in crate::build) fn add_elem(
         &mut self,
         t: TemplateId,
         el: NodeId,
         name_scope: ElemId,
     ) -> Result<ElemId> {
+        if let Some(&i) = self.boxed.get(&el) {
+            return Ok(self.push_error_elem(t, el, i));
+        }
+        let r = self.add_elem_inner(t, el, name_scope);
+        if r.is_err() {
+            self.fail_at(el);
+        }
+        r
+    }
+
+    fn add_elem_inner(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> Result<ElemId> {
         let d = self.compiled.dast;
         let tag = d.str(el);
         let component_type =
@@ -315,7 +379,57 @@ impl<'a> Compiler<'a> {
                 self.compiled.templates[t].elems[e].children = kids;
             }
         }
+        self.check_accessibility(el, component_type);
         Ok(e)
+    }
+
+    /// The accessibility findings about one element (ADR 0013), the
+    /// current core's rules where this core has the types: a `<graph>`
+    /// needs a `<shortDescription>` child or `decorative`; an input needs
+    /// one or a `<label>` child, a `label` attribute or `labelIsName`.
+    fn check_accessibility(&mut self, el: NodeId, component_type: ComponentType) {
+        let d = self.compiled.dast;
+        let has_child = |tag: &str| {
+            d.children(el)
+                .iter()
+                .any(|&n| d.kind(n) == NodeKind::Element && d.str(n) == tag)
+        };
+        let described = has_child("shortDescription");
+        let (code, level, message) = match component_type {
+            ComponentType::Graph if !described && d.attr(el, "decorative").is_none() => (
+                "doenet-a0001",
+                1,
+                "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
+            ),
+            ComponentType::MathInput
+            | ComponentType::NumberInput
+            | ComponentType::TextInput
+            | ComponentType::BooleanInput
+            | ComponentType::ChoiceInput
+            | ComponentType::Slider
+                if !described
+                    && !has_child("label")
+                    && d.attr(el, "label").is_none()
+                    && d.attr(el, "labelIsName").is_none() =>
+            {
+                (
+                    "doenet-a0003",
+                    1,
+                    "For accessibility, `<{tag}>` must have a short description or a label.",
+                )
+            }
+            _ => return,
+        };
+        let tag = component_type.tag();
+        let mut args = std::collections::BTreeMap::new();
+        args.insert("component", tag.to_string());
+        self.compiled.diagnostics.push(Diagnostic::accessibility(
+            level,
+            code,
+            el,
+            message.replace("{tag}", tag),
+            args,
+        ));
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as
@@ -326,6 +440,7 @@ impl<'a> Compiler<'a> {
             steps: vec![Step::Elem(e)],
             prop: Some(prop.to_string()),
             display: format!("(repeat).{prop}"),
+            node: NONE,
         });
         self.compiled.refs.len() - 1
     }
@@ -358,6 +473,10 @@ impl<'a> Compiler<'a> {
                         && (d.str(n).contains('\n') || kids.is_empty()) => {}
                 NodeKind::Text => kids.push(Child::Text(d.str_id(n))),
                 NodeKind::Macro => {
+                    if let Some(&i) = self.boxed.get(&n) {
+                        kids.push(Child::Elem(self.push_error_elem(t, n, i)));
+                        continue;
+                    }
                     self.pending_macros.push((t, owner, kids.len(), n));
                     kids.push(Child::Macro(usize::MAX, false));
                 }
@@ -368,6 +487,14 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::build) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let r = self.plan_elem_inner(t, e);
+        if r.is_err() {
+            self.fail_at(self.compiled.templates[t].elems[e].node);
+        }
+        r
+    }
+
+    fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let component_type = self.compiled.templates[t].elems[e].component_type;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to plan.

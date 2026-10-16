@@ -1,6 +1,6 @@
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{load, load_via_binary};
+use cells_core::testing::test_utils::{load, load_error, load_via_binary};
 use cells_core::{Child, Document, Error};
 
 fn load_ok(src: &str) -> Document {
@@ -185,14 +185,14 @@ fn operator_cycle_is_rejected() {
 
 #[test]
 fn error_cases() {
-    assert!(matches!(
-        load(r#"<point x="$nope"/>"#).unwrap_err(),
-        Error::UnknownName(_)
-    ));
-    assert!(matches!(
-        load(r#"<point name="a"/><point name="a"/>"#).unwrap_err(),
-        Error::DuplicateName(_)
-    ));
+    // An element that cannot be built is an `_error` component carrying
+    // its diagnostic; the rest of the document loads (ADR 0013).
+    let code = |src: &str| load_error(src).0;
+    assert_eq!(code(r#"<point x="$nope"/>"#), "doenet-w0104");
+    assert_eq!(
+        code(r#"<point name="a"/><point name="a"/>"#),
+        "cells-duplicate-name"
+    );
     // Math in an attribute lowers (ADR 0005); a constant folds to an essential.
     assert_eq!(
         load(r#"<point name="p" x="1+2"/>"#)
@@ -200,34 +200,25 @@ fn error_cases() {
             .value("p", "x"),
         Some(3.0)
     );
-    assert!(matches!(
-        load(r#"<point name="p"/><point x="$p"/>"#).unwrap_err(),
-        Error::ArityMismatch { .. }
-    ));
-    assert!(matches!(
-        load(r#"<point name="p"/><number extend="$p"/>"#).unwrap_err(),
-        Error::ExtendTypeMismatch { .. }
-    ));
-    assert!(matches!(
-        load(r#"<point name="p"/><op kind="add" args="$p.x"/>"#).unwrap_err(),
-        Error::OpArity { .. }
-    ));
-    assert!(matches!(
-        load(r#"<point name="p"/><op kind="scale" args="$p.x"/>"#).unwrap_err(),
-        Error::MissingParam { .. }
-    ));
-    assert!(matches!(
-        load(r#"<point name="p"/>$p.x.y"#).unwrap_err(),
-        Error::PathTooDeep(_)
-    ));
-    assert!(matches!(
-        load(r#"<graph name="g"/>$g"#).unwrap_err(),
-        Error::UncopyableType(_)
-    ));
-    assert!(matches!(
-        load(r#"<codeEditor/>"#).unwrap_err(),
-        Error::UnsupportedTag(_)
-    ));
+    assert_eq!(
+        code(r#"<point name="p"/><point x="$p"/>"#),
+        "cells-arity-mismatch"
+    );
+    assert_eq!(
+        code(r#"<point name="p"/><number extend="$p"/>"#),
+        "cells-extend-type-mismatch"
+    );
+    assert_eq!(
+        code(r#"<point name="p"/><op kind="add" args="$p.x"/>"#),
+        "cells-op-arity"
+    );
+    assert_eq!(
+        code(r#"<point name="p"/><op kind="scale" args="$p.x"/>"#),
+        "cells-missing-param"
+    );
+    assert_eq!(code(r#"<point name="p"/>$p.x.y"#), "cells-path-too-deep");
+    assert_eq!(code(r#"<graph name="g"/>$g"#), "cells-uncopyable-type");
+    assert_eq!(code(r#"<codeEditor/>"#), "doenet-e0002");
 }
 
 #[test]
@@ -333,6 +324,6 @@ fn a_copys_own_hide_wins_over_the_inherited_one() {
 
 #[test]
 fn point_list_needs_extend_of_an_array_prop() {
-    let e = load(r#"<graph><pointList name="ps"/></graph>"#).unwrap_err();
-    assert!(matches!(e, Error::BadValue { .. }), "{e}");
+    let (code, m) = load_error(r#"<graph><pointList name="ps"/></graph>"#);
+    assert_eq!(code, "cells-bad-attribute-value", "{m}");
 }

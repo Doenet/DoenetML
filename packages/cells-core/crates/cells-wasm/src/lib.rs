@@ -7,6 +7,19 @@ use cells_core::{
 };
 use wasm_bindgen::prelude::*;
 
+/// Every diagnostic of a document (ADR 0013), as a JSON array, from one
+/// build through the exhaustive view: every option of every select and
+/// every repeat body, whatever the seed or the counts. A function of the
+/// wire-format bytes alone; no `Core` is made. For the language server.
+/// Each entry has `kind` (error, warning, info, accessibility), `code`,
+/// `message`, `node` (the DAST node, absent for a finding about the whole
+/// document), and `level` and `args` where the kind has them.
+#[wasm_bindgen]
+pub fn diagnose_json(dast: &[u8]) -> Result<String, JsError> {
+    let dast = cells_core::dast::load(dast).map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(serde_json::to_string(&cells_core::diagnose(&dast)).unwrap())
+}
+
 #[wasm_bindgen]
 pub struct Core {
     doc: Document,
@@ -414,9 +427,14 @@ impl Core {
         self.timings.passes
     }
 
-    /// Authoring warnings for the loaded document, JSON array of strings.
-    pub fn warnings_json(&self) -> String {
-        serde_json::to_string(&self.doc.warnings()).unwrap()
+    /// What the load reported about the elements it stamped (ADR 0013),
+    /// as a JSON array of diagnostics: the errors behind the document's
+    /// `_error` components (a component's `diagnostic` cell indexes this
+    /// list) and the warnings of the rest. Per seed and per count, since
+    /// only stamped elements are in it; the document's own list is
+    /// `diagnose_json`'s.
+    pub fn diagnostics_json(&self) -> String {
+        serde_json::to_string(self.doc.diagnostics()).unwrap()
     }
 
     /// Choose the recompute strategy: "full" or "dirty-closure".
@@ -427,5 +445,30 @@ impl Core {
             other => return Err(JsError::new(&format!("unknown evaluator {other}"))),
         };
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use cells_core::testing::test_utils::dast_json;
+
+    /// The JSON a caller parses: the field names are the contract.
+    #[test]
+    fn diagnose_json_shape() {
+        let json = dast_json(r#"<graph name="g"/><number name="n">$nope</number>"#);
+        let out = super::diagnose_json(json.as_bytes()).unwrap();
+        let list: Vec<serde_json::Value> = serde_json::from_str(&out).unwrap();
+        assert_eq!(list.len(), 2, "{out}");
+        let a11y = &list[0];
+        assert_eq!(a11y["kind"], "accessibility");
+        assert_eq!(a11y["level"], 1);
+        assert_eq!(a11y["code"], "doenet-a0001");
+        assert_eq!(a11y["args"]["component"], "graph");
+        assert!(a11y["node"].is_number());
+        let err = &list[1];
+        assert_eq!(err["kind"], "error");
+        assert_eq!(err["code"], "doenet-w0104");
+        assert!(err["message"].as_str().unwrap().contains("nope"));
+        assert!(err.get("level").is_none() && err.get("args").is_none());
     }
 }

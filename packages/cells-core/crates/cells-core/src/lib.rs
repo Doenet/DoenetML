@@ -26,6 +26,7 @@
 pub mod build;
 pub mod components;
 pub mod dast;
+pub mod diagnostics;
 mod document;
 mod error;
 pub mod program;
@@ -34,6 +35,8 @@ pub mod testing;
 pub mod tick;
 
 // The API of a loaded document: load it, read it, send it requests.
+pub use build::diagnose;
+pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
 pub use document::{
     CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings, NONE, TEXT_BIT,
 };

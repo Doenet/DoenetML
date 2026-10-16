@@ -47,6 +47,18 @@ type Listener = () => void;
 
 let wasmMemory: WebAssembly.Memory | null = null;
 
+/** One entry of the core's diagnostics list (`diagnostics_json`,
+ * `diagnose_json`): see ADR 0013. */
+export type Diagnostic = {
+    kind: "error" | "warning" | "info" | "accessibility";
+    level?: 1 | 2;
+    code: string;
+    message: string;
+    /** The DAST node the finding is about; absent for the whole document. */
+    node?: number;
+    args?: Record<string, string>;
+};
+
 export class CellStore {
     comps: ComponentTable;
     private core: Core;
@@ -64,9 +76,18 @@ export class CellStore {
     firstCommitAt: number | null = null;
     private pendingCommit: { start: number; sample: TickSample } | null = null;
 
-    constructor(core: Core, comps: ComponentTable) {
+    /** What the load reported about the elements it stamped (ADR 0013);
+     * an `_error` component's `diagnostic` cell indexes it. */
+    diagnostics: Diagnostic[];
+
+    constructor(
+        core: Core,
+        comps: ComponentTable,
+        diagnostics: Diagnostic[] = [],
+    ) {
         this.core = core;
         this.comps = comps;
+        this.diagnostics = diagnostics;
         this.view = this.makeView();
         this.listeners = new Array(comps.nCells);
     }
@@ -248,8 +269,10 @@ export async function loadDocument(
     const core = new Core(bytes);
     core.set_evaluator(evaluator);
     timings.coreTotal = performance.now() - t;
-    for (const w of JSON.parse(core.warnings_json()) as string[])
-        console.warn(w);
+    const diagnostics = JSON.parse(core.diagnostics_json()) as Diagnostic[];
+    for (const d of diagnostics)
+        if (d.kind !== "error")
+            console.warn(`${d.kind} ${d.code}: ${d.message}`);
     timings.core = JSON.parse(core.load_timings_json());
     t = performance.now();
     // Views over wasm memory: the component layer never grows after load,
@@ -258,5 +281,5 @@ export async function loadDocument(
         columnsFromCore(core, wasmMemory!),
     );
     timings.componentTable = performance.now() - t;
-    return new CellStore(core, comps);
+    return new CellStore(core, comps, diagnostics);
 }

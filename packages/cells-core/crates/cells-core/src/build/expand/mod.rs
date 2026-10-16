@@ -139,6 +139,11 @@ pub(in crate::build) struct Builder<'c, 'a> {
     /// not the identity (`build/cycles.rs`).
     pub(in crate::build) label: Vec<Coord>,
     pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
+    /// The node of the element whose expansion or resolution failed, for
+    /// `build` to box (ADR 0013); none when the failure has no element.
+    pub(in crate::build) failed_node: Option<NodeId>,
+    /// Warnings about elements that were built (ADR 0013).
+    pub(in crate::build) diagnostics: Vec<Diagnostic>,
 }
 
 impl<'c, 'a> Builder<'c, 'a> {
@@ -202,6 +207,8 @@ impl<'c, 'a> Builder<'c, 'a> {
             later_sources: Vec::new(),
             label: Vec::new(),
             labels: HashMap::new(),
+            failed_node: None,
+            diagnostics: Vec::new(),
         }
     }
 
@@ -346,6 +353,20 @@ impl<'c, 'a> Builder<'c, 'a> {
         false
     }
 
+    /// Record `node` as the element to box if the build fails; the first
+    /// recorded wins, which is the innermost since a failure unwinds.
+    pub(in crate::build) fn fail_at(&mut self, node: NodeId) {
+        if node != NONE {
+            self.failed_node.get_or_insert(node);
+        }
+    }
+
+    /// `fail_at` the element component `comp` came from.
+    fn fail_at_comp(&mut self, comp: CompIdx) {
+        let node = self.components.dast_node[comp as usize];
+        self.fail_at(node);
+    }
+
     pub(in crate::build) fn enter_scope(&mut self, scope: ScopeId, template: TemplateId) {
         let s = scope as usize;
         if self.scope_comps.len() <= s {
@@ -427,7 +448,13 @@ impl<'c, 'a> Builder<'c, 'a> {
                 }
                 Body::Choice(cid) => {
                     let node = self.compiled.templates[t].elems[e].node;
-                    self.expand_choice(cid, node, scope, comp)?
+                    match self.expand_choice(cid, node, scope, comp) {
+                        Ok(kids) => kids,
+                        Err(err) => {
+                            self.fail_at(node);
+                            return Err(err);
+                        }
+                    }
                 }
                 Body::PointList { .. } => {
                     self.pointlists.push(comp);
@@ -501,23 +528,38 @@ impl<'c, 'a> Builder<'c, 'a> {
     pub(in crate::build) fn resolve_all(&mut self) -> Result<()> {
         let pending = std::mem::take(&mut self.pending);
         for &(idx, plan, scope, _) in pending.iter().filter(|p| !p.3) {
-            self.place(idx, plan, scope)?;
+            if let Err(e) = self.place(idx, plan, scope) {
+                self.fail_at(self.compiled.refs[plan].node);
+                return Err(e);
+            }
         }
         let collects = std::mem::take(&mut self.collects);
         for comp in collects {
-            self.expand_collect(comp)?;
+            if let Err(e) = self.expand_collect(comp) {
+                self.fail_at_comp(comp);
+                return Err(e);
+            }
         }
         let pointlists = std::mem::take(&mut self.pointlists);
         for comp in pointlists {
-            self.expand_pointlist(comp)?;
+            if let Err(e) = self.expand_pointlist(comp) {
+                self.fail_at_comp(comp);
+                return Err(e);
+            }
         }
         for &(idx, plan, scope, _) in pending.iter().filter(|p| p.3) {
-            self.place(idx, plan, scope)?;
+            if let Err(e) = self.place(idx, plan, scope) {
+                self.fail_at(self.compiled.refs[plan].node);
+                return Err(e);
+            }
         }
         self.choice_sources();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
-            self.instance_sources(inst)?;
+            if let Err(e) = self.instance_sources(inst) {
+                self.fail_at_comp(inst.comp);
+                return Err(e);
+            }
         }
         self.scoring_sources();
         Ok(())

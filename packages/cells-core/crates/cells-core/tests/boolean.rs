@@ -4,9 +4,8 @@
 
 mod common;
 
-use cells_core::Error;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_error};
 use common::{req, set, type_into, v};
 
 fn b(doc: &cells_core::Document, name: &str) -> f64 {
@@ -204,10 +203,10 @@ fn a_boolean_drives_a_choice_and_an_answer_does_not_change() {
 
 #[test]
 fn child_elements_are_unsupported_by_name() {
-    let unsupported = |src: &str| match load(src) {
-        Err(Error::Unsupported(msg)) => msg,
-        Err(other) => panic!("unexpected error {other}"),
-        Ok(_) => panic!("should not load"),
+    let unsupported = |src: &str| {
+        let (code, msg) = load_error(src);
+        assert_eq!(code, "cells-unsupported", "{msg}");
+        msg
     };
     let msg =
         unsupported(r#"<boolean><mathList>1 2</mathList> = <mathList>1 2</mathList></boolean>"#);
