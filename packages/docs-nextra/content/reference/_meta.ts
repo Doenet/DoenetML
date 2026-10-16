@@ -270,6 +270,7 @@ export default {
     textInput: { title: "textInput" },
     textList: { title: "textList" },
     theorem: { title: "theorem" },
+    timer: { title: "timer" },
     title: { title: "title" },
     triangle: { title: "triangle" },
     triggerSet: { title: "triggerSet" },

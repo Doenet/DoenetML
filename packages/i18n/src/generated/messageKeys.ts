@@ -52,6 +52,11 @@ export type MessageKey =
     | "orbital-remove-arrow"
     | "orbital-row-label"
     | "pretzel-answer"
+    | "timer-start"
+    | "timer-pause"
+    | "timer-resume"
+    | "timer-reset"
+    | "timer-expired"
     | "summary-statistics-caption"
     | "math-input-preview-region"
     | "math-input-preview"
@@ -691,6 +696,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "orbital-remove-arrow",
     "orbital-row-label",
     "pretzel-answer",
+    "timer-start",
+    "timer-pause",
+    "timer-resume",
+    "timer-reset",
+    "timer-expired",
     "summary-statistics-caption",
     "math-input-preview-region",
     "math-input-preview",

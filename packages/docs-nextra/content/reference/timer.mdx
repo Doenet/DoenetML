@@ -1,0 +1,117 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<timer/>{:dn}`
+
+<ComponentDisplay name='timer'/>
+
+`<timer/>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) component
+that counts down a number of seconds given by its `duration`. It shows the time left, with Start/Pause and Reset buttons beside it.
+
+The clock follows real time, not the screen. It keeps the right time while the reader looks at another tab, and by default it keeps counting while the page is closed, so reloading the page neither pauses nor restarts it. Use its properties, such as `$t.timeRemaining` and `$t.expired`, to react to the time, and `triggerWith="$t"` to run an action at the moment time runs out.
+
+<AttrPropDisplay name='timer'/>
+
+## Examples
+
+### Example: A countdown
+```doenet-editor-horiz
+<p>Time left: <timer name="t" duration="90" /></p>
+
+<p>Seconds left: $t.timeRemaining</p>
+```
+
+Press Start to begin counting down from 1:30. While the clock runs, the button reads Pause, and after a pause it reads Resume. When the clock reaches 0:00 it stops, and Start begins again from the full duration.
+
+
+---
+
+### Example: Doing something when time runs out
+```doenet-editor-horiz
+<p>Time left: <timer name="t" duration="10" /></p>
+
+<p>Status: <text name="status">working</text></p>
+<updateValue triggerWith="$t" target="$status" newValue="time's up" type="text" />
+
+<conditionalContent condition="$t.expired">
+  <p>The ten seconds are over.</p>
+</conditionalContent>
+```
+
+An action with `triggerWith="$t"` runs once, when the countdown reaches zero. Starting, pausing or resetting the timer does not run it. The `expired` property is true from that moment until the timer starts again or is reset, so it can also show content or serve as the `triggerWhen` of an action.
+
+
+---
+
+### Attribute Example: autoStart
+```doenet-editor-horiz
+<p>Time left: <timer name="t" duration="30" autoStart /></p>
+```
+
+With `autoStart`, the clock starts by itself the first time the page loads. It starts only once: after the reader pauses it, or after it runs out, reloading the page does not start it again.
+
+
+---
+
+### Attribute Example: showControls
+```doenet-editor-horiz
+<p>
+  <timer name="t" duration="20" showControls="false" />
+  <callAction target="$t" actionName="start"><label>Begin</label></callAction>
+  <callAction target="$t" actionName="restart"><label>Start over</label></callAction>
+</p>
+```
+
+With `showControls="false"` the timer shows only the time. Here two `<callAction>{:dn}` buttons control it instead. A timer's actions are `start`, `pause`, `reset` (back to the full duration, not running) and `restart` (from the full duration, running).
+
+
+---
+
+### Attribute Example: displayMode
+```doenet-editor-horiz
+<p>Time used: <timer duration="300" displayMode="elapsed" /></p>
+```
+
+With `displayMode="elapsed"` the timer shows the time counted so far instead of the time left, so it counts up from 0:00 and stops at the `duration`.
+
+
+---
+
+### Attribute Example: format
+```doenet-editor-horiz
+<p>Seconds left: <timer duration="90" format="s" /></p>
+```
+
+With `format="s"` the time is written as whole seconds (90) rather than minutes and seconds (1:30).
+
+
+---
+
+### Attribute Example: reloadBehavior
+
+By default (`reloadBehavior="continue"`) a running clock keeps counting while the page is closed, so a reader cannot pause it by reloading. If the deadline passed while the page was closed, the clock has run out when the page opens again. With `reloadBehavior="reset"`, the clock instead returns to its full duration, not running, every time the page loads.
+
+
+---
+
+### Property Example: running
+```doenet-editor-horiz
+<p>Time left: <timer name="t" duration="60" showControls="false" /></p>
+
+<booleanInput bindValueTo="$t.running">
+  <label>Clock running</label>
+</booleanInput>
+```
+
+The `running` property can be changed as well as read: setting it to true starts or resumes the clock, and setting it to false pauses it. Here a checkbox is bound to it.
+
+
+---
+
+## Time limits and accessibility
+
+A time limit can stop some readers from finishing at all, such as readers who use a screen reader or who have extended time as an accommodation. When a time limit is not essential to what an activity measures, leave it out or make it generous. When it is essential, consider giving `duration` a value that a version of the activity with more time can change.
+
+The ticking time is not read aloud every second. A screen reader announces only when the time runs out.
