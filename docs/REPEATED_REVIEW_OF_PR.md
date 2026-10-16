@@ -54,11 +54,24 @@ three attempts at the same one, and each covers a class of defect the others do 
 | --- | --- |
 | 1 | **Correctness and edge cases.** Does it do what it claims, on empty, `NaN`, boundary and degenerate input? |
 | 2 | **Behavior delta.** What changed that is not visible in the diff — base classes, shared utilities, attribute types? What regressed? |
-| 3 | **Claims against code.** Every statement in the changeset, PR description, reference pages, comments and commit message, traced to the code that makes it true. Plus test and documentation coverage. |
+| 3 | **Claims against code, both directions.** Every statement in the changeset, PR description, reference pages, comments and commit message, traced to the code that makes it true — *and* every statement elsewhere in the repository that this change made false. Plus test and documentation coverage. |
 | 4+ | The reviewer's own judgment, informed by the ledger. |
 
 A lens is a starting point, not a restriction: a cycle that notices a bug outside its lens
 should still fix it.
+
+The second direction of cycle 3's lens is the one that gets skipped, because it is the one
+the diff does not show. A change that adds a case to something makes every sentence that
+enumerated the old cases wrong, and those sentences are in files the diff never touches: a
+module header listing what the folder holds, a sibling's comment saying "the only type
+that…", an attribute description that named every case but the new one, a changeset still
+pending from the previous PR in the series. Reviewers from outside the loop find these
+immediately, because they are reading the code rather than the diff.
+
+What finds them cheaply is a grep for the phrases that quantify — "the only", "every
+other", "always", "never", "both", "neither", a count of things — across the component and
+its neighbors, with each hit checked against the code as it now is. That takes minutes and
+does not depend on guessing which file to open.
 
 ## The ledger
 
@@ -99,6 +112,14 @@ When the loop ends on a cycle that *made* changes — at the cap, or because the
 called it — those changes are the only ones no other cycle has seen. Run one more agent
 that reviews and reports without committing, rather than treating the last cycle's own
 account of its work as verification.
+
+That pass reports rather than commits so that the loop terminates. When its report
+produces a fix — which is the usual outcome if it found anything — the fix is itself
+unreviewed, and running another pass over it only moves the problem along. Two ways out,
+and the choice belongs to whoever is running the loop: run one more report-only pass and
+stop there whatever it says, or land the fix and say plainly in the PR that it stands on
+its author's evidence alone, naming that evidence. What is not a way out is letting the
+question go unasked.
 
 **Five cycles is a soft cap, not a hard one.** If a fifth cycle is still turning up real
 problems, do not simply keep going, and do not stop merely because a number was reached.
