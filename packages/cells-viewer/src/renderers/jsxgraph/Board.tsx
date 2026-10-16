@@ -125,6 +125,10 @@ export class BoardHandle {
      * them). */
     removeObjects(objs: any[]) {
         const b = this.board;
+        // Unmounting a whole graph frees the board before its elements'
+        // own cleanups run (React deletes parent first), and `freeBoard`
+        // drops the renderer; there is nothing left to remove from.
+        if (!b.renderer) return;
         const suspended = b.isSuspendedUpdate;
         b.isSuspendedUpdate = true;
         for (const o of objs) b.removeObject(o);

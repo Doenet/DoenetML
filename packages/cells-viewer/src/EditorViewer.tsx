@@ -1,0 +1,102 @@
+import React from "react";
+import { CodeMirror } from "@doenet/codemirror";
+import { VscRefresh } from "react-icons/vsc";
+import type { CellStore } from "./core";
+import { CellsViewer } from "./CellsViewer";
+import { ResizablePanelPair } from "./ResizablePanelPair";
+import "@doenet/codemirror/style.css";
+import "./EditorViewer.css";
+
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+
+/**
+ * A source editor and the rendered document side by side, in the shape of
+ * `packages/doenetml-prototype`'s `EditorViewer`: a header with a Refresh
+ * button (also Ctrl/Cmd+S), the editor on the left and the viewer on the
+ * right. Loading is the caller's: it owns the source, the store and what
+ * the header reports, so `dev/main.tsx` can also load pre-encoded fixtures.
+ */
+export function EditorViewer({
+    source,
+    onSourceChange,
+    canRefresh,
+    onRefresh,
+    store,
+    error,
+    status,
+}: {
+    /** The text in the editor. */
+    source: string;
+    onSourceChange: (source: string) => void;
+    /** Whether the editor differs from what is rendered. */
+    canRefresh: boolean;
+    /** Render the editor's text. */
+    onRefresh: () => void;
+    store: CellStore | null;
+    /** The error of the last load, if it failed. */
+    error: string | null;
+    /** Shown at the right of the header: the load timings. */
+    status?: React.ReactNode;
+}) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    const refresh = React.useRef(onRefresh);
+    refresh.current = onRefresh;
+    const refreshable = React.useRef(canRefresh);
+    refreshable.current = canRefresh;
+
+    React.useEffect(() => {
+        const container = ref.current;
+        if (!container) return;
+        const onKeyDown = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+                event.preventDefault();
+                event.stopPropagation();
+                if (refreshable.current) refresh.current();
+            }
+        };
+        container.addEventListener("keydown", onKeyDown);
+        return () => container.removeEventListener("keydown", onKeyDown);
+    }, []);
+
+    return (
+        <div className="editor-viewer" ref={ref} tabIndex={-1}>
+            <div className="editor-viewer-header">
+                <button
+                    className="editor-viewer-refresh"
+                    disabled={!canRefresh}
+                    title={
+                        canRefresh
+                            ? `Refresh the rendered code ${isMac ? "cmd+s" : "ctrl+s"}`
+                            : "The code has not changed since the last render"
+                    }
+                    onClick={onRefresh}
+                >
+                    <VscRefresh /> Refresh
+                </button>
+                <div className="editor-viewer-status">{status}</div>
+            </div>
+            <div className="editor-viewer-panels">
+                <ResizablePanelPair
+                    panelA={
+                        <div className="editor-panel">
+                            <CodeMirror
+                                value={source}
+                                onChange={(text) => {
+                                    if (text !== source) onSourceChange(text);
+                                }}
+                            />
+                        </div>
+                    }
+                    panelB={
+                        <div className="viewer-panel">
+                            {error && (
+                                <pre className="viewer-error">{error}</pre>
+                            )}
+                            {store && <CellsViewer store={store} />}
+                        </div>
+                    }
+                />
+            </div>
+        </div>
+    );
+}

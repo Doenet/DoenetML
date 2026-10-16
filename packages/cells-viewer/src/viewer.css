@@ -1,0 +1,102 @@
+/* The rendered document (src/renderers). */
+.doc {
+    line-height: 1.6;
+}
+.doc .p {
+    margin: 1em 0;
+}
+input.numberInput {
+    width: 6em;
+}
+/* Text and layout containers (renderers/Text.tsx). */
+h2.title {
+    font-size: 1.4em;
+    margin: 0.4em 0;
+}
+.m {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+}
+.md {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    margin: 0.5em 2em;
+}
+details.aside {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin: 10px 0;
+}
+details.aside > summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+details.aside > summary h2.title {
+    display: inline;
+    font-size: 1em;
+}
+.spreadsheet table,
+.tabular table {
+    border-collapse: collapse;
+}
+.spreadsheet td {
+    border: 1px solid #ccc;
+    padding: 1px 8px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.spreadsheet tr:first-child td {
+    position: sticky;
+    top: 0;
+    background: #f0f0f0;
+    font-weight: 600;
+}
+.tabular td {
+    padding: 2px 6px;
+}
+button.triggerSet {
+    padding: 4px 12px;
+}
+/* JSXGraph boards (plan 7): Doenet's light theme and its .jxgbox and
+   navigation rules (packages/doenetml/src/DoenetML.css). */
+:root {
+    --canvas: white;
+    --canvasText: black;
+    --mainGray: #e3e3e3;
+    --lightBlue: hsl(209, 54%, 82%);
+}
+.jxgbox {
+    position: relative;
+    overflow: hidden;
+    background-color: #fff;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #356aa0;
+    border-radius: 10px;
+    margin: 0;
+    -ms-touch-action: none;
+}
+.jxgbox svg text {
+    cursor: default;
+    user-select: none;
+}
+.JXGtext {
+    font-family: Courier, monospace;
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+}
+.JXG_navigation {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    z-index: 100;
+    background-color: transparent;
+    padding: 2px;
+    font-size: 14px;
+    cursor: pointer;
+}
+.JXG_navigation_button {
+    color: #666;
+}

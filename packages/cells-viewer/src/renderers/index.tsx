@@ -125,10 +125,18 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return inGraph ? <JxPolygon idx={idx} /> : null;
         // A point list's children are points aliasing a shape's own points.
         case "pointList":
-        case "p":
         case "group":
         case "stickyGroup":
             return <Children idx={idx} inGraph={inGraph} />;
+        case "p":
+            return inGraph ? (
+                <Children idx={idx} inGraph={inGraph} />
+            ) : (
+                // A div: a paragraph's children may render as blocks.
+                <div className="p">
+                    <Children idx={idx} inGraph={inGraph} />
+                </div>
+            );
         case "text":
             return <TextView idx={idx} />;
         case "conditionalContent":
