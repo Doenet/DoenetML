@@ -101,6 +101,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         if items.is_empty() {
             return None;
         }
+        self.probe_scope(self.components.scope[c as usize]);
         // Chunks of at most `CHUNK`; each level's means and totals are the
         // next level's credits and weights.
         loop {
@@ -133,6 +134,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// containers are looked through, `<setup>` is not.
     fn scored_items(&mut self, c: CompIdx, gate: Option<SlotId>, out: &mut Vec<(SlotId, SlotId)>) {
         for k in self.component_children(c) {
+            self.probe_scope(self.components.scope[k as usize]);
             let (weight, credit) = match self.components.component_type[k as usize] {
                 ComponentType::Setup => continue,
                 ComponentType::Case => {
@@ -165,6 +167,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// counted.
     fn number_sections(&mut self, c: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
         for k in self.component_children(c) {
+            self.probe_scope(self.components.scope[k as usize]);
             match self.components.component_type[k as usize] {
                 ComponentType::Case => {
                     let g = self.gate_through(gate, k);

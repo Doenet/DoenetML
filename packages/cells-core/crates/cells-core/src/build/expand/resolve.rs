@@ -13,23 +13,28 @@ impl<'c, 'a> Builder<'c, 'a> {
         component_type: ComponentType,
         pi: usize,
     ) -> Result<SlotId> {
+        let from = self.slot(comp, pi);
         Ok(match arg {
             Arg::Own(a) => self.slot(comp, a as usize),
             Arg::Elem(el, slot) => {
                 let other = self.scope_comps[scope as usize][el];
                 self.slot(other, slot as usize)
             }
-            Arg::Ref(p, Sel::Whole) => self.resolve_one(p, scope).map_err(|e| {
-                arity_error(
-                    e,
-                    component_type,
-                    component_type
-                        .prop_defs()
-                        .get(pi)
-                        .map(|d| d.name)
-                        .unwrap_or("args"),
-                )
-            })?,
+            Arg::Ref(p, Sel::Whole) => {
+                let t = self.resolve_one(p, scope).map_err(|e| {
+                    arity_error(
+                        e,
+                        component_type,
+                        component_type
+                            .prop_defs()
+                            .get(pi)
+                            .map(|d| d.name)
+                            .unwrap_or("args"),
+                    )
+                })?;
+                self.record_label(from, t);
+                t
+            }
             Arg::Ref(p, Sel::Coord(j)) => {
                 // A point's coordinates, or a tuple's entries.
                 let targets = self.resolve_ref(p, scope, Some(2))?;
@@ -41,12 +46,16 @@ impl<'c, 'a> Builder<'c, 'a> {
                         got: targets.len(),
                     });
                 }
+                self.record_label(from, targets[j as usize]);
                 targets[j as usize]
             }
             Arg::Ref(p, Sel::Item(i, j)) => {
                 let items = self.resolve_items(p, scope)?;
                 match items.get(i as usize) {
-                    Some(item) => item[j as usize],
+                    Some(item) => {
+                        self.record_label(from, item[j as usize]);
+                        item[j as usize]
+                    }
                     None => self.missing_slot(),
                 }
             }
@@ -54,16 +63,25 @@ impl<'c, 'a> Builder<'c, 'a> {
     }
 
     /// Walk a plan from `scope`. Returns where it arrived and the prop it
-    /// named, if any. Every step is an array read.
+    /// named, if any. Every step is an array read. The cycle check's probe
+    /// also labels the walk (`build/cycles.rs`): one coordinate per level of
+    /// nesting of the target, kept with a shift or reset.
     pub(in crate::build) fn resolve(
-        &self,
+        &mut self,
         plan: RefId,
         scope: ScopeId,
     ) -> Result<(Resolved, Option<&'c str>)> {
-        let p = &self.compiled.refs[plan];
+        let c: &'c Compiled<'a> = self.compiled;
+        let p = &c.refs[plan];
+        let probing = self.probe.is_some();
+        let src_depth = if probing { self.scope_depth(scope) } else { 0 };
+        let mut label = Vec::new();
         let mut sc = scope;
         for _ in 0..p.hops {
             sc = self.scopes[sc].0;
+        }
+        if probing {
+            label.resize(self.scope_depth(sc) as usize, Coord::Keep(0));
         }
         let mut cur = Resolved::Iter(NONE, sc);
         for step in &p.steps {
@@ -92,7 +110,16 @@ impl<'c, 'a> Builder<'c, 'a> {
                         Resolved::Comp(c) => match self.components.component_type[c as usize] {
                             _ if self.comp_repeat[c as usize] != NONE => {
                                 let r = &self.repeats[self.comp_repeat[c as usize] as usize];
-                                if k < 1 || k > r.iterations as i64 {
+                                if probing {
+                                    // The probe's one iteration stands for
+                                    // every index; the label says which.
+                                    let entered = self.scope_depth(r.scope) + 1;
+                                    label.push(cycles::index_coord(ip, src_depth, entered));
+                                    match r.iter_scopes.first() {
+                                        Some(&s) => Resolved::Iter(c, s),
+                                        None => Resolved::Missing,
+                                    }
+                                } else if k < 1 || k > r.iterations as i64 {
                                     Resolved::Missing
                                 } else {
                                     Resolved::Iter(c, r.iter_scopes[(k - 1) as usize])
@@ -102,6 +129,11 @@ impl<'c, 'a> Builder<'c, 'a> {
                                 match self.collected.get(&c) {
                                     Some(items) if k >= 1 && (k as usize) <= items.len() => {
                                         Resolved::Comp(items[(k - 1) as usize])
+                                    }
+                                    // Items beyond the probe's are other
+                                    // iterations' (a reset either way).
+                                    Some(items) if probing && !items.is_empty() => {
+                                        Resolved::Comp(items[items.len() - 1])
                                     }
                                     Some(_) => Resolved::Missing,
                                     None => return Err(Error::NotIndexable(p.display.clone())),
@@ -120,6 +152,9 @@ impl<'c, 'a> Builder<'c, 'a> {
                             }
                             ComponentType::Select => {
                                 let inst = &self.choice_insts[self.comp_choice[&c]];
+                                if probing {
+                                    label.push(Coord::Reset);
+                                }
                                 if k < 1 || k as usize > inst.scopes.len() {
                                     Resolved::Missing
                                 } else {
@@ -131,6 +166,9 @@ impl<'c, 'a> Builder<'c, 'a> {
                     };
                 }
             }
+        }
+        if let Some(pr) = &mut self.probe {
+            pr.last = label;
         }
         Ok((cur, p.prop.as_deref()))
     }

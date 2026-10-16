@@ -117,6 +117,9 @@ pub(in crate::build) struct Builder<'c, 'a> {
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena,
     pub(in crate::build) root: CompIdx,
+    /// Set while this builder is the cycle check's probe (`build/cycles.rs`):
+    /// one iteration per repeat, indices clamped into it, edges labelled.
+    pub(in crate::build) probe: Option<Probe>,
 }
 
 impl<'c, 'a> Builder<'c, 'a> {
@@ -172,6 +175,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             seeds: Vec::new(),
             arena: Arena::default(),
             root: 0,
+            probe: None,
         }
     }
 
@@ -207,6 +211,10 @@ impl<'c, 'a> Builder<'c, 'a> {
         self.slot_base[comp as usize] = self.sources.len() as u32;
         self.sources.extend(std::iter::repeat_n(Source::Unset, n));
         self.slot_comp.extend(std::iter::repeat_n(comp, n));
+        if let Some(p) = &mut self.probe {
+            p.slot_scope
+                .extend(std::iter::repeat_n(self.components.scope[comp as usize], n));
+        }
     }
 
     #[inline]
@@ -226,6 +234,9 @@ impl<'c, 'a> Builder<'c, 'a> {
         let s = self.sources.len() as SlotId;
         self.sources.push(source);
         self.slot_comp.push(NONE);
+        if let Some(p) = &mut self.probe {
+            p.slot_scope.push(p.cur_scope);
+        }
         s
     }
 
@@ -325,12 +336,16 @@ impl<'c, 'a> Builder<'c, 'a> {
             let kids = match self.compiled.templates[t].elems[e].body {
                 Body::Repeat { template } => {
                     let node = self.compiled.templates[t].elems[e].node;
-                    let n = self
-                        .carryover
-                        .counts
-                        .get(&(scope, node))
-                        .copied()
-                        .unwrap_or(0);
+                    // The probe stamps every template once.
+                    let n = if self.probe.is_some() {
+                        1
+                    } else {
+                        self.carryover
+                            .counts
+                            .get(&(scope, node))
+                            .copied()
+                            .unwrap_or(0)
+                    };
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
                     for k in 1..=n {
@@ -486,6 +501,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, 0);
                 self.sources[s as usize] = Source::Alias(targets[0]);
+                self.record_label(s, targets[0]);
             }
             (target, None) => {
                 let referent = self.single_component(target, plan)?;
@@ -503,6 +519,11 @@ impl<'c, 'a> Builder<'c, 'a> {
                     return Err(Error::UncopyableType(component_type.tag().into()));
                 }
                 self.copy_into(idx, referent);
+                if self.probe.is_some() {
+                    for pi in 0..component_type.prop_defs().len() {
+                        self.record_label(self.slot(idx, pi), self.slot(referent, pi));
+                    }
+                }
             }
         }
         Ok(())
@@ -578,6 +599,8 @@ impl<'c, 'a> Builder<'c, 'a> {
                     );
                     self.sources[sx as usize] = Source::Alias(x);
                     self.sources[sy as usize] = Source::Alias(y);
+                    self.record_label(sx, x);
+                    self.record_label(sy, y);
                     // Not state: a synthesized point has no essential key.
                     self.sources[sh as usize] = Source::Fixed(0.0);
                     kids.push(pt);
@@ -694,6 +717,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// Sources for every prop of one instantiated element.
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
+        self.probe_scope(inst.scope);
         let (component_type, extend_plan) = {
             let el = &self.compiled.templates[inst.template].elems[inst.elem];
             (el.component_type, el.extend)
@@ -714,6 +738,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             None => None,
         };
+        let extend_label: Vec<Coord> = self.probe.as_ref().map_or(Vec::new(), |p| p.last.clone());
         let n_props = self.compiled.templates[inst.template].elems[inst.elem]
             .props
             .len();
@@ -725,94 +750,24 @@ impl<'c, 'a> Builder<'c, 'a> {
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled<'a> = self.compiled;
-            let plan = match &c.templates[inst.template].elems[inst.elem].props[pi] {
-                SourcePlan::FirstIteration(first, rest) => {
-                    if self.scopes[inst.scope].2 == 1 {
-                        &**first
-                    } else {
-                        &**rest
-                    }
-                }
-                plan => plan,
-            };
+            let plan = &c.templates[inst.template].elems[inst.elem].props[pi];
             let source = match plan {
-                SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
-                SourcePlan::Literal(v) => Source::Literal(*v),
-                SourcePlan::Default(v) => Source::Default(*v),
-                SourcePlan::Inherit => {
-                    Source::Alias(self.slot(extend.expect("Inherit needs an extend referent"), pi))
-                }
-                SourcePlan::InheritFrom(k) => Source::Alias(self.slot(
-                    extend.expect("Inherit needs an extend referent"),
-                    *k as usize,
-                )),
-                SourcePlan::Fixed(v) => Source::Fixed(*v),
-                SourcePlan::Alias(arg) => {
-                    Source::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
-                }
-                SourcePlan::Op(spec, args) => {
-                    let start = self.op_inputs.len() as u32;
-                    for &a in args {
-                        let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
-                        self.op_inputs.push(slot);
-                    }
-                    Source::Op(*spec, start, args.len() as u8)
-                }
-                SourcePlan::IterIndex => Source::Fixed(self.scopes[inst.scope].2 as f64),
-                SourcePlan::SequencePick { from, step, count } => {
-                    let node = c.templates[inst.template].elems[inst.elem].node;
-                    let h = choice::splitmix(self.seeded_stream(inst.scope, node));
-                    let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
-                    Source::Fixed(from + step * k.min(count - 1) as f64)
-                }
-                SourcePlan::Math(expr) => {
-                    let id = self.instantiate_expr(*expr, inst.scope)?;
-                    if self.arena.is_numeric(id) {
-                        Source::Alias(self.lower(id))
-                    } else {
-                        Source::Fixed(f64::NAN)
-                    }
-                }
-                SourcePlan::MathHandle(expr, post) => {
-                    if self.is_symbolic(comp) {
-                        self.sym_source(*expr, *post, inst.scope)?
-                    } else {
-                        // A numeric math is not a math cell (ADR 0005).
-                        Source::Fixed(f64::NAN)
-                    }
-                }
-                SourcePlan::MathValue(expr) => {
-                    if self.is_symbolic(comp) {
-                        let expr = self.slot(comp, 0);
-                        self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
-                    } else {
-                        let id = self.instantiate_expr(*expr, inst.scope)?;
-                        if let Expr::Num(v) = *self.arena.get(id) {
-                            // `<math>5</math>` is state, as a number literal is: a
-                            // drag that reaches it changes it, as in the current core.
-                            Source::Literal(v)
-                        } else {
-                            Source::Alias(self.lower(id))
+                SourcePlan::FirstIteration(first, rest) => {
+                    if self.probe.is_some() {
+                        // The probe's one iteration stands for every
+                        // iteration: it carries both plans' edges.
+                        let rest = self.plan_source(rest, inst, pi, extend, &extend_label)?;
+                        if let Some(p) = &mut self.probe {
+                            p.extra.push((s, rest));
                         }
+                        self.plan_source(first, inst, pi, extend, &extend_label)?
+                    } else if self.scopes[inst.scope].2 == 1 {
+                        self.plan_source(first, inst, pi, extend, &extend_label)?
+                    } else {
+                        self.plan_source(rest, inst, pi, extend, &extend_label)?
                     }
                 }
-                SourcePlan::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
-                SourcePlan::MathEssential(tree) => {
-                    self.math_slots.push(s);
-                    match tree {
-                        Some(tree) => Source::Literal(self.engine.import(tree) as f64),
-                        None => Source::Literal(f64::NAN),
-                    }
-                }
-                SourcePlan::MathEssentialFrom(p) => {
-                    self.math_slots.push(s);
-                    let from = self
-                        .resolve_one(*p, inst.scope)
-                        .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
-                    self.seeds.push((s, from));
-                    Source::Literal(f64::NAN)
-                }
-                SourcePlan::VecOut(head, k) => Source::VecOut(self.slot(comp, *head as usize), *k),
+                plan => self.plan_source(plan, inst, pi, extend, &extend_label)?,
             };
             if let (Source::Fixed(h), SourcePlan::MathHandle(..) | SourcePlan::SymExpr(..)) =
                 (&source, plan)
@@ -823,6 +778,108 @@ impl<'c, 'a> Builder<'c, 'a> {
             self.sources[s as usize] = source;
         }
         Ok(())
+    }
+
+    /// The source one plan gives prop `pi` of instance `inst`; `extend` is
+    /// the `extend` referent and `extend_label` the probe label of the
+    /// reference to it.
+    fn plan_source(
+        &mut self,
+        plan: &'c SourcePlan,
+        inst: Instance,
+        pi: usize,
+        extend: Option<CompIdx>,
+        extend_label: &[Coord],
+    ) -> Result<Source> {
+        let comp = inst.comp;
+        let s = self.slot(comp, pi);
+        let component_type = self.components.component_type[comp as usize];
+        let c: &'c Compiled<'a> = self.compiled;
+        Ok(match plan {
+            SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
+            SourcePlan::Literal(v) => Source::Literal(*v),
+            SourcePlan::Default(v) => Source::Default(*v),
+            SourcePlan::Inherit => {
+                let t = self.slot(extend.expect("Inherit needs an extend referent"), pi);
+                self.record_label_as(s, t, extend_label);
+                Source::Alias(t)
+            }
+            SourcePlan::InheritFrom(k) => {
+                let t = self.slot(
+                    extend.expect("Inherit needs an extend referent"),
+                    *k as usize,
+                );
+                self.record_label_as(s, t, extend_label);
+                Source::Alias(t)
+            }
+            SourcePlan::Fixed(v) => Source::Fixed(*v),
+            SourcePlan::Alias(arg) => {
+                Source::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
+            }
+            SourcePlan::Op(spec, args) => {
+                let start = self.op_inputs.len() as u32;
+                for &a in args {
+                    let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
+                    self.op_inputs.push(slot);
+                }
+                Source::Op(*spec, start, args.len() as u8)
+            }
+            SourcePlan::IterIndex => Source::Fixed(self.scopes[inst.scope].2 as f64),
+            SourcePlan::SequencePick { from, step, count } => {
+                let node = c.templates[inst.template].elems[inst.elem].node;
+                let h = choice::splitmix(self.seeded_stream(inst.scope, node));
+                let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
+                Source::Fixed(from + step * k.min(count - 1) as f64)
+            }
+            SourcePlan::Math(expr) => {
+                let id = self.instantiate_expr(*expr, inst.scope)?;
+                if self.arena.is_numeric(id) {
+                    Source::Alias(self.lower(id))
+                } else {
+                    Source::Fixed(f64::NAN)
+                }
+            }
+            SourcePlan::MathHandle(expr, post) => {
+                if self.is_symbolic(comp) {
+                    self.sym_source(*expr, *post, inst.scope)?
+                } else {
+                    // A numeric math is not a math cell (ADR 0005).
+                    Source::Fixed(f64::NAN)
+                }
+            }
+            SourcePlan::MathValue(expr) => {
+                if self.is_symbolic(comp) {
+                    let expr = self.slot(comp, 0);
+                    self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
+                } else {
+                    let id = self.instantiate_expr(*expr, inst.scope)?;
+                    if let Expr::Num(v) = *self.arena.get(id) {
+                        // `<math>5</math>` is state, as a number literal is: a
+                        // drag that reaches it changes it, as in the current core.
+                        Source::Literal(v)
+                    } else {
+                        Source::Alias(self.lower(id))
+                    }
+                }
+            }
+            SourcePlan::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
+            SourcePlan::MathEssential(tree) => {
+                self.math_slots.push(s);
+                match tree {
+                    Some(tree) => Source::Literal(self.engine.import(tree) as f64),
+                    None => Source::Literal(f64::NAN),
+                }
+            }
+            SourcePlan::MathEssentialFrom(p) => {
+                self.math_slots.push(s);
+                let from = self
+                    .resolve_one(*p, inst.scope)
+                    .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
+                self.seeds.push((s, from));
+                Source::Literal(f64::NAN)
+            }
+            SourcePlan::VecOut(head, k) => Source::VecOut(self.slot(comp, *head as usize), *k),
+        })
     }
 
     /// An operator source over `inputs` (at most 255).

@@ -38,6 +38,8 @@
 //! `resolve.rs` follows reference plans, `math.rs` gives math its source per
 //! instance, `choice.rs` picks and wires branches, and `scoring.rs` wires
 //! credit and section numbers. **`emit.rs`** makes cells and instructions.
+//! **`cycles.rs`** is the count-independent cycle check (ADR 0012), a probe
+//! expansion run once per load before the real one.
 //!
 //! This file holds the entry point, [`build`], what it returns
 //! ([`BuildOutput`]) and what one build hands the next ([`Carryover`]);
@@ -58,6 +60,7 @@ use crate::program::{Program, Sym};
 use compile::expr::{Arena, Expr, ExprId, Func, Parser, Token};
 
 mod compile;
+mod cycles;
 mod emit;
 mod expand;
 mod structure;
@@ -72,11 +75,20 @@ type ChoiceId = usize;
 
 use compile::Compiler;
 use compile::plan::*;
+use cycles::{Coord, Probe};
 use expand::*;
 
 /// Build with `engine` holding the document's expressions (the same engine
-/// across rebuilds, so essential math cells keep valid handles).
-pub fn build(dast: &Dast, carryover: &Carryover, engine: &mut Engine) -> Result<BuildOutput> {
+/// across rebuilds, so essential math cells keep valid handles). With
+/// `check_cycles`, a document with repeats is first checked for loops that
+/// close at some iteration count (ADR 0012); the templates never change,
+/// so a load does this once, on its first pass.
+pub fn build(
+    dast: &Dast,
+    carryover: &Carryover,
+    engine: &mut Engine,
+    check_cycles: bool,
+) -> Result<BuildOutput> {
     let profile = profile_enabled();
     let clock = web_time::Instant::now();
     let lap = |what: &str| {
@@ -86,12 +98,20 @@ pub fn build(dast: &Dast, carryover: &Carryover, engine: &mut Engine) -> Result<
     };
     let compiled = Compiler::compile(dast)?;
     lap("compile");
+    let mut cycle_check = std::time::Duration::ZERO;
+    if check_cycles && compiled.has_repeats() {
+        let clock = web_time::Instant::now();
+        cycles::check(&compiled, carryover)?;
+        cycle_check = clock.elapsed();
+        lap("cycle check");
+    }
     let mut b = Builder::new(&compiled, carryover, engine);
     b.expand_all()?;
     lap("expand");
     b.resolve_all()?;
     lap("resolve");
-    let u = b.finish()?;
+    let mut u = b.finish()?;
+    u.cycle_check = cycle_check;
     lap("cells, program");
     Ok(u)
 }
@@ -112,6 +132,8 @@ pub struct BuildOutput {
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
     cell_label: Box<dyn Fn(CellIdx) -> String>,
+    /// Time the count-independent cycle check took; zero when it did not run.
+    pub cycle_check: std::time::Duration,
 }
 
 impl BuildOutput {

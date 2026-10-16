@@ -78,7 +78,10 @@ a `Dast`. Then `build::build` runs: **compile** walks the DAST once and plans
 every element with the planner `planner.rs` names for its type
 (`build/compile/mod.rs`; attributes and math in `attrs.rs`, references in
 `refs.rs`, geometric component types in `geometry/`, choices in
-`choice.rs`). **Expand** stamps each template into components once per
+`choice.rs`). With a repeat present, the **cycle check** (`build/cycles.rs`,
+ADR 0012) then expands every template once as a discarded probe and rejects
+a dependency loop that closes at any iteration count, before the real
+expansion. **Expand** stamps each template into components once per
 scope and resolves references to slots (`build/expand/`). **Emit** merges
 aliased slots into cells with a union-find, numbers cells (essential,
 fixed, then derived) and binds operators into instructions

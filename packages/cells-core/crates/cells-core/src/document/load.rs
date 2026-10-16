@@ -3,8 +3,9 @@
 
 use super::*;
 
-/// How to load a document. The default: seed 0, curves compiled.
-#[derive(Debug, Clone, Copy, Default)]
+/// How to load a document. The default: seed 0, curves compiled, cycles
+/// checked at every count.
+#[derive(Debug, Clone, Copy)]
 pub struct LoadOptions {
     /// The document seed load-time choices draw from (ADR 0009): one seed
     /// gives one variant of the document.
@@ -12,6 +13,20 @@ pub struct LoadOptions {
     /// Sample curves through the engine instead of tapes compiled at build
     /// time; for checking the tapes and for measuring.
     pub sample_with_engine: bool,
+    /// Reject a dependency loop that closes at any iteration count a
+    /// repeat can reach, not only the count at load (ADR 0012). Off only
+    /// for measuring what the check costs.
+    pub check_cycles: bool,
+}
+
+impl Default for LoadOptions {
+    fn default() -> Self {
+        LoadOptions {
+            seed: 0,
+            sample_with_engine: false,
+            check_cycles: true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -20,6 +35,8 @@ pub struct LoadTimings {
     pub build: Duration,
     pub schedule: Duration,
     pub initial_compute: Duration,
+    /// The count-independent cycle check (ADR 0012), part of `build`.
+    pub cycle_check: Duration,
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,
     /// `Structure::structural_depth` of the settled document.
@@ -53,10 +70,16 @@ impl Document {
     ) -> crate::Result<Document> {
         let mut engine = Engine::new();
         let mut carryover = crate::build::Carryover::new(options.seed, options.sample_with_engine);
-        for _ in 0..MAX_PASSES {
+        for pass in 0..MAX_PASSES {
             let clock = web_time::Instant::now();
-            let built = crate::build::build(&dast, &carryover, &mut engine)?;
+            let built = crate::build::build(
+                &dast,
+                &carryover,
+                &mut engine,
+                pass == 0 && options.check_cycles,
+            )?;
             t.build += clock.elapsed();
+            t.cycle_check += built.cycle_check;
 
             let clock = web_time::Instant::now();
             let mut doc = built.schedule(dast.clone(), &mut engine)?;
@@ -152,7 +175,7 @@ impl Document {
         let result = (|| {
             for _ in 0..MAX_PASSES {
                 let clock = web_time::Instant::now();
-                let built = crate::build::build(&dast, &carryover, &mut engine)?;
+                let built = crate::build::build(&dast, &carryover, &mut engine, false)?;
                 if profile {
                     eprintln!("rebuild/build: {:.2?}", clock.elapsed());
                 }

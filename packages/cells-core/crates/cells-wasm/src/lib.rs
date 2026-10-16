@@ -106,11 +106,12 @@ impl Core {
     pub fn load_timings_json(&self) -> String {
         let t = &self.timings;
         format!(
-            r#"{{"deserialize":{},"build":{},"schedule":{},"initial_compute":{},"passes":{},"structural_depth":{}}}"#,
+            r#"{{"deserialize":{},"build":{},"schedule":{},"initial_compute":{},"cycle_check":{},"passes":{},"structural_depth":{}}}"#,
             t.deserialize.as_secs_f64() * 1e3,
             t.build.as_secs_f64() * 1e3,
             t.schedule.as_secs_f64() * 1e3,
             t.initial_compute.as_secs_f64() * 1e3,
+            t.cycle_check.as_secs_f64() * 1e3,
             t.passes,
             t.structural_depth
         )

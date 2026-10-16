@@ -127,10 +127,11 @@ impl<'c, 'a> Builder<'c, 'a> {
             },
             other => other,
         })?;
-        Ok(match self.math_target(slot) {
+        let (slot, math) = match self.math_target(slot) {
             Some(m) => (m, true),
             None => (slot, false),
-        })
+        };
+        Ok((self.probe_leaf(slot), math))
     }
 
     /// When `slot` is a prop that stands for an expression (a symbolic
@@ -269,7 +270,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                         },
                         other => other,
                     })?;
-                Expr::Cell(slot)
+                Expr::Cell(self.probe_leaf(slot))
             }
             Expr::Add(a, b)
             | Expr::Sub(a, b)

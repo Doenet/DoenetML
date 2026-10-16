@@ -21,6 +21,9 @@ git -C "$repo" worktree add --detach --quiet "$wt" "$base"
 trap 'git -C "$repo" worktree remove --force "$wt"' EXIT
 # The fixtures are generated, not committed; the base reads this tree's.
 rm -rf "$bp/fixtures" && ln -s "$repo/fixtures" "$bp/fixtures"
+# The worktree is outside the repository, so the harness's parser comes
+# from this tree's installed packages.
+ln -s "$root/node_modules" "$wt/node_modules"
 if [[ "${GOLDEN_OWN:-0}" != 1 ]]; then
   cp "$repo/crates/cells-bench/examples/golden.rs" "$bp/crates/cells-bench/examples/"
   rm -rf "$bp/crates/cells-bench/golden"

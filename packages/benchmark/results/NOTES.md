@@ -41,3 +41,73 @@ _Hand-written; included verbatim by `scripts/render-results.mjs`. Numbers quoted
 **Things the suite found about itself, fixed before these numbers.** A chain of `<math>` elements is one symbolic expression in every core, so the generator's chain shape, once its input became a `<mathInput>` for the JS core, measured symbolic growth rather than dependency depth (the cells tick grew 200× from 100 to 1,000; the JS core hit a recursion limit); the shapes now use `<number>`. The repeat shape's draggable points sat 5 px apart on one line, so the pointer grabbed a neighbour of the point being watched; the shape now has one free point beside the repeat. A synthetic drag sent 61 moves in a burst; paced at 16 ms, a slow core is measured against real input timing. The cells viewer failed every lookup after the first symbolic edit because its component columns are views over wasm memory and detached when it grew; the table now re-reads them.
 
 **Caveats.** Run-to-run spread on this laptop is large: two Node sweeps a few hours apart differed by 30 to 50 percent on loads and ticks (chain-100 in the JS core ticked at 200 ms in one and 320 ms in the other; the cells core loaded chain-1000 in 170 ms and 270 ms), and several JS-core documents that finished loading in one sweep exceeded the budget in the other. Ratios between cores are stable; absolute figures are not, and a comparison between runs needs `scripts/perf-diff.sh`'s interleaving. The Node figures include the test-core adapters, which are parity tools, not production paths; the browser figures are the fair ones. Each Node measurement runs in a fresh process, about a second of startup since the driver was prebundled (it was ten seconds under vite-node for the runs recorded here); startup appears only in `wall_ms`. The error-component check after load is skipped when the budget runs out, so a slow JS-core document may carry errors unnoticed; the corpus was validated for errors in the JS core separately. The memory benchmark's repeat document uses `mod`, which the cells core's math cells do not support, so its document-scaling rows are blank for cells. The JS core's `direct-N` memory scenario puts N viewers in one realm, which the cells viewer cannot do; its rows are iframe only.
+
+## The count-independent cycle check (ADR 0012), 2026-10-16
+
+_What the check adds to a native load, measured with
+`cargo run --release -p cells-bench --example cycle_check_cost` in
+`packages/cells-core`: medians of seven interleaved loads per side from the
+binary fixtures, on the laptop of the runs above. `check` is the time the
+check itself took (`LoadTimings::cycle_check`); it is zero for a document
+without a repeat, where the check does not run._
+
+| fixture | load, check off (ms) | load, check on (ms) | check (ms) | check / load off | build, check off (ms) |
+|---|---:|---:|---:|---:|---:|
+| adventure-1 | 18.65 | 18.92 | 0.00 | 0.0% | 17.75 |
+| adventure-3 | 48.45 | 48.05 | 0.00 | 0.0% | 46.41 |
+| aliases-1000 | 0.96 | 0.84 | 0.00 | 0.0% | 0.83 |
+| answers-10 | 0.35 | 0.33 | 0.00 | 0.0% | 0.28 |
+| answers-100 | 2.35 | 2.69 | 0.00 | 0.0% | 2.13 |
+| chain-100 | 0.66 | 0.73 | 0.00 | 0.0% | 0.55 |
+| chain-1000 | 6.03 | 5.74 | 0.00 | 0.0% | 5.78 |
+| chain-100000 | 807.65 | 867.24 | 0.00 | 0.0% | 786.08 |
+| circles3-1000 | 25.57 | 24.04 | 0.00 | 0.0% | 24.56 |
+| curves-10 | 2.81 | 2.79 | 0.00 | 0.0% | 2.11 |
+| curves-100 | 12.85 | 13.14 | 0.00 | 0.0% | 10.10 |
+| fanout-100 | 1.09 | 1.05 | 0.00 | 0.0% | 0.96 |
+| fanout-1000 | 11.59 | 12.14 | 0.00 | 0.0% | 11.10 |
+| fanout-10000 | 128.01 | 124.35 | 0.00 | 0.0% | 123.66 |
+| grid-100x10 | 7.56 | 6.90 | 0.00 | 0.0% | 7.26 |
+| grid-1000x10 | 62.98 | 61.48 | 0.00 | 0.0% | 61.11 |
+| hidden-1000 | 3.30 | 3.59 | 0.00 | 0.0% | 3.08 |
+| intchain-1000 | 4.83 | 4.78 | 0.00 | 0.0% | 4.63 |
+| points-100 | 0.33 | 0.34 | 0.00 | 0.0% | 0.26 |
+| points-1000 | 2.56 | 2.48 | 0.00 | 0.0% | 2.39 |
+| points-10000 | 30.42 | 28.34 | 0.00 | 0.0% | 29.23 |
+| recur-100 | 0.54 | 0.61 | 0.05 | 8.9% | 0.44 |
+| recur-1000 | 3.46 | 3.46 | 0.05 | 1.5% | 3.29 |
+| repeat-100 | 0.45 | 0.50 | 0.04 | 9.0% | 0.35 |
+| repeat-1000 | 2.85 | 2.81 | 0.04 | 1.6% | 2.52 |
+| repeat-10000 | 29.03 | 28.93 | 0.05 | 0.2% | 26.95 |
+| select-100 | 2.09 | 2.05 | 0.00 | 0.0% | 1.93 |
+| select-1000 | 23.01 | 23.72 | 0.00 | 0.0% | 22.07 |
+| selectall-100 | 3.23 | 3.23 | 0.00 | 0.0% | 3.03 |
+| selectall-1000 | 36.64 | 36.40 | 0.00 | 0.0% | 34.88 |
+| selectflat-100 | 1.00 | 1.00 | 0.00 | 0.0% | 0.88 |
+| selectflat-1000 | 8.99 | 9.02 | 0.00 | 0.0% | 8.47 |
+| sir | 3.56 | 3.71 | 0.12 | 3.4% | 3.25 |
+| sliderchain-10 | 0.10 | 0.11 | 0.00 | 0.0% | 0.06 |
+| sliderchain-1000 | 4.07 | 3.95 | 0.00 | 0.0% | 3.87 |
+| sliderstack-10 | 0.10 | 0.10 | 0.00 | 0.0% | 0.06 |
+| sliderstack-1000 | 4.67 | 4.46 | 0.00 | 0.0% | 4.23 |
+| sticky-100 | 1.13 | 1.13 | 0.00 | 0.0% | 0.96 |
+| sticky-1000 | 11.37 | 11.55 | 0.00 | 0.0% | 10.25 |
+| stickyfree-100 | 1.03 | 1.02 | 0.00 | 0.0% | 0.96 |
+| stickyfree-1000 | 10.21 | 10.27 | 0.00 | 0.0% | 10.01 |
+| symchain-10 | 1.22 | 1.17 | 0.00 | 0.0% | 0.44 |
+| symchain-1000 | 92.05 | 93.98 | 0.00 | 0.0% | 27.38 |
+| wording-100 | 3.76 | 3.58 | 0.00 | 0.0% | 3.47 |
+| wording-1000 | 41.10 | 39.21 | 0.00 | 0.0% | 39.32 |
+| wordingall-100 | 2.69 | 2.87 | 0.00 | 0.0% | 2.47 |
+| wordingall-1000 | 29.28 | 28.47 | 0.00 | 0.0% | 27.99 |
+| wordingflat-100 | 1.38 | 1.34 | 0.00 | 0.0% | 1.21 |
+| wordingflat-1000 | 14.46 | 13.92 | 0.00 | 0.0% | 13.65 |
+
+The check costs 0.04 to 0.05 ms on the repeat fixtures whatever their
+iteration count, and 0.12 ms on the SIR simulation, whose probe parses the
+document's math once more. It runs on the first build pass, where the
+repeats have no iterations, so the probe is the only expansion of their
+templates there. Its cost scales with the size of the document outside the
+repeats, not with the counts: the probe expands the whole document at one
+iteration per repeat. The on and off columns cross on most rows; the
+run-to-run noise of a load here is larger than the check.

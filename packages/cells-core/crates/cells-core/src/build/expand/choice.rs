@@ -15,6 +15,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     ) -> Result<Vec<u32>> {
         let c: &'c Compiled<'a> = self.compiled;
         let def = &c.choices[cid];
+        self.probe_scope(scope);
         let mut inst = ChoiceInst {
             def: cid,
             comp,

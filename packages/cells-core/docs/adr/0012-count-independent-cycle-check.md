@@ -25,24 +25,42 @@ once, since rebuilds change counts but never templates.
 
 ## The check
 
-- Nodes are template slots (one per prop of one element in a template) and
-  document-level slots.
-- An edge from a slot inside a repeat to a slot in the same repeat carries
-  the index offset the reference was written with: `$r[$i-2].x` is minus
-  two, a bare `$x` is zero. A reference from outside the repeat to a literal
-  index (`$r[2].x`) is an edge to the template slot, as is a reference from
-  inside the repeat out to a document-level slot. Neither carries an
-  offset.
-- A loop is a cycle if its offsets sum to zero. A loop whose offsets do not
-  sum to zero is a recurrence marching through the iterations and remains
-  legal, so the lagged recurrence tests in `tests/repeat.rs` keep passing.
-- Only loops whose total is zero for some count up to the repeat's cap
-  count; in practice every zero-sum loop qualifies, since a cap of two
-  already fits an offset of plus one and minus one.
-- A count whose slot reaches a slot inside its own iterations is a cycle.
-  `Structure::repeat_cross_reads` already walks the count's inputs and
-  skips the repeat's own scopes (`o != ri`); the self-read becomes
-  `Error::Cycle` naming the repeat.
+- It runs once per load, before the first build pass, on documents with
+  a repeat; without one the structure never changes and the schedule's
+  own check is complete. `LoadOptions::check_cycles` switches it off, for
+  measuring.
+- It is a *probe* expansion of the compiled templates (`build/cycles.rs`):
+  every repeat gets exactly one iteration, so each template slot exists
+  once, and an index past that iteration lands in it instead of on the
+  missing referent. The probe builder is discarded after the check.
+- Every reference edge is labelled with how it moves through the
+  iterations: one coordinate per level of nesting of its target, each
+  either *kept* with a shift or *reset*. `$r[$i-2].x` written inside `r`
+  keeps the position with a shift of minus two; a bare `$x` keeps it with
+  no shift; `$r[2].x`, an index with another level's iteration index, a
+  pick of a select, and a copy a collect gathers reset it. A reference from
+  inside a repeat out to a document-level slot has no coordinate to keep.
+  Edges that are not references (a section's credit reading an answer in an
+  iteration, a gate) keep the position they share with their target and
+  reset the rest.
+- A `functionIterates` body carries both its first-iteration and its
+  later-iteration sources in the probe, so the recurrence edge is seen.
+- A strongly connected component of the probe graph is a cycle when, in
+  every coordinate shared by all its nodes that no edge of it resets, a
+  closed walk of zero total shift exists. In one coordinate that is exactly
+  when the component has a loop of non-positive and a loop of non-negative
+  total shift (two loops of opposite sign combine to zero), decided by
+  Bellman-Ford with the shifts scaled; a component whose shifts are all
+  zero is a cycle outright. A coordinate some edge resets is taken as free.
+  Across several nested coordinates the test is made per coordinate, which
+  can report a loop that no single count realizes, never miss one. A loop
+  whose total is nonzero is a recurrence marching through the iterations
+  and remains legal, so the lagged recurrence tests in `tests/repeat.rs`
+  keep passing.
+- A count whose inputs reach a slot inside its own iterations is a cycle,
+  `Error::Cycle` naming the repeat; the probe's one iteration makes the
+  read visible whatever the count at load.
+- Caps are ignored: a loop is reported at any count that would close it.
 
 ## Considered options
 
@@ -108,3 +126,44 @@ Setting `n` to 2: the same cycle error.
 Dragging point 2 to x = 1: `document structure did not settle after 8
 rebuilds`. The count reads its own iteration 2, which exists only while
 the count is 2.
+
+### Implementation and cost, 2026-10-16
+
+Built as described under The check, behind `LoadOptions::check_cycles`
+(default on). The three documents above are now rejected at load with
+`Error::Cycle` (`tests/cycles.rs`); the suite and the golden diff against
+c28b7c5 are clean. Measured with
+`cargo run --release -p cells-bench --example cycle_check_cost` (medians
+of seven interleaved loads per side, native, from the binary fixtures; the
+whole table is in `packages/benchmark/results/NOTES.md`):
+
+| fixture | load, check off (ms) | load, check on (ms) | check (ms) | check / load off | build, check off (ms) |
+|---|---:|---:|---:|---:|---:|
+| chain-1000 | 6.03 | 5.74 | 0.00 | 0.0% | 5.78 |
+| chain-100000 | 807.65 | 867.24 | 0.00 | 0.0% | 786.08 |
+| points-100 | 0.33 | 0.34 | 0.00 | 0.0% | 0.26 |
+| recur-100 | 0.54 | 0.61 | 0.05 | 8.9% | 0.44 |
+| recur-1000 | 3.46 | 3.46 | 0.05 | 1.5% | 3.29 |
+| repeat-100 | 0.45 | 0.50 | 0.04 | 9.0% | 0.35 |
+| repeat-1000 | 2.85 | 2.81 | 0.04 | 1.6% | 2.52 |
+| repeat-10000 | 29.03 | 28.93 | 0.05 | 0.2% | 26.95 |
+| sir | 3.56 | 3.71 | 0.12 | 3.4% | 3.25 |
+
+The check runs only on documents with a repeat (the `0.00` rows), on the
+first build pass, where the repeats have no iterations yet and the probe is
+the only expansion of their templates. Its cost is independent of the
+iteration count: 0.04 to 0.05 ms for the repeat fixtures at 100, 1,000 and
+10,000 iterations, 0.12 ms for the SIR simulation (its probe parses the
+document's math once more). What it scales with is the size of the
+document outside the repeats, since the probe expands the whole document at
+one iteration per repeat: a document of 10,000 free points with one repeat
+would pay about the cost of one build pass of those points (points-10000
+builds in about 30 ms). The per-phase profile (`CELLS_BUILD_PROFILE=1`) on
+the first pass shows the check at 70 to 80 µs for repeat-10000 and
+recur-1000 and 245 µs for SIR, against 50 ms, 5 ms and 4 ms for the pass
+that builds the settled document. Run-to-run noise on this laptop is larger
+than the check on every fixture (the on and off columns cross).
+
+Recommendation: keep it always on. The cost is negligible against the
+load it protects, and switching it off only to save a tenth of a
+millisecond would reintroduce a failure the student sees.

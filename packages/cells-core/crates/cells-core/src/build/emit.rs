@@ -303,6 +303,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             is_math,
             tapes,
             cell_label,
+            cycle_check: std::time::Duration::ZERO,
         })
     }
 
