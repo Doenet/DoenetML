@@ -36,8 +36,13 @@ The toolbar, besides what the other test viewers have:
   in `../cells-core`, loaded pre-encoded (`?fmt=json|cdast` picks the wire
   format) with its DoenetML shown in the editor. The menu lists the
   fixtures present when the dev server started, and is absent when none
-  have been generated. The header reports the load timings; the tooltip
-  has the detail.
+  have been generated.
+
+The header reports the load time, and a sparkline of the last hundred
+ticks: stacked bars of busy time (the core, the JSXGraph boards' redraw,
+React's commit, the browser's layout and paint) on a square-root scale
+against a line at one frame's budget, red-flagged above it. Hover a bar
+for its numbers; the tooltips carry the detail.
 
 The browser measurements are in `packages/benchmark` (`npm run browser`
 there), which drives this viewer through its `window.__cells` hook

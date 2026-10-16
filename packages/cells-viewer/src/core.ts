@@ -28,6 +28,10 @@ export interface TickSample {
     rebuilt: boolean;
     /** ms from request start until the changed cells are available to the renderer */
     roundTrip: number;
+    /** ms from request start until the tick's synchronous work is done: the
+     * per-cell listeners and the tick-end listeners, where the JSXGraph
+     * boards redraw. `sync - roundTrip` is the boards' share. */
+    sync: number;
     /** ms from request start until the React commit for that request */
     commit: number;
     /** ms from request start until the next animation frame */
@@ -172,6 +176,7 @@ export class CellStore {
             core: NaN,
             rebuilt: false,
             roundTrip: NaN,
+            sync: NaN,
             commit: NaN,
             frame: NaN,
             paint: NaN,
@@ -215,6 +220,7 @@ export class CellStore {
             }
         }
         for (const fn of this.tickEndListeners) fn();
+        sample.sync = performance.now() - start;
         for (const fn of this.anyListeners) fn();
     }
 

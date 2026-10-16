@@ -10,6 +10,7 @@ import {
     type WireFormat,
 } from "../src/document";
 import { locate } from "../src/renderers/jsxgraph/Board";
+import { TickSparkline } from "./TickSparkline";
 import "./main.css";
 
 // @ts-ignore
@@ -262,9 +263,9 @@ function App() {
     );
 }
 
-/** The load time and, once there has been one, the last tick's, one
- * number each with the detail in the tooltips. Each sits in a fixed slot
- * (`.editor-viewer-status`) so a tick appearing does not move the rest. */
+/** The load time, with the detail in the tooltip, and the sparkline of
+ * the ticks. Each sits in a fixed slot (`.editor-viewer-status`) so the
+ * sparkline appearing does not move the load. */
 function Timings({
     t,
     store,
@@ -287,46 +288,10 @@ function Timings({
                 {store?.comps.nCells ?? "?"} cells · load {ms(t.firstRender)}
             </span>
             <span className="status-slot">
-                {store && <LastTick store={store} />}
+                {store && <TickSparkline store={store} />}
             </span>
         </>
     );
-}
-
-/** The last tick's sample (`CellStore.samples`): the time until its
- * changes were painted. */
-function LastTick({ store }: { store: CellStore }) {
-    const [, bump] = React.useReducer((n: number) => n + 1, 0);
-    React.useEffect(() => {
-        let frame = 0;
-        let timer = 0;
-        const unsubscribe = store.subscribeAny(() => {
-            bump();
-            // `frame` and `paint` are measured after the next animation
-            // frame (see `CellStore.tick`); read the sample again then.
-            cancelAnimationFrame(frame);
-            window.clearTimeout(timer);
-            frame = requestAnimationFrame(() => {
-                timer = window.setTimeout(bump, 20);
-            });
-        });
-        return () => {
-            unsubscribe();
-            cancelAnimationFrame(frame);
-            window.clearTimeout(timer);
-        };
-    }, [store]);
-    const s = store.samples.at(-1);
-    if (!s) return null;
-    const detail = [
-        `tick ${store.samples.length}: ${s.changed} cells changed${s.rebuilt ? ", document rebuilt" : ""}`,
-        `core ${ms(s.core)} (inversion and recompute)`,
-        `round trip ${ms(s.roundTrip)} (changed cells available to the renderer)`,
-        `commit ${ms(s.commit)} (React committed the update)`,
-        `frame ${ms(s.frame)} (next animation frame)`,
-        `paint ${ms(s.paint)} (a task after that frame: the DOM changes painted)`,
-    ].join("\n");
-    return <span title={detail}>tick {ms(s.paint)}</span>;
 }
 
 const ms = (v?: number) =>

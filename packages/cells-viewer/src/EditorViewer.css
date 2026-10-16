@@ -48,7 +48,15 @@
 }
 
 .status-slot:last-child {
-    min-width: 6em;
+    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tick-sparkline {
+    display: block;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
 }
 
 .editor-viewer-panels {
