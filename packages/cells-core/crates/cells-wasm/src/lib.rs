@@ -255,12 +255,11 @@ impl Core {
     /// (ADR 0006), so a constrained point carries the others with it.
     pub fn request_points(&mut self, cells: &[u32], values: &[f64]) -> Vec<u32> {
         let pts: Vec<PointRequest> = cells
-            .chunks_exact(2)
-            .zip(values.chunks_exact(2))
-            .map(|(c, v)| PointRequest {
-                cells: [c[0], c[1]],
-                values: [v[0], v[1]],
-            })
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .zip(values.as_chunks::<2>().0)
+            .map(|(&cells, &values)| PointRequest { cells, values })
             .collect();
         self.apply(&[], &[pts])
     }

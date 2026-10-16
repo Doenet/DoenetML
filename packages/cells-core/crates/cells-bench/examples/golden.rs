@@ -126,10 +126,12 @@ fn apply(doc: &mut Document, path: &str, action: &Action) -> Option<TickOutcome>
         Action::Shift(prop, dx, dy) => {
             let cells = doc.prop_cells(c, prop)?;
             let pts: Vec<PointRequest> = cells
-                .chunks_exact(2)
-                .map(|xy| PointRequest {
-                    cells: [xy[0], xy[1]],
-                    values: [v(doc, xy[0]) + dx, v(doc, xy[1]) + dy],
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .map(|&[x, y]| PointRequest {
+                    cells: [x, y],
+                    values: [v(doc, x) + dx, v(doc, y) + dy],
                 })
                 .collect();
             if pts.is_empty() {
