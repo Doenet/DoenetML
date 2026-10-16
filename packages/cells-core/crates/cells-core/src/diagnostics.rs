@@ -98,7 +98,7 @@ pub fn sort(list: &mut [Diagnostic]) {
     list.sort_by(|a, b| {
         let key = |d: &Diagnostic| {
             (
-                d.node.map_or(u32::MAX, |n| n),
+                d.node.unwrap_or(u32::MAX),
                 d.kind,
                 d.code,
                 d.message.clone(),

@@ -199,8 +199,8 @@ impl<'a> Reader<'a> {
     }
     fn u32s(&mut self, n: usize) -> Vec<u32> {
         let mut v = Vec::with_capacity(n);
-        for chunk in self.b[self.pos..self.pos + n * 4].chunks_exact(4) {
-            v.push(u32::from_le_bytes(chunk.try_into().unwrap()));
+        for chunk in self.b[self.pos..self.pos + n * 4].as_chunks::<4>().0 {
+            v.push(u32::from_le_bytes(*chunk));
         }
         self.pos += n * 4;
         v

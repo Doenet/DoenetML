@@ -263,7 +263,7 @@ export async function loadDocument(
     timings: Partial<LoadTimings>,
 ): Promise<CellStore> {
     let t = performance.now();
-    if (!wasmMemory) wasmMemory = (await init()).memory;
+    const memory = wasmMemory ?? (wasmMemory = (await init()).memory);
     timings.wasmInit = performance.now() - t;
     t = performance.now();
     const core = new Core(bytes);
@@ -277,8 +277,8 @@ export async function loadDocument(
     t = performance.now();
     // Views over wasm memory: the component layer never grows after load,
     // but the cell array may be reallocated, so cells are re-viewed per read.
-    const comps = new ComponentTable(columnsFromCore(core, wasmMemory), () =>
-        columnsFromCore(core, wasmMemory!),
+    const comps = new ComponentTable(columnsFromCore(core, memory), () =>
+        columnsFromCore(core, memory),
     );
     timings.componentTable = performance.now() - t;
     return new CellStore(core, comps, diagnostics);
