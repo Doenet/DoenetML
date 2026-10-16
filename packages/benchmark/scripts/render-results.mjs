@@ -8,11 +8,6 @@ import { packageRoot, repoRoot } from "../src/fixtures.mjs";
 import { readRecords } from "../src/results.mjs";
 
 const dir = resolve(packageRoot, "results/raw");
-const latest = (prefix, ext) =>
-    readdirSync(dir)
-        .filter((f) => f.startsWith(prefix) && f.endsWith(ext))
-        .sort()
-        .at(-1);
 const records = (file) => (file ? readRecords(resolve(dir, file)) : []);
 /** The last record per (fixture, core): a re-run supersedes. */
 const lastBy = (rows) => {
@@ -60,11 +55,18 @@ const blank = (r) =>
         ? `> 60 s at ${r.stage}`
         : `${r.status}${r.message ? `: ${gist(r.message)}` : ""}`;
 
-const nodeFile = latest("node-", ".json"),
-    browserFile = latest("browser-", ".json"),
-    bundleFile = latest("bundle-", ".json");
-const node = lastBy(records(nodeFile)),
-    browser = lastBy(records(browserFile));
+// Runs accumulate: a later run supersedes per (fixture, core) or per set, so
+// a run of one core (the Rust core's, in its own files) leaves the others'
+// latest records standing.
+const rawFiles = (prefix) =>
+    readdirSync(dir)
+        .filter((f) => f.startsWith(prefix) && f.endsWith(".json"))
+        .sort();
+const nodeFiles = rawFiles("node-"),
+    browserFiles = rawFiles("browser-"),
+    bundleFiles = rawFiles("bundle-");
+const node = lastBy(nodeFiles.flatMap(records)),
+    browser = lastBy(browserFiles.flatMap(records));
 const commit = execSync("git rev-parse --short HEAD", {
     cwd: repoRoot,
     encoding: "utf8",
@@ -82,10 +84,10 @@ const out = [];
 out.push(
     `# Results`,
     ``,
-    `Rendered by \`scripts/render-results.mjs\` on ${new Date().toISOString().slice(0, 10)} at commit \`${commit}\`. CPU: ${cpu}. Raw records: ${[
-        nodeFile,
-        browserFile,
-        bundleFile,
+    `Rendered by \`scripts/render-results.mjs\` on ${new Date().toISOString().slice(0, 10)} at commit \`${commit}\`, on a machine with CPU: ${cpu} (\`results/NOTES.md\` says which machine each run was on). Raw records: ${[
+        ...nodeFiles,
+        ...browserFiles,
+        ...bundleFiles,
     ]
         .filter(Boolean)
         .map((f) => `\`raw/${f}\``)
@@ -184,14 +186,14 @@ out.push(
 );
 
 // Browser.
-const bcores = ["javascript", "cells"];
+const bcores = ["javascript", "rust", "cells"];
 const bfixtures = fixtureOrder(
     new Set([...browser.values()].map((r) => r.fixture)),
 );
 out.push(
     `## Browser end to end (headless Chromium, ms)`,
     ``,
-    `Each fixture in each core's viewer (\`browser/perf.spec.ts\`). *load* is DoenetML text to first render. *drag lag* is, over 60 pointer moves paced at 16 ms, the median time from the oldest unanswered move to the frame that answered it, with how many of the moves got a frame of their own; one vsync is 16.7 ms. *tick* is a step through the core to the next frame; *rebuild* the structural step.`,
+    `Each fixture in each core's viewer (\`browser/perf.spec.ts\`): the JS core in the standalone viewer, the Rust core in the prototype viewer (\`packages/doenetml-prototype\`), the cells core in its own. *load* is DoenetML text to first render. *drag lag* is, over 60 pointer moves paced at 16 ms, the median time from the oldest unanswered move to the frame that answered it, with how many of the moves got a frame of their own; one vsync is 16.7 ms. *tick* is a step through the core to the next frame; *rebuild* the structural step.`,
     ``,
 );
 out.push(
@@ -249,7 +251,7 @@ if (memFiles.length) {
     out.push(
         `## Memory in the browser (MB)`,
         ``,
-        `\`packages/memory-benchmark\`: proportional set size over the whole Chromium process tree after a forced GC, per embedding scenario; *blank* is the browser alone. The cells viewer has no embed API, so only the iframe scenarios have an equivalent for it.`,
+        `\`packages/memory-benchmark\`: proportional set size over the whole Chromium process tree after a forced GC, per embedding scenario; *blank* is the browser alone. The Rust core's prototype viewer and the cells viewer have no embed API, so only the iframe scenarios have an equivalent for them.`,
         ``,
     );
     out.push(
@@ -279,7 +281,7 @@ if (memFiles.length) {
 }
 
 // Bundle.
-const bundle = records(bundleFile);
+const bundle = bundleFiles.flatMap(records);
 if (bundle.length) {
     const last = new Map();
     for (const r of bundle) last.set(r.set, r);

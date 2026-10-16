@@ -63,6 +63,23 @@ can run.
 npm run node -- --cores=javascript,rust,cells --fixtures=homework,chain-100
 ```
 
+### Building the Rust core for a measurement
+
+The workspace builds the Rust core's wasm with `wasm-pack --dev` and its
+logging features, the build the JS core's worker ships for DAST
+normalization: unoptimized, five to ten times slower than an optimized
+build. The cells core is measured as a release build, so measure the Rust
+core optimized too. Its release profile does not compile for wasm today
+(`lib-doenetml-core`'s browser tests import a module gated on debug
+assertions), so build the dev profile at opt-level 3, without the logging
+features, then rebuild the bundles that carry it:
+
+```bash
+cd packages/doenetml-worker-rust
+CARGO_PROFILE_DEV_OPT_LEVEL=3 npx wasm-pack build lib-js-wasm-binding --target web --dev
+npx vite build && (cd ../doenetml-worker && npx vite build)
+```
+
 `src/run.mjs` runs every (core, fixture) in its own process with a 60 s
 budget and appends one record per measurement to the JSON array in
 `results/raw/node-<date>.json`. The process runs `src/measure-one.ts`,
@@ -90,14 +107,18 @@ of startup; that is harness overhead and appears only in `wall_ms`.
 ## The browser harness
 
 ```bash
-npm run build -w packages/standalone -w packages/cells-viewer
-BENCH_CORES=javascript,cells BENCH_FIXTURES=chain-100 npm run browser
+npm run build -w packages/standalone -w packages/cells-viewer -w packages/doenetml-prototype
+npm run build:rust-viewer
+BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=chain-100 npm run browser
 ```
 
 `browser/perf.spec.ts` runs each fixture in each core's viewer under
 headless Chromium: the JS core through the standalone bundle on
-`browser/js.html`, the cells core through its own viewer build with
-`browser/cells-adapter.js` installed. Both pages implement one
+`browser/js.html`; the Rust core through the prototype viewer
+(`packages/doenetml-prototype`, which renders the flat DAST the Rust core
+produces) on `browser/rust-viewer/`, with `browser/rust-adapter.js`
+installed; the cells core through its own viewer build with
+`browser/cells-adapter.js` installed. All three pages implement one
 `window.__bench` protocol (`load`, `locate`, `position`, `act`), served by
 `browser/serve.mjs`. One record per (core, fixture) goes to
 `results/raw/browser-<date>.json`, with a 60 s budget per fixture; the
@@ -106,8 +127,8 @@ measurements taken before the budget ran out stand, marked
 
 | Field | Meaning |
 |---|---|
-| `load_ms` | DoenetML text to first render: for the cells viewer its own `firstRender`; for the JS core from the render call to the first frame after the core is initialized and the fixture's target (its board, or its first step's element) is in the DOM. |
-| `drag` | 60 real pointer moves paced at 16 ms. `latency` is, for each frame in which the dragged point moved on screen, the time since the oldest pointer move it answers: the lag the user saw. `frames / moves` says how many of the moves got a frame of their own. For the cells core, `cells` adds the viewer's own per-tick core, commit and paint times. |
+| `load_ms` | DoenetML text to first render: for the cells viewer its own `firstRender`; for the JS core from the render call to the first frame after the core is initialized and the fixture's target (its board, or its first step's element) is in the DOM; for the Rust core from the render call to the first frame after the core's first flat DAST is in the viewer's store and the board, or the document, is in the DOM. |
+| `drag` | 60 real pointer moves paced at 16 ms. `latency` is, for each frame in which the dragged point moved on screen, the time since the oldest pointer move it answers: the lag the user saw. `frames / moves` says how many of the moves got a frame of their own. For the cells core, `cells` adds the viewer's own per-tick core, commit and paint times. The prototype viewer lets JSXGraph move a dragged point before the core answers, so for the Rust core the point's position is the one the core last returned (the viewer's store), as the JS viewer moves its visible point only on the core's answer. |
 | `steps`, `structural` | Steps that are not drags go through the core (`act`), each timed to the next animation frame (`frame`) and to a task after it (`paint`). |
 
 If this machine's Playwright is newer than its installed browsers, set
@@ -116,7 +137,7 @@ the same variable).
 
 ## Memory in the browser
 
-`packages/memory-benchmark` takes `--core cells` and runs the scenarios
+`packages/memory-benchmark` takes `--core cells` or `--core rust` and runs the scenarios
 that have an equivalent for a viewer without an embed API: `blank`,
 `iframe-N` and `repeat-S`. See its README.
 
@@ -124,6 +145,7 @@ that have an equivalent for a viewer without an embed API: `blank`,
 
 ```bash
 npm run build -w packages/standalone -w packages/cells-viewer
+npm run build:rust-viewer
 npm run bundle
 ```
 
@@ -132,8 +154,10 @@ raw and brotli (quality 11, what a CDN serves precompressed), and appends
 one record per set to `results/raw/bundle-<date>.json`. The sets: the JS
 core's eager set (facade, eager chunk, stylesheet, worker, and the Rust
 wasm the worker fetches), the whole standalone dist without maps for
-context, the Rust wasm alone (it ships inside the JS core's worker), and
-the cells viewer build. The delta the cells core adds to standalone is
+context, the Rust wasm alone (it ships inside the JS core's worker), the
+Rust core's page (the prototype viewer with the core worker it loads, which
+carries the JS core too, since one worker serves both), and the cells
+viewer build. A set whose dist is not built is skipped. The delta the cells core adds to standalone is
 measured once the wiring exists.
 
 In CI, `packages/standalone/bundle-budgets.json` now carries a
@@ -145,7 +169,8 @@ same raise-it-in-the-diff convention.
 
 `results/RESULTS.md` opens with a one-table comparison of the three cores
 ("At a glance", kept by hand in `results/NOTES.md`). `npm run render`
-writes `results/RESULTS.md` from the latest raw records
+writes `results/RESULTS.md` from the raw records, a later run superseding an
+earlier one per (fixture, core) or set,
 (Node, browser, memory, bundle) with `results/NOTES.md`, the hand-written
 reading of them, at the top. Raw records are committed with each run.
 `scripts/perf-diff.sh [base] [fixtures]` compares the cells core on a base

@@ -1,0 +1,359 @@
+[
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "adventure-500",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 2677.3600000003353,
+        "stage": "steps",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "answers-10",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1314.9350000000559,
+        "stage": "steps",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "answers-100",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1283.220000000205,
+        "stage": "steps",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "answers-1000",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1651.7349999998696,
+        "stage": "steps",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "chain-100",
+        "status": "ok",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1463.2050000000745,
+        "drag": {
+            "moves": 61,
+            "frames": 43,
+            "latency": {
+                "n": 43,
+                "p50_ms": 17.640000000130385,
+                "p90_ms": 50.81000000005588,
+                "max_ms": 184.1649999995716
+            }
+        }
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "chain-1000",
+        "status": "ok",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 16851.73499999987,
+        "drag": {
+            "moves": 61,
+            "frames": 46,
+            "latency": {
+                "n": 46,
+                "p50_ms": 17.584999999962747,
+                "p90_ms": 47.69500000029802,
+                "max_ms": 267.4350000000559
+            }
+        }
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "chain-10000",
+        "status": "timeout",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "fanout-100",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1446.5900000003166,
+        "stage": "steps",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "fanout-1000",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 40304.81500000041,
+        "stage": "steps",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "fanout-10000",
+        "status": "timeout",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "homework",
+        "status": "error",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "page.evaluate: Error: viewer error: Cannot read properties of undefined (reading 'textColor')\n    at Object.load (eval at evaluate (:370:30), <anonymous>:30:27)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "lesson",
+        "status": "error",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "page.evaluate: Error: viewer error: Cannot read properties of undefined (reading 'textColor')\n    at Object.load (eval at evaluate (:370:30), <anonymous>:30:27)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "points-100",
+        "status": "ok",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1480.3599999998696,
+        "drag": {
+            "moves": 61,
+            "frames": 49,
+            "latency": {
+                "n": 49,
+                "p50_ms": 16.899999999906868,
+                "p90_ms": 17.78500000014901,
+                "max_ms": 249.65000000037253
+            }
+        }
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "points-1000",
+        "status": "ok",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 3084.25,
+        "drag": {
+            "moves": 61,
+            "frames": 49,
+            "latency": {
+                "n": 49,
+                "p50_ms": 83.5749999997206,
+                "p90_ms": 100.77999999979511,
+                "max_ms": 325.1099999998696
+            }
+        }
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "points-10000",
+        "status": "timeout",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "repeat-100",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1315.4899999997579,
+        "drag": {
+            "moves": 61,
+            "frames": 26,
+            "latency": {
+                "n": 26,
+                "p50_ms": 17.145000000018626,
+                "p90_ms": 20.805000000167638,
+                "max_ms": 848.3100000000559
+            }
+        },
+        "stage": "structural",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "repeat-1000",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1136.3599999998696,
+        "drag": {
+            "moves": 61,
+            "frames": 26,
+            "latency": {
+                "n": 26,
+                "p50_ms": 16.959999999962747,
+                "p90_ms": 17.709999999962747,
+                "max_ms": 831.6550000002608
+            }
+        },
+        "stage": "structural",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "repeat-10000",
+        "status": "unsupported",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1272.6149999997579,
+        "drag": {
+            "moves": 61,
+            "frames": 26,
+            "latency": {
+                "n": 26,
+                "p50_ms": 17.084999999962747,
+                "p90_ms": 17.75,
+                "max_ms": 848.2099999999627
+            }
+        },
+        "stage": "structural",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "rust-thousand-chain",
+        "status": "ok",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 2089.064999999944,
+        "steps": [
+            {
+                "label": "updateValue n000",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 57.58499999996275,
+                    "p90_ms": 71.20999999996275,
+                    "max_ms": 77.20499999960884
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 391.3849999997765,
+                    "p90_ms": 413.8599999998696,
+                    "max_ms": 424
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "rust-thousand-star",
+        "status": "ok",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "load_ms": 1620.5750000001863,
+        "steps": [
+            {
+                "label": "updateValue t",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 46.299999999813735,
+                    "p90_ms": 77.05499999970198,
+                    "max_ms": 79.68000000016764
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 60.52999999979511,
+                    "p90_ms": 89.28500000014901,
+                    "max_ms": 93.75999999977648
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "sir",
+        "status": "error",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "page.evaluate: Error: viewer error: Cannot read properties of undefined (reading 'textColor')\n    at Object.load (eval at evaluate (:370:30), <anonymous>:30:27)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "symchain-10",
+        "status": "error",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "page.evaluate: Error: viewer error: Cannot read properties of undefined (reading 'textColor')\n    at Object.load (eval at evaluate (:370:30), <anonymous>:30:27)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "symchain-100",
+        "status": "error",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "page.evaluate: Error: viewer error: Cannot read properties of undefined (reading 'textColor')\n    at Object.load (eval at evaluate (:370:30), <anonymous>:30:27)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "symchain-1000",
+        "status": "timeout",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "core": "rust",
+        "fixture": "venn",
+        "status": "error",
+        "page_error": "Failed to download MathJax version 4 from 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.js' due to: [object Event]",
+        "stage": "load",
+        "message": "page.evaluate: Error: viewer error: Cannot read properties of undefined (reading 'textColor')\n    at Object.load (eval at evaluate (:370:30), <anonymous>:30:27)\n    at async <anonymous>:396:30"
+    }
+]

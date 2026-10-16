@@ -1,6 +1,7 @@
 // Static servers for the browser harness: the cells viewer build on one
-// port (its index.html uses absolute asset paths) and the JS core's page
-// with the standalone build on another. Started by Playwright (see
+// port (its index.html uses absolute asset paths), the JS core's page with
+// the standalone build on another, and the Rust core's page (rust-viewer/,
+// with the core worker it loads from /doenetml-worker/) on a third. Started by Playwright (see
 // playwright.config.ts) or by hand: `node browser/serve.mjs`.
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
@@ -9,6 +10,7 @@ import { repoRoot } from "../src/fixtures.mjs";
 
 export const CELLS_PORT = 4173;
 export const JS_PORT = 4174;
+export const RUST_PORT = 4175;
 const TYPES = {
     ".html": "text/html",
     ".js": "text/javascript",
@@ -59,4 +61,10 @@ serve(JS_PORT, [
     ["/standalone/", resolve(repoRoot, "packages/standalone/dist")],
     ["/", here],
 ]);
-console.log(`cells viewer on :${CELLS_PORT}, JS core page on :${JS_PORT}`);
+serve(RUST_PORT, [
+    ["/doenetml-worker/", resolve(repoRoot, "packages/doenetml-worker/dist")],
+    ["/rust/", resolve(here, "rust-viewer/dist")],
+]);
+console.log(
+    `cells viewer on :${CELLS_PORT}, JS core page on :${JS_PORT}, Rust core page on :${RUST_PORT}`,
+);

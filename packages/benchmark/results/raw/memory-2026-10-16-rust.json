@@ -1,0 +1,47 @@
+[
+  {
+    "core": "rust",
+    "name": "blank",
+    "workers": 0,
+    "frames": 1,
+    "mainRealmJsHeapMB": 1,
+    "totalPssMB": 276,
+    "byType": {
+      "browser": 95,
+      "zygote": 31,
+      "gpu-process": 32,
+      "utility": 49,
+      "renderer": 69
+    }
+  },
+  {
+    "core": "rust",
+    "name": "iframe-1",
+    "workers": 1,
+    "frames": 2,
+    "mainRealmJsHeapMB": 60,
+    "totalPssMB": 459,
+    "byType": {
+      "browser": 96,
+      "zygote": 31,
+      "gpu-process": 33,
+      "utility": 48,
+      "renderer": 251
+    }
+  },
+  {
+    "core": "rust",
+    "name": "iframe-4",
+    "workers": 4,
+    "frames": 5,
+    "mainRealmJsHeapMB": 142,
+    "totalPssMB": 845,
+    "byType": {
+      "browser": 97,
+      "zygote": 30,
+      "gpu-process": 33,
+      "utility": 49,
+      "renderer": 635
+    }
+  }
+]

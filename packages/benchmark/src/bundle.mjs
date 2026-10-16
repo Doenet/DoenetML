@@ -2,7 +2,10 @@
 // raw and brotli (quality 11, what a CDN serves precompressed). Reads the
 // built dists; build them first:
 //   npm run build -w packages/standalone -w packages/cells-viewer
+//   npm run build:rust-viewer      (the Rust core's page, after building
+//                                   packages/doenetml-prototype)
 //   node src/bundle.mjs            (appends to results/raw/bundle-<date>.json)
+// A set whose dist is not built is skipped with a warning.
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
@@ -12,9 +15,12 @@ import { appendRecord, localDate } from "./results.mjs";
 
 const standalone = resolve(repoRoot, "packages/standalone/dist");
 const cellsViewer = resolve(repoRoot, "packages/cells-viewer/dist");
+const rustViewer = resolve(packageRoot, "browser/rust-viewer/dist");
+const coreWorker = resolve(repoRoot, "packages/doenetml-worker/dist");
 
 /** Files matched under a dist root; a `*` matches one hashed segment. */
 function files(root, patterns) {
+    if (!existsSync(root)) return [];
     const all = readdirSync(root, { recursive: true }).filter((f) =>
         statSync(resolve(root, f)).isFile(),
     );
@@ -35,12 +41,16 @@ function files(root, patterns) {
  * document renders: the facade, the eagerly parsed chunk, the stylesheet,
  * the worker and the Rust wasm the worker fetches for DAST normalization.
  * Renderer chunks loaded on demand are left out; the whole dist (without
- * source maps) is given for context. The Rust core is that wasm alone: it
- * ships inside the JS core's worker and computes nothing yet. The cells core
- * is its viewer build.
+ * source maps) is given for context. The Rust core is that wasm alone, as
+ * it ships inside the JS core's worker, and, separately, the page that runs
+ * it: the prototype viewer (browser/rust-viewer) with the core worker it
+ * loads, which carries the JS core too since one worker serves both. The
+ * cells core is its viewer build.
  */
 const SETS = {
-    "javascript (eager set)": () =>
+    // [dist roots the set reads, the files]
+    "javascript (eager set)": () => [
+        [standalone],
         files(standalone, [
             "doenet-standalone.js",
             "chunks/index-*.js",
@@ -48,28 +58,34 @@ const SETS = {
             "doenetml-worker/index.js",
             "doenetml-worker/lib_doenetml_worker_bg.wasm",
         ]),
-    "javascript (whole dist, no maps)": () =>
+    ],
+    "javascript (whole dist, no maps)": () => [
+        [standalone],
         files(standalone, ["*", "*/*", "*/*/*"]).filter(
             (f) => !f.endsWith(".map"),
         ),
-    "rust (wasm only)": () =>
+    ],
+    "rust (wasm only)": () => [
+        [standalone],
         files(standalone, ["doenetml-worker/lib_doenetml_worker_bg.wasm"]),
-    "cells (viewer build)": () =>
+    ],
+    "rust (prototype viewer page)": () => [
+        [rustViewer, coreWorker],
+        [
+            ...files(rustViewer, ["index.html", "assets/*.js", "assets/*.css"]),
+            ...files(coreWorker, ["index.js", "lib_doenetml_worker_bg.wasm"]),
+        ],
+    ],
+    "cells (viewer build)": () => [
+        [cellsViewer],
         files(cellsViewer, [
             "index.html",
             "assets/*.js",
             "assets/*.wasm",
             "assets/*.css",
         ]),
+    ],
 };
-
-for (const [root, pkg] of [
-    [standalone, "standalone"],
-    [cellsViewer, "cells-viewer"],
-]) {
-    if (!existsSync(root))
-        throw new Error(`${root} is missing: npm run build -w packages/${pkg}`);
-}
 const date = localDate();
 const commit = execSync("git rev-parse --short HEAD", {
     cwd: repoRoot,
@@ -90,7 +106,13 @@ const measure = (file) => {
 const mb = (x) => (x / 1e6).toFixed(2).padStart(6);
 const records = [];
 for (const [set, list] of Object.entries(SETS)) {
-    const rows = list().map(measure);
+    const [roots, setFiles] = list();
+    const missing = roots.filter((r) => !existsSync(r));
+    if (missing.length) {
+        console.warn(`${set}: skipped, not built: ${missing.join(", ")}`);
+        continue;
+    }
+    const rows = setFiles.map(measure);
     const raw = rows.reduce((a, r) => a + r.raw, 0);
     const brotli = rows.reduce((a, r) => a + r.brotli, 0);
     console.log(`${set}: ${mb(raw)} MB raw, ${mb(brotli)} MB brotli`);

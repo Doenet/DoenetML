@@ -77,9 +77,10 @@ the cells prototype had, and different.
 
 - **Core-only in Node, all three cores,** through the shared test-core
   interface. This is the apples-to-apples comparison.
-- **Browser end-to-end through Playwright, JS and cells cores,** each
-  through its own viewer. The Rust core has no viewer path and appears
-  only in the core-only tables. The standalone viewer gets an opt-in timing
+- **Browser end-to-end through Playwright, all three cores,** each
+  through its own viewer: the Rust core through the prototype viewer
+  (`packages/doenetml-prototype`), which renders its flat DAST. (Added
+  2026-10-16; the first runs left the Rust core to the core-only tables.) The standalone viewer gets an opt-in timing
   hook, behind a flag, equivalent to the cells viewer's `window.__cells`
   (ready, locate a component, per-tick samples), so the two columns mean
   the same thing. If a hook in the shipped package is unwelcome, the

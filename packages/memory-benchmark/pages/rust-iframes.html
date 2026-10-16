@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Rust core, iframe embed</title>
+    </head>
+    <body>
+        <script>
+            // The Rust core's counterpart of iframes.html: N same-origin
+            // iframes of its page (the prototype viewer on the Rust core,
+            // served at /rust/), each given the document through the page's
+            // window hook. ?doc= selects the document from /doenetml-source.
+            const params = new URLSearchParams(location.search);
+            const n = parseInt(params.get("n") ?? "1", 10);
+            const doc = params.get("doc") ?? "default";
+            window.__done = false;
+            window.__initializedCount = 0;
+            (async () => {
+                const source = await fetch(
+                    "/doenetml-source?doc=" + encodeURIComponent(doc),
+                ).then((r) => r.text());
+                for (let i = 0; i < n; i++) {
+                    const iframe = document.createElement("iframe");
+                    iframe.style =
+                        "width: 600px; height: 400px; display: block;";
+                    iframe.src = "/rust/";
+                    document.body.appendChild(iframe);
+                    (async () => {
+                        const w = iframe.contentWindow;
+                        while (!w.__rust) {
+                            await new Promise((ok) => setTimeout(ok, 20));
+                        }
+                        try {
+                            await w.__rust.loadSource(source);
+                        } catch (e) {
+                            window.__loadError = String(e).slice(0, 300);
+                            return;
+                        }
+                        window.__initializedCount++;
+                    })();
+                }
+                window.__done = true;
+            })();
+        </script>
+    </body>
+</html>

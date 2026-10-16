@@ -5,7 +5,7 @@
 // through the core with the time to the next frame and the next paint.
 // One record per (core, fixture) in results/raw/browser-<date>.json.
 //
-//   BENCH_CORES=javascript,cells BENCH_FIXTURES=chain-100 npm run browser
+//   BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=chain-100 npm run browser
 import { test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
@@ -28,11 +28,17 @@ const DRAG_STEPS = 60;
 const ROUNDS = 10;
 const PAGE: Record<string, string> = {
     javascript: "http://localhost:4174/js.html",
+    rust: "http://localhost:4175/rust/",
     cells: "http://localhost:4173/?blank=1",
 };
-const cellsAdapter = readFileSync(
-    resolve(packageRoot, "browser/cells-adapter.js"),
-    "utf8",
+const adapters: Record<string, string> = Object.fromEntries(
+    ["rust", "cells"].map((core) => [
+        core,
+        readFileSync(
+            resolve(packageRoot, `browser/${core}-adapter.js`),
+            "utf8",
+        ),
+    ]),
 );
 const date = localDate();
 const out = resolve(packageRoot, `results/raw/browser-${date}.json`);
@@ -173,7 +179,7 @@ for (const m of FIXTURES) {
                 await deadline(
                     (async () => {
                         await page.goto(PAGE[core]);
-                        if (core === "cells") await page.evaluate(cellsAdapter);
+                        if (adapters[core]) await page.evaluate(adapters[core]);
                         stage = "load";
                         const first = m.steps[0];
                         // What "rendered" means for this fixture: its drag target's
