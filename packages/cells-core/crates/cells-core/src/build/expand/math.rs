@@ -131,7 +131,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             Some(m) => (m, true),
             None => (slot, false),
         };
-        Ok((self.probe_leaf(slot), math))
+        Ok((self.leaf(slot, scope), math))
     }
 
     /// When `slot` is a prop that stands for an expression (a symbolic
@@ -270,7 +270,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                         },
                         other => other,
                     })?;
-                Expr::Cell(self.probe_leaf(slot))
+                Expr::Cell(self.leaf(slot, scope))
             }
             Expr::Add(a, b)
             | Expr::Sub(a, b)
@@ -294,19 +294,19 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// Lower a numeric expression to operator slots. Literals fold into
     /// `Scale`/`Offset` parameters where an operator has one; otherwise they
     /// become fixed cells.
-    pub(in crate::build) fn lower(&mut self, id: ExprId) -> SlotId {
+    pub(in crate::build) fn lower(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
         let num = |a: &Arena, e: ExprId| match a.get(e) {
             Expr::Num(v) => Some(*v),
             _ => None,
         };
         let e = self.arena.get(id).clone();
         match e {
-            Expr::Num(v) => self.anon_slot(Source::Fixed(v)),
+            Expr::Num(v) => self.anon_slot(Source::Fixed(v), scope),
             Expr::Cell(slot) => slot,
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
-                let a = self.lower(a);
-                self.op_slot(OpSpec::Negate, &[a])
+                let a = self.lower(a, scope);
+                self.op_slot(OpSpec::Negate, &[a], scope)
             }
             // Commutative: a literal on either side folds into the operator.
             Expr::Add(a, b) | Expr::Mul(a, b) => {
@@ -319,49 +319,52 @@ impl<'c, 'a> Builder<'c, 'a> {
                     .or_else(|| num(&self.arena, a).map(|k| (b, k)))
                 {
                     Some((x, k)) => {
-                        let x = self.lower(x);
-                        self.op_slot(with_k(k), &[x])
+                        let x = self.lower(x, scope);
+                        self.op_slot(with_k(k), &[x], scope)
                     }
                     None => {
-                        let (a, b) = (self.lower(a), self.lower(b));
-                        self.op_slot(both, &[a, b])
+                        let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                        self.op_slot(both, &[a, b], scope)
                     }
                 }
             }
             Expr::Sub(a, b) => match (num(&self.arena, a), num(&self.arena, b)) {
                 (_, Some(k)) => {
-                    let a = self.lower(a);
-                    self.op_slot(OpSpec::Offset { k: -k }, &[a])
+                    let a = self.lower(a, scope);
+                    self.op_slot(OpSpec::Offset { k: -k }, &[a], scope)
                 }
                 (Some(k), _) => {
-                    let b = self.lower(b);
-                    let nb = self.op_slot(OpSpec::Negate, &[b]);
-                    self.op_slot(OpSpec::Offset { k }, &[nb])
+                    let b = self.lower(b, scope);
+                    let nb = self.op_slot(OpSpec::Negate, &[b], scope);
+                    self.op_slot(OpSpec::Offset { k }, &[nb], scope)
                 }
                 _ => {
-                    let (a, b) = (self.lower(a), self.lower(b));
-                    self.op_slot(OpSpec::Sub, &[a, b])
+                    let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                    self.op_slot(OpSpec::Sub, &[a, b], scope)
                 }
             },
             Expr::Div(a, b) => match num(&self.arena, b) {
                 Some(k) => {
-                    let a = self.lower(a);
-                    self.op_slot(OpSpec::Scale { k: 1.0 / k }, &[a])
+                    let a = self.lower(a, scope);
+                    self.op_slot(OpSpec::Scale { k: 1.0 / k }, &[a], scope)
                 }
                 None => {
-                    let (a, b) = (self.lower(a), self.lower(b));
-                    self.op_slot(OpSpec::Div, &[a, b])
+                    let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                    self.op_slot(OpSpec::Div, &[a, b], scope)
                 }
             },
             Expr::Pow(a, b) => {
-                let (a, b) = (self.lower(a), self.lower(b));
-                self.op_slot(OpSpec::Pow, &[a, b])
+                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                self.op_slot(OpSpec::Pow, &[a, b], scope)
             }
             Expr::Call(f, args) => {
-                let mut xs = args.iter().map(|&a| self.lower(a)).collect::<Vec<_>>();
+                let mut xs = args
+                    .iter()
+                    .map(|&a| self.lower(a, scope))
+                    .collect::<Vec<_>>();
                 match f {
-                    Func::Round => self.op_slot(OpSpec::Round, &xs),
-                    Func::Floor => self.op_slot(OpSpec::Floor, &xs),
+                    Func::Round => self.op_slot(OpSpec::Round, &xs, scope),
+                    Func::Floor => self.op_slot(OpSpec::Floor, &xs, scope),
                     // More than two arguments fold from the left.
                     Func::Min | Func::Max => {
                         let spec = if f == Func::Min {
@@ -371,13 +374,13 @@ impl<'c, 'a> Builder<'c, 'a> {
                         };
                         let first = xs.remove(0);
                         xs.into_iter()
-                            .fold(first, |acc, x| self.op_slot(spec, &[acc, x]))
+                            .fold(first, |acc, x| self.op_slot(spec, &[acc, x], scope))
                     }
                     Func::Clamp => {
                         let bound =
                             |a: &Arena, e| num(a, e).expect("the parser checks clamp's bounds");
                         let (lo, hi) = (bound(&self.arena, args[1]), bound(&self.arena, args[2]));
-                        self.op_slot(OpSpec::Clamp { lo, hi }, &xs[..1])
+                        self.op_slot(OpSpec::Clamp { lo, hi }, &xs[..1], scope)
                     }
                 }
             }

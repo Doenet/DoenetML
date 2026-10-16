@@ -63,9 +63,11 @@ impl<'c, 'a> Builder<'c, 'a> {
     }
 
     /// Walk a plan from `scope`. Returns where it arrived and the prop it
-    /// named, if any. Every step is an array read. The cycle check's probe
-    /// also labels the walk (`build/cycles.rs`): one coordinate per level of
-    /// nesting of the target, kept with a shift or reset.
+    /// named, if any. Every step is an array read; an index reads the
+    /// stamped entries through the view. When the view folds iterations,
+    /// the walk is also labelled into `self.label` (`build/cycles.rs`): one
+    /// coordinate per level of nesting of the target, kept with a shift or
+    /// reset.
     pub(in crate::build) fn resolve(
         &mut self,
         plan: RefId,
@@ -73,14 +75,19 @@ impl<'c, 'a> Builder<'c, 'a> {
     ) -> Result<(Resolved, Option<&'c str>)> {
         let c: &'c Compiled<'a> = self.compiled;
         let p = &c.refs[plan];
-        let probing = self.probe.is_some();
-        let src_depth = if probing { self.scope_depth(scope) } else { 0 };
-        let mut label = Vec::new();
+        let labelling = self.view.folds_iterations();
+        let src_depth = if labelling {
+            self.scope_depth(scope)
+        } else {
+            0
+        };
+        let mut label = std::mem::take(&mut self.label);
+        label.clear();
         let mut sc = scope;
         for _ in 0..p.hops {
             sc = self.scopes[sc].0;
         }
-        if probing {
+        if labelling {
             label.resize(self.scope_depth(sc) as usize, Coord::Keep(0));
         }
         let mut cur = Resolved::Iter(NONE, sc);
@@ -110,39 +117,25 @@ impl<'c, 'a> Builder<'c, 'a> {
                         Resolved::Comp(c) => match self.components.component_type[c as usize] {
                             _ if self.comp_repeat[c as usize] != NONE => {
                                 let r = &self.repeats[self.comp_repeat[c as usize] as usize];
-                                if probing {
-                                    // The probe's one iteration stands for
-                                    // every index; the label says which.
+                                if labelling {
+                                    // A folded iteration stands for every
+                                    // index; the label says which.
                                     let entered = self.scope_depth(r.scope) + 1;
                                     label.push(cycles::index_coord(ip, src_depth, entered));
-                                    match r.iter_scopes.first() {
-                                        Some(&s) => Resolved::Iter(c, s),
-                                        None => Resolved::Missing,
-                                    }
-                                } else if k < 1 || k > r.iterations as i64 {
-                                    Resolved::Missing
-                                } else {
-                                    Resolved::Iter(c, r.iter_scopes[(k - 1) as usize])
+                                }
+                                match self.view.index(r.iter_scopes.len(), k, true) {
+                                    Some(j) => Resolved::Iter(c, r.iter_scopes[j]),
+                                    None => Resolved::Missing,
                                 }
                             }
                             ComponentType::Collect | ComponentType::Polyline => {
-                                match self.collected.get(&c) {
-                                    Some(items) if k >= 1 && (k as usize) <= items.len() => {
-                                        Resolved::Comp(items[(k - 1) as usize])
-                                    }
-                                    // Items beyond the probe's are other
-                                    // iterations' (a reset either way), for
-                                    // a collect that gathers from a repeat.
-                                    Some(items)
-                                        if !items.is_empty()
-                                            && self.probe.as_ref().is_some_and(|pr| {
-                                                pr.follows_repeat.contains(&c)
-                                            }) =>
-                                    {
-                                        Resolved::Comp(items[items.len() - 1])
-                                    }
-                                    Some(_) => Resolved::Missing,
-                                    None => return Err(Error::NotIndexable(p.display.clone())),
+                                let Some(items) = self.collected.get(&c) else {
+                                    return Err(Error::NotIndexable(p.display.clone()));
+                                };
+                                let varies = self.follows_counts.contains(&c);
+                                match self.view.index(items.len(), k, varies) {
+                                    Some(j) => Resolved::Comp(items[j]),
+                                    None => Resolved::Missing,
                                 }
                             }
                             ComponentType::PointList => {
@@ -161,27 +154,17 @@ impl<'c, 'a> Builder<'c, 'a> {
                                 let to_iface = matches!(p.steps.get(si + 1), Some(Step::Iface(..)));
                                 if inst.every_option && to_iface {
                                     // Any option may be this pick: the
-                                    // interface name resolves to the probe's
-                                    // stand-in over every option, whose edges
-                                    // into them reset the pick.
+                                    // interface name resolves to the
+                                    // stand-in over every option, whose
+                                    // edges into them reset the pick.
                                     Resolved::Comp(c)
-                                } else if inst.every_option {
-                                    label.push(Coord::Reset);
-                                    match inst.scopes.len() {
-                                        0 => Resolved::Missing,
-                                        n => Resolved::Iter(
-                                            c,
-                                            inst.scopes[(k.max(1) as usize - 1).min(n - 1)],
-                                        ),
-                                    }
                                 } else {
-                                    if probing {
+                                    if labelling {
                                         label.push(Coord::Reset);
                                     }
-                                    if k < 1 || k as usize > inst.scopes.len() {
-                                        Resolved::Missing
-                                    } else {
-                                        Resolved::Iter(c, inst.scopes[(k - 1) as usize])
+                                    match self.view.index(inst.scopes.len(), k, inst.every_option) {
+                                        Some(j) => Resolved::Iter(c, inst.scopes[j]),
+                                        None => Resolved::Missing,
                                     }
                                 }
                             }
@@ -191,10 +174,35 @@ impl<'c, 'a> Builder<'c, 'a> {
                 }
             }
         }
-        if let Some(pr) = &mut self.probe {
-            pr.last = label;
-        }
+        self.label = label;
         Ok((cur, p.prop.as_deref()))
+    }
+
+    /// Record the last resolved reference's label for the edge from `from`
+    /// to `to`, when it is not the identity.
+    pub(in crate::build) fn record_label(&mut self, from: SlotId, to: SlotId) {
+        if self.label.iter().any(|&c| c != Coord::Keep(0)) {
+            self.labels.insert((from, to), self.label.clone());
+        }
+    }
+
+    /// Record `label` for the edge from `from` to `to`.
+    pub(in crate::build) fn record_label_as(&mut self, from: SlotId, to: SlotId, label: &[Coord]) {
+        if label.iter().any(|&c| c != Coord::Keep(0)) {
+            self.labels.insert((from, to), label.to_vec());
+        }
+    }
+
+    /// The slot standing for a reference leaf inside math, made in `scope`:
+    /// when the view folds iterations, a slot of its own aliasing `target`,
+    /// so the edge to the leaf can carry the reference's label.
+    pub(in crate::build) fn leaf(&mut self, target: SlotId, scope: ScopeId) -> SlotId {
+        if !self.view.folds_iterations() {
+            return target;
+        }
+        let a = self.anon_slot(Source::Alias(target), scope);
+        self.record_label(a, target);
+        a
     }
 
     pub(in crate::build) fn index_value(&self, ip: &IndexPlan, scope: ScopeId) -> i64 {

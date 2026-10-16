@@ -62,6 +62,7 @@ component table (`document/sticky.rs`).
 | `ComponentType`, `ComponentTypeInfo`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or planned by the build), and flags. The list of types is `component_types!` in `mod.rs`; each type's definition is in a family file (`geometry.rs`, `inputs.rs`, ...). |
 | `Compiler`, `Compiled`, `Template` | `build/compile/` | Compile's state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
 | `Builder` | `build/expand/mod.rs` | The state of expand and emit: components and slots per scope, then cells and instructions. |
+| `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the carryover; the cycle check's probe (`build/cycles.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table, before scheduling. `schedule` turns it into a `Document`. |
 | `Carryover`, `Structure` | `build/mod.rs`, `build/structure.rs` | What one build hands the next: the scope table, each repeat's iteration count, and every essential value by (scope, template slot), so state survives a rebuild. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. |
@@ -78,10 +79,16 @@ a `Dast`. Then `build::build` runs: **compile** walks the DAST once and plans
 every element with the planner `planner.rs` names for its type
 (`build/compile/mod.rs`; attributes and math in `attrs.rs`, references in
 `refs.rs`, geometric component types in `geometry/`, choices in
-`choice.rs`). With a repeat present, the **cycle check** (`build/cycles.rs`,
-ADR 0012) then expands every template once as a discarded probe and rejects
-a dependency loop that closes at any iteration count, before the real
-expansion. **Expand** stamps each template into components once per
+`choice.rs`). Expand and emit learn the document's structure only through
+the **structure view** (`View`, `build/view.rs`): how many iterations a
+repeat is stamped with, which iteration, item or pick an index names, what
+a collect's count is, which options a select builds. With a repeat present,
+the **cycle check** (`build/cycles.rs`, ADR 0012) first builds the document
+through the probe view, which folds every iteration into one and labels
+each reference edge with how it moves through the iterations, rejects a
+dependency loop that closes at any iteration count, and discards that
+build. The real build reads the carryover's counts through the `Stamped`
+view. **Expand** stamps each template into components once per
 scope and resolves references to slots (`build/expand/`). **Emit** merges
 aliased slots into cells with a union-find, numbers cells (essential,
 fixed, then derived) and binds operators into instructions
@@ -185,6 +192,10 @@ copied into `jsxgraph/doenet.ts`.
 `cargo test` runs the unit and integration tests. Many of them check the
 scheduled program against `testing/reference.rs`, a naive recursive
 evaluator that does not use the schedule.
+`tests/every_count.rs` builds every golden document and fixture at
+iteration counts 0 to 4 and four seeds and checks that a document the
+cycle check passed never fails a build with a cycle or an unsettled
+structure: the net for a structural read that bypasses the view.
 `scripts/golden-diff.sh [base]` compares every component's props, after load
 and after a fixed script of requests, against a base commit, and
 `packages/benchmark/scripts/perf-diff.sh [base]` compares speed. A refactor

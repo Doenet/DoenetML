@@ -5,14 +5,15 @@
 //! The stamped graph has no edge for an indexed reference past the current
 //! count, since it resolves to the missing referent, so a loop that closes
 //! only at a count a student reaches is invisible to the schedule's check.
-//! This check expands every template once more, as a *probe* that is
-//! discarded: every repeat gets exactly one iteration, an index past it
-//! lands in it, and every reference edge is labelled with how it moves
-//! through the iterations, one entry per level of nesting of its target.
-//! `$r[$i-2].x` written inside `r` keeps the position and shifts it by
-//! minus two; `$r[2].x` resets it; a bare `$x` keeps it. A loop is a cycle
-//! when its shifts sum to zero in every coordinate it keeps; a loop that
-//! only marches through the iterations, a lagged recurrence, is not. A
+//! This check builds the document once more through the *probe*, a
+//! structure view (`view.rs`) whose answers fold every iteration into one,
+//! and discards the result: every repeat gets exactly one iteration, an
+//! index past it lands in it, and every reference edge is labelled with how
+//! it moves through the iterations, one entry per level of nesting of its
+//! target. `$r[$i-2].x` written inside `r` keeps the position and shifts it
+//! by minus two; `$r[2].x` resets it; a bare `$x` keeps it. A loop is a
+//! cycle when its shifts sum to zero in every coordinate it keeps; a loop
+//! that only marches through the iterations, a lagged recurrence, is not. A
 //! coordinate some edge of the loop resets is taken as free, which can only
 //! report a cycle, never miss one.
 //!
@@ -21,14 +22,13 @@
 //! an edge from the reading count's repeat to the one read (nesting adds no
 //! edge, since an inner count may read its outer iteration), and a loop on
 //! it, a self-loop included, is rejected here too. So the probe can see
-//! them, a collect's count reads the counts of the repeats it gathers from,
-//! and a select inside a repeat body expands every option, since each
-//! iteration draws its own.
+//! them, it answers that a collect's count reads the counts of the repeats
+//! it gathers from, and that a select inside a repeat body builds every
+//! option, since each iteration draws its own.
 //!
-//! The prefill rule (`emit.rs`, `seed_cells`) runs at emit, which the probe
-//! never reaches, so the probe checks it from the resolved sources.
-
-use std::collections::HashSet;
+//! The probe build runs emit too, so a rule emit applies to resolved
+//! sources (the prefill rule in `seed_cells`) is checked against the
+//! referents of every count, with no copy of it here.
 
 use super::*;
 
@@ -41,39 +41,71 @@ pub(in crate::build) enum Coord {
     Reset,
 }
 
-/// What the probe builder records beyond an ordinary build.
-#[derive(Debug, Default)]
-pub(in crate::build) struct Probe {
-    /// The scope each slot was made in; anonymous slots take `cur_scope`.
-    pub(in crate::build) slot_scope: Vec<ScopeId>,
-    pub(in crate::build) cur_scope: ScopeId,
-    /// Labels of reference edges (from slot, to slot) that are not the
-    /// identity; an unlabelled edge keeps the position it shares with its
-    /// target and resets the rest.
-    pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
-    /// The label of the last reference resolved.
-    pub(in crate::build) last: Vec<Coord>,
-    /// Sources a slot would have in iterations other than the first (the
-    /// `rest` of a `FirstIteration`): edges the graph must carry as well.
-    pub(in crate::build) extra: Vec<(SlotId, Source)>,
-    /// Per scope, the repeat component whose iteration it is, or NONE.
-    pub(in crate::build) iter_repeat: Vec<CompIdx>,
-    /// Collects (a polyline is one) with a gathered original inside an
-    /// iteration: the only ones whose index past the probe's items is
-    /// clamped, since any other is missing at every count.
-    pub(in crate::build) follows_repeat: HashSet<CompIdx>,
+/// The probe's structure view: one iteration per repeat, standing for
+/// every iteration.
+struct Probe {
+    seed: u64,
 }
 
-/// Run the check over the compiled templates.
+impl View for Probe {
+    fn seed(&self) -> u64 {
+        self.seed
+    }
+
+    /// Every template is stamped once.
+    fn iterations(&self, _scope: ScopeId, _node: NodeId) -> u32 {
+        1
+    }
+
+    /// An index past the stamped entries lands in them when they stand for
+    /// entries at other counts; the edge's label says which it named.
+    fn index(&self, len: usize, k: i64, varies: bool) -> Option<usize> {
+        if varies && len > 0 {
+            Some((k.max(1) as usize - 1).min(len - 1))
+        } else {
+            view::in_range(len, k)
+        }
+    }
+
+    /// A count reading the collect's count reaches the gathered repeats.
+    fn collect_count(&self) -> CollectCount {
+        CollectCount::RepeatCounts
+    }
+
+    /// Inside a repeat each iteration draws its own options, so every one
+    /// is built; outside, the real pick, so load errors stay per seed.
+    fn options(&self, in_iteration: bool) -> Options {
+        if in_iteration {
+            Options::Every
+        } else {
+            Options::Drawn
+        }
+    }
+
+    /// The one iteration carries both plans' edges.
+    fn plans(&self, _k: u32) -> Plans {
+        Plans::Both
+    }
+
+    fn folds_iterations(&self) -> bool {
+        true
+    }
+}
+
+/// Run the check over the compiled templates: build through the probe,
+/// test its graph, then emit it so emit's rules run on the referents of
+/// every count, and discard the output.
 pub(super) fn check(compiled: &Compiled, carryover: &Carryover) -> Result<()> {
     let mut engine = Engine::new();
-    let mut b = Builder::new(compiled, carryover, &mut engine);
-    b.probe = Some(Probe::default());
+    let probe = Probe {
+        seed: carryover.structure.seed,
+    };
+    let mut b = Builder::new(compiled, carryover, &mut engine, &probe);
     b.expand_all()?;
     b.resolve_all()?;
-    b.check_seeds()?;
     b.check_counts()?;
-    b.check_loops()
+    b.check_loops()?;
+    b.finish().map(drop)
 }
 
 impl Compiled<'_> {
@@ -114,119 +146,7 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 }
 
 impl<'c, 'a> Builder<'c, 'a> {
-    /// Nesting depth of a scope: 0 for the document.
-    pub(in crate::build) fn scope_depth(&self, mut s: ScopeId) -> u32 {
-        let mut d = 0;
-        while s != 0 {
-            s = self.scopes[s].0;
-            d += 1;
-        }
-        d
-    }
-
-    /// Set the scope anonymous slots are made in while probing.
-    pub(in crate::build) fn probe_scope(&mut self, scope: ScopeId) {
-        if let Some(p) = &mut self.probe {
-            p.cur_scope = scope;
-        }
-    }
-
-    /// Record, while probing, that `scope` is an iteration of `repeat`.
-    pub(in crate::build) fn probe_iteration(&mut self, scope: ScopeId, repeat: CompIdx) {
-        if let Some(p) = &mut self.probe {
-            if p.iter_repeat.len() <= scope as usize {
-                p.iter_repeat.resize(scope as usize + 1, NONE);
-            }
-            p.iter_repeat[scope as usize] = repeat;
-        }
-    }
-
-    /// The repeats whose iterations enclose `scope`, innermost first.
-    pub(in crate::build) fn enclosing_repeats(&self, mut scope: ScopeId) -> Vec<CompIdx> {
-        let p = self.probe.as_ref().expect("probing");
-        let mut out = Vec::new();
-        while scope != 0 {
-            match p.iter_repeat.get(scope as usize) {
-                Some(&r) if r != NONE => out.push(r),
-                _ => {}
-            }
-            scope = self.scopes[scope].0;
-        }
-        out
-    }
-
-    /// Whether `scope` lies inside some repeat's iteration.
-    pub(in crate::build) fn inside_repeat(&self, scope: ScopeId) -> bool {
-        !self.enclosing_repeats(scope).is_empty()
-    }
-
-    /// While probing, a source for a collect's count: it reads the count of
-    /// every repeat whose iterations hold a gathered original, so a count
-    /// reading it reaches those repeats. `None` when no original is in an
-    /// iteration, where the gathered number is a constant at every count.
-    pub(in crate::build) fn probe_collect_count(&mut self, found: &[CompIdx]) -> Option<Source> {
-        self.probe.as_ref()?;
-        let mut counts: Vec<SlotId> = Vec::new();
-        for &c in found {
-            for r in self.enclosing_repeats(self.components.scope[c as usize]) {
-                let pi = self.components.component_type[r as usize]
-                    .count_prop()
-                    .expect("a repeat has a count");
-                let s = self.slot(r, pi);
-                if !counts.contains(&s) {
-                    counts.push(s);
-                }
-            }
-        }
-        if counts.is_empty() {
-            return None;
-        }
-        Some(self.probe_any_of(&counts))
-    }
-
-    /// While probing, a source over `inputs` whose operator never runs: the
-    /// probe is discarded, so only the edges matter.
-    pub(in crate::build) fn probe_any_of(&mut self, inputs: &[SlotId]) -> Source {
-        let mut inputs = inputs.to_vec();
-        while inputs.len() > u8::MAX as usize {
-            let rest = inputs.split_off(u8::MAX as usize);
-            let head = self.op_slot(OpSpec::Add, &inputs);
-            inputs = std::iter::once(head).chain(rest).collect();
-        }
-        self.op_source(OpSpec::Add, &inputs)
-    }
-
-    /// Record the last resolved reference's label for the edge from `from`
-    /// to `to`, when it is not the identity.
-    pub(in crate::build) fn record_label(&mut self, from: SlotId, to: SlotId) {
-        if let Some(p) = &mut self.probe
-            && p.last.iter().any(|&c| c != Coord::Keep(0))
-        {
-            p.labels.insert((from, to), p.last.clone());
-        }
-    }
-
-    /// Record `label` for the edge from `from` to `to`.
-    pub(in crate::build) fn record_label_as(&mut self, from: SlotId, to: SlotId, label: &[Coord]) {
-        if let Some(p) = &mut self.probe
-            && label.iter().any(|&c| c != Coord::Keep(0))
-        {
-            p.labels.insert((from, to), label.to_vec());
-        }
-    }
-
-    /// While probing, a slot standing in for a reference leaf inside math,
-    /// so the edge to the leaf can carry the reference's label.
-    pub(in crate::build) fn probe_leaf(&mut self, target: SlotId) -> SlotId {
-        if self.probe.is_none() {
-            return target;
-        }
-        let a = self.anon_slot(Source::Alias(target));
-        self.record_label(a, target);
-        a
-    }
-
-    /// The slots a slot's source reads, plus its probe-only extra sources.
+    /// The slots a slot's source reads, plus its later sources.
     fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
         let source_inputs = |src: &Source, out: &mut Vec<SlotId>| match src {
             Source::Alias(t) => out.push(*t),
@@ -236,11 +156,9 @@ impl<'c, 'a> Builder<'c, 'a> {
             _ => {}
         };
         source_inputs(&self.sources[s as usize], out);
-        if let Some(p) = &self.probe {
-            for (slot, src) in &p.extra {
-                if *slot == s {
-                    source_inputs(src, out);
-                }
+        for (slot, src) in &self.later_sources {
+            if *slot == s {
+                source_inputs(src, out);
             }
         }
     }
@@ -257,39 +175,11 @@ impl<'c, 'a> Builder<'c, 'a> {
         }
     }
 
-    /// A seed (`prefill`) whose source is computed: the rule `seed_cells`
-    /// applies at emit, from the resolved sources, so a referent past the
-    /// count at load is checked as the iteration it would name.
-    fn check_seeds(&self) -> Result<()> {
-        for &(_, from) in &self.seeds {
-            let mut t = from;
-            let mut steps = 0;
-            while let Source::Alias(u) = self.sources[t as usize] {
-                t = u;
-                steps += 1;
-                if steps > self.sources.len() {
-                    break; // an alias loop; the schedule reports it
-                }
-            }
-            if matches!(
-                self.sources[t as usize],
-                Source::Op(..) | Source::VecOut(..)
-            ) {
-                return Err(Error::Unsupported(format!(
-                    "prefill=\"${}\": a prefill reference must name a value that is not computed",
-                    self.slot_label(from)
-                )));
-            }
-        }
-        Ok(())
-    }
-
     /// A loop on the repeat graph: an edge from repeat `r` to repeat `s`
     /// when `r`'s count reads a cell inside `s`'s iterations, unless `r`
     /// itself sits inside them (an inner count reading its outer iteration
     /// is legal). A self-loop is a count reading its own iterations.
     fn check_counts(&self) -> Result<()> {
-        let p = self.probe.as_ref().expect("probing");
         let n = self.repeats.len();
         let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
         let mut seen = vec![false; self.sources.len()];
@@ -317,7 +207,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 }
                 seen[sl as usize] = true;
                 touched.push(sl);
-                for rc in self.enclosing_repeats(p.slot_scope[sl as usize]) {
+                for rc in self.enclosing_repeats(self.slot_scope[sl as usize]) {
                     let si = self.comp_repeat[rc as usize] as usize;
                     let nested =
                         si != ri && self.scope_within(r.scope, self.repeats[si].iter_scopes[0]);
@@ -364,11 +254,10 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// The label of edge `u -> v`: as recorded for a reference, else the
     /// position shared with the target kept and the rest reset.
     fn edge_label(&self, u: SlotId, v: SlotId, depth: &[u32]) -> Vec<Coord> {
-        let p = self.probe.as_ref().expect("probing");
-        if let Some(l) = p.labels.get(&(u, v)) {
+        if let Some(l) = self.labels.get(&(u, v)) {
             return l.clone();
         }
-        let (mut a, mut b) = (p.slot_scope[u as usize], p.slot_scope[v as usize]);
+        let (mut a, mut b) = (self.slot_scope[u as usize], self.slot_scope[v as usize]);
         let dv = depth[b as usize];
         while depth[a as usize] > depth[b as usize] {
             a = self.scopes[a].0;
@@ -481,14 +370,13 @@ impl<'c, 'a> Builder<'c, 'a> {
         depth: &[u32],
         local: &mut [u32],
     ) -> Result<()> {
-        let p = self.probe.as_ref().expect("probing");
         let this = scc_of[members[0] as usize];
         for (i, &m) in members.iter().enumerate() {
             local[m as usize] = i as u32;
         }
         let min_depth = members
             .iter()
-            .map(|&m| depth[p.slot_scope[m as usize] as usize] as usize)
+            .map(|&m| depth[self.slot_scope[m as usize] as usize] as usize)
             .min()
             .unwrap_or(0);
         let mut edges: Vec<(u32, u32)> = Vec::new();

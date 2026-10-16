@@ -43,8 +43,18 @@ impl<'c, 'a> Builder<'c, 'a> {
         // Number cells: essential classes first, then fixed, then derived.
         // Essential values come from the previous build when the slot existed.
         let roots: Vec<u32> = (0..n as SlotId).map(|s| uf.find(s)).collect();
-        if let Some(s) = (0..n).find(|&s| class_def[roots[s] as usize] == NONE) {
-            return Err(Error::Cycle(self.slot_label(s as SlotId)));
+        // A class of aliases with no definer is a loop of aliases. When the
+        // view folds iterations it may be a recurrence folded onto itself,
+        // which the cycle check has judged; it becomes a constant here.
+        for (s, &root) in roots.iter().enumerate() {
+            let root = root as usize;
+            if class_def[root] == NONE {
+                if !self.view.folds_iterations() {
+                    return Err(Error::Cycle(self.slot_label(s as SlotId)));
+                }
+                self.sources[s] = Source::Fixed(f64::NAN);
+                class_def[root] = s as u32;
+            }
         }
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         let mut cells = Vec::with_capacity(n);

@@ -38,15 +38,18 @@
 //! `resolve.rs` follows reference plans, `math.rs` gives math its source per
 //! instance, `choice.rs` picks and wires branches, and `scoring.rs` wires
 //! credit and section numbers. **`emit.rs`** makes cells and instructions.
-//! **`cycles.rs`** is the count-independent cycle check (ADR 0012), a probe
-//! expansion run once per load before the real one.
+//! **`view.rs`** is the structure view, the one interface through which
+//! expand and emit learn iteration counts, indexed referents, a collect's
+//! count and a select's options. **`cycles.rs`** is the count-independent
+//! cycle check (ADR 0012): a build through the probe view, run once per load
+//! before the real one.
 //!
 //! This file holds the entry point, [`build`], what it returns
 //! ([`BuildOutput`]) and what one build hands the next ([`Carryover`]);
 //! `structure.rs` holds what a build records about the document's shape
 //! ([`Structure`], [`ScopeTable`], [`Repeat`]).
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::sym::{Engine, Handle, Tree};
 
@@ -64,6 +67,7 @@ mod cycles;
 mod emit;
 mod expand;
 mod structure;
+mod view;
 
 pub use structure::{EssentialKind, Repeat, ScopeId, ScopeTable, Structure};
 
@@ -75,8 +79,9 @@ type ChoiceId = usize;
 
 use compile::Compiler;
 use compile::plan::*;
-use cycles::{Coord, Probe};
+use cycles::Coord;
 use expand::*;
+use view::{CollectCount, Options, Plans, Stamped, View};
 
 /// Build with `engine` holding the document's expressions (the same engine
 /// across rebuilds, so essential math cells keep valid handles). With
@@ -105,7 +110,8 @@ pub fn build(
         cycle_check = clock.elapsed();
         lap("cycle check");
     }
-    let mut b = Builder::new(&compiled, carryover, engine);
+    let view = Stamped(carryover);
+    let mut b = Builder::new(&compiled, carryover, engine, &view);
     b.expand_all()?;
     lap("expand");
     b.resolve_all()?;
@@ -237,6 +243,13 @@ impl Carryover {
             counts,
             runtime_strings,
         }
+    }
+
+    /// Stamp repeat element `node` in `scope` with `n` iterations on the
+    /// next build, whatever its `count` cell says: building a document at a
+    /// chosen count (`tests/every_count.rs`).
+    pub fn set_count(&mut self, scope: ScopeId, node: NodeId, n: u32) {
+        self.counts.insert((scope, node), n);
     }
 
     pub fn restore(self, doc: &mut Document) {

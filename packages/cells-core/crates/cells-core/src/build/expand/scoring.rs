@@ -90,7 +90,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// `gate` times a case's `active` cell.
     fn gate_through(&mut self, gate: Option<SlotId>, case: CompIdx) -> Option<SlotId> {
         let active = self.slot(case, crate::components::prop::case::ACTIVE);
-        Some(self.gated(gate, active))
+        Some(self.gated(gate, active, self.components.scope[case as usize]))
     }
 
     /// The weighted mean of the scored items inside `c`; None when there
@@ -101,7 +101,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         if items.is_empty() {
             return None;
         }
-        self.probe_scope(self.components.scope[c as usize]);
+        let scope = self.components.scope[c as usize];
         // Chunks of at most `CHUNK`; each level's means and totals are the
         // next level's credits and weights.
         loop {
@@ -118,8 +118,8 @@ impl<'c, 'a> Builder<'c, 'a> {
                     }),
                     &inputs,
                 );
-                let mean = self.anon_slot(source);
-                let total = self.anon_slot(Source::VecOut(mean, 1));
+                let mean = self.anon_slot(source, scope);
+                let total = self.anon_slot(Source::VecOut(mean, 1), scope);
                 next.push((total, mean));
             }
             if next.len() == 1 {
@@ -134,7 +134,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// containers are looked through, `<setup>` is not.
     fn scored_items(&mut self, c: CompIdx, gate: Option<SlotId>, out: &mut Vec<(SlotId, SlotId)>) {
         for k in self.component_children(c) {
-            self.probe_scope(self.components.scope[k as usize]);
+            let scope = self.components.scope[k as usize];
             let (weight, credit) = match self.components.component_type[k as usize] {
                 ComponentType::Setup => continue,
                 ComponentType::Case => {
@@ -145,7 +145,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 ComponentType::Answer => {
                     // A blank response checks as NaN; it is no credit.
                     let checked = self.slot(k, answer::CREDIT);
-                    let credit = self.op_slot(OpSpec::NanTo { k: 0.0 }, &[checked]);
+                    let credit = self.op_slot(OpSpec::NanTo { k: 0.0 }, &[checked], scope);
                     (self.slot(k, answer::WEIGHT), credit)
                 }
                 ComponentType::Section if self.aggregates(k) => {
@@ -156,7 +156,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                     continue;
                 }
             };
-            let weight = self.gated(gate, weight);
+            let weight = self.gated(gate, weight, scope);
             out.push((weight, credit));
         }
     }
@@ -167,7 +167,6 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// counted.
     fn number_sections(&mut self, c: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
         for k in self.component_children(c) {
-            self.probe_scope(self.components.scope[k as usize]);
             match self.components.component_type[k as usize] {
                 ComponentType::Case => {
                     let g = self.gate_through(gate, k);
@@ -196,7 +195,11 @@ impl<'c, 'a> Builder<'c, 'a> {
                         Some(g) => {
                             counter.before = Some(match counter.before {
                                 None => g,
-                                Some(b) => self.op_slot(OpSpec::Add, &[b, g]),
+                                Some(b) => self.op_slot(
+                                    OpSpec::Add,
+                                    &[b, g],
+                                    self.components.scope[k as usize],
+                                ),
                             })
                         }
                     }

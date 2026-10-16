@@ -192,3 +192,49 @@ tests in `tests/rebuild_cycles.rs` pass. The clamp of a collect index now
 applies only to a collect that gathers from a repeat. The cost did not
 move: 0.04 to 0.06 ms on the repeat and recur fixtures and 0.13 ms on SIR,
 against 0.04 to 0.05 and 0.12 before, within this laptop's noise.
+
+### One structure view, 2026-10-16
+
+The probe was a builder flag that `build/expand/` tested in 36 places.
+The build now learns structure only through the structure view
+(`View`, `build/view.rs`): how many iterations a repeat is stamped with,
+which iteration, item or pick an index names, a collect's count, which
+options a select builds, and which plans a first-iteration prop gets. The
+real build reads the carryover through `Stamped`; the probe is the other
+implementation (`build/cycles.rs`), so the rules under The check are its
+answers, not branches in expand. Edges are still labelled in one place in
+the resolver, every slot records its scope when it is made, and the SCC
+test is unchanged. The probe now runs emit too, with its output
+discarded, so the prefill rule is checked by `seed_cells` itself rather
+than by a copy in the probe; a loop of aliases in the probe, a recurrence
+folded onto its one iteration, is left to the SCC test rather than
+reported by emit. `cycles.rs` went from 604 to 492 lines. The golden diff
+against 6e66632 is identical.
+
+`tests/every_count.rs` checks the promise independently of the probe:
+every golden document, `sir` and every generated fixture, plus the
+documents of this ADR and the survey, is loaded at four seeds (one when it
+has no load-time choice), and each repeat is stamped at 0 to 4 iterations,
+alone and all together, then let settle; no build may fail with
+`Error::Cycle` and the counts must settle, and the same counts requested
+through the count cells must not fail a rebuild with a cycle or an
+unsettled structure. It passes, and it fails when the probe is made to
+answer like a stamped build in any one of the options, index or collect
+count operations, or when expand reads the carryover's counts directly.
+
+The cost, measured on a different machine from the table above, with the
+same example for both commits (medians of eleven rounds; noise at this
+size is about 0.01 ms):
+
+| fixture | check at 6e66632 (ms) | check now (ms) |
+|---|---:|---:|
+| recur-100 | 0.03 | 0.03 |
+| recur-1000 | 0.04 | 0.04 |
+| repeat-100 | 0.02 to 0.03 | 0.03 |
+| repeat-1000 | 0.03 | 0.04 |
+| repeat-10000 | 0.04 to 0.05 | 0.06 |
+| sir | 0.09 | 0.11 |
+
+About 0.01 ms more, which is the emit pass the probe now runs. The real
+build's time ("build, check off") did not move beyond run-to-run noise on
+any fixture, from 0.2 ms to the 590 ms of chain-100000.

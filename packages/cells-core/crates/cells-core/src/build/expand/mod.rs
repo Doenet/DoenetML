@@ -60,11 +60,11 @@ pub(in crate::build) struct ChoiceInst {
     pub(in crate::build) scopes: Vec<ScopeId>,
     /// The branch each of `scopes` instantiates.
     pub(in crate::build) branch_of: Vec<usize>,
-    /// Reactive choice, or a select the probe expands whole: one component
+    /// Reactive choice, or a select built with every option: one component
     /// per `ChoiceDef::used` standing for that name in every branch.
     pub(in crate::build) iface_comps: Vec<CompIdx>,
-    /// A select inside a repeat body while probing: every option built,
-    /// since each iteration draws its own (ADR 0012).
+    /// A select whose every option was built (`Options::Every`), since each
+    /// iteration draws its own (ADR 0012).
     pub(in crate::build) every_option: bool,
 }
 
@@ -121,9 +121,24 @@ pub(in crate::build) struct Builder<'c, 'a> {
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena,
     pub(in crate::build) root: CompIdx,
-    /// Set while this builder is the cycle check's probe (`build/cycles.rs`):
-    /// one iteration per repeat, indices clamped into it, edges labelled.
-    pub(in crate::build) probe: Option<Probe>,
+    /// Where the build learns counts, indexed referents, a collect's count
+    /// and a select's options (`build/view.rs`).
+    pub(in crate::build) view: &'c dyn View,
+    /// The scope each slot was made in.
+    pub(in crate::build) slot_scope: Vec<ScopeId>,
+    /// Per scope, the repeat component whose iteration it is, or NONE.
+    pub(in crate::build) scope_repeat: Vec<CompIdx>,
+    /// Collects (a polyline is one) whose count reads the counts of the
+    /// repeats they gather from (`CollectCount::RepeatCounts`).
+    pub(in crate::build) follows_counts: HashSet<CompIdx>,
+    /// Sources a slot has in iterations after the first, when the view
+    /// folds iterations (`Plans::Both`): edges the graph carries as well.
+    pub(in crate::build) later_sources: Vec<(SlotId, Source)>,
+    /// When the view folds iterations: the label of the last reference
+    /// resolved, and those of reference edges (from slot, to slot) that are
+    /// not the identity (`build/cycles.rs`).
+    pub(in crate::build) label: Vec<Coord>,
+    pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
 }
 
 impl<'c, 'a> Builder<'c, 'a> {
@@ -131,6 +146,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         c: &'c Compiled<'a>,
         carryover: &'c Carryover,
         engine: &'c mut Engine,
+        view: &'c dyn View,
     ) -> Self {
         // Size the columns from the previous build when there was one.
         let guess = carryover
@@ -179,7 +195,13 @@ impl<'c, 'a> Builder<'c, 'a> {
             seeds: Vec::new(),
             arena: Arena::default(),
             root: 0,
-            probe: None,
+            view,
+            slot_scope: Vec::with_capacity(guess * 2),
+            scope_repeat: Vec::new(),
+            follows_counts: HashSet::new(),
+            later_sources: Vec::new(),
+            label: Vec::new(),
+            labels: HashMap::new(),
         }
     }
 
@@ -215,10 +237,8 @@ impl<'c, 'a> Builder<'c, 'a> {
         self.slot_base[comp as usize] = self.sources.len() as u32;
         self.sources.extend(std::iter::repeat_n(Source::Unset, n));
         self.slot_comp.extend(std::iter::repeat_n(comp, n));
-        if let Some(p) = &mut self.probe {
-            p.slot_scope
-                .extend(std::iter::repeat_n(self.components.scope[comp as usize], n));
-        }
+        self.slot_scope
+            .extend(std::iter::repeat_n(self.components.scope[comp as usize], n));
     }
 
     #[inline]
@@ -232,15 +252,14 @@ impl<'c, 'a> Builder<'c, 'a> {
         self.components.child_list.extend_from_slice(kids);
     }
 
-    /// A slot that belongs to no component: a lowered math subexpression, a
-    /// literal inside one, the missing-referent cell.
-    pub(in crate::build) fn anon_slot(&mut self, source: Source) -> SlotId {
+    /// A slot that belongs to no component, made for an element in `scope`:
+    /// a lowered math subexpression, a literal inside one, the
+    /// missing-referent cell.
+    pub(in crate::build) fn anon_slot(&mut self, source: Source, scope: ScopeId) -> SlotId {
         let s = self.sources.len() as SlotId;
         self.sources.push(source);
         self.slot_comp.push(NONE);
-        if let Some(p) = &mut self.probe {
-            p.slot_scope.push(p.cur_scope);
-        }
+        self.slot_scope.push(scope);
         s
     }
 
@@ -248,7 +267,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(Source::Fixed(f64::NAN));
+        let s = self.anon_slot(Source::Fixed(f64::NAN), 0);
         self.missing = Some(s);
         s
     }
@@ -287,6 +306,44 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// `parent`, created on first use.
     pub(in crate::build) fn scope_for(&mut self, parent: ScopeId, node: NodeId, k: u32) -> ScopeId {
         self.scopes.get_or_insert(parent, node, k)
+    }
+
+    /// Nesting depth of a scope: 0 for the document.
+    pub(in crate::build) fn scope_depth(&self, mut s: ScopeId) -> u32 {
+        let mut d = 0;
+        while s != 0 {
+            s = self.scopes[s].0;
+            d += 1;
+        }
+        d
+    }
+
+    /// The repeats whose iterations enclose `scope`, innermost first.
+    pub(in crate::build) fn enclosing_repeats(&self, mut scope: ScopeId) -> Vec<CompIdx> {
+        let mut out = Vec::new();
+        while scope != 0 {
+            match self.scope_repeat.get(scope as usize) {
+                Some(&r) if r != NONE => out.push(r),
+                _ => {}
+            }
+            scope = self.scopes[scope].0;
+        }
+        out
+    }
+
+    /// Whether `scope` lies inside some repeat's iteration.
+    pub(in crate::build) fn in_iteration(&self, mut scope: ScopeId) -> bool {
+        while scope != 0 {
+            if self
+                .scope_repeat
+                .get(scope as usize)
+                .is_some_and(|&r| r != NONE)
+            {
+                return true;
+            }
+            scope = self.scopes[scope].0;
+        }
+        false
     }
 
     pub(in crate::build) fn enter_scope(&mut self, scope: ScopeId, template: TemplateId) {
@@ -340,22 +397,16 @@ impl<'c, 'a> Builder<'c, 'a> {
             let kids = match self.compiled.templates[t].elems[e].body {
                 Body::Repeat { template } => {
                     let node = self.compiled.templates[t].elems[e].node;
-                    // The probe stamps every template once.
-                    let n = if self.probe.is_some() {
-                        1
-                    } else {
-                        self.carryover
-                            .counts
-                            .get(&(scope, node))
-                            .copied()
-                            .unwrap_or(0)
-                    };
+                    let n = self.view.iterations(scope, node);
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
                     for k in 1..=n {
                         let s = self.scope_for(scope, node, k);
                         iter_scopes.push(s);
-                        self.probe_iteration(s, comp);
+                        if self.scope_repeat.len() <= s as usize {
+                            self.scope_repeat.resize(s as usize + 1, NONE);
+                        }
+                        self.scope_repeat[s as usize] = comp;
                         self.enter_scope(s, template);
                         let mut these = self.expand(template, s, comp)?;
                         kids.append(&mut these);
@@ -524,10 +575,8 @@ impl<'c, 'a> Builder<'c, 'a> {
                     return Err(Error::UncopyableType(component_type.tag().into()));
                 }
                 self.copy_into(idx, referent);
-                if self.probe.is_some() {
-                    for pi in 0..component_type.prop_defs().len() {
-                        self.record_label(self.slot(idx, pi), self.slot(referent, pi));
-                    }
+                for pi in 0..component_type.prop_defs().len() {
+                    self.record_label(self.slot(idx, pi), self.slot(referent, pi));
                 }
             }
         }
@@ -671,19 +720,54 @@ impl<'c, 'a> Builder<'c, 'a> {
         }
         self.set_children(comp, &copies);
         let s0 = self.slot(comp, 0);
-        // The probe reads the gathered repeats' counts instead, so a count
-        // that reads this one reaches their iterations (ADR 0012).
-        self.sources[s0 as usize] = match self.probe_collect_count(&found) {
-            Some(src) => {
-                if let Some(p) = &mut self.probe {
-                    p.follows_repeat.insert(comp);
-                }
-                src
-            }
-            None => Source::Fixed(copies.len() as f64),
+        let counts = match self.view.collect_count() {
+            CollectCount::Gathered => Vec::new(),
+            CollectCount::RepeatCounts => self.gathered_counts(&found),
+        };
+        // With no gathered original in an iteration, the number gathered is
+        // a constant at every count.
+        self.sources[s0 as usize] = if counts.is_empty() {
+            Source::Fixed(copies.len() as f64)
+        } else {
+            self.follows_counts.insert(comp);
+            self.reads(&counts, inst.scope)
         };
         self.collected.insert(comp, copies);
         Ok(())
+    }
+
+    /// The count slots of the repeats whose iterations hold one of `found`.
+    fn gathered_counts(&self, found: &[CompIdx]) -> Vec<SlotId> {
+        let mut counts: Vec<SlotId> = Vec::new();
+        for &c in found {
+            for r in self.enclosing_repeats(self.components.scope[c as usize]) {
+                let pi = self.components.component_type[r as usize]
+                    .count_prop()
+                    .expect("a repeat has a count");
+                let s = self.slot(r, pi);
+                if !counts.contains(&s) {
+                    counts.push(s);
+                }
+            }
+        }
+        counts
+    }
+
+    /// A source in `scope` over `inputs` whose value nothing reads: it
+    /// stands for a value that depends on them in a way the view leaves
+    /// open (a collect's count over its repeats' counts, an option a later
+    /// iteration may draw), so only its edges matter.
+    pub(in crate::build) fn reads(&mut self, inputs: &[SlotId], scope: ScopeId) -> Source {
+        match inputs {
+            [] => unreachable!("a stand-in reads something"),
+            [x] => self.op_source(OpSpec::Truthy, &[*x]),
+            [rest @ .., last] => {
+                let acc = rest[1..].iter().fold(rest[0], |acc, &x| {
+                    self.op_slot(OpSpec::Max, &[acc, x], scope)
+                });
+                self.op_source(OpSpec::Max, &[acc, *last])
+            }
+        }
     }
 
     /// Descendants of `c` of `component_type`, in document order, not recursing into
@@ -732,7 +816,6 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// Sources for every prop of one instantiated element.
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
-        self.probe_scope(inst.scope);
         let (component_type, extend_plan) = {
             let el = &self.compiled.templates[inst.template].elems[inst.elem];
             (el.component_type, el.extend)
@@ -753,7 +836,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             None => None,
         };
-        let extend_label: Vec<Coord> = self.probe.as_ref().map_or(Vec::new(), |p| p.last.clone());
+        let extend_label = self.label.clone();
         let n_props = self.compiled.templates[inst.template].elems[inst.elem]
             .props
             .len();
@@ -768,18 +851,14 @@ impl<'c, 'a> Builder<'c, 'a> {
             let plan = &c.templates[inst.template].elems[inst.elem].props[pi];
             let source = match plan {
                 SourcePlan::FirstIteration(first, rest) => {
-                    if self.probe.is_some() {
-                        // The probe's one iteration stands for every
-                        // iteration: it carries both plans' edges.
-                        let rest = self.plan_source(rest, inst, pi, extend, &extend_label)?;
-                        if let Some(p) = &mut self.probe {
-                            p.extra.push((s, rest));
+                    match self.view.plans(self.scopes[inst.scope].2) {
+                        Plans::First => self.plan_source(first, inst, pi, extend, &extend_label)?,
+                        Plans::Rest => self.plan_source(rest, inst, pi, extend, &extend_label)?,
+                        Plans::Both => {
+                            let rest = self.plan_source(rest, inst, pi, extend, &extend_label)?;
+                            self.later_sources.push((s, rest));
+                            self.plan_source(first, inst, pi, extend, &extend_label)?
                         }
-                        self.plan_source(first, inst, pi, extend, &extend_label)?
-                    } else if self.scopes[inst.scope].2 == 1 {
-                        self.plan_source(first, inst, pi, extend, &extend_label)?
-                    } else {
-                        self.plan_source(rest, inst, pi, extend, &extend_label)?
                     }
                 }
                 plan => self.plan_source(plan, inst, pi, extend, &extend_label)?,
@@ -796,7 +875,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     }
 
     /// The source one plan gives prop `pi` of instance `inst`; `extend` is
-    /// the `extend` referent and `extend_label` the probe label of the
+    /// the `extend` referent and `extend_label` the label of the
     /// reference to it.
     fn plan_source(
         &mut self,
@@ -849,7 +928,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             SourcePlan::Math(expr) => {
                 let id = self.instantiate_expr(*expr, inst.scope)?;
                 if self.arena.is_numeric(id) {
-                    Source::Alias(self.lower(id))
+                    Source::Alias(self.lower(id, inst.scope))
                 } else {
                     Source::Fixed(f64::NAN)
                 }
@@ -873,7 +952,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                         // drag that reaches it changes it, as in the current core.
                         Source::Literal(v)
                     } else {
-                        Source::Alias(self.lower(id))
+                        Source::Alias(self.lower(id, inst.scope))
                     }
                 }
             }
@@ -904,17 +983,27 @@ impl<'c, 'a> Builder<'c, 'a> {
         Source::Op(spec, start, inputs.len() as u8)
     }
 
-    pub(in crate::build) fn op_slot(&mut self, spec: OpSpec, inputs: &[SlotId]) -> SlotId {
+    pub(in crate::build) fn op_slot(
+        &mut self,
+        spec: OpSpec,
+        inputs: &[SlotId],
+        scope: ScopeId,
+    ) -> SlotId {
         let source = self.op_source(spec, inputs);
-        self.anon_slot(source)
+        self.anon_slot(source, scope)
     }
 
     /// `x`, times `gate` when there is one (the product of the enclosing
-    /// cases' `active` cells).
-    pub(in crate::build) fn gated(&mut self, gate: Option<SlotId>, x: SlotId) -> SlotId {
+    /// cases' `active` cells), made in `scope`.
+    pub(in crate::build) fn gated(
+        &mut self,
+        gate: Option<SlotId>,
+        x: SlotId,
+        scope: ScopeId,
+    ) -> SlotId {
         match gate {
             None => x,
-            Some(g) => self.op_slot(OpSpec::Mul, &[g, x]),
+            Some(g) => self.op_slot(OpSpec::Mul, &[g, x], scope),
         }
     }
 }

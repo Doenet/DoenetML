@@ -15,10 +15,8 @@ impl<'c, 'a> Builder<'c, 'a> {
     ) -> Result<Vec<u32>> {
         let c: &'c Compiled<'a> = self.compiled;
         let def = &c.choices[cid];
-        self.probe_scope(scope);
-        // Inside a repeat body each iteration draws its own options, so the
-        // probe builds every one of them.
-        let every_option = !def.reactive && self.probe.is_some() && self.inside_repeat(scope);
+        let every_option =
+            !def.reactive && self.view.options(self.in_iteration(scope)) == Options::Every;
         let mut inst = ChoiceInst {
             def: cid,
             comp,
@@ -60,7 +58,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             for k in 1..=def.branches.len() {
                 let s = self.scope_for(scope, node, k as u32);
                 let case = self.new_component(ComponentType::Case, NONE, comp, NONE, scope, 1);
-                let pos = self.anon_slot(Source::Fixed(k as f64));
+                let pos = self.anon_slot(Source::Fixed(k as f64), scope);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
                 self.sources[active_slot as usize] = self.op_source(OpSpec::Eq, &[choice, pos]);
                 self.enter_scope(s, def.branches[k - 1]);
@@ -172,9 +170,10 @@ impl<'c, 'a> Builder<'c, 'a> {
                         members.iter().map(|&m| self.slot(m, pi)).collect();
                     let s = self.slot(ic, pi);
                     self.sources[s as usize] = if inst.every_option {
-                        // The probe's stand-in for a pick: an edge to the
-                        // name in every option, never run.
-                        self.probe_any_of(&branch_slots)
+                        // A stand-in for a pick: an edge to the name in
+                        // every option.
+                        let scope = self.components.scope[ic as usize];
+                        self.reads(&branch_slots, scope)
                     } else {
                         let inputs: Vec<SlotId> =
                             std::iter::once(choice).chain(branch_slots).collect();
@@ -232,7 +231,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// with the element and the iteration chain it sits in, so it draws the
     /// same way in every build.
     pub(super) fn seeded_stream(&self, scope: ScopeId, node: NodeId) -> u64 {
-        let mut h = splitmix(self.carryover.structure.seed ^ 0x5eed_5e1e_c7ed_0001);
+        let mut h = splitmix(self.view.seed() ^ 0x5eed_5e1e_c7ed_0001);
         h = splitmix(h ^ node as u64);
         let mut s = scope;
         while s != 0 {
