@@ -5,14 +5,17 @@ status: proposed
 # Diagnostics are a product of one exhaustive build, never of a tick
 
 Every diagnostic the core reports about a document (an error, a warning,
-an info, an accessibility finding) is computed once, at load, by a build
+an info, an accessibility finding) is computed by one pure function of the
+parsed text, `diagnose`, which builds the document once through a view
 that stamps every template the document has: one iteration per repeat,
 every option of every select, every branch of every choice. The list is a
 function of the DoenetML text alone. The same text gives the same list at
 every seed, at every iteration count, with any carried-over state, and
 after any sequence of requests. A tick produces no diagnostic; what a tick
 cannot do it reports in its outcome, as data for the renderer, and nothing
-is appended to the document's list. The list is immutable after load.
+is appended to any list. `diagnose` is not part of a load: the language
+server calls it, on the text the author is editing, and a viewer loading a
+document for a student never pays for it.
 
 We chose this because the current JavaScript core's diagnostics are a side
 effect of evaluation, and so depend on what the user has done. A state
@@ -71,17 +74,17 @@ flip is an ordinary tick.
   element no longer renders nothing and no longer masks every other
   problem. This is what the current core does with `_error`, and what the
   parity suite's error tests expect.
-- **Taken from an exhaustive build.** The probe view (`build/cycles.rs`)
-  becomes, or gets a sibling that is, the *exhaustive* view: one iteration
-  per repeat and `Options::Every` everywhere, inside and outside a repeat.
-  Its build runs on every load, not only when a repeat is present, and
-  never on a rebuild, since templates do not change. The document's
-  diagnostics are that build's diagnostics. They are seed- and
-  count-independent because the view's answers do not depend on either.
-  The real build still collects diagnostics for the elements it stamps;
-  they must be a subset of the exhaustive build's, which the tests check.
-  Cost: one extra build per load, which documents with a repeat already
-  pay for the cycle check.
+- **Taken from an exhaustive build, by the language server.** The probe
+  view (`build/cycles.rs`) gets a sibling, the *exhaustive* view: one
+  iteration per repeat and `Options::Every` everywhere, inside and outside
+  a repeat. `diagnose(dast) -> Vec<Diagnostic>` compiles, builds through
+  it, and returns the build's diagnostics; the build itself is discarded.
+  They are seed- and count-independent because the view's answers do not
+  depend on either. A load does not call it. The real build still collects
+  diagnostics for the elements it stamps, which the viewer needs to render
+  error boxes; they must be a subset of `diagnose`'s, which the tests
+  check. The cycle check keeps running at load, as ADR 0012 requires: a
+  cycle is the one finding a load cannot proceed past.
 - **Static where the current core is dynamic.** Whether a prop can be
   written is known when its producing operator is bound (an `Op` carries
   its inverse or does not); whether an action's target prop exists is
@@ -104,17 +107,76 @@ flip is an ordinary tick.
   hidden content: `hide` is a cell, so an exemption would make the list
   depend on state. (A literal `hide="true"` could be exempted statically
   if wanted; it is not proposed.)
-- **One wire call.** `warnings_json`, a list of strings, is replaced by a
-  `diagnostics_json` that returns the typed list, computed at load. The
-  viewer maps each entry to the `DiagnosticRecord` the current core
-  emits, with code and arguments, so the i18n catalogs render it in the
-  reader's language and the code-based parity tests can pass.
+- **Two wire calls, one package.** `crates/cells-wasm` gains a free
+  function `diagnose_json(bytes)`, the typed list for a wire-format
+  document, with no `Core` constructed; and `Core` gains
+  `diagnostics_json()`, the real build's own findings, replacing
+  `warnings_json`. Both map to the `DiagnosticRecord` the current core
+  emits, with code and arguments, so the i18n catalogs render them in the
+  reader's language and the code-based parity tests can pass. Everything
+  here, the view, `diagnose`, the binding and the tests, lives in
+  `packages/cells-core`. The language server (`packages/lsp`) already
+  spawns one core per open document and merges what it reports into its
+  own diagnostics (`features/validate.ts`, `additionalDiagnostics`);
+  pointing that at `diagnose_json` is the only change outside this
+  package, and it is a later one.
+
+## Cost
+
+Measured on the generated fixtures (`npm run stats`, release build), a
+load is deserialize plus build in roughly equal parts, and compile is half
+to four fifths of build (chain-100000: 199 ms deserialize, 474 ms build,
+330 ms of it compile; select-1000: 14, 20 and 13 ms). The probe stamps
+each template once, so its cost follows the source, not the document:
+repeat-10000, sixty thousand components, builds in 19 ms and probes in
+0.2 ms. An exhaustive build therefore costs about one compile plus one
+template-sized stamping, a few milliseconds for a hand-written document.
+
+Where it runs decides whether a reader pays it:
+
+- A viewer loading for a student calls only `Core::new`, which runs the
+  real build and, with a repeat present, the cycle probe it already runs.
+  Load time does not change.
+- The language server calls `diagnose` once per edit, in the sub-worker it
+  already spawns per document, where a few milliseconds beside the parse
+  is nothing. It needs no `Core`, no state and no seed.
+- The editor's live preview is a viewer; its diagnostics panel reads the
+  language server's list, not the preview's.
+
+## How it is tested
+
+All in `packages/cells-core`, under `cargo test`:
+
+- `tests/diagnostics.rs`: for every golden document, fixture and the
+  documents of ADR 0012, `diagnose` returns the same list at four seeds,
+  at counts 0 to 4 per repeat, with carried-over state, and after the
+  golden request script; and the real build's diagnostics at each of
+  those are a subset of it. A document with a select reports the problems
+  of every option; one with a repeat at count zero reports the problems
+  of its body.
+- Per-finding tests beside the existing ones in `tests/` (`choice.rs`,
+  `answer.rs`, ...): the text, the code, the node, and that the element
+  still builds as an error component.
+- `crates/cells-wasm`: `diagnose_json` is a thin serialization over
+  `diagnose` and is covered by the Rust tests; its JSON shape is pinned
+  by one test that parses the output of a fixture.
 
 ## Considered options
 
 - Report diagnostics from the real build only. Rejected: that is the
   per-seed, per-count behaviour this ADR exists to remove, and the
   rebuild-time error the first hole describes stays.
+- Run the exhaustive build inside every load. Rejected: it is the right
+  list, but a student's viewer pays for an author's panel. For a document
+  with a repeat the probe already runs and the cost is nothing; for one
+  with a load-time select the unchosen options are new work; for one with
+  neither the real build is already exhaustive. The language server is
+  the one caller that always wants the whole list, and it has its own
+  process.
+- Defer the exhaustive build to an idle callback after first render.
+  Rejected for the viewer, since the list is still the viewer's to hold
+  and the language server will compute it anyway; kept as the fallback
+  for a host with no language server.
 - Report from the real build and add the unchosen branches' diagnostics
   by compiling them without expanding. Rejected: compile does walk every
   branch (one template per branch), but most of the errors that matter
@@ -142,8 +204,12 @@ flip is an ordinary tick.
 - A document with an error now loads and renders around it instead of
   failing to construct. `Core::new` stops returning an error for
   authoring mistakes.
-- Loads without a repeat pay one extra build. Loads with one pay nothing
-  new, since the probe build already runs.
+- Load time is unchanged: `diagnose` is a separate entry point the viewer
+  never calls. The language server pays one compile and one template-sized
+  stamping per edit.
+- A viewer's own list, from the real build, is per seed and per count by
+  nature. It is for rendering error boxes, not for an author, and the
+  panel must not present it as the document's diagnostics.
 - A rebuild cannot fail with a diagnostic the load did not already report,
   because every template it can stamp was stamped once at load. The
   rollback of a failed rebuild (`rebuild_error`) stays as a safety net.
@@ -154,5 +220,5 @@ flip is an ordinary tick.
   tests that assert a diagnostic appears only after an interaction become
   tests that it is present at load.
 - `CONTEXT.md`: a diagnostic is a function of the document text alone,
-  computed once at load from the exhaustive build; a tick never produces
+  computed by `diagnose` from the exhaustive build; a tick never produces
   one.
