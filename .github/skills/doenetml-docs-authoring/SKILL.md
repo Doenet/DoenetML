@@ -119,7 +119,7 @@ Notes:
 - The blank line after the H1 (and after the `import` block) is intentional — Nextra/MDX is whitespace-sensitive around JSX blocks.
 - `<ComponentDisplay>` renders the component's one-sentence `summary` from the schema (and a version badge for new components). The prose introduction follows it and should add to it, not repeat it.
 - `---` horizontal rules separate example sections.
-- Example section titles in existing pages follow these conventions: a free-form `### Example: …`, then per-feature `### Attribute Example: <name>` and `### Property Example: <name>` sections that walk one attribute or property at a time. The per-feature sections are the page's "long-form" attribute/property reference; `<AttrPropDisplay>` only gives the short auto-generated table. Write the name after the colon bare (a comma-separated list is allowed): the build links each matching row of the attribute or property list to that section.
+- Example section titles in existing pages follow these conventions: a free-form `### Example: …`, then per-feature `### Attribute Example: attrName` and `### Property Example: propName` sections that walk one attribute or property at a time. The per-feature sections are the page's "long-form" attribute/property reference; `<AttrPropDisplay>` only gives the short auto-generated table. Write the name after the colon bare (a comma-separated list is allowed): the build links each matching row of the attribute or property list to that section.
 
 ## `<AttrPropDisplay>` and friends — auto-generated tables
 
@@ -191,7 +191,7 @@ Fenced code-block forms registered in `next.config.mjs`:
 | --- | --- | --- |
 | ```` ```doenet-editor-horiz ```` | Source on the left, live preview on the right. **Default for reference pages.** | Almost every reference-page example; lets the reader scan source and behavior side-by-side. |
 | ```` ```doenet-editor ```` | Source on top, live preview below (stacked). | When the example is tall enough that horizontal split feels cramped. |
-| ```` ```doenet-example ```` | Live preview only, source hidden behind a disclosure. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
+| ```` ```doenet-example ```` | Live preview, with the source in a second tab. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
 | ```` ```doenet-viewer ```` | Live preview only, source completely hidden. | Rare — mainly when source is incidental to the point being made. Most pages should let readers see the source. |
 | ```` ```doenet ```` | **Source only**, syntax-highlighted. No live preview, no run button. | Showing a snippet the reader is meant to read but not run — e.g. in tutorials when introducing a concept before the full runnable example. Used widely in `content/tutorials/`. (`` ```dn `` is the same fence via Shiki alias, but the hyphenated form is what existing pages use.) |
 | ```` ```math ```` | Display LaTeX via Nextra's KaTeX. | Long display math in prose (e.g. defining the equation a component solves). |
@@ -425,7 +425,7 @@ This catches: MDX parse errors, broken `import`s, missing schema entries referen
 
 Before opening a PR that adds or renames a reference page:
 
-- [ ] `content/reference/<slug>.mdx` exists and has the standard imports + H1 + `<AttrPropDisplay>` skeleton.
+- [ ] `content/reference/<slug>.mdx` exists and has the standard skeleton: imports, H1, `<ComponentDisplay>`, intro, `<AttrPropDisplay>`, `## Examples`.
 - [ ] All examples use `doenet-editor-horiz` (or a documented alternative) and are valid DoenetML per the `doenetml-authoring` skill.
 - [ ] **Every tag and attribute in every example has been looked up in `doenet-schema.json`** — not pattern-matched from other docs. In particular, no `xLabel` / `yLabel` *attributes* on `<graph>` (they are children), and labels/short descriptions are children.
 - [ ] Examples follow the conventions: `<setup>`, `<shortDescription>`, labeled inputs, no `<asList>`, indexed array access, no redundant `<tag extend="$x" />`.

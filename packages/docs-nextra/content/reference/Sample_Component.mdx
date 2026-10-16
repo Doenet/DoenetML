@@ -1,3 +1,7 @@
+---
+searchable: false
+---
+
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { ComponentDisplay, AttrPropDisplay } from "../../components"
@@ -5,8 +9,10 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 {/*
   TEMPLATE FOR A REFERENCE PAGE. This page is hidden from the sidebar
   (`display: "hidden"` in `_meta.ts`) and documents `<abs>` only so that every
-  part of it renders. Copy it to `<slug>.mdx`, replace `abs` throughout, and
-  delete these comments. The full conventions live in
+  part of it renders. `searchable: false` keeps it out of site search, where
+  it would show up as a second `<abs>` page. Copy it to `<slug>.mdx`, replace
+  `abs` throughout, and delete the front matter and these comments. The full
+  conventions live in
   `.github/skills/doenetml-docs-authoring/SKILL.md`.
 
   Order of a page:
@@ -52,7 +58,7 @@ it can be used inline in text, inside [`<m>{:dn}`](m), or in a [`<graph>{:dn}`](
   Example fences:
     doenet-editor-horiz  source beside the live result (the default)
     doenet-editor        source above the live result (for tall examples)
-    doenet-example       live result, with the source behind a disclosure
+    doenet-example       live result, with the source in a second tab
     doenet-viewer        live result only (rare)
     doenet               source only, not runnable
   Every example must run as written. Give every graph a `<shortDescription>`
