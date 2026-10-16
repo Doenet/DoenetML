@@ -271,6 +271,12 @@ rebuild.
 document can reach, not only the count at load. Rejected at load time
 (ADR 0012).
 
+**Diagnostic** — An error, warning, info or accessibility finding about the
+document: a kind, a code, its arguments and the node it is about. A
+function of the document text alone, computed once at load by an
+exhaustive build that stamps every template; a tick never produces one
+(ADR 0013, proposed).
+
 **Branch** — One alternative of a choice: a `<case>`, `<else>` or `<option>`
 and the content inside it. A branch is a naming region, like an iteration.
 

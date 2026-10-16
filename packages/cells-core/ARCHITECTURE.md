@@ -117,6 +117,11 @@ back gets its old values. The outcome's `rebuilt` is set and cell indices
 are new. If the rebuild fails, the document is left as it was and
 `rebuild_error` says why.
 
+**Diagnostics.** Today `Document::warnings` derives one kind of warning
+from `Structure` after the fact, and an error aborts the load. ADR 0013
+(proposed) makes every diagnostic a product of one exhaustive build at
+load, never of a tick.
+
 **An answer is submitted** (`Document::submit`, `document/sections.rs`). This
 is an ordinary request: the response handle is copied into the answer's
 `submitted` cell, and credit recomputes through the cells that
