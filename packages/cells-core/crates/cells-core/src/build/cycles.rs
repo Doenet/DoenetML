@@ -16,8 +16,19 @@
 //! coordinate some edge of the loop resets is taken as free, which can only
 //! report a cycle, never miss one.
 //!
-//! A count whose inputs reach a cell inside its own iterations is a cycle
-//! of structure rather than of values and is rejected here too.
+//! A count whose inputs reach a cell inside a repeat's iterations is a
+//! cycle of structure rather than of values: the repeats form a graph with
+//! an edge from the reading count's repeat to the one read (nesting adds no
+//! edge, since an inner count may read its outer iteration), and a loop on
+//! it, a self-loop included, is rejected here too. So the probe can see
+//! them, a collect's count reads the counts of the repeats it gathers from,
+//! and a select inside a repeat body expands every option, since each
+//! iteration draws its own.
+//!
+//! The prefill rule (`emit.rs`, `seed_cells`) runs at emit, which the probe
+//! never reaches, so the probe checks it from the resolved sources.
+
+use std::collections::HashSet;
 
 use super::*;
 
@@ -45,6 +56,12 @@ pub(in crate::build) struct Probe {
     /// Sources a slot would have in iterations other than the first (the
     /// `rest` of a `FirstIteration`): edges the graph must carry as well.
     pub(in crate::build) extra: Vec<(SlotId, Source)>,
+    /// Per scope, the repeat component whose iteration it is, or NONE.
+    pub(in crate::build) iter_repeat: Vec<CompIdx>,
+    /// Collects (a polyline is one) with a gathered original inside an
+    /// iteration: the only ones whose index past the probe's items is
+    /// clamped, since any other is missing at every count.
+    pub(in crate::build) follows_repeat: HashSet<CompIdx>,
 }
 
 /// Run the check over the compiled templates.
@@ -54,6 +71,7 @@ pub(super) fn check(compiled: &Compiled, carryover: &Carryover) -> Result<()> {
     b.probe = Some(Probe::default());
     b.expand_all()?;
     b.resolve_all()?;
+    b.check_seeds()?;
     b.check_counts()?;
     b.check_loops()
 }
@@ -111,6 +129,71 @@ impl<'c, 'a> Builder<'c, 'a> {
         if let Some(p) = &mut self.probe {
             p.cur_scope = scope;
         }
+    }
+
+    /// Record, while probing, that `scope` is an iteration of `repeat`.
+    pub(in crate::build) fn probe_iteration(&mut self, scope: ScopeId, repeat: CompIdx) {
+        if let Some(p) = &mut self.probe {
+            if p.iter_repeat.len() <= scope as usize {
+                p.iter_repeat.resize(scope as usize + 1, NONE);
+            }
+            p.iter_repeat[scope as usize] = repeat;
+        }
+    }
+
+    /// The repeats whose iterations enclose `scope`, innermost first.
+    pub(in crate::build) fn enclosing_repeats(&self, mut scope: ScopeId) -> Vec<CompIdx> {
+        let p = self.probe.as_ref().expect("probing");
+        let mut out = Vec::new();
+        while scope != 0 {
+            match p.iter_repeat.get(scope as usize) {
+                Some(&r) if r != NONE => out.push(r),
+                _ => {}
+            }
+            scope = self.scopes[scope].0;
+        }
+        out
+    }
+
+    /// Whether `scope` lies inside some repeat's iteration.
+    pub(in crate::build) fn inside_repeat(&self, scope: ScopeId) -> bool {
+        !self.enclosing_repeats(scope).is_empty()
+    }
+
+    /// While probing, a source for a collect's count: it reads the count of
+    /// every repeat whose iterations hold a gathered original, so a count
+    /// reading it reaches those repeats. `None` when no original is in an
+    /// iteration, where the gathered number is a constant at every count.
+    pub(in crate::build) fn probe_collect_count(&mut self, found: &[CompIdx]) -> Option<Source> {
+        self.probe.as_ref()?;
+        let mut counts: Vec<SlotId> = Vec::new();
+        for &c in found {
+            for r in self.enclosing_repeats(self.components.scope[c as usize]) {
+                let pi = self.components.component_type[r as usize]
+                    .count_prop()
+                    .expect("a repeat has a count");
+                let s = self.slot(r, pi);
+                if !counts.contains(&s) {
+                    counts.push(s);
+                }
+            }
+        }
+        if counts.is_empty() {
+            return None;
+        }
+        Some(self.probe_any_of(&counts))
+    }
+
+    /// While probing, a source over `inputs` whose operator never runs: the
+    /// probe is discarded, so only the edges matter.
+    pub(in crate::build) fn probe_any_of(&mut self, inputs: &[SlotId]) -> Source {
+        let mut inputs = inputs.to_vec();
+        while inputs.len() > u8::MAX as usize {
+            let rest = inputs.split_off(u8::MAX as usize);
+            let head = self.op_slot(OpSpec::Add, &inputs);
+            inputs = std::iter::once(head).chain(rest).collect();
+        }
+        self.op_source(OpSpec::Add, &inputs)
     }
 
     /// Record the last resolved reference's label for the edge from `from`
@@ -174,35 +257,105 @@ impl<'c, 'a> Builder<'c, 'a> {
         }
     }
 
-    /// A repeat whose count reads a cell inside its own iterations.
+    /// A seed (`prefill`) whose source is computed: the rule `seed_cells`
+    /// applies at emit, from the resolved sources, so a referent past the
+    /// count at load is checked as the iteration it would name.
+    fn check_seeds(&self) -> Result<()> {
+        for &(_, from) in &self.seeds {
+            let mut t = from;
+            let mut steps = 0;
+            while let Source::Alias(u) = self.sources[t as usize] {
+                t = u;
+                steps += 1;
+                if steps > self.sources.len() {
+                    break; // an alias loop; the schedule reports it
+                }
+            }
+            if matches!(
+                self.sources[t as usize],
+                Source::Op(..) | Source::VecOut(..)
+            ) {
+                return Err(Error::Unsupported(format!(
+                    "prefill=\"${}\": a prefill reference must name a value that is not computed",
+                    self.slot_label(from)
+                )));
+            }
+        }
+        Ok(())
+    }
+
+    /// A loop on the repeat graph: an edge from repeat `r` to repeat `s`
+    /// when `r`'s count reads a cell inside `s`'s iterations, unless `r`
+    /// itself sits inside them (an inner count reading its outer iteration
+    /// is legal). A self-loop is a count reading its own iterations.
     fn check_counts(&self) -> Result<()> {
         let p = self.probe.as_ref().expect("probing");
+        let n = self.repeats.len();
+        let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
         let mut seen = vec![false; self.sources.len()];
         let mut stack = Vec::new();
         let mut touched = Vec::new();
-        for r in &self.repeats {
-            let Some(&it) = r.iter_scopes.first() else {
+        for (ri, r) in self.repeats.iter().enumerate() {
+            if r.iter_scopes.is_empty() {
                 continue;
-            };
+            }
             let count_pi = self.components.component_type[r.comp as usize]
                 .count_prop()
                 .expect("a repeat has a count");
+            let count = self.slot(r.comp, count_pi);
             stack.clear();
-            stack.push(self.slot(r.comp, count_pi));
+            self.push_inputs(count, &mut stack);
             touched.clear();
             while let Some(sl) = stack.pop() {
+                if sl == count {
+                    // A loop of values through the count (a collect's count
+                    // over its own iterations); the repeat names it best.
+                    return Err(Error::Cycle(self.comp_label(r.comp)));
+                }
                 if seen[sl as usize] {
                     continue;
                 }
                 seen[sl as usize] = true;
                 touched.push(sl);
-                if self.scope_within(p.slot_scope[sl as usize], it) {
-                    return Err(Error::Cycle(self.comp_label(r.comp)));
+                for rc in self.enclosing_repeats(p.slot_scope[sl as usize]) {
+                    let si = self.comp_repeat[rc as usize] as usize;
+                    let nested =
+                        si != ri && self.scope_within(r.scope, self.repeats[si].iter_scopes[0]);
+                    if !nested && !adj[ri].contains(&si) {
+                        adj[ri].push(si);
+                    }
                 }
                 self.push_inputs(sl, &mut stack);
             }
             for &sl in &touched {
                 seen[sl as usize] = false;
+            }
+        }
+        // A back edge in a depth-first walk closes a loop at its target.
+        let mut color = vec![0u8; n]; // 0 unseen, 1 open, 2 done
+        let mut walk: Vec<(usize, usize)> = Vec::new();
+        for root in 0..n {
+            if color[root] != 0 {
+                continue;
+            }
+            color[root] = 1;
+            walk.push((root, 0));
+            while let Some(&mut (v, ref mut pos)) = walk.last_mut() {
+                if *pos < adj[v].len() {
+                    let w = adj[v][*pos];
+                    *pos += 1;
+                    match color[w] {
+                        0 => {
+                            color[w] = 1;
+                            walk.push((w, 0));
+                        }
+                        1 => return Err(Error::Cycle(self.comp_label(self.repeats[w].comp))),
+                        _ => {}
+                    }
+                    continue;
+                }
+                color[v] = 2;
+                walk.pop();
             }
         }
         Ok(())

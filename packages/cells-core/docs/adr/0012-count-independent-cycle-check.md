@@ -57,9 +57,22 @@ once, since rebuilds change counts but never templates.
   whose total is nonzero is a recurrence marching through the iterations
   and remains legal, so the lagged recurrence tests in `tests/repeat.rs`
   keep passing.
-- A count whose inputs reach a slot inside its own iterations is a cycle,
-  `Error::Cycle` naming the repeat; the probe's one iteration makes the
-  read visible whatever the count at load.
+- A count whose inputs reach a slot inside a repeat's iterations is an
+  edge between the two repeats, and a loop on that graph, a count reading
+  its own iterations included, is a cycle, `Error::Cycle` naming a repeat
+  on it; the probe's one iteration makes the read visible whatever the
+  count at load. A repeat nested inside the one it reads adds no edge: an
+  inner count may read its outer iteration.
+- So the probe can see those reads: a collect's count (a polyline's
+  `numVertices`) reads the counts of the repeats it gathers from, instead
+  of being the constant the build makes it; and a select inside a repeat
+  body expands every option, since each iteration draws its own, with one
+  stand-in per interface name whose edges into the options reset the pick.
+  A select outside any repeat probes its real pick.
+- The prefill rule (a seed must name a value that is not computed), which
+  the build applies at emit, is applied in the probe from the resolved
+  sources, so a referent past the count at load is checked as the
+  iteration it would name.
 - Caps are ignored: a loop is reported at any count that would close it.
 
 ## Considered options
@@ -87,9 +100,10 @@ once, since rebuilds change counts but never templates.
   neighbor form `x[i] = x[i-1] + x[i+1]` becomes a load error at any count,
   where today it loads at count one.
 - Reactive choices are unaffected: every branch is built and a flip is an
-  ordinary tick (ADR 0009). Load-time choices fix the graph per seed, so a
-  cycle inside one option is still caught at load, for the students who
-  draw it; checking every option is a separate question.
+  ordinary tick (ADR 0009). A load-time choice outside a repeat fixes the
+  graph per seed, so a cycle inside one option is caught at load for the
+  students who draw it, and the rest are not told; inside a repeat every
+  option is checked, since a later iteration may draw it.
 - Dynamic indices (`$r[$k]`) remain rejected at compile time. Admitting
   them would make every loop through such an edge a cycle, since its
   offset is unknown; that is a decision for when they are wanted.
@@ -167,3 +181,14 @@ than the check on every fixture (the on and off columns cross).
 Recommendation: keep it always on. The cost is negligible against the
 load it protects, and switching it off only to save a tenth of a
 millisecond would reintroduce a failure the student sees.
+
+### Closing the survey's holes, 2026-10-16
+
+`docs/rebuild-cycles-survey.md` found four constructs the probe did not
+model (a select inside a repeat, counts coupled through each other's
+iterations, a collect's count, the prefill rule); the rules above under
+The check now cover them, with the SCC test untouched, and the survey's
+tests in `tests/rebuild_cycles.rs` pass. The clamp of a collect index now
+applies only to a collect that gathers from a repeat. The cost did not
+move: 0.04 to 0.06 ms on the repeat and recur fixtures and 0.13 ms on SIR,
+against 0.04 to 0.05 and 0.12 before, within this laptop's noise.

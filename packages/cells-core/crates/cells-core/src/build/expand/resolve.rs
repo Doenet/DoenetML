@@ -84,7 +84,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             label.resize(self.scope_depth(sc) as usize, Coord::Keep(0));
         }
         let mut cur = Resolved::Iter(NONE, sc);
-        for step in &p.steps {
+        for (si, step) in p.steps.iter().enumerate() {
             match step {
                 Step::Elem(e) => {
                     cur = match cur {
@@ -131,8 +131,14 @@ impl<'c, 'a> Builder<'c, 'a> {
                                         Resolved::Comp(items[(k - 1) as usize])
                                     }
                                     // Items beyond the probe's are other
-                                    // iterations' (a reset either way).
-                                    Some(items) if probing && !items.is_empty() => {
+                                    // iterations' (a reset either way), for
+                                    // a collect that gathers from a repeat.
+                                    Some(items)
+                                        if !items.is_empty()
+                                            && self.probe.as_ref().is_some_and(|pr| {
+                                                pr.follows_repeat.contains(&c)
+                                            }) =>
+                                    {
                                         Resolved::Comp(items[items.len() - 1])
                                     }
                                     Some(_) => Resolved::Missing,
@@ -152,13 +158,31 @@ impl<'c, 'a> Builder<'c, 'a> {
                             }
                             ComponentType::Select => {
                                 let inst = &self.choice_insts[self.comp_choice[&c]];
-                                if probing {
+                                let to_iface = matches!(p.steps.get(si + 1), Some(Step::Iface(..)));
+                                if inst.every_option && to_iface {
+                                    // Any option may be this pick: the
+                                    // interface name resolves to the probe's
+                                    // stand-in over every option, whose edges
+                                    // into them reset the pick.
+                                    Resolved::Comp(c)
+                                } else if inst.every_option {
                                     label.push(Coord::Reset);
-                                }
-                                if k < 1 || k as usize > inst.scopes.len() {
-                                    Resolved::Missing
+                                    match inst.scopes.len() {
+                                        0 => Resolved::Missing,
+                                        n => Resolved::Iter(
+                                            c,
+                                            inst.scopes[(k.max(1) as usize - 1).min(n - 1)],
+                                        ),
+                                    }
                                 } else {
-                                    Resolved::Iter(c, inst.scopes[(k - 1) as usize])
+                                    if probing {
+                                        label.push(Coord::Reset);
+                                    }
+                                    if k < 1 || k as usize > inst.scopes.len() {
+                                        Resolved::Missing
+                                    } else {
+                                        Resolved::Iter(c, inst.scopes[(k - 1) as usize])
+                                    }
                                 }
                             }
                             _ => return Err(Error::NotIndexable(p.display.clone())),

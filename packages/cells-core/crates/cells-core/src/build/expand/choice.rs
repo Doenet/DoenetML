@@ -16,21 +16,44 @@ impl<'c, 'a> Builder<'c, 'a> {
         let c: &'c Compiled<'a> = self.compiled;
         let def = &c.choices[cid];
         self.probe_scope(scope);
+        // Inside a repeat body each iteration draws its own options, so the
+        // probe builds every one of them.
+        let every_option = !def.reactive && self.probe.is_some() && self.inside_repeat(scope);
         let mut inst = ChoiceInst {
             def: cid,
             comp,
             scopes: Vec::new(),
             branch_of: Vec::new(),
             iface_comps: Vec::new(),
+            every_option,
         };
         let mut kids = Vec::new();
         if !def.reactive {
-            for (j, b) in self.pick(def, scope, node)?.into_iter().enumerate() {
+            let picks = if every_option {
+                (0..def.branches.len()).collect()
+            } else {
+                self.pick(def, scope, node)?
+            };
+            for (j, b) in picks.into_iter().enumerate() {
                 let s = self.scope_for(scope, node, j as u32 + 1);
                 self.enter_scope(s, def.branches[b]);
                 kids.extend(self.expand(def.branches[b], s, comp)?);
                 inst.scopes.push(s);
                 inst.branch_of.push(b);
+            }
+            if every_option {
+                for name in &def.used {
+                    let component_type = def.iface[name].0;
+                    let ic = self.new_component(
+                        component_type,
+                        NONE,
+                        comp,
+                        NONE,
+                        scope,
+                        component_type.prop_defs().len(),
+                    );
+                    inst.iface_comps.push(ic);
+                }
             }
         } else {
             let choice = self.slot(comp, crate::components::prop::conditional_content::CHOICE);
@@ -145,12 +168,18 @@ impl<'c, 'a> Builder<'c, 'a> {
                 };
                 let n = members.len() as u8;
                 for pi in 0..component_type.prop_defs().len() {
-                    let inputs: Vec<SlotId> = std::iter::once(choice)
-                        .chain(members.iter().map(|&m| self.slot(m, pi)))
-                        .collect();
+                    let branch_slots: Vec<SlotId> =
+                        members.iter().map(|&m| self.slot(m, pi)).collect();
                     let s = self.slot(ic, pi);
-                    self.sources[s as usize] =
-                        self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs);
+                    self.sources[s as usize] = if inst.every_option {
+                        // The probe's stand-in for a pick: an edge to the
+                        // name in every option, never run.
+                        self.probe_any_of(&branch_slots)
+                    } else {
+                        let inputs: Vec<SlotId> =
+                            std::iter::once(choice).chain(branch_slots).collect();
+                        self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
+                    };
                 }
                 if symbolic && let Some(pi) = component_type.prop_index("expr") {
                     let s = self.slot(ic, pi);

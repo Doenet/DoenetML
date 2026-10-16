@@ -60,8 +60,12 @@ pub(in crate::build) struct ChoiceInst {
     pub(in crate::build) scopes: Vec<ScopeId>,
     /// The branch each of `scopes` instantiates.
     pub(in crate::build) branch_of: Vec<usize>,
-    /// Reactive choice: one `Choose` component per `ChoiceDef::used`.
+    /// Reactive choice, or a select the probe expands whole: one component
+    /// per `ChoiceDef::used` standing for that name in every branch.
     pub(in crate::build) iface_comps: Vec<CompIdx>,
+    /// A select inside a repeat body while probing: every option built,
+    /// since each iteration draws its own (ADR 0012).
+    pub(in crate::build) every_option: bool,
 }
 
 /// One instantiated template element.
@@ -351,6 +355,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                     for k in 1..=n {
                         let s = self.scope_for(scope, node, k);
                         iter_scopes.push(s);
+                        self.probe_iteration(s, comp);
                         self.enter_scope(s, template);
                         let mut these = self.expand(template, s, comp)?;
                         kids.append(&mut these);
@@ -666,7 +671,17 @@ impl<'c, 'a> Builder<'c, 'a> {
         }
         self.set_children(comp, &copies);
         let s0 = self.slot(comp, 0);
-        self.sources[s0 as usize] = Source::Fixed(copies.len() as f64);
+        // The probe reads the gathered repeats' counts instead, so a count
+        // that reads this one reaches their iterations (ADR 0012).
+        self.sources[s0 as usize] = match self.probe_collect_count(&found) {
+            Some(src) => {
+                if let Some(p) = &mut self.probe {
+                    p.follows_repeat.insert(comp);
+                }
+                src
+            }
+            None => Source::Fixed(copies.len() as f64),
+        };
         self.collected.insert(comp, copies);
         Ok(())
     }

@@ -1,15 +1,29 @@
-//! Open holes from the rebuild-cycle survey
-//! (`docs/rebuild-cycles-survey.md`): documents that load without a cycle
-//! error and hit one on a rebuild, which ADR 0012 does not close. Each test
-//! states the behaviour the survey proposes and is ignored until a rule
-//! closes the hole; today each document loads and the first structural
-//! request fails inside the tick.
+//! The holes the rebuild-cycle survey found
+//! (`docs/rebuild-cycles-survey.md`): documents that loaded without a cycle
+//! error and hit one on a rebuild. The probe (ADR 0012) now models each one
+//! and rejects the document at load, which each test asserts; the rebuild
+//! failure path is tested with the check switched off, since no document
+//! that passes it is known to fail on rebuild.
 
 mod common;
 use common::{set, type_into, v};
 
-use cells_core::testing::test_utils::{load, load_with_seed};
-use cells_core::{Document, Error};
+use cells_core::testing::test_utils::{dast_json, load, load_with_seed};
+use cells_core::{Document, Error, LoadOptions};
+
+/// Load with the cycle check off, so a document the probe rejects reaches
+/// its rebuild and fails there.
+fn load_unchecked(src: &str) -> Document {
+    Document::load(
+        dast_json(src).as_bytes(),
+        LoadOptions {
+            check_cycles: false,
+            ..Default::default()
+        },
+    )
+    .map(|(d, _)| d)
+    .unwrap()
+}
 
 fn expect_cycle(doc: cells_core::Result<Document>) {
     match doc {
@@ -24,7 +38,6 @@ fn expect_cycle(doc: cells_core::Result<Document>) {
 // collect over its own iterations passes `check_counts`. Settles at load
 // while `g` is 0; with `g` set, oscillates and fails after eight rebuilds.
 #[test]
-#[ignore = "open hole: a collect count over a repeat's own iterations is not an edge"]
 fn a_count_reading_a_collect_over_its_own_iterations_is_a_cycle() {
     expect_cycle(load(
         r#"<booleanInput name="g"/>
@@ -47,7 +60,6 @@ fn a_count_reading_a_collect_over_its_own_iterations_is_a_cycle() {
 // count reaches its own iterations, so `check_counts` passes, and the
 // existence of an iteration is not an edge, so `check_loops` sees no loop.
 #[test]
-#[ignore = "open hole: counts reading each other's iterations oscillate"]
 fn counts_reading_each_others_iterations_are_a_cycle() {
     expect_cycle(load(
         r#"<booleanInput name="g"/>
@@ -65,7 +77,6 @@ fn counts_reading_each_others_iterations_are_a_cycle() {
 // through a document-level reference) is checked only when iteration 1
 // draws it. With seed 1 iteration 1 draws the acyclic option.
 #[test]
-#[ignore = "open hole: a select in a repeat is probed at iteration 1's pick only"]
 fn a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle() {
     expect_cycle(load_with_seed(
         r#"<numberInput name="n" value="1"/>
@@ -98,7 +109,6 @@ fn a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle() {
 // naming a computed cell past the count at load is accepted and rejected
 // on the rebuild that makes it exist.
 #[test]
-#[ignore = "open hole: the prefill rule is not checked by the probe"]
 fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
     let doc = load(
         r#"<numberInput name="n" value="1"/>
@@ -118,15 +128,14 @@ fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
 // `<math>`. The engine now goes back into the old `Sym`, memo and all.
 #[test]
 fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking() {
-    let mut doc = load(
+    let mut doc = load_unchecked(
         r#"<booleanInput name="g"/>
            <mathInput name="mi" prefill="x"/><math name="m2">$mi + 1</math>
            <repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
            <collect name="c" from="$r" componentType="point"/>
            <boolean name="two">$c.count = 2</boolean>
            <number name="k">2 - $g*$two</number>"#,
-    )
-    .unwrap();
+    );
     let t = set(&mut doc, "g", "value", 1.0);
     assert!(t.rebuild_error.is_some());
     // The symbolic instruction still runs after the recovery.
@@ -139,20 +148,19 @@ fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking()
 // A failed rebuild undoes the tick: the essential writes are rolled back
 // and recomputed, so an input never shows a count its iterations do not
 // match, every request of the tick is reported dropped, and the document
-// takes later ticks, structural ones included. Uses hole 1's document,
-// which still fails on rebuild, with a second way to grow the repeat that
-// settles.
+// takes later ticks, structural ones included. Uses the collect-count
+// document with the check off, so it fails on rebuild, with a second way
+// to grow the repeat that settles.
 #[test]
 fn a_failed_rebuild_rolls_the_tick_back() {
-    let mut doc = load(
+    let mut doc = load_unchecked(
         r#"<booleanInput name="g"/>
            <numberInput name="extra" value="0"/>
            <repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
            <collect name="c" from="$r" componentType="point"/>
            <boolean name="two">$c.count = 2</boolean>
            <number name="k">2 - $g*$two + $extra</number>"#,
-    )
-    .unwrap();
+    );
     assert_eq!(v(&doc, "k", "value"), 2.0);
     let g = doc.cell("g", "value").unwrap();
 

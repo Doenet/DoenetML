@@ -86,6 +86,33 @@ fn a_recurrence_inside_a_nested_repeat_is_legal() {
 }
 
 #[test]
+fn an_inner_count_reading_its_outer_iteration_is_legal() {
+    let doc = load(
+        r#"<repeatForSequence name="o" length="2" indexName="i">
+             <number name="m">$i</number>
+             <repeatForSequence name="r" length="$m"><number name="x">1</number></repeatForSequence>
+           </repeatForSequence>"#,
+    )
+    .unwrap();
+    assert!(doc.structure_settled());
+}
+
+// The probe clamps an index into a collect only when the collect gathers
+// from a repeat; an index past a fixed gathered set is missing at every
+// count and closes no loop.
+#[test]
+fn a_collect_over_fixed_items_is_not_clamped() {
+    let doc = load(
+        r#"<repeatForSequence name="r" length="2"><number name="x">1</number></repeatForSequence>
+           <graph name="g"><point name="p1">($y,0)</point><point name="p2">(1,1)</point></graph>
+           <collect name="c" from="$g" componentType="point"/>
+           <number name="y">$c[5].x</number>"#,
+    )
+    .unwrap();
+    assert!(doc.structure_settled());
+}
+
+#[test]
 fn a_document_without_repeats_is_not_probed() {
     let (_, t) = Document::load(
         dast_json(r#"<point name="p"/><number>$p.x</number>"#).as_bytes(),

@@ -14,7 +14,12 @@ recorded. The throwaway probe is deleted; the open holes are kept as
 ignored tests in `crates/cells-core/tests/rebuild_cycles.rs`, each
 asserting the behaviour proposed below.
 
-What ADR 0012 covers, as read from `build/cycles.rs`: a probe expansion
+Closed 2026-10-16, after the survey: the probe now models entries 2, 3, 4
+and 12, each verdict below says how, and the tests are un-ignored. Entry
+1's false rejection is removed too. The rest of this report reads as
+surveyed.
+
+What ADR 0012 covered at the survey, as read from `build/cycles.rs`: a probe expansion
 with one iteration per repeat and the picks a select really draws for
 iteration 1; every reference edge labelled per nesting level of its target
 as kept (with a shift) or reset; reset coordinates free; an SCC is a cycle
@@ -53,6 +58,10 @@ rejected at load, although `$c[5]` is missing at every count. A rule that
 clamps only when some gathered item lives in an iteration scope would
 remove the false rejection.
 
+Removed since: the probe clamps only a collect in `Probe::follows_repeat`,
+set by `expand_collect` when a gathered original sits in an iteration
+scope. Checked by `a_collect_over_fixed_items_is_not_clamped`.
+
 ### 2. Collect count and polyline `numVertices` read by the repeat's count
 
 ```xml
@@ -76,12 +85,14 @@ number gathered; a polyline is the same body. The count's DFS in
 Reading an *item* of the collect instead (`$c[2].x`) is caught, since the
 copy's slot aliases the original inside the iteration.
 
-Verdict: **open hole**. Proposed rule: in the probe, give a collect's count
-(and a polyline's `numVertices`) a probe-only source that reads one slot of
-every gathered original, or of the repeat's own count slot, so the DFS from
-a count reaches the iterations through it. Equivalently, label the
-constant as "depends on the gathered set" and have `check_counts` follow
-it. Kept as `a_count_reading_a_collect_over_its_own_iterations_is_a_cycle`.
+Verdict: **closed**. In the probe, `expand_collect` gives the collect's
+count (a polyline's `numVertices` is the same slot) a source that reads
+the count slot of every repeat whose iterations hold a gathered original
+(`probe_collect_count`), rather than a slot of the originals, so a point
+whose coordinate reads `$c.count` is not a false cycle. A count reading it
+loops back to its own count slot, which `check_counts` reports naming the
+repeat. Checked by
+`a_count_reading_a_collect_over_its_own_iterations_is_a_cycle`.
 
 ### 3. Two repeats whose counts read each other's iterations
 
@@ -107,13 +118,13 @@ caught, because the DFS from `b` passes through `a` into `s`'s iterations.
 The same holds through a `<functionIterates>` and the `<repeat for>` over
 it: `numIterates` reading an iterate through the repeat is caught.
 
-Verdict: **open hole**. Proposed rule: generalize `check_counts` from
-self-loops to cycles on the repeat graph: an edge from repeat `r` to
-repeat `s` when `r`'s count reaches a slot inside `s`'s iterations (or,
-with entry 2's fix, a constant derived from them); any strongly connected
-component with an edge is a structural cycle. Nesting adds no edge, since
-an inner count reading the outer iteration is the legal case. Kept as
-`counts_reading_each_others_iterations_are_a_cycle`.
+Verdict: **closed**. `check_counts` now builds the repeat graph: an edge
+from repeat `r` to repeat `s` when `r`'s count reaches a slot inside `s`'s
+iterations (`Probe::iter_repeat` maps a scope to its repeat), no edge when
+`r` itself sits inside `s`'s iterations, and a depth-first walk reports
+the first loop, naming the repeat the back edge reaches. Checked by
+`counts_reading_each_others_iterations_are_a_cycle`; the legal nesting by
+`an_inner_count_reading_its_outer_iteration_is_legal`.
 
 ### 4. Load-time select inside a repeat
 
@@ -151,13 +162,14 @@ probe, `$c[1].x` resolves to the missing slot (the `Some(_) => Missing`
 arm), and a document that feeds that back into the point loads clean and
 fails at `n = 3` (seeds 1 and 2).
 
-Verdict: **open hole**, distinct from the "check every option" question
-ADR 0012 leaves open, because here the document is cyclic for the seed
-the student has. Proposed rule: in the probe, expand every option of a
-select that sits inside a repeat body (as a reactive choice expands every
-case), with the pick edges labelled reset; a select outside any repeat
-keeps probing its real pick. Kept as
-`a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle`.
+Verdict: **closed**. In the probe, `expand_choice` builds every option of
+a select inside a repeat body (`ChoiceInst::every_option`) and one stand-in
+component per interface name, as a reactive choice does, whose props read
+the name in every option; `$s[k].a` resolves to the stand-in, so the edge
+into each option resets the pick coordinate, and a collect gathers from
+every option. A select outside any repeat keeps probing its real pick, so
+its load errors stay per seed. Checked by
+`a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle`, both forms.
 
 ### 5. Reactive `<conditionalContent>` and the branch interface
 
@@ -319,11 +331,10 @@ Observed: loads clean; `n = 2` fails the rebuild with
 computed` (and then panics, see entry 13). With count 2 at load the same
 document is rejected at load.
 
-Verdict: **open hole** of the same shape (clean load, rebuild error the
-student sees), not a cycle. Proposed rule: check seed sources in the probe
-(after `resolve_all`, the source kind of each `seeds` entry is known: an
-alias chain ending in a `Literal`/`Default`/`Fixed` is fine, anything
-reaching an `Op` is not), or run `seed_cells`'s check in the probe. Kept as
+Verdict: **closed**. The probe runs `check_seeds` after `resolve_all`:
+each seed's source is followed through its aliases, and one ending at an
+`Op` or a vector output is the same `Unsupported` error `seed_cells`
+raises at emit. Checked by
 `a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load`.
 
 Also noted, not an error: `$r[2].t.value` with `t` a text is a `Number`
@@ -362,7 +373,8 @@ a count its iterations do not match and later ticks, structural ones
 included, still work. This is the rollback ADR 0012 listed as a separate
 change. Checked by `a_failed_rebuild_rolls_the_tick_back` on entry 2's
 document. The student still cannot reach the count, with no explanation
-beyond `rebuild_error`; the holes below remain to be closed in the probe.
+beyond `rebuild_error`. The probe holes are closed since; the two tests
+load this document with the check off to reach a failing rebuild.
 
 ### 14. Other `Resolved::Missing` sites
 
@@ -386,25 +398,22 @@ beyond `rebuild_error`; the holes below remain to be closed in the probe.
 2. **Select inside a repeat probed at iteration 1's pick only** (entry 4).
    The most likely to be authored: a problem set that repeats a randomly
    chosen variant, where one variant has a loop the author never drew.
-   Rule: probe every option of a select inside a repeat body, pick edges
-   reset.
+   Closed: the probe builds every option of a select inside a repeat body.
 3. **Counts reading each other's iterations** (entry 3). Needs two repeats
    coupled through indexed references in both directions, which is rare
    but is exactly the pattern a "show one more row when the other table is
-   full" document has. Rule: cycles on the repeat graph, not self-loops.
+   full" document has. Closed: loops on the repeat graph, not self-loops.
 4. **A collect count or polyline `numVertices` over the repeat's own
    iterations** (entry 2). A `count` reading `$c.count` is natural to write
-   (grow until the collection has N items). Rule: a probe-only edge from
-   the gathered constant into the iterations, so the DFS and the repeat
-   graph of item 3 both see it.
+   (grow until the collection has N items). Closed: in the probe the
+   collect's count reads the gathered repeats' counts.
 5. **Prefill rule deferred past the count** (entry 12). Rare and an
    `Unsupported` error rather than a cycle, but the same clean-load,
-   failing-tick shape. Rule: check seed sources in the probe.
+   failing-tick shape. Closed: the probe checks the seeds' sources.
 
-Items 2 to 4 are all gaps in what the probe models, not in the SCC test;
-each is a change to `build/cycles.rs` and the probe arms of
-`resolve.rs`/`expand/mod.rs`, with the SCC test untouched. The ADR 0012
-mitigation listed as a separate change, rolling back the essential write
-when a rebuild fails, is done with item 1 and keeps the document
-consistent for every item below it, and for any hole this survey missed,
-since it has the same shape.
+Items 2 to 5 were gaps in what the probe models, not in the SCC test, and
+each was closed in `build/cycles.rs` and the probe arms of `resolve.rs`,
+`expand/mod.rs` and `expand/choice.rs` with the SCC test untouched. No
+document is now known to load clean and fail on rebuild; the rollback of
+item 1 stays, since a hole this survey missed would have the same shape.
+What remains is the over-reporting noted under entry 10.
