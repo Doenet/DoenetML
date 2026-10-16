@@ -12,7 +12,8 @@ set -euo pipefail
 # older than the October 2026 package layout cannot be compared.
 repo=$(cd "$(dirname "$0")/.." && pwd); root=$(git -C "$repo" rev-parse --show-toplevel); rel=${repo#$root/}
 base=${1:-HEAD}
-out="$root/results/raw/golden"
+# Output stays in this package (git-ignored), not at the repository root.
+out="$repo/results/raw/golden"
 wt="$root/../.cells-prototype-golden"; bp="$wt/$rel"
 
 rm -rf "$out/base" "$out/head" "$out/base.programs" "$out/head.programs"

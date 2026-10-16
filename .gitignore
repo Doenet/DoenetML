@@ -102,6 +102,8 @@ tmp/
 
 # Cells core and viewer: generated outputs
 packages/cells-core/pkg/
+# scripts/golden-diff.sh output
+packages/cells-core/results/
 packages/cells-core/fixtures/*
 !packages/cells-core/fixtures/sir.doenet
 packages/cells-viewer/test-results/
