@@ -44,11 +44,20 @@ iterated. `fixtures/sir.doenet` is a document using most of these.
   `packages/cells-viewer` serves in the browser. Its `npm run dev` depends
   on this through wireit, so running the viewer rebuilds a stale `pkg/`.
 - `npm run lint`: fmt and clippy, warnings denied.
+- `cargo test` also runs in CI (`.github/workflows/cells-core.yml`); fmt
+  and clippy in the `Lint Rust Code` job of `ci.yml`.
 - `npm run fixtures`, `npm run golden-diff -- [rev]`: the generated
   documents and the refactoring guard.
 - `npm run parity:cells` in `packages/doenetml-worker-javascript` runs the
   JavaScript core's test suite against this core and writes the gap list to
   `CELLS_CORE_PARITY.md` there.
+
+`Cargo.lock` is committed, unlike the worker's in
+`packages/doenetml-worker-rust` (the root `.gitignore` makes an exception
+for it): this workspace builds a wasm binary and the benchmark drivers,
+and the golden diff and the speed comparisons below only mean something
+when every machine builds the same dependency tree, `math-expressions`
+being pinned to a git revision.
 
 Speed is measured by `packages/benchmark` (its `scripts/perf-diff.sh`
 compares a base commit with the working tree).
