@@ -11,9 +11,9 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 
 /**
  * A source editor and the rendered document side by side, in the shape of
- * `packages/doenetml-prototype`'s `EditorViewer`: a header with a Refresh
- * button (also Ctrl/Cmd+S), a status strip under it, the editor on the
- * left and the viewer on the right. Loading is the caller's: it owns the source, the store and what
+ * `packages/doenetml-prototype`'s `EditorViewer`: a strip with a Refresh
+ * button (also Ctrl/Cmd+S) and the status, the editor on the left and the
+ * viewer on the right. Loading is the caller's: it owns the source, the store and what
  * the header reports, so `dev/main.tsx` can also load pre-encoded fixtures.
  */
 export function EditorViewer({
@@ -35,7 +35,7 @@ export function EditorViewer({
     store: CellStore | null;
     /** The error of the last load, if it failed. */
     error: string | null;
-    /** A strip under the header, the width of the page: the timings. */
+    /** Shown in the strip beside the Refresh button: the timings. */
     status?: React.ReactNode;
 }) {
     const ref = React.useRef<HTMLDivElement>(null);
@@ -60,7 +60,7 @@ export function EditorViewer({
 
     return (
         <div className="editor-viewer" ref={ref} tabIndex={-1}>
-            <div className="editor-viewer-header">
+            <div className="editor-viewer-statusbar">
                 <button
                     className="editor-viewer-refresh"
                     disabled={!canRefresh}
@@ -73,8 +73,8 @@ export function EditorViewer({
                 >
                     <VscRefresh /> Refresh
                 </button>
+                {status}
             </div>
-            {status && <div className="editor-viewer-statusbar">{status}</div>}
             <div className="editor-viewer-panels">
                 <ResizablePanelPair
                     panelA={
