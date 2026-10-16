@@ -267,7 +267,9 @@ as a warning, since authors can avoid it.
 as the iteration count of a repeat. A change to a structural cell triggers a
 rebuild.
 
-**Cycle** — A dependency loop among cells. Rejected at load time.
+**Cycle** — A dependency loop among cells, at any iteration count the
+document can reach, not only the count at load. Rejected at load time
+(ADR 0012).
 
 **Branch** — One alternative of a choice: a `<case>`, `<else>` or `<option>`
 and the content inside it. A branch is a naming region, like an iteration.
