@@ -343,13 +343,26 @@ range end index 2 out of range for slice of length 0
 crates/cells-core/src/program/mod.rs:260 (step_sym)
 ```
 
-`Document::rebuild`'s error path calls `put_engine`, which installs
-`Sym::new(engine)` with an empty memo and then `run_all`s the old program;
+`Document::rebuild`'s error path called `put_engine`, which installed
+`Sym::new(engine)` with an empty memo and then `run_all`'d the old program;
 `step_sym` indexes the memo by operand position. The memo is sized only in
-`Program::schedule`. Not a cycle hole, but it turns every hole above into a
+`Program::schedule`. Not a cycle hole, but it turned every hole above into a
 crash on the page that is most likely to have one (anything with a
-`<mathInput>`). Kept as
+`<mathInput>`).
+
+Verdict: **fixed**. `take_engine` now moves only the engine out of the old
+`Sym`, and `put_engine` puts it back; the memo (and the handles it holds,
+since the engine only grows) survives the failed rebuild. Checked by
 `a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking`.
+
+In the same change, a rebuild that fails inside `Document::request` undoes
+the tick: the essential writes are rolled back and recomputed, `changed`
+is empty and `dropped` carries the tick's requests, so an input never shows
+a count its iterations do not match and later ticks, structural ones
+included, still work. This is the rollback ADR 0012 listed as a separate
+change. Checked by `a_failed_rebuild_rolls_the_tick_back` on entry 2's
+document. The student still cannot reach the count, with no explanation
+beyond `rebuild_error`; the holes below remain to be closed in the probe.
 
 ### 14. Other `Resolved::Missing` sites
 
@@ -368,10 +381,8 @@ crash on the page that is most likely to have one (anything with a
 ## Open holes, ranked
 
 1. **A failed rebuild panics beside a symbolic instruction** (entry 13).
-   Not a cycle, but it is what a student actually sees for every hole
-   below on any page with a `<mathInput>`, and it is a one-line fix:
-   size the memo in `put_engine` (or keep the old `Sym`'s memo) before
-   recomputing. Independent of ADR 0012.
+   Fixed: the old `Sym` keeps its memo across a failed rebuild, and the
+   tick that failed is rolled back. Independent of ADR 0012.
 2. **Select inside a repeat probed at iteration 1's pick only** (entry 4).
    The most likely to be authored: a problem set that repeats a randomly
    chosen variant, where one variant has a loop the author never drew.
@@ -394,6 +405,6 @@ Items 2 to 4 are all gaps in what the probe models, not in the SCC test;
 each is a change to `build/cycles.rs` and the probe arms of
 `resolve.rs`/`expand/mod.rs`, with the SCC test untouched. The ADR 0012
 mitigation listed as a separate change, rolling back the essential write
-when a rebuild fails, would keep the document consistent for every item
-but item 1, and is still worth doing: a hole this survey missed will have
-the same shape.
+when a rebuild fails, is done with item 1 and keeps the document
+consistent for every item below it, and for any hole this survey missed,
+since it has the same shape.

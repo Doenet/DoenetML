@@ -6,7 +6,7 @@
 //! request fails inside the tick.
 
 mod common;
-use common::set;
+use common::{set, type_into, v};
 
 use cells_core::testing::test_utils::{load, load_with_seed};
 use cells_core::{Document, Error};
@@ -112,13 +112,11 @@ fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
     );
 }
 
-// Follow-up, not a cycle: when a rebuild fails in a document with a
-// symbolic instruction, `Document::rebuild`'s recovery path puts a fresh
-// `Sym` (empty memo) back and recomputes, which indexes past the memo and
-// panics (`program/mod.rs`, `step_sym`). Every hole above becomes a crash
-// beside a `<mathInput>` or symbolic `<math>`.
+// Not a cycle: a failed rebuild once put a fresh `Sym` (empty memo) back
+// and recomputed, which indexed past the memo in `step_sym` and panicked,
+// so every hole above was a crash beside a `<mathInput>` or symbolic
+// `<math>`. The engine now goes back into the old `Sym`, memo and all.
 #[test]
-#[ignore = "open: a failed rebuild panics beside a symbolic instruction"]
 fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking() {
     let mut doc = load(
         r#"<booleanInput name="g"/>
@@ -131,4 +129,57 @@ fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking()
     .unwrap();
     let t = set(&mut doc, "g", "value", 1.0);
     assert!(t.rebuild_error.is_some());
+    // The symbolic instruction still runs after the recovery.
+    let t = type_into(&mut doc, "mi", "y");
+    assert!(t.rebuild_error.is_none());
+    let m2 = doc.cell("m2", "expr").unwrap();
+    assert_eq!(doc.math_text(m2), "y + 1");
+}
+
+// A failed rebuild undoes the tick: the essential writes are rolled back
+// and recomputed, so an input never shows a count its iterations do not
+// match, every request of the tick is reported dropped, and the document
+// takes later ticks, structural ones included. Uses hole 1's document,
+// which still fails on rebuild, with a second way to grow the repeat that
+// settles.
+#[test]
+fn a_failed_rebuild_rolls_the_tick_back() {
+    let mut doc = load(
+        r#"<booleanInput name="g"/>
+           <numberInput name="extra" value="0"/>
+           <repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
+           <collect name="c" from="$r" componentType="point"/>
+           <boolean name="two">$c.count = 2</boolean>
+           <number name="k">2 - $g*$two + $extra</number>"#,
+    )
+    .unwrap();
+    assert_eq!(v(&doc, "k", "value"), 2.0);
+    let g = doc.cell("g", "value").unwrap();
+
+    let t = set(&mut doc, "g", "value", 1.0);
+    assert!(t.rebuild_error.is_some());
+    assert!(!t.rebuilt);
+    assert!(t.changed.is_empty(), "changed {:?}", t.changed);
+    assert_eq!(t.dropped.len(), 1);
+    assert_eq!(t.dropped[0].cell, g);
+    assert_eq!(t.dropped[0].value, 1.0);
+    assert_eq!(v(&doc, "g", "value"), 0.0);
+    assert_eq!(v(&doc, "k", "value"), 2.0);
+    assert_eq!(v(&doc, "two", "value"), 1.0);
+    assert!(doc.structure_settled());
+
+    // Asking again fails the same way and leaves the same document.
+    let t = set(&mut doc, "g", "value", 1.0);
+    assert!(t.rebuild_error.is_some());
+    assert_eq!(v(&doc, "g", "value"), 0.0);
+    assert_eq!(v(&doc, "k", "value"), 2.0);
+
+    // A later structural tick that settles still rebuilds.
+    let t = set(&mut doc, "extra", "value", 1.0);
+    assert!(t.rebuild_error.is_none(), "{:?}", t.rebuild_error);
+    assert!(t.rebuilt);
+    assert_eq!(v(&doc, "k", "value"), 3.0);
+    assert_eq!(v(&doc, "two", "value"), 0.0);
+    assert_eq!(v(&doc, "extra", "value"), 1.0);
+    assert!(doc.cell("r[3].p", "x").is_some());
 }

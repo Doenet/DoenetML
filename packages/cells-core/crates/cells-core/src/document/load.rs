@@ -101,15 +101,17 @@ impl Document {
     }
 
     /// Move the symbolic engine out, leaving an empty one (the document is
-    /// about to be replaced by a rebuild).
+    /// about to be replaced by a rebuild). The rest of `Sym`, the memo
+    /// above all, stays: `put_engine` must leave a document whose program
+    /// can run, and the memo is sized only by `Program::schedule`.
     fn take_engine(&mut self) -> Engine {
-        std::mem::take(&mut self.program.sym).into_engine()
+        std::mem::take(self.program.sym.engine.get_mut())
     }
 
+    /// Put the engine back after a failed rebuild. The engine only grows,
+    /// so the handles the memo and the cells hold are still valid.
     fn put_engine(&mut self, engine: Engine) {
-        self.program.sym = crate::program::Sym::new(engine);
-        // The memo was dropped with the old `Sym`: recompute so it refills.
-        self.program.run_all(&mut self.cells);
+        *self.program.sym.engine.get_mut() = engine;
     }
 
     /// Authoring warnings about the loaded document. Today: repeats whose

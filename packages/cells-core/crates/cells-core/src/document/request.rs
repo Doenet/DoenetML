@@ -4,7 +4,7 @@
 //! inversion (`tick/invert.rs`) and recompute (`tick/eval.rs`), then a
 //! rebuild if a structural cell changed (`load.rs`).
 
-use super::Document;
+use super::{CellIdx, Document};
 use crate::tick::eval::{Evaluator, FullRecompute};
 use crate::tick::invert::{PointRequest, invert_requests};
 use crate::tick::{Request, TickOutcome};
@@ -56,10 +56,13 @@ impl Document {
             &finite_groups,
         );
         tick.dropped.extend(inv.dropped);
+        // The values the tick overwrites, so a failed rebuild can undo it.
+        let mut before: Vec<(CellIdx, f64)> = Vec::new();
         for (cell, value) in inv.writes {
             let old = self.cells[cell as usize];
             if value != old && !(value.is_nan() && old.is_nan()) {
                 self.cells[cell as usize] = value;
+                before.push((cell, old));
                 tick.changed.push(cell);
             }
         }
@@ -71,7 +74,24 @@ impl Document {
                         tick.rebuilt = true;
                         tick.changed.clear();
                     }
-                    Err(e) => tick.rebuild_error = Some(e.to_string()),
+                    Err(e) => {
+                        // The document could not take the structure the
+                        // writes ask for. Undo them, so an input never
+                        // shows a count its iterations do not match, and
+                        // report every request of the tick as dropped.
+                        for &(cell, old) in &before {
+                            self.cells[cell as usize] = old;
+                        }
+                        self.recompute();
+                        tick.changed.clear();
+                        tick.dropped.extend(finite);
+                        tick.dropped
+                            .extend(finite_groups.iter().flatten().map(|p| Request {
+                                cell: p.cells[0],
+                                value: p.values[0],
+                            }));
+                        tick.rebuild_error = Some(e.to_string());
+                    }
                 }
             }
         }

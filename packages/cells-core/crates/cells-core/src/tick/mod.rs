@@ -33,6 +33,8 @@ pub struct TickOutcome {
     /// The tick changed a structural cell and the document was rebuilt:
     /// cell indices and the component table are new, `changed` is empty.
     pub rebuilt: bool,
-    /// The rebuild failed and the document is unchanged from before it.
+    /// The rebuild failed: the tick's writes were undone, so the document
+    /// is as it was before the tick, `changed` is empty and `dropped`
+    /// holds every request of the tick.
     pub rebuild_error: Option<String>,
 }
