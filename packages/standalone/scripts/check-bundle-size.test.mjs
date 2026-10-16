@@ -246,7 +246,9 @@ describe("findProblems", () => {
         ];
         const { report, problems } = findProblems(budgets, scripts);
         expect(problems).toEqual([
-            expect.stringContaining(`${WORKER_SCRIPT} is 0.00 MiB brotli (300 bytes)`),
+            expect.stringContaining(
+                `${WORKER_SCRIPT} is 0.00 MiB brotli (300 bytes)`,
+            ),
         ]);
         expect(report.join("\n")).toContain("brotli of");
     });

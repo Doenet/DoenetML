@@ -13,7 +13,6 @@ import { locate } from "../src/renderers/jsxgraph/Board";
 import { SEGMENTS, TickSparkline } from "./TickSparkline";
 import "./main.css";
 
-// @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 
 const SOURCE_STORAGE_KEY = "cells-viewer-dev-source";

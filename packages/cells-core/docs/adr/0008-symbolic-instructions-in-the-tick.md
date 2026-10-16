@@ -8,7 +8,7 @@ instructions in the ordinary program and schedule, and they write new
 expressions into the arena during a tick. A symbolic instruction runs only
 when one of its inputs changed. A numeric leaf that changes is substituted,
 and the instruction reruns, matching the current core's behavior. Plan 5
-(`docs/history/plan-5.md`) chose this before building.
+chose this before building.
 
 ## Considered options
 

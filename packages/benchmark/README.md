@@ -5,7 +5,8 @@ compare on update time, load time, memory, state storage size and bundle
 size. `PLAN.md` records the decisions; this file is how to use it.
 
 It is a decision suite, re-run as the cores change, with raw results
-committed. It is not a regression gate: timings carry product budgets as
+committed as JSON under `results/raw/` (one array of records per run) and
+rendered into `results/RESULTS.md`. It is not a regression gate: timings carry product budgets as
 reference lines, and only bundle size fails anything.
 
 ## The corpus
@@ -63,8 +64,8 @@ npm run node -- --cores=javascript,rust,cells --fixtures=homework,chain-100
 ```
 
 `src/run.mjs` runs every (core, fixture) in its own process with a 60 s
-budget and appends one JSON line per measurement to
-`results/raw/node-<date>.jsonl`. The process runs `src/measure-one.ts`,
+budget and appends one record per measurement to the JSON array in
+`results/raw/node-<date>.json`. The process runs `src/measure-one.ts`,
 prebundled with esbuild by `scripts/bundle-driver.mjs` into
 `packages/doenetml-worker-javascript/.bench/` (rebuilt when a source is
 newer), over that package's test utilities, which give the three cores one
@@ -99,7 +100,7 @@ headless Chromium: the JS core through the standalone bundle on
 `browser/cells-adapter.js` installed. Both pages implement one
 `window.__bench` protocol (`load`, `locate`, `position`, `act`), served by
 `browser/serve.mjs`. One record per (core, fixture) goes to
-`results/raw/browser-<date>.jsonl`, with a 60 s budget per fixture; the
+`results/raw/browser-<date>.json`, with a 60 s budget per fixture; the
 measurements taken before the budget ran out stand, marked
 `timed_out_at`.
 
@@ -128,7 +129,7 @@ npm run bundle
 
 `src/bundle.mjs` measures everything a page fetches to render a document,
 raw and brotli (quality 11, what a CDN serves precompressed), and appends
-one record per set to `results/raw/bundle-<date>.jsonl`. The sets: the JS
+one record per set to `results/raw/bundle-<date>.json`. The sets: the JS
 core's eager set (facade, eager chunk, stylesheet, worker, and the Rust
 wasm the worker fetches), the whole standalone dist without maps for
 context, the Rust wasm alone (it ships inside the JS core's worker), and

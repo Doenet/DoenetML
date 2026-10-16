@@ -57,7 +57,7 @@ build.
 - Out of scope: variant naming (`selectForVariants`, `variantControl`),
   `<shuffle>`, `<cascade>`, and `isResponse` passing through choices.
 
-## Outcome (plan 6 verdict, `results/NOTES.md`)
+## Outcome (plan 6 verdict)
 
 The sweep found the built mechanism faster on every tick: a built flip
 stays under 0.3 ms, while a rebuild flip is a whole-document build (25 ms

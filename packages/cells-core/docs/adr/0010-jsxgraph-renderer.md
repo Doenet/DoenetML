@@ -11,7 +11,7 @@ JSXGraph's canvas backend and Doenet's redraw-per-element update pattern.
 
 We chose this because the cells core is meant to replace DoenetML's core
 behind DoenetML's renderers, so the renderer that matters is the one with
-Doenet's look and interaction model. Plan 7 (`docs/history/plan-7.md`)
+Doenet's look and interaction model. Plan 7
 built JSXGraph next to the SVG renderer to measure what the look costs;
 this ADR records the measurement and the choice.
 

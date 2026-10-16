@@ -14,7 +14,7 @@ repo=$(cd "$(dirname "$0")/.." && pwd); root=$(git -C "$repo" rev-parse --show-t
 base=${1:-HEAD}
 # Output stays in this package (git-ignored), not at the repository root.
 out="$repo/results/raw/golden"
-wt="$root/../.cells-prototype-golden"; bp="$wt/$rel"
+wt="$root/../.cells-core-golden"; bp="$wt/$rel"
 
 rm -rf "$out/base" "$out/head" "$out/base.programs" "$out/head.programs"
 git -C "$repo" worktree remove --force "$wt" 2>/dev/null || true

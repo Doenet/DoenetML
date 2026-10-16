@@ -15,9 +15,13 @@ const shapes = {
         const lines = ['<mathInput name="n" prefill="1"/>'];
         for (let i = 0; i < n; i++) {
             const prev = i === 0 ? "$n" : `$c${i - 1}`;
-            lines.push(`<number name="c${i}">${ops[i % ops.length].replace("$prev", prev)}</number>`);
+            lines.push(
+                `<number name="c${i}">${ops[i % ops.length].replace("$prev", prev)}</number>`,
+            );
         }
-        lines.push(`<graph name="g"><point name="p" x="$c${n - 1}" y="$n"/></graph>`);
+        lines.push(
+            `<graph name="g"><point name="p" x="$c${n - 1}" y="$n"/></graph>`,
+        );
         return lines.join("\n") + "\n";
     },
     /**
@@ -32,7 +36,9 @@ const shapes = {
             const x = -9 + (18 * (i % k)) / (k - 1);
             const y = -9 + (18 * Math.floor(i / k)) / (k - 1);
             if (Math.hypot(x, y) < 1.5) continue;
-            lines.push(`  <point name="p${placed}" x="${x.toFixed(3)}" y="${y.toFixed(3)}"/>`);
+            lines.push(
+                `  <point name="p${placed}" x="${x.toFixed(3)}" y="${y.toFixed(3)}"/>`,
+            );
             placed++;
         }
         lines.push("</graph>");
@@ -42,7 +48,9 @@ const shapes = {
     fanout(n) {
         const lines = ['<mathInput name="n" prefill="1"/>', '<graph name="g">'];
         for (let i = 0; i < n; i++) {
-            lines.push(`  <number name="o${i}">${(1 + (i % 10) / 10).toFixed(1)} $n</number><point name="p${i}" x="$o${i}" y="${i}"/>`);
+            lines.push(
+                `  <number name="o${i}">${(1 + (i % 10) / 10).toFixed(1)} $n</number><point name="p${i}" x="$o${i}" y="${i}"/>`,
+            );
         }
         lines.push("</graph>");
         return lines.join("\n") + "\n";
@@ -53,41 +61,60 @@ const shapes = {
      * repeat sit too close together for a pointer to pick one by name).
      */
     repeat(n) {
-        return [
-            `<mathInput name="n" prefill="${n}"/>`,
-            '<graph name="g">',
-            // Off the line y = x/2 the repeat's points lie on, so a pointer
-            // at q finds q.
-            '<point name="q" x="5" y="-5"/>',
-            '<repeatForSequence name="r" from="-9" step="0.18" length="$n" valueName="v">',
-            '<number name="h">0.5 $v</number>',
-            '<point name="p" x="$v" y="$h"/>',
-            "</repeatForSequence>",
-            "</graph>",
-        ].join("\n") + "\n";
+        return (
+            [
+                `<mathInput name="n" prefill="${n}"/>`,
+                '<graph name="g">',
+                // Off the line y = x/2 the repeat's points lie on, so a pointer
+                // at q finds q.
+                '<point name="q" x="5" y="-5"/>',
+                '<repeatForSequence name="r" from="-9" step="0.18" length="$n" valueName="v">',
+                '<number name="h">0.5 $v</number>',
+                '<point name="p" x="$v" y="$h"/>',
+                "</repeatForSequence>",
+                "</graph>",
+            ].join("\n") + "\n"
+        );
     },
     /** A chain of simplified symbolic expressions with a free variable, evaluated every third step. */
     symchain(n) {
-        const lines = ['<mathInput name="mi" prefill="x^2+1"/>', '<mathInput name="t" prefill="1"/>'];
+        const lines = [
+            '<mathInput name="mi" prefill="x^2+1"/>',
+            '<mathInput name="t" prefill="1"/>',
+        ];
         const coef = [1, 2, 4, 5, 2, 3, 5];
         for (let i = 0; i < n; i++) {
             const prev = i === 0 ? "$mi" : `$m${i - 1}`;
             const sign = i % 2 === 0 ? "+" : "-";
             if (i % 3 === 2) {
-                lines.push(`<evaluate name="e${i}" function="${prev}" input="$t"/>`);
-                lines.push(`<math name="m${i}" simplify>${prev} + 0.001 $e${i}</math>`);
+                lines.push(
+                    `<evaluate name="e${i}" function="${prev}" input="$t"/>`,
+                );
+                lines.push(
+                    `<math name="m${i}" simplify>${prev} + 0.001 $e${i}</math>`,
+                );
             } else {
-                lines.push(`<math name="m${i}" simplify>${prev} ${sign} ${coef[i % coef.length]} x</math>`);
+                lines.push(
+                    `<math name="m${i}" simplify>${prev} ${sign} ${coef[i % coef.length]} x</math>`,
+                );
             }
         }
         return lines.join("\n") + "\n";
     },
     /** N math inputs, each checked by an answer. */
     answers(n) {
-        const correct = ["(x+1)^2", "2x^2-3x+1", "sin(x)^2+3", "(x-4)(x+4)", "e^x + 5"];
+        const correct = [
+            "(x+1)^2",
+            "2x^2-3x+1",
+            "sin(x)^2+3",
+            "(x-4)(x+4)",
+            "e^x + 5",
+        ];
         const lines = [];
         for (let i = 0; i < n; i++) {
-            lines.push(`<p><answer name="a${i}"><mathInput name="mi${i}"/><award>${correct[i % correct.length]}</award></answer></p>`);
+            lines.push(
+                `<p><answer name="a${i}"><mathInput name="mi${i}"/><award>${correct[i % correct.length]}</award></answer></p>`,
+            );
         }
         return lines.join("\n") + "\n";
     },
@@ -95,8 +122,13 @@ const shapes = {
     adventure(n) {
         const lines = ['<mathInput name="path" prefill="1"/>'];
         for (let c = 1; c <= 3; c++) {
-            const pts = Array.from({ length: n }, (_, i) => `<point x="${i % 17}" y="${(i * 7 + c) % 17}"/>`).join("");
-            lines.push(`<conditionalContent name="a${c}"><case condition="$path = ${c}"><number name="score">${c}</number><graph>${pts}</graph></case></conditionalContent>`);
+            const pts = Array.from(
+                { length: n },
+                (_, i) => `<point x="${i % 17}" y="${(i * 7 + c) % 17}"/>`,
+            ).join("");
+            lines.push(
+                `<conditionalContent name="a${c}"><case condition="$path = ${c}"><number name="score">${c}</number><graph>${pts}</graph></case></conditionalContent>`,
+            );
         }
         return lines.join("\n") + "\n";
     },

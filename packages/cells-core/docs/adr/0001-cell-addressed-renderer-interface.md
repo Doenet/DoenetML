@@ -27,7 +27,7 @@ and write paths, which is the symmetry break the prototype is exploring.
 - The renderer must know cell indices; it gets them from the component
   table rather than from prop names at update time.
 - The core runs on the main thread. A worker deployment was built and
-  measured (plan 2, `results/NOTES.md`): 1 to 10 ms of latency per tick and
+  measured (plan 2): 1 to 10 ms of latency per tick and
   one vsync, with `SharedArrayBuffer` and `postMessage` transports within
   noise of each other. The core's own share of a tick is under 3 ms at
   100,000 cells, so the worker bought nothing, and both transports were

@@ -524,7 +524,8 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
         }
         if (
             budget.maxBrotliBytes !== undefined &&
-            (!Number.isFinite(budget.maxBrotliBytes) || budget.maxBrotliBytes <= 0)
+            (!Number.isFinite(budget.maxBrotliBytes) ||
+                budget.maxBrotliBytes <= 0)
         ) {
             throw new Error(
                 `bundle-budgets.json entry "${relative}" has a "maxBrotliBytes" that is ` +

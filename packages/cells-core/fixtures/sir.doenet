@@ -47,13 +47,13 @@ where</p>
   <polyline vertices="$SPoints" draggable="false" />
   <polyline vertices="$IPoints" draggable="false" styleNumber="2" />
   <polyline vertices="$RPoints" draggable="false" styleNumber="3" />
-  <point x="$zeroFixed" y="$S0" layer="1">
+  <point name="Spt" x="$zeroFixed" y="$S0" layer="1">
     <constrainToGrid dy="1" />
   </point>
-  <point x="$zeroFixed" y="$I0" styleNumber="2" layer="1">
+  <point name="Ipt" x="$zeroFixed" y="$I0" styleNumber="2" layer="1">
     <constrainToGrid dy="1" />
   </point>
-  <point x="$zeroFixed" y="$R0" styleNumber="3">
+  <point name="Rpt" x="$zeroFixed" y="$R0" styleNumber="3">
     <constrainToGrid dy="1" />
   </point>
   <legend>

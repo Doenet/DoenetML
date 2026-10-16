@@ -3,11 +3,11 @@
 // with the latency of each measured as the time to the first animation
 // frame in which the dragged point had moved on screen; other steps go
 // through the core with the time to the next frame and the next paint.
-// One record per (core, fixture) in results/raw/browser-<date>.jsonl.
+// One record per (core, fixture) in results/raw/browser-<date>.json.
 //
 //   BENCH_CORES=javascript,cells BENCH_FIXTURES=chain-100 npm run browser
 import { test, type Page } from "@playwright/test";
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { resolve } from "node:path";
 import {
@@ -16,6 +16,7 @@ import {
     packageRoot,
     repoRoot,
 } from "../src/fixtures.mjs";
+import { appendRecord, localDate } from "../src/results.mjs";
 
 const CORES = (process.env.BENCH_CORES ?? "javascript,cells").split(",");
 const only = process.env.BENCH_FIXTURES?.split(",");
@@ -33,15 +34,12 @@ const cellsAdapter = readFileSync(
     resolve(packageRoot, "browser/cells-adapter.js"),
     "utf8",
 );
-const date = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 10);
-const out = resolve(packageRoot, `results/raw/browser-${date}.jsonl`);
+const date = localDate();
+const out = resolve(packageRoot, `results/raw/browser-${date}.json`);
 const commit = execSync("git rev-parse --short HEAD", {
     cwd: repoRoot,
     encoding: "utf8",
 }).trim();
-mkdirSync(resolve(out, ".."), { recursive: true });
 
 function quantiles(xs: number[]) {
     const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
@@ -274,7 +272,7 @@ for (const m of FIXTURES) {
                     record.message = String(e.message).slice(0, 500);
                 }
             }
-            appendFileSync(out, JSON.stringify(record) + "\n");
+            appendRecord(out, record);
             const brief =
                 record.status === "ok"
                     ? `load ${record.load_ms.toFixed(0)} ms` +

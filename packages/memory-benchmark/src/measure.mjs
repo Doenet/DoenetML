@@ -416,7 +416,8 @@ const emptyDast = parser.normalizeDocumentDast(parser.lezerToDast(""), true);
 // build, which only the JS core's windowed-* scenarios need.
 const needWindowed =
     opts.core === "javascript" &&
-    (!opts.only || ["windowed-8-3", "windowed-16-3"].some((n) => opts.only.test(n)));
+    (!opts.only ||
+        ["windowed-8-3", "windowed-16-3"].some((n) => opts.only.test(n)));
 const { server, port } = await startServer(docs, {
     json: { "/empty-dast.json": emptyDast },
     extra: needWindowed

@@ -13,7 +13,10 @@ import { dirname, extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { packageRoot, repoRoot } from "../src/fixtures.mjs";
 
-export const bundlePath = resolve(repoRoot, "packages/doenetml-worker-javascript/.bench/measure-one.mjs");
+export const bundlePath = resolve(
+    repoRoot,
+    "packages/doenetml-worker-javascript/.bench/measure-one.mjs",
+);
 const entry = resolve(packageRoot, "src/measure-one.ts");
 
 const sourceLocations = {
@@ -22,14 +25,24 @@ const sourceLocations = {
         b.onLoad({ filter: /\.(m?[jt]s|tsx)$/ }, (args) => {
             if (args.path.includes("/node_modules/")) return undefined;
             let text = readFileSync(args.path, "utf8");
-            if (!/import\.meta\.|__dirname|__filename/.test(text)) return undefined;
+            if (!/import\.meta\.|__dirname|__filename/.test(text))
+                return undefined;
             text = text
-                .replace(/import\.meta\.dirname/g, JSON.stringify(dirname(args.path)))
-                .replace(/import\.meta\.url/g, JSON.stringify(pathToFileURL(args.path).href))
+                .replace(
+                    /import\.meta\.dirname/g,
+                    JSON.stringify(dirname(args.path)),
+                )
+                .replace(
+                    /import\.meta\.url/g,
+                    JSON.stringify(pathToFileURL(args.path).href),
+                )
                 .replace(/\b__dirname\b/g, JSON.stringify(dirname(args.path)))
                 .replace(/\b__filename\b/g, JSON.stringify(args.path));
             const ext = extname(args.path);
-            return { contents: text, loader: ext === ".tsx" ? "tsx" : ext === ".ts" ? "ts" : "js" };
+            return {
+                contents: text,
+                loader: ext === ".tsx" ? "tsx" : ext === ".ts" ? "ts" : "js",
+            };
         });
     },
 };
@@ -37,21 +50,36 @@ const sourceLocations = {
 /** Newest mtime under the directories the bundle is built from. */
 function newest(dir, acc = 0) {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
-        if (e.name === "node_modules" || e.name === "dist" || e.name === "target" || e.name.startsWith(".")) continue;
+        if (
+            e.name === "node_modules" ||
+            e.name === "dist" ||
+            e.name === "target" ||
+            e.name.startsWith(".")
+        )
+            continue;
         const p = resolve(dir, e.name);
-        acc = e.isDirectory() ? newest(p, acc) : Math.max(acc, statSync(p).mtimeMs);
+        acc = e.isDirectory()
+            ? newest(p, acc)
+            : Math.max(acc, statSync(p).mtimeMs);
     }
     return acc;
 }
 
 /** Build the bundle if any source is newer than it; returns its path. */
 export async function ensureBundle() {
-    const stale = !existsSync(bundlePath) ||
-        statSync(bundlePath).mtimeMs < Math.max(
-            newest(resolve(packageRoot, "src")),
-            newest(resolve(repoRoot, "packages/doenetml-worker-javascript/src")),
-            newest(resolve(repoRoot, "packages/doenetml/src")),
-        );
+    const stale =
+        !existsSync(bundlePath) ||
+        statSync(bundlePath).mtimeMs <
+            Math.max(
+                newest(resolve(packageRoot, "src")),
+                newest(
+                    resolve(
+                        repoRoot,
+                        "packages/doenetml-worker-javascript/src",
+                    ),
+                ),
+                newest(resolve(repoRoot, "packages/doenetml/src")),
+            );
     if (!stale) return bundlePath;
     const t = Date.now();
     await build({
@@ -68,7 +96,10 @@ export async function ensureBundle() {
     return bundlePath;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === new URL(import.meta.url).pathname) {
+if (
+    process.argv[1] &&
+    resolve(process.argv[1]) === new URL(import.meta.url).pathname
+) {
     await ensureBundle();
     console.log(bundlePath);
 }

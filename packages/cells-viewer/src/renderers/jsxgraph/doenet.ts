@@ -1,7 +1,6 @@
 // What makes a JSXGraph board look like Doenet's: style values, attribute
 // builders, axis and navigation setup, and the small geometry helpers the
-// component renderers use. Copied from the DoenetML checkout at
-// ~/doenet/ml (commit dfb2b5c9e, branch cells-prototype-adapter) with
+// component renderers use. Copied from this repository's renderers with
 // Doenet-only inputs (layers, labels, dark mode, tick scale factors, grids)
 // fixed at their defaults. Sources:
 //   packages/utils/src/style/styleDefinitionHelpers.ts   DEFAULT_STYLE_VALUES

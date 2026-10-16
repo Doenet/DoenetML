@@ -1,8 +1,6 @@
----
-status: accepted
----
-
 # Cycles are rejected for every iteration count, not the count at load
+
+Status: accepted 2026-10-16.
 
 The cycle check runs on the template graph with every indexed reference
 assumed to land on a real iteration, so a document that is acyclic at the

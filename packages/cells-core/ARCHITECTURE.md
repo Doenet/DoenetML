@@ -5,8 +5,10 @@ around components. Components and props are a naming layer over cell
 indices; the dependency graph is a list of **instructions**, each an
 operator that computes derived cells from other cells and may carry an
 inverse. This file is the map. `CONTEXT.md` defines the vocabulary,
-`docs/adr/` records why things are the way they are, and the repository's
-`docs/history/` has the briefs and plans of the rounds that built it.
+`docs/adr/` records why things are the way they are. The core was built in
+numbered rounds (plans 2 to 8) before it joined this repository; where an
+ADR or a comment cites a plan by number, it means that round's brief and
+measurements, which are not in this repository.
 
 ## The pipeline
 

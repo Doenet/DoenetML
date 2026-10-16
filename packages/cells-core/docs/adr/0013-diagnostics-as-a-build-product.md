@@ -1,8 +1,6 @@
----
-status: accepted
----
-
 # Diagnostics are a product of one exhaustive build, never of a tick
+
+Status: accepted 2026-10-16.
 
 Every diagnostic the core reports about a document (an error, a warning,
 an info, an accessibility finding) is computed by one pure function of the

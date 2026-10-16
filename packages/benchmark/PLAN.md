@@ -9,7 +9,7 @@ the cells prototype had, and different.
 ## The questions
 
 1. Which of the prototype's measurements survive, now that the questions
-   they answered (plans 2 through 6 in the cells-prototype archive) are
+   they answered (plans 2 through 6, before the core joined this repository) are
    settled?
 2. How do the three cores (the JS core in `doenetml-worker-javascript`, the
    Rust core in `doenetml-worker-rust`, the cells core in `cells-core`)
@@ -19,8 +19,8 @@ the cells prototype had, and different.
 
 ## Background found before planning
 
-- **The prototype's suite** (now `packages/cells-core/crates/cells-bench`
-  and `packages/cells-viewer/e2e/perf.spec.ts`): three criterion benches
+- **The prototype's suite** (then in `packages/cells-core/crates/cells-bench`
+  and a Playwright spec in the cells viewer, both deleted in step 6 below): three criterion benches
   (startup, tick, rebuild) sweeping about 25 fixture shapes by size,
   evaluator and wire format; a `regress` example printing load, tick and
   bytes per fixture as JSON lines; `scripts/perf-diff.sh` running it on a
@@ -37,8 +37,8 @@ the cells prototype had, and different.
   against any of the three cores through a shared interface (load a
   document, request an action, read state): `test-core-rust.ts` and
   `test-core-cells.ts` in `packages/doenetml-worker-javascript/src/test/utils`,
-  selected by `DOENET_TEST_CORE`. Two gated vitest benchmarks sit beside
-  them: `drag-bench.test.ts` (50-point dot plot) and
+  selected by `DOENET_TEST_CORE`. Two gated vitest benchmarks sat beside
+  them, also deleted in step 6: `drag-bench.test.ts` (50-point dot plot) and
   `memory-bench.test.ts` (Node heap on a Venn document and a 150-iteration
   repeat).
 - **Saved state in the JS core** is produced by `buildDocStatePayload` in
@@ -56,8 +56,9 @@ the cells prototype had, and different.
   2.6 MB wasm plus 1.2 MB of JS, unbudgeted; the wasm size suggests
   wasm-opt is still off and symbols are in. Nothing timing-related runs in
   CI.
-- **The 2026-10-09 prototype results** are frozen in the archive's
-  `RESULTS.md`; they are the cross-check for the first run.
+- **The 2026-10-09 prototype results** are frozen in the prototype's
+  `RESULTS.md`, which is not in this repository; they are the cross-check
+  for the first run.
 
 ## Decisions
 
@@ -150,18 +151,18 @@ Documentation, not gates; revise after the first run.
 ### Package and tooling
 
 - **`packages/benchmark`** holds the Node driver, fixtures and manifests,
-  the Playwright harness, the renderer, committed raw results (JSON lines
-  per run) and the rendered Markdown tables. It is not under any one core
+  the Playwright harness, the renderer, committed raw results (one JSON
+  file per run) and the rendered Markdown tables. It is not under any one core
   because it is about three. `memory-benchmark` stays a separate package
   (its axis is embedding, not cores) and gains a core switch.
 - **One native driver.** The prototype's `regress` example folds into the
   Node driver's role: one tool prints load, tick, rebuild and memory per
-  fixture as JSON lines; `perf-diff.sh` becomes a thin wrapper that runs
+  fixture as JSON records; `perf-diff.sh` becomes a thin wrapper that runs
   it on a base commit and the working tree.
 - **Deletions, deferred one commit.** The criterion benches (startup, tick,
   rebuild), `sir_perf`, and `cells-viewer/e2e/perf.spec.ts` are deleted in
   the commit that lands the first table, after one cross-check of the
-  cells column against the archive's `RESULTS.md`.
+  cells column against the prototype's `RESULTS.md`.
 - **CI.** Only the brotli measurement joins the existing standalone size
   check, with the budget-in-the-diff convention. Timings do not run in
   CI.
@@ -171,13 +172,13 @@ Documentation, not gates; revise after the first run.
 1. Manifest format and the corpus (fixtures copied or generated, the
    homework page written).
 2. Node driver over the shared test-core interface: update, load stages,
-   memory; results as JSON lines.
+   memory; results as JSON records.
 3. State serialization in the cells core; storage-size measurement for
    both cores.
 4. Bundle measurement (raw and brotli) and the CI hook.
 5. Browser harness: the standalone viewer's timing hook, one Playwright
    spec parameterized by core, `memory-benchmark` core switch.
-6. Renderer, first committed run, cross-check against the archive, delete
+6. Renderer, first committed run, cross-check against the prototype's tables, delete
    the prototype suites.
 
 ## Out of scope
@@ -192,7 +193,7 @@ Documentation, not gates; revise after the first run.
 
 All six steps are done; `results/RESULTS.md` holds the first tables and
 `results/NOTES.md` the reading of them and the cross-check against the
-archive. Deviations from the plan above: the PreTeXt sample article is
+prototype's tables. Deviations from the plan above: the PreTeXt sample article is
 PreTeXt XML, not DoenetML, so a written lesson stands in for it; the
 synthetic shapes are generated by the suite itself (`src/generate.mjs`) in
 DoenetML every core reads, not by cells-docgen; the Node driver (not a

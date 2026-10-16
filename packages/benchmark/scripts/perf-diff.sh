@@ -13,15 +13,15 @@ git -C "$root" worktree add --detach --quiet "$wt" "$base"
 trap 'git -C "$root" worktree remove --force "$wt"' EXIT
 (cd "$wt/packages/cells-core" && CARGO_TARGET_DIR="$root/packages/cells-core/target/perf-base" npx wasm-pack build crates/cells-wasm --target web --release --out-dir "$S/base-pkg" --out-name cells_wasm >/dev/null 2>&1)
 (cd "$root" && npm run build -w packages/cells-core >/dev/null 2>&1)
-: > "$S/base.jsonl"; : > "$S/new.jsonl"
+rm -f "$S/base.json" "$S/new.json"
 for round in 1 2 3; do
-  CELLS_WASM_DIR="$S/base-pkg" node "$here/src/run.mjs" --cores=cells --fixtures="$fixtures" --out="$S/base.jsonl" >/dev/null
-  node "$here/src/run.mjs" --cores=cells --fixtures="$fixtures" --out="$S/new.jsonl" >/dev/null
+  CELLS_WASM_DIR="$S/base-pkg" node "$here/src/run.mjs" --cores=cells --fixtures="$fixtures" --out="$S/base.json" >/dev/null
+  node "$here/src/run.mjs" --cores=cells --fixtures="$fixtures" --out="$S/new.json" >/dev/null
 done
 node - "$S" <<'JS'
 const fs = require("node:fs"); const S = process.argv[2];
-const load = (f) => { const m = {}; for (const l of fs.readFileSync(`${S}/${f}`, "utf8").split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.status === "ok") (m[r.fixture] ??= []).push(r); } return m; };
-const b = load("base.jsonl"), n = load("new.jsonl");
+const load = (f) => { const m = {}; for (const r of JSON.parse(fs.readFileSync(`${S}/${f}`, "utf8"))) { if (r.status === "ok") (m[r.fixture] ??= []).push(r); } return m; };
+const b = load("base.json"), n = load("new.json");
 const min = (rs, f) => Math.min(...rs.map(f));
 console.log("fixture          load    tick  memory   (new/base, per-side minimum)");
 for (const k of Object.keys(b)) {

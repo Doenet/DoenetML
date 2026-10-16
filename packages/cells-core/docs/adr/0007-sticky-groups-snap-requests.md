@@ -11,8 +11,8 @@ snaps the dragged members against the others with the current core's rule
 inverted. Nothing is added to the cell graph or to the inversion engine.
 
 Plan 4 built both this and the alternative behind a switch, over one shared
-snap kernel, and decided by criteria fixed in advance (`docs/history/plan-4.md`);
-the numbers are in `results/NOTES.md`, "Plan 4".
+snap kernel, and decided by criteria fixed in advance; the numbers are in
+plan 4's notes, which predate this repository.
 
 ## Considered options
 
