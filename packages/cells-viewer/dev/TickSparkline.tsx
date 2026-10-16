@@ -21,7 +21,7 @@ export const SEGMENTS: {
     {
         name: "core",
         title: "Inversion and recompute in the wasm core",
-        color: "#1e293b",
+        color: "#0f172a",
         ms: (s) => s.core,
     },
     {
@@ -33,13 +33,13 @@ export const SEGMENTS: {
     {
         name: "React",
         title: "React's render and commit of the changed components",
-        color: "#93c5fd",
+        color: "#f59e0b",
         ms: (s) => s.commit - s.sync,
     },
     {
-        name: "browser",
-        title: "The browser's style, layout and paint of the frame",
-        color: "#cbd5e1",
+        name: "paint",
+        title: "The browser's style, layout and paint of the frame with the tick's DOM changes: from the animation-frame callback to a task after it",
+        color: "#a3a3a3",
         ms: (s) => s.paint - s.frame,
     },
 ];
@@ -175,7 +175,7 @@ function describe(s: TickSample, n: number): string {
         `core ${ms(s.core)} (inversion and recompute)`,
         `boards ${span(s.roundTrip, s.sync)} (JSXGraph redraw)`,
         `React ${span(s.sync, s.commit)} (commit)`,
-        `browser ${span(s.frame, s.paint)} (layout and paint of the frame)`,
+        `paint ${span(s.frame, s.paint)} (the browser's style, layout and paint of the frame)`,
         `busy ${ms(busy(s))}; idle ${span(s.commit, s.frame)} waiting for the frame; painted ${ms(s.paint)} after the request`,
     ].join("\n");
 }
