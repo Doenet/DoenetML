@@ -262,7 +262,8 @@ function App() {
     );
 }
 
-/** The load timings, one line with the detail in the tooltip. */
+/** The load timings and, once there has been one, the last tick's, on one
+ * line with the detail in the tooltips. */
 function Timings({
     t,
     store,
@@ -271,8 +272,6 @@ function Timings({
     store: CellStore | null;
 }) {
     const c = t.core;
-    const ms = (v?: number) =>
-        v === undefined || Number.isNaN(v) ? "…" : `${v.toFixed(1)} ms`;
     const detail = [
         `cells ${store?.comps.nCells ?? "?"}, essential ${store?.comps.nEssential ?? "?"}, components ${store?.comps.length ?? "?"}`,
         `fetch/parse ${ms(t.fetch)}, wasm init ${ms(t.wasmInit)}, core total ${ms(t.coreTotal)}, component table ${ms(t.componentTable)}, first render ${ms(t.firstRender)}`,
@@ -282,9 +281,58 @@ function Timings({
         .filter(Boolean)
         .join("\n");
     return (
+        <>
+            <span title={detail}>
+                {store?.comps.nCells ?? "?"} cells · load: core{" "}
+                {ms(t.coreTotal)}, first render {ms(t.firstRender)}
+            </span>
+            {store && <LastTick store={store} />}
+        </>
+    );
+}
+
+/** The last tick's sample (`CellStore.samples`): the core's time, the
+ * React commit, and the frame and paint after it. */
+function LastTick({ store }: { store: CellStore }) {
+    const [, bump] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => {
+        let frame = 0;
+        let timer = 0;
+        const unsubscribe = store.subscribeAny(() => {
+            bump();
+            // `frame` and `paint` are measured after the next animation
+            // frame (see `CellStore.tick`); read the sample again then.
+            cancelAnimationFrame(frame);
+            window.clearTimeout(timer);
+            frame = requestAnimationFrame(() => {
+                timer = window.setTimeout(bump, 20);
+            });
+        });
+        return () => {
+            unsubscribe();
+            cancelAnimationFrame(frame);
+            window.clearTimeout(timer);
+        };
+    }, [store]);
+    const s = store.samples.at(-1);
+    if (!s) return null;
+    const n = store.samples.length;
+    const detail = [
+        `tick ${n}: ${s.changed} cells changed${s.rebuilt ? ", document rebuilt" : ""}`,
+        `core ${ms(s.core)} (inversion and recompute)`,
+        `round trip ${ms(s.roundTrip)} (changed cells available to the renderer)`,
+        `commit ${ms(s.commit)} (React committed the update)`,
+        `frame ${ms(s.frame)} (next animation frame)`,
+        `paint ${ms(s.paint)} (a task after that frame: the DOM changes painted)`,
+    ].join("\n");
+    return (
         <span title={detail}>
-            {store?.comps.nCells ?? "?"} cells · core {ms(t.coreTotal)} · first
-            render {ms(t.firstRender)}
+            {" "}
+            · tick {n}: core {ms(s.core)}, commit {ms(s.commit)}, paint{" "}
+            {ms(s.paint)}, {s.changed} changed{s.rebuilt ? ", rebuilt" : ""}
         </span>
     );
 }
+
+const ms = (v?: number) =>
+    v === undefined || Number.isNaN(v) ? "…" : `${v.toFixed(1)} ms`;
