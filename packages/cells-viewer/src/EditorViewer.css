@@ -14,7 +14,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 8px;
+    padding: 6px 8px;
     background: #cbd5e1;
     border-bottom: 1px solid #64748b;
 }
@@ -32,31 +32,52 @@
     cursor: default;
 }
 
-.editor-viewer-status {
-    margin-left: auto;
+.editor-viewer-statusbar {
     display: flex;
-    gap: 1em;
+    align-items: stretch;
+    gap: 12px;
+    padding: 6px 8px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #cbd5e1;
     font-size: 0.85em;
     color: #334155;
     font-variant-numeric: tabular-nums;
+}
+
+.status-load {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
     white-space: nowrap;
 }
 
-/* Fixed widths, so a slot filling in does not move the others. */
-.status-slot:first-child {
-    min-width: 13em;
+.status-legend {
+    display: flex;
+    gap: 10px;
+    color: #64748b;
 }
 
-.status-slot:last-child {
-    min-width: 320px;
-    display: inline-flex;
-    align-items: center;
+.status-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+    vertical-align: -1px;
+}
+
+.status-ticks {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .tick-sparkline {
     display: block;
+    width: 100%;
     background: #f8fafc;
     border: 1px solid #cbd5e1;
+    box-sizing: border-box;
 }
 
 .editor-viewer-panels {

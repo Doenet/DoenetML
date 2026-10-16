@@ -10,7 +10,7 @@ import {
     type WireFormat,
 } from "../src/document";
 import { locate } from "../src/renderers/jsxgraph/Board";
-import { TickSparkline } from "./TickSparkline";
+import { SEGMENTS, TickSparkline } from "./TickSparkline";
 import "./main.css";
 
 // @ts-ignore
@@ -263,9 +263,8 @@ function App() {
     );
 }
 
-/** The load time, with the detail in the tooltip, and the sparkline of
- * the ticks. Each sits in a fixed slot (`.editor-viewer-status`) so the
- * sparkline appearing does not move the load. */
+/** The status strip: the load time (detail in the tooltip) and a legend
+ * on the left, the sparkline of the ticks filling the rest. */
 function Timings({
     t,
     store,
@@ -284,12 +283,23 @@ function Timings({
         .join("\n");
     return (
         <>
-            <span className="status-slot" title={detail}>
-                {store?.comps.nCells ?? "?"} cells · load {ms(t.firstRender)}
-            </span>
-            <span className="status-slot">
+            <div className="status-load">
+                <span title={detail}>
+                    {store?.comps.nCells ?? "?"} cells · load{" "}
+                    {ms(t.firstRender)}
+                </span>
+                <span className="status-legend">
+                    {SEGMENTS.map((seg) => (
+                        <span key={seg.name} title={seg.title}>
+                            <i style={{ background: seg.color }} />
+                            {seg.name}
+                        </span>
+                    ))}
+                </span>
+            </div>
+            <div className="status-ticks">
                 {store && <TickSparkline store={store} />}
-            </span>
+            </div>
         </>
     );
 }

@@ -38,8 +38,8 @@ The toolbar, besides what the other test viewers have:
   fixtures present when the dev server started, and is absent when none
   have been generated.
 
-The header reports the load time, and a sparkline of the last eighty
-ticks: stacked bars of busy time (the core, the JSXGraph boards' redraw,
+A strip under the header reports the load time and draws the latest
+ticks, as many as the width holds: stacked bars of busy time (the core, the JSXGraph boards' redraw,
 React's commit, the browser's layout and paint) on a square-root scale
 against a line at one frame's budget, red-flagged above it. Hover a bar
 for its numbers; the tooltips carry the detail.

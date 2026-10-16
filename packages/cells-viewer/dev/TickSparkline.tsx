@@ -3,24 +3,45 @@ import type { CellStore, TickSample } from "../src/core";
 
 /** One frame at 60 Hz, the budget a tick should fit in. */
 const BUDGET_MS = 1000 / 60;
-const BARS = 80;
-/** Column width per tick; the bar is a pixel narrower, for a gap. */
-const BAR_PX = 4;
-const HEIGHT_PX = 40;
+/** Column width per tick; the bar is a pixel narrower, for a gap. The
+ * number of ticks shown is what the width holds. */
+const BAR_PX = 6;
+const HEIGHT_PX = 64;
 
 /** The stacked segments of a tick, bottom to top: busy time, not latency.
  * The wait from React's commit to the next animation frame is idle and is
  * left out, so a bar is the work the tick cost; the browser's share is the
  * frame callback to the paint after it. */
-const SEGMENTS: {
+export const SEGMENTS: {
     name: string;
+    title: string;
     color: string;
     ms: (s: TickSample) => number;
 }[] = [
-    { name: "core", color: "#1e293b", ms: (s) => s.core },
-    { name: "boards", color: "#2563eb", ms: (s) => s.sync - s.roundTrip },
-    { name: "React", color: "#93c5fd", ms: (s) => s.commit - s.sync },
-    { name: "browser", color: "#cbd5e1", ms: (s) => s.paint - s.frame },
+    {
+        name: "core",
+        title: "Inversion and recompute in the wasm core",
+        color: "#1e293b",
+        ms: (s) => s.core,
+    },
+    {
+        name: "boards",
+        title: "The JSXGraph boards' redraw",
+        color: "#2563eb",
+        ms: (s) => s.sync - s.roundTrip,
+    },
+    {
+        name: "React",
+        title: "React's render and commit of the changed components",
+        color: "#93c5fd",
+        ms: (s) => s.commit - s.sync,
+    },
+    {
+        name: "browser",
+        title: "The browser's style, layout and paint of the frame",
+        color: "#cbd5e1",
+        ms: (s) => s.paint - s.frame,
+    },
 ];
 
 /** The known segments of a tick, in order; a segment not yet measured
@@ -38,7 +59,7 @@ function durations(s: TickSample): number[] {
 const busy = (s: TickSample) => durations(s).reduce((sum, v) => sum + v, 0);
 
 /**
- * The last eighty ticks as stacked bars of busy time, newest at the
+ * The latest ticks, as many as the width holds, as stacked bars of busy time, newest at the
  * right: the core's time, the JSXGraph boards' redraw, React's commit, and
  * the browser's layout and paint, on a square-root scale against a line
  * at one frame's budget. Hover a bar for its numbers. Redrawn after each tick and again once that tick's frame
@@ -47,6 +68,19 @@ const busy = (s: TickSample) => durations(s).reduce((sum, v) => sum + v, 0);
 export function TickSparkline({ store }: { store: CellStore }) {
     const canvas = React.useRef<HTMLCanvasElement>(null);
     const [, bump] = React.useReducer((n: number) => n + 1, 0);
+    const [width, setWidth] = React.useState(0);
+
+    // As wide as the strip gives it.
+    React.useLayoutEffect(() => {
+        const el = canvas.current;
+        if (!el) return;
+        const observer = new ResizeObserver(() =>
+            setWidth(el.getBoundingClientRect().width),
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+    const bars = Math.max(1, Math.floor(width / BAR_PX));
 
     React.useEffect(() => {
         let frame = 0;
@@ -66,13 +100,13 @@ export function TickSparkline({ store }: { store: CellStore }) {
         };
     }, [store]);
 
-    const samples = store.samples.slice(-BARS);
+    const samples = store.samples.slice(-bars);
 
     React.useLayoutEffect(() => {
         const el = canvas.current;
         if (!el) return;
         const dpr = window.devicePixelRatio || 1;
-        const w = BARS * BAR_PX;
+        const w = Math.max(width, 1);
         const h = HEIGHT_PX;
         if (el.width !== w * dpr || el.height !== h * dpr) {
             el.width = w * dpr;
@@ -113,7 +147,7 @@ export function TickSparkline({ store }: { store: CellStore }) {
     function onMouseMove(event: React.MouseEvent<HTMLCanvasElement>) {
         const el = event.currentTarget;
         const x = event.clientX - el.getBoundingClientRect().left;
-        const i = samples.length - Math.ceil((BARS * BAR_PX - x) / BAR_PX);
+        const i = samples.length - Math.ceil((width - x) / BAR_PX);
         const s = samples[i];
         el.title = s
             ? describe(s, store.samples.length - samples.length + i + 1)
@@ -124,7 +158,7 @@ export function TickSparkline({ store }: { store: CellStore }) {
         <canvas
             ref={canvas}
             className="tick-sparkline"
-            style={{ width: BARS * BAR_PX, height: HEIGHT_PX }}
+            style={{ height: HEIGHT_PX }}
             aria-label="Tick timings"
             onMouseMove={onMouseMove}
         />
