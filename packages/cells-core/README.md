@@ -41,8 +41,8 @@ iterated. `fixtures/sir.doenet` is a document using most of these.
   snippets with `testing::test_utils::load` and read cells by component
   name and prop; copy one to try a document without the browser.
 - `npm run build`: compiles the core to wasm in `pkg/`, which
-  `packages/cells-viewer` serves in the browser (`npm run dev` there; see
-  its README). Rebuild after changing Rust.
+  `packages/cells-viewer` serves in the browser. Its `npm run dev` depends
+  on this through wireit, so running the viewer rebuilds a stale `pkg/`.
 - `npm run lint`: fmt and clippy, warnings denied.
 - `npm run fixtures`, `npm run golden-diff -- [rev]`: the generated
   documents and the refactoring guard.

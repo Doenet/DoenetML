@@ -9,15 +9,16 @@ read straight from wasm memory (ADR 0001).
 From the repository root, after `npm install`:
 
 ```bash
-npm run build -w @doenet/parser        # the DoenetML parser the viewer runs in the browser
-npm run build -w @doenet/cells-core    # compiles the core to wasm in packages/cells-core/pkg
-npm run dev -w @doenet/cells-viewer    # serves the viewer at http://localhost:5173
+npm run dev -w @doenet/cells-viewer
 ```
 
-The page opens on the `sir` document with its DoenetML in an editable box;
-edit it and press "Load document" (Ctrl+Enter) to rebuild. Rebuild the core
-(`npm run build -w @doenet/cells-core`) after changing Rust; Vite picks up
-the new `pkg/` on reload.
+`dev` is a wireit service: it first builds `@doenet/parser` (the DoenetML
+parser the viewer runs in the browser) and `@doenet/cells-core` (the core
+compiled to wasm in `packages/cells-core/pkg`) if their sources changed,
+then serves the viewer at http://localhost:5173. The page opens on the
+`sir` document with its DoenetML in an editable box; edit it and press
+"Load document" (Ctrl+Enter) to rebuild. After changing Rust, restart
+`dev` (or run `npm run build -w @doenet/cells-core` beside it) and reload.
 
 Query parameters: `?doc=<spec>` picks a generated fixture (after
 `npm run fixtures -w @doenet/cells-core`) or `sir`, `?fmt=json|cdast` the
