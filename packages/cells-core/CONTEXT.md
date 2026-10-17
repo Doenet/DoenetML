@@ -211,10 +211,10 @@ plan* (a literal, an alias, an operator over other props, a math) and each
 reference's *reference plan* (a path through names and indices). Expansion
 turns plans into slots per scope.
 
-**Compile** — The once-per-load stage (ADR 0015): the source and seed made
-into templates and plans (*plan*), checked through the probe (*check*), with
-every element that fails boxed. Its product, `Compiled`, is what every build
-stamps.
+**Compile** — The once-per-load stage (ADR 0015): the source made into
+templates and plans (*plan*), checked through the probe (*check*), with every
+element that fails boxed. Its product, `Compiled`, is what every build stamps,
+and depends on the source alone, not the seed (ADR 0014).
 
 **Build** — One pass from the compile, the session and iteration counts to
 cells, program and component table: expand, resolve, emit, schedule. A
@@ -308,7 +308,8 @@ and the content inside it. A branch is a naming region, like an iteration.
 
 **Load-time choice** — A choice made once, while the document is built, from
 the document seed (`<select>` and its relatives). Unchosen branches are never
-built: they have no cells and no components.
+built into the document: they have no cells and no components. The load's
+check builds every branch once and discards it (ADR 0014).
 
 **Reactive choice** — A choice that a cell decides and that can change on any
 tick (`<conditionalContent>`). Its active branch can change without the

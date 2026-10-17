@@ -101,7 +101,8 @@ once, since rebuilds change counts but never templates.
   ordinary tick (ADR 0009). A load-time choice outside a repeat fixes the
   graph per seed, so a cycle inside one option is caught at load for the
   students who draw it, and the rest are not told; inside a repeat every
-  option is checked, since a later iteration may draw it.
+  option is checked, since a later iteration may draw it. (Since ADR 0014's
+  amendment every option of every select is checked at load.)
 - Dynamic indices (`$r[$k]`) remain rejected at compile time. Admitting
   them would make every loop through such an edge a cycle, since its
   offset is unknown; that is a decision for when they are wanted.

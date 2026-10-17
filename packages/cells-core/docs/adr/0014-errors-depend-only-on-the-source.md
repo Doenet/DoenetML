@@ -1,6 +1,7 @@
 # Every error depends only on the document source
 
-Status: accepted 2026-10-17.
+Status: accepted 2026-10-17; amended the same day to check every option of
+every select (below).
 
 Whether an element can be built depends on the DoenetML source alone:
 never on an iteration count, on which option a select draws in an
@@ -32,8 +33,8 @@ instance, and the load's build must be the one to find it:
   of options with weight) moved there from the draw itself, which a
   select in a repeat makes once per iteration a student adds.
 - **Checks on what a reference reaches run in the probe, against every
-  instance.** The probe (ADR 0012) stamps each repeat body once and, in a
-  repeat, builds every option of a select. Where a real build would reach
+  instance.** The probe (ADR 0012) stamps each repeat body once and builds
+  every option of every select, in a repeat or not (the amendment below). Where a real build would reach
   one of several instances, the probe reaches a *stand-in* that reads all
   of them, and whatever a rule asks of the referent it asks of each:
   - an interface name's stand-in (as before) and a whole pick's
@@ -96,16 +97,42 @@ for documents with repeats, as before, and takes 2% to 8% of their load
 (`LoadTimings::cycle_check`: repeat-100 8%, sir 3%, repeat-1000 2%).
 Ticks and rebuilds do no new work.
 
+## Amendment: every option of every select
+
+As first accepted, the probe built every option only of a select inside
+a repeat, where a later iteration may draw any of them; outside one it
+built the session's draw, so a load's errors were per seed. An author
+previewing one seed could publish a document that boxed an option for the
+students who drew it. Now the probe builds every option of every select,
+and runs for a document with a select even when it has no repeat. With it:
+
+- The compile depends on the source alone: its templates, boxes and
+  diagnostics are the same at every seed (`tests/compile_purity.rs`), so
+  one compile could serve every student of a document.
+- A load's diagnostics are `diagnose`'s list, and the probe is one build
+  for both: `diagnose` is the check without the load.
+- An error in an option a student never draws still boxes it there, out of
+  sight, and is reported.
+
+Cost: the options a seed does not draw are built once more at load, so it
+grows with the selects outside repeats and their options. In
+instructions: select-1000 (1,000 four-option selects) +43%, select-100
++23%; documents without such selects unchanged. In wasm, select-1000's
+load goes from 23 to 44 ms and its linear memory from 6.1 to 8.2 MiB. A
+document with a few selects pays about a millisecond. Two ways to lower
+it, not done: check once when a document is published and keep the
+compile with it, or build only the undrawn options beside the stamped
+build instead of the whole probe.
+
 ## Considered options
 
 - Box an element a later build fails, as before. Rejected: an author
   cannot know a document is sound, and a student meets an error box
   mid-session.
-- Run the exhaustive build (`diagnose`) at load. Rejected: it builds every
-  option of every select, including those outside repeats, whose draw is
-  fixed by the seed for the session, so the extra work never changes what
-  a student can meet. The probe already builds every option where a later
-  iteration may draw it.
+- Run the exhaustive build (`diagnose`) at load. First rejected: the draw
+  of a select outside a repeat is fixed for the session, so the extra work
+  never changes what that student meets. Adopted by the amendment, since
+  what an author is told should not depend on which student loads.
 - Build at every count and seed. Rejected for the reason in ADR 0012.
 - Treat a missing `extend` referent as an error at every count. Rejected:
   `$r[k].x` is already the missing value past the count, and a copy of it
@@ -114,8 +141,7 @@ Ticks and rebuilds do no new work.
 ## Consequences
 
 - A document that loads reports every error it has; `diagnostics()` is
-  the same before and after any tick (per seed, since a select outside a
-  repeat draws once per session).
+  the same before and after any tick, and at every seed.
 - Some documents that loaded clean now report an error at load: a whole
   pick of a select in a repeat whose options differ in shape, a choice
   whose branches hold a name with different kinds of value, a prefill that

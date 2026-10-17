@@ -149,10 +149,10 @@ count and every pick, finds them all at load, and a later build that
 finds one fails with `Error::Unchecked` rather than boxing mid-session.
 
 **The language server asks for every diagnostic** (`diagnose`,
-`compile/check.rs`). The same loop through the probe view with every option
-of every select built, output discarded. Its list is a function of the
-DAST alone: every branch, every repeat body, at any seed and any count.
-A load never runs it.
+`compile/check.rs`): the compile's check without the load, through the
+same probe, which builds every option of every select. Its list is a
+function of the DAST alone, at any seed and any count, and equals a
+load's (ADR 0014's amendment).
 
 **An answer is submitted** (`Document::submit`, `document/sections.rs`). This
 is an ordinary request: the response handle is copied into the answer's

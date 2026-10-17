@@ -2,6 +2,8 @@
 //! through the probe, which stands for every count and every pick, and box
 //! every element that fails until every element builds (ADR 0013). What it
 //! finds is every error the document has; no later build finds another.
+//! What it finds depends on the source alone, never on the seed or the
+//! session, so the compile does too (`tests/compile_purity.rs`).
 
 use super::*;
 use crate::build::{self, BuildOutput};
@@ -13,8 +15,9 @@ pub(crate) struct CompileOutput {
     /// The compile, which every build of the document stamps.
     pub(crate) compiled: Arc<Compiled>,
     /// The first build, when it was the check: a document without repeats
-    /// (or one loaded without the cycle check) is checked by its one
-    /// stamped build, which the load keeps rather than building again.
+    /// or selects (or one loaded without the cycle check) is checked by its
+    /// one stamped build, which draws nothing, and the load keeps it rather
+    /// than building again.
     pub(crate) first_build: Option<BuildOutput>,
     /// How long the probe took; zero when it did not run.
     pub(crate) check_time: std::time::Duration,
@@ -22,8 +25,10 @@ pub(crate) struct CompileOutput {
 
 /// Compile `dast` (ADR 0015): plan it, check it, and box every element
 /// that fails until every element builds. With `check_cycles`, a document
-/// with repeats is checked through the probe (ADR 0012); otherwise its
-/// stamped build at no iteration is the check. The compile holds the
+/// with repeats or selects is checked through the probe (ADR 0012, ADR
+/// 0014), which builds every option of every select; otherwise its stamped
+/// build at no iteration is the check. `session` is the load's, which only
+/// that stamped build reads. The compile holds the
 /// source's diagnostics: the lint findings and the boxed errors. Only a
 /// cycle, which has no element to box, fails it.
 pub(crate) fn compile(
@@ -40,9 +45,9 @@ pub(crate) fn compile(
             if profile {
                 eprintln!("  compile/plan: {:.2?}", clock.elapsed());
             }
-            if check_cycles && compiled.has_repeats() {
+            if check_cycles && (compiled.has_repeats() || compiled.has_selects()) {
                 let clock = web_time::Instant::now();
-                build::probe(&compiled, session, false)?;
+                build::probe(&compiled)?;
                 let checked = clock.elapsed();
                 if profile {
                     eprintln!("  compile/check: {checked:.2?}");
@@ -78,19 +83,17 @@ pub(crate) fn compile(
     })
 }
 
-/// Every diagnostic of the document, from one build through the
-/// exhaustive view (ADR 0013): one iteration per repeat, every option of
-/// every select, every branch of every choice. The list is a function of
-/// the DAST alone: the same at every seed, every iteration count, with
-/// any state. A load never calls this; the language server does.
+/// Every diagnostic of the document, from one build through the probe
+/// (ADR 0013): one iteration per repeat, every option of every select,
+/// every branch of every choice. The list is a function of the DAST alone,
+/// and the same list a load reports, at any seed, count or state. For the
+/// language server, which has no document to load.
 pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let dast = Arc::new(dast.clone());
-    let session = Session::new(0, false);
     let mut list = Vec::new();
     let mut boxed: HashSet<NodeId> = HashSet::new();
     loop {
-        let attempt = Compiler::compile(&dast, &boxed)
-            .and_then(|compiled| build::probe(&compiled, &session, true));
+        let attempt = Compiler::compile(&dast, &boxed).and_then(|compiled| build::probe(&compiled));
         match attempt {
             // The build is not wanted, but its warnings are.
             Ok(u) => {

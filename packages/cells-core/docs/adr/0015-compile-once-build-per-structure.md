@@ -300,12 +300,11 @@ rule; splitting the enum was judged not worth the churn.
 
 - A rebuild costs expand, emit and schedule only. Load does the same work
   as before, in a different place.
-- `Compiled` is immutable and shared. If the check is made seed-free
-  (build every select's options in the probe, not only those in repeats),
-  `Compiled` depends on the source alone: one per document, shareable
-  across students and cacheable by the host, and the load's diagnostics
-  equal `diagnose`'s. That costs the probe the options of selects outside
-  repeats; it is left open here and measured before it is decided.
+- `Compiled` is immutable and shared, and depends on the source alone
+  since the check builds every option of every select (ADR 0014's
+  amendment): one per document, shareable across students and cacheable
+  by a host that can keep it, and the load's diagnostics equal
+  `diagnose`'s.
 - The take-and-restore dance and the `Pass` flag disappear; a failed
   rebuild leaves the document untouched by construction.
 - More of the code's rules become visible in where the code sits. A check

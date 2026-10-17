@@ -144,10 +144,9 @@ impl Document {
     /// What the build reported about the elements it stamped (ADR 0013):
     /// the errors of the elements that became `_error` components and the
     /// warnings of the rest, in node order. This is the list for rendering
-    /// error boxes. It is fixed at load, the same at every count (ADR 0014),
-    /// and per seed, since a select outside a repeat builds only its draw;
-    /// the document's diagnostics, every option included, are
-    /// [`crate::diagnose`]'s.
+    /// error boxes. It is fixed at load and depends on the source alone:
+    /// the same at every count and every seed, every option of every select
+    /// included (ADR 0014), so it is [`crate::diagnose`]'s list.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {
         &self.structure.diagnostics
     }

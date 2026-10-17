@@ -24,8 +24,8 @@
 //! edge, since an inner count may read its outer iteration), and a loop on
 //! it, a self-loop included, is rejected here too. So the probe can see
 //! them, it answers that a collect's count reads the counts of the repeats
-//! it gathers from, and that a select inside a repeat body builds every
-//! option, since each iteration draws its own.
+//! it gathers from, and that a select builds every option, since an
+//! iteration or a seed may draw any of them.
 //!
 //! The probe build runs emit too, so a rule emit applies to resolved
 //! sources (the prefill rule in `seed_cells`) is checked against the
@@ -43,16 +43,14 @@ pub(in crate::build) enum Coord {
 }
 
 /// The probe's structure view: one iteration per repeat, standing for
-/// every iteration.
-pub(super) struct Probe {
-    seed: u64,
-    /// Build every option of a select outside a repeat too.
-    every_option: bool,
-}
+/// every iteration, and every option of every select, standing for every
+/// draw.
+pub(super) struct Probe;
 
 impl View for Probe {
+    /// Nothing is drawn (`options`), so no seed is read.
     fn seed(&self) -> u64 {
-        self.seed
+        0
     }
 
     /// Every template is stamped once.
@@ -75,14 +73,10 @@ impl View for Probe {
         CollectCount::RepeatCounts
     }
 
-    /// Inside a repeat each iteration draws its own options, so every one
-    /// is built; outside, the real pick, so load errors stay per seed.
-    fn options(&self, in_iteration: bool) -> Options {
-        if in_iteration || self.every_option {
-            Options::Every
-        } else {
-            Options::Drawn
-        }
+    /// Every option, whatever a seed or an iteration would draw, so what
+    /// the probe finds depends on the source alone (ADR 0014).
+    fn options(&self, _in_iteration: bool) -> Options {
+        Options::Every
     }
 
     /// The one iteration carries both plans' edges.
@@ -97,21 +91,14 @@ impl View for Probe {
 
 /// The probe build (ADR 0012, ADR 0014): the compile built once through
 /// the probe view, its graph tested for loops at any count, and emitted so
-/// emit's rules run on the referents of every count. With `exhaustive`
-/// every option of every select is built, inside a repeat or not
-/// (`compile::diagnose`); otherwise those inside one, which a later
-/// iteration may draw. The compile's check discards the output.
-pub(crate) fn probe(
-    compiled: &Compiled,
-    session: &Session,
-    exhaustive: bool,
-) -> std::result::Result<BuildOutput, Failure> {
+/// emit's rules run on the referents of every count and every option. It
+/// reads a session of its own, so nothing a student's session holds (the
+/// seed above all) reaches what it finds. The compile's check and
+/// `compile::diagnose` keep only its failures and warnings.
+pub(crate) fn probe(compiled: &Compiled) -> std::result::Result<BuildOutput, Failure> {
     let mut engine = Engine::new();
-    let probe = Probe {
-        seed: if exhaustive { 0 } else { session.seed },
-        every_option: exhaustive,
-    };
-    build_with(compiled, session, false, &mut engine, &probe, true)
+    let session = Session::new(0, false);
+    build_with(compiled, &session, false, &mut engine, &Probe, true)
 }
 
 /// The coordinate an index step contributes: a shift of the referencing

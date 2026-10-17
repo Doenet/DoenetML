@@ -1,8 +1,8 @@
 //! Diagnostics are a product of one exhaustive build (ADR 0013): the list
 //! `diagnose` returns is a function of the DAST alone, covers every
 //! option of a select and every repeat body whatever the seed or the
-//! counts, and the errors a load reports about the elements it stamped
-//! are a subset of it. A tick never adds one.
+//! counts, and a load whose check ran reports the same errors (ADR 0014).
+//! A tick never adds one.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -66,9 +66,8 @@ fn a_reference_to_a_boxed_element_is_boxed_in_turn() {
 
 #[test]
 fn an_unchosen_option_is_still_diagnosed() {
-    // The bad reference resolves at expand, so only a load that draws the
-    // option finds it (compile walks every branch, so a name that does not
-    // exist is found whatever the draw).
+    // The bad reference resolves at expand, so only a build of the option
+    // finds it: the load's check builds every option, whatever is drawn.
     let src = r#"<point name="p"/>
       <select name="s">
         <option><number name="a">1</number></option>
@@ -77,21 +76,12 @@ fn an_unchosen_option_is_still_diagnosed() {
     let list = diagnose_src(src);
     assert_eq!(errors(&list).len(), 1, "{list:?}");
     assert_eq!(errors(&list)[0].code, "cells-arity-mismatch");
-    // Some seed draws the good option and loads clean; another draws the
-    // bad one and boxes it. Both lists are within `diagnose`'s.
-    let mut clean = 0;
-    let mut boxed = 0;
+    // Every seed reports it, whichever option it draws: the load's check
+    // builds every option (ADR 0014), so its list is `diagnose`'s.
     for seed in 0..8 {
         let doc = load_with_seed(src, seed).unwrap();
-        let own = keys(doc.diagnostics());
-        assert!(own.is_subset(&keys(&list)), "seed {seed}: {own:?}");
-        if errors(doc.diagnostics()).is_empty() {
-            clean += 1;
-        } else {
-            boxed += 1;
-        }
+        assert_eq!(keys(doc.diagnostics()), keys(&list), "seed {seed}");
     }
-    assert!(clean > 0 && boxed > 0, "{clean} clean, {boxed} boxed");
 }
 
 #[test]

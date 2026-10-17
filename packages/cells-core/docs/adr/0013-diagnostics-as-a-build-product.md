@@ -46,6 +46,8 @@ count.
   arity mismatch, math that does not parse) fires only for the options a
   seed draws. The probe builds every option inside a repeat but keeps the
   real draw outside one, explicitly so that load errors stay per seed.
+  (Since ADR 0014's amendment the probe builds every option everywhere,
+  and load errors no longer depend on the seed.)
 - **Repeats at a count that stamps nothing.** A body whose repeat loads at
   count zero never expands, so its errors surface on the first rebuild
   that stamps it, inside a student's tick, as `rebuild_error`.
