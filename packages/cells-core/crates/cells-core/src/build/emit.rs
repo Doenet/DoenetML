@@ -58,17 +58,31 @@ impl<'c> Builder<'c> {
             }
         }
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
-        let mut cells = Vec::with_capacity(n);
-        let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n);
-        // Sized from the values carried, which a rebuild mostly repeats.
-        let n_was = self.components.component_type.capacity();
-        let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(n_was);
-        let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(n_was);
+        // Count each kind of defining slot first: the essential tables are
+        // kept, and none of these should reserve more than it fills.
+        let mut counts = [0usize; 4];
+        let mut n_cells = 0;
+        for (s, &root) in roots.iter().enumerate() {
+            if class_def[root as usize] as usize == s {
+                let (kind, n_out) = match &self.sources[s] {
+                    Source::Literal(_) | Source::Default(_) => (0, 1),
+                    Source::Fixed(_) => (1, 1),
+                    Source::Op(spec, ..) => (2, spec.n_out()),
+                    _ => (3, 0),
+                };
+                counts[kind] += 1;
+                n_cells += n_out;
+            }
+        }
+        let mut cells = Vec::with_capacity(n_cells);
+        let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n_cells);
+        let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
+        let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
         let mut parked = self.session.parked.clone();
-        let mut essential_defaults: Vec<f64> = Vec::with_capacity(n_was);
-        let mut fixed_defs = Vec::new();
-        let mut derived_defs = Vec::new();
-        let mut outputs = Vec::new();
+        let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
+        let mut fixed_defs = Vec::with_capacity(counts[1]);
+        let mut derived_defs = Vec::with_capacity(counts[2]);
+        let mut outputs = Vec::with_capacity(counts[3]);
         for (s, &root) in roots.iter().enumerate() {
             let root = root as usize;
             if class_def[root] as usize != s {
@@ -129,6 +143,7 @@ impl<'c> Builder<'c> {
             slot_cell[roots[s] as usize] = head_cell + k as CellIdx;
             cell_def_slot[(head_cell + k as CellIdx) as usize] = s as SlotId;
         }
+        debug_assert_eq!(cells.len(), n_cells);
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r as usize]).collect();
         self.seed_cells(
             &mut cells,
@@ -267,10 +282,6 @@ impl<'c> Builder<'c> {
             engine: self.session.engine.clone(),
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
-        // Reserved for a rebuild's worth; the document keeps them.
-        essential_slots.shrink_to_fit();
-        essential_keys.shrink_to_fit();
-        essential_defaults.shrink_to_fit();
         let structure = Structure {
             essential_slots,
             essential_keys,

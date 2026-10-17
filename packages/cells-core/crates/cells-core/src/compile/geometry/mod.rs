@@ -53,7 +53,11 @@ impl<'a> Compiler<'a> {
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables.
         if let Some(r) = base_elem {
-            let base_roles = self.compiled.templates[t].elems[r].roles.clone();
+            let base_roles = self
+                .roles
+                .get(&(t as u32, r as u32))
+                .cloned()
+                .unwrap_or_default();
             for (role, &slot) in &ch.roles {
                 // A role the copy's own attribute supplied is its own state.
                 if ch
@@ -73,7 +77,9 @@ impl<'a> Compiler<'a> {
         let scope = self.compiled.templates[t].elems[e].name_scope;
         self.plan_fix(t, scope, el, &["fixed"])?
             .apply(&mut ch.props);
-        self.compiled.templates[t].elems[e].roles = ch.roles.clone();
+        if !ch.roles.is_empty() {
+            self.roles.insert((t as u32, e as u32), ch.roles.clone());
+        }
         self.compiled.templates[t].elems[e].props = ch.finish();
         Ok(())
     }

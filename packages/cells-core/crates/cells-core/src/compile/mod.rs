@@ -91,6 +91,28 @@ pub(in crate::compile) struct Compiler<'a> {
     /// Per node, how many elements the compile has made for it (an
     /// element's key, `ElemKey`).
     made: HashMap<NodeId, u32>,
+    /// The name table: by (template, scope, name), the one descendant of
+    /// the scope (or `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when
+    /// several do. A name is registered at every ancestor of its element.
+    names: HashMap<(u32, u32, u32), u32>,
+    /// Each element name, trimmed, by its id in `names`.
+    name_ids: HashMap<Box<str>, u32>,
+    /// (template, name scope, name) of every named element: two siblings
+    /// with one name can never be told apart.
+    sibling_names: HashSet<(u32, u32, u32)>,
+    /// By (template, element), a geometry element's roles: which slot holds
+    /// each piece of essential state, which a copy shares with its original.
+    pub(in crate::compile) roles: HashMap<(u32, u32), HashMap<&'static str, u8>>,
+}
+
+/// A name-table entry naming more than one element.
+const AMBIGUOUS: u32 = u32::MAX;
+
+/// What a name names from a scope.
+pub(in crate::compile) enum NameHit {
+    None,
+    One(ElemId),
+    Ambiguous,
 }
 
 /// The ways an element is planned; see `Compiler::elem_shape`.
@@ -131,11 +153,15 @@ impl<'a> Compiler<'a> {
             boxed,
             failed_node: None,
             made: HashMap::new(),
+            names: HashMap::new(),
+            name_ids: HashMap::new(),
+            sibling_names: HashSet::new(),
+            roles: HashMap::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
                 let c = &mut cp.compiled;
-                c.release_compile_tables();
+                c.shrink_to_fit();
                 c.rebuilds = c.has_repeats();
                 if c.rebuilds {
                     c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
@@ -257,6 +283,17 @@ impl<'a> Compiler<'a> {
         name_scope: ElemId,
         stop: ElemId,
     ) -> Result<ElemId> {
+        let name_id = (name != NONE).then(|| {
+            let s = self.dast.strings.get(name).trim();
+            match self.name_ids.get(s) {
+                Some(&id) => id,
+                None => {
+                    let id = self.name_ids.len() as u32;
+                    self.name_ids.insert(s.into(), id);
+                    id
+                }
+            }
+        });
         let tpl = &mut self.compiled.templates[t];
         let e = tpl.elems.len();
         // A made element is known by the nearest element it belongs to (the
@@ -290,23 +327,21 @@ impl<'a> Compiler<'a> {
             children: Vec::new(),
             extend: None,
             cloned: false,
-            roles: HashMap::new(),
             body: Body::Plain,
         });
-        if name != NONE {
-            let s = self.dast.strings.get(name).trim().to_string();
+        if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
-            if tpl
-                .names
-                .get(&(name_scope, s.clone()))
-                .is_some_and(|v| v.iter().any(|&o| tpl.elems[o].name_scope == name_scope))
-            {
+            if !self.sibling_names.insert((t as u32, name_scope as u32, id)) {
+                let s = self.dast.strings.get(name).trim().to_string();
                 return Err(Error::DuplicateName(s));
             }
             // Visible from every ancestor up to the template root (or `stop`).
             let mut a = name_scope;
             loop {
-                tpl.names.entry((a, s.clone())).or_default().push(e);
+                self.names
+                    .entry((t as u32, a as u32, id))
+                    .and_modify(|o| *o = AMBIGUOUS)
+                    .or_insert(e as u32);
                 if a == ROOT_SCOPE || a == stop {
                     break;
                 }
@@ -314,6 +349,19 @@ impl<'a> Compiler<'a> {
             }
         }
         Ok(e)
+    }
+
+    /// What `name` names from `scope` of template `t`: the one descendant
+    /// carrying it, or that several do.
+    pub(in crate::compile) fn name_at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {
+        let Some(&id) = self.name_ids.get(name.trim()) else {
+            return NameHit::None;
+        };
+        match self.names.get(&(t as u32, scope as u32, id)) {
+            None => NameHit::None,
+            Some(&AMBIGUOUS) => NameHit::Ambiguous,
+            Some(&e) => NameHit::One(e as ElemId),
+        }
     }
 
     pub(in crate::compile) fn add_synthetic(

@@ -54,10 +54,10 @@ impl<'a> Compiler<'a> {
                 {
                     return Ok(Some((hops, a)));
                 }
-                match tpl.names.get(&(a, name.to_string())).map(Vec::as_slice) {
-                    Some([e]) => return Ok(Some((hops, *e))),
-                    Some([_, _, ..]) => return Err(Error::AmbiguousName(name.to_string())),
-                    _ => {}
+                match self.name_at(t, a, name) {
+                    NameHit::One(e) => return Ok(Some((hops, e))),
+                    NameHit::Ambiguous => return Err(Error::AmbiguousName(name.to_string())),
+                    NameHit::None => {}
                 }
                 if a == ROOT_SCOPE {
                     break;
@@ -80,14 +80,10 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         name: &str,
     ) -> Result<Option<ElemId>> {
-        match self.compiled.templates[t]
-            .names
-            .get(&(e, name.trim().to_string()))
-            .map(Vec::as_slice)
-        {
-            Some([c]) => Ok(Some(*c)),
-            Some([_, _, ..]) => Err(Error::AmbiguousName(name.trim().to_string())),
-            _ => Ok(None),
+        match self.name_at(t, e, name) {
+            NameHit::One(c) => Ok(Some(c)),
+            NameHit::Ambiguous => Err(Error::AmbiguousName(name.trim().to_string())),
+            NameHit::None => Ok(None),
         }
     }
 

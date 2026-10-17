@@ -296,34 +296,34 @@ impl<'a> Compiler<'a> {
             let empty_branch = def.reactive && def.conditions.last().is_some_and(|c| c.is_some());
             let mut iface = HashMap::new();
             if !empty_branch && !def.branches.is_empty() {
-                let first = &self.compiled.templates[def.branches[0]];
-                for ((at, name), elems) in &first.names {
-                    let [e0] = elems.as_slice() else { continue };
-                    if *at != ROOT_SCOPE {
+                let b0 = def.branches[0];
+                let first = &self.compiled.templates[b0];
+                // The names visible from the first branch's root that name
+                // one element each.
+                for (e0, el) in first.elems.iter().enumerate() {
+                    if el.name == NONE {
                         continue;
                     }
-                    let component_type = first.elems[*e0].component_type;
+                    let name = self.dast.strings.get(el.name).trim();
+                    if !matches!(self.name_at(b0, ROOT_SCOPE, name), NameHit::One(e) if e == e0) {
+                        continue;
+                    }
+                    let component_type = el.component_type;
                     let per_branch: Option<Vec<ElemId>> = def
                         .branches
                         .iter()
-                        .map(|&b| {
-                            match self.compiled.templates[b]
-                                .names
-                                .get(&(ROOT_SCOPE, name.clone()))
-                                .map(Vec::as_slice)
+                        .map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
+                            NameHit::One(x)
+                                if self.compiled.templates[b].elems[x].component_type
+                                    == component_type =>
                             {
-                                Some([x])
-                                    if self.compiled.templates[b].elems[*x].component_type
-                                        == component_type =>
-                                {
-                                    Some(*x)
-                                }
-                                _ => None,
+                                Some(x)
                             }
+                            _ => None,
                         })
                         .collect();
                     if let Some(per_branch) = per_branch {
-                        iface.insert(name.clone(), (component_type, per_branch));
+                        iface.insert(name.to_string(), (component_type, per_branch));
                     }
                 }
             }
@@ -372,13 +372,9 @@ impl<'a> Compiler<'a> {
             let mut first: Option<(usize, ComponentType)> = None;
             let mut reason = String::new();
             for (b, &tpl) in def.branches.iter().enumerate() {
-                match self.compiled.templates[tpl]
-                    .names
-                    .get(&(ROOT_SCOPE, name.to_string()))
-                    .map(Vec::as_slice)
-                {
-                    Some([x]) => {
-                        let component_type = self.compiled.templates[tpl].elems[*x].component_type;
+                match self.name_at(tpl, ROOT_SCOPE, name) {
+                    NameHit::One(x) => {
+                        let component_type = self.compiled.templates[tpl].elems[x].component_type;
                         match first {
                             None => first = Some((b, component_type)),
                             Some((b0, k0)) if k0 != component_type => {
@@ -394,11 +390,11 @@ impl<'a> Compiler<'a> {
                             _ => {}
                         }
                     }
-                    Some(_) => {
+                    NameHit::Ambiguous => {
                         reason = format!("{what} {} has several components named '{name}'", b + 1);
                         break;
                     }
-                    None => {
+                    NameHit::None => {
                         reason = format!("{what} {} has no '{name}'", b + 1);
                         break;
                     }
@@ -425,16 +421,13 @@ impl<'a> Compiler<'a> {
     ) -> Result<(Step, TemplateId, ElemId)> {
         let name = name.trim();
         let def = &self.compiled.choices[cid];
-        let found = def.branches.iter().find_map(|&b| {
-            match self.compiled.templates[b]
-                .names
-                .get(&(ROOT_SCOPE, name.to_string()))
-                .map(Vec::as_slice)
-            {
-                Some([x]) => Some((b, *x)),
+        let found = def
+            .branches
+            .iter()
+            .find_map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
+                NameHit::One(x) => Some((b, x)),
                 _ => None,
-            }
-        });
+            });
         let Some((tpl, elem)) = found else {
             return Err(Error::UnknownName(display.to_string()));
         };

@@ -197,10 +197,6 @@ pub(crate) struct Elem {
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
-    /// Named essential slots of a planned type (a line's default points, a
-    /// circle's essential radius), so a copy with overridden attributes can
-    /// share the ones it does not override.
-    pub(crate) roles: HashMap<&'static str, u8>,
     pub(crate) body: Body,
 }
 
@@ -216,9 +212,6 @@ pub(crate) struct Template {
     pub(crate) n_slots: u32,
     /// Children of the template itself (the document, or the repeat body).
     pub(crate) children: Vec<Child>,
-    /// Compile-time name table: for every ancestor (and `ROOT_SCOPE`), the
-    /// descendants carrying each name. More than one is an ambiguity.
-    pub(crate) names: HashMap<(ElemId, String), Vec<ElemId>>,
 }
 
 /// One step of a resolved reference path.
@@ -408,19 +401,17 @@ impl Compiled {
         &self.dast
     }
 
-    /// Drop what only compiling reads (each template's name table, each
-    /// element's roles) and the spare capacity of what the build reads,
-    /// once planning is done: before the check builds, so the build reuses
-    /// that memory rather than raising the load's peak, which in wasm is
-    /// what the page keeps.
-    pub(crate) fn release_compile_tables(&mut self) {
+    /// Drop the plans' spare capacity once planning is done, before the
+    /// check builds, so the build reuses that memory rather than raising
+    /// the load's peak, which in wasm is what the page keeps. (What only
+    /// planning reads, the name table and roles, is the `Compiler`'s and
+    /// goes with it.)
+    pub(crate) fn shrink_to_fit(&mut self) {
         self.templates.shrink_to_fit();
         for tpl in &mut self.templates {
-            tpl.names = HashMap::new();
             tpl.elems.shrink_to_fit();
             tpl.children.shrink_to_fit();
             for el in &mut tpl.elems {
-                el.roles = HashMap::new();
                 el.props.shrink_to_fit();
                 el.children.shrink_to_fit();
             }
