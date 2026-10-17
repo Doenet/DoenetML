@@ -107,19 +107,29 @@ fn a_cyclic_option_drawn_by_a_later_iteration_is_a_cycle() {
 // Hole 4: the prefill rule (a seed must name a value that is not
 // computed) runs at emit, which the probe does not reach, so a prefill
 // naming a computed cell past the count at load is accepted and rejected
-// on the rebuild that makes it exist.
+// on the rebuild that makes it exist. The probe reaches emit now, and the
+// rule boxes the input at load (ADR 0013, ADR 0014).
 #[test]
 fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
-    let doc = load(
+    let mut doc = load(
         r#"<numberInput name="n" value="1"/>
            <repeatForSequence name="r" length="$n"><number name="x">$mi</number></repeatForSequence>
            <mathInput name="mi" prefill="$r[2].x"/>"#,
-    );
-    assert!(
-        matches!(doc, Err(Error::Unsupported(_))),
-        "expected the prefill rule at load, got {:?}",
-        doc.map(|_| ())
-    );
+    )
+    .unwrap();
+    let errors = |doc: &Document| -> Vec<String> {
+        doc.diagnostics()
+            .iter()
+            .filter(|d| d.kind == cells_core::DiagnosticKind::Error)
+            .map(|d| d.message.clone())
+            .collect()
+    };
+    // `x` reads the boxed input, so it is reported too.
+    let at_load = errors(&doc);
+    assert!(at_load.iter().any(|e| e.contains("prefill")), "{at_load:?}");
+    let t = set(&mut doc, "n", "value", 2.0);
+    assert!(t.rebuild_error.is_none(), "{:?}", t.rebuild_error);
+    assert_eq!(errors(&doc), at_load);
 }
 
 // Not a cycle: a failed rebuild once put a fresh `Sym` (empty memo) back

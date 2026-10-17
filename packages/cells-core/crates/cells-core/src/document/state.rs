@@ -5,7 +5,7 @@
 //! with one entry per essential cell whose value differs from the build's
 //! default. `path` names the cell's scope from the document down, one
 //! `[node, position]` per repeat iteration or choice branch; `element` is
-//! the element's key, `[node, k]` (`build/layout.rs`), and `prop` the
+//! the element's key, `[node, k]` (`ElemKey`), and `prop` the
 //! position among its slots. None depends on the order a session made
 //! scopes or on which elements were boxed, so the keys are the same across
 //! loads of the same document and seed, including for iterations that

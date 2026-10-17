@@ -245,7 +245,6 @@ impl Document {
             structure: self.structure.scopes.heap_bytes()
                 + self.structure.essential_slots.capacity() * 8
                 + self.structure.essential_keys.capacity() * 12
-                + self.structure.layout.heap_bytes()
                 + self
                     .structure
                     .essential_values

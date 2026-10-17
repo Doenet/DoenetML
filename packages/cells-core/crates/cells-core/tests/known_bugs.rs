@@ -4,8 +4,8 @@
 //! --ignored`; a fix moves its test to the file for its topic.
 //!
 //! They fall into two groups by structural cause: math handles have no
-//! identity, so equal values get new handles; and the rebuild loop and the
-//! probe view share state with the real build.
+//! identity, so equal values get new handles; and the rebuild loop hands
+//! its intermediate state back on failure.
 
 mod common;
 use common::{set, v};
@@ -62,7 +62,7 @@ fn rebuilding_back_and_forth_does_not_grow_the_engine() {
 }
 
 // ---------------------------------------------------------------------
-// The rebuild loop and the probe view.
+// The rebuild loop.
 // ---------------------------------------------------------------------
 
 // `Document::rebuild` reassigns its carryover on every pass, so a rebuild
@@ -93,41 +93,4 @@ fn a_rebuild_failing_late_leaves_the_document_settled() {
     let t = set(&mut doc, "m", "value", 9.0);
     assert!(!t.rebuilt);
     assert_eq!(v(&doc, "m", "value"), 9.0);
-}
-
-// A select's rules on how many it picks run only in `pick()`, which
-// neither the probe nor `diagnose` calls, so `diagnose` misses an error
-// it claims to find at any count, and the select is boxed inside a tick.
-#[test]
-#[ignore = "known bug: diagnose misses select rules checked only when picking"]
-fn diagnose_reports_a_select_picking_more_than_its_options() {
-    let src = r#"<numberInput name="n" value="0"/>
-<repeatForSequence name="r" length="$n">
-  <select name="s" numToSelect="3"><option><number>1</number></option><option><number>2</number></option></select>
-</repeatForSequence>"#;
-    let dast = cells_core::dast::Dast::from_json(&dast_json(src)).unwrap();
-    let diagnostics = cells_core::diagnose(&dast);
-    assert!(
-        diagnostics
-            .iter()
-            .any(|d| d.kind == cells_core::DiagnosticKind::Error),
-        "{diagnostics:?}"
-    );
-}
-
-// The probe gives a collect's count an operator over the repeat counts,
-// and the prefill rule, checked on the probe's build, rejects it as
-// computed. In the real build the count is a fixed value a prefill may
-// name.
-#[test]
-#[ignore = "known bug: the probe rejects a prefill naming a collect's count"]
-fn a_prefill_may_name_a_collects_count() {
-    let doc = load(
-        r#"<numberInput name="n" value="3"/>
-<repeatForSequence name="r" length="$n"><point name="p">(1,2)</point></repeatForSequence>
-<collect name="c" from="$r" componentType="point"/>
-<mathInput name="mi" prefill="$c.count"/>"#,
-    )
-    .unwrap();
-    assert_eq!(doc.math_text(doc.cell("mi", "expr").unwrap()), "3");
 }

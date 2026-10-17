@@ -81,6 +81,10 @@ pub enum Error {
     Unsupported(String),
     #[error("not allowed (ADR 0009): {0}")]
     Banned(String),
+    #[error(
+        "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
+    )]
+    Unchecked(String),
     #[error("'{name}' is not in the branch interface of '{choice}': {reason}")]
     NotInInterface {
         choice: String,

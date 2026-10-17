@@ -162,9 +162,22 @@ impl<'c, 'a> Builder<'c, 'a> {
                                     if labelling {
                                         label.push(Coord::Reset);
                                     }
-                                    match self.view.index(inst.scopes.len(), k, inst.every_option) {
-                                        Some(j) => Resolved::Iter(c, inst.scopes[j]),
-                                        None => Resolved::Missing,
+                                    // Any option may be this pick, so what a
+                                    // whole pick names must not depend on
+                                    // which (ADR 0014).
+                                    if inst.every_option {
+                                        if !self.picks_alike(c) {
+                                            return Err(Error::Unsupported(format!(
+                                                "'${}' names a whole pick, so every option must hold one component, all of one type: name the content and use $s[k].name",
+                                                p.display
+                                            )));
+                                        }
+                                        Resolved::Comp(self.whole_pick(c)?)
+                                    } else {
+                                        match self.view.index(inst.scopes.len(), k, false) {
+                                            Some(j) => Resolved::Iter(c, inst.scopes[j]),
+                                            None => Resolved::Missing,
+                                        }
                                     }
                                 }
                             }
@@ -176,6 +189,21 @@ impl<'c, 'a> Builder<'c, 'a> {
         }
         self.label = label;
         Ok((cur, p.prop.as_deref()))
+    }
+
+    /// Whether every built option of select `c` holds one component, all of
+    /// one type.
+    fn picks_alike(&self, c: CompIdx) -> bool {
+        let inst = &self.choice_insts[self.comp_choice[&c]];
+        let mut types =
+            inst.scopes
+                .iter()
+                .map(|&s| match self.iteration_components(c, s).as_slice() {
+                    [one] => Some(self.components.component_type[*one as usize]),
+                    _ => None,
+                });
+        let first = types.next().flatten();
+        first.is_some() && types.all(|t| t == first)
     }
 
     /// Record the last resolved reference's label for the edge from `from`

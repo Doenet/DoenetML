@@ -150,6 +150,7 @@ impl Error {
             Unsupported(_) => "cells-unsupported",
             Banned(_) => "cells-banned",
             NotInInterface { .. } => "cells-not-in-interface",
+            Unchecked(_) => "cells-unchecked",
         }
     }
 }

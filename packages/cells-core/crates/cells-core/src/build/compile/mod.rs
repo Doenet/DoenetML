@@ -40,7 +40,7 @@ pub(in crate::build) struct Compiler<'a> {
     /// the way out of a failed compile; `build` boxes it and tries again.
     pub(in crate::build) failed_node: Option<NodeId>,
     /// Per node, how many elements the compile has made for it (an
-    /// element's key, `build/layout.rs`).
+    /// element's key, `ElemKey`).
     made: HashMap<NodeId, u32>,
 }
 
@@ -70,11 +70,6 @@ impl<'a> Compiler<'a> {
                 sym_text: HashMap::new(),
                 choices: Vec::new(),
                 extra_strings: Vec::new(),
-                boxed: {
-                    let mut b: Vec<NodeId> = boxed.iter().copied().collect();
-                    b.sort_unstable();
-                    b
-                },
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
@@ -212,7 +207,7 @@ impl<'a> Compiler<'a> {
             let mut a = name_scope;
             let anchor = loop {
                 if a == ROOT_SCOPE {
-                    break tpl.key.0;
+                    break tpl.owner;
                 }
                 if tpl.elems[a].node != NONE {
                     break tpl.elems[a].node;
@@ -327,7 +322,7 @@ impl<'a> Compiler<'a> {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
-                    key: (el, 0),
+                    owner: el,
                     ..Default::default()
                 });
                 let it = self.add_synthetic(sub, ComponentType::Tuple, NONE);
@@ -338,7 +333,7 @@ impl<'a> Compiler<'a> {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
-                    key: (el, 0),
+                    owner: el,
                     ..Default::default()
                 });
                 // Hidden iteration components first, so `$v` and `$i` resolve

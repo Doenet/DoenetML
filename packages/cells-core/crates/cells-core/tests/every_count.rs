@@ -15,6 +15,10 @@
 //! the count cells, and no tick may fail its rebuild with a cycle or an
 //! unsettled structure.
 //!
+//! Every build at those counts, and every rebuild, is a later build of the
+//! load, with the load's boxes: none may find an error the load did not
+//! report (ADR 0014), which is `Error::Unchecked`.
+//!
 //! This is the regression net for a structural read that bypasses the
 //! structure view (`build/view.rs`): the probe cannot model such a read, so
 //! a document it should reject loads, and a count here closes the loop. The
@@ -25,7 +29,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{Carryover, Repeat, ScopeId, build};
+use cells_core::build::{Carryover, Pass, Repeat, ScopeId, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::sym::Engine;
@@ -213,13 +217,13 @@ fn check(name: &str, bytes: &[u8]) -> bool {
         for &node in &nodes {
             for c in COUNTS {
                 let what = at(&format!("repeat node {node} at {c}"));
-                stamp(&what, &dast, seed, &|n| (n == node).then_some(c));
+                stamp(&what, &dast, seed, &doc, &|n| (n == node).then_some(c));
                 drive(&what, &mut doc, &|n| n == node, c);
             }
         }
         for c in COUNTS {
             let what = at(&format!("every repeat at {c}"));
-            stamp(&what, &dast, seed, &|_| Some(c));
+            stamp(&what, &dast, seed, &doc, &|_| Some(c));
             drive(&what, &mut doc, &|_| true, c);
         }
     }
@@ -232,21 +236,29 @@ fn check(name: &str, bytes: &[u8]) -> bool {
 /// no cycle at any of those counts, and the counts must settle. A build
 /// failing for another reason (a rule a later count breaks, say) ends the
 /// stamping.
-fn stamp(what: &str, dast: &Arc<Dast>, seed: u64, forced: &dyn Fn(NodeId) -> Option<u32>) {
+fn stamp(
+    what: &str,
+    dast: &Arc<Dast>,
+    seed: u64,
+    loaded: &Document,
+    forced: &dyn Fn(NodeId) -> Option<u32>,
+) {
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
     for free in [false, true] {
         let mut settled = false;
         for _ in 0..MAX_PASSES {
             let mut carryover = Carryover::new(seed, false);
+            carryover.set_diagnostics(loaded.diagnostics());
             for (&(scope, node), &n) in &counts {
                 carryover.set_count(scope, node, n);
             }
             let mut engine = Engine::new();
-            let doc = build(dast, &carryover, &mut engine, false)
+            let doc = build(dast, &carryover, &mut engine, Pass::Later)
                 .and_then(|built| built.schedule(dast.clone(), &mut engine));
             let mut doc = match doc {
                 Ok(doc) => doc,
                 Err(Error::Cycle(at)) => panic!("{what}: a cycle at {at} the load did not reject"),
+                Err(Error::Unchecked(e)) => panic!("{what}: an error the load did not report: {e}"),
                 Err(_) => return,
             };
             doc.recompute();
@@ -304,11 +316,13 @@ fn count_cell(doc: &Document, r: &Repeat) -> cells_core::CellIdx {
     doc.comp_cells(r.comp)[pi]
 }
 
-/// Whether a rebuild error is a cycle or an unsettled structure: a tick
-/// reports the error as text, so it is matched against the two messages.
+/// Whether a rebuild error is a cycle, an unsettled structure or an error
+/// the load did not report: a tick reports the error as text, so it is
+/// matched against the three messages.
 fn structural(e: &str) -> bool {
     let prefix = |full: String, param: &str| full[..full.find(param).unwrap()].to_string();
     let cycle = prefix(Error::Cycle("\u{1}".into()).to_string(), "\u{1}");
     let unsettled = prefix(Error::UnstableStructure(987_654).to_string(), "987654");
-    e.starts_with(&cycle) || e.starts_with(&unsettled)
+    let unchecked = prefix(Error::Unchecked("\u{1}".into()).to_string(), "\u{1}");
+    e.starts_with(&cycle) || e.starts_with(&unsettled) || e.starts_with(&unchecked)
 }

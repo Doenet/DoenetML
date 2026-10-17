@@ -242,7 +242,8 @@ All in `packages/cells-core`, under `cargo test`:
 - A viewer's own list, from the real build, is per seed and per count by
   nature. It is for rendering error boxes, not for an author, and the
   panel must not present it as the document's diagnostics.
-- A rebuild cannot fail with a diagnostic the load did not already report,
+- A rebuild cannot fail with a diagnostic the load did not already report
+  (made a rule, and enforced, by ADR 0014),
   because every template it can stamp was stamped once at load. The
   rollback of a failed rebuild (`rebuild_error`) stays as a safety net.
 - `tests/every_count.rs` gains the invariant: for every golden document

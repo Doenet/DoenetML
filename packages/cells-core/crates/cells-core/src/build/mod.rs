@@ -67,12 +67,10 @@ mod compile;
 mod cycles;
 mod emit;
 mod expand;
-mod layout;
 mod structure;
 mod view;
 
-pub use layout::{ElemKey, Layout, TemplateKey};
-pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
+pub use structure::{ElemKey, Repeat, ScopeId, ScopeTable, Structure};
 
 type SlotId = u32;
 type TemplateId = usize;
@@ -135,7 +133,7 @@ pub(in crate::build) fn build_with(
             node: b.failed_node,
         });
     }
-    let u = b.finish().map_err(|error| Failure { error, node: None })?;
+    let u = b.finish()?;
     lap("cells, program");
     Ok(u)
 }
@@ -155,7 +153,7 @@ fn build_boxing(
     engine: &mut Engine,
     view: &dyn View,
     probe_checks: bool,
-    cycle_check: bool,
+    pass: Pass,
     list: &mut Vec<Diagnostic>,
 ) -> Result<BuildOutput> {
     let profile = profile_enabled();
@@ -164,15 +162,20 @@ fn build_boxing(
     let mut found = crate::lint::lint(dast);
     let outcome = loop {
         let clock = web_time::Instant::now();
+        // Whether a failure came from the stamped build after the probe
+        // passed: the probe stands for every count and pick, so that build
+        // has nothing left to find (ADR 0014).
+        let mut probed = false;
         let attempt = Compiler::compile(dast, &boxed).and_then(|compiled| {
             if profile {
                 eprintln!("  build/compile: {:.2?}", clock.elapsed());
             }
             let mut checked = std::time::Duration::ZERO;
-            if cycle_check && compiled.has_repeats() {
+            if pass == (Pass::Load { check_cycles: true }) && compiled.has_repeats() {
                 let clock = web_time::Instant::now();
                 cycles::check(&compiled, carryover)?;
                 checked = clock.elapsed();
+                probed = true;
                 if profile {
                     eprintln!("  build/cycle check: {checked:.2?}");
                 }
@@ -183,6 +186,14 @@ fn build_boxing(
         });
         match attempt {
             Ok(u) => break Ok(u),
+            // Only a document's first build finds errors; one it has not
+            // been told about is a gap in that build's check.
+            Err(f)
+                if f.node.is_some_and(|n| !boxed.contains(&n))
+                    && (pass == Pass::Later || probed) =>
+            {
+                break Err(Error::Unchecked(f.error.to_string()));
+            }
             Err(f) => {
                 let node = f.node.filter(|n| boxed.insert(*n));
                 list.push(Diagnostic::error(node, &f.error));
@@ -216,19 +227,11 @@ pub fn build(
     dast: &Dast,
     carryover: &Carryover,
     engine: &mut Engine,
-    check_cycles: bool,
+    pass: Pass,
 ) -> Result<BuildOutput> {
     let mut list = carryover.structure.diagnostics.clone();
     let view = Stamped(carryover);
-    let mut u = build_boxing(
-        dast,
-        carryover,
-        engine,
-        &view,
-        false,
-        check_cycles,
-        &mut list,
-    )?;
+    let mut u = build_boxing(dast, carryover, engine, &view, false, pass, &mut list)?;
     u.structure.diagnostics = list;
     Ok(u)
 }
@@ -244,8 +247,24 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let view = cycles::Probe::exhaustive();
     let mut list = Vec::new();
     // A failure is in the list; the build itself is not wanted.
-    let _ = build_boxing(dast, &carryover, &mut engine, &view, true, false, &mut list);
+    let first = Pass::Load {
+        check_cycles: false,
+    };
+    let _ = build_boxing(dast, &carryover, &mut engine, &view, true, first, &mut list);
     list
+}
+
+/// Which build of a document this is (ADR 0014). Errors are found only by
+/// a document's first build: the probe's, when the document has repeats
+/// and the cycle check is on, or the one stamped build of a document that
+/// never rebuilds. Every later build has the first's boxes, and an element
+/// failing that is not among them is `Error::Unchecked`, not a new box.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Pass {
+    /// The first build of a load, through the probe with `check_cycles`.
+    Load { check_cycles: bool },
+    /// A later pass of a load, or a rebuild.
+    Later,
 }
 
 /// A built document whose program has not yet been scheduled.
@@ -318,6 +337,10 @@ pub struct Carryover {
     /// after the new build's static table so the ids text cells hold stay
     /// valid; see `Document::n_static_strings`.
     runtime_strings: Vec<String>,
+    /// Handed between the passes of a load: no student has changed a
+    /// value yet, so a seeded cell takes its seed again in each pass, from
+    /// the counts that pass stamps.
+    settling: bool,
 }
 
 impl Carryover {
@@ -331,6 +354,7 @@ impl Carryover {
             },
             counts: HashMap::new(),
             runtime_strings: Vec::new(),
+            settling: false,
         }
     }
 
@@ -368,7 +392,14 @@ impl Carryover {
             structure,
             counts,
             runtime_strings,
+            settling: false,
         }
+    }
+
+    /// Mark this carryover as one between the passes of a load.
+    pub fn settling(mut self) -> Carryover {
+        self.settling = true;
+        self
     }
 
     /// Stamp repeat element `node` in `scope` with `n` iterations on the
@@ -376,6 +407,13 @@ impl Carryover {
     /// chosen count (`tests/every_count.rs`).
     pub fn set_count(&mut self, scope: ScopeId, node: NodeId, n: u32) {
         self.counts.insert((scope, node), n);
+    }
+
+    /// Give the next build the boxes a load found (its error diagnostics):
+    /// building a document at a chosen count as a later build of that load
+    /// (`tests/every_count.rs`).
+    pub fn set_diagnostics(&mut self, diagnostics: &[Diagnostic]) {
+        self.structure.diagnostics = diagnostics.to_vec();
     }
 
     pub fn restore(self, doc: &mut Document) {

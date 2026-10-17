@@ -201,18 +201,23 @@ impl<'c, 'a> Builder<'c, 'a> {
             // A copy or a placed reference aliases what it copies; an
             // interface name holds what its branches' components hold.
             let pi = slot - self.slot_base[comp as usize];
-            let alias = match self.sources[slot as usize] {
-                Source::Alias(t) => Some(t),
-                _ => None,
+            if let Source::Alias(t) = self.sources[slot as usize] {
+                return self.value_type_within(t, depth - 1);
+            }
+            // A stand-in holds what any branch may: text or math when one
+            // does (their kinds must agree, `stand_in_sources`).
+            let Some(members) = self.stand_ins.get(&comp).cloned() else {
+                return ValueType::Number;
             };
-            return match (alias, self.iface_member.get(&comp)) {
-                (Some(t), _) => self.value_type_within(t, depth - 1),
-                (None, Some(&member)) => {
-                    let t = self.slot_base[member as usize] + pi;
-                    self.value_type_within(t, depth - 1)
+            let mut kind = ValueType::Number;
+            for m in members {
+                let t = self.slot_base[m as usize] + pi;
+                match self.value_type_within(t, depth - 1) {
+                    ValueType::Number => {}
+                    k => kind = k,
                 }
-                _ => ValueType::Number,
-            };
+            }
+            return kind;
         }
         let i = self.instances[inst as usize];
         let pi = (slot - self.slot_base[comp as usize]) as usize;

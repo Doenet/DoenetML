@@ -97,12 +97,29 @@ impl<'a> Compiler<'a> {
             }
             (num as u32, self.attr_flag(el, "withReplacement"))
         };
+        // Whether the select can draw its picks is a fact about the source,
+        // checked here and not when drawing, which a select in a repeat does
+        // for every iteration a student adds (ADR 0014).
+        let n = branches.len();
+        if !reactive && n > 0 && num_to_select > 0 {
+            if !with_replacement && num_to_select as usize > n {
+                return Err(Error::Unsupported(format!(
+                    "numToSelect={num_to_select} is more than the {n} options of a <select> without replacement"
+                )));
+            }
+            let drawable = branches.iter().filter(|b| b.2 > 0.0).count();
+            if drawable == 0 || !with_replacement && num_to_select as usize > drawable {
+                return Err(Error::Unsupported(
+                    "a <select> whose remaining options all have weight 0".into(),
+                ));
+            }
+        }
         let mut templates = Vec::with_capacity(branches.len());
-        for (b, (_, nodes, _)) in branches.iter().enumerate() {
+        for (_, nodes, _) in &branches {
             let sub = self.compiled.templates.len();
             self.compiled.templates.push(Template {
                 parent: Some((t, e)),
-                key: (self.compiled.templates[t].elems[e].node, b as u32 + 1),
+                owner: self.compiled.templates[t].elems[e].node,
                 ..Default::default()
             });
             let kids = self.add_children(sub, None, ROOT_SCOPE, nodes)?;

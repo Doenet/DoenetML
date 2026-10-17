@@ -118,13 +118,13 @@ pub(in crate::build) struct Builder<'c, 'a> {
     /// Expanded choices, and the instance each choice component owns.
     pub(in crate::build) choice_insts: Vec<ChoiceInst>,
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
-    /// A choice's interface component -> the first branch's component
-    /// carrying the name, which stands for the others' value types before
-    /// `choice_sources` sets the interface's sources.
-    pub(in crate::build) iface_member: HashMap<CompIdx, CompIdx>,
-    /// Each element's first stable slot (`build/layout.rs`), set by
-    /// `finish`; `None` while they are the slot offsets.
-    pub(in crate::build) bases: super::layout::Bases,
+    /// A component standing for whichever branch a choice takes (an
+    /// interface name, or in the probe a select's whole pick) -> the
+    /// branches' components it stands for. What it holds is what any of
+    /// them may (`value_type`, `is_symbolic`).
+    pub(in crate::build) stand_ins: HashMap<CompIdx, Vec<CompIdx>>,
+    /// Per select (in the probe): the stand-in for its whole pick.
+    pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// Essential math slots seeded from another slot's value when first
     /// built (`SourcePlan::MathEssentialFrom`): (slot, source slot).
@@ -206,8 +206,8 @@ impl<'c, 'a> Builder<'c, 'a> {
             collected: HashMap::new(),
             choice_insts: Vec::new(),
             comp_choice: HashMap::new(),
-            iface_member: HashMap::new(),
-            bases: None,
+            stand_ins: HashMap::new(),
+            pick_stand_ins: HashMap::new(),
             missing: None,
             seeds: Vec::new(),
             arena: Arena::default(),
@@ -565,7 +565,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 return Err(e);
             }
         }
-        self.choice_sources();
+        self.choice_sources()?;
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
             if let Err(e) = self.instance_sources(inst) {
@@ -650,6 +650,10 @@ impl<'c, 'a> Builder<'c, 'a> {
         scope: ScopeId,
     ) -> Result<Vec<[SlotId; 2]>> {
         let (target, prop) = self.resolve(plan, scope)?;
+        // An index past the count names no items.
+        if matches!(target, Resolved::Missing) {
+            return Ok(Vec::new());
+        }
         let comp = self.single_component(target, plan)?;
         let component_type = self.components.component_type[comp as usize];
         let prop =
@@ -710,11 +714,19 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             (_, Some(p)) => {
                 let (target, _) = self.resolve(p, inst.scope)?;
-                let referent = self.single_component(target, p)?;
-                let (s, n) = (
-                    self.components.child_start[referent as usize] as usize,
-                    self.components.child_count[referent as usize] as usize,
-                );
+                // An index past the count copies nothing.
+                let referent = match target {
+                    Resolved::Missing => NONE,
+                    target => self.single_component(target, p)?,
+                };
+                let (s, n) = if referent == NONE {
+                    (0, 0)
+                } else {
+                    (
+                        self.components.child_start[referent as usize] as usize,
+                        self.components.child_count[referent as usize] as usize,
+                    )
+                };
                 let originals: Vec<CompIdx> = self.components.child_list[s..s + n].to_vec();
                 for orig in originals {
                     let copy = self.new_component(
@@ -869,6 +881,9 @@ impl<'c, 'a> Builder<'c, 'a> {
             (el.component_type, el.extend)
         };
         let extend = match extend_plan {
+            // An index past the count: the copy holds the missing value
+            // wherever it would inherit, as `$r[k].x` does (ADR 0014).
+            Some(p) if matches!(self.resolve(p, inst.scope)?.0, Resolved::Missing) => None,
             Some(p) => {
                 let (target, _) = self.resolve(p, inst.scope)?;
                 let referent = self.single_component(target, p)?;
@@ -945,16 +960,15 @@ impl<'c, 'a> Builder<'c, 'a> {
                 Source::Literal(*v)
             }
             SourcePlan::Default(v) => Source::Default(*v),
-            SourcePlan::Inherit => {
-                let t = self.slot(extend.expect("Inherit needs an extend referent"), pi);
-                self.record_label_as(s, t, extend_label);
-                Source::Alias(t)
-            }
-            SourcePlan::InheritFrom(k) => {
-                let t = self.slot(
-                    extend.expect("Inherit needs an extend referent"),
-                    *k as usize,
-                );
+            SourcePlan::Inherit | SourcePlan::InheritFrom(_) => {
+                let Some(referent) = extend else {
+                    return Ok(Source::Alias(self.missing_slot()));
+                };
+                let k = match plan {
+                    SourcePlan::InheritFrom(k) => *k as usize,
+                    _ => pi,
+                };
+                let t = self.slot(referent, k);
                 self.record_label_as(s, t, extend_label);
                 Source::Alias(t)
             }

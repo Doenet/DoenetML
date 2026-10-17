@@ -35,7 +35,9 @@ pub struct LoadTimings {
     pub build: Duration,
     pub schedule: Duration,
     pub initial_compute: Duration,
-    /// The count-independent cycle check (ADR 0012), part of `build`.
+    /// The load check, part of `build`: the probe build that stands for
+    /// every count and pick, which finds the document's cycles (ADR 0012)
+    /// and its errors (ADR 0014). Only a document with repeats runs it.
     pub cycle_check: Duration,
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,
@@ -72,12 +74,14 @@ impl Document {
         let mut carryover = crate::build::Carryover::new(options.seed, options.sample_with_engine);
         for pass in 0..MAX_PASSES {
             let clock = web_time::Instant::now();
-            let built = crate::build::build(
-                &dast,
-                &carryover,
-                &mut engine,
-                pass == 0 && options.check_cycles,
-            )?;
+            let pass = if pass == 0 {
+                crate::build::Pass::Load {
+                    check_cycles: options.check_cycles,
+                }
+            } else {
+                crate::build::Pass::Later
+            };
+            let built = crate::build::build(&dast, &carryover, &mut engine, pass)?;
             t.build += clock.elapsed();
             t.cycle_check += built.cycle_check;
 
@@ -94,7 +98,7 @@ impl Document {
                 t.structural_depth = doc.structure.structural_depth;
                 return Ok(doc);
             }
-            carryover = crate::build::Carryover::take_from(&mut doc);
+            carryover = crate::build::Carryover::take_from(&mut doc).settling();
             engine = doc.take_engine();
         }
         Err(crate::Error::UnstableStructure(MAX_PASSES))
@@ -117,9 +121,10 @@ impl Document {
     /// What the build reported about the elements it stamped (ADR 0013):
     /// the errors of the elements that became `_error` components and the
     /// warnings of the rest, in node order. This is the list for rendering
-    /// error boxes. It is per seed and per count, since only stamped
-    /// elements are in it; the document's diagnostics, every branch and
-    /// every body included, are [`crate::diagnose`]'s.
+    /// error boxes. It is fixed at load, the same at every count (ADR 0014),
+    /// and per seed, since a select outside a repeat builds only its draw;
+    /// the document's diagnostics, every option included, are
+    /// [`crate::diagnose`]'s.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {
         &self.structure.diagnostics
     }
@@ -172,7 +177,8 @@ impl Document {
         let result = (|| {
             for _ in 0..MAX_PASSES {
                 let clock = web_time::Instant::now();
-                let built = crate::build::build(&dast, &carryover, &mut engine, false)?;
+                let built =
+                    crate::build::build(&dast, &carryover, &mut engine, crate::build::Pass::Later)?;
                 if profile {
                     eprintln!("rebuild/build: {:.2?}", clock.elapsed());
                 }

@@ -30,7 +30,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             let picks = if every_option {
                 (0..def.branches.len()).collect()
             } else {
-                self.pick(def, scope, node)?
+                self.pick(def, scope, node)
             };
             for (j, b) in picks.into_iter().enumerate() {
                 let s = self.scope_for(scope, node, j as u32 + 1);
@@ -50,7 +50,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                         scope,
                         component_type.prop_defs().len(),
                     );
-                    self.note_iface_member(ic, def, name, &inst);
+                    self.note_members(ic, def, name, &inst);
                     inst.iface_comps.push(ic);
                 }
             }
@@ -85,7 +85,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                     scope,
                     component_type.prop_defs().len(),
                 );
-                self.note_iface_member(ic, def, name, &inst);
+                self.note_members(ic, def, name, &inst);
                 inst.iface_comps.push(ic);
             }
         }
@@ -94,30 +94,106 @@ impl<'c, 'a> Builder<'c, 'a> {
         Ok(kids)
     }
 
-    /// Record the first branch's component carrying interface name `name`
-    /// as the one `value_type` reads for interface component `ic`.
-    fn note_iface_member(&mut self, ic: CompIdx, def: &ChoiceDef, name: &str, inst: &ChoiceInst) {
-        let member =
-            self.scope_comps[inst.scopes[0] as usize][def.iface[name].1[inst.branch_of[0]]];
-        if member != NONE {
-            self.iface_member.insert(ic, member);
+    /// Record the components carrying interface name `name` in every built
+    /// branch as the ones interface component `ic` stands for.
+    fn note_members(&mut self, ic: CompIdx, def: &ChoiceDef, name: &str, inst: &ChoiceInst) {
+        let elems = &def.iface[name].1;
+        let members = inst
+            .scopes
+            .iter()
+            .zip(&inst.branch_of)
+            .map(|(&s, &b)| self.scope_comps[s as usize][elems[b]])
+            .filter(|&m| m != NONE)
+            .collect();
+        self.stand_ins.insert(ic, members);
+    }
+
+    /// The probe's stand-in for a whole pick of select `c` built with every
+    /// option, whose options each hold one component of one type: it reads
+    /// each option's component, so a rule about the referent sees every
+    /// option a later iteration may draw (ADR 0014).
+    pub(in crate::build) fn whole_pick(&mut self, c: CompIdx) -> Result<CompIdx> {
+        if let Some(&w) = self.pick_stand_ins.get(&c) {
+            return Ok(w);
         }
+        let scopes = self.choice_insts[self.comp_choice[&c]].scopes.clone();
+        let members: Vec<CompIdx> = scopes
+            .iter()
+            .map(|&s| self.iteration_components(c, s)[0])
+            .collect();
+        let component_type = self.components.component_type[members[0] as usize];
+        let n_props = component_type.prop_defs().len();
+        let scope = self.components.scope[c as usize];
+        let w = self.new_component(component_type, NONE, c, NONE, scope, n_props);
+        self.stand_ins.insert(w, members.clone());
+        let what = format!("<{}>", component_type.tag());
+        self.stand_in_sources(w, &members, None, &what)?;
+        self.pick_stand_ins.insert(c, w);
+        Ok(w)
+    }
+
+    /// Sources and kinds of stand-in `w` for `members`: each prop chooses
+    /// among theirs by `choice` when it is given (a reactive choice), else
+    /// only reads them (the probe's stand-in for a pick). The members must
+    /// hold one kind of value per prop, which the stand-in holds too.
+    fn stand_in_sources(
+        &mut self,
+        w: CompIdx,
+        members: &[CompIdx],
+        choice: Option<SlotId>,
+        what: &str,
+    ) -> Result<()> {
+        let component_type = self.components.component_type[w as usize];
+        let symbolic = members.iter().any(|&m| self.is_symbolic(m));
+        self.math_mode
+            .resize(self.components.len(), MathMode::Unknown);
+        self.math_mode[w as usize] = if symbolic {
+            MathMode::Symbolic
+        } else {
+            MathMode::Numeric
+        };
+        let n = members.len() as u8;
+        for pi in 0..component_type.prop_defs().len() {
+            let branch_slots: Vec<SlotId> = members.iter().map(|&m| self.slot(m, pi)).collect();
+            let kinds: Vec<ValueType> = branch_slots.iter().map(|&s| self.value_type(s)).collect();
+            if kinds.iter().any(|&k| k != kinds[0]) {
+                return Err(Error::Unsupported(format!(
+                    "{what} holds a different kind of value (number, text or math) in different branches: its '{}' must be the same kind in each",
+                    component_type.prop_defs()[pi].name
+                )));
+            }
+            let s = self.slot(w, pi);
+            self.sources[s as usize] = match choice {
+                None => {
+                    // An edge to the prop in every option.
+                    let scope = self.components.scope[w as usize];
+                    self.reads(&branch_slots, scope)
+                }
+                Some(choice) => {
+                    let inputs: Vec<SlotId> = std::iter::once(choice).chain(branch_slots).collect();
+                    self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
+                }
+            };
+            if kinds.first() == Some(&ValueType::Text) {
+                self.typed_slots.push((s, ValueType::Text));
+            }
+        }
+        if symbolic && let Some(pi) = component_type.prop_index("expr") {
+            let s = self.slot(w, pi);
+            self.typed_slots.push((s, ValueType::Math));
+        }
+        Ok(())
     }
 
     /// A select's picks: option indices drawn from a stream that depends on
     /// the document seed and the select's position (its element and the
     /// iteration chain it sits in), so it draws the same way in every build.
-    fn pick(&self, def: &ChoiceDef, scope: ScopeId, node: NodeId) -> Result<Vec<usize>> {
+    /// Compile has checked that the picks can be drawn (`plan_choice`).
+    fn pick(&self, def: &ChoiceDef, scope: ScopeId, node: NodeId) -> Vec<usize> {
         let n = def.branches.len();
         // A select with no options picks nothing.
         if n == 0 {
-            return Ok(Vec::new());
-        }
-        if !def.with_replacement && def.num_to_select as usize > n {
-            return Err(Error::Unsupported(format!(
-                "numToSelect={} is more than the {n} options of a <select> without replacement",
-                def.num_to_select
-            )));
+            return Vec::new();
         }
         let mut h = self.seeded_stream(scope, node);
         let mut weights = def.weights.clone();
@@ -125,11 +201,6 @@ impl<'c, 'a> Builder<'c, 'a> {
         for _ in 0..def.num_to_select {
             h = splitmix(h);
             let total: f64 = weights.iter().sum();
-            if total <= 0.0 {
-                return Err(Error::Unsupported(
-                    "a <select> whose remaining options all have weight 0".into(),
-                ));
-            }
             let mut r = (h >> 11) as f64 / (1u64 << 53) as f64 * total;
             let mut b = n - 1;
             for (i, &w) in weights.iter().enumerate() {
@@ -144,67 +215,28 @@ impl<'c, 'a> Builder<'c, 'a> {
                 weights[b] = 0.0;
             }
         }
-        Ok(picks)
+        picks
     }
 
     /// Sources of the `Choose` components of built reactive choices: each
     /// public prop chooses among the branches' cells by the choice cell.
     /// Runs before instance sources, so a symbolic interface math is known
     /// to be one when its copies are planned.
-    pub(in crate::build) fn choice_sources(&mut self) {
-        let c: &'c Compiled<'a> = self.compiled;
+    pub(in crate::build) fn choice_sources(&mut self) -> Result<()> {
         for i in 0..self.choice_insts.len() {
-            if self.choice_insts[i].iface_comps.is_empty() {
-                continue;
-            }
             let inst = self.choice_insts[i].clone();
-            let def = &c.choices[inst.def];
-            let choice = self.slot(inst.comp, 0);
+            let choice = (!inst.every_option).then(|| self.slot(inst.comp, 0));
+            let def = &self.compiled.choices[inst.def];
             for (u, &ic) in inst.iface_comps.iter().enumerate() {
-                let (component_type, elems) = &def.iface[&def.used[u]];
-                let members: Vec<CompIdx> = inst
-                    .scopes
-                    .iter()
-                    .zip(&inst.branch_of)
-                    .map(|(&s, &b)| self.scope_comps[s as usize][elems[b]])
-                    .collect();
-                let symbolic = members.iter().any(|&m| self.is_symbolic(m));
-                self.math_mode
-                    .resize(self.components.len(), MathMode::Unknown);
-                self.math_mode[ic as usize] = if symbolic {
-                    MathMode::Symbolic
-                } else {
-                    MathMode::Numeric
-                };
-                let n = members.len() as u8;
-                for pi in 0..component_type.prop_defs().len() {
-                    let branch_slots: Vec<SlotId> =
-                        members.iter().map(|&m| self.slot(m, pi)).collect();
-                    let s = self.slot(ic, pi);
-                    self.sources[s as usize] = if inst.every_option {
-                        // A stand-in for a pick: an edge to the name in
-                        // every option.
-                        let scope = self.components.scope[ic as usize];
-                        self.reads(&branch_slots, scope)
-                    } else {
-                        let inputs: Vec<SlotId> =
-                            std::iter::once(choice).chain(branch_slots).collect();
-                        self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
-                    };
-                }
-                // A string id chosen among the branches' is text too.
-                for pi in 0..component_type.prop_defs().len() {
-                    let s = self.slot(ic, pi);
-                    if self.value_type(s) == ValueType::Text {
-                        self.typed_slots.push((s, ValueType::Text));
-                    }
-                }
-                if symbolic && let Some(pi) = component_type.prop_index("expr") {
-                    let s = self.slot(ic, pi);
-                    self.typed_slots.push((s, ValueType::Math));
+                let members = self.stand_ins[&ic].clone();
+                let what = format!("'{}'", def.used[u]);
+                if let Err(e) = self.stand_in_sources(ic, &members, choice, &what) {
+                    self.fail_at_comp(inst.comp);
+                    return Err(e);
                 }
             }
         }
+        Ok(())
     }
 
     /// Where interface name `used[u]` of choice `cid` lands from `cur`.

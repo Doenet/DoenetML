@@ -5,7 +5,7 @@
 use super::*;
 
 impl<'c, 'a> Builder<'c, 'a> {
-    pub(in crate::build) fn finish(mut self) -> Result<BuildOutput> {
+    pub(in crate::build) fn finish(mut self) -> std::result::Result<BuildOutput, Failure> {
         let profile = profile_enabled();
         let clock = web_time::Instant::now();
         let lap = |what: &str| {
@@ -13,8 +13,6 @@ impl<'c, 'a> Builder<'c, 'a> {
                 eprintln!("    cd/{what}: {:.2?}", clock.elapsed());
             }
         };
-        let (layout, bases) = self.carryover.structure.layout.update(self.compiled);
-        self.bases = bases;
         let n = self.sources.len();
         let mut uf = UnionFind::new(n);
         for (s, src) in self.sources.iter().enumerate() {
@@ -50,7 +48,10 @@ impl<'c, 'a> Builder<'c, 'a> {
             let root = root as usize;
             if class_def[root] == NONE {
                 if !self.view.folds_iterations() {
-                    return Err(Error::Cycle(self.slot_label(s as SlotId)));
+                    return Err(Failure {
+                        error: Error::Cycle(self.slot_label(s as SlotId)),
+                        node: None,
+                    });
                 }
                 self.sources[s] = Source::Fixed(f64::NAN);
                 class_def[root] = s as u32;
@@ -140,7 +141,11 @@ impl<'c, 'a> Builder<'c, 'a> {
             &mut essential_defaults,
             &slot_to_cell,
             n_essential + n_fixed,
-        )?;
+        )
+        .map_err(|error| Failure {
+            error,
+            node: self.failed_node,
+        })?;
         lap("number cells");
 
         let mut instrs = Vec::with_capacity(derived_defs.len());
@@ -265,7 +270,6 @@ impl<'c, 'a> Builder<'c, 'a> {
             essential_slots,
             essential_keys,
             parked,
-            layout,
             essential_defaults,
             essential_values: values,
             structural_depth: depths.iter().copied().max().unwrap_or(0),
@@ -391,15 +395,26 @@ impl<'c, 'a> Builder<'c, 'a> {
             .collect();
         for &(s, from) in &self.seeds {
             let (scope, tslot, _) = self.essential_key(s);
-            let carried = self
-                .carryover
-                .structure
-                .essential_values
-                .get(scope as usize)
-                .and_then(|row| row.get(tslot as usize).copied().flatten())
-                .is_some();
+            let carried = !self.carryover.settling
+                && self
+                    .carryover
+                    .structure
+                    .essential_values
+                    .get(scope as usize)
+                    .and_then(|row| row.get(tslot as usize).copied().flatten())
+                    .is_some();
             let src = slot_to_cell[from as usize];
-            if src as usize >= n_known {
+            // A collect's count is a constant in every real build; the probe
+            // only stands it in by an operator over the repeats' counts.
+            let stand_in = || {
+                self.follows_counts
+                    .iter()
+                    .any(|&c| slot_to_cell[self.slot(c, 0) as usize] == src)
+            };
+            if src as usize >= n_known && !stand_in() {
+                // The seeded element is boxed (ADR 0013).
+                let node = self.components.dast_node[self.slot_comp[s as usize] as usize];
+                self.failed_node = (node != NONE).then_some(node);
                 return Err(Error::Unsupported(format!(
                     "prefill=\"${}\": a prefill reference must name a value that is not computed",
                     self.slot_label(from)
@@ -421,19 +436,17 @@ impl<'c, 'a> Builder<'c, 'a> {
         Ok(())
     }
 
-    /// An essential slot's key: its scope, its stable slot in the scope's
-    /// row (`build/layout.rs`), and its element's key and position.
+    /// An essential slot's key: its scope, its template slot (the element's
+    /// slot offset plus the prop's position; a document's boxes are fixed
+    /// at load, ADR 0014, so the offsets are the same in every build), and
+    /// its element's key and position.
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot as usize];
         let inst = self.instances[self.comp_instance[comp as usize] as usize];
         let pi = slot - self.slot_base[comp as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
-        let base = match &self.bases {
-            None => el.slot_off,
-            Some(bases) => bases[inst.template][inst.elem],
-        };
-        (inst.scope, base + pi, (el.key, pi))
+        (inst.scope, el.slot_off + pi, (el.key, pi))
     }
 
     /// Structural depth per repeat: how many repeats must be expanded, in
