@@ -3376,6 +3376,41 @@ describe("UpdateValue tag tests @group1", async () => {
         ).eq("(1, 6) (3, 6)");
     });
 
+    it("reset every entry of a math list to blank", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml">() 3 () x+1</mathList>
+    <updateValue name="uvOne" target="$ml[1]" newValue="5" />
+    <updateValue name="uvReset" target="$ml" newValue="()" />
+    `,
+        });
+
+        async function trees() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx("ml")
+            ].stateValues.maths.map((m) => m.tree);
+        }
+
+        expect(await trees()).eqls(["＿", 3, "＿", ["+", "x", 1]]);
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvOne"),
+            core,
+        });
+        expect(await trees()).eqls([5, 3, "＿", ["+", "x", 1]]);
+
+        // the list keeps its length, with every entry blank
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvReset"),
+            core,
+        });
+        expect(await trees()).eqls(["＿", "＿", "＿", "＿"]);
+    });
+
     it("updateValue warnings with invalid targets", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

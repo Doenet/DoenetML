@@ -82,6 +82,32 @@ An `<updateValue>{:dn}` is used to set the `tail` property of a `<vector>{:dn}`,
 
 
 
+---
+
+### Example: Update every entry of a list
+
+
+```doenet-editor-horiz
+<numberList name="scores">3 7 2</numberList>
+
+<p>Scores: $scores</p>
+
+<p>
+<updateValue target="$scores[2]" newValue="$scores[2] + 1" type="number">
+  <label>Add 1 to the second score</label>
+</updateValue>
+<updateValue target="$scores" newValue="0" type="number">
+  <label>Reset all scores</label>
+</updateValue>
+</p>
+```
+
+
+
+When the `target` is a list component such as a `<numberList>{:dn}`, `<mathList>{:dn}`, `<textList>{:dn}`, or `<pointList>{:dn}`, the `<updateValue>{:dn}` sets every entry of the list to `newValue`, and the list keeps the same number of entries. An index such as `$scores[2]` picks out a single entry instead. A property of a list, such as `$points.x` for a `<pointList>{:dn}` named `points`, sets that property of every entry.
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: target
