@@ -10,7 +10,7 @@ impl Compiler<'_> {
         e: ElemId,
         base: Option<NodeId>,
     ) -> Result<ElemPlan> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,

@@ -32,7 +32,7 @@ use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
 // The document's credit props sit where a section's do.
 const _: () = assert!(document::CREDIT == CREDIT && document::PERCENT_CREDIT == PERCENT_CREDIT);
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     /// Wire the document's and every section's `creditAchieved`, and every
     /// section's `number`. Runs after every prop has its source, replacing
     /// the placeholders the planner left.

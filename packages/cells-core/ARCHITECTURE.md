@@ -114,8 +114,9 @@ dropped.
 
 **A structural cell changes**, such as a repeat's count. The tick finds the
 structure unsettled after recomputing and calls `Document::rebuild`, which
-builds the whole document again from the retained DAST with a
-`Carryover` (ADR 0004). Scope ids are stable, so an iteration that comes
+builds the whole document again from the compile it kept at load
+(`Document::compiled`, ADR 0015) with a `Carryover` (ADR 0004): no
+compile, lint or check runs again. Scope ids are stable, so an iteration that comes
 back gets its old values. The outcome's `rebuilt` is set and cell indices
 are new. If the rebuild fails, the document is left as it was and
 `rebuild_error` says why.
@@ -129,7 +130,8 @@ walk over the DAST before any compile: the accessibility rules), the
 errors and the warnings of the elements that built are
 `Document::diagnostics`, in node order; the errors seed the boxes of
 every rebuild. An error with no element, a cycle, still fails the load.
-Only a document's first build finds errors (ADR 0014, `build::Pass`):
+Only a document's first build finds errors (ADR 0014; `build::load`
+compiles and boxes, `build::build` only stamps):
 every error depends on the source alone, so the probe, standing for every
 count and every pick, finds them all at load, and a later build that
 finds one fails with `Error::Unchecked` rather than boxing mid-session.

@@ -29,7 +29,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn plan_boolean(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,

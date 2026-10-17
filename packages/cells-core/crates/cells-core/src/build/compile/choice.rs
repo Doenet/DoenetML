@@ -30,7 +30,7 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         el: NodeId,
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let reactive =
             self.compiled.templates[t].elems[e].component_type == ComponentType::ConditionalContent;
         let tag = d.str(el).to_string();
@@ -145,7 +145,7 @@ impl<'a> Compiler<'a> {
     /// A case's or option's content. The normalizer wraps a case's children
     /// in a `<group>`; that group is the branch itself, not content.
     fn branch_body(&self, n: NodeId) -> Vec<NodeId> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let content: Vec<NodeId> = d
             .children(n)
             .iter()
@@ -172,7 +172,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         props: &mut [Option<SourcePlan>],
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let num = |me: &Self, name: &str, default: f64| -> Result<f64> {
             match d.attr(el, name) {
                 None => Ok(default),
@@ -238,7 +238,7 @@ impl<'a> Compiler<'a> {
         let Body::Choice(cid) = self.compiled.templates[t].elems[e].body else {
             unreachable!()
         };
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node,
             name_scope: scope,

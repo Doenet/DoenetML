@@ -1,6 +1,6 @@
 # Compile once, build per structure: a hard line between the two
 
-Status: proposed 2026-10-17.
+Status: accepted 2026-10-17. Step 1 of the migration is done; see Progress.
 
 The core works in three stages that differ in how often they run and what
 they may depend on, and this ADR makes the line between them hard: each
@@ -48,8 +48,10 @@ types or its data, and most of the bugs a review of the core found
 ### Compile: everything about the source, once
 
 `compile(dast, seed) -> Arc<Compiled>`. `Compiled` owns its DAST (`Arc`),
-has no lifetime parameter, and the `Document` keeps it for its life. It
-holds:
+has no lifetime parameter, and the `Document` keeps it for its life when
+it can rebuild, that is when it has a repeat; one without never builds
+again, and its compile, several times the size of the built document, is
+dropped after load. It holds:
 
 - the templates, reference plans, choices and expression arena (today's
   `Compiled`), with math text parsed to trees once;
@@ -157,6 +159,25 @@ before, load and tick:
    types, prop lookups by name.
 5. **Move the files** to the layout above; update ARCHITECTURE.md and
    CONTEXT.md.
+
+## Progress
+
+**Step 1, compile once (done).** `build::load` compiles, checks and boxes,
+and returns the `Compiled` with the first build; `build::build` stamps a
+kept `Compiled` and nothing else. `Compiled` owns its DAST and holds the
+source's diagnostics (lint and boxed errors), so step 2's diagnostics and
+the end of `Pass` landed with it. The document keeps the compile only
+when it has a repeat, after dropping what only compiling reads (name and
+role tables). Measured against the commit before:
+
+- rebuild of a document with a large flat part and a small repeat
+  (2,000 numbers and maths, a repeat of 3): 33–37 ms to 17–18 ms;
+- rebuild of a 1,000-iteration repeat, in instructions: −0.2%;
+- load, in instructions, ten fixtures: −2.3% (sir, whose later passes
+  no longer compile) to +0.5%;
+- heap held by a loaded document: unchanged without a repeat; +0.3% to
+  +2% for the repeat fixtures, +11% for sir, a mixed document, whose
+  compile is large beside its one small repeat.
 
 ## Consequences
 

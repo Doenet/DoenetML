@@ -25,7 +25,7 @@ impl<'a> Compiler<'a> {
         extend: Option<RefId>,
         plan: planner::GeoFn<'a>,
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             component_type,
@@ -83,7 +83,7 @@ impl<'a> Compiler<'a> {
     /// The children that make up math text: text and `$ref`s, not blanks
     /// or elements (constraints).
     fn math_children(&self, node: NodeId) -> Vec<NodeId> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         d.children(node)
             .iter()
             .copied()
@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
         base: Option<NodeId>,
         name: &str,
     ) -> Option<u32> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         d.attr(el, name)
             .or_else(|| base.and_then(|b| d.attr(b, name)))
     }
@@ -176,7 +176,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         a: u32,
     ) -> Result<Vec<PointPlan>> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let (toks, text) = self.math_tokens(t, scope, d.attr_children(a))?;
         let mut out = Vec::new();
         let mut i = 0;
@@ -274,7 +274,7 @@ impl<'a> Compiler<'a> {
 
     /// Points in a point-list attribute, counted from its text alone.
     pub(in crate::build) fn count_points_in_attr(&self, el: NodeId, name: &str) -> Result<usize> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Some(a) = (el != NONE).then(|| d.attr(el, name)).flatten() else {
             return Ok(0);
         };

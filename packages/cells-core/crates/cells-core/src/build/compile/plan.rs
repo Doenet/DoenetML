@@ -366,8 +366,11 @@ impl PointPlan {
     }
 }
 
-pub(in crate::build) struct Compiled<'a> {
-    pub(in crate::build) dast: &'a Dast,
+/// A document as compiled: its templates and plans, made once from its
+/// source and kept for the life of the document (ADR 0015).
+#[derive(Debug)]
+pub struct Compiled {
+    pub(in crate::build) dast: Arc<Dast>,
     pub(in crate::build) templates: Vec<Template>,
     pub(in crate::build) refs: Vec<RefPlan>,
     /// Expression templates: cell leaves hold plan ids.
@@ -380,4 +383,33 @@ pub(in crate::build) struct Compiled<'a> {
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.
     pub(in crate::build) extra_strings: Vec<String>,
+    /// The source's diagnostics (ADR 0015): the lint findings and the
+    /// errors of the boxed elements, in node order. Set by `build::load`.
+    pub(in crate::build) diagnostics: Vec<crate::diagnostics::Diagnostic>,
+    /// Whether the document has a repeat, so its structure can change and
+    /// a later build will stamp this compile. Set by `build::load`.
+    pub(in crate::build) rebuilds: bool,
+}
+
+impl Compiled {
+    /// The source it was compiled from.
+    pub fn dast(&self) -> &Arc<Dast> {
+        &self.dast
+    }
+
+    /// Drop what only compiling reads (each template's name table, each
+    /// element's roles), before the compile is kept for later builds.
+    pub(in crate::build) fn release_compile_tables(&mut self) {
+        for tpl in &mut self.templates {
+            tpl.names = HashMap::new();
+            for el in &mut tpl.elems {
+                el.roles = HashMap::new();
+            }
+        }
+    }
+
+    /// Whether a later build can stamp it: the document has a repeat.
+    pub fn rebuilds(&self) -> bool {
+        self.rebuilds
+    }
 }

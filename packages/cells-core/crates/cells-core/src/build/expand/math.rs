@@ -4,7 +4,7 @@
 
 use super::*;
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     /// A math cell from a template's math text: a fixed handle when it has
     /// no cell leaves, an alias when it is one math leaf and nothing else,
     /// else an `Instantiate` over its leaves (each a number or a math cell).
@@ -221,7 +221,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         }
         let i = self.instances[inst as usize];
         let pi = (slot - self.slot_base[comp as usize]) as usize;
-        let c: &'c Compiled<'a> = self.compiled;
+        let c: &'c Compiled = self.compiled;
         let next = match c.templates[i.template].elems[i.elem].props.get(pi) {
             Some(SourcePlan::MathEssential(_) | SourcePlan::MathEssentialFrom(_)) => {
                 return ValueType::Math;

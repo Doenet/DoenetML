@@ -13,7 +13,7 @@ impl Compiler<'_> {
         e: ElemId,
         base: Option<NodeId>,
     ) -> Result<ElemPlan> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -120,7 +120,7 @@ impl Compiler<'_> {
         ch: &mut ElemPlan,
         c: NodeId,
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let (px, py) = (
             ch.props[point::X].take().expect("x planned"),
             ch.props[point::Y].take().expect("y planned"),

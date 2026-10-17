@@ -13,7 +13,7 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         extend: Option<RefId>,
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             component_type,
@@ -145,7 +145,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         props: &mut [Option<SourcePlan>],
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let tag = match d.str(el) {
             "division" => d
                 .attr(el, "type")
@@ -189,7 +189,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         props: &mut [Option<SourcePlan>],
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         if d.attr(el, "bindValueTo").is_none()
             && d.children(el).iter().all(|&n| self.is_blank(n))
             && let Some(a) = d.attr(el, "prefill")
@@ -243,7 +243,7 @@ impl<'a> Compiler<'a> {
     /// `<function>`, `<derivative>`: a curve samples over the x-range of
     /// the graph it sits in, else [-10, 10].
     pub(in crate::build) fn plan_symbolic(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             component_type,
@@ -311,7 +311,7 @@ impl<'a> Compiler<'a> {
         if self.function_variables(el).len() > 1 {
             return Ok(true);
         }
-        let nodes: Vec<NodeId> = self.compiled.dast.children(el).to_vec();
+        let nodes: Vec<NodeId> = self.dast.children(el).to_vec();
         let (toks, _) = self.math_tokens(t, scope, &nodes)?;
         Ok(super::expr::unwrap_parens(&toks)
             .is_some_and(|inner| super::expr::split_top(inner, &Token::Comma).len() > 1))
@@ -321,7 +321,7 @@ impl<'a> Compiler<'a> {
     /// string id, since DoenetML's text value is state (a bound `<textInput>`
     /// writes it); a lone reference aliases another text's value.
     pub(in crate::build) fn plan_text(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -356,7 +356,7 @@ impl<'a> Compiler<'a> {
     /// what `bindValueTo` names (a child wins, as in DoenetML); otherwise it
     /// is an essential cell holding the id of its `prefill` text (or of "").
     pub(in crate::build) fn plan_text_input(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -403,7 +403,7 @@ impl<'a> Compiler<'a> {
     /// the DAST's in every build. Two text cells holding equal text hold
     /// equal ids, so text equality is `Eq` on ids (`plan_text_condition`).
     pub(in crate::build) fn intern_literal(&mut self, text: &str) -> StrId {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let ids = self.string_ids.get_or_insert_with(|| {
             let mut ids = HashMap::new();
             for i in (0..d.strings.len() as StrId).rev() {
@@ -424,7 +424,7 @@ impl<'a> Compiler<'a> {
     /// on a `<text>` or `<textInput>`. Decided from the referent's type at
     /// plan time, so a text cell never reaches a numeric comparison.
     pub(in crate::build) fn macro_is_text(&self, t: TemplateId, scope: ElemId, m: NodeId) -> bool {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let names = d.macro_path(m);
         let parts = names.len();
         if parts > 2 || parts == 2 && d.strings.get(names[1]).trim() != "value" {
@@ -446,7 +446,7 @@ impl<'a> Compiler<'a> {
     /// An on/off attribute that may also take a value: present and not
     /// `false` or `none` (`simplify`, `simplify="full"`).
     pub(in crate::build) fn attr_on(&self, el: NodeId, name: &str) -> bool {
-        match self.compiled.dast.attr(el, name) {
+        match self.dast.attr(el, name) {
             None => false,
             Some(a) => {
                 let text = self.attr_text(a).unwrap_or_default();
@@ -464,7 +464,7 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
         ref_prop: Option<&str>,
     ) -> Result<SourcePlan> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let macros: Vec<NodeId> = nodes
             .iter()
             .copied()
@@ -508,7 +508,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         el: NodeId,
     ) -> Result<SourcePlan> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let kind_text = d
             .attr(el, "kind")
             .and_then(|a| self.attr_text(a))
@@ -623,7 +623,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<(Vec<Token>, String, String)> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut toks: Vec<Token> = Vec::new();
         let mut text = String::new();
         let mut sym = String::new();
@@ -671,7 +671,7 @@ impl<'a> Compiler<'a> {
 
     /// A boolean attribute: present and empty, or `true`.
     pub(in crate::build) fn attr_flag(&self, el: NodeId, name: &str) -> bool {
-        match self.compiled.dast.attr(el, name) {
+        match self.dast.attr(el, name) {
             None => false,
             Some(a) => {
                 let text = self.attr_text(a).unwrap_or_default();
@@ -716,7 +716,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<[SourcePlan; 2]> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let macros: Vec<NodeId> = nodes
             .iter()
             .copied()
@@ -767,13 +767,13 @@ impl<'a> Compiler<'a> {
             None => Ok(PointPlan::Tuple(self.plan_tuple(
                 t,
                 scope,
-                self.compiled.dast.attr_children(a),
+                self.dast.attr_children(a),
             )?)),
         }
     }
 
     pub(in crate::build) fn attr_text(&self, a: u32) -> Option<String> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut s = String::new();
         for &n in d.attr_children(a) {
             match d.kind(n) {
@@ -786,7 +786,7 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::build) fn single_macro(&self, a: u32) -> Option<NodeId> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut found = None;
         for &n in d.attr_children(a) {
             match d.kind(n) {
@@ -801,8 +801,8 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::build) fn is_blank(&self, n: NodeId) -> bool {
-        match self.compiled.dast.kind(n) {
-            NodeKind::Text => self.compiled.dast.str(n).trim().is_empty(),
+        match self.dast.kind(n) {
+            NodeKind::Text => self.dast.str(n).trim().is_empty(),
             NodeKind::Other => true,
             _ => false,
         }

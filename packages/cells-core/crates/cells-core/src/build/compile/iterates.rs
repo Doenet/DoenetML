@@ -49,7 +49,7 @@ impl<'a> Compiler<'a> {
         self.plan_attrs(t, e, None)?;
         self.compiled.templates[t].elems[e].props[function_iterates::ALL] =
             SourcePlan::own(function_iterates::COUNT);
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -150,7 +150,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         n: usize,
     ) -> Result<Vec<SourcePlan>> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let a = d
             .attr(el, "initialValue")
             .ok_or_else(|| Error::Unsupported("<functionIterates> needs initialValue".into()))?;

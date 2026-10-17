@@ -58,8 +58,13 @@ pub struct Document {
     /// Index of the root `<document>` component.
     pub root: CompIdx,
     pub structure: Structure,
-    /// The document as loaded, kept for rebuilds.
+    /// The document as loaded (also `compiled.dast`).
     pub dast: Arc<Dast>,
+    /// The document as compiled at load, which every rebuild stamps
+    /// (ADR 0015). Kept only by a document with a repeat: one without
+    /// never rebuilds, and its compile, several times the size of the
+    /// built document, is dropped after load.
+    pub compiled: Option<Arc<crate::build::Compiled>>,
     /// Sticky groups as cells, for the request pre-pass (ADR 0007).
     sticky: Vec<sticky::StickyTable>,
 }
@@ -75,7 +80,7 @@ impl Document {
         strings: StringTable,
         root: CompIdx,
         structure: Structure,
-        dast: Arc<Dast>,
+        compiled: Arc<crate::build::Compiled>,
     ) -> Self {
         let n_static_strings = strings.len();
         let mut doc = Document {
@@ -89,7 +94,8 @@ impl Document {
             interned: None,
             root,
             structure,
-            dast,
+            dast: compiled.dast().clone(),
+            compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
         };
         doc.sticky = doc.sticky_tables();

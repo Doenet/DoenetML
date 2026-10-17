@@ -37,7 +37,7 @@ struct AwardForm {
 
 impl<'a> Compiler<'a> {
     pub(in crate::build) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -209,7 +209,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         ci: ElemId,
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let choices: Vec<ElemId> = self
             .elem_children(t, ci)
             .into_iter()
@@ -267,7 +267,7 @@ impl<'a> Compiler<'a> {
         inputs: &[ElemId],
         awards: &[ElemId],
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let ti = match inputs {
             [ti] if self.compiled.templates[t].elems[*ti].component_type
                 == ComponentType::TextInput =>
@@ -356,7 +356,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         _props: &mut [Option<SourcePlan>],
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         if self.attr_on(el, "selectMultiple") {
             return Err(Error::Unsupported("<choiceInput selectMultiple>".into()));
         }
@@ -378,7 +378,7 @@ impl<'a> Compiler<'a> {
     /// Attributes that change what an answer checks and are out of scope.
     /// Returns whether the answer is `type="text"`.
     fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         self.reject_compare_attrs(el, "answer")?;
         let mut text = false;
         if let Some(a) = d.attr(el, "type") {
@@ -418,7 +418,7 @@ impl<'a> Compiler<'a> {
             "splitSymbols",
         ];
         for &name in OUT_OF_SCOPE {
-            if self.compiled.dast.attr(el, name).is_some() {
+            if self.dast.attr(el, name).is_some() {
                 return Err(Error::Unsupported(format!("<{tag} {name}>")));
             }
         }
@@ -439,7 +439,7 @@ impl<'a> Compiler<'a> {
 
     /// The text and `$ref` nodes of an element, blanks left out.
     fn content_nodes(&self, el: NodeId) -> Vec<NodeId> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         d.children(el)
             .iter()
             .copied()
@@ -448,7 +448,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn award_form(&self, t: TemplateId, a: ElemId) -> Result<AwardForm> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let el = self.compiled.templates[t].elems[a].node;
         if d.attr(el, "feedback").is_some() {
             return Err(Error::Unsupported("<award feedback>".into()));
@@ -511,7 +511,7 @@ impl<'a> Compiler<'a> {
         form: &AwardForm,
         responses: &mut Vec<((u32, ElemId), ElemId)>,
     ) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut ap = ElemPlan::new(ComponentType::Award.prop_defs().len());
         let credit = match d.attr(form.el, "credit") {
             Some(a) => match self.plan_value(t, form.e, "credit", d.attr_children(a), None)? {

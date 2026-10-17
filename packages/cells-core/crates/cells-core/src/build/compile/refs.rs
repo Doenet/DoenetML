@@ -50,7 +50,7 @@ impl<'a> Compiler<'a> {
             loop {
                 if a != ROOT_SCOPE
                     && tpl.elems[a].name != NONE
-                    && self.compiled.dast.strings.get(tpl.elems[a].name).trim() == name
+                    && self.dast.strings.get(tpl.elems[a].name).trim() == name
                 {
                     return Ok(Some((hops, a)));
                 }
@@ -100,7 +100,7 @@ impl<'a> Compiler<'a> {
         if let Some(&p) = self.ref_subst.get(&m) {
             return Ok(p);
         }
-        let d = self.compiled.dast;
+        let d = self.dast;
         let display = d.macro_display(m);
         let names = d.macro_path(m);
         let parts: Vec<_> = d.macro_parts(m).collect();
@@ -354,7 +354,7 @@ impl<'a> Compiler<'a> {
     /// A literal integer index (array props are static, so `[$n]` is not
     /// supported on them).
     pub(in crate::build) fn literal_index(&self, expr: &[NodeId], display: &str) -> Result<i64> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut text = String::new();
         for &n in expr {
             match d.kind(n) {
@@ -375,7 +375,7 @@ impl<'a> Compiler<'a> {
         expr: &[NodeId],
         display: &str,
     ) -> Result<IndexPlan> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut terms = Vec::new();
         for &n in expr {
             match d.kind(n) {

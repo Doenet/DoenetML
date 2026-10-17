@@ -61,7 +61,7 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
         plan: &mut ElemPlan,
     ) -> Result<Option<usize>> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         // Each reference spelled as a placeholder, so the sides can be split
         // on the text as written.
         let mut spelled = String::new();
@@ -187,7 +187,7 @@ impl<'a> Compiler<'a> {
     pub(in crate::build) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
         let on = |name: &str| {
             els.iter()
-                .find(|&&el| self.compiled.dast.attr(el, name).is_some())
+                .find(|&&el| self.dast.attr(el, name).is_some())
                 .is_some_and(|&el| self.attr_on(el, name))
         };
         let syntactic = on("symbolicEquality");
@@ -205,7 +205,7 @@ impl<'a> Compiler<'a> {
     /// The content as the engine spells it: text as written, each `$ref`
     /// as its `cellN<plan>` leaf.
     fn sym_spelling(&mut self, t: TemplateId, scope: ElemId, nodes: &[NodeId]) -> Result<String> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut sym = String::new();
         for &n in nodes {
             match d.kind(n) {

@@ -77,8 +77,8 @@ pub(in crate::build) struct Instance {
     pub(in crate::build) comp: CompIdx,
 }
 
-pub(in crate::build) struct Builder<'c, 'a> {
-    pub(in crate::build) compiled: &'c Compiled<'a>,
+pub(in crate::build) struct Builder<'c> {
+    pub(in crate::build) compiled: &'c Compiled,
     pub(in crate::build) carryover: &'c Carryover,
     pub(in crate::build) engine: &'c mut Engine,
     /// Templates of `Instantiate` instructions, cell leaves holding slots
@@ -156,9 +156,9 @@ pub(in crate::build) struct Builder<'c, 'a> {
     pub(in crate::build) diagnostics: Vec<Diagnostic>,
 }
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     pub(in crate::build) fn new(
-        c: &'c Compiled<'a>,
+        c: &'c Compiled,
         carryover: &'c Carryover,
         engine: &'c mut Engine,
         view: &'c dyn View,
@@ -910,7 +910,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
-            let c: &'c Compiled<'a> = self.compiled;
+            let c: &'c Compiled = self.compiled;
             let plan = &c.templates[inst.template].elems[inst.elem].props[pi];
             let source = match plan {
                 SourcePlan::FirstIteration(first, rest) => {
@@ -951,7 +951,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp as usize];
-        let c: &'c Compiled<'a> = self.compiled;
+        let c: &'c Compiled = self.compiled;
         Ok(match plan {
             SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
             SourcePlan::Literal(v) => Source::Literal(*v),

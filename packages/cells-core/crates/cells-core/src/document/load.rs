@@ -72,21 +72,25 @@ impl Document {
     ) -> crate::Result<Document> {
         let mut engine = Engine::new();
         let mut carryover = crate::build::Carryover::new(options.seed, options.sample_with_engine);
-        for pass in 0..MAX_PASSES {
+        // The compile, made by the first pass and stamped by the rest.
+        let mut compiled: Option<Arc<crate::build::Compiled>> = None;
+        for _ in 0..MAX_PASSES {
             let clock = web_time::Instant::now();
-            let pass = if pass == 0 {
-                crate::build::Pass::Load {
-                    check_cycles: options.check_cycles,
+            let built = match &compiled {
+                None => {
+                    let (c, built) =
+                        crate::build::load(&dast, &carryover, &mut engine, options.check_cycles)?;
+                    compiled = Some(c);
+                    built
                 }
-            } else {
-                crate::build::Pass::Later
+                Some(c) => crate::build::build(c, &carryover, &mut engine)?,
             };
-            let built = crate::build::build(&dast, &carryover, &mut engine, pass)?;
             t.build += clock.elapsed();
             t.cycle_check += built.cycle_check;
 
             let clock = web_time::Instant::now();
-            let mut doc = built.schedule(dast.clone(), &mut engine)?;
+            let compiled = compiled.clone().expect("the first pass compiled");
+            let mut doc = built.schedule(compiled, &mut engine)?;
             carryover.restore_strings(&mut doc);
             t.schedule += clock.elapsed();
 
@@ -165,7 +169,10 @@ impl Document {
     /// essential values over. On error the document is left unchanged.
     pub fn rebuild(&mut self) -> crate::Result<()> {
         let profile = crate::build::profile_enabled();
-        let dast = self.dast.clone();
+        // Without a repeat the structure never changes: nothing to rebuild.
+        let Some(compiled) = self.compiled.clone() else {
+            return Ok(());
+        };
         let clock = web_time::Instant::now();
         // The value store and the engine move into the new build; on
         // failure they move back.
@@ -177,13 +184,12 @@ impl Document {
         let result = (|| {
             for _ in 0..MAX_PASSES {
                 let clock = web_time::Instant::now();
-                let built =
-                    crate::build::build(&dast, &carryover, &mut engine, crate::build::Pass::Later)?;
+                let built = crate::build::build(&compiled, &carryover, &mut engine)?;
                 if profile {
                     eprintln!("rebuild/build: {:.2?}", clock.elapsed());
                 }
                 let clock = web_time::Instant::now();
-                let mut doc = built.schedule(dast.clone(), &mut engine)?;
+                let mut doc = built.schedule(compiled.clone(), &mut engine)?;
                 carryover.restore_strings(&mut doc);
                 if profile {
                     eprintln!(

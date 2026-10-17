@@ -21,7 +21,9 @@ mod refs;
 use planner::Planner;
 
 pub(in crate::build) struct Compiler<'a> {
-    pub(in crate::build) compiled: Compiled<'a>,
+    /// The source being compiled; `compiled` keeps it too.
+    pub(in crate::build) dast: &'a Dast,
+    pub(in crate::build) compiled: Compiled,
     /// Elements whose attribute plans are computed once every name exists.
     pub(in crate::build) pending_elems: Vec<(TemplateId, ElemId)>,
     /// Macro children awaiting plans: (template, owning element or None for
@@ -58,18 +60,21 @@ impl<'a> Compiler<'a> {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements. A
     /// failure names the node to box next, when the failing element has one.
     pub(in crate::build) fn compile(
-        dast: &'a Dast,
+        dast: &'a Arc<Dast>,
         boxed: &'a HashSet<NodeId>,
-    ) -> std::result::Result<Compiled<'a>, Failure> {
+    ) -> std::result::Result<Compiled, Failure> {
         let mut cp = Compiler {
+            dast,
             compiled: Compiled {
-                dast,
+                dast: dast.clone(),
                 templates: vec![Template::default()],
                 refs: Vec::new(),
                 arena: Arena::default(),
                 sym_text: HashMap::new(),
                 choices: Vec::new(),
                 extra_strings: Vec::new(),
+                diagnostics: Vec::new(),
+                rebuilds: false,
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
@@ -90,7 +95,7 @@ impl<'a> Compiler<'a> {
 
     fn compile_all(&mut self) -> Result<()> {
         let cp = self;
-        let dast = cp.compiled.dast;
+        let dast = cp.dast;
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
             .children(Dast::ROOT)
@@ -233,7 +238,7 @@ impl<'a> Compiler<'a> {
             body: Body::Plain,
         });
         if name != NONE {
-            let s = self.compiled.dast.strings.get(name).trim().to_string();
+            let s = self.dast.strings.get(name).trim().to_string();
             // Two siblings with one name can never be told apart.
             if tpl
                 .names
@@ -266,7 +271,7 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::build) fn attr_name_str(&self, el: NodeId, attr: &str) -> Option<StrId> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let a = d.attr(el, attr)?;
         match d.attr_children(a) {
             [t] if d.kind(*t) == NodeKind::Text => Some(d.str_id(*t)),
@@ -294,7 +299,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn add_elem_inner(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> Result<ElemId> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let tag = d.str(el);
         let component_type =
             ComponentType::from_tag(tag).ok_or_else(|| Error::UnsupportedTag(tag.to_string()))?;
@@ -424,7 +429,7 @@ impl<'a> Compiler<'a> {
         name_scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<Vec<Child>> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut kids = Vec::with_capacity(nodes.len());
         for &n in nodes {
             match d.kind(n) {
@@ -491,7 +496,7 @@ impl<'a> Compiler<'a> {
     /// the cells core: two cells, draggable as a direction source. With
     /// three or more entries it is a tuple, one cell per entry.
     fn plan_math_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -547,7 +552,7 @@ impl<'a> Compiler<'a> {
 
     /// `<collect>`: what it collects is resolved when it expands.
     fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
@@ -581,7 +586,7 @@ impl<'a> Compiler<'a> {
     /// (and whether its type is a container) before any prop is looked at.
     /// Records the extend plan on the element.
     fn elem_shape(&mut self, t: TemplateId, e: ElemId) -> Result<ElemShape> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let Elem {
             node: el,
             component_type,
@@ -622,7 +627,7 @@ impl<'a> Compiler<'a> {
     pub(in crate::build) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
         let el = &self.compiled.templates[t].elems[e];
         if el.name != NONE {
-            self.compiled.dast.strings.get(el.name).trim().to_string()
+            self.dast.strings.get(el.name).trim().to_string()
         } else {
             format!("<{}>", el.component_type.tag())
         }

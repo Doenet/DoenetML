@@ -121,7 +121,7 @@ impl Probe {
     }
 }
 
-impl Compiled<'_> {
+impl Compiled {
     /// Whether any template is a repeat body: without one the structure
     /// never changes and the schedule's own check is complete.
     pub(in crate::build) fn has_repeats(&self) -> bool {
@@ -158,7 +158,7 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
     }
 }
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
     fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
         let source_inputs = |src: &Source, out: &mut Vec<SlotId>| match src {

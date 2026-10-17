@@ -3,7 +3,7 @@
 
 use super::*;
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     /// The slot an `Arg` names for component `comp` in `scope`.
     pub(in crate::build) fn arg_slot(
         &mut self,
@@ -73,7 +73,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         plan: RefId,
         scope: ScopeId,
     ) -> Result<(Resolved, Option<&'c str>)> {
-        let c: &'c Compiled<'a> = self.compiled;
+        let c: &'c Compiled = self.compiled;
         let p = &c.refs[plan];
         let labelling = self.view.folds_iterations();
         let src_depth = if labelling {

@@ -4,7 +4,7 @@
 
 use super::*;
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     /// Expand choice `cid` at component `comp`; returns its children.
     pub(in crate::build) fn expand_choice(
         &mut self,
@@ -13,7 +13,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         scope: ScopeId,
         comp: CompIdx,
     ) -> Result<Vec<u32>> {
-        let c: &'c Compiled<'a> = self.compiled;
+        let c: &'c Compiled = self.compiled;
         let def = &c.choices[cid];
         let every_option =
             !def.reactive && self.view.options(self.in_iteration(scope)) == Options::Every;
@@ -277,7 +277,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     }
 }
 
-impl<'c, 'a> Builder<'c, 'a> {
+impl<'c> Builder<'c> {
     /// The start of a load-time choice's stream: the document seed mixed
     /// with the element and the iteration chain it sits in, so it draws the
     /// same way in every build.

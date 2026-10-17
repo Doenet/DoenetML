@@ -15,7 +15,7 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         names: &[&str],
     ) -> Result<Fix> {
-        let d = self.compiled.dast;
+        let d = self.dast;
         let mut flags = Vec::new();
         for &name in names {
             let Some(a) = d.attr(el, name) else { continue };
