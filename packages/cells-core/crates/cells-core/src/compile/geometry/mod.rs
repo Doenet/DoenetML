@@ -18,7 +18,7 @@ impl<'a> Compiler<'a> {
     /// Runs a geometric type's planner (`plan`, from `planner`) with what
     /// the types share around it: a bare copy aliases every prop, and a copy
     /// with its own attributes merges them over the referent's.
-    pub(in crate::build) fn plan_geo(
+    pub(in crate::compile) fn plan_geo(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -91,7 +91,7 @@ impl<'a> Compiler<'a> {
             .collect()
     }
 
-    pub(in crate::build) fn attr_or_inherited(
+    pub(in crate::compile) fn attr_or_inherited(
         &self,
         el: NodeId,
         base: Option<NodeId>,
@@ -104,14 +104,14 @@ impl<'a> Compiler<'a> {
 
     /// Two hidden slots holding a point. A literal coordinate is essential
     /// state and gets a role from `roles`, so a copy with overrides shares it.
-    pub(in crate::build) fn point_slots(ch: &mut ElemPlan, p: &PointPlan) -> [usize; 2] {
+    pub(in crate::compile) fn point_slots(ch: &mut ElemPlan, p: &PointPlan) -> [usize; 2] {
         [ch.hidden(p.coord(0)), ch.hidden(p.coord(1))]
     }
 
     /// Put a point's coordinates on two public slots, tagging literal
     /// coordinates with roles. A free shape's own points are the points
     /// themselves: no instruction stands between (ADR 0006).
-    pub(in crate::build) fn set_point_with_roles(
+    pub(in crate::compile) fn set_point_with_roles(
         ch: &mut ElemPlan,
         slots: [usize; 2],
         p: &PointPlan,
@@ -148,7 +148,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    pub(in crate::build) fn point_slots_with_roles(
+    pub(in crate::compile) fn point_slots_with_roles(
         ch: &mut ElemPlan,
         p: &PointPlan,
         roles: [&'static str; 2],
@@ -170,7 +170,7 @@ impl<'a> Compiler<'a> {
     /// The points of a point-list attribute: bare references, parenthesized
     /// tuples (which may contain references), and references to array props
     /// (`$l.points`), which contribute one point per item.
-    pub(in crate::build) fn plan_point_list(
+    pub(in crate::compile) fn plan_point_list(
         &mut self,
         t: TemplateId,
         scope: ElemId,
@@ -238,7 +238,7 @@ impl<'a> Compiler<'a> {
 
     /// If plan `p` names an array prop, how many items it has (known at
     /// compile time from the referent element).
-    pub(in crate::build) fn array_items_of_plan(
+    pub(in crate::compile) fn array_items_of_plan(
         &self,
         t: TemplateId,
         p: RefId,
@@ -273,7 +273,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// Points in a point-list attribute, counted from its text alone.
-    pub(in crate::build) fn count_points_in_attr(&self, el: NodeId, name: &str) -> Result<usize> {
+    pub(in crate::compile) fn count_points_in_attr(&self, el: NodeId, name: &str) -> Result<usize> {
         let d = self.dast;
         let Some(a) = (el != NONE).then(|| d.attr(el, name)).flatten() else {
             return Ok(0);
@@ -305,7 +305,11 @@ impl<'a> Compiler<'a> {
 
     /// Replace cell leaves that name a `<math>` element of this template
     /// with that math's own expression when it has free symbols.
-    pub(in crate::build) fn inline_symbolic_maths(&mut self, t: TemplateId, id: ExprId) -> ExprId {
+    pub(in crate::compile) fn inline_symbolic_maths(
+        &mut self,
+        t: TemplateId,
+        id: ExprId,
+    ) -> ExprId {
         let e = self.compiled.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {

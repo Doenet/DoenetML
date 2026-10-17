@@ -330,7 +330,6 @@ impl<'c> Builder<'c> {
             value_types,
             tapes,
             cell_label,
-            cycle_check: std::time::Duration::ZERO,
         })
     }
 

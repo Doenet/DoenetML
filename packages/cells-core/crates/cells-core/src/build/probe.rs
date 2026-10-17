@@ -1,4 +1,5 @@
-//! The count-independent cycle check (ADR 0012): a document is rejected at
+//! The probe (ADR 0012, ADR 0014), the build the compile's check runs
+//! through: the count-independent cycle check (ADR 0012): a document is rejected at
 //! load when a dependency loop would close at an iteration count a repeat
 //! can reach, not only at the count it loads with.
 //!
@@ -94,40 +95,23 @@ impl View for Probe {
     }
 }
 
-/// Run the check over the compiled templates: build through the probe,
-/// test its graph, then emit it so emit's rules run on the referents of
-/// every count, and discard the output.
-pub(super) fn check(compiled: &Compiled, session: &Session) -> std::result::Result<(), Failure> {
+/// The probe build (ADR 0012, ADR 0014): the compile built once through
+/// the probe view, its graph tested for loops at any count, and emitted so
+/// emit's rules run on the referents of every count. With `exhaustive`
+/// every option of every select is built, inside a repeat or not
+/// (`compile::diagnose`); otherwise those inside one, which a later
+/// iteration may draw. The compile's check discards the output.
+pub(crate) fn probe(
+    compiled: &Compiled,
+    session: &Session,
+    exhaustive: bool,
+) -> std::result::Result<BuildOutput, Failure> {
     let mut engine = Engine::new();
     let probe = Probe {
-        seed: session.seed,
-        every_option: false,
+        seed: if exhaustive { 0 } else { session.seed },
+        every_option: exhaustive,
     };
-    build_with(compiled, session, false, &mut engine, &probe, true).map(drop)
-}
-
-impl Probe {
-    /// The exhaustive view behind `diagnose` (ADR 0013): the probe with
-    /// every option of every select built, inside a repeat or not, so a
-    /// finding in an option no seed draws is still reported.
-    pub(super) fn exhaustive() -> Probe {
-        Probe {
-            seed: 0,
-            every_option: true,
-        }
-    }
-}
-
-impl Compiled {
-    /// Whether any template is a repeat body: without one the structure
-    /// never changes and the schedule's own check is complete.
-    pub(in crate::build) fn has_repeats(&self) -> bool {
-        self.templates.iter().any(|t| {
-            t.elems
-                .iter()
-                .any(|e| matches!(e.body, Body::Repeat { .. }))
-        })
-    }
+    build_with(compiled, session, false, &mut engine, &probe, true)
 }
 
 /// The coordinate an index step contributes: a shift of the referencing

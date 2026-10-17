@@ -1,4 +1,4 @@
-//! The forms of `<answer>` (`build/compile/answer.rs`): which input is the
+//! The forms of `<answer>` (`compile/answer.rs`): which input is the
 //! response, what a submit does, how awards combine, and what is refused.
 
 mod common;

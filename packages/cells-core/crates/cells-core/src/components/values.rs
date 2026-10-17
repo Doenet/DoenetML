@@ -109,7 +109,7 @@ const CURVE_PROPS: &[PropDef] = &props([
 /// sets to the response; `credit` compares it with `correct`
 /// (`symbolicEquality`: as written), or, with `<award>` children, is the
 /// most any award gives. `numSubmissions` counts submits. See
-/// `build/compile/answer.rs` for the forms an answer takes.
+/// `compile/answer.rs` for the forms an answer takes.
 pub(super) const ANSWER: ComponentTypeInfo = info(&["answer"], ANSWER_PROPS)
     .copyable()
     .symbolic()

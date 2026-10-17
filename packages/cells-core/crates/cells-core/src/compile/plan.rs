@@ -4,6 +4,11 @@
 
 use super::*;
 
+pub(crate) type TemplateId = usize;
+pub(crate) type ElemId = usize;
+pub(crate) type RefId = usize;
+pub(crate) type ChoiceId = usize;
+
 // ---------------------------------------------------------------------------
 // Compiled templates
 // ---------------------------------------------------------------------------
@@ -12,7 +17,7 @@ use super::*;
 /// exists: a reference (with a selector into what it names), one of the
 /// element's own slots, or a slot of another element in the same template.
 #[derive(Debug, Clone, Copy)]
-pub(in crate::build) enum Arg {
+pub(crate) enum Arg {
     Ref(RefId, Sel),
     Own(u8),
     /// A copy with overridden attributes shares the rest of the original's
@@ -23,7 +28,7 @@ pub(in crate::build) enum Arg {
 /// Which cell of a reference's target: the single cell, coordinate `j` of a
 /// point-valued prop, or coordinate `j` of item `i` of an array prop.
 #[derive(Debug, Clone, Copy)]
-pub(in crate::build) enum Sel {
+pub(crate) enum Sel {
     Whole,
     Coord(u8),
     Item(u8, u8),
@@ -31,7 +36,7 @@ pub(in crate::build) enum Sel {
 
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
-pub(in crate::build) enum SourcePlan {
+pub(crate) enum SourcePlan {
     /// An essential cell with this initial value.
     Literal(f64),
     /// An essential text cell: a string id, or NaN for none.
@@ -86,38 +91,38 @@ pub(in crate::build) enum SourcePlan {
 }
 
 impl SourcePlan {
-    pub(in crate::build) fn reference(p: RefId) -> Self {
+    pub(crate) fn reference(p: RefId) -> Self {
         SourcePlan::Alias(Arg::Ref(p, Sel::Whole))
     }
-    pub(in crate::build) fn coord(p: RefId, j: usize) -> Self {
+    pub(crate) fn coord(p: RefId, j: usize) -> Self {
         SourcePlan::Alias(Arg::Ref(p, Sel::Coord(j as u8)))
     }
-    pub(in crate::build) fn item(p: RefId, i: usize, j: usize) -> Self {
+    pub(crate) fn item(p: RefId, i: usize, j: usize) -> Self {
         SourcePlan::Alias(Arg::Ref(p, Sel::Item(i as u8, j as u8)))
     }
-    pub(in crate::build) fn own(slot: usize) -> Self {
+    pub(crate) fn own(slot: usize) -> Self {
         SourcePlan::Alias(Arg::Own(own_slot(slot)))
     }
     /// Operator over the element's own slots.
-    pub(in crate::build) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
+    pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
         SourcePlan::Op(
             op,
             args.into_iter().map(|a| Arg::Own(own_slot(a))).collect(),
         )
     }
     /// A type's `PropFrom::Computed` prop.
-    pub(in crate::build) fn from_def(op: OpSpec, args: &[u8]) -> Self {
+    pub(crate) fn from_def(op: OpSpec, args: &[u8]) -> Self {
         SourcePlan::Op(op, args.iter().map(|&a| Arg::Own(a)).collect())
     }
     /// Head of a vector instruction over own slots; this slot is output 0,
     /// the next `n_out - 1` slots are `VecOut`.
-    pub(in crate::build) fn vector(op: VecOp, args: Vec<usize>) -> Self {
+    pub(crate) fn vector(op: VecOp, args: Vec<usize>) -> Self {
         SourcePlan::computed(OpSpec::Vec(op), args)
     }
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::build) enum Child {
+pub(crate) enum Child {
     Elem(ElemId),
     Text(StrId),
     /// A `$ref` child: a copy or a number, decided when it resolves. The
@@ -126,7 +131,7 @@ pub(in crate::build) enum Child {
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::build) enum Body {
+pub(crate) enum Body {
     Plain,
     Repeat {
         template: TemplateId,
@@ -146,79 +151,79 @@ pub(in crate::build) enum Body {
 /// A choice as compiled (ADR 0009): one template per branch, its
 /// branch interface, and how it chooses.
 #[derive(Debug, Clone)]
-pub(in crate::build) struct ChoiceDef {
+pub(crate) struct ChoiceDef {
     /// The choice element: (template, element).
-    pub(in crate::build) at: (TemplateId, ElemId),
+    pub(crate) at: (TemplateId, ElemId),
     /// `<conditionalContent>` (reactive) or `<select>` (load-time).
-    pub(in crate::build) reactive: bool,
+    pub(crate) reactive: bool,
     /// One template per case or option, in document order.
-    pub(in crate::build) branches: Vec<TemplateId>,
+    pub(crate) branches: Vec<TemplateId>,
     /// Reactive: each case's `condition` attribute (None: an else).
-    pub(in crate::build) conditions: Vec<Option<u32>>,
+    pub(crate) conditions: Vec<Option<u32>>,
     /// Load-time: picks, with replacement or not, and a weight per option.
-    pub(in crate::build) num_to_select: u32,
-    pub(in crate::build) with_replacement: bool,
-    pub(in crate::build) weights: Vec<f64>,
+    pub(crate) num_to_select: u32,
+    pub(crate) with_replacement: bool,
+    pub(crate) weights: Vec<f64>,
     /// The branch interface (`CONTEXT.md`): name -> type and the element
     /// carrying it in each branch. Filled once every element is planned.
-    pub(in crate::build) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
+    pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,
     /// Interface names that references use, in first-use order; a
     /// `Step::Iface` holds an index here.
-    pub(in crate::build) used: Vec<String>,
+    pub(crate) used: Vec<String>,
 }
 
 /// The template itself, as the parent of its top-level elements.
-pub(in crate::build) const ROOT_SCOPE: ElemId = usize::MAX;
+pub(crate) const ROOT_SCOPE: ElemId = usize::MAX;
 
 #[derive(Debug, Clone)]
-pub(in crate::build) struct Elem {
-    pub(in crate::build) node: NodeId,
-    pub(in crate::build) component_type: ComponentType,
-    pub(in crate::build) name: StrId,
+pub(crate) struct Elem {
+    pub(crate) node: NodeId,
+    pub(crate) component_type: ComponentType,
+    pub(crate) name: StrId,
     /// Parent element within the template (`ROOT_SCOPE` at the top). A
     /// name is visible from every ancestor, as in the current core's
     /// resolver; repeats hide their children behind their own name because
     /// each repeat body is its own template.
-    pub(in crate::build) name_scope: ElemId,
+    pub(crate) name_scope: ElemId,
     /// First of this element's prop slots within the template's slot space.
     /// Assigned once every element is planned, since planned types add
     /// hidden slots after the public props.
-    pub(in crate::build) slot_off: u32,
+    pub(crate) slot_off: u32,
     /// The element's identity across loads, for saved state.
-    pub(in crate::build) key: crate::build::ElemKey,
-    pub(in crate::build) props: Vec<SourcePlan>,
-    pub(in crate::build) children: Vec<Child>,
-    pub(in crate::build) extend: Option<RefId>,
+    pub(crate) key: crate::build::ElemKey,
+    pub(crate) props: Vec<SourcePlan>,
+    pub(crate) children: Vec<Child>,
+    pub(crate) extend: Option<RefId>,
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
     /// aliases the original's, and the children are clones too.
-    pub(in crate::build) cloned: bool,
+    pub(crate) cloned: bool,
     /// Named essential slots of a planned type (a line's default points, a
     /// circle's essential radius), so a copy with overridden attributes can
     /// share the ones it does not override.
-    pub(in crate::build) roles: HashMap<&'static str, u8>,
-    pub(in crate::build) body: Body,
+    pub(crate) roles: HashMap<&'static str, u8>,
+    pub(crate) body: Body,
 }
 
 #[derive(Debug, Clone, Default)]
-pub(in crate::build) struct Template {
+pub(crate) struct Template {
     /// (template, element) of the repeat this template belongs to.
-    pub(in crate::build) parent: Option<(TemplateId, ElemId)>,
+    pub(crate) parent: Option<(TemplateId, ElemId)>,
     /// The node of the element that owns the template (0, the DAST root,
     /// for the document's): what an element the build makes at the top of
     /// the template is keyed by.
-    pub(in crate::build) owner: NodeId,
-    pub(in crate::build) elems: Vec<Elem>,
-    pub(in crate::build) n_slots: u32,
+    pub(crate) owner: NodeId,
+    pub(crate) elems: Vec<Elem>,
+    pub(crate) n_slots: u32,
     /// Children of the template itself (the document, or the repeat body).
-    pub(in crate::build) children: Vec<Child>,
+    pub(crate) children: Vec<Child>,
     /// Compile-time name table: for every ancestor (and `ROOT_SCOPE`), the
     /// descendants carrying each name. More than one is an ambiguity.
-    pub(in crate::build) names: HashMap<(ElemId, String), Vec<ElemId>>,
+    pub(crate) names: HashMap<(ElemId, String), Vec<ElemId>>,
 }
 
 /// One step of a resolved reference path.
 #[derive(Debug, Clone)]
-pub(in crate::build) enum Step {
+pub(crate) enum Step {
     /// An element of the current template.
     Elem(ElemId),
     /// `[k]` on the repeat or collect just selected.
@@ -229,7 +234,7 @@ pub(in crate::build) enum Step {
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::build) enum IndexTerm {
+pub(crate) enum IndexTerm {
     Const(i64),
     /// The position of the iteration `hops` template levels up from the
     /// referencing element.
@@ -237,86 +242,86 @@ pub(in crate::build) enum IndexTerm {
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::build) struct IndexPlan {
-    pub(in crate::build) terms: Vec<IndexTerm>,
+pub(crate) struct IndexPlan {
+    pub(crate) terms: Vec<IndexTerm>,
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::build) struct RefPlan {
+pub(crate) struct RefPlan {
     /// Template levels up from the referencing element to where the first
     /// name was found.
-    pub(in crate::build) hops: u32,
-    pub(in crate::build) steps: Vec<Step>,
+    pub(crate) hops: u32,
+    pub(crate) steps: Vec<Step>,
     /// The prop named by the final part, if any.
-    pub(in crate::build) prop: Option<String>,
+    pub(crate) prop: Option<String>,
     /// For error messages.
-    pub(in crate::build) display: String,
+    pub(crate) display: String,
     /// The macro node the plan came from, or NONE for a plan the build
     /// made itself; what an error in resolving it is reported on.
-    pub(in crate::build) node: NodeId,
+    pub(crate) node: NodeId,
 }
 
 /// An element's own slot as `Arg::Own` stores it.
-pub(in crate::build) fn own_slot(i: usize) -> u8 {
+pub(crate) fn own_slot(i: usize) -> u8 {
     u8::try_from(i).expect("fewer than 256 slots per element")
 }
 
 /// A planned element's prop list under construction: public slots set by
 /// index, hidden slots appended after them and referenced by index like any
 /// own prop.
-pub(in crate::build) struct ElemPlan {
-    pub(in crate::build) props: Vec<Option<SourcePlan>>,
-    pub(in crate::build) roles: HashMap<&'static str, u8>,
+pub(crate) struct ElemPlan {
+    pub(crate) props: Vec<Option<SourcePlan>>,
+    pub(crate) roles: HashMap<&'static str, u8>,
     /// The attribute a role's value came from, if any; a copy that gives
     /// that attribute itself does not share the role.
-    pub(in crate::build) role_attr: HashMap<&'static str, &'static str>,
+    pub(crate) role_attr: HashMap<&'static str, &'static str>,
 }
 
 impl ElemPlan {
-    pub(in crate::build) fn new(n_public: usize) -> Self {
+    pub(crate) fn new(n_public: usize) -> Self {
         ElemPlan {
             props: vec![None; n_public],
             roles: HashMap::new(),
             role_attr: HashMap::new(),
         }
     }
-    pub(in crate::build) fn set(&mut self, i: usize, plan: SourcePlan) {
+    pub(crate) fn set(&mut self, i: usize, plan: SourcePlan) {
         self.props[i] = Some(plan);
     }
     /// A vector instruction over own slots, its head at public slot `head`
     /// and its other outputs at the slots after it.
-    pub(in crate::build) fn set_vec(&mut self, head: usize, op: VecOp, args: Vec<usize>) {
+    pub(crate) fn set_vec(&mut self, head: usize, op: VecOp, args: Vec<usize>) {
         for k in 1..op.n_out() {
             self.set(head + k, SourcePlan::VecOut(own_slot(head), k as u8));
         }
         self.set(head, SourcePlan::vector(op, args));
     }
-    pub(in crate::build) fn hidden(&mut self, plan: SourcePlan) -> usize {
+    pub(crate) fn hidden(&mut self, plan: SourcePlan) -> usize {
         self.props.push(Some(plan));
         own_slot(self.props.len() - 1);
         self.props.len() - 1
     }
     /// A hidden essential slot with a role name (see `Elem::roles`).
-    pub(in crate::build) fn essential(&mut self, role: &'static str, value: f64) -> usize {
+    pub(crate) fn essential(&mut self, role: &'static str, value: f64) -> usize {
         let i = self.hidden(SourcePlan::Literal(value));
         self.roles.insert(role, own_slot(i));
         i
     }
     /// A public essential slot with a role name.
-    pub(in crate::build) fn set_essential(&mut self, i: usize, role: &'static str, value: f64) {
+    pub(crate) fn set_essential(&mut self, i: usize, role: &'static str, value: f64) {
         self.set(i, SourcePlan::Literal(value));
         self.roles.insert(role, own_slot(i));
     }
     /// A public essential text slot with a role name, holding string id `id`.
-    pub(in crate::build) fn set_text_essential(&mut self, i: usize, role: &'static str, id: f64) {
+    pub(crate) fn set_text_essential(&mut self, i: usize, role: &'static str, id: f64) {
         self.set(i, SourcePlan::TextLiteral(id));
         self.roles.insert(role, own_slot(i));
     }
     /// Record that `role` came from attribute `attr`.
-    pub(in crate::build) fn role_from_attr(&mut self, role: &'static str, attr: &'static str) {
+    pub(crate) fn role_from_attr(&mut self, role: &'static str, attr: &'static str) {
         self.role_attr.insert(role, attr);
     }
-    pub(in crate::build) fn finish(self) -> Vec<SourcePlan> {
+    pub(crate) fn finish(self) -> Vec<SourcePlan> {
         self.props
             .into_iter()
             .enumerate()
@@ -326,7 +331,7 @@ impl ElemPlan {
 }
 
 /// Role names of the k-th literal point of a point list (k < 16).
-pub(in crate::build) const POINT_ROLES: [[&str; 2]; 16] = [
+pub(crate) const POINT_ROLES: [[&str; 2]; 16] = [
     ["pt1x", "pt1y"],
     ["pt2x", "pt2y"],
     ["pt3x", "pt3y"],
@@ -347,7 +352,7 @@ pub(in crate::build) const POINT_ROLES: [[&str; 2]; 16] = [
 
 /// One point of a point-list attribute (`through`, `vertices`, `endpoints`).
 #[derive(Debug, Clone)]
-pub(in crate::build) enum PointPlan {
+pub(crate) enum PointPlan {
     /// `$p`: a point-valued reference (two cells).
     Ref(RefId),
     /// `(a, b)`: two scalar plans.
@@ -357,7 +362,7 @@ pub(in crate::build) enum PointPlan {
 }
 
 impl PointPlan {
-    pub(in crate::build) fn coord(&self, j: usize) -> SourcePlan {
+    pub(crate) fn coord(&self, j: usize) -> SourcePlan {
         match self {
             PointPlan::Ref(p) => SourcePlan::coord(*p, j),
             PointPlan::Tuple(xy) => xy[j].clone(),
@@ -370,25 +375,25 @@ impl PointPlan {
 /// source and kept for the life of the document (ADR 0015).
 #[derive(Debug)]
 pub struct Compiled {
-    pub(in crate::build) dast: Arc<Dast>,
-    pub(in crate::build) templates: Vec<Template>,
-    pub(in crate::build) refs: Vec<RefPlan>,
+    pub(crate) dast: Arc<Dast>,
+    pub(crate) templates: Vec<Template>,
+    pub(crate) refs: Vec<RefPlan>,
     /// Expression templates: cell leaves hold plan ids.
-    pub(in crate::build) arena: Arena,
+    pub(crate) arena: Arena,
     /// The math text of templates that may be symbolic, with each `$ref`
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
-    pub(in crate::build) sym_text: HashMap<ExprId, String>,
-    pub(in crate::build) choices: Vec<ChoiceDef>,
+    pub(crate) sym_text: HashMap<ExprId, String>,
+    pub(crate) choices: Vec<ChoiceDef>,
     /// Text the build needs that is not a DAST string (a textInput's
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.
-    pub(in crate::build) extra_strings: Vec<String>,
+    pub(crate) extra_strings: Vec<String>,
     /// The source's diagnostics (ADR 0015): the lint findings and the
-    /// errors of the boxed elements, in node order. Set by `build::compile`.
-    pub(in crate::build) diagnostics: Vec<crate::diagnostics::Diagnostic>,
+    /// errors of the boxed elements, in node order. Set by `compile::compile`.
+    pub(crate) diagnostics: Vec<crate::diagnostics::Diagnostic>,
     /// Whether the document has a repeat, so its structure can change and
-    /// a later build will stamp this compile. Set by `build::compile`.
-    pub(in crate::build) rebuilds: bool,
+    /// a later build will stamp this compile. Set by `compile::compile`.
+    pub(crate) rebuilds: bool,
 }
 
 impl Compiled {
@@ -399,13 +404,23 @@ impl Compiled {
 
     /// Drop what only compiling reads (each template's name table, each
     /// element's roles), before the compile is kept for later builds.
-    pub(in crate::build) fn release_compile_tables(&mut self) {
+    pub(crate) fn release_compile_tables(&mut self) {
         for tpl in &mut self.templates {
             tpl.names = HashMap::new();
             for el in &mut tpl.elems {
                 el.roles = HashMap::new();
             }
         }
+    }
+
+    /// Whether any template is a repeat body: without one the structure
+    /// never changes and the schedule's own check is complete.
+    pub(crate) fn has_repeats(&self) -> bool {
+        self.templates.iter().any(|t| {
+            t.elems
+                .iter()
+                .any(|e| matches!(e.body, Body::Repeat { .. }))
+        })
     }
 
     /// Whether a later build can stamp it: the document has a repeat.

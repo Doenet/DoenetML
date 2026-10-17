@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::{ElemKey, ScopeId, ScopeTable};
+use crate::build::{ElemKey, ScopeId, ScopeTable};
 use crate::dast::NodeId;
 use crate::document::Document;
 
@@ -62,7 +62,7 @@ impl Session {
     }
 
     /// The value carried for `(scope, slot)`, if any.
-    pub(in crate::build) fn carried(&self, scope: ScopeId, slot: u32) -> Option<f64> {
+    pub(crate) fn carried(&self, scope: ScopeId, slot: u32) -> Option<f64> {
         self.values
             .get(scope as usize)
             .and_then(|row| row.get(slot as usize).copied().flatten())
@@ -102,7 +102,7 @@ impl Counts {
         self.0.insert((scope, node), n);
     }
 
-    pub(in crate::build) fn get(&self, scope: ScopeId, node: NodeId) -> u32 {
+    pub(crate) fn get(&self, scope: ScopeId, node: NodeId) -> u32 {
         self.0.get(&(scope, node)).copied().unwrap_or(0)
     }
 }

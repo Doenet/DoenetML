@@ -8,7 +8,7 @@ impl<'a> Compiler<'a> {
     /// `fixed`-like attributes of an element. A literal true fixes it at
     /// build time; a reference is a flag cell, so the element is gated
     /// while the flag is nonzero. Several references gate on any of them.
-    pub(in crate::build) fn plan_fix(
+    pub(in crate::compile) fn plan_fix(
         &mut self,
         t: TemplateId,
         scope: ElemId,
@@ -36,7 +36,7 @@ impl<'a> Compiler<'a> {
 }
 
 /// How a `fixed` attribute (and a graph's `fixAxes`) reaches an element.
-pub(in crate::build) enum Fix {
+pub(in crate::compile) enum Fix {
     Off,
     /// A literal true: the element's essential cells become fixed cells.
     Literal,
@@ -45,7 +45,7 @@ pub(in crate::build) enum Fix {
 }
 
 impl Fix {
-    pub(in crate::build) fn apply(self, props: &mut Vec<Option<SourcePlan>>) {
+    pub(in crate::compile) fn apply(self, props: &mut Vec<Option<SourcePlan>>) {
         match self {
             Fix::Off => {}
             Fix::Literal => fix_literals(props),

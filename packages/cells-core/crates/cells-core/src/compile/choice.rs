@@ -24,7 +24,7 @@ const MAX_CASES: usize = crate::program::MAX_VEC_IN - 1;
 impl<'a> Compiler<'a> {
     /// Give a choice element its branch templates. `<group rendered="c">`
     /// is a conditional content with one case.
-    pub(in crate::build) fn add_choice(
+    pub(in crate::compile) fn add_choice(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -234,7 +234,7 @@ impl<'a> Compiler<'a> {
 
     /// A reactive choice's props: a hidden slot per case condition (an else
     /// is a constant 1) and `choice`, the first of them that holds.
-    pub(in crate::build) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Body::Choice(cid) = self.compiled.templates[t].elems[e].body else {
             unreachable!()
         };
@@ -288,7 +288,7 @@ impl<'a> Compiler<'a> {
     /// The branch interface of every choice, once every element is planned
     /// (a tuple-valued `<math>` only becomes a point when planned), then the
     /// check that every interface name a reference uses is in it.
-    pub(in crate::build) fn finish_choices(&mut self) -> Result<()> {
+    pub(in crate::compile) fn finish_choices(&mut self) -> Result<()> {
         for cid in 0..self.compiled.choices.len() {
             let def = &self.compiled.choices[cid];
             // A conditional content without an else has an implicit empty
@@ -417,7 +417,7 @@ impl<'a> Compiler<'a> {
     /// of the first branch that has it, which stands for every branch while
     /// the rest of the path is planned (the interface check makes their
     /// types equal).
-    pub(in crate::build) fn iface_step(
+    pub(in crate::compile) fn iface_step(
         &mut self,
         cid: ChoiceId,
         name: &str,

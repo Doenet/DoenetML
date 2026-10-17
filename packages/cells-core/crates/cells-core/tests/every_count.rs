@@ -29,9 +29,10 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{Counts, Repeat, ScopeId, Session, build};
+use cells_core::build::{Repeat, ScopeId, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
+use cells_core::session::{Counts, Session};
 use cells_core::sym::Engine;
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::{Document, Error, LoadOptions, Request};

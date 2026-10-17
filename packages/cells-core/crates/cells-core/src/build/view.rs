@@ -8,7 +8,7 @@
 //! Two views exist. [`Stamped`] answers from the counts a build is asked
 //! for and the session's seed, so the build stamps
 //! every iteration it has and a reference past the count is missing. The
-//! cycle check's `Probe` (`cycles.rs`, ADR 0012) folds every iteration into
+//! cycle check's `Probe` (`probe.rs`, ADR 0012) folds every iteration into
 //! one, so the graph it builds holds every edge some count would create.
 //! A structural read that bypasses the view is one the probe cannot model;
 //! `tests/every_count.rs` builds every document at several counts and

@@ -4,7 +4,7 @@ use super::*;
 use crate::components::prop::circle;
 
 impl Compiler<'_> {
-    pub(in crate::build) fn plan_circle(
+    pub(in crate::compile) fn plan_circle(
         &mut self,
         t: TemplateId,
         e: ElemId,

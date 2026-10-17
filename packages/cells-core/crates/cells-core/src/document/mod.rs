@@ -8,7 +8,8 @@ use std::time::Duration;
 
 use crate::sym::{Engine, Handle};
 
-use crate::build::{Counts, Repeat, ScopeId, Session, Structure};
+use crate::build::{Repeat, ScopeId, Structure};
+use crate::session::{Counts, Session};
 
 use crate::components::{ComponentType, prop};
 use crate::dast::{Dast, StrId, StringTable};
@@ -60,14 +61,14 @@ pub struct Document {
     pub structure: Structure,
     /// What the session has accumulated (ADR 0015): carried values, scopes,
     /// strings interned at runtime. Every build reads it.
-    pub session: crate::build::Session,
+    pub session: crate::session::Session,
     /// The document as loaded (also `compiled.dast`).
     pub dast: Arc<Dast>,
     /// The document as compiled at load, which every rebuild stamps
     /// (ADR 0015). Kept only by a document with a repeat: one without
     /// never rebuilds, and its compile, several times the size of the
     /// built document, is dropped after load.
-    pub compiled: Option<Arc<crate::build::Compiled>>,
+    pub compiled: Option<Arc<crate::compile::Compiled>>,
     /// Sticky groups as cells, for the request pre-pass (ADR 0007).
     sticky: Vec<sticky::StickyTable>,
 }
@@ -83,8 +84,8 @@ impl Document {
         strings: StringTable,
         root: CompIdx,
         structure: Structure,
-        session: crate::build::Session,
-        compiled: Arc<crate::build::Compiled>,
+        session: crate::session::Session,
+        compiled: Arc<crate::compile::Compiled>,
     ) -> Self {
         let mut strings = strings;
         let n_static_strings = strings.len();

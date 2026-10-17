@@ -1,6 +1,6 @@
 # Compile once, build per structure: a hard line between the two
 
-Status: accepted 2026-10-17. Steps 1 and 3 of the migration are done; see Progress.
+Status: accepted 2026-10-17. Steps 1, 3 and 5 of the migration are done; see Progress.
 
 The core works in three stages that differ in how often they run and what
 they may depend on, and this ADR makes the line between them hard: each
@@ -192,6 +192,24 @@ take-and-restore, and its test is in `tests/rebuild_cycles.rs`. The engine
 stays in the program, which the tick reads; moving it into the session is
 left for later. The function that compiles and returns the first build is
 `build::compile`, since compiling is its job; `Document::load` is a load.
+
+**Step 5, files (done).** `src/compile/` is today's plan (the old
+`build/compile/`), `lint.rs`, and `check.rs`, which holds `compile::compile`
+and `compile::diagnose`: the boxing loop, the probe check, and for a
+document checked by its one stamped build, that build, which the load
+keeps. `compile::compile` returns the compile, that first build when there
+is one, and the check's time; a load with repeats then builds its first
+pass with `build::build` like every other. `src/build/` keeps expand, emit,
+the view and the probe (`probe.rs`, the old `cycles.rs`), since the probe
+is build's machinery run through another view; it offers compile exactly
+`build::probe` and `build::first_build`. `src/session.rs` holds `Session`
+and `Counts`, which both stages read. Compile's items are visible only
+inside `compile` except the plan types and the expression arena, which the
+build stamps; build uses nothing else of compile's.
+
+Not done: a build's error type still has the authoring variants. A
+build maps any element failure to `Error::Unchecked`, which enforces the
+rule; splitting the enum was judged not worth the churn.
 
 ## Consequences
 

@@ -74,27 +74,29 @@ impl Document {
         let mut engine = Engine::new();
         let mut session = Session::new(options.seed, options.sample_with_engine);
         let mut counts = Counts::default();
-        // The compile, made by the first pass and stamped by the rest.
-        let mut compiled: Option<Arc<crate::build::Compiled>> = None;
-        for _ in 0..MAX_PASSES {
+        // Compile once (ADR 0015); every pass is a build of that compile.
+        let clock = web_time::Instant::now();
+        let crate::compile::CompileOutput {
+            compiled,
+            mut first_build,
+            check_time,
+        } = crate::compile::compile(&dast, &session, &mut engine, options.check_cycles)?;
+        t.build += clock.elapsed();
+        t.cycle_check += check_time;
+        for pass in 0..MAX_PASSES {
             let clock = web_time::Instant::now();
-            let built = match &compiled {
-                None => {
-                    let (c, built) =
-                        crate::build::compile(&dast, &session, &mut engine, options.check_cycles)?;
-                    compiled = Some(c);
-                    built
-                }
-                // No student has changed a value yet, so a seeded cell takes
-                // its seed again, from the counts this pass stamps.
-                Some(c) => crate::build::build(c, &session, &counts, true, &mut engine)?,
+            let built = match first_build.take() {
+                // The compile's check was this build.
+                Some(built) => built,
+                // After the first pass no student has changed a value yet,
+                // so a seeded cell takes its seed again, from the counts
+                // this pass stamps.
+                None => crate::build::build(&compiled, &session, &counts, pass > 0, &mut engine)?,
             };
             t.build += clock.elapsed();
-            t.cycle_check += built.cycle_check;
 
             let clock = web_time::Instant::now();
-            let compiled = compiled.clone().expect("the first pass compiled");
-            let mut doc = built.schedule(compiled, &mut engine)?;
+            let mut doc = built.schedule(compiled.clone(), &mut engine)?;
             t.schedule += clock.elapsed();
 
             let clock = web_time::Instant::now();

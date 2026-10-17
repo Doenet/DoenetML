@@ -14,9 +14,9 @@ use super::*;
 /// How `=` compares two expressions that are not both numeric: as written
 /// (`symbolicEquality`) or by value, after `post` on both sides.
 #[derive(Debug, Clone, Copy)]
-pub(in crate::build) struct Compare {
-    pub(in crate::build) syntactic: bool,
-    pub(in crate::build) post: Post,
+pub(in crate::compile) struct Compare {
+    pub(in crate::compile) syntactic: bool,
+    pub(in crate::compile) post: Post,
 }
 
 impl Default for Compare {
@@ -33,7 +33,7 @@ impl<'a> Compiler<'a> {
     /// 1 or 0. Comparisons (`< <= > >= = !=`), `and`/`&&`, `or`/`||`,
     /// `not`/`!`, parentheses, `true`, `false`, and math operands; a bare
     /// operand holds when it is nonzero.
-    pub(in crate::build) fn plan_condition(
+    pub(in crate::compile) fn plan_condition(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -121,7 +121,7 @@ impl<'a> Compiler<'a> {
 
     /// A condition from tokens already made (`math_tokens`), with a say in
     /// how expressions compare.
-    pub(in crate::build) fn plan_condition_tokens(
+    pub(in crate::compile) fn plan_condition_tokens(
         &mut self,
         plan: &mut ElemPlan,
         toks: &[Token],
@@ -145,7 +145,7 @@ impl<'a> Compiler<'a> {
     /// `<when>`'s) as hidden slots of `plan`; returns the slot holding 1 or
     /// 0. Text the numeric tokenizer cannot read (`%`, `'`, `_`) can still
     /// be one `=` between two expressions for the engine.
-    pub(in crate::build) fn plan_condition_content(
+    pub(in crate::compile) fn plan_condition_content(
         &mut self,
         t: TemplateId,
         scope: ElemId,
@@ -184,7 +184,7 @@ impl<'a> Compiler<'a> {
     /// How `=` compares, from the first of `els` that gives each attribute
     /// (`symbolicEquality`, `simplifyOnCompare`, `expandOnCompare`): an
     /// award's say, then its answer's.
-    pub(in crate::build) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
+    pub(in crate::compile) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
         let on = |name: &str| {
             els.iter()
                 .find(|&&el| self.dast.attr(el, name).is_some())
@@ -225,7 +225,7 @@ impl<'a> Compiler<'a> {
 
     /// A symbolic math source from the engine's spelling of an operand
     /// (each `$ref` written `cellN<plan>`), as a hidden slot of `plan`.
-    pub(in crate::build) fn sym_operand(
+    pub(in crate::compile) fn sym_operand(
         &mut self,
         plan: &mut ElemPlan,
         sym: String,

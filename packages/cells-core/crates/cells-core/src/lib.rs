@@ -11,8 +11,11 @@
 //! - [`components`]: the tag vocabulary, meaning each type's props and where
 //!   their values come from. The build plans from it, and the component
 //!   table names cells with it.
-//! - [`build`]: DAST to cells and instructions, in three stages: `compile`
-//!   (once per document), `expand` (once per scope), `emit`.
+//! - `compile`: the source made, once per load, into the templates every
+//!   build stamps, checked and with every failing element boxed (ADR 0015).
+//! - [`session`]: what a session accumulates and every build reads.
+//! - [`build`]: the compile stamped into cells and instructions at given
+//!   iteration counts: expand (once per scope), emit.
 //! - [`program`]: the instruction set the build emits and a tick runs
 //!   (operators, their inverses, the scheduled instruction list).
 //! - [`sym`]: the symbolic engine behind math cells (math-expressions-rs,
@@ -24,25 +27,26 @@
 //! - [`testing`]: the reference oracle and test helpers.
 
 pub mod build;
+mod compile;
 pub mod components;
 pub mod dast;
 pub mod diagnostics;
 mod document;
 mod error;
-pub mod lint;
 pub mod program;
+pub mod session;
 pub mod sym;
 pub mod testing;
 pub mod tick;
 
 // The API of a loaded document: load it, read it, send it requests.
-pub use build::diagnose;
+pub use compile::lint::lint;
+pub use compile::{Compiled, diagnose, lint};
 pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
 pub use document::{
     CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings, NONE, TEXT_BIT,
 };
 pub use error::{Error, Result};
-pub use lint::lint;
 pub use program::ValueType;
 pub use tick::eval::{DirtyClosure, Evaluator, FullRecompute};
 pub use tick::invert::PointRequest;

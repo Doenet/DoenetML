@@ -7,7 +7,7 @@ use crate::components::prop::point;
 impl Compiler<'_> {
     /// `<point>`: coordinates from `coords`, from `x`/`y`, or from `(a, b)`
     /// children; constraint children wrap them in a projection.
-    pub(in crate::build) fn plan_point(
+    pub(in crate::compile) fn plan_point(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -113,7 +113,7 @@ impl Compiler<'_> {
 
     /// Move the planned coordinates of a point to hidden raw slots and make
     /// the public `x`, `y` their projection onto the constraint.
-    pub(in crate::build) fn wrap_constraint(
+    pub(in crate::compile) fn wrap_constraint(
         &mut self,
         t: TemplateId,
         scope: ElemId,

@@ -11,7 +11,7 @@ const TUPLE_PROPS: [&str; 1 + MAX_TUPLE] = ["n", "x1", "x2", "x3", "x4", "x5", "
 impl<'a> Compiler<'a> {
     /// The element a plan names, wherever it is up the template nesting,
     /// when the path is names only (no index, no interface).
-    pub(in crate::build) fn static_target(
+    pub(in crate::compile) fn static_target(
         &self,
         t: TemplateId,
         p: RefId,

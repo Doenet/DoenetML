@@ -36,7 +36,7 @@ struct AwardForm {
 }
 
 impl<'a> Compiler<'a> {
-    pub(in crate::build) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_answer(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
         let Elem {
             node: el,

@@ -6,7 +6,7 @@ use super::*;
 
 impl<'a> Compiler<'a> {
     /// `extend="$c.prop"`: the element's value props alias the named prop.
-    pub(in crate::build) fn plan_extend_prop(
+    pub(in crate::compile) fn plan_extend_prop(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -49,7 +49,7 @@ impl<'a> Compiler<'a> {
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
     /// original's and its children are clones, named under the copy.
-    pub(in crate::build) fn plan_container_copy(
+    pub(in crate::compile) fn plan_container_copy(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -65,7 +65,7 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    pub(in crate::build) fn clone_children(
+    pub(in crate::compile) fn clone_children(
         &mut self,
         t: TemplateId,
         from: ElemId,

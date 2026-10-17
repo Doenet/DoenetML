@@ -1,7 +1,7 @@
 //! Point, circle, line, line segment, polygon and point list. All but the
-//! point list have a geometric planner (`build/compile/planner.rs`) that
+//! point list have a geometric planner (`compile/planner.rs`) that
 //! chooses each prop's source from the attributes the author gave
-//! (`build/compile/geometry/`).
+//! (`compile/geometry/`).
 
 use super::define::*;
 use super::{ArrayProp, ComponentTypeInfo, PropDef};
@@ -31,7 +31,7 @@ pub mod point {
 /// how the circle is specified (ADR 0006). `cx`, `cy`, `radius` are the
 /// numerical center and radius; how they are produced depends on which of
 /// `center`, `radius` and `through` the author gave (see `plan_circle` in
-/// `build/compile/geometry/circle.rs`).
+/// `compile/geometry/circle.rs`).
 pub(super) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
     .copyable()
     .views(&[

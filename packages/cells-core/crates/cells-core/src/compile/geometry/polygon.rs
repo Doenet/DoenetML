@@ -5,7 +5,7 @@ use super::*;
 use crate::components::prop::polygon;
 
 impl Compiler<'_> {
-    pub(in crate::build) fn plan_polygon(
+    pub(in crate::compile) fn plan_polygon(
         &mut self,
         t: TemplateId,
         e: ElemId,

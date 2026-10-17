@@ -58,7 +58,9 @@ instance, and the load's build must be the one to find it:
 
 ## Enforcement
 
-`build` takes a `Pass` (`build/mod.rs`). Only a document's first build
+`build` takes a `Pass` (`build/mod.rs`; since ADR 0015 the compile does
+this, and `build::build` maps any element failure to `Unchecked`). Only a
+document's first build
 finds errors: its compile and, for a document with repeats, the probe box
 what fails; for a document with no repeats the one stamped build boxes,
 since no other build will ever run. Every later build (a later pass of

@@ -65,7 +65,7 @@ impl<'c> Builder<'c> {
     /// Walk a plan from `scope`. Returns where it arrived and the prop it
     /// named, if any. Every step is an array read; an index reads the
     /// stamped entries through the view. When the view folds iterations,
-    /// the walk is also labelled into `self.label` (`build/cycles.rs`): one
+    /// the walk is also labelled into `self.label` (`build/probe.rs`): one
     /// coordinate per level of nesting of the target, kept with a shift or
     /// reset.
     pub(in crate::build) fn resolve(
@@ -121,7 +121,7 @@ impl<'c> Builder<'c> {
                                     // A folded iteration stands for every
                                     // index; the label says which.
                                     let entered = self.scope_depth(r.scope) + 1;
-                                    label.push(cycles::index_coord(ip, src_depth, entered));
+                                    label.push(probe::index_coord(ip, src_depth, entered));
                                 }
                                 match self.view.index(r.iter_scopes.len(), k, true) {
                                     Some(j) => Resolved::Iter(c, r.iter_scopes[j]),

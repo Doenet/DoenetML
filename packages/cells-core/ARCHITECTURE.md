@@ -19,16 +19,23 @@ measurements, which are not in this repository.
  ┌───────────┐
  │ dast/     │  Dast: flat, columnar nodes and one string table
  └─────┬─────┘
-       │                    ┌─────────────── load and rebuild ───────────────┐
-       ▼                    │                                                │
- ┌──────────────────────────┴──┐                                             │
- │ build/                      │  uses components/ (each type's props)       │
- │  compile/  DAST → templates │  once per document                          │
- │  expand/   templates →      │  once per scope (document, each iteration)  │
- │            components, slots│                                             │
- │  emit.rs   slots → cells,   │                                             │
- │            instructions     │                                             │
- └─────────────┬───────────────┘                                             │
+       ▼
+ ┌─────────────────────────────┐
+ │ compile/   plan: DAST →     │  once per load (ADR 0015); uses components/
+ │            templates, plans │
+ │            check: probe,    │  every error found here (ADR 0014)
+ │            box, lint        │
+ └─────────────┬───────────────┘
+               │ Compiled (kept for rebuilds)
+               │                    ┌──────────────── rebuild ───────────────┐
+               ▼                    │                                        │
+ ┌──────────────────────────────────┴┐                                       │
+ │ build/     reads the Session      │  at load and on every count change    │
+ │  expand/   templates →            │  once per scope (document, iterations)│
+ │            components, slots      │                                       │
+ │  emit.rs   slots → cells,         │                                       │
+ │            instructions           │                                       │
+ └─────────────┬─────────────────────┘                                       │
                │ BuildOutput                                                 │
                ▼                                                             │
  ┌─────────────────────────────┐                                             │
@@ -36,8 +43,8 @@ measurements, which are not in this repository.
  │            topological sort │                                             │
  └─────────────┬───────────────┘                                             │
                ▼                                                             │
- ┌─────────────────────────────┐   a repeat count changed: build again, ─────┘
- │ document/  Document         │   reading the session (Session)
+ ┌─────────────────────────────┐   a repeat count changed: build again ──────┘
+ │ document/  Document         │   (the same Compiled, the Session)
  │  cells + program +          │
  │  component table + DAST     │◄──── Request / PointRequest from a renderer
  └─────────────┬───────────────┘
@@ -62,36 +69,38 @@ component table (`document/sticky.rs`).
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. Loaded from JSON (`json.rs`) or the binary wire format (`binary.rs`, ADR 0002). |
 | `ComponentType`, `ComponentTypeInfo`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or planned by the build), and flags. The list of types is `component_types!` in `mod.rs`; each type's definition is in a family file (`geometry.rs`, `inputs.rs`, ...). |
-| `Compiler`, `Compiled`, `Template` | `build/compile/` | Compile's state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
+| `Compiler`, `Compiled`, `Template` | `compile/` | The compile stage (ADR 0015): its state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
 | `Builder` | `build/expand/mod.rs` | The state of expand and emit: components and slots per scope, then cells and instructions. |
-| `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/cycles.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
-| `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table, before scheduling. `schedule` turns it into a `Document`. |
-| `Compiled` | `build/compile/plan.rs` | The compile (ADR 0015): templates, plans, the source's diagnostics. Made once per load; kept by a document with a repeat for its rebuilds. |
-| `Session`, `Counts`, `Structure` | `build/session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
+| `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/probe.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
+| `BuildOutput` | `build/mod.rs` (`build::build`) | Cells, instructions and the component table, before scheduling. `schedule` turns it into a `Document`. |
+| `Compiled` | `compile/plan.rs` | The compile (ADR 0015): templates, plans, the source's diagnostics. Made once per load; kept by a document with a repeat for its rebuilds. |
+| `Session`, `Counts`, `Structure` | `session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. `Program::value_types` records each cell's value type (`ValueType`): number, text (a string id) or math (a handle). |
 | `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the DAST it came from. The API a renderer or test uses. |
 | `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
-| `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `lint.rs` finds the ones that are facts about the DAST alone. |
+| `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `compile/lint.rs` finds the ones that are facts about the DAST alone. |
 | `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. |
 | `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells, math-expressions-rs called directly (ADR 0008, ADR 0011): a math cell holds a `Handle` into it. `Tree` is the builder's expression; `Tape` (`sym/tape.rs`) is a curve of fixed shape compiled to numeric steps. |
 
 ## What happens when…
 
 **A document loads** (`Document::load`, `document/load.rs`). The bytes become
-a `Dast`. Then `build::build` runs: **compile** walks the DAST once and plans
+a `Dast`. Then `compile::compile` runs once: **plan** walks the DAST and plans
 every element with the planner `planner.rs` names for its type
-(`build/compile/mod.rs`; attributes and math in `attrs.rs`, references in
+(`compile/mod.rs`; attributes and math in `attrs.rs`, references in
 `refs.rs`, geometric component types in `geometry/`, choices in
 `choice.rs`). Expand and emit learn the document's structure only through
 the **structure view** (`View`, `build/view.rs`): how many iterations a
 repeat is stamped with, which iteration, item or pick an index names, what
 a collect's count is, which options a select builds. With a repeat present,
-the **cycle check** (`build/cycles.rs`, ADR 0012) first builds the document
-through the probe view, which folds every iteration into one and labels
+the compile's **check** (`compile/check.rs`, ADR 0012, ADR 0014) builds the
+document through the probe view (`build/probe.rs`), which folds every iteration into one and labels
 each reference edge with how it moves through the iterations, rejects a
 dependency loop that closes at any iteration count, and discards that
-build. The real build reads the counts it is asked for through the
+build; without one, the one stamped build is the check and the load keeps
+it. Then **builds** (`build::build`) run from the compile until the
+structure settles, each reading the counts it is asked for through the
 `Stamped` view. **Expand** stamps each template into components once per
 scope and resolves references to slots (`build/expand/`). **Emit** merges
 aliased slots into cells with a union-find, numbers cells (essential,
@@ -126,21 +135,21 @@ are new. If the rebuild fails, the document is left as it was and
 
 **An element cannot be built** (ADR 0013). The compiler or the builder
 raises an error and records the innermost element it is about;
-`build_boxing` (`build/mod.rs`) boxes that node, so it compiles as an
+`compile::compile` (`compile/check.rs`) boxes that node, so it compiles as an
 `_error` element with no name, no children and no props, and builds
-again until every element builds. The findings of `lint` (`lint.rs`, one
+again until every element builds. The findings of `lint` (`compile/lint.rs`, one
 walk over the DAST before any compile: the accessibility rules), the
 errors and the warnings of the elements that built are
 `Document::diagnostics`, in node order; the errors seed the boxes of
 every rebuild. An error with no element, a cycle, still fails the load.
-Only a document's first build finds errors (ADR 0014; `build::compile`
+Only a document's first build finds errors (ADR 0014; `compile::compile`
 compiles and boxes, `build::build` only stamps):
 every error depends on the source alone, so the probe, standing for every
 count and every pick, finds them all at load, and a later build that
 finds one fails with `Error::Unchecked` rather than boxing mid-session.
 
 **The language server asks for every diagnostic** (`diagnose`,
-`build/mod.rs`). The same loop through the probe view with every option
+`compile/check.rs`). The same loop through the probe view with every option
 of every select built, output discarded. Its list is a function of the
 DAST alone: every branch, every repeat body, at any seed and any count.
 A load never runs it.
@@ -174,7 +183,7 @@ const CLAMPED_PROPS: &[PropDef] = &props([
 Then add one line to the `component_types!` list in `components/mod.rs`
 (`Clamped => values::CLAMPED,` with a one-line doc). The build then fails
 until the type has an arm in `Compiler::planner`
-(`build/compile/planner.rs`); for this one it is `K::Clamped => Props`,
+(`compile/planner.rs`); for this one it is `K::Clamped => Props`,
 planned from its prop table. If code reads a prop by position, name it
 beside the table
 (`pub mod clamped { pub const VALUE: usize = at(CLAMPED_PROPS, "value"); }`)
@@ -191,7 +200,7 @@ adjust the table's plan, or `Whole`. The renderer side is in
 its `eval` and `invert` arms, and the unbound form to `OpSpec` in
 `program/instr.rs` with its `arity` and `bind` arms. To reach it from the
 test-only `<op>` tag (registered under the `testing` feature, which
-`cargo test` turns on), map the name in `build/compile/attrs.rs`. Multi-cell
+`cargo test` turns on), map the name in `compile/attrs.rs`. Multi-cell
 operators are `VecOp`s in `program/vector.rs`.
 
 **Change how a request inverts.** Scalar inverse rules are `Op::invert`;

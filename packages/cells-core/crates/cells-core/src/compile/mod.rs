@@ -1,46 +1,93 @@
-//! Compile: walk the DAST once per template and plan every element's
-//! props (literals, references, operators, math), with name lookup and
-//! reference paths. See the module docs in `build/mod.rs`.
+//! The compile stage (ADR 0015): the source made, once per load, into
+//! what every build stamps. **Plan** walks the DAST once and produces one
+//! [`Template`](plan::Template) per repeat body, choice branch and the
+//! document, with a *plan* for every prop (a literal, a default, an
+//! operator over references, a math, a reference) and every reference (a
+//! path through the template nesting: how many levels up the name was
+//! found, which element, which `[index]` steps, which prop). Nothing in a
+//! plan depends on which iteration it will be stamped in, so all string
+//! work happens once per template element. **Check** (`check.rs`) builds
+//! the plans once through the probe (`build::probe`, ADR 0012, ADR 0014),
+//! which stands for every count and pick, and boxes every element that
+//! fails (ADR 0013); `lint.rs` holds the rules that need only the DAST.
+//!
+//! Files: this one walks the DAST and decides each element's shape;
+//! `attrs.rs` plans attribute and math sources, `refs.rs` names and
+//! reference paths, `expr.rs` the parse arena for math text, `geometry/`
+//! the planned types, `choice.rs` with `condition.rs` the choices,
+//! `copies.rs` `extend`, `fix.rs` `fixed`, `answer.rs`, `boolean.rs` and
+//! `iterates.rs` theirs. What compile produces is in `plan.rs`.
 
-use super::*;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
+
+use crate::components::{ComponentType, PropFrom, prop};
+use crate::dast::{Dast, NodeId, NodeKind, StrId};
+use crate::document::{CellIdx, NONE};
+use crate::error::{Error, Result};
+use crate::program::{OpSpec, Pivot, Post, RigidOpts, SymKind, VecOp};
+use crate::sym::Tree;
+use expr::{Arena, Expr, ExprId, Parser, Token};
+use plan::*;
 
 mod answer;
 mod attrs;
 mod boolean;
+mod check;
 mod choice;
 mod condition;
 mod copies;
-pub(in crate::build) mod expr;
+pub(crate) mod expr;
 mod fix;
 mod geometry;
 mod iterates;
-pub(in crate::build) mod plan;
+pub mod lint;
+pub(crate) mod plan;
 mod planner;
 mod refs;
 
+pub use check::diagnose;
+pub(crate) use check::{CompileOutput, compile};
+pub use plan::Compiled;
+
+/// A failed compile, check or first build: the error, and the node of the
+/// element it is about when there is one. `compile` boxes that element (it
+/// becomes an `_error` component, the error its diagnostic) and compiles
+/// again; an error with no element fails it (ADR 0013).
+pub(crate) struct Failure {
+    pub(crate) error: Error,
+    pub(crate) node: Option<NodeId>,
+}
+
+impl From<Failure> for Error {
+    fn from(f: Failure) -> Error {
+        f.error
+    }
+}
+
 use planner::Planner;
 
-pub(in crate::build) struct Compiler<'a> {
+pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too.
-    pub(in crate::build) dast: &'a Dast,
-    pub(in crate::build) compiled: Compiled,
+    pub(in crate::compile) dast: &'a Dast,
+    pub(in crate::compile) compiled: Compiled,
     /// Elements whose attribute plans are computed once every name exists.
-    pub(in crate::build) pending_elems: Vec<(TemplateId, ElemId)>,
+    pub(in crate::compile) pending_elems: Vec<(TemplateId, ElemId)>,
     /// Macro children awaiting plans: (template, owning element or None for
     /// the template's own children, index in that child list, node).
-    pub(in crate::build) pending_macros: Vec<(TemplateId, Option<ElemId>, usize, NodeId)>,
+    pub(in crate::compile) pending_macros: Vec<(TemplateId, Option<ElemId>, usize, NodeId)>,
     /// Macro nodes whose reference is already planned: `$mi` inside an
     /// answer's `<when>` is its submitted response (`plan_answer`).
-    pub(in crate::build) ref_subst: HashMap<NodeId, RefId>,
+    pub(in crate::compile) ref_subst: HashMap<NodeId, RefId>,
     /// Every string's canonical id, over the DAST table (built when first
     /// needed) and then `extra_strings`: see `intern_literal`.
-    pub(in crate::build) string_ids: Option<HashMap<String, StrId>>,
+    pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
     /// Nodes an earlier attempt could not build: compiled as `_error`
     /// elements with no name, no children and no props (ADR 0013).
-    pub(in crate::build) boxed: &'a HashSet<NodeId>,
+    pub(in crate::compile) boxed: &'a HashSet<NodeId>,
     /// The node of the innermost element whose planning failed, set on
     /// the way out of a failed compile; `build` boxes it and tries again.
-    pub(in crate::build) failed_node: Option<NodeId>,
+    pub(in crate::compile) failed_node: Option<NodeId>,
     /// Per node, how many elements the compile has made for it (an
     /// element's key, `ElemKey`).
     made: HashMap<NodeId, u32>,
@@ -59,7 +106,7 @@ enum ElemShape {
 impl<'a> Compiler<'a> {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements. A
     /// failure names the node to box next, when the failing element has one.
-    pub(in crate::build) fn compile(
+    pub(in crate::compile) fn compile(
         dast: &'a Arc<Dast>,
         boxed: &'a HashSet<NodeId>,
     ) -> std::result::Result<Compiled, Failure> {
@@ -160,7 +207,7 @@ impl<'a> Compiler<'a> {
 
     /// Record `node` as the element to box if the compile fails: the
     /// innermost one wins, so a failure inside a child boxes the child.
-    pub(in crate::build) fn fail_at(&mut self, node: NodeId) {
+    pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
         if node != NONE {
             self.failed_node.get_or_insert(node);
         }
@@ -174,11 +221,11 @@ impl<'a> Compiler<'a> {
     }
 
     /// Children of element `e` have `e` as their parent.
-    pub(in crate::build) fn child_scope(&self, _t: TemplateId, e: ElemId) -> ElemId {
+    pub(in crate::compile) fn child_scope(&self, _t: TemplateId, e: ElemId) -> ElemId {
         e
     }
 
-    pub(in crate::build) fn push_elem(
+    pub(in crate::compile) fn push_elem(
         &mut self,
         t: TemplateId,
         node: NodeId,
@@ -192,7 +239,7 @@ impl<'a> Compiler<'a> {
     /// `push_elem` whose name is registered only up to ancestor `stop`
     /// (inclusive): a container copy's children are reached through the
     /// copy's name, never bare, so they do not make the original ambiguous.
-    pub(in crate::build) fn push_elem_visible_to(
+    pub(in crate::compile) fn push_elem_visible_to(
         &mut self,
         t: TemplateId,
         node: NodeId,
@@ -260,7 +307,7 @@ impl<'a> Compiler<'a> {
         Ok(e)
     }
 
-    pub(in crate::build) fn add_synthetic(
+    pub(in crate::compile) fn add_synthetic(
         &mut self,
         t: TemplateId,
         component_type: ComponentType,
@@ -270,7 +317,7 @@ impl<'a> Compiler<'a> {
             .expect("synthetic names are unique")
     }
 
-    pub(in crate::build) fn attr_name_str(&self, el: NodeId, attr: &str) -> Option<StrId> {
+    pub(in crate::compile) fn attr_name_str(&self, el: NodeId, attr: &str) -> Option<StrId> {
         let d = self.dast;
         let a = d.attr(el, attr)?;
         match d.attr_children(a) {
@@ -282,7 +329,7 @@ impl<'a> Compiler<'a> {
     /// Create an element (and, for a repeat, its template) from a DAST
     /// element. A boxed node becomes an `_error` element; a failure
     /// anywhere under `el` marks the innermost failing element.
-    pub(in crate::build) fn add_elem(
+    pub(in crate::compile) fn add_elem(
         &mut self,
         t: TemplateId,
         el: NodeId,
@@ -411,7 +458,7 @@ impl<'a> Compiler<'a> {
 
     /// A plan naming prop `prop` of element `e` in the parent template, as
     /// seen from the repeat's own template (one hop up).
-    pub(in crate::build) fn own_prop_plan(&mut self, e: ElemId, prop: &str) -> RefId {
+    pub(in crate::compile) fn own_prop_plan(&mut self, e: ElemId, prop: &str) -> RefId {
         self.compiled.refs.push(RefPlan {
             hops: 1,
             steps: vec![Step::Elem(e)],
@@ -422,7 +469,7 @@ impl<'a> Compiler<'a> {
         self.compiled.refs.len() - 1
     }
 
-    pub(in crate::build) fn add_children(
+    pub(in crate::compile) fn add_children(
         &mut self,
         t: TemplateId,
         owner: Option<ElemId>,
@@ -463,7 +510,7 @@ impl<'a> Compiler<'a> {
         Ok(kids)
     }
 
-    pub(in crate::build) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+    pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let r = self.plan_elem_inner(t, e);
         if r.is_err() {
             self.fail_at(self.compiled.templates[t].elems[e].node);
@@ -624,7 +671,7 @@ impl<'a> Compiler<'a> {
         })
     }
 
-    pub(in crate::build) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
+    pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
         let el = &self.compiled.templates[t].elems[e];
         if el.name != NONE {
             self.dast.strings.get(el.name).trim().to_string()

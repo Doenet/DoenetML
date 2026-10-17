@@ -6,7 +6,7 @@ use crate::components::prop::{line, segment};
 
 impl Compiler<'_> {
     /// Variable names of a line's equation (`variables="(s,t)"` or `"s t"`).
-    pub(in crate::build) fn line_variables(
+    pub(in crate::compile) fn line_variables(
         &self,
         el: NodeId,
         base: Option<NodeId>,
@@ -31,7 +31,7 @@ impl Compiler<'_> {
         }
     }
 
-    pub(in crate::build) fn plan_line(
+    pub(in crate::compile) fn plan_line(
         &mut self,
         t: TemplateId,
         e: ElemId,
@@ -249,7 +249,7 @@ impl Compiler<'_> {
 
     /// Two hidden slots holding a direction: a point or tuple's coordinates,
     /// or another line's `point2 - point1`.
-    pub(in crate::build) fn plan_direction(
+    pub(in crate::compile) fn plan_direction(
         &mut self,
         t: TemplateId,
         scope: ElemId,
@@ -284,7 +284,7 @@ impl Compiler<'_> {
         }
     }
 
-    pub(in crate::build) fn plan_segment(
+    pub(in crate::compile) fn plan_segment(
         &mut self,
         t: TemplateId,
         e: ElemId,

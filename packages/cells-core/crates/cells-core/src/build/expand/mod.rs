@@ -150,7 +150,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) later_sources: Vec<(SlotId, Source)>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
-    /// not the identity (`build/cycles.rs`).
+    /// not the identity (`build/probe.rs`).
     pub(in crate::build) label: Vec<Coord>,
     pub(in crate::build) labels: HashMap<(SlotId, SlotId), Vec<Coord>>,
     /// The node of the element whose expansion or resolution failed, for
