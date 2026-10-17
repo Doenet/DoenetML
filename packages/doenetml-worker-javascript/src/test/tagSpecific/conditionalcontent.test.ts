@@ -233,14 +233,21 @@ describe("Conditional content tag tests @group2", async () => {
       <case condition="$n > 0"><text>dog</text> mouse <text>cat</text></case>
       <else><text>bird</text><text>fish</text></else>
     </conditionalContent></p>
+    <p name="show">$p.text</p>
     `,
         });
 
+        // `show` reads the text as a document does: before the fix it kept
+        // the case's text after the switch to the else.
         async function check_text(text: string) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("show")].stateValues
+                    .text,
+            ).eq(text);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .text,
