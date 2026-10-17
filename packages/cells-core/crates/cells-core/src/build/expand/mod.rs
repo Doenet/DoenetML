@@ -168,13 +168,17 @@ impl<'c> Builder<'c> {
         engine: &'c mut Engine,
         view: &'c dyn View,
     ) -> Self {
-        // Size the columns from the previous build when there was one.
-        let guess = session
-            .values
-            .iter()
-            .map(|v| v.len())
-            .sum::<usize>()
-            .max(c.templates.iter().map(|t| t.elems.len()).sum::<usize>() * 2);
+        // Size the columns by what every template stamped once makes (all
+        // of a document without repeats), or by the previous build with an
+        // eighth to spare when there was one. In wasm, capacity reserved and
+        // never used still raises the high-water mark.
+        let (last_comps, last_slots) = session.last_build;
+        let elems: usize = c.templates.iter().map(|t| t.elems.len()).sum();
+        let n_slots: usize = c.templates.iter().map(|t| t.n_slots as usize).sum();
+        let guess = elems.max(last_comps);
+        let guess = guess + guess / 8;
+        let slots = n_slots.max(last_slots);
+        let slots = slots + slots / 8;
         Builder {
             compiled: c,
             session,
@@ -196,9 +200,9 @@ impl<'c> Builder<'c> {
                 scope: Vec::with_capacity(guess),
             },
             slot_base: Vec::with_capacity(guess),
-            sources: Vec::with_capacity(guess * 2),
-            slot_comp: Vec::with_capacity(guess * 2),
-            op_inputs: Vec::with_capacity(guess),
+            sources: Vec::with_capacity(slots),
+            slot_comp: Vec::with_capacity(slots),
+            op_inputs: Vec::new(),
             scopes: session.scopes.clone(),
             scope_comps: Vec::new(),
             comp_instance: Vec::with_capacity(guess),
@@ -218,7 +222,7 @@ impl<'c> Builder<'c> {
             arena: Arena::default(),
             root: 0,
             view,
-            slot_scope: Vec::with_capacity(guess * 2),
+            slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
             later_sources: Vec::new(),

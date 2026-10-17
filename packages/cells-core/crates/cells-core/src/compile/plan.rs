@@ -409,14 +409,26 @@ impl Compiled {
     }
 
     /// Drop what only compiling reads (each template's name table, each
-    /// element's roles), before the compile is kept for later builds.
+    /// element's roles) and the spare capacity of what the build reads,
+    /// once planning is done: before the check builds, so the build reuses
+    /// that memory rather than raising the load's peak, which in wasm is
+    /// what the page keeps.
     pub(crate) fn release_compile_tables(&mut self) {
+        self.templates.shrink_to_fit();
         for tpl in &mut self.templates {
             tpl.names = HashMap::new();
+            tpl.elems.shrink_to_fit();
+            tpl.children.shrink_to_fit();
             for el in &mut tpl.elems {
                 el.roles = HashMap::new();
+                el.props.shrink_to_fit();
+                el.children.shrink_to_fit();
             }
         }
+        self.refs.shrink_to_fit();
+        self.arena.nodes.shrink_to_fit();
+        self.sym_text.shrink_to_fit();
+        self.choices.shrink_to_fit();
     }
 
     /// Whether any template is a repeat body: without one the structure

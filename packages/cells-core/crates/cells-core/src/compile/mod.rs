@@ -135,6 +135,7 @@ impl<'a> Compiler<'a> {
         match cp.compile_all() {
             Ok(()) => {
                 let c = &mut cp.compiled;
+                c.release_compile_tables();
                 c.rebuilds = c.has_repeats();
                 if c.rebuilds {
                     c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();

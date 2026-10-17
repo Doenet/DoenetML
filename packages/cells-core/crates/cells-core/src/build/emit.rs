@@ -265,7 +265,12 @@ impl<'c> Builder<'c> {
             parked,
             runtime_strings: self.session.runtime_strings.clone(),
             engine: self.session.engine.clone(),
+            last_build: (self.components.component_type.len(), self.sources.len()),
         };
+        // Reserved for a rebuild's worth; the document keeps them.
+        essential_slots.shrink_to_fit();
+        essential_keys.shrink_to_fit();
+        essential_defaults.shrink_to_fit();
         let structure = Structure {
             essential_slots,
             essential_keys,

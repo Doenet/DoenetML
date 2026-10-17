@@ -40,6 +40,9 @@ pub struct Session {
     /// only grows, so a handle stays valid for the session, across builds
     /// and through a failed rebuild, which needs nothing back.
     pub engine: Rc<RefCell<Engine>>,
+    /// How many components and slots the last build made: what the next
+    /// sizes its tables by, so a rebuild neither over-reserves nor regrows.
+    pub(crate) last_build: (usize, usize),
 }
 
 impl Session {

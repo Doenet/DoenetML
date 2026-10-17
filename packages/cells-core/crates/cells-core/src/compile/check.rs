@@ -67,9 +67,6 @@ pub(crate) fn compile(
     list.extend(lint::lint(dast));
     crate::diagnostics::sort(&mut list);
     compiled.diagnostics = list;
-    if compiled.rebuilds {
-        compiled.release_compile_tables();
-    }
     let first_build = first_build.map(|mut u| {
         u.add_compile_diagnostics(&compiled);
         u
