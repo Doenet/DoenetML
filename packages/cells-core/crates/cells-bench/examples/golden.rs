@@ -9,7 +9,7 @@
 //! Documents: `crates/cells-bench/golden/*.doenet` plus the smallest fixture
 //! of each shape in `fixtures/`.
 use cells_core::components::ComponentType;
-use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome};
+use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome, ValueType};
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::panic::{AssertUnwindSafe, catch_unwind};
@@ -45,13 +45,7 @@ fn dump(doc: &Document, out: &mut String) {
         for (i, def) in component_type.prop_defs().iter().enumerate() {
             let cell = doc.comp_cells(c)[i];
             let v = doc.cells[cell as usize];
-            if doc
-                .program
-                .is_math
-                .get(cell as usize)
-                .copied()
-                .unwrap_or(false)
-            {
+            if doc.program.value_types.get(cell as usize) == Some(&ValueType::Math) {
                 let _ = write!(out, " {}={:?}", def.name, doc.math_text(cell));
             } else if component_type == ComponentType::Text && i == 0 {
                 let _ = write!(out, " {}={:?}", def.name, doc.text_value(cell));

@@ -84,9 +84,12 @@ pub(in crate::build) struct Builder<'c, 'a> {
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
     pub(in crate::build) sym_templates: Vec<Tree>,
-    /// Slots that hold expression handles without being an instruction's
-    /// output (essential and fixed math cells).
-    pub(in crate::build) math_slots: Vec<SlotId>,
+    /// Slots defining a cell that is not a number, with its type: essential
+    /// and fixed math cells, a choice's math interface, essential text.
+    /// Symbolic instructions' outputs are math by their operator instead.
+    /// A cell's type is its defining slot's (emit), so an alias never
+    /// changes it.
+    pub(in crate::build) typed_slots: Vec<(SlotId, ValueType)>,
     /// Per component, whether its `expr` is a math cell (`is_symbolic`).
     pub(in crate::build) math_mode: Vec<MathMode>,
     pub(in crate::build) components: ComponentTable,
@@ -115,6 +118,10 @@ pub(in crate::build) struct Builder<'c, 'a> {
     /// Expanded choices, and the instance each choice component owns.
     pub(in crate::build) choice_insts: Vec<ChoiceInst>,
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
+    /// A choice's interface component -> the first branch's component
+    /// carrying the name, which stands for the others' value types before
+    /// `choice_sources` sets the interface's sources.
+    pub(in crate::build) iface_member: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// Essential math slots seeded from another slot's value when first
     /// built (`SourcePlan::MathEssentialFrom`): (slot, source slot).
@@ -166,7 +173,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             carryover,
             engine,
             sym_templates: Vec::new(),
-            math_slots: Vec::new(),
+            typed_slots: Vec::new(),
             math_mode: Vec::new(),
             components: ComponentTable {
                 component_type: Vec::with_capacity(guess),
@@ -196,6 +203,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             collected: HashMap::new(),
             choice_insts: Vec::new(),
             comp_choice: HashMap::new(),
+            iface_member: HashMap::new(),
             missing: None,
             seeds: Vec::new(),
             arena: Arena::default(),
@@ -583,14 +591,8 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             (_, Some(prop)) => {
                 let targets = self.targets_of(target, Some(prop), plan, Some(1))?;
-                // A text's or textInput's value is a string id: it shows
-                // as a text.
-                let is_text = self.single_component(target, plan).is_ok_and(|c| {
-                    matches!(
-                        self.components.component_type[c as usize],
-                        ComponentType::Text | ComponentType::TextInput
-                    )
-                }) && prop == "value";
+                // A string id shows as a text.
+                let is_text = self.value_type(targets[0]) == ValueType::Text;
                 self.components.component_type[idx as usize] = if is_text {
                     ComponentType::Text
                 } else {
@@ -909,7 +911,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 (&source, plan)
                 && !h.is_nan()
             {
-                self.math_slots.push(s);
+                self.typed_slots.push((s, ValueType::Math));
             }
             self.sources[s as usize] = source;
         }
@@ -934,6 +936,10 @@ impl<'c, 'a> Builder<'c, 'a> {
         Ok(match plan {
             SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
             SourcePlan::Literal(v) => Source::Literal(*v),
+            SourcePlan::TextLiteral(v) => {
+                self.typed_slots.push((s, ValueType::Text));
+                Source::Literal(*v)
+            }
             SourcePlan::Default(v) => Source::Default(*v),
             SourcePlan::Inherit => {
                 let t = self.slot(extend.expect("Inherit needs an extend referent"), pi);
@@ -956,6 +962,16 @@ impl<'c, 'a> Builder<'c, 'a> {
                 let start = self.op_inputs.len() as u32;
                 for &a in args {
                     let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
+                    // A reference read by an operator is a number: text
+                    // compares only through the planned `Eq` of own slots.
+                    if let Arg::Ref(p, _) = a
+                        && self.value_type(slot) == ValueType::Text
+                    {
+                        return Err(Error::Unsupported(format!(
+                            "a text value (${}) used as a number",
+                            c.refs[p].display
+                        )));
+                    }
                     self.op_inputs.push(slot);
                 }
                 Source::Op(*spec, start, args.len() as u8)
@@ -1000,14 +1016,14 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             SourcePlan::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
             SourcePlan::MathEssential(tree) => {
-                self.math_slots.push(s);
+                self.typed_slots.push((s, ValueType::Math));
                 match tree {
                     Some(tree) => Source::Literal(self.engine.import(tree) as f64),
                     None => Source::Literal(f64::NAN),
                 }
             }
             SourcePlan::MathEssentialFrom(p) => {
-                self.math_slots.push(s);
+                self.typed_slots.push((s, ValueType::Math));
                 let from = self
                     .resolve_one(*p, inst.scope)
                     .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;

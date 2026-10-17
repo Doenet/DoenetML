@@ -217,3 +217,33 @@ fn evaluators_agree() {
     // x depends only on c, which did not change: it must not be reported.
     assert!(!results[0].1.contains(&base.cell("x", "value").unwrap()));
 }
+
+// A request must hold what its cell holds: a number asked of a math cell
+// that is no handle in the engine is dropped rather than read as another
+// expression (or, out of range, a panic). A whole number below the
+// engine's size is a handle, so it cannot be told from one.
+#[test]
+fn a_number_requested_of_a_math_cell_is_dropped() {
+    let mut doc =
+        load(r#"<mathInput name="mi" prefill="3"/><math name="mm" simplify>$mi x</math>"#).unwrap();
+    let cell = doc.cell("mi", "expr").unwrap();
+    let before = doc.math_text(cell);
+    for value in [2.7, 1e6, -1.0] {
+        let t = doc.request(&[req(&doc, "mi", "expr", value)]);
+        assert_eq!(t.dropped.len(), 1, "{value}");
+        assert!(t.changed.is_empty(), "{value}");
+    }
+    assert_eq!(doc.math_text(cell), before);
+}
+
+// The same for a text cell and a number that is not a string id.
+#[test]
+fn a_number_requested_of_a_text_cell_is_dropped() {
+    let mut doc = load(r#"<textInput name="ti" prefill="hi"/>"#).unwrap();
+    for value in [0.5, 1e6, -1.0] {
+        let t = doc.request(&[req(&doc, "ti", "value", value)]);
+        assert_eq!(t.dropped.len(), 1, "{value}");
+    }
+    let cell = doc.cell("ti", "value").unwrap();
+    assert_eq!(doc.text_value(cell), "hi");
+}

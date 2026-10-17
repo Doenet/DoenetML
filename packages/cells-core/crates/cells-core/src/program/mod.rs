@@ -18,6 +18,19 @@ pub use instr::{Instr, OpSpec, Post, SAMPLES, SymKind};
 pub use scalar::{EQ_TOL, Op, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 
+/// What a cell's `f64` means: a number, a string id into the document's
+/// string table, or an expression handle in the symbolic engine. Recorded
+/// by the build for every cell, from the source that defines the cell; the
+/// tick only reads it when a request arrives, never while recomputing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[repr(u8)]
+pub enum ValueType {
+    #[default]
+    Number,
+    Text,
+    Math,
+}
+
 /// The document's symbolic engine and the memo of every symbolic
 /// instruction. Interior mutability because instructions run through
 /// `&Program`; the engine only grows (see `sym::Engine`).
@@ -79,8 +92,8 @@ pub struct Program {
     /// Every input of a vector or symbolic instruction (and, after a
     /// symbolic instruction's inputs, placeholders for its memo).
     pub operands: Vec<CellIdx>,
-    /// Whether each cell holds an expression handle (a math cell).
-    pub is_math: Vec<bool>,
+    /// What each cell's value means.
+    pub value_types: Vec<ValueType>,
     /// Compiled curves that `SampleTape` instructions run.
     pub tapes: Vec<crate::sym::tape::Tape>,
     /// Whether creation order was already a valid evaluation order, so no
@@ -109,7 +122,7 @@ impl Program {
         n_cells: usize,
         sym: Sym,
         operands: Vec<CellIdx>,
-        is_math: Vec<bool>,
+        value_types: Vec<ValueType>,
     ) -> std::result::Result<Program, Box<(CellIdx, Sym)>> {
         sym.memo.replace(vec![NEVER; operands.len()]);
         let mut producer = vec![u32::MAX; n_cells];
@@ -132,7 +145,7 @@ impl Program {
                 producer,
                 sym,
                 operands,
-                is_math,
+                value_types,
                 tapes: Vec::new(),
                 in_creation_order: true,
             });
@@ -198,7 +211,7 @@ impl Program {
             producer,
             sym,
             operands,
-            is_math,
+            value_types,
             tapes: Vec::new(),
             in_creation_order: false,
         })

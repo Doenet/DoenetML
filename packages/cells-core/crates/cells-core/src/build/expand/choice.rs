@@ -50,6 +50,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                         scope,
                         component_type.prop_defs().len(),
                     );
+                    self.note_iface_member(ic, def, name, &inst);
                     inst.iface_comps.push(ic);
                 }
             }
@@ -84,12 +85,23 @@ impl<'c, 'a> Builder<'c, 'a> {
                     scope,
                     component_type.prop_defs().len(),
                 );
+                self.note_iface_member(ic, def, name, &inst);
                 inst.iface_comps.push(ic);
             }
         }
         self.comp_choice.insert(comp, self.choice_insts.len());
         self.choice_insts.push(inst);
         Ok(kids)
+    }
+
+    /// Record the first branch's component carrying interface name `name`
+    /// as the one `value_type` reads for interface component `ic`.
+    fn note_iface_member(&mut self, ic: CompIdx, def: &ChoiceDef, name: &str, inst: &ChoiceInst) {
+        let member =
+            self.scope_comps[inst.scopes[0] as usize][def.iface[name].1[inst.branch_of[0]]];
+        if member != NONE {
+            self.iface_member.insert(ic, member);
+        }
     }
 
     /// A select's picks: option indices drawn from a stream that depends on
@@ -180,9 +192,16 @@ impl<'c, 'a> Builder<'c, 'a> {
                         self.op_source(OpSpec::Vec(VecOp::Choose { n }), &inputs)
                     };
                 }
+                // A string id chosen among the branches' is text too.
+                for pi in 0..component_type.prop_defs().len() {
+                    let s = self.slot(ic, pi);
+                    if self.value_type(s) == ValueType::Text {
+                        self.typed_slots.push((s, ValueType::Text));
+                    }
+                }
                 if symbolic && let Some(pi) = component_type.prop_index("expr") {
                     let s = self.slot(ic, pi);
-                    self.math_slots.push(s);
+                    self.typed_slots.push((s, ValueType::Math));
                 }
             }
         }

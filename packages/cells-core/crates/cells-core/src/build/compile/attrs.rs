@@ -335,9 +335,9 @@ impl<'a> Compiler<'a> {
             .collect();
         let mut plan = ElemPlan::new(1);
         match nodes.as_slice() {
-            [] => plan.set_essential(0, "value", self.intern_literal("") as f64),
+            [] => plan.set_text_essential(0, "value", self.intern_literal("") as f64),
             [n] if d.kind(*n) == NodeKind::Text => {
-                plan.set_essential(0, "value", d.str_id(*n) as f64)
+                plan.set_text_essential(0, "value", d.str_id(*n) as f64)
             }
             [n] if d.kind(*n) == NodeKind::Macro => {
                 plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, *n)?))
@@ -386,7 +386,7 @@ impl<'a> Compiler<'a> {
                     None => String::new(),
                 };
                 let id = self.intern_literal(&text);
-                plan.set_essential(0, "value", id as f64);
+                plan.set_text_essential(0, "value", id as f64);
             }
             _ => {
                 return Err(Error::Unsupported(

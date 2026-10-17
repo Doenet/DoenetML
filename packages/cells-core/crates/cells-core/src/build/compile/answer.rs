@@ -291,7 +291,7 @@ impl<'a> Compiler<'a> {
             SourcePlan::Alias(Arg::Elem(ti, own_slot(0))),
         );
         plan.set(1, SourcePlan::Fixed(f64::NAN));
-        plan.set(answer::SUBMITTED, SourcePlan::Literal(f64::NAN));
+        plan.set(answer::SUBMITTED, SourcePlan::TextLiteral(f64::NAN));
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
             None => SourcePlan::Fixed(1.0),

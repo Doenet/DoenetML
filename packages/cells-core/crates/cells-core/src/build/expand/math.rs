@@ -119,6 +119,16 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// The slot a `$ref` inside math names, and whether it holds an
     /// expression (then the slot is the referent's math cell).
     fn leaf_slot(&mut self, plan: RefId, scope: ScopeId) -> Result<(SlotId, bool)> {
+        let slot = self.math_ref(plan, scope)?;
+        let (slot, math) = match self.math_target(slot) {
+            Some(m) => (m, true),
+            None => (slot, false),
+        };
+        Ok((self.leaf(slot, scope), math))
+    }
+
+    /// The slot a `$ref` inside math names: one cell, and not a string id.
+    fn math_ref(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
         let display = &self.compiled.refs[plan].display;
         let slot = self.resolve_one(plan, scope).map_err(|e| match e {
             Error::ArityMismatch { .. } => Error::BadMath {
@@ -127,15 +137,17 @@ impl<'c, 'a> Builder<'c, 'a> {
             },
             other => other,
         })?;
-        let (slot, math) = match self.math_target(slot) {
-            Some(m) => (m, true),
-            None => (slot, false),
-        };
-        Ok((self.leaf(slot, scope), math))
+        if self.value_type(slot) == ValueType::Text {
+            let display = &self.compiled.refs[plan].display;
+            return Err(Error::Unsupported(format!(
+                "a text value (${display}) inside math"
+            )));
+        }
+        Ok(slot)
     }
 
     /// When `slot` is a prop that stands for an expression (a symbolic
-    /// math's `expr` or `value`, a function, an answer's math props), the
+    /// math's `expr` or `value`, a function, a math answer's props), the
     /// slot of that expression.
     fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
         let comp = self.slot_comp[slot as usize];
@@ -146,17 +158,17 @@ impl<'c, 'a> Builder<'c, 'a> {
         let pi = (slot - self.slot_base[comp as usize]) as usize;
         let name = component_type.prop_defs().get(pi)?.name;
         match (component_type, name) {
-            (ComponentType::Answer, "response" | "correct" | "submitted") => Some(slot),
+            // An answer's response and correct value are expressions when
+            // what it submits is one: not for a choice or a text answer.
+            (ComponentType::Answer, "response" | "correct" | "submitted") => {
+                let submitted = self.slot(comp, prop::answer::SUBMITTED);
+                (self.value_type(submitted) == ValueType::Math).then_some(slot)
+            }
             // A submitted response is a math cell unless its input is a
             // boolean input (`add_response`).
             (ComponentType::Response, "submitted" | "value") => {
-                let i = self.instances[self.comp_instance[comp as usize] as usize];
-                matches!(
-                    self.compiled.templates[i.template].elems[i.elem].props
-                        [prop::response::SUBMITTED],
-                    SourcePlan::MathEssential(_)
-                )
-                .then(|| self.slot(comp, prop::response::SUBMITTED))
+                let submitted = self.slot(comp, prop::response::SUBMITTED);
+                (self.value_type(submitted) == ValueType::Math).then_some(submitted)
             }
             (
                 ComponentType::Math
@@ -169,6 +181,87 @@ impl<'c, 'a> Builder<'c, 'a> {
                 .then(|| self.slot(comp, component_type.prop_index("expr").unwrap())),
             _ => None,
         }
+    }
+
+    /// What the cell of `slot` will hold, read from the plans before every
+    /// source is set: the type of the plan that defines it, through
+    /// aliases. A symbolic math's `expr` is decided by `is_symbolic`
+    /// instead; this answers for essential cells and what aliases them.
+    pub(in crate::build) fn value_type(&mut self, slot: SlotId) -> ValueType {
+        self.value_type_within(slot, 32)
+    }
+
+    fn value_type_within(&mut self, slot: SlotId, depth: u32) -> ValueType {
+        let comp = self.slot_comp[slot as usize];
+        if depth == 0 || comp == NONE {
+            return ValueType::Number;
+        }
+        let inst = self.comp_instance[comp as usize];
+        if inst == NONE {
+            // A copy or a placed reference aliases what it copies; an
+            // interface name holds what its branches' components hold.
+            let pi = slot - self.slot_base[comp as usize];
+            let alias = match self.sources[slot as usize] {
+                Source::Alias(t) => Some(t),
+                _ => None,
+            };
+            return match (alias, self.iface_member.get(&comp)) {
+                (Some(t), _) => self.value_type_within(t, depth - 1),
+                (None, Some(&member)) => {
+                    let t = self.slot_base[member as usize] + pi;
+                    self.value_type_within(t, depth - 1)
+                }
+                _ => ValueType::Number,
+            };
+        }
+        let i = self.instances[inst as usize];
+        let pi = (slot - self.slot_base[comp as usize]) as usize;
+        let c: &'c Compiled<'a> = self.compiled;
+        let next = match c.templates[i.template].elems[i.elem].props.get(pi) {
+            Some(SourcePlan::MathEssential(_) | SourcePlan::MathEssentialFrom(_)) => {
+                return ValueType::Math;
+            }
+            Some(SourcePlan::TextLiteral(_)) => return ValueType::Text,
+            Some(SourcePlan::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
+            // The extend referent's slot, as `instance_sources` resolves it.
+            Some(plan @ (SourcePlan::Inherit | SourcePlan::InheritFrom(_))) => {
+                let Some(p) = c.templates[i.template].elems[i.elem].extend else {
+                    return ValueType::Number;
+                };
+                let referent = match self.resolve(p, i.scope) {
+                    Ok((target, _)) => match self.single_component(target, p) {
+                        Ok(r) => r,
+                        Err(_) => return ValueType::Number,
+                    },
+                    Err(_) => return ValueType::Number,
+                };
+                let k = match plan {
+                    SourcePlan::InheritFrom(k) => *k as usize,
+                    _ => pi,
+                };
+                self.slot(referent, k)
+            }
+            Some(SourcePlan::Alias(Arg::Elem(e, k))) => {
+                let other = self.scope_comps[i.scope as usize][*e];
+                if other == NONE {
+                    return ValueType::Number;
+                }
+                self.slot(other, *k as usize)
+            }
+            Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) => {
+                match self.resolve_one(*p, i.scope) {
+                    Ok(t) => t,
+                    Err(_) => return ValueType::Number,
+                }
+            }
+            // A dynamic `fixed` holds the moved plan behind a `Hold`.
+            Some(SourcePlan::Op(OpSpec::Hold, args)) => match args.first() {
+                Some(Arg::Own(h)) => self.slot(comp, *h as usize),
+                _ => return ValueType::Number,
+            },
+            _ => return ValueType::Number,
+        };
+        self.value_type_within(next, depth - 1)
     }
 
     /// Whether a component's `expr` is a math cell: a function, an unbound
@@ -213,7 +306,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 matches!(
                     self.compiled.templates[i.template].elems[i.elem]
                         .props
-                        .get(1),
+                        .get(prop::math_input::EXPR),
                     Some(SourcePlan::MathEssential(_))
                 )
             }
@@ -260,16 +353,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => {
-                let display = &self.compiled.refs[plan as usize].display;
-                let slot = self
-                    .resolve_one(plan as RefId, scope)
-                    .map_err(|e| match e {
-                        Error::ArityMismatch { .. } => Error::BadMath {
-                            text: display.clone(),
-                            reason: "a reference inside math must name one cell".into(),
-                        },
-                        other => other,
-                    })?;
+                let slot = self.math_ref(plan as RefId, scope)?;
                 Expr::Cell(self.leaf(slot, scope))
             }
             Expr::Add(a, b)

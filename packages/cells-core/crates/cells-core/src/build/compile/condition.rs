@@ -408,7 +408,8 @@ impl CondParser<'_> {
                     Some(match cp.compiled.arena.get(id) {
                         // A constant in a condition is not state.
                         Expr::Num(v) => SourcePlan::Fixed(*v),
-                        Expr::Cell(p) => SourcePlan::reference(*p as RefId),
+                        // A lone reference too, so expand checks it is a
+                        // number; it lowers to an alias of the referent.
                         _ => SourcePlan::Math(id),
                     })
                 }

@@ -34,6 +34,8 @@ pub(in crate::build) enum Sel {
 pub(in crate::build) enum SourcePlan {
     /// An essential cell with this initial value.
     Literal(f64),
+    /// An essential text cell: a string id, or NaN for none.
+    TextLiteral(f64),
     /// An essential cell with the type's default value.
     Default(f64),
     /// The matching slot of the `extend` referent.
@@ -297,6 +299,11 @@ impl ElemPlan {
     /// A public essential slot with a role name.
     pub(in crate::build) fn set_essential(&mut self, i: usize, role: &'static str, value: f64) {
         self.set(i, SourcePlan::Literal(value));
+        self.roles.insert(role, own_slot(i));
+    }
+    /// A public essential text slot with a role name, holding string id `id`.
+    pub(in crate::build) fn set_text_essential(&mut self, i: usize, role: &'static str, id: f64) {
+        self.set(i, SourcePlan::TextLiteral(id));
         self.roles.insert(role, own_slot(i));
     }
     /// Record that `role` came from attribute `attr`.

@@ -1,14 +1,12 @@
 //! Bugs found by a design review of the core, each kept as an ignored
 //! test asserting the behaviour a fix should give (the convention of the
 //! rebuild-cycle survey). Run them with `cargo test --test known_bugs --
-//! --ignored`; a fix un-ignores its test.
+//! --ignored`; a fix moves its test to the file for its topic.
 //!
-//! They fall into four groups by structural cause: a cell's value type is
-//! not recorded, so readers guess it from the component type and prop
-//! name; math handles have no identity, so equal values get new handles;
-//! essential values are keyed by layout (scope id, slot offset) rather
-//! than by element; and the rebuild loop and the probe view share state
-//! with the real build.
+//! They fall into three groups by structural cause: math handles have no
+//! identity, so equal values get new handles; essential values are keyed
+//! by layout (scope id, slot offset) rather than by element; and the
+//! rebuild loop and the probe view share state with the real build.
 
 mod common;
 use common::{set, v};
@@ -18,111 +16,6 @@ use cells_core::testing::test_utils::{dast_json, load, load_with_seed};
 
 fn engine_len(doc: &Document) -> usize {
     doc.program.sym.engine.borrow().len()
-}
-
-// ---------------------------------------------------------------------
-// A cell's value type is guessed from (component type, prop name).
-// ---------------------------------------------------------------------
-
-// `math_target` (`build/expand/math.rs`) takes an answer's `submitted` to
-// be a math cell in every answer form. For a choice answer it holds a
-// choice index, which the math reads as handle 0: the load panics in
-// `Engine::evaluate`.
-#[test]
-#[ignore = "known bug: a choice answer's submitted index is read as a math handle"]
-fn a_math_of_a_choice_answers_submitted_loads() {
-    let doc = load(
-        r#"<answer name="a"><choiceInput name="ci">
-  <choice credit="1">cat</choice><choice>dog</choice>
-</choiceInput></answer>
-<math name="mm">$a.submitted</math>"#,
-    );
-    assert!(doc.is_ok(), "{:?}", doc.err());
-}
-
-// A text answer's `response` is a string id. `values.rs` says a text value
-// never reaches a numeric one, but arithmetic and comparison read the id
-// as a number.
-#[test]
-#[ignore = "known bug: a text answer's response is computed with as a number"]
-fn a_text_response_is_not_a_number() {
-    let doc = load(
-        r#"<answer name="a" type="text"><textInput name="ti" prefill="hello"/><award>yes</award></answer>
-<number name="n">$a.response + 1</number>
-<boolean name="b">$a.response > 3</boolean>"#,
-    )
-    .unwrap();
-    assert!(
-        v(&doc, "n", "value").is_nan(),
-        "n = {}",
-        v(&doc, "n", "value")
-    );
-    assert_eq!(v(&doc, "b", "value"), 0.0);
-}
-
-// The same id placed in a paragraph renders as its number.
-#[test]
-#[ignore = "known bug: a text answer's response renders as its string id"]
-fn a_placed_text_response_renders_its_text() {
-    let doc = load(
-        r#"<answer name="a" type="text"><textInput name="ti" prefill="hello"/><award>yes</award></answer>
-<p name="p1">$a.response</p>"#,
-    )
-    .unwrap();
-    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hello");
-}
-
-// `emit.rs` decides an essential value is text only when a `textInput`
-// owns the defining slot of its alias class. Here the `<text>` defines
-// it, so the typed text is saved as a raw string id and restores empty.
-#[test]
-#[ignore = "known bug: text bound to a textInput is saved as a number"]
-fn text_bound_to_a_text_input_survives_save_and_restore() {
-    let src = r#"<text name="t1">hello</text><textInput name="ti" bindValueTo="$t1"/>"#;
-    let mut doc = load(src).unwrap();
-    let id = doc.intern("bye there");
-    set(&mut doc, "ti", "value", id);
-    let saved = doc.save_state();
-    let mut fresh = load(src).unwrap();
-    fresh.restore_state(&saved).unwrap();
-    let cell = fresh.cell("ti", "value").unwrap();
-    assert_eq!(fresh.text_value(cell), "bye there");
-}
-
-// A text answer's `submitted` is saved as a number too. It restores only
-// while strings are interned in the same order; typing twice before
-// submitting breaks that.
-#[test]
-#[ignore = "known bug: a text answer's submitted value is saved as a number"]
-fn a_submitted_text_response_survives_save_and_restore() {
-    let src = r#"<answer name="a" type="text"><textInput name="ti"/><award>yes</award></answer>"#;
-    let mut doc = load(src).unwrap();
-    for s in ["first", "nope"] {
-        let id = doc.intern(s);
-        set(&mut doc, "ti", "value", id);
-    }
-    doc.submit(doc.component("a").unwrap());
-    let saved = doc.save_state();
-    let mut fresh = load(src).unwrap();
-    fresh.restore_state(&saved).unwrap();
-    let cell = fresh.cell("a", "submitted").unwrap();
-    assert_eq!(fresh.text_value(cell), "nope");
-}
-
-// A request is not checked against its cell's kind: a number requested of
-// a math cell is taken as a handle, so it shows another expression of the
-// engine, or panics when out of range.
-#[test]
-#[ignore = "known bug: a number requested of a math cell is taken as a handle"]
-fn a_number_requested_of_a_math_cell_is_dropped() {
-    let mut doc =
-        load(r#"<mathInput name="mi" prefill="3"/><math name="mm" simplify>$mi x</math>"#).unwrap();
-    let before = doc.math_text(doc.cell("mi", "expr").unwrap());
-    let t = set(&mut doc, "mi", "expr", 2.7);
-    assert_eq!(t.dropped.len(), 1);
-    assert_eq!(doc.math_text(doc.cell("mi", "expr").unwrap()), before);
-    let t = set(&mut doc, "mi", "expr", 1e6);
-    assert_eq!(t.dropped.len(), 1);
 }
 
 // ---------------------------------------------------------------------

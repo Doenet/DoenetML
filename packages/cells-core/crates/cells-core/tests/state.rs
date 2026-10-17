@@ -82,3 +82,37 @@ fn iterations_that_exist_only_after_a_count_change_come_back() {
     assert_eq!(v(&fresh, "r[4].q", "x"), 5.0);
     assert_eq!(v(&fresh, "r[1].q", "x"), 0.0);
 }
+
+// A cell's type is its definer's: text a `<text>` defines and a
+// `<textInput>` binds to is saved as text, not as its string id.
+#[test]
+fn text_bound_to_a_text_input_is_saved_as_text() {
+    let src = r#"<text name="t1">hello</text><textInput name="ti" bindValueTo="$t1"/>"#;
+    let mut doc = load(src).unwrap();
+    type_text(&mut doc, "ti", "bye there");
+    let saved = doc.save_state();
+    let mut fresh = load(src).unwrap();
+    fresh.restore_state(&saved).unwrap();
+    assert_eq!(
+        fresh.text_value(fresh.cell("ti", "value").unwrap()),
+        "bye there"
+    );
+}
+
+// A text answer's submitted response is text too, so it restores whatever
+// order strings were interned in.
+#[test]
+fn a_submitted_text_response_is_saved_as_text() {
+    let src = r#"<answer name="a" type="text"><textInput name="ti"/><award>yes</award></answer>"#;
+    let mut doc = load(src).unwrap();
+    type_text(&mut doc, "ti", "first");
+    type_text(&mut doc, "ti", "nope");
+    doc.submit(doc.component("a").unwrap());
+    let saved = doc.save_state();
+    let mut fresh = load(src).unwrap();
+    fresh.restore_state(&saved).unwrap();
+    assert_eq!(
+        fresh.text_value(fresh.cell("a", "submitted").unwrap()),
+        "nope"
+    );
+}

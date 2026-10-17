@@ -263,3 +263,53 @@ fn unsupported_answer_forms_are_refused() {
         "both",
     );
 }
+
+// The value type of an answer's props follows its form: a choice answer's
+// `submitted` is an index, not an expression, so a math reading it is
+// numeric rather than an `Evaluate` of handle 0 (a panic, once).
+#[test]
+fn a_math_of_a_choice_answers_submitted_is_a_number() {
+    let mut doc = load(
+        r#"<answer name="a"><choiceInput name="ci">
+  <choice credit="1">cat</choice><choice>dog</choice>
+</choiceInput></answer>
+<math name="mm">$a.submitted</math>"#,
+    )
+    .unwrap();
+    set(&mut doc, "ci", "selectedIndex", 2.0);
+    submit(&mut doc, "a");
+    assert_eq!(doc.value("mm", "value"), Some(2.0));
+}
+
+// A text answer's response is a string id: refused inside math and as an
+// operator's input, as `$t` of a `<text>` is, never computed with.
+#[test]
+fn a_text_answers_response_is_not_a_number() {
+    let doc = load(
+        r#"<answer name="a" type="text"><textInput name="ti" prefill="hello"/><award>yes</award></answer>
+<number name="n">$a.response + 1</number>
+<boolean name="b">$a.response > 3</boolean>"#,
+    )
+    .unwrap();
+    let errors: Vec<&str> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.kind == cells_core::DiagnosticKind::Error)
+        .map(|d| d.message.as_str())
+        .collect();
+    assert_eq!(
+        errors,
+        ["unsupported: a text value ($a.response) inside math"; 2]
+    );
+}
+
+// Placed in a paragraph, a text answer's response shows as its text.
+#[test]
+fn a_placed_text_response_renders_its_text() {
+    let doc = load(
+        r#"<answer name="a" type="text"><textInput name="ti" prefill="hello"/><award>yes</award></answer>
+<p name="p1">$a.response</p>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hello");
+}

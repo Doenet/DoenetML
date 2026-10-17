@@ -60,7 +60,7 @@ use crate::document::{CellIdx, CompIdx, ComponentTable, Document, NONE, TEXT_BIT
 use crate::error::{Error, Result};
 use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Pivot, RigidOpts, VecOp};
-use crate::program::{Program, Sym};
+use crate::program::{Program, Sym, ValueType};
 use compile::expr::{Arena, Expr, ExprId, Func, Parser, Token};
 
 mod compile;
@@ -70,7 +70,7 @@ mod expand;
 mod structure;
 mod view;
 
-pub use structure::{EssentialKind, Repeat, ScopeId, ScopeTable, Structure};
+pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
 type SlotId = u32;
 type TemplateId = usize;
@@ -257,7 +257,7 @@ pub struct BuildOutput {
     root: CompIdx,
     structure: Structure,
     operands: Vec<CellIdx>,
-    is_math: Vec<bool>,
+    value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
@@ -272,7 +272,8 @@ impl BuildOutput {
     pub fn schedule(self, dast: std::sync::Arc<Dast>, engine: &mut Engine) -> Result<Document> {
         let n = self.cells.len();
         let sym = Sym::new(std::mem::take(engine));
-        let program = match Program::schedule(self.instrs, n, sym, self.operands, self.is_math) {
+        let program = match Program::schedule(self.instrs, n, sym, self.operands, self.value_types)
+        {
             Ok(mut p) => {
                 p.tapes = self.tapes;
                 p

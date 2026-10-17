@@ -81,6 +81,7 @@ fn gate_slots(props: &mut Vec<Option<SourcePlan>>, flags: Vec<SourcePlan>) {
             Some(SourcePlan::Inherit) => SourcePlan::InheritFrom(i as u8),
             Some(
                 SourcePlan::Literal(_)
+                | SourcePlan::TextLiteral(_)
                 | SourcePlan::Default(_)
                 | SourcePlan::Alias(Arg::Ref(..) | Arg::Elem(..))
                 | SourcePlan::Math(_),
@@ -101,7 +102,9 @@ fn gate_slots(props: &mut Vec<Option<SourcePlan>>, flags: Vec<SourcePlan>) {
 /// A literal `fixed`: essential cells, given or defaulted, become constants.
 fn fix_literals(props: &mut [Option<SourcePlan>]) {
     for p in props.iter_mut() {
-        if let Some(SourcePlan::Literal(v) | SourcePlan::Default(v)) = p {
+        if let Some(SourcePlan::Literal(v) | SourcePlan::TextLiteral(v) | SourcePlan::Default(v)) =
+            p
+        {
             *p = Some(SourcePlan::Fixed(*v));
         }
     }

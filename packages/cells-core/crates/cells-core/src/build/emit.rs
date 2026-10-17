@@ -3,8 +3,6 @@
 //! structural depth.
 
 use super::*;
-use crate::build::EssentialKind;
-use crate::components::ComponentType;
 
 impl<'c, 'a> Builder<'c, 'a> {
     pub(in crate::build) fn finish(mut self) -> Result<BuildOutput> {
@@ -60,10 +58,7 @@ impl<'c, 'a> Builder<'c, 'a> {
         let mut cells = Vec::with_capacity(n);
         let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n);
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::new();
-        let mut essential_kinds: Vec<EssentialKind> = Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::new();
-        let math_slot_set: std::collections::HashSet<SlotId> =
-            self.math_slots.iter().copied().collect();
         let mut fixed_defs = Vec::new();
         let mut derived_defs = Vec::new();
         let mut outputs = Vec::new();
@@ -86,15 +81,6 @@ impl<'c, 'a> Builder<'c, 'a> {
                     cells.push(value);
                     cell_def_slot.push(s as SlotId);
                     essential_slots.push((scope, tslot));
-                    essential_kinds.push(if math_slot_set.contains(&(s as SlotId)) {
-                        EssentialKind::Math
-                    } else if self.components.component_type[self.slot_comp[s] as usize]
-                        == ComponentType::TextInput
-                    {
-                        EssentialKind::Text
-                    } else {
-                        EssentialKind::Number
-                    });
                     essential_defaults.push(*v);
                 }
                 Source::Fixed(_) => fixed_defs.push(s),
@@ -148,7 +134,10 @@ impl<'c, 'a> Builder<'c, 'a> {
         let mut instrs = Vec::with_capacity(derived_defs.len());
         let mut operands = Vec::new();
         let mut bound: Vec<CellIdx> = Vec::with_capacity(8);
-        let mut is_math = vec![false; cells.len()];
+        let mut value_types = vec![ValueType::Number; cells.len()];
+        for &(s, ty) in &self.typed_slots {
+            value_types[slot_to_cell[s as usize] as usize] = ty;
+        }
         let mut tapes = Vec::new();
         // Compile curves whose expression has a fixed shape into tapes, unless
         // the load asked for engine sampling.
@@ -167,7 +156,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             );
             if let OpSpec::Sym(kind) = spec {
                 if kind.makes_math() {
-                    is_math[slot_to_cell[s] as usize] = true;
+                    value_types[slot_to_cell[s] as usize] = ValueType::Math;
                 }
                 // The template's leaves were slots; they are cells now.
                 if let SymKind::Instantiate { template, post } = kind {
@@ -215,9 +204,6 @@ impl<'c, 'a> Builder<'c, 'a> {
                 out: slot_to_cell[s],
                 op: spec.bind(&bound, &mut operands),
             });
-        }
-        for &s in &self.math_slots {
-            is_math[slot_to_cell[s as usize] as usize] = true;
         }
         lap("bind instructions");
 
@@ -267,7 +253,6 @@ impl<'c, 'a> Builder<'c, 'a> {
         let structure = Structure {
             scopes: self.scopes,
             essential_slots,
-            essential_kinds,
             essential_defaults,
             essential_values: values,
             structural_depth: depths.iter().copied().max().unwrap_or(0),
@@ -329,7 +314,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             root: self.root,
             structure,
             operands,
-            is_math,
+            value_types,
             tapes,
             cell_label,
             cycle_check: std::time::Duration::ZERO,
@@ -386,9 +371,10 @@ impl<'c, 'a> Builder<'c, 'a> {
         n_known: usize,
     ) -> Result<()> {
         let math_cells: std::collections::HashSet<CellIdx> = self
-            .math_slots
+            .typed_slots
             .iter()
-            .map(|&s| slot_to_cell[s as usize])
+            .filter(|&&(_, ty)| ty == ValueType::Math)
+            .map(|&(s, _)| slot_to_cell[s as usize])
             .collect();
         for &(s, from) in &self.seeds {
             let (scope, tslot) = self.template_slot(s);

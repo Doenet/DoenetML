@@ -42,7 +42,7 @@ fn the_walk_matches_the_queue() {
                         .iter()
                         .map(|&(c, v)| {
                             let engine = doc.program.sym.engine.borrow();
-                            if doc.program.is_math[c as usize]
+                            if doc.program.value_types[c as usize] == cells_core::ValueType::Math
                                 && v.fract() == 0.0
                                 && (0.0..engine.len() as f64).contains(&v)
                             {

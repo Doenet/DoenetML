@@ -9,8 +9,10 @@ a glossary only; design decisions live in `docs/adr/`.
 **Cell** — A single double-precision value in the document's state. Cells are
 the nodes of the dependency graph. Every cell is essential, fixed or derived.
 A cell's number may stand for an integer, a boolean (0 or 1), a string id or
-a handle into the symbolic engine; the meaning is a property of the operators
-around it, not of the storage.
+a handle into the symbolic engine. Which of number, text or math it holds is
+its **value type**, recorded by the build from the source that defines the
+cell (an alias never changes it) and read when a request arrives or state is
+saved, never while the tick recomputes.
 
 **Essential cell** — A cell with no dependencies. Its value is part of the
 minimum independent data needed to recreate the document state. Initialized

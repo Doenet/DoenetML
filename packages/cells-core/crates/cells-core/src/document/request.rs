@@ -31,11 +31,13 @@ impl Document {
     ) -> TickOutcome {
         let mut tick = TickOutcome::default();
         // An infinite ask is never meaningful state (NaN is: an emptied
-        // input), and the current core rejects it; drop it before inverting.
-        let (mut finite, infinite): (Vec<Request>, Vec<Request>) = requests
-            .iter()
-            .partition(|r| !r.value.is_infinite() || self.accepts_infinity(r.cell));
-        tick.dropped.extend(infinite);
+        // input), and the current core rejects it; drop it before inverting,
+        // with any value the cell cannot hold (a number asked of a math cell).
+        let (mut finite, refused): (Vec<Request>, Vec<Request>) = requests.iter().partition(|r| {
+            (!r.value.is_infinite() || self.accepts_infinity(r.cell))
+                && self.can_hold(r.cell, r.value)
+        });
+        tick.dropped.extend(refused);
         let mut finite_groups: Vec<Vec<PointRequest>> = Vec::with_capacity(groups.len());
         for g in groups {
             if g.iter().any(|p| p.values.iter().any(|v| v.is_infinite())) {

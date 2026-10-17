@@ -216,3 +216,57 @@ fn mixed_text_input_content_is_refused() {
         "cells-unsupported"
     );
 }
+
+// An operator reads numbers: a string id named as one's input is refused.
+#[test]
+fn an_operator_does_not_read_text() {
+    let doc = load(r#"<text name="t">hi</text><op name="o" kind="negate" args="$t"/>"#).unwrap();
+    let errors: Vec<&str> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.kind == cells_core::DiagnosticKind::Error)
+        .map(|d| d.message.as_str())
+        .collect();
+    assert_eq!(errors, ["unsupported: a text value ($t) used as a number"]);
+}
+
+// A choice's interface name holds what its branches hold: the value of a
+// text named in every case is text, placed as one, before and after the
+// case changes.
+#[test]
+fn a_text_interface_names_value_is_text() {
+    let mut doc = load(
+        r#"<booleanInput name="g"/>
+<conditionalContent name="cc">
+  <case condition="$g"><text name="t">yes</text></case>
+  <else><text name="t">no</text></else>
+</conditionalContent>
+<p name="p1">$cc.t.value</p>"#,
+    )
+    .unwrap();
+    let shown = |doc: &Document| doc.rendered_text(doc.component("p1").unwrap());
+    assert_eq!(shown(&doc), "no");
+    set(&mut doc, "g", "value", 1.0);
+    assert_eq!(shown(&doc), "yes");
+}
+
+// The same through a select's pick.
+#[test]
+fn a_text_picked_by_a_select_is_text() {
+    let doc = load(
+        r#"<select name="s"><option><text name="t">hi</text></option></select>
+<p name="p1">$s[1].t.value</p>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hi");
+}
+
+// A text extending another inherits its value, which is text when placed.
+#[test]
+fn a_text_extending_a_text_places_as_text() {
+    let doc = load(
+        r#"<p name="p1">$t2.value</p><text name="t1">hello</text><text name="t2" extend="$t1"/>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hello");
+}

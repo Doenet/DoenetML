@@ -12,7 +12,7 @@ use crate::build::{Repeat, ScopeId, Structure};
 
 use crate::components::{ComponentType, prop};
 use crate::dast::{Dast, StrId, StringTable};
-use crate::program::Program;
+use crate::program::{Program, ValueType};
 use crate::tick::{Request, TickOutcome};
 
 mod load;
@@ -142,6 +142,20 @@ impl Document {
             self.component_type(c) == ComponentType::MathInput
                 && self.comp_cells(c)[prop::math_input::VALUE] == cell
         })
+    }
+
+    /// Whether `cell` can hold `value`: any number for a number cell, NaN
+    /// or a string id in the table for a text cell, NaN or a handle in the
+    /// engine for a math cell. Checked once per request, never in the tick.
+    pub(super) fn can_hold(&self, cell: CellIdx, value: f64) -> bool {
+        let index_below = |n: usize| value >= 0.0 && value.fract() == 0.0 && value < n as f64;
+        match self.program.value_types[cell as usize] {
+            ValueType::Number => true,
+            ValueType::Text => value.is_nan() || index_below(self.strings.len()),
+            ValueType::Math => {
+                value.is_nan() || index_below(self.program.sym.engine.borrow().len())
+            }
+        }
     }
 
     pub fn is_essential(&self, cell: CellIdx) -> bool {

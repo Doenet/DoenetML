@@ -15,7 +15,7 @@ use serde_json::{Value, json};
 
 use super::{CellIdx, Document};
 use crate::Error;
-use crate::build::EssentialKind;
+use crate::program::ValueType;
 
 impl Document {
     /// The essential cells that differ from their defaults, as JSON.
@@ -26,8 +26,8 @@ impl Document {
             let cell = i as CellIdx;
             let v = self.cells[i];
             let d = st.essential_defaults[i];
-            let entry = match st.essential_kinds[i] {
-                EssentialKind::Number => {
+            let entry = match self.program.value_types[i] {
+                ValueType::Number => {
                     if v == d || (v.is_nan() && d.is_nan()) {
                         continue;
                     }
@@ -38,7 +38,7 @@ impl Document {
                         if v.is_nan() { Value::Null } else { json!(v) }
                     ])
                 }
-                EssentialKind::Text => {
+                ValueType::Text => {
                     if v == d || self.text_value(cell) == self.text_of(d) {
                         continue;
                     }
@@ -53,7 +53,7 @@ impl Document {
                         }
                     ])
                 }
-                EssentialKind::Math => {
+                ValueType::Math => {
                     if v == d || self.math_text(cell) == self.math_of(d) {
                         continue;
                     }
