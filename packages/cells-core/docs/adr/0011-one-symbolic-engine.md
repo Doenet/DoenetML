@@ -53,6 +53,18 @@ change. The bench set keeps a symbolic family so growth stays visible.
   test (structural `equals_syntax` of the new result against the old, or a
   printed-form hash) would restore most of the cutoff and is the first
   thing to try if that cost matters; it is not done here.
+
+  *Since 2026-10-17:* the wrapper hash-conses. `Engine::push` indexes each
+  stored expression by its hash and returns the handle of an equal one
+  already stored, so equal expressions have equal handles again and the
+  cutoff is back. It came from two bugs a design review found: a request
+  for a math input's current value made a new handle, so it read as a
+  change, and every rebuild imported the document's math again, so
+  toggling a count grew the engine without bound
+  (`tests/symbolic.rs`). Against the commit before, in instructions: load
+  within +1.3% (curves-100), ticks within +2.4% (curves-10, which hashes
+  each recomputed curve) and down 14% on sir, which rebuilds; heap held by
+  a loaded symchain-1000 −31% and its peak −15%, curves-100 −8%.
 - The wasm grows from 1.06 MB to 2.61 MB.
 - The crate enables `serde_json/arbitrary_precision`, which cargo's feature
   unification spreads to the whole wasm binary.

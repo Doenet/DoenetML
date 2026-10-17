@@ -174,7 +174,9 @@ called directly (`sym::Engine`, ADR 0008, ADR 0011). Math cells hold handles
 into it; the core treats expressions as opaque and reaches them only through
 the operations the engine offers. It belongs to the session
 (`Session::engine`), which the program shares for the tick, and only grows,
-so a handle stays valid for the session.
+so a handle stays valid for the session. Equal expressions have equal
+handles: an expression made again finds the handle it had, so a symbolic
+instruction whose result did not change cuts off what follows it.
 
 **Parse arena** — The build's arena of math text parsed into expressions
 whose leaves are references. It decides lowering and gives a line equation

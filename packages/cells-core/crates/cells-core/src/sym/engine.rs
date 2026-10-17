@@ -1,11 +1,16 @@
 //! The symbolic engine: math-expressions-rs, the library the current
 //! DoenetML core calls through wasm, linked natively. Each handle is one
-//! boxed `Expr` tree; nothing is shared or deduplicated, so a recomputed
-//! expression always gets a new handle. Handles stay valid for the life of
-//! the engine; nothing is reclaimed. Cell leaves are symbols named
+//! boxed `Expr` tree. An expression equal to one the engine holds gets that
+//! one's handle, so equal handles are equal expressions and an expression
+//! made again (a recomputation, a rebuild, a request for the current value)
+//! neither reads as a change nor grows the engine. (Two expressions whose
+//! hashes collide both get stored: a collision costs a duplicate, never a
+//! wrong handle.) Handles stay valid for the life of the engine; nothing is
+//! reclaimed. Cell leaves are symbols named
 //! `cellN<i>` (numeric) or `cellM<i>` (math), replaced by `substitute`.
 
 use std::collections::HashMap;
+use std::hash::{BuildHasher, RandomState};
 
 use math_expressions as me;
 use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptions};
@@ -17,6 +22,10 @@ pub struct Engine {
     /// Cell leaves of each expression used as a template, (cell, is math),
     /// found on first use.
     leaves: HashMap<Handle, Vec<(u32, bool)>>,
+    /// The handle of each stored expression by its hash, the first stored
+    /// when two collide.
+    index: HashMap<u64, Handle>,
+    hasher: RandomState,
     parser: TextToAst,
     eq: EqOptions,
 }
@@ -33,6 +42,8 @@ impl Clone for Engine {
         Engine {
             exprs: self.exprs.clone(),
             leaves: self.leaves.clone(),
+            index: self.index.clone(),
+            hasher: self.hasher.clone(),
             parser: TextToAst::new(TextToAstOptions::default()),
             eq: self.eq.clone(),
         }
@@ -50,6 +61,8 @@ impl Engine {
         Engine {
             exprs: Vec::new(),
             leaves: HashMap::new(),
+            index: HashMap::new(),
+            hasher: RandomState::new(),
             parser: TextToAst::new(TextToAstOptions::default()),
             eq: EqOptions::default(),
         }
@@ -59,9 +72,21 @@ impl Engine {
         &self.exprs[h as usize]
     }
 
+    /// Store `e`, or find it: the handle of an equal expression already
+    /// stored.
     fn push(&mut self, e: Expr) -> Handle {
+        let key = self.hasher.hash_one(&e);
+        if let Some(&h) = self.index.get(&key) {
+            if self.exprs[h as usize] == e {
+                return h;
+            }
+            self.exprs.push(e);
+            return (self.exprs.len() - 1) as Handle;
+        }
         self.exprs.push(e);
-        (self.exprs.len() - 1) as Handle
+        let h = (self.exprs.len() - 1) as Handle;
+        self.index.insert(key, h);
+        h
     }
 
     fn convert(&self, t: &Tree, leaves: &mut Vec<(u32, bool)>) -> Expr {
@@ -250,6 +275,7 @@ impl Engine {
     /// Approximate: every node counted at the size of one `Expr`.
     pub fn heap_bytes(&self) -> usize {
         self.exprs.iter().map(count_nodes).sum::<usize>() * std::mem::size_of::<Expr>()
+            + self.index.capacity() * 16
     }
 }
 

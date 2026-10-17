@@ -1,19 +1,20 @@
 //! Symbolic instructions in the tick (ADR 0008): simplify on leaf
 //! changes, mathInputs as essential math cells, answers, function curves,
-//! gating, and the equal-handle cutoff of engine A.
+//! gating, and equal handles for equal expressions: the cutoff, and an
+//! engine that does not grow with expressions made again.
 
 mod common;
 
 use cells_core::Document;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::load;
-use common::{req, type_into};
+use common::{req, set, type_into};
 
 fn text(doc: &Document, name: &str) -> String {
     doc.math_text(doc.cell(name, "expr").unwrap())
 }
 
-/// Type `s` into a mathInput.
+/// How many symbolic instructions have called the engine.
 fn runs(doc: &Document) -> u64 {
     doc.program.sym.stats.get().runs
 }
@@ -129,14 +130,14 @@ fn symbolic_instructions_are_gated_on_their_inputs() {
 }
 
 #[test]
-fn no_cutoff_without_hash_consing() {
-    // `0 $n` vanishes under simplify, so m's expression does not change,
-    // but the engine gives the recomputed expression a new handle (ADR
-    // 0011), so m2 and both evaluates rerun.
+fn an_expression_that_does_not_change_cuts_off() {
+    // `0 $n` vanishes under simplify, so m's expression does not change:
+    // the engine finds the recomputed expression's handle, the old one
+    // (`sym::engine`), so m2 and both evaluates do not rerun.
     let mut doc = load(r#"<numberInput name="n" value="2"/><math name="m" simplify>0 $n + x</math><math name="m2" simplify>$m + 1</math>"#).unwrap();
     let before = runs(&doc);
     doc.request(&[req(&doc, "n", "value", 3.0)]);
-    assert_eq!(runs(&doc) - before, 4);
+    assert_eq!(runs(&doc) - before, 1);
     assert_eq!(text(&doc, "m"), "x");
     assert_eq!(text(&doc, "m2"), "x + 1");
 }
@@ -164,4 +165,44 @@ fn a_copy_of_a_symbolic_math_shares_its_cell() {
     )
     .unwrap();
     assert_eq!(doc.cell("c", "expr"), doc.cell("m", "expr"));
+}
+
+fn engine_len(doc: &Document) -> usize {
+    doc.program.sym.engine.borrow().len()
+}
+
+// The `Evaluate` inverse (`tick/invert.rs`) makes the requested number's
+// expression, which is the current one's handle when the value is the
+// same: a drag to where the point already is changes nothing.
+#[test]
+fn a_drag_to_the_same_place_changes_nothing() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="3"/><math name="mm" simplify>$mi x</math>
+<graph><point name="p" x="$mi" y="0"/></graph>"#,
+    )
+    .unwrap();
+    set(&mut doc, "p", "x", 5.0);
+    let len = engine_len(&doc);
+    let t = set(&mut doc, "p", "x", 5.0);
+    assert!(t.changed.is_empty(), "changed {:?}", t.changed);
+    assert_eq!(engine_len(&doc), len);
+}
+
+// A rebuild imports every math template again; each finds the handle it
+// had, so toggling a count back and forth does not grow the engine.
+#[test]
+fn rebuilding_back_and_forth_does_not_grow_the_engine() {
+    let mut doc = load(
+        r#"<numberInput name="n" value="1"/>
+<repeatForSequence name="r" length="$n"><math name="m" simplify>x + x</math></repeatForSequence>"#,
+    )
+    .unwrap();
+    set(&mut doc, "n", "value", 2.0);
+    set(&mut doc, "n", "value", 1.0);
+    let len = engine_len(&doc);
+    for _ in 0..10 {
+        set(&mut doc, "n", "value", 2.0);
+        set(&mut doc, "n", "value", 1.0);
+    }
+    assert_eq!(engine_len(&doc), len);
 }
