@@ -122,6 +122,9 @@ pub(in crate::build) struct Builder<'c, 'a> {
     /// carrying the name, which stands for the others' value types before
     /// `choice_sources` sets the interface's sources.
     pub(in crate::build) iface_member: HashMap<CompIdx, CompIdx>,
+    /// Each element's first stable slot (`build/layout.rs`), set by
+    /// `finish`; `None` while they are the slot offsets.
+    pub(in crate::build) bases: super::layout::Bases,
     pub(in crate::build) missing: Option<SlotId>,
     /// Essential math slots seeded from another slot's value when first
     /// built (`SourcePlan::MathEssentialFrom`): (slot, source slot).
@@ -204,6 +207,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             choice_insts: Vec::new(),
             comp_choice: HashMap::new(),
             iface_member: HashMap::new(),
+            bases: None,
             missing: None,
             seeds: Vec::new(),
             arena: Arena::default(),

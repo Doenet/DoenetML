@@ -86,13 +86,24 @@ pub struct Structure {
     /// template slot). The template slot identifies the element and prop
     /// within the scope's template. See `CONTEXT.md`, essential key.
     pub essential_slots: Vec<(ScopeId, u32)>,
+    /// Where each element's props sit in a scope's row: the template slots
+    /// of `essential_slots` and `essential_values` are its stable slots.
+    pub layout: super::Layout,
+    /// Per essential cell, in cell order: its element's key and the slot's
+    /// position among the element's, what saved state names it by.
+    pub essential_keys: Vec<(super::ElemKey, u32)>,
+    /// Restored values whose scope no build has stamped yet, by (scope,
+    /// element key, position): the build that stamps it takes them.
+    pub parked: HashMap<(ScopeId, super::ElemKey, u32), f64>,
     /// Per essential cell, in cell order: the value the build gives it when
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
     /// `essential_values[scope][template slot]`: the last value of every essential
     /// cell that has ever existed, so an iteration that disappears and
     /// reappears returns as it was left. Rows fill lazily.
-    pub essential_values: Vec<Vec<Option<f64>>>,
+    /// Shared with the build that read it, which leaves it as it was: the
+    /// next `Carryover::take_from` writes into it in place.
+    pub essential_values: std::sync::Arc<Vec<Vec<Option<f64>>>>,
     pub repeats: Vec<Repeat>,
     /// Per repeat (same order as `repeats`): how many repeats must be
     /// expanded in sequence before this one's count is known, plus one.

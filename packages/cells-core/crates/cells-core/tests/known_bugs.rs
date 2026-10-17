@@ -3,16 +3,15 @@
 //! rebuild-cycle survey). Run them with `cargo test --test known_bugs --
 //! --ignored`; a fix moves its test to the file for its topic.
 //!
-//! They fall into three groups by structural cause: math handles have no
-//! identity, so equal values get new handles; essential values are keyed
-//! by layout (scope id, slot offset) rather than by element; and the
-//! rebuild loop and the probe view share state with the real build.
+//! They fall into two groups by structural cause: math handles have no
+//! identity, so equal values get new handles; and the rebuild loop and the
+//! probe view share state with the real build.
 
 mod common;
 use common::{set, v};
 
 use cells_core::Document;
-use cells_core::testing::test_utils::{dast_json, load, load_with_seed};
+use cells_core::testing::test_utils::{dast_json, load};
 
 fn engine_len(doc: &Document) -> usize {
     doc.program.sym.engine.borrow().len()
@@ -60,63 +59,6 @@ fn rebuilding_back_and_forth_does_not_grow_the_engine() {
         set(&mut doc, "n", "value", 1.0);
     }
     assert_eq!(engine_len(&doc), len);
-}
-
-// ---------------------------------------------------------------------
-// Essential values are keyed by layout.
-// ---------------------------------------------------------------------
-
-// An essential value's key is (scope, slot offset), and a slot offset is
-// a running sum over the template's elements. An element first boxed on a
-// rebuild has no props, so every later element's key shifts and its value
-// is lost. Here the probe resolves `$r[2].s[1]` to option 1 and passes;
-// the real build resolves it to iteration 2's pick, which for some seeds
-// is the option of two components, an ambiguous reference.
-#[test]
-#[ignore = "known bug: an element boxed on a rebuild shifts later essential keys"]
-fn an_element_boxed_on_a_rebuild_keeps_later_values() {
-    let src = r#"<numberInput name="n" value="1"/>
-<repeatForSequence name="r" length="$n">
-  <select name="s">
-    <option><number name="a">1</number></option>
-    <option><number name="a">2</number><number name="b">3</number></option>
-  </select>
-</repeatForSequence>
-<number name="y">$r[2].s[1]</number>
-<numberInput name="m" value="5"/>"#;
-    for seed in 0..12 {
-        let mut doc = load_with_seed(src, seed).unwrap();
-        set(&mut doc, "m", "value", 7.0);
-        let t = set(&mut doc, "n", "value", 2.0);
-        assert!(
-            t.rebuild_error.is_none(),
-            "seed {seed}: {:?}",
-            t.rebuild_error
-        );
-        assert_eq!(v(&doc, "m", "value"), 7.0, "seed {seed}");
-    }
-}
-
-// Saved state names an iteration by its scope id, which is assigned in
-// the order iterations are first stamped. Growing `rb` before `ra` gives
-// the ids in the other order from a fresh load, so the values swap.
-#[test]
-#[ignore = "known bug: saved state keys iterations by growth-order scope ids"]
-fn saved_iterations_restore_whatever_order_they_grew_in() {
-    let src = r#"<numberInput name="na" value="1"/><numberInput name="nb" value="1"/>
-<repeatForSequence name="ra" length="$na"><numberInput name="xa" value="0"/></repeatForSequence>
-<repeatForSequence name="rb" length="$nb"><numberInput name="xb" value="0"/></repeatForSequence>
-<number name="a2">$ra[2].xa</number><number name="b2">$rb[2].xb</number>"#;
-    let mut doc = load(src).unwrap();
-    set(&mut doc, "nb", "value", 2.0);
-    set(&mut doc, "b2", "value", 22.0);
-    set(&mut doc, "na", "value", 2.0);
-    set(&mut doc, "a2", "value", 11.0);
-    let saved = doc.save_state();
-    let mut fresh = load(src).unwrap();
-    fresh.restore_state(&saved).unwrap();
-    assert_eq!(v(&fresh, "a2", "value"), 11.0);
-    assert_eq!(v(&fresh, "b2", "value"), 22.0);
 }
 
 // ---------------------------------------------------------------------

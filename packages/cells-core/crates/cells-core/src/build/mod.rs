@@ -67,9 +67,11 @@ mod compile;
 mod cycles;
 mod emit;
 mod expand;
+mod layout;
 mod structure;
 mod view;
 
+pub use layout::{ElemKey, Layout, TemplateKey};
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
 type SlotId = u32;
@@ -342,19 +344,18 @@ impl Carryover {
             .map(|r| ((r.scope, r.node), doc.repeat_count(r)))
             .collect();
         let mut structure = std::mem::take(&mut doc.structure);
+        let values = std::sync::Arc::make_mut(&mut structure.essential_values);
         // Never shrink: `restore_state` may have parked values for scopes
         // the table has not made yet.
-        if structure.essential_values.len() < structure.scopes.len() {
-            structure
-                .essential_values
-                .resize(structure.scopes.len(), Vec::new());
+        if values.len() < structure.scopes.len() {
+            values.resize(structure.scopes.len(), Vec::new());
         }
         for (&(scope, slot), &v) in structure
             .essential_slots
             .iter()
             .zip(&doc.cells[..doc.n_essential])
         {
-            let row = &mut structure.essential_values[scope as usize];
+            let row = &mut values[scope as usize];
             if row.len() <= slot as usize {
                 row.resize(slot as usize + 1, None);
             }

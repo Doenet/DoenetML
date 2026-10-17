@@ -98,10 +98,11 @@ impl<'a> Compiler<'a> {
             (num as u32, self.attr_flag(el, "withReplacement"))
         };
         let mut templates = Vec::with_capacity(branches.len());
-        for (_, nodes, _) in &branches {
+        for (b, (_, nodes, _)) in branches.iter().enumerate() {
             let sub = self.compiled.templates.len();
             self.compiled.templates.push(Template {
                 parent: Some((t, e)),
+                key: (self.compiled.templates[t].elems[e].node, b as u32 + 1),
                 ..Default::default()
             });
             let kids = self.add_children(sub, None, ROOT_SCOPE, nodes)?;

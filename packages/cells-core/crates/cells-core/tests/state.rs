@@ -4,7 +4,7 @@
 
 mod common;
 
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_with_seed};
 use cells_core::{Document, Request};
 use common::{set, type_into, v};
 
@@ -21,7 +21,7 @@ const DOC: &str = r#"<mathInput name="mi" prefill="x"/><textInput name="ti" pref
 #[test]
 fn an_untouched_document_saves_nothing() {
     let doc = load(DOC).unwrap();
-    assert_eq!(doc.save_state(), r#"{"state":[],"v":1}"#);
+    assert_eq!(doc.save_state(), r#"{"state":[],"v":2}"#);
 }
 
 #[test]
@@ -115,4 +115,119 @@ fn a_submitted_text_response_is_saved_as_text() {
         fresh.text_value(fresh.cell("a", "submitted").unwrap()),
         "nope"
     );
+}
+
+/// A repeat of a select whose second option makes `$r[2].s[1]` ambiguous:
+/// for some seeds, growing `n` to 2 boxes `y` inside the tick (the probe
+/// resolves the reference to option 1; the real build to the pick).
+const BOXES_ON_GROWTH: &str = r#"<numberInput name="n" value="1"/>
+<repeatForSequence name="r" length="$n">
+  <select name="s">
+    <option><number name="a">1</number></option>
+    <option><number name="a">2</number><number name="b">3</number></option>
+  </select>
+</repeatForSequence>
+<number name="y">$r[2].s[1]</number>
+<numberInput name="m" value="5"/>
+<answer name="ans">x</answer>"#;
+
+/// Seeds at which growing `n` boxes `y`.
+fn boxing_seeds() -> Vec<u64> {
+    (0..12)
+        .filter(|&seed| {
+            let mut doc = load_with_seed(BOXES_ON_GROWTH, seed).unwrap();
+            set(&mut doc, "n", "value", 2.0);
+            doc.diagnostics()
+                .iter()
+                .any(|d| d.kind == cells_core::DiagnosticKind::Error)
+        })
+        .collect()
+}
+
+// An element keeps its essential slots when an element before it is boxed
+// on a rebuild (`build/layout.rs`): `m` and the answer's implicit input,
+// which the build makes, keep what the student entered.
+#[test]
+fn an_element_boxed_on_a_rebuild_keeps_later_values() {
+    let seeds = boxing_seeds();
+    assert!(!seeds.is_empty());
+    for seed in seeds {
+        let mut doc = load_with_seed(BOXES_ON_GROWTH, seed).unwrap();
+        set(&mut doc, "m", "value", 7.0);
+        let h = doc.parse_math("x+1").unwrap();
+        set(&mut doc, "ans", "response", h);
+        let t = set(&mut doc, "n", "value", 2.0);
+        assert!(t.rebuilt && t.rebuild_error.is_none(), "seed {seed}");
+        assert_eq!(v(&doc, "m", "value"), 7.0, "seed {seed}");
+        let response = doc.cell("ans", "response").unwrap();
+        assert_eq!(doc.math_text(response), "x + 1", "seed {seed}");
+    }
+}
+
+// Saved after the box, the state comes back on a fresh load, which finds
+// the box again only once the restored count grows the repeat.
+#[test]
+fn state_saved_after_a_box_comes_back() {
+    for seed in boxing_seeds() {
+        let mut doc = load_with_seed(BOXES_ON_GROWTH, seed).unwrap();
+        set(&mut doc, "n", "value", 2.0);
+        set(&mut doc, "m", "value", 7.0);
+        let saved = doc.save_state();
+        let mut fresh = load_with_seed(BOXES_ON_GROWTH, seed).unwrap();
+        fresh.restore_state(&saved).unwrap();
+        assert_eq!(v(&fresh, "n", "value"), 2.0, "seed {seed}");
+        assert_eq!(v(&fresh, "m", "value"), 7.0, "seed {seed}");
+    }
+}
+
+// Saved state names an iteration by its path, not by the id a session gave
+// its scope, so repeats grown in another order restore to their own
+// iterations.
+#[test]
+fn saved_iterations_restore_whatever_order_they_grew_in() {
+    let src = r#"<numberInput name="na" value="1"/><numberInput name="nb" value="1"/>
+<repeatForSequence name="ra" length="$na"><numberInput name="xa" value="0"/></repeatForSequence>
+<repeatForSequence name="rb" length="$nb"><numberInput name="xb" value="0"/></repeatForSequence>
+<number name="a2">$ra[2].xa</number><number name="b2">$rb[2].xb</number>"#;
+    let mut doc = load(src).unwrap();
+    set(&mut doc, "nb", "value", 2.0);
+    set(&mut doc, "b2", "value", 22.0);
+    set(&mut doc, "na", "value", 2.0);
+    set(&mut doc, "a2", "value", 11.0);
+    let saved = doc.save_state();
+    let mut fresh = load(src).unwrap();
+    fresh.restore_state(&saved).unwrap();
+    assert_eq!(v(&fresh, "a2", "value"), 11.0);
+    assert_eq!(v(&fresh, "b2", "value"), 22.0);
+}
+
+// The same for nested repeats, whose inner iterations are made in the
+// order the session grew them.
+#[test]
+fn nested_iterations_restore_by_path() {
+    let src = r#"<numberInput name="na" value="1"/>
+<repeatForSequence name="ra" length="$na">
+  <numberInput name="nb" value="1"/>
+  <repeatForSequence name="rb" length="$nb"><numberInput name="x" value="0"/></repeatForSequence>
+</repeatForSequence>
+<number name="x12">$ra[1].rb[2].x</number><number name="x22">$ra[2].rb[2].x</number>"#;
+    let mut doc = load(src).unwrap();
+    set(&mut doc, "na", "value", 2.0);
+    let nb2 = doc.cell("ra[2].nb", "value").unwrap();
+    doc.request(&[Request {
+        cell: nb2,
+        value: 2.0,
+    }]);
+    set(&mut doc, "x22", "value", 22.0);
+    let nb1 = doc.cell("ra[1].nb", "value").unwrap();
+    doc.request(&[Request {
+        cell: nb1,
+        value: 2.0,
+    }]);
+    set(&mut doc, "x12", "value", 12.0);
+    let saved = doc.save_state();
+    let mut fresh = load(src).unwrap();
+    fresh.restore_state(&saved).unwrap();
+    assert_eq!(v(&fresh, "x12", "value"), 12.0);
+    assert_eq!(v(&fresh, "x22", "value"), 22.0);
 }

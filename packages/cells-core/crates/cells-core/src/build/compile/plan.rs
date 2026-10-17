@@ -184,6 +184,8 @@ pub(in crate::build) struct Elem {
     /// Assigned once every element is planned, since planned types add
     /// hidden slots after the public props.
     pub(in crate::build) slot_off: u32,
+    /// The element's identity across builds (`build/layout.rs`).
+    pub(in crate::build) key: crate::build::ElemKey,
     pub(in crate::build) props: Vec<SourcePlan>,
     pub(in crate::build) children: Vec<Child>,
     pub(in crate::build) extend: Option<RefId>,
@@ -201,6 +203,8 @@ pub(in crate::build) struct Elem {
 pub(in crate::build) struct Template {
     /// (template, element) of the repeat this template belongs to.
     pub(in crate::build) parent: Option<(TemplateId, ElemId)>,
+    /// The template's identity across builds (`build/layout.rs`).
+    pub(in crate::build) key: crate::build::TemplateKey,
     pub(in crate::build) elems: Vec<Elem>,
     pub(in crate::build) n_slots: u32,
     /// Children of the template itself (the document, or the repeat body).
@@ -370,6 +374,9 @@ pub(in crate::build) struct Compiled<'a> {
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
     pub(in crate::build) sym_text: HashMap<ExprId, String>,
     pub(in crate::build) choices: Vec<ChoiceDef>,
+    /// The nodes compiled as `_error` elements, sorted: with the DAST,
+    /// all a compile depends on (`build/layout.rs`).
+    pub(in crate::build) boxed: Vec<NodeId>,
     /// Text the build needs that is not a DAST string (a textInput's
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.

@@ -13,6 +13,8 @@ impl<'c, 'a> Builder<'c, 'a> {
                 eprintln!("    cd/{what}: {:.2?}", clock.elapsed());
             }
         };
+        let (layout, bases) = self.carryover.structure.layout.update(self.compiled);
+        self.bases = bases;
         let n = self.sources.len();
         let mut uf = UnionFind::new(n);
         for (s, src) in self.sources.iter().enumerate() {
@@ -57,8 +59,12 @@ impl<'c, 'a> Builder<'c, 'a> {
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         let mut cells = Vec::with_capacity(n);
         let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n);
-        let mut essential_slots: Vec<(ScopeId, u32)> = Vec::new();
-        let mut essential_defaults: Vec<f64> = Vec::new();
+        // Sized from the previous build, which a rebuild mostly repeats.
+        let n_was = self.carryover.structure.essential_slots.len();
+        let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(n_was);
+        let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(n_was);
+        let mut parked = self.carryover.structure.parked.clone();
+        let mut essential_defaults: Vec<f64> = Vec::with_capacity(n_was);
         let mut fixed_defs = Vec::new();
         let mut derived_defs = Vec::new();
         let mut outputs = Vec::new();
@@ -69,18 +75,24 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             match &self.sources[s] {
                 Source::Literal(v) | Source::Default(v) => {
-                    let (scope, tslot) = self.template_slot(s as SlotId);
-                    let value = self
+                    let (scope, tslot, key) = self.essential_key(s as SlotId);
+                    let mut value = self
                         .carryover
                         .structure
                         .essential_values
                         .get(scope as usize)
                         .and_then(|row| row.get(tslot as usize).copied().flatten())
                         .unwrap_or(*v);
+                    if !parked.is_empty()
+                        && let Some(p) = parked.remove(&(scope, key.0, key.1))
+                    {
+                        value = p;
+                    }
                     slot_cell[root] = cells.len() as CellIdx;
                     cells.push(value);
                     cell_def_slot.push(s as SlotId);
                     essential_slots.push((scope, tslot));
+                    essential_keys.push(key);
                     essential_defaults.push(*v);
                 }
                 Source::Fixed(_) => fixed_defs.push(s),
@@ -244,15 +256,16 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
         }
 
-        // The value store grows with the scope table; rows fill lazily.
-        let mut values = self.carryover.structure.essential_values.clone();
-        if values.len() < self.scopes.len() {
-            values.resize(self.scopes.len(), Vec::new());
-        }
+        // The value store, shared: this build only read it, and rows fill
+        // lazily (`Carryover::take_from`).
+        let values = self.carryover.structure.essential_values.clone();
 
         let structure = Structure {
             scopes: self.scopes,
             essential_slots,
+            essential_keys,
+            parked,
+            layout,
             essential_defaults,
             essential_values: values,
             structural_depth: depths.iter().copied().max().unwrap_or(0),
@@ -377,7 +390,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             .map(|&(s, _)| slot_to_cell[s as usize])
             .collect();
         for &(s, from) in &self.seeds {
-            let (scope, tslot) = self.template_slot(s);
+            let (scope, tslot, _) = self.essential_key(s);
             let carried = self
                 .carryover
                 .structure
@@ -408,16 +421,19 @@ impl<'c, 'a> Builder<'c, 'a> {
         Ok(())
     }
 
-    /// The (scope, template slot) an essential slot's value is saved under.
-    /// Only template elements have essential slots; copies alias theirs.
-    pub(in crate::build) fn template_slot(&self, slot: SlotId) -> (ScopeId, u32) {
+    /// An essential slot's key: its scope, its stable slot in the scope's
+    /// row (`build/layout.rs`), and its element's key and position.
+    #[inline]
+    pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot as usize];
         let inst = self.instances[self.comp_instance[comp as usize] as usize];
         let pi = slot - self.slot_base[comp as usize];
-        (
-            inst.scope,
-            self.compiled.templates[inst.template].elems[inst.elem].slot_off + pi,
-        )
+        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        let base = match &self.bases {
+            None => el.slot_off,
+            Some(bases) => bases[inst.template][inst.elem],
+        };
+        (inst.scope, base + pi, (el.key, pi))
     }
 
     /// Structural depth per repeat: how many repeats must be expanded, in

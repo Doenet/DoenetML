@@ -39,6 +39,9 @@ pub(in crate::build) struct Compiler<'a> {
     /// The node of the innermost element whose planning failed, set on
     /// the way out of a failed compile; `build` boxes it and tries again.
     pub(in crate::build) failed_node: Option<NodeId>,
+    /// Per node, how many elements the compile has made for it (an
+    /// element's key, `build/layout.rs`).
+    made: HashMap<NodeId, u32>,
 }
 
 /// The ways an element is planned; see `Compiler::elem_shape`.
@@ -67,6 +70,11 @@ impl<'a> Compiler<'a> {
                 sym_text: HashMap::new(),
                 choices: Vec::new(),
                 extra_strings: Vec::new(),
+                boxed: {
+                    let mut b: Vec<NodeId> = boxed.iter().copied().collect();
+                    b.sort_unstable();
+                    b
+                },
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
@@ -74,6 +82,7 @@ impl<'a> Compiler<'a> {
             string_ids: None,
             boxed,
             failed_node: None,
+            made: HashMap::new(),
         };
         match cp.compile_all() {
             Ok(()) => Ok(cp.compiled),
@@ -194,8 +203,29 @@ impl<'a> Compiler<'a> {
     ) -> Result<ElemId> {
         let tpl = &mut self.compiled.templates[t];
         let e = tpl.elems.len();
+        // A made element is known by the nearest element it belongs to (the
+        // template's owner at the top) and its position among those made
+        // for that one.
+        let key = if node != NONE {
+            (node, 0)
+        } else {
+            let mut a = name_scope;
+            let anchor = loop {
+                if a == ROOT_SCOPE {
+                    break tpl.key.0;
+                }
+                if tpl.elems[a].node != NONE {
+                    break tpl.elems[a].node;
+                }
+                a = tpl.elems[a].name_scope;
+            };
+            let k = self.made.entry(anchor).or_insert(0);
+            *k += 1;
+            (anchor, *k)
+        };
         tpl.elems.push(Elem {
             node,
+            key,
             component_type,
             name,
             name_scope,
@@ -297,6 +327,7 @@ impl<'a> Compiler<'a> {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
+                    key: (el, 0),
                     ..Default::default()
                 });
                 let it = self.add_synthetic(sub, ComponentType::Tuple, NONE);
@@ -307,6 +338,7 @@ impl<'a> Compiler<'a> {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
+                    key: (el, 0),
                     ..Default::default()
                 });
                 // Hidden iteration components first, so `$v` and `$i` resolve

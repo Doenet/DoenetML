@@ -254,10 +254,15 @@ the same interactive budget as any other tick. Values of essential cells
 survive a rebuild through their essential keys. See ADR 0004.
 
 **Essential key** — The identity of an essential cell independently of its
-index: the scope it lives in and its slot within that scope's template (which
-element, which prop). Essential values are kept by key across rebuilds, so an
-iteration that disappears and reappears returns with its last values. Whether
-keys also carry values across sessions is undecided.
+index: the scope it lives in and its **stable slot** within that scope's
+template (which element, which prop). A stable slot is an element's slot
+offset in the first build, kept for the element by its **element key** (its
+DAST node, or for an element the build makes, the node it is made for and its
+position among those) when a later build boxes another element
+(`build/layout.rs`). Essential values are kept by key across rebuilds, so an
+iteration that disappears and reappears returns with its last values. Saved
+state names a cell by its scope's path from the document and its element key,
+which no session order or box changes.
 
 **Structural depth** — Of a repeat: how many repeats must be expanded in
 sequence before its count can be computed, plus one. Nesting adds one; a
