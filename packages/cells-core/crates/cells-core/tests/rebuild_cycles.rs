@@ -201,3 +201,32 @@ fn a_failed_rebuild_rolls_the_tick_back() {
     assert_eq!(v(&doc, "extra", "value"), 1.0);
     assert!(doc.cell("r[3].p", "x").is_some());
 }
+
+// A rebuild that fails after its first pass leaves the document as it was:
+// a build reads the session and moves nothing out of the document (ADR
+// 0015), where a rebuild once moved its carryover out, reassigned it every
+// pass, and restored an intermediate build's structure onto the old cells.
+// With the cycle check off, the only case the rollback exists for.
+#[test]
+fn a_rebuild_failing_late_leaves_the_document_settled() {
+    let src = r#"<numberInput name="n" value="1"/><numberInput name="m" value="4"/>
+<repeatForSequence name="a" length="$n"><numberInput name="one" value="1"/></repeatForSequence>
+<number name="k">3*$a[2].one</number>
+<repeatForSequence name="b" length="$k"><number name="x">$y</number></repeatForSequence>
+<number name="y">$b[3].x</number>"#;
+    let (mut doc, _) = Document::load(
+        dast_json(src).as_bytes(),
+        cells_core::LoadOptions {
+            check_cycles: false,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let t = set(&mut doc, "n", "value", 2.0);
+    assert!(t.rebuild_error.is_some());
+    assert!(doc.structure_settled());
+    assert_eq!(doc.structure.essential_slots.len(), doc.n_essential);
+    let t = set(&mut doc, "m", "value", 9.0);
+    assert!(!t.rebuilt);
+    assert_eq!(v(&doc, "m", "value"), 9.0);
+}

@@ -207,9 +207,20 @@ plan* (a literal, an alias, an operator over other props, a math) and each
 reference's *reference plan* (a path through names and indices). Expansion
 turns plans into slots per scope.
 
-**Carryover** — What one build hands the next: the structure of the last build
-(its scope table, every essential value by key, the seed) and each repeat's
-iteration count.
+**Compile** — The once-per-load stage (ADR 0015): the source and seed made
+into templates and plans (*plan*), checked through the probe (*check*), with
+every element that fails boxed. Its product, `Compiled`, is what every build
+stamps.
+
+**Build** — One pass from the compile, the session and iteration counts to
+cells, program and component table: expand, resolve, emit, schedule. A
+*load* is a compile, then builds until the structure *settles*; a *rebuild*
+is builds until it settles again.
+
+**Session** — What survives every build of a document (ADR 0015): the scope
+table, every essential value by key, values parked for scopes not yet
+stamped, strings interned at runtime, the seed. A build reads it and
+returns the next; saved state is the session written out.
 
 **Template** — The body of a repeat (or the document itself) as compiled
 once from the DAST: its elements, their props' sources, and their references

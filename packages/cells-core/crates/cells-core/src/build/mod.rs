@@ -44,9 +44,11 @@
 //! cycle check (ADR 0012): a build through the probe view, run once per load
 //! before the real one.
 //!
-//! This file holds the entry point, [`build`], what it returns
-//! ([`BuildOutput`]) and what one build hands the next ([`Carryover`]);
-//! `structure.rs` holds what a build records about the document's shape
+//! This file holds the entry points (ADR 0015): [`compile`], once per
+//! load, and [`build`], at load and on every structural change, and what a
+//! build returns ([`BuildOutput`]). `session.rs` holds what survives every
+//! build ([`Session`]) and the counts a build stamps ([`Counts`]);
+//! `structure.rs` what a build records about the document's shape
 //! ([`Structure`], [`ScopeTable`], [`Repeat`]).
 
 use std::collections::{HashMap, HashSet};
@@ -68,10 +70,12 @@ mod compile;
 mod cycles;
 mod emit;
 mod expand;
+mod session;
 mod structure;
 mod view;
 
 pub use compile::plan::Compiled;
+pub use session::{Counts, Session};
 pub use structure::{ElemKey, Repeat, ScopeId, ScopeTable, Structure};
 
 type SlotId = u32;
@@ -105,7 +109,8 @@ impl From<Failure> for Error {
 /// emit, through `view`. The failure names the element to box.
 pub(in crate::build) fn build_with(
     compiled: &Compiled,
-    carryover: &Carryover,
+    session: &Session,
+    reseed: bool,
     engine: &mut Engine,
     view: &dyn View,
     probe_checks: bool,
@@ -117,7 +122,7 @@ pub(in crate::build) fn build_with(
             eprintln!("  build/{what}: {:.2?}", clock.elapsed());
         }
     };
-    let mut b = Builder::new(compiled, carryover, engine, view);
+    let mut b = Builder::new(compiled, session, reseed, engine, view);
     let staged = (|| {
         b.expand_all()?;
         lap("expand");
@@ -148,7 +153,7 @@ pub(in crate::build) fn build_with(
 /// the boxed errors); a failure with no element to box (a cycle) ends it.
 fn build_boxing(
     dast: &Arc<Dast>,
-    carryover: &Carryover,
+    session: &Session,
     engine: &mut Engine,
     view: &dyn View,
     probe_checks: bool,
@@ -170,14 +175,14 @@ fn build_boxing(
             let mut checked = std::time::Duration::ZERO;
             if cycle_check && compiled.has_repeats() {
                 let clock = web_time::Instant::now();
-                cycles::check(&compiled, carryover)?;
+                cycles::check(&compiled, session)?;
                 checked = clock.elapsed();
                 probed = true;
                 if profile {
                     eprintln!("  build/cycle check: {checked:.2?}");
                 }
             }
-            let mut u = build_with(&compiled, carryover, engine, view, probe_checks)?;
+            let mut u = build_with(&compiled, session, false, engine, view, probe_checks)?;
             u.cycle_check = checked;
             Ok((compiled, u))
         });
@@ -200,24 +205,29 @@ fn build_boxing(
     outcome
 }
 
-/// A document's compile and its first build (ADR 0015): compile, with
-/// `check_cycles` check through the probe (ADR 0012, ADR 0014), and box
-/// every element that fails until every element builds (ADR 0013). The
-/// compile is the one every later build of the document uses; it holds
-/// the source's diagnostics, the lint findings and the boxed errors,
-/// which with the build's warnings are the build's diagnostics. Only a
-/// cycle, which has no element to box, fails a load.
-pub fn load(
+/// The compile stage (ADR 0015): plan the document, check it (through the
+/// probe, with `check_cycles`, for a document with repeats; ADR 0012, ADR
+/// 0014) and box every element that fails until every element builds (ADR
+/// 0013). Returns the compile, which every later build of the document
+/// stamps, and its first build, at no iteration: for a document without
+/// repeats that build is the check, and the only one there will be. The
+/// compile holds the source's diagnostics, the lint findings and the boxed
+/// errors. Only a cycle, which has no element to box, fails it.
+pub fn compile(
     dast: &Arc<Dast>,
-    carryover: &Carryover,
+    session: &Session,
     engine: &mut Engine,
     check_cycles: bool,
 ) -> Result<(Arc<Compiled>, BuildOutput)> {
-    let view = Stamped(carryover);
+    let counts = Counts::default();
+    let view = Stamped {
+        session,
+        counts: &counts,
+    };
     let mut source = Vec::new();
     let (mut compiled, mut u) = build_boxing(
         dast,
-        carryover,
+        session,
         engine,
         &view,
         false,
@@ -233,17 +243,21 @@ pub fn load(
     Ok((Arc::new(compiled), u))
 }
 
-/// A later build of a document (ADR 0015): its compile stamped at the
-/// counts the carryover holds. It compiles nothing and finds no error the
-/// load did not (ADR 0014); an element that fails is `Error::Unchecked`.
+/// A build (ADR 0015): the compile stamped with each repeat at its count
+/// in `counts`, reading the session. It compiles nothing and finds no error
+/// the compile did not (ADR 0014); an element that fails is
+/// `Error::Unchecked`. With `reseed`, seeded cells take their seeds again
+/// whatever the session carries: a later pass of a load.
 pub fn build(
     compiled: &Compiled,
-    carryover: &Carryover,
+    session: &Session,
+    counts: &Counts,
+    reseed: bool,
     engine: &mut Engine,
 ) -> Result<BuildOutput> {
-    let view = Stamped(carryover);
+    let view = Stamped { session, counts };
     let mut u =
-        build_with(compiled, carryover, engine, &view, false).map_err(|f| match f.node {
+        build_with(compiled, session, reseed, engine, &view, false).map_err(|f| match f.node {
             Some(_) => Error::Unchecked(f.error.to_string()),
             None => f.error,
         })?;
@@ -266,21 +280,13 @@ fn with_warnings(compiled: &Compiled, u: &mut BuildOutput) -> Vec<Diagnostic> {
 /// any state. A load never calls this; the language server does.
 pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let dast = Arc::new(dast.clone());
-    let carryover = Carryover::new(0, false);
+    let session = Session::new(0, false);
     let mut engine = Engine::new();
     let view = cycles::Probe::exhaustive();
     let mut list = Vec::new();
     // A failure is in the list; the build itself is not wanted, but its
     // warnings are.
-    if let Ok((_, u)) = build_boxing(
-        &dast,
-        &carryover,
-        &mut engine,
-        &view,
-        true,
-        false,
-        &mut list,
-    ) {
+    if let Ok((_, u)) = build_boxing(&dast, &session, &mut engine, &view, true, false, &mut list) {
         list.extend(u.structure.diagnostics);
         crate::diagnostics::sort(&mut list);
     }
@@ -297,6 +303,8 @@ pub struct BuildOutput {
     strings: StringTable,
     root: CompIdx,
     structure: Structure,
+    /// The session after this build: its scopes, what is still parked.
+    session: Session,
     operands: Vec<CellIdx>,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
@@ -334,111 +342,9 @@ impl BuildOutput {
             self.strings,
             self.root,
             self.structure,
+            self.session,
             compiled,
         ))
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Carryover: what earlier builds of the same document contribute
-// ---------------------------------------------------------------------------
-
-/// Carried from one build of a document to the next: the stable scope table,
-/// each repeat instance's iteration count, and every essential value ever
-/// held, stored per (scope, template slot) so an iteration that disappears
-/// and reappears comes back as it was left.
-#[derive(Debug, Clone, Default)]
-pub struct Carryover {
-    /// The last build's structure: its scope table, seed and options, and in
-    /// `essential_values` every essential value it held.
-    structure: Structure,
-    counts: HashMap<(ScopeId, NodeId), u32>,
-    /// Strings interned since load (`Document::intern`), appended again
-    /// after the new build's static table so the ids text cells hold stay
-    /// valid; see `Document::n_static_strings`.
-    runtime_strings: Vec<String>,
-    /// Handed between the passes of a load: no student has changed a
-    /// value yet, so a seeded cell takes its seed again in each pass, from
-    /// the counts that pass stamps.
-    settling: bool,
-}
-
-impl Carryover {
-    /// The carryover of a first build.
-    pub fn new(seed: u64, sample_with_engine: bool) -> Carryover {
-        Carryover {
-            structure: Structure {
-                seed,
-                sample_with_engine,
-                ..Structure::default()
-            },
-            counts: HashMap::new(),
-            runtime_strings: Vec::new(),
-            settling: false,
-        }
-    }
-
-    /// Build a carryover from a document, moving its structure out (the
-    /// document is about to be replaced). `restore` puts it back on error.
-    pub fn take_from(doc: &mut Document) -> Carryover {
-        let counts = doc
-            .structure
-            .repeats
-            .iter()
-            .map(|r| ((r.scope, r.node), doc.repeat_count(r)))
-            .collect();
-        let mut structure = std::mem::take(&mut doc.structure);
-        let values = std::sync::Arc::make_mut(&mut structure.essential_values);
-        // Never shrink: `restore_state` may have parked values for scopes
-        // the table has not made yet.
-        if values.len() < structure.scopes.len() {
-            values.resize(structure.scopes.len(), Vec::new());
-        }
-        for (&(scope, slot), &v) in structure
-            .essential_slots
-            .iter()
-            .zip(&doc.cells[..doc.n_essential])
-        {
-            let row = &mut values[scope as usize];
-            if row.len() <= slot as usize {
-                row.resize(slot as usize + 1, None);
-            }
-            row[slot as usize] = Some(v);
-        }
-        let runtime_strings = (doc.n_static_strings..doc.strings.len())
-            .map(|i| doc.strings.get(i as StrId).to_string())
-            .collect();
-        Carryover {
-            structure,
-            counts,
-            runtime_strings,
-            settling: false,
-        }
-    }
-
-    /// Mark this carryover as one between the passes of a load.
-    pub fn settling(mut self) -> Carryover {
-        self.settling = true;
-        self
-    }
-
-    /// Stamp repeat element `node` in `scope` with `n` iterations on the
-    /// next build, whatever its `count` cell says: building a document at a
-    /// chosen count (`tests/every_count.rs`).
-    pub fn set_count(&mut self, scope: ScopeId, node: NodeId, n: u32) {
-        self.counts.insert((scope, node), n);
-    }
-
-    pub fn restore(self, doc: &mut Document) {
-        doc.structure = self.structure;
-    }
-
-    /// Append the runtime strings to a freshly built document's table, so
-    /// an interned id means the same text it did before the rebuild.
-    pub fn restore_strings(&self, doc: &mut Document) {
-        for s in &self.runtime_strings {
-            doc.strings.push(s);
-        }
     }
 }
 

@@ -1,6 +1,6 @@
 # Compile once, build per structure: a hard line between the two
 
-Status: accepted 2026-10-17. Step 1 of the migration is done; see Progress.
+Status: accepted 2026-10-17. Steps 1 and 3 of the migration are done; see Progress.
 
 The core works in three stages that differ in how often they run and what
 they may depend on, and this ADR makes the line between them hard: each
@@ -162,7 +162,7 @@ before, load and tick:
 
 ## Progress
 
-**Step 1, compile once (done).** `build::load` compiles, checks and boxes,
+**Step 1, compile once (done).** `build::compile` compiles, checks and boxes,
 and returns the `Compiled` with the first build; `build::build` stamps a
 kept `Compiled` and nothing else. `Compiled` owns its DAST and holds the
 source's diagnostics (lint and boxed errors), so step 2's diagnostics and
@@ -178,6 +178,20 @@ role tables). Measured against the commit before:
 - heap held by a loaded document: unchanged without a repeat; +0.3% to
   +2% for the repeat fixtures, +11% for sir, a mixed document, whose
   compile is large beside its one small repeat.
+
+**Step 3, `Session` from `Carryover` (done).** `Carryover` is gone.
+`Session` (`build/session.rs`) holds the seed and sampling option, the
+scope table, the value store (shared, written only by `Session::record`
+before a build), parked restored values and runtime strings; `Counts`
+holds what each repeat is stamped with; `Structure` keeps only what one
+build made. `build(compiled, session, counts, reseed, engine)` reads the
+session and returns the next one in its output, so `Document::rebuild`
+moves nothing out of the document but the math engine, which goes back on
+failure: the failed-rebuild bug of `known_bugs.rs` is gone with the
+take-and-restore, and its test is in `tests/rebuild_cycles.rs`. The engine
+stays in the program, which the tick reads; moving it into the session is
+left for later. The function that compiles and returns the first build is
+`build::compile`, since compiling is its job; `Document::load` is a load.
 
 ## Consequences
 

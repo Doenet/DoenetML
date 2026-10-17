@@ -37,7 +37,7 @@ measurements, which are not in this repository.
  └─────────────┬───────────────┘                                             │
                ▼                                                             │
  ┌─────────────────────────────┐   a repeat count changed: build again, ─────┘
- │ document/  Document         │   carrying values over (Carryover)
+ │ document/  Document         │   reading the session (Session)
  │  cells + program +          │
  │  component table + DAST     │◄──── Request / PointRequest from a renderer
  └─────────────┬───────────────┘
@@ -64,9 +64,10 @@ component table (`document/sticky.rs`).
 | `ComponentType`, `ComponentTypeInfo`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or planned by the build), and flags. The list of types is `component_types!` in `mod.rs`; each type's definition is in a family file (`geometry.rs`, `inputs.rs`, ...). |
 | `Compiler`, `Compiled`, `Template` | `build/compile/` | Compile's state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
 | `Builder` | `build/expand/mod.rs` | The state of expand and emit: components and slots per scope, then cells and instructions. |
-| `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the carryover; the cycle check's probe (`build/cycles.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
+| `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/cycles.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table, before scheduling. `schedule` turns it into a `Document`. |
-| `Carryover`, `Structure` | `build/mod.rs`, `build/structure.rs` | What one build hands the next: the scope table, each repeat's iteration count, and every essential value by (scope, template slot), so state survives a rebuild. |
+| `Compiled` | `build/compile/plan.rs` | The compile (ADR 0015): templates, plans, the source's diagnostics. Made once per load; kept by a document with a repeat for its rebuilds. |
+| `Session`, `Counts`, `Structure` | `build/session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. `Program::value_types` records each cell's value type (`ValueType`): number, text (a string id) or math (a handle). |
 | `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the DAST it came from. The API a renderer or test uses. |
 | `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
@@ -90,15 +91,15 @@ the **cycle check** (`build/cycles.rs`, ADR 0012) first builds the document
 through the probe view, which folds every iteration into one and labels
 each reference edge with how it moves through the iterations, rejects a
 dependency loop that closes at any iteration count, and discards that
-build. The real build reads the carryover's counts through the `Stamped`
-view. **Expand** stamps each template into components once per
+build. The real build reads the counts it is asked for through the
+`Stamped` view. **Expand** stamps each template into components once per
 scope and resolves references to slots (`build/expand/`). **Emit** merges
 aliased slots into cells with a union-find, numbers cells (essential,
 fixed, then derived) and binds operators into instructions
 (`build/emit.rs`). `BuildOutput::schedule` sorts the instructions
 topologically (`Program::schedule`), and the document computes every
 derived cell once. If a repeat's `count` cell now disagrees with the number
-of iterations it was built with, the build runs again with a `Carryover`;
+of iterations it was built with, the build runs again at the new counts;
 `LoadTimings::passes` counts how many builds it took.
 
 **A user drags a point** (`Document::request` and friends,
@@ -115,8 +116,10 @@ dropped.
 **A structural cell changes**, such as a repeat's count. The tick finds the
 structure unsettled after recomputing and calls `Document::rebuild`, which
 builds the whole document again from the compile it kept at load
-(`Document::compiled`, ADR 0015) with a `Carryover` (ADR 0004): no
-compile, lint or check runs again. Scope ids are stable, so an iteration that comes
+(`Document::compiled`, ADR 0015) at the counts the count cells hold,
+reading the document's `Session` (ADR 0004): no compile, lint or check runs
+again, and nothing but the math engine leaves the document until the new
+one is ready. Scope ids are stable, so an iteration that comes
 back gets its old values. The outcome's `rebuilt` is set and cell indices
 are new. If the rebuild fails, the document is left as it was and
 `rebuild_error` says why.
@@ -130,7 +133,7 @@ walk over the DAST before any compile: the accessibility rules), the
 errors and the warnings of the elements that built are
 `Document::diagnostics`, in node order; the errors seed the boxes of
 every rebuild. An error with no element, a cycle, still fails the load.
-Only a document's first build finds errors (ADR 0014; `build::load`
+Only a document's first build finds errors (ADR 0014; `build::compile`
 compiles and boxes, `build::build` only stamps):
 every error depends on the source alone, so the probe, standing for every
 count and every pick, finds them all at load, and a later build that

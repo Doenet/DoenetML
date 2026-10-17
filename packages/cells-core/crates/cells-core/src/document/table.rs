@@ -242,15 +242,9 @@ impl Document {
                 + self.program.sym.engine.borrow().heap_bytes(),
             components: self.components.heap_bytes(),
             strings: self.strings.heap_bytes(),
-            structure: self.structure.scopes.heap_bytes()
+            structure: self.session.heap_bytes()
                 + self.structure.essential_slots.capacity() * 8
-                + self.structure.essential_keys.capacity() * 12
-                + self
-                    .structure
-                    .essential_values
-                    .iter()
-                    .map(|r| r.capacity() * 16 + 24)
-                    .sum::<usize>(),
+                + self.structure.essential_keys.capacity() * 12,
             dast: self.dast.heap_bytes(),
         }
     }

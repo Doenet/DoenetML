@@ -138,13 +138,13 @@ impl Document {
                 Key::Element(scope, key, prop) => match by_element.get(&(scope, key, prop)) {
                     Some(&cell) => self.cells[cell as usize] = value,
                     None => {
-                        self.structure.parked.insert((scope, key, prop), value);
+                        self.session.parked.insert((scope, key, prop), value);
                     }
                 },
                 Key::Slot(scope, slot) => match by_slot.get(&(scope, slot)) {
                     Some(&cell) => self.cells[cell as usize] = value,
                     None => {
-                        let rows = std::sync::Arc::make_mut(&mut self.structure.essential_values);
+                        let rows = std::sync::Arc::make_mut(&mut self.session.values);
                         if rows.len() <= scope as usize {
                             rows.resize(scope as usize + 1, Vec::new());
                         }
@@ -168,7 +168,7 @@ impl Document {
     fn scope_path(&self, mut scope: ScopeId) -> Value {
         let mut path = Vec::new();
         while scope != 0 {
-            let (parent, node, k) = self.structure.scopes[scope];
+            let (parent, node, k) = self.session.scopes[scope];
             path.push(json!([node, k]));
             scope = parent;
         }
@@ -186,7 +186,7 @@ impl Document {
             if node == NONE {
                 return None;
             }
-            scope = self.structure.scopes.get_or_insert(scope, node, k);
+            scope = self.session.scopes.get_or_insert(scope, node, k);
         }
         Some(scope)
     }

@@ -1,8 +1,7 @@
-//! What a build knows about the document's shape: the scopes it made, the
-//! repeats it expanded, and the essential values it held. It is stored on the
-//! [`Document`](crate::Document) and handed to the next build (see
-//! [`Carryover`](super::Carryover)) so iteration counts and essential values carry
-//! over a rebuild.
+//! What a build made of the document's shape: the repeats it expanded and
+//! the keys of its essential cells ([`Structure`]), stored on the
+//! [`Document`](crate::Document), and the scope table, which the
+//! [`Session`](super::Session) keeps across builds.
 
 use std::collections::HashMap;
 
@@ -84,11 +83,11 @@ impl std::ops::Index<ScopeId> for ScopeTable {
     }
 }
 
-/// What a build knew about the document's shape, carried into the next
-/// build so iteration counts and essential values survive.
+/// What one build made of the document's shape (ADR 0015): its repeats,
+/// its essential cells' keys and defaults, and its diagnostics. What
+/// outlives the build is in the `Session`.
 #[derive(Debug, Clone, Default)]
 pub struct Structure {
-    pub scopes: ScopeTable,
     /// Per essential cell, in cell order: its essential key as (scope,
     /// template slot). The template slot identifies the element and prop
     /// within the scope's template. See `CONTEXT.md`, essential key.
@@ -96,18 +95,9 @@ pub struct Structure {
     /// Per essential cell, in cell order: its element's key and the slot's
     /// position among the element's, what saved state names it by.
     pub essential_keys: Vec<(ElemKey, u32)>,
-    /// Restored values whose scope no build has stamped yet, by (scope,
-    /// element key, position): the build that stamps it takes them.
-    pub parked: HashMap<(ScopeId, ElemKey, u32), f64>,
     /// Per essential cell, in cell order: the value the build gives it when
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
-    /// `essential_values[scope][template slot]`: the last value of every essential
-    /// cell that has ever existed, so an iteration that disappears and
-    /// reappears returns as it was left. Rows fill lazily.
-    /// Shared with the build that read it, which leaves it as it was: the
-    /// next `Carryover::take_from` writes into it in place.
-    pub essential_values: std::sync::Arc<Vec<Vec<Option<f64>>>>,
     pub repeats: Vec<Repeat>,
     /// Per repeat (same order as `repeats`): how many repeats must be
     /// expanded in sequence before this one's count is known, plus one.
@@ -119,11 +109,6 @@ pub struct Structure {
     pub repeat_cross_reads: Vec<bool>,
     /// The largest `repeat_depths` entry; 0 without repeats.
     pub structural_depth: u32,
-    /// The document seed load-time choices draw from (ADR 0009).
-    pub seed: u64,
-    /// Curves sample through the engine, not compiled tapes (see
-    /// `LoadOptions`).
-    pub sample_with_engine: bool,
     /// What the build reported (ADR 0013): the compile's diagnostics, the
     /// lint findings and the errors of the elements it boxed, which are
     /// fixed at load (ADR 0014, ADR 0015), and the build's warnings, sorted

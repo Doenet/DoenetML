@@ -5,8 +5,8 @@
 //! emit read those only through a [`View`], so a build is a function of the
 //! templates and the view.
 //!
-//! Two views exist. [`Stamped`] answers from the carryover: the iteration
-//! counts of the previous build and the document seed, so the build stamps
+//! Two views exist. [`Stamped`] answers from the counts a build is asked
+//! for and the session's seed, so the build stamps
 //! every iteration it has and a reference past the count is missing. The
 //! cycle check's `Probe` (`cycles.rs`, ADR 0012) folds every iteration into
 //! one, so the graph it builds holds every edge some count would create.
@@ -74,16 +74,20 @@ pub(in crate::build) enum Plans {
     Both,
 }
 
-/// The view of an ordinary build: the counts the carryover holds.
-pub(in crate::build) struct Stamped<'c>(pub(in crate::build) &'c Carryover);
+/// The view of an ordinary build: the counts it was asked for and the
+/// session's seed.
+pub(in crate::build) struct Stamped<'c> {
+    pub(in crate::build) session: &'c Session,
+    pub(in crate::build) counts: &'c Counts,
+}
 
 impl View for Stamped<'_> {
     fn seed(&self) -> u64 {
-        self.0.structure.seed
+        self.session.seed
     }
 
     fn iterations(&self, scope: ScopeId, node: NodeId) -> u32 {
-        self.0.counts.get(&(scope, node)).copied().unwrap_or(0)
+        self.counts.get(scope, node)
     }
 
     fn index(&self, len: usize, k: i64, _varies: bool) -> Option<usize> {

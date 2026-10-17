@@ -79,7 +79,11 @@ pub(in crate::build) struct Instance {
 
 pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) compiled: &'c Compiled,
-    pub(in crate::build) carryover: &'c Carryover,
+    /// The session the build reads (ADR 0015): carried values, scopes.
+    pub(in crate::build) session: &'c Session,
+    /// Seed seeded cells again whatever the session carries: a later pass
+    /// of a load, before any student has changed a value.
+    pub(in crate::build) reseed: bool,
     pub(in crate::build) engine: &'c mut Engine,
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
@@ -159,21 +163,22 @@ pub(in crate::build) struct Builder<'c> {
 impl<'c> Builder<'c> {
     pub(in crate::build) fn new(
         c: &'c Compiled,
-        carryover: &'c Carryover,
+        session: &'c Session,
+        reseed: bool,
         engine: &'c mut Engine,
         view: &'c dyn View,
     ) -> Self {
         // Size the columns from the previous build when there was one.
-        let guess = carryover
-            .structure
-            .essential_values
+        let guess = session
+            .values
             .iter()
             .map(|v| v.len())
             .sum::<usize>()
             .max(c.templates.iter().map(|t| t.elems.len()).sum::<usize>() * 2);
         Builder {
             compiled: c,
-            carryover,
+            session,
+            reseed,
             engine,
             sym_templates: Vec::new(),
             typed_slots: Vec::new(),
@@ -194,7 +199,7 @@ impl<'c> Builder<'c> {
             sources: Vec::with_capacity(guess * 2),
             slot_comp: Vec::with_capacity(guess * 2),
             op_inputs: Vec::with_capacity(guess),
-            scopes: carryover.structure.scopes.clone(),
+            scopes: session.scopes.clone(),
             scope_comps: Vec::new(),
             comp_instance: Vec::with_capacity(guess),
             instances: Vec::with_capacity(guess),

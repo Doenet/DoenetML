@@ -384,10 +384,10 @@ pub struct Compiled {
     /// the DAST's table in every build, so their ids are the same each time.
     pub(in crate::build) extra_strings: Vec<String>,
     /// The source's diagnostics (ADR 0015): the lint findings and the
-    /// errors of the boxed elements, in node order. Set by `build::load`.
+    /// errors of the boxed elements, in node order. Set by `build::compile`.
     pub(in crate::build) diagnostics: Vec<crate::diagnostics::Diagnostic>,
     /// Whether the document has a repeat, so its structure can change and
-    /// a later build will stamp this compile. Set by `build::load`.
+    /// a later build will stamp this compile. Set by `build::compile`.
     pub(in crate::build) rebuilds: bool,
 }
 

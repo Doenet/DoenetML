@@ -29,7 +29,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{Carryover, Repeat, ScopeId, build};
+use cells_core::build::{Counts, Repeat, ScopeId, Session, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::sym::Engine;
@@ -241,13 +241,14 @@ fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Op
     for free in [false, true] {
         let mut settled = false;
         for _ in 0..MAX_PASSES {
-            let mut carryover = Carryover::new(seed, false);
+            let session = Session::new(seed, false);
+            let mut stamped = Counts::default();
             for (&(scope, node), &n) in &counts {
-                carryover.set_count(scope, node, n);
+                stamped.set(scope, node, n);
             }
             let mut engine = Engine::new();
             let compiled = loaded.compiled.clone().expect("a document with a repeat");
-            let doc = build(&compiled, &carryover, &mut engine)
+            let doc = build(&compiled, &session, &stamped, false, &mut engine)
                 .and_then(|built| built.schedule(compiled.clone(), &mut engine));
             let mut doc = match doc {
                 Ok(doc) => doc,

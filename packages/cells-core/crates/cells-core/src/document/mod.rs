@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use crate::sym::{Engine, Handle};
 
-use crate::build::{Repeat, ScopeId, Structure};
+use crate::build::{Counts, Repeat, ScopeId, Session, Structure};
 
 use crate::components::{ComponentType, prop};
 use crate::dast::{Dast, StrId, StringTable};
@@ -51,13 +51,16 @@ pub struct Document {
     pub strings: StringTable,
     /// How many of `strings` every build of this document produces (the
     /// DAST's and the build's): ids from here on were interned at runtime
-    /// and are carried across rebuilds (`Carryover`).
+    /// and are carried across rebuilds (`Session::runtime_strings`).
     pub n_static_strings: usize,
     /// Each string's canonical id, built on first `intern`.
     interned: Option<HashMap<String, StrId>>,
     /// Index of the root `<document>` component.
     pub root: CompIdx,
     pub structure: Structure,
+    /// What the session has accumulated (ADR 0015): carried values, scopes,
+    /// strings interned at runtime. Every build reads it.
+    pub session: crate::build::Session,
     /// The document as loaded (also `compiled.dast`).
     pub dast: Arc<Dast>,
     /// The document as compiled at load, which every rebuild stamps
@@ -80,9 +83,15 @@ impl Document {
         strings: StringTable,
         root: CompIdx,
         structure: Structure,
+        session: crate::build::Session,
         compiled: Arc<crate::build::Compiled>,
     ) -> Self {
+        let mut strings = strings;
         let n_static_strings = strings.len();
+        // Strings interned before this build keep their ids.
+        for s in &session.runtime_strings {
+            strings.push(s);
+        }
         let mut doc = Document {
             cells,
             n_essential,
@@ -94,6 +103,7 @@ impl Document {
             interned: None,
             root,
             structure,
+            session,
             dast: compiled.dast().clone(),
             compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
@@ -125,6 +135,7 @@ impl Document {
             None => {
                 let id = strings.push(text);
                 ids.insert(text.to_string(), id);
+                self.session.runtime_strings.push(text.to_string());
                 id
             }
         };

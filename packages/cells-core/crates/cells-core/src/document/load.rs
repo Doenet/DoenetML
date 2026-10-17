@@ -64,14 +64,16 @@ impl Document {
         Ok((doc, t))
     }
 
-    /// `load` from a deserialized DAST.
+    /// `load` from a deserialized DAST: compile, then build until the
+    /// structure settles (ADR 0015).
     pub fn load_dast(
         dast: Arc<Dast>,
         options: LoadOptions,
         t: &mut LoadTimings,
     ) -> crate::Result<Document> {
         let mut engine = Engine::new();
-        let mut carryover = crate::build::Carryover::new(options.seed, options.sample_with_engine);
+        let mut session = Session::new(options.seed, options.sample_with_engine);
+        let mut counts = Counts::default();
         // The compile, made by the first pass and stamped by the rest.
         let mut compiled: Option<Arc<crate::build::Compiled>> = None;
         for _ in 0..MAX_PASSES {
@@ -79,11 +81,13 @@ impl Document {
             let built = match &compiled {
                 None => {
                     let (c, built) =
-                        crate::build::load(&dast, &carryover, &mut engine, options.check_cycles)?;
+                        crate::build::compile(&dast, &session, &mut engine, options.check_cycles)?;
                     compiled = Some(c);
                     built
                 }
-                Some(c) => crate::build::build(c, &carryover, &mut engine)?,
+                // No student has changed a value yet, so a seeded cell takes
+                // its seed again, from the counts this pass stamps.
+                Some(c) => crate::build::build(c, &session, &counts, true, &mut engine)?,
             };
             t.build += clock.elapsed();
             t.cycle_check += built.cycle_check;
@@ -91,7 +95,6 @@ impl Document {
             let clock = web_time::Instant::now();
             let compiled = compiled.clone().expect("the first pass compiled");
             let mut doc = built.schedule(compiled, &mut engine)?;
-            carryover.restore_strings(&mut doc);
             t.schedule += clock.elapsed();
 
             let clock = web_time::Instant::now();
@@ -102,10 +105,22 @@ impl Document {
                 t.structural_depth = doc.structure.structural_depth;
                 return Ok(doc);
             }
-            carryover = crate::build::Carryover::take_from(&mut doc).settling();
+            counts = Counts::of(&doc);
+            session = doc.session_with_values();
             engine = doc.take_engine();
         }
         Err(crate::Error::UnstableStructure(MAX_PASSES))
+    }
+
+    /// This document's session with its essential values recorded, taken
+    /// for the next build (the document is about to be replaced).
+    fn session_with_values(&mut self) -> Session {
+        let mut session = std::mem::take(&mut self.session);
+        session.record(
+            &self.structure.essential_slots,
+            &self.cells[..self.n_essential],
+        );
+        session
     }
 
     /// Move the symbolic engine out, leaving an empty one (the document is
@@ -165,59 +180,73 @@ impl Document {
         }
     }
 
-    /// Rebuild from the retained DAST, carrying iteration counts and
-    /// essential values over. On error the document is left unchanged.
+    /// Build again from the compile (ADR 0015) at the counts the count
+    /// cells hold, reading the session, until the structure settles. The
+    /// document is replaced only when that succeeds; on error it is left
+    /// as it was, since a build reads the session and moves nothing out of
+    /// the document but the math engine, which goes back.
     pub fn rebuild(&mut self) -> crate::Result<()> {
         let profile = crate::build::profile_enabled();
         // Without a repeat the structure never changes: nothing to rebuild.
         let Some(compiled) = self.compiled.clone() else {
             return Ok(());
         };
-        let clock = web_time::Instant::now();
-        // The value store and the engine move into the new build; on
-        // failure they move back.
-        let mut carryover = crate::build::Carryover::take_from(self);
+        // The values as they are now are what the build carries.
+        let n = self.n_essential;
+        self.session
+            .record(&self.structure.essential_slots, &self.cells[..n]);
+        let mut counts = Counts::of(self);
         let mut engine = self.take_engine();
-        if profile {
-            eprintln!("rebuild/carryover: {:.2?}", clock.elapsed());
-        }
-        let result = (|| {
-            for _ in 0..MAX_PASSES {
-                let clock = web_time::Instant::now();
-                let built = crate::build::build(&compiled, &carryover, &mut engine)?;
-                if profile {
-                    eprintln!("rebuild/build: {:.2?}", clock.elapsed());
+        // The session a later pass reads: the last pass's.
+        let mut next: Option<Session> = None;
+        let mut result = Err(crate::Error::UnstableStructure(MAX_PASSES));
+        for _ in 0..MAX_PASSES {
+            let clock = web_time::Instant::now();
+            let session = next.as_ref().unwrap_or(&self.session);
+            let built = match crate::build::build(&compiled, session, &counts, false, &mut engine) {
+                Ok(built) => built,
+                Err(e) => {
+                    result = Err(e);
+                    break;
                 }
-                let clock = web_time::Instant::now();
-                let mut doc = built.schedule(compiled.clone(), &mut engine)?;
-                carryover.restore_strings(&mut doc);
-                if profile {
-                    eprintln!(
-                        "rebuild/schedule: {:.2?} (creation order valid: {})",
-                        clock.elapsed(),
-                        doc.program.in_creation_order
-                    );
-                }
-                let clock = web_time::Instant::now();
-                doc.recompute();
-                if profile {
-                    eprintln!("rebuild/recompute: {:.2?}", clock.elapsed());
-                }
-                if doc.structure_settled() {
-                    return Ok(doc);
-                }
-                carryover = crate::build::Carryover::take_from(&mut doc);
-                engine = doc.take_engine();
+            };
+            if profile {
+                eprintln!("rebuild/build: {:.2?}", clock.elapsed());
             }
-            Err(crate::Error::UnstableStructure(MAX_PASSES))
-        })();
+            let clock = web_time::Instant::now();
+            let mut doc = match built.schedule(compiled.clone(), &mut engine) {
+                Ok(doc) => doc,
+                Err(e) => {
+                    result = Err(e);
+                    break;
+                }
+            };
+            if profile {
+                eprintln!(
+                    "rebuild/schedule: {:.2?} (creation order valid: {})",
+                    clock.elapsed(),
+                    doc.program.in_creation_order
+                );
+            }
+            let clock = web_time::Instant::now();
+            doc.recompute();
+            if profile {
+                eprintln!("rebuild/recompute: {:.2?}", clock.elapsed());
+            }
+            if doc.structure_settled() {
+                result = Ok(doc);
+                break;
+            }
+            counts = Counts::of(&doc);
+            next = Some(doc.session_with_values());
+            engine = doc.take_engine();
+        }
         match result {
             Ok(doc) => {
                 *self = doc;
                 Ok(())
             }
             Err(e) => {
-                carryover.restore(self);
                 self.put_engine(engine);
                 Err(e)
             }

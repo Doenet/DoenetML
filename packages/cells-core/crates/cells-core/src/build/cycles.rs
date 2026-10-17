@@ -97,16 +97,13 @@ impl View for Probe {
 /// Run the check over the compiled templates: build through the probe,
 /// test its graph, then emit it so emit's rules run on the referents of
 /// every count, and discard the output.
-pub(super) fn check(
-    compiled: &Compiled,
-    carryover: &Carryover,
-) -> std::result::Result<(), Failure> {
+pub(super) fn check(compiled: &Compiled, session: &Session) -> std::result::Result<(), Failure> {
     let mut engine = Engine::new();
     let probe = Probe {
-        seed: carryover.structure.seed,
+        seed: session.seed,
         every_option: false,
     };
-    build_with(compiled, carryover, &mut engine, &probe, true).map(drop)
+    build_with(compiled, session, false, &mut engine, &probe, true).map(drop)
 }
 
 impl Probe {

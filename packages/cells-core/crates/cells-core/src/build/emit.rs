@@ -60,11 +60,11 @@ impl<'c> Builder<'c> {
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         let mut cells = Vec::with_capacity(n);
         let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n);
-        // Sized from the previous build, which a rebuild mostly repeats.
-        let n_was = self.carryover.structure.essential_slots.len();
+        // Sized from the values carried, which a rebuild mostly repeats.
+        let n_was = self.components.component_type.capacity();
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(n_was);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(n_was);
-        let mut parked = self.carryover.structure.parked.clone();
+        let mut parked = self.session.parked.clone();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(n_was);
         let mut fixed_defs = Vec::new();
         let mut derived_defs = Vec::new();
@@ -77,13 +77,7 @@ impl<'c> Builder<'c> {
             match &self.sources[s] {
                 Source::Literal(v) | Source::Default(v) => {
                     let (scope, tslot, key) = self.essential_key(s as SlotId);
-                    let mut value = self
-                        .carryover
-                        .structure
-                        .essential_values
-                        .get(scope as usize)
-                        .and_then(|row| row.get(tslot as usize).copied().flatten())
-                        .unwrap_or(*v);
+                    let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
                         && let Some(p) = parked.remove(&(scope, key.0, key.1))
                     {
@@ -158,7 +152,7 @@ impl<'c> Builder<'c> {
         let mut tapes = Vec::new();
         // Compile curves whose expression has a fixed shape into tapes, unless
         // the load asked for engine sampling.
-        let compile = !self.carryover.structure.sample_with_engine;
+        let compile = !self.session.sample_with_engine;
         let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
             let (mut spec, start, count) = match &self.sources[s] {
@@ -261,23 +255,24 @@ impl<'c> Builder<'c> {
             }
         }
 
-        // The value store, shared: this build only read it, and rows fill
-        // lazily (`Carryover::take_from`).
-        let values = self.carryover.structure.essential_values.clone();
-
-        let structure = Structure {
+        // The next session: this build's scopes and what is still parked;
+        // the value store is shared, since the build only read it.
+        let session = Session {
+            seed: self.session.seed,
+            sample_with_engine: self.session.sample_with_engine,
             scopes: self.scopes,
+            values: self.session.values.clone(),
+            parked,
+            runtime_strings: self.session.runtime_strings.clone(),
+        };
+        let structure = Structure {
             essential_slots,
             essential_keys,
-            parked,
             essential_defaults,
-            essential_values: values,
             structural_depth: depths.iter().copied().max().unwrap_or(0),
             repeat_depths: depths,
             repeat_cross_reads: cross_reads,
             repeats: self.repeats,
-            seed: self.carryover.structure.seed,
-            sample_with_engine: self.carryover.structure.sample_with_engine,
             diagnostics: self.diagnostics,
         };
 
@@ -330,6 +325,7 @@ impl<'c> Builder<'c> {
             strings,
             root: self.root,
             structure,
+            session,
             operands,
             value_types,
             tapes,
@@ -395,14 +391,7 @@ impl<'c> Builder<'c> {
             .collect();
         for &(s, from) in &self.seeds {
             let (scope, tslot, _) = self.essential_key(s);
-            let carried = !self.carryover.settling
-                && self
-                    .carryover
-                    .structure
-                    .essential_values
-                    .get(scope as usize)
-                    .and_then(|row| row.get(tslot as usize).copied().flatten())
-                    .is_some();
+            let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
             let src = slot_to_cell[from as usize];
             // A collect's count is a constant in every real build; the probe
             // only stands it in by an operator over the repeats' counts.
