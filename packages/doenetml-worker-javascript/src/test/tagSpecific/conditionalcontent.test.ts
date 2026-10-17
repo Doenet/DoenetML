@@ -225,6 +225,43 @@ describe("Conditional content tag tests @group2", async () => {
         ).eq("The fox jumps.");
     });
 
+    it("text of a paragraph when a case with a string gives way to an else without one", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" />
+    <p name="p"><conditionalContent>
+      <case condition="$n > 0"><text>dog</text> mouse <text>cat</text></case>
+      <else><text>bird</text><text>fish</text></else>
+    </conditionalContent></p>
+    `,
+        });
+
+        async function check_text(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        await check_text("birdfish");
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_text("dog mouse cat");
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_text("birdfish");
+    });
+
     it("reference names of children, including an extended conditional content", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
