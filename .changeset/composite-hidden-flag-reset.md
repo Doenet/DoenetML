@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-A paragraph holding a conditional content no longer stops the document when the content switches from a case with a string between its components to one without, such as from a case with `<text>dog</text> mouse <text>cat</text>` to an else with two texts.
+A paragraph's `text` now follows a conditional content inside it when the content switches from a case with a string between its components to one without. For example, it switches from `<text>dog</text> mouse <text>cat</text>` to an else holding two texts. A reference such as `$p.text` used to keep showing the case's text.
