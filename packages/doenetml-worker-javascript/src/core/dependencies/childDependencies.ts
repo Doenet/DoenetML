@@ -504,6 +504,11 @@ export class ChildDependency extends Dependency {
             this.recordVariablesForEveryComponent();
         }
 
+        // Decided afresh each time: `getValue` strips one trailing value per
+        // composite while this is set, so a flag left over from children that
+        // had primitives would strip real children once they have none.
+        this.addedCompositeHiddenDependency = false;
+
         if (
             this.originalDownstreamVariableNames.includes("hidden") &&
             this.downstreamPrimitives.find((x: any) => x !== null)
