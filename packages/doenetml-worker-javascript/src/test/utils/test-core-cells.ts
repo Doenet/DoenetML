@@ -176,7 +176,7 @@ const mathReaders: Record<string, Reader> = {
     text: (_g, x) => x.cells.component_text(x.idx),
 };
 
-/** The text a container shows, through active cases only (plan 6). */
+/** The text a container shows, through active cases only (ADR 0009). */
 const textOf: Reader = (_g, x) => x.cells.component_text(x.idx);
 const containerReaders: Record<string, Reader> = { text: textOf };
 
@@ -338,7 +338,7 @@ export async function createTestCoreCells({
             throw new CellsCoreGap(`createTestCore option \`${option}\``);
         }
     }
-    // Plan 6: the variant index is the document seed.
+    // The variant index is the document seed (ADR 0009).
     if (Object.keys(initializeCounters).length > 0)
         throw new CellsCoreGap("`initializeCounters`");
     if (Object.keys(externalDoenetMLs).length > 0)

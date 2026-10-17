@@ -490,7 +490,7 @@ the adapter or the core named before the test could check anything.
 | prefigure/chart-prefigure-live-validation.test.ts | 0 | 0 | 10 |
 | prefigure/graph-prefigure-live-validation.test.ts | 0 | 0 | 2 |
 | prefigure/style.test.ts | 8 | 0 | 0 |
-| tagSpecific/plan6-rewrites.test.ts | 13 | 0 | 0 |
+| tagSpecific/conditionalContentSelectInterfaceNames.test.ts | 13 | 0 | 0 |
 | utils/attributes.test.ts | 14 | 0 | 0 |
 | utils/calcStartEndIdx.test.ts | 10 | 0 | 0 |
 | utils/componentIndices.test.ts | 2 | 0 | 0 |

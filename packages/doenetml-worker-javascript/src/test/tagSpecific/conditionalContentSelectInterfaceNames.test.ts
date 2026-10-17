@@ -1,13 +1,15 @@
 /**
- * Plan 6 (ADR 0009): the oracle tests in `conditionalcontent.test.ts` and
- * `select.test.ts` that the language now bans, each rewritten in the form
- * the language allows, with the original's checks kept wherever the
+ * The tests in `conditionalcontent.test.ts` and `select.test.ts` that use
+ * forms the cells core bans (ADR 0009 in `packages/cells-core/docs/adr`):
+ * extending a whole choice, reading content by position, a name present in
+ * only some branches. Each is rewritten to reach the content through the
+ * branches' interface names, with the original's checks kept wherever the
  * rewrite still means the same thing. A comment on each test says what
  * the ban was and what changed.
  *
  * Run from `packages/doenetml-worker-javascript`:
  *
- *     npm run test:cells-core -- --run src/test/tagSpecific/plan6-rewrites.test.ts
+ *     npm run test:cells-core -- --run src/test/tagSpecific/conditionalContentSelectInterfaceNames.test.ts
  *
  * Each test also passes on the JavaScript core (without
  * `DOENET_TEST_CORE`), which checks that a rewrite says what the original
@@ -25,7 +27,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Plan 6 rewrites of banned tests", async () => {
+describe("Conditional content and select through interface names", async () => {
     // Banned: `$cc.a` into a conditional content with no else, and
     // `extend="$cc"`. Rewrite: an else that declares `a` and `b` empty
     // (so they are in the branch interface), and the copy written out.
