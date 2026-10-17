@@ -1,72 +1,124 @@
-import { DoenetViewer, DoenetEditor, DoenetExample, AttrPropDisplay } from "../../components"
+---
+searchable: false
+---
 
-# `<Sample>`
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-## What it does
-The `<Sample>` component does this stuff
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
-<AttrPropDisplay name='math'/>
+{/*
+  TEMPLATE FOR A REFERENCE PAGE. This page is hidden from the sidebar
+  (`display: "hidden"` in `_meta.ts`) and documents `<abs>` only so that every
+  part of it renders. `searchable: false` keeps it out of site search, where
+  it would show up as a second `<abs>` page. Copy it to `<slug>.mdx`, replace
+  `abs` throughout, and delete the front matter and these comments. The full
+  conventions live in
+  `.github/skills/doenetml-docs-authoring/SKILL.md`.
+
+  Order of a page:
+    1. H1 with the tag, using `{:dn}` so it renders in DoenetML colors.
+    2. `<ComponentDisplay>`: the one-sentence summary from the schema.
+    3. A one- to three-sentence introduction.
+    4. `<AttrPropDisplay>`: the attribute and property lists, generated from
+       the schema. It writes its own "Attributes and Properties" heading.
+    5. `## Examples`: general examples first, then one
+       `### Attribute Example: <name>` or `### Property Example: <name>` per
+       feature. Those headings are linked from the matching rows of the lists.
+*/}
+
+# `<abs>{:dn}`
+
+<ComponentDisplay name='abs'/>
+
+{/*
+  Introduction: say what kind of component this is, what it needs, and what it
+  produces. Link related components with `[`<tag>{:dn}`](slug)`. Write for
+  authors: describe what they can observe, not how it is implemented.
+*/}
+
+`<abs>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types) component
+that computes the absolute value of the math it encloses. Like [`<math>{:dn}`](math),
+it can be used inline in text, inside [`<m>{:dn}`](m), or in a [`<graph>{:dn}`](graph).
+
+{/*
+  The lists open on the "Highlighted" section; every other section starts
+  closed. Highlighting and grouping are set on the component class
+  (`highlighted: true`, `groupName: "..."` on attributes and public state
+  variables), not here. Nothing checks them, so look at the rendered lists:
+  the attributes and properties shown in the examples below should usually be
+  highlighted. Inherited flags come along too: `<abs>` highlights `format` and
+  `simplify` because `<math>` does, not because they matter for `<abs>`.
+*/}
+
+<AttrPropDisplay name='abs'/>
 
 ## Examples
-1. [Render the absolute value of a math expression](#math-ex)
-2. [Absolute value of `<mathInput>`](#mathInput-ex)
-3. [Absolute value of numerical properties](#numProps-ex)
-4. [Absolute value of a function](#function-ex)
 
+{/*
+  Example fences:
+    doenet-editor-horiz  source beside the live result (the default)
+    doenet-editor        source above the live result (for tall examples)
+    doenet-example       live result, with the source in a second tab
+    doenet-viewer        live result only (rare)
+    doenet               source only, not runnable
+  Every example must run as written. Give every graph a `<shortDescription>`
+  and every input a `<label>` or `<shortDescription>`.
+*/}
 
-<a id="math-ex"></a>
-### Example: Render the absolute value of a math expression
-To embed the example in an editor, use doenet-editor, which defaults to top/bottom.
+### Example: Absolute value of a number
 
-```doenet-editor
-<m>|5 - 8| = <abs>5 - 8</abs></m>
-```
-
-#### Brief description of the example:
-The `<abs>` component is used to render the absolute value of a math expression.
-
-
-<a id="mathInput-ex"></a>
-### Example: Absolute value of `<mathInput>`
-To embed the example in a viewer, use the DoenetViewer react component with doenetml embedded in the source attribute.
-```doenet-viewer
-    <p>Type any number: <mathInput name="userN"/></p>
-    <p><m>|$userN| = <abs>$userN</abs></m></p>
-```
-
-#### Brief description of the example:
-This component hides the source code and just renders the doenetML.
-
-<a id="numProps-ex"></a>
-### Example: Absolute value of numerical properties
-This is what the DoenetExample component does...
-```doenet-example
-<graph><shortDescription>A graph of a line through a point</shortDescription>
-    <point name="dp1">(4,4)</point>
-    <line name="l1" through="$dp1 (0,0)"/>
-</graph>
-<p>The slope is <m>m = $l1.slope</m></p>
-<p>The absolute value of the slope is <m>|m| = <abs>$l1.slope</abs></m></p>
-```
-
-Children of the `<abs>` component can include references to `<mathInput>` values or other `math` quantities, such as single-valued numerical properties of graphical objects. Invalid children are strings and tuples.  Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
-
-<a id="function-ex"></a>
-### Example: Absolute value of a function
 ```doenet-editor-horiz
-<graph size="small" name="g2"><shortDescription>A graph of a function and its absolute value</shortDescription>
-    <function name="f">(1/4)x^2 - 4</function>
-    <function styleNumber="2">
-        <abs>$f</abs>
-    </function>
-</graph>
+<p><m>|5 - 8| = <abs>5 - 8</abs></m></p>
 ```
-The `<abs>` component is used to render the absolute value of a named `<function>` within a `<graph>`.
+
+When the enclosed expression is a number, `<abs>{:dn}` displays the numerical result.
 
 ---
-### Special usage notes
 
-Note that the `<abs>` component cannot be used directly in attribute specification. You can, however, use the `|` notation within an attribute specification. 
-You can also define a `<math>` component separately, which contains the `<abs>` component, and then reference it in an attribute specification.
+### Example: Absolute value of an input
 
+```doenet-editor-horiz
+<p><mathInput name="userN"><label>Type any number or expression</label></mathInput></p>
+<p><m>|$userN| = <abs>$userN</abs></m></p>
+```
 
+The enclosed math can be a reference. When it contains a variable, as in $x - 8$, the result keeps the absolute value bars.
+
+---
+
+### Example: Absolute value of a function
+
+```doenet-editor
+<setup>
+    <function name="f">(1/4)x^2 - 4</function>
+</setup>
+<graph size="small">
+    <shortDescription>A parabola that dips below the x-axis, and its absolute value, which is reflected above the axis</shortDescription>
+    $f
+    <function styleNumber="2"><abs>$f</abs></function>
+</graph>
+```
+
+Wrapping `<abs>{:dn}` in a [`<function>{:dn}`](function) gives the absolute value of a function. The parts of $f$ below the $x$-axis are reflected above it.
+
+---
+
+### Attribute Example: displayDigits
+
+```doenet-editor-horiz
+<p>Default: <abs>-pi</abs></p>
+<p>With <c>displayDigits="6"</c>: <abs displayDigits="6">-pi</abs></p>
+```
+
+`displayDigits` sets how many significant digits are shown. It changes only the display: the value used in later computations is unrounded.
+
+---
+
+### Property Example: number
+
+```doenet-editor-horiz
+<p><mathInput name="input" prefill="-2"><label>Enter a number or an expression</label></mathInput></p>
+<p><abs name="result">$input</abs> as a number: $result.number</p>
+```
+
+The `number` property is the absolute value as a number. It is `NaN` when the result is not a number, for example when the input contains a variable.

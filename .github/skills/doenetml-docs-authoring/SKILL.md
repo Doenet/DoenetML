@@ -16,27 +16,27 @@ The DoenetML docs are migrating to the [Diátaxis](https://diataxis.fr/) framewo
 | Diátaxis mode | Reader need | Site section | Folder |
 | --- | --- | --- | --- |
 | **Tutorial** | "teach me — I'm learning" | Tutorials | `content/tutorials/` |
-| **How-to guide** | "help me accomplish a task" | Guides | `pages/guides/` |
+| **How-to guide** | "help me accomplish a task" | Guides | `content/guides/` |
 | **Reference** | "tell me the facts" — **this skill** | Reference | `content/reference/` |
-| **Explanation / Concepts** | "help me understand why" | Concepts | `pages/concepts/` |
+| **Explanation / Concepts** | "help me understand why" | Concepts | `content/concepts/` |
 
-The **Concepts** section is the Explanation quadrant. It was created by renaming the former "Document Structure" section: the folder is `pages/concepts/` and the sidebar title is "Concepts", with a subheading (in `pages/index.mdx`) that emphasizes explanation — the ideas and the *why*, not document layout. The goal of the migration is to have a clean four-mode skeleton so the team can write many more Concept and Guide pages against a consistent pattern; today those two sections are still thin.
+The **Concepts** section is the Explanation quadrant. It was created by renaming the former "Document Structure" section: the folder is `content/concepts/` and the sidebar title is "Concepts", with a subheading (in `content/index.mdx`) that emphasizes explanation — the ideas and the *why*, not document layout. The goal of the migration is to have a clean four-mode skeleton so the team can write many more Concept and Guide pages against a consistent pattern; today those two sections are still thin.
 
 ### Picking the right home for a page
 
 - **Reference** (`content/reference/`, this skill) — complete, dry facts about one component: attributes, properties, small per-feature examples. Looked up, not read through.
-- **How-to guide** (`pages/guides/`) — a single task the reader wants to accomplish ("style components", "validate an answer", "control credit awarded"). Imperative, recipe-shaped, assumes the reader already knows the basics. The task-oriented pages that used to sit under "Document Structure" (answer validation, controlling credit, advanced examples) belong here.
-- **Concept / Explanation** (`pages/concepts/`) — understanding-oriented prose: the model behind a feature, the reasons for a design, the trade-offs. No step-by-step recipes; link out to a guide for those. Current Concepts pages: `essentialConcepts` (how DoenetML works — the component model), `references` (what a reference is and how it resolves), `styling` (how styling works), and the `documentStructure` stub to be built out.
+- **How-to guide** (`content/guides/`) — a single task the reader wants to accomplish ("style components", "validate an answer", "control credit awarded"). Imperative, recipe-shaped, assumes the reader already knows the basics. The task-oriented pages that used to sit under "Document Structure" (answer validation, controlling credit, advanced examples) belong here.
+- **Concept / Explanation** (`content/concepts/`) — understanding-oriented prose: the model behind a feature, the reasons for a design, the trade-offs. No step-by-step recipes; link out to a guide for those. Current Concepts pages: `accessibility` (why accessibility shapes DoenetML), `essentialConcepts` (how DoenetML works — the component model), `references` (what a reference is and how it resolves), `styling` (how styling works), and the `documentStructure` stub to be built out.
 - **Tutorial** (`content/tutorials/`) — a guided, start-to-finish learning experience.
 
 A quick test for where a draft belongs: a numbered list of steps → **guide**; "here's the model / here's why" → **concept**; "every attribute of `<x>`" → **reference**; "follow along and build this" → **tutorial**.
 
 ### The concept ↔ guide split (the pattern to follow)
 
-When a topic mixes the *why* and the *how*, split it into a **concept page** (`pages/concepts/`) and a **how-to guide** (`pages/guides/`) that cross-link each other, rather than one page that tries to do both. The styling docs are the worked exemplar of this split:
+When a topic mixes the *why* and the *how*, split it into a **concept page** (`content/concepts/`) and a **how-to guide** (`content/guides/`) that cross-link each other, rather than one page that tries to do both. The styling docs are the worked exemplar of this split:
 
-- `pages/concepts/styling.mdx` — "Styling, meaning, and accessibility": the *why*. A style number is a statement of meaning ("these are importantly different"); encoding distinctions that way is what lets Doenet adapt them to each reader (the accessibility argument); hence you can't paint a color directly, and a semantic component is better still when a distinction has a name. Note what this page deliberately leaves out: the *mechanics* (the layering, the cascade, precedence) are how-it-works, so they live in the guide, not here. Explanation pages answer "why is it like this", not "how do I operate it".
-- `pages/guides/styling-components.mdx` — "Styling Components": the task recipes (set `styleNumber`, override a width, redefine a color, scope to a section), each linking back to the concept page for the reasoning.
+- `content/concepts/styling.mdx` — "Styling, meaning, and accessibility": the *why*. A style number is a statement of meaning ("these are importantly different"); encoding distinctions that way is what lets Doenet adapt them to each reader (the accessibility argument); hence you can't paint a color directly, and a semantic component is better still when a distinction has a name. Note what this page deliberately leaves out: the *mechanics* (the layering, the cascade, precedence) are how-it-works, so they live in the guide, not here. Explanation pages answer "why is it like this", not "how do I operate it".
+- `content/guides/styling-components.mdx` — "Styling Components": the task recipes (set `styleNumber`, override a width, redefine a color, scope to a section), each linking back to the concept page for the reasoning.
 
 Cross-link in **both** directions: the guide points to the concept page for "why this works", and the concept page points to the guide for "how to do it". Use relative links with no extension and an anchor slug to the relevant heading — e.g. `../concepts/styling#why-you-cant-set-a-color-directly-on-a-component` or `../guides/styling-components#redefine-a-style-and-change-colors`. (Nextra auto-generates a heading's anchor by lowercasing, dropping punctuation, and hyphenating spaces — confirm the slug matches the target heading.)
 
@@ -51,7 +51,7 @@ If you move or rename a page that already has a public URL (the docs deploy as a
 1. This file.
 2. `../doenetml-authoring/SKILL.md` and its `docs/` (especially `tag-reference.md`) — examples in a docs page must be valid DoenetML.
 3. The generated schema: `packages/static-assets/src/generated/doenet-schema.json` — source of truth for a component's attributes, properties, and `docsSlug`.
-4. An existing reference page that matches the shape of what you are writing — e.g. `bestFitLine.mdx` (component with attrs+props), `odeSystem.mdx` (block-with-children), `sq.mdx` (tiny markup component), `Sample_Component.mdx` (in-tree template with the three example fence types).
+4. An existing reference page that matches the shape of what you are writing — e.g. `bestFitLine.mdx` (component with attrs+props), `odeSystem.mdx` (block-with-children), `sq.mdx` (tiny markup component), `Sample_Component.mdx` (hidden, annotated template of the skeleton below).
 
 ## Audience and voice
 
@@ -71,21 +71,23 @@ Source-code references *are* appropriate in: PR descriptions, GitHub issue bodie
 
 ## High-level page anatomy
 
-Every reference page lives at `packages/docs-nextra/content/reference/<slug>.mdx`. The standard skeleton is:
+Every reference page lives at `packages/docs-nextra/content/reference/<slug>.mdx`. The standard skeleton (also available as the annotated, hidden template `content/reference/Sample_Component.mdx`) is:
 
-```mdx
+````mdx
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
-import { AttrPropDisplay } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
 # `<componentName>{:dn}`
 
+<ComponentDisplay name='componentName'/>
 
 One- to three-sentence prose introduction. Mention the component type’s category (e.g. graphical, input, math, sectional), its required children/attributes, and what it produces. Link related components like [`<otherComponent>{:dn}`](otherComponent).
 
 <AttrPropDisplay name='componentName'/>
 
----
+## Examples
 
 ### Example: ...
 ```doenet-editor-horiz
@@ -96,7 +98,7 @@ Short paragraph explaining what this example demonstrates.
 
 ---
 
-### Attribute Example: <attrName>
+### Attribute Example: attrName
 ```doenet-editor-horiz
 ... ...
 ```
@@ -104,19 +106,20 @@ One short paragraph explaining the attribute’s effect.
 
 ---
 
-### Property Example: <propName>
+### Property Example: propName
 ```doenet-editor-horiz
 ... ...
 ```
 One short paragraph.
-```
+````
 
 Notes:
 
 - The top `# `<name>{:dn}`` heading uses Shiki's `{:dn}` inline-language token so the tag renders in DoenetML colors. Use the same `{:dn}` inside backticks anywhere you mention a tag in prose: `` `<graph>{:dn}` ``.
 - The blank line after the H1 (and after the `import` block) is intentional — Nextra/MDX is whitespace-sensitive around JSX blocks.
+- `<ComponentDisplay>` renders the component's one-sentence `summary` from the schema (and a version badge for new components). The prose introduction follows it and should add to it, not repeat it.
 - `---` horizontal rules separate example sections.
-- Example section titles in existing pages follow these conventions: a free-form `### Example: …`, then per-feature `### Attribute Example: <name>` and `### Property Example: <name>` sections that walk one attribute or property at a time. The per-feature sections are the page's "long-form" attribute/property reference; `<AttrPropDisplay>` only gives the short auto-generated table.
+- Example section titles in existing pages follow these conventions: a free-form `### Example: …`, then per-feature `### Attribute Example: attrName` and `### Property Example: propName` sections that walk one attribute or property at a time. The per-feature sections are the page's "long-form" attribute/property reference; `<AttrPropDisplay>` only gives the short auto-generated table. Write the name after the colon bare (a comma-separated list is allowed): the build links each matching row of the attribute or property list to that section.
 
 ## `<AttrPropDisplay>` and friends — auto-generated tables
 
@@ -188,7 +191,7 @@ Fenced code-block forms registered in `next.config.mjs`:
 | --- | --- | --- |
 | ```` ```doenet-editor-horiz ```` | Source on the left, live preview on the right. **Default for reference pages.** | Almost every reference-page example; lets the reader scan source and behavior side-by-side. |
 | ```` ```doenet-editor ```` | Source on top, live preview below (stacked). | When the example is tall enough that horizontal split feels cramped. |
-| ```` ```doenet-example ```` | Live preview only, source hidden behind a disclosure. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
+| ```` ```doenet-example ```` | Live preview, with the source in a second tab. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
 | ```` ```doenet-viewer ```` | Live preview only, source completely hidden. | Rare — mainly when source is incidental to the point being made. Most pages should let readers see the source. |
 | ```` ```doenet ```` | **Source only**, syntax-highlighted. No live preview, no run button. | Showing a snippet the reader is meant to read but not run — e.g. in tutorials when introducing a concept before the full runnable example. Used widely in `content/tutorials/`. (`` ```dn `` is the same fence via Shiki alias, but the hyphenated form is what existing pages use.) |
 | ```` ```math ```` | Display LaTeX via Nextra's KaTeX. | Long display math in prose (e.g. defining the equation a component solves). |
@@ -422,7 +425,7 @@ This catches: MDX parse errors, broken `import`s, missing schema entries referen
 
 Before opening a PR that adds or renames a reference page:
 
-- [ ] `content/reference/<slug>.mdx` exists and has the standard imports + H1 + `<AttrPropDisplay>` skeleton.
+- [ ] `content/reference/<slug>.mdx` exists and has the standard skeleton: imports, H1, `<ComponentDisplay>`, intro, `<AttrPropDisplay>`, `## Examples`.
 - [ ] All examples use `doenet-editor-horiz` (or a documented alternative) and are valid DoenetML per the `doenetml-authoring` skill.
 - [ ] **Every tag and attribute in every example has been looked up in `doenet-schema.json`** — not pattern-matched from other docs. In particular, no `xLabel` / `yLabel` *attributes* on `<graph>` (they are children), and labels/short descriptions are children.
 - [ ] Examples follow the conventions: `<setup>`, `<shortDescription>`, labeled inputs, no `<asList>`, indexed array access, no redundant `<tag extend="$x" />`.

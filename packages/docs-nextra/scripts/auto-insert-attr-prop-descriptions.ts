@@ -240,7 +240,13 @@ function getCrossPageExampleIndex(refDir: string): Map<string, ExampleRef[]> {
         return index;
     }
     for (const fileName of fileNames) {
-        if (!fileName.endsWith(".mdx") || fileName.startsWith("_")) {
+        // The hidden template page documents `<abs>`; its examples must not
+        // become link targets in the real `<abs>` page's lists.
+        if (
+            !fileName.endsWith(".mdx") ||
+            fileName.startsWith("_") ||
+            fileName === "Sample_Component.mdx"
+        ) {
             continue;
         }
         let content: string;
