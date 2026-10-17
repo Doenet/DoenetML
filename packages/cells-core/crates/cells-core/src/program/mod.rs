@@ -6,6 +6,7 @@
 //! `tick/invert.rs`.
 
 use std::cell::{Cell, RefCell};
+use std::rc::Rc;
 
 use crate::sym::{Engine, Handle};
 
@@ -36,7 +37,8 @@ pub enum ValueType {
 /// `&Program`; the engine only grows (see `sym::Engine`).
 #[derive(Debug, Clone)]
 pub struct Sym {
-    pub engine: RefCell<Engine>,
+    /// The session's engine (`Session::engine`), which the program shares.
+    pub engine: Rc<RefCell<Engine>>,
     /// Parallel to `Program::operands`: for a symbolic instruction, the input
     /// values it last ran on, then its outputs from that run.
     memo: RefCell<Vec<f64>>,
@@ -59,22 +61,19 @@ const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 
 impl Default for Sym {
     fn default() -> Self {
-        Sym::new(Engine::new())
+        Sym::new(Rc::default())
     }
 }
 
 impl Sym {
-    pub fn new(engine: Engine) -> Self {
+    /// A program's symbolic state over `engine`, the session's.
+    pub fn new(engine: Rc<RefCell<Engine>>) -> Self {
         Sym {
-            engine: RefCell::new(engine),
+            engine,
             memo: RefCell::new(Vec::new()),
             stats: Cell::new(SymStats::default()),
             tape_stack: RefCell::new(Vec::new()),
         }
-    }
-
-    pub fn into_engine(self) -> Engine {
-        self.engine.into_inner()
     }
 }
 
@@ -108,8 +107,7 @@ fn differs(new: f64, old: f64) -> bool {
 
 impl Program {
     /// Orders `instrs` topologically. Returns the cell index of an output
-    /// involved in a cycle on failure, with the engine handed back (boxed:
-    /// the engine's parser makes `Sym` large).
+    /// involved in a cycle on failure.
     ///
     /// Fast path: the builder emits instructions in creation order, which
     /// for a template stamped per iteration is almost always already a valid
@@ -123,7 +121,7 @@ impl Program {
         sym: Sym,
         operands: Vec<CellIdx>,
         value_types: Vec<ValueType>,
-    ) -> std::result::Result<Program, Box<(CellIdx, Sym)>> {
+    ) -> std::result::Result<Program, CellIdx> {
         sym.memo.replace(vec![NEVER; operands.len()]);
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in instrs.iter().enumerate() {
@@ -198,7 +196,7 @@ impl Program {
         }
         if order.len() != n {
             let stuck = (0..n).find(|&i| indegree[i] > 0).unwrap();
-            return Err(Box::new((instrs[stuck].out, sym)));
+            return Err(instrs[stuck].out);
         }
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in order.iter().enumerate() {

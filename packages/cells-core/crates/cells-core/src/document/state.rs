@@ -203,8 +203,7 @@ impl Document {
         if handle.is_nan() {
             String::new()
         } else {
-            self.program
-                .sym
+            self.session
                 .engine
                 .borrow()
                 .text(handle as crate::sym::Handle)

@@ -264,6 +264,7 @@ impl<'c> Builder<'c> {
             values: self.session.values.clone(),
             parked,
             runtime_strings: self.session.runtime_strings.clone(),
+            engine: self.session.engine.clone(),
         };
         let structure = Structure {
             essential_slots,

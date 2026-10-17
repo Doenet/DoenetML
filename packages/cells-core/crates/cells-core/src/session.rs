@@ -3,12 +3,15 @@
 //! the session and returns the next one; it never moves it out of the
 //! document, so a failed rebuild leaves the document as it was.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::build::{ElemKey, ScopeId, ScopeTable};
 use crate::dast::NodeId;
 use crate::document::Document;
+use crate::sym::Engine;
 
 /// What survives every build of a document.
 #[derive(Debug, Clone, Default)]
@@ -31,6 +34,12 @@ pub struct Session {
     /// Strings interned since load (`Document::intern`), appended after
     /// every build's own table so an interned id keeps its text.
     pub runtime_strings: Vec<String>,
+    /// The symbolic engine every math value of the session is a handle
+    /// into: what a build imports, what the tick computes with (the
+    /// program shares it), what a student's typed math is parsed into. It
+    /// only grows, so a handle stays valid for the session, across builds
+    /// and through a failed rebuild, which needs nothing back.
+    pub engine: Rc<RefCell<Engine>>,
 }
 
 impl Session {

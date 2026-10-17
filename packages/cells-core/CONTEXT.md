@@ -172,7 +172,9 @@ instructions run inside a tick, like any other instruction.
 **Symbolic engine** — The store of symbolic expressions: math-expressions-rs,
 called directly (`sym::Engine`, ADR 0008, ADR 0011). Math cells hold handles
 into it; the core treats expressions as opaque and reaches them only through
-the operations the engine offers.
+the operations the engine offers. It belongs to the session
+(`Session::engine`), which the program shares for the tick, and only grows,
+so a handle stays valid for the session.
 
 **Parse arena** — The build's arena of math text parsed into expressions
 whose leaves are references. It decides lowering and gives a line equation

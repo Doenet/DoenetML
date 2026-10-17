@@ -7,7 +7,6 @@ use super::*;
 use crate::build::{self, BuildOutput};
 use crate::diagnostics::Diagnostic;
 use crate::session::Session;
-use crate::sym::Engine;
 
 /// What a compile returns.
 pub(crate) struct CompileOutput {
@@ -30,7 +29,6 @@ pub(crate) struct CompileOutput {
 pub(crate) fn compile(
     dast: &Arc<Dast>,
     session: &Session,
-    engine: &mut Engine,
     check_cycles: bool,
 ) -> Result<CompileOutput> {
     let profile = build::profile_enabled();
@@ -51,7 +49,7 @@ pub(crate) fn compile(
                 }
                 Ok((compiled, None, checked))
             } else {
-                let first = build::first_build(&compiled, session, engine)?;
+                let first = build::first_build(&compiled, session)?;
                 Ok((compiled, Some(first), std::time::Duration::ZERO))
             }
         });

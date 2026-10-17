@@ -71,7 +71,6 @@ impl Document {
         options: LoadOptions,
         t: &mut LoadTimings,
     ) -> crate::Result<Document> {
-        let mut engine = Engine::new();
         let mut session = Session::new(options.seed, options.sample_with_engine);
         let mut counts = Counts::default();
         // Compile once (ADR 0015); every pass is a build of that compile.
@@ -80,7 +79,7 @@ impl Document {
             compiled,
             mut first_build,
             check_time,
-        } = crate::compile::compile(&dast, &session, &mut engine, options.check_cycles)?;
+        } = crate::compile::compile(&dast, &session, options.check_cycles)?;
         t.build += clock.elapsed();
         t.cycle_check += check_time;
         for pass in 0..MAX_PASSES {
@@ -91,12 +90,12 @@ impl Document {
                 // After the first pass no student has changed a value yet,
                 // so a seeded cell takes its seed again, from the counts
                 // this pass stamps.
-                None => crate::build::build(&compiled, &session, &counts, pass > 0, &mut engine)?,
+                None => crate::build::build(&compiled, &session, &counts, pass > 0)?,
             };
             t.build += clock.elapsed();
 
             let clock = web_time::Instant::now();
-            let mut doc = built.schedule(compiled.clone(), &mut engine)?;
+            let mut doc = built.schedule(compiled.clone())?;
             t.schedule += clock.elapsed();
 
             let clock = web_time::Instant::now();
@@ -109,7 +108,6 @@ impl Document {
             }
             counts = Counts::of(&doc);
             session = doc.session_with_values();
-            engine = doc.take_engine();
         }
         Err(crate::Error::UnstableStructure(MAX_PASSES))
     }
@@ -123,20 +121,6 @@ impl Document {
             &self.cells[..self.n_essential],
         );
         session
-    }
-
-    /// Move the symbolic engine out, leaving an empty one (the document is
-    /// about to be replaced by a rebuild). The rest of `Sym`, the memo
-    /// above all, stays: `put_engine` must leave a document whose program
-    /// can run, and the memo is sized only by `Program::schedule`.
-    fn take_engine(&mut self) -> Engine {
-        std::mem::take(self.program.sym.engine.get_mut())
-    }
-
-    /// Put the engine back after a failed rebuild. The engine only grows,
-    /// so the handles the memo and the cells hold are still valid.
-    fn put_engine(&mut self, engine: Engine) {
-        *self.program.sym.engine.get_mut() = engine;
     }
 
     /// What the build reported about the elements it stamped (ADR 0013):
@@ -186,7 +170,8 @@ impl Document {
     /// cells hold, reading the session, until the structure settles. The
     /// document is replaced only when that succeeds; on error it is left
     /// as it was, since a build reads the session and moves nothing out of
-    /// the document but the math engine, which goes back.
+    /// the document. The math engine may have grown, which leaves every
+    /// handle the document holds valid.
     pub fn rebuild(&mut self) -> crate::Result<()> {
         let profile = crate::build::profile_enabled();
         // Without a repeat the structure never changes: nothing to rebuild.
@@ -198,14 +183,13 @@ impl Document {
         self.session
             .record(&self.structure.essential_slots, &self.cells[..n]);
         let mut counts = Counts::of(self);
-        let mut engine = self.take_engine();
         // The session a later pass reads: the last pass's.
         let mut next: Option<Session> = None;
         let mut result = Err(crate::Error::UnstableStructure(MAX_PASSES));
         for _ in 0..MAX_PASSES {
             let clock = web_time::Instant::now();
             let session = next.as_ref().unwrap_or(&self.session);
-            let built = match crate::build::build(&compiled, session, &counts, false, &mut engine) {
+            let built = match crate::build::build(&compiled, session, &counts, false) {
                 Ok(built) => built,
                 Err(e) => {
                     result = Err(e);
@@ -216,7 +200,7 @@ impl Document {
                 eprintln!("rebuild/build: {:.2?}", clock.elapsed());
             }
             let clock = web_time::Instant::now();
-            let mut doc = match built.schedule(compiled.clone(), &mut engine) {
+            let mut doc = match built.schedule(compiled.clone()) {
                 Ok(doc) => doc,
                 Err(e) => {
                     result = Err(e);
@@ -241,17 +225,8 @@ impl Document {
             }
             counts = Counts::of(&doc);
             next = Some(doc.session_with_values());
-            engine = doc.take_engine();
         }
-        match result {
-            Ok(doc) => {
-                *self = doc;
-                Ok(())
-            }
-            Err(e) => {
-                self.put_engine(engine);
-                Err(e)
-            }
-        }
+        *self = result?;
+        Ok(())
     }
 }

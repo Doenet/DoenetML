@@ -184,13 +184,12 @@ role tables). Measured against the commit before:
 scope table, the value store (shared, written only by `Session::record`
 before a build), parked restored values and runtime strings; `Counts`
 holds what each repeat is stamped with; `Structure` keeps only what one
-build made. `build(compiled, session, counts, reseed, engine)` reads the
+build made. `build(compiled, session, counts, reseed)` reads the
 session and returns the next one in its output, so `Document::rebuild`
-moves nothing out of the document but the math engine, which goes back on
-failure: the failed-rebuild bug of `known_bugs.rs` is gone with the
-take-and-restore, and its test is in `tests/rebuild_cycles.rs`. The engine
-stays in the program, which the tick reads; moving it into the session is
-left for later. The function that compiles and returns the first build is
+moves nothing out of the document: the failed-rebuild bug of
+`known_bugs.rs` is gone with the take-and-restore, and its test is in
+`tests/rebuild_cycles.rs`. (The signature and the engine as of the
+engine's move, below.) The function that compiles and returns the first build is
 `build::compile`, since compiling is its job; `Document::load` is a load.
 
 **Step 4, per-instance work (done).** A math template's text is parsed
@@ -231,6 +230,18 @@ is build's machinery run through another view; it offers compile exactly
 and `Counts`, which both stages read. Compile's items are visible only
 inside `compile` except the plan types and the expression arena, which the
 build stamps; build uses nothing else of compile's.
+
+**The engine into the session (done).** `Session::engine` holds the math
+engine (`Rc<RefCell<Engine>>`); a build borrows it from the session it
+reads and passes it on to the next, and the program keeps a clone of the
+`Rc` for the tick, which reaches it as before, through one more pointer.
+The engine only grows, so a failed rebuild, which may have imported into
+it, leaves every handle the document holds valid and gives nothing back:
+`take_engine` and `put_engine` are gone, and so is the fresh engine (and
+math parser) `take_engine` made for every rebuild. The probe still builds
+with an engine of its own. Against the commit before, in instructions:
+load −0.6% to +0.03%; ticks −1.2% to 0, sir's, which rebuild, −21%; a
+1,000-iteration rebuild −1.4%.
 
 Not done: a build's error type still has the authoring variants. A
 build maps any element failure to `Error::Unchecked`, which enforces the

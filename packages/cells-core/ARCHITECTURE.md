@@ -74,7 +74,7 @@ component table (`document/sticky.rs`).
 | `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/probe.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
 | `BuildOutput` | `build/mod.rs` (`build::build`) | Cells, instructions and the component table, before scheduling. `schedule` turns it into a `Document`. |
 | `Compiled` | `compile/plan.rs` | The compile (ADR 0015): templates, plans, the source's diagnostics. Made once per load; kept by a document with a repeat for its rebuilds. |
-| `Session`, `Counts`, `Structure` | `session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
+| `Session`, `Counts`, `Structure` | `session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed, the math engine (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. `Program::value_types` records each cell's value type (`ValueType`): number, text (a string id) or math (a handle). |
 | `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the DAST it came from. The API a renderer or test uses. |
 | `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
@@ -127,8 +127,8 @@ structure unsettled after recomputing and calls `Document::rebuild`, which
 builds the whole document again from the compile it kept at load
 (`Document::compiled`, ADR 0015) at the counts the count cells hold,
 reading the document's `Session` (ADR 0004): no compile, lint or check runs
-again, and nothing but the math engine leaves the document until the new
-one is ready. Scope ids are stable, so an iteration that comes
+again, and nothing leaves the document until the new one is ready (the
+math engine, which the session holds, may grow). Scope ids are stable, so an iteration that comes
 back gets its old values. The outcome's `rebuilt` is set and cell indices
 are new. If the rebuild fails, the document is left as it was and
 `rebuild_error` says why.

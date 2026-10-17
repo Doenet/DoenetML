@@ -33,7 +33,6 @@ use cells_core::build::{Repeat, ScopeId, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
-use cells_core::sym::Engine;
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::{Document, Error, LoadOptions, Request};
 
@@ -247,10 +246,9 @@ fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Op
             for (&(scope, node), &n) in &counts {
                 stamped.set(scope, node, n);
             }
-            let mut engine = Engine::new();
             let compiled = loaded.compiled.clone().expect("a document with a repeat");
-            let doc = build(&compiled, &session, &stamped, false, &mut engine)
-                .and_then(|built| built.schedule(compiled.clone(), &mut engine));
+            let doc = build(&compiled, &session, &stamped, false)
+                .and_then(|built| built.schedule(compiled.clone()));
             let mut doc = match doc {
                 Ok(doc) => doc,
                 Err(Error::Cycle(at)) => panic!("{what}: a cycle at {at} the load did not reject"),

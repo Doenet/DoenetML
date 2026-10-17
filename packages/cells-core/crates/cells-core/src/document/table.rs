@@ -239,7 +239,7 @@ impl Document {
             cells: self.cells.capacity() * 8,
             program: self.program.instrs.capacity() * std::mem::size_of::<crate::program::Instr>()
                 + self.program.producer.capacity() * 4
-                + self.program.sym.engine.borrow().heap_bytes(),
+                + self.session.engine.borrow().heap_bytes(),
             components: self.components.heap_bytes(),
             strings: self.strings.heap_bytes(),
             structure: self.session.heap_bytes()

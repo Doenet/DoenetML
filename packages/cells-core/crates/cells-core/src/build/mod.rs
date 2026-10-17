@@ -113,14 +113,16 @@ pub fn build(
     session: &Session,
     counts: &Counts,
     reseed: bool,
-    engine: &mut Engine,
 ) -> Result<BuildOutput> {
     let view = Stamped { session, counts };
-    let mut u =
-        build_with(compiled, session, reseed, engine, &view, false).map_err(|f| match f.node {
+    let mut engine = session.engine.borrow_mut();
+    let mut u = build_with(compiled, session, reseed, &mut engine, &view, false).map_err(|f| {
+        match f.node {
             Some(_) => Error::Unchecked(f.error.to_string()),
             None => f.error,
-        })?;
+        }
+    })?;
+    drop(engine);
     u.add_compile_diagnostics(compiled);
     Ok(u)
 }
@@ -131,14 +133,20 @@ pub fn build(
 pub(crate) fn first_build(
     compiled: &Compiled,
     session: &Session,
-    engine: &mut Engine,
 ) -> std::result::Result<BuildOutput, Failure> {
     let counts = Counts::default();
     let view = Stamped {
         session,
         counts: &counts,
     };
-    build_with(compiled, session, false, engine, &view, false)
+    build_with(
+        compiled,
+        session,
+        false,
+        &mut session.engine.borrow_mut(),
+        &view,
+        false,
+    )
 }
 
 /// A built document whose program has not yet been scheduled.
@@ -176,22 +184,17 @@ impl BuildOutput {
         self.structure.diagnostics
     }
 
-    /// Schedule the program, moving the symbolic engine the build used into
-    /// it. On error the engine stays with the caller.
-    pub fn schedule(self, compiled: Arc<Compiled>, engine: &mut Engine) -> Result<Document> {
+    /// Schedule the program, which computes with the session's engine.
+    pub fn schedule(self, compiled: Arc<Compiled>) -> Result<Document> {
         let n = self.cells.len();
-        let sym = Sym::new(std::mem::take(engine));
+        let sym = Sym::new(self.session.engine.clone());
         let program = match Program::schedule(self.instrs, n, sym, self.operands, self.value_types)
         {
             Ok(mut p) => {
                 p.tapes = self.tapes;
                 p
             }
-            Err(e) => {
-                let (cell, sym) = *e;
-                *engine = sym.into_engine();
-                return Err(Error::Cycle((self.cell_label)(cell)));
-            }
+            Err(cell) => return Err(Error::Cycle((self.cell_label)(cell))),
         };
         Ok(Document::new(
             self.cells,

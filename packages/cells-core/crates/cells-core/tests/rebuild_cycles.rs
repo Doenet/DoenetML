@@ -135,7 +135,8 @@ fn a_prefill_naming_a_computed_cell_past_the_count_is_rejected_at_load() {
 // Not a cycle: a failed rebuild once put a fresh `Sym` (empty memo) back
 // and recomputed, which indexed past the memo in `step_sym` and panicked,
 // so every hole above was a crash beside a `<mathInput>` or symbolic
-// `<math>`. The engine now goes back into the old `Sym`, memo and all.
+// `<math>`. The engine now lives in the session, which the program shares
+// and a failed rebuild leaves in place (ADR 0015).
 #[test]
 fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking() {
     let mut doc = load_unchecked(
