@@ -35,16 +35,17 @@ pub struct Core {
 #[wasm_bindgen]
 impl Core {
     /// Load a document from either wire format (DAST JSON or binary CDST,
-    /// detected by content) and compute its initial values.
+    /// detected by content) and compute its initial values. The bytes are
+    /// taken, not borrowed, so the load frees them once they are read.
     #[wasm_bindgen(constructor)]
-    pub fn new(dast: &[u8]) -> Result<Core, JsError> {
+    pub fn new(dast: Vec<u8>) -> Result<Core, JsError> {
         Core::with_seed(dast, 0.0)
     }
 
     /// Load with the document seed load-time choices draw from (ADR 0009).
-    pub fn with_seed(dast: &[u8], seed: f64) -> Result<Core, JsError> {
+    pub fn with_seed(dast: Vec<u8>, seed: f64) -> Result<Core, JsError> {
         console_error_panic_hook::set_once();
-        let (doc, timings) = Document::load(
+        let (doc, timings) = Document::load_owned(
             dast,
             LoadOptions {
                 seed: seed as u64,
@@ -67,7 +68,7 @@ impl Core {
 
     /// Load with a seed and saved state (`save_state`'s JSON): the document
     /// comes back where the session left it.
-    pub fn with_seed_and_state(dast: &[u8], seed: f64, state: &str) -> Result<Core, JsError> {
+    pub fn with_seed_and_state(dast: Vec<u8>, seed: f64, state: &str) -> Result<Core, JsError> {
         let mut core = Core::with_seed(dast, seed)?;
         core.doc
             .restore_state(state)

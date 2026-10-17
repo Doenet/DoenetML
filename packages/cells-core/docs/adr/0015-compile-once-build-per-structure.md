@@ -243,6 +243,44 @@ with an engine of its own. Against the commit before, in instructions:
 load −0.6% to +0.03%; ticks −1.2% to 0, sir's, which rebuild, −21%; a
 1,000-iteration rebuild −1.4%.
 
+**Memory (done for now).** In wasm, linear memory never shrinks, so what
+a page keeps is a load's high-water mark, not what the document holds
+after it; `scripts/wasm-memory.mjs` measures it. The compile was the
+largest part of that peak, alive while the first build ran. Now:
+
+- What only planning reads (the name table and geometry roles) belongs to
+  the `Compiler` and goes when planning ends; the name table is one
+  compact map keyed by interned name, not a `String` and a `Vec` per name
+  per ancestor. The plans' spare capacity goes too, before the check.
+- A build sizes its tables by the compile's element and slot counts or the
+  previous build's (`Session::last_build`), with an eighth to spare, and
+  emit counts its slots before reserving; nothing the document keeps
+  holds a reservation it did not fill.
+- Equal math expressions share a handle (ADR 0011), so neither a rebuild
+  nor an unchanged result grows the engine.
+- The wasm binding takes the input bytes and frees them once the DAST is
+  read (`Document::load_owned`).
+
+Linear memory a load grows by, in MiB, from the commit before step 4 to
+the commit that finished this:
+
+| fixture | before | after |
+|---|---|---|
+| chain-1000 | 1.63 | 1.13 |
+| repeat-1000 | 3.13 | 2.56 |
+| sir | 2.63 | 2.31 |
+| select-1000 | 11.38 | 6.06 |
+| wording-1000 | 13.94 | 10.13 |
+| grid-1000x10 | 18.19 | 11.75 |
+| adventure-3 | 24.06 | 17.94 |
+| symchain-1000 | 5.81 | 3.50 |
+
+What remains at the peak is mostly the compile's plans (an `Elem` is 112
+bytes, a prop's `SourcePlan` 48) beside the first build's tables and the
+document it makes. Of what a document holds, the DAST is the largest
+part for a flat document (about 45% of adventure-3's), kept so a
+renderer can read literal attributes (`attr_text`, `literal_attrs`).
+
 Not done: a build's error type still has the authoring variants. A
 build maps any element failure to `Error::Unchecked`, which enforces the
 rule; splitting the enum was judged not worth the churn.

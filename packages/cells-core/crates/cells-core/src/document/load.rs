@@ -64,6 +64,23 @@ impl Document {
         Ok((doc, t))
     }
 
+    /// `load` taking the wire-format bytes, which it frees once the DAST is
+    /// read, before the compile and the first build: in wasm the heap's
+    /// high-water mark is what a page keeps, and the bytes are often the
+    /// largest single block of a load.
+    pub fn load_owned(
+        bytes: Vec<u8>,
+        options: LoadOptions,
+    ) -> crate::Result<(Document, LoadTimings)> {
+        let mut t = LoadTimings::default();
+        let clock = web_time::Instant::now();
+        let dast = Arc::new(crate::dast::load(&bytes)?);
+        drop(bytes);
+        t.deserialize = clock.elapsed();
+        let doc = Self::load_dast(dast, options, &mut t)?;
+        Ok((doc, t))
+    }
+
     /// `load` from a deserialized DAST: compile, then build until the
     /// structure settles (ADR 0015).
     pub fn load_dast(

@@ -48,6 +48,9 @@ iterated. `fixtures/sir.doenet` is a document using most of these.
   and clippy in the `Lint Rust Code` job of `ci.yml`.
 - `npm run fixtures`, `npm run golden-diff -- [rev]`: the generated
   documents and the refactoring guard.
+- `node scripts/wasm-memory.mjs [--pkg dir] fixture...`: how much wasm
+  linear memory each fixture's load needs. Memory never shrinks, so this
+  is what a page keeps; build `pkg/` first.
 - `npm run parity:cells` in `packages/doenetml-worker-javascript` runs the
   JavaScript core's test suite against this core and writes the gap list to
   `CELLS_CORE_PARITY.md` there.
