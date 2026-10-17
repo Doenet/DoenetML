@@ -146,7 +146,9 @@ Only a document's first build finds errors (ADR 0014; `compile::compile`
 compiles and boxes, `build::build` only stamps):
 every error depends on the source alone, so the probe, standing for every
 count and every pick, finds them all at load, and a later build that
-finds one fails with `Error::Unchecked` rather than boxing mid-session.
+finds one fails with `BuildError::Unchecked` rather than boxing mid-session:
+a build's error type (`build::BuildError`) has no variant for an author's
+error.
 
 **The language server asks for every diagnostic** (`diagnose`,
 `compile/check.rs`): the compile's check without the load, through the

@@ -209,7 +209,7 @@ impl Document {
             let built = match crate::build::build(&compiled, session, &counts, false) {
                 Ok(built) => built,
                 Err(e) => {
-                    result = Err(e);
+                    result = Err(e.into());
                     break;
                 }
             };
@@ -220,7 +220,7 @@ impl Document {
             let mut doc = match built.schedule(compiled.clone()) {
                 Ok(doc) => doc,
                 Err(e) => {
-                    result = Err(e);
+                    result = Err(e.into());
                     break;
                 }
             };

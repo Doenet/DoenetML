@@ -292,9 +292,17 @@ change. A load's linear memory does not change either: the freed DAST is
 what later rebuilds, a session's math and other documents on the page
 reuse.
 
-Not done: a build's error type still has the authoring variants. A
-build maps any element failure to `Error::Unchecked`, which enforces the
-rule; splitting the enum was judged not worth the churn.
+**`BuildError` (done).** `build::build` and `BuildOutput::schedule`
+return `build::BuildError`, which has two variants, `Unchecked` and
+`Cycle`, and no way to say an author's error. The machinery the build
+shares with the compile's check (expand, resolve, emit) fails with a
+`Failure`, a fact about the source; the compile turns one into a
+diagnostic, and the build can only turn it into a `BuildError`. A load
+and a rebuild convert it into the crate's `Error`, so their API is
+unchanged. An unsettled structure stays the rebuild's own error, since a
+single build cannot fail that way. `tests/every_count.rs` matches the two
+variants exhaustively; it used to let any other failure end its stamping
+silently.
 
 ## Consequences
 

@@ -29,7 +29,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{Repeat, ScopeId, build};
+use cells_core::build::{BuildError, Repeat, ScopeId, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
@@ -233,9 +233,8 @@ fn check(name: &str, bytes: &[u8]) -> bool {
 /// Build with every repeat `forced` names stamped at that count and the
 /// others at what their count cells settle to, then let every count
 /// settle from there, scheduling each build: the stamped graph must have
-/// no cycle at any of those counts, and the counts must settle. A build
-/// failing for another reason (a rule a later count breaks, say) ends the
-/// stamping.
+/// no cycle at any of those counts, and the counts must settle. A build can
+/// fail no other way (`BuildError`), and neither way is allowed.
 fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Option<u32>) {
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
     for free in [false, true] {
@@ -251,9 +250,12 @@ fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Op
                 .and_then(|built| built.schedule(compiled.clone()));
             let mut doc = match doc {
                 Ok(doc) => doc,
-                Err(Error::Cycle(at)) => panic!("{what}: a cycle at {at} the load did not reject"),
-                Err(Error::Unchecked(e)) => panic!("{what}: an error the load did not report: {e}"),
-                Err(_) => return,
+                Err(BuildError::Cycle(at)) => {
+                    panic!("{what}: a cycle at {at} the load did not reject")
+                }
+                Err(BuildError::Unchecked(e)) => {
+                    panic!("{what}: an error the load did not report: {e}")
+                }
             };
             doc.recompute();
             settled = true;

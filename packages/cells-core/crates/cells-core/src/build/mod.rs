@@ -103,25 +103,55 @@ pub(in crate::build) fn build_with(
     Ok(u)
 }
 
+/// What can go wrong in a build (ADR 0014, ADR 0015). Never an author's
+/// error: the compile has boxed or reported every one, and this type has no
+/// way to say one. The machinery the build shares with the compile's check
+/// fails with a `Failure`, a fact about the source; only the compile turns
+/// one into a diagnostic.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum BuildError {
+    /// Something the compile's check passed failed: a core bug, which
+    /// `tests/every_count.rs` exists to catch.
+    #[error(
+        "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
+    )]
+    Unchecked(String),
+    /// The stamped graph has a cycle, through the named cell. After the
+    /// probe (a document with repeats or selects) a core bug too; for a
+    /// document whose check is its one stamped build, the source's cycle,
+    /// found when the load schedules it.
+    #[error("dependency cycle involving component '{0}'")]
+    Cycle(String),
+}
+
+impl From<BuildError> for Error {
+    fn from(e: BuildError) -> Error {
+        match e {
+            BuildError::Unchecked(s) => Error::Unchecked(s),
+            BuildError::Cycle(s) => Error::Cycle(s),
+        }
+    }
+}
+
 /// A build (ADR 0015): the compile stamped with each repeat at its count
 /// in `counts`, reading the session. It compiles nothing and finds no error
-/// the compile did not (ADR 0014); an element that fails is
-/// `Error::Unchecked`. With `reseed`, seeded cells take their seeds again
-/// whatever the session carries: a later pass of a load.
+/// the compile did not (ADR 0014). With `reseed`, seeded cells take their
+/// seeds again whatever the session carries: a later pass of a load.
 pub fn build(
     compiled: &Compiled,
     session: &Session,
     counts: &Counts,
     reseed: bool,
-) -> Result<BuildOutput> {
+) -> std::result::Result<BuildOutput, BuildError> {
     let view = Stamped { session, counts };
     let mut engine = session.engine.borrow_mut();
-    let mut u = build_with(compiled, session, reseed, &mut engine, &view, false).map_err(|f| {
-        match f.node {
-            Some(_) => Error::Unchecked(f.error.to_string()),
-            None => f.error,
-        }
-    })?;
+    let mut u =
+        build_with(compiled, session, reseed, &mut engine, &view, false).map_err(|f| {
+            match (f.node, f.error) {
+                (None, Error::Cycle(at)) => BuildError::Cycle(at),
+                (_, e) => BuildError::Unchecked(e.to_string()),
+            }
+        })?;
     drop(engine);
     u.add_compile_diagnostics(compiled);
     Ok(u)
@@ -185,7 +215,7 @@ impl BuildOutput {
     }
 
     /// Schedule the program, which computes with the session's engine.
-    pub fn schedule(self, compiled: Arc<Compiled>) -> Result<Document> {
+    pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
         let n = self.cells.len();
         let sym = Sym::new(self.session.engine.clone());
         let program = match Program::schedule(self.instrs, n, sym, self.operands, self.value_types)
@@ -194,7 +224,7 @@ impl BuildOutput {
                 p.tapes = self.tapes;
                 p
             }
-            Err(cell) => return Err(Error::Cycle((self.cell_label)(cell))),
+            Err(cell) => return Err(BuildError::Cycle((self.cell_label)(cell))),
         };
         Ok(Document::new(
             self.cells,
