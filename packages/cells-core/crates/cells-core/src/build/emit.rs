@@ -6,7 +6,7 @@ use super::*;
 
 impl<'c> Builder<'c> {
     pub(in crate::build) fn finish(mut self) -> std::result::Result<BuildOutput, Failure> {
-        let profile = profile_enabled();
+        let profile = crate::profile::enabled();
         let clock = web_time::Instant::now();
         let lap = |what: &str| {
             if profile {

@@ -55,7 +55,7 @@ mod structure;
 mod view;
 
 pub(crate) use probe::probe;
-pub use structure::{ElemKey, Repeat, ScopeId, ScopeTable, Structure};
+pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
 type SlotId = u32;
 
@@ -73,7 +73,7 @@ pub(in crate::build) fn build_with(
     view: &dyn View,
     probe_checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
-    let profile = profile_enabled();
+    let profile = crate::profile::enabled();
     let clock = web_time::Instant::now();
     let lap = |what: &str| {
         if profile {
@@ -239,11 +239,4 @@ impl BuildOutput {
             compiled,
         ))
     }
-}
-
-/// Whether `CELLS_BUILD_PROFILE` is set: per-phase build timings go to
-/// stderr. Read once, on first use.
-pub(crate) fn profile_enabled() -> bool {
-    static PROFILE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *PROFILE.get_or_init(|| std::env::var_os("CELLS_BUILD_PROFILE").is_some())
 }

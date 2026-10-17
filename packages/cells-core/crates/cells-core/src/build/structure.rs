@@ -5,19 +5,13 @@
 
 use std::collections::HashMap;
 
+use crate::compile::plan::ElemKey;
 use crate::dast::NodeId;
 use crate::document::{CompIdx, NONE};
 
 /// A name scope: 0 is the document, every other scope is one iteration of a
 /// repeat (see `build/mod.rs`).
 pub type ScopeId = u32;
-
-/// An element's identity across loads of one document, what saved state
-/// names it by: its DAST node and 0; for an element the build makes (an
-/// answer's implicit input, a container copy's clones, a repeat's hidden
-/// iteration components), the node of the nearest element it belongs to
-/// and its 1-based position among the elements made for that node.
-pub type ElemKey = (NodeId, u32);
 
 /// One expanded `<repeatForSequence>`.
 #[derive(Debug, Clone)]

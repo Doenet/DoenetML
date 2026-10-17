@@ -33,6 +33,7 @@ pub mod dast;
 pub mod diagnostics;
 mod document;
 mod error;
+mod profile;
 pub mod program;
 pub mod session;
 pub mod sym;

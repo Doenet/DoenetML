@@ -22,7 +22,8 @@ use serde_json::{Value, json};
 
 use super::{CellIdx, Document};
 use crate::Error;
-use crate::build::{ElemKey, ScopeId};
+use crate::build::ScopeId;
+use crate::compile::plan::ElemKey;
 use crate::document::NONE;
 use crate::program::ValueType;
 

@@ -8,7 +8,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use crate::build::{ElemKey, ScopeId, ScopeTable};
+use crate::build::{ScopeId, ScopeTable};
+use crate::compile::plan::ElemKey;
 use crate::dast::NodeId;
 use crate::document::Document;
 use crate::sym::Engine;

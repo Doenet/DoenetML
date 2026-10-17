@@ -190,7 +190,7 @@ impl Document {
     /// the document. The math engine may have grown, which leaves every
     /// handle the document holds valid.
     pub fn rebuild(&mut self) -> crate::Result<()> {
-        let profile = crate::build::profile_enabled();
+        let profile = crate::profile::enabled();
         // Without a repeat the structure never changes: nothing to rebuild.
         let Some(compiled) = self.compiled.clone() else {
             return Ok(());

@@ -36,7 +36,7 @@ pub(crate) fn compile(
     session: &Session,
     check_cycles: bool,
 ) -> Result<CompileOutput> {
-    let profile = build::profile_enabled();
+    let profile = crate::profile::enabled();
     let mut list = Vec::new();
     let mut boxed: HashSet<NodeId> = HashSet::new();
     let (mut compiled, first_build, check_time) = loop {

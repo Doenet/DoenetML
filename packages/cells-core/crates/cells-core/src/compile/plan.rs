@@ -4,6 +4,13 @@
 
 use super::*;
 
+/// An element's identity across loads of one document, what saved state
+/// names it by, assigned by the compile: its DAST node and 0; for an element the build makes (an
+/// answer's implicit input, a container copy's clones, a repeat's hidden
+/// iteration components), the node of the nearest element it belongs to
+/// and its 1-based position among the elements made for that node.
+pub type ElemKey = (NodeId, u32);
+
 pub(crate) type TemplateId = usize;
 pub(crate) type ElemId = usize;
 pub(crate) type RefId = usize;
@@ -190,7 +197,7 @@ pub(crate) struct Elem {
     /// hidden slots after the public props.
     pub(crate) slot_off: u32,
     /// The element's identity across loads, for saved state.
-    pub(crate) key: crate::build::ElemKey,
+    pub(crate) key: ElemKey,
     pub(crate) props: Vec<SourcePlan>,
     pub(crate) children: Vec<Child>,
     pub(crate) extend: Option<RefId>,

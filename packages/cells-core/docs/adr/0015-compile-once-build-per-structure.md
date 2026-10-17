@@ -304,6 +304,15 @@ single build cannot fail that way. `tests/every_count.rs` matches the two
 variants exhaustively; it used to let any other failure end its stamping
 silently.
 
+**What each stage takes from the other.** The build reads, from the
+compile, the plan types (`compile::plan`, which includes `ElemKey`, since
+the compile assigns element keys), the expression arena, and `Failure`;
+the session and saved state read only `ElemKey`; the tick reads neither.
+The compile reads, from the build, only what its check runs:
+`build::probe`, `build::first_build` and `BuildOutput`, all in
+`compile/check.rs`. Per-phase profiling (`profile.rs`) belongs to
+neither. A change that needs more across the line is a change to this ADR.
+
 ## Consequences
 
 - A rebuild costs expand, emit and schedule only. Load does the same work
