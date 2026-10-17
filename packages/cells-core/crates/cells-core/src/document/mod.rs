@@ -62,8 +62,10 @@ pub struct Document {
     /// What the session has accumulated (ADR 0015): carried values, scopes,
     /// strings interned at runtime. Every build reads it.
     pub session: crate::session::Session,
-    /// The document as loaded (also `compiled.dast`).
-    pub dast: Arc<Dast>,
+    /// The source's literal attributes, for a renderer (`attr_text`): all
+    /// a document keeps of its DAST, unless it keeps its compile. Gathered
+    /// once a load settles, off the load's peak, and shared by rebuilds.
+    pub literal_attrs: Arc<crate::dast::LiteralAttrs>,
     /// The document as compiled at load, which every rebuild stamps
     /// (ADR 0015). Kept only by a document with a repeat: one without
     /// never rebuilds, and its compile, several times the size of the
@@ -105,7 +107,7 @@ impl Document {
             root,
             structure,
             session,
-            dast: compiled.dast().clone(),
+            literal_attrs: Arc::default(),
             compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
         };
@@ -206,13 +208,12 @@ pub struct MemoryEstimate {
     pub strings: usize,
     /// Scope table and essential keys kept for rebuilds.
     pub structure: usize,
-    /// The retained DAST, kept for rebuilds (its string table is shared
-    /// with `strings` and counted there only once by `total`).
-    pub dast: usize,
+    /// The literal attributes kept for a renderer.
+    pub attrs: usize,
 }
 
 impl MemoryEstimate {
     pub fn total(&self) -> usize {
-        self.cells + self.program + self.components + self.strings + self.structure + self.dast
+        self.cells + self.program + self.components + self.strings + self.structure + self.attrs
     }
 }

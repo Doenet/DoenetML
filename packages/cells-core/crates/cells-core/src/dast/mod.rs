@@ -12,8 +12,11 @@
 //! (`$r[3].p`, `$r[$i-2]`) whose value nodes live in `children` like any
 //! other node list.
 
+mod attrs;
 mod binary;
 mod json;
+
+pub use attrs::LiteralAttrs;
 
 pub type NodeId = u32;
 pub type AttrId = u32;
@@ -155,6 +158,11 @@ impl Dast {
     #[inline]
     pub fn attr_name(&self, a: AttrId) -> &str {
         self.strings.get(self.attr_name[a as usize])
+    }
+
+    #[inline]
+    pub fn attr_name_id(&self, a: AttrId) -> StrId {
+        self.attr_name[a as usize]
     }
 
     #[inline]

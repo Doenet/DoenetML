@@ -327,3 +327,53 @@ fn point_list_needs_extend_of_an_array_prop() {
     let (code, m) = load_error(r#"<graph><pointList name="ps"/></graph>"#);
     assert_eq!(code, "cells-bad-attribute-value", "{m}");
 }
+
+// A document keeps its literal attributes, not its DAST: what a renderer
+// reads by node, across rebuilds too.
+#[test]
+fn literal_attributes_outlive_the_dast() {
+    let doc = load_ok(
+        r#"<number name="a" displayDecimals="3">1</number>
+<graph><point name="p" styleNumber="2" x="$a" y="0"/></graph>"#,
+    );
+    let p = doc.component("p").unwrap();
+    assert_eq!(doc.attr_text(p, "styleNumber").as_deref(), Some("2"));
+    assert_eq!(doc.attr_text(p, "stylenumber").as_deref(), Some("2"));
+    // A reference is state, not presentation.
+    assert_eq!(doc.attr_text(p, "x"), None);
+    assert_eq!(doc.attr_text(p, "hidden"), None);
+    let a = doc.component("a").unwrap();
+    assert_eq!(doc.attr_text(a, "displayDecimals").as_deref(), Some("3"));
+    let attrs = doc.literal_attrs();
+    let node = |c| doc.components.dast_node[c as usize];
+    let of = |c| {
+        attrs
+            .iter()
+            .find(|(n, _)| *n == node(c))
+            .map(|(_, a)| a.clone())
+    };
+    // `name` aside.
+    assert_eq!(
+        of(p),
+        Some(vec![
+            ("styleNumber", "2".to_string()),
+            ("y", "0".to_string())
+        ])
+    );
+    assert_eq!(of(a), Some(vec![("displayDecimals", "3".to_string())]));
+}
+
+#[test]
+fn literal_attributes_survive_a_rebuild() {
+    let mut doc = load_ok(
+        r#"<numberInput name="n" value="1"/>
+<repeatForSequence name="r" length="$n"><point name="p" styleNumber="4"/></repeatForSequence>"#,
+    );
+    let cell = doc.cell("n", "value").unwrap();
+    let t = doc.request(&[cells_core::Request { cell, value: 3.0 }]);
+    assert!(t.rebuilt);
+    let styled = (0..doc.n_components() as u32)
+        .filter(|&c| doc.attr_text(c, "styleNumber").as_deref() == Some("4"))
+        .count();
+    assert_eq!(styled, 3);
+}

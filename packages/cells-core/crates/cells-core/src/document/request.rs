@@ -134,53 +134,33 @@ impl Document {
     /// decimals to display, a width). None for a copy, which has no
     /// element, and for an attribute holding a reference.
     pub fn attr_text(&self, comp: crate::document::CompIdx, name: &str) -> Option<String> {
-        use crate::dast::NodeKind;
         let node = self.components.dast_node[comp as usize];
         if node == crate::document::NONE {
             return None;
         }
-        let a = self.dast.attr(node, name)?;
-        let mut s = String::new();
-        for &n in self.dast.attr_children(a) {
-            match self.dast.kind(n) {
-                NodeKind::Text => s.push_str(self.dast.str(n)),
-                NodeKind::Macro => return None,
-                _ => {}
-            }
-        }
-        Some(s)
+        let &(_, value) = self
+            .literal_attrs
+            .of(node)
+            .iter()
+            .find(|&&(n, _)| self.strings.get(n).eq_ignore_ascii_case(name))?;
+        Some(self.literal_attrs.text(&self.strings, value).to_string())
     }
 
     /// Every literal attribute of every element (`name` aside), keyed by
     /// DAST node, for a renderer that reads presentation once per build
     /// instead of asking per component (`attr_text`).
     pub fn literal_attrs(&self) -> Vec<(crate::dast::NodeId, Vec<(&str, String)>)> {
-        use crate::dast::NodeKind;
-        let d = &self.dast;
-        let mut out = Vec::new();
-        for n in 0..d.len() as crate::dast::NodeId {
-            if d.kind(n) != NodeKind::Element || d.attrs(n).is_empty() {
-                continue;
-            }
-            let attrs: Vec<(&str, String)> = d
-                .attrs(n)
-                .filter(|&a| !d.attr_name(a).eq_ignore_ascii_case("name"))
-                .filter_map(|a| {
-                    let mut s = String::new();
-                    for &c in d.attr_children(a) {
-                        match d.kind(c) {
-                            NodeKind::Text => s.push_str(d.str(c)),
-                            NodeKind::Macro => return None,
-                            _ => {}
-                        }
-                    }
-                    Some((d.attr_name(a), s))
-                })
-                .collect();
-            if !attrs.is_empty() {
-                out.push((n, attrs));
-            }
-        }
-        out
+        self.literal_attrs
+            .iter()
+            .filter_map(|(n, attrs)| {
+                let attrs: Vec<(&str, String)> = attrs
+                    .iter()
+                    .map(|&(k, v)| (self.strings.get(k), v))
+                    .filter(|(k, _)| !k.eq_ignore_ascii_case("name"))
+                    .map(|(k, v)| (k, self.literal_attrs.text(&self.strings, v).to_string()))
+                    .collect();
+                (!attrs.is_empty()).then_some((n, attrs))
+            })
+            .collect()
     }
 }

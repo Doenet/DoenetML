@@ -121,6 +121,7 @@ impl Document {
             t.passes += 1;
             if doc.structure_settled() {
                 t.structural_depth = doc.structure.structural_depth;
+                doc.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
                 return Ok(doc);
             }
             counts = Counts::of(&doc);
@@ -237,6 +238,7 @@ impl Document {
                 eprintln!("rebuild/recompute: {:.2?}", clock.elapsed());
             }
             if doc.structure_settled() {
+                doc.literal_attrs = self.literal_attrs.clone();
                 result = Ok(doc);
                 break;
             }

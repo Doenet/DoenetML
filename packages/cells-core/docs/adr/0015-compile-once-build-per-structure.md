@@ -277,9 +277,20 @@ the commit that finished this:
 
 What remains at the peak is mostly the compile's plans (an `Elem` is 112
 bytes, a prop's `SourcePlan` 48) beside the first build's tables and the
-document it makes. Of what a document holds, the DAST is the largest
-part for a flat document (about 45% of adventure-3's), kept so a
-renderer can read literal attributes (`attr_text`, `literal_attrs`).
+document it makes.
+
+A document no longer keeps its DAST: it was the largest part of what a
+flat document held, kept only so a renderer could read literal
+attributes (`attr_text`, `literal_attrs`). Those are now a table of
+string ids (`dast::LiteralAttrs`), gathered once the load settles, so
+off its peak, and shared by every rebuild; a document with repeats still
+reaches the DAST through the compile it keeps. Heap a loaded document
+holds, MB, before and after: select-1000 2.34 to 0.55, grid-1000x10 4.21
+to 2.25, wording-1000 3.84 to 1.99, adventure-3 8.12 to 4.63, chain-1000
+0.37 to 0.14, symchain-1000 2.88 to 2.34; the repeat fixtures do not
+change. A load's linear memory does not change either: the freed DAST is
+what later rebuilds, a session's math and other documents on the page
+reuse.
 
 Not done: a build's error type still has the authoring variants. A
 build maps any element failure to `Error::Unchecked`, which enforces the
