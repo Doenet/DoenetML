@@ -280,12 +280,8 @@ impl<'c> Builder<'c> {
         let slot_comp = self.slot_comp;
         let slot_base = self.slot_base;
         let component_types = self.components.component_type.clone();
-        let names: Vec<Option<String>> = self
-            .components
-            .name
-            .iter()
-            .map(|&s| (s != NONE).then(|| self.compiled.dast.strings.get(s).trim().to_string()))
-            .collect();
+        let names = self.components.name.clone();
+        let dast = self.compiled.dast.clone();
         let cell_label = Box::new(move |cell: CellIdx| {
             let slot = cell_def_slot[cell as usize];
             let comp = slot_comp[slot as usize];
@@ -293,9 +289,10 @@ impl<'c> Builder<'c> {
                 return "(anonymous cell)".to_string();
             }
             let pi = (slot - slot_base[comp as usize]) as usize;
-            let owner = names[comp as usize]
-                .clone()
-                .unwrap_or_else(|| format!("<{}>#{}", component_types[comp as usize].tag(), comp));
+            let owner = match names[comp as usize] {
+                NONE => format!("<{}>#{}", component_types[comp as usize].tag(), comp),
+                s => dast.strings.get(s).trim().to_string(),
+            };
             match component_types[comp as usize].prop_defs().get(pi) {
                 Some(def) => format!("{owner}.{}", def.name),
                 None => format!("{owner}.(hidden slot {pi})"),
@@ -382,11 +379,21 @@ impl<'c> Builder<'c> {
         slot_to_cell: &[CellIdx],
         n_known: usize,
     ) -> Result<()> {
-        let math_cells: std::collections::HashSet<CellIdx> = self
+        if self.seeds.is_empty() {
+            return Ok(());
+        }
+        // Which seed sources hold math, from the few cells that are sources.
+        let sources: HashSet<CellIdx> = self
+            .seeds
+            .iter()
+            .map(|&(_, from)| slot_to_cell[from as usize])
+            .collect();
+        let math_cells: HashSet<CellIdx> = self
             .typed_slots
             .iter()
             .filter(|&&(_, ty)| ty == ValueType::Math)
             .map(|&(s, _)| slot_to_cell[s as usize])
+            .filter(|c| sources.contains(c))
             .collect();
         for &(s, from) in &self.seeds {
             let (scope, tslot, _) = self.essential_key(s);
@@ -442,12 +449,14 @@ impl<'c> Builder<'c> {
     /// one; a count that reads a cell inside another repeat's iterations adds
     /// one, and is flagged (`cross`) since authors can avoid it.
     pub(in crate::build) fn structural_depths(&self) -> (Vec<u32>, Vec<bool>) {
-        let mut owner: HashMap<ScopeId, usize> = HashMap::new();
+        // The repeat each iteration scope belongs to, by scope id.
+        let mut owner: Vec<usize> = vec![usize::MAX; self.scopes.len()];
         for (ri, r) in self.repeats.iter().enumerate() {
             for &s in &r.iter_scopes {
-                owner.insert(s, ri);
+                owner[s as usize] = ri;
             }
         }
+        let owner = |s: ScopeId| Some(owner[s as usize]).filter(|&o| o != usize::MAX);
         let is_ancestor_or_self = |s: ScopeId, of: ScopeId| -> bool {
             let mut cur = of;
             loop {
@@ -466,7 +475,7 @@ impl<'c> Builder<'c> {
         let mut stack = Vec::new();
         let mut touched = Vec::new();
         for (ri, r) in self.repeats.iter().enumerate() {
-            if let Some(&o) = owner.get(&r.scope) {
+            if let Some(o) = owner(r.scope) {
                 reads[ri].push(o);
             }
             stack.clear();
@@ -486,7 +495,7 @@ impl<'c> Builder<'c> {
                     let scope = self.components.scope[comp as usize];
                     if scope != 0
                         && !is_ancestor_or_self(scope, r.scope)
-                        && let Some(&o) = owner.get(&scope)
+                        && let Some(o) = owner(scope)
                         && o != ri
                     {
                         cross[ri] = true;

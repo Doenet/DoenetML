@@ -14,21 +14,25 @@ impl<'c> Builder<'c> {
         post: Post,
         scope: ScopeId,
     ) -> Result<Source> {
-        let text = self
-            .compiled
-            .sym_text
-            .get(&expr)
-            .ok_or_else(|| Error::BadMath {
-                text: format!("{:?}", self.compiled.arena.get(expr)),
-                reason: "no math text recorded".into(),
-            })?;
-        if self.compiled.arena.has_call(expr) {
+        let compiled = self.compiled;
+        let text = compiled.sym_text.get(&expr).ok_or_else(|| Error::BadMath {
+            text: format!("{:?}", self.compiled.arena.get(expr)),
+            reason: "no math text recorded".into(),
+        })?;
+        if compiled.arena.has_call(expr) {
             return Err(Error::BadMath {
                 text: text.clone(),
                 reason: "round, floor, min, max and clamp are for numeric math only".into(),
             });
         }
-        let tree = match self.engine.parse_tree(text) {
+        let parsed;
+        let tree = if let Some(cached) = compiled.sym_trees.get(&expr) {
+            cached.get_or_init(|| self.engine.parse_tree(text))
+        } else {
+            parsed = self.engine.parse_tree(text);
+            &parsed
+        };
+        let tree = match tree {
             Ok(tree) => tree,
             // A relation, tuple or multi-argument function with no cell
             // leaves is a fixed expression all the same (a `<boolean>`
@@ -38,13 +42,13 @@ impl<'c> Builder<'c> {
                 Err(_) => {
                     return Err(Error::BadMath {
                         text: text.clone(),
-                        reason,
+                        reason: reason.clone(),
                     });
                 }
             },
         };
         let mut leaves = Vec::new();
-        let tree = self.bind_leaves(&tree, scope, &mut leaves)?;
+        let tree = self.bind_leaves(tree, scope, &mut leaves)?;
         if leaves.is_empty() {
             let h = self.engine.import(&tree);
             return Ok(Source::Fixed(self.post(h, post) as f64));

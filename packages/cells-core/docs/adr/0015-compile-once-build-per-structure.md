@@ -180,7 +180,7 @@ role tables). Measured against the commit before:
   compile is large beside its one small repeat.
 
 **Step 3, `Session` from `Carryover` (done).** `Carryover` is gone.
-`Session` (`build/session.rs`) holds the seed and sampling option, the
+`Session` (`session.rs` since step 5) holds the seed and sampling option, the
 scope table, the value store (shared, written only by `Session::record`
 before a build), parked restored values and runtime strings; `Counts`
 holds what each repeat is stamped with; `Structure` keeps only what one
@@ -192,6 +192,31 @@ take-and-restore, and its test is in `tests/rebuild_cycles.rs`. The engine
 stays in the program, which the tick reads; moving it into the session is
 left for later. The function that compiles and returns the first build is
 `build::compile`, since compiling is its job; `Document::load` is a load.
+
+**Step 4, per-instance work (done).** A math template's text is parsed
+once per compile, not once per instance per build: in a document with
+repeats, `Compiled::sym_trees` holds each text's parse, filled by the
+first build that finds the math symbolic (numeric math is never parsed
+this way). A document without repeats builds each template once and
+parses without keeping the tree, which would only raise its load's peak
+heap. Whether math parses is still asked by the build, since only math
+the build finds symbolic is parsed; the answer depends on the text alone,
+so the probe finds it as before. Two costs the profile showed in every
+build went with it: the cycle-error labels no longer copy every
+component's name into a `String` (they read the DAST when a cycle is
+reported), and the seeds' math check and the repeat-depth scan no longer
+hash every math cell and every scope. Measured against the commit before,
+in instructions:
+
+- rebuild of a 1,000-iteration repeat: −43%;
+- load: −4.6% (repeat-1000), −2.2% (sir) to −0.03%; ticks within ±1.5%,
+  except sir's, which rebuild: −19%;
+- peak heap of a load: −3.7% (repeat-1000, repeat-10000) to 0; heap held
+  unchanged.
+
+Plan value types and prop lookups by name were not hoisted: after the
+above the rebuild's profile is flat, and resolving a math reference's
+kind (`math_ref`) is 2% of it.
 
 **Step 5, files (done).** `src/compile/` is today's plan (the old
 `build/compile/`), `lint.rs`, and `check.rs`, which holds `compile::compile`

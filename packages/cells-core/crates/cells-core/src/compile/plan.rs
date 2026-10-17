@@ -383,6 +383,12 @@ pub struct Compiled {
     /// The math text of templates that may be symbolic, with each `$ref`
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
     pub(crate) sym_text: HashMap<ExprId, String>,
+    /// In a document with repeats, each math text's parse once a build has
+    /// found the math symbolic: a template parses once however many
+    /// instances stamp it and however many builds run. Empty in a document
+    /// without repeats, which builds each template once and would only raise
+    /// its load's peak memory by keeping the trees.
+    pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
     /// Text the build needs that is not a DAST string (a textInput's
     /// `prefill`, the literal side of a text comparison), appended after
@@ -392,7 +398,7 @@ pub struct Compiled {
     /// errors of the boxed elements, in node order. Set by `compile::compile`.
     pub(crate) diagnostics: Vec<crate::diagnostics::Diagnostic>,
     /// Whether the document has a repeat, so its structure can change and
-    /// a later build will stamp this compile. Set by `compile::compile`.
+    /// a later build will stamp this compile.
     pub(crate) rebuilds: bool,
 }
 

@@ -19,7 +19,7 @@
 //! `iterates.rs` theirs. What compile produces is in `plan.rs`.
 
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use crate::components::{ComponentType, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
@@ -118,6 +118,7 @@ impl<'a> Compiler<'a> {
                 refs: Vec::new(),
                 arena: Arena::default(),
                 sym_text: HashMap::new(),
+                sym_trees: HashMap::new(),
                 choices: Vec::new(),
                 extra_strings: Vec::new(),
                 diagnostics: Vec::new(),
@@ -132,7 +133,14 @@ impl<'a> Compiler<'a> {
             made: HashMap::new(),
         };
         match cp.compile_all() {
-            Ok(()) => Ok(cp.compiled),
+            Ok(()) => {
+                let c = &mut cp.compiled;
+                c.rebuilds = c.has_repeats();
+                if c.rebuilds {
+                    c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
+                }
+                Ok(cp.compiled)
+            }
             Err(error) => Err(Failure {
                 error,
                 node: cp.failed_node,
