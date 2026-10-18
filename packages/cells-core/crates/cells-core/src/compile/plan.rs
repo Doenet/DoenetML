@@ -400,6 +400,11 @@ pub struct Compiled {
     /// Whether the document has a repeat, so its structure can change and
     /// a later build will stamp this compile.
     pub(crate) rebuilds: bool,
+    /// The document's structural depth (`Structure::structural_depth`) as
+    /// the check found it: the probe's, which bounds every build's, since
+    /// each build's chains of repeats map onto the probe's; 0 without a
+    /// repeat. None when the check was skipped (a test load).
+    pub(crate) structural_depth: Option<u32>,
 }
 
 impl Compiled {
@@ -460,7 +465,15 @@ impl Compiled {
         let _ = writeln!(out, "extra_strings {:?}", self.extra_strings);
         let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
         let _ = writeln!(out, "rebuilds {}", self.rebuilds);
+        let _ = writeln!(out, "structural_depth {:?}", self.structural_depth);
         out
+    }
+
+    /// How many build passes a load or a rebuild may take before the
+    /// structure must have settled: the structural depth plus one, and
+    /// never fewer than `floor`. None when the check was skipped.
+    pub(crate) fn passes(&self, floor: usize) -> Option<usize> {
+        self.structural_depth.map(|d| (d as usize + 1).max(floor))
     }
 
     /// Whether the document has a load-time choice (a `<select>`), which a

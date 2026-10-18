@@ -114,7 +114,8 @@ impl Document {
         } = crate::compile::compile(&dast, &session, options.checks())?;
         t.build += clock.elapsed();
         t.cycle_check += check_time;
-        for pass in 0..MAX_PASSES {
+        let passes = compiled.passes(MAX_PASSES);
+        for pass in 0..passes.unwrap_or(MAX_PASSES) {
             let clock = web_time::Instant::now();
             let built = match first_build.take() {
                 // The compile's check was this build.
@@ -142,7 +143,7 @@ impl Document {
             counts = Counts::of(&doc);
             session = doc.session_with_values();
         }
-        Err(crate::Error::UnstableStructure(MAX_PASSES))
+        Err(unsettled(passes))
     }
 
     /// This document's session with its essential values recorded, taken
@@ -217,8 +218,9 @@ impl Document {
         let mut counts = Counts::of(self);
         // The session a later pass reads: the last pass's.
         let mut next: Option<Session> = None;
-        let mut result = Err(crate::Error::UnstableStructure(MAX_PASSES));
-        for _ in 0..MAX_PASSES {
+        let passes = compiled.passes(MAX_PASSES);
+        let mut result = Err(unsettled(passes));
+        for _ in 0..passes.unwrap_or(MAX_PASSES) {
             let clock = web_time::Instant::now();
             let session = next.as_ref().unwrap_or(&self.session);
             let built = match crate::build::build(&compiled, session, &counts, false) {
@@ -261,5 +263,18 @@ impl Document {
         }
         *self = result?;
         Ok(())
+    }
+}
+
+/// The structure did not settle in the passes allowed. For a checked
+/// document a core bug: its structural depth, which the check bounded,
+/// says how many passes it needs (ADR 0014). Only a test load without the
+/// check can fail this way by itself.
+fn unsettled(passes: Option<usize>) -> crate::Error {
+    match passes {
+        Some(n) => crate::Error::Unchecked(format!(
+            "the structure did not settle in {n} passes, more than its structural depth allows"
+        )),
+        None => crate::Error::UnstableStructure(MAX_PASSES),
     }
 }

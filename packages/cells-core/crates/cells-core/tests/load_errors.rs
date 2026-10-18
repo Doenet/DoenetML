@@ -201,3 +201,37 @@ fn a_rule_on_a_whole_picks_referent_holds_for_every_option() {
         assert_eq!(errors(&doc), at_load, "seed {seed}");
     }
 }
+
+/// Ten repeats, each sized by the first item of the one before, behind a
+/// count `n`: a structural depth of ten.
+fn deep_chain(n: u32) -> String {
+    let mut src = format!(
+        r#"<numberInput name="n" value="{n}"/><repeatForSequence name="r1" length="$n"><number name="x">1</number></repeatForSequence>"#
+    );
+    for k in 2..=10 {
+        src.push_str(&format!(
+            r#"<repeatForSequence name="r{k}" length="$r{}[1].x"><number name="x">1</number></repeatForSequence>"#,
+            k - 1
+        ));
+    }
+    src
+}
+
+// A load or a rebuild takes as many passes as the structural depth needs,
+// which the compile's check bounds; a fixed limit once failed a deep
+// document mid-session when a count filled the chain.
+#[test]
+fn a_structure_deeper_than_eight_passes_settles() {
+    let mut doc = load(&deep_chain(0)).unwrap();
+    let t = set(&mut doc, "n", "value", 1.0);
+    assert!(
+        t.rebuilt && t.rebuild_error.is_none(),
+        "{:?}",
+        t.rebuild_error
+    );
+    assert_eq!(doc.structure.repeats.len(), 10);
+    assert!(doc.structure.repeats.iter().all(|r| r.iterations == 1));
+    let loaded = load(&deep_chain(1)).unwrap();
+    assert_eq!(loaded.structure.structural_depth, 10);
+    assert!(loaded.structure.repeats.iter().all(|r| r.iterations == 1));
+}

@@ -145,6 +145,7 @@ impl<'a> Compiler<'a> {
                 extra_strings: Vec::new(),
                 diagnostics: Vec::new(),
                 rebuilds: false,
+                structural_depth: None,
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),

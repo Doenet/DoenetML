@@ -281,8 +281,11 @@ session order changes.
 **Structural depth** — Of a repeat: how many repeats must be expanded in
 sequence before its count can be computed, plus one. Nesting adds one; a
 count that reads a cell inside another repeat's iterations adds one. A
-document loads in depth + 1 build passes. The second kind of link is reported
-as a warning, since authors can avoid it.
+document loads in depth + 1 build passes, and a rebuild takes at most as
+many. The compile's check bounds the depth from the source (the probe's
+depth, which no build exceeds), and load and rebuild allow that many passes,
+so a structure that does not settle in them is a core bug. The second kind
+of link is reported as a warning, since authors can avoid it.
 
 **Structural cell** — A cell whose value determines document structure, such
 as the iteration count of a repeat. A change to a structural cell triggers a

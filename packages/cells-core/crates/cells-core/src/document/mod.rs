@@ -29,7 +29,10 @@ pub use table::{Child, ComponentTable};
 
 pub type CellIdx = u32;
 pub type CompIdx = u32;
-/// Upper bound on build passes before the structure must have settled.
+/// Build passes allowed before the structure must have settled, at least:
+/// a checked document is allowed its structural depth plus one too
+/// (`Compiled::passes`), and only a test load without the check is held
+/// to this alone.
 const MAX_PASSES: usize = 8;
 
 pub const NONE: u32 = u32::MAX;

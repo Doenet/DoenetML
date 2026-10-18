@@ -202,6 +202,11 @@ impl BuildOutput {
         self.structure.diagnostics = list;
     }
 
+    /// The structural depth this build found (`Structure`).
+    pub(crate) fn structural_depth(&self) -> u32 {
+        self.structure.structural_depth
+    }
+
     /// The build's own warnings.
     pub(crate) fn warnings(self) -> Vec<Diagnostic> {
         self.structure.diagnostics

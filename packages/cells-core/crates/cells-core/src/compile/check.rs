@@ -43,13 +43,14 @@ pub(crate) fn compile(
     let mut boxed: HashSet<NodeId> = HashSet::new();
     let (mut compiled, first_build, check_time) = loop {
         let clock = web_time::Instant::now();
-        let attempt = Compiler::compile(dast, &boxed).and_then(|compiled| {
+        let attempt = Compiler::compile(dast, &boxed).and_then(|mut compiled| {
             if profile {
                 eprintln!("  compile/plan: {:.2?}", clock.elapsed());
             }
             if check_cycles && (compiled.has_repeats() || compiled.has_selects()) {
                 let clock = web_time::Instant::now();
-                build::probe(&compiled)?;
+                let probed = build::probe(&compiled)?;
+                compiled.structural_depth = Some(probed.structural_depth());
                 let checked = clock.elapsed();
                 if profile {
                     eprintln!("  compile/check: {checked:.2?}");
@@ -57,6 +58,11 @@ pub(crate) fn compile(
                 Ok((compiled, None, checked))
             } else {
                 let first = build::first_build(&compiled, session, check_cycles)?;
+                // Without a repeat the depth is 0; with one (a test load
+                // without the check) no build here bounds it.
+                if !compiled.has_repeats() {
+                    compiled.structural_depth = Some(0);
+                }
                 Ok((compiled, Some(first), std::time::Duration::ZERO))
             }
         });
