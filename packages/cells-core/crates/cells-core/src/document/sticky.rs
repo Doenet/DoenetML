@@ -142,7 +142,10 @@ impl Document {
             let current: Vec<Pt> = t.points.iter().map(|&[x, y]| [cur(x), cur(y)]).collect();
             let bounds = t.bounds.map(|b| b.map(cur)).unwrap_or([f64::NAN; 4]);
             let params = Params::new(cur(t.threshold), cur(t.relative) != 0.0, bounds);
-            let mut snapped: HashMap<CellIdx, f64> = HashMap::new();
+            // In the group's point order, so the requests appended below
+            // come in the same order on every run.
+            let mut snapped: Vec<(CellIdx, f64)> = Vec::new();
+            let mut at: HashMap<CellIdx, usize> = HashMap::new();
             // Members in an inactive case are not there, in the current core.
             let members: Cow<[Member]> = if t.gates.iter().all(Vec::is_empty) {
                 Cow::Borrowed(&t.members)
@@ -161,18 +164,29 @@ impl Document {
                 .flatten()
             {
                 let [cx, cy] = t.points[id as usize];
-                snapped.insert(cx, x);
-                snapped.insert(cy, y);
+                for (cell, value) in [(cx, x), (cy, y)] {
+                    match at.get(&cell) {
+                        Some(&i) => snapped[i].1 = value,
+                        None => {
+                            at.insert(cell, snapped.len());
+                            snapped.push((cell, value));
+                        }
+                    }
+                }
             }
+            let mut taken = vec![false; snapped.len()];
             for (cell, value) in asked(requests, groups) {
-                if let Some(v) = snapped.remove(&cell) {
-                    *value = v;
+                if let Some(&i) = at.get(&cell) {
+                    *value = snapped[i].1;
+                    taken[i] = true;
                 }
             }
             requests.extend(
                 snapped
                     .into_iter()
-                    .map(|(cell, value)| Request { cell, value }),
+                    .zip(taken)
+                    .filter(|(_, taken)| !taken)
+                    .map(|((cell, value), _)| Request { cell, value }),
             );
         }
     }
