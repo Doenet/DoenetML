@@ -94,6 +94,10 @@ pub(crate) enum SourcePlan {
     FirstIteration(Box<SourcePlan>, Box<SourcePlan>),
     /// Output `k` of the vector instruction headed at own slot `head`
     /// (an `Op(OpSpec::Vec(..))`, which is output 0).
+    /// Wired once the whole tree is built, from what is around the element
+    /// (`build/expand/scoring.rs`, a collect's expansion): no plan can say
+    /// it, so the plan says that it is deferred and who fills it.
+    Deferred(Deferred),
     VecOut(u8, u8),
 }
 
@@ -275,6 +279,51 @@ pub(crate) struct ElemPlan {
     /// The attribute a role's value came from, if any; a copy that gives
     /// that attribute itself does not share the role.
     pub(crate) role_attr: HashMap<&'static str, &'static str>,
+}
+
+/// A prop wired from the built tree rather than planned (`SourcePlan::Deferred`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Deferred {
+    /// The document's or a section's `creditAchieved`: the weighted mean of
+    /// the credit of what it scores.
+    Credit,
+    /// Its `percentCreditAchieved`: the credit times 100, a constant when
+    /// the credit is one.
+    PercentCredit,
+    /// A section's `number` among its siblings.
+    SectionNumber,
+    /// A collect's `count`, or a polyline's `numVertices` when it gathers
+    /// its vertices as a collect does: how many it gathered, which may
+    /// follow the counts of the repeats it gathers from.
+    CollectCount,
+}
+
+impl Deferred {
+    /// The deferred prop of `component_type` at position `pi`, if it is one:
+    /// every planner plans it so, whatever else it inherits or copies.
+    pub(crate) fn of(component_type: ComponentType, pi: usize) -> Option<Deferred> {
+        use crate::components::prop::{collect, document, polyline, section};
+        match (component_type, pi) {
+            (ComponentType::Document, document::CREDIT)
+            | (ComponentType::Section, section::CREDIT) => Some(Deferred::Credit),
+            (ComponentType::Document, document::PERCENT_CREDIT)
+            | (ComponentType::Section, section::PERCENT_CREDIT) => Some(Deferred::PercentCredit),
+            (ComponentType::Section, section::NUMBER) => Some(Deferred::SectionNumber),
+            (ComponentType::Collect, collect::COUNT)
+            | (ComponentType::Polyline, polyline::NUM_VERTICES) => Some(Deferred::CollectCount),
+            _ => None,
+        }
+    }
+
+    /// `props`, a plan for an element of `component_type`, with its deferred
+    /// props planned so.
+    pub(crate) fn mark(component_type: ComponentType, props: &mut [SourcePlan]) {
+        for (pi, p) in props.iter_mut().enumerate() {
+            if let Some(k) = Deferred::of(component_type, pi) {
+                *p = SourcePlan::Deferred(k);
+            }
+        }
+    }
 }
 
 /// A point's props: its coordinates, and `hide` at its default.

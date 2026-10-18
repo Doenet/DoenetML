@@ -295,7 +295,10 @@ impl<'a> Compiler<'a> {
             from: p,
             component_type: ComponentType::Point,
         };
-        el.props = vec![SourcePlan::Fixed(f64::NAN)];
+        let mut props =
+            vec![SourcePlan::Fixed(f64::NAN); ComponentType::Polyline.prop_defs().len()];
+        Deferred::mark(ComponentType::Polyline, &mut props);
+        el.props = props;
         Ok(())
     }
 }

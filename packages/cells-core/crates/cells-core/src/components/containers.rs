@@ -4,18 +4,13 @@
 use super::define::*;
 use super::{ComponentTypeInfo, PropDef};
 
-/// The root. `creditAchieved` is wired after expansion
-/// (`build/expand/scoring.rs`).
+/// The root. `creditAchieved` and `percentCreditAchieved` are planned
+/// deferred and wired after expansion (`Deferred`,
+/// `build/expand/scoring.rs`).
 pub(super) const DOCUMENT: ComponentTypeInfo = info(&["document"], DOCUMENT_PROPS);
 
-const DOCUMENT_PROPS: &[PropDef] = &props([
-    planned("creditAchieved"),
-    computed(
-        "percentCreditAchieved",
-        OpSpec::Scale { k: 100.0 },
-        &["creditAchieved"],
-    ),
-]);
+const DOCUMENT_PROPS: &[PropDef] =
+    &props([planned("creditAchieved"), planned("percentCreditAchieved")]);
 
 pub mod document {
     use super::*;
@@ -115,15 +110,12 @@ pub const SECTION_TAGS: [(&str, &str, bool, bool); 6] = [
     ("example", "Example", false, false),
 ];
 
-// `creditAchieved` and `number` are wired after expansion; the
-// flags are literals the builder reads, since they decide the wiring.
+// `creditAchieved`, `percentCreditAchieved` and `number` are planned
+// deferred and wired after expansion (`Deferred`); the flags are literals
+// the builder reads, since they decide the wiring.
 const SECTION_PROPS: &[PropDef] = &props([
     planned("creditAchieved"),
-    computed(
-        "percentCreditAchieved",
-        OpSpec::Scale { k: 100.0 },
-        &["creditAchieved"],
-    ),
+    planned("percentCreditAchieved"),
     attr("weight", 1.0),
     planned("aggregateScores"),
     planned("number"),

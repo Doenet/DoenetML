@@ -797,12 +797,13 @@ impl<'c> Builder<'c> {
         };
         // With no gathered original in an iteration, the number gathered is
         // a constant at every count.
-        self.sources[s0 as usize] = if counts.is_empty() {
+        let count = if counts.is_empty() {
             Source::Fixed(copies.len() as f64)
         } else {
             self.follows_counts.insert(comp);
             self.reads(&counts, inst.scope)
         };
+        self.fill_deferred(s0, Deferred::CollectCount, count);
         self.collected.insert(comp, copies);
         Ok(())
     }
@@ -916,13 +917,20 @@ impl<'c> Builder<'c> {
             .len();
         for pi in 0..n_props {
             let s = self.slot(comp, pi);
-            if !matches!(self.sources[s as usize], Source::Unset) {
-                continue; // set during expansion (a collect's count)
-            }
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
             let plan = &c.templates[inst.template].elems[inst.elem].props[pi];
+            if matches!(plan, SourcePlan::Deferred(_)) {
+                continue; // wired from the tree (`fill_deferred`)
+            }
+            // Nothing but a deferred plan is given its source elsewhere: a
+            // slot's source is what its plan says.
+            assert!(
+                matches!(self.sources[s as usize], Source::Unset),
+                "{} was given a source before its plan",
+                self.slot_label(s)
+            );
             let source = match plan {
                 SourcePlan::FirstIteration(first, rest) => {
                     match self.view.plans(self.scopes[inst.scope].2) {
@@ -964,6 +972,8 @@ impl<'c> Builder<'c> {
         let component_type = self.components.component_type[comp as usize];
         let c: &'c Compiled = self.compiled;
         Ok(match plan {
+            // Left unset: wired from the tree by `fill_deferred`.
+            SourcePlan::Deferred(_) => Source::Unset,
             SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
             SourcePlan::Literal(v) => Source::Literal(*v),
             SourcePlan::TextLiteral(v) => {
@@ -1062,6 +1072,32 @@ impl<'c> Builder<'c> {
             }
             SourcePlan::VecOut(head, k) => Source::VecOut(self.slot(comp, *head as usize), *k),
         })
+    }
+
+    /// Wire `s`, a slot its plan defers as `kind` (`SourcePlan::Deferred`),
+    /// once the tree is built: only such a slot, and only once, so no
+    /// source the planner set is ever replaced.
+    pub(in crate::build) fn fill_deferred(&mut self, s: SlotId, kind: Deferred, source: Source) {
+        let comp = self.slot_comp[s as usize];
+        let deferred = comp != NONE && {
+            let i = self.comp_instance[comp as usize];
+            i != NONE && {
+                let inst = self.instances[i as usize];
+                let pi = (s - self.slot_base[comp as usize]) as usize;
+                matches!(
+                    self.compiled.templates[inst.template].elems[inst.elem]
+                        .props
+                        .get(pi),
+                    Some(SourcePlan::Deferred(k)) if *k == kind
+                )
+            }
+        };
+        assert!(
+            deferred && matches!(self.sources[s as usize], Source::Unset),
+            "{} is not a slot left to wire as {kind:?}",
+            self.slot_label(s)
+        );
+        self.sources[s as usize] = source;
     }
 
     /// An operator source over `inputs` (at most 255).

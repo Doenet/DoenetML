@@ -105,8 +105,7 @@ impl<'a> Compiler<'a> {
                 }
                 (None, PropFrom::Derived) => self.plan_op(t, scope, el)?,
                 // Set below (`plan_math_input`, `plan_section_flags`,
-                // `plan_select_from_sequence`) or wired once the whole tree
-                // exists (`scoring.rs`).
+                // `plan_select_from_sequence`, `Deferred::mark`).
                 (None, PropFrom::Planned)
                     if matches!(
                         component_type,
@@ -133,7 +132,9 @@ impl<'a> Compiler<'a> {
             &["fixed"]
         };
         self.plan_fix(t, scope, el, fix_attrs)?.apply(&mut props);
-        self.compiled.templates[t].elems[e].props = props.into_iter().map(|p| p.unwrap()).collect();
+        let mut props: Vec<SourcePlan> = props.into_iter().map(|p| p.unwrap()).collect();
+        Deferred::mark(component_type, &mut props);
+        self.compiled.templates[t].elems[e].props = props;
         Ok(())
     }
 

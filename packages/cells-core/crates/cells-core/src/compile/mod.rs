@@ -220,10 +220,13 @@ impl<'a> Compiler<'a> {
                 // Synthesize a root when the DAST was not normalized.
                 let e = cp.add_synthetic(0, ComponentType::Document, NONE);
                 let mut plan = ElemPlan::of(ComponentType::Document);
-                plan.set(prop::document::CREDIT, SourcePlan::Fixed(f64::NAN));
+                plan.set(
+                    prop::document::CREDIT,
+                    SourcePlan::Deferred(Deferred::Credit),
+                );
                 plan.set(
                     prop::document::PERCENT_CREDIT,
-                    SourcePlan::computed(OpSpec::Scale { k: 100.0 }, vec![prop::document::CREDIT]),
+                    SourcePlan::Deferred(Deferred::PercentCredit),
                 );
                 cp.compiled.templates[0].elems[e].props = plan.finish();
                 let kids = cp.add_children(0, Some(e), ROOT_SCOPE, dast.children(Dast::ROOT))?;
@@ -614,7 +617,9 @@ impl<'a> Compiler<'a> {
             // Every public prop aliases the original's; nothing else to plan.
             ElemShape::Cloned => {
                 let n = component_type.prop_defs().len();
-                self.compiled.templates[t].elems[e].props = vec![SourcePlan::Inherit; n];
+                let mut props = vec![SourcePlan::Inherit; n];
+                Deferred::mark(component_type, &mut props);
+                self.compiled.templates[t].elems[e].props = props;
                 Ok(())
             }
             // Synthesized elements (iteration values) come planned.
@@ -708,8 +713,9 @@ impl<'a> Compiler<'a> {
             from: p,
             component_type: ck,
         };
-        // `count` is set when the collect expands.
-        self.compiled.templates[t].elems[e].props = vec![SourcePlan::Fixed(f64::NAN)];
+        let mut props = vec![SourcePlan::Fixed(f64::NAN); ComponentType::Collect.prop_defs().len()];
+        Deferred::mark(ComponentType::Collect, &mut props);
+        self.compiled.templates[t].elems[e].props = props;
         Ok(())
     }
 

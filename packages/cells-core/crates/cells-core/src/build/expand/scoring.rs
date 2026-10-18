@@ -33,9 +33,10 @@ use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
 const _: () = assert!(document::CREDIT == CREDIT && document::PERCENT_CREDIT == PERCENT_CREDIT);
 
 impl<'c> Builder<'c> {
-    /// Wire the document's and every section's `creditAchieved`, and every
-    /// section's `number`. Runs after every prop has its source, replacing
-    /// the placeholders the planner left.
+    /// Wire the document's and every section's `creditAchieved` and
+    /// `percentCreditAchieved`, and every section's `number`: the slots
+    /// their plans defer (`SourcePlan::Deferred`). Runs after every other
+    /// prop has its source.
     pub(in crate::build) fn scoring_sources(&mut self) {
         let root = self.root;
         self.set_credit(root);
@@ -56,8 +57,10 @@ impl<'c> Builder<'c> {
     fn set_credit(&mut self, c: CompIdx) {
         match self.mean_credit(c) {
             Some(mean) => {
-                let s = self.slot(c, CREDIT);
-                self.sources[s as usize] = Source::Alias(mean);
+                let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
+                self.fill_deferred(s, Deferred::Credit, Source::Alias(mean));
+                let percent = self.op_source(OpSpec::Scale { k: 100.0 }, &[s]);
+                self.fill_deferred(p, Deferred::PercentCredit, percent);
             }
             None => self.set_constant_credit(c, 1.0),
         }
@@ -67,8 +70,8 @@ impl<'c> Builder<'c> {
     /// document with nothing to score costs no instruction.
     fn set_constant_credit(&mut self, c: CompIdx, credit: f64) {
         let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
-        self.sources[s as usize] = Source::Fixed(credit);
-        self.sources[p as usize] = Source::Fixed(100.0 * credit);
+        self.fill_deferred(s, Deferred::Credit, Source::Fixed(credit));
+        self.fill_deferred(p, Deferred::PercentCredit, Source::Fixed(100.0 * credit));
     }
 
     fn aggregates(&self, section: CompIdx) -> bool {
@@ -189,7 +192,7 @@ impl<'c> Builder<'c> {
                         ),
                     };
                     let s = self.slot(k, NUMBER);
-                    self.sources[s as usize] = number;
+                    self.fill_deferred(s, Deferred::SectionNumber, number);
                     match gate {
                         None => counter.fixed += 1.0,
                         Some(g) => {
