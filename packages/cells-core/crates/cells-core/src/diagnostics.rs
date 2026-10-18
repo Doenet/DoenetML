@@ -151,6 +151,7 @@ impl Error {
             Banned(_) => "cells-banned",
             NotInInterface { .. } => "cells-not-in-interface",
             Unchecked(_) => "cells-unchecked",
+            Internal(_) => "cells-internal",
         }
     }
 }

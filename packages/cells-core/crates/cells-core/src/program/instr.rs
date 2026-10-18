@@ -112,7 +112,9 @@ pub enum OpSpec {
 }
 
 impl OpSpec {
-    pub fn arity(&self) -> usize {
+    /// How many inputs the operator reads; `usize::MAX` for one that takes
+    /// any number (`accepts`).
+    pub const fn arity(&self) -> usize {
         match self {
             OpSpec::Add
             | OpSpec::Sub
@@ -144,6 +146,15 @@ impl OpSpec {
         }
     }
 
+    /// Whether the operator can read `n` inputs: its arity, or any number
+    /// for a template's leaves.
+    pub const fn accepts(&self, n: usize) -> bool {
+        match self {
+            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => true,
+            _ => self.arity() == n,
+        }
+    }
+
     pub fn n_out(&self) -> usize {
         match self {
             OpSpec::Vec(v) => v.n_out(),
@@ -156,12 +167,13 @@ impl OpSpec {
     /// in `operands`; a symbolic one also reserves `n_out` entries after them
     /// for its memo.
     pub fn bind(&self, inputs: &[CellIdx], operands: &mut Vec<CellIdx>) -> Op {
-        debug_assert!(
-            inputs.len() == self.arity()
-                || matches!(
-                    self,
-                    OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. })
-                )
+        // The compile checks every planned operator (`compile::check_arity`);
+        // one the build makes with the wrong count is a core bug, stopped
+        // here with its name rather than at an index out of bounds.
+        assert!(
+            self.accepts(inputs.len()),
+            "{self:?} bound to {} inputs",
+            inputs.len()
         );
         let park = |operands: &mut Vec<CellIdx>, leaves: &[CellIdx]| {
             let start = operands.len() as u32;
@@ -199,6 +211,170 @@ impl OpSpec {
             OpSpec::Vec(v) => {
                 let (start, n) = park(operands, inputs);
                 Op::Vec(v, start, n, v.n_out() as u8)
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod arity {
+    use super::*;
+    use crate::program::vector::{RigidOpts, VecOp};
+
+    /// A number per operator. Adding a variant does not compile until it is
+    /// given one here, and then `every_operator_works_at_its_arity` fails
+    /// until `every` has one of it.
+    fn tag(op: &OpSpec) -> usize {
+        match op {
+            OpSpec::Add => 0,
+            OpSpec::Sub => 1,
+            OpSpec::Mul => 2,
+            OpSpec::Div => 3,
+            OpSpec::Min => 4,
+            OpSpec::Max => 5,
+            OpSpec::Default => 6,
+            OpSpec::Negate => 7,
+            OpSpec::Round => 8,
+            OpSpec::Floor => 9,
+            OpSpec::Scale { .. } => 10,
+            OpSpec::Offset { .. } => 11,
+            OpSpec::Clamp { .. } => 12,
+            OpSpec::NanTo { .. } => 13,
+            OpSpec::Lerp { .. } => 14,
+            OpSpec::Pow => 15,
+            OpSpec::Hold => 16,
+            OpSpec::Lt => 17,
+            OpSpec::Le => 18,
+            OpSpec::Eq => 19,
+            OpSpec::Truthy => 20,
+            OpSpec::Not => 21,
+            OpSpec::Vec(v) => {
+                22 + match v {
+                    VecOp::Shape { .. } => 0,
+                    VecOp::CircleCenterPoint => 1,
+                    VecOp::CirclePoints { .. } => 2,
+                    VecOp::CircleTwoPointsRadius => 3,
+                    VecOp::PolarSlope => 4,
+                    VecOp::PolarDirection { .. } => 5,
+                    VecOp::LinePointsFromCoeffs => 6,
+                    VecOp::ProjectCircle => 7,
+                    VecOp::ProjectLine => 8,
+                    VecOp::First { .. } => 9,
+                    VecOp::Choose { .. } => 10,
+                    VecOp::WeightedMean { .. } => 11,
+                }
+            }
+            OpSpec::Sym(k) => {
+                34 + match k {
+                    SymKind::Instantiate { .. } => 0,
+                    SymKind::Evaluate => 1,
+                    SymKind::EvalAt => 2,
+                    SymKind::Derivative => 3,
+                    SymKind::Equals => 4,
+                    SymKind::EqualsSyntax => 5,
+                    SymKind::Sample => 6,
+                    SymKind::SampleTape { .. } => 7,
+                }
+            }
+        }
+    }
+    const N_TAGS: usize = 42;
+
+    fn every() -> Vec<OpSpec> {
+        let k = 2.0;
+        vec![
+            OpSpec::Add,
+            OpSpec::Sub,
+            OpSpec::Mul,
+            OpSpec::Div,
+            OpSpec::Min,
+            OpSpec::Max,
+            OpSpec::Default,
+            OpSpec::Negate,
+            OpSpec::Round,
+            OpSpec::Floor,
+            OpSpec::Scale { k },
+            OpSpec::Offset { k },
+            OpSpec::Clamp { lo: 0.0, hi: 1.0 },
+            OpSpec::NanTo { k },
+            OpSpec::Lerp { t: 0.5 },
+            OpSpec::Pow,
+            OpSpec::Hold,
+            OpSpec::Lt,
+            OpSpec::Le,
+            OpSpec::Eq,
+            OpSpec::Truthy,
+            OpSpec::Not,
+            OpSpec::Vec(VecOp::Shape {
+                n: 3,
+                opts: RigidOpts::RIGID,
+            }),
+            OpSpec::Vec(VecOp::CircleCenterPoint),
+            OpSpec::Vec(VecOp::CirclePoints { n: 3 }),
+            OpSpec::Vec(VecOp::CircleTwoPointsRadius),
+            OpSpec::Vec(VecOp::PolarSlope),
+            OpSpec::Vec(VecOp::PolarDirection {
+                perpendicular: true,
+            }),
+            OpSpec::Vec(VecOp::LinePointsFromCoeffs),
+            OpSpec::Vec(VecOp::ProjectCircle),
+            OpSpec::Vec(VecOp::ProjectLine),
+            OpSpec::Vec(VecOp::First { n: 3 }),
+            OpSpec::Vec(VecOp::Choose { n: 3 }),
+            OpSpec::Vec(VecOp::WeightedMean { n: 3 }),
+            OpSpec::Sym(SymKind::Instantiate {
+                template: 0,
+                post: Post::None,
+            }),
+            OpSpec::Sym(SymKind::Evaluate),
+            OpSpec::Sym(SymKind::EvalAt),
+            OpSpec::Sym(SymKind::Derivative),
+            OpSpec::Sym(SymKind::Equals),
+            OpSpec::Sym(SymKind::EqualsSyntax),
+            OpSpec::Sym(SymKind::Sample),
+            OpSpec::Sym(SymKind::SampleTape { tape: 0 }),
+        ]
+    }
+
+    // Each operator binds, evaluates and inverts at the arity it declares,
+    // so an arity group that disagrees with the operator's arms (an input
+    // read past the declared count) fails here, not in a document.
+    #[test]
+    fn every_operator_works_at_its_arity() {
+        let ops = every();
+        let mut tags: Vec<usize> = ops.iter().map(tag).collect();
+        tags.sort();
+        tags.dedup();
+        assert_eq!(
+            tags,
+            (0..N_TAGS).collect::<Vec<_>>(),
+            "`every` misses an operator"
+        );
+        for spec in ops {
+            let n = if spec.arity() == usize::MAX {
+                2
+            } else {
+                spec.arity()
+            };
+            assert!(spec.accepts(n));
+            let inputs: Vec<CellIdx> = (0..n as CellIdx).collect();
+            let mut operands = Vec::new();
+            let op = spec.bind(&inputs, &mut operands);
+            let cells: Vec<f64> = (0..n).map(|i| 1.0 + i as f64).collect();
+            match spec {
+                OpSpec::Vec(v) => {
+                    let mut out = vec![0.0; v.n_out()];
+                    v.eval(&cells, &mut out);
+                }
+                // Evaluated through the engine (`tests/symbolic.rs`).
+                OpSpec::Sym(_) => {}
+                _ => {
+                    op.eval(&cells);
+                    op.invert(&cells, 1.5);
+                }
+            }
+            if spec.arity() != usize::MAX {
+                assert!(!spec.accepts(n + 1), "{spec:?}");
             }
         }
     }

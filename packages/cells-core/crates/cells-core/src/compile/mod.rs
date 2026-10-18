@@ -176,6 +176,34 @@ impl<'a> Compiler<'a> {
         }
     }
 
+    /// Every operator a plan names reads as many inputs as it takes. One
+    /// that does not is a core bug, reported on its element here rather
+    /// than when a build binds it (`OpSpec::bind`).
+    fn check_arity(&mut self) -> Result<()> {
+        fn misbound(p: &SourcePlan) -> Option<(OpSpec, usize)> {
+            match p {
+                SourcePlan::Op(op, args) if !op.accepts(args.len()) => Some((*op, args.len())),
+                SourcePlan::FirstIteration(a, b) => misbound(a).or_else(|| misbound(b)),
+                _ => None,
+            }
+        }
+        for tpl in &self.compiled.templates {
+            for el in &tpl.elems {
+                if let Some((op, n)) = el.props.iter().find_map(misbound) {
+                    let tag = el.component_type.tag();
+                    let error = Error::Internal(format!(
+                        "<{tag}> plans {op:?} over {n} inputs, which takes {}",
+                        op.arity()
+                    ));
+                    let node = el.node;
+                    self.fail_at(node);
+                    return Err(error);
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn compile_all(&mut self) -> Result<()> {
         let cp = self;
         let dast = cp.dast;
@@ -232,6 +260,7 @@ impl<'a> Compiler<'a> {
             }
         }
         cp.finish_choices()?;
+        cp.check_arity()?;
         // Slot offsets, now that planned types know their hidden slot count.
         for tpl in &mut cp.compiled.templates {
             let mut off = 0;

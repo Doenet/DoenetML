@@ -63,6 +63,12 @@ pub(super) const fn computed(
     op: OpSpec,
     args: &'static [&'static str],
 ) -> Prop {
+    // A table's computed prop names its operator's inputs: a wrong count
+    // fails to compile.
+    assert!(
+        op.accepts(args.len()),
+        "a computed prop's operator takes another number of args"
+    );
     prop_from(name, f64::NAN, Source::Computed(op, args))
 }
 

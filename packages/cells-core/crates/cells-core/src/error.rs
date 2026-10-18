@@ -85,6 +85,8 @@ pub enum Error {
         "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
     )]
     Unchecked(String),
+    #[error("the core planned an element it cannot build (a core bug): {0}")]
+    Internal(String),
     #[error("'{name}' is not in the branch interface of '{choice}': {reason}")]
     NotInInterface {
         choice: String,

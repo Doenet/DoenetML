@@ -139,7 +139,7 @@ fn active_branch(choice: f64, n: u8) -> Option<usize> {
 }
 
 impl VecOp {
-    pub fn n_in(&self) -> usize {
+    pub const fn n_in(&self) -> usize {
         match *self {
             VecOp::Shape { n, .. } => 2 * n as usize + 2,
             VecOp::CircleCenterPoint => 4,
