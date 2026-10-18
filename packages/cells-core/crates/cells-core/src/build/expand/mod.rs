@@ -599,20 +599,21 @@ impl<'c> Builder<'c> {
             (Resolved::Missing, _) => {
                 self.components.component_type[idx as usize] = ComponentType::Number;
                 self.allocate_slots(idx, 1);
-                let s = self.slot(idx, 0);
+                let s = self.slot(idx, prop::number::VALUE);
                 self.sources[s as usize] = Source::Alias(self.missing_slot());
             }
             (_, Some(prop)) => {
                 let targets = self.targets_of(target, Some(prop), plan, Some(1))?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
-                self.components.component_type[idx as usize] = if is_text {
-                    ComponentType::Text
+                let (component_type, value) = if is_text {
+                    (ComponentType::Text, prop::text::VALUE)
                 } else {
-                    ComponentType::Number
+                    (ComponentType::Number, prop::number::VALUE)
                 };
+                self.components.component_type[idx as usize] = component_type;
                 self.allocate_slots(idx, 1);
-                let s = self.slot(idx, 0);
+                let s = self.slot(idx, value);
                 self.sources[s as usize] = Source::Alias(targets[0]);
                 self.record_label(s, targets[0]);
             }
@@ -705,8 +706,9 @@ impl<'c> Builder<'c> {
             (Body::PointList { from }, _) => {
                 let items = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
+                    let n = ComponentType::Point.prop_defs().len();
                     let pt =
-                        self.new_component(ComponentType::Point, NONE, comp, NONE, inst.scope, 3);
+                        self.new_component(ComponentType::Point, NONE, comp, NONE, inst.scope, n);
                     let (sx, sy, sh) = (
                         self.slot(pt, prop::point::X),
                         self.slot(pt, prop::point::Y),
@@ -788,7 +790,7 @@ impl<'c> Builder<'c> {
             copies.push(copy);
         }
         self.set_children(comp, &copies);
-        let s0 = self.slot(comp, 0);
+        let s0 = self.slot(comp, prop::collect::COUNT);
         let counts = match self.view.collect_count() {
             CollectCount::Gathered => Vec::new(),
             CollectCount::RepeatCounts => self.gathered_counts(&found),
@@ -1028,7 +1030,8 @@ impl<'c> Builder<'c> {
             }
             SourcePlan::MathValue(expr) => {
                 if self.is_symbolic(comp) {
-                    let expr = self.slot(comp, 0);
+                    // Planned only as a `<math>`'s value (`math_props`).
+                    let expr = self.slot(comp, prop::math::EXPR);
                     self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
                 } else {
                     let id = self.instantiate_expr(*expr, inst.scope)?;

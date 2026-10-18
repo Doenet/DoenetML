@@ -277,7 +277,49 @@ pub(crate) struct ElemPlan {
     pub(crate) role_attr: HashMap<&'static str, &'static str>,
 }
 
+/// A point's props: its coordinates, and `hide` at its default.
+pub(crate) fn point_props(x: SourcePlan, y: SourcePlan) -> Vec<SourcePlan> {
+    use crate::components::prop::point;
+    let mut plan = ElemPlan::of(ComponentType::Point);
+    plan.set(point::X, x);
+    plan.set(point::Y, y);
+    let hide = ComponentType::Point.prop_defs()[point::HIDE].default;
+    plan.set(point::HIDE, SourcePlan::Default(hide));
+    plan.finish()
+}
+
+/// A math's props: its expression, with `post` applied, and its value.
+pub(crate) fn math_props(id: ExprId, post: Post) -> Vec<SourcePlan> {
+    use crate::components::prop::math;
+    let mut plan = ElemPlan::of(ComponentType::Math);
+    plan.set(math::EXPR, SourcePlan::MathHandle(id, post));
+    plan.set(math::VALUE, SourcePlan::MathValue(id));
+    plan.finish()
+}
+
+/// A tuple's props: its entry count, its entries, and NaN in the entries
+/// past them.
+pub(crate) fn tuple_props(entries: Vec<SourcePlan>) -> Vec<SourcePlan> {
+    use crate::components::prop::tuple;
+    let mut plan = ElemPlan::of(ComponentType::Tuple);
+    plan.set(tuple::N, SourcePlan::Fixed(entries.len() as f64));
+    let n_entries = plan.props.len() - tuple::X1;
+    debug_assert!(entries.len() <= n_entries, "checked against MAX_TUPLE");
+    let mut entries = entries.into_iter();
+    for k in 0..n_entries {
+        let p = entries.next().unwrap_or(SourcePlan::Fixed(f64::NAN));
+        plan.set(tuple::X1 + k, p);
+    }
+    plan.finish()
+}
+
 impl ElemPlan {
+    /// A plan for an element of `component_type`, one public slot per prop
+    /// in its table, each set by its name's position (`components::prop`).
+    pub(crate) fn of(component_type: ComponentType) -> Self {
+        Self::new(component_type.prop_defs().len())
+    }
+
     pub(crate) fn new(n_public: usize) -> Self {
         ElemPlan {
             props: vec![None; n_public],

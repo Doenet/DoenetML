@@ -334,7 +334,10 @@ impl<'a> Compiler<'a> {
                 {
                     return id;
                 }
-                match self.compiled.templates[t].elems[target].props.first() {
+                match self.compiled.templates[t].elems[target]
+                    .props
+                    .get(prop::math::EXPR)
+                {
                     Some(SourcePlan::MathHandle(inner, _)) => {
                         let inner = *inner;
                         let mut syms = Vec::new();

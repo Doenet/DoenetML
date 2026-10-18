@@ -62,10 +62,22 @@ const SEQUENCE_VALUE_PROPS: &[PropDef] = &props([
     computed("value", OpSpec::Add, &["scaled", "from"]),
 ]);
 
+pub mod sequence_value {
+    use super::*;
+    pub const FROM: usize = at(SEQUENCE_VALUE_PROPS, "from");
+    pub const STEP: usize = at(SEQUENCE_VALUE_PROPS, "step");
+    pub const K: usize = at(SEQUENCE_VALUE_PROPS, "k");
+}
+
 /// `<collect>`: its children are copies of the collected components.
 pub(super) const COLLECT: ComponentTypeInfo = info(&["collect"], COLLECT_PROPS);
 
 const COLLECT_PROPS: &[PropDef] = &props([attr("count", 0.0)]);
+
+pub mod collect {
+    use super::*;
+    pub const COUNT: usize = at(COLLECT_PROPS, "count");
+}
 
 /// `<conditionalContent>`, a reactive choice (ADR 0009). Its `choice` cell
 /// is the 1-based position of the first case whose condition holds, or 0.
@@ -82,6 +94,7 @@ const CONDITIONAL_CONTENT_PROPS: &[PropDef] = &props([planned("choice"), planned
 pub mod conditional_content {
     use super::*;
     pub const CHOICE: usize = at(CONDITIONAL_CONTENT_PROPS, "choice");
+    pub const HIDE: usize = at(CONDITIONAL_CONTENT_PROPS, "hide");
 }
 
 /// One built branch of a reactive choice: `active` is 1 while it is the

@@ -4,7 +4,11 @@
 //! break a reader.
 
 pub use super::containers::{document, graph, section, sticky_group};
-pub use super::geometry::{circle, line, point, polygon, segment};
-pub use super::inputs::{choice, choice_input, math_input, text_input};
-pub use super::structure::{case, conditional_content, function_iterates, select_from_sequence};
-pub use super::values::{answer, award, math, response, text, tuple, update_value, when};
+pub use super::geometry::{circle, line, point, polygon, polyline, segment};
+pub use super::inputs::{boolean_input, choice, choice_input, math_input, text_input};
+pub use super::structure::{
+    case, collect, conditional_content, function_iterates, select_from_sequence, sequence_value,
+};
+pub use super::values::{
+    answer, award, boolean, curve, math, number, response, text, tuple, update_value, when,
+};

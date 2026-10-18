@@ -22,7 +22,9 @@
 //! text answers, `matchPartial`, feedback) is refused, never left blank.
 
 use super::*;
-use crate::components::prop::{answer, award, choice, choice_input, math_input, response, when};
+use crate::components::prop::{
+    answer, award, choice, choice_input, math_input, response, text_input, when,
+};
 
 /// Most choices one `Choose` reads: the choice cell and one credit each.
 const MAX_CHOICES: usize = crate::program::MAX_VEC_IN - 1;
@@ -139,7 +141,7 @@ impl<'a> Compiler<'a> {
         };
         plan.set(answer::RESPONSE, response);
         plan.set(
-            1,
+            answer::CORRECT,
             if text_nodes.is_empty() {
                 SourcePlan::Fixed(f64::NAN)
             } else {
@@ -161,7 +163,10 @@ impl<'a> Compiler<'a> {
                 answer::CREDIT,
                 SourcePlan::Op(
                     OpSpec::Sym(eq),
-                    vec![Arg::Own(own_slot(answer::SUBMITTED)), Arg::Own(own_slot(1))],
+                    vec![
+                        Arg::Own(own_slot(answer::SUBMITTED)),
+                        Arg::Own(own_slot(answer::CORRECT)),
+                    ],
                 ),
             );
             self.compiled.templates[t].elems[e].props = plan.finish();
@@ -228,7 +233,7 @@ impl<'a> Compiler<'a> {
             answer::RESPONSE,
             SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
         );
-        plan.set(1, SourcePlan::Fixed(f64::NAN));
+        plan.set(answer::CORRECT, SourcePlan::Fixed(f64::NAN));
         plan.set(answer::SUBMITTED, SourcePlan::Literal(0.0));
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
@@ -288,9 +293,9 @@ impl<'a> Compiler<'a> {
         let mut plan = ElemPlan::new(ComponentType::Answer.prop_defs().len());
         plan.set(
             answer::RESPONSE,
-            SourcePlan::Alias(Arg::Elem(ti, own_slot(0))),
+            SourcePlan::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
         );
-        plan.set(1, SourcePlan::Fixed(f64::NAN));
+        plan.set(answer::CORRECT, SourcePlan::Fixed(f64::NAN));
         plan.set(answer::SUBMITTED, SourcePlan::TextLiteral(f64::NAN));
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,

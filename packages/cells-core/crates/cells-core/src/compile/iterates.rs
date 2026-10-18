@@ -5,8 +5,10 @@ use super::*;
 use crate::components::MAX_TUPLE;
 use crate::components::prop::function_iterates;
 
-/// The props of a tuple, in table order.
-const TUPLE_PROPS: [&str; 1 + MAX_TUPLE] = ["n", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"];
+/// The name of a tuple's prop at position `i`, from its table.
+fn tuple_prop(i: usize) -> &'static str {
+    ComponentType::Tuple.prop_defs()[i].name
+}
 
 impl<'a> Compiler<'a> {
     /// The element a plan names, wherever it is up the template nesting,
@@ -84,7 +86,7 @@ impl<'a> Compiler<'a> {
                         }),
                         Step::Elem(0),
                     ],
-                    prop: Some(TUPLE_PROPS[j + 1].to_string()),
+                    prop: Some(tuple_prop(crate::components::prop::tuple::X1 + j).to_string()),
                     display: format!("(previous iterate).{}", vars[j]),
                     node: NONE,
                 });
@@ -129,15 +131,14 @@ impl<'a> Compiler<'a> {
             exprs.push(id);
         }
         let firsts = self.plan_initial_value(sub, el, n)?;
-        let mut props = vec![SourcePlan::Fixed(n as f64)];
-        for (j, first) in firsts.into_iter().enumerate() {
-            props.push(SourcePlan::FirstIteration(
-                Box::new(first),
-                Box::new(SourcePlan::Math(exprs[j])),
-            ));
-        }
-        props.resize(1 + MAX_TUPLE, SourcePlan::Fixed(f64::NAN));
-        self.compiled.templates[sub].elems[0].props = props;
+        let entries = firsts
+            .into_iter()
+            .enumerate()
+            .map(|(j, first)| {
+                SourcePlan::FirstIteration(Box::new(first), Box::new(SourcePlan::Math(exprs[j])))
+            })
+            .collect();
+        self.compiled.templates[sub].elems[0].props = tuple_props(entries);
         Ok(())
     }
 
@@ -255,8 +256,8 @@ impl<'a> Compiler<'a> {
                 terms: vec![IndexTerm::Iter(0), IndexTerm::Const(offset)],
             }));
             steps.push(Step::Elem(0));
-            let props = TUPLE_PROPS
-                .iter()
+            let props = (0..ComponentType::Tuple.prop_defs().len())
+                .map(tuple_prop)
                 .map(|prop| {
                     self.compiled.refs.push(RefPlan {
                         hops: base.hops + 1,

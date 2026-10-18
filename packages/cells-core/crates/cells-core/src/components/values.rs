@@ -14,6 +14,11 @@ pub(super) const NUMBER: ComponentTypeInfo = info(&["number"], NUMBER_PROPS)
 
 const NUMBER_PROPS: &[PropDef] = &props([children("value")]);
 
+pub mod number {
+    use super::*;
+    pub const VALUE: usize = at(NUMBER_PROPS, "value");
+}
+
 /// `<boolean>`: `value` is a 0/1 cell. Literal content (`true`, `false`,
 /// nothing) makes it essential; a lone `$ref` aliases the referent; a
 /// condition or a comparison of expressions makes it derived
@@ -24,6 +29,11 @@ pub(super) const BOOLEAN: ComponentTypeInfo = info(&["boolean"], BOOLEAN_PROPS)
     .default_prop("value");
 
 const BOOLEAN_PROPS: &[PropDef] = &props([children("value")]);
+
+pub mod boolean {
+    use super::*;
+    pub const VALUE: usize = at(BOOLEAN_PROPS, "value");
+}
 
 /// `<text>` with literal content: `value` is a fixed cell holding the
 /// string id of its text (ADR 0009). A cell's meaning is a property of
@@ -105,6 +115,15 @@ const CURVE_PROPS: &[PropDef] = &props([
     planned("samples"),
 ]);
 
+/// `<function>` and `<derivative>`, which share their table.
+pub mod curve {
+    use super::*;
+    pub const EXPR: usize = at(CURVE_PROPS, "expr");
+    pub const XMIN: usize = at(CURVE_PROPS, "xmin");
+    pub const XMAX: usize = at(CURVE_PROPS, "xmax");
+    pub const SAMPLES: usize = at(CURVE_PROPS, "samples");
+}
+
 /// `<answer>`: `submitted` is an essential math cell that a submit request
 /// sets to the response; `credit` compares it with `correct`
 /// (`symbolicEquality`: as written), or, with `<award>` children, is the
@@ -129,6 +148,7 @@ const ANSWER_PROPS: &[PropDef] = &props([
 pub mod answer {
     use super::*;
     pub const RESPONSE: usize = at(ANSWER_PROPS, "response");
+    pub const CORRECT: usize = at(ANSWER_PROPS, "correct");
     pub const SUBMITTED: usize = at(ANSWER_PROPS, "submitted");
     pub const CREDIT: usize = at(ANSWER_PROPS, "credit");
     pub const WEIGHT: usize = at(ANSWER_PROPS, "weight");

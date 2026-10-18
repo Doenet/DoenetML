@@ -59,8 +59,10 @@ impl Document {
     pub fn answer_inputs(&self, answer: CompIdx) -> Vec<CompIdx> {
         let reads = |c: CompIdx, cell: CellIdx| match self.component_type(c) {
             ComponentType::MathInput => self.comp_cells(c)[prop::math_input::EXPR] == cell,
-            ComponentType::BooleanInput | ComponentType::TextInput | ComponentType::ChoiceInput => {
-                self.comp_cells(c)[0] == cell
+            ComponentType::BooleanInput => self.comp_cells(c)[prop::boolean_input::VALUE] == cell,
+            ComponentType::TextInput => self.comp_cells(c)[prop::text_input::VALUE] == cell,
+            ComponentType::ChoiceInput => {
+                self.comp_cells(c)[prop::choice_input::SELECTED_INDEX] == cell
             }
             _ => false,
         };

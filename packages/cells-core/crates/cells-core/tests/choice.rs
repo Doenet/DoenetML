@@ -75,7 +75,10 @@ fn built_cases_report_which_is_active() {
     let active: Vec<f64> = doc
         .children(cc)
         .filter_map(|ch| match ch {
-            cells_core::Child::Component(c) => Some(doc.cells[doc.comp_cells(c)[0] as usize]),
+            cells_core::Child::Component(c) => {
+                let active = doc.comp_cells(c)[cells_core::components::prop::case::ACTIVE];
+                Some(doc.cells[active as usize])
+            }
             _ => None,
         })
         .collect();

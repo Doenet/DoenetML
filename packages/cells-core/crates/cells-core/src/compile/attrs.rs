@@ -2,7 +2,7 @@
 //! `<op>`, or math text, and the helpers that read attribute text.
 
 use super::*;
-use crate::components::prop::{math_input, section};
+use crate::components::prop::{math_input, section, text, text_input};
 
 impl<'a> Compiler<'a> {
     /// Plans for a type described by `PropFrom`: attributes, bindings,
@@ -251,15 +251,16 @@ impl<'a> Compiler<'a> {
             ..
         } = self.compiled.templates[t].elems[e];
         let nodes: Vec<NodeId> = d.children(el).to_vec();
-        let mut plan = ElemPlan::new(component_type.prop_defs().len());
+        use crate::components::prop::{curve, graph};
+        let mut plan = ElemPlan::of(component_type);
         if component_type == ComponentType::Function && self.is_vector_function(t, scope, el)? {
             // Not a curve and not a math cell: a function of several
             // variables, or one returning a tuple, is only iterated
             // (`plan_function_iterates` reads its text).
-            plan.set(0, SourcePlan::Fixed(f64::NAN));
-            plan.set(1, SourcePlan::Fixed(-10.0));
-            plan.set(2, SourcePlan::Fixed(10.0));
-            plan.set(3, SourcePlan::Fixed(f64::NAN));
+            plan.set(curve::EXPR, SourcePlan::Fixed(f64::NAN));
+            plan.set(curve::XMIN, SourcePlan::Fixed(-10.0));
+            plan.set(curve::XMAX, SourcePlan::Fixed(10.0));
+            plan.set(curve::SAMPLES, SourcePlan::Fixed(f64::NAN));
             self.compiled.templates[t].elems[e].props = plan.finish();
             return Ok(());
         }
@@ -267,11 +268,11 @@ impl<'a> Compiler<'a> {
         match component_type {
             ComponentType::Function | ComponentType::Derivative => {
                 if component_type == ComponentType::Function {
-                    plan.set(0, SourcePlan::SymExpr(id, Post::None));
+                    plan.set(curve::EXPR, SourcePlan::SymExpr(id, Post::None));
                 } else {
                     let of = plan.hidden(SourcePlan::SymExpr(id, Post::None));
                     plan.set(
-                        0,
+                        curve::EXPR,
                         SourcePlan::Op(
                             OpSpec::Sym(SymKind::Derivative),
                             vec![Arg::Own(own_slot(of))],
@@ -284,19 +285,24 @@ impl<'a> Compiler<'a> {
                     .then_some(scope);
                 match graph {
                     Some(g) => {
-                        plan.set(1, SourcePlan::Alias(Arg::Elem(g, 0)));
-                        plan.set(2, SourcePlan::Alias(Arg::Elem(g, 1)));
+                        let at = |p: usize| SourcePlan::Alias(Arg::Elem(g, own_slot(p)));
+                        plan.set(curve::XMIN, at(graph::XMIN));
+                        plan.set(curve::XMAX, at(graph::XMAX));
                     }
                     None => {
-                        plan.set(1, SourcePlan::Fixed(-10.0));
-                        plan.set(2, SourcePlan::Fixed(10.0));
+                        plan.set(curve::XMIN, SourcePlan::Fixed(-10.0));
+                        plan.set(curve::XMAX, SourcePlan::Fixed(10.0));
                     }
                 }
                 plan.set(
-                    3,
+                    curve::SAMPLES,
                     SourcePlan::Op(
                         OpSpec::Sym(SymKind::Sample),
-                        vec![Arg::Own(0), Arg::Own(1), Arg::Own(2)],
+                        vec![
+                            Arg::Own(own_slot(curve::EXPR)),
+                            Arg::Own(own_slot(curve::XMIN)),
+                            Arg::Own(own_slot(curve::XMAX)),
+                        ],
                     ),
                 );
             }
@@ -333,15 +339,16 @@ impl<'a> Compiler<'a> {
             .copied()
             .filter(|&n| !self.is_blank(n))
             .collect();
-        let mut plan = ElemPlan::new(1);
+        let mut plan = ElemPlan::of(ComponentType::Text);
         match nodes.as_slice() {
-            [] => plan.set_text_essential(0, "value", self.intern_literal("") as f64),
+            [] => plan.set_text_essential(text::VALUE, "value", self.intern_literal("") as f64),
             [n] if d.kind(*n) == NodeKind::Text => {
-                plan.set_text_essential(0, "value", d.str_id(*n) as f64)
+                plan.set_text_essential(text::VALUE, "value", d.str_id(*n) as f64)
             }
-            [n] if d.kind(*n) == NodeKind::Macro => {
-                plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, *n)?))
-            }
+            [n] if d.kind(*n) == NodeKind::Macro => plan.set(
+                text::VALUE,
+                SourcePlan::reference(self.plan_ref(t, scope, *n)?),
+            ),
             _ => {
                 return Err(Error::Unsupported(
                     "<text> whose content mixes text, references or elements".into(),
@@ -368,17 +375,21 @@ impl<'a> Compiler<'a> {
             .copied()
             .filter(|&n| !self.is_blank(n))
             .collect();
-        let mut plan = ElemPlan::new(1);
+        let mut plan = ElemPlan::of(ComponentType::TextInput);
         match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
-            ([n], _) if d.kind(*n) == NodeKind::Macro => {
-                plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, *n)?))
-            }
+            ([n], _) if d.kind(*n) == NodeKind::Macro => plan.set(
+                text_input::VALUE,
+                SourcePlan::reference(self.plan_ref(t, scope, *n)?),
+            ),
             ([], Some(a)) => {
                 let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
                     attr: "bindValueTo".into(),
                     text: self.attr_text(a).unwrap_or_default(),
                 })?;
-                plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, m)?));
+                plan.set(
+                    text_input::VALUE,
+                    SourcePlan::reference(self.plan_ref(t, scope, m)?),
+                );
             }
             ([], None) => {
                 let text = match d.attr(el, "prefill") {
@@ -386,7 +397,7 @@ impl<'a> Compiler<'a> {
                     None => String::new(),
                 };
                 let id = self.intern_literal(&text);
-                plan.set_text_essential(0, "value", id as f64);
+                plan.set_text_essential(text_input::VALUE, "value", id as f64);
             }
             _ => {
                 return Err(Error::Unsupported(

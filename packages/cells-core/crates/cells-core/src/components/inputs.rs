@@ -19,6 +19,11 @@ pub(super) const BOOLEAN_INPUT: ComponentTypeInfo = info(&["booleanInput"], BOOL
 
 const BOOLEAN_INPUT_PROPS: &[PropDef] = &props([attr("value", 0.0).bind("bindValueTo")]);
 
+pub mod boolean_input {
+    use super::*;
+    pub const VALUE: usize = at(BOOLEAN_INPUT_PROPS, "value");
+}
+
 /// `<choiceInput>`: `selectedIndex` is the 1-based position of the chosen
 /// `<choice>` child, 0 for none; it is the input's own state. Choices are
 /// shown in document order (`shuffleOrder` is not modelled);

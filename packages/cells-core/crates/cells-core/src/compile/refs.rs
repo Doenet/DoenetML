@@ -400,7 +400,7 @@ impl<'a> Compiler<'a> {
                         tt = self.compiled.templates[tt].parent.unwrap().0;
                     }
                     let el = &self.compiled.templates[tt].elems[e];
-                    match (el.component_type, el.props.first()) {
+                    match (el.component_type, el.props.get(prop::number::VALUE)) {
                         (ComponentType::Number, Some(SourcePlan::IterIndex)) => {
                             terms.push(IndexTerm::Iter(hops))
                         }

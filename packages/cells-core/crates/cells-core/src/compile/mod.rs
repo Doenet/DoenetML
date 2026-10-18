@@ -190,10 +190,13 @@ impl<'a> Compiler<'a> {
             None => {
                 // Synthesize a root when the DAST was not normalized.
                 let e = cp.add_synthetic(0, ComponentType::Document, NONE);
-                cp.compiled.templates[0].elems[e].props = vec![
-                    SourcePlan::Fixed(f64::NAN),
+                let mut plan = ElemPlan::of(ComponentType::Document);
+                plan.set(prop::document::CREDIT, SourcePlan::Fixed(f64::NAN));
+                plan.set(
+                    prop::document::PERCENT_CREDIT,
                     SourcePlan::computed(OpSpec::Scale { k: 100.0 }, vec![prop::document::CREDIT]),
-                ];
+                );
+                cp.compiled.templates[0].elems[e].props = plan.finish();
                 let kids = cp.add_children(0, Some(e), ROOT_SCOPE, dast.children(Dast::ROOT))?;
                 cp.compiled.templates[0].elems[e].children = kids;
                 vec![Child::Elem(e)]
@@ -460,18 +463,17 @@ impl<'a> Compiler<'a> {
                     // k is the iteration position; the rest is the type's chain.
                     let from = self.own_prop_plan(e, "from");
                     let step = self.own_prop_plan(e, "step");
-                    let mut props = vec![
-                        SourcePlan::reference(from),
-                        SourcePlan::reference(step),
-                        SourcePlan::IterIndex,
-                    ];
-                    for def in ComponentType::SequenceValue.prop_defs().iter().skip(3) {
-                        let PropFrom::Computed { op, args } = def.from else {
-                            unreachable!()
-                        };
-                        props.push(SourcePlan::from_def(op, &args));
+                    use prop::sequence_value as sv;
+                    let mut plan = ElemPlan::of(ComponentType::SequenceValue);
+                    plan.set(sv::FROM, SourcePlan::reference(from));
+                    plan.set(sv::STEP, SourcePlan::reference(step));
+                    plan.set(sv::K, SourcePlan::IterIndex);
+                    for (i, def) in ComponentType::SequenceValue.prop_defs().iter().enumerate() {
+                        if let PropFrom::Computed { op, args } = def.from {
+                            plan.set(i, SourcePlan::from_def(op, &args));
+                        }
                     }
-                    self.compiled.templates[sub].elems[v].props = props;
+                    self.compiled.templates[sub].elems[v].props = plan.finish();
                 }
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
                     let i = self.add_synthetic(sub, ComponentType::Number, iname);
@@ -613,9 +615,8 @@ impl<'a> Compiler<'a> {
             && expr::split_top(inner, &Token::Comma).len() == 2
         {
             let [x, y] = self.plan_tuple(t, scope, &nodes)?;
-            let hide = ComponentType::Point.prop_defs()[prop::point::HIDE].default;
             self.compiled.templates[t].elems[e].component_type = ComponentType::Point;
-            self.compiled.templates[t].elems[e].props = vec![x, y, SourcePlan::Default(hide)];
+            self.compiled.templates[t].elems[e].props = point_props(x, y);
             return Ok(());
         }
         if let Some(inner) = expr::unwrap_parens(&toks)
@@ -629,17 +630,13 @@ impl<'a> Compiler<'a> {
                     crate::components::MAX_TUPLE
                 )));
             }
-            let mut props = vec![SourcePlan::Fixed(parts.len() as f64)];
+            let mut entries = Vec::with_capacity(parts.len());
             for part in &parts {
                 let id = self.parse_tokens(part, &text)?;
-                props.push(self.plan_from_expr(id));
+                entries.push(self.plan_from_expr(id));
             }
-            props.resize(
-                1 + crate::components::MAX_TUPLE,
-                SourcePlan::Fixed(f64::NAN),
-            );
             self.compiled.templates[t].elems[e].component_type = ComponentType::Tuple;
-            self.compiled.templates[t].elems[e].props = props;
+            self.compiled.templates[t].elems[e].props = tuple_props(entries);
             return Ok(());
         }
         let id = self.plan_sym_math(t, scope, &nodes)?;
@@ -650,8 +647,7 @@ impl<'a> Compiler<'a> {
         } else {
             Post::None
         };
-        self.compiled.templates[t].elems[e].props =
-            vec![SourcePlan::MathHandle(id, post), SourcePlan::MathValue(id)];
+        self.compiled.templates[t].elems[e].props = math_props(id, post);
         Ok(())
     }
 

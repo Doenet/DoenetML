@@ -173,7 +173,8 @@ fn sir_loads_and_iterates() {
         .collect();
     assert_eq!(polylines.len(), 3);
     for &p in &polylines {
-        assert_eq!(doc.cells[doc.comp_cells(p)[0] as usize], 201.0);
+        let count = doc.comp_cells(p)[cells_core::components::prop::polyline::NUM_VERTICES];
+        assert_eq!(doc.cells[count as usize], 201.0);
     }
     // Presentation attributes are read from the element.
     assert_eq!(

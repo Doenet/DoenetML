@@ -6,6 +6,7 @@
 //! expressions compared in the engine under the compare attributes.
 
 use super::*;
+use crate::components::prop::boolean;
 
 impl<'a> Compiler<'a> {
     /// A `<boolean>` that extends another component aliases its value;
@@ -57,7 +58,7 @@ impl<'a> Compiler<'a> {
             .map(|&n| d.str(n))
             .collect();
         let text = text.trim();
-        let mut plan = ElemPlan::new(1);
+        let mut plan = ElemPlan::of(ComponentType::Boolean);
         // Literal content is state: `<boolean>false</boolean>` can be set.
         let literal = match (macros, text.to_ascii_lowercase().as_str()) {
             (0, "") => Some(0.0),
@@ -68,7 +69,7 @@ impl<'a> Compiler<'a> {
             _ => None,
         };
         if let Some(v) = literal {
-            plan.set_essential(0, "value", v);
+            plan.set_essential(boolean::VALUE, "value", v);
             self.compiled.templates[t].elems[e].props = plan.finish();
             return Ok(());
         }
@@ -79,7 +80,7 @@ impl<'a> Compiler<'a> {
         }
         let compare = self.compare_attrs(&[el]);
         let slot = self.plan_condition_content(t, scope, &nodes, compare, &mut plan)?;
-        plan.set(0, SourcePlan::own(slot));
+        plan.set(boolean::VALUE, SourcePlan::own(slot));
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }

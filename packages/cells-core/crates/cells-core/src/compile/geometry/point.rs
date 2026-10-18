@@ -19,7 +19,7 @@ impl Compiler<'_> {
             name_scope: scope,
             ..
         } = self.compiled.templates[t].elems[e];
-        let mut ch = ElemPlan::new(ComponentType::Point.prop_defs().len());
+        let mut ch = ElemPlan::of(ComponentType::Point);
         let own_children = self.math_children(el);
         let base_children = base.map(|b| self.math_children(b)).unwrap_or_default();
         if let Some(a) = self.attr_or_inherited(el, base, "coords") {
@@ -29,7 +29,7 @@ impl Compiler<'_> {
             || self.attr_or_inherited(el, base, "y").is_some()
             || (own_children.is_empty() && base_children.is_empty())
         {
-            for (i, name) in ["x", "y"].into_iter().enumerate() {
+            for (i, name) in [(point::X, "x"), (point::Y, "y")] {
                 match self.attr_or_inherited(el, base, name) {
                     Some(a) => {
                         let plan = self.plan_scalar(t, scope, name, d.attr_children(a))?;

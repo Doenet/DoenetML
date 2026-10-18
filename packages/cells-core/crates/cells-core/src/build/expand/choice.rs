@@ -58,7 +58,8 @@ impl<'c> Builder<'c> {
             let choice = self.slot(comp, crate::components::prop::conditional_content::CHOICE);
             for k in 1..=def.branches.len() {
                 let s = self.scope_for(scope, node, k as u32);
-                let case = self.new_component(ComponentType::Case, NONE, comp, NONE, scope, 1);
+                let n = ComponentType::Case.prop_defs().len();
+                let case = self.new_component(ComponentType::Case, NONE, comp, NONE, scope, n);
                 let pos = self.anon_slot(Source::Fixed(k as f64), scope);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
                 self.sources[active_slot as usize] = self.op_source(OpSpec::Eq, &[choice, pos]);
@@ -225,7 +226,8 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn choice_sources(&mut self) -> Result<()> {
         for i in 0..self.choice_insts.len() {
             let inst = self.choice_insts[i].clone();
-            let choice = (!inst.every_option).then(|| self.slot(inst.comp, 0));
+            let choice = (!inst.every_option)
+                .then(|| self.slot(inst.comp, prop::conditional_content::CHOICE));
             let def = &self.compiled.choices[inst.def];
             for (u, &ic) in inst.iface_comps.iter().enumerate() {
                 let members = self.stand_ins[&ic].clone();

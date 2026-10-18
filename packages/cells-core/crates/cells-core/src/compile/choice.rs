@@ -16,6 +16,7 @@
 //! tick and was removed. See ADR 0009.)
 
 use super::*;
+use crate::components::prop::conditional_content;
 
 /// `Choose` reads the choice cell and one cell per branch; `First` one
 /// condition per case. Vector operators read at most `MAX_VEC_IN`.
@@ -259,8 +260,8 @@ impl<'a> Compiler<'a> {
             self.compiled.templates[t].elems[e].props = vec![hide];
             return Ok(());
         }
-        let mut plan = ElemPlan::new(2);
-        plan.set(1, hide);
+        let mut plan = ElemPlan::of(ComponentType::ConditionalContent);
+        plan.set(conditional_content::HIDE, hide);
         let mut conds = Vec::new();
         for c in self.compiled.choices[cid].conditions.clone() {
             conds.push(match c {
@@ -280,7 +281,7 @@ impl<'a> Compiler<'a> {
             },
             conds,
         ));
-        plan.set(0, SourcePlan::own(first));
+        plan.set(conditional_content::CHOICE, SourcePlan::own(first));
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }

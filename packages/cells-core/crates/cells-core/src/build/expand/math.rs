@@ -323,7 +323,7 @@ impl<'c> Builder<'c> {
                 let i = self.instances[inst as usize];
                 match self.compiled.templates[i.template].elems[i.elem]
                     .props
-                    .first()
+                    .get(prop::math::EXPR)
                 {
                     Some(SourcePlan::MathHandle(id, _)) => {
                         let id = *id;

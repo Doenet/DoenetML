@@ -25,6 +25,9 @@ pub mod point {
     pub const X: usize = at(POINT_PROPS, "x");
     pub const Y: usize = at(POINT_PROPS, "y");
     pub const HIDE: usize = at(POINT_PROPS, "hide");
+    // A sticky group reads a member's points as (x, y) pairs from the
+    // position its layout names (`sticky`, `document/sticky.rs`).
+    const _: () = assert!(Y == X + 1, "a point's y must follow its x");
 }
 
 /// `<circle>`: center and radius are derived or essential depending on
@@ -157,6 +160,11 @@ pub mod segment {
     pub const Y1: usize = at(LINE_SEGMENT_PROPS, "y1");
     pub const X2: usize = at(LINE_SEGMENT_PROPS, "x2");
     pub const Y2: usize = at(LINE_SEGMENT_PROPS, "y2");
+    // Read as (x, y) pairs by a sticky group, like a point's.
+    const _: () = assert!(
+        Y1 == X1 + 1 && X2 == X1 + 2 && Y2 == X1 + 3,
+        "a segment's endpoints must be x1 y1 x2 y2"
+    );
 }
 
 /// `<polygon vertices="...">`, optionally rigid. Up to `MAX_VERTICES`.
@@ -221,3 +229,8 @@ pub(super) const POINT_LIST: ComponentTypeInfo = info(&["pointList"], &[]);
 pub(super) const POLYLINE: ComponentTypeInfo = info(&["polyline"], POLYLINE_PROPS).copyable();
 
 const POLYLINE_PROPS: &[PropDef] = &props([planned("numVertices")]);
+
+pub mod polyline {
+    use super::*;
+    pub const NUM_VERTICES: usize = at(POLYLINE_PROPS, "numVertices");
+}

@@ -421,7 +421,7 @@ impl<'c> Builder<'c> {
             let stand_in = || {
                 self.follows_counts
                     .iter()
-                    .any(|&c| slot_to_cell[self.slot(c, 0) as usize] == src)
+                    .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT) as usize] == src)
             };
             if src as usize >= n_known && !stand_in() {
                 // The seeded element is boxed (ADR 0013).

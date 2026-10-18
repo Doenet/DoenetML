@@ -4,7 +4,7 @@
 mod common;
 
 use cells_core::Document;
-use cells_core::components::ComponentType;
+use cells_core::components::{ComponentType, prop};
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error};
 use common::{set, type_into};
@@ -51,17 +51,23 @@ fn a_bare_answer_owns_an_implicit_math_input() {
         "the input renders inside the answer"
     );
     assert_eq!(doc.name(mi), None);
-    assert!(doc.is_essential(doc.comp_cells(mi)[1]), "an unbound input");
+    assert!(
+        doc.is_essential(doc.comp_cells(mi)[prop::math_input::EXPR]),
+        "an unbound input"
+    );
     // Type into it by cell, as a renderer would.
     let h = doc.parse_math("x*2").unwrap();
     doc.request(&[cells_core::Request {
-        cell: doc.comp_cells(mi)[1],
+        cell: doc.comp_cells(mi)[prop::math_input::EXPR],
         value: h,
     }]);
     assert_eq!(credit(&doc, "a"), 0.0);
     doc.submit(a);
     assert_eq!(credit(&doc, "a"), 1.0);
-    assert_eq!(doc.math_text(doc.comp_cells(a)[2]), "x * 2");
+    assert_eq!(
+        doc.math_text(doc.comp_cells(a)[prop::answer::SUBMITTED]),
+        "x * 2"
+    );
     assert_eq!(doc.value("a", "numSubmissions"), Some(1.0));
     doc.submit(a);
     assert_eq!(doc.value("a", "numSubmissions"), Some(2.0));
@@ -95,7 +101,7 @@ fn awards_with_content_take_the_most_credited() {
     assert_eq!(doc.component_type(mi), ComponentType::MathInput);
     let typed = |doc: &mut Document, s: &str| {
         let h = doc.parse_math(s).unwrap();
-        let cell = doc.comp_cells(mi)[1];
+        let cell = doc.comp_cells(mi)[prop::math_input::EXPR];
         doc.request(&[cells_core::Request { cell, value: h }]);
         doc.submit(a);
         credit(doc, "a")
