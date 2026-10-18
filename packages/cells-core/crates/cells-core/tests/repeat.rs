@@ -258,15 +258,31 @@ fn nested_repeats_scope_names_per_iteration_and_survive_rebuilds() {
     assert_eq!(reference::check(&doc), None);
 }
 
+// A repeat no build has stamped yet is stamped with the count its plan
+// gives (`build/expand/estimate.rs`), so a count from an input settles in
+// one pass; one the estimate cannot follow (a math value) is stamped
+// empty and settles in the next.
 #[test]
-fn load_settles_in_two_passes_and_reports_it() {
+fn load_settles_in_one_pass_when_the_count_is_estimated() {
     let (doc, t) = Document::load(
         cells_core::testing::test_utils::dast_json(POINTS).as_bytes(),
         Default::default(),
     )
     .unwrap();
-    assert_eq!(t.passes, 2);
+    assert_eq!(t.passes, 1);
     assert!(doc.structure_settled());
+    assert_eq!(doc.structure.repeats[0].iterations, 3);
+    let (doc, t) = Document::load(
+        cells_core::testing::test_utils::dast_json(
+            r#"<mathInput name="m" prefill="3"/>
+               <repeatForSequence name="r" length="$m"><point/></repeatForSequence>"#,
+        )
+        .as_bytes(),
+        Default::default(),
+    )
+    .unwrap();
+    assert_eq!(t.passes, 2);
+    assert_eq!(doc.structure.repeats[0].iterations, 3);
     let (_, t) = Document::load(
         cells_core::testing::test_utils::dast_json(r#"<point name="p"/>"#).as_bytes(),
         Default::default(),
@@ -277,10 +293,12 @@ fn load_settles_in_two_passes_and_reports_it() {
 
 #[test]
 fn structural_depth_counts_cross_iteration_count_dependencies() {
-    // Counts from inputs or from another repeat's count are depth 1 and
-    // settle in the second pass. A nested repeat is one deeper, because its
-    // count cannot exist until the enclosing iteration does, but that is
-    // not a warning: nesting is ordinary authoring.
+    // Counts from inputs or from another repeat's count are depth 1. A
+    // nested repeat is one deeper, because its count cannot exist until
+    // the enclosing iteration does, but that is not a warning: nesting is
+    // ordinary authoring. Every count here is estimated right, from the
+    // input, another count and the iteration's index, so one pass settles
+    // them all.
     let (doc, t) = Document::load(
         cells_core::testing::test_utils::dast_json(
             r#"<numberInput name="n" value="2"/>
@@ -298,7 +316,7 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
         vec![1, 2, 2, 1],
         "a, then c in each of b's iterations (recorded before b), then b"
     );
-    assert_eq!(t.passes, 3);
+    assert_eq!(t.passes, 1);
     assert!(doc.warnings().is_empty());
 
     // A count that reads a cell inside another repeat's iterations is one
@@ -309,11 +327,12 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
            <repeatForSequence name="b" length="$a[3].k"><point name="q" x="2"/></repeatForSequence>
            <repeatForSequence name="c" length="$b[1].q.x"><point/></repeatForSequence>"#,
     ).as_bytes(), Default::default()).unwrap();
-    // b reads inside a, c reads inside b: a chain of two links, so depth 3
-    // and one pass per link beyond the two every repeat needs.
+    // b reads inside a, c reads inside b: a chain of two links, so depth 3.
+    // An index is past what the estimate follows, so b and c are stamped
+    // empty at first: a's count is estimated, then one pass per link.
     assert_eq!(doc.structure.structural_depth, 3);
     assert_eq!(doc.structure.repeat_depths, vec![1, 2, 3]);
-    assert_eq!(t.passes, 4);
+    assert_eq!(t.passes, 3);
     let w = doc.warnings();
     assert_eq!(w.len(), 2, "{w:?}");
     assert!(w[0].contains("'b'") && w[1].contains("'c'"), "{w:?}");
@@ -337,4 +356,49 @@ fn sibling_repeats_do_not_share_scopes() {
     doc.request(&[req(&doc, n, 3.0)]);
     assert_eq!(val(&doc, &["a", "2", "p"], "y"), 1.0);
     assert_eq!(val(&doc, &["b", "2", "p"], "y"), 7.0);
+}
+
+// A nested repeat in an outer iteration the last build did not have is
+// stamped with the count its plan gives, read from what the session
+// carries for that iteration (`build/expand/estimate.rs`): a returning
+// iteration's input as it was left, a new one's default. The rebuild then
+// settles in the one pass it makes, rather than stamping it empty and
+// building again.
+#[test]
+fn a_returning_iteration_stamps_its_nested_repeat_in_one_pass() {
+    let mut doc = load(
+        r#"<numberInput name="n" value="2"/>
+           <repeatForSequence name="outer" length="$n">
+             <numberInput name="m" value="2"/>
+             <repeatForSequence name="inner" length="$m"><point/></repeatForSequence>
+           </repeatForSequence>"#,
+    )
+    .unwrap();
+    let inner = |doc: &Document| -> Vec<u32> {
+        let mut r: Vec<_> = doc
+            .structure
+            .repeats
+            .iter()
+            .filter(|r| r.scope != 0)
+            .map(|r| (r.scope, r.iterations))
+            .collect();
+        r.sort();
+        r.into_iter().map(|(_, n)| n).collect()
+    };
+    assert_eq!(inner(&doc), [2, 2]);
+    let m2 = cell(&doc, &["outer", "2", "m"], "value");
+    let t = doc.request(&[req(&doc, m2, 5.0)]);
+    assert_eq!((t.rebuilt, t.rebuild_passes), (true, 1));
+    assert_eq!(inner(&doc), [2, 5]);
+    let n = doc.cell("n", "value").unwrap();
+    let t = doc.request(&[req(&doc, n, 1.0)]);
+    assert_eq!((t.rebuilt, t.rebuild_passes), (true, 1));
+    assert_eq!(inner(&doc), [2]);
+    // Iteration 2 returns with m as it was left, iteration 3 is new.
+    let t = doc.request(&[req(&doc, n, 3.0)]);
+    assert_eq!((t.rebuilt, t.rebuild_passes), (true, 1));
+    assert_eq!(inner(&doc), [2, 5, 2]);
+    assert_eq!(val(&doc, &["outer", "2", "m"], "value"), 5.0);
+    assert!(doc.structure_settled());
+    assert_eq!(reference::check(&doc), None);
 }

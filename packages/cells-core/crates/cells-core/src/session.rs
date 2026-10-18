@@ -115,7 +115,7 @@ impl Counts {
         self.0.insert((scope, node), n);
     }
 
-    pub(crate) fn get(&self, scope: ScopeId, node: NodeId) -> u32 {
-        self.0.get(&(scope, node)).copied().unwrap_or(0)
+    pub(crate) fn get(&self, scope: ScopeId, node: NodeId) -> Option<u32> {
+        self.0.get(&(scope, node)).copied()
     }
 }

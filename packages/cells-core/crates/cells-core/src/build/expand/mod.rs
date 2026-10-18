@@ -5,6 +5,7 @@
 use super::*;
 
 mod choice;
+mod estimate;
 mod math;
 mod resolve;
 mod scoring;
@@ -439,7 +440,10 @@ impl<'c> Builder<'c> {
             let kids = match self.compiled.templates[t].elems[e].body {
                 Body::Repeat { template } => {
                     let node = self.compiled.templates[t].elems[e].node;
-                    let n = self.view.iterations(scope, node);
+                    let n = match self.view.iterations(scope, node) {
+                        Some(n) => n,
+                        None => self.estimate_count(t, e, scope),
+                    };
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
                     for k in 1..=n {

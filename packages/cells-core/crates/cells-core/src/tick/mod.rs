@@ -37,4 +37,6 @@ pub struct TickOutcome {
     /// is as it was before the tick, `changed` is empty and `dropped`
     /// holds every request of the tick.
     pub rebuild_error: Option<String>,
+    /// How many build passes the rebuild took to settle; 0 without one.
+    pub rebuild_passes: u32,
 }

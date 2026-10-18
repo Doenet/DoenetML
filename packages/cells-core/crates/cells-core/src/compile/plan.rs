@@ -583,6 +583,25 @@ impl Compiled {
         })
     }
 
+    /// The element reference `p`, written in template `t`, names, wherever
+    /// it is up the template nesting, when the path is names only (no
+    /// index, no interface).
+    pub(crate) fn static_target(&self, t: TemplateId, p: RefId) -> Option<(TemplateId, ElemId)> {
+        let plan = &self.refs[p];
+        let mut tt = t;
+        for _ in 0..plan.hops {
+            tt = self.templates[tt].parent?.0;
+        }
+        let mut last = None;
+        for step in &plan.steps {
+            match step {
+                Step::Elem(e) => last = Some(*e),
+                Step::Index(_) | Step::Iface(..) => return None,
+            }
+        }
+        last.map(|e| (tt, e))
+    }
+
     /// Whether a later build can stamp it: the document has a repeat.
     pub fn rebuilds(&self) -> bool {
         self.rebuilds

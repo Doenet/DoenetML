@@ -20,8 +20,11 @@ pub(in crate::build) trait View {
     /// The seed a load-time choice draws from (ADR 0009).
     fn seed(&self) -> u64;
 
-    /// How many iterations repeat element `node` in `scope` is stamped with.
-    fn iterations(&self, scope: ScopeId, node: NodeId) -> u32;
+    /// How many iterations repeat element `node` in `scope` is stamped
+    /// with; None when the view was not told, for a repeat the build
+    /// before did not stamp (in an iteration it did not have), which the
+    /// build then estimates (`Builder::estimate_count`).
+    fn iterations(&self, scope: ScopeId, node: NodeId) -> Option<u32>;
 
     /// Which of `len` stamped entries index `k` (1-based) names, or `None`
     /// for the missing referent. The entries are a repeat's iterations, a
@@ -86,7 +89,7 @@ impl View for Stamped<'_> {
         self.session.seed
     }
 
-    fn iterations(&self, scope: ScopeId, node: NodeId) -> u32 {
+    fn iterations(&self, scope: ScopeId, node: NodeId) -> Option<u32> {
         self.counts.get(scope, node)
     }
 

@@ -96,7 +96,7 @@ pub struct Structure {
     /// Per repeat (same order as `repeats`): how many repeats must be
     /// expanded in sequence before this one's count is known, plus one.
     /// Nesting adds one; a count that reads a cell inside another repeat's
-    /// iterations adds one. Load takes `structural_depth + 1` passes.
+    /// iterations adds one. Load takes at most `structural_depth + 1` passes.
     pub repeat_depths: Vec<u32>,
     /// Per repeat: whether its count reads a cell inside another repeat's
     /// iterations (the avoidable kind of depth, reported by `warnings`).

@@ -113,8 +113,9 @@ impl Document {
             evaluator.recompute(&self.program, &mut self.cells, &mut tick.changed);
             if !self.structure_settled() {
                 match self.rebuild() {
-                    Ok(()) => {
+                    Ok(passes) => {
                         tick.rebuilt = true;
+                        tick.rebuild_passes = passes;
                         tick.changed.clear();
                     }
                     Err(e) => {

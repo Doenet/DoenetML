@@ -109,7 +109,14 @@ fixed, then derived) and binds operators into instructions
 topologically (`Program::schedule`), and the document computes every
 derived cell once. If a repeat's `count` cell now disagrees with the number
 of iterations it was built with, the build runs again at the new counts;
-`LoadTimings::passes` counts how many builds it took.
+`LoadTimings::passes` counts how many builds it took (`TickOutcome::
+rebuild_passes` for a rebuild). A repeat the build before did not stamp
+(every repeat at the first pass, a nested one in a new or returning
+iteration) is stamped with the count its plan gives from the values the
+session carries (`build/expand/estimate.rs`), so a count from an input,
+another count or an iteration's index settles in the pass that stamps
+it; a count the estimate cannot follow is stamped empty and settles in
+the next.
 
 **A user drags a point** (`Document::request` and friends,
 `document/request.rs`). The renderer sends cell-addressed requests

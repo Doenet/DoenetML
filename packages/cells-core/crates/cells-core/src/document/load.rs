@@ -205,11 +205,12 @@ impl Document {
     /// as it was, since a build reads the session and moves nothing out of
     /// the document. The math engine may have grown, which leaves every
     /// handle the document holds valid.
-    pub fn rebuild(&mut self) -> crate::Result<()> {
+    /// Returns how many passes it took.
+    pub fn rebuild(&mut self) -> crate::Result<u32> {
         let profile = crate::profile::enabled();
         // Without a repeat the structure never changes: nothing to rebuild.
         let Some(compiled) = self.compiled.clone() else {
-            return Ok(());
+            return Ok(0);
         };
         // The values as they are now are what the build carries.
         let n = self.n_essential;
@@ -220,7 +221,9 @@ impl Document {
         let mut next: Option<Session> = None;
         let passes = compiled.passes(MAX_PASSES);
         let mut result = Err(unsettled(passes));
+        let mut n = 0;
         for _ in 0..passes.unwrap_or(MAX_PASSES) {
+            n += 1;
             let clock = web_time::Instant::now();
             let session = next.as_ref().unwrap_or(&self.session);
             let built = match crate::build::build(&compiled, session, &counts, false) {
@@ -263,7 +266,7 @@ impl Document {
             next = Some(doc.session_with_values());
         }
         *self = result?;
-        Ok(())
+        Ok(n)
     }
 }
 

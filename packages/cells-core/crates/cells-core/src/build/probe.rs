@@ -54,8 +54,8 @@ impl View for Probe {
     }
 
     /// Every template is stamped once.
-    fn iterations(&self, _scope: ScopeId, _node: NodeId) -> u32 {
-        1
+    fn iterations(&self, _scope: ScopeId, _node: NodeId) -> Option<u32> {
+        Some(1)
     }
 
     /// An index past the stamped entries lands in them when they stand for

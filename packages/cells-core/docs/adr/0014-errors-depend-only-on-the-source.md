@@ -131,8 +131,12 @@ build instead of the whole probe.
 
 ## Amendment: the passes a structure needs
 
-A load or a rebuild builds until the structure settles, which takes one
-pass more than the document's structural depth. The passes were capped at
+A load or a rebuild builds until the structure settles, which takes at
+most one pass more than the document's structural depth (fewer when a
+repeat's count is estimated right before its count cell exists,
+`build/expand/estimate.rs`: what a repeat is first stamped with only
+decides what its own and deeper counts read in that pass, so the bound
+holds whatever it is). The passes were capped at
 eight, so a document whose counts chain through more repeats than that
 could load with an early repeat empty, then fail mid-session when a count
 filled the chain ("did not settle after 8 rebuilds"). The depth is a fact
