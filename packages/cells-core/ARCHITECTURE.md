@@ -109,14 +109,7 @@ fixed, then derived) and binds operators into instructions
 topologically (`Program::schedule`), and the document computes every
 derived cell once. If a repeat's `count` cell now disagrees with the number
 of iterations it was built with, the build runs again at the new counts;
-`LoadTimings::passes` counts how many builds it took (`TickOutcome::
-rebuild_passes` for a rebuild). A repeat the build before did not stamp
-(every repeat at the first pass, a nested one in a new or returning
-iteration) is stamped with the count its plan gives from the values the
-session carries (`build/expand/estimate.rs`), so a count from an input,
-another count or an iteration's index settles in the pass that stamps
-it; a count the estimate cannot follow is stamped empty and settles in
-the next.
+`LoadTimings::passes` counts how many builds it took.
 
 **A user drags a point** (`Document::request` and friends,
 `document/request.rs`). The renderer sends cell-addressed requests
@@ -138,7 +131,9 @@ builds the whole document again from the compile it kept at load
 reading the document's `Session` (ADR 0004): no compile, lint or check runs
 again, and nothing leaves the document until the new one is ready (the
 math engine, which the session holds, may grow). Scope ids are stable, so an iteration that comes
-back gets its old values. The outcome's `rebuilt` is set and cell indices
+back gets its old values, and its nested repeats the counts they last
+asked for (`Session::counts`), so the rebuild settles in one pass;
+`TickOutcome::rebuild_passes` says how many it took. The outcome's `rebuilt` is set and cell indices
 are new. If the rebuild fails, the document is left as it was and
 `rebuild_error` says why.
 

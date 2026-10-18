@@ -80,9 +80,13 @@ compile.
 `Session` holds what must survive every build and nothing a build can
 recompute: the scope table, every essential value by key (and values
 parked for scopes no build has stamped yet), strings interned at runtime,
-the math engine whose handles those values hold, and the seed. Saved state
-is `Session` serialized: `save_state` writes it and `restore_state` fills
-it, with no knowledge of builds.
+the math engine whose handles those values hold, and the seed. It also
+keeps the count every repeat last asked for (`Session::counts`), only a
+hint: a rebuild that brings an iteration back stamps its nested repeats
+with them rather than with none, which spares a second pass when they
+are still right. Saved state is `Session` serialized, all but that hint:
+`save_state` writes it and `restore_state` fills it, with no knowledge of
+builds.
 
 A build reads the session; it does not move it. When a build succeeds, its
 new essential values and scopes are written back to the session in one

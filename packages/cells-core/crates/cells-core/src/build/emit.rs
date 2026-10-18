@@ -277,6 +277,7 @@ impl<'c> Builder<'c> {
             sample_with_engine: self.session.sample_with_engine,
             scopes: self.scopes,
             values: self.session.values.clone(),
+            counts: self.session.counts.clone(),
             parked,
             runtime_strings: self.session.runtime_strings.clone(),
             engine: self.session.engine.clone(),

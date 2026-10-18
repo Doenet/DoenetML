@@ -29,6 +29,13 @@ pub struct Session {
     /// reappears returns as it was left. Rows fill lazily. Shared with the
     /// builds that read it, which leave it as it was.
     pub values: Arc<Vec<Vec<Option<f64>>>>,
+    /// The count every repeat that has existed last asked for, so a
+    /// repeat in an iteration that disappears and reappears is stamped
+    /// with it, not with none, and the rebuild that brings it back settles
+    /// in one pass. Recorded by each rebuild (`Document::rebuild`); a
+    /// count that changed meanwhile costs the pass it would have anyway.
+    /// Shared with the builds that read it.
+    pub counts: Arc<Counts>,
     /// Restored values whose scope no build has stamped yet, by (scope,
     /// element key, position): the build that stamps it takes them.
     pub parked: HashMap<(ScopeId, ElemKey, u32), f64>,
@@ -88,6 +95,7 @@ impl Session {
                 .iter()
                 .map(|r| r.capacity() * 16 + 24)
                 .sum::<usize>()
+            + self.counts.0.capacity() * 24
     }
 }
 
@@ -97,15 +105,14 @@ impl Session {
 pub struct Counts(HashMap<(ScopeId, NodeId), u32>);
 
 impl Counts {
-    /// What `doc`'s count cells ask for.
+    /// What `doc`'s count cells ask for, over the counts its session
+    /// keeps for repeats it no longer has.
     pub fn of(doc: &Document) -> Counts {
-        Counts(
-            doc.structure
-                .repeats
-                .iter()
-                .map(|r| ((r.scope, r.node), doc.repeat_count(r)))
-                .collect(),
-        )
+        let mut counts = (*doc.session.counts).clone();
+        for r in &doc.structure.repeats {
+            counts.0.insert((r.scope, r.node), doc.repeat_count(r));
+        }
+        counts
     }
 
     /// Stamp repeat element `node` in `scope` with `n` iterations, whatever
@@ -115,7 +122,7 @@ impl Counts {
         self.0.insert((scope, node), n);
     }
 
-    pub(crate) fn get(&self, scope: ScopeId, node: NodeId) -> Option<u32> {
-        self.0.get(&(scope, node)).copied()
+    pub(crate) fn get(&self, scope: ScopeId, node: NodeId) -> u32 {
+        self.0.get(&(scope, node)).copied().unwrap_or(0)
     }
 }

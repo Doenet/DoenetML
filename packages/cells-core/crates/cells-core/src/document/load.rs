@@ -217,6 +217,9 @@ impl Document {
         self.session
             .record(&self.structure.essential_slots, &self.cells[..n]);
         let mut counts = Counts::of(self);
+        // What every repeat asks for now, kept for an iteration this
+        // rebuild drops and a later one brings back.
+        self.session.counts = Arc::new(counts.clone());
         // The session a later pass reads: the last pass's.
         let mut next: Option<Session> = None;
         let passes = compiled.passes(MAX_PASSES);

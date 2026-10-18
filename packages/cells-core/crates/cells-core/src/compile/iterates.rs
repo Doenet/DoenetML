@@ -11,6 +11,28 @@ fn tuple_prop(i: usize) -> &'static str {
 }
 
 impl<'a> Compiler<'a> {
+    /// The element a plan names, wherever it is up the template nesting,
+    /// when the path is names only (no index, no interface).
+    pub(in crate::compile) fn static_target(
+        &self,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<(TemplateId, ElemId)> {
+        let plan = &self.compiled.refs[p];
+        let mut tt = t;
+        for _ in 0..plan.hops {
+            tt = self.compiled.templates[tt].parent?.0;
+        }
+        let mut last = None;
+        for step in &plan.steps {
+            match step {
+                Step::Elem(e) => last = Some(*e),
+                Step::Index(_) | Step::Iface(..) => return None,
+            }
+        }
+        last.map(|e| (tt, e))
+    }
+
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
         self.compiled
             .dast
@@ -41,7 +63,6 @@ impl<'a> Compiler<'a> {
         let fm = self.attr_macro(el, "functionIterates", "function")?;
         let fp = self.plan_ref(t, scope, fm)?;
         let (ft, fe) = self
-            .compiled
             .static_target(t, fp)
             .filter(|&(ft, fe)| {
                 self.compiled.templates[ft].elems[fe].component_type == ComponentType::Function
@@ -218,7 +239,7 @@ impl<'a> Compiler<'a> {
         base.prop = None;
         self.compiled.refs.push(base.clone());
         let base_id = self.compiled.refs.len() - 1;
-        match self.compiled.static_target(t, base_id) {
+        match self.static_target(t, base_id) {
             Some((ft, fe))
                 if self.compiled.templates[ft].elems[fe].component_type
                     == ComponentType::FunctionIterates => {}
