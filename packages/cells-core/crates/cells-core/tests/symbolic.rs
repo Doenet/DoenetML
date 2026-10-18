@@ -206,3 +206,53 @@ fn rebuilding_back_and_forth_does_not_grow_the_engine() {
     }
     assert_eq!(engine_len(&doc), len);
 }
+
+// A dragged group looks ahead (`realize`) at where its points would land,
+// stepping the symbolic instructions on the way on a copy of the cells: it
+// must leave no expression in the session's engine and no memo behind, and
+// give what the tick then computes.
+#[test]
+fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
+    use cells_core::tick::invert::realize;
+    let src = r#"<graph>
+             <point name="p">(1,2)</point>
+             <math name="m" simplify>$p.x x + 1</math>
+             <evaluate name="e" function="$m" input="3"/>
+             <point name="q">($e, 0)</point>
+           </graph>"#;
+    let mut doc = load(src).unwrap();
+    let cell = |doc: &Document, n: &str, p: &str| doc.cell(n, p).unwrap();
+    assert_eq!(doc.cells[cell(&doc, "q", "x") as usize], 4.0);
+    let ran = runs(&doc);
+    let asked = [
+        (cell(&doc, "p", "x"), 5.0),
+        (cell(&doc, "p", "y"), 2.0),
+        (cell(&doc, "q", "x"), 16.0),
+        (cell(&doc, "q", "y"), 0.0),
+    ];
+    let bits = |doc: &Document| doc.cells.iter().map(|v| v.to_bits()).collect::<Vec<_>>();
+    let (len, cells) = (engine_len(&doc), bits(&doc));
+    let mut realized = Vec::new();
+    realize(
+        &doc.program,
+        &doc.cells,
+        doc.n_essential,
+        &asked,
+        &mut realized,
+    );
+    assert_eq!(realized, [5.0, 2.0, 16.0, 0.0]);
+    assert_eq!(engine_len(&doc), len, "the lookahead kept an expression");
+    assert_eq!(runs(&doc), ran, "the lookahead counted as a run");
+    assert_eq!(bits(&doc), cells);
+    // The tick computes what the lookahead saw, through the memo it left.
+    doc.request(&[req(&doc, "p", "x", 5.0)]);
+    assert_eq!(doc.cells[cell(&doc, "q", "x") as usize], 16.0);
+    assert!(engine_len(&doc) > len, "the tick stores what it computes");
+    // As many runs as a tick no lookahead preceded: no memo the lookahead
+    // wrote spared one.
+    let mut fresh = load(src).unwrap();
+    let ran_fresh = runs(&fresh);
+    fresh.request(&[req(&fresh, "p", "x", 5.0)]);
+    assert_eq!(runs(&doc) - ran, runs(&fresh) - ran_fresh);
+    assert_eq!(reference::check(&doc), None);
+}

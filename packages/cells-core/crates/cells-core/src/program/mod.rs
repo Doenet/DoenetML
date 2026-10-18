@@ -34,7 +34,8 @@ pub enum ValueType {
 
 /// The document's symbolic engine and the memo of every symbolic
 /// instruction. Interior mutability because instructions run through
-/// `&Program`; the engine only grows (see `sym::Engine`).
+/// `&Program`; the engine only grows (see `sym::Engine`), but for what a
+/// lookahead stores and forgets (`Program::lookahead`).
 #[derive(Debug, Clone)]
 pub struct Sym {
     /// The session's engine (`Session::engine`), which the program shares.
@@ -251,10 +252,40 @@ impl Program {
         }
     }
 
+    /// Run `f`, which steps on a copy of the cells (`step_lookahead`), and
+    /// forget every expression it stored: what a request would do
+    /// (`tick::invert::realize`) is evaluated without leaving anything in
+    /// the session's engine or in a memo. `f` must keep no handle.
+    pub fn lookahead<R>(&self, f: impl FnOnce() -> R) -> R {
+        self.sym.engine.borrow_mut().begin_scratch();
+        let r = f();
+        self.sym.engine.borrow_mut().end_scratch();
+        r
+    }
+
+    /// Evaluate one instruction into a copy of the cells, within
+    /// `lookahead`: a symbolic instruction runs without its memo, which
+    /// keeps the inputs it last ran on in the document's cells.
+    pub fn step_lookahead(&self, ins: &Instr, cells: &mut [f64]) {
+        let Op::Sym(kind, start, n) = ins.op else {
+            return self.step(ins, cells, None);
+        };
+        let (start, n, out) = (start as usize, n as usize, ins.out as usize);
+        let inputs = &self.operands[start..start + n];
+        let mut outs = vec![0.0; kind.n_out()];
+        if let SymKind::SampleTape { tape } = kind {
+            self.run_tape(&self.tapes[tape as usize], cells, inputs, &mut outs);
+        } else {
+            let mut engine = self.sym.engine.borrow_mut();
+            run_sym(&mut engine, kind, cells, inputs, &mut outs);
+        }
+        cells[out..out + outs.len()].copy_from_slice(&outs);
+    }
+
     /// A symbolic instruction: rerun only if an input changed since its last
     /// run, then write the outputs of that run. Keyed on input values rather
-    /// than on a dirty flag, so stepping on a scratch copy (`realize`, the
-    /// reference evaluator) gives the same answer as stepping on the cells.
+    /// than on a dirty flag, so stepping on a scratch copy (the reference
+    /// evaluator) gives the same answer as stepping on the cells.
     #[inline(never)]
     fn step_sym(
         &self,

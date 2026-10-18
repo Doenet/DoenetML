@@ -5,7 +5,10 @@ at once (`Document::request_points`), and an inverse that moves several
 points (a circle's center or radius) produces one too. Before the request
 engine queues a group it asks what each point would actually become, by
 inverting the group on a scratch copy of the cells and evaluating forward,
-writing nothing (`Program::realize`). If a strict subset of the points is
+writing nothing (`tick::invert::realize`): not the cells, not a symbolic
+instruction's memo, which it steps past, and not the session's math
+engine, which forgets what the lookahead stored (`Program::lookahead`).
+If a strict subset of the points is
 held back, all by the same shift, the shift is applied to the rest, so a line
 dragged against a grid-snapped point stays parallel to itself and a circle
 keeps its radius. That is the only context an inverse ever gets: realized

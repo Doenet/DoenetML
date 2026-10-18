@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Compare the golden behavior dump (crates/cells-bench/examples/golden.rs)
-# of the working tree against a base commit (default HEAD). The base runs in
-# a temporary worktree with this tree's harness and documents copied in, so
-# both sides use the same script; set GOLDEN_OWN=1 to use the base's own
-# harness instead (when the Document API changed between them).
+# Compare the golden behavior dump (crates/cells-bench/examples/golden.rs,
+# running crates/cells-bench/src/script.rs) of the working tree against a
+# base commit (default HEAD). The base runs in a temporary worktree with
+# this tree's harness and documents copied in, so both sides use the same
+# script; set GOLDEN_OWN=1 to use the base's own harness instead (when the
+# Document API changed between them).
 #
 # Usage: scripts/golden-diff.sh [base-rev]
 set -euo pipefail
@@ -27,6 +28,10 @@ rm -rf "$bp/fixtures" && ln -s "$repo/fixtures" "$bp/fixtures"
 ln -s "$root/node_modules" "$wt/node_modules"
 if [[ "${GOLDEN_OWN:-0}" != 1 ]]; then
   cp "$repo/crates/cells-bench/examples/golden.rs" "$bp/crates/cells-bench/examples/"
+  # The script it runs (`cells_bench::script`), which a base may predate.
+  cp "$repo/crates/cells-bench/src/script.rs" "$bp/crates/cells-bench/src/"
+  grep -q '^pub mod script;' "$bp/crates/cells-bench/src/lib.rs" ||
+    echo 'pub mod script;' >> "$bp/crates/cells-bench/src/lib.rs"
   rm -rf "$bp/crates/cells-bench/golden"
   cp -r "$repo/crates/cells-bench/golden" "$bp/crates/cells-bench/"
 fi

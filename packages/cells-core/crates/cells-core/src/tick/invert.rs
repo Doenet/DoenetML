@@ -113,7 +113,10 @@ pub fn invert_requests(
 /// What `cells` would hold for each requested cell if the requests were
 /// applied: invert, overlay the essential writes on a copy, and evaluate
 /// forward the instructions that read a changed value, up to the last
-/// requested cell. Nothing is written.
+/// requested cell. Nothing is written: not the cells, not a symbolic
+/// instruction's memo, not the session's engine (`Program::lookahead`).
+/// The requested cells are a point's coordinates, numbers, so nothing
+/// returned is a handle the lookahead forgets.
 pub fn realize(
     program: &Program,
     cells: &[f64],
@@ -136,11 +139,13 @@ pub fn realize(
         .filter(|&p| p != u32::MAX)
         .max();
     if let Some(hi) = hi {
-        for ins in &program.instrs[..=hi as usize] {
-            if program.any_input_differs(ins, &scratch, cells) {
-                program.step(ins, &mut scratch, None);
+        program.lookahead(|| {
+            for ins in &program.instrs[..=hi as usize] {
+                if program.any_input_differs(ins, &scratch, cells) {
+                    program.step_lookahead(ins, &mut scratch);
+                }
             }
-        }
+        });
     }
     out.extend(requests.iter().map(|&(c, _)| scratch[c as usize]));
 }

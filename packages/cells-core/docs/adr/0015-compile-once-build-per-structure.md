@@ -235,7 +235,8 @@ build stamps; build uses nothing else of compile's.
 engine (`Rc<RefCell<Engine>>`); a build borrows it from the session it
 reads and passes it on to the next, and the program keeps a clone of the
 `Rc` for the tick, which reaches it as before, through one more pointer.
-The engine only grows, so a failed rebuild, which may have imported into
+The engine only grows (but for what a lookahead stores and forgets, ADR
+0006), so a failed rebuild, which may have imported into
 it, leaves every handle the document holds valid and gives nothing back:
 `take_engine` and `put_engine` are gone, and so is the fresh engine (and
 math parser) `take_engine` made for every rebuild. The probe still builds
