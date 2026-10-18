@@ -27,7 +27,7 @@ use crate::components::prop::{
 };
 
 /// Most choices one `Choose` reads: the choice cell and one credit each.
-const MAX_CHOICES: usize = crate::program::MAX_VEC_IN - 1;
+use crate::limits::MAX_CHOICES;
 
 /// An `<award>` as read from the DAST: its `<when>`, or its content.
 struct AwardForm {
@@ -249,7 +249,7 @@ impl<'a> Compiler<'a> {
         );
         let chosen = plan.hidden(SourcePlan::Op(
             OpSpec::Vec(VecOp::Choose {
-                n: choices.len() as u8,
+                n: byte(choices.len()),
             }),
             args,
         ));

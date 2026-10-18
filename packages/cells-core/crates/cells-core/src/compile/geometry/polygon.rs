@@ -65,7 +65,7 @@ impl Compiler<'_> {
                         .and_then(|a| self.attr_text(a))
                         .and_then(|s| s.trim().parse::<usize>().ok())
                         .unwrap_or(1);
-                    Pivot::Vertex(k.saturating_sub(1) as u8)
+                    Pivot::Vertex(byte(k.saturating_sub(1)))
                 }
                 "point" if pivot_point.is_some() => Pivot::Point,
                 _ => Pivot::Centroid,
@@ -112,7 +112,7 @@ impl Compiler<'_> {
                         args.push(ch.hidden(SourcePlan::Fixed(f64::NAN)));
                     }
                 }
-                ch.set_vec(polygon::X1, VecOp::Shape { n: n as u8, opts }, args);
+                ch.set_vec(polygon::X1, VecOp::Shape { n: byte(n), opts }, args);
             }
             // Free: the vertices are the points; a vertex may be defined
             // from its siblings without a cycle.

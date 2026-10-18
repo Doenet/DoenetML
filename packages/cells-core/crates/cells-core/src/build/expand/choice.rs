@@ -153,7 +153,7 @@ impl<'c> Builder<'c> {
         } else {
             MathMode::Numeric
         };
-        let n = members.len() as u8;
+        let n = byte(members.len());
         for pi in 0..component_type.prop_defs().len() {
             let branch_slots: Vec<SlotId> = members.iter().map(|&m| self.slot(m, pi)).collect();
             let kinds: Vec<ValueType> = branch_slots.iter().map(|&s| self.value_type(s)).collect();

@@ -161,7 +161,7 @@ impl Compiler<'_> {
             }
             (false, false, n) => {
                 let args: Vec<usize> = (0..2 * n).map(|k| tx1 + k).collect();
-                ch.set_vec(circle::CX, VecOp::CirclePoints { n: n as u8 }, args);
+                ch.set_vec(circle::CX, VecOp::CirclePoints { n: byte(n) }, args);
             }
             _ => unreachable!(),
         }

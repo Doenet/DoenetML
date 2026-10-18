@@ -24,7 +24,7 @@ use super::*;
 
 /// Most items one `WeightedMean` reads: weights and credits share
 /// `MAX_VEC_IN` inputs.
-const CHUNK: usize = crate::program::MAX_VEC_IN / 2;
+use crate::limits::SCORE_CHUNK as CHUNK;
 
 use crate::components::prop::{answer, document, section};
 use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
@@ -114,7 +114,7 @@ impl<'c> Builder<'c> {
                     .collect();
                 let source = self.op_source(
                     OpSpec::Vec(VecOp::WeightedMean {
-                        n: chunk.len() as u8,
+                        n: byte(chunk.len()),
                     }),
                     &inputs,
                 );

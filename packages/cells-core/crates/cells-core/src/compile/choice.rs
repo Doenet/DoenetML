@@ -20,7 +20,7 @@ use crate::components::prop::conditional_content;
 
 /// `Choose` reads the choice cell and one cell per branch; `First` one
 /// condition per case. Vector operators read at most `MAX_VEC_IN`.
-const MAX_CASES: usize = crate::program::MAX_VEC_IN - 1;
+use crate::limits::MAX_CASES;
 
 impl<'a> Compiler<'a> {
     /// Give a choice element its branch templates. `<group rendered="c">`
@@ -277,7 +277,7 @@ impl<'a> Compiler<'a> {
         // After the conditions, so creation order stays an evaluation order.
         let first = plan.hidden(SourcePlan::vector(
             VecOp::First {
-                n: conds.len() as u8,
+                n: byte(conds.len()),
             },
             conds,
         ));

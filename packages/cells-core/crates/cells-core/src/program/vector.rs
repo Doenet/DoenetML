@@ -130,7 +130,7 @@ pub enum VecOp {
 }
 
 /// Most inputs a vector operator reads.
-pub const MAX_VEC_IN: usize = 64;
+pub use crate::limits::MAX_VEC_IN;
 
 /// The input position of the active branch of a `Choose` over `n`
 /// branches, from its choice cell's value.

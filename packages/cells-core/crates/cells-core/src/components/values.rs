@@ -213,7 +213,7 @@ const CLAMP_NUMBER_PROPS: &[PropDef] = &props([
 ]);
 
 /// Most entries a tuple holds.
-pub const MAX_TUPLE: usize = 8;
+pub use crate::limits::MAX_TUPLE;
 
 /// A tuple of numbers: a `<math>` that is `(a, b, c)` with three or more
 /// entries (two make a point), and the iterates of a `<functionIterates>`.

@@ -235,3 +235,32 @@ fn a_structure_deeper_than_eight_passes_settles() {
     assert_eq!(loaded.structure.structural_depth, 10);
     assert!(loaded.structure.repeats.iter().all(|r| r.iterations == 1));
 }
+
+/// `n` numbers and a symbolic math referencing each of them once.
+fn math_over(n: usize) -> String {
+    let mut src = String::new();
+    for i in 0..n {
+        src.push_str(&format!(r#"<number name="a{i}">{}</number>"#, i + 1));
+    }
+    let refs: Vec<String> = (0..n).map(|i| format!("$a{i}")).collect();
+    src.push_str(&format!(
+        r#"<math name="m" simplify>x + {}</math>"#,
+        refs.join(" + ")
+    ));
+    src
+}
+
+// A math template counts its references in a byte: 255 compute, and a
+// 256th is reported at load, never wrapped.
+#[test]
+fn a_math_holds_at_most_255_references() {
+    let doc = load(&math_over(255)).unwrap();
+    assert_eq!(doc.math_text(doc.cell("m", "expr").unwrap()), "x + 32640");
+    let doc = load(&math_over(256)).unwrap();
+    assert!(doc.cell("m", "expr").is_none(), "the math is boxed");
+    let errs = errors(&doc);
+    assert!(
+        errs.iter().any(|e| e.contains("more than 255 references")),
+        "{errs:?}"
+    );
+}

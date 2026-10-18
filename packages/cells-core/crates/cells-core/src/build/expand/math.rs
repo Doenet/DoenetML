@@ -58,10 +58,12 @@ impl<'c> Builder<'c> {
         }
         let template = self.sym_templates.len() as u32;
         self.sym_templates.push(tree);
-        u8::try_from(leaves.len()).map_err(|_| Error::BadMath {
-            text: text.clone(),
-            reason: "more than 255 references".into(),
-        })?;
+        if leaves.len() > crate::limits::MAX_REFERENCES {
+            return Err(Error::BadMath {
+                text: text.clone(),
+                reason: format!("more than {} references", crate::limits::MAX_REFERENCES),
+            });
+        }
         Ok(self.op_source(
             OpSpec::Sym(SymKind::Instantiate { template, post }),
             &leaves,

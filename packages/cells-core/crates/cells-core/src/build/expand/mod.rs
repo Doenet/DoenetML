@@ -1003,7 +1003,7 @@ impl<'c> Builder<'c> {
                     }
                     self.op_inputs.push(slot);
                 }
-                Source::Op(*spec, start, args.len() as u8)
+                Source::Op(*spec, start, byte(args.len()))
             }
             SourcePlan::IterIndex => Source::Fixed(self.scopes[inst.scope].2 as f64),
             SourcePlan::SequencePick { from, step, count } => {
@@ -1068,7 +1068,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn op_source(&mut self, spec: OpSpec, inputs: &[SlotId]) -> Source {
         let start = self.op_inputs.len() as u32;
         self.op_inputs.extend_from_slice(inputs);
-        Source::Op(spec, start, inputs.len() as u8)
+        Source::Op(spec, start, byte(inputs.len()))
     }
 
     pub(in crate::build) fn op_slot(

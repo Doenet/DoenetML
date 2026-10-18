@@ -78,7 +78,7 @@ fn gate_slots(props: &mut Vec<Option<SourcePlan>>, flags: Vec<SourcePlan>) {
     }
     for i in 0..n {
         let moved = match &props[i] {
-            Some(SourcePlan::Inherit) => SourcePlan::InheritFrom(i as u8),
+            Some(SourcePlan::Inherit) => SourcePlan::InheritFrom(byte(i)),
             Some(
                 SourcePlan::Literal(_)
                 | SourcePlan::TextLiteral(_)

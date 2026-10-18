@@ -25,6 +25,7 @@ use crate::components::{ComponentType, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
 use crate::document::{CellIdx, NONE};
 use crate::error::{Error, Result};
+use crate::limits::byte;
 use crate::program::{OpSpec, Pivot, Post, RigidOpts, SymKind, VecOp};
 use crate::sym::Tree;
 use expr::{Arena, Expr, ExprId, Parser, Token};

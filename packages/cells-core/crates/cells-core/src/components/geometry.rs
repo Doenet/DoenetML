@@ -8,7 +8,7 @@ use super::{ArrayProp, ComponentTypeInfo, PropDef};
 use crate::tick::snap::Shape;
 
 /// Largest polygon the fixed prop layout holds.
-pub const MAX_VERTICES: usize = 16;
+pub use crate::limits::MAX_VERTICES;
 
 /// `<point>`. `coords` is a view over `x` and `y`.
 pub(super) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)

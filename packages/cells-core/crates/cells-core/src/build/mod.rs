@@ -43,6 +43,7 @@ use crate::dast::{NodeId, StrId, StringTable};
 use crate::diagnostics::Diagnostic;
 use crate::document::{CellIdx, CompIdx, ComponentTable, Document, NONE, TEXT_BIT};
 use crate::error::{Error, Result};
+use crate::limits::byte;
 use crate::program::VecOp;
 use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Program, Sym, ValueType};

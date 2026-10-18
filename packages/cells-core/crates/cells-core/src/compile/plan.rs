@@ -102,10 +102,10 @@ impl SourcePlan {
         SourcePlan::Alias(Arg::Ref(p, Sel::Whole))
     }
     pub(crate) fn coord(p: RefId, j: usize) -> Self {
-        SourcePlan::Alias(Arg::Ref(p, Sel::Coord(j as u8)))
+        SourcePlan::Alias(Arg::Ref(p, Sel::Coord(byte(j))))
     }
     pub(crate) fn item(p: RefId, i: usize, j: usize) -> Self {
-        SourcePlan::Alias(Arg::Ref(p, Sel::Item(i as u8, j as u8)))
+        SourcePlan::Alias(Arg::Ref(p, Sel::Item(byte(i), byte(j))))
     }
     pub(crate) fn own(slot: usize) -> Self {
         SourcePlan::Alias(Arg::Own(own_slot(slot)))
@@ -334,7 +334,7 @@ impl ElemPlan {
     /// and its other outputs at the slots after it.
     pub(crate) fn set_vec(&mut self, head: usize, op: VecOp, args: Vec<usize>) {
         for k in 1..op.n_out() {
-            self.set(head + k, SourcePlan::VecOut(own_slot(head), k as u8));
+            self.set(head + k, SourcePlan::VecOut(own_slot(head), byte(k)));
         }
         self.set(head, SourcePlan::vector(op, args));
     }
