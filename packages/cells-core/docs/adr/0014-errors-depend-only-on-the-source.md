@@ -78,8 +78,12 @@ rebuilds without any remapping.
 `tests/every_count.rs` holds the promise over every golden document and
 fixture: each is built at counts 0 to 4 for each repeat and at four
 seeds, as a later build with the load's boxes, and driven there by
-requests; an `Unchecked` anywhere fails the test. `tests/load_errors.rs`
-has the constructs that once broke it.
+requests; an `Unchecked` anywhere fails the test. Each such build, and each
+seed's build of a document without repeats, must also have only
+dependencies the probe's graph has, with labels its iterations satisfy
+(`build/coverage.rs`), so the probe's claim to stand for every build is
+checked, not assumed. `tests/load_errors.rs` has the constructs that once
+broke it.
 
 ## Adding a check
 

@@ -34,7 +34,8 @@ use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
 use cells_core::testing::test_utils::{dast_json, repo_root};
-use cells_core::{Document, Error, LoadOptions, Request};
+use cells_core::testing::{ProbeEdges, probe_edges, uncovered};
+use cells_core::{Compiled, Document, Error, LoadOptions, Request};
 
 const SEEDS: [u64; 4] = [0, 1, 2, 3];
 const COUNTS: std::ops::RangeInclusive<u32> = 0..=4;
@@ -213,17 +214,19 @@ fn check(name: &str, bytes: &[u8]) -> bool {
         let Ok((mut doc, _)) = Document::load(bytes, options) else {
             continue; // the promise is about documents that load
         };
+        let compiled = doc.compiled.clone().expect("a document with a repeat");
+        let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
         let at = |what: &str| format!("{name}, seed {seed}, {what}");
         for &node in &nodes {
             for c in COUNTS {
                 let what = at(&format!("repeat node {node} at {c}"));
-                stamp(&what, seed, &doc, &|n| (n == node).then_some(c));
+                stamp(&what, seed, &doc, &probe, &|n| (n == node).then_some(c));
                 drive(&what, &mut doc, &|n| n == node, c);
             }
         }
         for c in COUNTS {
             let what = at(&format!("every repeat at {c}"));
-            stamp(&what, seed, &doc, &|_| Some(c));
+            stamp(&what, seed, &doc, &probe, &|_| Some(c));
             drive(&what, &mut doc, &|_| true, c);
         }
     }
@@ -235,7 +238,13 @@ fn check(name: &str, bytes: &[u8]) -> bool {
 /// settle from there, scheduling each build: the stamped graph must have
 /// no cycle at any of those counts, and the counts must settle. A build
 /// fails only with `BuildError::Unchecked`, which is never allowed.
-fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Option<u32>) {
+fn stamp(
+    what: &str,
+    seed: u64,
+    loaded: &Document,
+    probe: &ProbeEdges,
+    forced: &dyn Fn(NodeId) -> Option<u32>,
+) {
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
     for free in [false, true] {
         let mut settled = false;
@@ -246,6 +255,7 @@ fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Op
                 stamped.set(scope, node, n);
             }
             let compiled = loaded.compiled.clone().expect("a document with a repeat");
+            covered(what, probe, &compiled, &session, &stamped);
             let doc = build(&compiled, &session, &stamped, false)
                 .and_then(|built| built.schedule(compiled.clone()));
             let mut doc = match doc {
@@ -319,4 +329,59 @@ fn structural(e: &str) -> bool {
     let unsettled = prefix(Error::UnstableStructure(987_654).to_string(), "987654");
     let unchecked = prefix(Error::Unchecked("\u{1}".into()).to_string(), "\u{1}");
     e.starts_with(&cycle) || e.starts_with(&unsettled) || e.starts_with(&unchecked)
+}
+
+/// Every dependency of the build at `counts` must be one the probe's graph
+/// has, with a label its iterations satisfy: what lets the compile's check
+/// stand for every build (ADR 0012, ADR 0014).
+fn covered(
+    what: &str,
+    probe: &ProbeEdges,
+    compiled: &Compiled,
+    session: &Session,
+    counts: &Counts,
+) {
+    let missing = uncovered(probe, compiled, session, counts)
+        .unwrap_or_else(|e| panic!("{what}: the build: {e}"));
+    assert!(
+        missing.is_empty(),
+        "{what}: {} dependencies the probe does not have, first: {}",
+        missing.len(),
+        missing[0]
+    );
+}
+
+// A document without a repeat has one build per seed, which must be
+// covered too: a select's draw is what the probe stands for there.
+#[test]
+fn the_probe_covers_every_build_of_a_document_without_repeats() {
+    let mut checked = 0;
+    for (name, bytes) in documents() {
+        let dast = cells_core::dast::load(&bytes).unwrap();
+        let Ok(compiled) = cells_core::testing::compile(&dast, 0) else {
+            continue;
+        };
+        if compiled_has_repeats(&dast) {
+            continue; // `stamp` covers these at every count
+        }
+        let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
+        for seed in SEEDS {
+            let session = Session::new(seed, false);
+            covered(
+                &format!("{name}, seed {seed}"),
+                &probe,
+                &compiled,
+                &session,
+                &Counts::default(),
+            );
+        }
+        checked += 1;
+    }
+    assert!(checked > 0);
+}
+
+fn compiled_has_repeats(dast: &Dast) -> bool {
+    element_types(dast)
+        .iter()
+        .any(|(_, t)| t.count_prop().is_some())
 }

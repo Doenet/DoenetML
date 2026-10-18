@@ -48,6 +48,8 @@ use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Program, Sym, ValueType};
 use crate::session::{Counts, Session};
 
+#[cfg(feature = "testing")]
+pub mod coverage;
 mod emit;
 mod expand;
 mod probe;

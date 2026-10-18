@@ -36,7 +36,7 @@ use super::*;
 /// How a reference moves one coordinate of the iteration position: the
 /// referencing element's own position in that coordinate plus a shift, or
 /// a position chosen independently of it (a literal index, a branch).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(in crate::build) enum Coord {
     Keep(i64),
     Reset,
@@ -128,7 +128,7 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 
 impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
-    fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
+    pub(in crate::build) fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
         self.source_inputs(&self.sources[s as usize], out);
         for (slot, src) in &self.later_sources {
             if *slot == s {
@@ -258,7 +258,7 @@ impl<'c> Builder<'c> {
 
     /// The label of edge `u -> v`: as recorded for a reference, else the
     /// position shared with the target kept and the rest reset.
-    fn edge_label(&self, u: SlotId, v: SlotId, depth: &[u32]) -> Vec<Coord> {
+    pub(in crate::build) fn edge_label(&self, u: SlotId, v: SlotId, depth: &[u32]) -> Vec<Coord> {
         if let Some(l) = self.labels.get(&(u, v)) {
             return l.clone();
         }

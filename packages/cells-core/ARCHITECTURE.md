@@ -234,7 +234,13 @@ evaluator that does not use the schedule.
 `tests/every_count.rs` builds every golden document and fixture at
 iteration counts 0 to 4 and four seeds and checks that a document the
 cycle check passed never fails a build with a cycle or an unsettled
-structure: the net for a structural read that bypasses the view.
+structure. Every one of those builds, and every seed's build of a document
+without repeats, is also checked against the probe's graph
+(`build/coverage.rs`): each dependency it has must be one the probe has,
+with a label its iterations satisfy. That checks the conventions the
+compile's cycle check rests on (every structural read goes through the
+view, every indexed edge is labelled right) directly, instead of waiting
+for a missed cycle.
 `scripts/golden-diff.sh [base]` compares every component's props, after load
 and after a fixed script of requests, against a base commit, and
 `packages/benchmark/scripts/perf-diff.sh [base]` compares speed. A refactor

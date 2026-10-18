@@ -221,7 +221,11 @@ has no load-time choice), and each repeat is stamped at 0 to 4 iterations,
 alone and all together, then let settle; no build may fail with
 `Error::Cycle` and the counts must settle, and the same counts requested
 through the count cells must not fail a rebuild with a cycle or an
-unsettled structure. It passes, and it fails when the probe is made to
+unsettled structure. Since 2026-10-18 it also checks each of those builds
+against the probe's graph (`build/coverage.rs`): every dependency the build
+has, between element slots and through any intermediate slots, must be one
+the probe has, with a label its iterations satisfy; a probe that leaves out
+a select's other options, or flips a shift's sign, fails it at once. It passes, and it fails when the probe is made to
 answer like a stamped build in any one of the options, index or collect
 count operations, or when expand reads the carryover's counts directly.
 
