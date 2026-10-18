@@ -2,9 +2,7 @@
 //! over wasm memory (see `cells_ptr`/`cells_len`), receives a one-time render
 //! manifest, and writes with cell-addressed requests. See ADR 0001.
 
-use cells_core::{
-    DirtyClosure, Document, Evaluator, FullRecompute, LoadOptions, PointRequest, Request,
-};
+use cells_core::{Document, LoadOptions, PointRequest, Request};
 use wasm_bindgen::prelude::*;
 
 /// Every diagnostic of a document (ADR 0013), as a JSON array, from one
@@ -23,7 +21,6 @@ pub fn diagnose_json(dast: &[u8]) -> Result<String, JsError> {
 #[wasm_bindgen]
 pub struct Core {
     doc: Document,
-    evaluator: Box<dyn Evaluator>,
     timings: cells_core::LoadTimings,
     last_dropped: u32,
     last_rebuilt: bool,
@@ -53,11 +50,8 @@ impl Core {
             },
         )
         .map_err(|e| JsError::new(&e.to_string()))?;
-        let evaluator: Box<dyn Evaluator> =
-            Box::new(DirtyClosure::new(&doc.program, doc.cells.len()));
         Ok(Core {
             doc,
-            evaluator,
             timings,
             last_dropped: 0,
             last_rebuilt: false,
@@ -73,8 +67,6 @@ impl Core {
         core.doc
             .restore_state(state)
             .map_err(|e| JsError::new(&e.to_string()))?;
-        // The restore may have rebuilt; the evaluator's tables follow the program.
-        core.evaluator = Box::new(DirtyClosure::new(&core.doc.program, core.doc.cells.len()));
         Ok(core)
     }
 
@@ -317,19 +309,14 @@ impl Core {
 
     fn apply(&mut self, reqs: &[Request], groups: &[Vec<PointRequest>]) -> Vec<u32> {
         let clock = web_time::Instant::now();
-        let tick = self
-            .doc
-            .request_with_groups(self.evaluator.as_mut(), reqs, groups);
+        let tick = self.doc.request_with_groups(reqs, groups);
         self.last_dropped = tick.dropped.len() as u32;
         self.last_rebuilt = tick.rebuilt;
         self.last_rebuild_error = tick.rebuild_error;
         self.last_rebuild_ms = 0.0;
         if tick.rebuilt {
-            // The whole tick is the rebuild when the program changed shape;
-            // the evaluator's dependency tables are for the old program.
+            // The whole tick is the rebuild when the program changed shape.
             self.last_rebuild_ms = clock.elapsed().as_secs_f64() * 1e3;
-            let name = self.evaluator.name().to_string();
-            self.set_evaluator(&name).unwrap();
         }
         tick.changed
     }
@@ -439,12 +426,11 @@ impl Core {
 
     /// Choose the recompute strategy: "full" or "dirty-closure".
     pub fn set_evaluator(&mut self, name: &str) -> Result<(), JsError> {
-        self.evaluator = match name {
-            "full" => Box::new(FullRecompute),
-            "dirty-closure" => Box::new(DirtyClosure::new(&self.doc.program, self.doc.cells.len())),
-            other => return Err(JsError::new(&format!("unknown evaluator {other}"))),
-        };
-        Ok(())
+        if self.doc.set_evaluator(name) {
+            Ok(())
+        } else {
+            Err(JsError::new(&format!("unknown evaluator {name}")))
+        }
     }
 }
 

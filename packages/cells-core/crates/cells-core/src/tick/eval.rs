@@ -29,6 +29,7 @@ impl Evaluator for FullRecompute {
 /// it: a bitset over schedule positions, scanned forward a word at a time,
 /// replaces a priority queue. Work is proportional to the closure plus its
 /// span over 64.
+#[derive(Debug, Clone)]
 pub struct DirtyClosure {
     /// dependents[dep_start[cell]..dep_start[cell + 1]] = schedule
     /// positions of instructions reading `cell`, ascending, in
@@ -83,6 +84,62 @@ impl DirtyClosure {
                 self.dirty[dw] |= bit;
                 *hi = (*hi).max(dw);
             }
+        }
+    }
+}
+
+/// How a document recomputes after a tick's writes: what it holds and
+/// ticks with (`Document::request`). A dirty closure's tables follow the
+/// program they were built for: they are built on the first tick, and a
+/// rebuild's document starts without them (`fresh`), so no caller keeps
+/// them in step by hand and a document never ticked never holds them.
+#[derive(Debug, Clone)]
+pub enum Recompute {
+    /// Every instruction (`FullRecompute`).
+    Full,
+    /// The closure of what changed (`DirtyClosure`), what the browser runs;
+    /// None until the first tick.
+    DirtyClosure(Option<DirtyClosure>),
+}
+
+impl Default for Recompute {
+    fn default() -> Self {
+        Recompute::DirtyClosure(None)
+    }
+}
+
+impl Recompute {
+    /// The strategy called `name`: "full" or "dirty-closure".
+    pub fn named(name: &str) -> Option<Recompute> {
+        match name {
+            "full" => Some(Recompute::Full),
+            "dirty-closure" => Some(Recompute::DirtyClosure(None)),
+            _ => None,
+        }
+    }
+
+    /// The same strategy, for another program: without tables.
+    pub fn fresh(&self) -> Recompute {
+        match self {
+            Recompute::Full => Recompute::Full,
+            Recompute::DirtyClosure(_) => Recompute::DirtyClosure(None),
+        }
+    }
+}
+
+impl Evaluator for Recompute {
+    fn name(&self) -> &'static str {
+        match self {
+            Recompute::Full => "full",
+            Recompute::DirtyClosure(_) => "dirty-closure",
+        }
+    }
+    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
+        match self {
+            Recompute::Full => FullRecompute.recompute(program, cells, changed),
+            Recompute::DirtyClosure(d) => d
+                .get_or_insert_with(|| DirtyClosure::new(program, cells.len()))
+                .recompute(program, cells, changed),
         }
     }
 }

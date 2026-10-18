@@ -5,7 +5,7 @@
 //! rebuild if a structural cell changed (`load.rs`).
 
 use super::{CellIdx, Document};
-use crate::tick::eval::{Evaluator, FullRecompute};
+use crate::tick::eval::{Evaluator, Recompute};
 use crate::tick::invert::{PointRequest, invert_requests};
 use crate::tick::{Request, TickOutcome};
 
@@ -13,19 +13,56 @@ impl Document {
     /// Apply requests: invert each to an essential cell (later requests win
     /// when two land on one cell), recompute, and report what changed.
     pub fn request(&mut self, requests: &[Request]) -> TickOutcome {
-        self.request_with_groups(&mut FullRecompute, requests, &[])
+        self.request_with_groups(requests, &[])
     }
 
     /// Apply a point group: points dragged together, which keep their shape
     /// when one of them is constrained (ADR 0006).
     pub fn request_points(&mut self, points: &[PointRequest]) -> TickOutcome {
-        self.request_with_groups(&mut FullRecompute, &[], &[points.to_vec()])
+        self.request_with_groups(&[], &[points.to_vec()])
     }
 
-    /// Scalar requests and point groups in one tick.
+    /// Scalar requests and point groups in one tick, recomputed by the
+    /// document's evaluator (`set_evaluator`).
     pub fn request_with_groups(
         &mut self,
-        evaluator: &mut (impl Evaluator + ?Sized),
+        requests: &[Request],
+        groups: &[Vec<PointRequest>],
+    ) -> TickOutcome {
+        self.tick(None, requests, groups)
+    }
+
+    /// One tick recomputed by `evaluator` instead of the document's: a
+    /// strategy under test.
+    pub fn request_with(
+        &mut self,
+        evaluator: &mut dyn Evaluator,
+        requests: &[Request],
+        groups: &[Vec<PointRequest>],
+    ) -> TickOutcome {
+        self.tick(Some(evaluator), requests, groups)
+    }
+
+    /// Choose how ticks recompute: "full" or "dirty-closure" (the
+    /// default). False for any other name.
+    pub fn set_evaluator(&mut self, name: &str) -> bool {
+        match Recompute::named(name) {
+            Some(e) => {
+                self.evaluator = e;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// The name of how ticks recompute.
+    pub fn evaluator(&self) -> &'static str {
+        self.evaluator.name()
+    }
+
+    fn tick(
+        &mut self,
+        evaluator: Option<&mut dyn Evaluator>,
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
@@ -69,6 +106,10 @@ impl Document {
             }
         }
         if !tick.changed.is_empty() {
+            let evaluator = match evaluator {
+                Some(e) => e,
+                None => &mut self.evaluator,
+            };
             evaluator.recompute(&self.program, &mut self.cells, &mut tick.changed);
             if !self.structure_settled() {
                 match self.rebuild() {

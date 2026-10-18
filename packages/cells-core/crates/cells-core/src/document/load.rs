@@ -255,6 +255,7 @@ impl Document {
             }
             if doc.structure_settled() {
                 doc.literal_attrs = self.literal_attrs.clone();
+                doc.evaluator = self.evaluator.fresh();
                 result = Ok(doc);
                 break;
             }

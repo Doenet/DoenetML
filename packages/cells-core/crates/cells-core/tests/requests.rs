@@ -1,8 +1,8 @@
 mod common;
 
+use cells_core::Document;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::load;
-use cells_core::{Document, TickOutcome};
 use common::req;
 
 /// Request `value` on `name.prop` and assert the forward pass reproduces it.
@@ -176,39 +176,24 @@ fn unchanged_values_are_not_reported() {
 
 #[test]
 fn evaluators_agree() {
-    use cells_core::{DirtyClosure, Evaluator, FullRecompute};
     let src = r#"<numberInput name="a" value="2"/><numberInput name="b" value="5"/>
         <op name="s" kind="add" args="$a $b"/><op name="t" kind="scale" k="3" args="$s"/>
         <op name="u" kind="negate" args="$b"/><op name="v" kind="clamp" lo="0" hi="100" args="$t"/>
         <op name="w" kind="lerp" t="0.5" args="$u $v"/>
         <numberInput name="c" value="1"/><op name="x" kind="offset" k="1" args="$c"/>"#;
     let base = load(src).unwrap();
+    // A document ticks through the dirty closure unless told otherwise.
+    assert_eq!(base.evaluator(), "dirty-closure");
     let reqs = [
         req(&base, "s", "value", 20.0),
         req(&base, "u", "value", -1.0),
     ];
-    let mut evs: Vec<Box<dyn Evaluator>> = vec![
-        Box::new(FullRecompute),
-        Box::new(DirtyClosure::new(&base.program, base.cells.len())),
-    ];
     let mut results = Vec::new();
-    for ev in evs.iter_mut() {
+    for name in ["full", "dirty-closure"] {
         let mut doc = base.clone();
-        let mut tick = TickOutcome::default();
-        for &r in &reqs {
-            let inv = cells_core::tick::invert::invert_requests(
-                &doc.program,
-                &doc.cells,
-                doc.n_essential,
-                &[r],
-                &[],
-            );
-            let (cell, value) = inv.writes[0];
-            doc.cells[cell as usize] = value;
-            tick.changed.push(cell);
-        }
-        ev.recompute(&doc.program, &mut doc.cells, &mut tick.changed);
-        assert_eq!(reference::check(&doc), None, "{}", ev.name());
+        assert!(doc.set_evaluator(name));
+        let tick = doc.request(&reqs);
+        assert_eq!(reference::check(&doc), None, "{name}");
         let mut changed = tick.changed.clone();
         changed.sort();
         results.push((doc.cells.clone(), changed));
@@ -216,6 +201,7 @@ fn evaluators_agree() {
     assert_eq!(results[0], results[1]);
     // x depends only on c, which did not change: it must not be reported.
     assert!(!results[0].1.contains(&base.cell("x", "value").unwrap()));
+    assert!(!base.clone().set_evaluator("other"));
 }
 
 // A request must hold what its cell holds: a number asked of a math cell

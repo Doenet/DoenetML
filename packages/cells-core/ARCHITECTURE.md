@@ -80,7 +80,7 @@ component table (`document/sticky.rs`).
 | `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `compile/lint.rs` finds the ones that are facts about the DAST alone. |
-| `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. |
+| `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. A document holds a `Recompute` (the dirty closure unless `set_evaluator` says otherwise), so tests tick as the browser does. |
 | `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells, math-expressions-rs called directly (ADR 0008, ADR 0011): a math cell holds a `Handle` into it. `Tree` is the builder's expression; `Tape` (`sym/tape.rs`) is a curve of fixed shape compiled to numeric steps. |
 
 ## What happens when…
@@ -118,7 +118,9 @@ members are snapped (`document/sticky.rs`, `tick/snap.rs`, ADR 0007).
 `tick::invert::invert_requests` walks requests backwards through the
 producing instructions' inverses until they land on essential cells,
 keeping dragged point groups together (ADR 0003, ADR 0006). The essential
-writes are applied, and the evaluator recomputes what is downstream. The
+writes are applied, and the document's evaluator recomputes what is
+downstream: the dirty closure, whose tables are built on the first tick
+and dropped by a rebuild, which keeps the choice of strategy. The
 `TickOutcome` lists the cells that changed and the requests that were
 dropped.
 

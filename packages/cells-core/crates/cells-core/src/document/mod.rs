@@ -14,6 +14,7 @@ use crate::session::{Counts, Session};
 use crate::components::{ComponentType, prop};
 use crate::dast::{Dast, StrId, StringTable};
 use crate::program::{Program, ValueType};
+use crate::tick::eval::Recompute;
 use crate::tick::{Request, TickOutcome};
 
 mod load;
@@ -76,6 +77,9 @@ pub struct Document {
     pub compiled: Option<Arc<crate::compile::Compiled>>,
     /// Sticky groups as cells, for the request pre-pass (ADR 0007).
     sticky: Vec<sticky::StickyTable>,
+    /// How a tick recomputes (`request`): a dirty closure unless set
+    /// otherwise (`set_evaluator`), kept across rebuilds.
+    evaluator: Recompute,
 }
 
 impl Document {
@@ -113,6 +117,7 @@ impl Document {
             literal_attrs: Arc::default(),
             compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
+            evaluator: Recompute::default(),
         };
         doc.sticky = doc.sticky_tables();
         doc
