@@ -125,6 +125,20 @@ it, not done: check once when a document is published and keep the
 compile with it, or build only the undrawn options beside the stamped
 build instead of the whole probe.
 
+## Amendment: the passes a structure needs
+
+A load or a rebuild builds until the structure settles, which takes one
+pass more than the document's structural depth. The passes were capped at
+eight, so a document whose counts chain through more repeats than that
+could load with an early repeat empty, then fail mid-session when a count
+filled the chain ("did not settle after 8 rebuilds"). The depth is a fact
+about the source: the probe computes it, and every build's chains of
+repeats map onto the probe's, so none is deeper. The compile records it
+(`Compiled::structural_depth`), load and rebuild allow depth plus one
+passes (and never fewer than eight), and a structure that still has not
+settled is `Unchecked`, a core bug (`tests/load_errors.rs`, a chain ten
+deep).
+
 ## Considered options
 
 - Box an element a later build fails, as before. Rejected: an author
