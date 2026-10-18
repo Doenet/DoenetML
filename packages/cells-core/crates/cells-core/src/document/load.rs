@@ -13,17 +13,32 @@ pub struct LoadOptions {
     /// Sample curves through the engine instead of tapes compiled at build
     /// time; for checking the tapes and for measuring.
     pub sample_with_engine: bool,
-    /// Reject a dependency loop that closes at any iteration count a
-    /// repeat can reach, not only the count at load (ADR 0012). Off only
-    /// for measuring what the check costs.
+    /// Skip the compile's check, so a document that should be rejected
+    /// loads: for tests of what the check prevents and for measuring what
+    /// it costs. Only with the `testing` feature; a real load always checks
+    /// (ADR 0014).
+    #[cfg(feature = "testing")]
     pub check_cycles: bool,
 }
 
+impl LoadOptions {
+    /// Whether the compile's check runs: always, outside tests.
+    fn checks(&self) -> bool {
+        #[cfg(feature = "testing")]
+        return self.check_cycles;
+        #[cfg(not(feature = "testing"))]
+        return true;
+    }
+}
+
+// Derivable without the `testing` feature, but `check_cycles` defaults on.
+#[cfg_attr(not(feature = "testing"), allow(clippy::derivable_impls))]
 impl Default for LoadOptions {
     fn default() -> Self {
         LoadOptions {
             seed: 0,
             sample_with_engine: false,
+            #[cfg(feature = "testing")]
             check_cycles: true,
         }
     }
@@ -96,7 +111,7 @@ impl Document {
             compiled,
             mut first_build,
             check_time,
-        } = crate::compile::compile(&dast, &session, options.check_cycles)?;
+        } = crate::compile::compile(&dast, &session, options.checks())?;
         t.build += clock.elapsed();
         t.cycle_check += check_time;
         for pass in 0..MAX_PASSES {

@@ -61,7 +61,7 @@ instance, and the load's build must be the one to find it:
 
 `build` takes a `Pass` (`build/mod.rs`; since ADR 0015 the compile does
 this, and `build::build` returns a `BuildError`, which can only say
-`Unchecked` or `Cycle`). Only a
+`Unchecked`, a cycle included). Only a
 document's first build
 finds errors: its compile and, for a document with repeats, the probe box
 what fails; for a document with no repeats the one stamped build boxes,

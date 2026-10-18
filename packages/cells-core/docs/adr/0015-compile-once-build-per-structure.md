@@ -293,16 +293,19 @@ what later rebuilds, a session's math and other documents on the page
 reuse.
 
 **`BuildError` (done).** `build::build` and `BuildOutput::schedule`
-return `build::BuildError`, which has two variants, `Unchecked` and
-`Cycle`, and no way to say an author's error. The machinery the build
+return `build::BuildError`, whose one variant is `Unchecked`: the compile
+missed something. It has no way to say an author's error, a cycle
+included: the compile finds every cycle, through the probe for a document
+with repeats or selects and through the same loop check on the one build
+of any other (it once left those to the load's schedule), and a load can
+skip the check only with the crate's `testing` feature. The machinery the build
 shares with the compile's check (expand, resolve, emit) fails with a
 `Failure`, a fact about the source; the compile turns one into a
 diagnostic, and the build can only turn it into a `BuildError`. A load
 and a rebuild convert it into the crate's `Error`, so their API is
 unchanged. An unsettled structure stays the rebuild's own error, since a
-single build cannot fail that way. `tests/every_count.rs` matches the two
-variants exhaustively; it used to let any other failure end its stamping
-silently.
+single build cannot fail that way. `tests/every_count.rs` fails on any
+`BuildError`; it used to let some failures end its stamping silently.
 
 **What each stage takes from the other.** The build reads, from the
 compile, the plan types (`compile::plan`, which includes `ElemKey`, since

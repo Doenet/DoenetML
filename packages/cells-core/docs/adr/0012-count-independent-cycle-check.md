@@ -26,7 +26,11 @@ once, since rebuilds change counts but never templates.
 - It runs once per load, before the first build pass, on documents with
   a repeat; without one the structure never changes and the schedule's
   own check is complete. `LoadOptions::check_cycles` switches it off, for
-  measuring.
+  measuring. (Since 2026-10-18 the probe also runs for a document with a
+  select, a document with neither runs the same loop check on its one
+  build, so the compile finds every cycle and the schedule's check only
+  guards against core bugs; `check_cycles` exists only with the crate's
+  `testing` feature.)
 - It is a *probe* expansion of the compiled templates (`build/cycles.rs`):
   every repeat gets exactly one iteration, so each template slot exists
   once, and an index past that iteration lands in it instead of on the

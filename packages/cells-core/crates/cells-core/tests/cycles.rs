@@ -128,3 +128,23 @@ fn a_document_without_repeats_is_not_probed() {
     .unwrap();
     assert!(t.cycle_check.as_nanos() > 0);
 }
+
+// A document without repeats or selects is checked by its one build, which
+// runs the probe's loop check: a cycle through operators is the compile's
+// finding, named by its element, never the schedule's.
+#[test]
+fn a_cycle_without_repeats_is_found_by_the_compile() {
+    for src in [
+        r#"<number name="a">$b + 1</number><number name="b">$a + 1</number>"#,
+        r#"<number name="a">$b</number><number name="b">$a</number>"#,
+        r#"<point name="p" x="$q.y + 1"/><point name="q" y="2 $p.x"/>"#,
+    ] {
+        match load(src).unwrap_err() {
+            Error::Cycle(at) => assert!(
+                ["a", "b", "p", "q"].iter().any(|n| at.starts_with(n)),
+                "{src}: cycle names '{at}'"
+            ),
+            other => panic!("{src}: expected a cycle, got {other}"),
+        }
+    }
+}

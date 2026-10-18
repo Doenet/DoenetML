@@ -103,32 +103,27 @@ pub(in crate::build) fn build_with(
     Ok(u)
 }
 
-/// What can go wrong in a build (ADR 0014, ADR 0015). Never an author's
-/// error: the compile has boxed or reported every one, and this type has no
-/// way to say one. The machinery the build shares with the compile's check
-/// fails with a `Failure`, a fact about the source; only the compile turns
-/// one into a diagnostic.
+/// What can go wrong in a build (ADR 0014, ADR 0015): only that the
+/// compile missed something, a core bug, which `tests/every_count.rs`
+/// exists to catch. Never an author's error: the compile has boxed or
+/// reported every one, a cycle included, and this type has no way to say
+/// one. The machinery the build shares with the compile's check fails with
+/// a `Failure`, a fact about the source; only the compile turns one into a
+/// diagnostic.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum BuildError {
-    /// Something the compile's check passed failed: a core bug, which
-    /// `tests/every_count.rs` exists to catch.
+    /// Something the compile's check passed failed: an element, or the
+    /// schedule, which found a cycle.
     #[error(
         "a build after the load found an error the load did not report, which the core must never let happen (ADR 0014): {0}"
     )]
     Unchecked(String),
-    /// The stamped graph has a cycle, through the named cell. After the
-    /// probe (a document with repeats or selects) a core bug too; for a
-    /// document whose check is its one stamped build, the source's cycle,
-    /// found when the load schedules it.
-    #[error("dependency cycle involving component '{0}'")]
-    Cycle(String),
 }
 
 impl From<BuildError> for Error {
     fn from(e: BuildError) -> Error {
         match e {
             BuildError::Unchecked(s) => Error::Unchecked(s),
-            BuildError::Cycle(s) => Error::Cycle(s),
         }
     }
 }
@@ -145,24 +140,22 @@ pub fn build(
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = Stamped { session, counts };
     let mut engine = session.engine.borrow_mut();
-    let mut u =
-        build_with(compiled, session, reseed, &mut engine, &view, false).map_err(|f| {
-            match (f.node, f.error) {
-                (None, Error::Cycle(at)) => BuildError::Cycle(at),
-                (_, e) => BuildError::Unchecked(e.to_string()),
-            }
-        })?;
+    let mut u = build_with(compiled, session, reseed, &mut engine, &view, false)
+        .map_err(|f| BuildError::Unchecked(f.error.to_string()))?;
     drop(engine);
     u.add_compile_diagnostics(compiled);
     Ok(u)
 }
 
 /// The stamped build at no iteration that checks a document the probe
-/// does not (one without repeats, or loaded without the cycle check): its
-/// failures name the element for the compile to box.
+/// does not (one without repeats or selects, whose one build this is): its
+/// failures name the element for the compile to box, and it runs the
+/// probe's loop check, so a cycle is the compile's finding here too,
+/// unless `check_loops` is off (a test load without the check).
 pub(crate) fn first_build(
     compiled: &Compiled,
     session: &Session,
+    check_loops: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
     let counts = Counts::default();
     let view = Stamped {
@@ -175,7 +168,7 @@ pub(crate) fn first_build(
         false,
         &mut session.engine.borrow_mut(),
         &view,
-        false,
+        check_loops,
     )
 }
 
@@ -224,7 +217,10 @@ impl BuildOutput {
                 p.tapes = self.tapes;
                 p
             }
-            Err(cell) => return Err(BuildError::Cycle((self.cell_label)(cell))),
+            Err(cell) => {
+                let cycle = Error::Cycle((self.cell_label)(cell));
+                return Err(BuildError::Unchecked(cycle.to_string()));
+            }
         };
         Ok(Document::new(
             self.cells,

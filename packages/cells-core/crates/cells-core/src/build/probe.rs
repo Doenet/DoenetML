@@ -129,19 +129,43 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
     fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
-        let source_inputs = |src: &Source, out: &mut Vec<SlotId>| match src {
+        self.source_inputs(&self.sources[s as usize], out);
+        for (slot, src) in &self.later_sources {
+            if *slot == s {
+                self.source_inputs(src, out);
+            }
+        }
+    }
+
+    /// The slots a source reads.
+    fn source_inputs(&self, src: &Source, out: &mut Vec<SlotId>) {
+        match src {
             Source::Alias(t) => out.push(*t),
             Source::Op(_, start, n) => out
                 .extend_from_slice(&self.op_inputs[*start as usize..*start as usize + *n as usize]),
             Source::VecOut(head, _) => out.push(*head),
             _ => {}
-        };
-        source_inputs(&self.sources[s as usize], out);
-        for (slot, src) in &self.later_sources {
-            if *slot == s {
-                source_inputs(src, out);
-            }
         }
+    }
+
+    /// Whether every slot reads only slots made before it, which no loop
+    /// can do: the common case, decided in one pass before any component
+    /// is searched.
+    fn reads_only_earlier_slots(&self) -> bool {
+        let mut inputs = Vec::new();
+        let earlier = |s: usize, src: &Source, inputs: &mut Vec<SlotId>| {
+            inputs.clear();
+            self.source_inputs(src, inputs);
+            inputs.iter().all(|&w| (w as usize) < s)
+        };
+        self.sources
+            .iter()
+            .enumerate()
+            .all(|(s, src)| earlier(s, src, &mut inputs))
+            && self
+                .later_sources
+                .iter()
+                .all(|(s, src)| earlier(*s as usize, src, &mut inputs))
     }
 
     fn scope_within(&self, mut s: ScopeId, of: ScopeId) -> bool {
@@ -259,6 +283,9 @@ impl<'c> Builder<'c> {
     /// Strongly connected components of the probe graph, each tested for
     /// a loop that closes at some count.
     pub(in crate::build) fn check_loops(&self) -> Result<()> {
+        if self.reads_only_earlier_slots() {
+            return Ok(());
+        }
         let n = self.sources.len();
         // Adjacency, compact.
         let mut adj_start = Vec::with_capacity(n + 1);
@@ -283,6 +310,8 @@ impl<'c> Builder<'c> {
         let mut next = 0u32;
         let mut n_sccs = 0u32;
         let mut local = vec![NONE; n];
+        // One buffer for every component's members: most are single slots.
+        let mut members: Vec<u32> = Vec::new();
         for root in 0..n as u32 {
             if index[root as usize] != NONE {
                 continue;
@@ -314,7 +343,7 @@ impl<'c> Builder<'c> {
                     low[u as usize] = low[u as usize].min(low[v as usize]);
                 }
                 if low[v as usize] == index[v as usize] {
-                    let mut members = Vec::new();
+                    members.clear();
                     loop {
                         let w = stack.pop().expect("tarjan stack");
                         on_stack[w as usize] = false;

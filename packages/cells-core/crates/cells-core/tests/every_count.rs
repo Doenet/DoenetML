@@ -233,8 +233,8 @@ fn check(name: &str, bytes: &[u8]) -> bool {
 /// Build with every repeat `forced` names stamped at that count and the
 /// others at what their count cells settle to, then let every count
 /// settle from there, scheduling each build: the stamped graph must have
-/// no cycle at any of those counts, and the counts must settle. A build can
-/// fail no other way (`BuildError`), and neither way is allowed.
+/// no cycle at any of those counts, and the counts must settle. A build
+/// fails only with `BuildError::Unchecked`, which is never allowed.
 fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Option<u32>) {
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
     for free in [false, true] {
@@ -250,9 +250,7 @@ fn stamp(what: &str, seed: u64, loaded: &Document, forced: &dyn Fn(NodeId) -> Op
                 .and_then(|built| built.schedule(compiled.clone()));
             let mut doc = match doc {
                 Ok(doc) => doc,
-                Err(BuildError::Cycle(at)) => {
-                    panic!("{what}: a cycle at {at} the load did not reject")
-                }
+                // A cycle included: the compile finds every one.
                 Err(BuildError::Unchecked(e)) => {
                     panic!("{what}: an error the load did not report: {e}")
                 }

@@ -15,22 +15,24 @@ pub(crate) struct CompileOutput {
     /// The compile, which every build of the document stamps.
     pub(crate) compiled: Arc<Compiled>,
     /// The first build, when it was the check: a document without repeats
-    /// or selects (or one loaded without the cycle check) is checked by its
-    /// one stamped build, which draws nothing, and the load keeps it rather
-    /// than building again.
+    /// or selects (or one loaded without the check, in tests) is checked by
+    /// its one stamped build, which draws nothing and runs the probe's loop
+    /// check, and the load keeps it rather than building again.
     pub(crate) first_build: Option<BuildOutput>,
     /// How long the probe took; zero when it did not run.
     pub(crate) check_time: std::time::Duration,
 }
 
 /// Compile `dast` (ADR 0015): plan it, check it, and box every element
-/// that fails until every element builds. With `check_cycles`, a document
-/// with repeats or selects is checked through the probe (ADR 0012, ADR
-/// 0014), which builds every option of every select; otherwise its stamped
-/// build at no iteration is the check. `session` is the load's, which only
-/// that stamped build reads. The compile holds the
-/// source's diagnostics: the lint findings and the boxed errors. Only a
-/// cycle, which has no element to box, fails it.
+/// that fails until every element builds. A document with repeats or
+/// selects is checked through the probe (ADR 0012, ADR 0014), which builds
+/// every option of every select; any other by its stamped build at no
+/// iteration, its only build, with the probe's loop check. Either way the
+/// compile finds every cycle. `check_cycles` off (a test load) skips both
+/// the probe and the loop check. `session` is the load's, which only that
+/// stamped build reads. The compile holds the source's diagnostics: the
+/// lint findings and the boxed errors. Only a cycle, which has no element
+/// to box, fails it.
 pub(crate) fn compile(
     dast: &Arc<Dast>,
     session: &Session,
@@ -54,7 +56,7 @@ pub(crate) fn compile(
                 }
                 Ok((compiled, None, checked))
             } else {
-                let first = build::first_build(&compiled, session)?;
+                let first = build::first_build(&compiled, session, check_cycles)?;
                 Ok((compiled, Some(first), std::time::Duration::ZERO))
             }
         });
