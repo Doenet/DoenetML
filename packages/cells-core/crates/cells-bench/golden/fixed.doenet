@@ -1,0 +1,6 @@
+<booleanInput name="b" value="true"/>
+<point name="A" x="1" y="2"/>
+<point name="P" x="$A.x" y="3" fixed="$b"/>
+<numberInput name="n" value="3" fixed="$b"/>
+<op name="twice" kind="scale" k="2" args="$n"/>
+<point name="Q" x="4" y="5" fixed/>

@@ -1,0 +1,70 @@
+[
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "set": "rust (prototype viewer page)",
+        "raw_bytes": 20981330,
+        "brotli_bytes": 4033210,
+        "files": [
+            {
+                "file": "packages/benchmark/browser/rust-viewer/dist/index.html",
+                "raw": 579,
+                "brotli": 243
+            },
+            {
+                "file": "packages/benchmark/browser/rust-viewer/dist/assets/index-C6yGPtRi.js",
+                "raw": 11278368,
+                "brotli": 2293519
+            },
+            {
+                "file": "packages/benchmark/browser/rust-viewer/dist/assets/index-BVA0DIYV.css",
+                "raw": 60318,
+                "brotli": 7467
+            },
+            {
+                "file": "packages/doenetml-worker/dist/index.js",
+                "raw": 7771816,
+                "brotli": 1421290
+            },
+            {
+                "file": "packages/doenetml-worker/dist/lib_doenetml_worker_bg.wasm",
+                "raw": 1870249,
+                "brotli": 310691
+            }
+        ]
+    },
+    {
+        "date": "2026-10-16",
+        "commit": "5ac2715b1",
+        "set": "cells (viewer build)",
+        "raw_bytes": 6520787,
+        "brotli_bytes": 1277802,
+        "files": [
+            {
+                "file": "packages/cells-viewer/dist/index.html",
+                "raw": 793,
+                "brotli": 254
+            },
+            {
+                "file": "packages/cells-viewer/dist/assets/index-BMDSjNNY.js",
+                "raw": 3366740,
+                "brotli": 641239
+            },
+            {
+                "file": "packages/cells-viewer/dist/assets/index-CO1Fj6p1.js",
+                "raw": 128014,
+                "brotli": 36369
+            },
+            {
+                "file": "packages/cells-viewer/dist/assets/cells_wasm_bg-DTJS4FPz.wasm",
+                "raw": 3019006,
+                "brotli": 598395
+            },
+            {
+                "file": "packages/cells-viewer/dist/assets/index-47QDyy8r.css",
+                "raw": 6234,
+                "brotli": 1545
+            }
+        ]
+    }
+]

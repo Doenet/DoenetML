@@ -1,0 +1,22 @@
+{
+    "name": "fanout-1000",
+    "tier": "synthetic",
+    "mechanism": "dependency breadth: one input driving N points",
+    "source": {
+        "generate": "fanout-1000"
+    },
+    "steps": [
+        {
+            "action": "updateValue",
+            "target": "n",
+            "value": "2"
+        },
+        {
+            "action": "updateValue",
+            "target": "n",
+            "value": "3"
+        }
+    ],
+    "structural": null,
+    "notes": "Typing into n moves every point; nothing here is draggable to the input."
+}

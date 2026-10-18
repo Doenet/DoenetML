@@ -1,0 +1,22 @@
+{
+    "name": "symchain-1000",
+    "tier": "synthetic",
+    "mechanism": "symbolic math: a chain of simplified math expressions with a free variable, evaluated at an input",
+    "source": {
+        "generate": "symchain-1000"
+    },
+    "steps": [
+        {
+            "action": "updateValue",
+            "target": "mi",
+            "value": "x^2+1"
+        },
+        {
+            "action": "updateValue",
+            "target": "mi",
+            "value": "x^3-x"
+        }
+    ],
+    "structural": null,
+    "notes": "Typing a new expression into mi rewrites every math in the chain; a drag cannot reach this mechanism."
+}

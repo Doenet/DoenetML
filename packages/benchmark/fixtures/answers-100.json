@@ -1,0 +1,30 @@
+{
+    "name": "answers-100",
+    "tier": "synthetic",
+    "mechanism": "answers: N math inputs each checked by an answer",
+    "source": {
+        "generate": "answers-100"
+    },
+    "steps": [
+        {
+            "action": "updateValue",
+            "target": "mi0",
+            "value": "(x+1)^2"
+        },
+        {
+            "action": "submitAnswer",
+            "target": "a0"
+        },
+        {
+            "action": "updateValue",
+            "target": "mi0",
+            "value": "x"
+        },
+        {
+            "action": "submitAnswer",
+            "target": "a0"
+        }
+    ],
+    "structural": null,
+    "notes": "Alternates a correct and an incorrect response on the first problem; submit time is the number of interest."
+}

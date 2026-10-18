@@ -1,0 +1,635 @@
+//! Emit: merge aliases into cells with a union-find, number cells
+//! (essential, fixed, derived), bind operators to instructions, and measure
+//! structural depth.
+
+use super::*;
+
+impl<'c> Builder<'c> {
+    pub(in crate::build) fn finish(mut self) -> std::result::Result<BuildOutput, Failure> {
+        let profile = crate::profile::enabled();
+        let clock = web_time::Instant::now();
+        let lap = |what: &str| {
+            if profile {
+                eprintln!("    cd/{what}: {:.2?}", clock.elapsed());
+            }
+        };
+        let n = self.sources.len();
+        let mut uf = UnionFind::new(n);
+        for (s, src) in self.sources.iter().enumerate() {
+            if let Source::Alias(t) = src {
+                uf.union(s as SlotId, *t);
+            }
+        }
+        // The one non-alias slot in each class defines its cell.
+        let mut class_def: Vec<u32> = vec![NONE; n];
+        for (s, src) in self.sources.iter().enumerate() {
+            match src {
+                Source::Alias(_) => {}
+                Source::Unset => unreachable!(
+                    "slot {} never received a source",
+                    self.slot_label(s as SlotId)
+                ),
+                _ => {
+                    let root = uf.find(s as SlotId) as usize;
+                    debug_assert!(class_def[root] == NONE, "two sources in one alias class");
+                    class_def[root] = s as u32;
+                }
+            }
+        }
+        lap("union-find");
+
+        // Number cells: essential classes first, then fixed, then derived.
+        // Essential values come from the previous build when the slot existed.
+        let roots: Vec<u32> = (0..n as SlotId).map(|s| uf.find(s)).collect();
+        // A class of aliases with no definer is a loop of aliases. When the
+        // view folds iterations it may be a recurrence folded onto itself,
+        // which the cycle check has judged; it becomes a constant here.
+        for (s, &root) in roots.iter().enumerate() {
+            let root = root as usize;
+            if class_def[root] == NONE {
+                if !self.view.folds_iterations() {
+                    return Err(Failure {
+                        error: Error::Cycle(self.slot_label(s as SlotId)),
+                        node: None,
+                    });
+                }
+                self.sources[s] = Source::Fixed(f64::NAN);
+                class_def[root] = s as u32;
+            }
+        }
+        let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
+        // Count each kind of defining slot first: the essential tables are
+        // kept, and none of these should reserve more than it fills.
+        let mut counts = [0usize; 4];
+        let mut n_cells = 0;
+        for (s, &root) in roots.iter().enumerate() {
+            if class_def[root as usize] as usize == s {
+                let (kind, n_out) = match &self.sources[s] {
+                    Source::Literal(_) | Source::Default(_) => (0, 1),
+                    Source::Fixed(_) => (1, 1),
+                    Source::Op(spec, ..) => (2, spec.n_out()),
+                    _ => (3, 0),
+                };
+                counts[kind] += 1;
+                n_cells += n_out;
+            }
+        }
+        let mut cells = Vec::with_capacity(n_cells);
+        let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n_cells);
+        let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
+        let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
+        let mut parked = self.session.parked.clone();
+        let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
+        let mut fixed_defs = Vec::with_capacity(counts[1]);
+        let mut derived_defs = Vec::with_capacity(counts[2]);
+        let mut outputs = Vec::with_capacity(counts[3]);
+        for (s, &root) in roots.iter().enumerate() {
+            let root = root as usize;
+            if class_def[root] as usize != s {
+                continue; // not the defining slot of its class
+            }
+            match &self.sources[s] {
+                Source::Literal(v) | Source::Default(v) => {
+                    let (scope, tslot, key) = self.essential_key(s as SlotId);
+                    let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
+                    if !parked.is_empty()
+                        && let Some(p) = parked.remove(&(scope, key.0, key.1))
+                    {
+                        value = p;
+                    }
+                    slot_cell[root] = cells.len() as CellIdx;
+                    cells.push(value);
+                    cell_def_slot.push(s as SlotId);
+                    essential_slots.push((scope, tslot));
+                    essential_keys.push(key);
+                    essential_defaults.push(*v);
+                }
+                Source::Fixed(_) => fixed_defs.push(s),
+                Source::Op(..) => derived_defs.push(s),
+                Source::VecOut(..) => outputs.push(s),
+                _ => unreachable!(),
+            }
+        }
+        let n_essential = cells.len();
+        for &s in &fixed_defs {
+            let Source::Fixed(v) = self.sources[s] else {
+                unreachable!()
+            };
+            let root = roots[s] as usize;
+            slot_cell[root] = cells.len() as CellIdx;
+            cells.push(v);
+            cell_def_slot.push(s as SlotId);
+        }
+        let n_fixed = fixed_defs.len();
+        // A vector instruction's outputs are consecutive cells after its head.
+        for &s in &derived_defs {
+            let root = roots[s] as usize;
+            slot_cell[root] = cells.len() as CellIdx;
+            let n_out = match self.sources[s] {
+                Source::Op(spec, ..) => spec.n_out(),
+                _ => 1,
+            };
+            for _ in 0..n_out {
+                cells.push(f64::NAN);
+                cell_def_slot.push(s as SlotId);
+            }
+        }
+        for &s in &outputs {
+            let Source::VecOut(head, k) = self.sources[s] else {
+                unreachable!()
+            };
+            let head_cell = slot_cell[roots[head as usize] as usize];
+            debug_assert!(head_cell != NONE, "vector output before its head");
+            slot_cell[roots[s] as usize] = head_cell + k as CellIdx;
+            cell_def_slot[(head_cell + k as CellIdx) as usize] = s as SlotId;
+        }
+        debug_assert_eq!(cells.len(), n_cells);
+        let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r as usize]).collect();
+        self.seed_cells(
+            &mut cells,
+            &mut essential_defaults,
+            &slot_to_cell,
+            n_essential + n_fixed,
+        )
+        .map_err(|error| Failure {
+            error,
+            node: self.failed_node,
+        })?;
+        lap("number cells");
+
+        let mut instrs = Vec::with_capacity(derived_defs.len());
+        let mut operands = Vec::new();
+        let mut bound: Vec<CellIdx> = Vec::with_capacity(8);
+        let mut value_types = vec![ValueType::Number; cells.len()];
+        for &(s, ty) in &self.typed_slots {
+            value_types[slot_to_cell[s as usize] as usize] = ty;
+        }
+        let mut tapes = Vec::new();
+        // Compile curves whose expression has a fixed shape into tapes, unless
+        // the load asked for engine sampling.
+        let compile = !self.session.sample_with_engine;
+        let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
+        for &s in &derived_defs {
+            let (mut spec, start, count) = match &self.sources[s] {
+                Source::Op(spec, start, count) => (*spec, *start, *count),
+                _ => unreachable!(),
+            };
+            bound.clear();
+            bound.extend(
+                self.op_inputs[start as usize..start as usize + count as usize]
+                    .iter()
+                    .map(|&i| slot_to_cell[i as usize]),
+            );
+            if let OpSpec::Sym(kind) = spec {
+                if kind.makes_math() {
+                    value_types[slot_to_cell[s] as usize] = ValueType::Math;
+                }
+                // The template's leaves were slots; they are cells now.
+                if let SymKind::Instantiate { template, post } = kind {
+                    let tree = rebind(&self.sym_templates[template as usize], &slot_to_cell);
+                    spec = OpSpec::Sym(SymKind::Instantiate {
+                        template: self.engine.import(&tree),
+                        post,
+                    });
+                }
+                let input = self.op_inputs[start as usize];
+                // A derivative of a fixed shape is taken once, here; the tick
+                // only fills in the parameters.
+                if compile
+                    && kind == SymKind::Derivative
+                    && let Some(d) = self.fixed_shape(s as SlotId, &slot_to_cell, &mut fixed_shape)
+                    && let Some(tree) = self.engine.export(d)
+                {
+                    bound.clear();
+                    cell_leaves(&tree, &mut bound);
+                    spec = OpSpec::Sym(SymKind::Instantiate {
+                        template: d,
+                        post: Post::Simplify,
+                    });
+                }
+                // A curve of a fixed shape samples a compiled tape.
+                if compile
+                    && kind == SymKind::Sample
+                    && let Some(h) = self.fixed_shape(input, &slot_to_cell, &mut fixed_shape)
+                    && let Some(tape) = self
+                        .engine
+                        .export(h)
+                        .and_then(|t| crate::sym::tape::Tape::compile(&t, "x"))
+                {
+                    let (lo, hi) = (bound[1], bound[2]);
+                    bound.clear();
+                    bound.extend([lo, hi]);
+                    bound.extend_from_slice(&tape.params);
+                    spec = OpSpec::Sym(SymKind::SampleTape {
+                        tape: tapes.len() as u32,
+                    });
+                    tapes.push(tape);
+                }
+            }
+            instrs.push(Instr {
+                out: slot_to_cell[s],
+                op: spec.bind(&bound, &mut operands),
+            });
+        }
+        lap("bind instructions");
+
+        // Prop cells: contiguous per component, in slot order.
+        let n_comps = self.components.len();
+        self.components.prop_base = Vec::with_capacity(n_comps);
+        self.components.prop_cells = Vec::with_capacity(n);
+        for c in 0..n_comps {
+            let np = self.components.component_type[c].prop_defs().len();
+            self.components
+                .prop_base
+                .push(self.components.prop_cells.len() as u32);
+            let base = self.slot_base[c] as usize;
+            self.components
+                .prop_cells
+                .extend_from_slice(&slot_to_cell[base..base + np]);
+        }
+        lap("prop cells");
+
+        let (depths, cross_reads) = self.structural_depths();
+        lap("structural depth");
+        for (r, (&d, &cross)) in self.repeats.iter().zip(depths.iter().zip(&cross_reads)) {
+            if cross {
+                let name = self.components.name[r.comp as usize];
+                let name = if name == NONE {
+                    format!(
+                        "<{}>",
+                        self.components.component_type[r.comp as usize].tag()
+                    )
+                } else {
+                    self.compiled.dast.strings.get(name).trim().to_string()
+                };
+                self.diagnostics.push(Diagnostic::warning(
+                    "cells-repeat-count-reads-iterations",
+                    Some(r.node),
+                    format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"),
+                ));
+            }
+        }
+
+        // The next session: this build's scopes and what is still parked;
+        // the value store is shared, since the build only read it.
+        let session = Session {
+            seed: self.session.seed,
+            sample_with_engine: self.session.sample_with_engine,
+            scopes: self.scopes,
+            values: self.session.values.clone(),
+            parked,
+            runtime_strings: self.session.runtime_strings.clone(),
+            engine: self.session.engine.clone(),
+            last_build: (self.components.component_type.len(), self.sources.len()),
+        };
+        let structure = Structure {
+            essential_slots,
+            essential_keys,
+            essential_defaults,
+            structural_depth: depths.iter().copied().max().unwrap_or(0),
+            repeat_depths: depths,
+            repeat_cross_reads: cross_reads,
+            repeats: self.repeats,
+            diagnostics: self.diagnostics,
+        };
+
+        // Lazy labels for cycle errors.
+        let slot_comp = self.slot_comp;
+        let slot_base = self.slot_base;
+        let component_types = self.components.component_type.clone();
+        let names = self.components.name.clone();
+        let dast = self.compiled.dast.clone();
+        let cell_label = Box::new(move |cell: CellIdx| {
+            let slot = cell_def_slot[cell as usize];
+            let comp = slot_comp[slot as usize];
+            if comp == NONE {
+                return "(anonymous cell)".to_string();
+            }
+            let pi = (slot - slot_base[comp as usize]) as usize;
+            let owner = match names[comp as usize] {
+                NONE => format!("<{}>#{}", component_types[comp as usize].tag(), comp),
+                s => dast.strings.get(s).trim().to_string(),
+            };
+            match component_types[comp as usize].prop_defs().get(pi) {
+                Some(def) => format!("{owner}.{}", def.name),
+                None => format!("{owner}.(hidden slot {pi})"),
+            }
+        });
+
+        let mut strings = self.compiled.dast.strings.clone();
+        for s in &self.compiled.extra_strings {
+            strings.push(s);
+        }
+        let mut components = self.components;
+        components.component_type.shrink_to_fit();
+        components.name.shrink_to_fit();
+        components.parent.shrink_to_fit();
+        components.child_start.shrink_to_fit();
+        components.child_count.shrink_to_fit();
+        components.child_list.shrink_to_fit();
+        components.prop_cells.shrink_to_fit();
+        components.dast_node.shrink_to_fit();
+        components.scope.shrink_to_fit();
+        Ok(BuildOutput {
+            cells,
+            n_essential,
+            n_fixed,
+            instrs,
+            components,
+            strings,
+            root: self.root,
+            structure,
+            session,
+            operands,
+            value_types,
+            tapes,
+            cell_label,
+        })
+    }
+
+    /// The expression a slot will hold as a template over numeric cell
+    /// leaves, when its shape is fixed at build time: a fixed handle, an
+    /// instantiated template, or the derivative of one (taken here, once).
+    /// `None` when it depends on a math cell whose shape can change.
+    fn fixed_shape(
+        &mut self,
+        slot: SlotId,
+        slot_to_cell: &[CellIdx],
+        memo: &mut HashMap<SlotId, Option<Handle>>,
+    ) -> Option<Handle> {
+        let mut root = slot;
+        while let Source::Alias(t) = self.sources[root as usize] {
+            root = t;
+        }
+        if let Some(&h) = memo.get(&root) {
+            return h;
+        }
+        let h = match self.sources[root as usize] {
+            Source::Fixed(h) if !h.is_nan() => Some(h as Handle),
+            Source::Op(OpSpec::Sym(SymKind::Instantiate { template, .. }), _, _) => {
+                let tree = rebind(&self.sym_templates[template as usize], slot_to_cell);
+                if has_math_leaf(&tree) {
+                    None
+                } else {
+                    Some(self.engine.import(&tree))
+                }
+            }
+            Source::Op(OpSpec::Sym(SymKind::Derivative), start, _) => {
+                let input = self.op_inputs[start as usize];
+                self.fixed_shape(input, slot_to_cell, memo)
+                    .map(|h| self.engine.derivative(h, "x"))
+            }
+            _ => None,
+        };
+        memo.insert(root, h);
+        h
+    }
+
+    /// Give each seeded essential math cell (`SourcePlan::MathEssentialFrom`)
+    /// its first expression: the source cell's value, unless the cell
+    /// carried a value over from an earlier build. The source must be
+    /// essential or fixed, so its value is known before anything computes.
+    fn seed_cells(
+        &mut self,
+        cells: &mut [f64],
+        defaults: &mut [f64],
+        slot_to_cell: &[CellIdx],
+        n_known: usize,
+    ) -> Result<()> {
+        if self.seeds.is_empty() {
+            return Ok(());
+        }
+        // Which seed sources hold math, from the few cells that are sources.
+        let sources: HashSet<CellIdx> = self
+            .seeds
+            .iter()
+            .map(|&(_, from)| slot_to_cell[from as usize])
+            .collect();
+        let math_cells: HashSet<CellIdx> = self
+            .typed_slots
+            .iter()
+            .filter(|&&(_, ty)| ty == ValueType::Math)
+            .map(|&(s, _)| slot_to_cell[s as usize])
+            .filter(|c| sources.contains(c))
+            .collect();
+        for &(s, from) in &self.seeds {
+            let (scope, tslot, _) = self.essential_key(s);
+            let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
+            let src = slot_to_cell[from as usize];
+            // A collect's count is a constant in every real build; the probe
+            // only stands it in by an operator over the repeats' counts.
+            let stand_in = || {
+                self.follows_counts
+                    .iter()
+                    .any(|&c| slot_to_cell[self.slot(c, 0) as usize] == src)
+            };
+            if src as usize >= n_known && !stand_in() {
+                // The seeded element is boxed (ADR 0013).
+                let node = self.components.dast_node[self.slot_comp[s as usize] as usize];
+                self.failed_node = (node != NONE).then_some(node);
+                return Err(Error::Unsupported(format!(
+                    "prefill=\"${}\": a prefill reference must name a value that is not computed",
+                    self.slot_label(from)
+                )));
+            }
+            let v = cells[src as usize];
+            let seed = if math_cells.contains(&src) || v.is_nan() {
+                v
+            } else {
+                self.engine.import(&Tree::Num(v)) as f64
+            };
+            // The seed is the cell's default whether or not a carried value
+            // replaces it (`Structure::essential_defaults`).
+            defaults[slot_to_cell[s as usize] as usize] = seed;
+            if !carried {
+                cells[slot_to_cell[s as usize] as usize] = seed;
+            }
+        }
+        Ok(())
+    }
+
+    /// An essential slot's key: its scope, its template slot (the element's
+    /// slot offset plus the prop's position; a document's boxes are fixed
+    /// at load, ADR 0014, so the offsets are the same in every build), and
+    /// its element's key and position.
+    #[inline]
+    pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
+        let comp = self.slot_comp[slot as usize];
+        let inst = self.instances[self.comp_instance[comp as usize] as usize];
+        let pi = slot - self.slot_base[comp as usize];
+        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        (inst.scope, el.slot_off + pi, (el.key, pi))
+    }
+
+    /// Structural depth per repeat: how many repeats must be expanded, in
+    /// sequence, before its count can be computed, plus one. Nesting adds
+    /// one; a count that reads a cell inside another repeat's iterations adds
+    /// one, and is flagged (`cross`) since authors can avoid it.
+    pub(in crate::build) fn structural_depths(&self) -> (Vec<u32>, Vec<bool>) {
+        // The repeat each iteration scope belongs to, by scope id.
+        let mut owner: Vec<usize> = vec![usize::MAX; self.scopes.len()];
+        for (ri, r) in self.repeats.iter().enumerate() {
+            for &s in &r.iter_scopes {
+                owner[s as usize] = ri;
+            }
+        }
+        let owner = |s: ScopeId| Some(owner[s as usize]).filter(|&o| o != usize::MAX);
+        let is_ancestor_or_self = |s: ScopeId, of: ScopeId| -> bool {
+            let mut cur = of;
+            loop {
+                if cur == s {
+                    return true;
+                }
+                if cur == 0 {
+                    return false;
+                }
+                cur = self.scopes[cur].0;
+            }
+        };
+        let mut reads: Vec<Vec<usize>> = vec![Vec::new(); self.repeats.len()];
+        let mut cross = vec![false; self.repeats.len()];
+        let mut seen = vec![false; self.sources.len()];
+        let mut stack = Vec::new();
+        let mut touched = Vec::new();
+        for (ri, r) in self.repeats.iter().enumerate() {
+            if let Some(o) = owner(r.scope) {
+                reads[ri].push(o);
+            }
+            stack.clear();
+            let count_pi = self.components.component_type[r.comp as usize]
+                .count_prop()
+                .expect("a repeat has a count");
+            stack.push(self.slot(r.comp, count_pi));
+            touched.clear();
+            while let Some(sl) = stack.pop() {
+                if seen[sl as usize] {
+                    continue;
+                }
+                seen[sl as usize] = true;
+                touched.push(sl);
+                let comp = self.slot_comp[sl as usize];
+                if comp != NONE {
+                    let scope = self.components.scope[comp as usize];
+                    if scope != 0
+                        && !is_ancestor_or_self(scope, r.scope)
+                        && let Some(o) = owner(scope)
+                        && o != ri
+                    {
+                        cross[ri] = true;
+                        if !reads[ri].contains(&o) {
+                            reads[ri].push(o);
+                        }
+                    }
+                }
+                match &self.sources[sl as usize] {
+                    Source::Alias(t) => stack.push(*t),
+                    Source::Op(_, start, n) => stack.extend_from_slice(
+                        &self.op_inputs[*start as usize..*start as usize + *n as usize],
+                    ),
+                    Source::VecOut(head, _) => stack.push(*head),
+                    _ => {}
+                }
+            }
+            for &sl in &touched {
+                seen[sl as usize] = false;
+            }
+        }
+        fn depth(ri: usize, reads: &[Vec<usize>], memo: &mut [u32], visiting: &mut [bool]) -> u32 {
+            if memo[ri] != 0 {
+                return memo[ri];
+            }
+            if visiting[ri] {
+                return 1;
+            }
+            visiting[ri] = true;
+            let d = 1 + reads[ri]
+                .iter()
+                .map(|&o| depth(o, reads, memo, visiting))
+                .max()
+                .unwrap_or(0);
+            visiting[ri] = false;
+            memo[ri] = d;
+            d
+        }
+        let mut memo = vec![0u32; self.repeats.len()];
+        let mut visiting = vec![false; self.repeats.len()];
+        let depths = (0..self.repeats.len())
+            .map(|ri| depth(ri, &reads, &mut memo, &mut visiting))
+            .collect();
+        (depths, cross)
+    }
+}
+
+/// A template with its slot leaves replaced by cells.
+fn rebind(t: &Tree, slot_to_cell: &[CellIdx]) -> Tree {
+    let all = |ts: &[Tree]| ts.iter().map(|k| rebind(k, slot_to_cell)).collect();
+    let one = |k: &Tree| Box::new(rebind(k, slot_to_cell));
+    match t {
+        Tree::Cell { cell, math } => Tree::Cell {
+            cell: slot_to_cell[*cell as usize],
+            math: *math,
+        },
+        Tree::Num(_) | Tree::Sym(_) => t.clone(),
+        Tree::Add(ts) => Tree::Add(all(ts)),
+        Tree::Mul(ts) => Tree::Mul(all(ts)),
+        Tree::Sub(a, b) => Tree::Sub(one(a), one(b)),
+        Tree::Div(a, b) => Tree::Div(one(a), one(b)),
+        Tree::Pow(a, b) => Tree::Pow(one(a), one(b)),
+        Tree::Neg(a) => Tree::Neg(one(a)),
+        Tree::Apply(f, a) => Tree::Apply(f.clone(), one(a)),
+    }
+}
+
+fn has_math_leaf(t: &Tree) -> bool {
+    match t {
+        Tree::Cell { math, .. } => *math,
+        Tree::Num(_) | Tree::Sym(_) => false,
+        Tree::Add(ts) | Tree::Mul(ts) => ts.iter().any(has_math_leaf),
+        Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => has_math_leaf(a) || has_math_leaf(b),
+        Tree::Neg(a) | Tree::Apply(_, a) => has_math_leaf(a),
+    }
+}
+
+/// Distinct cell leaves of a tree, in first-seen order.
+fn cell_leaves(t: &Tree, out: &mut Vec<CellIdx>) {
+    match t {
+        Tree::Cell { cell, .. } => {
+            if !out.contains(cell) {
+                out.push(*cell);
+            }
+        }
+        Tree::Num(_) | Tree::Sym(_) => {}
+        Tree::Add(ts) | Tree::Mul(ts) => ts.iter().for_each(|k| cell_leaves(k, out)),
+        Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => {
+            cell_leaves(a, out);
+            cell_leaves(b, out);
+        }
+        Tree::Neg(a) | Tree::Apply(_, a) => cell_leaves(a, out),
+    }
+}
+
+struct UnionFind {
+    parent: Vec<u32>,
+}
+
+impl UnionFind {
+    fn new(n: usize) -> Self {
+        UnionFind {
+            parent: (0..n as u32).collect(),
+        }
+    }
+    fn find(&mut self, mut x: u32) -> u32 {
+        while self.parent[x as usize] != x {
+            let p = self.parent[x as usize];
+            self.parent[x as usize] = self.parent[p as usize];
+            x = p;
+        }
+        x
+    }
+    fn union(&mut self, a: u32, b: u32) {
+        let (ra, rb) = (self.find(a), self.find(b));
+        if ra != rb {
+            self.parent[ra as usize] = rb;
+        }
+    }
+}

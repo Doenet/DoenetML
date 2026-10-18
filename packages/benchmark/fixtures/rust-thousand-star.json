@@ -1,0 +1,24 @@
+{
+    "name": "rust-thousand-star",
+    "tier": "synthetic",
+    "mechanism": "text dependency breadth: one text input read by 1000 text components",
+    "source": {
+        "path": "packages/doenetml-worker-rust/lib-doenetml-core/benches/samples/thousand_star.doenet"
+    },
+    "steps": [
+        {
+            "action": "updateValue",
+            "target": "t",
+            "value": "a",
+            "kind": "text"
+        },
+        {
+            "action": "updateValue",
+            "target": "t",
+            "value": "b",
+            "kind": "text"
+        }
+    ],
+    "structural": null,
+    "notes": "From the Rust core's criterion benches."
+}

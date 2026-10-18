@@ -1,0 +1,1988 @@
+[
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "adventure-500",
+        "status": "ok",
+        "load_ms": 28728.285000003874,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "adventure-500",
+        "status": "ok",
+        "load_ms": 699.6199999973178,
+        "page_error": "Cannot read properties of undefined (reading 'suspendRedraw')",
+        "steps": [
+            {
+                "label": "updateValue path",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.614999994635582,
+                    "p90_ms": 16.71500000357628,
+                    "max_ms": 3987.2699999958277
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.32000000029802,
+                    "p90_ms": 33.86999999731779,
+                    "max_ms": 3989.369999997318
+                }
+            }
+        ],
+        "structural": [
+            {
+                "label": "updateValue path",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.634999997913837,
+                    "p90_ms": 16.66499999910593,
+                    "max_ms": 16.66499999910593
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.33500000089407,
+                    "p90_ms": 33.399999998509884,
+                    "max_ms": 33.399999998509884
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "answers-10",
+        "status": "ok",
+        "load_ms": 2029.9750000014901,
+        "steps": [
+            {
+                "label": "updateValue mi0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 17.25,
+                    "p90_ms": 33.315000005066395,
+                    "max_ms": 68.49500000476837
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.36500000208616,
+                    "p90_ms": 50.01000000536442,
+                    "max_ms": 85.13000000268221
+                }
+            },
+            {
+                "label": "submitAnswer a0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.46500000357628,
+                    "p90_ms": 16.524999998509884,
+                    "max_ms": 25.940000005066395
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.38000000268221,
+                    "p90_ms": 33.479999996721745,
+                    "max_ms": 33.519999995827675
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "answers-10",
+        "status": "ok",
+        "load_ms": 106.50999999791384,
+        "steps": [
+            {
+                "label": "updateValue mi0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.600000001490116,
+                    "p90_ms": 16.69999999552965,
+                    "max_ms": 16.734999999403954
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.29000000655651,
+                    "p90_ms": 33.44500000029802,
+                    "max_ms": 33.46999999880791
+                }
+            },
+            {
+                "label": "submitAnswer a0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.625,
+                    "p90_ms": 16.719999998807907,
+                    "max_ms": 16.734999999403954
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.399999998509884,
+                    "p90_ms": 33.50999999791384,
+                    "max_ms": 33.644999995827675
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "answers-100",
+        "status": "ok",
+        "load_ms": 5020.664999999106,
+        "steps": [
+            {
+                "label": "updateValue mi0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 34.21000000089407,
+                    "p90_ms": 64.36999999731779,
+                    "max_ms": 73.95499999821186
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 49.03000000119209,
+                    "p90_ms": 80.5300000011921,
+                    "max_ms": 88.61500000208616
+                }
+            },
+            {
+                "label": "submitAnswer a0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.33000000566244,
+                    "p90_ms": 16.685000002384186,
+                    "max_ms": 39.270000003278255
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 34.270000003278255,
+                    "p90_ms": 34.95000000298023,
+                    "max_ms": 52.7850000038743
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "answers-100",
+        "status": "ok",
+        "load_ms": 159.21000000089407,
+        "steps": [
+            {
+                "label": "updateValue mi0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.589999996125698,
+                    "p90_ms": 16.689999997615814,
+                    "max_ms": 16.924999997019768
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.24000000208616,
+                    "p90_ms": 33.350000001490116,
+                    "max_ms": 33.399999998509884
+                }
+            },
+            {
+                "label": "submitAnswer a0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.65999999642372,
+                    "p90_ms": 16.729999996721745,
+                    "max_ms": 16.730000004172325
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.42000000178814,
+                    "p90_ms": 33.46999999880791,
+                    "max_ms": 33.49499999731779
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "answers-1000",
+        "status": "ok",
+        "load_ms": 41060.45000000298,
+        "steps": [
+            {
+                "label": "updateValue mi0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 176.78999999910593,
+                    "p90_ms": 232.51500000059605,
+                    "max_ms": 237.6850000023842
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 180.4699999988079,
+                    "p90_ms": 234.125,
+                    "max_ms": 241.1600000038743
+                }
+            },
+            {
+                "label": "submitAnswer a0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 56.434999994933605,
+                    "p90_ms": 82.22499999403954,
+                    "max_ms": 335.5050000026822
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 91.46000000089407,
+                    "p90_ms": 115.72499999403954,
+                    "max_ms": 371.3400000035763
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "answers-1000",
+        "status": "ok",
+        "load_ms": 424.3999999985099,
+        "steps": [
+            {
+                "label": "updateValue mi0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 14.465000003576279,
+                    "p90_ms": 16.799999997019768,
+                    "max_ms": 18.12999999523163
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 30.719999998807907,
+                    "p90_ms": 33.07500000298023,
+                    "max_ms": 33.349999994039536
+                }
+            },
+            {
+                "label": "submitAnswer a0",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.594999998807907,
+                    "p90_ms": 16.92000000178814,
+                    "max_ms": 17.234999999403954
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 35.67999999970198,
+                    "p90_ms": 40.100000001490116,
+                    "max_ms": 41.4649999961257
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "chain-100",
+        "status": "ok",
+        "load_ms": 3901.695000000298,
+        "drag": {
+            "moves": 61,
+            "frames": 10,
+            "latency": {
+                "n": 10,
+                "p50_ms": 181.4050000011921,
+                "p90_ms": 351.35999999940395,
+                "max_ms": 351.35999999940395
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "chain-100",
+        "status": "ok",
+        "load_ms": 239.63500000536442,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 2.589999996125698,
+                "p90_ms": 3.6400000005960464,
+                "max_ms": 43.19999999552965
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.08999999612569809,
+                    "p90_ms": 0.125,
+                    "max_ms": 2.380000002682209
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 0.760000005364418,
+                    "p90_ms": 1.1000000014901161,
+                    "max_ms": 6.33500000089407
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 3.7000000029802322,
+                    "p90_ms": 5.355000004172325,
+                    "max_ms": 12.780000001192093
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "chain-1000",
+        "status": "ok",
+        "load_ms": 19554.92499999702,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "chain-1000",
+        "status": "ok",
+        "load_ms": 439.58500000089407,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 9.520000003278255,
+                "p90_ms": 13.060000002384186,
+                "max_ms": 57.395000003278255
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.25999999791383743,
+                    "p90_ms": 0.5150000005960464,
+                    "max_ms": 3.274999998509884
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 4.425000004470348,
+                    "p90_ms": 6.5,
+                    "max_ms": 14.229999996721745
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 14.83500000089407,
+                    "p90_ms": 23.53999999910593,
+                    "max_ms": 38.41499999910593
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "chain-10000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "chain-10000",
+        "status": "ok",
+        "load_ms": 1291.594999998808,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 84.56000000238419,
+                "p90_ms": 117.13500000536442,
+                "max_ms": 243.5899999961257
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 1.8599999994039536,
+                    "p90_ms": 3.094999998807907,
+                    "max_ms": 11.765000000596046
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 44.310000002384186,
+                    "p90_ms": 63.13499999791384,
+                    "max_ms": 95.4050000011921
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 112.49500000476837,
+                    "p90_ms": 154,
+                    "max_ms": 182.2800000011921
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "fanout-100",
+        "status": "ok",
+        "load_ms": 6798.085000000894,
+        "steps": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 652.3849999979138,
+                    "p90_ms": 746.2250000014901,
+                    "max_ms": 773.109999999404
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 682.484999999404,
+                    "p90_ms": 778.8549999967217,
+                    "max_ms": 805.7100000008941
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "fanout-100",
+        "status": "ok",
+        "load_ms": 390.70500000566244,
+        "steps": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.684999994933605,
+                    "p90_ms": 19.28999999910593,
+                    "max_ms": 31.32999999821186
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.32500000298023,
+                    "p90_ms": 39.149999998509884,
+                    "max_ms": 39.78000000119209
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "fanout-1000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "fanout-1000",
+        "status": "ok",
+        "load_ms": 1113.4649999961257,
+        "steps": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 37.34499999880791,
+                    "p90_ms": 72.98499999940395,
+                    "max_ms": 188.17999999970198
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 44.875,
+                    "p90_ms": 81.42500000447035,
+                    "max_ms": 232.23999999463558
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "fanout-10000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "fanout-10000",
+        "status": "ok",
+        "load_ms": 8884.365000002086,
+        "steps": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 321.08000000566244,
+                    "p90_ms": 362.07500000298023,
+                    "max_ms": 419.1600000038743
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 396.3149999976158,
+                    "p90_ms": 426.01500000059605,
+                    "max_ms": 4029.4100000038743
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "homework",
+        "status": "ok",
+        "load_ms": 3743.2200000062585,
+        "steps": [
+            {
+                "label": "updateValue p3.mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 33.20000000298023,
+                    "p90_ms": 49.99499999731779,
+                    "max_ms": 52.10999999940395
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 49.49000000208616,
+                    "p90_ms": 66.61500000208616,
+                    "max_ms": 79.54999999701977
+                }
+            },
+            {
+                "label": "submitAnswer p3.ans",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 17.45499999821186,
+                    "p90_ms": 36.99499999731779,
+                    "max_ms": 71.92499999701977
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.96999999880791,
+                    "p90_ms": 60.84499999880791,
+                    "max_ms": 83.14000000059605
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "homework",
+        "status": "unsupported",
+        "stage": "load",
+        "message": "page.evaluate: Error: unsupported: Error: unsupported tag <feedback>\n    at Object.load (eval at evaluate (:370:30), <anonymous>:23:32)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "lesson",
+        "status": "ok",
+        "load_ms": 3346.9749999940395,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 50,
+                "p50_ms": 68.31000000238419,
+                "p90_ms": 76.89499999582767,
+                "max_ms": 186.52000000327826
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "lesson",
+        "status": "unsupported",
+        "stage": "load",
+        "message": "page.evaluate: Error: unsupported: Error: unsupported tag <em>\n    at Object.load (eval at evaluate (:370:30), <anonymous>:23:32)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "repeat-100",
+        "status": "ok",
+        "load_ms": 14046.684999994934,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 1345.8149999976158,
+                    "p90_ms": 2882,
+                    "max_ms": 2882
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 1470.359999999404,
+                    "p90_ms": 3012.780000001192,
+                    "max_ms": 3012.780000001192
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "repeat-100",
+        "status": "ok",
+        "load_ms": 391.320000000298,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            },
+            "cells": {
+                "core": {
+                    "n": 32,
+                    "p50_ms": 0.04500000178813934,
+                    "p90_ms": 0.07999999821186066,
+                    "max_ms": 2.4149999991059303
+                },
+                "commit": {
+                    "n": 32,
+                    "p50_ms": 0.6000000014901161,
+                    "p90_ms": 0.9450000002980232,
+                    "max_ms": 4.255000002682209
+                },
+                "paint": {
+                    "n": 32,
+                    "p50_ms": 2.2100000008940697,
+                    "p90_ms": 3.0399999991059303,
+                    "max_ms": 6.825000002980232
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.41499999910593,
+                    "p90_ms": 19.064999997615814,
+                    "max_ms": 19.064999997615814
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.270000003278255,
+                    "p90_ms": 33.80499999970198,
+                    "max_ms": 33.80499999970198
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "repeat-1000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "repeat-1000",
+        "status": "ok",
+        "load_ms": 1734.9900000020862,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            },
+            "cells": {
+                "core": {
+                    "n": 32,
+                    "p50_ms": 0.06499999761581421,
+                    "p90_ms": 0.1550000011920929,
+                    "max_ms": 1.880000002682209
+                },
+                "commit": {
+                    "n": 32,
+                    "p50_ms": 3.3650000020861626,
+                    "p90_ms": 5.964999996125698,
+                    "max_ms": 8.599999994039536
+                },
+                "paint": {
+                    "n": 32,
+                    "p50_ms": 9.910000003874302,
+                    "p90_ms": 21.41499999910593,
+                    "max_ms": 44.54999999701977
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 27.09000000357628,
+                    "p90_ms": 40.24000000208616,
+                    "max_ms": 40.24000000208616
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 38.9649999961257,
+                    "p90_ms": 48.16499999910593,
+                    "max_ms": 48.16499999910593
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "repeat-10000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "repeat-10000",
+        "status": "ok",
+        "load_ms": 12826.69999999553,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            },
+            "cells": {
+                "core": {
+                    "n": 32,
+                    "p50_ms": 0.054999999701976776,
+                    "p90_ms": 0.08000000566244125,
+                    "max_ms": 2.005000002682209
+                },
+                "commit": {
+                    "n": 32,
+                    "p50_ms": 31.565000005066395,
+                    "p90_ms": 35.685000002384186,
+                    "max_ms": 41.32999999821186
+                },
+                "paint": {
+                    "n": 32,
+                    "p50_ms": 116.55000000447035,
+                    "p90_ms": 138.7800000011921,
+                    "max_ms": 147.8349999934435
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 503.07500000298023,
+                    "p90_ms": 1244.5649999976158,
+                    "max_ms": 1244.5649999976158
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 624.125,
+                    "p90_ms": 1561.030000001192,
+                    "max_ms": 1561.030000001192
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "rust-thousand-chain",
+        "status": "ok",
+        "load_ms": 13560.570000000298,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "rust-thousand-chain",
+        "status": "unsupported",
+        "stage": "load",
+        "message": "page.evaluate: Error: unsupported: Error: unsupported: <textInput> with content other than one reference\n    at Object.load (eval at evaluate (:370:30), <anonymous>:23:32)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "rust-thousand-star",
+        "status": "ok",
+        "load_ms": 12064.14999999851,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "rust-thousand-star",
+        "status": "unsupported",
+        "stage": "load",
+        "message": "page.evaluate: Error: unsupported: Error: unsupported: <textInput> with content other than one reference\n    at Object.load (eval at evaluate (:370:30), <anonymous>:23:32)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "sir",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "sir",
+        "status": "ok",
+        "load_ms": 415.3099999949336,
+        "drag": {
+            "moves": 61,
+            "frames": 19,
+            "latency": {
+                "n": 19,
+                "p50_ms": 11.524999998509884,
+                "p90_ms": 445.5949999988079,
+                "max_ms": 909.1749999970198
+            },
+            "cells": {
+                "core": {
+                    "n": 23,
+                    "p50_ms": 0.13499999791383743,
+                    "p90_ms": 0.19500000029802322,
+                    "max_ms": 3.814999997615814
+                },
+                "commit": {
+                    "n": 23,
+                    "p50_ms": 6.840000003576279,
+                    "p90_ms": 9.464999996125698,
+                    "max_ms": 23.41499999910593
+                },
+                "paint": {
+                    "n": 23,
+                    "p50_ms": 11.859999999403954,
+                    "p90_ms": 15.524999998509884,
+                    "max_ms": 35.939999997615814
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue nIterates",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.63000000268221,
+                    "p90_ms": 28.355000004172325,
+                    "max_ms": 28.355000004172325
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.264999993145466,
+                    "p90_ms": 33.86500000208616,
+                    "max_ms": 33.86500000208616
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "symchain-10",
+        "status": "ok",
+        "load_ms": 2989.4799999967217,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 99.67000000178814,
+                    "p90_ms": 179.14999999850988,
+                    "max_ms": 208.52499999850988
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 115.6550000011921,
+                    "p90_ms": 181.10000000149012,
+                    "max_ms": 222.4399999976158
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "symchain-10",
+        "status": "error",
+        "load_ms": 166.9050000011921,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'get')\n    at ComponentTable.cell (http://localhost:4173/assets/index-i65UwYI2.js:50:5381)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:47:46)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "symchain-100",
+        "status": "ok",
+        "load_ms": 6134.89999999851,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 699.804999999702,
+                    "p90_ms": 731.5449999943376,
+                    "max_ms": 788.0500000044703
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 745.3149999976158,
+                    "p90_ms": 797.4399999976158,
+                    "max_ms": 800.3350000008941
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "symchain-100",
+        "status": "error",
+        "load_ms": 275.5249999985099,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'get')\n    at ComponentTable.cell (http://localhost:4173/assets/index-i65UwYI2.js:50:5381)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:47:46)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "symchain-1000",
+        "status": "ok",
+        "load_ms": 33941.52499999851,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "symchain-1000",
+        "status": "error",
+        "load_ms": 688.25,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'get')\n    at ComponentTable.cell (http://localhost:4173/assets/index-i65UwYI2.js:50:5381)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:47:46)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "javascript",
+        "fixture": "venn",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "57f91f687",
+        "core": "cells",
+        "fixture": "venn",
+        "status": "unsupported",
+        "stage": "load",
+        "message": "page.evaluate: Error: unsupported: Error: unsupported tag <styleDefinition>\n    at Object.load (eval at evaluate (:370:30), <anonymous>:23:32)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "repeat-100",
+        "status": "ok",
+        "load_ms": 187.62999999523163,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.03500000387430191,
+                    "p90_ms": 0.06000000238418579,
+                    "max_ms": 1.405000001192093
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 0.375,
+                    "p90_ms": 0.5249999985098839,
+                    "max_ms": 2.3049999997019768
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 1.4400000050663948,
+                    "p90_ms": 1.8049999997019768,
+                    "max_ms": 6.7650000005960464
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.57999999821186,
+                    "p90_ms": 16.685000002384186,
+                    "max_ms": 16.685000002384186
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.26000000536442,
+                    "p90_ms": 33.69500000029802,
+                    "max_ms": 33.69500000029802
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-10",
+        "status": "error",
+        "load_ms": 115.63000000268221,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'get')\n    at ComponentTable.cell (http://localhost:4173/assets/index-i65UwYI2.js:50:5381)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:65:41)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "repeat-100",
+        "status": "ok",
+        "load_ms": 187.3800000026822,
+        "drag": {
+            "moves": 61,
+            "frames": 42,
+            "latency": {
+                "n": 42,
+                "p50_ms": 0.994999997317791,
+                "p90_ms": 1.964999996125698,
+                "max_ms": 301.28999999910593
+            },
+            "cells": {
+                "core": {
+                    "n": 42,
+                    "p50_ms": 0.03999999910593033,
+                    "p90_ms": 0.054999999701976776,
+                    "max_ms": 1.25
+                },
+                "commit": {
+                    "n": 42,
+                    "p50_ms": 0.369999997317791,
+                    "p90_ms": 0.5999999940395355,
+                    "max_ms": 2.1699999943375587
+                },
+                "paint": {
+                    "n": 42,
+                    "p50_ms": 1.5200000032782555,
+                    "p90_ms": 2.125,
+                    "max_ms": 4.279999993741512
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.45499999821186,
+                    "p90_ms": 16.760000005364418,
+                    "max_ms": 16.760000005364418
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.28499999642372,
+                    "p90_ms": 33.525000005960464,
+                    "max_ms": 33.525000005960464
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-10",
+        "status": "unsupported",
+        "load_ms": 113.79999999701977,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: Error: target mi did not resolve (1)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:47:23)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-10",
+        "status": "unsupported",
+        "load_ms": 141.57000000029802,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: Error: target mi did not resolve (1)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:47:23)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-1000",
+        "status": "unsupported",
+        "load_ms": 624.570000000298,
+        "page_error": "Cannot read properties of undefined (reading 'get')",
+        "stage": "steps",
+        "message": "page.evaluate: Error: target mi did not resolve (1)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:47:23)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at async <anonymous>:396:30"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "chain-100",
+        "status": "ok",
+        "load_ms": 233.53999999910593,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 3.144999995827675,
+                "p90_ms": 4.094999998807907,
+                "max_ms": 42.3399999961257
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.11500000208616257,
+                    "p90_ms": 0.16499999910593033,
+                    "max_ms": 2.9250000044703484
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 1.0499999970197678,
+                    "p90_ms": 1.7049999982118607,
+                    "max_ms": 6.505000002682209
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 4.5250000059604645,
+                    "p90_ms": 5.929999999701977,
+                    "max_ms": 11.040000006556511
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-10",
+        "status": "ok",
+        "load_ms": 119.87000000476837,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.65999999642372,
+                    "p90_ms": 16.90999999642372,
+                    "max_ms": 16.929999999701977
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.32500000298023,
+                    "p90_ms": 33.48999999463558,
+                    "max_ms": 33.94500000029802
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-1000",
+        "status": "ok",
+        "load_ms": 563.7800000011921,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 68.61500000208616,
+                    "p90_ms": 80.13000000268221,
+                    "max_ms": 83.64499999582767
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 88.625,
+                    "p90_ms": 95.82000000029802,
+                    "max_ms": 104.97500000149012
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "javascript",
+        "fixture": "repeat-100",
+        "status": "ok",
+        "load_ms": 8700.509999997914,
+        "drag": {
+            "moves": 61,
+            "frames": 43,
+            "latency": {
+                "n": 43,
+                "p50_ms": 54.980000004172325,
+                "p90_ms": 90.75500000268221,
+                "max_ms": 349.945000000298
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 593.4500000029802,
+                    "p90_ms": 1427.75,
+                    "max_ms": 1427.75
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 661.320000000298,
+                    "p90_ms": 1495.8500000014901,
+                    "max_ms": 1495.8500000014901
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "repeat-100",
+        "status": "ok",
+        "load_ms": 213.89499999582767,
+        "drag": {
+            "moves": 61,
+            "frames": 42,
+            "latency": {
+                "n": 42,
+                "p50_ms": 0.7800000011920929,
+                "p90_ms": 1.7299999967217445,
+                "max_ms": 301.0649999976158
+            },
+            "cells": {
+                "core": {
+                    "n": 42,
+                    "p50_ms": 0.030000001192092896,
+                    "p90_ms": 0.04500000178813934,
+                    "max_ms": 1.4549999982118607
+                },
+                "commit": {
+                    "n": 42,
+                    "p50_ms": 0.29999999701976776,
+                    "p90_ms": 0.5599999949336052,
+                    "max_ms": 2.339999996125698
+                },
+                "paint": {
+                    "n": 42,
+                    "p50_ms": 1.1899999976158142,
+                    "p90_ms": 1.5850000008940697,
+                    "max_ms": 4.449999995529652
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.600000001490116,
+                    "p90_ms": 16.71500000357628,
+                    "max_ms": 16.71500000357628
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.314999997615814,
+                    "p90_ms": 33.435000002384186,
+                    "max_ms": 33.435000002384186
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "javascript",
+        "fixture": "repeat-1000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "repeat-1000",
+        "status": "ok",
+        "load_ms": 696.390000000596,
+        "drag": {
+            "moves": 61,
+            "frames": 43,
+            "latency": {
+                "n": 43,
+                "p50_ms": 2.2849999964237213,
+                "p90_ms": 3.2100000008940697,
+                "max_ms": 302.94999999552965
+            },
+            "cells": {
+                "core": {
+                    "n": 43,
+                    "p50_ms": 0.030000001192092896,
+                    "p90_ms": 0.05000000447034836,
+                    "max_ms": 1.3599999994039536
+                },
+                "commit": {
+                    "n": 43,
+                    "p50_ms": 1.2300000041723251,
+                    "p90_ms": 1.6850000023841858,
+                    "max_ms": 3.880000002682209
+                },
+                "paint": {
+                    "n": 43,
+                    "p50_ms": 3.769999995827675,
+                    "p90_ms": 4.685000002384186,
+                    "max_ms": 7.355000004172325
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 16.480000004172325,
+                    "p90_ms": 20.770000003278255,
+                    "max_ms": 20.770000003278255
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 33.35999999940395,
+                    "p90_ms": 33.519999995827675,
+                    "max_ms": 33.519999995827675
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "javascript",
+        "fixture": "repeat-10000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "repeat-10000",
+        "status": "ok",
+        "load_ms": 4673.92499999702,
+        "drag": {
+            "moves": 61,
+            "frames": 43,
+            "latency": {
+                "n": 43,
+                "p50_ms": 17.615000002086163,
+                "p90_ms": 18.804999999701977,
+                "max_ms": 369.9400000050664
+            },
+            "cells": {
+                "core": {
+                    "n": 43,
+                    "p50_ms": 0.030000001192092896,
+                    "p90_ms": 0.04999999701976776,
+                    "max_ms": 1.2949999943375587
+                },
+                "commit": {
+                    "n": 43,
+                    "p50_ms": 11.965000003576279,
+                    "p90_ms": 13.524999998509884,
+                    "max_ms": 19.53499999642372
+                },
+                "paint": {
+                    "n": 43,
+                    "p50_ms": 35.939999997615814,
+                    "p90_ms": 39.40500000119209,
+                    "max_ms": 41.814999997615814
+                }
+            }
+        },
+        "structural": [
+            {
+                "label": "updateValue n",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 123.625,
+                    "p90_ms": 149.19500000029802,
+                    "max_ms": 149.19500000029802
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 149.88499999791384,
+                    "p90_ms": 169.30499999970198,
+                    "max_ms": 169.30499999970198
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "javascript",
+        "fixture": "symchain-10",
+        "status": "ok",
+        "load_ms": 1802.8299999982119,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 52.975000001490116,
+                    "p90_ms": 62.479999996721745,
+                    "max_ms": 69.78999999910593
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 67.25500000268221,
+                    "p90_ms": 79.11999999731779,
+                    "max_ms": 79.48499999940395
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-10",
+        "status": "ok",
+        "load_ms": 108.875,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.66499999910593,
+                    "p90_ms": 16.859999999403954,
+                    "max_ms": 17.150000005960464
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.3399999961257,
+                    "p90_ms": 33.42000000178814,
+                    "max_ms": 33.45500000566244
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "javascript",
+        "fixture": "symchain-100",
+        "status": "ok",
+        "load_ms": 3769.2150000035763,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 401.1900000050664,
+                    "p90_ms": 448.2300000041723,
+                    "max_ms": 470.5950000062585
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 441.7250000014901,
+                    "p90_ms": 472.304999999702,
+                    "max_ms": 495.1550000011921
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-100",
+        "status": "ok",
+        "load_ms": 184.85000000149012,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.604999996721745,
+                    "p90_ms": 16.725000001490116,
+                    "max_ms": 18.57999999821186
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.314999997615814,
+                    "p90_ms": 33.394999995827675,
+                    "max_ms": 33.42000000178814
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "javascript",
+        "fixture": "symchain-1000",
+        "status": "ok",
+        "load_ms": 26769.405000001192,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "c9388aa16",
+        "core": "cells",
+        "fixture": "symchain-1000",
+        "status": "ok",
+        "load_ms": 582.6499999985099,
+        "steps": [
+            {
+                "label": "updateValue mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 81.30000000447035,
+                    "p90_ms": 101.70499999821186,
+                    "max_ms": 115.88000000268221
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 103.73499999940395,
+                    "p90_ms": 128.71000000089407,
+                    "max_ms": 172.0650000050664
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "javascript",
+        "fixture": "points-100",
+        "status": "ok",
+        "load_ms": 2355.015000000596,
+        "drag": {
+            "moves": 61,
+            "frames": 18,
+            "latency": {
+                "n": 18,
+                "p50_ms": 35.24499999731779,
+                "p90_ms": 536.6449999958277,
+                "max_ms": 965.7999999970198
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "cells",
+        "fixture": "points-100",
+        "status": "ok",
+        "load_ms": 188.8099999949336,
+        "drag": {
+            "moves": 61,
+            "frames": 18,
+            "latency": {
+                "n": 18,
+                "p50_ms": 1.1400000005960464,
+                "p90_ms": 592.9900000020862,
+                "max_ms": 934.4799999967217
+            },
+            "cells": {
+                "core": {
+                    "n": 18,
+                    "p50_ms": 0.03999999910593033,
+                    "p90_ms": 0.17500000447034836,
+                    "max_ms": 5.240000002086163
+                },
+                "commit": {
+                    "n": 18,
+                    "p50_ms": 0.41999999433755875,
+                    "p90_ms": 2.094999998807907,
+                    "max_ms": 8.424999997019768
+                },
+                "paint": {
+                    "n": 18,
+                    "p50_ms": 1.7949999943375587,
+                    "p90_ms": 8.17000000178814,
+                    "max_ms": 14.494999997317791
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "javascript",
+        "fixture": "points-1000",
+        "status": "ok",
+        "load_ms": 56620.02499999851,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "cells",
+        "fixture": "points-1000",
+        "status": "ok",
+        "load_ms": 570.015000000596,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            },
+            "cells": {
+                "core": {
+                    "n": 18,
+                    "p50_ms": 0.04999999701976776,
+                    "p90_ms": 0.14000000059604645,
+                    "max_ms": 4.159999996423721
+                },
+                "commit": {
+                    "n": 18,
+                    "p50_ms": 1.5549999997019768,
+                    "p90_ms": 4.96000000089407,
+                    "max_ms": 12.125
+                },
+                "paint": {
+                    "n": 18,
+                    "p50_ms": 5.820000000298023,
+                    "p90_ms": 20.80000000447035,
+                    "max_ms": 24.11999999731779
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "javascript",
+        "fixture": "points-10000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "cells",
+        "fixture": "points-10000",
+        "status": "ok",
+        "load_ms": 4649.060000002384,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            },
+            "cells": {
+                "core": {
+                    "n": 18,
+                    "p50_ms": 0.03999999910593033,
+                    "p90_ms": 0.07999999821186066,
+                    "max_ms": 1.244999997317791
+                },
+                "commit": {
+                    "n": 18,
+                    "p50_ms": 14.745000004768372,
+                    "p90_ms": 18.70499999821186,
+                    "max_ms": 32.99000000208616
+                },
+                "paint": {
+                    "n": 18,
+                    "p50_ms": 43.060000002384186,
+                    "p90_ms": 65.23999999463558,
+                    "max_ms": 87.96000000089407
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "javascript",
+        "fixture": "points-100",
+        "status": "ok",
+        "load_ms": 2485.210000000894,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 59,
+                "p50_ms": 27.92000000178814,
+                "p90_ms": 33.355000004172325,
+                "max_ms": 100.97000000625849
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "cells",
+        "fixture": "points-100",
+        "status": "ok",
+        "load_ms": 181.33500000089407,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 59,
+                "p50_ms": 1.7050000056624413,
+                "p90_ms": 2.0700000002980232,
+                "max_ms": 52.644999995827675
+            },
+            "cells": {
+                "core": {
+                    "n": 59,
+                    "p50_ms": 0.04999999701976776,
+                    "p90_ms": 0.07500000298023224,
+                    "max_ms": 1.1049999967217445
+                },
+                "commit": {
+                    "n": 59,
+                    "p50_ms": 0.6849999949336052,
+                    "p90_ms": 0.8299999982118607,
+                    "max_ms": 1.8900000005960464
+                },
+                "paint": {
+                    "n": 59,
+                    "p50_ms": 3.0150000005960464,
+                    "p90_ms": 3.630000002682209,
+                    "max_ms": 3.9250000044703484
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "javascript",
+        "fixture": "points-1000",
+        "status": "ok",
+        "load_ms": 42737.28000000119,
+        "timed_out_at": "steps"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "cells",
+        "fixture": "points-1000",
+        "status": "ok",
+        "load_ms": 746.9149999991059,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 59,
+                "p50_ms": 2.030000001192093,
+                "p90_ms": 3.875,
+                "max_ms": 65.18999999761581
+            },
+            "cells": {
+                "core": {
+                    "n": 59,
+                    "p50_ms": 0.0299999937415123,
+                    "p90_ms": 0.054999999701976776,
+                    "max_ms": 1.6000000014901161
+                },
+                "commit": {
+                    "n": 59,
+                    "p50_ms": 1.1749999970197678,
+                    "p90_ms": 2.255000002682209,
+                    "max_ms": 5.225000001490116
+                },
+                "paint": {
+                    "n": 59,
+                    "p50_ms": 5.220000006258488,
+                    "p90_ms": 7.075000002980232,
+                    "max_ms": 12.875
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "javascript",
+        "fixture": "points-10000",
+        "status": "timeout",
+        "stage": "load",
+        "message": "timeout"
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "5b704b77d",
+        "core": "cells",
+        "fixture": "points-10000",
+        "status": "ok",
+        "load_ms": 5049.134999997914,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 19.07499999552965,
+                "p90_ms": 20.064999997615814,
+                "max_ms": 225.5649999976158
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.03500000387430191,
+                    "p90_ms": 0.054999999701976776,
+                    "max_ms": 1.4849999994039536
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 13.435000002384186,
+                    "p90_ms": 14.195000000298023,
+                    "max_ms": 17.780000001192093
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 45.53999999910593,
+                    "p90_ms": 48.225000001490116,
+                    "max_ms": 54.185000002384186
+                }
+            }
+        }
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "599165aaf",
+        "core": "cells",
+        "fixture": "homework",
+        "status": "ok",
+        "load_ms": 161.74000000208616,
+        "steps": [
+            {
+                "label": "updateValue p3.mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.575000002980232,
+                    "p90_ms": 16.740000002086163,
+                    "max_ms": 16.804999999701977
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.23499999940395,
+                    "p90_ms": 33.50500000268221,
+                    "max_ms": 33.66499999910593
+                }
+            },
+            {
+                "label": "submitAnswer p3.ans",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.50499999523163,
+                    "p90_ms": 16.859999999403954,
+                    "max_ms": 16.884999997913837
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.38500000536442,
+                    "p90_ms": 33.70000000298023,
+                    "max_ms": 33.75499999523163
+                }
+            }
+        ]
+    },
+    {
+        "date": "2026-10-15",
+        "commit": "599165aaf",
+        "core": "cells",
+        "fixture": "lesson",
+        "status": "unsupported",
+        "stage": "load",
+        "message": "page.evaluate: Error: unsupported: Error: unsupported tag <em>\n    at Object.load (eval at evaluate (:370:30), <anonymous>:27:27)\n    at async <anonymous>:396:30"
+    }
+]

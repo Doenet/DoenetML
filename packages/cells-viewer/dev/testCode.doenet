@@ -1,0 +1,19 @@
+<graph name="g">
+  <point name="p1" x="1" y="2"/>
+  <point name="p2" x="$n" y="$p1.y"/>
+  <math name="neg">-$p1.x</math>
+  <point name="p3" x="$neg" y="-3"/>
+</graph>
+<p>n = <numberInput name="n" value="4"/>, p1 = $p1, p2.x = $p2.x, p3 = $p3</p>
+<p>slider bound to n: <slider name="s" from="-10" to="10" step="0.5" bindValueTo="$n"/></p>
+<p>count: <slider name="cnt" from="0" to="12" step="1" initialValue="4"/></p>
+<graph name="g2">
+  <repeatForSequence name="r" from="-8" to="8" length="$cnt" valueName="v" indexName="i">
+    <point name="p" x="$v" y="0.5$v"/>
+  </repeatForSequence>
+  <point name="third" coords="$r[3].p"/>
+</graph>
+<p>math: <math name="m">3$n + 2</math> is numeric and lowers; <math name="f">x^2 - $n</math> stays symbolic;
+  f at n: <evaluate name="e" function="$f" input="$n"/></p>
+<p>hide p1: <booleanInput name="hideP1"/></p>
+<graph><point extend="$p1" hide="$hideP1"/></graph>

@@ -1,0 +1,24 @@
+{
+    "name": "points-1000",
+    "tier": "synthetic",
+    "mechanism": "many independent components: N free points in one graph, one of them dragged",
+    "source": {
+        "generate": "points-1000"
+    },
+    "steps": [
+        {
+            "action": "movePoint",
+            "target": "p0",
+            "x": 1,
+            "y": 1
+        },
+        {
+            "action": "movePoint",
+            "target": "p0",
+            "x": 2,
+            "y": 2
+        }
+    ],
+    "structural": null,
+    "notes": "The intersection tier: points, a graph and nothing else, so the Rust core can run it too. p0 sits alone at the center; the rest fill a grid. Dragging p0 changes one point; the cost is the document's size, not its dependencies."
+}

@@ -1,0 +1,134 @@
+/* The shape of packages/doenetml-prototype's editor-viewer.css, without
+   Tailwind: slate header, panels filling the rest. */
+.editor-viewer {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: system-ui, sans-serif;
+    color: #222;
+    background: #fff;
+}
+
+.editor-viewer-refresh {
+    flex: 0 0 auto;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.editor-viewer-refresh:disabled {
+    cursor: default;
+}
+
+.editor-viewer-statusbar {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    padding: 6px 8px;
+    background: #cbd5e1;
+    border-bottom: 1px solid #64748b;
+    font-size: 0.85em;
+    color: #334155;
+    font-variant-numeric: tabular-nums;
+}
+
+.status-load {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.status-legend {
+    display: flex;
+    gap: 10px;
+    color: #64748b;
+}
+
+.status-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #64748b;
+    box-sizing: border-box;
+    margin-right: 4px;
+    vertical-align: -1px;
+}
+
+.status-ticks {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tick-sparkline {
+    display: block;
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #94a3b8;
+    box-sizing: border-box;
+}
+
+.editor-viewer-panels {
+    flex: 1 1 0;
+    overflow: hidden;
+}
+
+.resizable-panel-pair {
+    display: grid;
+    height: 100%;
+}
+
+.resizable-panel {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.resizable-gutter {
+    width: 6px;
+    cursor: col-resize;
+    background: #e2e8f0;
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    touch-action: none;
+}
+
+.editor-panel {
+    height: 100%;
+}
+
+.editor-panel > *,
+.editor-panel .cm-editor {
+    height: 100%;
+}
+
+.viewer-panel {
+    height: 100%;
+    overflow: auto;
+    padding: 10px 16px;
+    box-sizing: border-box;
+}
+
+.viewer-error {
+    color: crimson;
+    font-family: ui-monospace, monospace;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 40rem) {
+    .resizable-panel-pair {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .resizable-gutter {
+        display: none;
+    }
+}
