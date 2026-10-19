@@ -19,8 +19,13 @@ export const LOAD_TIMEOUT_MS = 120_000;
 /** The longest a tick, or a stage after the ticks, may take. */
 export const STEP_TIMEOUT_MS = 15_000;
 const LOAD_STAGES = new Set(["start", "generate", "parse", "load"]);
-/** Stages after the measurements: a timeout there costs only their fields. */
-const LATE_STAGES = new Set(["state", "errors"]);
+/**
+ * Stages after the ticks, which are not timed: the value check (one more
+ * tick, then reading the state), the saved state, the error count. They
+ * have the load's limit, since reading a large document's state is slow,
+ * and a timeout there costs only their fields.
+ */
+const LATE_STAGES = new Set(["check", "state", "errors"]);
 
 const args = Object.fromEntries(
     process.argv.slice(2).map((a) => {
@@ -93,7 +98,9 @@ function measure(core, fixture) {
                     finished = LATE_STAGES.has(stage);
                     child.kill("SIGKILL");
                 },
-                LOAD_STAGES.has(stage) ? LOAD_TIMEOUT_MS : STEP_TIMEOUT_MS,
+                LOAD_STAGES.has(stage) || LATE_STAGES.has(stage)
+                    ? LOAD_TIMEOUT_MS
+                    : STEP_TIMEOUT_MS,
             );
         };
         arm();
@@ -118,7 +125,7 @@ function measure(core, fixture) {
         child.stderr.on("data", (d) => {
             stderr += d;
         });
-        child.on("close", (code) => {
+        child.on("close", (code, signal) => {
             clearTimeout(timer);
             if (samples.length) record.samples_ms = samples;
             if (record.status === "ok" && !finished) {
@@ -126,7 +133,7 @@ function measure(core, fixture) {
                 record.stage = stage;
                 record.message = (
                     stderr.trim().split("\n").slice(-3).join(" | ") ||
-                    `exit ${code}`
+                    (signal ? `killed by ${signal}` : `exit ${code}`)
                 ).slice(0, 500);
             }
             if (record.status !== "ok" && !record.stage) record.stage = stage;

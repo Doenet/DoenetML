@@ -7,7 +7,7 @@ Builds: JS: source, bundled by scripts/bundle-driver.mjs; Rust: wasm-pack --dev 
 Each cell compares two cores on one shape at one size: the bold line says which is faster and by how much; the line under it gives each core's time. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).
 
 - **Tick** is the median time of the shape's primary action, less the core's adapter floor (below). ‡: a tick within twice its floor, so its own time is below what the adapter lets us see; the ratio is then a bound ("> N×") taken from that floor.
-- **> 15 s**: the core did not finish one tick in 15 s, or **> 15 s** its load in 15 s. † marks a ratio that is then a lower bound, its slow side unchecked. A core whose load did not finish has no tick.
+- **> 15 s**: the core did not finish one tick in 15 s, or **> 15 s** its load in 15 s. † marks a ratio that is then a lower bound, its slow side unchecked, or one whose value check did not finish. A core whose load did not finish has no tick.
 - **not comparable**: a core finished, but its values after the check step are wrong. **—**: a core cannot run the shape (see [coverage](coverage.md)).
 
 Adapter floor (the drag on a document of one free point): JS 3.78 ms, Rust 0.22 ms, cells 28 µs.

@@ -84,6 +84,9 @@ function outcome(r, measure, floor, limit) {
         raw,
         floor: f,
         floored: f > 0 && raw < 2 * f,
+        // A synthetic shape always has a check; one that did not finish
+        // leaves the value unchecked.
+        unchecked: !r.check && /-\d+$/.test(r.fixture),
     };
 }
 
@@ -104,9 +107,10 @@ function mismatch(check) {
 function pairCell(a, b, oa, ob) {
     const show = (c, o) =>
         o.kind === "value"
-            ? o.floored
-                ? `${coreName(c)} < ${ms(o.floor)} (floor)`
-                : `${coreName(c)} ${ms(o.value)}`
+            ? (o.floored
+                  ? `${coreName(c)} < ${ms(o.floor)} (floor)`
+                  : `${coreName(c)} ${ms(o.value)}`) +
+              (o.unchecked ? " (unchecked)" : "")
             : o.kind === "bound"
               ? `${coreName(c)} > ${ms(o.limit)}`
               : null;
@@ -142,15 +146,17 @@ function pairCell(a, b, oa, ob) {
     // A tick within twice its floor is the floor plus less than a floor:
     // its own time is below what the adapter lets us see, so the ratio is a
     // bound from the floor, and two such ticks cannot be told apart.
-    if (fast[1].floored && slow[1].floored) return `both at the floor ‡${sub}`;
+    const dagger = oa.unchecked || ob.unchecked ? " †" : "";
+    if (fast[1].floored && slow[1].floored)
+        return `both at the floor ‡${dagger}${sub}`;
     if (fast[1].floored) {
         const r = slow[1].value / fast[1].floor;
-        if (r < 1.2) return `**≈ equal** ‡${sub}`;
-        return `**${coreName(fast[0])} > ${ratio(r)}** ‡${sub}`;
+        if (r < 1.2) return `**≈ equal** ‡${dagger}${sub}`;
+        return `**${coreName(fast[0])} > ${ratio(r)}** ‡${dagger}${sub}`;
     }
     const r = slow[1].value / Math.max(fast[1].value, 1e-3);
-    if (r < 1.2) return `**≈ equal**${sub}`;
-    return `**${coreName(fast[0])} ${ratio(r)}**${sub}`;
+    if (r < 1.2) return `**≈ equal**${dagger}${sub}`;
+    return `**${coreName(fast[0])} ${ratio(r)}**${dagger}${sub}`;
 }
 const ratio = (r) =>
     `${r >= 10 ? Math.round(r).toLocaleString("en-US") : r.toFixed(1)}×`;
@@ -196,7 +202,7 @@ function comparison(run) {
         "Each cell compares two cores on one shape at one size: the bold line says which is faster and by how much; the line under it gives each core's time. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).",
         "",
         `- **Tick** is the median time of the shape's primary action, less the core's adapter floor (below). ‡: a tick within twice its floor, so its own time is below what the adapter lets us see; the ratio is then a bound ("> N×") taken from that floor.`,
-        `- **> ${ms(limit.tick)}**: the core did not finish one tick in ${ms(limit.tick)}, or **> ${ms(limit.load)}** its load in ${ms(limit.load)}. † marks a ratio that is then a lower bound, its slow side unchecked. A core whose load did not finish has no tick.`,
+        `- **> ${ms(limit.tick)}**: the core did not finish one tick in ${ms(limit.tick)}, or **> ${ms(limit.load)}** its load in ${ms(limit.load)}. † marks a ratio that is then a lower bound, its slow side unchecked, or one whose value check did not finish. A core whose load did not finish has no tick.`,
         `- **not comparable**: a core finished, but its values after the check step are wrong. **—**: a core cannot run the shape (see [coverage](coverage.md)).`,
         "",
         `Adapter floor (the drag on a document of one free point): ${cores
@@ -312,7 +318,10 @@ function coverage(run) {
         if (r.status === "timeout") return `timeout at ${r.stage}`;
         if (r.status !== "ok")
             return `${r.status} at ${r.stage}: ${r.message ?? ""}`;
-        if (!r.check) return "✓ (no value check)";
+        if (!r.check)
+            return /-\d+$/.test(r.fixture)
+                ? `✓ unchecked (the check ran out of time)`
+                : "✓ (no value check)";
         return r.check.ok ? "✓" : `✗ ${mismatch(r.check)}`;
     };
     return [

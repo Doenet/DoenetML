@@ -136,8 +136,11 @@ in 15 s keeps its load. A timed-out cell shows "> 15 s" (or "> 120 s"),
 and its ratio is a lower bound, "≥ N×" with N = the limit over the other
 core's time, marked †: the slow side was not checked, having not finished.
 A core whose load did not finish has no tick: its tick cells say so
-instead of giving a bound. The stages after the measurements (saved state,
-error count) have 15 s too; a timeout there costs only their fields. A
+instead of giving a bound. The stages after the ticks, which are not timed
+(the value check, the saved state, the error count), have 120 s, since
+reading a large document's state is slow; a timeout there costs only
+their fields, and a tick whose check did not finish is marked unchecked
+(†). A
 timeout is not retried within a run.
 
 ## The pages
