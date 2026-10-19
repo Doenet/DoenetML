@@ -1,8 +1,9 @@
 // The synthetic shapes: one mechanism each, at any size. Each shape gives
 // the DoenetML text, the primary action (two drags, alternated so every
-// tick changes something) and a value check: one more drag to a known
-// place, and the values the document must then hold, which the shape
-// computes itself. Every shape is driven by dragging a point, which every
+// tick changes something), where the dragged point starts (`start`, so a
+// page can find it on screen without asking the core) and a value check:
+// one more drag to a known place, and the values the document must then
+// hold, which the shape computes itself. Every shape is driven by dragging a point, which every
 // core supports; only `symbolic` needs math the Rust core does not have.
 //
 // `n` is the number of elements the mechanism runs through: the chain's
@@ -33,6 +34,7 @@ export const shapes = {
             return {
                 text: lines.join("\n") + "\n",
                 steps: [drag("p", 2), drag("p", 3)],
+                start: [1, 0],
                 check: {
                     step: drag("p", 5),
                     values: { c0: 6, [`c${n - 1}`]: 5 + n },
@@ -50,6 +52,7 @@ export const shapes = {
             return {
                 text: lines.join("\n") + "\n",
                 steps: [drag("p", 2), drag("p", 3)],
+                start: [1, 0],
                 check: {
                     step: drag("p", 5),
                     values: { o0: 5, [`o${n - 1}`]: 5 + n - 1 },
@@ -75,6 +78,7 @@ export const shapes = {
             return {
                 text: lines.join("\n") + "\n",
                 steps: [drag("p", 2), drag("p", 3)],
+                start: [1, 0],
                 check: {
                     step: drag("p", 5),
                     values: { c0: 6 - n, [`c${n - 1}`]: 5 },
@@ -109,6 +113,7 @@ export const shapes = {
             return {
                 text: lines.join("\n") + "\n",
                 steps: [drag("p", 2), drag("p", 3)],
+                start: [1, 0],
                 check: { step: drag("p", 5), values: { ev: 5 + 1 + k } },
             };
         },
@@ -131,6 +136,7 @@ export const shapes = {
             return {
                 text: lines.join("\n") + "\n",
                 steps: [drag("p", -1), drag("p", 0)],
+                start: [0, 0],
                 check: {
                     step: drag("p", -1),
                     values: { [`r[${n - 1}].h`]: 2 * (n - 1) },
@@ -150,6 +156,7 @@ export const floor = {
         return {
             text: point("p", 1) + "\n",
             steps: [drag("p", 2), drag("p", 3)],
+            start: [1, 0],
             check: { step: drag("p", 5), values: {} },
         };
     },

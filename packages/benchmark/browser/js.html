@@ -61,15 +61,21 @@
          * Client coordinates of a named point on the (first) JSXGraph board.
          * A point has no DOM element and its JSXGraph name is its label, so
          * the core gives its coordinates and the nearest visible JSXGraph
-         * point at them is kept for `position`.
+         * point at them is kept for `position`. A synthetic shape says where
+         * its point starts (`start`), and then the core is not asked: the
+         * JS core can only give every state variable at once, which takes
+         * over a minute at 10,000 and overflows the stack on `inversion`.
          */
-        async locate(name) {
+        async locate(name, start) {
             const b = board();
             if (!b) return null;
-            const idx = await window.resolvePath1(name);
-            if (idx === -1 || idx == null) return null;
-            const sv = await window.returnAllStateVariables1();
-            const xs = sv[idx]?.stateValues?.numericalXs ?? sv[idx]?.stateValues?.xs;
+            let xs = start;
+            if (!xs) {
+                const idx = await window.resolvePath1(name);
+                if (idx === -1 || idx == null) return null;
+                const sv = await window.returnAllStateVariables1();
+                xs = sv[idx]?.stateValues?.numericalXs ?? sv[idx]?.stateValues?.xs;
+            }
             if (!xs) return null;
             const c = new window.JXG.Coords(window.JXG.COORDS_BY_USER, [Number(xs[0]), Number(xs[1])], b).scrCoords;
             let best = null, bestD = Infinity;

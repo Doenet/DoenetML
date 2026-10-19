@@ -387,11 +387,12 @@ function budgets(run) {
         out.push(
             `## Frame latency of a drag`,
             "",
-            `Median time from a pointer move to the frame that shows the point moved: ${BUDGETS.tick} ms per frame, ${BUDGETS.structural} ms for a rebuild. Under it: p90 and how many of the moves got a frame.`,
+            `Median time from a pointer move to the frame that shows the point moved: ${BUDGETS.tick} ms per frame, ${BUDGETS.structural} ms for a rebuild. Under it: p90 and how many of the moves got a frame. †: the Node layer did not check this core's values on the shape (it was skipped there, or did not finish), so the time is of work that was not checked.`,
             "",
         );
         // The browser has no value check: a core whose values were wrong
-        // in the same run's Node layer did not do the work being timed.
+        // in the same run's Node layer did not do the work being timed, and
+        // one the Node layer did not check is marked unchecked.
         const nodeBy = new Map(
             (run.layers.node ?? []).map((r) => [`${r.core}/${r.fixture}`, r]),
         );
@@ -403,7 +404,8 @@ function budgets(run) {
                 return `not comparable<br><sub>wrong values in the Node layer</sub>`;
             const l = r.drag?.latency;
             if (!l?.n) return "no frames";
-            return `${pass(l.p50_ms, budget)} ${ms(l.p50_ms)}<br><sub>p90 ${ms(l.p90_ms)} · ${r.drag.frames}/${r.drag.moves} frames</sub>`;
+            const unchecked = !n?.check && /-\d+$/.test(r.fixture) ? " †" : "";
+            return `${pass(l.p50_ms, budget)} ${ms(l.p50_ms)}${unchecked}<br><sub>p90 ${ms(l.p90_ms)} · ${r.drag.frames}/${r.drag.moves} frames</sub>`;
         };
         out.push(
             table(

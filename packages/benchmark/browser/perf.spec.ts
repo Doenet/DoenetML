@@ -211,8 +211,9 @@ for (const m of FIXTURES) {
                     stage = "locate";
                     const at = await deadline(
                         page.evaluate(
-                            async (n) => (window as any).__bench.locate(n),
-                            first.target,
+                            async ({ n, start }) =>
+                                (window as any).__bench.locate(n, start),
+                            { n: first.target, start: m.start },
                         ),
                         LOCATE_MS,
                     );

@@ -22,7 +22,7 @@ const generatedDir = resolve(fixturesDir, "generated");
 /** The manifest of synthetic fixture `shape-n`. */
 function synthetic(shape, n) {
     const name = `${shape}-${n}`;
-    const { steps, check } = generate(name);
+    const { steps, start, check } = generate(name);
     return {
         name,
         tier: "synthetic",
@@ -31,6 +31,7 @@ function synthetic(shape, n) {
         mechanism: shapes[shape].mechanism,
         source: { generate: name },
         steps,
+        start,
         check,
         structural: null,
     };
