@@ -55,6 +55,9 @@ const run = openRun({
     machine,
     cores: ["cells"],
     layer: "trace",
+    // Playwright loads this spec again in a worker it starts after a test
+    // times out; the session keeps the records already written.
+    session: process.env.BENCH_SESSION,
     runs: RUNS,
     scenarios: SCENARIOS,
     load_timeout_ms: LOAD_MS,
