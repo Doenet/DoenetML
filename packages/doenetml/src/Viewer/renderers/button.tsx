@@ -505,8 +505,10 @@ export default React.memo(function ButtonComponent(
 
     // not in board
 
+    // A button that hides itself when pressed, such as one that reveals a
+    // hint, keeps its live region, or the press would never be announced.
     if (SVs.hidden) {
-        return null;
+        return statusRegion;
     }
 
     return (

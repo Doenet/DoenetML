@@ -35,6 +35,12 @@ export default class UpdateValue extends InlineComponent {
         summary: "Updates one or more state variables on a target component",
     };
     static rendererType = "button";
+
+    // A button that hides itself when pressed, such as one revealing a hint,
+    // stays mounted so its live region can announce the press (#2277).
+    // The renderer draws nothing else while it is hidden.
+    static sendToRendererEvenIfHidden = true;
+
     static renderChildren = true;
 
     static createAttributesObject() {

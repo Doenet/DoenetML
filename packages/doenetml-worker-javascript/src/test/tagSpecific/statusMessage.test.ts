@@ -174,4 +174,26 @@ describe("StatusMessage tag tests", async () => {
             ).length,
         ).eq(1);
     });
+
+    it("a button that hides itself when pressed still names the new values", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">1</number>
+    <updateValue name="uv" target="$n" newValue="$n + 1" hide="$n > 1">
+      <label>Once</label>
+      <statusMessage>n is now $n, as <math>n</math>.</statusMessage>
+    </updateValue>
+    `,
+        });
+
+        const uvIdx = await resolvePathToNodeIdx("uv");
+        await updateValue({ componentIdx: uvIdx, core });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[uvIdx].stateValues.hidden).eq(true);
+        // Hiding the button does not hide what its message refers to.
+        expect(stateVariables[uvIdx].stateValues.statusMessage).eq(
+            "n is now 2, as n.",
+        );
+    });
 });

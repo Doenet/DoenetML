@@ -147,4 +147,62 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#n").should("have.text", "2");
         cy.get("#inc_status").should("have.text", "Count is now 2.");
     });
+
+    it("a press of a button that hides itself is announced", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>n = <number name="n">1</number></p>
+    <boolean name="shown">false</boolean>
+    <p name="p1"><updateValue name="reveal" target="$shown" newValue="true" type="boolean" hide="$shown">
+      <label>Show hint</label>
+      <statusMessage>Hint shown.</statusMessage>
+    </updateValue></p>
+    <p hide="not $shown" name="hint">The hint</p>
+    <p name="p2">x<updateValue name="never" target="$n" newValue="$n+1" hide><label>Never</label></updateValue>y</p>
+    <graph name="g">
+      <shortDescription>A graph holding two buttons</shortDescription>
+      <updateValue name="once" target="$n" newValue="$n+1" hide="$n > 1" anchor="(0,0)">
+        <label>Graph once</label>
+        <statusMessage>Count is now $n.</statusMessage>
+      </updateValue>
+      <updateValue name="later" target="$n" newValue="$n+1" hide="$n = 1" anchor="(3,3)">
+        <label>Graph later</label>
+      </updateValue>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("A hidden button draws nothing but its empty region");
+        cy.get("#reveal_status").should("have.text", "");
+        cy.get("#never_status").should("have.text", "");
+        cy.get("#never_button").should("not.exist");
+        cy.get("#p2").should("have.text", "xy");
+        // In a graph, too: only the shown button can be seen or reached.
+        cy.get("#g button:visible").should("have.length", 1);
+
+        cy.log("The region outlives the button it announces");
+        cy.get("#reveal_button").click();
+        cy.get("#hint").should("contain.text", "The hint");
+        cy.get("#reveal_button").should("not.exist");
+        cy.get("#reveal_status").should("have.text", "Hint shown.");
+
+        cy.log("In a graph, and naming the value the press produced");
+        cy.get("#g").contains("button", "Graph once").click();
+        cy.get("#n").should("have.text", "2");
+        cy.get("#once_status").should("have.text", "Count is now 2.");
+        cy.get("#g button:visible").should("have.length", 1);
+
+        cy.log("A button in a graph that starts hidden works once shown");
+        cy.get("#g")
+            .contains("button", "Graph later")
+            .should("be.visible")
+            .click();
+        cy.get("#n").should("have.text", "3");
+        cy.get("#later_status").should("have.text", "Value updated");
+    });
 });

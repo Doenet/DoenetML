@@ -22,4 +22,21 @@ export default class StatusMessage extends TextOrInline {
 
     // Valid only where a parent lists it as a child, not wherever an inline is.
     static inSchemaOnlyInheritAs = [];
+
+    static returnStateVariableDefinitions() {
+        const stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Never drawn, so never hidden. Otherwise a button that hides itself
+        // when pressed, such as one with `hide="$shown"` that reveals a hint,
+        // would hide what the message refers to as well, and the press would
+        // be announced with every `$n` and `<math>` in it left out.
+        stateVariableDefinitions.hidden = {
+            ...stateVariableDefinitions.hidden,
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { hidden: false } }),
+            inverseDefinition: undefined,
+        };
+
+        return stateVariableDefinitions;
+    }
 }

@@ -16,14 +16,16 @@ unless the change is announced.
 When a button has no `<statusMessage>{:dn}`, pressing it announces a general
 "Value updated", in the reader's own language. A `<statusMessage>{:dn}` replaces that
 with a message that says what actually happened, such as "The circle is now red."
+An empty `<statusMessage>{:dn}` announces the default.
 
 The message is computed *after* the button has done its work, so a reference inside it
 names the new value: `<statusMessage>Count is now $n.</statusMessage>{:dn}` announces
 "Count is now 2." after a press that changes `$n` from 1 to 2. If a button has more than
-one `<statusMessage>{:dn}`, the last one is used.
+one `<statusMessage>{:dn}`, the last one is used. A press is announced even when the
+button hides itself, as a button that reveals a hint with `hide="$shown"` does.
 
 The message is announced as plain text. Write values in words when the way they read
-aloud matters: a math value is announced the way it is typed (for example `x^2`), not
+aloud matters: a math value is announced as its plain text (for example `x²/3`), not
 the way it is spoken.
 
 Changes made without a press of the button, such as those from `triggerWhen`,

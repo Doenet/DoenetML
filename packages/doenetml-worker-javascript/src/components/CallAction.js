@@ -38,6 +38,11 @@ export default class CallAction extends InlineComponent {
             "Triggers an action when clicked or in response to a specified user interaction",
     };
     static rendererType = "button";
+
+    // A button that hides itself when pressed, such as one revealing a hint,
+    // stays mounted so its live region can announce the press (#2277).
+    // The renderer draws nothing else while it is hidden.
+    static sendToRendererEvenIfHidden = true;
     static renderChildren = true;
 
     // The children of a `<callAction>` are kept serialized (see
