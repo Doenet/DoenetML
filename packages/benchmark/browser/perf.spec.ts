@@ -5,7 +5,8 @@
 // through the core with the time to the next frame and the next paint.
 // One record per (core, fixture) in the run's `browser.json` (the run the
 // Node layer of the same day, machine and commit started, or a new one).
-// The load has 120 s and the action 15 s, as in the Node layer. This layer
+// The load has 120 s and the action 15 s, as in the Node layer; finding
+// the dragged point on screen, which is not timed, has 120 s. This layer
 // answers the budgets (METHOD.md), not the comparison between cores.
 //
 //   BENCH_MACHINE=<id> BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=depth npm run browser
@@ -23,6 +24,12 @@ const FIXTURES = listFixtures().filter(
 /** The longest the load and the action may take, as in the Node layer. */
 const LOAD_MS = 120_000;
 const STAGE_MS = 15_000;
+/**
+ * Finding the dragged point on screen is the harness's work, not the
+ * core's, and the JS page reads every state variable for it, so it has the
+ * 120 s of the Node layer's untimed stages.
+ */
+const LOCATE_MS = 120_000;
 const DRAG_STEPS = 60;
 const ROUNDS = 10;
 const PAGE: Record<string, string> = {
@@ -168,7 +175,7 @@ async function actRounds(page: Page, steps: any[], rounds: number) {
 for (const m of FIXTURES) {
     for (const core of CORES) {
         test(`${m.name} [${core}]`, async ({ page }) => {
-            test.setTimeout(LOAD_MS + 3 * STAGE_MS + 60_000);
+            test.setTimeout(LOAD_MS + LOCATE_MS + 3 * STAGE_MS + 60_000);
             const record: any = { core, fixture: m.name, status: "ok" };
             let stage = "page";
             page.on("pageerror", (e) => {
@@ -201,14 +208,16 @@ for (const m of FIXTURES) {
                 );
                 stage = "tick";
                 if (first.action === "movePoint") {
+                    stage = "locate";
                     const at = await deadline(
                         page.evaluate(
                             async (n) => (window as any).__bench.locate(n),
                             first.target,
                         ),
-                        STAGE_MS,
+                        LOCATE_MS,
                     );
                     if (!at) throw new Error(`cannot locate ${first.target}`);
+                    stage = "tick";
                     if (core === "cells")
                         await page.evaluate(() =>
                             (window as any).__bench.clearSamples(),
