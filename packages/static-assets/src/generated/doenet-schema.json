@@ -138777,7 +138777,7 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "docsSlug": null,
+            "docsSlug": "statusMessage",
             "summary": "A message announced to screen readers after an action button (e.g. `<updateValue>`) is pressed",
             "layoutCategory": "inline"
         },
