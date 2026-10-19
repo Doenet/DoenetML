@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { callAction, triggerActions, updateValue } from "../utils/actions";
+import {
+    callAction,
+    clickPoint,
+    triggerActions,
+    updateValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -105,6 +110,45 @@ describe("StatusMessage tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("uv")].stateValues
                 .statusMessage,
         ).eq("Second");
+    });
+
+    it("an empty statusMessage leaves it empty, for the viewer's default", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">false</boolean>
+    <updateValue name="empty" target="$b" newValue="not $b" type="boolean">
+      <statusMessage></statusMessage>
+    </updateValue>
+    <updateValue name="blank" target="$b" newValue="not $b" type="boolean">
+      <statusMessage>   </statusMessage>
+    </updateValue>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["empty", "blank"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .statusMessage,
+            ).eq("");
+        }
+    });
+
+    it("a math value in a statusMessage is its plain text", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m">x^2</math>
+    <updateValue name="uv" target="$m" newValue="$m+1">
+      <statusMessage><math>x^2/3</math> and $m</statusMessage>
+    </updateValue>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("uv")].stateValues
+                .statusMessage,
+        ).eq("x²/3 and x²");
     });
 
     it("callAction and triggerSet take a statusMessage too", async () => {
@@ -281,22 +325,30 @@ describe("StatusMessage tag tests", async () => {
         });
         expect(announcements().length).eq(5);
 
-        // A press whose action has nothing to do changes nothing, so it
-        // announces nothing.
+        // A press whose action stops before it runs (here, for want of a
+        // `target`) sends no update, so it announces nothing.
         await press("nowhere", "updateValue");
         expect(announcements().length).eq(5);
     });
 
-    it("a change made by triggerWhen is not announced", async () => {
+    it("a change made by triggerWhen, triggerWith or triggerWhenObjectsClicked is not announced", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number name="n">1</number>
     <number name="m">0</number>
+    <number name="k">0</number>
     <updateValue name="uv" target="$n" newValue="$n + 1">
-      <statusMessage>Count is now $n.</statusMessage>
+      <statusMessage>Count is now $n, m is $m.</statusMessage>
     </updateValue>
     <updateValue name="follow" target="$m" newValue="$m + 1" triggerWhen="$n > 1">
       <statusMessage>Followed.</statusMessage>
+    </updateValue>
+    <updateValue name="with" target="$m" newValue="$m + 10" triggerWith="$uv">
+      <statusMessage>Chained.</statusMessage>
+    </updateValue>
+    <graph><point name="P">(1,2)</point></graph>
+    <updateValue name="clicked" target="$k" newValue="$k + 1" triggerWhenObjectsClicked="$P">
+      <statusMessage>Clicked.</statusMessage>
     </updateValue>
     `,
         });
@@ -307,12 +359,23 @@ describe("StatusMessage tag tests", async () => {
             core,
         });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
-        ).eq(1);
+        ).eq(11);
+        // Only the press: its message is read after the chained action ran.
         expect(announcements().map((batch) => batch.announcement)).toEqual([
-            "Count is now 2.",
+            "Count is now 2, m is 11.",
         ]);
+
+        await clickPoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.value,
+        ).eq(1);
+        expect(announcements().length).eq(1);
     });
 });
