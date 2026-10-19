@@ -1,12 +1,18 @@
 //! Tests that can only be executed when run in a full WASM environment inside of a browser.
 
+// The tests use helpers that exist only in a debug build
+// (`general_prop::test_utils`), as does `run_test` itself.
+#[cfg(debug_assertions)]
 #[path = "math_expr_wasm.test.rs"]
 mod math_expr_tests;
+#[cfg(debug_assertions)]
 #[path = "math_prop_wasm.test.rs"]
 mod math_prop_tests;
+#[cfg(debug_assertions)]
 #[path = "number_prop_wasm.test.rs"]
 mod number_prop_tests;
 
+#[cfg(debug_assertions)]
 use crate::{
     math_via_wasm::{math_to_latex, parse_text_into_math},
     state::types::math_expr::ToLatexParams,
@@ -60,6 +66,6 @@ pub fn run_test(test_name: &str) -> Vec<String> {
 
 // Version of `run_test` that does nothing; for production mode.
 #[cfg(not(debug_assertions))]
-pub fn run_test(test_name: &str) -> Vec<String> {
+pub fn run_test(_test_name: &str) -> Vec<String> {
     return Vec::new();
 }

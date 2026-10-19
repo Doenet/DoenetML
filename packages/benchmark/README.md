@@ -9,7 +9,7 @@ measured and why; this file says how to run it. The results are in
 ## A run
 
 A run measures every core on one machine at one commit. Build each core
-as `METHOD.md` asks (the Rust core at opt-level 3, the cells core in
+as `METHOD.md` asks (the Rust core and the cells core in
 release), then:
 
 ```bash

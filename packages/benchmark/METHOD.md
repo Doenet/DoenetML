@@ -54,12 +54,20 @@ Each core is measured as it would ship:
 
 - **JS**: from source, bundled with the driver by
   `scripts/bundle-driver.mjs`.
-- **Rust**: the wasm at opt-level 3 without the logging features. Its
-  release profile does not compile for wasm today, so: `cd
-packages/doenetml-worker-rust && CARGO_PROFILE_DEV_OPT_LEVEL=3 npx
-wasm-pack build lib-js-wasm-binding --target web --dev`. The workspace's
-  default build (`--dev` with logging) is five to ten times slower.
+- **Rust**: the release profile, without the logging features: `cd
+packages/doenetml-worker-rust && npx wasm-pack build lib-js-wasm-binding
+--target web --release`. The browser page carries the core in other
+  bundles, so rebuild them after it: `npx vite build` there, then in
+  `packages/doenetml-worker`, then `npm run build:rust-viewer`. The
+  workspace's own build (`--dev` with logging) is several times slower,
+  and any workspace build (`npm run build`, a package's `npm test`) puts
+  it back, so build the Rust core last.
 - **cells**: `npm run build -w packages/cells-core` (`wasm-pack --release`).
+
+Neither core runs wasm-opt: the cells core turns it off (it corrupts
+current wasm-bindgen output, `crates/cells-wasm/Cargo.toml`), and the
+Rust core's release build runs it only where wasm-pack can download
+binaryen. Both are the Rust compiler's release profile alone.
 
 A runner who built a core otherwise says so in `BENCH_BUILD_<CORE>`
 (`BENCH_BUILD_RUST=...`), which the manifest records.

@@ -58,7 +58,7 @@ function hardware() {
 function builds(cores) {
     const defaults = {
         javascript: "source, bundled by scripts/bundle-driver.mjs",
-        rust: "wasm-pack --dev at opt-level 3, without logging features",
+        rust: "wasm-pack --release, without logging features",
         cells: "wasm-pack --release (npm run build -w packages/cells-core)",
     };
     return Object.fromEntries(
