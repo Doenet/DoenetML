@@ -236,11 +236,13 @@ the page revalidated (`browser/serve.mjs`, port 4176). A load ends at the
 first render, the end of the `render` step.
 
 - Visits: `cold`, a new browser profile; `warm`, a second visit, with the
-  files in the HTTP cache; `hot`, a third, by when Chromium has also
-  cached compiled code (V8 caches a script's code on a later visit than
-  its first, and wasm once it has been optimized); `edit`, the open page
-  given a changed document (one paragraph more), as the editor's Refresh
-  loads it.
+  files in the HTTP cache, during which V8 caches the compiled code of the
+  larger scripts; `hot`, a third, the first that could use that code;
+  `edit`, the open page given a changed document (one paragraph more), as
+  the editor's Refresh loads it. Whether a visit used compiled code from
+  the cache shows in its script compile time, not in its name: the full
+  trace has the `v8.compileModule` events, which say when a cache was
+  consumed.
 - Pages: the editor page (`/?src=`), and the viewer alone (`?editor=0`)
   from the same bundle, which shows what mounting the editor costs.
 - CPU: Chromium's throttling (`Emulation.setCPUThrottlingRate`), ×1 and

@@ -84,13 +84,15 @@ async function collect(
     since: number,
 ): Promise<Measured> {
     return page.evaluate((since) => {
+        // Hundredths of a millisecond: finer than any clock here resolves.
+        const r = (x: number) => Math.round(x * 100) / 100;
         const spans = performance
             .getEntriesByType("measure")
             .filter((m) => m.name.startsWith("cells:") && m.startTime >= since)
             .map((m) => ({
                 name: m.name.slice("cells:".length),
-                start: m.startTime,
-                duration: m.duration,
+                start: r(m.startTime),
+                duration: r(m.duration),
                 counts: (m as PerformanceMeasure).detail?.counts ?? {},
             }));
         const render = spans.filter((s) => s.name === "render").pop();
@@ -102,8 +104,8 @@ async function collect(
             .filter((r) => r.startTime >= since)
             .map((r) => ({
                 name: new URL(r.name).pathname,
-                start: r.startTime,
-                end: r.responseEnd,
+                start: Math.round(r.startTime * 100) / 100,
+                end: Math.round(r.responseEnd * 100) / 100,
                 transfer_bytes: r.transferSize,
                 body_bytes: r.encodedBodySize,
             }));
@@ -237,15 +239,19 @@ for (const s of SCENARIOS) {
             }
         }
         for (const v of VISITS)
-            appendRecord(run.records, {
-                page: s.page,
-                cpu: s.cpu,
-                size: s.size,
-                fixture: fixture.name,
-                visit: v,
-                runs: runs[v],
-                traced: traced[v],
-            });
+            appendRecord(
+                run.records,
+                {
+                    page: s.page,
+                    cpu: s.cpu,
+                    size: s.size,
+                    fixture: fixture.name,
+                    visit: v,
+                    runs: runs[v],
+                    traced: traced[v],
+                },
+                { compact: true },
+            );
         const median = (xs: number[]) =>
             [...xs].sort((a, b) => a - b)[xs.length >> 1];
         console.log(

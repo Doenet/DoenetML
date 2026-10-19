@@ -9,8 +9,8 @@ import { CORE_STEPS, KIND_TEXT, STEPS, explain } from "../src/steps.mjs";
 const VISITS = ["cold", "warm", "hot", "edit"];
 const VISIT_TEXT = {
     cold: "a first visit: a new browser profile, nothing cached",
-    warm: "a second visit: the files cached, the browser's compiled code not yet",
-    hot: "a third visit: files and compiled code cached",
+    warm: "a second visit: the files in the HTTP cache; Chromium caches compiled code for the larger scripts during this visit",
+    hot: "a third visit: the first that could use that compiled code (whether it did shows in script compile, under The main thread by kind of work)",
     edit: "the open page given a changed document, as the editor's Refresh does",
 };
 
@@ -333,7 +333,7 @@ export function tracePage(run, header) {
             const m = r.traced.main;
             const busy = m.busy_ms + m.idle_ms;
             out.push(
-                "The main thread in the traced run, by kind of work:",
+                "The main thread in the traced run, by kind of work (other threads' work is not counted; see below):",
                 "",
                 table(
                     ["Kind", "Time", "Share", "What it is"],
@@ -517,7 +517,7 @@ export function tracePage(run, header) {
         out.push(
             "## The main thread by kind of work",
             "",
-            "Every traced run of `homework`, from its start to its first render. Each millisecond is given to the innermost trace event covering it (`src/chrome-trace.mjs`).",
+            "Every traced run of `homework`, from its start to its first render. Each millisecond is given to the innermost trace event covering it (`src/chrome-trace.mjs`). Only the main thread: work on other threads (a script compiled while it streams in, wasm optimized in the background, the editor's language server in its worker) is not here, and shows as idle when the main thread waits on it.",
             "",
             table(
                 ["Scenario", ...KINDS, "idle", "first render (traced)"],

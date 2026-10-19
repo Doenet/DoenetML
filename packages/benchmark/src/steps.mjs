@@ -15,7 +15,7 @@ const C = "packages/cells-core/crates/cells-core/src";
 /** Steps by full path: [what it does, where]. */
 export const STEPS = {
     boot: [
-        "From navigation until the page's own code starts: the HTML, then downloading, parsing, compiling and running every eagerly loaded script (React, JSXGraph, CodeMirror with the language server's source, the viewer). Nothing about the document has happened yet.",
+        "From navigation until the page's own code starts: the HTML, then downloading, parsing, compiling and running every eagerly loaded script (React, JSXGraph, CodeMirror with the language server's source, the viewer). Nothing about the document has happened yet. Much of a script's compiling happens on a background thread while it downloads (streaming), which is why the main thread can sit idle during boot.",
         `${V}/dev/main.tsx (top of the module)`,
     ],
     app: [

@@ -22,11 +22,20 @@ export function readRecords(file) {
     return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
 }
 
-/** Append one record to a results file, creating it if needed. */
-export function appendRecord(file, record) {
+/**
+ * Append one record to a results file, creating it if needed. With
+ * `compact`, one record per line: for layers whose records are large (the
+ * trace layer's), which indented would be mostly whitespace.
+ */
+export function appendRecord(file, record, { compact = false } = {}) {
     const records = readRecords(file);
     records.push(record);
-    writeFileSync(file, JSON.stringify(records, null, 4) + "\n");
+    writeFileSync(
+        file,
+        compact
+            ? `[\n${records.map((r) => JSON.stringify(r)).join(",\n")}\n]\n`
+            : JSON.stringify(records, null, 4) + "\n",
+    );
 }
 
 /** Today's date in local time, so an evening run does not land on tomorrow. */
