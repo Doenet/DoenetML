@@ -48,6 +48,7 @@ const run = openRun({
     fixtures: FIXTURES.map((m: any) => m.name),
     load_timeout_ms: LOAD_MS,
     step_timeout_ms: STAGE_MS,
+    session: process.env.BENCH_SESSION,
 });
 const out = run.records;
 
@@ -180,11 +181,16 @@ for (const m of FIXTURES) {
                 const first = m.steps[0];
                 // What "rendered" means for this fixture: its drag target's
                 // board, or the element of its first step's target (name
-                // paths become ids with `[i]` as `:i`).
+                // paths become ids with `[i]` as `:i`). A target drawn in a
+                // graph (`"in_graph": true`) has no element of its own in the
+                // JS viewer, which waits for the board instead (`inGraph`).
                 const waitFor =
                     first.action === "movePoint"
                         ? { board: true }
-                        : { id: first.target.replace(/\[(\d+)\]/g, ":$1") };
+                        : {
+                              id: first.target.replace(/\[(\d+)\]/g, ":$1"),
+                              inGraph: m.in_graph === true,
+                          };
                 record.load_ms = await deadline(
                     page.evaluate(
                         ({ text, waitFor }) =>
@@ -195,9 +201,12 @@ for (const m of FIXTURES) {
                 );
                 stage = "tick";
                 if (first.action === "movePoint") {
-                    const at = await page.evaluate(
-                        async (n) => (window as any).__bench.locate(n),
-                        first.target,
+                    const at = await deadline(
+                        page.evaluate(
+                            async (n) => (window as any).__bench.locate(n),
+                            first.target,
+                        ),
+                        STAGE_MS,
                     );
                     if (!at) throw new Error(`cannot locate ${first.target}`);
                     if (core === "cells")

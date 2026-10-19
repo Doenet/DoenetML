@@ -74,9 +74,13 @@ function builds(cores) {
 /**
  * Start a run's layer `layer` (`node`, `browser`): the run's directory and
  * manifest, created on its first layer, and an empty records file. A layer
- * run again the same day at the same commit replaces its records.
+ * run again the same day at the same commit replaces its records. A caller
+ * that opens the same layer more than once in one invocation (Playwright
+ * loads the spec again in each worker it starts, and starts a new one after
+ * a test times out) passes the same `session` each time, and keeps the
+ * records already written.
  */
-export function openRun({ machine, cores, layer = "node", ...rest }) {
+export function openRun({ machine, cores, layer = "node", session, ...rest }) {
     const commit = git("rev-parse --short HEAD");
     // Changes to the results themselves do not make the measured code dirty.
     const dirty = git("status --porcelain -- . ':!packages/benchmark/results'")
@@ -99,14 +103,21 @@ export function openRun({ machine, cores, layer = "node", ...rest }) {
               builds: builds(cores),
               layers: {},
           };
-    manifest.layers[layer] = {
-        cores,
-        ...rest,
-        started: new Date().toISOString(),
-    };
-    writeFileSync(manifestPath, JSON.stringify(manifest, null, 4) + "\n");
     const records = resolve(dir, `${layer}.json`);
-    writeFileSync(records, "[]\n");
+    const resumed =
+        session !== undefined &&
+        manifest.layers[layer]?.session === session &&
+        existsSync(records);
+    if (!resumed) {
+        manifest.layers[layer] = {
+            cores,
+            ...rest,
+            ...(session !== undefined && { session }),
+            started: new Date().toISOString(),
+        };
+        writeFileSync(manifestPath, JSON.stringify(manifest, null, 4) + "\n");
+        writeFileSync(records, "[]\n");
+    }
     return { id, dir, records, manifest };
 }
 

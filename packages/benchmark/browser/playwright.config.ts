@@ -1,5 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
+// One id per invocation, inherited by every worker, so a worker started
+// after a test times out appends to the layer's records instead of opening
+// it again (see openRun).
+process.env.BENCH_SESSION ??= `${process.pid}-${Date.now()}`;
+
 export default defineConfig({
     testDir: ".",
     testMatch: /perf\.spec\.ts/,

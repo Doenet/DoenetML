@@ -5,6 +5,7 @@
     "source": {
         "path": "packages/doenetml-worker-javascript/src/test/memory-bench-doc.xml"
     },
+    "in_graph": true,
     "steps": [
         {
             "action": "triggerActions",

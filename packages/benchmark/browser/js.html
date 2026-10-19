@@ -44,8 +44,10 @@
                     coreStartFailedCallback: (e) => fail(new Error("core start failed: " + JSON.stringify(e))),
                 });
             });
+            // A target drawn in a graph (`inGraph`) is a JSXGraph element
+            // with an id of JSXGraph's own, so its board stands for it.
             const present = () =>
-                waitFor.board
+                waitFor.board || waitFor.inGraph
                     ? (board()?.objectsList?.length ?? 0) > 0
                     : waitFor.id
                       ? document.getElementById(waitFor.id) !== null
