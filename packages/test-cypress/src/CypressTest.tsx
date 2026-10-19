@@ -132,6 +132,9 @@ export function CypressTest() {
     // rebuilds the core.
     const [documentLocale, setDocumentLocale] = useState<string | null>(null);
     const [uiLocale, setUiLocale] = useState<string | null>(null);
+    // Lets a spec take the virtual keyboard away, as a host embedding the
+    // viewer without one does.
+    const [addVirtualKeyboard, setAddVirtualKeyboard] = useState(true);
     const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
     const diagnosticsSummaryCallsRef = useRef<
         { summary: Record<string, number>; doenetML: string }[]
@@ -234,6 +237,10 @@ export function CypressTest() {
 
         if (e.data.uiLocale !== undefined) {
             setUiLocale(e.data.uiLocale);
+        }
+
+        if (e.data.addVirtualKeyboard !== undefined) {
+            setAddVirtualKeyboard(e.data.addVirtualKeyboard);
         }
 
         // don't do anything if receive a message from another source (like the youtube player)
@@ -727,6 +734,7 @@ export function CypressTest() {
                 answerResponseCounts={answerResponseCounts}
                 includeVariantSelector={includeVariantSelector}
                 doenetImagesUrl={doenetImagesUrl}
+                addVirtualKeyboard={addVirtualKeyboard}
                 documentLocale={documentLocale}
                 uiLocale={uiLocale}
             />
