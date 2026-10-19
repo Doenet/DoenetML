@@ -1,8 +1,8 @@
 {
-    "id": "2026-10-19-claude-cloud-3a4fe49",
+    "id": "2026-10-19-claude-cloud-07876f5",
     "date": "2026-10-19",
     "machine": "claude-cloud",
-    "commit": "3a4fe49",
+    "commit": "07876f5",
     "dirty": false,
     "hardware": {
         "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz",
@@ -46,7 +46,45 @@
             ],
             "load_timeout_ms": 120000,
             "step_timeout_ms": 15000,
-            "started": "2026-10-19T06:50:42.941Z"
+            "started": "2026-10-19T12:08:17.161Z"
+        },
+        "browser": {
+            "cores": [
+                "rust",
+                "cells"
+            ],
+            "fixtures": [
+                "depth-1000",
+                "depth-10000",
+                "depth-100000",
+                "breadth-1000",
+                "breadth-10000",
+                "breadth-100000",
+                "inversion-1000",
+                "inversion-10000",
+                "inversion-100000",
+                "symbolic-1000",
+                "symbolic-10000",
+                "symbolic-100000",
+                "rebuild-1000",
+                "rebuild-10000",
+                "rebuild-100000",
+                "homework",
+                "lesson",
+                "sir",
+                "venn"
+            ],
+            "load_timeout_ms": 120000,
+            "step_timeout_ms": 15000,
+            "started": "2026-10-19T12:46:53.481Z"
+        },
+        "bundle": {
+            "cores": [],
+            "sets": [
+                "rust (prototype viewer page)",
+                "cells (viewer build)"
+            ],
+            "started": "2026-10-19T13:12:22.713Z"
         }
     }
 }
