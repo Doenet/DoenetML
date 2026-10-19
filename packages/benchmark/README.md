@@ -44,7 +44,7 @@ core; the Rust and cells adapters are `test-core-rust.ts` and
 | `warmup_ms`, `samples_ms`         | The warm-up ticks and the timed ticks of the primary action.                                                                                                                                                       |
 | `check`                           | The value check: `ok`, the `values` read and the `expected` ones. Real documents have none.                                                                                                                        |
 | `state_bytes`, `state_gzip_bytes` | The session's saved state after the ticks. The JS core's is the `coreState` of its persistence payload; `state_envelope_bytes` is the whole payload a host stores.                                                 |
-| `error_components`                | Error components in the loaded document, where the core can report them.                                                                                                                                           |
+| `error_components`                | Error components in the loaded document, where the core can report them; real documents only, since a shape's value check already says whether the work was done.                                                  |
 
 ## The browser layer
 

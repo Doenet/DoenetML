@@ -150,9 +150,12 @@ async function runRustStep(
  * not a number.
  */
 async function readValue(api: any, name: string): Promise<number | string> {
-    // First: the JS core expands a repeat's iterations when its state is
-    // asked for, and a path into them resolves only after.
-    const sv = await api.core.returnAllStateVariables(false, true);
+    // The JS core holds its components itself: read the one asked for,
+    // since its whole-state snapshot evaluates every state variable of
+    // every component, minutes at 10,000. The other adapters' snapshots
+    // are lazy.
+    const own = api.core?.core?.components;
+    const sv = own ? null : await api.core.returnAllStateVariables(false, true);
     let idx: number;
     try {
         idx = await api.resolvePathToNodeIdx(name);
@@ -160,7 +163,12 @@ async function readValue(api: any, name: string): Promise<number | string> {
         return `${name} did not resolve: ${String(e?.message ?? e).slice(0, 120)}`;
     }
     if (idx === -1) return `${name} did not resolve`;
-    const c = sv[idx];
+    const c = own
+        ? {
+              componentType: own[idx]?.componentType,
+              stateValues: { value: await own[idx]?.stateValues?.value },
+          }
+        : sv[idx];
     const v = c?.stateValues?.value;
     if (typeof v === "number" && !Number.isNaN(v)) return v;
     if (typeof v === "boolean") return v ? 1 : 0;
@@ -259,7 +267,13 @@ async function main() {
         part({ state_bytes: null });
     }
 
-    // Last: on a large document this costs more than the measurements.
+    // Last, and only for a document without a value check, which already
+    // says whether the work was done: the JS core counts error components
+    // from a snapshot of every state variable, minutes at 10,000.
+    if (manifest.check) {
+        emit({ done: true });
+        return;
+    }
     progress("errors");
     try {
         const sv = await api.core.returnAllStateVariables(false, true);
