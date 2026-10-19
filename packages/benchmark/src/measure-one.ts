@@ -145,6 +145,29 @@ async function runRustStep(
     }
 }
 
+/**
+ * The value of a named component as a number, whatever form the core
+ * gives it in: a number, a math-expressions object, a string or a boolean.
+ * NaN when the name does not resolve or the value is not a number.
+ */
+async function readValue(api: any, name: string): Promise<number> {
+    let idx: number;
+    try {
+        idx = await api.resolvePathToNodeIdx(name);
+    } catch {
+        return NaN;
+    }
+    if (idx === -1) return NaN;
+    const sv = await api.core.returnAllStateVariables(false, true);
+    const v = sv[idx]?.stateValues?.value;
+    if (typeof v === "number") return v;
+    if (typeof v === "boolean") return v ? 1 : 0;
+    if (typeof v === "string") return v.trim() === "" ? NaN : Number(v);
+    if (v && typeof v.evaluate_to_constant === "function")
+        return Number(v.evaluate_to_constant());
+    return NaN;
+}
+
 /** Cycle through the steps, timing each, until the rounds or the budget run out. */
 async function timeSteps(api: any, steps: Step[], rounds: number) {
     const samples = new Map<string, number[]>();
@@ -202,6 +225,13 @@ async function main() {
             manifest.structural,
             Math.min(maxRounds, 10),
         );
+    }
+
+    if (process.env.BENCH_PROBE) {
+        const values: Record<string, number> = {};
+        for (const name of process.env.BENCH_PROBE.split(","))
+            values[name] = await readValue(api, name);
+        record.probe = values;
     }
 
     progress("state");
