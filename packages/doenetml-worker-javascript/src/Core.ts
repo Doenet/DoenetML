@@ -1134,23 +1134,35 @@ export default class Core {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        announcement,
     }: {
         actionId?: string;
         sourceInformation?: any;
         skipRendererUpdate?: boolean;
+        /**
+         * What the viewer is to announce to a screen reader along with this
+         * update, `""` for its default (see `finishActionButtonPress`).
+         */
+        announcement?: string;
     }): Promise<void> {
         if (!skipRendererUpdate) {
-            await this.updateAllChangedRenderers(sourceInformation, actionId);
+            await this.updateAllChangedRenderers(
+                sourceInformation,
+                actionId,
+                announcement,
+            );
         }
     }
 
     async updateAllChangedRenderers(
         sourceInformation: any = {},
         actionId?: string,
+        announcement?: string,
     ): Promise<any> {
         return this.rendererInstructionBuilder.updateAllChangedRenderers(
             sourceInformation,
             actionId,
+            announcement,
         );
     }
 

@@ -201,6 +201,7 @@ export class RendererInstructionBuilder {
         actionId,
         deferred = false,
         reconcileChangedChildren = true,
+        announcement,
     }: {
         componentNamesToUpdate: number[];
         sourceOfUpdate?: any;
@@ -222,6 +223,12 @@ export class RendererInstructionBuilder {
          * `false` takes none.
          */
         reconcileChangedChildren?: boolean | Set<number>;
+        /**
+         * What the viewer is to announce to a screen reader along with this
+         * batch, `""` for its default. Sent even when the batch is otherwise
+         * empty.
+         */
+        announcement?: string;
     }): Promise<void> {
         let deletedRenderers: any[] = [];
 
@@ -506,7 +513,12 @@ export class RendererInstructionBuilder {
             return;
         }
 
-        this.callUpdateRenderers({ updateInstructions, actionId, deferred });
+        this.callUpdateRenderers({
+            updateInstructions,
+            actionId,
+            deferred,
+            ...(announcement !== undefined ? { announcement } : {}),
+        });
     }
 
     /**
@@ -1048,6 +1060,7 @@ export class RendererInstructionBuilder {
     async updateAllChangedRenderers(
         sourceInformation: any = {},
         actionId?: string,
+        announcement?: string,
     ): Promise<void> {
         // This drains everything, so any deferred remainder is covered here
         // and must not also arrive later on its own.
@@ -1059,10 +1072,13 @@ export class RendererInstructionBuilder {
         ];
         this.core.updateInfo.componentsToUpdateRenderers.clear();
 
+        // The announcement goes with the first batch, the one that settles
+        // `actionId` in the viewer.
         await this.updateRendererInstructions({
             componentNamesToUpdate,
             sourceOfUpdate: { sourceInformation, local: true },
             actionId,
+            announcement,
         });
 
         // TODO: should we check for child results earlier so we don't have to check them

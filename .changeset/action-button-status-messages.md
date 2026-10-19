@@ -12,4 +12,6 @@ The announcement is "Value updated", in the reader's language. An author can rep
 
 Changes made without a press, such as through `triggerWhen`, are not announced yet.
 
+The announcements are made in one visually hidden status region per document, with id `_announcements` after the viewer's `prefixForIds`.
+
 Part of #2277.

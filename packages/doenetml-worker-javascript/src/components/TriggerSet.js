@@ -8,7 +8,10 @@ import {
     returnLabelStateVariableDefinitions,
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
-import { returnStatusMessageStateVariableDefinition } from "../utils/statusMessage";
+import {
+    finishActionButtonPress,
+    returnStatusMessageStateVariableDefinition,
+} from "../utils/statusMessage";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
@@ -34,12 +37,6 @@ export default class triggerSet extends InlineComponent {
             "Groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition",
     };
     static rendererType = "button";
-
-    // A button that hides itself when pressed, such as one revealing a hint,
-    // stays mounted so its live region can announce the press (#2277).
-    // The renderer draws nothing else while it is hidden.
-    static sendToRendererEvenIfHidden = true;
-
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -180,8 +177,7 @@ export default class triggerSet extends InlineComponent {
             }
         }
 
-        return await this.coreFunctions.triggerChainedActions({
-            componentIdx: this.componentIdx,
+        await finishActionButtonPress(this, {
             actionId,
             sourceInformation,
             skipRendererUpdate,

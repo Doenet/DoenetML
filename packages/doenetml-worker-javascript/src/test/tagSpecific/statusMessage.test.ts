@@ -7,7 +7,7 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("StatusMessage tag tests", async () => {
-    it("an action button without a statusMessage leaves it empty, for the renderer's default", async () => {
+    it("an action button without a statusMessage leaves it empty, for the viewer's default", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number name="n">1</number>
@@ -195,5 +195,124 @@ describe("StatusMessage tag tests", async () => {
         expect(stateVariables[uvIdx].stateValues.statusMessage).eq(
             "n is now 2, as n.",
         );
+    });
+
+    /**
+     * Record what each renderer update core sends says to announce, from
+     * here on (`createTestCore` installs a no-op callback, replaced here).
+     */
+    function captureAnnouncements(core: any) {
+        const sent: { announcement?: string; actionId?: string }[] = [];
+        core.core.updateRenderersCallback = (args: any) => {
+            sent.push({
+                announcement: args.announcement,
+                actionId: args.actionId,
+            });
+        };
+        return () => sent.filter((batch) => batch.announcement !== undefined);
+    }
+
+    it("a press sends its message with the update that settles it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">1</number>
+    <updateValue name="uv" target="$n" newValue="$n + 1">
+      <statusMessage>Count is now $n.</statusMessage>
+    </updateValue>
+    <updateValue name="plain" target="$n" newValue="$n + 10" />
+    <updateValue name="once" target="$n" newValue="$n + 100" hide="$n > 100">
+      <statusMessage>Hidden now; n is $n.</statusMessage>
+    </updateValue>
+    <callAction name="ca" target="$plain" actionName="updateValue">
+      <statusMessage>Called; n is $n.</statusMessage>
+    </callAction>
+    <triggerSet name="ts">
+      <statusMessage>Set; n is $n.</statusMessage>
+      <updateValue target="$n" newValue="$n + 1000" />
+    </triggerSet>
+    <updateValue name="nowhere" newValue="1" />
+    `,
+        });
+        const announcements = captureAnnouncements(core);
+
+        const press = async (name: string, actionName: string) =>
+            core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName,
+                args: { actionId: name },
+            });
+
+        await press("uv", "updateValue");
+        expect(announcements()).toEqual([
+            { announcement: "Count is now 2.", actionId: "uv" },
+        ]);
+
+        // No `<statusMessage>`: empty, for the viewer's default.
+        await press("plain", "updateValue");
+        expect(announcements().at(-1)).toEqual({
+            announcement: "",
+            actionId: "plain",
+        });
+
+        // The button is hidden by its own press, so core no longer sends its
+        // renderer state; the message arrives anyway, naming the new value.
+        await press("once", "updateValue");
+        expect(announcements().at(-1)).toEqual({
+            announcement: "Hidden now; n is 112.",
+            actionId: "once",
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("once")].stateValues
+                .hidden,
+        ).eq(true);
+
+        // Only the button pressed announces: not the `<updateValue>` that a
+        // `<callAction>` or a `<triggerSet>` runs.
+        await press("ca", "callAction");
+        expect(announcements().at(-1)).toEqual({
+            announcement: "Called; n is 122.",
+            actionId: "ca",
+        });
+        await press("ts", "triggerActions");
+        expect(announcements().at(-1)).toEqual({
+            announcement: "Set; n is 1122.",
+            actionId: "ts",
+        });
+        expect(announcements().length).eq(5);
+
+        // A press whose action has nothing to do changes nothing, so it
+        // announces nothing.
+        await press("nowhere", "updateValue");
+        expect(announcements().length).eq(5);
+    });
+
+    it("a change made by triggerWhen is not announced", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">1</number>
+    <number name="m">0</number>
+    <updateValue name="uv" target="$n" newValue="$n + 1">
+      <statusMessage>Count is now $n.</statusMessage>
+    </updateValue>
+    <updateValue name="follow" target="$m" newValue="$m + 1" triggerWhen="$n > 1">
+      <statusMessage>Followed.</statusMessage>
+    </updateValue>
+    `,
+        });
+        const announcements = captureAnnouncements(core);
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(1);
+        expect(announcements().map((batch) => batch.announcement)).toEqual([
+            "Count is now 2.",
+        ]);
     });
 });

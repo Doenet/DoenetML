@@ -8,7 +8,10 @@ import {
     returnLabelStateVariableDefinitions,
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
-import { returnStatusMessageStateVariableDefinition } from "../utils/statusMessage";
+import {
+    finishActionButtonPress,
+    returnStatusMessageStateVariableDefinition,
+} from "../utils/statusMessage";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
     addStandardTriggeringStateVariableDefinitions,
@@ -35,12 +38,6 @@ export default class UpdateValue extends InlineComponent {
         summary: "Updates one or more state variables on a target component",
     };
     static rendererType = "button";
-
-    // A button that hides itself when pressed, such as one revealing a hint,
-    // stays mounted so its live region can announce the press (#2277).
-    // The renderer draws nothing else while it is hidden.
-    static sendToRendererEvenIfHidden = true;
-
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -602,8 +599,7 @@ export default class UpdateValue extends InlineComponent {
             },
         });
 
-        return await this.coreFunctions.triggerChainedActions({
-            componentIdx: this.componentIdx,
+        await finishActionButtonPress(this, {
             actionId,
             sourceInformation,
             skipRendererUpdate,

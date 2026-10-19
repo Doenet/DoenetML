@@ -17,7 +17,8 @@ export default class StatusMessage extends TextOrInline {
         summary:
             "A message announced to screen readers after an action button (e.g. `<updateValue>`) is pressed",
     };
-    // Never rendered visually — read only by the parent button's live region.
+    // Never rendered visually — announced through the document's live region
+    // when the parent button is pressed.
     static rendererType = undefined;
 
     // Valid only where a parent lists it as a child, not wherever an inline is.
