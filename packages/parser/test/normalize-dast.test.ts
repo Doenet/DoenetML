@@ -804,6 +804,17 @@ describe("Normalize dast", async () => {
         );
     });
 
+    // See `drillSugar` in component-sugar/drill.ts: all of a `<drill>`'s
+    // children are its question template.
+    it("Sugars the children of a drill into a _drillRound", () => {
+        const source =
+            '<drill numRequired="3"><p>Q</p><answer>x</answer></drill>';
+        const dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><drill numRequired="3"><_drillRound><p>Q</p><answer>x</answer></_drillRound></drill></document>',
+        );
+    });
+
     // `<aside>`/`<proof>` both support dynamic children (see
     // COMPONENTS_WITH_DYNAMIC_CHILDREN in component-sugar/dynamicChildren.ts),
     // so a `<_dynamicChildren>` sibling is always appended regardless of

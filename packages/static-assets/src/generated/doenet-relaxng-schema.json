@@ -195,6 +195,8 @@
         "select",
         "group",
         "animateFromSequence",
+        "timer",
+        "drill",
         "evaluate",
         "selectRandomNumbers",
         "sampleRandomNumbers",
@@ -691,6 +693,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -2263,6 +2268,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -2987,6 +2995,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -3927,6 +3938,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -4938,6 +4955,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -5945,6 +5968,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -6995,6 +7024,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -7895,6 +7927,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -8595,6 +8633,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -9289,6 +9330,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -9981,6 +10025,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -11176,6 +11223,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -39706,6 +39756,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -41049,6 +41105,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -42279,6 +42341,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -43237,6 +43305,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -44199,6 +44273,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -45153,6 +45233,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -50990,6 +51076,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -51592,6 +51681,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -52198,6 +52290,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -52800,6 +52895,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -53406,6 +53504,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -54008,6 +54109,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -54614,6 +54718,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -55216,6 +55323,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -55822,6 +55932,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -56424,6 +56537,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -57030,6 +57146,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -57632,6 +57751,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -59655,6 +59777,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -60879,6 +61007,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -62107,6 +62241,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -63331,6 +63471,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -64566,6 +64712,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -65790,6 +65942,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -67025,6 +67183,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -68256,6 +68420,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -69491,6 +69661,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -70724,6 +70900,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -71948,6 +72130,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -73176,6 +73364,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -74400,6 +74594,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -75628,6 +75828,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -76854,6 +77060,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -78078,6 +78290,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -79312,6 +79530,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -80535,6 +80759,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -81767,6 +81997,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -83478,6 +83714,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -90795,6 +91037,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "drill"
+                },
+                {
                     "ref": "image"
                 },
                 {
@@ -91839,6 +92084,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -92764,6 +93015,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -93775,6 +94032,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -94719,6 +94982,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -95579,6 +95848,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -96471,6 +96746,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -98524,6 +98805,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -98753,6 +99037,9 @@
                 },
                 {
                     "ref": "figure"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "image"
@@ -99292,6 +99579,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -99521,6 +99811,9 @@
                 },
                 {
                     "ref": "figure"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "image"
@@ -100316,6 +100609,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -102207,6 +102506,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -106735,6 +107037,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -124878,6 +125186,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -131247,6 +131561,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -133600,6 +133920,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "image"
                 },
                 {
@@ -135408,6 +135734,9 @@
                     "ref": "selectFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -135625,6 +135954,9 @@
                 },
                 {
                     "ref": "figure"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "image"
@@ -136206,6 +136538,9 @@
                     "ref": "selectFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -136423,6 +136758,9 @@
                 },
                 {
                     "ref": "figure"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "image"
@@ -137201,6 +137539,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -138154,6 +138498,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -141592,6 +141942,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -142278,6 +142634,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -143734,6 +144093,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -144232,6 +144597,1393 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Current direction of the animation (\"increase\" or \"decrease\"; flips during oscillation)."
+                }
+            ]
+        },
+        "timer": {
+            "type": "element",
+            "name": "timer",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "duration": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "reloadBehavior": {
+                    "optional": true,
+                    "type": [
+                        "continue",
+                        "reset"
+                    ]
+                },
+                "autoStart": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "displayMode": {
+                    "optional": true,
+                    "type": [
+                        "remaining",
+                        "elapsed"
+                    ]
+                },
+                "format": {
+                    "optional": true,
+                    "type": [
+                        "m:ss",
+                        "s"
+                    ]
+                },
+                "showControls": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "duration",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Length of the countdown, in seconds.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "reloadBehavior",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "What a running clock does when the page is reloaded.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "autoStart",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the clock starts by itself the first time the page loads.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayMode",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which time the clock shows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "format",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How the time is written.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "showControls",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to show Start/Pause and Reset buttons beside the clock.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "expired",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the countdown has run out."
+                },
+                {
+                    "name": "running",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the clock is counting. Setting it to true starts or resumes the clock; setting it to false pauses it."
+                },
+                {
+                    "name": "timeRemaining",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Whole seconds left on the countdown, rounded up, so it reaches 0 only when the countdown runs out."
+                },
+                {
+                    "name": "elapsed",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Whole seconds the clock has counted, rounded down."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The time the clock shows, written in its `format`, such as 1:05."
+                },
+                {
+                    "name": "paused",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the clock has been stopped partway through and can be resumed."
+                }
+            ]
+        },
+        "drill": {
+            "type": "element",
+            "name": "drill",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "weight": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "handGraded": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "matchPartial": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maxNumAttempts": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disableAfterCorrect": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "submitLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "submitLabelNoCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForResponses": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForCreditAchieved": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "timeLimit": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numRequired": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "wrongAnswerBehavior": {
+                    "optional": true,
+                    "type": [
+                        "next",
+                        "retry"
+                    ]
+                },
+                "feedbackDelay": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "chart"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "col"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "cascade"
+                },
+                {
+                    "ref": "page"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Relative weight of this answer when aggregating credit across multiple answers.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "handGraded",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this answer is graded by hand rather than automatically.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "matchPartial",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to award partial credit when the response is partially correct.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the response can be submitted.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to disable the answer after a fully correct response has been submitted.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayDigitsForResponses",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering numeric responses.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display for the credit achieved value.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "timeLimit",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Seconds allowed for each attempt at the drill.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "wrongAnswerBehavior",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "What happens after a question is answered wrongly.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "feedbackDelay",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Milliseconds to show whether an answer was right before the next question appears.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is not shown."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the submitted response, after combining the attribute with hand-grading, any enclosing section's setting, and the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the response is color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The fraction of credit achieved on the most recent submission (between 0 and 1)."
+                },
+                {
+                    "name": "responseHasBeenSubmitted",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a response has ever been submitted for this answer."
+                },
+                {
+                    "name": "justSubmitted",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the most recent submission for this answer has not yet been changed."
+                },
+                {
+                    "name": "numSubmissions",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Total number of times a response has been submitted."
+                },
+                {
+                    "name": "numAttemptsLeft",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Remaining number of submission attempts before the maximum is reached."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the questions in the drill are closed to answers, as they are except while a question is being answered."
+                },
+                {
+                    "name": "expired",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the countdown has run out."
+                },
+                {
+                    "name": "timeRemaining",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Whole seconds left on the countdown, rounded up, so it reaches 0 only when the countdown runs out."
+                },
+                {
+                    "name": "elapsed",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Whole seconds the clock has counted, rounded down."
+                },
+                {
+                    "name": "numRequired",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many questions must be answered correctly to complete the drill (at least 1)."
+                },
+                {
+                    "name": "attemptNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many times the drill has been started (0 before the first start)."
+                },
+                {
+                    "name": "roundNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Which question of the current attempt is showing, counting from 1."
+                },
+                {
+                    "name": "numCorrect",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many questions have been answered correctly in the current (or last) attempt."
+                },
+                {
+                    "name": "numAnswered",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many answers have been checked in the current (or last) attempt."
+                },
+                {
+                    "name": "bestNumCorrect",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The most questions answered correctly in any one attempt."
+                },
+                {
+                    "name": "phase",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Where the drill is: \"notStarted\", \"running\", \"succeeded\" (the last attempt answered enough correctly) or \"expired\" (time ran out first)."
                 }
             ]
         },
@@ -147323,6 +149075,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -149690,6 +151448,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -151892,6 +153656,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -152745,6 +154515,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -153614,6 +155390,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -155038,6 +156820,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -156477,6 +158265,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -157374,6 +159168,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -158233,6 +160033,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -158915,6 +160721,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -159525,6 +161334,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -159754,6 +161566,9 @@
                 },
                 {
                     "ref": "figure"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "image"
@@ -161389,6 +163204,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -162374,6 +164195,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -163294,6 +165121,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -165932,6 +167765,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -169309,6 +171148,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -171600,6 +173445,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -175121,6 +176969,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -175981,6 +177835,12 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
                 },
                 {
                     "ref": "evaluate"
@@ -177795,6 +179655,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -178670,6 +180536,12 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
+                    "ref": "drill"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -179335,6 +181207,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"

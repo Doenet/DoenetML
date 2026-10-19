@@ -19,6 +19,7 @@ import { selectSugar } from "./component-sugar/select";
 import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 import { pretzelSugar } from "./component-sugar/pretzel";
+import { drillSugar } from "./component-sugar/drill";
 import { descriptionAttributeSugar } from "./component-sugar/descriptionAttribute";
 import { fractionInputSugar } from "./component-sugar/fractionInput";
 import {
@@ -261,6 +262,9 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     break;
                 case "pretzel":
                     pretzelSugar(node);
+                    break;
+                case "drill":
+                    drillSugar(node);
                     break;
                 case "graph":
                     descriptionAttributeSugar(node);
