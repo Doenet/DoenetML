@@ -1,0 +1,977 @@
+[
+    {
+        "core": "javascript",
+        "fixture": "depth-1000",
+        "status": "ok",
+        "load_ms": 8032.029999999329,
+        "drag": {
+            "moves": 61,
+            "frames": 58,
+            "latency": {
+                "n": 57,
+                "p50_ms": 28.33999999985099,
+                "p90_ms": 35.33999999985099,
+                "max_ms": 217.75499999895692
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "depth-1000",
+        "status": "ok",
+        "load_ms": 14354.185000000522,
+        "drag": {
+            "moves": 61,
+            "frames": 32,
+            "latency": {
+                "n": 30,
+                "p50_ms": 63.769999999552965,
+                "p90_ms": 175.42999999970198,
+                "max_ms": 192.31000000052154
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "depth-1000",
+        "status": "ok",
+        "load_ms": 455.64499999955297,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 59,
+                "p50_ms": 10.315000001341105,
+                "p90_ms": 13.029999999329448,
+                "max_ms": 73.5949999988079
+            },
+            "cells": {
+                "core": {
+                    "n": 59,
+                    "p50_ms": 0.10500000044703484,
+                    "p90_ms": 0.1450000014156103,
+                    "max_ms": 1.9049999993294477
+                },
+                "commit": {
+                    "n": 59,
+                    "p50_ms": 4.839999999850988,
+                    "p90_ms": 6.355000000447035,
+                    "max_ms": 10.859999999403954
+                },
+                "paint": {
+                    "n": 59,
+                    "p50_ms": 12.530000001192093,
+                    "p90_ms": 16.90000000037253,
+                    "max_ms": 27.875
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "depth-10000",
+        "status": "ok",
+        "load_ms": 88764.67500000075,
+        "drag": {
+            "moves": 61,
+            "frames": 2,
+            "latency": {
+                "n": 2,
+                "p50_ms": 2396.160000000149,
+                "p90_ms": 2396.160000000149,
+                "max_ms": 2396.160000000149
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "depth-10000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "depth-10000",
+        "status": "ok",
+        "load_ms": 1111.199999999255,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 93.13499999977648,
+                "p90_ms": 116.82499999925494,
+                "max_ms": 193.18999999947846
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.3399999998509884,
+                    "p90_ms": 0.4900000002235174,
+                    "max_ms": 2.6950000002980232
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 46.89500000141561,
+                    "p90_ms": 59.94500000029802,
+                    "max_ms": 96.83999999985099
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 103.28999999910593,
+                    "p90_ms": 126.23000000044703,
+                    "max_ms": 186.12000000104308
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "depth-100000",
+        "status": "error",
+        "stage": "load",
+        "message": "page.evaluate: Error: core start failed: {\"activityId\":\"a\",\"docId\":\"1\"}\n    at coreStartFailedCallback (http://localhost:4174/js.html:44:58)\n    at coreStartFailedCallback (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2695:364788)\n    at EB (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85994)\n    at WC (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85697)\n    at It (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:87691)\n    at async "
+    },
+    {
+        "core": "rust",
+        "fixture": "depth-100000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "depth-100000",
+        "status": "timeout",
+        "load_ms": 5532.894999999553,
+        "stage": "tick"
+    },
+    {
+        "core": "javascript",
+        "fixture": "breadth-1000",
+        "status": "ok",
+        "load_ms": 8323.365000000224,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 57,
+                "p50_ms": 31.774999998509884,
+                "p90_ms": 39.07499999925494,
+                "max_ms": 162.30499999970198
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "breadth-1000",
+        "status": "ok",
+        "load_ms": 12256.165000000969,
+        "drag": {
+            "moves": 61,
+            "frames": 50,
+            "latency": {
+                "n": 46,
+                "p50_ms": 47.144999999552965,
+                "p90_ms": 79.0800000000745,
+                "max_ms": 258.785000000149
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "breadth-1000",
+        "status": "ok",
+        "load_ms": 520.605000000447,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 59,
+                "p50_ms": 10.559999998658895,
+                "p90_ms": 16.865000000223517,
+                "max_ms": 71.35999999940395
+            },
+            "cells": {
+                "core": {
+                    "n": 59,
+                    "p50_ms": 0.10999999940395355,
+                    "p90_ms": 0.1849999986588955,
+                    "max_ms": 1.3800000008195639
+                },
+                "commit": {
+                    "n": 59,
+                    "p50_ms": 4.925000000745058,
+                    "p90_ms": 7.775000000372529,
+                    "max_ms": 31.03500000014901
+                },
+                "paint": {
+                    "n": 59,
+                    "p50_ms": 13.58500000089407,
+                    "p90_ms": 22.615000000223517,
+                    "max_ms": 74.51500000059605
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "breadth-10000",
+        "status": "ok",
+        "load_ms": 91504.72499999963,
+        "drag": {
+            "moves": 61,
+            "frames": 2,
+            "latency": {
+                "n": 2,
+                "p50_ms": 1083.7750000003725,
+                "p90_ms": 1083.7750000003725,
+                "max_ms": 1083.7750000003725
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "breadth-10000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "breadth-10000",
+        "status": "ok",
+        "load_ms": 1148.4949999991804,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 93.64999999850988,
+                "p90_ms": 116.39500000141561,
+                "max_ms": 194.22000000067055
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.26500000059604645,
+                    "p90_ms": 0.46500000171363354,
+                    "max_ms": 2.6400000005960464
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 45.47499999962747,
+                    "p90_ms": 59.17500000074506,
+                    "max_ms": 117.97000000067055
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 103.02500000037253,
+                    "p90_ms": 125.0449999999255,
+                    "max_ms": 175.74000000022352
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "breadth-100000",
+        "status": "error",
+        "stage": "load",
+        "message": "page.evaluate: Error: core start failed: {\"activityId\":\"a\",\"docId\":\"1\"}\n    at coreStartFailedCallback (http://localhost:4174/js.html:44:58)\n    at coreStartFailedCallback (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2695:364788)\n    at EB (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85994)\n    at WC (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85697)\n    at It (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:87691)\n    at async "
+    },
+    {
+        "core": "rust",
+        "fixture": "breadth-100000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "breadth-100000",
+        "status": "timeout",
+        "load_ms": 5677.154999999329,
+        "stage": "tick"
+    },
+    {
+        "core": "javascript",
+        "fixture": "inversion-1000",
+        "status": "ok",
+        "load_ms": 7644.875,
+        "drag": {
+            "moves": 61,
+            "frames": 1,
+            "latency": {
+                "n": 1,
+                "p50_ms": 2015.429999999702,
+                "p90_ms": 2015.429999999702,
+                "max_ms": 2015.429999999702
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "inversion-1000",
+        "status": "ok",
+        "load_ms": 15196.650000000373,
+        "drag": {
+            "moves": 61,
+            "frames": 48,
+            "latency": {
+                "n": 48,
+                "p50_ms": 17.365000000223517,
+                "p90_ms": 45.31999999843538,
+                "max_ms": 251.76000000163913
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "inversion-1000",
+        "status": "ok",
+        "load_ms": 426.73499999940395,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 11.179999999701977,
+                "p90_ms": 15.089999999850988,
+                "max_ms": 45.69999999925494
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.13000000081956387,
+                    "p90_ms": 0.19500000029802322,
+                    "max_ms": 1.9299999997019768
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 4.995000001043081,
+                    "p90_ms": 7.904999999329448,
+                    "max_ms": 10.754999998956919
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 14.760000001639128,
+                    "p90_ms": 19.009999999776483,
+                    "max_ms": 42.769999999552965
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "inversion-10000",
+        "status": "ok",
+        "load_ms": 80378.4450000003,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "inversion-10000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "inversion-10000",
+        "status": "ok",
+        "load_ms": 1125.5950000006706,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 86.59500000067055,
+                "p90_ms": 115.25499999895692,
+                "max_ms": 193.33499999903142
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.39499999955296516,
+                    "p90_ms": 0.6950000002980232,
+                    "max_ms": 2.599999999627471
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 44.7649999987334,
+                    "p90_ms": 63.52000000141561,
+                    "max_ms": 100.89499999955297
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 94.78500000014901,
+                    "p90_ms": 126.64499999955297,
+                    "max_ms": 187.7999999988824
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "inversion-100000",
+        "status": "error",
+        "stage": "load",
+        "message": "page.evaluate: Error: core start failed: {\"activityId\":\"a\",\"docId\":\"1\"}\n    at coreStartFailedCallback (http://localhost:4174/js.html:44:58)\n    at coreStartFailedCallback (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2695:364788)\n    at EB (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85994)\n    at WC (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85697)\n    at It (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:87691)\n    at async "
+    },
+    {
+        "core": "rust",
+        "fixture": "inversion-100000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "inversion-100000",
+        "status": "timeout",
+        "load_ms": 5243.4550000000745,
+        "stage": "tick"
+    },
+    {
+        "core": "javascript",
+        "fixture": "symbolic-1000",
+        "status": "ok",
+        "load_ms": 6847.804999999702,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 59,
+                "p50_ms": 38.66000000014901,
+                "p90_ms": 69.65499999932945,
+                "max_ms": 238.76500000059605
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "symbolic-1000",
+        "status": "timeout",
+        "load_ms": 94041.65000000037,
+        "stage": "tick"
+    },
+    {
+        "core": "cells",
+        "fixture": "symbolic-1000",
+        "status": "ok",
+        "load_ms": 667.5649999994785,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 65.18999999947846,
+                "p90_ms": 77.8099999986589,
+                "max_ms": 120.62000000104308
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 36.5149999987334,
+                    "p90_ms": 46.91000000014901,
+                    "max_ms": 54.32000000029802
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 49.78499999828637,
+                    "p90_ms": 61.66000000014901,
+                    "max_ms": 70.21000000089407
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 70.23499999940395,
+                    "p90_ms": 83.96000000089407,
+                    "max_ms": 100.43500000052154
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "symbolic-10000",
+        "status": "timeout",
+        "load_ms": 89174.33999999985,
+        "stage": "tick"
+    },
+    {
+        "core": "rust",
+        "fixture": "symbolic-10000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "symbolic-10000",
+        "status": "timeout",
+        "load_ms": 1508.035000000149,
+        "stage": "tick"
+    },
+    {
+        "core": "javascript",
+        "fixture": "symbolic-100000",
+        "status": "error",
+        "stage": "load",
+        "message": "page.evaluate: Error: core start failed: {\"activityId\":\"a\",\"docId\":\"1\"}\n    at coreStartFailedCallback (http://localhost:4174/js.html:44:58)\n    at coreStartFailedCallback (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2695:364788)\n    at EB (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85994)\n    at WC (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:85697)\n    at It (http://localhost:4174/standalone/chunks/index-BMZoG0EA.js:2687:87691)\n    at async "
+    },
+    {
+        "core": "rust",
+        "fixture": "symbolic-100000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "cells",
+        "fixture": "symbolic-100000",
+        "status": "timeout",
+        "load_ms": 9773.265000000596,
+        "stage": "tick"
+    },
+    {
+        "core": "javascript",
+        "fixture": "rebuild-1000",
+        "status": "timeout",
+        "load_ms": 19394.980000000447,
+        "stage": "tick"
+    },
+    {
+        "core": "rust",
+        "fixture": "rebuild-1000",
+        "status": "ok",
+        "load_ms": 1050.4150000009686,
+        "drag": {
+            "moves": 61,
+            "frames": 48,
+            "latency": {
+                "n": 48,
+                "p50_ms": 17.27500000037253,
+                "p90_ms": 19.52500000037253,
+                "max_ms": 250.10000000149012
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "rebuild-1000",
+        "status": "ok",
+        "load_ms": 263.4550000000745,
+        "drag": {
+            "moves": 61,
+            "frames": 59,
+            "latency": {
+                "n": 59,
+                "p50_ms": 15.269999999552965,
+                "p90_ms": 37.80500000156462,
+                "max_ms": 90.02500000037253
+            },
+            "cells": {
+                "core": {
+                    "n": 59,
+                    "p50_ms": 0.18500000052154064,
+                    "p90_ms": 2.3450000006705523,
+                    "max_ms": 6.964999999850988
+                },
+                "commit": {
+                    "n": 59,
+                    "p50_ms": 1.0800000000745058,
+                    "p90_ms": 19.66000000014901,
+                    "max_ms": 27.584999999031425
+                },
+                "paint": {
+                    "n": 59,
+                    "p50_ms": 25.53500000014901,
+                    "p90_ms": 44.18000000156462,
+                    "max_ms": 57.96500000171363
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "rebuild-10000",
+        "status": "timeout",
+        "stage": "load"
+    },
+    {
+        "core": "rust",
+        "fixture": "rebuild-10000",
+        "status": "ok",
+        "load_ms": 1057.8600000012666,
+        "drag": {
+            "moves": 61,
+            "frames": 49,
+            "latency": {
+                "n": 49,
+                "p50_ms": 17.319999998435378,
+                "p90_ms": 17.97499999962747,
+                "max_ms": 250.45999999903142
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "rebuild-10000",
+        "status": "ok",
+        "load_ms": 670.5900000017136,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 5.830000000074506,
+                "p90_ms": 270.24499999918044,
+                "max_ms": 311.0449999999255
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.08999999985098839,
+                    "p90_ms": 19.84999999962747,
+                    "max_ms": 30.155000001192093
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 0.9849999994039536,
+                    "p90_ms": 124.91000000014901,
+                    "max_ms": 157.4050000011921
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 11.25,
+                    "p90_ms": 276.9900000002235,
+                    "max_ms": 332.17500000074506
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "rebuild-100000",
+        "status": "ok",
+        "load_ms": 8197.094999998808,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 16.87999999895692,
+                "p90_ms": 27.630000000819564,
+                "max_ms": 88.85999999940395
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "rebuild-100000",
+        "status": "ok",
+        "load_ms": 1028.8300000000745,
+        "drag": {
+            "moves": 61,
+            "frames": 48,
+            "latency": {
+                "n": 48,
+                "p50_ms": 17.2649999987334,
+                "p90_ms": 18.519999999552965,
+                "max_ms": 249.7949999999255
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "rebuild-100000",
+        "status": "ok",
+        "load_ms": 697.4199999999255,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 4.339999999850988,
+                "p90_ms": 102.38499999977648,
+                "max_ms": 179.6849999986589
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.07499999925494194,
+                    "p90_ms": 0.11500000022351742,
+                    "max_ms": 3.8200000002980232
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 0.7849999982863665,
+                    "p90_ms": 0.9649999998509884,
+                    "max_ms": 5.410000000149012
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 8.384999999776483,
+                    "p90_ms": 135.01999999955297,
+                    "max_ms": 213.25999999977648
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "homework",
+        "status": "ok",
+        "load_ms": 2249.0149999987334,
+        "steps": [
+            {
+                "label": "updateValue p3.mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 19.21000000089407,
+                    "p90_ms": 37.56000000052154,
+                    "max_ms": 52.455000000074506
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.49500000104308,
+                    "p90_ms": 64.67500000074506,
+                    "max_ms": 77.99000000022352
+                }
+            },
+            {
+                "label": "submitAnswer p3.ans",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.559999998658895,
+                    "p90_ms": 23.2350000012666,
+                    "max_ms": 62.52500000037253
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.36500000022352,
+                    "p90_ms": 39.24500000104308,
+                    "max_ms": 66.6550000011921
+                }
+            }
+        ]
+    },
+    {
+        "core": "rust",
+        "fixture": "homework",
+        "status": "unsupported",
+        "load_ms": 1194.2599999997765,
+        "stage": "tick",
+        "message": "page.evaluate: Error: unsupported: typing into a mathInput (the Rust core has no mathInput)\n    at Object.act (eval at evaluate (:370:30), <anonymous>:85:31)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "core": "cells",
+        "fixture": "homework",
+        "status": "ok",
+        "load_ms": 369.7350000012666,
+        "steps": [
+            {
+                "label": "updateValue p3.mi",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.72499999962747,
+                    "p90_ms": 17.40000000037253,
+                    "max_ms": 22.68500000052154
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.47499999962747,
+                    "p90_ms": 33.93500000052154,
+                    "max_ms": 45.48499999940395
+                }
+            },
+            {
+                "label": "submitAnswer p3.ans",
+                "frame": {
+                    "n": 20,
+                    "p50_ms": 16.695000000298023,
+                    "p90_ms": 17.330000000074506,
+                    "max_ms": 17.5
+                },
+                "paint": {
+                    "n": 20,
+                    "p50_ms": 33.27500000037253,
+                    "p90_ms": 33.580000000074506,
+                    "max_ms": 33.61500000022352
+                }
+            }
+        ]
+    },
+    {
+        "core": "javascript",
+        "fixture": "lesson",
+        "status": "ok",
+        "load_ms": 2169.234999999404,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 59,
+                "p50_ms": 40.35999999940395,
+                "p90_ms": 51.80500000156462,
+                "max_ms": 179.16500000096858
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "lesson",
+        "status": "ok",
+        "load_ms": 1115.445000000298,
+        "drag": {
+            "moves": 61,
+            "frames": 55,
+            "latency": {
+                "n": 48,
+                "p50_ms": 17.52500000037253,
+                "p90_ms": 28.154999999329448,
+                "max_ms": 166.98000000044703
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "lesson",
+        "status": "ok",
+        "load_ms": 286.72000000067055,
+        "drag": {
+            "moves": 61,
+            "frames": 60,
+            "latency": {
+                "n": 60,
+                "p50_ms": 2.599999999627471,
+                "p90_ms": 3.6649999991059303,
+                "max_ms": 41.35499999858439
+            },
+            "cells": {
+                "core": {
+                    "n": 60,
+                    "p50_ms": 0.10999999940395355,
+                    "p90_ms": 0.17999999970197678,
+                    "max_ms": 1.6799999997019768
+                },
+                "commit": {
+                    "n": 60,
+                    "p50_ms": 0.900000000372529,
+                    "p90_ms": 1.1049999985843897,
+                    "max_ms": 3.900000000372529
+                },
+                "paint": {
+                    "n": 60,
+                    "p50_ms": 3.9350000005215406,
+                    "p90_ms": 5.419999999925494,
+                    "max_ms": 39.78500000014901
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "sir",
+        "status": "ok",
+        "load_ms": 10931.819999998435,
+        "drag": {
+            "moves": 61,
+            "frames": 0,
+            "latency": {
+                "n": 0
+            }
+        }
+    },
+    {
+        "core": "rust",
+        "fixture": "sir",
+        "status": "ok",
+        "load_ms": 1161.7449999991804,
+        "drag": {
+            "moves": 61,
+            "frames": 55,
+            "latency": {
+                "n": 51,
+                "p50_ms": 17.375,
+                "p90_ms": 19.155000001192093,
+                "max_ms": 166.99500000104308
+            }
+        }
+    },
+    {
+        "core": "cells",
+        "fixture": "sir",
+        "status": "ok",
+        "load_ms": 403.695000000298,
+        "drag": {
+            "moves": 61,
+            "frames": 19,
+            "latency": {
+                "n": 19,
+                "p50_ms": 13.080000000074506,
+                "p90_ms": 445.8099999986589,
+                "max_ms": 910.6199999991804
+            },
+            "cells": {
+                "core": {
+                    "n": 23,
+                    "p50_ms": 0.16499999910593033,
+                    "p90_ms": 0.23000000044703484,
+                    "max_ms": 2.0349999982863665
+                },
+                "commit": {
+                    "n": 23,
+                    "p50_ms": 7.214999999850988,
+                    "p90_ms": 10.949999999254942,
+                    "max_ms": 14.734999999403954
+                },
+                "paint": {
+                    "n": 23,
+                    "p50_ms": 12.254999998956919,
+                    "p90_ms": 20.62000000104308,
+                    "max_ms": 24.47999999858439
+                }
+            }
+        }
+    },
+    {
+        "core": "javascript",
+        "fixture": "venn",
+        "status": "ok",
+        "load_ms": 2868.1749999988824,
+        "steps": [
+            {
+                "label": "triggerActions flip_btn",
+                "frame": {
+                    "n": 10,
+                    "p50_ms": 256.0449999999255,
+                    "p90_ms": 881.2400000002235,
+                    "max_ms": 881.2400000002235
+                },
+                "paint": {
+                    "n": 10,
+                    "p50_ms": 261.09500000067055,
+                    "p90_ms": 887.7100000008941,
+                    "max_ms": 887.7100000008941
+                }
+            }
+        ]
+    },
+    {
+        "core": "rust",
+        "fixture": "venn",
+        "status": "unsupported",
+        "load_ms": 1150.9749999996275,
+        "stage": "tick",
+        "message": "page.evaluate: Error: unsupported action triggerActions in the Rust core\n    at Object.act (eval at evaluate (:370:30), <anonymous>:91:27)\n    at async eval (eval at evaluate (:370:30), <anonymous>:16:9)\n    at async <anonymous>:396:30"
+    },
+    {
+        "core": "cells",
+        "fixture": "venn",
+        "status": "unsupported",
+        "load_ms": 399.75,
+        "stage": "tick",
+        "message": "page.evaluate: Error: unsupported action triggerActions\n    at Object.act (eval at evaluate (:370:30), <anonymous>:84:27)\n    at eval (eval at evaluate (:370:30), <anonymous>:16:17)\n    at UtilityScript.evaluate (<anonymous>:372:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    }
+]
