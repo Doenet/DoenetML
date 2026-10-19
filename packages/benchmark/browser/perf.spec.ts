@@ -3,27 +3,25 @@
 // with the latency of each measured as the time to the first animation
 // frame in which the dragged point had moved on screen; other steps go
 // through the core with the time to the next frame and the next paint.
-// One record per (core, fixture) in results/raw/browser-<date>.json.
+// One record per (core, fixture) in the run's `browser.json` (the run the
+// Node layer of the same day, machine and commit started, or a new one).
+// Each stage (load, the action) has 15 s, as in the Node layer. This layer
+// answers the budgets (METHOD.md), not the comparison between cores.
 //
-//   BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=chain-100 npm run browser
+//   BENCH_MACHINE=<id> BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=depth npm run browser
 import { test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
 import { resolve } from "node:path";
-import {
-    fixtureText,
-    listFixtures,
-    packageRoot,
-    repoRoot,
-} from "../src/fixtures.mjs";
-import { appendRecord, localDate } from "../src/results.mjs";
+import { fixtureText, listFixtures, packageRoot } from "../src/fixtures.mjs";
+import { appendRecord, openRun } from "../src/results.mjs";
 
 const CORES = (process.env.BENCH_CORES ?? "javascript,cells").split(",");
 const only = process.env.BENCH_FIXTURES?.split(",");
 const FIXTURES = listFixtures().filter(
-    (m: any) => !only || only.includes(m.name),
+    (m: any) => !only || only.includes(m.name) || only.includes(m.shape),
 );
-const BUDGET_MS = 60_000;
+/** The longest a stage may take, as in the Node layer. */
+const STAGE_MS = 15_000;
 const DRAG_STEPS = 60;
 const ROUNDS = 10;
 const PAGE: Record<string, string> = {
@@ -40,12 +38,16 @@ const adapters: Record<string, string> = Object.fromEntries(
         ),
     ]),
 );
-const date = localDate();
-const out = resolve(packageRoot, `results/raw/browser-${date}.json`);
-const commit = execSync("git rev-parse --short HEAD", {
-    cwd: repoRoot,
-    encoding: "utf8",
-}).trim();
+const machine = process.env.BENCH_MACHINE;
+if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
+const run = openRun({
+    machine,
+    cores: CORES,
+    layer: "browser",
+    fixtures: FIXTURES.map((m: any) => m.name),
+    step_timeout_ms: STAGE_MS,
+});
+const out = run.records;
 
 function quantiles(xs: number[]) {
     const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
@@ -163,120 +165,85 @@ async function actRounds(page: Page, steps: any[], rounds: number) {
 for (const m of FIXTURES) {
     for (const core of CORES) {
         test(`${m.name} [${core}]`, async ({ page }) => {
-            test.setTimeout(BUDGET_MS + 60_000);
-            const record: any = {
-                date,
-                commit,
-                core,
-                fixture: m.name,
-                status: "ok",
-            };
+            test.setTimeout(4 * STAGE_MS + 60_000);
+            const record: any = { core, fixture: m.name, status: "ok" };
             let stage = "page";
             page.on("pageerror", (e) => {
                 record.page_error ??= String(e.message).slice(0, 300);
             });
             try {
-                await deadline(
-                    (async () => {
-                        await page.goto(PAGE[core]);
-                        if (adapters[core]) await page.evaluate(adapters[core]);
-                        stage = "load";
-                        const first = m.steps[0];
-                        // What "rendered" means for this fixture: its drag target's
-                        // board, or the element of its first step's target (name
-                        // paths become ids with `[i]` as `:i`).
-                        const waitFor =
-                            first.action === "movePoint"
-                                ? { board: true }
-                                : {
-                                      id: first.target.replace(
-                                          /\[(\d+)\]/g,
-                                          ":$1",
-                                      ),
-                                  };
-                        record.load_ms = await page.evaluate(
-                            ({ text, waitFor }) =>
-                                (window as any).__bench.load(text, waitFor),
-                            { text: fixtureText(m), waitFor },
-                        );
-                        stage = "steps";
-                        if (first.action === "movePoint") {
-                            const at = await page.evaluate(
-                                async (n) => (window as any).__bench.locate(n),
-                                first.target,
-                            );
-                            if (!at)
-                                throw new Error(
-                                    `cannot locate ${first.target}`,
-                                );
-                            if (core === "cells")
-                                await page.evaluate(() =>
-                                    (window as any).__bench.clearSamples(),
-                                );
-                            const d = await drag(page, first.target, at);
-                            record.drag = {
-                                moves: d.moves,
-                                frames: d.frames,
-                                latency: quantiles(d.latencies),
-                            };
-                            if (core === "cells") {
-                                const samples: any[] = await page.evaluate(() =>
-                                    (window as any).__bench.samples(),
-                                );
-                                record.drag.cells = {
-                                    core: quantiles(samples.map((s) => s.core)),
-                                    commit: quantiles(
-                                        samples.map((s) => s.commit),
-                                    ),
-                                    paint: quantiles(
-                                        samples.map((s) => s.paint),
-                                    ),
-                                };
-                            }
-                        } else {
-                            const r = await actRounds(page, m.steps, ROUNDS);
-                            record.steps = Object.entries(r).map(
-                                ([label, v]) => ({
-                                    label,
-                                    frame: quantiles(v.frame),
-                                    paint: quantiles(v.paint),
-                                }),
-                            );
-                        }
-                        if (m.structural) {
-                            stage = "structural";
-                            const r = await actRounds(
-                                page,
-                                m.structural,
-                                Math.min(ROUNDS, 5),
-                            );
-                            record.structural = Object.entries(r).map(
-                                ([label, v]) => ({
-                                    label,
-                                    frame: quantiles(v.frame),
-                                    paint: quantiles(v.paint),
-                                }),
-                            );
-                        }
-                    })(),
-                    BUDGET_MS,
+                await deadline(page.goto(PAGE[core]), STAGE_MS);
+                if (adapters[core]) await page.evaluate(adapters[core]);
+                stage = "load";
+                const first = m.steps[0];
+                // What "rendered" means for this fixture: its drag target's
+                // board, or the element of its first step's target (name
+                // paths become ids with `[i]` as `:i`).
+                const waitFor =
+                    first.action === "movePoint"
+                        ? { board: true }
+                        : { id: first.target.replace(/\[(\d+)\]/g, ":$1") };
+                record.load_ms = await deadline(
+                    page.evaluate(
+                        ({ text, waitFor }) =>
+                            (window as any).__bench.load(text, waitFor),
+                        { text: fixtureText(m), waitFor },
+                    ),
+                    STAGE_MS,
                 );
-            } catch (e: any) {
-                if (e.message === "timeout" && record.load_ms !== undefined) {
-                    // The measurements taken before the budget ran out stand.
-                    record.timed_out_at = stage;
+                stage = "tick";
+                if (first.action === "movePoint") {
+                    const at = await page.evaluate(
+                        async (n) => (window as any).__bench.locate(n),
+                        first.target,
+                    );
+                    if (!at) throw new Error(`cannot locate ${first.target}`);
+                    if (core === "cells")
+                        await page.evaluate(() =>
+                            (window as any).__bench.clearSamples(),
+                        );
+                    const d = await deadline(
+                        drag(page, first.target, at),
+                        STAGE_MS,
+                    );
+                    record.drag = {
+                        moves: d.moves,
+                        frames: d.frames,
+                        latency: quantiles(d.latencies),
+                    };
+                    if (core === "cells") {
+                        const samples: any[] = await page.evaluate(() =>
+                            (window as any).__bench.samples(),
+                        );
+                        record.drag.cells = {
+                            core: quantiles(samples.map((s) => s.core)),
+                            commit: quantiles(samples.map((s) => s.commit)),
+                            paint: quantiles(samples.map((s) => s.paint)),
+                        };
+                    }
                 } else {
-                    record.status =
-                        e.message === "timeout"
-                            ? "timeout"
-                            : /unsupported|did not resolve|cannot locate/.test(
-                                    e.message,
-                                )
-                              ? "unsupported"
-                              : "error";
-                    record.stage = stage;
-                    record.message = String(e.message).slice(0, 500);
+                    const r = await deadline(
+                        actRounds(page, m.steps, ROUNDS),
+                        STAGE_MS,
+                    );
+                    record.steps = Object.entries(r).map(([label, v]) => ({
+                        label,
+                        frame: quantiles(v.frame),
+                        paint: quantiles(v.paint),
+                    }));
                 }
+            } catch (e: any) {
+                record.status =
+                    e.message === "timeout"
+                        ? "timeout"
+                        : /unsupported|did not resolve|cannot locate/.test(
+                                e.message,
+                            )
+                          ? "unsupported"
+                          : "error";
+                record.stage = stage;
+                if (record.status !== "timeout")
+                    record.message = String(e.message).slice(0, 500);
             }
             appendRecord(out, record);
             const brief =
@@ -287,14 +254,8 @@ for (const m of FIXTURES) {
                           : "") +
                       (record.steps
                           ? `, ${record.steps.map((s: any) => `${s.label} ${s.frame.p50_ms?.toFixed(1)} ms`).join(", ")}`
-                          : "") +
-                      (record.structural
-                          ? `, structural ${record.structural[0].frame.p50_ms?.toFixed(1)} ms`
-                          : "") +
-                      (record.timed_out_at
-                          ? ` (> 60 s at ${record.timed_out_at})`
                           : "")
-                    : `${record.status} at ${record.stage}: ${record.message}`;
+                    : `${record.status} at ${record.stage}${record.message ? `: ${record.message}` : ""}`;
             console.log(`${m.name.padEnd(20)} ${core.padEnd(10)} ${brief}`);
         });
     }

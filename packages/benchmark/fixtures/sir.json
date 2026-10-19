@@ -19,17 +19,5 @@
             "y": 30
         }
     ],
-    "structural": [
-        {
-            "action": "updateValue",
-            "target": "nIterates",
-            "value": "99"
-        },
-        {
-            "action": "updateValue",
-            "target": "nIterates",
-            "value": "100"
-        }
-    ],
-    "notes": "The three initial-condition points are named (Spt, Ipt, Rpt) so the manifest can address them. Changing nIterates changes the number of iterates, which is the repeat's length."
+    "notes": "The three initial-condition points are named (Spt, Ipt, Rpt) so the manifest can address them."
 }

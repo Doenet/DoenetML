@@ -1,7 +1,7 @@
 {
     "name": "@doenet/benchmark",
     "type": "module",
-    "description": "Performance suite comparing the JS, Rust and cells cores: update time, load time, memory, state storage size, bundle size",
+    "description": "Performance suite comparing the JS, Rust and cells cores: tick, load and memory on synthetic shapes up to 100,000 elements, and the browser against the product budgets",
     "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
@@ -14,7 +14,7 @@
         "bundle": "node src/bundle.mjs",
         "build:rust-viewer": "vite build -c browser/rust-viewer/vite.config.ts",
         "browser": "playwright test -c browser/playwright.config.ts",
-        "render": "node scripts/render-results.mjs",
+        "render": "node scripts/render.mjs",
         "perf-diff": "scripts/perf-diff.sh"
     },
     "devDependencies": {

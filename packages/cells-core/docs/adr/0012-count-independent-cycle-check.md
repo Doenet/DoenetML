@@ -152,7 +152,8 @@ Built as described under The check, behind `LoadOptions::check_cycles`
 c28b7c5 are clean. Measured with
 `cargo run --release -p cells-bench --example cycle_check_cost` (medians
 of seven interleaved loads per side, native, from the binary fixtures; the
-whole table is in `packages/benchmark/results/NOTES.md`):
+whole table was in `packages/benchmark/results/NOTES.md`, which is in git
+history up to 04c8a7b):
 
 | fixture | load, check off (ms) | load, check on (ms) | check (ms) | check / load off | build, check off (ms) |
 |---|---:|---:|---:|---:|---:|

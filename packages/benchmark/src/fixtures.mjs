@@ -1,5 +1,6 @@
-// The corpus: one manifest per fixture in `fixtures/*.json`, and the
-// DoenetML text each one names. See README.md for the manifest format.
+// The corpus: the real documents, one manifest each in `fixtures/*.json`,
+// and the synthetic shapes of `src/generate.mjs` at every size in `SIZES`.
+// See METHOD.md for both.
 import {
     existsSync,
     mkdirSync,
@@ -9,7 +10,8 @@ import {
 } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generate } from "./generate.mjs";
+import { SIZES, generate, shapes } from "./generate.mjs";
+export { SIZES, shapes };
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const packageRoot = resolve(here, "..");
@@ -17,10 +19,31 @@ export const repoRoot = resolve(packageRoot, "../..");
 const fixturesDir = resolve(packageRoot, "fixtures");
 const generatedDir = resolve(fixturesDir, "generated");
 
-/** Every manifest, sorted by shape then numeric size so chain-100 precedes chain-1000. */
+/** The manifest of synthetic fixture `shape-n`. */
+function synthetic(shape, n) {
+    const name = `${shape}-${n}`;
+    const { steps, check } = generate(name);
+    return {
+        name,
+        tier: "synthetic",
+        shape,
+        size: n,
+        mechanism: shapes[shape].mechanism,
+        source: { generate: name },
+        steps,
+        check,
+        structural: null,
+    };
+}
+
+/** Every manifest: the shapes by size, then the real documents by name. */
 export function listFixtures() {
-    return readdirSync(fixturesDir)
+    const out = [];
+    for (const shape of Object.keys(shapes))
+        for (const n of SIZES) out.push(synthetic(shape, n));
+    const real = readdirSync(fixturesDir)
         .filter((f) => f.endsWith(".json"))
+        .sort()
         .map((f) => {
             const manifest = JSON.parse(
                 readFileSync(resolve(fixturesDir, f), "utf8"),
@@ -32,11 +55,24 @@ export function listFixtures() {
                 );
             }
             return manifest;
-        })
-        .sort((a, b) => cmpSpec(a.name, b.name));
+        });
+    return [...out, ...real];
 }
 
 export function loadFixture(name) {
+    if (name === "floor") {
+        const { steps, check } = generate("floor");
+        return {
+            name,
+            tier: "floor",
+            source: { generate: "floor" },
+            steps,
+            check,
+            structural: null,
+        };
+    }
+    const m = /^([a-z]+)-(\d+)$/.exec(name);
+    if (m && m[1] in shapes) return synthetic(m[1], Number(m[2]));
     const path = resolve(fixturesDir, `${name}.json`);
     if (!existsSync(path)) throw new Error(`no fixture named ${name}`);
     return JSON.parse(readFileSync(path, "utf8"));
@@ -55,21 +91,12 @@ export function fixtureText(manifest) {
     );
 }
 
+/** Generated text is cached in `fixtures/generated/` (ignored by git). */
 function generated(spec) {
     mkdirSync(generatedDir, { recursive: true });
     const out = resolve(generatedDir, `${spec}.doenet`);
-    if (existsSync(out)) return readFileSync(out, "utf8");
-    const text = generate(spec);
-    writeFileSync(out, text);
+    const text = generate(spec).text;
+    if (!existsSync(out) || readFileSync(out, "utf8") !== text)
+        writeFileSync(out, text);
     return text;
-}
-
-function cmpSpec(a, b) {
-    const ka = specKey(a),
-        kb = specKey(b);
-    return ka[0] < kb[0] ? -1 : ka[0] > kb[0] ? 1 : ka[1] - kb[1];
-}
-function specKey(name) {
-    const m = /^(.*?)-(\d+)$/.exec(name);
-    return m ? [m[1], Number(m[2])] : [name, 0];
 }

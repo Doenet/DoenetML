@@ -6,8 +6,9 @@
 #   scripts/perf-diff.sh [base] [fixture,fixture,...]
 set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd); root=$(git -C "$here" rev-parse --show-toplevel)
-base=${1:-HEAD}; fixtures=${2:-chain-1000,fanout-1000,repeat-1000,symchain-100,answers-100,sir}
-wt=$root/../.benchmark-perf-base; S=$here/results/raw/perf-diff; mkdir -p "$S"
+base=${1:-HEAD}; fixtures=${2:-depth-10000,breadth-10000,inversion-10000,symbolic-1000,rebuild-10000,sir}
+# Scratch: not a run, so not under results/ (ignored by git).
+wt=$root/../.benchmark-perf-base; S=$here/.perf-diff; mkdir -p "$S"
 git -C "$root" worktree remove --force "$wt" 2>/dev/null || true
 git -C "$root" worktree add --detach --quiet "$wt" "$base"
 trap 'git -C "$root" worktree remove --force "$wt"' EXIT
@@ -20,13 +21,14 @@ for round in 1 2 3; do
 done
 node - "$S" <<'JS'
 const fs = require("node:fs"); const S = process.argv[2];
-const load = (f) => { const m = {}; for (const r of JSON.parse(fs.readFileSync(`${S}/${f}`, "utf8"))) { if (r.status === "ok") (m[r.fixture] ??= []).push(r); } return m; };
+const load = (f) => { const m = {}; for (const r of JSON.parse(fs.readFileSync(`${S}/${f}`, "utf8"))) { if (r.status === "ok" && r.fixture !== "floor" && r.samples_ms) (m[r.fixture] ??= []).push(r); } return m; };
 const b = load("base.json"), n = load("new.json");
 const min = (rs, f) => Math.min(...rs.map(f));
 console.log("fixture          load    tick  memory   (new/base, per-side minimum)");
 for (const k of Object.keys(b)) {
   if (!n[k]) continue;
   const r = (f) => (min(n[k], f) / min(b[k], f)).toFixed(3).padStart(7);
-  console.log(k.padEnd(16), r((x) => x.load_ms), r((x) => x.steps[0].p50_ms), r((x) => x.heap_bytes + x.wasm_bytes));
+  const tick = (x) => [...x.samples_ms].sort((p, q) => p - q)[x.samples_ms.length >> 1];
+  console.log(k.padEnd(16), r((x) => x.load_ms), r(tick), r((x) => x.heap_bytes + x.wasm_bytes));
 }
 JS

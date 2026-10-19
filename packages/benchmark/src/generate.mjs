@@ -1,135 +1,162 @@
-// The synthetic shapes, one mechanism each, written in the DoenetML every
-// core reads: `<mathInput>` for inputs, `<number>` for numeric dependency
-// (a `<math>` chain is a symbolic expression in every core and measures
-// something else), `<math>` only where the mechanism is symbolic.
-export function generate(spec) {
-    const m = /^([a-z]+)-(\d+)$/.exec(spec);
-    if (!m || !(m[1] in shapes)) throw new Error(`no generator for ${spec}`);
-    return shapes[m[1]](Number(m[2]));
-}
+// The synthetic shapes: one mechanism each, at any size. Each shape gives
+// the DoenetML text, the primary action (two drags, alternated so every
+// tick changes something) and a value check: one more drag to a known
+// place, and the values the document must then hold, which the shape
+// computes itself. Every shape is driven by dragging a point, which every
+// core supports; only `symbolic` needs math the Rust core does not have.
+//
+// `n` is the number of elements the mechanism runs through: the chain's
+// links, the fan's numbers, the repeat's iterations.
 
-const shapes = {
-    /** One input through N serial numeric operators to a draggable point. */
-    chain(n) {
-        const ops = ["$prev + 1", "1.0001 $prev", "-$prev", "$prev - 1"];
-        const lines = ['<mathInput name="n" prefill="1"/>'];
-        for (let i = 0; i < n; i++) {
-            const prev = i === 0 ? "$n" : `$c${i - 1}`;
-            lines.push(
-                `<number name="c${i}">${ops[i % ops.length].replace("$prev", prev)}</number>`,
-            );
-        }
-        lines.push(
-            `<graph name="g"><point name="p" x="$c${n - 1}" y="$n"/></graph>`,
-        );
-        return lines.join("\n") + "\n";
+// `BENCH_SIZES=10,100` overrides them, for a quick check of the harness;
+// such a run is not one to compare.
+export const SIZES = process.env.BENCH_SIZES
+    ? process.env.BENCH_SIZES.split(",").map(Number)
+    : [1000, 10000, 100000];
+
+/** A free point `p` at (x, 0) in a graph. */
+const point = (name, x) =>
+    `<graph name="g"><point name="${name}" x="${x}" y="0"/></graph>`;
+const drag = (target, x) => ({ action: "movePoint", target, x, y: 0 });
+
+export const shapes = {
+    depth: {
+        mechanism:
+            "forward propagation through a long serial path: a dragged point feeds a chain of n numbers",
+        generate(n) {
+            const lines = [
+                point("p", 1),
+                '<number name="c0">$p.x + 1</number>',
+            ];
+            for (let i = 1; i < n; i++)
+                lines.push(`<number name="c${i}">$c${i - 1} + 1</number>`);
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", 2), drag("p", 3)],
+                check: {
+                    step: drag("p", 5),
+                    values: { c0: 6, [`c${n - 1}`]: 5 + n },
+                },
+            };
+        },
     },
-    /**
-     * N free points in one graph; the first is dragged. The one shape every
-     * core can run. p0 sits alone at the center with nothing within 1.5
-     * units, so a pointer at it finds it; the rest fill a grid.
-     */
-    points(n) {
-        const lines = ['<graph name="g">', '  <point name="p0" x="0" y="0"/>'];
-        const k = Math.ceil(Math.sqrt(n * 1.2)) + 1;
-        for (let i = 0, placed = 1; placed < n; i++) {
-            const x = -9 + (18 * (i % k)) / (k - 1);
-            const y = -9 + (18 * Math.floor(i / k)) / (k - 1);
-            if (Math.hypot(x, y) < 1.5) continue;
-            lines.push(
-                `  <point name="p${placed}" x="${x.toFixed(3)}" y="${y.toFixed(3)}"/>`,
-            );
-            placed++;
-        }
-        lines.push("</graph>");
-        return lines.join("\n") + "\n";
+    breadth: {
+        mechanism:
+            "forward propagation across a wide set: a dragged point feeds n independent numbers",
+        generate(n) {
+            const lines = [point("p", 1)];
+            for (let i = 0; i < n; i++)
+                lines.push(`<number name="o${i}">$p.x + ${i}</number>`);
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", 2), drag("p", 3)],
+                check: {
+                    step: drag("p", 5),
+                    values: { o0: 5, [`o${n - 1}`]: 5 + n - 1 },
+                },
+            };
+        },
     },
-    /** One input read by N numbers, each positioning a point. */
-    fanout(n) {
-        const lines = ['<mathInput name="n" prefill="1"/>', '<graph name="g">'];
-        for (let i = 0; i < n; i++) {
-            lines.push(
-                `  <number name="o${i}">${(1 + (i % 10) / 10).toFixed(1)} $n</number><point name="p${i}" x="$o${i}" y="${i}"/>`,
-            );
-        }
-        lines.push("</graph>");
-        return lines.join("\n") + "\n";
-    },
-    /**
-     * A repeat whose length is an input, with one free point beside it: the
-     * drag measures a tick in a document of N iterations (points inside the
-     * repeat sit too close together for a pointer to pick one by name).
-     */
-    repeat(n) {
-        return (
-            [
-                `<mathInput name="n" prefill="${n}"/>`,
+    inversion: {
+        mechanism:
+            "a request walked back through n operators: dragging the point at the end of a chain moves the free point at its start",
+        generate(n) {
+            const lines = [
                 '<graph name="g">',
-                // Off the line y = x/2 the repeat's points lie on, so a pointer
-                // at q finds q.
-                '<point name="q" x="5" y="-5"/>',
-                '<repeatForSequence name="r" from="-9" step="0.18" length="$n" valueName="v">',
-                '<number name="h">0.5 $v</number>',
-                '<point name="p" x="$v" y="$h"/>',
-                "</repeatForSequence>",
+                '<point name="s" x="1" y="0"/>',
+                `<point name="p" x="$c${n - 1}" y="0"/>`,
                 "</graph>",
-            ].join("\n") + "\n"
-        );
+                '<number name="c0">$s.x + 1</number>',
+            ];
+            for (let i = 1; i < n; i++)
+                lines.push(`<number name="c${i}">$c${i - 1} + 1</number>`);
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", n + 2), drag("p", n + 3)],
+                check: {
+                    step: drag("p", n + 5),
+                    values: { c0: 6, [`c${n - 1}`]: n + 5 },
+                },
+            };
+        },
     },
-    /** A chain of simplified symbolic expressions with a free variable, evaluated every third step. */
-    symchain(n) {
-        const lines = [
-            '<mathInput name="mi" prefill="x^2+1"/>',
-            '<mathInput name="t" prefill="1"/>',
-        ];
-        const coef = [1, 2, 4, 5, 2, 3, 5];
-        for (let i = 0; i < n; i++) {
-            const prev = i === 0 ? "$mi" : `$m${i - 1}`;
-            const sign = i % 2 === 0 ? "+" : "-";
-            if (i % 3 === 2) {
+    symbolic: {
+        mechanism:
+            "symbolic work: a chain of n simplified expressions in x, fed by a dragged point and evaluated at its end",
+        generate(n) {
+            const coef = [1, 2, 4, 5, 2, 3, 5];
+            const lines = [
+                point("p", 1),
+                '<math name="m0" simplify>$p.x x^2 + 1</math>',
+            ];
+            // m(n-1) = p.x x^2 + 1 + k x, so its value at x = 1 is p.x + 1 + k.
+            let k = 0;
+            for (let i = 1; i < n; i++) {
+                const c = coef[i % coef.length];
+                const sign = i % 2 === 0 ? "+" : "-";
+                k += sign === "+" ? c : -c;
                 lines.push(
-                    `<evaluate name="e${i}" function="${prev}" input="$t"/>`,
-                );
-                lines.push(
-                    `<math name="m${i}" simplify>${prev} + 0.001 $e${i}</math>`,
-                );
-            } else {
-                lines.push(
-                    `<math name="m${i}" simplify>${prev} ${sign} ${coef[i % coef.length]} x</math>`,
+                    `<math name="m${i}" simplify>$m${i - 1} ${sign} ${c} x</math>`,
                 );
             }
-        }
-        return lines.join("\n") + "\n";
-    },
-    /** N math inputs, each checked by an answer. */
-    answers(n) {
-        const correct = [
-            "(x+1)^2",
-            "2x^2-3x+1",
-            "sin(x)^2+3",
-            "(x-4)(x+4)",
-            "e^x + 5",
-        ];
-        const lines = [];
-        for (let i = 0; i < n; i++) {
+            // Read through a number: not every adapter exposes an evaluate's value.
             lines.push(
-                `<p><answer name="a${i}"><mathInput name="mi${i}"/><award>${correct[i % correct.length]}</award></answer></p>`,
+                `<evaluate name="e" function="$m${n - 1}" input="1"/>`,
+                '<number name="ev">$e</number>',
             );
-        }
-        return lines.join("\n") + "\n";
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", 2), drag("p", 3)],
+                check: { step: drag("p", 5), values: { ev: 5 + 1 + k } },
+            };
+        },
     },
-    /** A three-way conditional over graphs of N points each, chosen by an input. */
-    adventure(n) {
-        const lines = ['<mathInput name="path" prefill="1"/>'];
-        for (let c = 1; c <= 3; c++) {
-            const pts = Array.from(
-                { length: n },
-                (_, i) => `<point x="${i % 17}" y="${(i * 7 + c) % 17}"/>`,
-            ).join("");
-            lines.push(
-                `<conditionalContent name="a${c}"><case condition="$path = ${c}"><number name="score">${c}</number><graph>${pts}</graph></case></conditionalContent>`,
-            );
-        }
-        return lines.join("\n") + "\n";
+    rebuild: {
+        mechanism:
+            "a structural change: dragging a point sets a repeat's length, between n and n - 1 iterations of a number and a point",
+        generate(n) {
+            const lines = [
+                point("p", n),
+                `<repeatForSequence name="r" length="$p.x" valueName="v">`,
+                // Two elements: a body of one value is a value list in the JS
+                // core, whose iterations are not components.
+                '<number name="h">2 $v</number><point name="q" x="$h" y="1"/>',
+                "</repeatForSequence>",
+            ];
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", n - 1), drag("p", n)],
+                check: {
+                    step: drag("p", n - 1),
+                    values: { [`r[${n - 1}].h`]: 2 * (n - 1) },
+                },
+            };
+        },
     },
 };
+
+/**
+ * The adapter floor: the primary action on a document of one free point,
+ * what a tick costs through a core's adapter when it changes nothing else.
+ */
+export const floor = {
+    mechanism: "the adapter floor: the drag on a document of one free point",
+    generate() {
+        return {
+            text: point("p", 1) + "\n",
+            steps: [drag("p", 2), drag("p", 3)],
+            check: { step: drag("p", 5), values: {} },
+        };
+    },
+};
+
+const made = new Map();
+
+/** The text, steps and check of `shape-n`, made once per process. */
+export function generate(spec) {
+    if (spec === "floor") return floor.generate();
+    const m = /^([a-z]+)-(\d+)$/.exec(spec);
+    if (!m || !(m[1] in shapes)) throw new Error(`no generator for ${spec}`);
+    if (!made.has(spec)) made.set(spec, shapes[m[1]].generate(Number(m[2])));
+    return made.get(spec);
+}

@@ -4,14 +4,13 @@
 //   npm run build -w packages/standalone -w packages/cells-viewer
 //   npm run build:rust-viewer      (the Rust core's page, after building
 //                                   packages/doenetml-prototype)
-//   node src/bundle.mjs            (appends to results/raw/bundle-<date>.json)
+//   BENCH_MACHINE=<id> node src/bundle.mjs   (the run's bundle.json)
 // A set whose dist is not built is skipped with a warning.
-import { execSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { brotliCompressSync } from "node:zlib";
 import { packageRoot, repoRoot } from "./fixtures.mjs";
-import { appendRecord, localDate } from "./results.mjs";
+import { appendRecord, openRun } from "./results.mjs";
 
 const standalone = resolve(repoRoot, "packages/standalone/dist");
 const cellsViewer = resolve(repoRoot, "packages/cells-viewer/dist");
@@ -86,11 +85,6 @@ const SETS = {
         ]),
     ],
 };
-const date = localDate();
-const commit = execSync("git rev-parse --short HEAD", {
-    cwd: repoRoot,
-    encoding: "utf8",
-}).trim();
 const cache = new Map();
 const measure = (file) => {
     if (!cache.has(file)) {
@@ -120,14 +114,19 @@ for (const [set, list] of Object.entries(SETS)) {
         for (const r of rows)
             console.log(`    ${mb(r.raw)}  ${mb(r.brotli)}  ${r.file}`);
     records.push({
-        date,
-        commit,
         set,
         raw_bytes: raw,
         brotli_bytes: brotli,
         files: rows,
     });
 }
-const out = resolve(packageRoot, `results/raw/bundle-${date}.json`);
-for (const r of records) appendRecord(out, r);
-console.log(`wrote ${out}`);
+const machine = process.env.BENCH_MACHINE;
+if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
+const run = openRun({
+    machine,
+    cores: [],
+    layer: "bundle",
+    sets: records.map((r) => r.set),
+});
+for (const r of records) appendRecord(run.records, r);
+console.log(`wrote ${run.records}`);

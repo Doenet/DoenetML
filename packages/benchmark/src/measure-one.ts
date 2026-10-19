@@ -1,11 +1,15 @@
-// Measure one fixture in one core and print the result as a JSON line.
+// Measure one fixture in one core, as JSON lines on stdout.
 //
-// Runs under vite-node from packages/doenetml-worker-javascript, whose test
-// utilities give every core the same interface (DOENET_TEST_CORE selects
-// it). `src/run.mjs` spawns this once per (core, fixture) with a 60 s
-// budget, so a slow document cannot stall the sweep and each memory figure
-// is a fresh process. Progress lines (`{"progress": ...}`) precede the
-// result so a timeout can say how far it got.
+// Runs from packages/doenetml-worker-javascript, whose test utilities give
+// every core the same interface (DOENET_TEST_CORE selects it), prebundled
+// by `scripts/bundle-driver.mjs`. `src/run.mjs` spawns this once per (core,
+// fixture), so each memory figure is a fresh process, and allows 15 s
+// between two lines: every stage and every tick reports as it ends, so a
+// timeout bounds one stage or one tick and keeps what came before it.
+//
+// Lines: `{"progress": stage}` as a stage starts; `{"part": {...}}` with a
+// stage's fields as it ends; `{"sample": ms}` per timed tick; `{"done":
+// true}` last. A failure is `{"part": {"status", "message"}}`.
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { createTestCore } from "../../doenetml-worker-javascript/src/test/utils/test-core";
 import { writeSync } from "node:fs";
@@ -14,8 +18,13 @@ import { fixtureText, loadFixture } from "./fixtures.mjs";
 
 const core = process.env.DOENET_TEST_CORE || "javascript";
 const fixtureName = process.argv[2];
-const budgetMs = Number(process.env.BENCH_STEP_BUDGET_MS ?? 20_000);
-const maxRounds = Number(process.env.BENCH_ROUNDS ?? 20);
+
+/** Ticks before the samples, and samples; fewer when a tick is slow. */
+const WARMUP = 3;
+const SAMPLES = 20;
+const SLOW_TICK_MS = 1000;
+const SLOW_WARMUP = 1;
+const SLOW_SAMPLES = 3;
 
 type Step = {
     action: string;
@@ -35,20 +44,9 @@ class TargetGap extends Error {}
 // back until the budget killed the process.
 const emit = (o: unknown) => writeSync(1, JSON.stringify(o) + "\n");
 const progress = (stage: string) => emit({ progress: stage });
+const part = (fields: Record<string, unknown>) => emit({ part: fields });
 const gc = () => (globalThis as any).gc?.();
 const now = () => performance.now();
-
-function quantiles(xs: number[]) {
-    const s = [...xs].sort((a, b) => a - b);
-    const q = (p: number) =>
-        s[Math.min(s.length - 1, Math.floor(p * s.length))];
-    return {
-        n: s.length,
-        p50_ms: q(0.5),
-        p90_ms: q(0.9),
-        max_ms: s[s.length - 1],
-    };
-}
 
 /**
  * Wasm linear memory. The Rust and cells adapters report their own module's;
@@ -146,61 +144,87 @@ async function runRustStep(
 }
 
 /**
- * The value of a named component as a number, whatever form the core
- * gives it in: a number, a math-expressions object, a string or a boolean.
- * NaN when the name does not resolve or the value is not a number.
+ * The value of a named component as a number, whatever form the core gives
+ * it in: a number, a math-expressions object, a string or a boolean. A
+ * string says why there is none: the name did not resolve, or the value is
+ * not a number.
  */
-async function readValue(api: any, name: string): Promise<number> {
+async function readValue(api: any, name: string): Promise<number | string> {
+    // First: the JS core expands a repeat's iterations when its state is
+    // asked for, and a path into them resolves only after.
+    const sv = await api.core.returnAllStateVariables(false, true);
     let idx: number;
     try {
         idx = await api.resolvePathToNodeIdx(name);
-    } catch {
-        return NaN;
+    } catch (e: any) {
+        return `${name} did not resolve: ${String(e?.message ?? e).slice(0, 120)}`;
     }
-    if (idx === -1) return NaN;
-    const sv = await api.core.returnAllStateVariables(false, true);
-    const v = sv[idx]?.stateValues?.value;
-    if (typeof v === "number") return v;
+    if (idx === -1) return `${name} did not resolve`;
+    const c = sv[idx];
+    const v = c?.stateValues?.value;
+    if (typeof v === "number" && !Number.isNaN(v)) return v;
     if (typeof v === "boolean") return v ? 1 : 0;
-    if (typeof v === "string") return v.trim() === "" ? NaN : Number(v);
-    if (v && typeof v.evaluate_to_constant === "function")
-        return Number(v.evaluate_to_constant());
-    return NaN;
+    if (typeof v === "string" && v.trim() !== "" && !isNaN(Number(v)))
+        return Number(v);
+    if (v && typeof v.evaluate_to_constant === "function") {
+        const x = Number(v.evaluate_to_constant());
+        if (!Number.isNaN(x)) return x;
+    }
+    return `${name} (${c?.componentType ?? "no component"}) has no numeric value: ${JSON.stringify(v)?.slice(0, 80)}`;
 }
 
-/** Cycle through the steps, timing each, until the rounds or the budget run out. */
-async function timeSteps(api: any, steps: Step[], rounds: number) {
-    const samples = new Map<string, number[]>();
-    const start = now();
-    for (let r = 0; r < rounds && now() - start < budgetMs; r++) {
-        for (const s of steps) {
-            const t = now();
-            if (process.env.BENCH_DEBUG)
-                console.error(`round ${r} ${s.action} ${s.target}`);
-            await runStep(api, s);
-            const label = `${s.action} ${s.target}`;
-            (samples.get(label) ?? samples.set(label, []).get(label)!).push(
-                now() - t,
-            );
-        }
+/**
+ * The primary action, alternating between its steps: warm-up ticks, then
+ * timed samples, each reported as it ends. A first tick slower than
+ * `SLOW_TICK_MS` cuts both short.
+ */
+async function timeTicks(api: any, steps: Step[]) {
+    let k = 0;
+    const tick = async () => {
+        const t = now();
+        await runStep(api, steps[k++ % steps.length]);
+        return now() - t;
+    };
+    const first = await tick();
+    const slow = first > SLOW_TICK_MS;
+    const warmup = slow ? SLOW_WARMUP : WARMUP;
+    const samples = slow ? SLOW_SAMPLES : SAMPLES;
+    const warmups = [first];
+    while (warmups.length < warmup) warmups.push(await tick());
+    part({ warmup_ms: warmups });
+    for (let i = 0; i < samples; i++) emit({ sample: await tick() });
+}
+
+/** The check: one more step, then the values it must leave. */
+async function check(
+    api: any,
+    c: { step: Step; values: Record<string, number> },
+) {
+    await runStep(api, c.step);
+    const values: Record<string, number | string> = {};
+    let ok = true;
+    for (const [name, want] of Object.entries(c.values)) {
+        const got = await readValue(api, name);
+        values[name] = got;
+        if (
+            typeof got !== "number" ||
+            !(Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want)))
+        )
+            ok = false;
     }
-    return [...samples].map(([label, xs]) => ({ label, ...quantiles(xs) }));
+    return { ok, values, expected: c.values };
 }
 
 async function main() {
     const manifest = loadFixture(fixtureName);
+    progress("generate");
     const text = fixtureText(manifest);
-    const record: any = {
-        core,
-        fixture: fixtureName,
-        status: "ok",
-        text_bytes: text.length,
-    };
+    part({ text_bytes: text.length });
 
     progress("parse");
     let t = now();
     normalizeDocumentDast(lezerToDast(text), true);
-    record.parse_ms = now() - t;
+    part({ parse_ms: now() - t });
 
     progress("load");
     gc();
@@ -211,62 +235,51 @@ async function main() {
         doenetML: text,
         flags: { allowSaveState: true },
     });
-    record.load_ms = now() - t;
+    const load_ms = now() - t;
     gc();
-    record.heap_bytes = process.memoryUsage().heapUsed - heapBefore;
-    record.wasm_bytes = await wasmBytes(api);
+    part({
+        load_ms,
+        heap_bytes: process.memoryUsage().heapUsed - heapBefore,
+        wasm_bytes: await wasmBytes(api),
+    });
 
-    progress("steps");
-    record.steps = await timeSteps(api, manifest.steps, maxRounds);
-    if (manifest.structural) {
-        progress("structural");
-        record.structural = await timeSteps(
-            api,
-            manifest.structural,
-            Math.min(maxRounds, 10),
-        );
-    }
+    progress("tick");
+    await timeTicks(api, manifest.steps);
 
-    if (process.env.BENCH_PROBE) {
-        const values: Record<string, number> = {};
-        for (const name of process.env.BENCH_PROBE.split(","))
-            values[name] = await readValue(api, name);
-        record.probe = values;
+    if (manifest.check) {
+        progress("check");
+        part({ check: await check(api, manifest.check) });
     }
 
     progress("state");
     try {
-        Object.assign(record, await savedState(api));
+        part(await savedState(api));
     } catch (e: any) {
         // A core without saved state (the Rust core) still has its timings.
-        record.state_bytes = null;
-        record.state_note = String(e?.message ?? e).slice(0, 200);
+        part({ state_bytes: null });
     }
 
-    // Last: on a slow document this check costs more than the measurements,
-    // so the record goes out first and again with the count if time allows.
-    emit({ ...record, error_components: "unchecked" });
+    // Last: on a large document this costs more than the measurements.
     progress("errors");
     try {
         const sv = await api.core.returnAllStateVariables(false, true);
-        record.error_components = Object.values(sv).filter(
-            (c: any) => c.componentType === "_error",
-        ).length;
+        part({
+            error_components: Object.values(sv).filter(
+                (c: any) => c.componentType === "_error",
+            ).length,
+        });
     } catch {
-        record.error_components = null;
+        part({ error_components: null });
     }
-    emit(record);
+    emit({ done: true });
 }
 
-// The JS core leaves timers running, so exit explicitly once the line is out.
+// The JS core leaves timers running, so exit explicitly once the lines are out.
 main()
     .catch((e) => {
         const name = e?.constructor?.name ?? "";
-        const status = /Gap$/.test(name) ? "unsupported" : "error";
-        emit({
-            core,
-            fixture: fixtureName,
-            status,
+        part({
+            status: /Gap$/.test(name) ? "unsupported" : "error",
             message: String(e?.message ?? e).slice(0, 500),
         });
     })
