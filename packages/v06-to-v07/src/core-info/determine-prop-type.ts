@@ -219,6 +219,17 @@ export function isComponentType(componentType: string): boolean {
 }
 
 /**
+ * Whether `componentType` is a composite, which stands for what it expands to rather
+ * than a component of its own type.
+ */
+export function isCompositeComponentType(componentType: string): boolean {
+    return componentInfoObjects.isCompositeComponent({
+        componentType,
+        includeNonStandard: true,
+    });
+}
+
+/**
  * Whether `componentType` is a `<module>` or something derived from one.
  *
  * v0.6 used this to decide the default of `<copy>`'s `link`: with no `link` attribute it

@@ -35,6 +35,8 @@ const AFFECTED_ATTRIBUTES = [
     "componentTypes",
     "name",
     "newNamespace",
+    "alias",
+    "indexAlias",
 ];
 
 /**

@@ -71,6 +71,8 @@ export type AssignNamesContext = {
         group: DastElement;
         setup: DastElement;
         repeat: DastElement;
+        /** Where the `<sources>` it came from was written, for diagnostics. */
+        position?: DastElement["position"];
         /** Set once the group has been folded into the repeat's `for`. */
         done?: boolean;
     }[];

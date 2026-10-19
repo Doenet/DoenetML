@@ -26,16 +26,22 @@ export const upgradeModuleElement: Plugin<[], DastRoot, DastRoot> = () => {
                 // No affected attributes, nothing to do
                 return;
             }
-            const setupNode = node.children.find(
+            const isCustomAttribute = (child: DastElementContent) =>
+                isDastElement(child) && child.name === "customAttribute";
+            const setups = node.children.filter(
                 (child): child is DastElement =>
                     isDastElement(child) && child.name === "setup",
             );
+            // The `<setup>` holding the `<customAttribute>`s need not be the first: a
+            // `<map>` converted ahead of it leaves a `<setup>` of its own in front.
+            const setupNode =
+                setups.find((setup) =>
+                    setup.children.some(isCustomAttribute),
+                ) ?? setups[0];
             if (!setupNode) {
                 // No need to upgrade the syntax
                 return;
             }
-            const isCustomAttribute = (child: DastElementContent) =>
-                isDastElement(child) && child.name === "customAttribute";
             const customAttributeNodes = setupNode.children.filter(
                 (child): child is DastElement => isCustomAttribute(child),
             );
