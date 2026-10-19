@@ -58,6 +58,10 @@ export function returnStatusMessageStateVariableDefinition() {
  * itself when pressed is no longer rendered, so its renderer state is no
  * longer sent.
  *
+ * A press can also delete its own button, for example when it changes the
+ * case of the `<conditionalContent>` holding it. The deleted button's message
+ * can no longer be read, so the viewer's default is announced instead.
+ *
  * Only a press is announced. Every other caller of these actions — a
  * `triggerWhen`, a `<triggerSet>` running its children, an action chained to
  * another, a `<callAction>` targeting the action — passes
@@ -78,9 +82,15 @@ export async function finishActionButtonPress(
         return;
     }
 
+    const announcement = component.coreFunctions.componentExists(
+        component.componentIdx,
+    )
+        ? await component.stateValues.statusMessage
+        : "";
+
     await component.coreFunctions.updateRenderers({
         actionId,
         sourceInformation,
-        announcement: await component.stateValues.statusMessage,
+        announcement,
     });
 }

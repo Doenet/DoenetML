@@ -331,6 +331,40 @@ describe("StatusMessage tag tests", async () => {
         expect(announcements().length).eq(5);
     });
 
+    it("a press that deletes its own button still sends its update, announcing the default", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">0</number>
+    <conditionalContent name="cc">
+      <case condition="$n = 0">
+        <p><updateValue name="add" target="$n" newValue="1">
+          <label>Add</label>
+          <statusMessage>n is now $n.</statusMessage>
+        </updateValue></p>
+      </case>
+      <else><p name="done">Added.</p></else>
+    </conditionalContent>
+    `,
+        });
+        const announcements = captureAnnouncements(core);
+
+        // The press moves `cc` to its `<else>`, deleting the button and its
+        // `<statusMessage>`, so the message can no longer be read.
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("cc.add"),
+            actionName: "updateValue",
+            args: { actionId: "add" },
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(announcements()).toEqual([
+            { announcement: "", actionId: "add" },
+        ]);
+    });
+
     it("a change made by triggerWhen, triggerWith or triggerWhenObjectsClicked is not announced", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

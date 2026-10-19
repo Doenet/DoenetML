@@ -416,6 +416,10 @@ export default class Core {
             // the shared state-variable functions in StateVariableInitializer
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
+            // Whether a component is still in the document, for an action
+            // that may have deleted the component carrying it out.
+            componentExists: (componentIdx: ComponentIdx) =>
+                this._components[componentIdx] !== undefined,
             addDiagnostic: this.addDiagnostic.bind(this),
             // What a save holds of an unlinked copy's snapshot
             // (`utils/copySnapshot.js`), by the copy's stateId.

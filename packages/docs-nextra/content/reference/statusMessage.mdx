@@ -22,7 +22,10 @@ The message is computed *after* the button has done its work, so a reference ins
 names the new value: `<statusMessage>Count is now $n.</statusMessage>{:dn}` announces
 "Count is now 2." after a press that changes `$n` from 1 to 2. If a button has more than
 one `<statusMessage>{:dn}`, the last one is used. A press is announced even when the
-button hides itself, as a button that reveals a hint with `hide="$shown"` does.
+button hides itself, as a button that reveals a hint with `hide="$shown"` does. A press
+that removes its button from the document, for example by changing which case of a
+`<conditionalContent>{:dn}` is shown, announces the default instead, because the
+message was removed along with the button.
 
 The message is announced as plain text. Write values in words when the way they read
 aloud matters: a math value is announced as its plain text (for example `x²/3`), not
