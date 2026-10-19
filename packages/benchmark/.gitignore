@@ -3,3 +3,5 @@ fixtures/generated/
 test-results/
 # scripts/perf-diff.sh scratch.
 .perf-diff/
+# The trace layer's full Chrome traces, for DevTools (browser/trace.spec.ts).
+results/traces/

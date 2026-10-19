@@ -71,9 +71,16 @@ impl Document {
     /// schedule and compute repeat until every repeat's iteration count
     /// matches its `count` cell; the timings sum over passes.
     pub fn load(bytes: &[u8], options: LoadOptions) -> crate::Result<(Document, LoadTimings)> {
+        let _load = crate::trace::span("load");
         let mut t = LoadTimings::default();
         let clock = web_time::Instant::now();
-        let dast = Arc::new(crate::dast::load(bytes)?);
+        let dast = {
+            let _s = crate::trace::span("deserialize");
+            crate::trace::count("bytes", bytes.len());
+            let dast = Arc::new(crate::dast::load(bytes)?);
+            crate::trace::count("dast_nodes", dast.len());
+            dast
+        };
         t.deserialize = clock.elapsed();
         let doc = Self::load_dast(dast, options, &mut t)?;
         Ok((doc, t))
@@ -87,10 +94,17 @@ impl Document {
         bytes: Vec<u8>,
         options: LoadOptions,
     ) -> crate::Result<(Document, LoadTimings)> {
+        let _load = crate::trace::span("load");
         let mut t = LoadTimings::default();
         let clock = web_time::Instant::now();
-        let dast = Arc::new(crate::dast::load(&bytes)?);
-        drop(bytes);
+        let dast = {
+            let _s = crate::trace::span("deserialize");
+            crate::trace::count("bytes", bytes.len());
+            let dast = Arc::new(crate::dast::load(&bytes)?);
+            drop(bytes);
+            crate::trace::count("dast_nodes", dast.len());
+            dast
+        };
         t.deserialize = clock.elapsed();
         let doc = Self::load_dast(dast, options, &mut t)?;
         Ok((doc, t))
@@ -107,11 +121,13 @@ impl Document {
         let mut counts = Counts::default();
         // Compile once (ADR 0015); every pass is a build of that compile.
         let clock = web_time::Instant::now();
+        let compile_span = crate::trace::span("compile");
         let crate::compile::CompileOutput {
             compiled,
             mut first_build,
             check_time,
         } = crate::compile::compile(&dast, &session, options.checks())?;
+        drop(compile_span);
         t.build += clock.elapsed();
         t.cycle_check += check_time;
         let passes = compiled.passes(MAX_PASSES);
@@ -123,20 +139,34 @@ impl Document {
                 // After the first pass no student has changed a value yet,
                 // so a seeded cell takes its seed again, from the counts
                 // this pass stamps.
-                None => crate::build::build(&compiled, &session, &counts, pass > 0)?,
+                None => {
+                    let _s = crate::trace::span("build");
+                    crate::trace::count("pass", pass + 1);
+                    crate::build::build(&compiled, &session, &counts, pass > 0)?
+                }
             };
             t.build += clock.elapsed();
 
             let clock = web_time::Instant::now();
-            let mut doc = built.schedule(compiled.clone())?;
+            let mut doc = {
+                let _s = crate::trace::span("schedule");
+                let doc = built.schedule(compiled.clone())?;
+                crate::trace::count("instructions", doc.program.len());
+                doc
+            };
             t.schedule += clock.elapsed();
 
             let clock = web_time::Instant::now();
-            doc.recompute();
+            {
+                let _s = crate::trace::span("compute");
+                crate::trace::count("cells", doc.cells.len());
+                doc.recompute();
+            }
             t.initial_compute += clock.elapsed();
             t.passes += 1;
             if doc.structure_settled() {
                 t.structural_depth = doc.structure.structural_depth;
+                let _s = crate::trace::span("attributes");
                 doc.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
                 return Ok(doc);
             }

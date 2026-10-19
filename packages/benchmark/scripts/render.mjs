@@ -7,12 +7,15 @@
 // Per run, in its directory: `comparison.md` (the cores pairwise on the
 // synthetic shapes: tick, then load, then memory), `coverage.md` (what each
 // core can run, every fixture), and `budgets.md` (the browser layer and the
-// bundle against the product budgets) when the run has those layers.
+// bundle against the product budgets) when the run has those layers, and
+// `trace.md` with its `trace-*.svg` figures (the steps of a load, in order;
+// `render-trace.mjs`) when it has a trace layer.
 // `results/README.md` lists the runs, newest first, grouped by machine.
 import { writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { SIZES, packageRoot, shapes } from "../src/fixtures.mjs";
 import { listRuns, runsDir } from "../src/results.mjs";
+import { tracePage } from "./render-trace.mjs";
 
 /** The limits a run's layer was measured under; a run before they were recorded had 15 s for everything. */
 function limits(layer) {
@@ -515,6 +518,10 @@ for (const run of runs) {
         writeFileSync(resolve(run.dir, "budgets.md"), budgets(run));
         pages.push("budgets");
     }
+    if (run.layers.trace?.length) {
+        writeFileSync(resolve(run.dir, "trace.md"), tracePage(run, header));
+        pages.push("trace");
+    }
     run.pages = pages;
 }
 
@@ -549,6 +556,7 @@ for (const [machine, list] of machines) {
                 (
                     r.manifest.layers.node?.cores ??
                     r.manifest.layers.browser?.cores ??
+                    r.manifest.layers.trace?.cores ??
                     []
                 )
                     .map(coreName)

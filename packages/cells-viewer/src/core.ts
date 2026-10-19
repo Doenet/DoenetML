@@ -3,6 +3,7 @@
 // zero-copy), per-cell-index subscriptions, and cell-addressed requests.
 import init, { Core } from "@doenet/cells-core/pkg/cells_wasm.js";
 import { ComponentTable, columnsFromCore } from "./components";
+import { measure, measureCoreSpans } from "./trace";
 
 export interface LoadTimings {
     fetch: number;
@@ -263,10 +264,15 @@ export async function loadDocument(
     timings: Partial<LoadTimings>,
 ): Promise<CellStore> {
     let t = performance.now();
+    const firstInit = wasmMemory === null;
     const memory = wasmMemory ?? (wasmMemory = (await init()).memory);
     timings.wasmInit = performance.now() - t;
+    // Only the first load on a page fetches and compiles the wasm.
+    if (firstInit) measure("core/wasm init", t);
     t = performance.now();
     const core = new Core(bytes);
+    measure("core/new Core", t, { bytes: bytes.length });
+    measureCoreSpans("core/new Core", t, core.load_trace_json());
     core.set_evaluator(evaluator);
     timings.coreTotal = performance.now() - t;
     const diagnostics = JSON.parse(core.diagnostics_json()) as Diagnostic[];
@@ -281,5 +287,6 @@ export async function loadDocument(
         columnsFromCore(core, memory),
     );
     timings.componentTable = performance.now() - t;
+    measure("core/component table", t, { components: comps.length });
     return new CellStore(core, comps, diagnostics);
 }

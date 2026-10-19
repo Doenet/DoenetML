@@ -3,7 +3,8 @@
 // reads through `window.__cells` (see `dev/main.tsx`).
 import { CellStore, loadDocument, type LoadTimings } from "./core";
 import { parseDoenetML } from "./parse";
-import { lastBoardFlushAt } from "./renderers/jsxgraph/Board";
+import { boardCount, lastBoardFlushAt } from "./renderers/jsxgraph/Board";
+import { measure, measureBetween, stepAsync } from "./trace";
 
 /** The wire format of the generated fixtures: binary CDAST, or DAST JSON. */
 export type WireFormat = "cdast" | "json";
@@ -17,12 +18,13 @@ export async function fetchFixture(
 ): Promise<Encoded> {
     const t0 = performance.now();
     const response = await fetch(`/${spec}.${fmt}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    measure("fetch", t0, { bytes: bytes.length });
     if (!response.ok) {
         throw new Error(
             `fixture ${spec}.${fmt} not found; run \`npm run fixtures\` in packages/cells-core`,
         );
     }
-    const bytes = new Uint8Array(await response.arrayBuffer());
     return { bytes, timings: { fetch: performance.now() - t0 } };
 }
 
@@ -30,7 +32,9 @@ export async function fetchFixture(
  * in for the fetch time in the timings. */
 export async function encodeSource(text: string): Promise<Encoded> {
     const t0 = performance.now();
-    const bytes = await parseDoenetML(text);
+    const bytes = await stepAsync("parse", () => parseDoenetML(text), {
+        chars: text.length,
+    });
     return { bytes, timings: { fetch: performance.now() - t0 } };
 }
 
@@ -42,7 +46,9 @@ export async function openDocument(
     evaluator: string,
     mount: (store: CellStore) => void,
 ): Promise<{ store: CellStore; timings: Partial<LoadTimings> }> {
-    const store = await loadDocument(bytes, evaluator, timings);
+    const store = await stepAsync("core", () =>
+        loadDocument(bytes, evaluator, timings),
+    );
     const t0 = performance.now();
     timings.firstRender = NaN;
     mount(store);
@@ -55,8 +61,22 @@ export async function openDocument(
                 requestAnimationFrame(waitCommit);
                 return;
             }
-            timings.firstRender =
-                Math.max(store.firstCommitAt, lastBoardFlushAt) - t0;
+            const end = Math.max(store.firstCommitAt, lastBoardFlushAt);
+            timings.firstRender = end - t0;
+            measureBetween("render", t0, end, {
+                components: store.comps.length,
+                elements: document.querySelectorAll("*").length,
+            });
+            measureBetween("render/react commit", t0, store.firstCommitAt, {
+                components: store.comps.length,
+            });
+            if (lastBoardFlushAt > store.firstCommitAt)
+                measureBetween(
+                    "render/boards",
+                    store.firstCommitAt,
+                    lastBoardFlushAt,
+                    { boards: boardCount() },
+                );
             resolve({ store, timings: { ...timings } });
         };
         requestAnimationFrame(waitCommit);

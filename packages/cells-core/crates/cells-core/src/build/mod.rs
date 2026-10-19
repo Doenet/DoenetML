@@ -85,11 +85,12 @@ pub(in crate::build) fn build_with(
     };
     let mut b = Builder::new(compiled, session, reseed, engine, view);
     let staged = (|| {
-        b.expand_all()?;
+        crate::trace::span("expand").run(|| b.expand_all())?;
         lap("expand");
-        b.resolve_all()?;
+        crate::trace::span("resolve").run(|| b.resolve_all())?;
         lap("resolve");
         if probe_checks {
+            let _s = crate::trace::span("loop check");
             b.check_counts()?;
             b.check_loops()?;
         }
@@ -101,7 +102,14 @@ pub(in crate::build) fn build_with(
             node: b.failed_node,
         });
     }
-    let u = b.finish()?;
+    let u = {
+        let _s = crate::trace::span("emit");
+        let u = b.finish()?;
+        crate::trace::count("cells", u.cells.len());
+        crate::trace::count("instructions", u.instrs.len());
+        crate::trace::count("components", u.components.len());
+        u
+    };
     lap("cells, program");
     Ok(u)
 }

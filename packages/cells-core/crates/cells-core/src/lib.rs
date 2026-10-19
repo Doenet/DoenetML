@@ -25,6 +25,7 @@
 //! - [`tick`]: run time. A request is snapped, inverted to essential cells,
 //!   and recomputed.
 //! - [`testing`]: the reference oracle and test helpers.
+//! - [`trace`]: named spans over a load, for the benchmark's trace layer.
 
 pub mod build;
 mod compile;
@@ -40,6 +41,7 @@ pub mod session;
 pub mod sym;
 pub mod testing;
 pub mod tick;
+pub mod trace;
 
 // The API of a loaded document: load it, read it, send it requests.
 pub use compile::lint::lint;

@@ -4,6 +4,7 @@ import { VscRefresh } from "react-icons/vsc";
 import type { CellStore } from "./core";
 import { CellsViewer } from "./CellsViewer";
 import { ResizablePanelPair } from "./ResizablePanelPair";
+import { measure } from "./trace";
 import "@doenet/codemirror/style.css";
 import "./EditorViewer.css";
 
@@ -79,12 +80,15 @@ export function EditorViewer({
                 <ResizablePanelPair
                     panelA={
                         <div className="editor-panel">
-                            <CodeMirror
-                                value={source}
-                                onChange={(text) => {
-                                    if (text !== source) onSourceChange(text);
-                                }}
-                            />
+                            <EditorMountStep>
+                                <CodeMirror
+                                    value={source}
+                                    onChange={(text) => {
+                                        if (text !== source)
+                                            onSourceChange(text);
+                                    }}
+                                />
+                            </EditorMountStep>
                         </div>
                     }
                     panelB={
@@ -99,4 +103,15 @@ export function EditorViewer({
             </div>
         </div>
     );
+}
+
+/** Records the editor's first mount as the step `editor`: from this
+ * component's first render until its effects run, which is after the
+ * editor's own (React runs a child's effects before its parent's). */
+function EditorMountStep({ children }: { children: React.ReactNode }) {
+    const [start] = React.useState(() => performance.now());
+    React.useEffect(() => {
+        measure("editor", start);
+    }, [start]);
+    return <>{children}</>;
 }

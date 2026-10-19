@@ -27,6 +27,8 @@ pub struct Core {
     last_rebuild_error: Option<String>,
     /// ms spent inside the rebuild during the last tick, if one happened.
     last_rebuild_ms: f64,
+    /// The load's spans (`cells_core::trace`), for the benchmark's trace layer.
+    trace: Vec<cells_core::trace::Span>,
 }
 
 #[wasm_bindgen]
@@ -42,17 +44,20 @@ impl Core {
     /// Load with the document seed load-time choices draw from (ADR 0009).
     pub fn with_seed(dast: Vec<u8>, seed: f64) -> Result<Core, JsError> {
         console_error_panic_hook::set_once();
-        let (doc, timings) = Document::load_owned(
+        cells_core::trace::start();
+        let loaded = Document::load_owned(
             dast,
             LoadOptions {
                 seed: seed as u64,
                 ..Default::default()
             },
-        )
-        .map_err(|e| JsError::new(&e.to_string()))?;
+        );
+        let trace = cells_core::trace::finish();
+        let (doc, timings) = loaded.map_err(|e| JsError::new(&e.to_string()))?;
         Ok(Core {
             doc,
             timings,
+            trace,
             last_dropped: 0,
             last_rebuilt: false,
             last_rebuild_error: None,
@@ -106,6 +111,13 @@ impl Core {
 
     pub fn n_essential(&self) -> usize {
         self.doc.n_essential
+    }
+
+    /// The load's spans as JSON (`cells_core::trace::to_json`): name, depth,
+    /// start and duration in milliseconds from the start of the load, and
+    /// the work counted inside each.
+    pub fn load_trace_json(&self) -> String {
+        cells_core::trace::to_json(&self.trace)
     }
 
     /// Stage timings from loading, in milliseconds, as JSON.

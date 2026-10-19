@@ -1,5 +1,7 @@
 import React from "react";
+import { measure, measureBetween } from "../src/trace";
 import { createRoot } from "react-dom/client";
+import { CellsViewer } from "../src/CellsViewer";
 import { EditorViewer } from "../src/EditorViewer";
 import type { CellStore, LoadTimings } from "../src/core";
 import {
@@ -81,7 +83,14 @@ declare global {
     }
 }
 
+// The load trace's first step: navigation until this module runs, which
+// is the page's HTML and every eagerly loaded script (`src/trace.ts`).
+measureBetween("boot", 0, performance.now());
+
 const params = new URLSearchParams(window.location.search);
+/** `?editor=0` shows the viewer alone, from the same bundle: the load
+ * without the editor's mount, for the benchmark's trace layer. */
+const showEditor = params.get("editor") !== "0";
 /** `?fmt=json` loads the fixtures as DAST JSON instead of binary CDAST. */
 const fmt: WireFormat = params.get("fmt") === "json" ? "json" : "cdast";
 
@@ -89,6 +98,10 @@ const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
+    // The step `app`: the page's first render, the editor's included, until
+    // its effects run.
+    const [appStart] = React.useState(() => performance.now());
+    React.useEffect(() => measure("app", appStart), [appStart]);
     const [evaluator, setEvaluator] = React.useState(
         () =>
             params.get("eval") ??
@@ -173,7 +186,23 @@ function App() {
                     : null,
         };
         const doc = params.get("doc");
+        const src = params.get("src");
         if (doc) loadFixture(doc);
+        // `?src=<url>` loads DoenetML text from a URL, as a host would.
+        else if (src) {
+            const start = performance.now();
+            fetch(src)
+                .then((r) => {
+                    if (!r.ok) throw new Error(`${src}: ${r.status}`);
+                    return r.text();
+                })
+                .then((text) => {
+                    measure("fetch", start, { chars: text.length });
+                    setSource(text);
+                    return loadSource(text);
+                })
+                .catch((e) => setError(String(e)));
+        }
         // `?blank=1` (the benchmark) waits for `loadSource` instead.
         else if (params.get("blank") !== "1") loadSource(source);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -245,18 +274,27 @@ function App() {
                 </button>
             </div>
             <div className="dev-viewer">
-                <EditorViewer
-                    source={source}
-                    onSourceChange={(text) => {
-                        setSource(text);
-                        saveSource(text);
-                    }}
-                    canRefresh={source !== rendered}
-                    onRefresh={() => loadSource(source)}
-                    store={store}
-                    error={error}
-                    status={timings && <Timings t={timings} store={store} />}
-                />
+                {showEditor ? (
+                    <EditorViewer
+                        source={source}
+                        onSourceChange={(text) => {
+                            setSource(text);
+                            saveSource(text);
+                        }}
+                        canRefresh={source !== rendered}
+                        onRefresh={() => loadSource(source)}
+                        store={store}
+                        error={error}
+                        status={
+                            timings && <Timings t={timings} store={store} />
+                        }
+                    />
+                ) : (
+                    <div className="viewer-panel">
+                        {error && <pre className="viewer-error">{error}</pre>}
+                        {store && <CellsViewer store={store} />}
+                    </div>
+                )}
             </div>
         </div>
     );

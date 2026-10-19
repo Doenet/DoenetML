@@ -2,7 +2,8 @@
 
 The performance suite: how the JS core, the Rust core and the cells core
 compare on tick, load and memory, what each can run, and whether each
-meets the product budgets in a real page. `METHOD.md` says what is
+meets the product budgets in a real page, and where the cells viewer's load
+spends its time, step by step (the trace layer). `METHOD.md` says what is
 measured and why; this file says how to run it. The results are in
 `results/README.md`, one directory per run.
 
@@ -82,6 +83,36 @@ built is skipped.
 
 Memory per viewer on a page is `packages/memory-benchmark`
 (`--core cells` or `--core rust` for the scenarios with an equivalent).
+
+## The trace layer
+
+```bash
+npm run build -w packages/cells-viewer
+BENCH_MACHINE=<id> npm run trace
+npm run render
+```
+
+`browser/trace.spec.ts` loads `homework` in the cells viewer, by
+navigation, in every scenario `METHOD.md` describes (visits cold, warm,
+hot and edit; the editor page and the viewer alone; CPU ×1 and ×4; the
+document at several sizes), and records every step of the load with its
+timing and work, and the main thread's work by kind from a Chrome trace,
+into the run's `trace.json`. `npm run render` makes `trace.md`: the
+waterfall of each visit (`trace-*.svg`), the steps' times side by side
+across visits, pages, CPU rates and sizes, and the glossary of what every
+step does and where its code is.
+
+| Variable            | Default         | Meaning                                                      |
+| ------------------- | --------------- | ------------------------------------------------------------ |
+| `BENCH_TRACE_RUNS`  | `5`             | untraced runs per scenario; one traced run is made besides   |
+| `BENCH_TRACE_CPU`   | `1,4`           | CPU throttling rates                                         |
+| `BENCH_TRACE_SIZES` | `1,4,16`        | the sizes of `homework-x<n>` on the editor page              |
+| `BENCH_TRACE_PAGES` | `editor,viewer` | the pages                                                    |
+
+The traced runs' full Chrome traces are in `results/traces/<run>/`
+(ignored by git); open one in Chrome's DevTools (Performance, Load
+profile) to see every task. The same `cells:` steps show in the
+Performance panel when recording the dev page by hand.
 
 ## Regressions
 

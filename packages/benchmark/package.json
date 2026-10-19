@@ -13,7 +13,8 @@
         "node": "node src/run.mjs",
         "bundle": "node src/bundle.mjs",
         "build:rust-viewer": "vite build -c browser/rust-viewer/vite.config.ts",
-        "browser": "playwright test -c browser/playwright.config.ts",
+        "browser": "playwright test -c browser/playwright.config.ts perf.spec.ts",
+        "trace": "playwright test -c browser/playwright.config.ts trace.spec.ts",
         "render": "node scripts/render.mjs",
         "perf-diff": "scripts/perf-diff.sh"
     },

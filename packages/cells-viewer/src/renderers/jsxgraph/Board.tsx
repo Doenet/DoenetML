@@ -13,6 +13,7 @@ import {
 import JXG from "jsxgraph";
 import type { CellStore } from "../../core";
 import { useStore } from "../../hooks";
+import { measure } from "../../trace";
 import { Children } from "../index";
 import {
     addNavigationButtons,
@@ -43,6 +44,11 @@ export const boards = new Set<BoardHandle>();
 /** performance.now() of the latest board redraw. Elements are created a
  * commit after the board, so first-render timing waits for this too. */
 export let lastBoardFlushAt = 0;
+
+/** How many boards are mounted. */
+export function boardCount() {
+    return boards.size;
+}
 
 export class BoardHandle {
     readonly elements = new Set<BoardElement>();
@@ -163,10 +169,12 @@ export function JsxGraph({ idx }: { idx: number }) {
         JXG.Options.layer.numlayers = 100;
         (JXG.Options as any).navbar.highlightFillColor = "var(--canvasText)";
         (JXG.Options as any).navbar.strokeColor = "var(--canvasText)";
+        const initStart = performance.now();
         const board = (JXG.JSXGraph as any).initBoard(
             id,
             initBoardOptions(bbox, false, "svg"),
         );
+        measure("render/board init", initStart);
         // JSXGraph clips its SVG root with `overflow: hidden`; with that, Chrome
         // re-layerizes every object on the board whenever a node is removed
         // (about 20 ms per frame at 8,000 objects). `clip-path` clips the same

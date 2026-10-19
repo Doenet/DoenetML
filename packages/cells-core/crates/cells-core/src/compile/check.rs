@@ -43,12 +43,25 @@ pub(crate) fn compile(
     let mut boxed: HashSet<NodeId> = HashSet::new();
     let (mut compiled, first_build, check_time) = loop {
         let clock = web_time::Instant::now();
-        let attempt = Compiler::compile(dast, &boxed).and_then(|mut compiled| {
+        let planned = {
+            let _s = crate::trace::span("plan");
+            let planned = Compiler::compile(dast, &boxed);
+            if let Ok(compiled) = &planned {
+                crate::trace::count("templates", compiled.templates.len());
+                crate::trace::count(
+                    "elements",
+                    compiled.templates.iter().map(|t| t.elems.len()).sum(),
+                );
+            }
+            planned
+        };
+        let attempt = planned.and_then(|mut compiled| {
             if profile {
                 eprintln!("  compile/plan: {:.2?}", clock.elapsed());
             }
             if check_cycles && (compiled.has_repeats() || compiled.has_selects()) {
                 let clock = web_time::Instant::now();
+                let _s = crate::trace::span("probe");
                 let probed = build::probe(&compiled)?;
                 compiled.structural_depth = Some(probed.structural_depth());
                 let checked = clock.elapsed();
@@ -57,7 +70,10 @@ pub(crate) fn compile(
                 }
                 Ok((compiled, None, checked))
             } else {
-                let first = build::first_build(&compiled, session, check_cycles)?;
+                let first = {
+                    let _s = crate::trace::span("first build");
+                    build::first_build(&compiled, session, check_cycles)?
+                };
                 // Without a repeat the depth is 0; with one (a test load
                 // without the check) no build here bounds it.
                 if !compiled.has_repeats() {
@@ -69,6 +85,7 @@ pub(crate) fn compile(
         match attempt {
             Ok(done) => break done,
             Err(f) => {
+                crate::trace::count("boxed", 1);
                 let node = f.node.filter(|n| boxed.insert(*n));
                 list.push(Diagnostic::error(node, &f.error));
                 if node.is_none() {
@@ -77,7 +94,10 @@ pub(crate) fn compile(
             }
         }
     };
-    list.extend(lint::lint(dast));
+    {
+        let _s = crate::trace::span("lint");
+        list.extend(lint::lint(dast));
+    }
     crate::diagnostics::sort(&mut list);
     compiled.diagnostics = list;
     let first_build = first_build.map(|mut u| {
