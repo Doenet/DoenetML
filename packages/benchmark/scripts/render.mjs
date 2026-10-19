@@ -62,12 +62,11 @@ function outcome(r, measure, floor) {
         return { kind: "gap", why: `${r.status}: ${r.message ?? r.stage}` };
     }
     if (failed) return { kind: "gap", why: `${r.status}: ${r.message ?? ""}` };
-    // A timeout before or during the ticks: no tick finished in time.
-    if (
-        r.status === "timeout" &&
-        ["start", "generate", "parse", "load", "tick"].includes(r.stage)
-    )
-        return { kind: "bound" };
+    // A load that timed out leaves the tick unmeasured, not slow; a
+    // timeout during the ticks means one tick took more than the limit.
+    if (r.status === "timeout" && r.stage !== "tick" && !r.samples_ms?.length)
+        return { kind: "gap", why: `load > ${ms(TIMEOUT_MS)}` };
+    if (r.status === "timeout" && r.stage === "tick") return { kind: "bound" };
     if (!r.samples_ms?.length)
         return { kind: "gap", why: `${r.status} at ${r.stage}` };
     const raw = median(r.samples_ms);
