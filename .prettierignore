@@ -24,5 +24,5 @@ packages/doenetml-print/python/pretext_wasm/core
 # this, a root `prettier:format` rewrites ~74 files nothing has touched, and the
 # collateral has to be reverted by hand before committing.
 
-# Benchmark runs: machine-written records, one array per run.
-packages/benchmark/results/raw
+# Benchmark runs: machine-written records, pages and index (scripts/render.mjs).
+packages/benchmark/results
