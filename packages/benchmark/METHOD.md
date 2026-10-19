@@ -162,7 +162,9 @@ viewer for Rust, the cells viewer), on the same shapes, sizes and
 timeouts. A drag is 60 real pointer moves; its latency is the time from a
 move to the first frame that shows the point moved. Because each viewer is
 at a different stage, these numbers are read against the budgets, never
-against each other. The browser layer is optional in a run; the manifest
+against each other. The browser has no value check of its own: a drag
+whose core left wrong values in the same run's Node layer is shown as not
+comparable. The browser layer is optional in a run; the manifest
 says whether it ran. The bundle's size (`src/bundle.mjs`) is reported
 there too.
 

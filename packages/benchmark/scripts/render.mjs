@@ -374,9 +374,17 @@ function budgets(run) {
             `Median time from a pointer move to the frame that shows the point moved: ${BUDGETS.tick} ms per frame, ${BUDGETS.structural} ms for a rebuild. Under it: p90 and how many of the moves got a frame.`,
             "",
         );
+        // The browser has no value check: a core whose values were wrong
+        // in the same run's Node layer did not do the work being timed.
+        const nodeBy = new Map(
+            (run.layers.node ?? []).map((r) => [`${r.core}/${r.fixture}`, r]),
+        );
         const lat = (r, budget) => {
             if (!r) return "";
             if (r.status !== "ok") return `${r.status} at ${r.stage}`;
+            const n = nodeBy.get(`${r.core}/${r.fixture}`);
+            if (n?.check && !n.check.ok)
+                return `not comparable<br><sub>wrong values in the Node layer</sub>`;
             const l = r.drag?.latency;
             if (!l?.n) return "no frames";
             return `${pass(l.p50_ms, budget)} ${ms(l.p50_ms)}<br><sub>p90 ${ms(l.p90_ms)} · ${r.drag.frames}/${r.drag.moves} frames</sub>`;

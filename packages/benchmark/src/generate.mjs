@@ -61,21 +61,23 @@ export const shapes = {
         mechanism:
             "a request walked back through n operators: dragging the point at the end of a chain moves the free point at its start",
         generate(n) {
+            // The chain starts n - 1 below s, so p lands on s's x, in view
+            // beside it (s at y = 1, p at y = 0), where a pointer can drag it.
             const lines = [
                 '<graph name="g">',
-                '<point name="s" x="1" y="0"/>',
+                '<point name="s" x="1" y="1"/>',
                 `<point name="p" x="$c${n - 1}" y="0"/>`,
                 "</graph>",
-                '<number name="c0">$s.x + 1</number>',
+                `<number name="c0">$s.x - ${n - 1}</number>`,
             ];
             for (let i = 1; i < n; i++)
                 lines.push(`<number name="c${i}">$c${i - 1} + 1</number>`);
             return {
                 text: lines.join("\n") + "\n",
-                steps: [drag("p", n + 2), drag("p", n + 3)],
+                steps: [drag("p", 2), drag("p", 3)],
                 check: {
-                    step: drag("p", n + 5),
-                    values: { c0: 6, [`c${n - 1}`]: n + 5 },
+                    step: drag("p", 5),
+                    values: { c0: 6 - n, [`c${n - 1}`]: 5 },
                 },
             };
         },
@@ -115,9 +117,12 @@ export const shapes = {
         mechanism:
             "a structural change: dragging a point sets a repeat's length, between n and n - 1 iterations of a number and a point",
         generate(n) {
+            // The length is p's x plus n, so p sits at the origin, in view,
+            // where a pointer can drag it.
             const lines = [
-                point("p", n),
-                `<repeatForSequence name="r" length="$p.x" valueName="v">`,
+                point("p", 0),
+                `<number name="len">$p.x + ${n}</number>`,
+                `<repeatForSequence name="r" length="$len" valueName="v">`,
                 // Two elements: a body of one value is a value list in the JS
                 // core, whose iterations are not components.
                 '<number name="h">2 $v</number><point name="q" x="$h" y="1"/>',
@@ -125,9 +130,9 @@ export const shapes = {
             ];
             return {
                 text: lines.join("\n") + "\n",
-                steps: [drag("p", n - 1), drag("p", n)],
+                steps: [drag("p", -1), drag("p", 0)],
                 check: {
-                    step: drag("p", n - 1),
+                    step: drag("p", -1),
                     values: { [`r[${n - 1}].h`]: 2 * (n - 1) },
                 },
             };
