@@ -35,6 +35,7 @@ import "./mathInput.css";
 import {
     FocusedMathInputContext,
     LegacyKeyboardTrayContext,
+    VirtualKeyboardAvailableContext,
 } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
@@ -480,6 +481,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
     const legacyKeyboardTray = useContext(LegacyKeyboardTrayContext);
+    const virtualKeyboardAvailable = useContext(
+        VirtualKeyboardAvailableContext,
+    );
 
     // Inside an expression there is no room for anything but the field itself:
     // a visible label drawn among the symbols would read as part of the math.
@@ -513,8 +517,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // which is how they ask for the device's keyboard back. Deciding this from
     // the outset, rather than waiting for the tray to open, is what stops the
     // system keyboard from appearing at the first math input a reader taps.
+    // A viewer embedded without a Doenet keyboard leaves the device's in play.
     const coarsePointer = useHasCoarsePrimaryPointer();
-    const suppressSystemKeyboard = coarsePointer && !systemKeyboardRequested;
+    const suppressSystemKeyboard =
+        virtualKeyboardAvailable && coarsePointer && !systemKeyboardRequested;
 
     useEffect(() => {
         const textarea = textareaRef.current;
