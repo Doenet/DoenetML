@@ -1,6 +1,7 @@
 import { glob } from "glob";
 import { describe, expect, it } from "vitest";
 import * as fs from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { lezerToDast } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import util from "util";
@@ -23,7 +24,11 @@ describe("DAST", async () => {
     {
         // Regular parsing tests
         const files = glob
-            .sync(new URL("./fragments/xml-*.doenet", import.meta.url).pathname)
+            .sync(
+                fileURLToPath(
+                    new URL("./fragments/xml-*.doenet", import.meta.url),
+                ),
+            )
             .filter((f) => !f.includes("-bad"));
         const fileMap: Record<string, string> = Object.fromEntries(
             files.map((f) => [f.split("/").pop(), f]),
@@ -43,7 +48,9 @@ describe("DAST", async () => {
     {
         // Tests that identify parsing errors
         const files = glob.sync(
-            new URL("./fragments/xml-bad*.doenet", import.meta.url).pathname,
+            fileURLToPath(
+                new URL("./fragments/xml-bad*.doenet", import.meta.url),
+            ),
         );
         const fileMap: Record<string, string> = Object.fromEntries(
             files.map((f) => [f.split("/").pop(), f]),

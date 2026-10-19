@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { getSchema } from "./get-schema";
 import type {
     RelaxNgAttribute,
@@ -29,9 +30,9 @@ console.log(
     "Writing",
     Object.keys(relaxngSchema.refs).length,
     "relaxng schema items to",
-    destUrl.pathname,
+    fileURLToPath(destUrl),
 );
-await fs.writeFile(destUrl.pathname, JSON.stringify(relaxngSchema, null, 4));
+await fs.writeFile(destUrl, JSON.stringify(relaxngSchema, null, 4));
 
 /**
  * Convert a schema that has been dumped by `getSchema` to a RelaxNG-style schema.
