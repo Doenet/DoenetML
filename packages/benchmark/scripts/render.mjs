@@ -14,7 +14,13 @@ import { relative, resolve } from "node:path";
 import { SIZES, packageRoot, shapes } from "../src/fixtures.mjs";
 import { listRuns, runsDir } from "../src/results.mjs";
 
-const TIMEOUT_MS = 15_000;
+/** The limits a run's layer was measured under; a run before they were recorded had 15 s for everything. */
+function limits(layer) {
+    return {
+        load: layer?.load_timeout_ms ?? 15_000,
+        tick: layer?.step_timeout_ms ?? 15_000,
+    };
+}
 const CORE_NAME = { javascript: "JS", rust: "Rust", cells: "cells" };
 const coreName = (c) => CORE_NAME[c] ?? c;
 
@@ -49,7 +55,7 @@ const table = (head, rows) =>
  * What a record says about one measure (`tick` or `load`): a value, a bound
  * (the core timed out on it), values that fail the check, or a gap.
  */
-function outcome(r, measure, floor) {
+function outcome(r, measure, floor, limit) {
     if (!r) return { kind: "none" };
     // Values that fail the check make every measure of the record moot.
     if (r.check && !r.check.ok)
@@ -58,15 +64,16 @@ function outcome(r, measure, floor) {
     if (measure === "load") {
         // A load stands even when the core failed later, at the action.
         if (r.load_ms != null) return { kind: "value", value: r.load_ms };
-        if (r.status === "timeout") return { kind: "bound" };
+        if (r.status === "timeout") return { kind: "bound", limit: limit.load };
         return { kind: "gap", why: `${r.status}: ${r.message ?? r.stage}` };
     }
     if (failed) return { kind: "gap", why: `${r.status}: ${r.message ?? ""}` };
     // A load that timed out leaves the tick unmeasured, not slow; a
     // timeout during the ticks means one tick took more than the limit.
     if (r.status === "timeout" && r.stage !== "tick" && !r.samples_ms?.length)
-        return { kind: "gap", why: `load > ${ms(TIMEOUT_MS)}` };
-    if (r.status === "timeout" && r.stage === "tick") return { kind: "bound" };
+        return { kind: "gap", why: `load > ${ms(limit.load)}` };
+    if (r.status === "timeout" && r.stage === "tick")
+        return { kind: "bound", limit: limit.tick };
     if (!r.samples_ms?.length)
         return { kind: "gap", why: `${r.status} at ${r.stage}` };
     const raw = median(r.samples_ms);
@@ -101,7 +108,7 @@ function pairCell(a, b, oa, ob) {
                 ? `${coreName(c)} < ${ms(o.floor)} (floor)`
                 : `${coreName(c)} ${ms(o.value)}`
             : o.kind === "bound"
-              ? `${coreName(c)} > ${ms(TIMEOUT_MS)}`
+              ? `${coreName(c)} > ${ms(o.limit)}`
               : null;
     for (const [c, o] of [
         [a, oa],
@@ -115,10 +122,11 @@ function pairCell(a, b, oa, ob) {
     }
     const sub = `<br><sub>${show(a, oa)} · ${show(b, ob)}</sub>`;
     if (oa.kind === "bound" && ob.kind === "bound")
-        return `both > ${ms(TIMEOUT_MS)}`;
+        return `both > ${ms(oa.limit)}`;
     if (oa.kind === "bound" || ob.kind === "bound") {
         const [fast, fo] = oa.kind === "value" ? [a, oa] : [b, ob];
-        const n = TIMEOUT_MS / Math.max(fo.value, 1e-3);
+        const n =
+            (oa.kind === "bound" ? oa : ob).limit / Math.max(fo.value, 1e-3);
         return `**${coreName(fast)} ≥ ${ratio(n)}** †${sub}`;
     }
     const [fast, slow] =
@@ -155,6 +163,7 @@ function comparison(run) {
         records.some((r) => r.fixture.startsWith(`${s}-`)),
     );
     const cores = manifest.layers.node.cores;
+    const limit = limits(manifest.layers.node);
     const by = new Map(records.map((r) => [`${r.core}/${r.fixture}`, r]));
     const floor = Object.fromEntries(
         cores.map((c) => {
@@ -187,7 +196,7 @@ function comparison(run) {
         "Each cell compares two cores on one shape at one size: the bold line says which is faster and by how much; the line under it gives each core's time. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).",
         "",
         `- **Tick** is the median time of the shape's primary action, less the core's adapter floor (below). ‡: a tick within twice its floor, so its own time is below what the adapter lets us see; the ratio is then a bound ("> N×") taken from that floor.`,
-        `- **> ${ms(TIMEOUT_MS)}**: the core did not finish one tick (or the load) in ${ms(TIMEOUT_MS)}. † marks a ratio that is then a lower bound, its slow side unchecked.`,
+        `- **> ${ms(limit.tick)}**: the core did not finish one tick in ${ms(limit.tick)}, or **> ${ms(limit.load)}** its load in ${ms(limit.load)}. † marks a ratio that is then a lower bound, its slow side unchecked. A core whose load did not finish has no tick.`,
         `- **not comparable**: a core finished, but its values after the check step are wrong. **—**: a core cannot run the shape (see [coverage](coverage.md)).`,
         "",
         `Adapter floor (the drag on a document of one free point): ${cores
@@ -211,8 +220,18 @@ function comparison(run) {
                     pairCell(
                         a,
                         b,
-                        outcome(by.get(`${a}/${s}-${n}`), measure, floor[a]),
-                        outcome(by.get(`${b}/${s}-${n}`), measure, floor[b]),
+                        outcome(
+                            by.get(`${a}/${s}-${n}`),
+                            measure,
+                            floor[a],
+                            limit,
+                        ),
+                        outcome(
+                            by.get(`${b}/${s}-${n}`),
+                            measure,
+                            floor[b],
+                            limit,
+                        ),
                     ),
                 ),
             ]);
@@ -302,7 +321,7 @@ function coverage(run) {
         header(manifest),
         "",
         "What each core can run: every fixture of the run, synthetic and real. ✓ means it loaded, ticked and left the values the fixture expects; a real document has no value check. ✗ gives the values that were wrong. A timeout is " +
-            `${ms(TIMEOUT_MS)} on one stage (a load, a tick).`,
+            `${ms(limits(manifest.layers.node).load)} for the load, ${ms(limits(manifest.layers.node).tick)} for a tick.`,
         "",
         table(
             ["Fixture", ...cores.map(coreName)],

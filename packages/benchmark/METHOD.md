@@ -129,11 +129,16 @@ checked against the shape, not against another core.
 
 ### Timeouts
 
-Every stage (the load, each tick) has 15 s. A core that loads but cannot
-finish one tick in 15 s keeps its load. A timed-out cell shows "> 15 s",
-and its ratio is a lower bound, "≥ N×" with N = 15 s over the other
+The load has 120 s, and each tick 15 s. The load's limit is the longer
+so that a core which loads slowly still has its ticks measured at 10,000:
+the ticks are the headline. A core that loads but cannot finish one tick
+in 15 s keeps its load. A timed-out cell shows "> 15 s" (or "> 120 s"),
+and its ratio is a lower bound, "≥ N×" with N = the limit over the other
 core's time, marked †: the slow side was not checked, having not finished.
-A timeout is not retried within a run.
+A core whose load did not finish has no tick: its tick cells say so
+instead of giving a bound. The stages after the measurements (saved state,
+error count) have 15 s too; a timeout there costs only their fields. A
+timeout is not retried within a run.
 
 ## The pages
 

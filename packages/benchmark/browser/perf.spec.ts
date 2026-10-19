@@ -5,7 +5,7 @@
 // through the core with the time to the next frame and the next paint.
 // One record per (core, fixture) in the run's `browser.json` (the run the
 // Node layer of the same day, machine and commit started, or a new one).
-// Each stage (load, the action) has 15 s, as in the Node layer. This layer
+// The load has 120 s and the action 15 s, as in the Node layer. This layer
 // answers the budgets (METHOD.md), not the comparison between cores.
 //
 //   BENCH_MACHINE=<id> BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=depth npm run browser
@@ -20,7 +20,8 @@ const only = process.env.BENCH_FIXTURES?.split(",");
 const FIXTURES = listFixtures().filter(
     (m: any) => !only || only.includes(m.name) || only.includes(m.shape),
 );
-/** The longest a stage may take, as in the Node layer. */
+/** The longest the load and the action may take, as in the Node layer. */
+const LOAD_MS = 120_000;
 const STAGE_MS = 15_000;
 const DRAG_STEPS = 60;
 const ROUNDS = 10;
@@ -45,6 +46,7 @@ const run = openRun({
     cores: CORES,
     layer: "browser",
     fixtures: FIXTURES.map((m: any) => m.name),
+    load_timeout_ms: LOAD_MS,
     step_timeout_ms: STAGE_MS,
 });
 const out = run.records;
@@ -165,7 +167,7 @@ async function actRounds(page: Page, steps: any[], rounds: number) {
 for (const m of FIXTURES) {
     for (const core of CORES) {
         test(`${m.name} [${core}]`, async ({ page }) => {
-            test.setTimeout(4 * STAGE_MS + 60_000);
+            test.setTimeout(LOAD_MS + 3 * STAGE_MS + 60_000);
             const record: any = { core, fixture: m.name, status: "ok" };
             let stage = "page";
             page.on("pageerror", (e) => {
@@ -189,7 +191,7 @@ for (const m of FIXTURES) {
                             (window as any).__bench.load(text, waitFor),
                         { text: fixtureText(m), waitFor },
                     ),
-                    STAGE_MS,
+                    LOAD_MS,
                 );
                 stage = "tick";
                 if (first.action === "movePoint") {

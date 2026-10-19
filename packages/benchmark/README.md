@@ -34,17 +34,17 @@ newer) over that package's test utilities (`DOENET_TEST_CORE` selects the
 core; the Rust and cells adapters are `test-core-rust.ts` and
 `test-core-cells.ts` there). A record in `node.json`:
 
-| Field                             | Meaning                                                                                                                                                                                              |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`                          | `ok`; `unsupported` (the adapter refused the document or the action: a gap, not a failure); `timeout`, with the `stage` that took more than 15 s (`load`, `tick`, ...); `error`, with its `message`. |
-| `parse_ms`                        | The text to normalized DAST, by `@doenet/parser` alone.                                                                                                                                              |
-| `load_ms`                         | `createTestCore` on the text: parse, core construction and the first state.                                                                                                                          |
-| `heap_bytes`                      | JS heap growth across the load, after a forced GC on each side.                                                                                                                                      |
-| `wasm_bytes`                      | Wasm linear memory after the load. The JS core's is the Rust binding its worker holds for DAST normalization.                                                                                        |
-| `warmup_ms`, `samples_ms`         | The warm-up ticks and the timed ticks of the primary action.                                                                                                                                         |
-| `check`                           | The value check: `ok`, the `values` read and the `expected` ones. Real documents have none.                                                                                                          |
-| `state_bytes`, `state_gzip_bytes` | The session's saved state after the ticks. The JS core's is the `coreState` of its persistence payload; `state_envelope_bytes` is the whole payload a host stores.                                   |
-| `error_components`                | Error components in the loaded document, where the core can report them.                                                                                                                             |
+| Field                             | Meaning                                                                                                                                                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`                          | `ok`; `unsupported` (the adapter refused the document or the action: a gap, not a failure); `timeout`, with the `stage` that ran out of time (`load` after 120 s, `tick` after 15 s); `error`, with its `message`. |
+| `parse_ms`                        | The text to normalized DAST, by `@doenet/parser` alone.                                                                                                                                                            |
+| `load_ms`                         | `createTestCore` on the text: parse, core construction and the first state.                                                                                                                                        |
+| `heap_bytes`                      | JS heap growth across the load, after a forced GC on each side.                                                                                                                                                    |
+| `wasm_bytes`                      | Wasm linear memory after the load. The JS core's is the Rust binding its worker holds for DAST normalization.                                                                                                      |
+| `warmup_ms`, `samples_ms`         | The warm-up ticks and the timed ticks of the primary action.                                                                                                                                                       |
+| `check`                           | The value check: `ok`, the `values` read and the `expected` ones. Real documents have none.                                                                                                                        |
+| `state_bytes`, `state_gzip_bytes` | The session's saved state after the ticks. The JS core's is the `coreState` of its persistence payload; `state_envelope_bytes` is the whole payload a host stores.                                                 |
+| `error_components`                | Error components in the loaded document, where the core can report them.                                                                                                                                           |
 
 ## The browser layer
 

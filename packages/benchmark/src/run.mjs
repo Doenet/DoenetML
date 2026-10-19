@@ -1,6 +1,6 @@
 // The Node driver: one comparison run. Every (core, fixture) is measured
-// in its own process (`src/measure-one.ts`), with 15 s for each stage and
-// each tick; the records go to `results/runs/<id>/node.json` beside the
+// in its own process (`src/measure-one.ts`), with 120 s for the load and
+// 15 s for each tick and each stage after; the records go to `results/runs/<id>/node.json` beside the
 // run's manifest. See METHOD.md.
 //
 //   node src/run.mjs --machine=<id> [--cores=javascript,rust,cells]
@@ -14,8 +14,13 @@ import { listFixtures, repoRoot } from "./fixtures.mjs";
 import { openRun, appendRecord } from "./results.mjs";
 import { ensureBundle } from "../scripts/bundle-driver.mjs";
 
-/** The longest a stage or a tick may take: the time between two lines. */
+/** The longest the stages up to the load may take, together. */
+export const LOAD_TIMEOUT_MS = 120_000;
+/** The longest a tick, or a stage after the ticks, may take. */
 export const STEP_TIMEOUT_MS = 15_000;
+const LOAD_STAGES = new Set(["start", "generate", "parse", "load"]);
+/** Stages after the measurements: a timeout there costs only their fields. */
+const LATE_STAGES = new Set(["state", "errors"]);
 
 const args = Object.fromEntries(
     process.argv.slice(2).map((a) => {
@@ -44,13 +49,16 @@ const run = args.out
           machine,
           cores,
           fixtures: fixtures.map((m) => m.name),
+          load_timeout_ms: LOAD_TIMEOUT_MS,
           step_timeout_ms: STEP_TIMEOUT_MS,
       });
 
 /**
  * Measure `fixture` in `core`. The process reports each stage and tick as
- * it ends; a gap of `STEP_TIMEOUT_MS` between two lines kills it, and the
- * record keeps what was reported, with the stage it timed out in.
+ * it ends; a gap between two lines longer than the stage allows
+ * (`LOAD_TIMEOUT_MS` up to the load, `STEP_TIMEOUT_MS` from the first
+ * tick) kills it, and the record keeps what was reported, with the stage
+ * it timed out in.
  */
 function measure(core, fixture) {
     return new Promise((done) => {
@@ -75,11 +83,18 @@ function measure(core, fixture) {
             timer;
         const arm = () => {
             clearTimeout(timer);
-            timer = setTimeout(() => {
-                record.status = "timeout";
-                record.stage = stage;
-                child.kill("SIGKILL");
-            }, STEP_TIMEOUT_MS);
+            timer = setTimeout(
+                () => {
+                    if (LATE_STAGES.has(stage)) record.late_timeout = stage;
+                    else {
+                        record.status = "timeout";
+                        record.stage = stage;
+                    }
+                    finished = LATE_STAGES.has(stage);
+                    child.kill("SIGKILL");
+                },
+                LOAD_STAGES.has(stage) ? LOAD_TIMEOUT_MS : STEP_TIMEOUT_MS,
+            );
         };
         arm();
         child.stdout.on("data", (d) => {
@@ -92,11 +107,11 @@ function measure(core, fixture) {
                 } catch {
                     continue;
                 }
-                arm();
                 if (j.progress) stage = j.progress;
                 else if (j.part) Object.assign(record, j.part);
                 else if ("sample" in j) samples.push(j.sample);
                 else if (j.done) finished = true;
+                arm();
             }
             buf = buf.slice(buf.lastIndexOf("\n") + 1);
         });
