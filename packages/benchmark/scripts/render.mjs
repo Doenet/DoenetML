@@ -57,6 +57,8 @@ const table = (head, rows) =>
  */
 function outcome(r, measure, floor, limit) {
     if (!r) return { kind: "none" };
+    if (r.status === "skipped")
+        return { kind: "gap", why: `skipped: ${r.reason}` };
     // Values that fail the check make every measure of the record moot.
     if (r.check && !r.check.ok)
         return { kind: "mismatch", why: mismatch(r.check) };
@@ -103,60 +105,77 @@ function mismatch(check) {
         .join("; ");
 }
 
-/** One table cell comparing cores `a` and `b` on one measure. */
-function pairCell(a, b, oa, ob) {
-    const show = (c, o) =>
-        o.kind === "value"
-            ? (o.floored
-                  ? `${coreName(c)} < ${ms(o.floor)} (floor)`
-                  : `${coreName(c)} ${ms(o.value)}`) +
-              (o.unchecked ? " (unchecked)" : "")
-            : o.kind === "bound"
-              ? `${coreName(c)} > ${ms(o.limit)}`
-              : null;
-    for (const [c, o] of [
-        [a, oa],
-        [b, ob],
-    ]) {
-        if (o.kind === "none") return "";
-        if (o.kind === "mismatch")
-            return `not comparable<br><sub>${coreName(c)}: ${o.why}</sub>`;
-        if (o.kind === "gap")
-            return `—<br><sub>${coreName(c)} ${o.why.split(":")[0]}</sub>`;
+/** A core's own time, or why there is none, for a table cell. */
+function own(o) {
+    if (o.kind === "value")
+        return (
+            (o.floored ? `< ${ms(o.floor)} (floor)` : ms(o.value)) +
+            (o.unchecked ? " (unchecked)" : "")
+        );
+    if (o.kind === "bound") return `> ${ms(o.limit)}`;
+    if (o.kind === "mismatch") return "not comparable";
+    if (o.kind === "gap") return `—`;
+    return "";
+}
+
+/** Why a cell has no number, in a line under it. */
+function why(o) {
+    if (o.kind === "mismatch") return `<br><sub>${o.why}</sub>`;
+    if (o.kind === "gap") return `<br><sub>${o.why}</sub>`;
+    return "";
+}
+
+/**
+ * The reference core's cell: its own time, in bold. The ratios of the
+ * other cores are taken against it.
+ */
+function refCell(o) {
+    if (o.kind === "value" || o.kind === "bound") {
+        const mark = o.floored ? " ‡" : "";
+        return `**${own(o)}**${mark}${o.unchecked ? " †" : ""}`;
     }
-    const sub = `<br><sub>${show(a, oa)} · ${show(b, ob)}</sub>`;
-    if (oa.kind === "bound" && ob.kind === "bound")
-        return `both > ${ms(oa.limit)}`;
-    if (oa.kind === "bound" || ob.kind === "bound") {
-        const [fast, fo] = oa.kind === "value" ? [a, oa] : [b, ob];
-        const n =
-            (oa.kind === "bound" ? oa : ob).limit / Math.max(fo.value, 1e-3);
-        return `**${coreName(fast)} ≥ ${ratio(n)}** †${sub}`;
+    return `${own(o)}${why(o)}`;
+}
+
+/**
+ * Another core's cell: how many times faster (or slower) than the
+ * reference core, in bold, with its own time under it; or its own time
+ * alone when the reference has none to compare with.
+ */
+function vsCell(o, ref) {
+    if (o.kind === "none") return "";
+    if (o.kind === "mismatch" || o.kind === "gap") return `${own(o)}${why(o)}`;
+    const sub = `<br><sub>${own(o)}</sub>`;
+    const dagger = o.unchecked || ref.unchecked ? " †" : "";
+    if (ref.kind !== "value" && ref.kind !== "bound") return `**${own(o)}**`;
+    if (o.kind === "bound" && ref.kind === "bound")
+        return `both > ${ms(o.limit)}`;
+    if (ref.kind === "bound") {
+        // The reference did not finish: this core is at least that much faster.
+        return `**≥ ${ratio(ref.limit / Math.max(o.value, 1e-3))} faster** †${sub}`;
     }
-    const [fast, slow] =
-        oa.value <= ob.value
-            ? [
-                  [a, oa],
-                  [b, ob],
-              ]
-            : [
-                  [b, ob],
-                  [a, oa],
-              ];
-    // A tick within twice its floor is the floor plus less than a floor:
-    // its own time is below what the adapter lets us see, so the ratio is a
-    // bound from the floor, and two such ticks cannot be told apart.
-    const dagger = oa.unchecked || ob.unchecked ? " †" : "";
-    if (fast[1].floored && slow[1].floored)
-        return `both at the floor ‡${dagger}${sub}`;
-    if (fast[1].floored) {
-        const r = slow[1].value / fast[1].floor;
+    if (o.kind === "bound") {
+        return `**≥ ${ratio(o.limit / Math.max(ref.value, 1e-3))} slower** †${sub}`;
+    }
+    // A tick within twice its floor is the floor plus less than a floor: its
+    // own time is below what the adapter lets us see, so the ratio is a bound
+    // taken from the floor, and two such ticks cannot be told apart.
+    if (o.floored && ref.floored) return `both at the floor ‡${dagger}${sub}`;
+    if (o.floored) {
+        const r = ref.value / o.floor;
         if (r < 1.2) return `**≈ equal** ‡${dagger}${sub}`;
-        return `**${coreName(fast[0])} > ${ratio(r)}** ‡${dagger}${sub}`;
+        return `**> ${ratio(r)} faster** ‡${dagger}${sub}`;
     }
-    const r = slow[1].value / Math.max(fast[1].value, 1e-3);
-    if (r < 1.2) return `**≈ equal**${dagger}${sub}`;
-    return `**${coreName(fast[0])} ${ratio(r)}**${dagger}${sub}`;
+    if (ref.floored) {
+        const r = o.value / ref.floor;
+        if (r < 1.2) return `**≈ equal** ‡${dagger}${sub}`;
+        return `**> ${ratio(r)} slower** ‡${dagger}${sub}`;
+    }
+    const r = ref.value / Math.max(o.value, 1e-3);
+    if (r >= 1 / 1.2 && r < 1.2) return `**≈ equal**${dagger}${sub}`;
+    return r >= 1
+        ? `**${ratio(r)} faster**${dagger}${sub}`
+        : `**${ratio(1 / r)} slower**${dagger}${sub}`;
 }
 const ratio = (r) =>
     `${r >= 10 ? Math.round(r).toLocaleString("en-US") : r.toFixed(1)}×`;
@@ -189,21 +208,22 @@ function comparison(run) {
             ),
         )
         .sort((x, y) => x - y);
-    const pairs = [];
-    for (let i = 0; i < cores.length; i++)
-        for (let j = i + 1; j < cores.length; j++)
-            pairs.push([cores[i], cores[j]]);
+    // Ratios are against the JS core, the core in use today; without it,
+    // against the run's first core.
+    const ref = cores.includes("javascript") ? "javascript" : cores[0];
+    const others = cores.filter((c) => c !== ref);
+    const order = [ref, ...others];
     const size = (n) => n.toLocaleString("en-US");
     const out = [
         `# Comparison: ${manifest.id}`,
         "",
         header(manifest),
         "",
-        "Each cell compares two cores on one shape at one size: the bold line says which is faster and by how much; the line under it gives each core's time. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).",
+        `Every core side by side, one row per shape and size. The ${coreName(ref)} column gives its time; every other column gives how many times faster or slower that core is than ${coreName(ref)}, with its own time under it. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).`,
         "",
         `- **Tick** is the median time of the shape's primary action, less the core's adapter floor (below). ‡: a tick within twice its floor, so its own time is below what the adapter lets us see; the ratio is then a bound ("> N×") taken from that floor.`,
-        `- **> ${ms(limit.tick)}**: the core did not finish one tick in ${ms(limit.tick)}, or **> ${ms(limit.load)}** its load in ${ms(limit.load)}. † marks a ratio that is then a lower bound, its slow side unchecked, or one whose value check did not finish. A core whose load did not finish has no tick.`,
-        `- **not comparable**: a core finished, but its values after the check step are wrong. **—**: a core cannot run the shape (see [coverage](coverage.md)).`,
+        `- **> ${ms(limit.tick)}**: the core did not finish one tick in ${ms(limit.tick)}, or **> ${ms(limit.load)}** its load in ${ms(limit.load)}; a ratio against it is a bound ("≥ N×"). †: a value that was not checked, because its core did not finish or its check ran out of time. A core whose load did not finish has no tick.`,
+        `- **not comparable**: the core finished, but its values after the check step are wrong. **—**: the core cannot run the shape, or was not tried at that size after failing a smaller one (see [coverage](coverage.md)).`,
         "",
         `Adapter floor (the drag on a document of one free point): ${cores
             .map(
@@ -213,55 +233,46 @@ function comparison(run) {
             .join(", ")}.`,
         "",
     ];
+    const head = ["Shape", "Size", ...order.map(coreName)];
     for (const [measure, title] of [
         ["tick", "Tick"],
         ["load", "Load"],
     ]) {
         out.push(`## ${title}`, "");
-        for (const [a, b] of pairs) {
-            out.push(`### ${coreName(a)} and ${coreName(b)}`, "");
-            const rows = measured.map((s) => [
-                s,
-                ...sizes.map((n) =>
-                    pairCell(
-                        a,
-                        b,
-                        outcome(
-                            by.get(`${a}/${s}-${n}`),
-                            measure,
-                            floor[a],
-                            limit,
-                        ),
-                        outcome(
-                            by.get(`${b}/${s}-${n}`),
-                            measure,
-                            floor[b],
-                            limit,
-                        ),
-                    ),
-                ),
-            ]);
-            out.push(table(["Shape", ...sizes.map(size)], rows), "");
-        }
+        const rows = [];
+        for (const s of measured)
+            for (const n of sizes) {
+                const at = (c) =>
+                    outcome(by.get(`${c}/${s}-${n}`), measure, floor[c], limit);
+                const o = at(ref);
+                rows.push([
+                    s,
+                    size(n),
+                    refCell(o),
+                    ...others.map((c) => vsCell(at(c), o)),
+                ]);
+            }
+        out.push(table(head, rows), "");
     }
     out.push(
         "## Memory",
         "",
-        "After the load: the growth of the JS heap, and the size of the core's wasm linear memory (which never shrinks). Two kinds of memory, so no ratio.",
+        "After the load: the growth of the JS heap and, under it, the size of the core's wasm linear memory (which never shrinks). Two kinds of memory, so no ratio.",
         "",
     );
     const memRows = [];
     for (const s of measured)
-        for (const c of cores)
+        for (const n of sizes)
             memRows.push([
-                `${s}, ${coreName(c)}`,
-                ...sizes.map((n) => {
+                s,
+                size(n),
+                ...order.map((c) => {
                     const r = by.get(`${c}/${s}-${n}`);
                     if (!r || r.heap_bytes == null) return "";
                     return `heap +${mb(Math.max(r.heap_bytes, 0))}<br><sub>wasm ${mb(r.wasm_bytes ?? 0)}</sub>`;
                 }),
             ]);
-    out.push(table(["Shape, core", ...sizes.map(size)], memRows), "");
+    out.push(table(head, memRows), "");
     out.push(
         "<details><summary>Every measurement</summary>",
         "",
@@ -282,7 +293,11 @@ function comparison(run) {
                 return [
                     r.fixture,
                     coreName(r.core),
-                    r.status === "ok" ? "ok" : `${r.status} at ${r.stage}`,
+                    r.status === "ok"
+                        ? "ok"
+                        : r.status === "skipped"
+                          ? `skipped: ${r.reason}`
+                          : `${r.status} at ${r.stage}`,
                     r.load_ms != null ? ms(r.load_ms) : "",
                     t?.length
                         ? `${ms(median(t))}, ${ms(quantile(t, 0.9))}, ${t.length}`
@@ -315,6 +330,7 @@ function coverage(run) {
     );
     const cell = (r) => {
         if (!r) return "";
+        if (r.status === "skipped") return `skipped: ${r.reason}`;
         if (r.status === "timeout") return `timeout at ${r.stage}`;
         if (r.status !== "ok")
             return `${r.status} at ${r.stage}: ${r.message ?? ""}`;

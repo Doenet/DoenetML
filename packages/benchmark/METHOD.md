@@ -140,17 +140,26 @@ instead of giving a bound. The stages after the ticks, which are not timed
 (the value check, the saved state, the error count), have 120 s, since
 reading a large document's state is slow; a timeout there costs only
 their fields, and a tick whose check did not finish is marked unchecked
-(†). A
-timeout is not retried within a run.
+(†). A timeout is not retried within a run.
+
+A core does not try a shape's larger size after a smaller one it could
+not finish (a timeout, a failure, or a skip itself), or after a smaller
+one whose load took more than a tenth of the load's limit, so that ten
+times the size could not load in time. Its record says why it was
+skipped, and its cells show no number. This keeps a run to what can
+finish: without it, every size past a core's reach costs the whole load
+limit.
 
 ## The pages
 
-**Comparison**: for every pair of cores, a table per measure, tick first,
-then load; the shapes are rows and the sizes columns, so a reader sees how
-each core scales. Each cell is the ratio, naming the faster core, with the
-two cores' times under it. Pairwise, not one three-way table: each pair is
-compared on everything both can run. Memory follows as absolute numbers
-per core. A collapsed table at the end holds every measurement.
+**Comparison**: a table per measure, tick first, then load, with every
+core side by side and a row per shape and size, so a reader sees how
+each core scales. The JS core's column gives its time; every other core's
+column gives how many times faster or slower it is than the JS core, the
+core in use today, with its own time under it. A core that cannot run a
+row shows why, without hiding the others' numbers. Memory follows in the
+same layout, as absolute numbers. A collapsed table at the end holds
+every measurement.
 
 **Coverage**: every fixture against every core, ✓, ✗ with the wrong
 values, unsupported with the adapter's reason, or the stage that timed

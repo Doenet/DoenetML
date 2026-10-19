@@ -4,99 +4,75 @@ Machine **claude-cloud** (Intel(R) Xeon(R) Processor @ 2.80GHz, 4 cores, 16093 M
 
 Builds: JS: source, bundled by scripts/bundle-driver.mjs; Rust: wasm-pack --dev at opt-level 3, without logging features; cells: wasm-pack --release (npm run build -w packages/cells-core).
 
-Each cell compares two cores on one shape at one size: the bold line says which is faster and by how much; the line under it gives each core's time. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).
+Every core side by side, one row per shape and size. The JS column gives its time; every other column gives how many times faster or slower that core is than JS, with its own time under it. The shapes and what they exercise are in [METHOD.md](../../../METHOD.md).
 
 - **Tick** is the median time of the shape's primary action, less the core's adapter floor (below). ‡: a tick within twice its floor, so its own time is below what the adapter lets us see; the ratio is then a bound ("> N×") taken from that floor.
-- **> 15 s**: the core did not finish one tick in 15 s, or **> 120 s** its load in 120 s. † marks a ratio that is then a lower bound, its slow side unchecked, or one whose value check did not finish. A core whose load did not finish has no tick.
-- **not comparable**: a core finished, but its values after the check step are wrong. **—**: a core cannot run the shape (see [coverage](coverage.md)).
+- **> 15 s**: the core did not finish one tick in 15 s, or **> 120 s** its load in 120 s; a ratio against it is a bound ("≥ N×"). †: a value that was not checked, because its core did not finish or its check ran out of time. A core whose load did not finish has no tick.
+- **not comparable**: the core finished, but its values after the check step are wrong. **—**: the core cannot run the shape, or was not tried at that size after failing a smaller one (see [coverage](coverage.md)).
 
 Adapter floor (the drag on a document of one free point): JS 3.42 ms, Rust 0.29 ms, cells 44 µs.
 
 ## Tick
 
-### JS and Rust
-
-| Shape | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth | **Rust 7.7×**<br><sub>JS 1.0 s · Rust 131 ms</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| breadth | **Rust 9.8×**<br><sub>JS 758 ms · Rust 77 ms</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| inversion | not comparable<br><sub>Rust: c0 = -998, expected -994; c999 = 1, expected 5</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| symbolic | **JS ≥ 15×** †<br><sub>JS 1.0 s · Rust > 15 s</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| rebuild | not comparable<br><sub>Rust: r[999].h did not resolve</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-
-### JS and cells
-
-| Shape | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth | **cells 10,247×**<br><sub>JS 1.0 s · cells 99 µs</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| breadth | **cells 9,059×**<br><sub>JS 758 ms · cells 84 µs</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| inversion | **cells 17,818×**<br><sub>JS 1.4 s · cells 79 µs</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| symbolic | **cells 22×**<br><sub>JS 1.0 s · cells 46 ms</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-| rebuild | **cells 3,371×**<br><sub>JS 8.5 s · cells 2.52 ms</sub> | —<br><sub>JS load > 120 s</sub> | —<br><sub>JS load > 120 s</sub> |
-
-### Rust and cells
-
-| Shape | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth | **cells 1,326×**<br><sub>Rust 131 ms · cells 99 µs</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| breadth | **cells 920×**<br><sub>Rust 77 ms · cells 84 µs</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| inversion | not comparable<br><sub>Rust: c0 = -998, expected -994; c999 = 1, expected 5</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| symbolic | **cells ≥ 328×** †<br><sub>Rust > 15 s · cells 46 ms</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| rebuild | not comparable<br><sub>Rust: r[999].h did not resolve</sub> | not comparable<br><sub>Rust: r[9999].h did not resolve</sub> | not comparable<br><sub>Rust: r[99999].h did not resolve</sub> |
+| Shape | Size | JS | Rust | cells |
+|---|---|---|---|---|
+| depth | 1,000 | **1.0 s** | **7.7× faster**<br><sub>131 ms</sub> | **10,247× faster**<br><sub>99 µs</sub> |
+| depth | 10,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **0.44 ms** |
+| depth | 100,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **3.82 ms** |
+| breadth | 1,000 | **758 ms** | **9.8× faster**<br><sub>77 ms</sub> | **9,059× faster**<br><sub>84 µs</sub> |
+| breadth | 10,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **0.38 ms** |
+| breadth | 100,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **3.47 ms** |
+| inversion | 1,000 | **1.4 s** | not comparable<br><sub>c0 = -998, expected -994; c999 = 1, expected 5</sub> | **17,818× faster**<br><sub>79 µs</sub> |
+| inversion | 10,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **0.46 ms** |
+| inversion | 100,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **4.98 ms** |
+| symbolic | 1,000 | **1.0 s** | **≥ 15× slower** †<br><sub>> 15 s</sub> | **22× faster**<br><sub>46 ms</sub> |
+| symbolic | 10,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **486 ms** |
+| symbolic | 100,000 | —<br><sub>load > 120 s</sub> | —<br><sub>error: unreachable</sub> | **4.7 s** |
+| rebuild | 1,000 | **8.5 s** | not comparable<br><sub>r[999].h did not resolve</sub> | **3,371× faster**<br><sub>2.52 ms</sub> |
+| rebuild | 10,000 | —<br><sub>load > 120 s</sub> | not comparable<br><sub>r[9999].h did not resolve</sub> | **27 ms** |
+| rebuild | 100,000 | —<br><sub>load > 120 s</sub> | not comparable<br><sub>r[99999].h did not resolve</sub> | not comparable<br><sub>r[99999].h did not resolve</sub> |
 
 ## Load
 
-### JS and Rust
-
-| Shape | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth | **Rust 5.3×**<br><sub>JS 12 s · Rust 2.3 s</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| breadth | **Rust 4.5×**<br><sub>JS 12 s · Rust 2.6 s</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| inversion | not comparable<br><sub>Rust: c0 = -998, expected -994; c999 = 1, expected 5</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| symbolic | **JS 7.0×**<br><sub>JS 9.3 s · Rust 65 s</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| rebuild | not comparable<br><sub>Rust: r[999].h did not resolve</sub> | not comparable<br><sub>Rust: r[9999].h did not resolve</sub> | not comparable<br><sub>Rust: r[99999].h did not resolve</sub> |
-
-### JS and cells
-
-| Shape | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth | **cells 40×**<br><sub>JS 12 s · cells 306 ms</sub> | **cells ≥ 135×** †<br><sub>JS > 120 s · cells 889 ms</sub> | **cells ≥ 15×** †<br><sub>JS > 120 s · cells 8.1 s</sub> |
-| breadth | **cells 41×**<br><sub>JS 12 s · cells 283 ms</sub> | **cells ≥ 122×** †<br><sub>JS > 120 s · cells 983 ms</sub> | **cells ≥ 15×** †<br><sub>JS > 120 s · cells 7.8 s</sub> |
-| inversion | **cells 35×**<br><sub>JS 10 s · cells 290 ms</sub> | **cells ≥ 128×** †<br><sub>JS > 120 s · cells 939 ms</sub> | **cells ≥ 16×** †<br><sub>JS > 120 s · cells 7.3 s</sub> |
-| symbolic | **cells 22×**<br><sub>JS 9.3 s · cells 424 ms</sub> | **cells ≥ 73×** †<br><sub>JS > 120 s · cells 1.6 s</sub> | **cells ≥ 7.4×** †<br><sub>JS > 120 s · cells 16 s</sub> |
-| rebuild | **cells 360×**<br><sub>JS 33 s · cells 93 ms</sub> | **cells ≥ 698×** †<br><sub>JS > 120 s · cells 172 ms</sub> | not comparable<br><sub>cells: r[99999].h did not resolve</sub> |
-
-### Rust and cells
-
-| Shape | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth | **cells 7.5×**<br><sub>Rust 2.3 s · cells 306 ms</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| breadth | **cells 9.3×**<br><sub>Rust 2.6 s · cells 283 ms</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| inversion | not comparable<br><sub>Rust: c0 = -998, expected -994; c999 = 1, expected 5</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| symbolic | **cells 154×**<br><sub>Rust 65 s · cells 424 ms</sub> | —<br><sub>Rust error</sub> | —<br><sub>Rust error</sub> |
-| rebuild | not comparable<br><sub>Rust: r[999].h did not resolve</sub> | not comparable<br><sub>Rust: r[9999].h did not resolve</sub> | not comparable<br><sub>Rust: r[99999].h did not resolve</sub> |
+| Shape | Size | JS | Rust | cells |
+|---|---|---|---|---|
+| depth | 1,000 | **12 s** | **5.3× faster**<br><sub>2.3 s</sub> | **40× faster**<br><sub>306 ms</sub> |
+| depth | 10,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 135× faster** †<br><sub>889 ms</sub> |
+| depth | 100,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 15× faster** †<br><sub>8.1 s</sub> |
+| breadth | 1,000 | **12 s** | **4.5× faster**<br><sub>2.6 s</sub> | **41× faster**<br><sub>283 ms</sub> |
+| breadth | 10,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 122× faster** †<br><sub>983 ms</sub> |
+| breadth | 100,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 15× faster** †<br><sub>7.8 s</sub> |
+| inversion | 1,000 | **10 s** | not comparable<br><sub>c0 = -998, expected -994; c999 = 1, expected 5</sub> | **35× faster**<br><sub>290 ms</sub> |
+| inversion | 10,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 128× faster** †<br><sub>939 ms</sub> |
+| inversion | 100,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 16× faster** †<br><sub>7.3 s</sub> |
+| symbolic | 1,000 | **9.3 s** | **7.0× slower**<br><sub>65 s</sub> | **22× faster**<br><sub>424 ms</sub> |
+| symbolic | 10,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 73× faster** †<br><sub>1.6 s</sub> |
+| symbolic | 100,000 | **> 120 s** | —<br><sub>error: unreachable</sub> | **≥ 7.4× faster** †<br><sub>16 s</sub> |
+| rebuild | 1,000 | **33 s** | not comparable<br><sub>r[999].h did not resolve</sub> | **360× faster**<br><sub>93 ms</sub> |
+| rebuild | 10,000 | **> 120 s** | not comparable<br><sub>r[9999].h did not resolve</sub> | **≥ 698× faster** †<br><sub>172 ms</sub> |
+| rebuild | 100,000 | **> 120 s** | not comparable<br><sub>r[99999].h did not resolve</sub> | not comparable<br><sub>r[99999].h did not resolve</sub> |
 
 ## Memory
 
-After the load: the growth of the JS heap, and the size of the core's wasm linear memory (which never shrinks). Two kinds of memory, so no ratio.
+After the load: the growth of the JS heap and, under it, the size of the core's wasm linear memory (which never shrinks). Two kinds of memory, so no ratio.
 
-| Shape, core | 1,000 | 10,000 | 100,000 |
-|---|---|---|---|
-| depth, JS | heap +152 MB<br><sub>wasm 7.6 MB</sub> |  |  |
-| depth, Rust | heap +0.0 MB<br><sub>wasm 295 MB</sub> |  |  |
-| depth, cells | heap +1.8 MB<br><sub>wasm 2.3 MB</sub> | heap +1.9 MB<br><sub>wasm 9.3 MB</sub> | heap +0.0 MB<br><sub>wasm 87 MB</sub> |
-| breadth, JS | heap +151 MB<br><sub>wasm 8.4 MB</sub> |  |  |
-| breadth, Rust | heap +0.0 MB<br><sub>wasm 373 MB</sub> |  |  |
-| breadth, cells | heap +1.8 MB<br><sub>wasm 2.3 MB</sub> | heap +2.0 MB<br><sub>wasm 9.9 MB</sub> | heap +0.0 MB<br><sub>wasm 85 MB</sub> |
-| inversion, JS | heap +151 MB<br><sub>wasm 7.6 MB</sub> |  |  |
-| inversion, Rust | heap +0.0 MB<br><sub>wasm 220 MB</sub> |  |  |
-| inversion, cells | heap +1.8 MB<br><sub>wasm 2.3 MB</sub> | heap +1.9 MB<br><sub>wasm 9.4 MB</sub> | heap +0.0 MB<br><sub>wasm 83 MB</sub> |
-| symbolic, JS | heap +106 MB<br><sub>wasm 8.4 MB</sub> |  |  |
-| symbolic, Rust | heap +0.0 MB<br><sub>wasm 1264 MB</sub> |  |  |
-| symbolic, cells | heap +1.8 MB<br><sub>wasm 3.1 MB</sub> | heap +1.8 MB<br><sub>wasm 18 MB</sub> | heap +0.0 MB<br><sub>wasm 161 MB</sub> |
-| rebuild, JS | heap +402 MB<br><sub>wasm 5.7 MB</sub> |  |  |
-| rebuild, Rust | heap +1.7 MB<br><sub>wasm 1.4 MB</sub> | heap +1.8 MB<br><sub>wasm 1.4 MB</sub> | heap +1.8 MB<br><sub>wasm 1.4 MB</sub> |
-| rebuild, cells | heap +1.8 MB<br><sub>wasm 3.2 MB</sub> | heap +1.8 MB<br><sub>wasm 17 MB</sub> | heap +1.8 MB<br><sub>wasm 17 MB</sub> |
+| Shape | Size | JS | Rust | cells |
+|---|---|---|---|---|
+| depth | 1,000 | heap +152 MB<br><sub>wasm 7.6 MB</sub> | heap +0.0 MB<br><sub>wasm 295 MB</sub> | heap +1.8 MB<br><sub>wasm 2.3 MB</sub> |
+| depth | 10,000 |  |  | heap +1.9 MB<br><sub>wasm 9.3 MB</sub> |
+| depth | 100,000 |  |  | heap +0.0 MB<br><sub>wasm 87 MB</sub> |
+| breadth | 1,000 | heap +151 MB<br><sub>wasm 8.4 MB</sub> | heap +0.0 MB<br><sub>wasm 373 MB</sub> | heap +1.8 MB<br><sub>wasm 2.3 MB</sub> |
+| breadth | 10,000 |  |  | heap +2.0 MB<br><sub>wasm 9.9 MB</sub> |
+| breadth | 100,000 |  |  | heap +0.0 MB<br><sub>wasm 85 MB</sub> |
+| inversion | 1,000 | heap +151 MB<br><sub>wasm 7.6 MB</sub> | heap +0.0 MB<br><sub>wasm 220 MB</sub> | heap +1.8 MB<br><sub>wasm 2.3 MB</sub> |
+| inversion | 10,000 |  |  | heap +1.9 MB<br><sub>wasm 9.4 MB</sub> |
+| inversion | 100,000 |  |  | heap +0.0 MB<br><sub>wasm 83 MB</sub> |
+| symbolic | 1,000 | heap +106 MB<br><sub>wasm 8.4 MB</sub> | heap +0.0 MB<br><sub>wasm 1264 MB</sub> | heap +1.8 MB<br><sub>wasm 3.1 MB</sub> |
+| symbolic | 10,000 |  |  | heap +1.8 MB<br><sub>wasm 18 MB</sub> |
+| symbolic | 100,000 |  |  | heap +0.0 MB<br><sub>wasm 161 MB</sub> |
+| rebuild | 1,000 | heap +402 MB<br><sub>wasm 5.7 MB</sub> | heap +1.7 MB<br><sub>wasm 1.4 MB</sub> | heap +1.8 MB<br><sub>wasm 3.2 MB</sub> |
+| rebuild | 10,000 |  | heap +1.8 MB<br><sub>wasm 1.4 MB</sub> | heap +1.8 MB<br><sub>wasm 17 MB</sub> |
+| rebuild | 100,000 |  | heap +1.8 MB<br><sub>wasm 1.4 MB</sub> | heap +1.8 MB<br><sub>wasm 17 MB</sub> |
 
 <details><summary>Every measurement</summary>
 

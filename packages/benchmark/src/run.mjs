@@ -159,12 +159,48 @@ function brief(r) {
 
 // The floor first, for every core, then every fixture across the cores in
 // turn, so a slow stretch of the machine falls on all of them.
+/**
+ * Why `core` should not try `fixture`, if it should not: a shape's larger
+ * size after a smaller one the core could not finish (it timed out,
+ * failed, or was skipped itself), or whose load took more than a tenth of
+ * the limit, so that ten times the size cannot load in time.
+ */
+const last = new Map();
+function skipReason(core, fixture) {
+    const m = /^([a-z]+)-(\d+)$/.exec(fixture);
+    const prev = m && last.get(`${core}/${m[1]}`);
+    if (!prev) return null;
+    const at = Number(/-(\d+)$/.exec(prev.fixture)[1]).toLocaleString("en-US");
+    if (prev.status === "skipped") return prev.reason;
+    if (prev.status !== "ok") return `${prev.status} at ${prev.stage} at ${at}`;
+    if (prev.load_ms > LOAD_TIMEOUT_MS / 10)
+        return `its load at ${at} took ${(prev.load_ms / 1000).toFixed(0)} s`;
+    return null;
+}
+
 for (const name of ["floor", ...fixtures.map((m) => m.name)]) {
     for (const core of cores) {
+        const reason = skipReason(core, name);
+        if (reason) {
+            const r = {
+                core,
+                fixture: name,
+                status: "skipped",
+                reason,
+                wall_ms: 0,
+            };
+            appendRecord(run.records, r);
+            last.set(`${core}/${name.replace(/-\d+$/, "")}`, r);
+            console.log(
+                `${name.padEnd(18)} ${core.padEnd(10)} skipped: ${reason}`,
+            );
+            continue;
+        }
         const t = Date.now();
         const r = await measure(core, name);
         r.wall_ms = Date.now() - t;
         appendRecord(run.records, r);
+        last.set(`${core}/${name.replace(/-\d+$/, "")}`, r);
         console.log(`${name.padEnd(18)} ${core.padEnd(10)} ${brief(r)}`);
     }
 }
