@@ -154,7 +154,9 @@ async function readValue(api: any, name: string): Promise<number | string> {
     // since its whole-state snapshot evaluates every state variable of
     // every component, minutes at 10,000. The other adapters' snapshots
     // are lazy.
-    const own = api.core?.core?.components;
+    // Chosen by core, not probed: the other adapters throw on a property
+    // they do not have.
+    const own = core === "javascript" ? api.core.core.components : null;
     const sv = own ? null : await api.core.returnAllStateVariables(false, true);
     let idx: number;
     try {
