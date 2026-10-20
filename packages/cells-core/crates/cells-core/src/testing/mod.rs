@@ -1,8 +1,9 @@
 //! Support for tests and benches, not used by the library itself: an
-//! independent oracle for the scheduled program, and helpers that turn
-//! DoenetML source into a document.
+//! independent oracle for the scheduled program, helpers that turn
+//! DoenetML source into a document, and component specs (`spec!`).
 
 pub mod reference;
+pub mod spec;
 pub mod test_utils;
 
 #[cfg(feature = "testing")]
