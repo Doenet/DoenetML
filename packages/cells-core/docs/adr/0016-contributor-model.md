@@ -1,6 +1,6 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Migration steps 1 and 3 are done, step 2
+Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
 for the circle; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
@@ -264,7 +264,12 @@ case), carry every piece before anything is opened to contributors:
    rigid polygon, whose one `Shape` instruction reads two inputs per
    vertex (`MAX_RIGID_VERTICES`). The viewer reads a component's props
    up to the next one's (`ComponentTable.props`).
-4. `ops!`, moving every operator; the round-trip tests.
+4. `ops!`, moving every operator; the round-trip tests. **Done for the
+   scalar operators** (`scalar_ops!`, `program/ops.rs`); vector and
+   symbolic operators keep their own rules. The tests found one class of
+   wrong inverse: through `Add`, `Sub`, `Mul`, `Div` and `Lerp` whose
+   other input is NaN or infinite (an emptied input), a request wrote NaN
+   into the input it reached; it is dropped now.
 5. View shapes, the view tree and the primitives the pilots use (range,
    number, board, point, circle), with the generated TypeScript and the
    keyed reconciliation; the budgets measured in the browser layer.

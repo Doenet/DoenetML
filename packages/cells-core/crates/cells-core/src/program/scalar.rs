@@ -61,25 +61,28 @@ const A: usize = 0;
 const B: usize = 1;
 
 scalar_ops! {
+    // A request through an operator whose other input is not a finite
+    // number (an emptied input) is dropped: no value of `a` gives it, and
+    // writing what the arithmetic says would make `a` NaN.
     /// `a + b`.
     Add(a, b) ["add"] {
         eval: a + b,
-        exact |d| Some((A, d - b)),
+        exact |d| b.is_finite().then_some((A, d - b)),
     }
     /// `a - b`.
     Sub(a, b) ["sub"] {
         eval: a - b,
-        exact |d| Some((A, d + b)),
+        exact |d| b.is_finite().then_some((A, d + b)),
     }
     /// `a * b`.
     Mul(a, b) ["mul"] {
         eval: a * b,
-        exact |d| (b != 0.0).then_some((A, d / b)),
+        exact |d| (b != 0.0 && b.is_finite()).then_some((A, d / b)),
     }
     /// `a / b`.
     Div(a, b) ["div"] {
         eval: a / b,
-        exact |d| (b != 0.0 && !b.is_nan()).then_some((A, d * b)),
+        exact |d| (b != 0.0 && b.is_finite()).then_some((A, d * b)),
     }
     /// NaN if either argument is NaN (unlike `f64::min`).
     Min(a, b) ["min"] {
@@ -140,7 +143,7 @@ scalar_ops! {
     Lerp(a, b; t) ["lerp"] samples [{ t: 0.5 }, { t: 0.25 }, { t: -1.0 }, { t: 1.0 }] {
         eval: a + t * (b - a),
         // desired = a(1-t) + t b
-        exact |d| (t != 1.0).then(|| (A, (d - t * b) / (1.0 - t))),
+        exact |d| (t != 1.0 && b.is_finite()).then(|| (A, (d - t * b) / (1.0 - t))),
     }
     /// `a` to the power `b`.
     Pow(a, b) ["pow"] {
@@ -235,5 +238,132 @@ impl Op {
         a.into_iter()
             .chain(b)
             .chain(operands[self.operand_range()].iter().copied())
+    }
+}
+
+/// Every scalar operator's inverse, checked against what its entry
+/// declares (ADR 0016), over a fixed table of values for each input and
+/// each of the operator's parameter samples.
+#[cfg(test)]
+mod inverses {
+    use super::*;
+    use crate::program::{Inverse, OpSpec};
+
+    /// Zero, ones, a negative, tiny and large magnitudes, and the
+    /// non-finite values.
+    const VALUES: [f64; 10] = [
+        0.0,
+        1.0,
+        -1.0,
+        -2.5,
+        1e-9,
+        1e9,
+        -1e9,
+        f64::NAN,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+    ];
+
+    /// Every assignment of `VALUES` to `n` inputs.
+    fn assignments(n: usize) -> Vec<Vec<f64>> {
+        (0..n).fold(vec![vec![]], |acc, _| {
+            acc.iter()
+                .flat_map(|a| VALUES.iter().map(move |&v| [a.clone(), vec![v]].concat()))
+                .collect()
+        })
+    }
+
+    /// Equal up to rounding at the magnitude of the values involved.
+    fn close(got: f64, want: f64, around: &[f64]) -> bool {
+        let scale = around
+            .iter()
+            .copied()
+            .filter(|v| v.is_finite())
+            .fold(1.0f64, |m, v| m.max(v.abs()));
+        (got.is_nan() && want.is_nan()) || got == want || (got - want).abs() <= 1e-9 * scale
+    }
+
+    #[test]
+    fn every_inverse_does_what_its_entry_declares() {
+        let mut failures = Vec::new();
+        for spec in OpSpec::scalar_samples() {
+            let n = spec.scalar_arity().unwrap();
+            let op = spec.bind_scalar(&(0..n as CellIdx).collect::<Vec<_>>());
+            let all = assignments(n);
+            let mut fail = |what: String| failures.push(format!("{spec:?}: {what}"));
+            match spec.inverse().unwrap() {
+                // Where it writes, evaluating again gives what was asked,
+                // for every value the operator can give.
+                Inverse::Exact => {
+                    for cur in &all {
+                        for target in &all {
+                            let d = op.eval(target);
+                            if !d.is_finite() {
+                                continue;
+                            }
+                            if let Some((c, x)) = op.invert(cur, d) {
+                                let mut after = cur.clone();
+                                after[c as usize] = x;
+                                let got = op.eval(&after);
+                                if !close(got, d, &[cur.as_slice(), target, &[x]].concat()) {
+                                    fail(format!(
+                                        "at {cur:?}, asked {d}, wrote {x} to input {c}, gives {got}"
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                }
+                // Evaluating again gives the operator applied with the
+                // request in the written input, and what was written is
+                // that value: the stored state is what the operator shows.
+                Inverse::Projection => {
+                    for cur in &all {
+                        for &d in VALUES.iter().filter(|v| v.is_finite()) {
+                            if let Some((c, x)) = op.invert(cur, d) {
+                                let (mut after, mut asked) = (cur.clone(), cur.clone());
+                                after[c as usize] = x;
+                                asked[c as usize] = d;
+                                let (got, want) = (op.eval(&after), op.eval(&asked));
+                                let around = [cur.as_slice(), &[d, x]].concat();
+                                if !close(got, want, &around) || !close(x, got, &around) {
+                                    fail(format!(
+                                        "at {cur:?}, asked {d}, wrote {x} to input {c}, gives {got}, not {want}"
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                }
+                Inverse::Drops => {
+                    for cur in &all {
+                        for &d in &VALUES {
+                            if let Some((c, x)) = op.invert(cur, d) {
+                                fail(format!("at {cur:?}, asked {d}, wrote {x} to input {c}"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // One line per operator: how many, and the first.
+        let mut by_op: Vec<(String, usize, String)> = Vec::new();
+        for f in &failures {
+            let op = f.split(':').next().unwrap().to_string();
+            match by_op.iter_mut().find(|(o, ..)| *o == op) {
+                Some(e) => e.1 += 1,
+                None => by_op.push((op, 1, f.clone())),
+            }
+        }
+        let report: Vec<String> = by_op
+            .iter()
+            .map(|(_, n, first)| format!("{n:>5}  {first}"))
+            .collect();
+        assert!(
+            failures.is_empty(),
+            "{} failures:\n{}",
+            failures.len(),
+            report.join("\n")
+        );
     }
 }
