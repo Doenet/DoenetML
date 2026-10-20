@@ -12,11 +12,12 @@ use crate::sym::{Engine, Handle};
 
 use crate::document::CellIdx;
 mod instr;
+mod ops;
 mod scalar;
 mod vector;
 
-pub use instr::{Instr, OpSpec, Post, SAMPLES, SymKind};
-pub use scalar::{EQ_TOL, Op, js_round};
+pub use instr::{Instr, Post, SAMPLES, SymKind};
+pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 
 /// What a cell's `f64` means: a number, a string id into the document's

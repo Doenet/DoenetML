@@ -542,29 +542,8 @@ impl<'a> Compiler<'a> {
                 .and_then(|t| t.trim().parse::<f64>().ok())
                 .ok_or_else(|| Error::BadLiteralParam(name.into()))
         };
-        let spec = match kind_text {
-            "add" => OpSpec::Add,
-            "sub" => OpSpec::Sub,
-            "mul" => OpSpec::Mul,
-            "div" => OpSpec::Div,
-            "min" => OpSpec::Min,
-            "max" => OpSpec::Max,
-            "default" => OpSpec::Default,
-            "negate" => OpSpec::Negate,
-            "round" => OpSpec::Round,
-            "floor" => OpSpec::Floor,
-            // `kind="gate"` predates the op's name.
-            "gate" => OpSpec::Hold,
-            "scale" => OpSpec::Scale { k: param("k")? },
-            "offset" => OpSpec::Offset { k: param("k")? },
-            "clamp" => OpSpec::Clamp {
-                lo: param("lo")?,
-                hi: param("hi")?,
-            },
-            "nanTo" => OpSpec::NanTo { k: param("k")? },
-            "lerp" => OpSpec::Lerp { t: param("t")? },
-            other => return Err(Error::UnknownOp(other.into())),
-        };
+        let spec =
+            OpSpec::named(kind_text, param).ok_or_else(|| Error::UnknownOp(kind_text.into()))??;
         let mut args = Vec::new();
         if let Some(a) = d.attr(el, "args") {
             for &node in d.attr_children(a) {
