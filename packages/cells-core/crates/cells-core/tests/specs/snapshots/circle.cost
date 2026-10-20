@@ -1,6 +1,7 @@
 no attributes: the unit circle, its center and radius free: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
 center only: radius 1: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
 radius only: centered at the origin: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
+drawn as a circle in a graph, not drawn outside one: cells 30 · essential 16 · fixed 4 · instrs 10 · components 6
 center and radius: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
 center from a point, radius from an input: cells 18 · essential 9 · fixed 3 · instrs 6 · components 6
 center and a through point: cells 20 · essential 10 · fixed 3 · instrs 5 · components 5

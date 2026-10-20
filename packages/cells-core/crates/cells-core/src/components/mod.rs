@@ -25,6 +25,7 @@ mod inputs;
 pub mod prop;
 mod structure;
 mod values;
+pub mod view;
 
 pub use containers::SECTION_TAGS;
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
@@ -207,6 +208,9 @@ pub struct ComponentTypeInfo {
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
+    /// The ways the type is drawn (ADR 0016), the first that applies
+    /// chosen per component; none, and the viewer draws it its own way.
+    pub shapes: &'static [view::ViewShape],
 }
 
 /// An array prop of points, such as a polygon's `vertices`: the names it
@@ -433,6 +437,11 @@ impl ComponentType {
             | ComponentType::FunctionIterates => self.prop_index("count"),
             _ => None,
         }
+    }
+
+    /// The ways the type is drawn (`view`).
+    pub fn shapes(self) -> &'static [view::ViewShape] {
+        self.info().shapes
     }
 
     pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, StickyPoints)> {

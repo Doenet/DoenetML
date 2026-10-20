@@ -4,6 +4,7 @@
 //! (`compile/geometry/`).
 
 use super::define::*;
+use super::view::{PrimUse, When, bind, circle, point, shape};
 use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
@@ -15,7 +16,11 @@ pub(super) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)
     .copyable()
     .default_prop("coords")
     .views(&[("coords", &["x", "y"])])
-    .sticky(Shape::Point, point::X, 1);
+    .sticky(Shape::Point, point::X, 1)
+    // Outside a graph the viewer draws its coordinates as text.
+    .shapes(&[shape("point", When::InGraph, POINT_VIEW)]);
+
+const POINT_VIEW: &[PrimUse] = &bind(POINT_PROPS, [point("x", "y", "hide")]);
 
 // `hide` is a boolean in the current core; here it is a 0/1 cell.
 const POINT_PROPS: &[PropDef] = &props([planned("x"), planned("y"), planned("hide")]);
@@ -47,7 +52,10 @@ pub(super) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
         coords: ["throughX", "throughY"],
         alias: Some("throughPointX"),
     })
-    .aliases(&[("centerX1", "centerX"), ("centerX2", "centerY")]);
+    .aliases(&[("centerX1", "centerX"), ("centerX2", "centerY")])
+    .shapes(&[shape("circle", When::InGraph, CIRCLE_VIEW)]);
+
+const CIRCLE_VIEW: &[PrimUse] = &bind(CIRCLE_PROPS, [circle("cx", "cy", "radius")]);
 
 /// The through points are the circle's list (`throughPoints`), after
 /// these.

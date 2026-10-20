@@ -177,6 +177,11 @@ impl Core {
         .unwrap()
     }
 
+    /// Each component's shape (ADR 0016): an index into its type's shapes
+    /// (`src/generated/shapes.ts` in the viewer), or 255 for none.
+    pub fn comp_shape_ptr(&self) -> *const u8 {
+        self.doc.components.shape.as_ptr()
+    }
     pub fn comp_name_ptr(&self) -> *const u32 {
         self.doc.components.name.as_ptr()
     }

@@ -25,9 +25,50 @@ pub struct ComponentTable {
     /// rebuilds, which lets a renderer keep its tree keyed by identity.
     pub dast_node: Vec<u32>,
     pub scope: Vec<ScopeId>,
+    /// The shape each component is drawn with, an index into its type's
+    /// `shapes`, or `NO_SHAPE` (ADR 0016).
+    pub shape: Vec<u8>,
 }
 
+/// A component its type's shapes do not draw.
+pub const NO_SHAPE: u8 = u8::MAX;
+
 impl ComponentTable {
+    /// Choose every component's shape: the first of its type's that
+    /// applies, by where the component is and what its element gives.
+    pub(crate) fn assign_shapes(&mut self, dast: &crate::dast::Dast) {
+        use crate::components::view::When;
+        let n = self.component_type.len();
+        // Whether each component is inside a graph, from its parents.
+        let mut in_graph: Vec<Option<bool>> = vec![None; n];
+        fn inside(t: &ComponentTable, c: usize, memo: &mut [Option<bool>]) -> bool {
+            if let Some(b) = memo[c] {
+                return b;
+            }
+            let p = t.parent[c];
+            let b = p != NONE
+                && (t.component_type[p as usize] == ComponentType::Graph
+                    || inside(t, p as usize, memo));
+            memo[c] = Some(b);
+            b
+        }
+        self.shape = (0..n)
+            .map(|c| {
+                let node = self.dast_node[c];
+                let mut applies = |w: When| match w {
+                    When::Always => true,
+                    When::InGraph => inside(self, c, &mut in_graph),
+                    When::WithoutAttr(a) => node == NONE || dast.attr(node, a).is_none(),
+                };
+                self.component_type[c]
+                    .shapes()
+                    .iter()
+                    .position(|s| applies(s.when))
+                    .map_or(NO_SHAPE, |i| i as u8)
+            })
+            .collect();
+    }
+
     pub fn len(&self) -> usize {
         self.component_type.len()
     }
@@ -74,6 +115,7 @@ impl ComponentTable {
 
     pub fn heap_bytes(&self) -> usize {
         self.component_type.capacity() * std::mem::size_of::<ComponentType>()
+            + self.shape.capacity()
             + 4 * (self.name.capacity()
                 + self.parent.capacity()
                 + self.prop_base.capacity()

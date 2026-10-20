@@ -203,6 +203,7 @@ impl<'c> Builder<'c> {
                 child_list: Vec::with_capacity(guess),
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
+                shape: Vec::new(),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),

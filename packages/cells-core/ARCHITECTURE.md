@@ -226,7 +226,13 @@ table, ADR 0001); the React side is `packages/cells-viewer/src/`. The core
 runs on the main thread. Graphs are JSXGraph boards
 (`renderers/jsxgraph/`, ADR 0010) whose elements read cells directly and
 redraw once per tick (`CellStore.subscribeTickEnd`); Doenet's styling is
-copied into `jsxgraph/doenet.ts`.
+copied into `jsxgraph/doenet.ts`. A component type with view shapes
+(`components/view.rs`, ADR 0016) is drawn by the primitives its shape
+names (`renderers/prims.tsx`), which update in place; the build picks each
+component's shape (`ComponentTable::shape`), and `tests/view_shapes.rs`
+keeps the viewer's copy of the shapes (`src/generated/shapes.ts`)
+current. A type without shapes is drawn by its renderer in
+`renderers/index.tsx`.
 
 ## The other crates
 

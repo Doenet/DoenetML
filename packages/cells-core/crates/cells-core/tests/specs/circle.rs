@@ -35,6 +35,12 @@ spec! {
         expect { "c.numericalCenter" = (-1, 1), "c.radius" = 3 }
     }
 
+    case "drawn as a circle in a graph, not drawn outside one" {
+        doenet r#"<graph><circle name="c"/><point name="p"/></graph>
+                  <circle name="out"/><point name="q"/>"#;
+        shape { "c" = "circle", "p" = "point", "out" = "none", "q" = "none" }
+    }
+
     case "center and radius" {
         doenet r#"<graph><circle name="c" center="(1,2)" radius="3"/></graph>"#;
         expect { "c.center" = (1, 2), "c.radius" = 3, "c.diameter" = 6 }

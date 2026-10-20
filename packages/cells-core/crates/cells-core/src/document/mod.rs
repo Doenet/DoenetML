@@ -26,7 +26,7 @@ mod sticky;
 mod table;
 
 pub use load::{LoadOptions, LoadTimings};
-pub use table::{Child, ComponentTable};
+pub use table::{Child, ComponentTable, NO_SHAPE};
 
 pub type CellIdx = u32;
 pub type CompIdx = u32;

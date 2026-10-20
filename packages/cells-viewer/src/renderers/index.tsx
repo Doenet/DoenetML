@@ -4,7 +4,6 @@ import type { Child } from "../components";
 import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
 import { TextInput } from "./TextInput";
-import { Slider } from "./Slider";
 import { BooleanInput } from "./BooleanInput";
 import { BooleanView } from "./Boolean";
 import { AnswerView } from "./Answer";
@@ -12,13 +11,8 @@ import { MathView } from "./Math";
 import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
 import { ChoiceInputView, HintView } from "./Hint";
 import { JsxGraph } from "./jsxgraph/Board";
-import {
-    JxCircle,
-    JxLine,
-    JxPoint,
-    JxPolygon,
-    JxPolyline,
-} from "./jsxgraph/elements";
+import { ShapeView } from "./prims";
+import { JxLine, JxPolygon, JxPolyline } from "./jsxgraph/elements";
 import {
     Aside,
     Cell,
@@ -39,6 +33,9 @@ import {
 
 export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     const store = useStore();
+    // A component the core gave a shape is drawn by its primitives.
+    const shape = store.comps.shape(idx);
+    if (shape) return <ShapeView idx={idx} shape={shape} />;
     switch (store.comps.componentType(idx)) {
         case "document":
             return (
@@ -48,8 +45,9 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             );
         case "graph":
             return <JsxGraph idx={idx} />;
+        // In a graph a point is drawn by its shape.
         case "point":
-            return inGraph ? <JxPoint idx={idx} /> : <PointText idx={idx} />;
+            return inGraph ? null : <PointText idx={idx} />;
         case "number":
         case "clampNumber":
             return store.comps.attr(idx, "displayDecimals") !== null ? (
@@ -94,8 +92,6 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return null;
         case "numberInput":
             return <NumberInput idx={idx} />;
-        case "slider":
-            return <Slider idx={idx} />;
         case "booleanInput":
             return <BooleanInput idx={idx} />;
         case "boolean":
@@ -119,8 +115,9 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return inGraph ? <JxLine idx={idx} segment={false} /> : null;
         case "lineSegment":
             return inGraph ? <JxLine idx={idx} segment={true} /> : null;
+        // A circle is drawn in a graph, by its shape, and nowhere else.
         case "circle":
-            return inGraph ? <JxCircle idx={idx} /> : null;
+            return null;
         case "polygon":
             return inGraph ? <JxPolygon idx={idx} /> : null;
         // A point list's children are points aliasing a shape's own points.

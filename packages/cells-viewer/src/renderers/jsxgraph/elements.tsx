@@ -85,8 +85,6 @@ const finite = (...v: number[]) => v.every(Number.isFinite);
 
 // ---------------------------------------------------------------- point
 
-const POINT_PROPS = ["x", "y", "hide"] as const;
-
 /** JSXGraph layer of an element with Doenet's `layer` attribute: ten
  * layers per DoenetML layer, above the type's offset (point.tsx). */
 const layerOf = (layer: string | null, offset: number) =>
@@ -187,11 +185,17 @@ function pointElement(
     return e;
 }
 
-export function JxPoint({ idx }: { idx: number }) {
+/** The `point` primitive (ADR 0016): `cells` are its shape's x, y and
+ * hide. */
+export function JxPoint({ idx, cells }: { idx: number; cells: number[] }) {
     const store = useStore();
     const style = styleFor(store.comps.attr(idx, "styleNumber"));
     const layer = layerOf(store.comps.attr(idx, "layer"), POINT_LAYER_OFFSET);
-    useBoardElement(idx, POINT_PROPS, (h) => pointElement(h, style, layer));
+    useBoardElementCells(
+        idx,
+        () => cells,
+        (h) => pointElement(h, style, layer),
+    );
     return null;
 }
 
@@ -310,8 +314,6 @@ export function JxLine({ idx, segment }: { idx: number; segment: boolean }) {
 
 // ---------------------------------------------------------------- circle
 
-const CIRCLE_PROPS = ["cx", "cy", "radius"] as const;
-
 function circleElement(h: BoardHandle): BoardElement {
     const board = h.board;
     const circle = board.create("circle", [[0, 0], 1], {
@@ -371,8 +373,10 @@ function circleElement(h: BoardHandle): BoardElement {
     return e;
 }
 
-export function JxCircle({ idx }: { idx: number }) {
-    useBoardElement(idx, CIRCLE_PROPS, circleElement);
+/** The `circle` primitive (ADR 0016): `cells` are its shape's center and
+ * radius. */
+export function JxCircle({ idx, cells }: { idx: number; cells: number[] }) {
+    useBoardElementCells(idx, () => cells, circleElement);
     return null;
 }
 

@@ -4,13 +4,23 @@
 //! plans them as math cells (`plan_symbolic`); so is answer (`plan_answer`).
 
 use super::define::*;
+use super::view::{PrimUse, When, bind, number, shape};
 use super::{ComponentTypeInfo, PropDef};
 use crate::program::SymKind;
 
 /// `<number>`.
 pub(super) const NUMBER: ComponentTypeInfo = info(&["number"], NUMBER_PROPS)
     .copyable()
-    .default_prop("value");
+    .default_prop("value")
+    // With `displayDecimals` the viewer formats it its own way, until the
+    // formatter is the core's (ADR 0016, step 6).
+    .shapes(&[shape(
+        "number",
+        When::WithoutAttr("displayDecimals"),
+        NUMBER_VIEW,
+    )]);
+
+const NUMBER_VIEW: &[PrimUse] = &bind(NUMBER_PROPS, [number("value")]);
 
 const NUMBER_PROPS: &[PropDef] = &props([children("value")]);
 

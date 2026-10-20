@@ -26,3 +26,7 @@ packages/doenetml-print/python/pretext_wasm/core
 
 # Benchmark runs: machine-written records, pages and index (scripts/render.mjs).
 packages/benchmark/results
+
+# Written by the cells core's tests (tests/view_shapes.rs), which check it is
+# current; formatting it would make it stale.
+packages/cells-viewer/src/generated

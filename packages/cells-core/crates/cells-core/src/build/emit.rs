@@ -248,6 +248,7 @@ impl<'c> Builder<'c> {
                 .extend_from_slice(&slot_to_cell[base..base + np]);
         }
         lap("prop cells");
+        self.components.assign_shapes(&self.compiled.dast);
         // Each component's public prop count, for the cycle labels below.
         let n_public: Vec<usize> = (0..n_comps as CompIdx).map(|c| self.n_public(c)).collect();
 

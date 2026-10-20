@@ -2,6 +2,7 @@
 //! whose value a user sets. Each value is an essential cell unless bound to another.
 
 use super::define::*;
+use super::view::{PrimUse, When, bind, number, range, shape};
 use super::{ComponentTypeInfo, PropDef};
 
 /// `<numberInput>`.
@@ -86,7 +87,14 @@ pub mod math_input {
 /// names another component, in which case it aliases that component's value.
 pub(super) const SLIDER: ComponentTypeInfo = info(&["slider"], SLIDER_PROPS)
     .copyable()
-    .default_prop("value");
+    .default_prop("value")
+    .shapes(&[shape("slider", When::Always, SLIDER_VIEW)]);
+
+/// A range control, then its value as text.
+const SLIDER_VIEW: &[PrimUse] = &bind(
+    SLIDER_PROPS,
+    [range("from", "to", "step", "value"), number("value")],
+);
 
 const SLIDER_PROPS: &[PropDef] = &props([
     attr("from", 0.0),

@@ -25,6 +25,8 @@
 //!   requests; tuples are points dragged together (ADR 0006).
 //! - `dropped(n)`: the last tick dropped `n` requests. A tick not followed
 //!   by `dropped` must drop none.
+//! - `shape { "name" = "shape", .. }`: the view shape each component is
+//!   drawn with (ADR 0016), `none` for none.
 //! - `diagnostics["code", ..]`: every diagnostic's code, in order. A case
 //!   without it must load without any, so a warning cannot appear unseen.
 //!   The accessibility lint's are left out: they are about the document a
@@ -89,6 +91,8 @@ pub enum Op {
     Request(Vec<(&'static str, Value)>),
     Dropped(usize),
     Diagnostics(Vec<&'static str>),
+    /// Each named component's shape, by name (`none` for none).
+    Shape(Vec<(&'static str, &'static str)>),
 }
 
 #[derive(Debug, Clone)]
@@ -116,6 +120,9 @@ macro_rules! spec_op {
     };
     (diagnostics [ $($code:literal),* $(,)? ]) => {
         $crate::testing::spec::Op::Diagnostics(vec![$($code),*])
+    };
+    (shape { $($name:literal = $shape:literal),* $(,)? }) => {
+        $crate::testing::spec::Op::Shape(vec![$(($name, $shape)),*])
     };
 }
 
@@ -232,6 +239,21 @@ fn run_case(case: &Case) -> Result<String, String> {
             Op::Dropped(_) => {
                 if !matches!(i.checked_sub(1).map(|j| &case.ops[j]), Some(Op::Request(_))) {
                     return Err(format!("{at}: `dropped` must follow a `request`"));
+                }
+            }
+            Op::Shape(want) => {
+                for (name, shape) in want {
+                    let c = doc
+                        .component(name)
+                        .ok_or_else(|| format!("{at}: no component {name}"))?;
+                    let i = doc.components.shape[c as usize];
+                    let got = match i {
+                        crate::NO_SHAPE => "none",
+                        i => doc.component_type(c).shapes()[i as usize].name,
+                    };
+                    if got != *shape {
+                        return Err(format!("{at}: {name} is drawn as {got}, expected {shape}"));
+                    }
                 }
             }
             Op::Diagnostics(want) => {

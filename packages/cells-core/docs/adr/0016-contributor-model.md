@@ -1,7 +1,7 @@
 # Components are written by people who do not know the core
 
 Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
-for the circle; see Migration.
+for the circle, step 5 in part; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -273,6 +273,20 @@ case), carry every piece before anything is opened to contributors:
 5. View shapes, the view tree and the primitives the pilots use (range,
    number, board, point, circle), with the generated TypeScript and the
    keyed reconciliation; the budgets measured in the browser layer.
+   **Done in part**: view shapes beside the tables (`components/view.rs`:
+   `Prim`, `bind`, `shape`, `When`) for the slider, the circle and point
+   in a graph, and the number without `displayDecimals`; a shape column
+   in the component table, chosen when built; the viewer's copy written
+   by `tests/view_shapes.rs`; the number, range, point and circle
+   primitives (`renderers/prims.tsx`), number and range updating the DOM
+   in place. Measured against the commit before, same machine (frame
+   latency p50/p90): depth-1000 14.4/21.7 ms to 8.8/10.2 ms, its commit
+   4.9 to 2.0 ms for 1000 changed numbers (2 µs each, the budget);
+   breadth-1000 12.1/25.2 to 9.9/22.4 ms; lesson and sir unchanged. Not
+   done: the board as a primitive (graphs keep their renderer), keyed
+   reconciliation across rebuilds, the mount budgets, and the
+   accessibility contract (the range has no accessible name yet, as the
+   slider's renderer had none).
 6. The Rust formatter and the export arm for those primitives.
 7. The contributor guide (ARCHITECTURE.md, "Where to change things"),
    written from the pilots.

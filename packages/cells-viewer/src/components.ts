@@ -2,6 +2,8 @@
 // extended: the renderer reads components the same way it reads cells).
 // The typed arrays are views over wasm memory.
 
+import { SHAPES, type PrimUse, type Shape } from "./generated/shapes";
+
 export interface ComponentColumns {
     root: number;
     nCells: number;
@@ -21,12 +23,17 @@ export interface ComponentColumns {
     scope: Uint32Array;
     stringOffsets: Uint32Array;
     stringBytes: Uint8Array;
+    /** Each component's view shape: an index into its type's `SHAPES`
+     * (ADR 0016), or `NO_SHAPE`. */
+    shape: Uint8Array;
     /** Literal attributes per DAST node: presentation (style numbers,
      * decimals, widths), read once per build. */
     nodeAttrs: Record<string, Record<string, string>>;
 }
 
 export const NONE = 0xffffffff;
+/** A component its type's shapes do not draw. */
+export const NO_SHAPE = 255;
 export const TEXT_BIT = 0x80000000;
 
 export type Child = { c: number } | { t: string };
@@ -113,6 +120,21 @@ export class ComponentTable {
         const end =
             c + 1 < propBase.length ? propBase[c + 1] : propCells.length;
         return Array.from(propCells.subarray(propBase[c], end));
+    }
+
+    /** The view shape component `c` is drawn with (ADR 0016), which the
+     * core chose; null for one the viewer draws its own way. */
+    shape(c: number): Shape | null {
+        const i = this.cols.shape[c];
+        if (i === NO_SHAPE) return null;
+        return SHAPES[this.componentType(c)]?.[i] ?? null;
+    }
+
+    /** The cells a shape's primitive binds on component `c`, in its
+     * slots' order. */
+    primCells(c: number, use: PrimUse): number[] {
+        const base = this.cols.propBase[c];
+        return use.at.map((i) => this.cols.propCells[base + i]);
     }
 
     /** The DAST node the component was made from, or NONE for a
@@ -218,6 +240,7 @@ export function columnsFromCore(
         childList: u32(core.child_list_ptr(), core.child_list_len()),
         node: u32(core.comp_node_ptr(), n),
         scope: u32(core.comp_scope_ptr(), n),
+        shape: u8(core.comp_shape_ptr(), n),
         stringOffsets: u32(core.string_offsets_ptr(), nStrings + 1),
         stringBytes: u8(core.string_bytes_ptr(), core.string_bytes_len()),
         nodeAttrs: JSON.parse(core.node_attrs_json()),

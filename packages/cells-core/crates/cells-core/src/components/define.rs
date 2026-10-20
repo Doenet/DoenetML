@@ -183,6 +183,7 @@ pub(super) const fn info(
         aliases: &[],
         flags: 0,
         sticky: None,
+        shapes: &[],
     }
 }
 
@@ -235,6 +236,11 @@ impl ComponentTypeInfo {
         aliases: &'static [(&'static str, &'static str)],
     ) -> Self {
         self.aliases = aliases;
+        self
+    }
+    /// The ways the type is drawn (`view`), the first that applies chosen.
+    pub(super) const fn shapes(mut self, shapes: &'static [super::view::ViewShape]) -> Self {
+        self.shapes = shapes;
         self
     }
     /// A sticky member with `n` points from the table's prop `first`.
