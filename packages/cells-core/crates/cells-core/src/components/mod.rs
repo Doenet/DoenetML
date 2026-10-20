@@ -19,7 +19,7 @@
 use crate::program::OpSpec;
 
 mod containers;
-mod define;
+pub(crate) mod define;
 mod geometry;
 mod inputs;
 pub mod prop;

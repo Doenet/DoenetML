@@ -90,15 +90,25 @@ const CIRCLE_PROPS: &[PropDef] = &props([
 
 pub mod circle {
     use super::*;
-    pub const CX: usize = at(CIRCLE_PROPS, "cx");
-    pub const CY: usize = at(CIRCLE_PROPS, "cy");
-    pub const RADIUS: usize = at(CIRCLE_PROPS, "radius");
-    pub const AREA: usize = at(CIRCLE_PROPS, "area");
-    pub const CENTER_X: usize = at(CIRCLE_PROPS, "centerX");
-    pub const CENTER_Y: usize = at(CIRCLE_PROPS, "centerY");
-    /// The first of three through points' (x, y) pairs.
-    pub const THROUGH_X1: usize = at(CIRCLE_PROPS, "throughX1");
     pub const NUM_THROUGH_POINTS: usize = at(CIRCLE_PROPS, "numThroughPoints");
+
+    typed_props!(CIRCLE_PROPS {
+        cx,
+        cy,
+        radius,
+        diameter,
+        circumference,
+        area,
+        centerX,
+        centerY,
+        throughX1,
+        throughY1,
+        throughX2,
+        throughY2,
+        throughX3,
+        throughY3,
+        numThroughPoints,
+    });
 }
 
 /// The two points of a line or line segment.

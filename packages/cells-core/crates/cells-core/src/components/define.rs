@@ -1,6 +1,7 @@
 //! The vocabulary a family file defines its types with: prop builders
 //! (`attr`, `computed`, ...) resolved by `props`, the row builder `info`,
-//! and `at` for named prop positions.
+//! `at` for named prop positions, and `typed_props!` for a struct with one
+//! field per prop.
 
 use super::{
     Args, ArrayProp, CONTAINER, COPYABLE, ComponentTypeInfo, INTERNAL, MAX_ARGS, PropDef, PropFrom,
@@ -244,7 +245,7 @@ impl ComponentTypeInfo {
 
 /// The position of the prop `name` in `defs`, for a type's named
 /// positions. A name not in the table fails to compile.
-pub(super) const fn at(defs: &[PropDef], name: &str) -> usize {
+pub(crate) const fn at(defs: &[PropDef], name: &str) -> usize {
     let mut i = 0;
     while i < defs.len() {
         if str_eq(defs[i].name, name) {
@@ -256,7 +257,7 @@ pub(super) const fn at(defs: &[PropDef], name: &str) -> usize {
 }
 
 /// `a == b`, usable in `const`.
-const fn str_eq(a: &str, b: &str) -> bool {
+pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
     let (a, b) = (a.as_bytes(), b.as_bytes());
     if a.len() != b.len() {
         return false;
@@ -270,3 +271,55 @@ const fn str_eq(a: &str, b: &str) -> bool {
     }
     true
 }
+
+/// A struct with one field per prop of a table, named as the props are,
+/// in table order, and generic over what each field holds: a planner fills
+/// `Props<Planned>` (`compile::plan::Planned`) as a struct literal, so a
+/// prop left unplanned does not compile, and `Props::<usize>::AT` holds
+/// every prop's position. A list that names a prop the table lacks, or
+/// misses or reorders one, fails to compile.
+///
+/// ```ignore
+/// typed_props!(CIRCLE_PROPS { cx, cy, radius, ... });
+/// ```
+macro_rules! typed_props {
+    ($table:ident { $($field:ident),* $(,)? }) => {
+        /// One field per prop of the table, in its order.
+        #[allow(non_snake_case)]
+        #[derive(Debug, Clone)]
+        pub(crate) struct Props<T> {
+            $(pub(crate) $field: T,)*
+        }
+
+        impl<T> Props<T> {
+            /// The props in table order.
+            pub(crate) fn into_vec(self) -> Vec<T> {
+                vec![$(self.$field),*]
+            }
+        }
+
+        impl Props<usize> {
+            /// Each prop's position in the table.
+            pub(crate) const AT: Props<usize> = Props {
+                $($field: $crate::components::define::at($table, stringify!($field)),)*
+            };
+        }
+
+        const _: () = {
+            let names: &[&str] = &[$(stringify!($field)),*];
+            assert!(
+                names.len() == $table.len(),
+                "typed_props! must name every prop of its table"
+            );
+            let mut i = 0;
+            while i < names.len() {
+                assert!(
+                    $crate::components::define::str_eq(names[i], $table[i].name),
+                    "typed_props! must list the props in table order"
+                );
+                i += 1;
+            }
+        };
+    };
+}
+pub(crate) use typed_props;

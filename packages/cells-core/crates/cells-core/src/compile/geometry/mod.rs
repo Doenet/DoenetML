@@ -121,7 +121,7 @@ impl<'a> Compiler<'a> {
         ch: &mut ElemPlan,
         slots: [usize; 2],
         p: &PointPlan,
-        roles: [&'static str; 2],
+        roles: [Role; 2],
         attr: &'static str,
     ) {
         for j in 0..2 {
@@ -141,7 +141,7 @@ impl<'a> Compiler<'a> {
         ch: &mut ElemPlan,
         slots: [usize; 2],
         p: Option<&PointPlan>,
-        roles: [&'static str; 2],
+        roles: [Role; 2],
         attr: &'static str,
         (default_roles, default): DefaultPoint,
     ) {
@@ -157,7 +157,7 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn point_slots_with_roles(
         ch: &mut ElemPlan,
         p: &PointPlan,
-        roles: [&'static str; 2],
+        roles: [Role; 2],
         attr: &'static str,
     ) -> [usize; 2] {
         let mut out = [0; 2];
@@ -380,6 +380,6 @@ impl<'a> Compiler<'a> {
 /// A line's or segment's default point: its essential roles and value. The
 /// current core takes a missing first point as (1, 0) and a missing second
 /// one as (0, 0); a direction-based line's first point is the latter.
-type DefaultPoint = ([&'static str; 2], [f64; 2]);
-const ESS1: DefaultPoint = (["ess1x", "ess1y"], [1.0, 0.0]);
-const ESS2: DefaultPoint = (["ess2x", "ess2y"], [0.0, 0.0]);
+type DefaultPoint = ([Role; 2], [f64; 2]);
+const ESS1: DefaultPoint = (roles::ESS1, [1.0, 0.0]);
+const ESS2: DefaultPoint = (roles::ESS2, [0.0, 0.0]);

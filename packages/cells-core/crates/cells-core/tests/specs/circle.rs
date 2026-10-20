@@ -196,16 +196,44 @@ spec! {
         expect { "c.center" = (4, 0), "d.center" = (4, 0), "c.radius" = 3, "d.radius" = 5 }
     }
 
-    // Today an over-determined circle is NaN and says nothing. ADR 0016
-    // makes this a diagnostic (migration step 2); this case pins today's
-    // behavior until then.
-    case "over-determined (center, radius and a through point): NaN" {
+    // A circle its attributes over-determine has no center or radius, and
+    // says why, with the current core's warning (ADR 0016: no silent NaN).
+    case "center, radius and a through point: over-determined" {
         doenet r#"<graph><circle name="c" center="(0,0)" radius="1" through="(3,0)"/></graph>"#;
+        diagnostics["doenet-w0029"]
         expect { "c.cx" = f64::NAN, "c.cy" = f64::NAN, "c.radius" = f64::NAN }
     }
 
-    case "four through points: NaN" {
+    case "four through points: over-determined" {
         doenet r#"<graph><circle name="c" through="(0,0) (1,0) (0,1) (1,1)"/></graph>"#;
+        diagnostics["doenet-w0028"]
         expect { "c.cx" = f64::NAN, "c.cy" = f64::NAN, "c.radius" = f64::NAN }
+    }
+
+    case "a center and two through points: over-determined" {
+        doenet r#"<graph><circle name="c" center="(0,0)" through="(1,0) (0,1)"/></graph>"#;
+        diagnostics["doenet-w0030"]
+        expect { "c.cx" = f64::NAN, "c.radius" = f64::NAN }
+    }
+
+    case "a radius and three through points: over-determined" {
+        doenet r#"<graph><circle name="c" radius="2" through="(1,0) (0,1) (-1,0)"/></graph>"#;
+        diagnostics["doenet-w0032"]
+        expect { "c.cx" = f64::NAN, "c.radius" = f64::NAN }
+    }
+
+    case "a center that is not a point" {
+        doenet r#"<graph><circle name="c" center="A"/></graph>"#;
+        diagnostics["doenet-w0033"]
+        expect { "c.center" = (f64::NAN, f64::NAN), "c.cx" = f64::NAN, "c.radius" = 1 }
+    }
+
+    case "a copy of an over-determined circle says so too" {
+        doenet r#"<graph>
+                    <circle name="c" center="(0,0)" radius="1" through="(3,0)"/>
+                    <circle name="d" extend="$c" radius="2"/>
+                  </graph>"#;
+        diagnostics["doenet-w0029", "doenet-w0029"]
+        expect { "d.radius" = f64::NAN }
     }
 }

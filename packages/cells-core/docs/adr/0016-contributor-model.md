@@ -1,6 +1,7 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Migration step 1 is done; see Migration.
+Status: proposed 2026-10-20. Migration step 1 is done, step 2 for the
+circle; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -237,9 +238,17 @@ case), carry every piece before anything is opened to contributors:
    so far are the reference evaluator after every tick and the cost
    snapshot; the `extend` variants and the rest come with the steps that
    need them. Writing the slider's spec found one deviation from the
-   JavaScript core, recorded in its case: with no `initialValue` the
-   slider starts at the grid point nearest 0, not at `from`.
+   JavaScript core: with no `initialValue` the slider started at the
+   grid point nearest 0, not at `from`; fixed since.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
+   **Done for the circle**: `typed_props!` (`components/define.rs`) gives
+   a table its `Props<T>`, and `plan_circle` returns `Props<Planned>`
+   (`compile/plan.rs`), a plan with its role, as a struct literal; roles
+   are `Role` constants everywhere; a planner warns through
+   `Compiler::warn`, and the circle's five NaN cases carry the current
+   core's warnings (`doenet-w0028` to `w0033`). The golden diff's
+   programs are identical. The other planners move with the steps that
+   touch them.
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices.
 4. `ops!`, moving every operator; the round-trip tests.
