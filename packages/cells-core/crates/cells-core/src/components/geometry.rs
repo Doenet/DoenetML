@@ -4,7 +4,7 @@
 //! (`compile/geometry/`).
 
 use super::define::*;
-use super::{ArrayProp, ComponentTypeInfo, PropDef};
+use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
 /// Largest polygon the fixed prop layout holds.
@@ -41,26 +41,16 @@ pub(super) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
         ("center", &["centerX", "centerY"]),
         ("numericalCenter", &["cx", "cy"]),
     ])
-    .arrays(&[ArrayProp {
+    .list(ListProp {
         names: &["throughPoints"],
         item: "throughPoint",
-        items: &[
-            ["throughX1", "throughY1"],
-            ["throughX2", "throughY2"],
-            ["throughX3", "throughY3"],
-        ],
-    }])
-    .aliases(&[
-        ("centerX1", "centerX"),
-        ("centerX2", "centerY"),
-        ("throughPointX1_1", "throughX1"),
-        ("throughPointX1_2", "throughY1"),
-        ("throughPointX2_1", "throughX2"),
-        ("throughPointX2_2", "throughY2"),
-        ("throughPointX3_1", "throughX3"),
-        ("throughPointX3_2", "throughY3"),
-    ]);
+        coords: ["throughX", "throughY"],
+        alias: Some("throughPointX"),
+    })
+    .aliases(&[("centerX1", "centerX"), ("centerX2", "centerY")]);
 
+/// The through points are the circle's list (`throughPoints`), after
+/// these.
 const CIRCLE_PROPS: &[PropDef] = &props([
     planned("cx"),
     planned("cy"),
@@ -79,12 +69,6 @@ const CIRCLE_PROPS: &[PropDef] = &props([
     // current core), else the derived center.
     planned("centerX"),
     planned("centerY"),
-    planned("throughX1"),
-    planned("throughY1"),
-    planned("throughX2"),
-    planned("throughY2"),
-    planned("throughX3"),
-    planned("throughY3"),
     planned("numThroughPoints"),
 ]);
 
@@ -101,12 +85,6 @@ pub mod circle {
         area,
         centerX,
         centerY,
-        throughX1,
-        throughY1,
-        throughX2,
-        throughY2,
-        throughX3,
-        throughY3,
         numThroughPoints,
     });
 }

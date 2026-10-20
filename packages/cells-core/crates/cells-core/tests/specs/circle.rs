@@ -196,6 +196,57 @@ spec! {
         expect { "c.center" = (4, 0), "d.center" = (4, 0), "c.radius" = 3, "d.radius" = 5 }
     }
 
+    // The through points are a list as long as the author gave (ADR 0016).
+    case "a through point by name, in the current core's spellings, and past the end" {
+        doenet r#"<graph>
+                    <point name="p1">(0,0)</point><point name="p2">(4,0)</point>
+                    <circle name="c" through="$p1 $p2"/>
+                    <point name="q" extend="$c.throughPoint2"/>
+                  </graph>
+                  <number name="alias">$c.throughPointX2_1</number>
+                  <number name="past">$c.throughX3</number>"#;
+        expect {
+            "c.throughPoint2" = (4, 0), "c.throughX1" = 0, "q.coords" = (4, 0),
+            "alias.value" = 4, "past.value" = f64::NAN,
+        }
+        request { "q.x" = 6 }
+        expect { "p2.x" = 6, "c.throughX2" = 6, "c.radius" = 3 }
+    }
+
+    case "a bare copy holds its referent's through points" {
+        doenet r#"<graph>
+                    <circle name="c" through="(0,0) (4,0)"/>
+                    <circle name="d" extend="$c"/>
+                  </graph>"#;
+        expect { "d.throughPoint2" = (4, 0), "d.radius" = 2, "d.numThroughPoints" = 2 }
+        request { "d.cx" = 3, "d.cy" = 1 }
+        expect { "c.throughPoint1" = (1, 1), "c.throughPoint2" = (5, 1) }
+    }
+
+    case "through another circle's through points" {
+        doenet r#"<graph>
+                    <circle name="c" through="(0,0) (4,0)"/>
+                    <circle name="d" through="$c.throughPoints"/>
+                  </graph>"#;
+        expect { "d.numericalCenter" = (2, 0), "d.radius" = 2, "d.throughPoint2" = (4, 0) }
+        request { "d.cx" = 2, "d.cy" = 5 }
+        expect { "c.throughPoint1" = (0, 5), "c.throughPoint2" = (4, 5) }
+    }
+
+    case "an interface circle as long as its longest branch" {
+        doenet r#"<booleanInput name="b"/>
+                  <graph>
+                    <conditionalContent name="cc">
+                      <case condition="$b"><circle name="c" through="(0,0) (2,0)"/></case>
+                      <else><circle name="c" through="(0,0) (0,2) (2,0)"/></else>
+                    </conditionalContent>
+                  </graph>
+                  <number name="x3">$cc.c.throughX3</number>"#;
+        expect { "x3.value" = 2 }
+        request { "b.value" = 1 }
+        expect { "x3.value" = f64::NAN }
+    }
+
     // A circle its attributes over-determine has no center or radius, and
     // says why, with the current core's warning (ADR 0016: no silent NaN).
     case "center, radius and a through point: over-determined" {

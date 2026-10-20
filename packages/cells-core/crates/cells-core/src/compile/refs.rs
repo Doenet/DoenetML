@@ -185,7 +185,14 @@ impl<'a> Compiler<'a> {
                         // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
                         // items of an array prop, by literal index.
                         let name = component_type.canonical_prop(name);
-                        if let Some(items) = component_type.array_prop(name) {
+                        // A list's points are as many as the element has: an
+                        // index past them is the missing value when built.
+                        let list = component_type
+                            .list()
+                            .filter(|_| component_type.prop_at(name) == Some(PropAt::List));
+                        let items = component_type.array_prop(name);
+                        if list.is_some() || items.is_some() {
+                            let items = items.unwrap_or(&[]);
                             let idx: Vec<i64> = d
                                 .part_indices(part)
                                 .map(|expr| self.literal_index(expr, &display))
@@ -197,10 +204,13 @@ impl<'a> Compiler<'a> {
                                 prop = Some(name.to_string());
                                 break;
                             };
-                            if k < 1 || k as usize > items.len() {
+                            if k < 1 || (list.is_none() && k as usize > items.len()) {
                                 return Err(Error::BadIndex(display));
                             }
-                            let item = items[k as usize - 1];
+                            let coord_name = |j: usize| match list {
+                                Some(l) => format!("{}{k}", l.coords[j]),
+                                None => items[k as usize - 1][j].to_string(),
+                            };
                             let coord = match (rest.first(), parts.get(i + 1)) {
                                 (Some(&j), None) => Some(j),
                                 (None, Some(_)) if i + 2 == parts.len() => {
@@ -213,11 +223,12 @@ impl<'a> Compiler<'a> {
                                 (None, None) => None,
                                 _ => return Err(Error::PathTooDeep(display)),
                             };
-                            prop = Some(match coord {
-                                Some(1) => item[0].to_string(),
-                                Some(2) => item[1].to_string(),
-                                Some(_) => return Err(Error::BadIndex(display)),
-                                None => component_type
+                            prop = Some(match (coord, list) {
+                                (Some(1), _) => coord_name(0),
+                                (Some(2), _) => coord_name(1),
+                                (Some(_), _) => return Err(Error::BadIndex(display)),
+                                (None, Some(l)) => format!("{}{k}", l.item),
+                                (None, None) => component_type
                                     .array_item_prop(name, k as usize)
                                     .ok_or_else(|| Error::PathTooDeep(display.clone()))?,
                             });
@@ -259,7 +270,7 @@ impl<'a> Compiler<'a> {
                             prop = Some(parts_of[j].to_string());
                             break;
                         }
-                        if component_type.prop_index(name).is_none()
+                        if component_type.prop_at(name).is_none()
                             && component_type.virtual_prop(name).is_none()
                             && component_type.array_prop(name).is_none()
                         {

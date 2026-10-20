@@ -15,11 +15,38 @@ use std::fmt::Write as _;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::PathBuf;
 
+/// A type's list of points (ADR 0016), the prefixes of its items'
+/// coordinates, and the prop that counts its live points: dumped as the
+/// live points through `prop_cells`, which a core with fixed layouts
+/// answers too (padded past the count), so two commits on either side of
+/// a layout change compare equal.
+const LISTS: &[(ComponentType, &str, [&str; 2], &str)] = &[(
+    ComponentType::Circle,
+    "throughPoints",
+    ["throughX", "throughY"],
+    "numThroughPoints",
+)];
+
+/// Whether `name` is a coordinate of an item of the type's list, which a
+/// fixed layout holds as a prop of its table.
+fn list_coordinate(component_type: ComponentType, name: &str) -> bool {
+    LISTS.iter().any(|(k, _, prefixes, _)| {
+        *k == component_type
+            && prefixes.iter().any(|p| {
+                name.strip_prefix(p)
+                    .is_some_and(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
+            })
+    })
+}
+
 fn dump(doc: &Document, out: &mut String) {
     for (path, c) in tree(doc) {
         let component_type = doc.component_type(c);
         let _ = write!(out, "{path} <{}>", component_type.tag());
         for (i, def) in component_type.prop_defs().iter().enumerate() {
+            if list_coordinate(component_type, def.name) {
+                continue;
+            }
             let cell = doc.comp_cells(c)[i];
             let v = doc.cells[cell as usize];
             if doc.program.value_types.get(cell as usize) == Some(&ValueType::Math) {
@@ -28,6 +55,20 @@ fn dump(doc: &Document, out: &mut String) {
                 let _ = write!(out, " {}={:?}", def.name, doc.text_value(cell));
             } else {
                 let _ = write!(out, " {}={v:?}", def.name);
+            }
+        }
+        for (k, list, _, count) in LISTS {
+            if *k == component_type {
+                let cells = doc.prop_cells(c, list).unwrap_or_default();
+                let live = doc
+                    .prop_cells(c, count)
+                    .map_or(0.0, |n| doc.cells[n[0] as usize]);
+                let n = (live as usize).min(cells.len() / 2);
+                let values: Vec<f64> = cells[..2 * n]
+                    .iter()
+                    .map(|&x| doc.cells[x as usize])
+                    .collect();
+                let _ = write!(out, " {list}={values:?}");
             }
         }
         if let Some(t) = doc.section_title(c) {

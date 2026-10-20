@@ -21,7 +21,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
-use crate::components::{ComponentType, PropFrom, prop};
+use crate::components::{ComponentType, PropAt, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
 use crate::document::{CellIdx, NONE};
 use crate::error::{Error, Result};
@@ -375,6 +375,7 @@ impl<'a> Compiler<'a> {
             name_scope,
             slot_off: 0,
             props: Vec::new(),
+            n_public: NPublic::Table,
             children: Vec::new(),
             extend: None,
             cloned: false,
@@ -633,7 +634,12 @@ impl<'a> Compiler<'a> {
                 let n = component_type.prop_defs().len();
                 let mut props = vec![SourcePlan::Inherit; n];
                 Deferred::mark(component_type, &mut props);
-                self.compiled.templates[t].elems[e].props = props;
+                let el = &mut self.compiled.templates[t].elems[e];
+                el.props = props;
+                // A list is as long as the original's.
+                if component_type.list().is_some() {
+                    el.n_public = NPublic::AsReferent;
+                }
                 Ok(())
             }
             // Synthesized elements (iteration values) come planned.

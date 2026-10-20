@@ -2,10 +2,12 @@
 //! children and prop cells.
 
 use super::*;
+use crate::components::PropAt;
 
 /// The component table as parallel arrays indexed by `CompIdx`. Props are implicit:
 /// component `c` of type `k` owns `prop_cells[prop_base[c] + i]` for each
-/// `i` in `k.prop_defs()`.
+/// `i` in `k.prop_defs()`, then two per point of its list (ADR 0016), up
+/// to `prop_base[c + 1]`.
 #[derive(Debug, Clone, Default)]
 pub struct ComponentTable {
     pub component_type: Vec<ComponentType>,
@@ -123,10 +125,16 @@ impl Document {
         })
     }
 
-    /// Cells of the single-cell props of `c`, in `component_type.prop_defs()` order.
+    /// Cells of the single-cell props of `c`: its type table's, in
+    /// `component_type.prop_defs()` order, then two per point of its list.
     pub fn comp_cells(&self, c: CompIdx) -> &[CellIdx] {
-        let base = self.components.prop_base[c as usize] as usize;
-        &self.components.prop_cells[base..base + self.component_type(c).prop_defs().len()]
+        let t = &self.components;
+        let base = t.prop_base[c as usize] as usize;
+        let end = t
+            .prop_base
+            .get(c as usize + 1)
+            .map_or(t.prop_cells.len(), |&e| e as usize);
+        &t.prop_cells[base..end]
     }
 
     /// The text a component shows, as the current core's `text` state
@@ -220,8 +228,17 @@ impl Document {
                 .collect::<Option<Vec<_>>>()
                 .map(|v| v.concat());
         }
-        let i = component_type.prop_index(prop)?;
-        Some(vec![self.comp_cells(comp)[i]])
+        let cells = self.comp_cells(comp);
+        let n = cells.len();
+        let coord = |k: usize, j: usize| component_type.list_slot(n, k, j).map(|i| cells[i]);
+        match component_type.prop_at(prop)? {
+            PropAt::Fixed(i) => Some(vec![cells[i]]),
+            PropAt::Item(k) => Some(vec![coord(k, 0)?, coord(k, 1)?]),
+            PropAt::Coord(k, j) => Some(vec![coord(k, j)?]),
+            PropAt::List => (1..=component_type.list_len(n))
+                .flat_map(|k| [coord(k, 0), coord(k, 1)])
+                .collect(),
+        }
     }
 
     /// The single cell behind `path.prop`.

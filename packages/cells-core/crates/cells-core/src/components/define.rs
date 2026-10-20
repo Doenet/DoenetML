@@ -179,6 +179,7 @@ pub(super) const fn info(
         default_prop: None,
         views: &[],
         arrays: &[],
+        list: None,
         aliases: &[],
         flags: 0,
         sticky: None,
@@ -223,6 +224,10 @@ impl ComponentTypeInfo {
     }
     pub(super) const fn arrays(mut self, arrays: &'static [ArrayProp]) -> Self {
         self.arrays = arrays;
+        self
+    }
+    pub(super) const fn list(mut self, list: super::ListProp) -> Self {
+        self.list = Some(list);
         self
     }
     pub(super) const fn aliases(
