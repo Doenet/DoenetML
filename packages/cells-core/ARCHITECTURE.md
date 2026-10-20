@@ -199,8 +199,12 @@ needs nothing else: a request on `clamped` inverts through the chain by
 the operators' own inverses. A type whose wiring depends on which
 attributes the author gave gets a planner of its own, named in its
 `planner` arm: `Geometric` for a shape (see `geometry/`), `PropsThen` to
-adjust the table's plan, or `Whole`. The renderer side is in
-`packages/cells-viewer/src/renderers/`.
+adjust the table's plan, or `Whole`. A planner names its props through
+`typed_props!` beside the table and returns them as a `Props<Planned>`
+struct literal, a slot's plan with the role a copy shares it by
+(`compile/geometry/circle.rs`, ADR 0016); a combination of attributes it
+cannot honor is a warning (`Compiler::warn`), never a silent NaN. The
+renderer side is in `packages/cells-viewer/src/renderers/`.
 
 **Add an operator.** Add the bound form to `Op` in `program/scalar.rs` with
 its `eval` and `invert` arms, and the unbound form to `OpSpec` in

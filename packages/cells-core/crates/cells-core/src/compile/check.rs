@@ -98,6 +98,8 @@ pub(crate) fn compile(
         let _s = crate::trace::span("lint");
         list.extend(lint::lint(dast));
     }
+    // The planners' warnings, from the compile that built.
+    list.append(&mut compiled.diagnostics);
     crate::diagnostics::sort(&mut list);
     compiled.diagnostics = list;
     let first_build = first_build.map(|mut u| {
@@ -121,10 +123,13 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let mut list = Vec::new();
     let mut boxed: HashSet<NodeId> = HashSet::new();
     loop {
-        let attempt = Compiler::compile(&dast, &boxed).and_then(|compiled| build::probe(&compiled));
+        let attempt = Compiler::compile(&dast, &boxed)
+            .and_then(|compiled| Ok((build::probe(&compiled)?, compiled.diagnostics)));
         match attempt {
-            // The build is not wanted, but its warnings are.
-            Ok(u) => {
+            // The build is not wanted, but its warnings are, with the
+            // planners'.
+            Ok((u, planned)) => {
+                list.extend(planned);
                 list.extend(u.warnings());
                 break;
             }

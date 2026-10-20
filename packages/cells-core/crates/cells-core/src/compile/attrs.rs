@@ -342,9 +342,11 @@ impl<'a> Compiler<'a> {
             .collect();
         let mut plan = ElemPlan::of(ComponentType::Text);
         match nodes.as_slice() {
-            [] => plan.set_text_essential(text::VALUE, "value", self.intern_literal("") as f64),
+            [] => {
+                plan.set_text_essential(text::VALUE, roles::VALUE, self.intern_literal("") as f64)
+            }
             [n] if d.kind(*n) == NodeKind::Text => {
-                plan.set_text_essential(text::VALUE, "value", d.str_id(*n) as f64)
+                plan.set_text_essential(text::VALUE, roles::VALUE, d.str_id(*n) as f64)
             }
             [n] if d.kind(*n) == NodeKind::Macro => plan.set(
                 text::VALUE,
@@ -398,7 +400,7 @@ impl<'a> Compiler<'a> {
                     None => String::new(),
                 };
                 let id = self.intern_literal(&text);
-                plan.set_text_essential(text_input::VALUE, "value", id as f64);
+                plan.set_text_essential(text_input::VALUE, roles::VALUE, id as f64);
             }
             _ => {
                 return Err(Error::Unsupported(

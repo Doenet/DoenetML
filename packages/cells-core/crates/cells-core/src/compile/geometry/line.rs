@@ -157,7 +157,7 @@ impl Compiler<'_> {
                 "through",
                 ESS2,
             );
-            let dist = ch.essential("dist", 1.0);
+            let dist = ch.essential(roles::DIST, 1.0);
             if let Some(a) = slope {
                 let m = self.plan_scalar(t, scope, "slope", d.attr_children(a))?;
                 let m = ch.hidden(m);

@@ -24,23 +24,29 @@ impl Compiler<'_> {
         let base_children = base.map(|b| self.math_children(b)).unwrap_or_default();
         if let Some(a) = self.attr_or_inherited(el, base, "coords") {
             let p = self.plan_point_attr(t, scope, a)?;
-            Self::set_point_with_roles(&mut ch, [point::X, point::Y], &p, ["x", "y"], "coords");
+            Self::set_point_with_roles(
+                &mut ch,
+                [point::X, point::Y],
+                &p,
+                [roles::X, roles::Y],
+                "coords",
+            );
         } else if self.attr_or_inherited(el, base, "x").is_some()
             || self.attr_or_inherited(el, base, "y").is_some()
             || (own_children.is_empty() && base_children.is_empty())
         {
-            for (i, name) in [(point::X, "x"), (point::Y, "y")] {
+            for (i, name, role) in [(point::X, "x", roles::X), (point::Y, "y", roles::Y)] {
                 match self.attr_or_inherited(el, base, name) {
                     Some(a) => {
                         let plan = self.plan_scalar(t, scope, name, d.attr_children(a))?;
                         if let SourcePlan::Literal(v) = plan {
-                            ch.role_from_attr(name, name);
-                            ch.set_essential(i, name, v);
+                            ch.role_from_attr(role, name);
+                            ch.set_essential(i, role, v);
                         } else {
                             ch.set(i, plan);
                         }
                     }
-                    None => ch.set_essential(i, name, 0.0),
+                    None => ch.set_essential(i, role, 0.0),
                 }
             }
         } else {
@@ -50,7 +56,13 @@ impl Compiler<'_> {
                 own_children
             };
             let p = PointPlan::Tuple(self.plan_tuple(t, scope, &nodes)?);
-            Self::set_point_with_roles(&mut ch, [point::X, point::Y], &p, ["x", "y"], "children");
+            Self::set_point_with_roles(
+                &mut ch,
+                [point::X, point::Y],
+                &p,
+                [roles::X, roles::Y],
+                "children",
+            );
         }
         // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
         // copy inherits the original's.
@@ -128,9 +140,9 @@ impl Compiler<'_> {
         let raw_x = ch.hidden(px);
         let raw_y = ch.hidden(py);
         // The raw coordinates are the essential state now; keep their roles.
-        for role in ["x", "y"] {
-            if let Some(slot) = ch.roles.get_mut(role) {
-                *slot = own_slot(if role == "x" { raw_x } else { raw_y });
+        for (role, raw) in [(roles::X, raw_x), (roles::Y, raw_y)] {
+            if let Some(slot) = ch.roles.get_mut(&role) {
+                *slot = own_slot(raw);
             }
         }
         match d.str(c) {

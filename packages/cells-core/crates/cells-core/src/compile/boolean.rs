@@ -69,7 +69,7 @@ impl<'a> Compiler<'a> {
             _ => None,
         };
         if let Some(v) = literal {
-            plan.set_essential(boolean::VALUE, "value", v);
+            plan.set_essential(boolean::VALUE, roles::VALUE, v);
             self.compiled.templates[t].elems[e].props = plan.finish();
             return Ok(());
         }

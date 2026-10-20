@@ -25,7 +25,9 @@
 //! - `dropped(n)`: the last tick dropped `n` requests. A tick not followed
 //!   by `dropped` must drop none.
 //! - `diagnostics["code", ..]`: every diagnostic's code, in order. A case
-//!   without it must load without errors.
+//!   without it must load without any, so a warning cannot appear unseen.
+//!   The accessibility lint's are left out: they are about the document a
+//!   case is written in, not the component.
 //!
 //! Every case is also checked by what a contributor does not write: after
 //! the load and after every tick, the scheduled program against the
@@ -176,14 +178,13 @@ fn run_case(case: &Case) -> Result<String, String> {
         doc.n_components()
     );
     if !case.ops.iter().any(|op| matches!(op, Op::Diagnostics(_))) {
-        let errors: Vec<_> = doc
-            .diagnostics()
-            .iter()
-            .filter(|d| d.kind == crate::DiagnosticKind::Error)
+        let found: Vec<_> = diagnostics(&doc)
             .map(|d| format!("{}: {}", d.code, d.message))
             .collect();
-        if !errors.is_empty() {
-            return Err(format!("loads with errors: {errors:?}"));
+        if !found.is_empty() {
+            return Err(format!(
+                "loads with diagnostics (say `diagnostics[..]` if meant): {found:?}"
+            ));
         }
     }
     check_reference(&doc, "after the load")?;
@@ -226,7 +227,7 @@ fn run_case(case: &Case) -> Result<String, String> {
                 }
             }
             Op::Diagnostics(want) => {
-                let got: Vec<&str> = doc.diagnostics().iter().map(|d| d.code).collect();
+                let got: Vec<&str> = diagnostics(&doc).map(|d| d.code).collect();
                 if got != *want {
                     return Err(format!("{at}: diagnostics {got:?}, expected {want:?}"));
                 }
@@ -234,6 +235,16 @@ fn run_case(case: &Case) -> Result<String, String> {
         }
     }
     Ok(cost)
+}
+
+/// The diagnostics a spec speaks about: all but the accessibility lint's,
+/// which are about the document a case is written in (an unlabeled input,
+/// a graph without a description), not the component, and have their own
+/// tests.
+fn diagnostics(doc: &Document) -> impl Iterator<Item = &crate::Diagnostic> {
+    doc.diagnostics()
+        .iter()
+        .filter(|d| d.kind != crate::DiagnosticKind::Accessibility)
 }
 
 fn check_reference(doc: &Document, at: &str) -> Result<(), String> {

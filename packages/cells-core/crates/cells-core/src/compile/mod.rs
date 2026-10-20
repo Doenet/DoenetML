@@ -103,7 +103,7 @@ pub(in crate::compile) struct Compiler<'a> {
     sibling_names: HashSet<(u32, u32, u32)>,
     /// By (template, element), a geometry element's roles: which slot holds
     /// each piece of essential state, which a copy shares with its original.
-    pub(in crate::compile) roles: HashMap<(u32, u32), HashMap<&'static str, u8>>,
+    pub(in crate::compile) roles: HashMap<(u32, u32), HashMap<Role, u8>>,
 }
 
 /// A name-table entry naming more than one element.
@@ -175,6 +175,20 @@ impl<'a> Compiler<'a> {
                 node: cp.failed_node,
             }),
         }
+    }
+
+    /// A warning about the element at `node`: a fact about the source
+    /// (ADR 0014), kept with the compile's diagnostics. A planner that
+    /// cannot honor what the author wrote says so here rather than leaving
+    /// a NaN to explain itself (ADR 0016).
+    pub(in crate::compile) fn warn(&mut self, node: NodeId, code: &'static str, message: &str) {
+        self.compiled
+            .diagnostics
+            .push(crate::diagnostics::Diagnostic::warning(
+                code,
+                Some(node),
+                message.into(),
+            ));
     }
 
     /// Every operator a plan names reads as many inputs as it takes. One

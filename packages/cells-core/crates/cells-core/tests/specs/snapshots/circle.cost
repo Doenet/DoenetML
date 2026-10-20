@@ -14,5 +14,9 @@ a center on a grid carries the through point: cells 30 · essential 10 · fixed 
 through a triangle's vertices: cells 47 · essential 10 · fixed 30 · instrs 5 · components 4
 a point on a fixed number: half its drag is refused: cells 49 · essential 11 · fixed 31 · instrs 5 · components 6
 a copy that overrides the radius shares the center: cells 34 · essential 8 · fixed 16 · instrs 10 · components 4
-over-determined (center, radius and a through point): NaN: cells 22 · essential 8 · fixed 10 · instrs 4 · components 3
-four through points: NaN: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
+center, radius and a through point: over-determined: cells 22 · essential 8 · fixed 10 · instrs 4 · components 3
+four through points: over-determined: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
+a center and two through points: over-determined: cells 22 · essential 10 · fixed 8 · instrs 4 · components 3
+a radius and three through points: over-determined: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
+a center that is not a point: cells 21 · essential 5 · fixed 11 · instrs 5 · components 3
+a copy of an over-determined circle says so too: cells 34 · essential 8 · fixed 18 · instrs 8 · components 4
