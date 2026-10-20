@@ -104,6 +104,19 @@ spec! {
         expect { "s.value" = 7, "d.value" = 7, "n.value" = 3.5 }
     }
 
+    case "bound to a sum with an emptied input: the request is dropped, not written as NaN" {
+        doenet r#"<numberInput name="x" value="2"/><numberInput name="y"/>
+                  <number name="sum">$x + $y</number>
+                  <slider name="s" from="0" to="10" bindValueTo="$sum"/>"#;
+        expect { "y.value" = f64::NAN, "s.value" = 0 }
+        request { "s.value" = 5 }
+        dropped(1)
+        expect { "x.value" = 2 }
+        request { "y.value" = 1 }
+        request { "s.value" = 5 }
+        expect { "x.value" = 4, "sum.value" = 5 }
+    }
+
     case "a slider bound to a slider with another step" {
         doenet r#"<slider name="fine" from="0" to="10" step="0.5" initialValue="3"/>
                   <slider name="coarse" from="0" to="10" step="2" bindValueTo="$fine"/>"#;

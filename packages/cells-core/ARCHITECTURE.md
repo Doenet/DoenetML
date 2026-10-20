@@ -206,12 +206,15 @@ struct literal, a slot's plan with the role a copy shares it by
 cannot honor is a warning (`Compiler::warn`), never a silent NaN. The
 renderer side is in `packages/cells-viewer/src/renderers/`.
 
-**Add an operator.** Add the bound form to `Op` in `program/scalar.rs` with
-its `eval` and `invert` arms, and the unbound form to `OpSpec` in
-`program/instr.rs` with its `arity` and `bind` arms. To reach it from the
-test-only `<op>` tag (registered under the `testing` feature, which
-`cargo test` turns on), map the name in `compile/attrs.rs`. Multi-cell
-operators are `VecOp`s in `program/vector.rs`.
+**Add an operator.** Add one entry to `scalar_ops!` in
+`program/scalar.rs` (ADR 0016): its inputs and literal parameters, its
+`<op>` names (the test-only tag, registered under the `testing` feature,
+which `cargo test` turns on), its evaluation, and its inverse, declared
+`exact`, `projection` or `drops`. The macro (`program/ops.rs`) makes the
+`Op` and `OpSpec` variants and every arm; `program::scalar::inverses`
+checks the inverse against what the entry declares, over a fixed table
+of values and the entry's parameter `samples`. Multi-cell operators are
+`VecOp`s in `program/vector.rs`.
 
 **Change how a request inverts.** Scalar inverse rules are `Op::invert`;
 vector rules are `VecOp::invert`; the engine that orders requests and keeps
