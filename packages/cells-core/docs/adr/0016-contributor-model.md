@@ -1,6 +1,6 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Nothing is built yet; see Migration.
+Status: proposed 2026-10-20. Migration step 1 is done; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -232,7 +232,13 @@ case), carry every piece before anything is opened to contributors:
 
 1. `spec!{}`, with the cost snapshot, and specs for both pilots written
    against today's behavior. They are the refactoring guard for what
-   follows, with `golden-diff`.
+   follows, with `golden-diff`. **Done**: `testing/spec.rs`,
+   `tests/specs/` (13 slider cases, 18 circle cases). The derived guards
+   so far are the reference evaluator after every tick and the cost
+   snapshot; the `extend` variants and the rest come with the steps that
+   need them. Writing the slider's spec found one deviation from the
+   JavaScript core, recorded in its case: with no `initialValue` the
+   slider starts at the grid point nearest 0, not at `from`.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices.

@@ -1,0 +1,18 @@
+no attributes: the unit circle, its center and radius free: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
+center only: radius 1: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
+radius only: centered at the origin: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
+center and radius: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
+center from a point, radius from an input: cells 24 · essential 9 · fixed 9 · instrs 6 · components 6
+center and a through point: cells 24 · essential 10 · fixed 7 · instrs 5 · components 5
+one through point: the circle sits on it: cells 20 · essential 7 · fixed 7 · instrs 6 · components 3
+one through point and a radius: cells 20 · essential 7 · fixed 7 · instrs 6 · components 3
+two through points: cells 22 · essential 10 · fixed 5 · instrs 5 · components 5
+two through points and a radius: the center on the left of p1 to p2: cells 23 · essential 11 · fixed 5 · instrs 6 · components 5
+three through points: dragged rigidly, scaled about the center: cells 23 · essential 13 · fixed 3 · instrs 5 · components 6
+three through points, one on a grid: the shape moves with the snap: cells 29 · essential 13 · fixed 3 · instrs 11 · components 6
+a center on a grid carries the through point: cells 30 · essential 10 · fixed 7 · instrs 11 · components 5
+through a triangle's vertices: cells 47 · essential 10 · fixed 30 · instrs 5 · components 4
+a point on a fixed number: half its drag is refused: cells 49 · essential 11 · fixed 31 · instrs 5 · components 6
+a copy that overrides the radius shares the center: cells 34 · essential 8 · fixed 16 · instrs 10 · components 4
+over-determined (center, radius and a through point): NaN: cells 22 · essential 8 · fixed 10 · instrs 4 · components 3
+four through points: NaN: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
