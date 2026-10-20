@@ -41,7 +41,12 @@ impl<'a> Compiler<'a> {
         let has_children = !d.children(el).iter().all(|&n| self.is_blank(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             let n = component_type.prop_defs().len();
-            self.compiled.templates[t].elems[e].props = vec![SourcePlan::Inherit; n];
+            let el = &mut self.compiled.templates[t].elems[e];
+            el.props = vec![SourcePlan::Inherit; n];
+            // A list is as long as the referent's, which the build knows.
+            if component_type.list().is_some() {
+                el.n_public = NPublic::AsReferent;
+            }
             return Ok(());
         }
         // Merged attributes: the referent's node supplies what the copy omits.
@@ -79,6 +84,9 @@ impl<'a> Compiler<'a> {
             .apply(&mut ch.props);
         if !ch.roles.is_empty() {
             self.roles.insert((t as u32, e as u32), ch.roles.clone());
+        }
+        if component_type.list().is_some() {
+            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(ch.n_public as u32);
         }
         self.compiled.templates[t].elems[e].props = ch.finish();
         Ok(())
@@ -267,12 +275,17 @@ impl<'a> Compiler<'a> {
         }
         let Some(e) = e else { return Ok(None) };
         let el = &self.compiled.templates[cur_t].elems[e];
+        // A circle's list holds the points given, up to three.
+        if el.component_type == ComponentType::Circle
+            && el.component_type.prop_at(prop) == Some(PropAt::List)
+        {
+            return Ok(Some(self.count_points_in_attr(el.node, "through")?.min(3)));
+        }
         let Some(items) = el.component_type.array_prop(prop) else {
             return Ok(None);
         };
         let n = match el.component_type {
             ComponentType::Polygon => self.count_points_in_attr(el.node, "vertices")?,
-            ComponentType::Circle => self.count_points_in_attr(el.node, "through")?,
             _ => items.len(),
         };
         Ok(Some(n.min(items.len())))

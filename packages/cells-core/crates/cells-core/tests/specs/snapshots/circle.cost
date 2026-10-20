@@ -1,22 +1,26 @@
-no attributes: the unit circle, its center and radius free: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
-center only: radius 1: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
-radius only: centered at the origin: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
-center and radius: cells 21 · essential 7 · fixed 9 · instrs 5 · components 3
-center from a point, radius from an input: cells 24 · essential 9 · fixed 9 · instrs 6 · components 6
-center and a through point: cells 24 · essential 10 · fixed 7 · instrs 5 · components 5
-one through point: the circle sits on it: cells 20 · essential 7 · fixed 7 · instrs 6 · components 3
-one through point and a radius: cells 20 · essential 7 · fixed 7 · instrs 6 · components 3
-two through points: cells 22 · essential 10 · fixed 5 · instrs 5 · components 5
-two through points and a radius: the center on the left of p1 to p2: cells 23 · essential 11 · fixed 5 · instrs 6 · components 5
+no attributes: the unit circle, its center and radius free: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
+center only: radius 1: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
+radius only: centered at the origin: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
+center and radius: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
+center from a point, radius from an input: cells 18 · essential 9 · fixed 3 · instrs 6 · components 6
+center and a through point: cells 20 · essential 10 · fixed 3 · instrs 5 · components 5
+one through point: the circle sits on it: cells 16 · essential 7 · fixed 3 · instrs 6 · components 3
+one through point and a radius: cells 16 · essential 7 · fixed 3 · instrs 6 · components 3
+two through points: cells 20 · essential 10 · fixed 3 · instrs 5 · components 5
+two through points and a radius: the center on the left of p1 to p2: cells 21 · essential 11 · fixed 3 · instrs 6 · components 5
 three through points: dragged rigidly, scaled about the center: cells 23 · essential 13 · fixed 3 · instrs 5 · components 6
 three through points, one on a grid: the shape moves with the snap: cells 29 · essential 13 · fixed 3 · instrs 11 · components 6
-a center on a grid carries the through point: cells 30 · essential 10 · fixed 7 · instrs 11 · components 5
+a center on a grid carries the through point: cells 26 · essential 10 · fixed 3 · instrs 11 · components 5
 through a triangle's vertices: cells 47 · essential 10 · fixed 30 · instrs 5 · components 4
 a point on a fixed number: half its drag is refused: cells 49 · essential 11 · fixed 31 · instrs 5 · components 6
-a copy that overrides the radius shares the center: cells 34 · essential 8 · fixed 16 · instrs 10 · components 4
-center, radius and a through point: over-determined: cells 22 · essential 8 · fixed 10 · instrs 4 · components 3
+a copy that overrides the radius shares the center: cells 22 · essential 8 · fixed 4 · instrs 10 · components 4
+a through point by name, in the current core's spellings, and past the end: cells 22 · essential 11 · fixed 4 · instrs 5 · components 8
+a bare copy holds its referent's through points: cells 18 · essential 8 · fixed 3 · instrs 5 · components 4
+through another circle's through points: cells 26 · essential 8 · fixed 4 · instrs 10 · components 4
+an interface circle as long as its longest branch: cells 57 · essential 15 · fixed 9 · instrs 29 · components 10
+center, radius and a through point: over-determined: cells 18 · essential 8 · fixed 6 · instrs 4 · components 3
 four through points: over-determined: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
-a center and two through points: over-determined: cells 22 · essential 10 · fixed 8 · instrs 4 · components 3
+a center and two through points: over-determined: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
 a radius and three through points: over-determined: cells 20 · essential 10 · fixed 6 · instrs 4 · components 3
-a center that is not a point: cells 21 · essential 5 · fixed 11 · instrs 5 · components 3
-a copy of an over-determined circle says so too: cells 34 · essential 8 · fixed 18 · instrs 8 · components 4
+a center that is not a point: cells 15 · essential 5 · fixed 5 · instrs 5 · components 3
+a copy of an over-determined circle says so too: cells 26 · essential 8 · fixed 10 · instrs 8 · components 4

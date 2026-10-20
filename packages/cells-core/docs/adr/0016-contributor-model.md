@@ -1,7 +1,7 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Migration step 1 is done, step 2 for the
-circle; see Migration.
+Status: proposed 2026-10-20. Migration step 1 is done, steps 2 and 3 for
+the circle; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -250,7 +250,13 @@ case), carry every piece before anything is opened to contributors:
    programs are identical. The other planners move with the steps that
    touch them.
 3. Lists with per-element lengths, for the circle's through points, then
-   the polygon's vertices.
+   the polygon's vertices. **Done for the circle**: a type's one list
+   (`ListProp`, `ComponentType::prop_at`) follows its table's props; an
+   element's public count is planned (`NPublic`), or its referent's for
+   a bare or cloned copy (`place_list_copy`); a branch interface holds
+   the longest member's list. Every circle without three through points
+   has 2 fewer cells per missing point; the golden dump, which reads lists
+   through `prop_cells`, is identical.
 4. `ops!`, moving every operator; the round-trip tests.
 5. View shapes, the view tree and the primitives the pilots use (range,
    number, board, point, circle), with the generated TypeScript and the

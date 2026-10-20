@@ -238,7 +238,7 @@ impl<'c> Builder<'c> {
         self.components.prop_base = Vec::with_capacity(n_comps);
         self.components.prop_cells = Vec::with_capacity(n);
         for c in 0..n_comps {
-            let np = self.components.component_type[c].prop_defs().len();
+            let np = self.n_public(c as CompIdx);
             self.components
                 .prop_base
                 .push(self.components.prop_cells.len() as u32);
@@ -248,6 +248,8 @@ impl<'c> Builder<'c> {
                 .extend_from_slice(&slot_to_cell[base..base + np]);
         }
         lap("prop cells");
+        // Each component's public prop count, for the cycle labels below.
+        let n_public: Vec<usize> = (0..n_comps as CompIdx).map(|c| self.n_public(c)).collect();
 
         let (depths, cross_reads) = self.structural_depths();
         lap("structural depth");
@@ -311,8 +313,8 @@ impl<'c> Builder<'c> {
                 NONE => format!("<{}>#{}", component_types[comp as usize].tag(), comp),
                 s => dast.strings.get(s).trim().to_string(),
             };
-            match component_types[comp as usize].prop_defs().get(pi) {
-                Some(def) => format!("{owner}.{}", def.name),
+            match component_types[comp as usize].prop_name(n_public[comp as usize], pi) {
+                Some(name) => format!("{owner}.{name}"),
                 None => format!("{owner}.(hidden slot {pi})"),
             }
         });

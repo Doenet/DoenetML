@@ -62,7 +62,9 @@ impl Compiler<'_> {
         };
         let n = through.len();
         let (hc, hr) = (center.is_some(), radius.is_some());
-        let mut ch = ElemPlan::of(ComponentType::Circle);
+        // The list holds the points given, up to three; more is an error
+        // of the author's, warned about below.
+        let mut ch = ElemPlan::with_list(ComponentType::Circle, n.min(3));
         // The area goes through a hidden square.
         let r2 = ch.hidden(SourcePlan::computed(
             OpSpec::Mul,
@@ -89,14 +91,19 @@ impl Compiler<'_> {
         // and `<point extend="$c.center">`. The prescribed center lives on
         // `centerX`/`centerY` and the cases read it from there; without one
         // they alias the derived center.
-        let [
-            [through_x1, through_y1],
-            [through_x2, through_y2],
-            [through_x3, through_y3],
-        ] = std::array::from_fn(|i| match through.get(i) {
-            Some(p) => planned_point(p, POINT_ROLES[i], "through"),
-            None => [nan(), nan()],
-        });
+        let through_points: Vec<[Planned; 2]> = through
+            .iter()
+            .take(3)
+            .enumerate()
+            .map(|(i, p)| planned_point(p, POINT_ROLES[i], "through"))
+            .collect();
+        // Coordinate `j` of through point `k` (0-based).
+        let n_public = ch.n_public;
+        let tp = |k: usize, j: usize| {
+            ComponentType::Circle
+                .list_slot(n_public, k + 1, j)
+                .expect("a through point the circle holds")
+        };
         let [center_x, center_y] = match &center {
             Some(c) => planned_point(c, [roles::CX, roles::CY], "center"),
             None => [Planned::own(at.cx), Planned::own(at.cy)],
@@ -131,14 +138,14 @@ impl Compiler<'_> {
             (None, true, false, 1) => ElemPlan::vector(
                 [at.cx, at.cy, at.radius],
                 VecOp::CircleCenterPoint,
-                vec![at.centerX, at.centerY, at.throughX1, at.throughY1],
+                vec![at.centerX, at.centerY, tp(0, 0), tp(0, 1)],
             ),
             (None, false, _, 1) => {
                 // The through point sits on top of the circle.
                 let radius = radius_plan(&mut ch);
                 [
-                    Planned::own(at.throughX1),
-                    Planned::computed(OpSpec::Sub, vec![at.throughY1, at.radius]),
+                    Planned::own(tp(0, 0)),
+                    Planned::computed(OpSpec::Sub, vec![tp(0, 1), at.radius]),
                     radius,
                 ]
             }
@@ -147,31 +154,15 @@ impl Compiler<'_> {
                 let [cx, cy] = ElemPlan::vector(
                     [at.cx, at.cy],
                     VecOp::CircleTwoPointsRadius,
-                    vec![
-                        at.throughX1,
-                        at.throughY1,
-                        at.throughX2,
-                        at.throughY2,
-                        at.radius,
-                    ],
+                    vec![tp(0, 0), tp(0, 1), tp(1, 0), tp(1, 1), at.radius],
                 );
                 [cx, cy, radius]
             }
-            (None, false, false, n) => {
-                let through_slots = [
-                    at.throughX1,
-                    at.throughY1,
-                    at.throughX2,
-                    at.throughY2,
-                    at.throughX3,
-                    at.throughY3,
-                ];
-                ElemPlan::vector(
-                    [at.cx, at.cy, at.radius],
-                    VecOp::CirclePoints { n: byte(n) },
-                    through_slots[..2 * n].to_vec(),
-                )
-            }
+            (None, false, false, n) => ElemPlan::vector(
+                [at.cx, at.cy, at.radius],
+                VecOp::CirclePoints { n: byte(n) },
+                (0..n).flat_map(|k| [tp(k, 0), tp(k, 1)]).collect(),
+            ),
             // A center with two or more points, a radius with three: `over`.
             (None, ..) => unreachable!("an over-determined circle is warned about above"),
         };
@@ -190,16 +181,11 @@ impl Compiler<'_> {
                 ),
                 centerX: center_x,
                 centerY: center_y,
-                throughX1: through_x1,
-                throughY1: through_y1,
-                throughX2: through_x2,
-                throughY2: through_y2,
-                throughX3: through_x3,
-                throughY3: through_y3,
                 numThroughPoints: Planned::fixed(n as f64),
             }
             .into_vec(),
         );
+        ch.set_list(through_points);
         Ok(ch)
     }
 }

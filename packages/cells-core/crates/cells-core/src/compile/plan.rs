@@ -183,6 +183,18 @@ pub(crate) struct ChoiceDef {
     pub(crate) used: Vec<String>,
 }
 
+/// How many public props an element has.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum NPublic {
+    /// Its type table's, whatever type the element ends up with.
+    Table,
+    /// The table's, then two per point of its list, as planned.
+    Planned(u32),
+    /// As many as its `extend` referent has: a bare or cloned copy of a
+    /// type with a list, whose length is known only when built.
+    AsReferent,
+}
+
 /// The template itself, as the parent of its top-level elements.
 pub(crate) const ROOT_SCOPE: ElemId = usize::MAX;
 
@@ -203,6 +215,8 @@ pub(crate) struct Elem {
     /// The element's identity across loads, for saved state.
     pub(crate) key: ElemKey,
     pub(crate) props: Vec<SourcePlan>,
+    /// How many of `props` are public (ADR 0016); hidden slots follow.
+    pub(crate) n_public: NPublic,
     pub(crate) children: Vec<Child>,
     pub(crate) extend: Option<RefId>,
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
@@ -348,6 +362,8 @@ impl Planned {
 /// own prop.
 pub(crate) struct ElemPlan {
     pub(crate) props: Vec<Option<SourcePlan>>,
+    /// The public slots: the table's props, then the list's points.
+    pub(crate) n_public: usize,
     pub(crate) roles: HashMap<Role, u8>,
     /// The attribute a role's value came from, if any; a copy that gives
     /// that attribute itself does not share the role.
@@ -442,8 +458,16 @@ impl ElemPlan {
         Self::new(component_type.prop_defs().len())
     }
 
+    /// A plan for an element of `component_type` whose list holds
+    /// `n_points` points, after the table's props.
+    pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
+        debug_assert!(component_type.list().is_some());
+        Self::new(component_type.prop_defs().len() + 2 * n_points)
+    }
+
     pub(crate) fn new(n_public: usize) -> Self {
         ElemPlan {
+            n_public,
             props: vec![None; n_public],
             roles: HashMap::new(),
             role_attr: HashMap::new(),
@@ -506,6 +530,23 @@ impl ElemPlan {
             self.props[i] = Some(p.plan);
             if let Some((role, attr)) = p.role {
                 self.add_role(i, role, attr);
+            }
+        }
+    }
+    /// The list's points, which fill the public slots after the table's
+    /// props, with their roles.
+    pub(crate) fn set_list(&mut self, points: Vec<[Planned; 2]>) {
+        let n_fixed = self
+            .n_public
+            .checked_sub(2 * points.len())
+            .expect("the plan holds the list's points");
+        for (k, point) in points.into_iter().enumerate() {
+            for (j, p) in point.into_iter().enumerate() {
+                let i = n_fixed + 2 * k + j;
+                self.props[i] = Some(p.plan);
+                if let Some((role, attr)) = p.role {
+                    self.add_role(i, role, attr);
+                }
             }
         }
     }
