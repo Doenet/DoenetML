@@ -8,10 +8,12 @@
 // back where the core says after every move. The pointer position becomes a
 // request; the drawn position is always the core's answer.
 import JXG from "jsxgraph";
-import { useStore } from "../../hooks";
+import { useStableStore, useStore } from "../../hooks";
+import type { PrimUse } from "../../generated/shapes";
 import {
     useBoardElement,
     useBoardElementCells,
+    useBoardPrim,
     type BoardElement,
     type BoardHandle,
 } from "./Board";
@@ -185,17 +187,13 @@ function pointElement(
     return e;
 }
 
-/** The `point` primitive (ADR 0016): `cells` are its shape's x, y and
- * hide. */
-export function JxPoint({ idx, cells }: { idx: number; cells: number[] }) {
-    const store = useStore();
+/** The `point` primitive (ADR 0016): its shape binds x, y and hide. */
+export function JxPoint({ id, use }: { id: string; use: PrimUse }) {
+    const store = useStableStore();
+    const idx = store.comps.byId(id)!;
     const style = styleFor(store.comps.attr(idx, "styleNumber"));
     const layer = layerOf(store.comps.attr(idx, "layer"), POINT_LAYER_OFFSET);
-    useBoardElementCells(
-        idx,
-        () => cells,
-        (h) => pointElement(h, style, layer),
-    );
+    useBoardPrim(id, use, (h) => pointElement(h, style, layer));
     return null;
 }
 
@@ -373,10 +371,10 @@ function circleElement(h: BoardHandle): BoardElement {
     return e;
 }
 
-/** The `circle` primitive (ADR 0016): `cells` are its shape's center and
+/** The `circle` primitive (ADR 0016): its shape binds the center and the
  * radius. */
-export function JxCircle({ idx, cells }: { idx: number; cells: number[] }) {
-    useBoardElementCells(idx, () => cells, circleElement);
+export function JxCircle({ id, use }: { id: string; use: PrimUse }) {
+    useBoardPrim(id, use, circleElement);
     return null;
 }
 

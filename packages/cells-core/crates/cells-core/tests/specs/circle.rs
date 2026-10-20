@@ -38,7 +38,7 @@ spec! {
     case "drawn as a circle in a graph, not drawn outside one" {
         doenet r#"<graph><circle name="c"/><point name="p"/></graph>
                   <circle name="out"/><point name="q"/>"#;
-        shape { "c" = "circle", "p" = "point", "out" = "none", "q" = "none" }
+        shape { "c" = "circle", "p" = "point", "out" = "none", "q" = "coords" }
     }
 
     case "center and radius" {

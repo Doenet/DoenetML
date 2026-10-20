@@ -12,7 +12,8 @@ import {
 } from "react";
 import JXG from "jsxgraph";
 import type { CellStore } from "../../core";
-import { useStore } from "../../hooks";
+import { useStableStore, useStore } from "../../hooks";
+import type { PrimUse } from "../../generated/shapes";
 import { measure } from "../../trace";
 import { Children } from "../index";
 import {
@@ -427,6 +428,48 @@ export function useBoardElementCells(
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [h, store, store.comps, idx, key]);
+}
+
+/** A board primitive (ADR 0016): `make` builds its element once, bound to
+ * the cells `use` names on the component with identity `id`. A rebuild
+ * binds it again, without a React render, and the flush skips it when its
+ * values did not change. */
+export function useBoardPrim(
+    id: string,
+    use: PrimUse,
+    make: (h: BoardHandle) => BoardElement,
+) {
+    const store = useStableStore();
+    const h = useBoard();
+    useLayoutEffect(() => {
+        const e = make(h);
+        h.elements.add(e);
+        let unsubs: (() => void)[] = [];
+        let idx = -1;
+        const mark = () => h.mark(e);
+        const bind = () => {
+            unsubs.forEach((u) => u());
+            unsubs = [];
+            if (h.byComp.get(idx) === e) h.byComp.delete(idx);
+            const c = store.comps.byId(id);
+            if (c === undefined) return;
+            idx = c;
+            e.cells = store.comps.primCells(c, use);
+            h.byComp.set(c, e);
+            unsubs = e.cells.map((x) => store.subscribe(x, mark));
+            h.mark(e);
+        };
+        bind();
+        const off = store.subscribeStructure(bind);
+        return () => {
+            off();
+            unsubs.forEach((u) => u());
+            if (h.byComp.get(idx) === e) h.byComp.delete(idx);
+            h.elements.delete(e);
+            e.remove();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [h, store, id, use]);
 }
 
 /** Where to press to drag the named component (or the component with

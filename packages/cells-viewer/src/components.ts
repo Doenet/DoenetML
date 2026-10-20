@@ -42,6 +42,8 @@ export class ComponentTable {
     private decoder = new TextDecoder();
     private strCache = new Map<number, string>();
     private propIndex: Map<string, number>[];
+    private ids: string[] | null = null;
+    private byIds: Map<string, number> | null = null;
     private _cols: ComponentColumns;
     /**
      * @param reload re-reads the columns from the core. The views detach
@@ -156,6 +158,44 @@ export class ComponentTable {
         return null;
     }
 
+    /** The component's identity across rebuilds: its DAST node and scope,
+     * or for a component the build made (a `$ref` copy, a collected copy)
+     * its parent's identity and its position there. A rebuild renumbers
+     * components; their identities stay. */
+    id(c: number): string {
+        this.indexIds();
+        return this.ids![c];
+    }
+
+    /** The component with identity `id` in this table, if it has one. */
+    byId(id: string): number | undefined {
+        this.indexIds();
+        return this.byIds!.get(id);
+    }
+
+    private indexIds() {
+        if (this.ids) return;
+        const n = this.length;
+        const ids: string[] = new Array(n);
+        const byIds = new Map<string, number>();
+        const { node, scope, childStart, childCount, childList } = this.cols;
+        const stack: [number, string][] = [[this.root, "root"]];
+        while (stack.length) {
+            const [c, at] = stack.pop()!;
+            const id = node[c] === NONE ? at : `${node[c]}:${scope[c]}`;
+            ids[c] = id;
+            byIds.set(id, c);
+            for (let i = 0; i < childCount[c]; i++) {
+                const e = childList[childStart[c] + i];
+                if (!(e & TEXT_BIT)) stack.push([e, `${id}/${i}`]);
+            }
+        }
+        // Components outside the tree (a branch interface's stand-ins).
+        for (let c = 0; c < n; c++) ids[c] ??= `#${c}`;
+        this.ids = ids;
+        this.byIds = byIds;
+    }
+
     /** A key that identifies the component across rebuilds. Synthesized
      * components (copies made by `$ref` children or collects) have no DAST
      * node, so they are keyed by their position under the parent instead. */
@@ -176,6 +216,16 @@ export class ComponentTable {
             out[i] =
                 e & TEXT_BIT ? { t: this.string(e & ~TEXT_BIT) } : { c: e };
         }
+        return out;
+    }
+
+    /** The literal text a component holds, its descendants' included: an
+     * accessible name from a `<label>` or `<shortDescription>`. Values a
+     * reference shows are not text here. */
+    textOf(c: number): string {
+        let out = "";
+        for (const ch of this.children(c))
+            out += "t" in ch ? ch.t : this.textOf(ch.c);
         return out;
     }
 

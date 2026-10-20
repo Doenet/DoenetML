@@ -14,17 +14,3 @@ export function NumberView({ idx }: { idx: number }) {
         </span>
     );
 }
-
-/** A point outside a graph: its coordinates as text. */
-export function PointText({ idx }: { idx: number }) {
-    const store = useStore();
-    const x = useCell(store.comps.cell(idx, "x"));
-    const y = useCell(store.comps.cell(idx, "y"));
-    const hide = useCell(store.comps.cell(idx, "hide"));
-    if (hide !== 0 && !Number.isNaN(hide)) return null;
-    return (
-        <span data-comp={idx} data-name={store.comps.name(idx) ?? undefined}>
-            ({fmt(x)}, {fmt(y)})
-        </span>
-    );
-}

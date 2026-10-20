@@ -27,6 +27,8 @@ pub enum Prim {
     Range,
     /// A draggable point on the board.
     Point,
+    /// A point's coordinates as text, `(x, y)`, updated in place.
+    Coords,
     /// A circle on the board, dragged by its center.
     Circle,
 }
@@ -35,13 +37,20 @@ pub enum Prim {
 pub const MAX_PRIM_SLOTS: usize = 4;
 
 impl Prim {
-    pub const ALL: &[Prim] = &[Prim::Number, Prim::Range, Prim::Point, Prim::Circle];
+    pub const ALL: &[Prim] = &[
+        Prim::Number,
+        Prim::Range,
+        Prim::Point,
+        Prim::Coords,
+        Prim::Circle,
+    ];
 
     pub const fn name(self) -> &'static str {
         match self {
             Prim::Number => "number",
             Prim::Range => "range",
             Prim::Point => "point",
+            Prim::Coords => "coords",
             Prim::Circle => "circle",
         }
     }
@@ -51,7 +60,7 @@ impl Prim {
         match self {
             Prim::Number => &["value"],
             Prim::Range => &["min", "max", "step", "value"],
-            Prim::Point => &["x", "y", "hide"],
+            Prim::Point | Prim::Coords => &["x", "y", "hide"],
             Prim::Circle => &["cx", "cy", "radius"],
         }
     }
@@ -134,6 +143,11 @@ pub const fn range(
 /// `point(x, y, hide)`.
 pub const fn point(x: &'static str, y: &'static str, hide: &'static str) -> Bind {
     bind_of(Prim::Point, &[x, y, hide])
+}
+
+/// `coords(x, y, hide)`.
+pub const fn coords(x: &'static str, y: &'static str, hide: &'static str) -> Bind {
+    bind_of(Prim::Coords, &[x, y, hide])
 }
 
 /// `circle(cx, cy, radius)`.

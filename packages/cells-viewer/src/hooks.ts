@@ -9,6 +9,17 @@ export const StoreContext = createContext<{
     version: number;
 } | null>(null);
 
+/** The store alone, which a rebuild does not replace: what a component
+ * reads that rebinds itself on a rebuild (`renderers/prims.tsx`) instead
+ * of re-rendering with the whole tree. */
+export const StableStoreContext = createContext<CellStore | null>(null);
+
+export function useStableStore(): CellStore {
+    const s = useContext(StableStoreContext);
+    if (!s) throw new Error("no store");
+    return s;
+}
+
 export function useStore(): CellStore {
     const s = useContext(StoreContext);
     if (!s) throw new Error("no store");

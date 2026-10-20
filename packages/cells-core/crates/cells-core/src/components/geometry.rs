@@ -4,7 +4,7 @@
 //! (`compile/geometry/`).
 
 use super::define::*;
-use super::view::{PrimUse, When, bind, circle, point, shape};
+use super::view::{PrimUse, When, bind, circle, coords, point, shape};
 use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
@@ -17,10 +17,14 @@ pub(super) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)
     .default_prop("coords")
     .views(&[("coords", &["x", "y"])])
     .sticky(Shape::Point, point::X, 1)
-    // Outside a graph the viewer draws its coordinates as text.
-    .shapes(&[shape("point", When::InGraph, POINT_VIEW)]);
+    // On a graph's board, else its coordinates as text.
+    .shapes(&[
+        shape("point", When::InGraph, POINT_VIEW),
+        shape("coords", When::Always, COORDS_VIEW),
+    ]);
 
 const POINT_VIEW: &[PrimUse] = &bind(POINT_PROPS, [point("x", "y", "hide")]);
+const COORDS_VIEW: &[PrimUse] = &bind(POINT_PROPS, [coords("x", "y", "hide")]);
 
 // `hide` is a boolean in the current core; here it is a 0/1 cell.
 const POINT_PROPS: &[PropDef] = &props([planned("x"), planned("y"), planned("hide")]);

@@ -7,6 +7,7 @@ export const PRIM_SLOTS = {
     number: ["value"],
     range: ["min", "max", "step", "value"],
     point: ["x", "y", "hide"],
+    coords: ["x", "y", "hide"],
     circle: ["cx", "cy", "radius"],
 } as const;
 
@@ -25,6 +26,12 @@ export const SHAPES: Record<string, readonly Shape[]> = {
             name: "point",
             nodes: [
                 { prim: "point", at: [0, 1, 2] },
+            ],
+        },
+        {
+            name: "coords",
+            nodes: [
+                { prim: "coords", at: [0, 1, 2] },
             ],
         },
     ],

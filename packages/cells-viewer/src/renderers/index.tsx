@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 import { useStore } from "../hooks";
 import type { Child } from "../components";
-import { NumberView, PointText } from "./Number";
+import { NumberView } from "./Number";
 import { NumberInput } from "./NumberInput";
 import { TextInput } from "./TextInput";
 import { BooleanInput } from "./BooleanInput";
@@ -35,7 +35,7 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     const store = useStore();
     // A component the core gave a shape is drawn by its primitives.
     const shape = store.comps.shape(idx);
-    if (shape) return <ShapeView idx={idx} shape={shape} />;
+    if (shape) return <ShapeView id={store.comps.id(idx)} shape={shape} />;
     switch (store.comps.componentType(idx)) {
         case "document":
             return (
@@ -45,9 +45,9 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             );
         case "graph":
             return <JsxGraph idx={idx} />;
-        // In a graph a point is drawn by its shape.
+        // A point is drawn by its shape, in a graph or as text.
         case "point":
-            return inGraph ? null : <PointText idx={idx} />;
+            return null;
         case "number":
         case "clampNumber":
             return store.comps.attr(idx, "displayDecimals") !== null ? (

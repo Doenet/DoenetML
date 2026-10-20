@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from "react";
 import type { CellStore } from "./core";
-import { StoreContext } from "./hooks";
+import { StableStoreContext, StoreContext } from "./hooks";
 import { CommitReporter, Component } from "./renderers";
 import "./viewer.css";
 
@@ -15,9 +15,11 @@ export function CellsViewer({ store }: { store: CellStore }) {
     );
     const value = useMemo(() => ({ store, version }), [store, version]);
     return (
-        <StoreContext.Provider value={value}>
-            <CommitReporter />
-            <Component idx={store.comps.root} inGraph={false} />
-        </StoreContext.Provider>
+        <StableStoreContext.Provider value={store}>
+            <StoreContext.Provider value={value}>
+                <CommitReporter />
+                <Component idx={store.comps.root} inGraph={false} />
+            </StoreContext.Provider>
+        </StableStoreContext.Provider>
     );
 }
