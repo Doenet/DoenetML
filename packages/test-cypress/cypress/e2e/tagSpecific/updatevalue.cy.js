@@ -243,4 +243,57 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#n").should("have.text", "4");
         cy.get("#_announcements").should("have.text", "Value updated");
     });
+
+    it("an announcement is marked with the language it is in", () => {
+        const doenetML = `
+    <number name="n">1</number>
+    <updateValue name="authored" target="$n" newValue="$n + 1">
+      <label>Sumar 1</label>
+      <statusMessage>Ahora es $n.</statusMessage>
+    </updateValue>
+    <updateValue name="plain" target="$n" newValue="$n + 10">
+      <label>Sumar 10</label>
+    </updateValue>
+    `;
+
+        function render(uiLocale) {
+            cy.window().then((win) => {
+                win.postMessage(
+                    { doenetML, documentLocale: "es", uiLocale },
+                    "*",
+                );
+            });
+        }
+
+        cy.log("An English reader of a Spanish document");
+        render("en");
+
+        cy.log("The author's message inherits the document's language");
+        cy.get("#authored_button").click();
+        cy.get("#_announcements").should("have.text", "Ahora es 2.");
+        cy.get("#_announcements span").should("not.have.attr", "lang");
+        cy.get("#_announcements")
+            .closest("[lang]")
+            .should("have.attr", "lang", "es");
+
+        cy.log("The default is in the reader's language, and says so");
+        cy.get("#plain_button").click();
+        cy.get("#_announcements").should("have.text", "Value updated");
+        cy.get("#_announcements span").should("have.attr", "lang", "en");
+
+        cy.log(
+            "A French reader: marked French once translated, English until then",
+        );
+        cy.visit("/");
+        render("fr");
+        cy.get("#plain_button").click();
+        cy.get("#n").should("have.text", "11");
+        cy.get("#_announcements span")
+            .should("not.have.text", "")
+            .then(($span) => {
+                expect($span.attr("lang")).eq(
+                    $span.text() === "Value updated" ? "en" : "fr",
+                );
+            });
+    });
 });

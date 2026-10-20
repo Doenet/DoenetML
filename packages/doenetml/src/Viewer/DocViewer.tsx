@@ -25,6 +25,7 @@ import { UiButton } from "@doenet/ui-components";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
+    DEFAULT_LOCALE,
     directionOf,
     reachableCatalogLocales,
     resolveDocumentLocale,
@@ -314,7 +315,13 @@ const visuallyHiddenStyle: React.CSSProperties = {
     border: 0,
 };
 
-type AnnouncementRegionHandle = { announce: (message: string) => void };
+type AnnouncementRegionHandle = {
+    /**
+     * Announce `message`. `lang` is the language it is in when that is not the
+     * document's, which the region otherwise inherits.
+     */
+    announce: (message: string, lang?: string) => void;
+};
 
 /**
  * The one live region a document's announcements are made in
@@ -336,6 +343,11 @@ type AnnouncementRegionHandle = { announce: (message: string) => void };
  * since gone stale. A new announcement cancels what is left of the previous
  * one. The timers belong to this component and go with it.
  *
+ * An announcement in a language other than the document's carries its own
+ * `lang`, even where the two share a direction and other chrome would not
+ * (`useChromeLangDir`): this text exists only to be spoken, and a screen
+ * reader picks its voice from `lang`.
+ *
  * Its own component, holding its own text, so that an announcement redraws
  * only the region and not the document.
  */
@@ -346,7 +358,10 @@ function AnnouncementRegion({
     id: string;
     ref: React.Ref<AnnouncementRegionHandle>;
 }) {
-    const [text, setText] = useState("");
+    const [announcement, setAnnouncement] = useState<{
+        text: string;
+        lang?: string;
+    }>({ text: "" });
     const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
     function clearTimers() {
@@ -357,12 +372,18 @@ function AnnouncementRegion({
     useImperativeHandle(
         ref,
         () => ({
-            announce(message: string) {
+            announce(message: string, lang?: string) {
                 clearTimers();
-                setText("");
+                setAnnouncement({ text: "" });
                 timers.current.push(
-                    setTimeout(() => setText(message), ANNOUNCEMENT_DELAY_MS),
-                    setTimeout(() => setText(""), ANNOUNCEMENT_LIFETIME_MS),
+                    setTimeout(
+                        () => setAnnouncement({ text: message, lang }),
+                        ANNOUNCEMENT_DELAY_MS,
+                    ),
+                    setTimeout(
+                        () => setAnnouncement({ text: "" }),
+                        ANNOUNCEMENT_LIFETIME_MS,
+                    ),
                 );
             },
         }),
@@ -379,7 +400,9 @@ function AnnouncementRegion({
             aria-atomic="true"
             style={visuallyHiddenStyle}
         >
-            {text}
+            {announcement.text && (
+                <span lang={announcement.lang}>{announcement.text}</span>
+            )}
         </div>
     );
 }
@@ -2369,15 +2392,23 @@ export function DocViewer({
 
         if (announcement !== undefined) {
             // Named `translate` so that `lint:i18n` sees the key.
+            // The author's message is in the document's language, which the
+            // region inherits. The default is in the reader's, or in English
+            // where their language has no translation of it.
             const translate = translateRef.current;
-            announcementRegion.current?.announce(
-                announcement ||
+            if (announcement) {
+                announcementRegion.current?.announce(announcement);
+            } else {
+                announcementRegion.current?.announce(
                     translate(
                         "action-button-updated",
                         undefined,
                         "Value updated",
                     ),
-            );
+                    translate.localeOf?.("action-button-updated") ??
+                        DEFAULT_LOCALE,
+                );
+            }
         }
 
         if (!deferred) {
