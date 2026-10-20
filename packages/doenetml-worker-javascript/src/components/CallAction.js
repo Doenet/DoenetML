@@ -325,7 +325,10 @@ export default class CallAction extends InlineComponent {
             previousValues.triggerWhen === false &&
             !(await this.stateValues.insideTriggerSet)
         ) {
-            return await this.callAction({ actionId });
+            return await this.callAction({
+                actionId,
+                skipRendererUpdate: true,
+            });
         }
     }
 

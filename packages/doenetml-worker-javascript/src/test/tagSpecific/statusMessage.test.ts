@@ -365,7 +365,7 @@ describe("StatusMessage tag tests", async () => {
         ]);
     });
 
-    it("a change made by triggerWhen, triggerWith or triggerWhenObjectsClicked is not announced", async () => {
+    it("a change made by triggerWhen (on updateValue or callAction), triggerWith or triggerWhenObjectsClicked is not announced", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number name="n">1</number>
@@ -380,6 +380,11 @@ describe("StatusMessage tag tests", async () => {
     <updateValue name="with" target="$m" newValue="$m + 10" triggerWith="$uv">
       <statusMessage>Chained.</statusMessage>
     </updateValue>
+    <number name="j">0</number>
+    <updateValue name="bump" target="$j" newValue="$j + 1" />
+    <callAction name="callWhen" target="$bump" actionName="updateValue" triggerWhen="$n > 1">
+      <statusMessage>Called.</statusMessage>
+    </callAction>
     <graph><point name="P">(1,2)</point></graph>
     <updateValue name="clicked" target="$k" newValue="$k + 1" triggerWhenObjectsClicked="$P">
       <statusMessage>Clicked.</statusMessage>
@@ -397,6 +402,10 @@ describe("StatusMessage tag tests", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
         ).eq(11);
+        // The `<callAction>` fired by `triggerWhen` ran, but is not announced.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("j")].stateValues.value,
+        ).eq(1);
         // Only the press: its message is read after the chained action ran.
         expect(announcements().map((batch) => batch.announcement)).toEqual([
             "Count is now 2, m is 11.",
