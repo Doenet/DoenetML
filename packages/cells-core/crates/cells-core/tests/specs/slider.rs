@@ -11,6 +11,13 @@ spec! {
         expect { "s.from" = 0, "s.to" = 10, "s.step" = 1, "s.value" = 0, "s.index" = 0 }
     }
 
+    case "without an initialValue: at `from`, wherever that is" {
+        doenet r#"<slider name="s" from="3" to="9" step="2"/>"#;
+        expect { "s.value" = 3, "s.index" = 0 }
+        request { "s.value" = 6.2 }
+        expect { "s.value" = 7, "s.index" = 2 }
+    }
+
     case "starts at initialValue" {
         doenet r#"<slider name="s" from="0" to="10" step="1" initialValue="3"/>"#;
         expect { "s.value" = 3, "s.index" = 3, "s.maxIndex" = 10 }
@@ -34,13 +41,10 @@ spec! {
         expect { "s.value" = 3 }
     }
 
-    // Without an initialValue the stored value is 0, shown at the grid point
-    // nearest it. The JavaScript core starts at `from` instead (-5 here;
-    // Slider.js, index 0 when the value is null): a deviation this case
-    // records, not one it endorses.
+    // Without an initialValue the slider starts at `from`.
     case "a range that does not start at zero" {
         doenet r#"<slider name="s" from="-5" to="5" step="2.5"/>"#;
-        expect { "s.value" = 0, "s.index" = 2, "s.maxIndex" = 4 }
+        expect { "s.value" = -5, "s.index" = 0, "s.maxIndex" = 4 }
         request { "s.value" = 1 }
         expect { "s.value" = 0, "s.index" = 2 }
     }

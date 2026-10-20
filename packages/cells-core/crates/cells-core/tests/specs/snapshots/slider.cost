@@ -1,4 +1,5 @@
 defaults: from 0 to 10 by 1, at 0: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
+without an initialValue: at `from`, wherever that is: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
 starts at initialValue: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
 an initialValue off the grid shows snapped: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
 a request snaps to the nearest step and clamps to the range: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
