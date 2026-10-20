@@ -1,7 +1,7 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Migration step 1 is done, steps 2 and 3 for
-the circle; see Migration.
+Status: proposed 2026-10-20. Migration steps 1 and 3 are done, step 2
+for the circle; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -256,7 +256,14 @@ case), carry every piece before anything is opened to contributors:
    a bare or cloned copy (`place_list_copy`); a branch interface holds
    the longest member's list. Every circle without three through points
    has 2 fewer cells per missing point; the golden dump, which reads lists
-   through `prop_cells`, is identical.
+   through `prop_cells`, is identical. **Done for the polygon**: its
+   vertices are its list, and a sticky group reads them as such; 2000
+   triangles load in 14,006 cells (66,006 before), 0.66 MB (1.49 MB),
+   7.6-9.0 ms (10.9-11.4 ms). The cap is now what an element's byte-
+   numbered slots hold, 100 vertices (`MAX_VERTICES`), and 31 for a
+   rigid polygon, whose one `Shape` instruction reads two inputs per
+   vertex (`MAX_RIGID_VERTICES`). The viewer reads a component's props
+   up to the next one's (`ComponentTable.props`).
 4. `ops!`, moving every operator; the round-trip tests.
 5. View shapes, the view tree and the primitives the pilots use (range,
    number, board, point, circle), with the generated TypeScript and the

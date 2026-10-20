@@ -10,9 +10,14 @@
 /// The most inputs one vector operator reads.
 pub const MAX_VEC_IN: usize = 64;
 
-/// The most vertices of a polygon (`VecOp::Shape` reads two per vertex
-/// and a pivot point).
-pub const MAX_VERTICES: usize = 16;
+/// The most vertices of a polygon: two slots each, and an element's slots
+/// are numbered by a byte (`Arg::Own`), with room left for its hidden
+/// slots.
+pub const MAX_VERTICES: usize = 100;
+
+/// The most vertices of a rigid polygon (`VecOp::Shape` reads two per
+/// vertex and a pivot point).
+pub const MAX_RIGID_VERTICES: usize = (MAX_VEC_IN - 2) / 2;
 
 /// The most entries of a tuple.
 pub const MAX_TUPLE: usize = 8;
@@ -35,7 +40,11 @@ pub const MAX_REFERENCES: usize = u8::MAX as usize;
 const _: () = {
     let byte = u8::MAX as usize;
     assert!(MAX_VEC_IN <= byte);
-    assert!(2 * MAX_VERTICES + 2 <= MAX_VEC_IN, "a polygon's shape");
+    assert!(
+        2 * MAX_RIGID_VERTICES + 2 <= MAX_VEC_IN,
+        "a polygon's shape"
+    );
+    assert!(1 + 2 * MAX_VERTICES + 16 <= byte, "a polygon's slots");
     // `Choose` reads one cell more than it chooses among.
     assert!(MAX_CHOICES < MAX_VEC_IN, "an answer's choices");
     assert!(MAX_CASES < MAX_VEC_IN, "a conditionalContent's cases");

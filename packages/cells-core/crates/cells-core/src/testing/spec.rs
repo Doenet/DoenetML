@@ -19,7 +19,8 @@
 //! and reporting every failure. A case is its source, then any of:
 //!
 //! - `expect { "name.prop" = value, .. }`: values now, a number or a
-//!   tuple for a prop of several cells (`"p.coords" = (1, 2)`).
+//!   tuple for a prop of several cells (`"p.coords" = (1, 2)`), or an
+//!   array for a list's cells (`"t.vertices" = [1, 2, 3, 5]`).
 //! - `request { "name.prop" = value, .. }`: one tick. Numbers are scalar
 //!   requests; tuples are points dragged together (ADR 0006).
 //! - `dropped(n)`: the last tick dropped `n` requests. A tick not followed
@@ -71,6 +72,13 @@ impl<A: Into<f64>, B: Into<f64>> From<(A, B)> for Value {
 impl<A: Into<f64>, B: Into<f64>, C: Into<f64>> From<(A, B, C)> for Value {
     fn from((a, b, c): (A, B, C)) -> Self {
         Value::Tuple(vec![a.into(), b.into(), c.into()])
+    }
+}
+
+/// A list's cells, flattened: `[x1, y1, x2, y2, ...]`.
+impl<A: Into<f64>, const N: usize> From<[A; N]> for Value {
+    fn from(v: [A; N]) -> Self {
+        Value::Tuple(v.into_iter().map(Into::into).collect())
     }
 }
 

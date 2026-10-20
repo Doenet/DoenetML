@@ -234,11 +234,22 @@ impl<'a> Compiler<'a> {
                             });
                             break;
                         }
-                        // `$l.point1[2]`: a coordinate of a point-valued prop.
-                        if let (Some(parts_of), Some(expr)) = (
+                        // The coordinates of a point-valued prop: a view
+                        // (`center`) or a list's point (`vertex3`).
+                        let point_parts: Option<Vec<String>> = match (
                             component_type.virtual_prop(name),
-                            d.part_indices(part).next(),
+                            component_type.prop_at(name),
                         ) {
+                            (Some(parts), _) => Some(parts.iter().map(|p| p.to_string()).collect()),
+                            (None, Some(PropAt::Item(k))) => component_type
+                                .list()
+                                .map(|l| l.coords.iter().map(|c| format!("{c}{k}")).collect()),
+                            _ => None,
+                        };
+                        // `$l.point1[2]`: a coordinate of a point-valued prop.
+                        if let (Some(parts_of), Some(expr)) =
+                            (point_parts.as_ref(), d.part_indices(part).next())
+                        {
                             let k = self.literal_index(expr, &display)?;
                             if !(1..=2).contains(&k)
                                 || d.part_indices(part).nth(1).is_some()
@@ -246,7 +257,7 @@ impl<'a> Compiler<'a> {
                             {
                                 return Err(Error::PathTooDeep(display));
                             }
-                            prop = Some(parts_of[k as usize - 1].to_string());
+                            prop = Some(parts_of[k as usize - 1].clone());
                             break;
                         }
                         if d.part_indices(part).next().is_some() {
@@ -255,8 +266,8 @@ impl<'a> Compiler<'a> {
                         // A prop name, or a coordinate of a point-valued prop
                         // (`$c.center.y`), which must end the path.
                         if i + 1 != parts.len() {
-                            let parts_of = component_type
-                                .virtual_prop(name)
+                            let parts_of = point_parts
+                                .as_ref()
                                 .ok_or_else(|| Error::PathTooDeep(display.clone()))?;
                             let coord = d.strings.get(names[i + 1]).trim();
                             let j = match coord {
@@ -267,7 +278,7 @@ impl<'a> Compiler<'a> {
                             if i + 2 != parts.len() {
                                 return Err(Error::PathTooDeep(display));
                             }
-                            prop = Some(parts_of[j].to_string());
+                            prop = Some(parts_of[j].clone());
                             break;
                         }
                         if component_type.prop_at(name).is_none()

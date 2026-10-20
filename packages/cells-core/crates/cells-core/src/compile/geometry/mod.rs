@@ -275,20 +275,17 @@ impl<'a> Compiler<'a> {
         }
         let Some(e) = e else { return Ok(None) };
         let el = &self.compiled.templates[cur_t].elems[e];
-        // A circle's list holds the points given, up to three.
-        if el.component_type == ComponentType::Circle
-            && el.component_type.prop_at(prop) == Some(PropAt::List)
-        {
-            return Ok(Some(self.count_points_in_attr(el.node, "through")?.min(3)));
+        // A list holds the points given: a circle's up to three.
+        if el.component_type.prop_at(prop) == Some(PropAt::List) {
+            return Ok(Some(match el.component_type {
+                ComponentType::Circle => self.count_points_in_attr(el.node, "through")?.min(3),
+                _ => self.count_points_in_attr(el.node, "vertices")?,
+            }));
         }
         let Some(items) = el.component_type.array_prop(prop) else {
             return Ok(None);
         };
-        let n = match el.component_type {
-            ComponentType::Polygon => self.count_points_in_attr(el.node, "vertices")?,
-            _ => items.len(),
-        };
-        Ok(Some(n.min(items.len())))
+        Ok(Some(items.len()))
     }
 
     /// Points in a point-list attribute, counted from its text alone.

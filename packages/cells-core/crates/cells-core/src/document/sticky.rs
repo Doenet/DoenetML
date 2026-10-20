@@ -10,6 +10,7 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 
 use super::*;
+use crate::components::StickyPoints;
 use crate::program::Op;
 use crate::program::VecOp;
 use crate::tick::invert::PointRequest;
@@ -66,13 +67,14 @@ impl Document {
             }
             for (m, gates) in self.components.sticky_members(g) {
                 let component_type = self.component_type(m);
-                let (shape, first, max) = component_type.sticky_layout().unwrap();
+                let (shape, points) = component_type.sticky_layout().unwrap();
                 let cells = self.comp_cells(m);
-                let n = if component_type == ComponentType::Polygon {
-                    (self.cells[cells[prop::polygon::NUM_VERTICES] as usize].max(0.0) as usize)
-                        .min(max)
-                } else {
-                    max
+                let (first, n) = match points {
+                    StickyPoints::Props { first, n } => (first, n),
+                    StickyPoints::List => (
+                        component_type.prop_defs().len(),
+                        component_type.list_len(cells.len()),
+                    ),
                 };
                 let rigid = n > 0 && self.is_shape_output(cells[first]);
                 let mut ids = Vec::with_capacity(n);

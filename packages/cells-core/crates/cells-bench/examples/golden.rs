@@ -20,12 +20,20 @@ use std::path::PathBuf;
 /// live points through `prop_cells`, which a core with fixed layouts
 /// answers too (padded past the count), so two commits on either side of
 /// a layout change compare equal.
-const LISTS: &[(ComponentType, &str, [&str; 2], &str)] = &[(
-    ComponentType::Circle,
-    "throughPoints",
-    ["throughX", "throughY"],
-    "numThroughPoints",
-)];
+const LISTS: &[(ComponentType, &str, [&str; 2], &str)] = &[
+    (
+        ComponentType::Circle,
+        "throughPoints",
+        ["throughX", "throughY"],
+        "numThroughPoints",
+    ),
+    (
+        ComponentType::Polygon,
+        "vertices",
+        ["x", "y"],
+        "numVertices",
+    ),
+];
 
 /// Whether `name` is a coordinate of an item of the type's list, which a
 /// fixed layout holds as a prop of its table.
