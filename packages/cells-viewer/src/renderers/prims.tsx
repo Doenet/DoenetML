@@ -12,6 +12,7 @@ import { useStableStore } from "../hooks";
 import type { Prim, PrimUse, Shape } from "../generated/shapes";
 import { fmt } from "./Number";
 import { JxCircle, JxPoint } from "./jsxgraph/elements";
+import { JsxGraph } from "./jsxgraph/Board";
 
 type PrimProps = { id: string; use: PrimUse };
 
@@ -130,10 +131,13 @@ const PRIMS: Record<Prim, (p: PrimProps) => React.ReactNode> = {
     point: JxPoint,
     coords: CoordsPrim,
     circle: JxCircle,
+    board: JsxGraph,
 };
 
 /** Primitives drawn on a graph's board rather than in the page. */
 const ON_BOARD: ReadonlySet<Prim> = new Set(["point", "circle"]);
+/** Primitives that are blocks, held in a `div` rather than a `span`. */
+const BLOCK: ReadonlySet<Prim> = new Set(["board"]);
 
 /** A component drawn by its shape: each primitive bound to it. Memoized on
  * the component's identity and shape, so a rebuild that leaves both alone
@@ -152,14 +156,15 @@ export const ShapeView = memo(function ShapeView({
     });
     if (shape.nodes.every((n) => ON_BOARD.has(n.prim))) return <>{prims}</>;
     const c = store.comps.byId(id);
+    const Holder = shape.nodes.some((n) => BLOCK.has(n.prim)) ? "div" : "span";
     return (
-        <span
+        <Holder
             className={shape.name}
             data-name={
                 c === undefined ? undefined : (store.comps.name(c) ?? undefined)
             }
         >
             {prims}
-        </span>
+        </Holder>
     );
 });

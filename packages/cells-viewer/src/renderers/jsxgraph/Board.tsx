@@ -155,14 +155,18 @@ export const useBoard = () => useContext(BoardContext)!;
 
 let nextBoardId = 0;
 
-export function JsxGraph({ idx }: { idx: number }) {
+/** The `board` primitive (ADR 0016): a graph's JSXGraph board, its
+ * bounding box the cells its shape binds (xmin, ymax, xmax, ymin), drawing
+ * the graph's children. It reads the store through the context a rebuild
+ * changes, so its children render again with the tree. */
+export function JsxGraph({ id: compId, use }: { id: string; use: PrimUse }) {
     const store = useStore();
+    const idx = store.comps.byId(compId)!;
     const container = useRef<HTMLDivElement>(null);
     const [id] = useState(() => `cells-board-${nextBoardId++}`);
     const [handle, setHandle] = useState<BoardHandle | null>(null);
     const settingBBox = useRef(false);
-    const bboxCells = () =>
-        ["xmin", "ymax", "xmax", "ymin"].map((p) => store.comps.cell(idx, p));
+    const bboxCells = () => store.comps.primCells(idx, use);
 
     useLayoutEffect(() => {
         const cells = store.cells();

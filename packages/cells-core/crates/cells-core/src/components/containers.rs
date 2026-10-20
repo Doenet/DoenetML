@@ -2,6 +2,7 @@
 //! hold other components. Document and section also hold credit.
 
 use super::define::*;
+use super::view::{PrimUse, When, bind, board, shape};
 use super::{ComponentTypeInfo, PropDef};
 
 /// The root. `creditAchieved` and `percentCreditAchieved` are planned
@@ -19,7 +20,12 @@ pub mod document {
 }
 
 /// `<graph>`: its x and y range.
-pub(super) const GRAPH: ComponentTypeInfo = info(&["graph"], GRAPH_PROPS).container();
+pub(super) const GRAPH: ComponentTypeInfo = info(&["graph"], GRAPH_PROPS)
+    .container()
+    .shapes(&[shape("graph", When::Always, GRAPH_VIEW)]);
+
+/// A board drawing the graph's children.
+const GRAPH_VIEW: &[PrimUse] = &bind(GRAPH_PROPS, [board("xmin", "ymax", "xmax", "ymin")]);
 
 const GRAPH_PROPS: &[PropDef] = &props([
     attr("xmin", -10.0),

@@ -10,7 +10,6 @@ import { AnswerView } from "./Answer";
 import { MathView } from "./Math";
 import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
 import { ChoiceInputView, HintView } from "./Hint";
-import { JsxGraph } from "./jsxgraph/Board";
 import { ShapeView } from "./prims";
 import { JxLine, JxPolygon, JxPolyline } from "./jsxgraph/elements";
 import {
@@ -43,8 +42,6 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
                     <Children idx={idx} inGraph={false} />
                 </div>
             );
-        case "graph":
-            return <JsxGraph idx={idx} />;
         // A point is drawn by its shape, in a graph or as text.
         case "point":
             return null;

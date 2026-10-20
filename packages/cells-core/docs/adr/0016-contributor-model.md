@@ -1,7 +1,7 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
-for the circle, step 5 in part; see Migration.
+Status: proposed 2026-10-20. Migration steps 1, 3, 4 and 5 are done (5
+short of two budgets), step 2 for the circle; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -273,20 +273,41 @@ case), carry every piece before anything is opened to contributors:
 5. View shapes, the view tree and the primitives the pilots use (range,
    number, board, point, circle), with the generated TypeScript and the
    keyed reconciliation; the budgets measured in the browser layer.
-   **Done in part**: view shapes beside the tables (`components/view.rs`:
-   `Prim`, `bind`, `shape`, `When`) for the slider, the circle and point
-   in a graph, and the number without `displayDecimals`; a shape column
-   in the component table, chosen when built; the viewer's copy written
-   by `tests/view_shapes.rs`; the number, range, point and circle
-   primitives (`renderers/prims.tsx`), number and range updating the DOM
-   in place. Measured against the commit before, same machine (frame
-   latency p50/p90): depth-1000 14.4/21.7 ms to 8.8/10.2 ms, its commit
-   4.9 to 2.0 ms for 1000 changed numbers (2 µs each, the budget);
-   breadth-1000 12.1/25.2 to 9.9/22.4 ms; lesson and sir unchanged. Not
-   done: the board as a primitive (graphs keep their renderer), keyed
-   reconciliation across rebuilds, the mount budgets, and the
-   accessibility contract (the range has no accessible name yet, as the
-   slider's renderer had none).
+   **Done** for the pilots: view shapes beside the tables
+   (`components/view.rs`: `Prim`, `bind`, `shape`, `When`) for the
+   slider, the circle, the point (on a board in a graph, else its
+   coordinates as text), the number without `displayDecimals` and the
+   graph; a shape column in the component table, chosen when built; the
+   viewer's copy written by `tests/view_shapes.rs`; the number, range,
+   coords, point, circle and board primitives (`renderers/prims.tsx`),
+   the text ones writing the DOM in place, and only text that changed.
+   A shape-drawn component is addressed by its identity (DAST node and
+   scope), memoized on it, and its primitives bind again after a rebuild
+   without a React render; the range is named by the slider's `<label>`
+   or `<shortDescription>`. Measured on one machine, frame latency
+   p50/p90, run-to-run spread of a few ms at p90:
+
+   | Fixture | Before step 5 | Now | Budget |
+   |---|---|---|---|
+   | depth-1000 | 14.4/21.7 ms | 9.9/12.3 ms | 16 ms |
+   | breadth-1000 | 12.1/25.2 ms | 10.2/14.0 ms | 16 ms |
+   | rebuild-1000 | (25.6/57.0 after the shapes) | 12.2/22.5 ms | 50 ms |
+   | rebuild-10000 | (timed out after the shapes) | 4.1/188 ms | 50 ms |
+   | lesson | 2.0/2.4 ms | 1.9/2.4 ms | 16 ms |
+
+   The in-place work of a depth-1000 tick is 1.2 ms for 1001 changed
+   cells, core included: about 1.1 µs a leaf, inside the 2 µs budget.
+   Two budgets are not met. `rebuild-10000`'s rebuild frames spend
+   100-155 ms in the browser's style and layout of the fixture's
+   30,000-node inline flow, which no binding avoids; the budget holds
+   only for documents whose structure change does not relayout that much
+   (or with virtualization, not planned). The mount budgets, from the
+   trace layer (`homework`, viewer page, cold, CPU ×1): render 62-66 ms
+   (75.7 the day before; budget 30), its React commit 13-14 ms for 124
+   components, about 108 µs each (budget 80), and board init 23-24 ms
+   (27.5; budget 10), most of it JSXGraph's `initBoard` and axes. Meeting
+   them needs the remaining types drawn by shapes and a cheaper board
+   setup; they are left as measured.
 6. The Rust formatter and the export arm for those primitives.
 7. The contributor guide (ARCHITECTURE.md, "Where to change things"),
    written from the pilots.

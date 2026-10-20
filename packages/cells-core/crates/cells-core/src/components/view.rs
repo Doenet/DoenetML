@@ -31,6 +31,10 @@ pub enum Prim {
     Coords,
     /// A circle on the board, dragged by its center.
     Circle,
+    /// A graph's board: its bounding box (`xmin`, `ymax`, `xmax`, `ymin`,
+    /// JSXGraph's order), which a pan or zoom requests; it draws the
+    /// component's children on itself.
+    Board,
 }
 
 /// The most slots a primitive binds.
@@ -43,6 +47,7 @@ impl Prim {
         Prim::Point,
         Prim::Coords,
         Prim::Circle,
+        Prim::Board,
     ];
 
     pub const fn name(self) -> &'static str {
@@ -52,6 +57,7 @@ impl Prim {
             Prim::Point => "point",
             Prim::Coords => "coords",
             Prim::Circle => "circle",
+            Prim::Board => "board",
         }
     }
 
@@ -62,6 +68,7 @@ impl Prim {
             Prim::Range => &["min", "max", "step", "value"],
             Prim::Point | Prim::Coords => &["x", "y", "hide"],
             Prim::Circle => &["cx", "cy", "radius"],
+            Prim::Board => &["xmin", "ymax", "xmax", "ymin"],
         }
     }
 }
@@ -153,6 +160,16 @@ pub const fn coords(x: &'static str, y: &'static str, hide: &'static str) -> Bin
 /// `circle(cx, cy, radius)`.
 pub const fn circle(cx: &'static str, cy: &'static str, radius: &'static str) -> Bind {
     bind_of(Prim::Circle, &[cx, cy, radius])
+}
+
+/// `board(xmin, ymax, xmax, ymin)`.
+pub const fn board(
+    xmin: &'static str,
+    ymax: &'static str,
+    xmax: &'static str,
+    ymin: &'static str,
+) -> Bind {
+    bind_of(Prim::Board, &[xmin, ymax, xmax, ymin])
 }
 
 /// The binds of a shape with their props resolved in `table`. A name not

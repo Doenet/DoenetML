@@ -9,6 +9,7 @@ export const PRIM_SLOTS = {
     point: ["x", "y", "hide"],
     coords: ["x", "y", "hide"],
     circle: ["cx", "cy", "radius"],
+    board: ["xmin", "ymax", "xmax", "ymin"],
 } as const;
 
 export type Prim = keyof typeof PRIM_SLOTS;
@@ -21,6 +22,14 @@ export type Shape = { name: string; nodes: readonly PrimUse[] };
 /** By component tag, the type's shapes: a component's shape column
  * indexes this list (255: none). */
 export const SHAPES: Record<string, readonly Shape[]> = {
+    graph: [
+        {
+            name: "graph",
+            nodes: [
+                { prim: "board", at: [0, 3, 1, 2] },
+            ],
+        },
+    ],
     point: [
         {
             name: "point",
