@@ -11,8 +11,8 @@ two through points and a radius: the center on the left of p1 to p2: cells 21 ·
 three through points: dragged rigidly, scaled about the center: cells 23 · essential 13 · fixed 3 · instrs 5 · components 6
 three through points, one on a grid: the shape moves with the snap: cells 29 · essential 13 · fixed 3 · instrs 11 · components 6
 a center on a grid carries the through point: cells 26 · essential 10 · fixed 3 · instrs 11 · components 5
-through a triangle's vertices: cells 47 · essential 10 · fixed 30 · instrs 5 · components 4
-a point on a fixed number: half its drag is refused: cells 49 · essential 11 · fixed 31 · instrs 5 · components 6
+through a triangle's vertices: cells 21 · essential 10 · fixed 4 · instrs 5 · components 4
+a point on a fixed number: half its drag is refused: cells 23 · essential 11 · fixed 5 · instrs 5 · components 6
 a copy that overrides the radius shares the center: cells 22 · essential 8 · fixed 4 · instrs 10 · components 4
 a through point by name, in the current core's spellings, and past the end: cells 22 · essential 11 · fixed 4 · instrs 5 · components 8
 a bare copy holds its referent's through points: cells 18 · essential 8 · fixed 3 · instrs 5 · components 4

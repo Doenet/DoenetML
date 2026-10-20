@@ -378,16 +378,8 @@ export function JxCircle({ idx }: { idx: number }) {
 
 // ---------------------------------------------------------------- polygon
 
-/** The prototype's fixed polygon layout: a count and up to 16 vertices. */
-const MAX_VERTICES = 16;
-const POLYGON_PROPS = [
-    "numVertices",
-    ...Array.from({ length: MAX_VERTICES }, (_, i) => [
-        `x${i + 1}`,
-        `y${i + 1}`,
-    ]).flat(),
-];
-
+/** A polygon's props: `numVertices`, then its vertices as `x1, y1, ...`,
+ * as many as it has (ADR 0016). */
 function polygonElement(h: BoardHandle): BoardElement {
     const board = h.board;
     let vertices: any[] = [];
@@ -462,7 +454,7 @@ function polygonElement(h: BoardHandle): BoardElement {
     const e: BoardElement = {
         cells: [],
         sync([n, ...xy]) {
-            const k = Number.isFinite(n) ? Math.min(MAX_VERTICES, n) : 0;
+            const k = Number.isFinite(n) ? Math.min(xy.length / 2, n) : 0;
             const ok = finite(...xy.slice(0, 2 * k));
             const want = ok ? k : 0;
             if (want !== count) build(want, xy);
@@ -497,7 +489,8 @@ function polygonElement(h: BoardHandle): BoardElement {
 }
 
 export function JxPolygon({ idx }: { idx: number }) {
-    useBoardElement(idx, POLYGON_PROPS, polygonElement);
+    const store = useStore();
+    useBoardElementCells(idx, () => store.comps.props(idx), polygonElement);
     return null;
 }
 

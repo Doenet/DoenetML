@@ -95,7 +95,7 @@ impl Compiler<'_> {
             .iter()
             .take(3)
             .enumerate()
-            .map(|(i, p)| planned_point(p, POINT_ROLES[i], "through"))
+            .map(|(i, p)| planned_point(p, point_roles(i), "through"))
             .collect();
         // Coordinate `j` of through point `k` (0-based).
         let n_public = ch.n_public;

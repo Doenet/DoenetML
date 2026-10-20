@@ -27,7 +27,7 @@ mod structure;
 mod values;
 
 pub use containers::SECTION_TAGS;
-pub use geometry::MAX_VERTICES;
+pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
 /// Declares every component type from one list: the `ComponentType` enum,
@@ -204,10 +204,9 @@ pub struct ComponentTypeInfo {
     /// so its documents resolve unchanged.
     pub aliases: &'static [(&'static str, &'static str)],
     pub flags: u8,
-    /// How a member of a sticky group attracts and snaps: its shape, the
-    /// prop of its first coordinate, and how many points it has at most (a
-    /// polygon's live count is its `numVertices` cell).
-    pub sticky: Option<(crate::tick::snap::Shape, usize, usize)>,
+    /// How a member of a sticky group attracts and snaps: its shape, and
+    /// where its points are.
+    pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
 
 /// An array prop of points, such as a polygon's `vertices`: the names it
@@ -232,6 +231,15 @@ pub struct ListProp {
     pub item: &'static str,
     pub coords: [&'static str; 2],
     pub alias: Option<&'static str>,
+}
+
+/// Where a sticky group member's points are, as (x, y) pairs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StickyPoints {
+    /// `n` points from the table's prop `first`.
+    Props { first: usize, n: usize },
+    /// The points of the type's list.
+    List,
 }
 
 /// Where a prop name lands in an element's props: a position, or a point
@@ -427,7 +435,7 @@ impl ComponentType {
         }
     }
 
-    pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, usize, usize)> {
+    pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, StickyPoints)> {
         self.info().sticky
     }
 }

@@ -287,28 +287,28 @@ pub(crate) fn own_slot(i: usize) -> u8 {
 /// The name a planner gives a piece of essential state, so that a copy
 /// with overrides shares it with its original (`plan_geo`): the copy's
 /// slot with a role aliases the original's slot with the same role. Roles
-/// are the constants of [`roles`] and [`POINT_ROLES`]; nothing else can
+/// are the constants of [`roles`] and [`point_roles`]; nothing else can
 /// make one, so a planner cannot misspell one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Role(&'static str);
+pub(crate) struct Role(&'static str, u32);
 
 /// Every role a planner gives.
 pub(crate) mod roles {
     use super::Role;
     /// A point's coordinates.
-    pub(crate) const X: Role = Role("x");
-    pub(crate) const Y: Role = Role("y");
+    pub(crate) const X: Role = Role("x", 0);
+    pub(crate) const Y: Role = Role("y", 0);
     /// A circle's center when it is its own state, and its radius.
-    pub(crate) const CX: Role = Role("cx");
-    pub(crate) const CY: Role = Role("cy");
-    pub(crate) const R: Role = Role("r");
+    pub(crate) const CX: Role = Role("cx", 0);
+    pub(crate) const CY: Role = Role("cy", 0);
+    pub(crate) const R: Role = Role("r", 0);
     /// A line's second point's distance along its direction.
-    pub(crate) const DIST: Role = Role("dist");
+    pub(crate) const DIST: Role = Role("dist", 0);
     /// A value that is the element's state (a text, a boolean).
-    pub(crate) const VALUE: Role = Role("value");
+    pub(crate) const VALUE: Role = Role("value", 0);
     /// The default points of a line given by fewer than two.
-    pub(crate) const ESS1: [Role; 2] = [Role("ess1x"), Role("ess1y")];
-    pub(crate) const ESS2: [Role; 2] = [Role("ess2x"), Role("ess2y")];
+    pub(crate) const ESS1: [Role; 2] = [Role("ess1x", 0), Role("ess1y", 0)];
+    pub(crate) const ESS2: [Role; 2] = [Role("ess2x", 0), Role("ess2y", 0)];
 }
 
 /// A slot's plan and, when it is essential state that a copy shares, its
@@ -580,25 +580,12 @@ impl ElemPlan {
     }
 }
 
-/// Roles of the k-th literal point of a point list (k < 16).
-pub(crate) const POINT_ROLES: [[Role; 2]; 16] = [
-    [Role("pt1x"), Role("pt1y")],
-    [Role("pt2x"), Role("pt2y")],
-    [Role("pt3x"), Role("pt3y")],
-    [Role("pt4x"), Role("pt4y")],
-    [Role("pt5x"), Role("pt5y")],
-    [Role("pt6x"), Role("pt6y")],
-    [Role("pt7x"), Role("pt7y")],
-    [Role("pt8x"), Role("pt8y")],
-    [Role("pt9x"), Role("pt9y")],
-    [Role("pt10x"), Role("pt10y")],
-    [Role("pt11x"), Role("pt11y")],
-    [Role("pt12x"), Role("pt12y")],
-    [Role("pt13x"), Role("pt13y")],
-    [Role("pt14x"), Role("pt14y")],
-    [Role("pt15x"), Role("pt15y")],
-    [Role("pt16x"), Role("pt16y")],
-];
+/// Roles of the k-th (0-based) literal point of a point list, as many as
+/// a list holds.
+pub(crate) fn point_roles(k: usize) -> [Role; 2] {
+    let k = u32::try_from(2 * k).expect("fewer points than a u32 counts");
+    [Role("pt", k), Role("pt", k + 1)]
+}
 
 /// One point of a point-list attribute (`through`, `vertices`, `endpoints`).
 #[derive(Debug, Clone)]

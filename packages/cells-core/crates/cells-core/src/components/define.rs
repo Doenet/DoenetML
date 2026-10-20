@@ -237,13 +237,19 @@ impl ComponentTypeInfo {
         self.aliases = aliases;
         self
     }
+    /// A sticky member with `n` points from the table's prop `first`.
     pub(super) const fn sticky(
         mut self,
         shape: crate::tick::snap::Shape,
         first: usize,
-        max: usize,
+        n: usize,
     ) -> Self {
-        self.sticky = Some((shape, first, max));
+        self.sticky = Some((shape, super::StickyPoints::Props { first, n }));
+        self
+    }
+    /// A sticky member whose points are its list.
+    pub(super) const fn sticky_list(mut self, shape: crate::tick::snap::Shape) -> Self {
+        self.sticky = Some((shape, super::StickyPoints::List));
         self
     }
 }

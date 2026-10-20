@@ -3,4 +3,5 @@
 //! `snapshots/`.
 
 mod circle;
+mod polygon;
 mod slider;

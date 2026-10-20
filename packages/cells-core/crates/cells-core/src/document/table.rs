@@ -215,15 +215,8 @@ impl Document {
                 .collect();
         }
         if let Some(items) = component_type.array_prop(prop) {
-            let live = match component_type {
-                ComponentType::Polygon => {
-                    self.cells[self.comp_cells(comp)[prop::polygon::NUM_VERTICES] as usize] as usize
-                }
-                _ => items.len(),
-            };
             return items
                 .iter()
-                .take(live)
                 .map(|[x, y]| Some([self.prop_cells(comp, x)?[0], self.prop_cells(comp, y)?[0]]))
                 .collect::<Option<Vec<_>>>()
                 .map(|v| v.concat());

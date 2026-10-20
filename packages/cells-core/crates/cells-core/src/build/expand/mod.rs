@@ -753,17 +753,8 @@ impl<'c> Builder<'c> {
                 name: self.comp_label(comp),
                 prop: prop.into(),
             })?;
-        let count_slot = match component_type {
-            ComponentType::Polygon => Some(self.slot(comp, prop::polygon::NUM_VERTICES)),
-            _ => None,
-        };
-        let live = match count_slot.map(|s| self.sources[s as usize].clone()) {
-            Some(Source::Fixed(n)) => n as usize,
-            _ => items.len(),
-        };
         Ok(items
             .iter()
-            .take(live)
             .map(|[x, y]| {
                 [
                     self.slot(comp, component_type.prop_index(x).unwrap()),
