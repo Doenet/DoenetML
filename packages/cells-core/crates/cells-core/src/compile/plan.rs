@@ -311,12 +311,10 @@ pub(crate) mod roles {
     pub(crate) const ESS2: [Role; 2] = [Role("ess2x", 0), Role("ess2y", 0)];
 }
 
-/// A line's or segment's default point: its essential roles and value. The
-/// current core takes a missing first point as (1, 0) and a missing second
-/// one as (0, 0); a direction-based line's first point is the latter.
+/// A point a planner uses when the author gives none: its essential
+/// roles and value. Which point is a component's to say
+/// (`components::geometry::ESS1`).
 pub(crate) type DefaultPoint = ([Role; 2], [f64; 2]);
-pub(crate) const ESS1: DefaultPoint = (roles::ESS1, [1.0, 0.0]);
-pub(crate) const ESS2: DefaultPoint = (roles::ESS2, [0.0, 0.0]);
 
 /// A slot's plan and, when it is essential state that a copy shares, its
 /// role and the attribute its value came from: what a typed plan's fields

@@ -183,9 +183,11 @@ case), carry every piece before other components follow:
    kind of planner; the kind decides what the machinery does around the
    call. `compile/api.rs` is the line between a component and the
    machinery; what two planners share is added there once, so a
-   component never reimplements it (the segment's defaulted endpoints,
-   `Planned::point_or_default`, are the line's too). The family
-   directory keeps what a family's members share visible. The golden
+   component never reimplements it (`Planned::point_or_default` plans
+   a line's and a segment's defaulted points). What members of a family
+   share as behavior, rather than as machinery, is in the family's
+   `mod.rs` (the default points themselves, `components/geometry/`), so
+   the family directory keeps it visible. The golden
    diff is identical; the segment, which had no spec, has one
    (`tests/specs/segment.rs`).
 3. Lists with per-element lengths, for the circle's through points, then

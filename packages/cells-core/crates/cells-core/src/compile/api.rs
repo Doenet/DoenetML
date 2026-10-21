@@ -6,5 +6,5 @@
 
 pub(crate) use super::geometry::PlanCtx;
 pub(crate) use super::plan::{
-    ESS1, ESS2, ElemPlan, Planned, PointPlan, SourcePlan, point_roles, roles,
+    DefaultPoint, ElemPlan, Planned, PointPlan, SourcePlan, point_roles, roles,
 };

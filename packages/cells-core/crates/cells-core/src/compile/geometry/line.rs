@@ -2,6 +2,7 @@
 //! slope or direction.
 
 use super::*;
+use crate::components::geometry::{ESS1, ESS2};
 use crate::components::prop::line;
 
 impl Compiler<'_> {

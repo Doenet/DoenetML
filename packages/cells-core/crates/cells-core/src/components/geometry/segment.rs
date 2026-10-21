@@ -2,7 +2,7 @@
 //! endpoints are its own state, or the points `endpoints` names; a
 //! missing endpoint is essential state at the current core's default.
 
-use super::LINE_POINTS;
+use super::{ESS1, ESS2, LINE_POINTS};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
