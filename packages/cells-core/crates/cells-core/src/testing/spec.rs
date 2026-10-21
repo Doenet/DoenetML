@@ -27,6 +27,9 @@
 //!   by `dropped` must drop none.
 //! - `shape { "name" = "shape", .. }`: the view shape each component is
 //!   drawn with (ADR 0016), `none` for none.
+//! - `export { "name" = "xml", .. }`: each component's PreTeXt export
+//!   (`Document::pretext_of`), which is also the text the viewer shows,
+//!   from the same shapes and formatter.
 //! - `diagnostics["code", ..]`: every diagnostic's code, in order. A case
 //!   without it must load without any, so a warning cannot appear unseen.
 //!   The accessibility lint's are left out: they are about the document a
@@ -93,6 +96,8 @@ pub enum Op {
     Diagnostics(Vec<&'static str>),
     /// Each named component's shape, by name (`none` for none).
     Shape(Vec<(&'static str, &'static str)>),
+    /// Each named component's PreTeXt export, by name.
+    Export(Vec<(&'static str, &'static str)>),
 }
 
 #[derive(Debug, Clone)]
@@ -123,6 +128,9 @@ macro_rules! spec_op {
     };
     (shape { $($name:literal = $shape:literal),* $(,)? }) => {
         $crate::testing::spec::Op::Shape(vec![$(($name, $shape)),*])
+    };
+    (export { $($name:literal = $xml:literal),* $(,)? }) => {
+        $crate::testing::spec::Op::Export(vec![$(($name, $xml)),*])
     };
 }
 
@@ -253,6 +261,17 @@ fn run_case(case: &Case) -> Result<String, String> {
                     };
                     if got != *shape {
                         return Err(format!("{at}: {name} is drawn as {got}, expected {shape}"));
+                    }
+                }
+            }
+            Op::Export(want) => {
+                for (name, xml) in want {
+                    let c = doc
+                        .component(name)
+                        .ok_or_else(|| format!("{at}: no component {name}"))?;
+                    let got = doc.pretext_of(c);
+                    if got != *xml {
+                        return Err(format!("{at}: {name} exports as {got}, expected {xml}"));
                     }
                 }
             }

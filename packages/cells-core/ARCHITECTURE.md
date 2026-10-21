@@ -77,7 +77,7 @@ component table (`document/sticky.rs`).
 | `Session`, `Counts`, `Structure` | `session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed, the math engine (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. `Program::value_types` records each cell's value type (`ValueType`): number, text (a string id) or math (a handle). |
 | `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the source's literal attributes (`LiteralAttrs`, `dast/attrs.rs`) for a renderer; the DAST itself only through the compile a document with repeats keeps. The API a renderer or test uses. |
-| `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells: its type table's, then two per point of its list prop (ADR 0016), up to the next component's `prop_base`. What references and the renderer read. |
+| `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells: its type table's, then two per point of its list prop (ADR 0016), up to the next component's `prop_base`; its view shape and number format. What references, the renderer and export read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `compile/lint.rs` finds the ones that are facts about the DAST alone. |
 | `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. A document holds a `Recompute` (the dirty closure unless `set_evaluator` says otherwise), so tests tick as the browser does. |
@@ -232,7 +232,15 @@ names (`renderers/prims.tsx`), which update in place; the build picks each
 component's shape (`ComponentTable::shape`), and `tests/view_shapes.rs`
 keeps the viewer's copy of the shapes (`src/generated/shapes.ts`)
 current. A type without shapes is drawn by its renderer in
-`renderers/index.tsx`.
+`renderers/index.tsx`. Numbers are formatted by the core, never in the
+tick (`format.rs`): the build picks each component's format
+(`ComponentTable::format`, from `displayDecimals`), and the viewer formats
+a tick's changed numbers in one call (`CellStore.formatLater`).
+
+**Change how a document exports.** PreTeXt export (`export.rs`,
+`Document::pretext`) writes each shape-drawn component from its shape, one
+arm per primitive, with the same formatter; a new primitive needs its arm
+there. A spec checks it with `export { "name" = "xml" }`.
 
 ## The other crates
 

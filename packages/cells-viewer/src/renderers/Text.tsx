@@ -1,5 +1,5 @@
 // Text and layout containers (title, lists, math notation, asides, tables,
-// side-by-side), the trigger button, tuples and numbers with decimals.
+// side-by-side), the trigger button, tuples and values with decimals.
 // Presentation (widths, decimals) comes from the element's literal
 // attributes (`ComponentTable.attr`), not from cells.
 import { useMemo, useSyncExternalStore, type ReactNode } from "react";
@@ -8,15 +8,6 @@ import type { CellStore } from "../core";
 import { Children, ChildItems, Component } from "./index";
 import { TextView } from "./Choice";
 import { fmt } from "./Number";
-
-/** A number with `displayDecimals`, else as the other number views. */
-export function formatNumber(v: number, decimals: string | null): string {
-    if (decimals !== null && Number.isFinite(v)) {
-        const d = Number(decimals);
-        if (Number.isInteger(d) && d >= 0 && d <= 20) return v.toFixed(d);
-    }
-    return fmt(v);
-}
 
 /** Render a few LaTeX habits as text: subscripts, superscripts, `\amp`. */
 function latex(text: string): ReactNode[] {
@@ -115,7 +106,7 @@ function ValueText({ idx }: { idx: number }) {
     const decimals = store.comps.attr(idx, "displayDecimals");
     return (
         <span data-comp={idx}>
-            {decimals !== null ? formatNumber(v, decimals) : mathNumber(v)}
+            {decimals !== null ? store.formatNumber(idx, v) : mathNumber(v)}
         </span>
     );
 }
@@ -146,16 +137,6 @@ export function DisplayMath({ idx }: { idx: number }) {
                 </div>
             ))}
         </div>
-    );
-}
-
-export function NumberText({ idx }: { idx: number }) {
-    const store = useStore();
-    const v = useCell(store.comps.cell(idx, "value"));
-    return (
-        <span data-comp={idx} data-name={store.comps.name(idx) ?? undefined}>
-            {formatNumber(v, store.comps.attr(idx, "displayDecimals"))}
-        </span>
     );
 }
 

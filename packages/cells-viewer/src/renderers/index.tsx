@@ -19,7 +19,6 @@ import {
     InlineMath,
     List,
     ListItem,
-    NumberText,
     Ref,
     Row,
     SideBySide,
@@ -45,13 +44,8 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
         // A point is drawn by its shape, in a graph or as text.
         case "point":
             return null;
-        case "number":
         case "clampNumber":
-            return store.comps.attr(idx, "displayDecimals") !== null ? (
-                <NumberText idx={idx} />
-            ) : (
-                <NumberView idx={idx} />
-            );
+            return <NumberView idx={idx} />;
         case "tuple":
             return <TupleView idx={idx} />;
         case "polyline":

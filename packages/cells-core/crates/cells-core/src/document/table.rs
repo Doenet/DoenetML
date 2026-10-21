@@ -28,14 +28,18 @@ pub struct ComponentTable {
     /// The shape each component is drawn with, an index into its type's
     /// `shapes`, or `NO_SHAPE` (ADR 0016).
     pub shape: Vec<u8>,
+    /// How each component shows a number (ADR 0016), from its element's
+    /// literal `displayDecimals`; the viewer and export format through it.
+    pub format: Vec<crate::format::NumberFormat>,
 }
 
 /// A component its type's shapes do not draw.
 pub const NO_SHAPE: u8 = u8::MAX;
 
 impl ComponentTable {
-    /// Choose every component's shape: the first of its type's that
-    /// applies, by where the component is and what its element gives.
+    /// Choose every component's shape, the first of its type's that applies
+    /// by where the component is and what its element gives, and its number
+    /// format.
     pub(crate) fn assign_shapes(&mut self, dast: &crate::dast::Dast) {
         use crate::components::view::When;
         let n = self.component_type.len();
@@ -58,13 +62,34 @@ impl ComponentTable {
                 let mut applies = |w: When| match w {
                     When::Always => true,
                     When::InGraph => inside(self, c, &mut in_graph),
-                    When::WithoutAttr(a) => node == NONE || dast.attr(node, a).is_none(),
+                    When::WithoutAttr(a) => {
+                        node == NONE
+                            || dast.kind(node) != crate::dast::NodeKind::Element
+                            || dast.attr(node, a).is_none()
+                    }
                 };
                 self.component_type[c]
                     .shapes()
                     .iter()
                     .position(|s| applies(s.when))
                     .map_or(NO_SHAPE, |i| i as u8)
+            })
+            .collect();
+        self.format = (0..n)
+            .map(|c| {
+                let node = self.dast_node[c];
+                let element = node != NONE && dast.kind(node) == crate::dast::NodeKind::Element;
+                let text = element
+                    .then(|| dast.attr(node, "displayDecimals"))
+                    .flatten()
+                    .map(|a| {
+                        dast.attr_children(a)
+                            .iter()
+                            .filter(|&&t| dast.kind(t) == crate::dast::NodeKind::Text)
+                            .map(|&t| dast.str(t))
+                            .collect::<String>()
+                    });
+                crate::format::NumberFormat::from_decimals(text.as_deref())
             })
             .collect();
     }

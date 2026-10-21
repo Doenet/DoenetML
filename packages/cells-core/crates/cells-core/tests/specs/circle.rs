@@ -36,9 +36,19 @@ spec! {
     }
 
     case "drawn as a circle in a graph, not drawn outside one" {
-        doenet r#"<graph><circle name="c"/><point name="p"/></graph>
+        doenet r#"<graph name="g"><circle name="c"/><point name="p"/></graph>
                   <circle name="out"/><point name="q"/>"#;
         shape { "c" = "circle", "p" = "point", "out" = "none", "q" = "coords" }
+        // Exported from the same shapes: a PreFigure diagram in the graph.
+        export {
+            "c" = r#"<circle at="circle_0" center="(0,0)" radius="1" />"#,
+            "out" = "",
+            "q" = "<m>(0, 0)</m>",
+        }
+        request { "c.center" = (0.5, -2) }
+        export {
+            "g" = r#"<image><prefigure label="prefigure-g" xmlns="https://prefigure.org"><diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><circle at="circle_0" center="(0.5,-2)" radius="1" /><point at="point_0" p="(0,0)" /></coordinates></diagram></prefigure></image>"#,
+        }
     }
 
     case "center and radius" {

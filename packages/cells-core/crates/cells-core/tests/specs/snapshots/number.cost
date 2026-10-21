@@ -1,2 +1,4 @@
 a number from another, drawn as a number: cells 4 · essential 0 · fixed 3 · instrs 1 · components 3
-with displayDecimals, drawn by the viewer's own way: cells 3 · essential 0 · fixed 3 · instrs 0 · components 2
+four significant digits unless an integer: cells 5 · essential 0 · fixed 5 · instrs 0 · components 4
+in a paragraph, with text around it: cells 3 · essential 0 · fixed 3 · instrs 0 · components 3
+with displayDecimals: cells 4 · essential 0 · fixed 4 · instrs 0 · components 3

@@ -12,13 +12,8 @@ use crate::program::SymKind;
 pub(super) const NUMBER: ComponentTypeInfo = info(&["number"], NUMBER_PROPS)
     .copyable()
     .default_prop("value")
-    // With `displayDecimals` the viewer formats it its own way, until the
-    // formatter is the core's (ADR 0016, step 6).
-    .shapes(&[shape(
-        "number",
-        When::WithoutAttr("displayDecimals"),
-        NUMBER_VIEW,
-    )]);
+    // `displayDecimals` is its number format (`ComponentTable::format`).
+    .shapes(&[shape("number", When::Always, NUMBER_VIEW)]);
 
 const NUMBER_VIEW: &[PrimUse] = &bind(NUMBER_PROPS, [number("value")]);
 

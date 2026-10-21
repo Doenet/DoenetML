@@ -1,7 +1,7 @@
 # Components are written by people who do not know the core
 
-Status: proposed 2026-10-20. Migration steps 1, 3, 4 and 5 are done (5
-short of two budgets), step 2 for the circle; see Migration.
+Status: proposed 2026-10-20. Migration steps 1, 3, 4, 5 and 6 are done
+(5 short of two budgets), step 2 for the circle; see Migration.
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -308,7 +308,31 @@ case), carry every piece before anything is opened to contributors:
    (27.5; budget 10), most of it JSXGraph's `initBoard` and axes. Meeting
    them needs the remaining types drawn by shapes and a cheaper board
    setup; they are left as measured.
-6. The Rust formatter and the export arm for those primitives.
+6. The Rust formatter and the export arm for those primitives. **Done**:
+   `format.rs` writes numbers as the viewer did, JavaScript's
+   `String(n)`, `toPrecision` and `toFixed` character for character,
+   which `tests/format_parity.rs` checks against node over edge values,
+   short decimals and halves, and random doubles (300,000 checked once).
+   A component's format is chosen when built, from its element's literal
+   `displayDecimals` (`ComponentTable.format`), so a `<number>` with it
+   is drawn by its shape too. The viewer's number and coords primitives
+   format through the core: every number a tick changed in one wasm call
+   at the tick's end (`CellStore.formatLater`), because one string call
+   per number cost 1.8 µs a leaf. Rounding starts from the shortest
+   digits and falls back to the exact expansion only at a halfway point,
+   at a quarter of the cost. The depth-1000 tick's in-place work is 1.5-
+   1.7 ms for 1001 changed cells, against 1.2 ms with JavaScript
+   formatting: about 1.6 µs a leaf, inside the 2 µs budget. PreTeXt
+   export (`export.rs`, `Document::pretext`, `pretext` in wasm) has an
+   arm per primitive: a number as its text, coordinates as `<m>(x, y)</m>`,
+   a range as nothing (its value is a number beside it), a board as a
+   PreFigure diagram, as the current core's export writes one, with its
+   points and circles numbered by type (`point_0`); components without a
+   shape write their text or pass their children through. A spec states
+   it with `export { "name" = "xml" }`. Not yet through the formatter:
+   the viewer's tuple, math and `clampNumber` views, and the core's
+   `rendered_text`, which is the current core's `text` and its ten
+   digits.
 7. The contributor guide (ARCHITECTURE.md, "Where to change things"),
    written from the pilots.
 

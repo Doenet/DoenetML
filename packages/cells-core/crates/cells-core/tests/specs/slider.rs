@@ -21,8 +21,10 @@ spec! {
     case "starts at initialValue" {
         doenet r#"<slider name="s" from="0" to="10" step="1" initialValue="3"/>"#;
         expect { "s.value" = 3, "s.index" = 3, "s.maxIndex" = 10 }
-        // A range control and its value as text (ADR 0016).
+        // A range control and its value as text (ADR 0016); the control
+        // has no print form, so the export is the value.
         shape { "s" = "slider" }
+        export { "s" = "3" }
     }
 
     case "an initialValue off the grid shows snapped" {

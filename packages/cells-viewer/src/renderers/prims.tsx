@@ -10,7 +10,6 @@
 import { memo, useLayoutEffect, useRef } from "react";
 import { useStableStore } from "../hooks";
 import type { Prim, PrimUse, Shape } from "../generated/shapes";
-import { fmt } from "./Number";
 import { JxCircle, JxPoint } from "./jsxgraph/elements";
 import { JsxGraph } from "./jsxgraph/Board";
 
@@ -18,11 +17,14 @@ type PrimProps = { id: string; use: PrimUse };
 
 /** Bind `draw` to the cells `use` names on the component with identity
  * `id`: run it now and whenever one of them changes, and after a rebuild,
- * which renumbers the cells, bind again and run it if their values moved. */
+ * which renumbers the cells, bind again and run it if their values moved,
+ * or always with `onRebuild`, for a primitive whose drawing depends on more
+ * than its cells (a number's format) and costs little to repeat. */
 function useBinding(
     id: string,
     use: PrimUse,
-    draw: (cells: number[], values: number[]) => void,
+    draw: (cells: number[], values: number[], comp: number) => void,
+    onRebuild = false,
 ) {
     const store = useStableStore();
     useLayoutEffect(() => {
@@ -41,11 +43,15 @@ function useBinding(
                 for (let i = 0; i < cells.length; i++)
                     values[i] = all[cells[i]];
                 drawn = true;
-                draw(cells, values);
+                draw(cells, values, c);
             };
             unsubs = cells.map((x) => store.subscribe(x, redraw));
             const all = store.cells();
-            if (!drawn || cells.some((x, i) => !Object.is(all[x], values[i])))
+            if (
+                !drawn ||
+                onRebuild ||
+                cells.some((x, i) => !Object.is(all[x], values[i]))
+            )
                 redraw();
         };
         bind();
@@ -55,7 +61,7 @@ function useBinding(
             unsubs.forEach((u) => u());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [store, id, use]);
+    }, [store, id, use, onRebuild]);
 }
 
 /** Write `text` only when it differs: any write to a text node makes the
@@ -65,21 +71,39 @@ function setText(el: HTMLElement, text: string) {
     if (el.textContent !== text) el.textContent = text;
 }
 
-/** `number(value)`: the value as text. */
+/** `number(value)`: the value as text, formatted by the core. */
 function NumberPrim({ id, use }: PrimProps) {
+    const store = useStableStore();
     const ref = useRef<HTMLSpanElement>(null);
-    useBinding(id, use, (_, [v]) => setText(ref.current!, fmt(v)));
+    useBinding(
+        id,
+        use,
+        (_, [v], c) =>
+            store.formatLater(c, [v], ([t]) => {
+                if (ref.current) setText(ref.current, t);
+            }),
+        true,
+    );
     return <span ref={ref} className="number" />;
 }
 
 /** `coords(x, y, hide)`: a point's coordinates as text, `(x, y)`, or
  * nothing while it is hidden. */
 function CoordsPrim({ id, use }: PrimProps) {
+    const store = useStableStore();
     const ref = useRef<HTMLSpanElement>(null);
-    useBinding(id, use, (_, [x, y, hide]) => {
-        const hidden = hide !== 0 && !Number.isNaN(hide);
-        setText(ref.current!, hidden ? "" : `(${fmt(x)}, ${fmt(y)})`);
-    });
+    useBinding(
+        id,
+        use,
+        (_, [x, y, hide], c) => {
+            if (hide !== 0 && !Number.isNaN(hide)) setText(ref.current!, "");
+            else
+                store.formatLater(c, [x, y], ([a, b]) => {
+                    if (ref.current) setText(ref.current, `(${a}, ${b})`);
+                });
+        },
+        true,
+    );
     return <span ref={ref} className="coords" />;
 }
 

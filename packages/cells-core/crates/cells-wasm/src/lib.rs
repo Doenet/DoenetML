@@ -324,6 +324,39 @@ impl Core {
         }
     }
 
+    /// `value` as component `idx` shows a number (ADR 0016): the one
+    /// formatter, which the viewer calls instead of formatting itself.
+    pub fn format_number(&self, idx: u32, value: f64) -> String {
+        self.format_of(idx).apply(value)
+    }
+
+    /// Each `values[i]` as component `comps[i]` shows it, one per line: the
+    /// viewer formats every number a tick changed in one call.
+    pub fn format_numbers(&self, comps: &[u32], values: &[f64]) -> String {
+        let mut out = String::with_capacity(values.len() * 8);
+        for (i, (&c, &v)) in comps.iter().zip(values).enumerate() {
+            if i > 0 {
+                out.push('\n');
+            }
+            out.push_str(&self.format_of(c).apply(v));
+        }
+        out
+    }
+
+    /// The document as PreTeXt XML (ADR 0016), from the view shapes.
+    pub fn pretext(&self) -> String {
+        self.doc.pretext()
+    }
+
+    fn format_of(&self, idx: u32) -> cells_core::format::NumberFormat {
+        self.doc
+            .components
+            .format
+            .get(idx as usize)
+            .copied()
+            .unwrap_or_default()
+    }
+
     fn apply(&mut self, reqs: &[Request], groups: &[Vec<PointRequest>]) -> Vec<u32> {
         let clock = web_time::Instant::now();
         let tick = self.doc.request_with_groups(reqs, groups);

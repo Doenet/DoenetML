@@ -148,6 +148,52 @@ export class CellStore {
         return this.core.expr_text(cell);
     }
 
+    /** `v` as component `c` shows a number: the core's formatter (ADR
+     * 0016), with the component's `displayDecimals`. */
+    formatNumber(c: number, v: number): string {
+        return this.core.format_number(c, v);
+    }
+
+    /** Format `values` as component `c` shows numbers, and hand the texts
+     * to `done`: at the end of the tick, or before the next paint outside
+     * one. Every number a tick changes is formatted in one call to the
+     * core, a string call each costing more than the rest of a leaf's
+     * update. */
+    formatLater(c: number, values: number[], done: (texts: string[]) => void) {
+        if (this.fmtDone.length === 0)
+            queueMicrotask(() => this.flushFormats());
+        for (const v of values) {
+            this.fmtComps.push(c);
+            this.fmtValues.push(v);
+        }
+        this.fmtDone.push(done, values.length);
+    }
+
+    private fmtComps: number[] = [];
+    private fmtValues: number[] = [];
+    /** Each callback, then how many values it formats. */
+    private fmtDone: (((texts: string[]) => void) | number)[] = [];
+
+    private flushFormats() {
+        if (this.fmtDone.length === 0) return;
+        const texts = this.core
+            .format_numbers(
+                Uint32Array.from(this.fmtComps),
+                Float64Array.from(this.fmtValues),
+            )
+            .split("\n");
+        const done = this.fmtDone;
+        this.fmtComps.length = 0;
+        this.fmtValues.length = 0;
+        this.fmtDone = [];
+        let at = 0;
+        for (let i = 0; i < done.length; i += 2) {
+            const n = done[i + 1] as number;
+            (done[i] as (texts: string[]) => void)(texts.slice(at, at + n));
+            at += n;
+        }
+    }
+
     /** Cell-addressed write. Listeners fire before this returns. */
     request(pairs: [number, number][]): void {
         this.send(pairs, false);
@@ -241,6 +287,7 @@ export class CellStore {
                 if (set) for (const fn of set) fn();
             }
         }
+        this.flushFormats();
         for (const fn of this.tickEndListeners) fn();
         sample.sync = performance.now() - start;
         for (const fn of this.anyListeners) fn();

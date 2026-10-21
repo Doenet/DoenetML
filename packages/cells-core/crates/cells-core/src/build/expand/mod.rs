@@ -204,6 +204,7 @@ impl<'c> Builder<'c> {
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
                 shape: Vec::new(),
+                format: Vec::new(),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
