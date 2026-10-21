@@ -1,11 +1,14 @@
 //! Point, circle, line, line segment, polygon and point list. All but the
 //! point list have a geometric planner (`compile/planner.rs`) that
-//! chooses each prop's source from the attributes the author gave
-//! (`compile/geometry/`).
+//! chooses each prop's source from the attributes the author gave. The
+//! circle is in its own file, its definition and its planner together
+//! (ADR 0016); the others' planners are in `compile/geometry/`.
 
 use super::define::*;
 use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
+
+pub mod circle;
 
 /// Largest polygon the fixed prop layout holds.
 pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
@@ -28,65 +31,6 @@ pub mod point {
     // A sticky group reads a member's points as (x, y) pairs from the
     // position its layout names (`sticky`, `document/sticky.rs`).
     const _: () = assert!(Y == X + 1, "a point's y must follow its x");
-}
-
-/// `<circle>`: center and radius are derived or essential depending on
-/// how the circle is specified (ADR 0006). `cx`, `cy`, `radius` are the
-/// numerical center and radius; how they are produced depends on which of
-/// `center`, `radius` and `through` the author gave (see `plan_circle` in
-/// `compile/geometry/circle.rs`).
-pub(super) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
-    .copyable()
-    .views(&[
-        ("center", &["centerX", "centerY"]),
-        ("numericalCenter", &["cx", "cy"]),
-    ])
-    .list(ListProp {
-        names: &["throughPoints"],
-        item: "throughPoint",
-        coords: ["throughX", "throughY"],
-        alias: Some("throughPointX"),
-    })
-    .aliases(&[("centerX1", "centerX"), ("centerX2", "centerY")]);
-
-/// The through points are the circle's list (`throughPoints`), after
-/// these.
-const CIRCLE_PROPS: &[PropDef] = &props([
-    planned("cx"),
-    planned("cy"),
-    planned("radius"),
-    computed("diameter", OpSpec::Scale { k: 2.0 }, &["radius"]),
-    computed(
-        "circumference",
-        OpSpec::Scale {
-            k: std::f64::consts::TAU,
-        },
-        &["radius"],
-    ),
-    planned("area"),
-    // The center as a *reference*: the prescribed center when there is one
-    // (so a point extending `$c.center` drags that point alone, as in the
-    // current core), else the derived center.
-    planned("centerX"),
-    planned("centerY"),
-    planned("numThroughPoints"),
-]);
-
-pub mod circle {
-    use super::*;
-    pub const NUM_THROUGH_POINTS: usize = at(CIRCLE_PROPS, "numThroughPoints");
-
-    typed_props!(CIRCLE_PROPS {
-        cx,
-        cy,
-        radius,
-        diameter,
-        circumference,
-        area,
-        centerX,
-        centerY,
-        numThroughPoints,
-    });
 }
 
 /// The two points of a line or line segment.

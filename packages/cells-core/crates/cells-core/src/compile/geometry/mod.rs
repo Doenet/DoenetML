@@ -3,16 +3,99 @@
 //! operator chain that produces the type's public props (ADR 0006). The
 //! inverse rules of the operators it uses are in `program/vector.rs`.
 //!
-//! This file holds `plan_geo`, which runs each type's planner, and what the types share:
-//! point slots and roles, point lists, and inherited attributes. Each type's
-//! planner is in its own file.
+//! This file holds `plan_geo`, which runs each type's planner, the
+//! [`ShapeCtx`] a planner is given, and what the types share: point slots
+//! and roles, point lists, and inherited attributes. The circle's planner
+//! is with its definition, in `components/geometry/circle.rs` (ADR 0016);
+//! the others are each in a file here until they move there too.
 
 use super::*;
 
-mod circle;
 mod line;
 mod point;
 mod polygon;
+
+/// What a shape's planner is given (ADR 0016): its element's attributes,
+/// planned the ways every shape shares, and a way to warn. An attribute is
+/// the element's own or, when the element omits it, its `extend`
+/// referent's. `plan_geo` makes one around each planner and does what
+/// every shape needs besides: a bare copy, sharing state with the
+/// referent by role, and `fixed`.
+pub(crate) struct ShapeCtx<'c, 'a> {
+    c: &'c mut Compiler<'a>,
+    t: TemplateId,
+    e: ElemId,
+    /// The `extend` referent's node, which supplies what the element omits.
+    base: Option<NodeId>,
+}
+
+impl<'a> ShapeCtx<'_, 'a> {
+    fn node(&self) -> NodeId {
+        self.c.compiled.templates[self.t].elems[self.e].node
+    }
+
+    fn scope(&self) -> ElemId {
+        self.c.compiled.templates[self.t].elems[self.e].name_scope
+    }
+
+    fn attr(&self, name: &str) -> Option<u32> {
+        self.c.attr_or_inherited(self.node(), self.base, name)
+    }
+
+    /// A point-valued attribute, a reference (`center="$p"`) or a tuple
+    /// (`center="(1, 2)"`), if given.
+    pub(crate) fn point(&mut self, name: &str) -> Result<Option<PointPlan>> {
+        let Some(a) = self.attr(name) else {
+            return Ok(None);
+        };
+        let scope = self.scope();
+        self.c.plan_point_attr(self.t, scope, a).map(Some)
+    }
+
+    /// Whether the attribute is one reference and nothing else
+    /// (`center="$p"`).
+    pub(crate) fn is_reference(&self, name: &str) -> bool {
+        self.attr(name)
+            .is_some_and(|a| self.c.single_macro(a).is_some())
+    }
+
+    /// A scalar attribute, a literal, a reference or math, if given.
+    pub(crate) fn scalar(&mut self, name: &str) -> Result<Option<SourcePlan>> {
+        let Some(a) = self.attr(name) else {
+            return Ok(None);
+        };
+        let scope = self.scope();
+        let nodes = self.c.dast.attr_children(a);
+        self.c.plan_scalar(self.t, scope, name, nodes).map(Some)
+    }
+
+    /// The points of a point-list attribute (`through="$a (1, 2)"`), none
+    /// if it is not given.
+    pub(crate) fn points(&mut self, name: &str) -> Result<Vec<PointPlan>> {
+        let Some(a) = self.attr(name) else {
+            return Ok(Vec::new());
+        };
+        let scope = self.scope();
+        self.c.plan_point_list(self.t, scope, a)
+    }
+
+    /// Warns that the element cannot be what its attributes ask, with a
+    /// code and message of `packages/i18n/src/diagnostics.ts` (ADR 0013).
+    /// A planner warns rather than leave a NaN to explain itself.
+    pub(crate) fn warn(&mut self, code: &'static str, message: &str) {
+        let node = self.node();
+        self.c.warn(node, code, message);
+    }
+
+    /// Runs a planner that is still a `Compiler` method, until it moves
+    /// to its component's file.
+    pub(in crate::compile) fn run_compiler_planner(
+        &mut self,
+        plan: planner::CompilerGeoFn<'a>,
+    ) -> Result<ElemPlan> {
+        plan(self.c, self.t, self.e, self.base)
+    }
+}
 
 impl<'a> Compiler<'a> {
     /// Runs a geometric type's planner (`plan`, from `planner`) with what
@@ -54,7 +137,12 @@ impl<'a> Compiler<'a> {
             .and_then(|p| self.plan_elem_target(t, p))
             .filter(|&r| self.compiled.templates[t].elems[r].node != NONE);
         let base = base_elem.map(|r| self.compiled.templates[t].elems[r].node);
-        let mut ch = plan(self, t, e, base)?;
+        let mut ch = plan(&mut ShapeCtx {
+            c: self,
+            t,
+            e,
+            base,
+        })?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables.
         if let Some(r) = base_elem {
@@ -92,8 +180,6 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Attribute of the element, or of the `extend` referent when the
-    /// element does not give it (a copy with overrides).
     /// The children that make up math text: text and `$ref`s, not blanks
     /// or elements (constraints).
     fn math_children(&self, node: NodeId) -> Vec<NodeId> {
@@ -105,6 +191,8 @@ impl<'a> Compiler<'a> {
             .collect()
     }
 
+    /// Attribute of the element, or of the `extend` referent when the
+    /// element does not give it (a copy with overrides).
     pub(in crate::compile) fn attr_or_inherited(
         &self,
         el: NodeId,

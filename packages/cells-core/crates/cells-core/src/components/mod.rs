@@ -11,16 +11,18 @@
 //! This file holds the types, the lookups the build uses, and the list of
 //! every type (`component_types!`). Each type's definition (its docs, its
 //! prop table, its row and its named prop positions) is in a family file:
-//! `containers.rs`, `geometry.rs`, `inputs.rs`, `structure.rs`,
-//! `values.rs`. `define.rs` has the builders they are written with, and
-//! `prop.rs` gathers the named positions. ARCHITECTURE.md walks through
-//! adding a type.
+//! `containers.rs`, `geometry/`, `inputs.rs`, `structure.rs`,
+//! `values.rs`. A type with a planner of its own has a file of its own in
+//! its family's directory, its definition and its planner together
+//! (`geometry/circle.rs`, ADR 0016). `define.rs` has the builders they are
+//! written with, and `prop.rs` gathers the named positions.
+//! ARCHITECTURE.md walks through adding a type.
 
 use crate::program::OpSpec;
 
 mod containers;
 pub(crate) mod define;
-mod geometry;
+pub(crate) mod geometry;
 mod inputs;
 pub mod prop;
 mod structure;
@@ -88,7 +90,7 @@ component_types! {
     /// `<choice>`, inside a `<choiceInput>`.
     Choice => inputs::CHOICE,
     /// `<circle>`.
-    Circle => geometry::CIRCLE,
+    Circle => geometry::circle::CIRCLE,
     /// `<line>`.
     Line => geometry::LINE,
     /// `<lineSegment>`.

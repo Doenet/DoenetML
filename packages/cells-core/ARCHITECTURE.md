@@ -68,7 +68,7 @@ component table (`document/sticky.rs`).
 | Type | Where | What it is |
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. Loaded from JSON (`json.rs`) or the binary wire format (`binary.rs`, ADR 0002). |
-| `ComponentType`, `ComponentTypeInfo`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or planned by the build), and flags. The list of types is `component_types!` in `mod.rs`; each type's definition is in a family file (`geometry.rs`, `inputs.rs`, ...). |
+| `ComponentType`, `ComponentTypeInfo`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or planned by the build), and flags. The list of types is `component_types!` in `mod.rs`; each type's definition is in a family file (`inputs.rs`, `geometry/`, ...), and a type with a planner of its own has a file with its definition and planner together (`geometry/circle.rs`). |
 | `Compiler`, `Compiled`, `Template` | `compile/` | The compile stage (ADR 0015): its state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
 | `Builder` | `build/expand/mod.rs` | The state of expand and emit: components and slots per scope, then cells and instructions. |
 | `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/probe.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
@@ -89,7 +89,8 @@ component table (`document/sticky.rs`).
 a `Dast`. Then `compile::compile` runs once: **plan** walks the DAST and plans
 every element with the planner `planner.rs` names for its type
 (`compile/mod.rs`; attributes and math in `attrs.rs`, references in
-`refs.rs`, geometric component types in `geometry/`, choices in
+`refs.rs`, geometric component types in `geometry/` or, for the circle, in
+`components/geometry/circle.rs`, choices in
 `choice.rs`). Expand and emit learn the document's structure only through
 the **structure view** (`View`, `build/view.rs`): how many iterations a
 repeat is stamped with, which iteration, item or pick an index names, what
@@ -168,7 +169,7 @@ is an ordinary request: the response handle is copied into the answer's
 ## Where to change things
 
 **Add a component type.** A type is defined in one of the family files in
-`components/` (`containers.rs`, `geometry.rs`, `inputs.rs`, `structure.rs`,
+`components/` (`containers.rs`, `geometry/`, `inputs.rs`, `structure.rs`,
 `values.rs`), written with the builders in `components/define.rs`:
 
 ```rust
@@ -198,13 +199,19 @@ attributes, children, defaults or chains of operators over its other props
 needs nothing else: a request on `clamped` inverts through the chain by
 the operators' own inverses. A type whose wiring depends on which
 attributes the author gave gets a planner of its own, named in its
-`planner` arm: `Geometric` for a shape (see `geometry/`), `PropsThen` to
-adjust the table's plan, or `Whole`. A planner names its props through
-`typed_props!` beside the table and returns them as a `Props<Planned>`
-struct literal, a slot's plan with the role a copy shares it by
-(`compile/geometry/circle.rs`, ADR 0016); a combination of attributes it
-cannot honor is a warning (`Compiler::warn`), never a silent NaN. The
-renderer side is in `packages/cells-viewer/src/renderers/`.
+`planner` arm: `Geometric` for a shape, `PropsThen` to adjust the table's
+plan, or `Whole`. The planner lives with the type, in a file of its own
+in its family's directory, and uses only what `compile/api.rs` exports;
+`components/geometry/circle.rs` is the model (ADR 0016), a function
+given a `ShapeCtx` that plans the attributes for it. A planner names its
+props through `typed_props!` beside the table and returns them as a
+`Props<Planned>` struct literal, a slot's plan with the role a copy
+shares it by; a combination of attributes it cannot honor is a warning
+(`ShapeCtx::warn`), never a silent NaN. What two planners both need
+belongs in `compile/` behind `api.rs`, once, not copied into each.
+Other planners are still `Compiler` methods in `compile/` (the other
+shapes in `compile/geometry/`) until they move. The renderer side is in
+`packages/cells-viewer/src/renderers/`.
 
 **Add an operator.** Add one entry to `scalar_ops!` in
 `program/scalar.rs` (ADR 0016): its inputs and literal parameters, its

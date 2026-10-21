@@ -14,7 +14,7 @@
 //! Files: this one walks the DAST and decides each element's shape;
 //! `attrs.rs` plans attribute and math sources, `refs.rs` names and
 //! reference paths, `expr.rs` the parse arena for math text, `geometry/`
-//! the planned types, `choice.rs` with `condition.rs` the choices,
+//! the planned types, `api.rs` what a planner in `components/` may use, `choice.rs` with `condition.rs` the choices,
 //! `copies.rs` `extend`, `fix.rs` `fixed`, `answer.rs`, `boolean.rs` and
 //! `iterates.rs` theirs. What compile produces is in `plan.rs`.
 
@@ -32,6 +32,7 @@ use expr::{Arena, Expr, ExprId, Parser, Token};
 use plan::*;
 
 mod answer;
+pub(crate) mod api;
 mod attrs;
 mod boolean;
 mod check;

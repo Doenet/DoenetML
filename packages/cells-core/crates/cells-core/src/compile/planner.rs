@@ -3,12 +3,17 @@
 //! until it is given one here.
 
 use super::*;
+use crate::components::geometry::circle;
+use geometry::ShapeCtx;
 
 /// Adjusts the props `plan_attrs` planned, from the element.
 pub(super) type PropsFn<'a> =
     fn(&mut Compiler<'a>, NodeId, &mut [Option<SourcePlan>]) -> Result<()>;
-/// Plans a geometric element, given the node of the element it extends.
-pub(super) type GeoFn<'a> =
+/// Plans a geometric element from what its context gives it.
+pub(super) type GeoFn<'a> = for<'c> fn(&mut ShapeCtx<'c, 'a>) -> Result<ElemPlan>;
+/// A geometric planner that is still a `Compiler` method, given the node
+/// of the element it extends; run through `ShapeCtx::run_compiler_planner`.
+pub(super) type CompilerGeoFn<'a> =
     fn(&mut Compiler<'a>, TemplateId, ElemId, Option<NodeId>) -> Result<ElemPlan>;
 /// Plans the whole element.
 pub(super) type WholeFn<'a> = fn(&mut Compiler<'a>, TemplateId, ElemId) -> Result<()>;
@@ -61,11 +66,11 @@ impl<'a> Compiler<'a> {
             K::Legend => Props,
             K::TriggerSet => Props,
             // Geometry
-            K::Point => Geometric(Self::plan_point),
-            K::Circle => Geometric(Self::plan_circle),
-            K::Line => Geometric(Self::plan_line),
-            K::LineSegment => Geometric(Self::plan_segment),
-            K::Polygon => Geometric(Self::plan_polygon),
+            K::Point => Geometric(|cx| cx.run_compiler_planner(Self::plan_point)),
+            K::Circle => Geometric(circle::plan),
+            K::Line => Geometric(|cx| cx.run_compiler_planner(Self::plan_line)),
+            K::LineSegment => Geometric(|cx| cx.run_compiler_planner(Self::plan_segment)),
+            K::Polygon => Geometric(|cx| cx.run_compiler_planner(Self::plan_polygon)),
             K::PointList => Whole(Self::reject_point_list),
             K::Polyline => Whole(Self::plan_polyline),
             // Inputs

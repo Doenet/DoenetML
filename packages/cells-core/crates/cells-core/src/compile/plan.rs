@@ -355,6 +355,24 @@ impl Planned {
     pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
         SourcePlan::computed(op, args).into()
     }
+    /// Prop `i` as the type's table computes it from its other props.
+    pub(crate) fn from_table(component_type: ComponentType, i: usize) -> Self {
+        match component_type.prop_defs()[i].from {
+            PropFrom::Computed { op, args } => SourcePlan::from_def(op, &args).into(),
+            _ => unreachable!(
+                "{} is not computed by the table",
+                component_type.prop_defs()[i].name
+            ),
+        }
+    }
+    /// A point's two coordinates: a literal coordinate is essential state
+    /// with its role, given by `attr`.
+    pub(crate) fn point(p: &PointPlan, roles: [Role; 2], attr: &'static str) -> [Self; 2] {
+        std::array::from_fn(|j| match p.coord(j) {
+            SourcePlan::Literal(v) => Planned::essential_from(roles[j], attr, v),
+            other => other.into(),
+        })
+    }
 }
 
 /// A planned element's prop list under construction: public slots set by
