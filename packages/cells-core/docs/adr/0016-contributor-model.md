@@ -339,6 +339,46 @@ case), carry every piece before anything is opened to contributors:
 Each step is measured with `scripts/perf-diff.sh` and, from step 5, the
 browser layer.
 
+### Bounded test of the vocabulary (2026-10-21)
+
+Before converting the remaining types, five harder ones were drawn by
+shapes to see whether the primitives stay few and general: `<polygon>`
+(a list), `<answer>` with its `<mathInput>` (input, an action, feedback),
+and `<section>` with its `<title>` (layout, numbering across components).
+Each type's shape is one to three lines of Rust; specs cover all five.
+
+What they needed, beyond the six primitives of step 5:
+
+| Addition | For | General? |
+|---|---|---|
+| `contents()` | answer, section, title | Yes: any container (`p`, `ul`, `li`, `aside`, `document`, ...) |
+| a list slot (`LIST`) | polygon | Yes: any list prop |
+| `polygon(count)` | polygon | Mostly: polyline's vertices are children, not a list |
+| `mathField(expr)` | mathInput | Yes, for math inputs |
+| `submit()` | answer | Answer only, unless it becomes a general action button |
+| `credit(credit, submissions)` | answer | Answer only |
+| `heading(label, number, includeParentNumber)` | section | Section only; reads other components' cells |
+| a holder tag per shape (`h2`, `section`) | section, title | Yes, but HTML-specific |
+
+No new `When` case was needed. Three strains showed: the heading reads
+its enclosing sections' numbers, outside the one-component binding
+(`useBinding`'s `more`), and its words duplicate the core's
+`SECTION_TAGS` in TypeScript; export could not use the holder tag, and
+infers a division from the heading primitive and a `<title>` from `h2`,
+so a shape wants a semantic role that HTML and export both map, not an
+HTML tag; and presentation from literal attributes (`styleNumber`,
+`layer`, `widths`, `height`, `to`) still reaches renderers outside the
+shape. The test also found that the viewer's `<mathInput>` was a number
+field: typed math (`5x^4`) could not be entered. The math field parses
+through the core (`parse_math`) and earns credit.
+
+Mount, homework, viewer page, CPU ×1, median of 45 loads each (base and
+after alternated): render 72.8 → 69.3 ms, its React commit 15.5 → 14.3
+ms, the board 58.5 → 54.2 ms. At ×16 (editor page, 1,971 components, 30
+loads each): render 402 → 403 ms, React commit 72.8 → 64.5 ms, the 16
+boards 326 → 336 ms. Mount is board-bound under either design; shapes do
+not move it toward the budget, and the board's setup has to.
+
 ## Consequences
 
 - A component that fits the declarative vocabulary is Rust only: a prop
