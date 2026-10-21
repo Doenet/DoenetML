@@ -1,8 +1,9 @@
-// Runs: one directory per comparison run, `results/runs/<id>/`, committed.
+// Runs: one directory per run, `results/runs/<id>/`, committed.
 // `manifest.json` says where and on what the run was measured; each layer
-// writes its records beside it (`node.json`, `browser.json`), one JSON
-// array each, appended as measurements end so an interrupted run keeps
-// what it measured. The id is `<date>-<machine>-<commit>`.
+// writes its records beside it (`node.json`, `browser.json`, `bundle.json`,
+// `trace.json`), one JSON array each, appended as measurements end so an
+// interrupted run keeps what it measured. The id is
+// `<date>-<machine>-<commit>`, with `-dirty` for uncommitted changes.
 import { execSync } from "node:child_process";
 import {
     existsSync,
@@ -43,8 +44,9 @@ export function localDate() {
         .slice(0, 10);
 }
 
-const git = (cmd) =>
-    execSync(`git ${cmd}`, { cwd: repoRoot, encoding: "utf8" }).trim();
+function git(cmd) {
+    return execSync(`git ${cmd}`, { cwd: repoRoot, encoding: "utf8" }).trim();
+}
 
 /** What a run was measured on, beyond the id the runner gave the machine. */
 function hardware() {
@@ -79,8 +81,9 @@ function builds(cores) {
 }
 
 /**
- * Start a run's layer `layer` (`node`, `browser`): the run's directory and
- * manifest, created on its first layer, and an empty records file. A layer
+ * Start a run's layer `layer` (`node`, `browser`, `bundle`, `trace`): the
+ * run's directory and manifest, created on its first layer, and an empty
+ * records file. A layer
  * run again the same day at the same commit replaces its records. A caller
  * that opens the same layer more than once in one invocation (Playwright
  * loads the spec again in each worker it starts, and starts a new one after

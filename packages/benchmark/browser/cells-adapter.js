@@ -2,16 +2,24 @@
 // it loads: the same `window.__bench` protocol as js.html, over the viewer's
 // `window.__cells` hook.
 (() => {
-    const nextPaint = () =>
-        new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 0)));
-    const nextFrame = () =>
-        new Promise((ok) => requestAnimationFrame(() => ok(performance.now())));
-    const store = () => window.__cells.store;
-    const resolve = (name) => {
+    function nextPaint() {
+        return new Promise((ok) =>
+            requestAnimationFrame(() => setTimeout(ok, 0)),
+        );
+    }
+    function nextFrame() {
+        return new Promise((ok) =>
+            requestAnimationFrame(() => ok(performance.now())),
+        );
+    }
+    function store() {
+        return window.__cells.store;
+    }
+    function resolve(name) {
         const s = store();
         const idx = s.core.resolve_path(name);
         return idx === 0xffffffff ? s.comps.byName(name) : idx;
-    };
+    }
     window.__bench = {
         ready: false,
         core: "cells",

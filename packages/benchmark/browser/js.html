@@ -15,13 +15,16 @@
 <div id="viewer"></div>
 <script>
 (() => {
-    const nextPaint = () => new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 0)));
-    const nextFrame = () => new Promise((ok) => requestAnimationFrame(() => ok(performance.now())));
-    let boardOf = null;
-    const board = () => {
+    function nextPaint() {
+        return new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 0)));
+    }
+    function nextFrame() {
+        return new Promise((ok) => requestAnimationFrame(() => ok(performance.now())));
+    }
+    function board() {
         const boards = Object.values(window.JXG?.boards ?? {});
         return boards[0] ?? null;
-    };
+    }
     window.__bench = {
         ready: false,
         core: "javascript",

@@ -3,9 +3,10 @@
 // Runs from packages/doenetml-worker-javascript, whose test utilities give
 // every core the same interface (DOENET_TEST_CORE selects it), prebundled
 // by `scripts/bundle-driver.mjs`. `src/run.mjs` spawns this once per (core,
-// fixture), so each memory figure is a fresh process, and allows 15 s
-// between two lines: every stage and every tick reports as it ends, so a
-// timeout bounds one stage or one tick and keeps what came before it.
+// fixture), so each memory figure is a fresh process, and limits the time
+// between two lines (120 s up to the load and after the ticks, 15 s for a
+// tick): every stage and every tick reports as it ends, so a timeout bounds
+// one stage or one tick and keeps what came before it.
 //
 // Lines: `{"progress": stage}` as a stage starts; `{"part": {...}}` with a
 // stage's fields as it ends; `{"sample": ms}` per timed tick; `{"done":
@@ -42,11 +43,21 @@ class TargetGap extends Error {}
 // Synchronous writes: stdout to a pipe is asynchronous in Node, and a long
 // synchronous stretch of core work after a console.log would hold the line
 // back until the budget killed the process.
-const emit = (o: unknown) => writeSync(1, JSON.stringify(o) + "\n");
-const progress = (stage: string) => emit({ progress: stage });
-const part = (fields: Record<string, unknown>) => emit({ part: fields });
-const gc = () => (globalThis as any).gc?.();
-const now = () => performance.now();
+function emit(o: unknown) {
+    writeSync(1, JSON.stringify(o) + "\n");
+}
+function progress(stage: string) {
+    emit({ progress: stage });
+}
+function part(fields: Record<string, unknown>) {
+    emit({ part: fields });
+}
+function gc() {
+    (globalThis as any).gc?.();
+}
+function now() {
+    return performance.now();
+}
 
 /**
  * Wasm linear memory. The Rust and cells adapters report their own module's;
@@ -72,10 +83,12 @@ async function wasmBytes(api: any): Promise<number> {
  * host actually stores (with `coreInfo`) as `state_envelope_bytes`.
  */
 async function savedState(api: any) {
-    const bytes = (s: string) => ({
-        state_bytes: Buffer.byteLength(s),
-        state_gzip_bytes: gzipSync(s).length,
-    });
+    function bytes(s: string) {
+        return {
+            state_bytes: Buffer.byteLength(s),
+            state_gzip_bytes: gzipSync(s).length,
+        };
+    }
     if (typeof api.saveState === "function") return bytes(api.saveState());
     if (typeof api.core.saveImmediately !== "function") return {};
     await api.core.saveImmediately();
@@ -93,8 +106,9 @@ async function runStep(api: any, s: Step) {
     const componentIdx = await api.resolvePathToNodeIdx(s.target);
     if (componentIdx === -1)
         throw new TargetGap(`target ${s.target} did not resolve`);
-    const act = (actionName: string, args: any) =>
-        api.core.requestAction({ componentIdx, actionName, args });
+    function act(actionName: string, args: any) {
+        return api.core.requestAction({ componentIdx, actionName, args });
+    }
     if (core === "rust") return runRustStep(api, s, componentIdx, act);
     switch (s.action) {
         case "movePoint":
@@ -190,11 +204,11 @@ async function readValue(api: any, name: string): Promise<number | string> {
  */
 async function timeTicks(api: any, steps: Step[]) {
     let k = 0;
-    const tick = async () => {
+    async function tick() {
         const t = now();
         await runStep(api, steps[k++ % steps.length]);
         return now() - t;
-    };
+    }
     const first = await tick();
     const slow = first > SLOW_TICK_MS;
     const warmup = slow ? SLOW_WARMUP : WARMUP;
@@ -264,7 +278,7 @@ async function main() {
     progress("state");
     try {
         part(await savedState(api));
-    } catch (e: any) {
+    } catch {
         // A core without saved state (the Rust core) still has its timings.
         part({ state_bytes: null });
     }
@@ -291,12 +305,14 @@ async function main() {
 }
 
 // The JS core leaves timers running, so exit explicitly once the lines are out.
-main()
-    .catch((e) => {
-        const name = e?.constructor?.name ?? "";
-        part({
-            status: /Gap$/.test(name) ? "unsupported" : "error",
-            message: String(e?.message ?? e).slice(0, 500),
-        });
-    })
-    .finally(() => setTimeout(() => process.exit(0), 50));
+try {
+    await main();
+} catch (e: any) {
+    const name = e?.constructor?.name ?? "";
+    part({
+        status: /Gap$/.test(name) ? "unsupported" : "error",
+        message: String(e?.message ?? e).slice(0, 500),
+    });
+} finally {
+    setTimeout(() => process.exit(0), 50);
+}

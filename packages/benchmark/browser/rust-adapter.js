@@ -5,11 +5,19 @@
 // names (a point's `move`, a text input's `updateImmediateValue`); it has
 // no math input, so typing into one is a gap.
 (() => {
-    const nextPaint = () =>
-        new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 0)));
-    const nextFrame = () =>
-        new Promise((ok) => requestAnimationFrame(() => ok(performance.now())));
-    const board = () => Object.values(window.JXG?.boards ?? {})[0] ?? null;
+    function nextPaint() {
+        return new Promise((ok) =>
+            requestAnimationFrame(() => setTimeout(ok, 0)),
+        );
+    }
+    function nextFrame() {
+        return new Promise((ok) =>
+            requestAnimationFrame(() => ok(performance.now())),
+        );
+    }
+    function board() {
+        return Object.values(window.JXG?.boards ?? {})[0] ?? null;
+    }
     window.__bench = {
         ready: false,
         core: "rust",

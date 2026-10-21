@@ -75,10 +75,9 @@ packages/doenetml-worker-rust && npx wasm-pack build lib-js-wasm-binding
   it back, so build the Rust core last.
 - **cells**: `npm run build -w packages/cells-core` (`wasm-pack --release`).
 
-Neither core runs wasm-opt: the cells core turns it off (it corrupts
-current wasm-bindgen output, `crates/cells-wasm/Cargo.toml`), and the
-Rust core's release build runs it only where wasm-pack can download
-binaryen. Both are the Rust compiler's release profile alone.
+Both release builds run wasm-pack's default wasm-opt (`-O`): the first
+`wasm-opt` on the PATH, else the binaryen wasm-pack downloads. The cells
+core needs binaryen 110 or later (`crates/cells-wasm/Cargo.toml`).
 
 A runner who built a core otherwise says so in `BENCH_BUILD_<CORE>`
 (`BENCH_BUILD_RUST=...`), which the manifest records.

@@ -121,7 +121,9 @@ export function mainThreadWork(
     const main = mainThread(events);
     if (!mark || !main) return null;
     const origin = mark.ts - anchor.start * 1000;
-    const toPage = (ts) => (ts - origin) / 1000;
+    function toPage(ts) {
+        return (ts - origin) / 1000;
+    }
     const xs = events
         .filter(
             (e) =>
@@ -209,4 +211,6 @@ function binned(lane, from, to, binMs) {
     return out.filter(([, , k]) => k !== "idle");
 }
 
-const round = (x) => Math.round(x * 100) / 100;
+function round(x) {
+    return Math.round(x * 100) / 100;
+}

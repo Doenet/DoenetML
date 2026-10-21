@@ -61,8 +61,9 @@ const out = run.records;
 
 function quantiles(xs: number[]) {
     const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
-    const q = (p: number) =>
-        s[Math.min(s.length - 1, Math.floor(p * s.length))];
+    function q(p: number) {
+        return s[Math.min(s.length - 1, Math.floor(p * s.length))];
+    }
     return s.length
         ? {
               n: s.length,

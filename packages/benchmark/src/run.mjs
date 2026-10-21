@@ -1,7 +1,7 @@
 // The Node driver: one comparison run. Every (core, fixture) is measured
 // in its own process (`src/measure-one.ts`), with 120 s for the load and
-// 15 s for each tick and each stage after; the records go to `results/runs/<id>/node.json` beside the
-// run's manifest. See METHOD.md.
+// each stage after the ticks, and 15 s for each tick; the records go to
+// `results/runs/<id>/node.json` beside the run's manifest. See METHOD.md.
 //
 //   node src/run.mjs --machine=<id> [--cores=javascript,rust,cells]
 //                    [--fixtures=depth,breadth-1000,homework]
@@ -14,9 +14,9 @@ import { listFixtures, repoRoot } from "./fixtures.mjs";
 import { openRun, appendRecord } from "./results.mjs";
 import { ensureBundle } from "../scripts/bundle-driver.mjs";
 
-/** The longest the stages up to the load may take, together. */
+/** The longest a stage up to the load, or a stage after the ticks, may take. */
 export const LOAD_TIMEOUT_MS = 120_000;
-/** The longest a tick, or a stage after the ticks, may take. */
+/** The longest a tick may take. */
 export const STEP_TIMEOUT_MS = 15_000;
 const LOAD_STAGES = new Set(["start", "generate", "parse", "load"]);
 /**
@@ -61,8 +61,8 @@ const run = args.out
 /**
  * Measure `fixture` in `core`. The process reports each stage and tick as
  * it ends; a gap between two lines longer than the stage allows
- * (`LOAD_TIMEOUT_MS` up to the load, `STEP_TIMEOUT_MS` from the first
- * tick) kills it, and the record keeps what was reported, with the stage
+ * (`LOAD_TIMEOUT_MS` up to the load and after the ticks, `STEP_TIMEOUT_MS`
+ * for a tick) kills it, and the record keeps what was reported, with the stage
  * it timed out in.
  */
 function measure(core, fixture) {
@@ -86,7 +86,7 @@ function measure(core, fixture) {
             stage = "start",
             finished = false,
             timer;
-        const arm = () => {
+        function arm() {
             clearTimeout(timer);
             timer = setTimeout(
                 () => {
@@ -102,7 +102,7 @@ function measure(core, fixture) {
                     ? LOAD_TIMEOUT_MS
                     : STEP_TIMEOUT_MS,
             );
-        };
+        }
         arm();
         child.stdout.on("data", (d) => {
             buf += d;
@@ -142,10 +142,14 @@ function measure(core, fixture) {
     });
 }
 
-const median = (xs) => [...xs].sort((a, b) => a - b)[xs.length >> 1];
+function median(xs) {
+    return [...xs].sort((a, b) => a - b)[xs.length >> 1];
+}
 
 function brief(r) {
-    const ms = (x) => (x < 10 ? x.toFixed(2) : x.toFixed(0));
+    function ms(x) {
+        return x < 10 ? x.toFixed(2) : x.toFixed(0);
+    }
     const parts = [];
     if (r.load_ms != null) parts.push(`load ${ms(r.load_ms)} ms`);
     if (r.samples_ms) parts.push(`tick ${ms(median(r.samples_ms))} ms`);
@@ -157,18 +161,17 @@ function brief(r) {
     return parts.join(", ");
 }
 
-// The floor first, for every core, then every fixture across the cores in
-// turn, so a slow stretch of the machine falls on all of them.
+/** Each core's latest record of each shape, by `core/shape`. */
+const lastOfShape = new Map();
 /**
  * Why `core` should not try `fixture`, if it should not: a shape's larger
  * size after a smaller one the core could not finish (it timed out,
  * failed, or was skipped itself), or whose load took more than a tenth of
  * the limit, so that ten times the size cannot load in time.
  */
-const last = new Map();
 function skipReason(core, fixture) {
     const m = /^([a-z]+)-(\d+)$/.exec(fixture);
-    const prev = m && last.get(`${core}/${m[1]}`);
+    const prev = m && lastOfShape.get(`${core}/${m[1]}`);
     if (!prev) return null;
     const at = Number(/-(\d+)$/.exec(prev.fixture)[1]).toLocaleString("en-US");
     if (prev.status === "skipped") return prev.reason;
@@ -178,6 +181,8 @@ function skipReason(core, fixture) {
     return null;
 }
 
+// The floor first, for every core, then every fixture across the cores in
+// turn, so a slow stretch of the machine falls on all of them.
 for (const name of ["floor", ...fixtures.map((m) => m.name)]) {
     for (const core of cores) {
         const reason = skipReason(core, name);
@@ -190,7 +195,7 @@ for (const name of ["floor", ...fixtures.map((m) => m.name)]) {
                 wall_ms: 0,
             };
             appendRecord(run.records, r);
-            last.set(`${core}/${name.replace(/-\d+$/, "")}`, r);
+            lastOfShape.set(`${core}/${name.replace(/-\d+$/, "")}`, r);
             console.log(
                 `${name.padEnd(18)} ${core.padEnd(10)} skipped: ${reason}`,
             );
@@ -200,7 +205,7 @@ for (const name of ["floor", ...fixtures.map((m) => m.name)]) {
         const r = await measure(core, name);
         r.wall_ms = Date.now() - t;
         appendRecord(run.records, r);
-        last.set(`${core}/${name.replace(/-\d+$/, "")}`, r);
+        lastOfShape.set(`${core}/${name.replace(/-\d+$/, "")}`, r);
         console.log(`${name.padEnd(18)} ${core.padEnd(10)} ${brief(r)}`);
     }
 }

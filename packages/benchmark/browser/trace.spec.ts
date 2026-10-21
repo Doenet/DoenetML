@@ -19,8 +19,9 @@
 // performance trace, for the main thread's work by kind
 // (`src/chrome-trace.mjs`); tracing slows the page, so the traced run's
 // times are kept apart. The traced runs' full Chrome traces are written to
-// `results/traces/<run>/` (ignored by git), to open in DevTools. Records go to the run's `trace.json`; `npm run
-// render` turns them into `trace.md`. See METHOD.md.
+// `results/traces/<run>/` (ignored by git), to open in DevTools. Records go
+// to the run's `trace.json`; `npm run render` turns them into `trace.md`.
+// See METHOD.md.
 //
 //   BENCH_MACHINE=<id> npm run trace
 import { test, type Browser, type BrowserContext } from "@playwright/test";
@@ -32,7 +33,9 @@ import { CATEGORIES, mainThreadWork } from "../src/chrome-trace.mjs";
 import { appendRecord, openRun } from "../src/results.mjs";
 import { homeworkFixture } from "../src/trace-fixtures.mjs";
 
-const list = (v: string | undefined, d: string) => (v ?? d).split(",");
+function list(v: string | undefined, d: string) {
+    return (v ?? d).split(",");
+}
 const RUNS = Number(process.env.BENCH_TRACE_RUNS ?? 5);
 const CPUS = list(process.env.BENCH_TRACE_CPU, "1,4").map(Number);
 const SIZES = list(process.env.BENCH_TRACE_SIZES, "1,4,16").map(Number);
@@ -251,8 +254,9 @@ for (const s of SCENARIOS) {
                 runs: runs[v],
                 traced: traced[v],
             });
-        const median = (xs: number[]) =>
-            [...xs].sort((a, b) => a - b)[xs.length >> 1];
+        function median(xs: number[]) {
+            return [...xs].sort((a, b) => a - b)[xs.length >> 1];
+        }
         console.log(
             `${s.page} ${fixture.name} cpu x${s.cpu}: ` +
                 VISITS.map(

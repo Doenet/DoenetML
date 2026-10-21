@@ -86,7 +86,7 @@ const SETS = {
     ],
 };
 const cache = new Map();
-const measure = (file) => {
+function measure(file) {
     if (!cache.has(file)) {
         const b = readFileSync(file);
         cache.set(file, {
@@ -96,8 +96,10 @@ const measure = (file) => {
         });
     }
     return cache.get(file);
-};
-const mb = (x) => (x / 1e6).toFixed(2).padStart(6);
+}
+function mb(x) {
+    return (x / 1e6).toFixed(2).padStart(6);
+}
 const records = [];
 for (const [set, list] of Object.entries(SETS)) {
     const [roots, setFiles] = list();

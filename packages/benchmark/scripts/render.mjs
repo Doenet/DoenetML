@@ -4,8 +4,8 @@
 //
 //   node scripts/render.mjs
 //
-// Per run, in its directory: `comparison.md` (the cores pairwise on the
-// synthetic shapes: tick, then load, then memory), `coverage.md` (what each
+// Per run, in its directory: `comparison.md` (every core against the JS
+// core on the synthetic shapes: tick, then load, then memory), `coverage.md` (what each
 // core can run, every fixture), and `budgets.md` (the browser layer and the
 // bundle against the product budgets) when the run has those layers, and
 // `trace.md` with its `trace-*.svg` figures (the steps of a load, in order;
@@ -13,7 +13,7 @@
 // `results/README.md` lists the runs, newest first, grouped by machine.
 import { writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { SIZES, packageRoot, shapes } from "../src/fixtures.mjs";
+import { packageRoot, shapes } from "../src/fixtures.mjs";
 import { listRuns, runsDir } from "../src/results.mjs";
 import { tracePage } from "./render-trace.mjs";
 
@@ -25,34 +25,42 @@ function limits(layer) {
     };
 }
 const CORE_NAME = { javascript: "JS", rust: "Rust", cells: "cells" };
-const coreName = (c) => CORE_NAME[c] ?? c;
+function coreName(c) {
+    return CORE_NAME[c] ?? c;
+}
 
-const median = (xs) => {
+function median(xs) {
     const s = [...xs].sort((a, b) => a - b);
     return s.length % 2
         ? s[s.length >> 1]
         : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-};
-const quantile = (xs, p) => {
+}
+function quantile(xs, p) {
     const s = [...xs].sort((a, b) => a - b);
     return s[Math.min(s.length - 1, Math.floor(p * s.length))];
-};
-const ms = (x) =>
-    x >= 1000
+}
+function ms(x) {
+    return x >= 1000
         ? `${(x / 1000).toFixed(x >= 10_000 ? 0 : 1)} s`
         : x >= 10
           ? `${x.toFixed(0)} ms`
           : x >= 0.1
             ? `${x.toFixed(2)} ms`
             : `${(x * 1000).toFixed(0)} µs`;
-const mb = (b) => `${(b / 2 ** 20).toFixed(b >= 10 * 2 ** 20 ? 0 : 1)} MB`;
-const cellText = (s) => String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
-const table = (head, rows) =>
-    [
+}
+function mb(b) {
+    return `${(b / 2 ** 20).toFixed(b >= 10 * 2 ** 20 ? 0 : 1)} MB`;
+}
+function cellText(s) {
+    return String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+function table(head, rows) {
+    return [
         `| ${head.join(" | ")} |`,
         `|${head.map(() => "---").join("|")}|`,
         ...rows.map((r) => `| ${r.map(cellText).join(" | ")} |`),
     ].join("\n");
+}
 
 /**
  * What a record says about one measure (`tick` or `load`): a value, a bound
@@ -180,8 +188,9 @@ function vsCell(o, ref) {
         ? `**${ratio(r)} faster**${dagger}${sub}`
         : `**${ratio(1 / r)} slower**${dagger}${sub}`;
 }
-const ratio = (r) =>
-    `${r >= 10 ? Math.round(r).toLocaleString("en-US") : r.toFixed(1)}×`;
+function ratio(r) {
+    return `${r >= 10 ? Math.round(r).toLocaleString("en-US") : r.toFixed(1)}×`;
+}
 
 function comparison(run) {
     const { manifest } = run;

@@ -3,22 +3,26 @@
 // tick changes something), where the dragged point starts (`start`, so a
 // page can find it on screen without asking the core) and a value check:
 // one more drag to a known place, and the values the document must then
-// hold, which the shape computes itself. Every shape is driven by dragging a point, which every
-// core supports; only `symbolic` needs math the Rust core does not have.
+// hold, which the shape computes itself. Every shape is driven by dragging
+// a point, which every core supports; only `symbolic` needs math the Rust
+// core does not have.
 //
 // `n` is the number of elements the mechanism runs through: the chain's
 // links, the fan's numbers, the repeat's iterations.
 
-// `BENCH_SIZES=10,100` overrides them, for a quick check of the harness;
-// such a run is not one to compare.
+// The sizes of every shape. `BENCH_SIZES=10,100` overrides them, for a
+// quick check of the harness; such a run is not one to compare.
 export const SIZES = process.env.BENCH_SIZES
     ? process.env.BENCH_SIZES.split(",").map(Number)
     : [1000, 10000, 100000];
 
-/** A free point `p` at (x, 0) in a graph. */
-const point = (name, x) =>
-    `<graph name="g"><point name="${name}" x="${x}" y="0"/></graph>`;
-const drag = (target, x) => ({ action: "movePoint", target, x, y: 0 });
+/** A free point `name` at (x, 0) in a graph. */
+function point(name, x) {
+    return `<graph name="g"><point name="${name}" x="${x}" y="0"/></graph>`;
+}
+function drag(target, x) {
+    return { action: "movePoint", target, x, y: 0 };
+}
 
 export const shapes = {
     depth: {

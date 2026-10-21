@@ -14,15 +14,15 @@ const VISIT_TEXT = {
     edit: "the open page given a changed document, as the editor's Refresh does",
 };
 
-const median = (xs) => {
+function median(xs) {
     const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
     if (!s.length) return NaN;
     return s.length % 2
         ? s[s.length >> 1]
         : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-};
-const ms = (x) =>
-    !Number.isFinite(x)
+}
+function ms(x) {
+    return !Number.isFinite(x)
         ? "—"
         : x >= 1000
           ? `${(x / 1000).toFixed(2)} s`
@@ -31,24 +31,34 @@ const ms = (x) =>
             : x >= 1
               ? `${x.toFixed(1)} ms`
               : `${x.toFixed(2)} ms`;
-const cellText = (s) => String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
-const table = (head, rows) =>
-    [
+}
+function cellText(s) {
+    return String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+function table(head, rows) {
+    return [
         `| ${head.join(" | ")} |`,
         `|${head.map(() => "---").join("|")}|`,
         ...rows.map((r) => `| ${r.map(cellText).join(" | ")} |`),
     ].join("\n");
-const esc = (s) =>
-    String(s)
+}
+function esc(s) {
+    return String(s)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-const countsText = (c) =>
-    Object.entries(c ?? {})
+}
+function countsText(c) {
+    return Object.entries(c ?? {})
         .map(([k, v]) => `${v.toLocaleString("en-US")} ${k.replace(/_/g, " ")}`)
         .join(", ");
-const depth = (name) => name.split("/").length - 1;
-const leaf = (name) => name.split("/").pop();
+}
+function depth(name) {
+    return name.split("/").length - 1;
+}
+function leaf(name) {
+    return name.split("/").pop();
+}
 
 /**
  * The steps of one scenario's runs, each step the median of its runs:
@@ -221,13 +231,15 @@ function find(records, { page, cpu, size, visit }) {
             r.visit === visit,
     );
 }
-const total = (r) => (r ? median(r.runs.map((m) => m.total_ms)) : NaN);
-const range = (r) => {
+function total(r) {
+    return r ? median(r.runs.map((m) => m.total_ms)) : NaN;
+}
+function range(r) {
     const xs = (r?.runs ?? []).map((m) => m.total_ms).filter(Number.isFinite);
     return xs.length > 1
         ? ` <sub>${ms(Math.min(...xs))}–${ms(Math.max(...xs))}</sub>`
         : "";
-};
+}
 /** The median duration of step `name` (summed over its occurrences). */
 function stepTime(r, name) {
     if (!r) return NaN;
@@ -239,8 +251,9 @@ function stepTime(r, name) {
         ),
     );
 }
-const svgName = (r) =>
-    `trace-${r.page}-${r.fixture}-cpu${r.cpu}-${r.visit}.svg`;
+function svgName(r) {
+    return `trace-${r.page}-${r.fixture}-cpu${r.cpu}-${r.visit}.svg`;
+}
 
 export function tracePage(run, header) {
     const records = run.layers.trace ?? [];
@@ -331,7 +344,7 @@ export function tracePage(run, header) {
         );
         if (r.traced?.main) {
             const m = r.traced.main;
-            const busy = m.busy_ms + m.idle_ms;
+            const elapsed = m.busy_ms + m.idle_ms;
             out.push(
                 "The main thread in the traced run, by kind of work (other threads' work is not counted; see below):",
                 "",
@@ -341,13 +354,13 @@ export function tracePage(run, header) {
                         ...KINDS.filter((k) => m.totals[k] > 0).map((k) => [
                             k,
                             ms(m.totals[k]),
-                            `${((m.totals[k] / busy) * 100).toFixed(0)}%`,
+                            `${((m.totals[k] / elapsed) * 100).toFixed(0)}%`,
                             KIND_TEXT[k],
                         ]),
                         [
                             "idle",
                             ms(m.idle_ms),
-                            `${((m.idle_ms / busy) * 100).toFixed(0)}%`,
+                            `${((m.idle_ms / elapsed) * 100).toFixed(0)}%`,
                             "waiting: for the network, a timer or the next frame",
                         ],
                     ],
