@@ -34,6 +34,7 @@ pub mod dast;
 pub mod diagnostics;
 mod document;
 mod error;
+pub mod format;
 pub mod limits;
 mod profile;
 pub mod program;

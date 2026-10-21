@@ -1,7 +1,8 @@
 # Components are written by people who do not know the core
 
 Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
-for the circle; see Migration.
+for the circle, and the formatter of step 6; see Migration. The renderer
+interface is not decided here (see The renderer).
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -46,19 +47,11 @@ Beyond planners, a contributor meets:
   (`compile/attrs.rs`). Exhaustive matches catch most; nothing checks that
   an inverse is right, and a wrong inverse is a drag that goes slightly
   wrong.
-- **A renderer per type in TypeScript**, reaching the core through prop
-  names checked at run time, raw `f64`s (a text prop reads as its string
-  id), typed arrays that detach when wasm memory grows, and hand-built
-  requests. `renderers/index.tsx` switches on component type and on
-  attributes, deciding again what the build already decided.
 
 The benchmark (`packages/benchmark`, run `2026-10-19-claude-cloud-*`) says
-where the time goes. A drag's core tick is 0.1-0.4 ms on every fixture but
-`symbolic`; the renderer's commit is 4.8 ms when 1000 values change, and a
-rebuild's renderer work reaches 270 ms at p90 (`rebuild-10000`). On
-`homework`, render is 100 ms of the first render (boards 76 ms, React
-commit 22 ms) against 49 ms for the whole core. What a contributor can
-make slow is mostly the renderer.
+a drag's core tick is 0.1-0.4 ms on every fixture but `symbolic`; most of
+a frame is the renderer's, which this ADR leaves to a later one. What a
+contributor writes in the core must keep the tick where it is.
 
 ## Decision
 
@@ -123,101 +116,34 @@ the tick dispatches as it does today.
 No instruction produces a formatted string. Formatting (a number's
 digits, a math expression's LaTeX or text) happens where requests come in
 or values go out: the renderer, export, and `submit`. The formatter is in
-Rust, called by the core at those points and by the viewer through wasm.
+Rust (`format.rs`), and writes what the current viewer and the JavaScript
+core write (`tests/format_parity.rs`).
 Text answers stay as they are: an award of a `type="text"` answer is
 literal text (`compile/answer.rs` refuses references), until a document
 needs more.
 
-### The renderer is a view tree of primitives
+### The renderer
 
-The interface between core and renderer (ADR 0001) gains a **view tree**:
-the build emits, alongside the component table, a flat, columnar tree of
-view nodes, each a primitive bound to cells. The viewer renders every
-component through it; there is no per-component renderer.
-
-- A component's view is written in Rust, with its props, as a `view![..]`
-  of primitives. A planner chooses among a type's **view shapes** as it
-  chooses among operator chains (CONTEXT.md, build-time variety): a
-  `<number>` with and without `displayDecimals` is two shapes, and the
-  viewer never branches on attributes.
-- A shape is static (`const`): its primitives and, for each, the prop
-  positions it binds. A view node is a kind, its subtree's end, and its
-  component (or, for a text leaf, a string id); its cells are the
-  component's, through `prop_cells[prop_base[c] + i]`, the indirection a
-  reference already takes. A view binds only its own component's props:
-  a label whose text refers to another component is a child component.
-- The viewer keys view nodes by component identity (DAST node, scope), so
-  a rebuild reconciles rather than remounts.
-- TypeScript types for each shape's bindings are generated from the Rust
-  tables, with the schema and the language server's data. The viewer
-  reaches cells only through generated code; `store.comps.cols`, raw
-  `useCell` and raw `store.request` are linted out elsewhere.
-
-Measured with a pass over the loaded document that bounds emitting the
-tree in the build (`crates/cells-bench/examples/view_tree_cost.rs`, every
-fixture): 0.1-4.8% of the load in time (repeat documents highest), and in
-the layout above 0.4-24% of the document's memory. A tree that copied
-each node's cells and identity would have cost 2-74%.
-
-### Primitives are the core team's
-
-The primitives (about 20: text, number, math, ref; block, section, list,
-table; number, text, math, boolean, choice and range inputs; board, point,
-curve, polygon, segment, circle, label) are TypeScript the core team owns.
-A primitive is admitted when it has:
-
-1. **In-place updates**: each bound cell maps to a direct DOM or JSXGraph
-   update, without a React render on the tick path. React mounts and
-   reconciles rebuilds.
-2. **Accessibility**: a role, a name from a label child or
-   `shortDescription`, keyboard operation for anything writable.
-3. **A performance test** in `packages/benchmark` within the budgets
-   below.
-4. **An export arm in Rust**: how it is written to PreTeXt and print,
-   with the Rust formatter. Export reads the same view tree as the
-   viewer.
-
-`widget(name)` is the way out for a bespoke interface (a spreadsheet, a
-code editor, PreFigure): anyone may add one. A widget declares a shape
-like a primitive, gets its own React subtree, is exempt from the in-place
-rule, is listed by a test, and is outside the drag budgets.
-
-### Budgets
-
-From the benchmark run above (one machine, CPU ×1), and read on that
-machine; they are measured again, not carried over, on another:
-
-| Measurement | Budget | Today |
-|---|---|---|
-| Commit per changed bound leaf, on a drag | ≤ 2 µs | about 4.8 µs (4.84 ms for 1000 values, `depth-1000`) |
-| Mount per view node outside a graph | ≤ 80 µs | about 180 µs per component (`homework`'s React commit) |
-| `homework` render (boards and commit) | ≤ 30 ms | 100 ms |
-| Board initialization | ≤ 10 ms | 30 ms |
-| Frame latency of a rebuilding drag, p90 | ≤ 50 ms on `rebuild-1000` and `rebuild-10000` | 38 ms; 270 ms |
-
-The product budgets in METHOD.md (16 ms a frame, 50 ms a rebuilding
-frame, 100 ms to `homework`'s first render) stay the goals; these are what
-they ask of a primitive. Shapes that change 10,000 values on screen are
-tracked, not budgeted: the browser's paint alone exceeds a frame.
+How the viewer draws components, and whether its interface to the core
+changes, is not decided here. Renderers stay per component type in
+TypeScript, as in ADR 0001, until a later ADR decides otherwise.
 
 ### Done is a green spec
 
 A component is done when its **spec** passes. A spec is a set of
 `spec!{}` blocks in Rust, run by `cargo test`, each a case: DoenetML, a
 script of requests and drags, and what must then hold, in an author's
-terms: public prop values, diagnostic codes, the view shape chosen, the
-PreTeXt written. A spec says what an author sees; the tables, plans and
-views say how. A refactor of the second is checked against the first.
+terms: public prop values and diagnostic codes. A spec says what an
+author sees; the tables and plans say how. A refactor of the second is checked against the first.
 
 Every case also feeds the generic guards, which a contributor does not
 write: `extend` variants of the case (a copy, a copy overriding each
 attribute) checking that roles are shared exactly; `every_count` and the
-probe's coverage where the case has a repeat; the view bindings against
-the shape; the primitives' budgets for the shapes it renders; round trips
-of the operators its program uses.
+probe's coverage where the case has a repeat; round trips of the
+operators its program uses.
 
 Each case records a **cost snapshot**: cells, essential, fixed,
-instructions and view nodes per element. A changed snapshot is approved by
+instructions and components per element. A changed snapshot is approved by
 the core team (CODEOWNERS on the snapshot directory). This is the check
 that would have caught the padding above.
 
@@ -228,7 +154,7 @@ porting, not a gate.
 
 Two pilots, `<slider>` (a prop table and an operator chain: the easy path)
 and `<circle>` (a planner by attributes, roles under `extend`, padded
-through points, vector inverses, a graph primitive, an over-determined
+through points, vector inverses, drawn in a graph, an over-determined
 case), carry every piece before anything is opened to contributors:
 
 1. `spec!{}`, with the cost snapshot, and specs for both pilots written
@@ -270,26 +196,27 @@ case), carry every piece before anything is opened to contributors:
    wrong inverse: through `Add`, `Sub`, `Mul`, `Div` and `Lerp` whose
    other input is NaN or infinite (an emptied input), a request wrote NaN
    into the input it reached; it is dropped now.
-5. View shapes, the view tree and the primitives the pilots use (range,
-   number, board, point, circle), with the generated TypeScript and the
-   keyed reconciliation; the budgets measured in the browser layer.
-6. The Rust formatter and the export arm for those primitives.
+5. The renderer: left to a later ADR (see The renderer).
+6. The Rust formatter. **Done**: `format.rs` writes numbers as the viewer
+   does, JavaScript's `String(n)`, `toPrecision` and `toFixed` character
+   for character, which `tests/format_parity.rs` checks against node over
+   edge values, short decimals and halves, and random doubles. Rounding
+   starts from the shortest digits and takes the exact expansion only at
+   a halfway point. Nothing calls it yet: the viewer and export move to it
+   with the renderer's decision.
 7. The contributor guide (ARCHITECTURE.md, "Where to change things"),
    written from the pilots.
 
-Each step is measured with `scripts/perf-diff.sh` and, from step 5, the
-browser layer.
+Each step is measured with `scripts/perf-diff.sh`.
 
 ## Consequences
 
-- A component that fits the declarative vocabulary is Rust only: a prop
-  table, perhaps a planner returning a typed plan, a `view![..]`, a spec.
-  TypeScript is written by the core team, and by whoever needs a widget.
-- The core team's surface grows: primitives, structural components, the
-  macros, the guards, the snapshot reviews. That is the price of keeping
-  the hot paths in few hands.
-- The view tree costs memory per node and a little load time; export and
-  the viewer stop being two descriptions of each component.
+- A component's core side is Rust a contributor can write without
+  knowing the core: a prop table, perhaps a planner returning a typed
+  plan, and a spec.
+- The core team's surface grows: structural components, the macros, the
+  guards, the snapshot reviews. That is the price of keeping the hot
+  paths in few hands.
 - Reading a list prop takes one more lookup at build time and in the
   viewer, and padding's cells, memory and load go away.
 - Text answers with references, and lengths that follow state without a
@@ -308,16 +235,5 @@ browser layer.
   and a cap per type.
 - **Operators owned by the core team only.** Safer, and the core team in
   the path of every port; the round-trip tests are the safety instead.
-- **Per-component renderers with generated types** (today's design,
-  typed). Two languages per component and a TypeScript switch that
-  repeats the build's choices.
-- **An adapter to the JavaScript core's `stateValues` renderers.** Rebuilds
-  objects for every changed component on every tick.
-- **The core writing the DOM**, or **draw buffers per tick.** Slow calls
-  from wasm to the DOM, and the loss of JSXGraph and the accessibility
-  tooling; a draw buffer remains possible inside the board primitive if
-  JSXGraph becomes the tick's bottleneck, invisible to contributors.
-- **Bindings in every view node.** General, at 2-74% of a document's
-  memory.
 - **The JavaScript core's tests as the definition of done.** Most of their
   failures on this core are reads of that core's internals.
