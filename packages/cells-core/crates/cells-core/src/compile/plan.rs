@@ -183,6 +183,18 @@ pub(crate) struct ChoiceDef {
     pub(crate) used: Vec<String>,
 }
 
+/// How many public props an element has.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum NPublic {
+    /// Its type table's, whatever type the element ends up with.
+    Table,
+    /// The table's, then two per point of its list, as planned.
+    Planned(u32),
+    /// As many as its `extend` referent has: a bare or cloned copy of a
+    /// type with a list, whose length is known only when built.
+    AsReferent,
+}
+
 /// The template itself, as the parent of its top-level elements.
 pub(crate) const ROOT_SCOPE: ElemId = usize::MAX;
 
@@ -203,6 +215,8 @@ pub(crate) struct Elem {
     /// The element's identity across loads, for saved state.
     pub(crate) key: ElemKey,
     pub(crate) props: Vec<SourcePlan>,
+    /// How many of `props` are public (ADR 0016); hidden slots follow.
+    pub(crate) n_public: NPublic,
     pub(crate) children: Vec<Child>,
     pub(crate) extend: Option<RefId>,
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
@@ -270,15 +284,90 @@ pub(crate) fn own_slot(i: usize) -> u8 {
     u8::try_from(i).expect("fewer than 256 slots per element")
 }
 
+/// The name a planner gives a piece of essential state, so that a copy
+/// with overrides shares it with its original (`plan_geo`): the copy's
+/// slot with a role aliases the original's slot with the same role. Roles
+/// are the constants of [`roles`] and [`point_roles`]; nothing else can
+/// make one, so a planner cannot misspell one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct Role(&'static str, u32);
+
+/// Every role a planner gives.
+pub(crate) mod roles {
+    use super::Role;
+    /// A point's coordinates.
+    pub(crate) const X: Role = Role("x", 0);
+    pub(crate) const Y: Role = Role("y", 0);
+    /// A circle's center when it is its own state, and its radius.
+    pub(crate) const CX: Role = Role("cx", 0);
+    pub(crate) const CY: Role = Role("cy", 0);
+    pub(crate) const R: Role = Role("r", 0);
+    /// A line's second point's distance along its direction.
+    pub(crate) const DIST: Role = Role("dist", 0);
+    /// A value that is the element's state (a text, a boolean).
+    pub(crate) const VALUE: Role = Role("value", 0);
+    /// The default points of a line given by fewer than two.
+    pub(crate) const ESS1: [Role; 2] = [Role("ess1x", 0), Role("ess1y", 0)];
+    pub(crate) const ESS2: [Role; 2] = [Role("ess2x", 0), Role("ess2y", 0)];
+}
+
+/// A slot's plan and, when it is essential state that a copy shares, its
+/// role and the attribute its value came from: what a typed plan's fields
+/// hold (`typed_props!`), so a role is always on the slot whose plan it
+/// names.
+#[derive(Debug, Clone)]
+pub(crate) struct Planned {
+    pub(crate) plan: SourcePlan,
+    role: Option<(Role, Option<&'static str>)>,
+}
+
+impl From<SourcePlan> for Planned {
+    fn from(plan: SourcePlan) -> Self {
+        Planned { plan, role: None }
+    }
+}
+
+impl Planned {
+    /// Essential state with `role`, initially `v`.
+    pub(crate) fn essential(role: Role, v: f64) -> Self {
+        Planned {
+            plan: SourcePlan::Literal(v),
+            role: Some((role, None)),
+        }
+    }
+    /// Essential state with `role`, initially `v`, given by `attr`: a copy
+    /// that gives `attr` itself does not share it.
+    pub(crate) fn essential_from(role: Role, attr: &'static str, v: f64) -> Self {
+        Planned {
+            plan: SourcePlan::Literal(v),
+            role: Some((role, Some(attr))),
+        }
+    }
+    /// A constant that is not state.
+    pub(crate) fn fixed(v: f64) -> Self {
+        SourcePlan::Fixed(v).into()
+    }
+    /// An alias of the element's own slot.
+    pub(crate) fn own(slot: usize) -> Self {
+        SourcePlan::own(slot).into()
+    }
+    /// An operator over the element's own slots.
+    pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
+        SourcePlan::computed(op, args).into()
+    }
+}
+
 /// A planned element's prop list under construction: public slots set by
 /// index, hidden slots appended after them and referenced by index like any
 /// own prop.
 pub(crate) struct ElemPlan {
     pub(crate) props: Vec<Option<SourcePlan>>,
-    pub(crate) roles: HashMap<&'static str, u8>,
+    /// The public slots: the table's props, then the list's points.
+    pub(crate) n_public: usize,
+    pub(crate) roles: HashMap<Role, u8>,
     /// The attribute a role's value came from, if any; a copy that gives
     /// that attribute itself does not share the role.
-    pub(crate) role_attr: HashMap<&'static str, &'static str>,
+    pub(crate) role_attr: HashMap<Role, &'static str>,
 }
 
 /// A prop wired from the built tree rather than planned (`SourcePlan::Deferred`).
@@ -369,8 +458,16 @@ impl ElemPlan {
         Self::new(component_type.prop_defs().len())
     }
 
+    /// A plan for an element of `component_type` whose list holds
+    /// `n_points` points, after the table's props.
+    pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
+        debug_assert!(component_type.list().is_some());
+        Self::new(component_type.prop_defs().len() + 2 * n_points)
+    }
+
     pub(crate) fn new(n_public: usize) -> Self {
         ElemPlan {
+            n_public,
             props: vec![None; n_public],
             roles: HashMap::new(),
             role_attr: HashMap::new(),
@@ -392,25 +489,87 @@ impl ElemPlan {
         own_slot(self.props.len() - 1);
         self.props.len() - 1
     }
+    /// A hidden slot planned as `p`, with its role if it has one.
+    pub(crate) fn hidden_planned(&mut self, p: Planned) -> usize {
+        let i = self.hidden(p.plan);
+        if let Some((role, attr)) = p.role {
+            self.add_role(i, role, attr);
+        }
+        i
+    }
     /// A hidden essential slot with a role name (see `Elem::roles`).
-    pub(crate) fn essential(&mut self, role: &'static str, value: f64) -> usize {
+    pub(crate) fn essential(&mut self, role: Role, value: f64) -> usize {
         let i = self.hidden(SourcePlan::Literal(value));
         self.roles.insert(role, own_slot(i));
         i
     }
     /// A public essential slot with a role name.
-    pub(crate) fn set_essential(&mut self, i: usize, role: &'static str, value: f64) {
+    pub(crate) fn set_essential(&mut self, i: usize, role: Role, value: f64) {
         self.set(i, SourcePlan::Literal(value));
         self.roles.insert(role, own_slot(i));
     }
     /// A public essential text slot with a role name, holding string id `id`.
-    pub(crate) fn set_text_essential(&mut self, i: usize, role: &'static str, id: f64) {
+    pub(crate) fn set_text_essential(&mut self, i: usize, role: Role, id: f64) {
         self.set(i, SourcePlan::TextLiteral(id));
         self.roles.insert(role, own_slot(i));
     }
     /// Record that `role` came from attribute `attr`.
-    pub(crate) fn role_from_attr(&mut self, role: &'static str, attr: &'static str) {
+    pub(crate) fn role_from_attr(&mut self, role: Role, attr: &'static str) {
         self.role_attr.insert(role, attr);
+    }
+    fn add_role(&mut self, i: usize, role: Role, attr: Option<&'static str>) {
+        self.roles.insert(role, own_slot(i));
+        if let Some(a) = attr {
+            self.role_from_attr(role, a);
+        }
+    }
+    /// Every public slot, from a typed plan's fields in table order
+    /// (`Props::into_vec`), with their roles.
+    pub(crate) fn set_public(&mut self, props: Vec<Planned>) {
+        for (i, p) in props.into_iter().enumerate() {
+            self.props[i] = Some(p.plan);
+            if let Some((role, attr)) = p.role {
+                self.add_role(i, role, attr);
+            }
+        }
+    }
+    /// The list's points, which fill the public slots after the table's
+    /// props, with their roles.
+    pub(crate) fn set_list(&mut self, points: Vec<[Planned; 2]>) {
+        let n_fixed = self
+            .n_public
+            .checked_sub(2 * points.len())
+            .expect("the plan holds the list's points");
+        for (k, point) in points.into_iter().enumerate() {
+            for (j, p) in point.into_iter().enumerate() {
+                let i = n_fixed + 2 * k + j;
+                self.props[i] = Some(p.plan);
+                if let Some((role, attr)) = p.role {
+                    self.add_role(i, role, attr);
+                }
+            }
+        }
+    }
+    /// The outputs of a vector instruction over own slots, for the public
+    /// slots `at`, which must be consecutive: the head at `at[0]`, output
+    /// `k` at `at[k]` (`set_vec`).
+    pub(crate) fn vector<const N: usize>(
+        at: [usize; N],
+        op: VecOp,
+        args: Vec<usize>,
+    ) -> [Planned; N] {
+        assert_eq!(op.n_out(), N, "a vector operator's outputs are its slots");
+        assert!(
+            at.iter().enumerate().all(|(k, &a)| a == at[0] + k),
+            "a vector operator's outputs are consecutive slots"
+        );
+        std::array::from_fn(|k| {
+            if k == 0 {
+                SourcePlan::vector(op, args.clone()).into()
+            } else {
+                SourcePlan::VecOut(own_slot(at[0]), byte(k)).into()
+            }
+        })
     }
     pub(crate) fn finish(self) -> Vec<SourcePlan> {
         self.props
@@ -421,25 +580,12 @@ impl ElemPlan {
     }
 }
 
-/// Role names of the k-th literal point of a point list (k < 16).
-pub(crate) const POINT_ROLES: [[&str; 2]; 16] = [
-    ["pt1x", "pt1y"],
-    ["pt2x", "pt2y"],
-    ["pt3x", "pt3y"],
-    ["pt4x", "pt4y"],
-    ["pt5x", "pt5y"],
-    ["pt6x", "pt6y"],
-    ["pt7x", "pt7y"],
-    ["pt8x", "pt8y"],
-    ["pt9x", "pt9y"],
-    ["pt10x", "pt10y"],
-    ["pt11x", "pt11y"],
-    ["pt12x", "pt12y"],
-    ["pt13x", "pt13y"],
-    ["pt14x", "pt14y"],
-    ["pt15x", "pt15y"],
-    ["pt16x", "pt16y"],
-];
+/// Roles of the k-th (0-based) literal point of a point list, as many as
+/// a list holds.
+pub(crate) fn point_roles(k: usize) -> [Role; 2] {
+    let k = u32::try_from(2 * k).expect("fewer points than a u32 counts");
+    [Role("pt", k), Role("pt", k + 1)]
+}
 
 /// One point of a point-list attribute (`through`, `vertices`, `endpoints`).
 #[derive(Debug, Clone)]

@@ -4,11 +4,11 @@
 //! (`compile/geometry/`).
 
 use super::define::*;
-use super::{ArrayProp, ComponentTypeInfo, PropDef};
+use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
 /// Largest polygon the fixed prop layout holds.
-pub use crate::limits::MAX_VERTICES;
+pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
 
 /// `<point>`. `coords` is a view over `x` and `y`.
 pub(super) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)
@@ -41,26 +41,16 @@ pub(super) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
         ("center", &["centerX", "centerY"]),
         ("numericalCenter", &["cx", "cy"]),
     ])
-    .arrays(&[ArrayProp {
+    .list(ListProp {
         names: &["throughPoints"],
         item: "throughPoint",
-        items: &[
-            ["throughX1", "throughY1"],
-            ["throughX2", "throughY2"],
-            ["throughX3", "throughY3"],
-        ],
-    }])
-    .aliases(&[
-        ("centerX1", "centerX"),
-        ("centerX2", "centerY"),
-        ("throughPointX1_1", "throughX1"),
-        ("throughPointX1_2", "throughY1"),
-        ("throughPointX2_1", "throughX2"),
-        ("throughPointX2_2", "throughY2"),
-        ("throughPointX3_1", "throughX3"),
-        ("throughPointX3_2", "throughY3"),
-    ]);
+        coords: ["throughX", "throughY"],
+        alias: Some("throughPointX"),
+    })
+    .aliases(&[("centerX1", "centerX"), ("centerX2", "centerY")]);
 
+/// The through points are the circle's list (`throughPoints`), after
+/// these.
 const CIRCLE_PROPS: &[PropDef] = &props([
     planned("cx"),
     planned("cy"),
@@ -79,26 +69,24 @@ const CIRCLE_PROPS: &[PropDef] = &props([
     // current core), else the derived center.
     planned("centerX"),
     planned("centerY"),
-    planned("throughX1"),
-    planned("throughY1"),
-    planned("throughX2"),
-    planned("throughY2"),
-    planned("throughX3"),
-    planned("throughY3"),
     planned("numThroughPoints"),
 ]);
 
 pub mod circle {
     use super::*;
-    pub const CX: usize = at(CIRCLE_PROPS, "cx");
-    pub const CY: usize = at(CIRCLE_PROPS, "cy");
-    pub const RADIUS: usize = at(CIRCLE_PROPS, "radius");
-    pub const AREA: usize = at(CIRCLE_PROPS, "area");
-    pub const CENTER_X: usize = at(CIRCLE_PROPS, "centerX");
-    pub const CENTER_Y: usize = at(CIRCLE_PROPS, "centerY");
-    /// The first of three through points' (x, y) pairs.
-    pub const THROUGH_X1: usize = at(CIRCLE_PROPS, "throughX1");
     pub const NUM_THROUGH_POINTS: usize = at(CIRCLE_PROPS, "numThroughPoints");
+
+    typed_props!(CIRCLE_PROPS {
+        cx,
+        cy,
+        radius,
+        diameter,
+        circumference,
+        area,
+        centerX,
+        centerY,
+        numThroughPoints,
+    });
 }
 
 /// The two points of a line or line segment.
@@ -167,55 +155,25 @@ pub mod segment {
     );
 }
 
-/// `<polygon vertices="...">`, optionally rigid. Up to `MAX_VERTICES`.
+/// `<polygon vertices="...">`, optionally rigid: its vertices are its
+/// list (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when
+/// rigid.
 pub(super) const POLYGON: ComponentTypeInfo = info(&["polygon", "triangle"], POLYGON_PROPS)
     .copyable()
-    .arrays(&[ArrayProp {
+    .list(ListProp {
         names: &["vertices"],
         item: "vertex",
-        items: &VERTEX_PARTS,
-    }])
-    .sticky(Shape::Closed, polygon::X1, MAX_VERTICES);
+        coords: ["x", "y"],
+        alias: Some("vertexX"),
+    })
+    .sticky_list(Shape::Closed);
 
-/// `vertexN` of a polygon, as prop name pairs.
-const VERTEX_PARTS: [[&str; 2]; MAX_VERTICES] = [
-    ["x1", "y1"],
-    ["x2", "y2"],
-    ["x3", "y3"],
-    ["x4", "y4"],
-    ["x5", "y5"],
-    ["x6", "y6"],
-    ["x7", "y7"],
-    ["x8", "y8"],
-    ["x9", "y9"],
-    ["x10", "y10"],
-    ["x11", "y11"],
-    ["x12", "y12"],
-    ["x13", "y13"],
-    ["x14", "y14"],
-    ["x15", "y15"],
-    ["x16", "y16"],
-];
-
-/// `numVertices` then `MAX_VERTICES` coordinate pairs (`x1`, `y1`, ...);
-/// unused pairs hold the shared NaN.
-const POLYGON_PROPS: &[PropDef] = &props({
-    let mut out = [planned(""); 1 + 2 * MAX_VERTICES];
-    out[0] = planned("numVertices");
-    let mut i = 0;
-    while i < MAX_VERTICES {
-        out[1 + 2 * i] = planned(VERTEX_PARTS[i][0]);
-        out[2 + 2 * i] = planned(VERTEX_PARTS[i][1]);
-        i += 1;
-    }
-    out
-});
+/// `numVertices`; the vertices follow, as the list.
+const POLYGON_PROPS: &[PropDef] = &props([planned("numVertices")]);
 
 pub mod polygon {
     use super::*;
     pub const NUM_VERTICES: usize = at(POLYGON_PROPS, "numVertices");
-    /// The first vertex's x; vertex k's (x, y) are at `X1 + 2k`, `X1 + 2k + 1`.
-    pub const X1: usize = at(POLYGON_PROPS, "x1");
 }
 
 /// `<pointList extend="$l.points">`: its children are points aliasing the

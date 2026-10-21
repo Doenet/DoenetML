@@ -295,19 +295,11 @@ impl<'c> Builder<'c> {
                 .default_prop()
                 .ok_or_else(|| Error::NoDefaultProp(self.comp_label(comp)))?,
         };
-        if let Some(parts) = component_type.virtual_prop(prop) {
-            return Ok(parts
-                .iter()
-                .map(|p| self.slot(comp, component_type.prop_index(p).unwrap()))
-                .collect());
-        }
-        let pi = component_type
-            .prop_index(prop)
+        self.prop_slots(comp, prop)
             .ok_or_else(|| Error::UnknownProp {
                 name: self.comp_label(comp),
                 prop: prop.into(),
-            })?;
-        Ok(vec![self.slot(comp, pi)])
+            })
     }
 
     pub(in crate::build) fn resolve_ref(
@@ -336,21 +328,21 @@ impl<'c> Builder<'c> {
                 .default_prop()
                 .ok_or_else(|| Error::NoDefaultProp(self.comp_label(comp)))?,
         };
-        if let Some(parts) = component_type.virtual_prop(prop) {
-            return Err(Error::ArityMismatch {
-                component_type: String::new(),
-                prop: String::new(),
-                expected: 1,
-                got: parts.len(),
-            });
-        }
-        let pi = component_type
-            .prop_index(prop)
+        let slots = self
+            .prop_slots(comp, prop)
             .ok_or_else(|| Error::UnknownProp {
                 name: self.comp_label(comp),
                 prop: prop.into(),
             })?;
-        Ok(self.slot(comp, pi))
+        match slots[..] {
+            [s] => Ok(s),
+            _ => Err(Error::ArityMismatch {
+                component_type: String::new(),
+                prop: String::new(),
+                expected: 1,
+                got: slots.len(),
+            }),
+        }
     }
 }
 

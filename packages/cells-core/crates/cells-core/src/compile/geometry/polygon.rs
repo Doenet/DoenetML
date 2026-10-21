@@ -16,8 +16,6 @@ impl Compiler<'_> {
             name_scope: scope,
             ..
         } = self.compiled.templates[t].elems[e];
-        let component_type = ComponentType::Polygon;
-        let mut ch = ElemPlan::new(component_type.prop_defs().len());
         let vertices = match self.attr_or_inherited(el, base, "vertices") {
             Some(a) => self.plan_point_list(t, scope, a)?,
             None => Vec::new(),
@@ -29,6 +27,14 @@ impl Compiler<'_> {
                 crate::components::MAX_VERTICES
             )));
         }
+        // The vertices are the list (ADR 0016), as many as given.
+        let mut ch = ElemPlan::with_list(ComponentType::Polygon, n);
+        let n_public = ch.n_public;
+        let vertex = |k: usize, j: usize| {
+            ComponentType::Polygon
+                .list_slot(n_public, k + 1, j)
+                .expect("a vertex the polygon holds")
+        };
         let flag = |me: &Self, name: &str, default: bool| -> bool {
             match me.attr_or_inherited(el, base, name) {
                 None => default,
@@ -88,6 +94,12 @@ impl Compiler<'_> {
             None
         };
         ch.set(polygon::NUM_VERTICES, SourcePlan::Fixed(n as f64));
+        if rigid_opts.is_some() && n > crate::components::MAX_RIGID_VERTICES {
+            return Err(Error::Unsupported(format!(
+                "a rigid polygon with more than {} vertices",
+                crate::components::MAX_RIGID_VERTICES
+            )));
+        }
         match rigid_opts {
             // Rigid: the document declares the coupling, so one instruction
             // owns every vertex.
@@ -95,7 +107,7 @@ impl Compiler<'_> {
                 let mut args = Vec::with_capacity(2 * n + 2);
                 for (k, v) in vertices.iter().enumerate() {
                     let [x, y] =
-                        Self::point_slots_with_roles(&mut ch, v, POINT_ROLES[k], "vertices");
+                        Self::point_slots_with_roles(&mut ch, v, point_roles(k), "vertices");
                     args.push(x);
                     args.push(y);
                 }
@@ -112,7 +124,7 @@ impl Compiler<'_> {
                         args.push(ch.hidden(SourcePlan::Fixed(f64::NAN)));
                     }
                 }
-                ch.set_vec(polygon::X1, VecOp::Shape { n: byte(n), opts }, args);
+                ch.set_vec(vertex(0, 0), VecOp::Shape { n: byte(n), opts }, args);
             }
             // Free: the vertices are the points; a vertex may be defined
             // from its siblings without a cycle.
@@ -120,16 +132,13 @@ impl Compiler<'_> {
                 for (k, v) in vertices.iter().enumerate() {
                     Self::set_point_with_roles(
                         &mut ch,
-                        [polygon::X1 + 2 * k, polygon::X1 + 2 * k + 1],
+                        [vertex(k, 0), vertex(k, 1)],
                         v,
-                        POINT_ROLES[k],
+                        point_roles(k),
                         "vertices",
                     );
                 }
             }
-        }
-        for k in 2 * n..2 * crate::components::MAX_VERTICES {
-            ch.set(polygon::X1 + k, SourcePlan::Fixed(f64::NAN));
         }
         Ok(ch)
     }

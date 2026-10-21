@@ -77,7 +77,7 @@ component table (`document/sticky.rs`).
 | `Session`, `Counts`, `Structure` | `session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed, the math engine (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. `Program::value_types` records each cell's value type (`ValueType`): number, text (a string id) or math (a handle). |
 | `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the source's literal attributes (`LiteralAttrs`, `dast/attrs.rs`) for a renderer; the DAST itself only through the compile a document with repeats keeps. The API a renderer or test uses. |
-| `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
+| `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells: its type table's, then two per point of its list prop (ADR 0016), up to the next component's `prop_base`. What references and the renderer read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `compile/lint.rs` finds the ones that are facts about the DAST alone. |
 | `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. A document holds a `Recompute` (the dirty closure unless `set_evaluator` says otherwise), so tests tick as the browser does. |
@@ -199,15 +199,22 @@ needs nothing else: a request on `clamped` inverts through the chain by
 the operators' own inverses. A type whose wiring depends on which
 attributes the author gave gets a planner of its own, named in its
 `planner` arm: `Geometric` for a shape (see `geometry/`), `PropsThen` to
-adjust the table's plan, or `Whole`. The renderer side is in
-`packages/cells-viewer/src/renderers/`.
+adjust the table's plan, or `Whole`. A planner names its props through
+`typed_props!` beside the table and returns them as a `Props<Planned>`
+struct literal, a slot's plan with the role a copy shares it by
+(`compile/geometry/circle.rs`, ADR 0016); a combination of attributes it
+cannot honor is a warning (`Compiler::warn`), never a silent NaN. The
+renderer side is in `packages/cells-viewer/src/renderers/`.
 
-**Add an operator.** Add the bound form to `Op` in `program/scalar.rs` with
-its `eval` and `invert` arms, and the unbound form to `OpSpec` in
-`program/instr.rs` with its `arity` and `bind` arms. To reach it from the
-test-only `<op>` tag (registered under the `testing` feature, which
-`cargo test` turns on), map the name in `compile/attrs.rs`. Multi-cell
-operators are `VecOp`s in `program/vector.rs`.
+**Add an operator.** Add one entry to `scalar_ops!` in
+`program/scalar.rs` (ADR 0016): its inputs and literal parameters, its
+`<op>` names (the test-only tag, registered under the `testing` feature,
+which `cargo test` turns on), its evaluation, and its inverse, declared
+`exact`, `projection` or `drops`. The macro (`program/ops.rs`) makes the
+`Op` and `OpSpec` variants and every arm; `program::scalar::inverses`
+checks the inverse against what the entry declares, over a fixed table
+of values and the entry's parameter `samples`. Multi-cell operators are
+`VecOp`s in `program/vector.rs`.
 
 **Change how a request inverts.** Scalar inverse rules are `Op::invert`;
 vector rules are `VecOp::invert`; the engine that orders requests and keeps
@@ -235,6 +242,12 @@ copied into `jsxgraph/doenet.ts`.
 `cargo test` runs the unit and integration tests. Many of them check the
 scheduled program against `testing/reference.rs`, a naive recursive
 evaluator that does not use the schedule.
+`tests/specs/` holds the component specs (ADR 0016, `testing/spec.rs`):
+per component, `spec!` cases of DoenetML, requests and the values an
+author sees after each, every one also checked against the reference
+evaluator and against the component's cost snapshot
+(`tests/specs/snapshots/`); `SPEC_UPDATE=1` rewrites a snapshot, whose
+change the core team approves.
 `tests/every_count.rs` builds every golden document and fixture at
 iteration counts 0 to 4 and four seeds and checks that a document the
 cycle check passed never fails a build with a cycle or an unsettled

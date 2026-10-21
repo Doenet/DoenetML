@@ -42,15 +42,9 @@ impl<'c> Builder<'c> {
             if every_option {
                 for name in &def.used {
                     let component_type = def.iface[name].0;
-                    let ic = self.new_component(
-                        component_type,
-                        NONE,
-                        comp,
-                        NONE,
-                        scope,
-                        component_type.prop_defs().len(),
-                    );
-                    self.note_members(ic, def, name, &inst);
+                    let members = self.members(def, name, &inst);
+                    let ic = self.stand_in(component_type, &members, comp, scope);
+                    self.stand_ins.insert(ic, members);
                     inst.iface_comps.push(ic);
                 }
             }
@@ -78,15 +72,9 @@ impl<'c> Builder<'c> {
             for name in &def.used {
                 let component_type = def.iface[name].0;
                 // Unnamed: a test path `cc.x` finds the active case's `x`.
-                let ic = self.new_component(
-                    component_type,
-                    NONE,
-                    comp,
-                    NONE,
-                    scope,
-                    component_type.prop_defs().len(),
-                );
-                self.note_members(ic, def, name, &inst);
+                let members = self.members(def, name, &inst);
+                let ic = self.stand_in(component_type, &members, comp, scope);
+                self.stand_ins.insert(ic, members);
                 inst.iface_comps.push(ic);
             }
         }
@@ -95,18 +83,38 @@ impl<'c> Builder<'c> {
         Ok(kids)
     }
 
-    /// Record the components carrying interface name `name` in every built
-    /// branch as the ones interface component `ic` stands for.
-    fn note_members(&mut self, ic: CompIdx, def: &ChoiceDef, name: &str, inst: &ChoiceInst) {
+    /// The components carrying interface name `name` in every built
+    /// branch: the ones its interface component stands for.
+    fn members(&self, def: &ChoiceDef, name: &str, inst: &ChoiceInst) -> Vec<CompIdx> {
         let elems = &def.iface[name].1;
-        let members = inst
-            .scopes
+        inst.scopes
             .iter()
             .zip(&inst.branch_of)
             .map(|(&s, &b)| self.scope_comps[s as usize][elems[b]])
             .filter(|&m| m != NONE)
-            .collect();
-        self.stand_ins.insert(ic, members);
+            .collect()
+    }
+
+    /// A component standing for `members`, of their type, with as many
+    /// props as the most any of them has: a list as long as the longest
+    /// (ADR 0016), the shorter ones missing past their end.
+    fn stand_in(
+        &mut self,
+        component_type: ComponentType,
+        members: &[CompIdx],
+        parent: CompIdx,
+        scope: ScopeId,
+    ) -> CompIdx {
+        let n = members
+            .iter()
+            .map(|&m| self.n_public(m))
+            .max()
+            .unwrap_or(component_type.prop_defs().len());
+        let w = self.new_component(component_type, NONE, parent, NONE, scope, n);
+        if n != component_type.prop_defs().len() {
+            self.n_public[w as usize] = n as u32;
+        }
+        w
     }
 
     /// The probe's stand-in for a whole pick of select `c` built with every
@@ -123,9 +131,8 @@ impl<'c> Builder<'c> {
             .map(|&s| self.iteration_components(c, s)[0])
             .collect();
         let component_type = self.components.component_type[members[0] as usize];
-        let n_props = component_type.prop_defs().len();
         let scope = self.components.scope[c as usize];
-        let w = self.new_component(component_type, NONE, c, NONE, scope, n_props);
+        let w = self.stand_in(component_type, &members, c, scope);
         self.stand_ins.insert(w, members.clone());
         let what = format!("<{}>", component_type.tag());
         self.stand_in_sources(w, &members, None, &what)?;
@@ -154,13 +161,24 @@ impl<'c> Builder<'c> {
             MathMode::Numeric
         };
         let n = byte(members.len());
-        for pi in 0..component_type.prop_defs().len() {
-            let branch_slots: Vec<SlotId> = members.iter().map(|&m| self.slot(m, pi)).collect();
+        for pi in 0..self.n_public(w) {
+            let branch_slots: Vec<SlotId> = members
+                .iter()
+                .map(|&m| {
+                    if pi < self.n_public(m) {
+                        self.slot(m, pi)
+                    } else {
+                        self.missing_slot()
+                    }
+                })
+                .collect();
             let kinds: Vec<ValueType> = branch_slots.iter().map(|&s| self.value_type(s)).collect();
             if kinds.iter().any(|&k| k != kinds[0]) {
                 return Err(Error::Unsupported(format!(
                     "{what} holds a different kind of value (number, text or math) in different branches: its '{}' must be the same kind in each",
-                    component_type.prop_defs()[pi].name
+                    component_type
+                        .prop_name(self.n_public(w), pi)
+                        .unwrap_or_default()
                 )));
             }
             let s = self.slot(w, pi);

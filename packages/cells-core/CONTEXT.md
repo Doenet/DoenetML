@@ -44,6 +44,13 @@ Aliasing is structural, decided at load time, never by comparing values.
 ordered list of cells (a point's `coords` maps to its `x` and `y` cells). Props
 are a naming layer over cells; they are not graph nodes.
 
+**List prop** — A component type's one prop of points that holds as many as
+the element was given (a circle's `throughPoints`, a polygon's
+`vertices`), stored after the props
+of the type's table; its length is the element's prop count less the
+table's, so it needs no cell of its own. A point past the end is the
+missing value (ADR 0016).
+
 **Component** — A DoenetML tag instance (`number`, `numberInput`, `graph`,
 `point`). Components own props and renderer identity but no computation of
 their own.

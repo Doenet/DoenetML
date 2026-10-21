@@ -105,6 +105,16 @@ export class ComponentTable {
         return this.cols.propCells[this.cols.propBase[c] + i];
     }
 
+    /** Cells of every prop of component `c`: its type table's, in order,
+     * then two per point of its list (a polygon's vertices), up to the next
+     * component's (ADR 0016). */
+    props(c: number): number[] {
+        const { propBase, propCells } = this.cols;
+        const end =
+            c + 1 < propBase.length ? propBase[c + 1] : propCells.length;
+        return Array.from(propCells.subarray(propBase[c], end));
+    }
+
     /** The DAST node the component was made from, or NONE for a
      * synthesized one. */
     node(c: number): number {

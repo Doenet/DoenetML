@@ -3,6 +3,7 @@
 //! source (an essential value, an alias, or an operator over slots).
 
 use super::*;
+use crate::components::PropAt;
 
 mod choice;
 mod math;
@@ -98,6 +99,10 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) math_mode: Vec<MathMode>,
     pub(in crate::build) components: ComponentTable,
     pub(in crate::build) slot_base: Vec<u32>,
+    /// Per component, how many of its slots are public props when that is
+    /// not its type table's count: an element whose list holds points
+    /// (ADR 0016). NONE: the table's.
+    pub(in crate::build) n_public: Vec<u32>,
     pub(in crate::build) sources: Vec<Source>,
     /// Owning component of each slot (prop index = slot - slot_base[comp]).
     pub(in crate::build) slot_comp: Vec<CompIdx>,
@@ -200,6 +205,7 @@ impl<'c> Builder<'c> {
                 scope: Vec::with_capacity(guess),
             },
             slot_base: Vec::with_capacity(guess),
+            n_public: Vec::with_capacity(guess),
             sources: Vec::with_capacity(slots),
             slot_comp: Vec::with_capacity(slots),
             op_inputs: Vec::new(),
@@ -257,8 +263,55 @@ impl<'c> Builder<'c> {
         self.comp_instance.push(NONE);
         self.comp_repeat.push(NONE);
         self.slot_base.push(NONE);
+        self.n_public.push(NONE);
         self.allocate_slots(idx, n_slots);
         idx
+    }
+
+    /// How many public props component `comp` has: its type table's, then
+    /// two per point of its list.
+    #[inline]
+    pub(in crate::build) fn n_public(&self, comp: CompIdx) -> usize {
+        match self.n_public[comp as usize] {
+            NONE => self.components.component_type[comp as usize]
+                .prop_defs()
+                .len(),
+            n => n as usize,
+        }
+    }
+
+    /// The slots of the prop `name` of `comp`, or None when the type has
+    /// no such prop. A point of the list past the element's length is the
+    /// missing value, as an index past a repeat's count is.
+    pub(in crate::build) fn prop_slots(
+        &mut self,
+        comp: CompIdx,
+        name: &str,
+    ) -> Option<Vec<SlotId>> {
+        let component_type = self.components.component_type[comp as usize];
+        if let Some(parts) = component_type.virtual_prop(name) {
+            return Some(
+                parts
+                    .iter()
+                    .map(|p| self.slot(comp, component_type.prop_index(p).unwrap()))
+                    .collect(),
+            );
+        }
+        let n = self.n_public(comp);
+        let coord = |b: &mut Self, k: usize, j: usize| match component_type.list_slot(n, k, j) {
+            Some(i) => b.slot(comp, i),
+            None => b.missing_slot(),
+        };
+        Some(match component_type.prop_at(name)? {
+            PropAt::Fixed(i) => vec![self.slot(comp, i)],
+            PropAt::Item(k) => vec![coord(self, k, 0), coord(self, k, 1)],
+            PropAt::Coord(k, j) => vec![coord(self, k, j)],
+            PropAt::List => (1..=component_type.list_len(n))
+                .flat_map(|k| [k, k])
+                .zip([0, 1].into_iter().cycle())
+                .map(|(k, j)| coord(self, k, j))
+                .collect(),
+        })
     }
 
     pub(in crate::build) fn allocate_slots(&mut self, comp: CompIdx, n: usize) {
@@ -319,11 +372,9 @@ impl<'c> Builder<'c> {
             return format!("(anonymous slot {slot})");
         }
         let pi = (slot - self.slot_base[comp as usize]) as usize;
-        match self.components.component_type[comp as usize]
-            .prop_defs()
-            .get(pi)
-        {
-            Some(def) => format!("{}.{}", self.comp_label(comp), def.name),
+        let component_type = self.components.component_type[comp as usize];
+        match component_type.prop_name(self.n_public(comp), pi) {
+            Some(name) => format!("{}.{name}", self.comp_label(comp)),
             None => format!("{}.(hidden slot {pi})", self.comp_label(comp)),
         }
     }
@@ -421,9 +472,18 @@ impl<'c> Builder<'c> {
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
             let el = &self.compiled.templates[t].elems[e];
-            let n_slots = el.props.len().max(el.component_type.prop_defs().len());
+            // A copy of a type with a list takes its slots, as many as its
+            // referent has, when its referent is known (`place_list_copies`).
+            let n_slots = match el.n_public {
+                NPublic::AsReferent => 0,
+                _ => el.props.len().max(el.component_type.prop_defs().len()),
+            };
+            let n_public = el.n_public;
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
+            if let NPublic::Planned(n) = n_public {
+                self.n_public[comp as usize] = n;
+            }
             self.scope_comps[scope as usize][e] = comp;
             self.comp_instance[comp as usize] = self.instances.len() as u32;
             self.instances.push(Instance {
@@ -547,6 +607,13 @@ impl<'c> Builder<'c> {
     /// then collects in document order, then indexed placeholders (which may
     /// name a collect's items), then every prop source.
     pub(in crate::build) fn resolve_all(&mut self) -> Result<()> {
+        for i in 0..self.instances.len() {
+            let inst = self.instances[i];
+            if let Err(e) = self.place_list_copy(inst, &mut Vec::new()) {
+                self.fail_at_comp(inst.comp);
+                return Err(e);
+            }
+        }
         let pending = std::mem::take(&mut self.pending);
         for &(idx, plan, scope, _) in pending.iter().filter(|p| !p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
@@ -633,7 +700,7 @@ impl<'c> Builder<'c> {
                     return Err(Error::UncopyableType(component_type.tag().into()));
                 }
                 self.copy_into(idx, referent);
-                for pi in 0..component_type.prop_defs().len() {
+                for pi in 0..self.n_public(referent) {
                     self.record_label(self.slot(idx, pi), self.slot(referent, pi));
                 }
             }
@@ -645,8 +712,10 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn copy_into(&mut self, idx: CompIdx, referent: CompIdx) {
         let component_type = self.components.component_type[referent as usize];
         self.components.component_type[idx as usize] = component_type;
-        self.allocate_slots(idx, component_type.prop_defs().len());
-        for pi in 0..component_type.prop_defs().len() {
+        let n = self.n_public(referent);
+        self.n_public[idx as usize] = self.n_public[referent as usize];
+        self.allocate_slots(idx, n);
+        for pi in 0..n {
             let s = self.slot(idx, pi);
             self.sources[s as usize] = Source::Alias(self.slot(referent, pi));
         }
@@ -668,24 +737,24 @@ impl<'c> Builder<'c> {
         let component_type = self.components.component_type[comp as usize];
         let prop =
             prop.ok_or_else(|| Error::PathTooDeep(self.compiled.refs[plan].display.clone()))?;
+        // A list: the points the element holds.
+        if component_type.prop_at(prop) == Some(PropAt::List) {
+            let n = self.n_public(comp);
+            return Ok((1..=component_type.list_len(n))
+                .map(|k| {
+                    let at = |j| self.slot(comp, component_type.list_slot(n, k, j).unwrap());
+                    [at(0), at(1)]
+                })
+                .collect());
+        }
         let items = component_type
             .array_prop(prop)
             .ok_or_else(|| Error::UnknownProp {
                 name: self.comp_label(comp),
                 prop: prop.into(),
             })?;
-        let count_slot = match component_type {
-            ComponentType::Polygon => Some(self.slot(comp, prop::polygon::NUM_VERTICES)),
-            ComponentType::Circle => Some(self.slot(comp, prop::circle::NUM_THROUGH_POINTS)),
-            _ => None,
-        };
-        let live = match count_slot.map(|s| self.sources[s as usize].clone()) {
-            Some(Source::Fixed(n)) => n as usize,
-            _ => items.len(),
-        };
         Ok(items
             .iter()
-            .take(live)
             .map(|[x, y]| {
                 [
                     self.slot(comp, component_type.prop_index(x).unwrap()),
@@ -885,6 +954,60 @@ impl<'c> Builder<'c> {
             .collect()
     }
 
+    /// Give a bare or cloned copy of a type with a list its slots, as many
+    /// as its referent has (ADR 0016), each an alias of the referent's; a
+    /// referent that is such a copy itself is placed first. A copy whose
+    /// referent is missing holds the table's props, which inherit the
+    /// missing value (`instance_sources`). `visiting` holds the copies being
+    /// placed, so a loop of them is a cycle.
+    fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
+        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        let (component_type, extend_plan, n_props) = (el.component_type, el.extend, el.props.len());
+        // Not such a copy, or placed already.
+        if el.n_public != NPublic::AsReferent || self.n_public[inst.comp as usize] != NONE {
+            return Ok(());
+        }
+        if visiting.contains(&inst.comp) {
+            return Err(Error::Cycle(self.comp_label(inst.comp)));
+        }
+        let referent = match extend_plan {
+            Some(p) => match self.resolve(p, inst.scope)? {
+                (Resolved::Missing, _) => None,
+                (target, _) => Some((p, self.single_component(target, p)?)),
+            },
+            None => None,
+        };
+        let label = self.label.clone();
+        let Some((p, referent)) = referent else {
+            self.n_public[inst.comp as usize] = component_type.prop_defs().len() as u32;
+            self.allocate_slots(inst.comp, n_props);
+            return Ok(());
+        };
+        let rk = self.components.component_type[referent as usize];
+        if rk != component_type {
+            return Err(Error::ExtendTypeMismatch {
+                referent: self.compiled.refs[p].display.clone(),
+                referent_type: rk.tag().into(),
+                component_type: component_type.tag().into(),
+            });
+        }
+        let ri = self.comp_instance[referent as usize];
+        if ri != NONE {
+            visiting.push(inst.comp);
+            let r = self.instances[ri as usize];
+            self.place_list_copy(r, visiting)?;
+            visiting.pop();
+        }
+        self.copy_into(inst.comp, referent);
+        let n = self.n_public(referent);
+        self.n_public[inst.comp as usize] = n as u32;
+        for pi in 0..n {
+            let (s, t) = (self.slot(inst.comp, pi), self.slot(referent, pi));
+            self.record_label_as(s, t, &label);
+        }
+        Ok(())
+    }
+
     /// Sources for every prop of one instantiated element.
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
@@ -911,6 +1034,13 @@ impl<'c> Builder<'c> {
             }
             None => None,
         };
+        // A copy of a type with a list was made whole by `place_list_copy`.
+        if extend.is_some()
+            && self.compiled.templates[inst.template].elems[inst.elem].n_public
+                == NPublic::AsReferent
+        {
+            return Ok(());
+        }
         let extend_label = self.label.clone();
         let n_props = self.compiled.templates[inst.template].elems[inst.elem]
             .props

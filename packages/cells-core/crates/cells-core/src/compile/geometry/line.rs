@@ -153,11 +153,11 @@ impl Compiler<'_> {
                 &mut ch,
                 [line::X1, line::Y1],
                 through.first(),
-                POINT_ROLES[0],
+                point_roles(0),
                 "through",
                 ESS2,
             );
-            let dist = ch.essential("dist", 1.0);
+            let dist = ch.essential(roles::DIST, 1.0);
             if let Some(a) = slope {
                 let m = self.plan_scalar(t, scope, "slope", d.attr_children(a))?;
                 let m = ch.hidden(m);
@@ -189,7 +189,7 @@ impl Compiler<'_> {
                 &mut ch,
                 [line::X1, line::Y1],
                 through.first(),
-                POINT_ROLES[0],
+                point_roles(0),
                 "through",
                 ESS1,
             );
@@ -197,7 +197,7 @@ impl Compiler<'_> {
                 &mut ch,
                 [line::X2, line::Y2],
                 through.get(1),
-                POINT_ROLES[1],
+                point_roles(1),
                 "through",
                 ESS2,
             );
@@ -304,7 +304,7 @@ impl Compiler<'_> {
             &mut ch,
             [segment::X1, segment::Y1],
             ends.first(),
-            POINT_ROLES[0],
+            point_roles(0),
             "endpoints",
             ESS1,
         );
@@ -312,7 +312,7 @@ impl Compiler<'_> {
             &mut ch,
             [segment::X2, segment::Y2],
             ends.get(1),
-            POINT_ROLES[1],
+            point_roles(1),
             "endpoints",
             ESS2,
         );

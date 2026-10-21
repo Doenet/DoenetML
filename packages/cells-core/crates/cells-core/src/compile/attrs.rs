@@ -342,9 +342,11 @@ impl<'a> Compiler<'a> {
             .collect();
         let mut plan = ElemPlan::of(ComponentType::Text);
         match nodes.as_slice() {
-            [] => plan.set_text_essential(text::VALUE, "value", self.intern_literal("") as f64),
+            [] => {
+                plan.set_text_essential(text::VALUE, roles::VALUE, self.intern_literal("") as f64)
+            }
             [n] if d.kind(*n) == NodeKind::Text => {
-                plan.set_text_essential(text::VALUE, "value", d.str_id(*n) as f64)
+                plan.set_text_essential(text::VALUE, roles::VALUE, d.str_id(*n) as f64)
             }
             [n] if d.kind(*n) == NodeKind::Macro => plan.set(
                 text::VALUE,
@@ -398,7 +400,7 @@ impl<'a> Compiler<'a> {
                     None => String::new(),
                 };
                 let id = self.intern_literal(&text);
-                plan.set_text_essential(text_input::VALUE, "value", id as f64);
+                plan.set_text_essential(text_input::VALUE, roles::VALUE, id as f64);
             }
             _ => {
                 return Err(Error::Unsupported(
@@ -540,29 +542,8 @@ impl<'a> Compiler<'a> {
                 .and_then(|t| t.trim().parse::<f64>().ok())
                 .ok_or_else(|| Error::BadLiteralParam(name.into()))
         };
-        let spec = match kind_text {
-            "add" => OpSpec::Add,
-            "sub" => OpSpec::Sub,
-            "mul" => OpSpec::Mul,
-            "div" => OpSpec::Div,
-            "min" => OpSpec::Min,
-            "max" => OpSpec::Max,
-            "default" => OpSpec::Default,
-            "negate" => OpSpec::Negate,
-            "round" => OpSpec::Round,
-            "floor" => OpSpec::Floor,
-            // `kind="gate"` predates the op's name.
-            "gate" => OpSpec::Hold,
-            "scale" => OpSpec::Scale { k: param("k")? },
-            "offset" => OpSpec::Offset { k: param("k")? },
-            "clamp" => OpSpec::Clamp {
-                lo: param("lo")?,
-                hi: param("hi")?,
-            },
-            "nanTo" => OpSpec::NanTo { k: param("k")? },
-            "lerp" => OpSpec::Lerp { t: param("t")? },
-            other => return Err(Error::UnknownOp(other.into())),
-        };
+        let spec =
+            OpSpec::named(kind_text, param).ok_or_else(|| Error::UnknownOp(kind_text.into()))??;
         let mut args = Vec::new();
         if let Some(a) = d.attr(el, "args") {
             for &node in d.attr_children(a) {

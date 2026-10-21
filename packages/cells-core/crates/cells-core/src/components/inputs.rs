@@ -92,7 +92,9 @@ const SLIDER_PROPS: &[PropDef] = &props([
     attr("from", 0.0),
     attr("to", 10.0),
     attr("step", 1.0),
-    attr("preliminaryValue", 0.0)
+    // Without an initialValue nothing is stored, and the slider shows
+    // `from` (index 0), as in the current core.
+    attr("preliminaryValue", f64::NAN)
         .attribute("initialValue")
         .bind("bindValueTo"),
     computed("span", OpSpec::Sub, &["to", "from"]),

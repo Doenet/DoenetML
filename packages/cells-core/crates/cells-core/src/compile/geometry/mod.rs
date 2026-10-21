@@ -41,7 +41,12 @@ impl<'a> Compiler<'a> {
         let has_children = !d.children(el).iter().all(|&n| self.is_blank(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             let n = component_type.prop_defs().len();
-            self.compiled.templates[t].elems[e].props = vec![SourcePlan::Inherit; n];
+            let el = &mut self.compiled.templates[t].elems[e];
+            el.props = vec![SourcePlan::Inherit; n];
+            // A list is as long as the referent's, which the build knows.
+            if component_type.list().is_some() {
+                el.n_public = NPublic::AsReferent;
+            }
             return Ok(());
         }
         // Merged attributes: the referent's node supplies what the copy omits.
@@ -79,6 +84,9 @@ impl<'a> Compiler<'a> {
             .apply(&mut ch.props);
         if !ch.roles.is_empty() {
             self.roles.insert((t as u32, e as u32), ch.roles.clone());
+        }
+        if component_type.list().is_some() {
+            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(ch.n_public as u32);
         }
         self.compiled.templates[t].elems[e].props = ch.finish();
         Ok(())
@@ -121,7 +129,7 @@ impl<'a> Compiler<'a> {
         ch: &mut ElemPlan,
         slots: [usize; 2],
         p: &PointPlan,
-        roles: [&'static str; 2],
+        roles: [Role; 2],
         attr: &'static str,
     ) {
         for j in 0..2 {
@@ -141,7 +149,7 @@ impl<'a> Compiler<'a> {
         ch: &mut ElemPlan,
         slots: [usize; 2],
         p: Option<&PointPlan>,
-        roles: [&'static str; 2],
+        roles: [Role; 2],
         attr: &'static str,
         (default_roles, default): DefaultPoint,
     ) {
@@ -157,7 +165,7 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn point_slots_with_roles(
         ch: &mut ElemPlan,
         p: &PointPlan,
-        roles: [&'static str; 2],
+        roles: [Role; 2],
         attr: &'static str,
     ) -> [usize; 2] {
         let mut out = [0; 2];
@@ -267,15 +275,17 @@ impl<'a> Compiler<'a> {
         }
         let Some(e) = e else { return Ok(None) };
         let el = &self.compiled.templates[cur_t].elems[e];
+        // A list holds the points given: a circle's up to three.
+        if el.component_type.prop_at(prop) == Some(PropAt::List) {
+            return Ok(Some(match el.component_type {
+                ComponentType::Circle => self.count_points_in_attr(el.node, "through")?.min(3),
+                _ => self.count_points_in_attr(el.node, "vertices")?,
+            }));
+        }
         let Some(items) = el.component_type.array_prop(prop) else {
             return Ok(None);
         };
-        let n = match el.component_type {
-            ComponentType::Polygon => self.count_points_in_attr(el.node, "vertices")?,
-            ComponentType::Circle => self.count_points_in_attr(el.node, "through")?,
-            _ => items.len(),
-        };
-        Ok(Some(n.min(items.len())))
+        Ok(Some(items.len()))
     }
 
     /// Points in a point-list attribute, counted from its text alone.
@@ -380,6 +390,6 @@ impl<'a> Compiler<'a> {
 /// A line's or segment's default point: its essential roles and value. The
 /// current core takes a missing first point as (1, 0) and a missing second
 /// one as (0, 0); a direction-based line's first point is the latter.
-type DefaultPoint = ([&'static str; 2], [f64; 2]);
-const ESS1: DefaultPoint = (["ess1x", "ess1y"], [1.0, 0.0]);
-const ESS2: DefaultPoint = (["ess2x", "ess2y"], [0.0, 0.0]);
+type DefaultPoint = ([Role; 2], [f64; 2]);
+const ESS1: DefaultPoint = (roles::ESS1, [1.0, 0.0]);
+const ESS2: DefaultPoint = (roles::ESS2, [0.0, 0.0]);
