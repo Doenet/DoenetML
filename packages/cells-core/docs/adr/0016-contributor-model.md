@@ -1,8 +1,8 @@
 # Components are written by people who do not know the core
 
 Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
-for the circle, and the formatter of step 6; see Migration. The renderer
-interface is not decided here (see The renderer).
+for the circle; see Migration. The renderer interface and where numbers
+are formatted are not decided here (see The renderer).
 
 A component should be writable, and changeable, by a Rust developer who
 does not know cells, slots, roles, the probe or the renderer, without
@@ -115,9 +115,8 @@ the tick dispatches as it does today.
 
 No instruction produces a formatted string. Formatting (a number's
 digits, a math expression's LaTeX or text) happens where requests come in
-or values go out: the renderer, export, and `submit`. The formatter is in
-Rust (`format.rs`), and writes what the current viewer and the JavaScript
-core write (`tests/format_parity.rs`).
+or values go out: the renderer, export, and `submit`. Where the formatter
+lives is not decided here.
 Text answers stay as they are: an award of a `type="text"` answer is
 literal text (`compile/answer.rs` refuses references), until a document
 needs more.
@@ -197,13 +196,7 @@ case), carry every piece before anything is opened to contributors:
    other input is NaN or infinite (an emptied input), a request wrote NaN
    into the input it reached; it is dropped now.
 5. The renderer: left to a later ADR (see The renderer).
-6. The Rust formatter. **Done**: `format.rs` writes numbers as the viewer
-   does, JavaScript's `String(n)`, `toPrecision` and `toFixed` character
-   for character, which `tests/format_parity.rs` checks against node over
-   edge values, short decimals and halves, and random doubles. Rounding
-   starts from the shortest digits and takes the exact expansion only at
-   a halfway point. Nothing calls it yet: the viewer and export move to it
-   with the renderer's decision.
+6. Where numbers are formatted: left to a later ADR, with the renderer.
 7. The contributor guide (ARCHITECTURE.md, "Where to change things"),
    written from the pilots.
 
