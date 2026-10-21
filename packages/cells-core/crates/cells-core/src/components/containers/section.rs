@@ -52,13 +52,23 @@ const SECTION_PROPS: &[PropDef] = &props([
     planned("label"),
 ]);
 
-pub const CREDIT: usize = at(SECTION_PROPS, "creditAchieved");
-pub const PERCENT_CREDIT: usize = at(SECTION_PROPS, "percentCreditAchieved");
-pub const WEIGHT: usize = at(SECTION_PROPS, "weight");
-pub const AGGREGATE: usize = at(SECTION_PROPS, "aggregateScores");
-pub const NUMBER: usize = at(SECTION_PROPS, "number");
-pub const INCLUDE_PARENT_NUMBER: usize = at(SECTION_PROPS, "includeParentNumber");
-pub const LABEL: usize = at(SECTION_PROPS, "label");
+typed_props!(SECTION_PROPS {
+    creditAchieved,
+    percentCreditAchieved,
+    weight,
+    aggregateScores,
+    number,
+    includeParentNumber,
+    label,
+});
+
+pub const CREDIT: usize = Props::AT.creditAchieved;
+pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;
+pub const WEIGHT: usize = Props::AT.weight;
+pub const AGGREGATE: usize = Props::AT.aggregateScores;
+pub const NUMBER: usize = Props::AT.number;
+pub const INCLUDE_PARENT_NUMBER: usize = Props::AT.includeParentNumber;
+pub const LABEL: usize = Props::AT.label;
 
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:
 /// literals, defaulted by tag as in the current core, since they decide
@@ -90,11 +100,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
             ))),
         }
     };
-    props[AGGREGATE] = Some(SourcePlan::Fixed(flag("aggregateScores", aggregate)?));
-    props[INCLUDE_PARENT_NUMBER] = Some(SourcePlan::Fixed(flag(
+    let at = Props::AT;
+    props[at.aggregateScores] = Some(SourcePlan::Fixed(flag("aggregateScores", aggregate)?));
+    props[at.includeParentNumber] = Some(SourcePlan::Fixed(flag(
         "includeParentNumber",
         parent_number,
     )?));
-    props[LABEL] = Some(SourcePlan::Fixed(label as f64));
+    props[at.label] = Some(SourcePlan::Fixed(label as f64));
     Ok(())
 }

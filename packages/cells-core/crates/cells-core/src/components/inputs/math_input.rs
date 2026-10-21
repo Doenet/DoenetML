@@ -24,8 +24,10 @@ const MATH_INPUT_PROPS: &[PropDef] = &props([
     planned("expr"),
 ]);
 
-pub const VALUE: usize = at(MATH_INPUT_PROPS, "value");
-pub const EXPR: usize = at(MATH_INPUT_PROPS, "expr");
+typed_props!(MATH_INPUT_PROPS { value, expr });
+
+pub const VALUE: usize = Props::AT.value;
+pub const EXPR: usize = Props::AT.expr;
 
 /// A mathInput bound to a cell (a reference child or `bindValueTo`)
 /// stays a numeric input. Unbound, its `expr` is an essential math cell
@@ -34,17 +36,18 @@ pub const EXPR: usize = at(MATH_INPUT_PROPS, "expr");
 /// value when the input is first built.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) -> Result<()> {
     let d = ctx.dast();
+    let at = Props::AT;
     let el = ctx.node();
     if d.attr(el, "bindValueTo").is_none()
         && d.children(el).iter().all(|&n| ctx.is_blank(n))
         && let Some(a) = d.attr(el, "prefill")
         && ctx.single_macro(a).is_some()
-        && let Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) = props[VALUE]
+        && let Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) = props[at.value]
     {
-        props[EXPR] = Some(SourcePlan::MathEssentialFrom(p));
-        props[VALUE] = Some(SourcePlan::computed(
+        props[at.expr] = Some(SourcePlan::MathEssentialFrom(p));
+        props[at.value] = Some(SourcePlan::computed(
             OpSpec::Sym(SymKind::Evaluate),
-            vec![EXPR],
+            vec![at.expr],
         ));
         return Ok(());
     }
@@ -52,10 +55,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
         Some(a) => d.attr_children(a),
         None => d.children(el),
     };
-    let bound = matches!(props[VALUE], Some(SourcePlan::Alias(_)))
+    let bound = matches!(props[at.value], Some(SourcePlan::Alias(_)))
         || nodes.iter().any(|&n| d.kind(n) == NodeKind::Macro);
     if bound {
-        props[EXPR] = Some(SourcePlan::Fixed(f64::NAN));
+        props[at.expr] = Some(SourcePlan::Fixed(f64::NAN));
         return Ok(());
     }
     let text: String = nodes
@@ -77,10 +80,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
                 })?,
         )
     };
-    props[EXPR] = Some(SourcePlan::MathEssential(tree));
-    props[VALUE] = Some(SourcePlan::computed(
+    props[at.expr] = Some(SourcePlan::MathEssential(tree));
+    props[at.value] = Some(SourcePlan::computed(
         OpSpec::Sym(SymKind::Evaluate),
-        vec![EXPR],
+        vec![at.expr],
     ));
     Ok(())
 }

@@ -20,8 +20,14 @@ const DOCUMENT_PROPS: &[PropDef] =
 
 pub mod document {
     use super::*;
-    pub const CREDIT: usize = at(DOCUMENT_PROPS, "creditAchieved");
-    pub const PERCENT_CREDIT: usize = at(DOCUMENT_PROPS, "percentCreditAchieved");
+
+    typed_props!(DOCUMENT_PROPS {
+        creditAchieved,
+        percentCreditAchieved
+    });
+
+    pub const CREDIT: usize = Props::AT.creditAchieved;
+    pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;
 }
 
 /// `<graph>`: its x and y range.

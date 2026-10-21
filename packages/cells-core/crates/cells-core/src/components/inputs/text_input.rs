@@ -19,12 +19,12 @@ pub(in crate::components) const TEXT_INPUT: ComponentTypeInfo =
 const TEXT_INPUT_PROPS: &[PropDef] =
     &props([children("value").attribute("prefill").bind("bindValueTo")]);
 
-pub const VALUE: usize = at(TEXT_INPUT_PROPS, "value");
-
 typed_props!(TEXT_INPUT_PROPS { value } roles {
     // The value, when it is the input's own state.
     VALUE,
 });
+
+pub const VALUE: usize = Props::AT.value;
 
 /// `value` aliases what a lone `$ref` child names, else what
 /// `bindValueTo` names (a child wins, as in DoenetML); otherwise it is an
@@ -42,17 +42,16 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .copied()
         .filter(|&n| !ctx.is_blank(n))
         .collect();
-    let mut plan = ElemPlan::of(ComponentType::TextInput);
-    match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
+    let value: Planned = match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
         ([n], _) if d.kind(*n) == NodeKind::Macro => {
-            plan.set(VALUE, SourcePlan::reference(ctx.reference(*n)?))
+            SourcePlan::reference(ctx.reference(*n)?).into()
         }
         ([], Some(a)) => {
             let m = ctx.single_macro(a).ok_or_else(|| Error::BadValue {
                 attr: "bindValueTo".into(),
                 text: ctx.attr_text(a).unwrap_or_default(),
             })?;
-            plan.set(VALUE, SourcePlan::reference(ctx.reference(m)?));
+            SourcePlan::reference(ctx.reference(m)?).into()
         }
         ([], None) => {
             let text = match d.attr(el, "prefill") {
@@ -60,14 +59,16 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
                 None => String::new(),
             };
             let id = ctx.intern(&text);
-            plan.set_text_essential(VALUE, roles::VALUE, id as f64);
+            Planned::text_essential(roles::VALUE, id as f64)
         }
         _ => {
             return Err(Error::Unsupported(
                 "<textInput> with content other than one reference".into(),
             ));
         }
-    }
+    };
+    let mut plan = ElemPlan::of(ComponentType::TextInput);
+    plan.set_public(Props { value }.into_vec());
     ctx.set_plan(plan);
     Ok(())
 }

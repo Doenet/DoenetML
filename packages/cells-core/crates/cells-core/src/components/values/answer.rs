@@ -28,12 +28,21 @@ const ANSWER_PROPS: &[PropDef] = &props([
     attr("numSubmissions", 0.0),
 ]);
 
-pub const RESPONSE: usize = at(ANSWER_PROPS, "response");
-pub const CORRECT: usize = at(ANSWER_PROPS, "correct");
-pub const SUBMITTED: usize = at(ANSWER_PROPS, "submitted");
-pub const CREDIT: usize = at(ANSWER_PROPS, "credit");
-pub const WEIGHT: usize = at(ANSWER_PROPS, "weight");
-pub const NUM_SUBMISSIONS: usize = at(ANSWER_PROPS, "numSubmissions");
+typed_props!(ANSWER_PROPS {
+    response,
+    correct,
+    submitted,
+    credit,
+    weight,
+    numSubmissions,
+});
+
+pub const RESPONSE: usize = Props::AT.response;
+pub const CORRECT: usize = Props::AT.correct;
+pub const SUBMITTED: usize = Props::AT.submitted;
+pub const CREDIT: usize = Props::AT.credit;
+pub const WEIGHT: usize = Props::AT.weight;
+pub const NUM_SUBMISSIONS: usize = Props::AT.numSubmissions;
 
 /// Plans the answer with its inputs, awards and whens.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

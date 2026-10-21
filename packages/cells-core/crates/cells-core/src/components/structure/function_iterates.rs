@@ -36,9 +36,18 @@ const FUNCTION_ITERATES_PROPS: &[PropDef] = &props([
     planned("allIteratesWithInitial"),
 ]);
 
-pub const ITERATES: usize = at(FUNCTION_ITERATES_PROPS, "iterates");
-pub const COUNT: usize = at(FUNCTION_ITERATES_PROPS, "count");
-pub const ALL: usize = at(FUNCTION_ITERATES_PROPS, "allIteratesWithInitial");
+typed_props!(FUNCTION_ITERATES_PROPS {
+    numIterates,
+    numIteratesFloor,
+    numIteratesClamped,
+    iterates,
+    count,
+    allIteratesWithInitial
+});
+
+pub const ITERATES: usize = Props::AT.iterates;
+pub const COUNT: usize = Props::AT.count;
+pub const ALL: usize = Props::AT.allIteratesWithInitial;
 
 /// The count chain from the prop table, then each iteration's tuple.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

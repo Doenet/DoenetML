@@ -102,9 +102,10 @@ impl<'a> Compiler<'a> {
         // An award comparing an expression needs a response to compare.
         let needs_input = !text_nodes.is_empty() || forms.iter().any(|f| f.when.is_none());
 
-        let mut plan = ElemPlan::new(ComponentType::Answer.prop_defs().len());
+        let at = answer::Props::AT;
+        let mut plan = ElemPlan::of(ComponentType::Answer);
         let response_attr = d.attr(el, "response");
-        let response = match (needs_input, response_attr, inputs.as_slice()) {
+        let mut response = match (needs_input, response_attr, inputs.as_slice()) {
             (true, Some(a), []) => {
                 self.plan_value(t, scope, "response", d.attr_children(a), Some("expr"))?
             }
@@ -139,35 +140,30 @@ impl<'a> Compiler<'a> {
             // Set from the first referenced input below.
             (false, None, _) => SourcePlan::Fixed(f64::NAN),
         };
-        plan.set(answer::RESPONSE, response);
-        plan.set(
-            answer::CORRECT,
-            if text_nodes.is_empty() {
-                SourcePlan::Fixed(f64::NAN)
-            } else {
-                let id = self.plan_sym_math(t, scope, &text_nodes)?;
-                SourcePlan::SymExpr(id, Post::None)
-            },
-        );
-        plan.set(answer::SUBMITTED, SourcePlan::MathEssential(None));
+        let correct = if text_nodes.is_empty() {
+            SourcePlan::Fixed(f64::NAN)
+        } else {
+            let id = self.plan_sym_math(t, scope, &text_nodes)?;
+            SourcePlan::SymExpr(id, Post::None)
+        };
+        let mut submitted = SourcePlan::MathEssential(None);
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
             None => SourcePlan::Fixed(1.0),
         };
-        plan.set(answer::WEIGHT, weight);
-        plan.set(answer::NUM_SUBMISSIONS, SourcePlan::Literal(0.0));
 
         if forms.is_empty() {
             let eq = self.equals_op(&[el]);
-            plan.set(
-                answer::CREDIT,
-                SourcePlan::Op(
-                    OpSpec::Sym(eq),
-                    vec![
-                        Arg::Own(own_slot(answer::SUBMITTED)),
-                        Arg::Own(own_slot(answer::CORRECT)),
-                    ],
-                ),
+            plan.set_public_sources(
+                answer::Props {
+                    response,
+                    correct,
+                    submitted,
+                    credit: SourcePlan::computed(OpSpec::Sym(eq), vec![at.submitted, at.correct]),
+                    weight,
+                    numSubmissions: SourcePlan::Literal(0.0),
+                }
+                .into_vec(),
             );
             self.compiled.templates[t].elems[e].props = plan.finish();
             return Ok(());
@@ -189,17 +185,21 @@ impl<'a> Compiler<'a> {
             )));
             best = plan.hidden(SourcePlan::computed(OpSpec::Max, vec![best, next]));
         }
-        plan.set(answer::CREDIT, SourcePlan::own(best));
         if !needs_input && let Some(&(_, r)) = responses.first() {
-            plan.set(
-                answer::RESPONSE,
-                SourcePlan::Alias(Arg::Elem(r, own_slot(response::RESPONSE))),
-            );
-            plan.set(
-                answer::SUBMITTED,
-                SourcePlan::Alias(Arg::Elem(r, own_slot(response::SUBMITTED))),
-            );
+            response = SourcePlan::Alias(Arg::Elem(r, own_slot(response::RESPONSE)));
+            submitted = SourcePlan::Alias(Arg::Elem(r, own_slot(response::SUBMITTED)));
         }
+        plan.set_public_sources(
+            answer::Props {
+                response,
+                correct,
+                submitted,
+                credit: SourcePlan::own(best),
+                weight,
+                numSubmissions: SourcePlan::Literal(0.0),
+            }
+            .into_vec(),
+        );
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
@@ -228,20 +228,13 @@ impl<'a> Compiler<'a> {
                 choices.len()
             )));
         }
-        let mut plan = ElemPlan::new(ComponentType::Answer.prop_defs().len());
-        plan.set(
-            answer::RESPONSE,
-            SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
-        );
-        plan.set(answer::CORRECT, SourcePlan::Fixed(f64::NAN));
-        plan.set(answer::SUBMITTED, SourcePlan::Literal(0.0));
+        let at = answer::Props::AT;
+        let mut plan = ElemPlan::of(ComponentType::Answer);
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
             None => SourcePlan::Fixed(1.0),
         };
-        plan.set(answer::WEIGHT, weight);
-        plan.set(answer::NUM_SUBMISSIONS, SourcePlan::Literal(0.0));
-        let mut args = vec![Arg::Own(own_slot(answer::SUBMITTED))];
+        let mut args = vec![Arg::Own(own_slot(at.submitted))];
         args.extend(
             choices
                 .iter()
@@ -253,9 +246,16 @@ impl<'a> Compiler<'a> {
             }),
             args,
         ));
-        plan.set(
-            answer::CREDIT,
-            SourcePlan::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
+        plan.set_public_sources(
+            answer::Props {
+                response: SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
+                correct: SourcePlan::Fixed(f64::NAN),
+                submitted: SourcePlan::Literal(0.0),
+                credit: SourcePlan::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
+                weight,
+                numSubmissions: SourcePlan::Literal(0.0),
+            }
+            .into_vec(),
         );
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
@@ -290,19 +290,11 @@ impl<'a> Compiler<'a> {
                 "<answer type=\"text\"> without <award> children".into(),
             ));
         }
-        let mut plan = ElemPlan::new(ComponentType::Answer.prop_defs().len());
-        plan.set(
-            answer::RESPONSE,
-            SourcePlan::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
-        );
-        plan.set(answer::CORRECT, SourcePlan::Fixed(f64::NAN));
-        plan.set(answer::SUBMITTED, SourcePlan::TextLiteral(f64::NAN));
+        let mut plan = ElemPlan::of(ComponentType::Answer);
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
             None => SourcePlan::Fixed(1.0),
         };
-        plan.set(answer::WEIGHT, weight);
-        plan.set(answer::NUM_SUBMISSIONS, SourcePlan::Literal(0.0));
         let mut best = None;
         for &a in awards {
             let form = self.award_form(t, a)?;
@@ -321,7 +313,7 @@ impl<'a> Compiler<'a> {
                 text.push_str(d.str(n));
             }
             let id = self.intern_literal(text.trim()) as f64;
-            let mut ap = ElemPlan::new(ComponentType::Award.prop_defs().len());
+            let mut ap = ElemPlan::of(ComponentType::Award);
             let credit = match d.attr(form.el, "credit") {
                 Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
                     SourcePlan::Literal(v) => SourcePlan::Fixed(v),
@@ -329,7 +321,6 @@ impl<'a> Compiler<'a> {
                 },
                 None => SourcePlan::Fixed(1.0),
             };
-            ap.set(award::CREDIT, credit);
             let correct = ap.hidden(SourcePlan::Fixed(id));
             let holds = ap.hidden(SourcePlan::Op(
                 OpSpec::Eq,
@@ -338,9 +329,12 @@ impl<'a> Compiler<'a> {
                     Arg::Own(own_slot(correct)),
                 ],
             ));
-            ap.set(
-                award::AWARDED,
-                SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+            ap.set_public_sources(
+                award::Props {
+                    credit,
+                    awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+                }
+                .into_vec(),
             );
             self.compiled.templates[t].elems[a].props = ap.finish();
             let awarded = plan.hidden(SourcePlan::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
@@ -349,7 +343,17 @@ impl<'a> Compiler<'a> {
                 Some(b) => plan.hidden(SourcePlan::computed(OpSpec::Max, vec![b, awarded])),
             });
         }
-        plan.set(answer::CREDIT, SourcePlan::own(best.expect("an award")));
+        plan.set_public_sources(
+            answer::Props {
+                response: SourcePlan::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
+                correct: SourcePlan::Fixed(f64::NAN),
+                submitted: SourcePlan::TextLiteral(f64::NAN),
+                credit: SourcePlan::own(best.expect("an award")),
+                weight,
+                numSubmissions: SourcePlan::Literal(0.0),
+            }
+            .into_vec(),
+        );
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
@@ -491,7 +495,7 @@ impl<'a> Compiler<'a> {
         responses: &mut Vec<((u32, ElemId), ElemId)>,
     ) -> Result<()> {
         let d = self.dast;
-        let mut ap = ElemPlan::new(ComponentType::Award.prop_defs().len());
+        let mut ap = ElemPlan::of(ComponentType::Award);
         let credit = match d.attr(form.el, "credit") {
             Some(a) => match self.plan_value(t, form.e, "credit", d.attr_children(a), None)? {
                 // How much an award gives is not state.
@@ -500,7 +504,6 @@ impl<'a> Compiler<'a> {
             },
             None => SourcePlan::Fixed(1.0),
         };
-        ap.set(award::CREDIT, credit);
         let compare = self.compare_attrs(&[form.el, answer_el]);
         let holds = match form.when {
             Some((w, w_el)) => {
@@ -535,12 +538,17 @@ impl<'a> Compiler<'a> {
                         subst.insert(m, self.compiled.refs.len() - 1);
                     }
                 }
-                let mut wp = ElemPlan::new(ComponentType::When.prop_defs().len());
+                let mut wp = ElemPlan::of(ComponentType::When);
                 self.ref_subst = subst;
                 let planned = self.plan_condition_content(t, w, &nodes, compare, &mut wp);
                 self.ref_subst.clear();
                 let slot = planned?;
-                wp.set(when::VALUE, SourcePlan::own(slot));
+                wp.set_public_sources(
+                    when::Props {
+                        value: SourcePlan::own(slot),
+                    }
+                    .into_vec(),
+                );
                 self.compiled.templates[t].elems[w].props = wp.finish();
                 ap.hidden(SourcePlan::Alias(Arg::Elem(w, own_slot(when::VALUE))))
             }
@@ -561,9 +569,12 @@ impl<'a> Compiler<'a> {
                 ))
             }
         };
-        ap.set(
-            award::AWARDED,
-            SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+        ap.set_public_sources(
+            award::Props {
+                credit,
+                awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+            }
+            .into_vec(),
         );
         self.compiled.templates[t].elems[form.e].props = ap.finish();
         Ok(())
@@ -625,12 +636,12 @@ impl<'a> Compiler<'a> {
                 SourcePlan::own(response::SUBMITTED),
             )
         };
-        let mut props =
-            vec![SourcePlan::Fixed(f64::NAN); ComponentType::Response.prop_defs().len()];
-        props[response::RESPONSE] = live;
-        props[response::SUBMITTED] = submitted;
-        props[response::VALUE] = value;
-        self.compiled.templates[t].elems[r].props = props;
+        self.compiled.templates[t].elems[r].props = response::Props {
+            response: live,
+            submitted,
+            value,
+        }
+        .into_vec();
         self.compiled.templates[t].elems[e]
             .children
             .push(Child::Elem(r));
@@ -643,12 +654,11 @@ impl<'a> Compiler<'a> {
         let mi = self
             .push_elem(t, NONE, ComponentType::MathInput, NONE, e)
             .expect("unnamed");
-        let mut props =
-            vec![SourcePlan::Fixed(f64::NAN); ComponentType::MathInput.prop_defs().len()];
-        props[math_input::EXPR] = SourcePlan::MathEssential(None);
-        props[math_input::VALUE] =
-            SourcePlan::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]);
-        self.compiled.templates[t].elems[mi].props = props;
+        self.compiled.templates[t].elems[mi].props = math_input::Props {
+            value: SourcePlan::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]),
+            expr: SourcePlan::MathEssential(None),
+        }
+        .into_vec();
         self.compiled.templates[t].elems[e]
             .children
             .insert(0, Child::Elem(mi));

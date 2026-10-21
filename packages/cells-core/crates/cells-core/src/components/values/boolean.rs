@@ -23,12 +23,12 @@ pub(in crate::components) const BOOLEAN: ComponentTypeInfo = info(&["boolean"], 
 
 const BOOLEAN_PROPS: &[PropDef] = &props([children("value")]);
 
-pub const VALUE: usize = at(BOOLEAN_PROPS, "value");
-
 typed_props!(BOOLEAN_PROPS { value } roles {
     // The value, when it is the boolean's own state.
     VALUE,
 });
+
+pub const VALUE: usize = Props::AT.value;
 
 /// A boolean that extends another component aliases its value;
 /// otherwise its content is planned.
@@ -72,18 +72,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         (0, s) => s.parse::<f64>().ok().map(|v| f64::from(v == 1.0)),
         _ => None,
     };
-    if let Some(v) = literal {
-        plan.set_essential(VALUE, roles::VALUE, v);
-        ctx.set_plan(plan);
-        return Ok(());
-    }
-    if macros == 1 && text.is_empty() {
-        let p = ctx.reference(nodes[0])?;
-        ctx.set_props(vec![SourcePlan::reference(p)]);
-        return Ok(());
-    }
-    let slot = ctx.condition(&nodes, &mut plan)?;
-    plan.set(VALUE, SourcePlan::own(slot));
+    let value = if let Some(v) = literal {
+        Planned::essential(roles::VALUE, v)
+    } else if macros == 1 && text.is_empty() {
+        SourcePlan::reference(ctx.reference(nodes[0])?).into()
+    } else {
+        Planned::own(ctx.condition(&nodes, &mut plan)?)
+    };
+    plan.set_public(Props { value }.into_vec());
     ctx.set_plan(plan);
     Ok(())
 }

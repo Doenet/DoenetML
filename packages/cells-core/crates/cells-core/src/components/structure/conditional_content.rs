@@ -19,8 +19,10 @@ pub(in crate::components) const CONDITIONAL_CONTENT: ComponentTypeInfo = info(
 // `hide` hides what the choice shows, not copies of its names.
 const CONDITIONAL_CONTENT_PROPS: &[PropDef] = &props([planned("choice"), planned("hide")]);
 
-pub const CHOICE: usize = at(CONDITIONAL_CONTENT_PROPS, "choice");
-pub const HIDE: usize = at(CONDITIONAL_CONTENT_PROPS, "hide");
+typed_props!(CONDITIONAL_CONTENT_PROPS { choice, hide });
+
+pub const CHOICE: usize = Props::AT.choice;
+pub const HIDE: usize = Props::AT.hide;
 
 /// Plans the choice of the case whose condition holds.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

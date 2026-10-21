@@ -15,7 +15,9 @@ pub(in crate::components) const SELECT_FROM_SEQUENCE: ComponentTypeInfo =
 
 const SELECT_FROM_SEQUENCE_PROPS: &[PropDef] = &props([planned("value")]);
 
-pub const VALUE: usize = at(SELECT_FROM_SEQUENCE_PROPS, "value");
+typed_props!(SELECT_FROM_SEQUENCE_PROPS { value });
+
+pub const VALUE: usize = Props::AT.value;
 
 /// Its `value` is one of `from, from + step, ..., to`, picked per instance
 /// at expansion.
@@ -64,7 +66,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
             "<selectFromSequence> with an empty sequence".into(),
         ));
     }
-    props[VALUE] = Some(SourcePlan::SequencePick {
+    props[Props::AT.value] = Some(SourcePlan::SequencePick {
         from,
         step,
         count: count as u32,

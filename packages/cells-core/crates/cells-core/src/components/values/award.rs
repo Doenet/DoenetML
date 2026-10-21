@@ -13,8 +13,10 @@ pub(in crate::components) const AWARD: ComponentTypeInfo =
 
 const AWARD_PROPS: &[PropDef] = &props([attr("credit", 1.0), planned("awarded")]);
 
-pub const CREDIT: usize = at(AWARD_PROPS, "credit");
-pub const AWARDED: usize = at(AWARD_PROPS, "awarded");
+typed_props!(AWARD_PROPS { credit, awarded });
+
+pub const CREDIT: usize = Props::AT.credit;
+pub const AWARDED: usize = Props::AT.awarded;
 
 /// An award is planned by its answer; one elsewhere has no plan.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

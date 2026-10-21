@@ -28,7 +28,10 @@ const NUMBER_PROPS: &[PropDef] = &props([children("value")]);
 
 pub mod number {
     use super::*;
-    pub const VALUE: usize = at(NUMBER_PROPS, "value");
+
+    typed_props!(NUMBER_PROPS { value });
+
+    pub const VALUE: usize = Props::AT.value;
 }
 
 /// Prototype-only tag that applies a numeric operator to referenced cells;
@@ -70,9 +73,16 @@ const RESPONSE_PROPS: &[PropDef] =
 
 pub mod response {
     use super::*;
-    pub const RESPONSE: usize = at(RESPONSE_PROPS, "response");
-    pub const SUBMITTED: usize = at(RESPONSE_PROPS, "submitted");
-    pub const VALUE: usize = at(RESPONSE_PROPS, "value");
+
+    typed_props!(RESPONSE_PROPS {
+        response,
+        submitted,
+        value
+    });
+
+    pub const RESPONSE: usize = Props::AT.response;
+    pub const SUBMITTED: usize = Props::AT.submitted;
+    pub const VALUE: usize = Props::AT.value;
 }
 
 /// A response is made by an answer's planner, never by a tag.
@@ -123,9 +133,52 @@ const TUPLE_PROPS: &[PropDef] = &props({
 
 pub mod tuple {
     use super::*;
-    pub const N: usize = at(TUPLE_PROPS, "n");
+    use crate::compile::api::{ElemPlan, Planned, SourcePlan};
+    use crate::components::ComponentType;
+
+    typed_props!(TUPLE_PROPS {
+        n,
+        x1,
+        x2,
+        x3,
+        x4,
+        x5,
+        x6,
+        x7,
+        x8
+    });
+
+    pub const N: usize = Props::AT.n;
     /// The first entry; entry k (0-based) is at `X1 + k`.
-    pub const X1: usize = at(TUPLE_PROPS, "x1");
+    pub const X1: usize = Props::AT.x1;
+
+    /// A tuple's props: its entry count, its entries, and NaN in the
+    /// entries past them.
+    pub(crate) fn props_of(entries: Vec<SourcePlan>) -> Vec<SourcePlan> {
+        debug_assert!(entries.len() <= MAX_TUPLE, "checked against MAX_TUPLE");
+        let n = Planned::fixed(entries.len() as f64);
+        let mut entries = entries
+            .into_iter()
+            .map(Planned::from)
+            .chain(std::iter::repeat_with(|| Planned::fixed(f64::NAN)));
+        let mut next = || entries.next().expect("an endless supply");
+        let mut plan = ElemPlan::of(ComponentType::Tuple);
+        plan.set_public(
+            Props {
+                n,
+                x1: next(),
+                x2: next(),
+                x3: next(),
+                x4: next(),
+                x5: next(),
+                x6: next(),
+                x7: next(),
+                x8: next(),
+            }
+            .into_vec(),
+        );
+        plan.finish()
+    }
 }
 
 /// A tuple is made from a `<math>` or by the builder, never by a tag.

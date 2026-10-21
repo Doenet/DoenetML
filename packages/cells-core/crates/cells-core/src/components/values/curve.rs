@@ -34,10 +34,17 @@ const CURVE_PROPS: &[PropDef] = &props([
 ]);
 
 // The positions of `<function>` and `<derivative>`, which share their table.
-pub const EXPR: usize = at(CURVE_PROPS, "expr");
-pub const XMIN: usize = at(CURVE_PROPS, "xmin");
-pub const XMAX: usize = at(CURVE_PROPS, "xmax");
-pub const SAMPLES: usize = at(CURVE_PROPS, "samples");
+typed_props!(CURVE_PROPS {
+    expr,
+    xmin,
+    xmax,
+    samples
+});
+
+pub const EXPR: usize = Props::AT.expr;
+pub const XMIN: usize = Props::AT.xmin;
+pub const XMAX: usize = Props::AT.xmax;
+pub const SAMPLES: usize = Props::AT.samples;
 
 /// Whether a `<function>` takes several variables or returns a tuple.
 fn is_vector_function(ctx: &mut PlanCtx<'_, '_>) -> Result<bool> {
@@ -55,44 +62,49 @@ fn is_vector_function(ctx: &mut PlanCtx<'_, '_>) -> Result<bool> {
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let component_type = ctx.component_type();
     let nodes: Vec<NodeId> = ctx.dast().children(ctx.node()).to_vec();
+    let at = Props::AT;
     let mut plan = ElemPlan::of(component_type);
     if component_type == ComponentType::Function && is_vector_function(ctx)? {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
-        plan.set(EXPR, SourcePlan::Fixed(f64::NAN));
-        plan.set(XMIN, SourcePlan::Fixed(-10.0));
-        plan.set(XMAX, SourcePlan::Fixed(10.0));
-        plan.set(SAMPLES, SourcePlan::Fixed(f64::NAN));
+        plan.set_public(
+            Props {
+                expr: Planned::fixed(f64::NAN),
+                xmin: Planned::fixed(-10.0),
+                xmax: Planned::fixed(10.0),
+                samples: Planned::fixed(f64::NAN),
+            }
+            .into_vec(),
+        );
         ctx.set_plan(plan);
         return Ok(());
     }
     let id = ctx.sym_math(&nodes)?;
-    if component_type == ComponentType::Function {
-        plan.set(EXPR, SourcePlan::SymExpr(id, Post::None));
+    let expr = if component_type == ComponentType::Function {
+        SourcePlan::SymExpr(id, Post::None).into()
     } else {
         let of = plan.hidden(SourcePlan::SymExpr(id, Post::None));
-        plan.set(
-            EXPR,
-            SourcePlan::computed(OpSpec::Sym(SymKind::Derivative), vec![of]),
-        );
-    }
-    match (
+        Planned::computed(OpSpec::Sym(SymKind::Derivative), vec![of])
+    };
+    let [xmin, xmax] = match (
         ctx.enclosing_graph_prop(graph::XMIN),
         ctx.enclosing_graph_prop(graph::XMAX),
     ) {
-        (Some(xmin), Some(xmax)) => {
-            plan.set(XMIN, xmin);
-            plan.set(XMAX, xmax);
+        (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
+        _ => [Planned::fixed(-10.0), Planned::fixed(10.0)],
+    };
+    plan.set_public(
+        Props {
+            expr,
+            xmin,
+            xmax,
+            samples: Planned::computed(
+                OpSpec::Sym(SymKind::Sample),
+                vec![at.expr, at.xmin, at.xmax],
+            ),
         }
-        _ => {
-            plan.set(XMIN, SourcePlan::Fixed(-10.0));
-            plan.set(XMAX, SourcePlan::Fixed(10.0));
-        }
-    }
-    plan.set(
-        SAMPLES,
-        SourcePlan::computed(OpSpec::Sym(SymKind::Sample), vec![EXPR, XMIN, XMAX]),
+        .into_vec(),
     );
     ctx.set_plan(plan);
     Ok(())

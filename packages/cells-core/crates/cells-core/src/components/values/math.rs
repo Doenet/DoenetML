@@ -18,8 +18,23 @@ pub(in crate::components) const MATH: ComponentTypeInfo =
 // Both of a math's props are set by the builder from its children.
 const MATH_PROPS: &[PropDef] = &props([children("expr"), children("value")]);
 
-pub const EXPR: usize = at(MATH_PROPS, "expr");
-pub const VALUE: usize = at(MATH_PROPS, "value");
+typed_props!(MATH_PROPS { expr, value });
+
+pub const EXPR: usize = Props::AT.expr;
+pub const VALUE: usize = Props::AT.value;
+
+/// A math's props: its expression, with `post` applied, and its value.
+pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<SourcePlan> {
+    let mut plan = ElemPlan::of(ComponentType::Math);
+    plan.set_public(
+        Props {
+            expr: SourcePlan::MathHandle(id, post).into(),
+            value: SourcePlan::MathValue(id).into(),
+        }
+        .into_vec(),
+    );
+    plan.finish()
+}
 
 /// A tuple-valued math (`<math>(a, b)</math>`) is a point for the cells
 /// core: two cells, draggable as a direction source. With three or more
@@ -35,7 +50,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     {
         let [x, y] = ctx.tuple(&nodes)?;
         ctx.set_type(ComponentType::Point);
-        ctx.set_props(point_props(x, y));
+        ctx.set_props(super::super::geometry::point::props_of(x, y));
         return Ok(());
     }
     if let Some(inner) = unwrap_parens(&toks)
@@ -55,7 +70,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             entries.push(ctx.plan_expr(id));
         }
         ctx.set_type(ComponentType::Tuple);
-        ctx.set_props(tuple_props(entries));
+        ctx.set_props(super::tuple::props_of(entries));
         return Ok(());
     }
     let id = ctx.sym_math(&nodes)?;
@@ -66,6 +81,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     } else {
         Post::None
     };
-    ctx.set_props(math_props(id, post));
+    ctx.set_props(props_of(id, post));
     Ok(())
 }

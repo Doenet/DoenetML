@@ -12,7 +12,9 @@ pub(in crate::components) const WHEN: ComponentTypeInfo =
 
 const WHEN_PROPS: &[PropDef] = &props([planned("value")]);
 
-pub const VALUE: usize = at(WHEN_PROPS, "value");
+typed_props!(WHEN_PROPS { value });
+
+pub const VALUE: usize = Props::AT.value;
 
 /// A when is planned by its answer; one elsewhere has no plan.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

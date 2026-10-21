@@ -196,11 +196,10 @@ impl<'a> Compiler<'a> {
             None => SourcePlan::Fixed(0.0),
         };
         if !self.compiled.choices[cid].reactive {
-            self.compiled.templates[t].elems[e].props = vec![hide];
+            self.compiled.templates[t].elems[e].props = prop::select::Props { hide }.into_vec();
             return Ok(());
         }
         let mut plan = ElemPlan::of(ComponentType::ConditionalContent);
-        plan.set(conditional_content::HIDE, hide);
         let mut conds = Vec::new();
         for c in self.compiled.choices[cid].conditions.clone() {
             conds.push(match c {
@@ -220,7 +219,13 @@ impl<'a> Compiler<'a> {
             },
             conds,
         ));
-        plan.set(conditional_content::CHOICE, SourcePlan::own(first));
+        plan.set_public_sources(
+            conditional_content::Props {
+                choice: SourcePlan::own(first),
+                hide,
+            }
+            .into_vec(),
+        );
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }

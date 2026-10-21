@@ -16,6 +16,8 @@ pub(in crate::components) const REPEAT_FOR: ComponentTypeInfo = info(&["repeat"]
 
 const REPEAT_FOR_PROPS: &[PropDef] = &props([planned("count")]);
 
+typed_props!(REPEAT_FOR_PROPS { count });
+
 /// `count` aliases the list's length, and the item of each iteration
 /// aliases the matching iterate.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

@@ -15,7 +15,9 @@ impl<'a> Compiler<'a> {
         let component_type = self.compiled.templates[t].elems[e].component_type;
         let display = self.compiled.refs[p].display.clone();
         let props = match component_type {
-            ComponentType::Point => point_props(SourcePlan::coord(p, 0), SourcePlan::coord(p, 1)),
+            ComponentType::Point => {
+                prop::point::props_of(SourcePlan::coord(p, 0), SourcePlan::coord(p, 1))
+            }
             ComponentType::Number | ComponentType::NumberInput | ComponentType::MathInput => {
                 vec![SourcePlan::reference(p)]
             }
@@ -24,7 +26,7 @@ impl<'a> Compiler<'a> {
                 self.compiled
                     .sym_text
                     .insert(id, crate::sym::engine::leaf_name(p as u32, false));
-                math_props(id, Post::None)
+                prop::math::props_of(id, Post::None)
             }
             ComponentType::PointList => {
                 self.compiled.templates[t].elems[e].body = Body::PointList { from: p };

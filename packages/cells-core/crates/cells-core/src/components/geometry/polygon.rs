@@ -27,7 +27,9 @@ pub(in crate::components) const POLYGON: ComponentTypeInfo =
 /// `numVertices`; the vertices follow, as the list.
 const POLYGON_PROPS: &[PropDef] = &props([planned("numVertices")]);
 
-pub const NUM_VERTICES: usize = at(POLYGON_PROPS, "numVertices");
+typed_props!(POLYGON_PROPS { numVertices });
+
+pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
@@ -43,11 +45,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     // The vertices are the list (ADR 0016), as many as given.
     let mut ch = ElemPlan::with_list(ComponentType::Polygon, n);
     let n_public = ch.n_public;
-    let vertex = |k: usize, j: usize| {
-        ComponentType::Polygon
-            .list_slot(n_public, k + 1, j)
-            .expect("a vertex the polygon holds")
-    };
     let flag = |ctx: &PlanCtx<'_, '_>, name: &str, default: bool| -> bool {
         match ctx.attr(name) {
             None => default,
@@ -100,14 +97,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     } else {
         None
     };
-    ch.set(NUM_VERTICES, SourcePlan::Fixed(n as f64));
     if rigid_opts.is_some() && n > super::MAX_RIGID_VERTICES {
         return Err(Error::Unsupported(format!(
             "a rigid polygon with more than {} vertices",
             super::MAX_RIGID_VERTICES
         )));
     }
-    match rigid_opts {
+    let points: Vec<[Planned; 2]> = match rigid_opts {
         // Rigid: the document declares the coupling, so one instruction
         // owns every vertex.
         Some(opts) if n > 0 => {
@@ -130,15 +126,29 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
                     args.push(ch.hidden(SourcePlan::Fixed(f64::NAN)));
                 }
             }
-            ch.set_vec(vertex(0, 0), VecOp::Shape { n: byte(n), opts }, args);
+            let first = ComponentType::Polygon
+                .list_slot(n_public, 1, 0)
+                .expect("a vertex the polygon holds");
+            let mut outputs =
+                ElemPlan::vector_from(first, VecOp::Shape { n: byte(n), opts }, args).into_iter();
+            (0..n)
+                .map(|_| [outputs.next().unwrap(), outputs.next().unwrap()])
+                .collect()
         }
         // Free: the vertices are the points; a vertex may be defined
         // from its siblings without a cycle.
-        _ => {
-            for (k, v) in vertices.iter().enumerate() {
-                ch.set_point([vertex(k, 0), vertex(k, 1)], v, point_roles(k), "vertices");
-            }
+        _ => vertices
+            .iter()
+            .enumerate()
+            .map(|(k, v)| Planned::point(v, point_roles(k), "vertices"))
+            .collect(),
+    };
+    ch.set_public(
+        Props {
+            numVertices: Planned::fixed(n as f64),
         }
-    }
+        .into_vec(),
+    );
+    ch.set_list(points);
     Ok(ch)
 }

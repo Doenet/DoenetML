@@ -12,6 +12,8 @@ pub(in crate::components) const SELECT: ComponentTypeInfo = info(&["select"], SE
 
 const SELECT_PROPS: &[PropDef] = &props([planned("hide")]);
 
+typed_props!(SELECT_PROPS { hide });
+
 /// Plans the options picked at load.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     super::plan_choice(ctx)

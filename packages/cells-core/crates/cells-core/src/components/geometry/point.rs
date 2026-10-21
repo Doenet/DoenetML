@@ -32,6 +32,22 @@ pub const HIDE: usize = Props::AT.hide;
 // position its layout names (`sticky`, `document/sticky.rs`).
 const _: () = assert!(Y == X + 1, "a point's y must follow its x");
 
+/// A point's props from its two coordinates, as a `<math>` that is a pair
+/// or a copy of a point's coordinates has them; `hide` is the default.
+pub(crate) fn props_of(x: SourcePlan, y: SourcePlan) -> Vec<SourcePlan> {
+    let mut plan = ElemPlan::of(ComponentType::Point);
+    let hide = ComponentType::Point.prop_defs()[HIDE].default;
+    plan.set_public(
+        Props {
+            x: x.into(),
+            y: y.into(),
+            hide: SourcePlan::Default(hide).into(),
+        }
+        .into_vec(),
+    );
+    plan.finish()
+}
+
 /// Plans a point: coordinates from `coords`, from `x`/`y`, or from
 /// `(a, b)` children; a constraint child wraps them in a projection.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
@@ -40,21 +56,20 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let mut ch = ElemPlan::of(ComponentType::Point);
     let own_children = ctx.math_children(el);
     let base_children = base.map(|b| ctx.math_children(b)).unwrap_or_default();
-    if let Some(a) = ctx.attr("coords") {
+    let roles = [roles::X, roles::Y];
+    let [x, y] = if let Some(a) = ctx.attr("coords") {
         let p = ctx.point_at(a)?;
-        ch.set_point([X, Y], &p, [roles::X, roles::Y], "coords");
+        Planned::point(&p, roles, "coords")
     } else if ctx.has("x") || ctx.has("y") || (own_children.is_empty() && base_children.is_empty())
     {
-        for (i, name, role) in [(X, "x", roles::X), (Y, "y", roles::Y)] {
-            match ctx.scalar(name)? {
-                Some(SourcePlan::Literal(v)) => {
-                    ch.role_from_attr(role, name);
-                    ch.set_essential(i, role, v);
-                }
-                Some(plan) => ch.set(i, plan),
-                None => ch.set_essential(i, role, 0.0),
-            }
-        }
+        let mut coord = |name: &'static str, role: Role| -> Result<Planned> {
+            Ok(match ctx.scalar(name)? {
+                Some(SourcePlan::Literal(v)) => Planned::essential_from(role, name, v),
+                Some(plan) => plan.into(),
+                None => Planned::essential(role, 0.0),
+            })
+        };
+        [coord("x", roles[0])?, coord("y", roles[1])?]
     } else {
         let nodes = if own_children.is_empty() {
             base_children
@@ -62,15 +77,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             own_children
         };
         let p = PointPlan::Tuple(ctx.tuple(&nodes)?);
-        ch.set_point([X, Y], &p, [roles::X, roles::Y], "children");
-    }
+        Planned::point(&p, roles, "children")
+    };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
-    match ctx.attr("hide") {
-        Some(a) if ctx.single_macro(a).is_some() => {
-            let plan = ctx.scalar_of("hide", d.attr_children(a))?;
-            ch.set(HIDE, plan);
-        }
+    let hide = match ctx.attr("hide") {
+        Some(a) if ctx.single_macro(a).is_some() => ctx.scalar_of("hide", d.attr_children(a))?,
         Some(_) => {
             // The copy's own attribute wins: `hide="false"` reveals a
             // copy of a hidden point, as in the current core.
@@ -80,17 +92,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
                 base.unwrap()
             };
             let on = ctx.attr_flag(owner, "hide");
-            ch.set(HIDE, SourcePlan::Literal(if on { 1.0 } else { 0.0 }));
+            SourcePlan::Literal(if on { 1.0 } else { 0.0 })
         }
-        None => ch.set(
-            HIDE,
-            if base.is_some() {
-                SourcePlan::Inherit
-            } else {
-                SourcePlan::Default(0.0)
-            },
-        ),
-    }
+        None if base.is_some() => SourcePlan::Inherit,
+        None => SourcePlan::Default(0.0),
+    };
     // Constraints may sit directly under the point or in <constraints>.
     let mut constraints: Vec<NodeId> = Vec::new();
     for node in std::iter::once(el).chain(base) {
@@ -112,30 +118,39 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             break;
         }
     }
-    if let Some(&c) = constraints.first() {
-        if constraints.len() > 1 {
+    let [x, y] = match constraints.as_slice() {
+        [] => [x, y],
+        [c] => constrain(ctx, &mut ch, [x, y], *c)?,
+        _ => {
             return Err(Error::Unsupported(
                 "more than one constraint on a point".into(),
             ));
         }
-        wrap_constraint(ctx, &mut ch, c)?;
-    }
+    };
+    ch.set_public(
+        Props {
+            x,
+            y,
+            hide: hide.into(),
+        }
+        .into_vec(),
+    );
     Ok(ch)
 }
 
-/// Move the planned coordinates of a point to hidden raw slots and make
-/// the public `x`, `y` their projection onto the constraint.
-fn wrap_constraint(ctx: &mut PlanCtx<'_, '_>, ch: &mut ElemPlan, c: NodeId) -> Result<()> {
+/// The point's coordinates as planned so far move to hidden raw slots,
+/// with their roles, since they are its state; the public `x`, `y` are
+/// their projection onto the constraint.
+fn constrain(
+    ctx: &mut PlanCtx<'_, '_>,
+    ch: &mut ElemPlan,
+    [x, y]: [Planned; 2],
+    c: NodeId,
+) -> Result<[Planned; 2]> {
     let d = ctx.dast();
-    let (px, py) = (
-        ch.props[X].take().expect("x planned"),
-        ch.props[Y].take().expect("y planned"),
-    );
-    let raw_x = ch.hidden(px);
-    let raw_y = ch.hidden(py);
-    // The raw coordinates are the essential state now; keep their roles.
-    ch.move_role(roles::X, raw_x);
-    ch.move_role(roles::Y, raw_y);
+    let raw_x = ch.hidden_planned(x);
+    let raw_y = ch.hidden_planned(y);
+    let at = Props::AT;
     match d.str(c) {
         "constrainToGrid" => {
             let num = |name: &str, default: f64| -> Result<f64> {
@@ -149,7 +164,7 @@ fn wrap_constraint(ctx: &mut PlanCtx<'_, '_>, ch: &mut ElemPlan, c: NodeId) -> R
             };
             let (dx, dy) = (num("dx", 1.0)?, num("dy", 1.0)?);
             let (xo, yo) = (num("xoffset", 0.0)?, num("yoffset", 0.0)?);
-            let snap = |ch: &mut ElemPlan, raw: usize, step: f64, offset: f64| -> SourcePlan {
+            let snap = |ch: &mut ElemPlan, raw: usize, step: f64, offset: f64| -> Planned {
                 let mut cur = raw;
                 if offset != 0.0 {
                     cur = ch.hidden(SourcePlan::computed(
@@ -168,14 +183,13 @@ fn wrap_constraint(ctx: &mut PlanCtx<'_, '_>, ch: &mut ElemPlan, c: NodeId) -> R
                     cur = ch.hidden(SourcePlan::computed(OpSpec::Scale { k: step }, vec![cur]));
                 }
                 if offset != 0.0 {
-                    return SourcePlan::computed(OpSpec::Offset { k: offset }, vec![cur]);
+                    return Planned::computed(OpSpec::Offset { k: offset }, vec![cur]);
                 }
-                SourcePlan::own(cur)
+                Planned::own(cur)
             };
-            let px = snap(ch, raw_x, dx, xo);
-            let py = snap(ch, raw_y, dy, yo);
-            ch.set(X, px);
-            ch.set(Y, py);
+            let x = snap(ch, raw_x, dx, xo);
+            let y = snap(ch, raw_y, dy, yo);
+            Ok([x, y])
         }
         "constrainTo" => {
             let m = d
@@ -197,40 +211,36 @@ fn wrap_constraint(ctx: &mut PlanCtx<'_, '_>, ch: &mut ElemPlan, c: NodeId) -> R
             match target {
                 ComponentType::Circle => {
                     let c = refs(ch, &["cx", "cy", "radius"]);
-                    ch.set_vec(
-                        X,
+                    Ok(ElemPlan::vector(
+                        [at.x, at.y],
                         VecOp::ProjectCircle,
                         vec![raw_x, raw_y, c[0], c[1], c[2]],
-                    );
+                    ))
                 }
                 ComponentType::Function | ComponentType::Derivative => {
                     // The point rides the curve: `x` is what was asked
                     // and `y` is f(x). (The current core moves to the
                     // nearest point of the curve instead.)
                     let f = refs(ch, &["expr"]);
-                    ch.set(X, SourcePlan::own(raw_x));
-                    ch.set(
-                        Y,
-                        SourcePlan::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
-                    );
+                    Ok([
+                        Planned::own(raw_x),
+                        Planned::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
+                    ])
                 }
                 ComponentType::Line | ComponentType::LineSegment => {
                     let l = refs(ch, &["x1", "y1", "x2", "y2"]);
-                    ch.set_vec(
-                        X,
+                    Ok(ElemPlan::vector(
+                        [at.x, at.y],
                         VecOp::ProjectLine,
                         vec![raw_x, raw_y, l[0], l[1], l[2], l[3]],
-                    );
+                    ))
                 }
-                other => {
-                    return Err(Error::Unsupported(format!(
-                        "constrainTo a <{}>",
-                        other.tag()
-                    )));
-                }
+                other => Err(Error::Unsupported(format!(
+                    "constrainTo a <{}>",
+                    other.tag()
+                ))),
             }
         }
-        other => return Err(Error::Unsupported(format!("<{other}> constraint"))),
+        other => Err(Error::Unsupported(format!("<{other}> constraint"))),
     }
-    Ok(())
 }

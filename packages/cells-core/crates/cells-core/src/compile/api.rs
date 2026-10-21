@@ -5,8 +5,7 @@
 //! component, never by reaching past it.
 
 pub(crate) use super::ctx::PlanCtx;
-pub(crate) use super::expr::{Token, split_top, unwrap_parens};
+pub(crate) use super::expr::{ExprId, Token, split_top, unwrap_parens};
 pub(crate) use super::plan::{
-    Arg, ElemPlan, Planned, PointPlan, Role, Sel, SourcePlan, math_props, point_props, point_roles,
-    tuple_props,
+    Arg, ElemPlan, Planned, PointPlan, Role, Sel, SourcePlan, point_roles,
 };

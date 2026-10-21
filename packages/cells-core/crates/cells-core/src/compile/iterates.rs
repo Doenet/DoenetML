@@ -49,8 +49,9 @@ impl<'a> Compiler<'a> {
     /// the body, so its references resolve from the `<functionIterates>`.
     pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         self.plan_attrs(t, e, None)?;
-        self.compiled.templates[t].elems[e].props[function_iterates::ALL] =
-            SourcePlan::own(function_iterates::COUNT);
+        let at = function_iterates::Props::AT;
+        self.compiled.templates[t].elems[e].props[at.allIteratesWithInitial] =
+            SourcePlan::own(at.count);
         let d = self.dast;
         let Elem {
             node: el,
@@ -138,7 +139,7 @@ impl<'a> Compiler<'a> {
                 SourcePlan::FirstIteration(Box::new(first), Box::new(SourcePlan::Math(exprs[j])))
             })
             .collect();
-        self.compiled.templates[sub].elems[0].props = tuple_props(entries);
+        self.compiled.templates[sub].elems[0].props = prop::tuple::props_of(entries);
         Ok(())
     }
 
@@ -245,7 +246,10 @@ impl<'a> Compiler<'a> {
                     == ComponentType::FunctionIterates => {}
             _ => return Err(unsupported()),
         }
-        self.compiled.templates[t].elems[e].props = vec![SourcePlan::reference(fp)];
+        self.compiled.templates[t].elems[e].props = prop::repeat_for::Props {
+            count: SourcePlan::reference(fp),
+        }
+        .into_vec();
         let has_item = self.compiled.templates[sub]
             .elems
             .first()

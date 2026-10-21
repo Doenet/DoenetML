@@ -347,6 +347,13 @@ impl Planned {
             role: Some((role, Some(attr))),
         }
     }
+    /// Essential text state with `role`, initially the string `id`.
+    pub(crate) fn text_essential(role: Role, id: f64) -> Self {
+        Planned {
+            plan: SourcePlan::TextLiteral(id),
+            role: Some((role, None)),
+        }
+    }
     /// A constant that is not state.
     pub(crate) fn fixed(v: f64) -> Self {
         SourcePlan::Fixed(v).into()
@@ -450,42 +457,6 @@ impl Deferred {
     }
 }
 
-/// A point's props: its coordinates, and `hide` at its default.
-pub(crate) fn point_props(x: SourcePlan, y: SourcePlan) -> Vec<SourcePlan> {
-    use crate::components::prop::point;
-    let mut plan = ElemPlan::of(ComponentType::Point);
-    plan.set(point::X, x);
-    plan.set(point::Y, y);
-    let hide = ComponentType::Point.prop_defs()[point::HIDE].default;
-    plan.set(point::HIDE, SourcePlan::Default(hide));
-    plan.finish()
-}
-
-/// A math's props: its expression, with `post` applied, and its value.
-pub(crate) fn math_props(id: ExprId, post: Post) -> Vec<SourcePlan> {
-    use crate::components::prop::math;
-    let mut plan = ElemPlan::of(ComponentType::Math);
-    plan.set(math::EXPR, SourcePlan::MathHandle(id, post));
-    plan.set(math::VALUE, SourcePlan::MathValue(id));
-    plan.finish()
-}
-
-/// A tuple's props: its entry count, its entries, and NaN in the entries
-/// past them.
-pub(crate) fn tuple_props(entries: Vec<SourcePlan>) -> Vec<SourcePlan> {
-    use crate::components::prop::tuple;
-    let mut plan = ElemPlan::of(ComponentType::Tuple);
-    plan.set(tuple::N, SourcePlan::Fixed(entries.len() as f64));
-    let n_entries = plan.props.len() - tuple::X1;
-    debug_assert!(entries.len() <= n_entries, "checked against MAX_TUPLE");
-    let mut entries = entries.into_iter();
-    for k in 0..n_entries {
-        let p = entries.next().unwrap_or(SourcePlan::Fixed(f64::NAN));
-        plan.set(tuple::X1 + k, p);
-    }
-    plan.finish()
-}
-
 impl ElemPlan {
     /// A plan for an element of `component_type`, one public slot per prop
     /// in its table, each set by its name's position (`components::prop`).
@@ -508,42 +479,10 @@ impl ElemPlan {
             role_attr: HashMap::new(),
         }
     }
-    pub(crate) fn set(&mut self, i: usize, plan: SourcePlan) {
-        self.props[i] = Some(plan);
-    }
-    /// A vector instruction over own slots, its head at public slot `head`
-    /// and its other outputs at the slots after it.
-    pub(crate) fn set_vec(&mut self, head: usize, op: VecOp, args: Vec<usize>) {
-        for k in 1..op.n_out() {
-            self.set(head + k, SourcePlan::VecOut(own_slot(head), byte(k)));
-        }
-        self.set(head, SourcePlan::vector(op, args));
-    }
     pub(crate) fn hidden(&mut self, plan: SourcePlan) -> usize {
         self.props.push(Some(plan));
         own_slot(self.props.len() - 1);
         self.props.len() - 1
-    }
-    /// Puts a point's coordinates on two public slots, a literal
-    /// coordinate as essential state with its role, given by `attr`. A free
-    /// shape's own points are the points themselves: no instruction stands
-    /// between (ADR 0006).
-    pub(crate) fn set_point(
-        &mut self,
-        slots: [usize; 2],
-        p: &PointPlan,
-        roles: [Role; 2],
-        attr: &'static str,
-    ) {
-        for j in 0..2 {
-            match p.coord(j) {
-                SourcePlan::Literal(v) => {
-                    self.role_from_attr(roles[j], attr);
-                    self.set_essential(slots[j], roles[j], v)
-                }
-                other => self.set(slots[j], other),
-            }
-        }
     }
     /// Two hidden slots holding a point's coordinates, a literal coordinate
     /// as essential state with its role, given by `attr`.
@@ -560,12 +499,6 @@ impl ElemPlan {
             }
             other => self.hidden(other),
         })
-    }
-    /// Moves `role`, if the plan gives it, to slot `i`.
-    pub(crate) fn move_role(&mut self, role: Role, i: usize) {
-        if let Some(slot) = self.roles.get_mut(&role) {
-            *slot = own_slot(i);
-        }
     }
     /// Two hidden slots holding a point's coordinates.
     pub(crate) fn hidden_point(&mut self, p: &PointPlan) -> [usize; 2] {
@@ -584,16 +517,6 @@ impl ElemPlan {
         let i = self.hidden(SourcePlan::Literal(value));
         self.roles.insert(role, own_slot(i));
         i
-    }
-    /// A public essential slot with a role name.
-    pub(crate) fn set_essential(&mut self, i: usize, role: Role, value: f64) {
-        self.set(i, SourcePlan::Literal(value));
-        self.roles.insert(role, own_slot(i));
-    }
-    /// A public essential text slot with a role name, holding string id `id`.
-    pub(crate) fn set_text_essential(&mut self, i: usize, role: Role, id: f64) {
-        self.set(i, SourcePlan::TextLiteral(id));
-        self.roles.insert(role, own_slot(i));
     }
     /// Record that `role` came from attribute `attr`.
     pub(crate) fn role_from_attr(&mut self, role: Role, attr: &'static str) {
@@ -615,6 +538,10 @@ impl ElemPlan {
             }
         }
     }
+    /// `set_public` for a typed plan of sources that give no roles.
+    pub(crate) fn set_public_sources(&mut self, props: Vec<SourcePlan>) {
+        self.set_public(props.into_iter().map(Planned::from).collect());
+    }
     /// The list's points, which fill the public slots after the table's
     /// props, with their roles.
     pub(crate) fn set_list(&mut self, points: Vec<[Planned; 2]>) {
@@ -631,6 +558,19 @@ impl ElemPlan {
                 }
             }
         }
+    }
+    /// `vector` for as many consecutive slots as the operator has outputs,
+    /// from `head` (a list's points, which a polygon's `Shape` moves).
+    pub(crate) fn vector_from(head: usize, op: VecOp, args: Vec<usize>) -> Vec<Planned> {
+        (0..op.n_out())
+            .map(|k| {
+                if k == 0 {
+                    SourcePlan::vector(op, args.clone()).into()
+                } else {
+                    SourcePlan::VecOut(own_slot(head), byte(k)).into()
+                }
+            })
+            .collect()
     }
     /// The outputs of a vector instruction over own slots, for the public
     /// slots `at`, which must be consecutive: the head at `at[0]`, output

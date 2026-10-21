@@ -239,16 +239,11 @@ impl<'a> Compiler<'a> {
             None => {
                 // Synthesize a root when the DAST was not normalized.
                 let e = cp.add_synthetic(0, ComponentType::Document, NONE);
-                let mut plan = ElemPlan::of(ComponentType::Document);
-                plan.set(
-                    prop::document::CREDIT,
-                    SourcePlan::Deferred(Deferred::Credit),
-                );
-                plan.set(
-                    prop::document::PERCENT_CREDIT,
-                    SourcePlan::Deferred(Deferred::PercentCredit),
-                );
-                cp.compiled.templates[0].elems[e].props = plan.finish();
+                cp.compiled.templates[0].elems[e].props = prop::document::Props {
+                    creditAchieved: SourcePlan::Deferred(Deferred::Credit),
+                    percentCreditAchieved: SourcePlan::Deferred(Deferred::PercentCredit),
+                }
+                .into_vec();
                 let kids = cp.add_children(0, Some(e), ROOT_SCOPE, dast.children(Dast::ROOT))?;
                 cp.compiled.templates[0].elems[e].children = kids;
                 vec![Child::Elem(e)]
@@ -518,20 +513,28 @@ impl<'a> Compiler<'a> {
                     let from = self.own_prop_plan(e, "from");
                     let step = self.own_prop_plan(e, "step");
                     use prop::sequence_value as sv;
+                    let at = sv::Props::AT;
+                    let table = |i| Planned::from_table(ComponentType::SequenceValue, i);
                     let mut plan = ElemPlan::of(ComponentType::SequenceValue);
-                    plan.set(sv::FROM, SourcePlan::reference(from));
-                    plan.set(sv::STEP, SourcePlan::reference(step));
-                    plan.set(sv::K, SourcePlan::IterIndex);
-                    for (i, def) in ComponentType::SequenceValue.prop_defs().iter().enumerate() {
-                        if let PropFrom::Computed { op, args } = def.from {
-                            plan.set(i, SourcePlan::from_def(op, &args));
+                    plan.set_public(
+                        sv::Props {
+                            from: SourcePlan::reference(from).into(),
+                            step: SourcePlan::reference(step).into(),
+                            k: SourcePlan::IterIndex.into(),
+                            km1: table(at.km1),
+                            scaled: table(at.scaled),
+                            value: table(at.value),
                         }
-                    }
+                        .into_vec(),
+                    );
                     self.compiled.templates[sub].elems[v].props = plan.finish();
                 }
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
                     let i = self.add_synthetic(sub, ComponentType::Number, iname);
-                    self.compiled.templates[sub].elems[i].props = vec![SourcePlan::IterIndex];
+                    self.compiled.templates[sub].elems[i].props = prop::number::Props {
+                        value: SourcePlan::IterIndex,
+                    }
+                    .into_vec();
                 }
                 let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el))?;
                 self.compiled.templates[sub].children = kids;

@@ -85,9 +85,19 @@ const SEQUENCE_VALUE_PROPS: &[PropDef] = &props([
 
 pub mod sequence_value {
     use super::*;
-    pub const FROM: usize = at(SEQUENCE_VALUE_PROPS, "from");
-    pub const STEP: usize = at(SEQUENCE_VALUE_PROPS, "step");
-    pub const K: usize = at(SEQUENCE_VALUE_PROPS, "k");
+
+    typed_props!(SEQUENCE_VALUE_PROPS {
+        from,
+        step,
+        k,
+        km1,
+        scaled,
+        value
+    });
+
+    pub const FROM: usize = Props::AT.from;
+    pub const STEP: usize = Props::AT.step;
+    pub const K: usize = Props::AT.k;
 }
 
 /// One built branch of a reactive choice: `active` is 1 while it is the

@@ -14,12 +14,12 @@ pub(in crate::components) const TEXT: ComponentTypeInfo =
 
 const TEXT_PROPS: &[PropDef] = &props([children("value")]);
 
-pub const VALUE: usize = at(TEXT_PROPS, "value");
-
 typed_props!(TEXT_PROPS { value } roles {
     // The value, when it is the text's own state.
     VALUE,
 });
+
+pub const VALUE: usize = Props::AT.value;
 
 /// Literal text (or nothing) is an essential cell holding its string id,
 /// since DoenetML's text value is state (a bound `<textInput>` writes it);
@@ -36,21 +36,20 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .copied()
         .filter(|&n| !ctx.is_blank(n))
         .collect();
-    let mut plan = ElemPlan::of(ComponentType::Text);
-    match nodes.as_slice() {
-        [] => plan.set_text_essential(VALUE, roles::VALUE, ctx.intern("") as f64),
+    let value = match nodes.as_slice() {
+        [] => Planned::text_essential(roles::VALUE, ctx.intern("") as f64),
         [n] if d.kind(*n) == NodeKind::Text => {
-            plan.set_text_essential(VALUE, roles::VALUE, d.str_id(*n) as f64)
+            Planned::text_essential(roles::VALUE, d.str_id(*n) as f64)
         }
-        [n] if d.kind(*n) == NodeKind::Macro => {
-            plan.set(VALUE, SourcePlan::reference(ctx.reference(*n)?))
-        }
+        [n] if d.kind(*n) == NodeKind::Macro => SourcePlan::reference(ctx.reference(*n)?).into(),
         _ => {
             return Err(Error::Unsupported(
                 "<text> whose content mixes text, references or elements".into(),
             ));
         }
     };
+    let mut plan = ElemPlan::of(ComponentType::Text);
+    plan.set_public(Props { value }.into_vec());
     ctx.set_plan(plan);
     Ok(())
 }
