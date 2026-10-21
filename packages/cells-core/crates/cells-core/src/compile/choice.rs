@@ -199,12 +199,12 @@ impl<'a> Compiler<'a> {
             self.compiled.templates[t].elems[e].props = prop::select::Props { hide }.into_vec();
             return Ok(());
         }
-        let mut plan = ElemPlan::of(ComponentType::ConditionalContent);
+        let mut wiring = ElemWiring::of(ComponentType::ConditionalContent);
         let mut conds = Vec::new();
         for c in self.compiled.choices[cid].conditions.clone() {
             conds.push(match c {
-                Some(a) => self.plan_condition(t, e, &mut plan, d.attr_children(a))?,
-                None => plan.hidden(SourcePlan::Fixed(1.0)),
+                Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
+                None => wiring.hidden(SourcePlan::Fixed(1.0)),
             });
         }
         if conds.len() > MAX_CASES {
@@ -213,17 +213,17 @@ impl<'a> Compiler<'a> {
             )));
         }
         // After the conditions, so creation order stays an evaluation order.
-        let first = plan.hidden(SourcePlan::vector(
+        let first = wiring.hidden(SourcePlan::vector(
             VecOp::First {
                 n: byte(conds.len()),
             },
             conds,
         ));
-        plan.set_public_sources(conditional_content::Props {
+        wiring.set_public_sources(conditional_content::Props {
             choice: SourcePlan::own(first),
             hide,
         });
-        self.compiled.templates[t].elems[e].props = plan.finish();
+        self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
     }
 

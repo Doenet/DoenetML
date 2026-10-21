@@ -54,7 +54,7 @@ impl<'a> Compiler<'a> {
             .and_then(|p| self.plan_elem_target(t, p))
             .filter(|&r| self.compiled.templates[t].elems[r].node != NONE);
         let base = base_elem.map(|r| self.compiled.templates[t].elems[r].node);
-        let mut ch = plan(&mut PlanCtx::new(self, t, e, base))?;
+        let mut wiring = plan(&mut PlanCtx::new(self, t, e, base))?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables.
         if let Some(r) = base_elem {
@@ -63,9 +63,9 @@ impl<'a> Compiler<'a> {
                 .get(&(t as u32, r as u32))
                 .cloned()
                 .unwrap_or_default();
-            for (state, &slot) in &ch.shared_state {
+            for (state, &slot) in &wiring.shared_state {
                 // Shared state the copy's own attribute supplied is its own.
-                if ch
+                if wiring
                     .shared_state_attr
                     .get(state)
                     .is_some_and(|a| own_attrs.iter().any(|o| o == a))
@@ -73,23 +73,23 @@ impl<'a> Compiler<'a> {
                     continue;
                 }
                 if let Some(&bs) = base_shared_state.get(state)
-                    && matches!(ch.props[slot as usize], Some(SourcePlan::Literal(_)))
+                    && matches!(wiring.props[slot as usize], Some(SourcePlan::Literal(_)))
                 {
-                    ch.props[slot as usize] = Some(SourcePlan::Alias(Arg::Elem(r, bs)));
+                    wiring.props[slot as usize] = Some(SourcePlan::Alias(Arg::Elem(r, bs)));
                 }
             }
         }
         let scope = self.compiled.templates[t].elems[e].name_scope;
         self.plan_fix(t, scope, el, &["fixed"])?
-            .apply(&mut ch.props);
-        if !ch.shared_state.is_empty() {
+            .apply(&mut wiring.props);
+        if !wiring.shared_state.is_empty() {
             self.shared_state
-                .insert((t as u32, e as u32), ch.shared_state.clone());
+                .insert((t as u32, e as u32), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
-            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(ch.n_public as u32);
+            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(wiring.n_public as u32);
         }
-        self.compiled.templates[t].elems[e].props = ch.finish();
+        self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
     }
 

@@ -354,7 +354,7 @@ macro_rules! typed_props {
         const PROPS_LEN: usize = $table.len();
 
         /// The props in table order, with no allocation: what
-        /// `ElemPlan::set_public` takes.
+        /// `ElemWiring::set_public` takes.
         impl<T> IntoIterator for Props<T> {
             type Item = T;
             type IntoIter = std::array::IntoIter<T, PROPS_LEN>;

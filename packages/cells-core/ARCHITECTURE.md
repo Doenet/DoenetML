@@ -217,7 +217,7 @@ keeps its own decisions (what it refuses) in its file.
 
 The block gives the planner its typed plan, `Props`: a planner returns its
 props as a `Props<Planned>` struct literal, each slot's plan with the
-shared state it holds, if any (`ElemPlan::set_public`), and nothing sets a
+shared state it holds, if any (`ElemWiring::set_public`), and nothing sets a
 slot by position; a `PropsThen` planner reaches the table's plan through
 `Props::AT`. The type's shared state, which a copy shares with its
 original unless it overrides it, is declared in the block too

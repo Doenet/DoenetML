@@ -31,7 +31,7 @@ enforces:
 - **Slot arithmetic.** `through_slot(i, j) = THROUGH_X1 + 2*i + j`;
   `set_vec(head, ..)` takes the `n_out - 1` slots after `head`. Reordering
   a prop table changes values, not compilation.
-- **Every public slot planned**, checked by a panic in `ElemPlan::finish`;
+- **Every public slot planned**, checked by a panic in `ElemWiring::finish`;
   hence the NaN-filling loops.
 - **Roles are strings.** `"r"`, `"cx"`, `POINT_ROLES[i]` are how a copy
   with overrides shares essential state with its base
@@ -213,7 +213,7 @@ case), carry every piece before other components follow:
    names a list's points. Every plan is typed: a planner, or the machinery a
    thin planner names, builds its element's props as its type's
    `typed_props!` struct, so a prop left unplanned does not compile, and
-   no code sets a slot by position (`ElemPlan::set` is gone). A
+   no code sets a slot by position (`ElemWiring::set` is gone). A
    `PropsThen` planner, which adjusts the table's plan, reaches it
    through `Props::AT`. How a point, math or tuple is made from parts is
    its component's (`point::props_of`, ...), which the machinery calls.

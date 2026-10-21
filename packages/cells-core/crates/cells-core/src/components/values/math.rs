@@ -29,12 +29,12 @@ pub const VALUE: usize = Props::AT.value;
 
 /// A math's props: its expression, with `post` applied, and its value.
 pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<SourcePlan> {
-    let mut plan = ElemPlan::of(ComponentType::Math);
-    plan.set_public(Props {
+    let mut wiring = ElemWiring::of(ComponentType::Math);
+    wiring.set_public(Props {
         expr: SourcePlan::MathHandle(id, post).into(),
         value: SourcePlan::MathValue(id).into(),
     });
-    plan.finish()
+    wiring.finish()
 }
 
 /// A tuple-valued math (`<math>(a, b)</math>`) is a point for the cells

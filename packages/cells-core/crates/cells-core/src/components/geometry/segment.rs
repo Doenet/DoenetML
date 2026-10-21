@@ -44,7 +44,7 @@ const _: () = assert!(
 
 /// Plans a segment from its `endpoints`: the first two points it names,
 /// each defaulted when missing.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ends = ctx.points("endpoints")?;
     let first = (
         [shared_state::ESS1X, shared_state::ESS1Y],
@@ -58,7 +58,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         Planned::point_or_default(ends.first(), shared_point_state(0), "endpoints", first);
     let [x2, y2] =
         Planned::point_or_default(ends.get(1), shared_point_state(1), "endpoints", second);
-    let mut ch = ElemPlan::of(ComponentType::LineSegment);
-    ch.set_public(Props { x1, y1, x2, y2 });
-    Ok(ch)
+    let mut wiring = ElemWiring::of(ComponentType::LineSegment);
+    wiring.set_public(Props { x1, y1, x2, y2 });
+    Ok(wiring)
 }

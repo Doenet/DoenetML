@@ -325,12 +325,12 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// A condition over the element's content (comparisons and
     /// connectives, `=` compared under the element's compare attributes),
-    /// in a hidden slot of `plan` holding 1 while it holds.
-    pub(crate) fn condition(&mut self, nodes: &[NodeId], plan: &mut ElemPlan) -> Result<usize> {
+    /// in a hidden slot of `wiring` holding 1 while it holds.
+    pub(crate) fn condition(&mut self, nodes: &[NodeId], wiring: &mut ElemWiring) -> Result<usize> {
         let scope = self.scope();
         let compare = self.c.compare_attrs(&[self.node()]);
         self.c
-            .plan_condition_content(self.t, scope, nodes, compare, plan)
+            .plan_condition_content(self.t, scope, nodes, compare, wiring)
     }
 
     /// Warns that the element cannot be what its attributes ask, with a
@@ -341,7 +341,7 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.warn(node, code, message);
     }
 
-    // The element's plan.
+    // The element's wiring.
 
     /// Plans the element from its type's table alone, as a copy of what
     /// it extends where it extends one.
@@ -350,9 +350,9 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.plan_attrs(self.t, self.e, extend)
     }
 
-    /// Sets the element's props from a plan.
-    pub(crate) fn set_plan(&mut self, plan: ElemPlan) {
-        self.set_props(plan.finish());
+    /// Sets the element's props from its wiring.
+    pub(crate) fn set_wiring(&mut self, wiring: ElemWiring) {
+        self.set_props(wiring.finish());
     }
 
     /// Sets the element's props.

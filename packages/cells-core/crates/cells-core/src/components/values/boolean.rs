@@ -65,7 +65,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .map(|&n| d.str(n))
         .collect();
     let text = text.trim();
-    let mut plan = ElemPlan::of(ComponentType::Boolean);
+    let mut wiring = ElemWiring::of(ComponentType::Boolean);
     // Literal content is state: `<boolean>false</boolean>` can be set.
     let literal = match (macros, text.to_ascii_lowercase().as_str()) {
         (0, "") => Some(0.0),
@@ -80,9 +80,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     } else if macros == 1 && text.is_empty() {
         SourcePlan::reference(ctx.reference(nodes[0])?).into()
     } else {
-        Planned::own(ctx.condition(&nodes, &mut plan)?)
+        Planned::own(ctx.condition(&nodes, &mut wiring)?)
     };
-    plan.set_public(Props { value });
-    ctx.set_plan(plan);
+    wiring.set_public(Props { value });
+    ctx.set_wiring(wiring);
     Ok(())
 }

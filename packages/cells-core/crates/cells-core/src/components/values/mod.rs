@@ -109,7 +109,7 @@ pub use crate::limits::MAX_TUPLE;
 
 pub mod tuple {
     use super::*;
-    use crate::compile::api::{ElemPlan, Planned, SourcePlan};
+    use crate::compile::api::{ElemWiring, Planned, SourcePlan};
     use crate::components::ComponentType;
 
     component! {
@@ -158,8 +158,8 @@ pub mod tuple {
             .map(Planned::from)
             .chain(std::iter::repeat_with(|| Planned::fixed(f64::NAN)));
         let mut next = || entries.next().expect("an endless supply");
-        let mut plan = ElemPlan::of(ComponentType::Tuple);
-        plan.set_public(Props {
+        let mut wiring = ElemWiring::of(ComponentType::Tuple);
+        wiring.set_public(Props {
             n,
             x1: next(),
             x2: next(),
@@ -170,7 +170,7 @@ pub mod tuple {
             x7: next(),
             x8: next(),
         });
-        plan.finish()
+        wiring.finish()
     }
 
     /// A tuple is made from a `<math>` or by the builder, never by a tag.

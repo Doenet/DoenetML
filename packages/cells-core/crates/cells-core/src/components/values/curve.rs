@@ -52,25 +52,25 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let component_type = ctx.component_type();
     let nodes: Vec<NodeId> = ctx.dast().children(ctx.node()).to_vec();
     let at = Props::AT;
-    let mut plan = ElemPlan::of(component_type);
+    let mut wiring = ElemWiring::of(component_type);
     if component_type == ComponentType::Function && is_vector_function(ctx)? {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
-        plan.set_public(Props {
+        wiring.set_public(Props {
             expr: Planned::fixed(f64::NAN),
             xmin: Planned::fixed(-10.0),
             xmax: Planned::fixed(10.0),
             samples: Planned::fixed(f64::NAN),
         });
-        ctx.set_plan(plan);
+        ctx.set_wiring(wiring);
         return Ok(());
     }
     let id = ctx.sym_math(&nodes)?;
     let expr = if component_type == ComponentType::Function {
         SourcePlan::SymExpr(id, Post::None).into()
     } else {
-        let of = plan.hidden(SourcePlan::SymExpr(id, Post::None));
+        let of = wiring.hidden(SourcePlan::SymExpr(id, Post::None));
         Planned::computed(OpSpec::Sym(SymKind::Derivative), vec![of])
     };
     let [xmin, xmax] = match (
@@ -80,7 +80,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
         _ => [Planned::fixed(-10.0), Planned::fixed(10.0)],
     };
-    plan.set_public(Props {
+    wiring.set_public(Props {
         expr,
         xmin,
         xmax,
@@ -89,6 +89,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             vec![at.expr, at.xmin, at.xmax],
         ),
     });
-    ctx.set_plan(plan);
+    ctx.set_wiring(wiring);
     Ok(())
 }

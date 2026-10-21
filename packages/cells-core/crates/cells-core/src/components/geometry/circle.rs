@@ -80,7 +80,7 @@ const INVALID_CENTER: (&str, &str) = (
 
 /// Plans a circle from any combination of `center`, `radius` and
 /// `through`.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::AT;
     let nan = || Planned::fixed(f64::NAN);
     let center = match ctx.point("center") {
@@ -100,17 +100,17 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let (hc, hr) = (center.is_some(), radius.is_some());
     // The list holds the points given, up to three; more is an error
     // of the author's, warned about below.
-    let mut ch = ElemPlan::with_list(ComponentType::Circle, n.min(3));
+    let mut wiring = ElemWiring::with_list(ComponentType::Circle, n.min(3));
     // The area goes through a hidden square.
-    let r2 = ch.hidden(SourcePlan::computed(
+    let r2 = wiring.hidden(SourcePlan::computed(
         OpSpec::Mul,
         vec![at.radius, at.radius],
     ));
     // The radius shown is never negative; the prescribed radius, or an
     // essential one (1 by default), behind it receives the clamped value
     // (projection, ADR 0003).
-    let radius_plan = |ch: &mut ElemPlan| -> Planned {
-        let pres = ch.hidden_planned(match &radius {
+    let radius_plan = |wiring: &mut ElemWiring| -> Planned {
+        let pres = wiring.hidden_planned(match &radius {
             Some(SourcePlan::Literal(v)) => Planned::essential_from(shared_state::R, "radius", *v),
             Some(other) => other.clone().into(),
             None => Planned::essential(shared_state::R, 1.0),
@@ -134,7 +134,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         .map(|(i, p)| Planned::point(p, shared_point_state(i), "through"))
         .collect();
     // Coordinate `j` of through point `k` (0-based).
-    let n_public = ch.n_public;
+    let n_public = wiring.n_public;
     let tp = |k: usize, j: usize| {
         ComponentType::Circle
             .list_slot(n_public, k + 1, j)
@@ -169,16 +169,16 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
                     Planned::essential(shared_state::CY, 0.0),
                 ]
             };
-            [cx, cy, radius_plan(&mut ch)]
+            [cx, cy, radius_plan(&mut wiring)]
         }
-        (None, true, false, 1) => ElemPlan::vector(
+        (None, true, false, 1) => ElemWiring::vector(
             [at.cx, at.cy, at.radius],
             VecOp::CircleCenterPoint,
             vec![at.centerX, at.centerY, tp(0, 0), tp(0, 1)],
         ),
         (None, false, _, 1) => {
             // The through point sits on top of the circle.
-            let radius = radius_plan(&mut ch);
+            let radius = radius_plan(&mut wiring);
             [
                 Planned::own(tp(0, 0)),
                 Planned::computed(OpSpec::Sub, vec![tp(0, 1), at.radius]),
@@ -186,15 +186,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             ]
         }
         (None, false, true, 2) => {
-            let radius = radius_plan(&mut ch);
-            let [cx, cy] = ElemPlan::vector(
+            let radius = radius_plan(&mut wiring);
+            let [cx, cy] = ElemWiring::vector(
                 [at.cx, at.cy],
                 VecOp::CircleTwoPointsRadius,
                 vec![tp(0, 0), tp(0, 1), tp(1, 0), tp(1, 1), at.radius],
             );
             [cx, cy, radius]
         }
-        (None, false, false, n) => ElemPlan::vector(
+        (None, false, false, n) => ElemWiring::vector(
             [at.cx, at.cy, at.radius],
             VecOp::CirclePoints { n: byte(n) },
             (0..n).flat_map(|k| [tp(k, 0), tp(k, 1)]).collect(),
@@ -202,7 +202,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         // A center with two or more points, a radius with three: `over`.
         (None, ..) => unreachable!("an over-determined circle is warned about above"),
     };
-    ch.set_public(Props {
+    wiring.set_public(Props {
         cx,
         cy,
         radius,
@@ -218,6 +218,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         centerY: center_y,
         numThroughPoints: Planned::fixed(n as f64),
     });
-    ch.set_list(through_points);
-    Ok(ch)
+    wiring.set_list(through_points);
+    Ok(wiring)
 }

@@ -42,22 +42,22 @@ const _: () = assert!(Y == X + 1, "a point's y must follow its x");
 /// A point's props from its two coordinates, as a `<math>` that is a pair
 /// or a copy of a point's coordinates has them; `hide` is the default.
 pub(crate) fn props_of(x: SourcePlan, y: SourcePlan) -> Vec<SourcePlan> {
-    let mut plan = ElemPlan::of(ComponentType::Point);
+    let mut wiring = ElemWiring::of(ComponentType::Point);
     let hide = ComponentType::Point.prop_defs()[HIDE].default;
-    plan.set_public(Props {
+    wiring.set_public(Props {
         x: x.into(),
         y: y.into(),
         hide: SourcePlan::Default(hide).into(),
     });
-    plan.finish()
+    wiring.finish()
 }
 
 /// Plans a point: coordinates from `coords`, from `x`/`y`, or from
 /// `(a, b)` children; a constraint child wraps them in a projection.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let d = ctx.dast();
     let (el, base) = (ctx.node(), ctx.base());
-    let mut ch = ElemPlan::of(ComponentType::Point);
+    let mut wiring = ElemWiring::of(ComponentType::Point);
     let own_children = ctx.math_children(el);
     let base_children = base.map(|b| ctx.math_children(b)).unwrap_or_default();
     let coords_state = [shared_state::X, shared_state::Y];
@@ -124,19 +124,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     }
     let [x, y] = match constraints.as_slice() {
         [] => [x, y],
-        [c] => constrain(ctx, &mut ch, [x, y], *c)?,
+        [c] => constrain(ctx, &mut wiring, [x, y], *c)?,
         _ => {
             return Err(Error::Unsupported(
                 "more than one constraint on a point".into(),
             ));
         }
     };
-    ch.set_public(Props {
+    wiring.set_public(Props {
         x,
         y,
         hide: hide.into(),
     });
-    Ok(ch)
+    Ok(wiring)
 }
 
 /// The point's coordinates as planned so far move to hidden raw slots,
@@ -144,13 +144,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
 /// their projection onto the constraint.
 fn constrain(
     ctx: &mut PlanCtx<'_, '_>,
-    ch: &mut ElemPlan,
+    wiring: &mut ElemWiring,
     [x, y]: [Planned; 2],
     c: NodeId,
 ) -> Result<[Planned; 2]> {
     let d = ctx.dast();
-    let raw_x = ch.hidden_planned(x);
-    let raw_y = ch.hidden_planned(y);
+    let raw_x = wiring.hidden_planned(x);
+    let raw_y = wiring.hidden_planned(y);
     let at = Props::AT;
     match d.str(c) {
         "constrainToGrid" => {
@@ -165,31 +165,31 @@ fn constrain(
             };
             let (dx, dy) = (num("dx", 1.0)?, num("dy", 1.0)?);
             let (xo, yo) = (num("xoffset", 0.0)?, num("yoffset", 0.0)?);
-            let snap = |ch: &mut ElemPlan, raw: usize, step: f64, offset: f64| -> Planned {
+            let snap = |wiring: &mut ElemWiring, raw: usize, step: f64, offset: f64| -> Planned {
                 let mut cur = raw;
                 if offset != 0.0 {
-                    cur = ch.hidden(SourcePlan::computed(
+                    cur = wiring.hidden(SourcePlan::computed(
                         OpSpec::Offset { k: -offset },
                         vec![cur],
                     ));
                 }
                 if step != 1.0 {
-                    cur = ch.hidden(SourcePlan::computed(
+                    cur = wiring.hidden(SourcePlan::computed(
                         OpSpec::Scale { k: 1.0 / step },
                         vec![cur],
                     ));
                 }
-                cur = ch.hidden(SourcePlan::computed(OpSpec::Round, vec![cur]));
+                cur = wiring.hidden(SourcePlan::computed(OpSpec::Round, vec![cur]));
                 if step != 1.0 {
-                    cur = ch.hidden(SourcePlan::computed(OpSpec::Scale { k: step }, vec![cur]));
+                    cur = wiring.hidden(SourcePlan::computed(OpSpec::Scale { k: step }, vec![cur]));
                 }
                 if offset != 0.0 {
                     return Planned::computed(OpSpec::Offset { k: offset }, vec![cur]);
                 }
                 Planned::own(cur)
             };
-            let x = snap(ch, raw_x, dx, xo);
-            let y = snap(ch, raw_y, dy, yo);
+            let x = snap(wiring, raw_x, dx, xo);
+            let y = snap(wiring, raw_y, dy, yo);
             Ok([x, y])
         }
         "constrainTo" => {
@@ -203,16 +203,16 @@ fn constrain(
             let target = ctx.reference_type(p).ok_or_else(|| {
                 Error::Unsupported("<constrainTo> must name a component in the same scope".into())
             })?;
-            let mut refs = |ch: &mut ElemPlan, props: &[&str]| -> Vec<usize> {
+            let mut refs = |wiring: &mut ElemWiring, props: &[&str]| -> Vec<usize> {
                 props
                     .iter()
-                    .map(|pr| ch.hidden(SourcePlan::reference(ctx.with_prop(p, pr))))
+                    .map(|pr| wiring.hidden(SourcePlan::reference(ctx.with_prop(p, pr))))
                     .collect()
             };
             match target {
                 ComponentType::Circle => {
-                    let c = refs(ch, &["cx", "cy", "radius"]);
-                    Ok(ElemPlan::vector(
+                    let c = refs(wiring, &["cx", "cy", "radius"]);
+                    Ok(ElemWiring::vector(
                         [at.x, at.y],
                         VecOp::ProjectCircle,
                         vec![raw_x, raw_y, c[0], c[1], c[2]],
@@ -222,15 +222,15 @@ fn constrain(
                     // The point rides the curve: `x` is what was asked
                     // and `y` is f(x). (The current core moves to the
                     // nearest point of the curve instead.)
-                    let f = refs(ch, &["expr"]);
+                    let f = refs(wiring, &["expr"]);
                     Ok([
                         Planned::own(raw_x),
                         Planned::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
                     ])
                 }
                 ComponentType::Line | ComponentType::LineSegment => {
-                    let l = refs(ch, &["x1", "y1", "x2", "y2"]);
-                    Ok(ElemPlan::vector(
+                    let l = refs(wiring, &["x1", "y1", "x2", "y2"]);
+                    Ok(ElemWiring::vector(
                         [at.x, at.y],
                         VecOp::ProjectLine,
                         vec![raw_x, raw_y, l[0], l[1], l[2], l[3]],

@@ -52,8 +52,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             ));
         }
     };
-    let mut plan = ElemPlan::of(ComponentType::Text);
-    plan.set_public(Props { value });
-    ctx.set_plan(plan);
+    let mut wiring = ElemWiring::of(ComponentType::Text);
+    wiring.set_public(Props { value });
+    ctx.set_wiring(wiring);
     Ok(())
 }

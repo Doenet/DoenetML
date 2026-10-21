@@ -33,7 +33,7 @@ pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let vertices = ctx.points("vertices")?;
     let n = vertices.len();
     if n > super::MAX_VERTICES {
@@ -43,8 +43,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         )));
     }
     // The vertices are the list (ADR 0016), as many as given.
-    let mut ch = ElemPlan::with_list(ComponentType::Polygon, n);
-    let n_public = ch.n_public;
+    let mut wiring = ElemWiring::with_list(ComponentType::Polygon, n);
+    let n_public = wiring.n_public;
     let flag = |ctx: &PlanCtx<'_, '_>, name: &str, default: bool| -> bool {
         match ctx.attr(name) {
             None => default,
@@ -110,7 +110,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             let mut args = Vec::with_capacity(2 * n + 2);
             for (k, v) in vertices.iter().enumerate() {
                 let [x, y] =
-                    ch.hidden_point_with_shared_state(v, shared_point_state(k), "vertices");
+                    wiring.hidden_point_with_shared_state(v, shared_point_state(k), "vertices");
                 args.push(x);
                 args.push(y);
             }
@@ -118,20 +118,20 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             // the shape rotates about a centroid or vertex.
             match &pivot_point {
                 Some(pp) => {
-                    let [x, y] = ch.hidden_point(pp);
+                    let [x, y] = wiring.hidden_point(pp);
                     args.push(x);
                     args.push(y);
                 }
                 None => {
-                    args.push(ch.hidden(SourcePlan::Fixed(f64::NAN)));
-                    args.push(ch.hidden(SourcePlan::Fixed(f64::NAN)));
+                    args.push(wiring.hidden(SourcePlan::Fixed(f64::NAN)));
+                    args.push(wiring.hidden(SourcePlan::Fixed(f64::NAN)));
                 }
             }
             let first = ComponentType::Polygon
                 .list_slot(n_public, 1, 0)
                 .expect("a vertex the polygon holds");
             let mut outputs =
-                ElemPlan::vector_from(first, VecOp::Shape { n: byte(n), opts }, args).into_iter();
+                ElemWiring::vector_from(first, VecOp::Shape { n: byte(n), opts }, args).into_iter();
             (0..n)
                 .map(|_| [outputs.next().unwrap(), outputs.next().unwrap()])
                 .collect()
@@ -144,9 +144,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             .map(|(k, v)| Planned::point(v, shared_point_state(k), "vertices"))
             .collect(),
     };
-    ch.set_public(Props {
+    wiring.set_public(Props {
         numVertices: Planned::fixed(n as f64),
     });
-    ch.set_list(points);
-    Ok(ch)
+    wiring.set_list(points);
+    Ok(wiring)
 }

@@ -9,7 +9,7 @@ pub(crate) type PropsFn =
     for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<SourcePlan>]) -> Result<()>;
 /// Plans a geometric element, its attributes merged over those of the
 /// element it extends.
-pub(crate) type GeoFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemPlan>;
+pub(crate) type GeoFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemWiring>;
 /// Plans the whole element.
 pub(crate) type WholeFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
 

@@ -515,8 +515,8 @@ impl<'a> Compiler<'a> {
                     use prop::sequence_value as sv;
                     let at = sv::Props::AT;
                     let table = |i| Planned::from_table(ComponentType::SequenceValue, i);
-                    let mut plan = ElemPlan::of(ComponentType::SequenceValue);
-                    plan.set_public(sv::Props {
+                    let mut wiring = ElemWiring::of(ComponentType::SequenceValue);
+                    wiring.set_public(sv::Props {
                         from: SourcePlan::reference(from).into(),
                         step: SourcePlan::reference(step).into(),
                         k: SourcePlan::IterIndex.into(),
@@ -524,7 +524,7 @@ impl<'a> Compiler<'a> {
                         scaled: table(at.scaled),
                         value: table(at.value),
                     });
-                    self.compiled.templates[sub].elems[v].props = plan.finish();
+                    self.compiled.templates[sub].elems[v].props = wiring.finish();
                 }
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
                     let i = self.add_synthetic(sub, ComponentType::Number, iname);

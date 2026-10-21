@@ -103,7 +103,7 @@ impl<'a> Compiler<'a> {
         let needs_input = !text_nodes.is_empty() || forms.iter().any(|f| f.when.is_none());
 
         let at = answer::Props::AT;
-        let mut plan = ElemPlan::of(ComponentType::Answer);
+        let mut wiring = ElemWiring::of(ComponentType::Answer);
         let response_attr = d.attr(el, "response");
         let mut response = match (needs_input, response_attr, inputs.as_slice()) {
             (true, Some(a), []) => {
@@ -154,7 +154,7 @@ impl<'a> Compiler<'a> {
 
         if forms.is_empty() {
             let eq = self.equals_op(&[el]);
-            plan.set_public_sources(answer::Props {
+            wiring.set_public_sources(answer::Props {
                 response,
                 correct,
                 submitted,
@@ -162,7 +162,7 @@ impl<'a> Compiler<'a> {
                 weight,
                 numSubmissions: SourcePlan::Literal(0.0),
             });
-            self.compiled.templates[t].elems[e].props = plan.finish();
+            self.compiled.templates[t].elems[e].props = wiring.finish();
             return Ok(());
         }
 
@@ -171,22 +171,22 @@ impl<'a> Compiler<'a> {
         for form in &forms {
             self.plan_award(t, e, el, form, &mut responses)?;
         }
-        let mut best = plan.hidden(SourcePlan::Alias(Arg::Elem(
+        let mut best = wiring.hidden(SourcePlan::Alias(Arg::Elem(
             forms[0].e,
             own_slot(award::AWARDED),
         )));
         for form in &forms[1..] {
-            let next = plan.hidden(SourcePlan::Alias(Arg::Elem(
+            let next = wiring.hidden(SourcePlan::Alias(Arg::Elem(
                 form.e,
                 own_slot(award::AWARDED),
             )));
-            best = plan.hidden(SourcePlan::computed(OpSpec::Max, vec![best, next]));
+            best = wiring.hidden(SourcePlan::computed(OpSpec::Max, vec![best, next]));
         }
         if !needs_input && let Some(&(_, r)) = responses.first() {
             response = SourcePlan::Alias(Arg::Elem(r, own_slot(response::RESPONSE)));
             submitted = SourcePlan::Alias(Arg::Elem(r, own_slot(response::SUBMITTED)));
         }
-        plan.set_public_sources(answer::Props {
+        wiring.set_public_sources(answer::Props {
             response,
             correct,
             submitted,
@@ -194,7 +194,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: SourcePlan::Literal(0.0),
         });
-        self.compiled.templates[t].elems[e].props = plan.finish();
+        self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
     }
 
@@ -223,7 +223,7 @@ impl<'a> Compiler<'a> {
             )));
         }
         let at = answer::Props::AT;
-        let mut plan = ElemPlan::of(ComponentType::Answer);
+        let mut wiring = ElemWiring::of(ComponentType::Answer);
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
             None => SourcePlan::Fixed(1.0),
@@ -234,13 +234,13 @@ impl<'a> Compiler<'a> {
                 .iter()
                 .map(|&c| Arg::Elem(c, own_slot(choice::CREDIT))),
         );
-        let chosen = plan.hidden(SourcePlan::Op(
+        let chosen = wiring.hidden(SourcePlan::Op(
             OpSpec::Vec(VecOp::Choose {
                 n: byte(choices.len()),
             }),
             args,
         ));
-        plan.set_public_sources(answer::Props {
+        wiring.set_public_sources(answer::Props {
             response: SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
             correct: SourcePlan::Fixed(f64::NAN),
             submitted: SourcePlan::Literal(0.0),
@@ -248,7 +248,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: SourcePlan::Literal(0.0),
         });
-        self.compiled.templates[t].elems[e].props = plan.finish();
+        self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
     }
 
@@ -281,7 +281,7 @@ impl<'a> Compiler<'a> {
                 "<answer type=\"text\"> without <award> children".into(),
             ));
         }
-        let mut plan = ElemPlan::of(ComponentType::Answer);
+        let mut wiring = ElemWiring::of(ComponentType::Answer);
         let weight = match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
             None => SourcePlan::Fixed(1.0),
@@ -304,7 +304,7 @@ impl<'a> Compiler<'a> {
                 text.push_str(d.str(n));
             }
             let id = self.intern_literal(text.trim()) as f64;
-            let mut ap = ElemPlan::of(ComponentType::Award);
+            let mut award_wiring = ElemWiring::of(ComponentType::Award);
             let credit = match d.attr(form.el, "credit") {
                 Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
                     SourcePlan::Literal(v) => SourcePlan::Fixed(v),
@@ -312,26 +312,26 @@ impl<'a> Compiler<'a> {
                 },
                 None => SourcePlan::Fixed(1.0),
             };
-            let correct = ap.hidden(SourcePlan::Fixed(id));
-            let holds = ap.hidden(SourcePlan::Op(
+            let correct = award_wiring.hidden(SourcePlan::Fixed(id));
+            let holds = award_wiring.hidden(SourcePlan::Op(
                 OpSpec::Eq,
                 vec![
                     Arg::Elem(e, own_slot(answer::SUBMITTED)),
                     Arg::Own(own_slot(correct)),
                 ],
             ));
-            ap.set_public_sources(award::Props {
+            award_wiring.set_public_sources(award::Props {
                 credit,
                 awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
             });
-            self.compiled.templates[t].elems[a].props = ap.finish();
-            let awarded = plan.hidden(SourcePlan::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
+            self.compiled.templates[t].elems[a].props = award_wiring.finish();
+            let awarded = wiring.hidden(SourcePlan::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
             best = Some(match best {
                 None => awarded,
-                Some(b) => plan.hidden(SourcePlan::computed(OpSpec::Max, vec![b, awarded])),
+                Some(b) => wiring.hidden(SourcePlan::computed(OpSpec::Max, vec![b, awarded])),
             });
         }
-        plan.set_public_sources(answer::Props {
+        wiring.set_public_sources(answer::Props {
             response: SourcePlan::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
             correct: SourcePlan::Fixed(f64::NAN),
             submitted: SourcePlan::TextLiteral(f64::NAN),
@@ -339,7 +339,7 @@ impl<'a> Compiler<'a> {
             weight,
             numSubmissions: SourcePlan::Literal(0.0),
         });
-        self.compiled.templates[t].elems[e].props = plan.finish();
+        self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
     }
 
@@ -480,7 +480,7 @@ impl<'a> Compiler<'a> {
         responses: &mut Vec<((u32, ElemId), ElemId)>,
     ) -> Result<()> {
         let d = self.dast;
-        let mut ap = ElemPlan::of(ComponentType::Award);
+        let mut wiring = ElemWiring::of(ComponentType::Award);
         let credit = match d.attr(form.el, "credit") {
             Some(a) => match self.plan_value(t, form.e, "credit", d.attr_children(a), None)? {
                 // How much an award gives is not state.
@@ -523,26 +523,26 @@ impl<'a> Compiler<'a> {
                         subst.insert(m, self.compiled.refs.len() - 1);
                     }
                 }
-                let mut wp = ElemPlan::of(ComponentType::When);
+                let mut when_wiring = ElemWiring::of(ComponentType::When);
                 self.ref_subst = subst;
-                let planned = self.plan_condition_content(t, w, &nodes, compare, &mut wp);
+                let planned = self.plan_condition_content(t, w, &nodes, compare, &mut when_wiring);
                 self.ref_subst.clear();
                 let slot = planned?;
-                wp.set_public_sources(when::Props {
+                when_wiring.set_public_sources(when::Props {
                     value: SourcePlan::own(slot),
                 });
-                self.compiled.templates[t].elems[w].props = wp.finish();
-                ap.hidden(SourcePlan::Alias(Arg::Elem(w, own_slot(when::VALUE))))
+                self.compiled.templates[t].elems[w].props = when_wiring.finish();
+                wiring.hidden(SourcePlan::Alias(Arg::Elem(w, own_slot(when::VALUE))))
             }
             None => {
                 let id = self.plan_sym_math(t, form.e, &form.nodes)?;
-                let correct = ap.hidden(SourcePlan::SymExpr(id, Post::None));
+                let correct = wiring.hidden(SourcePlan::SymExpr(id, Post::None));
                 let eq = if compare.syntactic {
                     SymKind::EqualsSyntax
                 } else {
                     SymKind::Equals
                 };
-                ap.hidden(SourcePlan::Op(
+                wiring.hidden(SourcePlan::Op(
                     OpSpec::Sym(eq),
                     vec![
                         Arg::Elem(answer_e, own_slot(answer::SUBMITTED)),
@@ -551,11 +551,11 @@ impl<'a> Compiler<'a> {
                 ))
             }
         };
-        ap.set_public_sources(award::Props {
+        wiring.set_public_sources(award::Props {
             credit,
             awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
         });
-        self.compiled.templates[t].elems[form.e].props = ap.finish();
+        self.compiled.templates[t].elems[form.e].props = wiring.finish();
         Ok(())
     }
 

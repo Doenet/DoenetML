@@ -37,14 +37,14 @@ impl<'a> Compiler<'a> {
         &mut self,
         t: TemplateId,
         e: ElemId,
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
         nodes: &[NodeId],
     ) -> Result<usize> {
-        if let Some(slot) = self.plan_text_condition(t, e, nodes, plan)? {
+        if let Some(slot) = self.plan_text_condition(t, e, nodes, wiring)? {
             return Ok(slot);
         }
         let (toks, text) = self.math_tokens(t, e, nodes)?;
-        self.plan_condition_tokens(plan, &toks, &text, Compare::default())
+        self.plan_condition_tokens(wiring, &toks, &text, Compare::default())
     }
 
     /// A condition over a text value: `$t = rain`, `rain != $t`, `$t = $ti`,
@@ -59,7 +59,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
     ) -> Result<Option<usize>> {
         let d = self.dast;
         // Each reference spelled as a placeholder, so the sides can be split
@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
             match lone {
                 Some(k) if cp.macro_is_text(t, scope, refs[k]) => {
                     let p = cp.plan_ref(t, scope, refs[k])?;
-                    Ok(plan.hidden(SourcePlan::reference(p)))
+                    Ok(wiring.hidden(SourcePlan::reference(p)))
                 }
                 Some(_) => Err(refuse("a text value compared with a number")),
                 None if s.contains('\u{0}') => {
@@ -105,15 +105,15 @@ impl<'a> Compiler<'a> {
                 }
                 None => {
                     let id = cp.intern_literal(s);
-                    Ok(plan.hidden(SourcePlan::Fixed(id as f64)))
+                    Ok(wiring.hidden(SourcePlan::Fixed(id as f64)))
                 }
             }
         };
         let a = side(self, &lhs)?;
         let b = side(self, &rhs)?;
-        let eq = plan.hidden(SourcePlan::computed(OpSpec::Eq, vec![a, b]));
+        let eq = wiring.hidden(SourcePlan::computed(OpSpec::Eq, vec![a, b]));
         Ok(Some(if negate {
-            plan.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+            wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
         } else {
             eq
         }))
@@ -123,7 +123,7 @@ impl<'a> Compiler<'a> {
     /// how expressions compare.
     pub(in crate::compile) fn plan_condition_tokens(
         &mut self,
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
         toks: &[Token],
         text: &str,
         compare: Compare,
@@ -134,7 +134,7 @@ impl<'a> Compiler<'a> {
             text,
             compare,
         };
-        let slot = p.or(self, plan)?;
+        let slot = p.or(self, wiring)?;
         if p.pos != toks.len() {
             return Err(p.err(format!("unexpected {:?}", toks[p.pos])));
         }
@@ -142,7 +142,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// A condition from an element's content nodes (a `<boolean>`'s, a
-    /// `<when>`'s) as hidden slots of `plan`; returns the slot holding 1 or
+    /// `<when>`'s) as hidden slots of `wiring`; returns the slot holding 1 or
     /// 0. Text the numeric tokenizer cannot read (`%`, `'`, `_`) can still
     /// be one `=` between two expressions for the engine.
     pub(in crate::compile) fn plan_condition_content(
@@ -151,28 +151,28 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
         compare: Compare,
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
     ) -> Result<usize> {
-        if let Some(slot) = self.plan_text_condition(t, scope, nodes, plan)? {
+        if let Some(slot) = self.plan_text_condition(t, scope, nodes, wiring)? {
             return Ok(slot);
         }
         match self.math_tokens(t, scope, nodes) {
-            Ok((toks, text)) => self.plan_condition_tokens(plan, &toks, &text, compare),
+            Ok((toks, text)) => self.plan_condition_tokens(wiring, &toks, &text, compare),
             Err(Error::BadMath { text, reason }) => {
                 let sym = self.sym_spelling(t, scope, nodes)?;
                 let Some((lhs, rhs, negate)) = split_equality(&sym) else {
                     return Err(Error::BadMath { text, reason });
                 };
-                let a = self.sym_operand(plan, lhs, compare.post);
-                let b = self.sym_operand(plan, rhs, compare.post);
+                let a = self.sym_operand(wiring, lhs, compare.post);
+                let b = self.sym_operand(wiring, rhs, compare.post);
                 let eq = OpSpec::Sym(if compare.syntactic {
                     SymKind::EqualsSyntax
                 } else {
                     SymKind::Equals
                 });
-                let eq = plan.hidden(SourcePlan::computed(eq, vec![a, b]));
+                let eq = wiring.hidden(SourcePlan::computed(eq, vec![a, b]));
                 Ok(if negate {
-                    plan.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+                    wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
                 } else {
                     eq
                 })
@@ -224,10 +224,10 @@ impl<'a> Compiler<'a> {
     }
 
     /// A symbolic math source from the engine's spelling of an operand
-    /// (each `$ref` written `cellN<plan>`), as a hidden slot of `plan`.
+    /// (each `$ref` written `cellN<plan>`), as a hidden slot of `wiring`.
     pub(in crate::compile) fn sym_operand(
         &mut self,
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
         sym: String,
         post: Post,
     ) -> usize {
@@ -235,7 +235,7 @@ impl<'a> Compiler<'a> {
         // the text itself when the element expands (`sym_source`).
         let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
         self.compiled.sym_text.insert(id, sym);
-        plan.hidden(SourcePlan::SymExpr(id, post))
+        wiring.hidden(SourcePlan::SymExpr(id, post))
     }
 }
 
@@ -275,25 +275,25 @@ impl CondParser<'_> {
         matches!(self.peek(k), Some(Token::Op(x)) if *x == c)
     }
 
-    fn or(&mut self, cp: &mut Compiler, plan: &mut ElemPlan) -> Result<usize> {
-        self.chain(cp, plan, "or", '|', OpSpec::Max, Self::and)
+    fn or(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
+        self.chain(cp, wiring, "or", '|', OpSpec::Max, Self::and)
     }
 
-    fn and(&mut self, cp: &mut Compiler, plan: &mut ElemPlan) -> Result<usize> {
-        self.chain(cp, plan, "and", '&', OpSpec::Min, Self::not)
+    fn and(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
+        self.chain(cp, wiring, "and", '&', OpSpec::Min, Self::not)
     }
 
     /// `next`s joined by `word`, `c` or `cc`, folded left with `op`.
     fn chain(
         &mut self,
         cp: &mut Compiler,
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
         word: &str,
         c: char,
         op: OpSpec,
-        next: fn(&mut Self, &mut Compiler, &mut ElemPlan) -> Result<usize>,
+        next: fn(&mut Self, &mut Compiler, &mut ElemWiring) -> Result<usize>,
     ) -> Result<usize> {
-        let mut lhs = next(self, cp, plan)?;
+        let mut lhs = next(self, cp, wiring)?;
         loop {
             if self.is_word(word) {
                 self.pos += 1;
@@ -302,23 +302,23 @@ impl CondParser<'_> {
             } else {
                 return Ok(lhs);
             }
-            let rhs = next(self, cp, plan)?;
-            lhs = plan.hidden(SourcePlan::computed(op, vec![lhs, rhs]));
+            let rhs = next(self, cp, wiring)?;
+            lhs = wiring.hidden(SourcePlan::computed(op, vec![lhs, rhs]));
         }
     }
 
-    fn not(&mut self, cp: &mut Compiler, plan: &mut ElemPlan) -> Result<usize> {
+    fn not(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
         if self.is_word("not") || (self.is_op(0, '!') && !matches!(self.peek(1), Some(Token::Eq))) {
             self.pos += 1;
-            let a = self.not(cp, plan)?;
-            return Ok(plan.hidden(SourcePlan::computed(OpSpec::Not, vec![a])));
+            let a = self.not(cp, wiring)?;
+            return Ok(wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![a])));
         }
-        self.cmp(cp, plan)
+        self.cmp(cp, wiring)
     }
 
     /// A parenthesized condition, or a comparison of two operands, or a
     /// lone operand.
-    fn cmp(&mut self, cp: &mut Compiler, plan: &mut ElemPlan) -> Result<usize> {
+    fn cmp(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring) -> Result<usize> {
         if let Some(Token::LParen) = self.peek(0) {
             let close = self.matching(self.pos)?;
             if self.toks[self.pos + 1..close]
@@ -326,7 +326,7 @@ impl CondParser<'_> {
                 .any(is_condition_token)
             {
                 self.pos += 1;
-                let inner = self.or(cp, plan)?;
+                let inner = self.or(cp, wiring)?;
                 if self.pos != close {
                     return Err(self.err("missing ')'".into()));
                 }
@@ -346,8 +346,8 @@ impl CondParser<'_> {
             _ => None,
         };
         let Some((rel, width)) = rel else {
-            let a = self.number(cp, plan, &a);
-            return Ok(plan.hidden(SourcePlan::computed(OpSpec::Truthy, vec![a])));
+            let a = self.number(cp, wiring, &a);
+            return Ok(wiring.hidden(SourcePlan::computed(OpSpec::Truthy, vec![a])));
         };
         self.pos += width;
         let b = self.operand(cp)?;
@@ -358,11 +358,11 @@ impl CondParser<'_> {
         let (a, b) = if in_engine {
             let post = self.compare.post;
             (
-                self.symbolic(cp, plan, &a, post),
-                self.symbolic(cp, plan, &b, post),
+                self.symbolic(cp, wiring, &a, post),
+                self.symbolic(cp, wiring, &b, post),
             )
         } else {
-            (self.number(cp, plan, &a), self.number(cp, plan, &b))
+            (self.number(cp, wiring, &a), self.number(cp, wiring, &b))
         };
         let eq = if !in_engine {
             OpSpec::Eq
@@ -372,14 +372,14 @@ impl CondParser<'_> {
             OpSpec::Sym(SymKind::Equals)
         };
         Ok(match rel {
-            "<" => plan.hidden(SourcePlan::computed(OpSpec::Lt, vec![a, b])),
-            "<=" => plan.hidden(SourcePlan::computed(OpSpec::Le, vec![a, b])),
-            ">" => plan.hidden(SourcePlan::computed(OpSpec::Lt, vec![b, a])),
-            ">=" => plan.hidden(SourcePlan::computed(OpSpec::Le, vec![b, a])),
-            "=" => plan.hidden(SourcePlan::computed(eq, vec![a, b])),
+            "<" => wiring.hidden(SourcePlan::computed(OpSpec::Lt, vec![a, b])),
+            "<=" => wiring.hidden(SourcePlan::computed(OpSpec::Le, vec![a, b])),
+            ">" => wiring.hidden(SourcePlan::computed(OpSpec::Lt, vec![b, a])),
+            ">=" => wiring.hidden(SourcePlan::computed(OpSpec::Le, vec![b, a])),
+            "=" => wiring.hidden(SourcePlan::computed(eq, vec![a, b])),
             _ => {
-                let eq = plan.hidden(SourcePlan::computed(eq, vec![a, b]));
-                plan.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+                let eq = wiring.hidden(SourcePlan::computed(eq, vec![a, b]));
+                wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
             }
         })
     }
@@ -426,12 +426,12 @@ impl CondParser<'_> {
 
     /// The operand as a numeric slot: its lowered plan, else its
     /// expression evaluated (NaN with free symbols).
-    fn number(&mut self, cp: &mut Compiler, plan: &mut ElemPlan, a: &Operand) -> usize {
+    fn number(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring, a: &Operand) -> usize {
         match &a.numeric {
-            Some(p) => plan.hidden(p.clone()),
+            Some(p) => wiring.hidden(p.clone()),
             None => {
-                let h = self.symbolic(cp, plan, a, Post::None);
-                plan.hidden(SourcePlan::computed(
+                let h = self.symbolic(cp, wiring, a, Post::None);
+                wiring.hidden(SourcePlan::computed(
                     OpSpec::Sym(SymKind::Evaluate),
                     vec![h],
                 ))
@@ -443,11 +443,11 @@ impl CondParser<'_> {
     fn symbolic(
         &mut self,
         cp: &mut Compiler,
-        plan: &mut ElemPlan,
+        wiring: &mut ElemWiring,
         a: &Operand,
         post: Post,
     ) -> usize {
-        cp.sym_operand(plan, render_tokens(&self.toks[a.span.clone()]), post)
+        cp.sym_operand(wiring, render_tokens(&self.toks[a.span.clone()]), post)
     }
 
     fn matching(&self, open: usize) -> Result<usize> {

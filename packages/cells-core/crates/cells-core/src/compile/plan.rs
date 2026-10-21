@@ -404,10 +404,10 @@ impl Planned {
     }
 }
 
-/// A planned element's prop list under construction: public slots set by
-/// index, hidden slots appended after them and referenced by index like any
-/// own prop.
-pub(crate) struct ElemPlan {
+/// How each of an element's props gets its value, as its planner builds it:
+/// the public props (the table's, then the list's points), then hidden
+/// helper values that the props read like any own prop.
+pub(crate) struct ElemWiring {
     pub(crate) props: Vec<Option<SourcePlan>>,
     /// The public slots: the table's props, then the list's points.
     pub(crate) n_public: usize,
@@ -463,7 +463,7 @@ impl Deferred {
     }
 }
 
-impl ElemPlan {
+impl ElemWiring {
     /// A plan for an element of `component_type`, one public slot per prop
     /// in its table, each set by its name's position (`components::prop`).
     pub(crate) fn of(component_type: ComponentType) -> Self {
@@ -478,7 +478,7 @@ impl ElemPlan {
     }
 
     pub(crate) fn new(n_public: usize) -> Self {
-        ElemPlan {
+        ElemWiring {
             n_public,
             props: vec![None; n_public],
             shared_state: HashMap::new(),
