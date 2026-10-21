@@ -1,24 +1,28 @@
 //! `<math>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::dast::NodeId;
 use crate::error::{Error, Result};
 use crate::program::Post;
 
-/// `<math>`: lowered to a numeric chain in `value` when its expression
-/// is all numbers and numeric cells (`expr` is then NaN). Otherwise a
-/// math cell: `expr` holds an engine handle, instantiated from the
-/// template whenever a leaf changes (then simplified or expanded if the
-/// attribute says so), and `value` evaluates it (NaN with free symbols).
-pub(in crate::components) const MATH: ComponentTypeInfo =
-    info(&["math"], MATH_PROPS).copyable().default_prop("value");
-
-// Both of a math's props are set by the builder from its children.
-const MATH_PROPS: &[PropDef] = &props([children("expr"), children("value")]);
-
-typed_props!(MATH_PROPS { expr, value });
+component! {
+    /// `<math>`: lowered to a numeric chain in `value` when its expression is
+    /// all numbers and numeric cells (`expr` is then NaN). Otherwise a math
+    /// cell: `expr` holds an engine handle, instantiated from the template
+    /// whenever a leaf changes (then simplified or expanded if the attribute
+    /// says so), and `value` evaluates it (NaN with free symbols).
+    tags: ["math"],
+    flags: [copyable],
+    default_prop: value,
+    props {
+        // Both of a math's props are set by the builder from its children.
+        expr: children,
+        value: children,
+    }
+    planner: Whole(plan),
+}
 
 pub const EXPR: usize = Props::AT.expr;
 pub const VALUE: usize = Props::AT.value;

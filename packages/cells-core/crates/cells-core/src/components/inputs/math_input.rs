@@ -2,29 +2,27 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::dast::NodeKind;
 use crate::error::{Error, Result};
 use crate::program::SymKind;
 
-/// `<mathInput>`: bound to another cell by a child reference or
-/// `bindValueTo`, it is a numeric input (`expr` NaN). Unbound, its `expr`
-/// is an essential math cell (typing writes a parsed handle) and `value`
-/// evaluates it; a request on `value` writes a constant expression.
-pub(in crate::components) const MATH_INPUT: ComponentTypeInfo =
-    info(&["mathInput"], MATH_INPUT_PROPS)
-        .copyable()
-        .default_prop("value");
-
-// A mathInput's value is bound by a child reference or `bindValueTo`,
-// else it is the `prefill` (the builder reads it). The builder plans
-// `expr` from what `value` turned out to be (`plan`).
-const MATH_INPUT_PROPS: &[PropDef] = &props([
-    children("value").attribute("prefill").bind("bindValueTo"),
-    by_planner("expr"),
-]);
-
-typed_props!(MATH_INPUT_PROPS { value, expr });
+component! {
+    /// `<mathInput>`: bound to another cell by a child reference or
+    /// `bindValueTo`, it is a numeric input (`expr` NaN). Unbound, its `expr`
+    /// is an essential math cell (typing writes a parsed handle) and `value`
+    /// evaluates it; a request on `value` writes a constant expression.
+    tags: ["mathInput"],
+    flags: [copyable],
+    default_prop: value,
+    props {
+        // A mathInput's value is bound by a child reference or `bindValueTo`,
+        // else it is the `prefill` (the builder reads it). The builder plans
+        // `expr` from what `value` turned out to be (`plan`).
+        value: children { attribute: prefill, bind: bindValueTo },
+        expr: by_planner,
+    }
+    planner: PropsThen(plan),
+}
 
 pub const VALUE: usize = Props::AT.value;
 pub const EXPR: usize = Props::AT.expr;

@@ -68,7 +68,7 @@ component table (`document/sticky.rs`).
 | Type | Where | What it is |
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. Loaded from JSON (`json.rs`) or the binary wire format (`binary.rs`, ADR 0002). |
-| `ComponentType`, `ComponentTypeInfo`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or planned by the build), and flags. The list of types is `component_types!` in `mod.rs`; each type's definition is in its family's directory (`containers/`, `geometry/`, `inputs/`, `structure/`, `values/`): a type with a planner of its own in a file with its definition and planner together (`geometry/circle.rs`), the rest in the family's `mod.rs`. |
+| `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or set by its planner), its flags and its planner. The list of types is `component_types!` in `mod.rs`; each type's definition is one `component!` block in its family's directory (`containers/`, `geometry/`, `inputs/`, `structure/`, `values/`): a type with a planner of its own in a file with its planner (`geometry/circle.rs`), the rest in inline modules of the family's `mod.rs`. |
 | `Compiler`, `Compiled`, `Template` | `compile/` | The compile stage (ADR 0015): its state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
 | `Builder` | `build/expand/mod.rs` | The state of expand and emit: components and slots per scope, then cells and instructions. |
 | `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/probe.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
@@ -168,70 +168,72 @@ is an ordinary request: the response handle is copied into the answer's
 
 ## Where to change things
 
-**Add a component type.** A type is defined in one of the family
-directories in `components/` (`containers/`, `geometry/`, `inputs/`,
-`structure/`, `values/`), written with the builders in
-`components/define.rs`. A type planned from its table alone goes in the
-family's `mod.rs`:
+**Add a component type.** A type is one `component!` block
+(`components/define.rs`) in one of the family directories in
+`components/` (`containers/`, `geometry/`, `inputs/`, `structure/`,
+`values/`). A type planned from its table alone goes in an inline module
+of the family's `mod.rs`:
 
 ```rust
-/// `<clamped lo="0" hi="1">`: its `value` held between `lo` and `hi`.
-pub(super) const CLAMPED: ComponentTypeInfo = info(&["clamped"], CLAMPED_PROPS)
-    .copyable()
-    .default_prop("clamped");
+pub mod clamped {
+    use super::*;
 
-const CLAMPED_PROPS: &[PropDef] = &props([
-    attr("value", 0.0),
-    attr("lo", 0.0),
-    attr("hi", 1.0),
-    computed("atLeastLo", OpSpec::Max, &["value", "lo"]),
-    computed("clamped", OpSpec::Min, &["atLeastLo", "hi"]),
-]);
+    component! {
+        /// `<clamped lo="0" hi="1">`: its `value` held between `lo` and `hi`.
+        tags: ["clamped"],
+        flags: [copyable],
+        default_prop: clamped,
+        props {
+            value: attr(0.0),
+            lo: attr(0.0),
+            hi: attr(1.0),
+            atLeastLo: computed(OpSpec::Max, [value, lo]),
+            clamped: computed(OpSpec::Min, [atLeastLo, hi]),
+        }
+        planner: Props,
+    }
+}
 ```
 
 Then add one line to the `component_types!` list in `components/mod.rs`
-(`Clamped => values::CLAMPED,`). The build then fails
-until the type has an arm in `Compiler::planner`
-(`compile/planner.rs`); for this one it is `K::Clamped => Props`,
-planned from its prop table. If code reads a prop by position, name it
-beside the table
-(`pub mod clamped { pub const VALUE: usize = at(CLAMPED_PROPS, "value"); }`)
-and re-export it from `components/prop.rs`. A type whose props are
-attributes, children, defaults or chains of operators over its other props
-needs nothing else: a request on `clamped` inverts through the chain by
-the operators' own inverses. A type whose wiring depends on which
-attributes the author gave gets a planner of its own, named in its
-`planner` arm: `Geometric` for a shape, `PropsThen` to adjust the table's
-plan, or `Whole`. The planner lives with the type, in a file of its own
-in its family's directory (`values/text.rs`, registered as
-`values::text::TEXT`), and uses only what `compile/api.rs` exports; it
-is a function given a `PlanCtx`, which reads the source, plans the
-attributes and children it asks for, and writes the element's plan
-(ADR 0016). `components/geometry/circle.rs` and `line.rs` are the
-models. A type built on shared machinery has a thin planner that names
-it (`values/answer.rs`, `structure/select.rs`), and keeps its own
-decisions (what it refuses) in its file. A planner names its
-props through `typed_props!` beside the table and returns them as a
-`Props<Planned>` struct literal, each slot's plan with the shared state
-it holds, if any (`ElemPlan::set_public`); nothing sets a slot by
-position. A `PropsThen` planner reaches the table's plan through
+(`Clamped => values::clamped::DEFINITION,`). If code reads a prop by
+position, name it in the module (`pub const VALUE: usize =
+Props::AT.value;`) and re-export the module from `components/prop.rs`.
+
+A type whose props are attributes, children, defaults or chains of
+operators over its other props needs nothing else: a request on `clamped`
+inverts through the chain by the operators' own inverses. A type whose
+wiring depends on which attributes the author gave names a planner of its
+own in its block: `planner: Geometric(plan)` for a shape, `PropsThen(plan)`
+to adjust the table's plan, or `Whole(plan)`. It lives in a file of its
+own in its family's directory, the block and the planner together
+(`values/text.rs`, registered as `values::text::DEFINITION`), and uses only
+what `compile/api.rs` exports: it is a function given a `PlanCtx`, which
+reads the source, plans the attributes and children it asks for, and
+writes the element's plan (ADR 0016). `components/geometry/circle.rs` and
+`line.rs` are the models. A type built on shared machinery has a thin
+planner that names it (`values/answer.rs`, `structure/select.rs`), and
+keeps its own decisions (what it refuses) in its file.
+
+The block gives the planner its typed plan, `Props`: a planner returns its
+props as a `Props<Planned>` struct literal, each slot's plan with the
+shared state it holds, if any (`ElemPlan::set_public`), and nothing sets a
+slot by position; a `PropsThen` planner reaches the table's plan through
 `Props::AT`. The type's shared state, which a copy shares with its
-original unless it overrides it, is declared there too
-(`shared_state { CX, CY, R }`, `CONTEXT.md`); a copy extends only its own
-type, so the names need differ only from one another. A combination of
-attributes it cannot honor is a warning
-(`PlanCtx::warn`), never a silent NaN. What two planners both need
-belongs in `compile/` behind `api.rs`, once, not copied into each; what
-a family's members share as behavior is in the family's `mod.rs`. The
-renderer side is in
+original unless it overrides it, is declared in the block too
+(`shared_state { CX, CY, R }`, `CONTEXT.md`). A combination of attributes
+a planner cannot honor is a warning (`PlanCtx::warn`), never a silent NaN.
+What two planners both need belongs in `compile/` behind `api.rs`, once,
+not copied into each; what a family's members share as behavior is in the
+family's `mod.rs`. The renderer side is in
 `packages/cells-viewer/src/renderers/`.
 
 **Add an operator.** Add one entry to `scalar_ops!` in
 `program/scalar.rs` (ADR 0016): its inputs and literal parameters, its
 evaluation, and its inverse, declared `exact`, `projection` or `drops`.
 A document reaches it through a component's table or planner, or
-through math lowering (`build/expand/math.rs`). The macro (`program/ops.rs`) makes the
-`Op` and `OpSpec` variants and every arm; `program::scalar::inverses`
+through math lowering (`build/expand/math.rs`). The macro
+(`program/ops.rs`) makes the `Op` and `OpSpec` variants and every arm; `program::scalar::inverses`
 checks the inverse against what the entry declares, over a fixed table
 of values and the entry's parameter `samples`. Multi-cell operators are
 `VecOp`s in `program/vector.rs`.

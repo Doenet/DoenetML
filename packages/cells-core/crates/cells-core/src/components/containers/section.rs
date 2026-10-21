@@ -3,17 +3,16 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 
-/// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
-/// `<exercise>`, `<example>`: a rendered container that is numbered
-/// among its sibling sections and, when it aggregates scores, holds the
-/// weighted credit of the answers and sections inside it. Both are
-/// wired after expansion (`build/expand/scoring.rs`). The parser writes
-/// `<section>` as `<division type="section">`.
-pub(in crate::components) const SECTION: ComponentTypeInfo = info(
-    &[
+component! {
+    /// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
+    /// `<exercise>`, `<example>`: a rendered container that is numbered among
+    /// its sibling sections and, when it aggregates scores, holds the weighted
+    /// credit of the answers and sections inside it. Both are wired after
+    /// expansion (`build/expand/scoring.rs`). The parser writes `<section>` as
+    /// `<division type="section">`.
+    tags: [
         "section",
         "division",
         "subsection",
@@ -22,9 +21,21 @@ pub(in crate::components) const SECTION: ComponentTypeInfo = info(
         "exercise",
         "example",
     ],
-    SECTION_PROPS,
-)
-.container();
+    flags: [container],
+    props {
+        // `creditAchieved`, `percentCreditAchieved` and `number` are planned
+        // deferred and wired after expansion (`Deferred`); the flags are literals
+        // the builder reads, since they decide the wiring.
+        creditAchieved: by_planner,
+        percentCreditAchieved: by_planner,
+        weight: attr(1.0),
+        aggregateScores: by_planner,
+        number: by_planner,
+        includeParentNumber: by_planner,
+        label: by_planner,
+    }
+    planner: PropsThen(plan),
+}
 
 /// A tag that makes a `Section`, and its defaults (the current core's
 /// `Sectioning.js`).
@@ -79,29 +90,6 @@ pub const SECTION_TAGS: [SectionTag; 6] = [
         includes_parent_number: false,
     },
 ];
-
-// `creditAchieved`, `percentCreditAchieved` and `number` are planned
-// deferred and wired after expansion (`Deferred`); the flags are literals
-// the builder reads, since they decide the wiring.
-const SECTION_PROPS: &[PropDef] = &props([
-    by_planner("creditAchieved"),
-    by_planner("percentCreditAchieved"),
-    attr("weight", 1.0),
-    by_planner("aggregateScores"),
-    by_planner("number"),
-    by_planner("includeParentNumber"),
-    by_planner("label"),
-]);
-
-typed_props!(SECTION_PROPS {
-    creditAchieved,
-    percentCreditAchieved,
-    weight,
-    aggregateScores,
-    number,
-    includeParentNumber,
-    label,
-});
 
 pub const CREDIT: usize = Props::AT.creditAchieved;
 pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;

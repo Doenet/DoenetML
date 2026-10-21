@@ -3,16 +3,17 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::Result;
 
-/// `<select>`, a load-time choice: its children are the content of the
-/// options it picked, flattened like a repeat's iterations.
-pub(in crate::components) const SELECT: ComponentTypeInfo = info(&["select"], SELECT_PROPS);
-
-const SELECT_PROPS: &[PropDef] = &props([by_planner("hide")]);
-
-typed_props!(SELECT_PROPS { hide });
+component! {
+    /// `<select>`, a load-time choice: its children are the content of the
+    /// options it picked, flattened like a repeat's iterations.
+    tags: ["select"],
+    props {
+        hide: by_planner,
+    }
+    planner: Whole(plan),
+}
 
 /// Plans the options picked at load.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {

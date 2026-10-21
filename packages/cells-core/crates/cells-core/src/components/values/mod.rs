@@ -6,7 +6,6 @@
 //! (ADR 0016); tuple and response, which no tag makes, refuse here.
 
 use super::define::*;
-use super::{ComponentTypeInfo, PropDef};
 use crate::compile::api::PlanCtx;
 use crate::error::{Error, Result};
 use crate::program::SymKind;
@@ -19,127 +18,131 @@ pub mod math;
 pub mod text;
 pub mod when;
 
-/// `<number>`.
-pub(super) const NUMBER: ComponentTypeInfo = info(&["number"], NUMBER_PROPS)
-    .copyable()
-    .default_prop("value");
-
-const NUMBER_PROPS: &[PropDef] = &props([children("value")]);
-
 pub mod number {
     use super::*;
 
-    typed_props!(NUMBER_PROPS { value });
+    component! {
+        /// `<number>`.
+        tags: ["number"],
+        flags: [copyable],
+        default_prop: value,
+        props {
+            value: children,
+        }
+        planner: Props,
+    }
 
     pub const VALUE: usize = Props::AT.value;
 }
 
-/// `<evaluate function="$m" input="$a"/>`: the math's expression with
-/// its free symbol set to the input.
-pub(super) const EVALUATE: ComponentTypeInfo = info(&["evaluate"], EVALUATE_PROPS)
-    .copyable()
-    .default_prop("value");
+pub mod evaluate {
+    use super::*;
 
-const EVALUATE_PROPS: &[PropDef] = &props([
-    attr("function", f64::NAN).ref_prop("expr"),
-    attr("input", f64::NAN),
-    computed(
-        "value",
-        OpSpec::Sym(SymKind::EvalAt),
-        &["function", "input"],
-    ),
-]);
-
-/// One response of an answer whose awards reference an input: `response`
-/// aliases the input's live expression, `submitted` is the essential copy a
-/// submit takes, and `value` evaluates it. A `$mi` inside a `<when>`
-/// resolves here, so credit changes only on submit. Made by the builder.
-pub(super) const RESPONSE: ComponentTypeInfo = info(&["response"], RESPONSE_PROPS)
-    .internal()
-    .default_prop("value");
-
-const RESPONSE_PROPS: &[PropDef] = &props([
-    by_planner("response"),
-    by_planner("submitted"),
-    by_planner("value"),
-]);
+    component! {
+        /// `<evaluate function="$m" input="$a"/>`: the math's expression with
+        /// its free symbol set to the input.
+        tags: ["evaluate"],
+        flags: [copyable],
+        default_prop: value,
+        props {
+            function: attr(f64::NAN) { ref_prop: expr },
+            input: attr(f64::NAN),
+            value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]),
+        }
+        planner: Props,
+    }
+}
 
 pub mod response {
     use super::*;
 
-    typed_props!(RESPONSE_PROPS {
-        response,
-        submitted,
-        value
-    });
+    component! {
+        /// One response of an answer whose awards reference an input:
+        /// `response` aliases the input's live expression, `submitted` is the
+        /// essential copy a submit takes, and `value` evaluates it. A `$mi`
+        /// inside a `<when>` resolves here, so credit changes only on submit.
+        /// Made by the builder.
+        tags: ["response"],
+        flags: [internal],
+        default_prop: value,
+        props {
+            response: by_planner,
+            submitted: by_planner,
+            value: by_planner,
+        }
+        planner: Whole(plan),
+    }
 
     pub const RESPONSE: usize = Props::AT.response;
     pub const SUBMITTED: usize = Props::AT.submitted;
     pub const VALUE: usize = Props::AT.value;
+
+    /// A response is made by an answer's planner, never by a tag.
+    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
+        Err(Error::Unsupported("extending a response".into()))
+    }
 }
 
-/// A response is made by an answer's planner, never by a tag.
-pub(crate) fn plan_response(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-    Err(Error::Unsupported("extending a response".into()))
+pub mod clamp_number {
+    use super::*;
+
+    component! {
+        /// `<clampNumber lowerValue="0" upperValue="1">x</clampNumber>`: its
+        /// children held between the bounds. A request on `value` inverts
+        /// through the bounds' projections to the unclamped number.
+        tags: ["clampNumber"],
+        flags: [copyable],
+        default_prop: value,
+        props {
+            unclamped: children,
+            lowerValue: attr(0.0),
+            upperValue: attr(1.0),
+            atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
+            value: computed(OpSpec::Min, [atLeastLower, upperValue]),
+        }
+        planner: Props,
+    }
 }
-
-/// `<clampNumber lowerValue="0" upperValue="1">x</clampNumber>`: its
-/// children held between the bounds. A request on `value` inverts through
-/// the bounds' projections to the unclamped number.
-pub(super) const CLAMP_NUMBER: ComponentTypeInfo = info(&["clampNumber"], CLAMP_NUMBER_PROPS)
-    .copyable()
-    .default_prop("value");
-
-const CLAMP_NUMBER_PROPS: &[PropDef] = &props([
-    children("unclamped"),
-    attr("lowerValue", 0.0),
-    attr("upperValue", 1.0),
-    computed("atLeastLower", OpSpec::Max, &["unclamped", "lowerValue"]),
-    computed("value", OpSpec::Min, &["atLeastLower", "upperValue"]),
-]);
 
 /// Most entries a tuple holds.
 pub use crate::limits::MAX_TUPLE;
-
-/// A tuple of numbers: a `<math>` that is `(a, b, c)` with three or more
-/// entries (two make a point), and the iterates of a `<functionIterates>`.
-/// `n` is how many entries it has; `x1`, ... the entries, unused ones NaN.
-/// `coords` combines the entries, so `$t[2]` is `x2`.
-pub(super) const TUPLE: ComponentTypeInfo = info(&["tuple"], TUPLE_PROPS)
-    .copyable()
-    .internal()
-    .default_prop("coords")
-    .combined_props(&[("coords", &TUPLE_ENTRIES)]);
-
-const TUPLE_ENTRIES: [&str; MAX_TUPLE] = ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"];
-
-const TUPLE_PROPS: &[PropDef] = &props({
-    let mut out = [by_planner(""); 1 + MAX_TUPLE];
-    out[0] = by_planner("n");
-    let mut i = 0;
-    while i < MAX_TUPLE {
-        out[1 + i] = by_planner(TUPLE_ENTRIES[i]);
-        i += 1;
-    }
-    out
-});
 
 pub mod tuple {
     use super::*;
     use crate::compile::api::{ElemPlan, Planned, SourcePlan};
     use crate::components::ComponentType;
 
-    typed_props!(TUPLE_PROPS {
-        n,
-        x1,
-        x2,
-        x3,
-        x4,
-        x5,
-        x6,
-        x7,
-        x8
-    });
+    component! {
+        /// A tuple of numbers: a `<math>` that is `(a, b, c)` with three or
+        /// more entries (two make a point), and the iterates of a
+        /// `<functionIterates>`. `n` is how many entries it has; `x1`, ... the
+        /// entries, unused ones NaN. `coords` combines the entries, so `$t[2]`
+        /// is `x2`.
+        tags: ["tuple"],
+        flags: [copyable, internal],
+        default_prop: coords,
+        props {
+            n: by_planner,
+            x1: by_planner,
+            x2: by_planner,
+            x3: by_planner,
+            x4: by_planner,
+            x5: by_planner,
+            x6: by_planner,
+            x7: by_planner,
+            x8: by_planner,
+        }
+        combined_props {
+            coords: [x1, x2, x3, x4, x5, x6, x7, x8],
+        }
+        planner: Whole(plan),
+    }
+
+    // One entry for each of the `MAX_TUPLE` a tuple holds.
+    const _: () = assert!(
+        PROPS.len() == 1 + MAX_TUPLE,
+        "a tuple holds MAX_TUPLE entries"
+    );
 
     pub const N: usize = Props::AT.n;
     /// The first entry; entry k (0-based) is at `X1 + k`.
@@ -169,23 +172,28 @@ pub mod tuple {
         });
         plan.finish()
     }
+
+    /// A tuple is made from a `<math>` or by the builder, never by a tag.
+    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
+        Err(Error::Unsupported("extending a tuple".into()))
+    }
 }
-
-/// A tuple is made from a `<math>` or by the builder, never by a tag.
-pub(crate) fn plan_tuple(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-    Err(Error::Unsupported("extending a tuple".into()))
-}
-
-/// `<updateValue target="$a" newValue="$b"/>`: `target` aliases the
-/// target's value cell, so performing it (`Document::trigger`) is a request
-/// on that cell for `newValue`'s current value.
-pub(super) const UPDATE_VALUE: ComponentTypeInfo = info(&["updateValue"], UPDATE_VALUE_PROPS);
-
-const UPDATE_VALUE_PROPS: &[PropDef] =
-    &props([attr("target", f64::NAN), attr("newValue", f64::NAN)]);
 
 pub mod update_value {
     use super::*;
-    pub const TARGET: usize = at(UPDATE_VALUE_PROPS, "target");
-    pub const NEW_VALUE: usize = at(UPDATE_VALUE_PROPS, "newValue");
+
+    component! {
+        /// `<updateValue target="$a" newValue="$b"/>`: `target` aliases the
+        /// target's value cell, so performing it (`Document::trigger`) is a
+        /// request on that cell for `newValue`'s current value.
+        tags: ["updateValue"],
+        props {
+            target: attr(f64::NAN),
+            newValue: attr(f64::NAN),
+        }
+        planner: Props,
+    }
+
+    pub const TARGET: usize = Props::AT.target;
+    pub const NEW_VALUE: usize = Props::AT.newValue;
 }

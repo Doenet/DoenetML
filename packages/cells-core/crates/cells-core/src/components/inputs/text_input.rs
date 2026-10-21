@@ -1,28 +1,28 @@
 //! `<textInput>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
-/// `<textInput>`: `value` is an essential cell holding a string id (the
-/// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
-/// to another text cell. Typing interns the text (`Document::intern`) and
-/// requests the id. Planned by `plan`; `immediateValue` is the
-/// same cell.
-pub(in crate::components) const TEXT_INPUT: ComponentTypeInfo =
-    info(&["textInput"], TEXT_INPUT_PROPS)
-        .copyable()
-        .default_prop("value");
-
-const TEXT_INPUT_PROPS: &[PropDef] =
-    &props([children("value").attribute("prefill").bind("bindValueTo")]);
-
-typed_props!(TEXT_INPUT_PROPS { value } shared_state {
-    // The value, when it is the input's own state.
-    VALUE,
-});
+component! {
+    /// `<textInput>`: `value` is an essential cell holding a string id (the
+    /// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
+    /// to another text cell. Typing interns the text (`Document::intern`) and
+    /// requests the id. Planned by `plan`; `immediateValue` is the same cell.
+    tags: ["textInput"],
+    flags: [copyable],
+    default_prop: value,
+    props {
+        value: children { attribute: prefill, bind: bindValueTo },
+    }
+    shared_state {
+        // The value, when it is the input's own state.
+        VALUE,
+    }
+    planner: Whole(plan),
+}
 
 pub const VALUE: usize = Props::AT.value;
 

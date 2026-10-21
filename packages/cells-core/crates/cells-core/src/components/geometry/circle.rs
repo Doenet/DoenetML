@@ -13,11 +13,11 @@ use crate::program::VecOp;
 use std::f64::consts::TAU;
 
 component! {
-    /// `<circle>`: center and radius are derived or essential depending on
-    /// how the circle is specified (ADR 0006). `cx`, `cy`, `radius` are
-    /// the numerical center and radius; how they are produced depends on
-    /// which of `center`, `radius` and `through` the author gave (see
-    /// `plan`). The through points are its list, after these props.
+    /// `<circle>`: center and radius are derived or essential depending on how
+    /// the circle is specified (ADR 0006). `cx`, `cy`, `radius` are the
+    /// numerical center and radius; how they are produced depends on which of
+    /// `center`, `radius` and `through` the author gave (see `plan`). The
+    /// through points are its list, after these props.
     tags: ["circle"],
     flags: [copyable],
     props {

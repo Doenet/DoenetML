@@ -2,7 +2,6 @@
 //! hold other components. Document and section also hold credit.
 
 use super::define::*;
-use super::{ComponentTypeInfo, PropDef};
 use crate::compile::api::PlanCtx;
 use crate::error::Result;
 
@@ -10,90 +9,143 @@ pub mod section;
 
 pub use section::SECTION_TAGS;
 
-/// The root. `creditAchieved` and `percentCreditAchieved` are planned
-/// deferred and wired after expansion (`Deferred`,
-/// `build/expand/scoring.rs`).
-pub(super) const DOCUMENT: ComponentTypeInfo = info(&["document"], DOCUMENT_PROPS);
-
-const DOCUMENT_PROPS: &[PropDef] = &props([
-    by_planner("creditAchieved"),
-    by_planner("percentCreditAchieved"),
-]);
-
 pub mod document {
     use super::*;
 
-    typed_props!(DOCUMENT_PROPS {
-        creditAchieved,
-        percentCreditAchieved
-    });
+    component! {
+        /// The root. `creditAchieved` and `percentCreditAchieved` are planned
+        /// deferred and wired after expansion (`Deferred`,
+        /// `build/expand/scoring.rs`).
+        tags: ["document"],
+        props {
+            creditAchieved: by_planner,
+            percentCreditAchieved: by_planner,
+        }
+        planner: Props,
+    }
 
     pub const CREDIT: usize = Props::AT.creditAchieved;
     pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;
 }
 
-/// `<graph>`: its x and y range.
-pub(super) const GRAPH: ComponentTypeInfo = info(&["graph"], GRAPH_PROPS).container();
-
-const GRAPH_PROPS: &[PropDef] = &props([
-    attr("xmin", -10.0),
-    attr("xmax", 10.0),
-    attr("ymin", -10.0),
-    attr("ymax", 10.0),
-]);
-
 pub mod graph {
     use super::*;
-    pub const XMIN: usize = at(GRAPH_PROPS, "xmin");
-    pub const XMAX: usize = at(GRAPH_PROPS, "xmax");
-    pub const YMIN: usize = at(GRAPH_PROPS, "ymin");
-    pub const YMAX: usize = at(GRAPH_PROPS, "ymax");
+
+    component! {
+        /// `<graph>`: its x and y range.
+        tags: ["graph"],
+        flags: [container],
+        props {
+            xmin: attr(-10.0),
+            xmax: attr(10.0),
+            ymin: attr(-10.0),
+            ymax: attr(10.0),
+        }
+        planner: Props,
+    }
+
+    pub const XMIN: usize = Props::AT.xmin;
+    pub const XMAX: usize = Props::AT.xmax;
+    pub const YMIN: usize = Props::AT.ymin;
+    pub const YMAX: usize = Props::AT.ymax;
 }
 
-/// `<p>`: a rendered container with no props of its own.
-pub(super) const P: ComponentTypeInfo = info(&["p"], &[]).container();
+pub mod p {
+    use super::*;
 
-/// `<shortDescription>`: the accessible description of its parent (a
-/// graph, an input); text, not rendered in place.
-pub(super) const SHORT_DESCRIPTION: ComponentTypeInfo =
-    info(&["shortDescription"], &[]).container();
-
-/// `_error`: what an element that could not be built stands as in the
-/// document (ADR 0013): no props; its DAST node names its diagnostic in
-/// the document's list. Made by the build, never by a tag.
-pub(super) const ERROR: ComponentTypeInfo = info(&["_error"], &[]).internal();
-
-/// An error element is made planned by the build (`add_elem`).
-pub(crate) fn plan_error(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-    Ok(())
+    component! {
+        /// `<p>`: a rendered container with no props of its own.
+        tags: ["p"],
+        flags: [container],
+        planner: Props,
+    }
 }
 
-/// `<hint>`: a container the reader opens; `open` is its own state (0 or 1).
-pub(super) const HINT: ComponentTypeInfo = info(&["hint"], HINT_PROPS).container();
+pub mod short_description {
+    use super::*;
 
-const HINT_PROPS: &[PropDef] = &props([attr("open", 0.0)]);
+    component! {
+        /// `<shortDescription>`: the accessible description of its parent (a
+        /// graph, an input); text, not rendered in place.
+        tags: ["shortDescription"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<setup>`: an unrendered container.
-pub(super) const SETUP: ComponentTypeInfo = info(&["setup"], &[]).container();
+pub mod error {
+    use super::*;
 
-/// `<group>`: a rendered container with no props of its own. The
-/// prototype renders `<label>` the same way.
-pub(super) const GROUP: ComponentTypeInfo = info(&["group", "label"], &[]).container();
+    component! {
+        /// `_error`: what an element that could not be built stands as in the
+        /// document (ADR 0013): no props; its DAST node names its diagnostic in
+        /// the document's list. Made by the build, never by a tag.
+        tags: ["_error"],
+        flags: [internal],
+        planner: Whole(plan),
+    }
 
-/// `<stickyGroup>`: a container whose members snap to one another when
-/// dragged (ADR 0007). `threshold` NaN means the default.
-pub(super) const STICKY_GROUP: ComponentTypeInfo =
-    info(&["stickyGroup"], STICKY_GROUP_PROPS).container();
+    /// An error element is made planned by the build (`add_elem`).
+    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
+        Ok(())
+    }
+}
 
-const STICKY_GROUP_PROPS: &[PropDef] = &props([
-    attr("threshold", f64::NAN),
-    attr("relativeToGraphScales", 0.0),
-]);
+pub mod hint {
+    use super::*;
+
+    component! {
+        /// `<hint>`: a container the reader opens; `open` is its own state (0
+        /// or 1).
+        tags: ["hint"],
+        flags: [container],
+        props {
+            open: attr(0.0),
+        }
+        planner: Props,
+    }
+}
+
+pub mod setup {
+    use super::*;
+
+    component! {
+        /// `<setup>`: an unrendered container.
+        tags: ["setup"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod group {
+    use super::*;
+
+    component! {
+        /// `<group>`: a rendered container with no props of its own. The
+        /// prototype renders `<label>` the same way.
+        tags: ["group", "label"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
 pub mod sticky_group {
     use super::*;
-    pub const THRESHOLD: usize = at(STICKY_GROUP_PROPS, "threshold");
-    pub const RELATIVE: usize = at(STICKY_GROUP_PROPS, "relativeToGraphScales");
+
+    component! {
+        /// `<stickyGroup>`: a container whose members snap to one another when
+        /// dragged (ADR 0007). `threshold` NaN means the default.
+        tags: ["stickyGroup"],
+        flags: [container],
+        props {
+            threshold: attr(f64::NAN),
+            relativeToGraphScales: attr(0.0),
+        }
+        planner: Props,
+    }
+
+    pub const THRESHOLD: usize = Props::AT.threshold;
+    pub const RELATIVE: usize = Props::AT.relativeToGraphScales;
 }
 
 // Text and layout containers: rendered, with no props of their own. What
@@ -101,55 +153,183 @@ pub mod sticky_group {
 // spreadsheet's height) is presentation, read by the renderer from the
 // element's attributes (`Document::attr_text`), not state.
 
-/// `<title>`: the heading of the document or of the section it sits in.
-pub(super) const TITLE: ComponentTypeInfo = info(&["title"], &[]).container();
+pub mod title {
+    use super::*;
 
-/// `<ref to="...">`: a link around its content.
-pub(super) const REF: ComponentTypeInfo = info(&["ref"], &[]).container();
+    component! {
+        /// `<title>`: the heading of the document or of the section it sits in.
+        tags: ["title"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<ul>`.
-pub(super) const LIST: ComponentTypeInfo = info(&["ul"], &[]).container();
+pub mod reference {
+    use super::*;
 
-/// `<li>`.
-pub(super) const LIST_ITEM: ComponentTypeInfo = info(&["li"], &[]).container();
+    component! {
+        /// `<ref to="...">`: a link around its content.
+        tags: ["ref"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<m>`: inline math notation. Its text is LaTeX; a `$ref` inside shows
-/// the referent's value.
-pub(super) const INLINE_MATH: ComponentTypeInfo = info(&["m"], &[]).container();
+pub mod list {
+    use super::*;
 
-/// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
-pub(super) const DISPLAY_MATH: ComponentTypeInfo = info(&["md", "me"], &[]).container();
+    component! {
+        /// `<ul>`.
+        tags: ["ul"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<mrow>`: one line of an `<md>`, LaTeX like an `<m>`.
-pub(super) const MATH_ROW: ComponentTypeInfo = info(&["mrow"], &[]).container();
+pub mod list_item {
+    use super::*;
 
-/// `<aside>`: a collapsible block whose `<title>` is the summary.
-pub(super) const ASIDE: ComponentTypeInfo = info(&["aside"], &[]).container();
+    component! {
+        /// `<li>`.
+        tags: ["li"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<sideBySide>`: its children in columns.
-pub(super) const SIDE_BY_SIDE: ComponentTypeInfo = info(&["sideBySide"], &[]).container();
+pub mod inline_math {
+    use super::*;
 
-/// `<stack>`: its children one above the other.
-pub(super) const STACK: ComponentTypeInfo = info(&["stack"], &[]).container();
+    component! {
+        /// `<m>`: inline math notation. Its text is LaTeX; a `$ref` inside
+        /// shows the referent's value.
+        tags: ["m"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<tabular>`: a table of `<row>`s.
-pub(super) const TABULAR: ComponentTypeInfo = info(&["tabular"], &[]).container();
+pub mod display_math {
+    use super::*;
 
-/// `<spreadsheet>`: a grid of `<row>`s. The prototype shows the cells'
-/// values and does not edit them.
-pub(super) const SPREADSHEET: ComponentTypeInfo = info(&["spreadsheet"], &[]).container();
+    component! {
+        /// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
+        tags: ["md", "me"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<row>` of a tabular or spreadsheet.
-pub(super) const ROW: ComponentTypeInfo = info(&["row"], &[]).container();
+pub mod math_row {
+    use super::*;
 
-/// `<cell>` of a row.
-pub(super) const CELL: ComponentTypeInfo = info(&["cell"], &[]).container();
+    component! {
+        /// `<mrow>`: one line of an `<md>`, LaTeX like an `<m>`.
+        tags: ["mrow"],
+        flags: [container],
+        planner: Props,
+    }
+}
 
-/// `<legend>` of a graph: one `<label>` per curve, in the order the
-/// graph's curves appear.
-pub(super) const LEGEND: ComponentTypeInfo = info(&["legend"], &[]).container();
+pub mod aside {
+    use super::*;
 
-/// `<triggerSet>`: a button that, when pressed, performs every
-/// `<updateValue>` inside it at once (`Document::trigger`). Its `<label>`
-/// is the button's text.
-pub(super) const TRIGGER_SET: ComponentTypeInfo = info(&["triggerSet"], &[]).container();
+    component! {
+        /// `<aside>`: a collapsible block whose `<title>` is the summary.
+        tags: ["aside"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod side_by_side {
+    use super::*;
+
+    component! {
+        /// `<sideBySide>`: its children in columns.
+        tags: ["sideBySide"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod stack {
+    use super::*;
+
+    component! {
+        /// `<stack>`: its children one above the other.
+        tags: ["stack"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod tabular {
+    use super::*;
+
+    component! {
+        /// `<tabular>`: a table of `<row>`s.
+        tags: ["tabular"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod spreadsheet {
+    use super::*;
+
+    component! {
+        /// `<spreadsheet>`: a grid of `<row>`s. The prototype shows the cells'
+        /// values and does not edit them.
+        tags: ["spreadsheet"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod row {
+    use super::*;
+
+    component! {
+        /// `<row>` of a tabular or spreadsheet.
+        tags: ["row"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod cell {
+    use super::*;
+
+    component! {
+        /// `<cell>` of a row.
+        tags: ["cell"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod legend {
+    use super::*;
+
+    component! {
+        /// `<legend>` of a graph: one `<label>` per curve, in the order the
+        /// graph's curves appear.
+        tags: ["legend"],
+        flags: [container],
+        planner: Props,
+    }
+}
+
+pub mod trigger_set {
+    use super::*;
+
+    component! {
+        /// `<triggerSet>`: a button that, when pressed, performs every
+        /// `<updateValue>` inside it at once (`Document::trigger`). Its
+        /// `<label>` is the button's text.
+        tags: ["triggerSet"],
+        flags: [container],
+        planner: Props,
+    }
+}

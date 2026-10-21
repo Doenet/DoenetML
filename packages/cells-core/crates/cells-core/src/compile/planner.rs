@@ -1,9 +1,7 @@
-//! Which planner each component type's elements go to. The match has no
-//! catch-all arm, so a type added to `component_types!` does not compile
-//! until it is given one here.
+//! The kinds of planner a component type's definition names
+//! (`component!`'s `planner:`), and how the compile finds a type's.
 
 use super::*;
-use crate::components::{containers, geometry, inputs, structure, values};
 use ctx::PlanCtx;
 
 /// Adjusts the props `plan_attrs` planned from the table.
@@ -31,91 +29,10 @@ pub(crate) enum Planner {
     Whole(WholeFn),
 }
 
-impl<'a> Compiler<'a> {
+impl Compiler<'_> {
+    /// How an element of `component_type` is planned: what its definition
+    /// (`component!`) says.
     pub(super) fn planner(component_type: ComponentType) -> Planner {
-        // A type defined with `component!` names its planner itself.
-        if let Some(planner) = component_type.info().planner {
-            return planner;
-        }
-        use ComponentType as K;
-        use Planner::*;
-        use containers::section;
-        use geometry::{line, point, polygon, polyline, segment};
-        use inputs::{choice_input, math_input, text_input};
-        use structure::{
-            collect, conditional_content, function_iterates, repeat_for, select,
-            select_from_sequence,
-        };
-        use values::{answer, award, boolean, curve, math, text, when};
-        match component_type {
-            // Containers
-            K::Document => Props,
-            K::Graph => Props,
-            K::P => Props,
-            K::ShortDescription => Props,
-            K::Error => Whole(containers::plan_error),
-            K::Hint => Props,
-            K::Setup => Props,
-            K::Group => Props,
-            K::StickyGroup => Props,
-            K::Section => PropsThen(section::plan),
-            K::Title => Props,
-            K::Ref => Props,
-            K::List => Props,
-            K::ListItem => Props,
-            K::InlineMath => Props,
-            K::DisplayMath => Props,
-            K::MathRow => Props,
-            K::Aside => Props,
-            K::SideBySide => Props,
-            K::Stack => Props,
-            K::Tabular => Props,
-            K::Spreadsheet => Props,
-            K::Row => Props,
-            K::Cell => Props,
-            K::Legend => Props,
-            K::TriggerSet => Props,
-            // Geometry
-            K::Point => Geometric(point::plan),
-            K::Circle => unreachable!("defined with component!"),
-            K::Line => Geometric(line::plan),
-            K::LineSegment => Geometric(segment::plan),
-            K::Polygon => Geometric(polygon::plan),
-            K::PointList => Whole(geometry::plan_point_list),
-            K::Polyline => Whole(polyline::plan),
-            // Inputs
-            K::NumberInput => Props,
-            K::BooleanInput => Props,
-            K::MathInput => PropsThen(math_input::plan),
-            K::ChoiceInput => PropsThen(choice_input::plan),
-            K::Choice => Props,
-            K::TextInput => Whole(text_input::plan),
-            K::Slider => Props,
-            K::UpdateValue => Props,
-            // Values
-            K::Number => Props,
-            K::ClampNumber => Props,
-            K::Tuple => Whole(values::plan_tuple),
-            K::Text => Whole(text::plan),
-            K::Boolean => Whole(boolean::plan),
-            K::Math => Whole(math::plan),
-            K::Evaluate => Props,
-            K::Function => Whole(curve::plan),
-            K::Derivative => Whole(curve::plan),
-            K::Answer => Whole(answer::plan),
-            K::Award => Whole(award::plan),
-            K::When => Whole(when::plan),
-            K::Response => Whole(values::plan_response),
-            // Structure
-            K::RepeatForSequence => Props,
-            K::RepeatFor => Whole(repeat_for::plan),
-            K::FunctionIterates => Whole(function_iterates::plan),
-            K::SequenceValue => Props,
-            K::Collect => Whole(collect::plan),
-            K::ConditionalContent => Whole(conditional_content::plan),
-            K::Case => Props,
-            K::Select => Whole(select::plan),
-            K::SelectFromSequence => PropsThen(select_from_sequence::plan),
-        }
+        component_type.def().planner
     }
 }

@@ -7,26 +7,29 @@
 //! compare attributes.
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
-/// `<boolean>`: `value` is a 0/1 cell. Literal content (`true`, `false`,
-/// nothing) makes it essential; a lone `$ref` aliases the referent; a
-/// condition or a comparison of expressions makes it derived
-/// (`plan`). The compare attributes `symbolicEquality`,
-/// `simplifyOnCompare` and `expandOnCompare` are read at plan time.
-pub(in crate::components) const BOOLEAN: ComponentTypeInfo = info(&["boolean"], BOOLEAN_PROPS)
-    .copyable()
-    .default_prop("value");
-
-const BOOLEAN_PROPS: &[PropDef] = &props([children("value")]);
-
-typed_props!(BOOLEAN_PROPS { value } shared_state {
-    // The value, when it is the boolean's own state.
-    VALUE,
-});
+component! {
+    /// `<boolean>`: `value` is a 0/1 cell. Literal content (`true`, `false`,
+    /// nothing) makes it essential; a lone `$ref` aliases the referent; a
+    /// condition or a comparison of expressions makes it derived (`plan`). The
+    /// compare attributes `symbolicEquality`, `simplifyOnCompare` and
+    /// `expandOnCompare` are read at plan time.
+    tags: ["boolean"],
+    flags: [copyable],
+    default_prop: value,
+    props {
+        value: children,
+    }
+    shared_state {
+        // The value, when it is the boolean's own state.
+        VALUE,
+    }
+    planner: Whole(plan),
+}
 
 pub const VALUE: usize = Props::AT.value;
 

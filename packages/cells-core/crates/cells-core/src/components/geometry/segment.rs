@@ -4,24 +4,29 @@
 
 use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT, LINE_POINTS};
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::error::Result;
 use crate::tick::snap::Shape;
 
-/// `<lineSegment endpoints="$a $b">`.
-pub(in crate::components) const LINE_SEGMENT: ComponentTypeInfo =
-    info(&["lineSegment"], LINE_SEGMENT_PROPS)
-        .copyable()
-        .arrays(LINE_POINTS)
-        .sticky(Shape::Open, X1, 2);
-
-const LINE_SEGMENT_PROPS: &[PropDef] = &props([
-    by_planner("x1"),
-    by_planner("y1"),
-    by_planner("x2"),
-    by_planner("y2"),
-]);
+component! {
+    /// `<lineSegment endpoints="$a $b">`.
+    tags: ["lineSegment"],
+    flags: [copyable],
+    props {
+        x1: by_planner,
+        y1: by_planner,
+        x2: by_planner,
+        y2: by_planner,
+    }
+    arrays: LINE_POINTS,
+    sticky_points: (Shape::Open, X1, 2),
+    shared_state {
+        // A missing endpoint's coordinates.
+        ESS1X, ESS1Y, ESS2X, ESS2Y,
+    }
+    planner: Geometric(plan),
+}
 
 pub const X1: usize = Props::AT.x1;
 pub const Y1: usize = Props::AT.y1;
@@ -32,11 +37,6 @@ const _: () = assert!(
     Y1 == X1 + 1 && X2 == X1 + 2 && Y2 == X1 + 3,
     "a segment's endpoints must be x1 y1 x2 y2"
 );
-
-typed_props!(LINE_SEGMENT_PROPS { x1, y1, x2, y2 } shared_state {
-    // A missing endpoint's coordinates.
-    ESS1X, ESS1Y, ESS2X, ESS2Y,
-});
 
 /// Plans a segment from its `endpoints`: the first two points it names,
 /// each defaulted when missing.

@@ -5,51 +5,41 @@
 
 use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT, LINE_POINTS};
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 use crate::program::VecOp;
 
-/// `<line>`: its own two points are derived cells (ADR 0006); slope,
-/// intercepts and coefficients follow from them or from the equation.
-pub(in crate::components) const LINE: ComponentTypeInfo =
-    info(&["line"], LINE_PROPS).copyable().arrays(LINE_POINTS);
-
-/// The first four props are the line's own points (ADR 0006).
-/// `basedOnDirection` is 1 when the second point is derived from a slope or
-/// direction, so a renderer drags only the first.
-const LINE_PROPS: &[PropDef] = &props([
-    by_planner("x1"),
-    by_planner("y1"),
-    by_planner("x2"),
-    by_planner("y2"),
-    by_planner("slope"),
-    by_planner("xintercept"),
-    by_planner("yintercept"),
-    by_planner("coeffvar1"),
-    by_planner("coeffvar2"),
-    by_planner("coeff0"),
-    by_planner("basedOnDirection"),
-]);
-
-typed_props!(LINE_PROPS {
-    x1,
-    y1,
-    x2,
-    y2,
-    slope,
-    xintercept,
-    yintercept,
-    coeffvar1,
-    coeffvar2,
-    coeff0,
-    basedOnDirection,
-} shared_state {
-    // The second point's distance along a slope or direction.
-    DIST,
-    // A missing point's coordinates.
-    ESS1X, ESS1Y, ESS2X, ESS2Y,
-});
+component! {
+    /// `<line>`: its own two points are derived cells (ADR 0006); slope,
+    /// intercepts and coefficients follow from them or from the equation.
+    tags: ["line"],
+    flags: [copyable],
+    props {
+        // The first four props are the line's own points (ADR 0006).
+        // `basedOnDirection` is 1 when the second point is derived from a slope or
+        // direction, so a renderer drags only the first.
+        x1: by_planner,
+        y1: by_planner,
+        x2: by_planner,
+        y2: by_planner,
+        slope: by_planner,
+        xintercept: by_planner,
+        yintercept: by_planner,
+        coeffvar1: by_planner,
+        coeffvar2: by_planner,
+        coeff0: by_planner,
+        basedOnDirection: by_planner,
+    }
+    arrays: LINE_POINTS,
+    shared_state {
+        // The second point's distance along a slope or direction.
+        DIST,
+        // A missing point's coordinates.
+        ESS1X, ESS1Y, ESS2X, ESS2Y,
+    }
+    planner: Geometric(plan),
+}
 
 /// Variable names of the equation (`variables="(s,t)"` or `"s t"`), `x`
 /// and `y` unless exactly two are given.

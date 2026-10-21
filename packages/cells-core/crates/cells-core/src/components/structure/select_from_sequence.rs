@@ -2,20 +2,20 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 
-/// `<selectFromSequence from to step>`: one number of the sequence, drawn
-/// at load from the document seed (ADR 0009). The attributes must be
-/// literals; `numToSelect` other than 1 is not supported.
-pub(in crate::components) const SELECT_FROM_SEQUENCE: ComponentTypeInfo =
-    info(&["selectFromSequence"], SELECT_FROM_SEQUENCE_PROPS)
-        .copyable()
-        .default_prop("value");
-
-const SELECT_FROM_SEQUENCE_PROPS: &[PropDef] = &props([by_planner("value")]);
-
-typed_props!(SELECT_FROM_SEQUENCE_PROPS { value });
+component! {
+    /// `<selectFromSequence from to step>`: one number of the sequence, drawn
+    /// at load from the document seed (ADR 0009). The attributes must be
+    /// literals; `numToSelect` other than 1 is not supported.
+    tags: ["selectFromSequence"],
+    flags: [copyable],
+    default_prop: value,
+    props {
+        value: by_planner,
+    }
+    planner: PropsThen(plan),
+}
 
 pub const VALUE: usize = Props::AT.value;
 

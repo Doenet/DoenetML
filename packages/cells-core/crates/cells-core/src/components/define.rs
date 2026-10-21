@@ -1,9 +1,9 @@
-//! The vocabulary a family file defines its types with: prop builders
-//! (`attr`, `computed`, ...) resolved by `props`, the row builder `info`,
-//! `at` for named prop positions, and `typed_props!` for a struct with one
-//! field per prop.
+//! How a component type is defined: `component!`, one block per type, and
+//! what it is built on (the prop sources `attr`, `computed`, ... resolved
+//! by `props`, the definition's builders, `typed_props!` for the struct
+//! with one field per prop, and `at` for a prop's position by name).
 
-use super::{Args, ArrayProp, ComponentTypeInfo, Flags, MAX_ARGS, PropDef, PropFrom};
+use super::{Args, ArrayProp, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
 pub(super) use crate::program::OpSpec;
 
 /// A prop as a table writes it: like a [`PropDef`], but naming the props a
@@ -158,13 +158,13 @@ const fn position(table: &[Prop], name: &str) -> u8 {
     panic!("no such prop")
 }
 
-/// A row of `COMPONENT_TYPES`, to be finished with the builder methods:
-/// `info(..).copyable().default_prop("value")`.
-pub(super) const fn info(
+/// A type's definition before its builders (`.copyable()`, ...) are
+/// applied; only `component!` calls this.
+pub(super) const fn definition(
     tags: &'static [&'static str],
     props: &'static [PropDef],
-) -> ComponentTypeInfo {
-    ComponentTypeInfo {
+) -> ComponentDef {
+    ComponentDef {
         tags,
         props,
         default_prop: None,
@@ -179,11 +179,11 @@ pub(super) const fn info(
             internal: false,
         },
         sticky: None,
-        planner: None,
+        planner: crate::compile::api::Planner::Props,
     }
 }
 
-impl ComponentTypeInfo {
+impl ComponentDef {
     /// See [`super::ComponentType::copyable`].
     pub(super) const fn copyable(mut self) -> Self {
         self.flags.copyable = true;
@@ -204,8 +204,14 @@ impl ComponentTypeInfo {
         self.flags.internal = true;
         self
     }
+    /// The same definition under other tags (`<derivative>` is a
+    /// `<function>`'s).
+    pub(super) const fn with_tags(mut self, tags: &'static [&'static str]) -> Self {
+        self.tags = tags;
+        self
+    }
     pub(super) const fn planner(mut self, planner: crate::compile::api::Planner) -> Self {
-        self.planner = Some(planner);
+        self.planner = planner;
         self
     }
     pub(super) const fn default_prop(mut self, prop: &'static str) -> Self {
@@ -292,8 +298,9 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
     true
 }
 
-/// A struct with one field per prop of a table, named as the props are,
-/// in table order, and generic over what each field holds: a planner fills
+/// What `component!` makes a type's typed plan with: a struct with one
+/// field per prop of a table, named as the props are, in table order, and
+/// generic over what each field holds: a planner fills
 /// `Props<Planned>` (`compile::plan::Planned`) as a struct literal, so a
 /// prop left unplanned does not compile, and `Props::<usize>::AT` holds
 /// every prop's position. A list that names a prop the table lacks, or
@@ -306,7 +313,7 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// need differ only from one another, as constants of one module must.
 ///
 /// ```ignore
-/// typed_props!(CIRCLE_PROPS { cx, cy, radius, ... } shared_state { CX, CY, R });
+/// typed_props!(PROPS { cx, cy, radius, ... } shared_state { CX, CY, R });
 /// ```
 macro_rules! typed_props {
     ($table:ident { $($field:ident),* $(,)? } $(shared_state { $($state:ident),* $(,)? })?) => {
@@ -348,6 +355,7 @@ macro_rules! typed_props {
             }
         }
 
+        #[allow(dead_code)]
         const PROPS_LEN: usize = $table.len();
 
         /// The props in table order, with no allocation: what
@@ -417,6 +425,19 @@ pub(crate) use typed_props;
 /// }
 /// ```
 macro_rules! component {
+    // A type with no props of its own.
+    (
+        $(#[$doc:meta])*
+        tags: [$($tag:literal),+ $(,)?],
+        $(flags: [$($flag:ident),* $(,)?],)?
+        $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
+    ) => {
+        $(#[$doc])*
+        pub(crate) const DEFINITION: $crate::components::ComponentDef =
+            $crate::components::define::definition(&[$($tag),+], &[])
+                $($(.$flag())*)?
+                .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
+    };
     (
         $(#[$doc:meta])*
         tags: [$($tag:literal),+ $(,)?],
@@ -429,13 +450,14 @@ macro_rules! component {
         $(arrays: $arrays:expr,)?
         $(list { names: [$($lname:ident),+ $(,)?], item: $litem:ident, coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)? $(,)? })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
-        $(sticky: $sticky:ident($($sarg:expr),* $(,)?),)?
+        $(sticky_points: ($($sp:expr),+ $(,)?),)?
+        $(sticky_list: $sl:expr,)?
         $(shared_state { $($state:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
-        pub(crate) const DEFINITION: $crate::components::ComponentTypeInfo =
-            $crate::components::define::info(&[$($tag),+], PROPS)
+        pub(crate) const DEFINITION: $crate::components::ComponentDef =
+            $crate::components::define::definition(&[$($tag),+], PROPS)
                 $($(.$flag())*)?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
@@ -447,9 +469,11 @@ macro_rules! component {
                     alternate_name: $crate::components::define::component!(@alternate_name $($lalt)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
-                $(.$sticky($($sarg),*))?
+                $(.sticky($($sp),+))?
+                $(.sticky_list($sl))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
 
+        #[allow(dead_code)]
         const PROP_NAMES: &[&str] = &[$(stringify!($pname)),+];
 
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([

@@ -4,38 +4,32 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::Result;
 
-/// `<answer>`: `submitted` is an essential math cell that a submit request
-/// sets to the response; `credit` compares it with `correct`
-/// (`symbolicEquality`: as written), or, with `<award>` children, is the
-/// most any award gives. `numSubmissions` counts submits. See
-/// `compile/answer.rs` for the forms an answer takes.
-pub(in crate::components) const ANSWER: ComponentTypeInfo = info(&["answer"], ANSWER_PROPS)
-    .copyable()
-    .symbolic()
-    .default_prop("credit")
-    // The current core's name for `credit`, so `$ans.creditAchieved` resolves.
-    .alternate_names(&[("creditAchieved", "credit")]);
-
-const ANSWER_PROPS: &[PropDef] = &props([
-    attr("response", f64::NAN).ref_prop("expr"),
-    children("correct"),
-    attr("submitted", f64::NAN),
-    by_planner("credit"),
-    attr("weight", 1.0),
-    attr("numSubmissions", 0.0),
-]);
-
-typed_props!(ANSWER_PROPS {
-    response,
-    correct,
-    submitted,
-    credit,
-    weight,
-    numSubmissions,
-});
+component! {
+    /// `<answer>`: `submitted` is an essential math cell that a submit request
+    /// sets to the response; `credit` compares it with `correct`
+    /// (`symbolicEquality`: as written), or, with `<award>` children, is the
+    /// most any award gives. `numSubmissions` counts submits. See
+    /// `compile/answer.rs` for the forms an answer takes.
+    tags: ["answer"],
+    flags: [copyable, symbolic],
+    default_prop: credit,
+    props {
+        response: attr(f64::NAN) { ref_prop: expr },
+        correct: children,
+        submitted: attr(f64::NAN),
+        credit: by_planner,
+        weight: attr(1.0),
+        numSubmissions: attr(0.0),
+    }
+    alternate_names {
+        // The current core's name for `credit`, so `$ans.creditAchieved`
+        // resolves.
+        creditAchieved: credit,
+    }
+    planner: Whole(plan),
+}
 
 pub const RESPONSE: usize = Props::AT.response;
 pub const CORRECT: usize = Props::AT.correct;

@@ -2,18 +2,20 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 
-/// `<award credit="0.5">` inside an `<answer>`: `awarded` is `credit`
-/// when its `<when>` holds (or its content equals the submitted
-/// response), else 0. Planned with its answer (`plan_answer`).
-pub(in crate::components) const AWARD: ComponentTypeInfo =
-    info(&["award"], AWARD_PROPS).default_prop("awarded");
-
-const AWARD_PROPS: &[PropDef] = &props([attr("credit", 1.0), by_planner("awarded")]);
-
-typed_props!(AWARD_PROPS { credit, awarded });
+component! {
+    /// `<award credit="0.5">` inside an `<answer>`: `awarded` is `credit` when
+    /// its `<when>` holds (or its content equals the submitted response), else
+    /// 0. Planned with its answer (`plan_answer`).
+    tags: ["award"],
+    default_prop: awarded,
+    props {
+        credit: attr(1.0),
+        awarded: by_planner,
+    }
+    planner: Whole(plan),
+}
 
 pub const CREDIT: usize = Props::AT.credit;
 pub const AWARDED: usize = Props::AT.awarded;

@@ -4,42 +4,31 @@
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::components::prop::graph;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
+use crate::components::{ComponentDef, ComponentType};
 use crate::dast::NodeId;
 use crate::error::Result;
 use crate::program::{Post, SymKind};
 
-/// `<function>`: a math cell `expr` (variable `x`) and, as a curve, the
-/// `SAMPLES` cells from `samples` on, filled by a `Sample` instruction
-/// over the enclosing graph's x-range.
-pub(in crate::components) const FUNCTION: ComponentTypeInfo = info(&["function"], CURVE_PROPS)
-    .copyable()
-    .symbolic()
-    .default_prop("expr");
+component! {
+    /// `<function>`: a math cell `expr` (variable `x`) and, as a curve, the
+    /// `SAMPLES` cells from `samples` on, filled by a `Sample` instruction over
+    /// the enclosing graph's x-range.
+    tags: ["function"],
+    flags: [copyable, symbolic],
+    default_prop: expr,
+    props {
+        expr: children,
+        // `samples` is the first of `SAMPLES` consecutive cells.
+        xmin: by_planner,
+        xmax: by_planner,
+        samples: by_planner,
+    }
+    planner: Whole(plan),
+}
 
 /// `<derivative>$f</derivative>`: d/dx of a function or math, sampled
-/// like a function.
-pub(in crate::components) const DERIVATIVE: ComponentTypeInfo = info(&["derivative"], CURVE_PROPS)
-    .copyable()
-    .symbolic()
-    .default_prop("expr");
-
-// Planned by `plan`; `samples` is the first of
-// `SAMPLES` consecutive cells.
-const CURVE_PROPS: &[PropDef] = &props([
-    children("expr"),
-    by_planner("xmin"),
-    by_planner("xmax"),
-    by_planner("samples"),
-]);
-
-// The positions of `<function>` and `<derivative>`, which share their table.
-typed_props!(CURVE_PROPS {
-    expr,
-    xmin,
-    xmax,
-    samples
-});
+/// like a function; a function's definition under its own tag.
+pub(crate) const DERIVATIVE: ComponentDef = DEFINITION.with_tags(&["derivative"]);
 
 pub const EXPR: usize = Props::AT.expr;
 pub const XMIN: usize = Props::AT.xmin;

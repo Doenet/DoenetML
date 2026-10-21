@@ -1,16 +1,20 @@
 //! `<collect>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 
-/// `<collect>`: its children are copies of the collected components.
-pub(in crate::components) const COLLECT: ComponentTypeInfo = info(&["collect"], COLLECT_PROPS);
+component! {
+    /// `<collect>`: its children are copies of the collected components.
+    tags: ["collect"],
+    props {
+        count: attr(0.0),
+    }
+    planner: Whole(plan),
+}
 
-const COLLECT_PROPS: &[PropDef] = &props([attr("count", 0.0)]);
-
-pub const COUNT: usize = at(COLLECT_PROPS, "count");
+pub const COUNT: usize = Props::AT.count;
 
 /// What it collects is resolved when it expands: the components of type
 /// `componentType` under what `from` names.

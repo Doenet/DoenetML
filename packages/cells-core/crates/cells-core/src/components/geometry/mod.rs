@@ -5,8 +5,8 @@
 //! limits on a polygon's vertices, and the point list, which only ever
 //! exists as `extend="$shape.points"`.
 
+use super::ArrayProp;
 use super::define::*;
-use super::{ArrayProp, ComponentTypeInfo};
 use crate::compile::api::PlanCtx;
 use crate::error::{Error, Result};
 
@@ -34,15 +34,22 @@ const LINE_POINTS: &[ArrayProp] = &[ArrayProp {
 pub(crate) const DEFAULT_FIRST_POINT: [f64; 2] = [1.0, 0.0];
 pub(crate) const DEFAULT_SECOND_POINT: [f64; 2] = [0.0, 0.0];
 
-/// `<pointList extend="$l.points">`: its children are points aliasing the
-/// items of an array prop.
-pub(super) const POINT_LIST: ComponentTypeInfo = info(&["pointList"], &[]);
+pub mod point_list {
+    use super::*;
 
-/// A `<pointList>` only exists as `extend="$shape.points"`, which the
-/// compile takes before asking for a planner.
-pub(crate) fn plan_point_list(_: &mut PlanCtx<'_, '_>) -> Result<()> {
-    Err(Error::BadValue {
-        attr: "extend".into(),
-        text: "<pointList> needs extend=\"$shape.points\"".into(),
-    })
+    component! {
+        /// `<pointList extend="$l.points">`: its children are points aliasing
+        /// the items of an array prop.
+        tags: ["pointList"],
+        planner: Whole(plan),
+    }
+
+    /// A `<pointList>` only exists as `extend="$shape.points"`, which the
+    /// compile takes before asking for a planner.
+    pub(crate) fn plan(_: &mut PlanCtx<'_, '_>) -> Result<()> {
+        Err(Error::BadValue {
+            attr: "extend".into(),
+            text: "<pointList> needs extend=\"$shape.points\"".into(),
+        })
+    }
 }

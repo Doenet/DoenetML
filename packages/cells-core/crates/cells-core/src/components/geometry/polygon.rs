@@ -3,31 +3,31 @@
 //! instruction that owns every vertex.
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, ListProp, PropDef};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{Pivot, RigidOpts, VecOp};
 use crate::tick::snap::Shape;
 
-/// `<polygon vertices="...">`, optionally rigid: its vertices are its
-/// list (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when
-/// rigid.
-pub(in crate::components) const POLYGON: ComponentTypeInfo =
-    info(&["polygon", "triangle"], POLYGON_PROPS)
-        .copyable()
-        .list(ListProp {
-            names: &["vertices"],
-            item: "vertex",
-            coords: ["x", "y"],
-            alternate_name: Some("vertexX"),
-        })
-        .sticky_list(Shape::Closed);
-
-/// `numVertices`; the vertices follow, as the list.
-const POLYGON_PROPS: &[PropDef] = &props([by_planner("numVertices")]);
-
-typed_props!(POLYGON_PROPS { numVertices });
+component! {
+    /// `<polygon vertices="...">`, optionally rigid: its vertices are its list
+    /// (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
+    tags: ["polygon", "triangle"],
+    flags: [copyable],
+    props {
+        // `numVertices`; the vertices follow, as the list.
+        numVertices: by_planner,
+    }
+    list {
+        names: [vertices],
+        item: vertex,
+        coords: [x, y],
+        alternate_name: vertexX,
+    }
+    sticky_list: Shape::Closed,
+    planner: Geometric(plan),
+}
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
 

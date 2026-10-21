@@ -4,22 +4,21 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::Result;
 
-/// `<conditionalContent>`, a reactive choice (ADR 0009). Its `choice` cell
-/// is the 1-based position of the first case whose condition holds, or 0.
-/// Its children are `Case` components. `<feedback condition>` is the same
-/// thing with one case: content shown while its condition holds.
-pub(in crate::components) const CONDITIONAL_CONTENT: ComponentTypeInfo = info(
-    &["conditionalContent", "feedback"],
-    CONDITIONAL_CONTENT_PROPS,
-);
-
-// `hide` hides what the choice shows, not copies of its names.
-const CONDITIONAL_CONTENT_PROPS: &[PropDef] = &props([by_planner("choice"), by_planner("hide")]);
-
-typed_props!(CONDITIONAL_CONTENT_PROPS { choice, hide });
+component! {
+    /// `<conditionalContent>`, a reactive choice (ADR 0009). Its `choice` cell
+    /// is the 1-based position of the first case whose condition holds, or 0.
+    /// Its children are `Case` components. `<feedback condition>` is the same
+    /// thing with one case: content shown while its condition holds.
+    tags: ["conditionalContent", "feedback"],
+    props {
+        // `hide` hides what the choice shows, not copies of its names.
+        choice: by_planner,
+        hide: by_planner,
+    }
+    planner: Whole(plan),
+}
 
 pub const CHOICE: usize = Props::AT.choice;
 pub const HIDE: usize = Props::AT.hide;

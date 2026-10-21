@@ -2,17 +2,18 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 
-/// `<when>` inside an `<award>`: `value` is 1 while its condition holds,
-/// read against the answer's submitted responses. Planned with its answer.
-pub(in crate::components) const WHEN: ComponentTypeInfo =
-    info(&["when"], WHEN_PROPS).default_prop("value");
-
-const WHEN_PROPS: &[PropDef] = &props([by_planner("value")]);
-
-typed_props!(WHEN_PROPS { value });
+component! {
+    /// `<when>` inside an `<award>`: `value` is 1 while its condition holds,
+    /// read against the answer's submitted responses. Planned with its answer.
+    tags: ["when"],
+    default_prop: value,
+    props {
+        value: by_planner,
+    }
+    planner: Whole(plan),
+}
 
 pub const VALUE: usize = Props::AT.value;
 

@@ -9,16 +9,17 @@
 //! generic operator inverse.
 //!
 //! This file holds the types, the lookups the build uses, and the list of
-//! every type (`component_types!`). Each type's definition (its docs, its
-//! prop table, its row and its named prop positions) is in its family's
-//! directory: `containers/`, `geometry/`, `inputs/`, `structure/`,
-//! `values/`. A type with a planner of its own has a file of its own
-//! there, its definition and its planner together (`geometry/circle.rs`,
-//! ADR 0016); a type planned from its table alone, or whose planner only
-//! refuses it, is in the family's `mod.rs`, which also holds what the
-//! family's members share. `define.rs` has the builders they are
-//! written with, and `prop.rs` gathers the named positions.
-//! ARCHITECTURE.md walks through adding a type.
+//! every type (`component_types!`). Each type is one `component!` block
+//! (`define.rs`, ADR 0016): its tags, flags, props, combined props, list,
+//! alternate names, shared state and planner, with its docs. The blocks
+//! are in the families' directories: `containers/`, `geometry/`,
+//! `inputs/`, `structure/`, `values/`. A type with a planner of its own
+//! has a file of its own there, its block and its planner together
+//! (`geometry/circle.rs`); a type planned from its table alone, or whose
+//! planner only refuses it, has an inline module in the family's
+//! `mod.rs`, which also holds what the family's members share. `prop.rs`
+//! gathers the named positions. ARCHITECTURE.md walks through adding a
+//! type.
 
 use crate::program::OpSpec;
 
@@ -35,10 +36,11 @@ pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
 /// Declares every component type from one list: the `ComponentType` enum,
-/// `ComponentType::ALL`, and `COMPONENT_TYPES`, all in list order. Each
-/// entry names its type's row (built with `info`).
+/// `ComponentType::ALL`, and `COMPONENT_DEFS`, all in list order. Each
+/// entry names its type's definition, a `component!` block's
+/// `DEFINITION`.
 macro_rules! component_types {
-    ($($(#[$doc:meta])* $variant:ident => $info:expr,)*) => {
+    ($($(#[$doc:meta])* $variant:ident => $def:expr,)*) => {
         /// `repr(u8)` so the renderer can read the type column as a byte
         /// array; the discriminants follow the list in `component_types!`.
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -53,79 +55,79 @@ macro_rules! component_types {
         }
 
         /// Every type's row, indexed by discriminant.
-        pub const COMPONENT_TYPES: &[ComponentTypeInfo] = &[$($info,)*];
+        pub const COMPONENT_DEFS: &[ComponentDef] = &[$($def,)*];
     };
 }
 
 component_types! {
-    Document => containers::DOCUMENT,
-    Graph => containers::GRAPH,
-    Point => geometry::point::POINT,
-    Number => values::NUMBER,
-    NumberInput => inputs::NUMBER_INPUT,
-    Slider => inputs::SLIDER,
-    RepeatForSequence => structure::REPEAT_FOR_SEQUENCE,
-    Collect => structure::collect::COLLECT,
-    SequenceValue => structure::SEQUENCE_VALUE,
-    BooleanInput => inputs::BOOLEAN_INPUT,
-    Math => values::math::MATH,
-    Evaluate => values::EVALUATE,
-    MathInput => inputs::math_input::MATH_INPUT,
-    ChoiceInput => inputs::choice_input::CHOICE_INPUT,
-    Choice => inputs::CHOICE,
+    Document => containers::document::DEFINITION,
+    Graph => containers::graph::DEFINITION,
+    Point => geometry::point::DEFINITION,
+    Number => values::number::DEFINITION,
+    NumberInput => inputs::number_input::DEFINITION,
+    Slider => inputs::slider::DEFINITION,
+    RepeatForSequence => structure::repeat_for_sequence::DEFINITION,
+    Collect => structure::collect::DEFINITION,
+    SequenceValue => structure::sequence_value::DEFINITION,
+    BooleanInput => inputs::boolean_input::DEFINITION,
+    Math => values::math::DEFINITION,
+    Evaluate => values::evaluate::DEFINITION,
+    MathInput => inputs::math_input::DEFINITION,
+    ChoiceInput => inputs::choice_input::DEFINITION,
+    Choice => inputs::choice::DEFINITION,
     Circle => geometry::circle::DEFINITION,
-    Line => geometry::line::LINE,
-    LineSegment => geometry::segment::LINE_SEGMENT,
-    Polygon => geometry::polygon::POLYGON,
-    PointList => geometry::POINT_LIST,
-    P => containers::P,
-    ShortDescription => containers::SHORT_DESCRIPTION,
-    Error => containers::ERROR,
-    Hint => containers::HINT,
-    Setup => containers::SETUP,
-    StickyGroup => containers::STICKY_GROUP,
-    Function => values::curve::FUNCTION,
+    Line => geometry::line::DEFINITION,
+    LineSegment => geometry::segment::DEFINITION,
+    Polygon => geometry::polygon::DEFINITION,
+    PointList => geometry::point_list::DEFINITION,
+    P => containers::p::DEFINITION,
+    ShortDescription => containers::short_description::DEFINITION,
+    Error => containers::error::DEFINITION,
+    Hint => containers::hint::DEFINITION,
+    Setup => containers::setup::DEFINITION,
+    StickyGroup => containers::sticky_group::DEFINITION,
+    Function => values::curve::DEFINITION,
     Derivative => values::curve::DERIVATIVE,
-    Answer => values::answer::ANSWER,
-    Text => values::text::TEXT,
-    ConditionalContent => structure::conditional_content::CONDITIONAL_CONTENT,
-    Case => structure::CASE,
-    Select => structure::select::SELECT,
-    SelectFromSequence => structure::select_from_sequence::SELECT_FROM_SEQUENCE,
-    Group => containers::GROUP,
-    Section => containers::section::SECTION,
-    Title => containers::TITLE,
-    Ref => containers::REF,
-    List => containers::LIST,
-    ListItem => containers::LIST_ITEM,
-    InlineMath => containers::INLINE_MATH,
-    DisplayMath => containers::DISPLAY_MATH,
-    MathRow => containers::MATH_ROW,
-    Aside => containers::ASIDE,
-    SideBySide => containers::SIDE_BY_SIDE,
-    Stack => containers::STACK,
-    Tabular => containers::TABULAR,
-    Spreadsheet => containers::SPREADSHEET,
-    Row => containers::ROW,
-    Cell => containers::CELL,
-    Legend => containers::LEGEND,
-    TriggerSet => containers::TRIGGER_SET,
-    UpdateValue => values::UPDATE_VALUE,
-    ClampNumber => values::CLAMP_NUMBER,
-    Tuple => values::TUPLE,
-    RepeatFor => structure::repeat_for::REPEAT_FOR,
-    FunctionIterates => structure::function_iterates::FUNCTION_ITERATES,
-    Polyline => geometry::polyline::POLYLINE,
-    Boolean => values::boolean::BOOLEAN,
-    Award => values::award::AWARD,
-    When => values::when::WHEN,
-    Response => values::RESPONSE,
-    TextInput => inputs::text_input::TEXT_INPUT,
+    Answer => values::answer::DEFINITION,
+    Text => values::text::DEFINITION,
+    ConditionalContent => structure::conditional_content::DEFINITION,
+    Case => structure::case::DEFINITION,
+    Select => structure::select::DEFINITION,
+    SelectFromSequence => structure::select_from_sequence::DEFINITION,
+    Group => containers::group::DEFINITION,
+    Section => containers::section::DEFINITION,
+    Title => containers::title::DEFINITION,
+    Ref => containers::reference::DEFINITION,
+    List => containers::list::DEFINITION,
+    ListItem => containers::list_item::DEFINITION,
+    InlineMath => containers::inline_math::DEFINITION,
+    DisplayMath => containers::display_math::DEFINITION,
+    MathRow => containers::math_row::DEFINITION,
+    Aside => containers::aside::DEFINITION,
+    SideBySide => containers::side_by_side::DEFINITION,
+    Stack => containers::stack::DEFINITION,
+    Tabular => containers::tabular::DEFINITION,
+    Spreadsheet => containers::spreadsheet::DEFINITION,
+    Row => containers::row::DEFINITION,
+    Cell => containers::cell::DEFINITION,
+    Legend => containers::legend::DEFINITION,
+    TriggerSet => containers::trigger_set::DEFINITION,
+    UpdateValue => values::update_value::DEFINITION,
+    ClampNumber => values::clamp_number::DEFINITION,
+    Tuple => values::tuple::DEFINITION,
+    RepeatFor => structure::repeat_for::DEFINITION,
+    FunctionIterates => structure::function_iterates::DEFINITION,
+    Polyline => geometry::polyline::DEFINITION,
+    Boolean => values::boolean::DEFINITION,
+    Award => values::award::DEFINITION,
+    When => values::when::DEFINITION,
+    Response => values::response::DEFINITION,
+    TextInput => inputs::text_input::DEFINITION,
 }
 
 /// What the core knows about a type apart from how it is planned and
-/// expanded: one row per type in `COMPONENT_TYPES`, indexed by discriminant.
-pub struct ComponentTypeInfo {
+/// expanded: one row per type in `COMPONENT_DEFS`, indexed by discriminant.
+pub struct ComponentDef {
     /// The tag the type shows as, then other tags that make it.
     pub tags: &'static [&'static str],
     pub props: &'static [PropDef],
@@ -143,9 +145,8 @@ pub struct ComponentTypeInfo {
     /// so its documents resolve unchanged.
     pub alternate_names: &'static [(&'static str, &'static str)],
     pub flags: Flags,
-    /// How an element of the type is planned, when the type is defined
-    /// with `component!`; else `compile/planner.rs` says.
-    pub(crate) planner: Option<crate::compile::api::Planner>,
+    /// How an element of the type is planned.
+    pub(crate) planner: crate::compile::api::Planner,
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
@@ -212,8 +213,8 @@ pub struct Flags {
 }
 
 impl ComponentType {
-    pub fn info(self) -> &'static ComponentTypeInfo {
-        &COMPONENT_TYPES[self as usize]
+    pub fn def(self) -> &'static ComponentDef {
+        &COMPONENT_DEFS[self as usize]
     }
 
     pub fn from_tag(tag: &str) -> Option<Self> {
@@ -222,20 +223,20 @@ impl ComponentType {
         let by_tag = BY_TAG.get_or_init(|| {
             ComponentType::ALL
                 .iter()
-                .filter(|k| !k.info().flags.internal)
-                .flat_map(|&k| k.info().tags.iter().map(move |&t| (t, k)))
+                .filter(|k| !k.def().flags.internal)
+                .flat_map(|&k| k.def().tags.iter().map(move |&t| (t, k)))
                 .collect()
         });
         by_tag.get(tag).copied()
     }
 
     pub fn tag(self) -> &'static str {
-        self.info().tags[0]
+        self.def().tags[0]
     }
 
     /// Single-cell props, in declaration order.
     pub fn prop_defs(self) -> &'static [PropDef] {
-        self.info().props
+        self.def().props
     }
 
     pub fn prop_index(self, name: &str) -> Option<usize> {
@@ -245,7 +246,7 @@ impl ComponentType {
 
     /// A prop name with the current core's spellings mapped to ours.
     pub fn canonical_prop(self, name: &str) -> &str {
-        self.info()
+        self.def()
             .alternate_names
             .iter()
             .find(|(from, _)| *from == name)
@@ -255,11 +256,11 @@ impl ComponentType {
     /// A prop made of several single-cell props: one of the type's combined
     /// props, or an array item by name (`vertex3`, `point1`).
     pub fn combined_prop(self, name: &str) -> Option<&'static [&'static str]> {
-        let info = self.info();
-        if let Some((_, parts)) = info.combined_props.iter().find(|(v, _)| *v == name) {
+        let def = self.def();
+        if let Some((_, parts)) = def.combined_props.iter().find(|(v, _)| *v == name) {
             return Some(*parts);
         }
-        info.arrays.iter().find_map(|a| {
+        def.arrays.iter().find_map(|a| {
             let k: usize = name.strip_prefix(a.item)?.parse().ok()?;
             (1..=a.items.len())
                 .contains(&k)
@@ -280,12 +281,12 @@ impl ComponentType {
     }
 
     fn array(self, name: &str) -> Option<&'static ArrayProp> {
-        self.info().arrays.iter().find(|a| a.names.contains(&name))
+        self.def().arrays.iter().find(|a| a.names.contains(&name))
     }
 
     /// The type's list prop, if it has one.
     pub fn list(self) -> Option<&'static ListProp> {
-        self.info().list.as_ref()
+        self.def().list.as_ref()
     }
 
     /// Where the prop `name` is: a position in the table, or a point (or
@@ -348,23 +349,23 @@ impl ComponentType {
 
     /// The prop a bare `$name` reference resolves to.
     pub fn default_prop(self) -> Option<&'static str> {
-        self.info().default_prop
+        self.def().default_prop
     }
 
     /// Whether `$name` as a child may produce a copy of this component, and
     /// `<collect componentType>` name the type.
     pub fn copyable(self) -> bool {
-        self.info().flags.copyable
+        self.def().flags.copyable
     }
 
     /// Containers whose children are rendered; `extend` copies them deeply.
     pub fn container(self) -> bool {
-        self.info().flags.container
+        self.def().flags.container
     }
 
     /// Function, derivative and answer: planned as math cells.
     pub fn symbolic(self) -> bool {
-        self.info().flags.symbolic
+        self.def().flags.symbolic
     }
 
     /// The structural cell of a type built like a repeat (one scope per
@@ -379,7 +380,7 @@ impl ComponentType {
     }
 
     pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, StickyPoints)> {
-        self.info().sticky
+        self.def().sticky
     }
 }
 

@@ -3,27 +3,34 @@
 //! constraint child wraps them in a projection.
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 use crate::program::{SymKind, VecOp};
 use crate::tick::snap::Shape;
 
-/// `<point>`. `coords` combines `x` and `y`.
-pub(in crate::components) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)
-    .copyable()
-    .default_prop("coords")
-    .combined_props(&[("coords", &["x", "y"])])
-    .sticky(Shape::Point, X, 1);
-
-// `hide` is a boolean in the current core; here it is a 0/1 cell.
-const POINT_PROPS: &[PropDef] = &props([by_planner("x"), by_planner("y"), by_planner("hide")]);
-
-typed_props!(POINT_PROPS { x, y, hide } shared_state {
-    // The coordinates, when they are the point's own state.
-    X, Y,
-});
+component! {
+    /// `<point>`. `coords` combines `x` and `y`.
+    tags: ["point"],
+    flags: [copyable],
+    default_prop: coords,
+    props {
+        x: by_planner,
+        y: by_planner,
+        // A boolean in the current core; here a 0/1 cell.
+        hide: by_planner,
+    }
+    combined_props {
+        coords: [x, y],
+    }
+    sticky_points: (Shape::Point, X, 1),
+    shared_state {
+        // The coordinates, when they are the point's own state.
+        X, Y,
+    }
+    planner: Geometric(plan),
+}
 
 pub const X: usize = Props::AT.x;
 pub const Y: usize = Props::AT.y;

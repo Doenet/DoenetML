@@ -1,23 +1,27 @@
 //! `<text>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
-/// `<text>` with literal content: `value` is a fixed cell holding the
-/// string id of its text (ADR 0009). A cell's meaning is a property of
-/// the operators around it, so a text value never reaches a numeric one.
-pub(in crate::components) const TEXT: ComponentTypeInfo =
-    info(&["text"], TEXT_PROPS).copyable().default_prop("value");
-
-const TEXT_PROPS: &[PropDef] = &props([children("value")]);
-
-typed_props!(TEXT_PROPS { value } shared_state {
-    // The value, when it is the text's own state.
-    VALUE,
-});
+component! {
+    /// `<text>` with literal content: `value` is a fixed cell holding the
+    /// string id of its text (ADR 0009). A cell's meaning is a property of the
+    /// operators around it, so a text value never reaches a numeric one.
+    tags: ["text"],
+    flags: [copyable],
+    default_prop: value,
+    props {
+        value: children,
+    }
+    shared_state {
+        // The value, when it is the text's own state.
+        VALUE,
+    }
+    planner: Whole(plan),
+}
 
 pub const VALUE: usize = Props::AT.value;
 

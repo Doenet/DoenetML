@@ -225,6 +225,13 @@ case), carry every piece before other components follow:
    most within 0.6%; `packages/benchmark/scripts/perf-diff.sh` tick and
    memory unchanged, its load ratios within run-to-run noise (0.94 to
    1.09 across reruns).
+   A type's whole definition is one `component!` block
+   (`components/define.rs`): tags, flags, props (each named once, as an
+   identifier), combined props, list, alternate names, shared state and
+   planner. It makes the definition row (`ComponentDef`), which carries
+   the planner, so `compile/planner.rs` is only the planner kinds; the
+   table, the typed plan and the shared state. A type with no file of its
+   own has an inline module in its family's `mod.rs`.
    The test-only `<op>` tag, which named an operator directly, and the
    `derived` prop source behind it are gone: tests and golden documents
    reach operators through math (`<number>2 * $a</number>` is

@@ -1,20 +1,24 @@
 //! `<polyline>`: its definition and its planner (ADR 0016).
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
 use crate::error::{Error, Result};
 
-/// `<polyline vertices="$r">`: its children are copies of the points
-/// `vertices` names (a repeat's points, gathered as a `<collect>` does),
-/// so its length follows the repeat. `numVertices` counts them. Only
-/// drawn: dragging a polyline is not supported.
-pub(in crate::components) const POLYLINE: ComponentTypeInfo =
-    info(&["polyline"], POLYLINE_PROPS).copyable();
+component! {
+    /// `<polyline vertices="$r">`: its children are copies of the points
+    /// `vertices` names (a repeat's points, gathered as a `<collect>` does), so
+    /// its length follows the repeat. `numVertices` counts them. Only drawn:
+    /// dragging a polyline is not supported.
+    tags: ["polyline"],
+    flags: [copyable],
+    props {
+        numVertices: by_planner,
+    }
+    planner: Whole(plan),
+}
 
-const POLYLINE_PROPS: &[PropDef] = &props([by_planner("numVertices")]);
-
-pub const NUM_VERTICES: usize = at(POLYLINE_PROPS, "numVertices");
+pub const NUM_VERTICES: usize = Props::AT.numVertices;
 
 /// Gathers the points under what `vertices` names, as
 /// `<collect componentType="point">` would; `numVertices` is set when it
