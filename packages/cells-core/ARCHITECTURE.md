@@ -1,178 +1,253 @@
 # Architecture
 
-A DoenetML core organized around a flat array of `f64` **cells** rather than
-around components. Components and props are a naming layer over cell
-indices; the dependency graph is a list of **instructions**, each an
-operator that computes derived cells from other cells and may carry an
-inverse. This file is the map. `CONTEXT.md` defines the vocabulary,
-`docs/adr/` records why things are the way they are. The core was built in
-numbered rounds (plans 2 to 8) before it joined this repository; where an
-ADR or a comment cites a plan by number, it means that round's brief and
-measurements, which are not in this repository.
+This is the map of the cells core. `CONTEXT.md` defines the vocabulary and
+`docs/adr/` records why things are the way they are. Unless a path says
+otherwise, it is relative to `crates/cells-core/src/`.
+
+The core was built in numbered rounds (plans 2 to 8) before it joined this
+repository. Where an ADR or a comment cites a plan by number, it means that
+round's brief and measurements, which are not in this repository.
+
+## The idea
+
+Most cores are organized around components, each holding its own state
+variables. This one is organized around data:
+
+- **Cells.** All document state is one flat array of `f64`. A cell may stand
+  for a number, a boolean, a string id or a handle into the symbolic engine.
+  Every cell is *essential* (independent state, the only thing a write can
+  land on), *fixed*, or *derived* (computed from other cells).
+- **Instructions.** The dependency graph is a list of instructions, each an
+  operator bound to its input cells and the cell(s) it writes. Operators may
+  carry an inverse, so a request to change a derived cell can be pushed back
+  to essential cells.
+- **Components and props are only names.** A prop maps to one cell or a list
+  of cells; two props that are equal by construction (a reference, a copy)
+  share one cell. Components are not nodes in the graph.
+
+The work splits by when it happens:
+
+- **Build time** does all the string work and all the reasoning about the
+  document's shape: parse, compile, build, schedule.
+- **Tick time** handles a request from a renderer. It only reads the
+  scheduled program and writes cells. It never consults components, tag
+  names or the DAST, with one exception: snapping a sticky group reads the
+  component table (`document/sticky.rs`).
 
 ## The pipeline
 
 ```
  DoenetML source
-       │  @doenet/parser (scripts/parse-dast.mjs) → JSON or binary CDST
-       ▼
- ┌───────────┐
- │ dast/     │  Dast: flat, columnar nodes and one string table
- └─────┬─────┘
-       ▼
- ┌─────────────────────────────┐
- │ compile/   plan: DAST →     │  once per load (ADR 0015); uses components/
- │            templates, plans │
- │            check: probe,    │  every error found here (ADR 0014)
- │            box, lint        │
- └─────────────┬───────────────┘
-               │ Compiled (kept for rebuilds)
-               │                    ┌──────────────── rebuild ───────────────┐
-               ▼                    │                                        │
- ┌──────────────────────────────────┴┐                                       │
- │ build/     reads the Session      │  at load and on every count change    │
- │  expand/   templates →            │  once per scope (document, iterations)│
- │            components, slots      │                                       │
- │  emit.rs   slots → cells,         │                                       │
- │            instructions           │                                       │
- └─────────────┬─────────────────────┘                                       │
-               │ BuildOutput                                                 │
-               ▼                                                             │
- ┌─────────────────────────────┐                                             │
- │ program/   schedule:        │  Program: instructions in evaluation order  │
- │            topological sort │                                             │
- └─────────────┬───────────────┘                                             │
-               ▼                                                             │
- ┌─────────────────────────────┐   a repeat count changed: build again ──────┘
- │ document/  Document         │   (the same Compiled, the Session)
- │  cells + program +          │
- │  component table + DAST     │◄──── Request / PointRequest from a renderer
- └─────────────┬───────────────┘
-               │ request()
-               ▼
- ┌─────────────────────────────┐
- │ tick/  sticky snap → invert │  → TickOutcome: changed cells, dropped
- │        → recompute          │    requests, whether it rebuilt
- └─────────────────────────────┘
+   │  @doenet/parser (scripts/parse-dast.mjs) → JSON or binary
+   ▼
+ dast/       Dast: flat, columnar nodes and one string table
+   │
+   ▼
+ compile/    plan: DAST → templates with a plan per prop   once per load
+             check: find every error, box failing elements
+   │
+   │ Compiled (kept by the document for rebuilds)
+   ▼
+ build/      expand: templates → components, slots         per structure
+             emit:   slots → cells, instructions                ▲
+   │                                                            │
+   │ BuildOutput                                                │
+   ▼                                                            │
+ program/    schedule: topological sort → Program               │
+   │                                                            │
+   ▼                                                            │
+ document/   Document: cells, program, component table          │
+   │            ▲                                               │
+   │            └── Request / PointRequest from a renderer      │
+   ▼                                                            │
+ tick/       snap → invert → recompute  → TickOutcome           │
+                 a repeat's count changed: build again ─────────┘
 ```
 
-The work splits by when it happens. **Build time** (`dast`, `components`,
-`build`, `program`) does all the string work and all the reasoning about
-the document's shape. **Tick time** (`tick`) only reads the scheduled
-`Program` and writes cells. A tick never consults components, tag names or
-the DAST, with one exception: the sticky-group pre-pass reads the
-component table (`document/sticky.rs`).
+### Parse (`dast/`)
+
+The JavaScript parser `@doenet/parser` turns source into a DAST. The core
+loads it as JSON (`dast/json.rs`) or in a binary wire format
+(`dast/binary.rs`, ADR 0002) into a `Dast`: parallel arrays indexed by
+`NodeId` and one string table.
+
+### Compile (`compile/`, ADR 0015)
+
+Runs once per load and depends on the source alone.
+
+- **Lint** (`lint.rs`) is one walk over the DAST for the rules that need
+  nothing else, such as the accessibility rules.
+- **Plan** walks the DAST and produces a `Template` for the document, each
+  repeat body and each choice branch. Every prop and every reference in a
+  template has a *plan*: a literal, a default, an operator over references,
+  a math expression, or a reference path. Nothing in a plan names an
+  iteration, so string work happens once per template element, not once per
+  stamped copy. Each element is planned by its component type's planner
+  (see [Add a component type](#add-a-component-type)).
+- **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
+  can have. For a document with repeats or selects, it builds the plans once
+  through the **probe** (`build/probe.rs`), which folds every iteration into
+  one and builds every option of every select, so its graph holds every
+  edge any count or pick could create. It rejects any dependency loop that
+  could close at some count, then discards that build. A document without
+  repeats or selects is checked by its single real build, which the load
+  keeps. An element that fails to build is *boxed*; see
+  [An element cannot be built](#an-element-cannot-be-built).
+
+The result is `Compiled` (`plan.rs`): the templates, their plans and the
+source's diagnostics.
+
+### Build (`build/`)
+
+Turns the compile into cells and instructions for one particular
+structure: a particular iteration count for every repeat and a particular
+draw for every select.
+
+- **Expand** (`build/expand/`) stamps each template into components once per
+  *scope* (the document, and each iteration of each repeat) and resolves
+  references to slots.
+- **Emit** (`build/emit.rs`) merges aliased slots into cells with a
+  union-find, numbers the cells (essential, then fixed, then derived) and
+  binds operators to them as instructions.
+
+A build learns the document's structure only through the **structure view**
+(`View`, `build/view.rs`): iteration counts, which iteration or item an
+index names, a collect's count, a select's options. A real build uses the
+`Stamped` view, which answers from the counts it was asked for; the check
+uses the probe. Because the cycle check reasons about the probe, any
+structural read that bypasses the view is one the cycle check cannot see.
+
+A build reads the `Session` (`session.rs`) and returns the next one. The
+session is everything that survives across builds: the scope table, every
+essential value keyed by (scope, template slot), runtime strings, the
+random seed and the math engine. Since the old session is untouched until
+a build succeeds, a failed rebuild leaves the document as it was.
+
+### Schedule (`program/`)
+
+`BuildOutput::schedule` sorts the instructions topologically
+(`Program::schedule`) into a `Program` and produces a `Document`.
+
+### Document (`document/`)
+
+A `Document` is a loaded document: the cells, the program, the
+`ComponentTable`, the string table, and the source's literal attributes for
+a renderer. It is the API that the wasm binding and the tests use.
+
+### Tick (`tick/`)
+
+Handles a request: snap, invert, write essential cells, recompute what is
+downstream, and report a `TickOutcome`. See
+[A user drags a point](#a-user-drags-a-point).
+
+## What happens when…
+
+### A document loads
+
+`Document::load` (`document/load.rs`):
+
+1. The bytes become a `Dast`.
+2. The compile runs once: lint, plan, check.
+3. Builds run from the compile, each at the counts it is asked for, until
+   the structure settles. After each build the document computes every
+   derived cell once; if a repeat's `count` cell now disagrees with the
+   number of iterations it was built with, the build runs again at the new
+   counts. `LoadTimings::passes` records how many builds it took.
+
+### A user drags a point
+
+`Document::request` and its variants (`document/request.rs`):
+
+1. The renderer sends requests addressed by cell index (ADR 0001).
+   Infinite values are dropped.
+2. Requests on members of a sticky group are snapped (`document/sticky.rs`,
+   `tick/snap.rs`, ADR 0007).
+3. `tick::invert::invert_requests` walks each request backwards through the
+   inverses of the instructions that produced its cell, until it lands on
+   essential cells. Dragged point groups are kept together (ADR 0003,
+   ADR 0006).
+4. The essential writes are applied and the document's `Evaluator`
+   (`tick/eval.rs`) recomputes. By default this is `DirtyClosure`, which runs
+   only the instructions downstream of a changed cell; `FullRecompute` runs
+   all of them and can be selected with `set_evaluator`.
+5. The `TickOutcome` lists the cells that changed and the requests that
+   were dropped.
+
+### A repeat's count changes
+
+When a tick leaves a structural cell, such as a repeat's count, out of step
+with the structure, it calls `Document::rebuild` (ADR 0004). This builds the
+whole document again from the `Compiled` kept at load, at the counts the
+count cells now hold. No lint, plan or check runs again.
+
+Because scope ids are stable, an iteration that comes back gets its old
+essential values, and its nested repeats get the counts they last asked for
+(`Session::counts`), so a rebuild usually settles in one pass. In the
+outcome, `rebuilt` is set (cell indices are new), and
+`rebuild_passes` says how many builds it took. If the rebuild fails, the
+document is unchanged and `rebuild_error` says why.
+
+### An element cannot be built
+
+Errors are a build product, not a failure (ADR 0013). When the compiler or
+builder raises an error, it records the innermost element it concerns. The
+check *boxes* that element: it recompiles as an `_error` element with no
+name, children or props, and the check builds again until every element
+builds. Only an error with no element to box, a dependency cycle, fails the
+load.
+
+`Document::diagnostics` lists, in node order, the lint findings plus the
+errors and warnings of the elements that built.
+
+Every error depends on the source alone (ADR 0014), and the probe stands
+for every count and every pick, so the check finds every error at load.
+Later builds never find a new one: a build's error type
+(`build::BuildError`) has no variant for an author's mistake, and a build
+that hits one anyway fails with `BuildError::Unchecked` instead of boxing
+mid-session.
+
+### The language server asks for diagnostics
+
+`diagnose` (`compile/check.rs`) runs the compile's check without loading a
+document. Its result is a function of the DAST alone, at any seed and any
+count, and equals what a load reports.
+
+### An answer is submitted
+
+`Document::submit` (`document/sections.rs`) is an ordinary request: it copies
+the response into the answer's `submitted` cell, and credit recomputes
+through the cells that `build/expand/scoring.rs` wired.
 
 ## The main types
 
 | Type | Where | What it is |
 |---|---|---|
-| `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. Loaded from JSON (`json.rs`) or the binary wire format (`binary.rs`, ADR 0002). |
-| `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each component type's props, where each prop's value comes from (attribute, default, computed from other props, or set by its planner), its flags and its planner. The list of types is `component_types!` in `mod.rs`; each type's definition is one `component!` block in its family's directory (`containers/`, `geometry/`, `inputs/`, `structure/`, `values/`): a type with a planner of its own in a file with its planner (`geometry/circle.rs`), the rest in inline modules of the family's `mod.rs`. |
-| `Compiler`, `Compiled`, `Template` | `compile/` | The compile stage (ADR 0015): its state and output: one template per repeat body, choice branch and the document, with a *plan* for every prop and reference. Nothing in a plan names an iteration. |
-| `Builder` | `build/expand/mod.rs` | The state of expand and emit: components and slots per scope, then cells and instructions. |
-| `View`, `Stamped` | `build/view.rs` | The structure view, the one interface through which a build learns iteration counts, indexed referents, a collect's count and a select's options. `Stamped` answers from the counts a build is asked for; the cycle check's probe (`build/probe.rs`) folds every iteration into one. A structural read that bypasses it is one the cycle check cannot model. |
-| `BuildOutput` | `build/mod.rs` (`build::build`) | Cells, instructions and the component table, before scheduling. `schedule` turns it into a `Document`. |
-| `Compiled` | `compile/plan.rs` | The compile (ADR 0015): templates, plans, the source's diagnostics. Made once per load; kept by a document with a repeat for its rebuilds. |
-| `Session`, `Counts`, `Structure` | `session.rs`, `build/structure.rs` | What survives every build: the scope table, every essential value by (scope, template slot), parked restored values, runtime strings, the seed, the math engine (`Session`); the counts a build stamps (`Counts`); what one build made: its repeats and its essential cells' keys (`Structure`). A build reads the session and returns the next one, so a failed rebuild leaves the document as it was. |
-| `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a bound operator with its evaluation and inverse; vector operators (`vector.rs`) read and write several cells; symbolic ones call the math engine. `Program::value_types` records each cell's value type (`ValueType`): number, text (a string id) or math (a handle). |
-| `Document` | `document/mod.rs` | A loaded document: `cells`, `program`, `components` (the `ComponentTable`), the string table, its `Structure`, and the source's literal attributes (`LiteralAttrs`, `dast/attrs.rs`) for a renderer; the DAST itself only through the compile a document with repeats keeps. The API a renderer or test uses. |
-| `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells: its type table's, then two per point of its list prop (ADR 0016), up to the next component's `prop_base`. What references and the renderer read. |
+| `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
+| `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (attribute, default, computed, or its planner), its flags and its planner. |
+| `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
+| `View`, `Stamped` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options. The probe (`build/probe.rs`) is the other implementation. |
+| `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
+| `Session` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine. |
+| `Counts`, `Structure` | `build/structure.rs` | The counts a build stamps, and what one build made (its repeats and its essential cells' keys). |
+| `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. `Program::value_types` records whether each cell holds a number, text or math. |
+| `Document` | `document/mod.rs` | A loaded document and the API to it. |
+| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the range of cells holding each one's props (starting at `prop_base`; ADR 0016). What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
-| `Diagnostic`, `Kind` | `diagnostics.rs` | What the build reports beyond cells (ADR 0013): kind, code, message, the DAST node. `Error::code` maps an error to its code; `compile/lint.rs` finds the ones that are facts about the DAST alone. |
-| `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. A document holds a `Recompute` (the dirty closure unless `set_evaluator` says otherwise), so tests tick as the browser does. |
-| `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells, math-expressions-rs called directly (ADR 0008, ADR 0011): a math cell holds a `Handle` into it. `Tree` is the builder's expression; `Tape` (`sym/tape.rs`) is a curve of fixed shape compiled to numeric steps. |
-
-## What happens when…
-
-**A document loads** (`Document::load`, `document/load.rs`). The bytes become
-a `Dast`. Then `compile::compile` runs once: **plan** walks the DAST and plans
-every element with the planner `planner.rs` names for its type, a
-function in the type's file under `components/` given a `PlanCtx`
-(`compile/mod.rs`; attributes and math in `attrs.rs`, references in
-`refs.rs`, what shapes share in `geometry/`, choices in `choice.rs`,
-answers in `answer.rs`). Expand and emit learn the document's structure only through
-the **structure view** (`View`, `build/view.rs`): how many iterations a
-repeat is stamped with, which iteration, item or pick an index names, what
-a collect's count is, which options a select builds. With a repeat present,
-the compile's **check** (`compile/check.rs`, ADR 0012, ADR 0014) builds the
-document through the probe view (`build/probe.rs`), which folds every iteration into one and labels
-each reference edge with how it moves through the iterations, rejects a
-dependency loop that closes at any iteration count, and discards that
-build; without one, the one stamped build is the check and the load keeps
-it. Then **builds** (`build::build`) run from the compile until the
-structure settles, each reading the counts it is asked for through the
-`Stamped` view. **Expand** stamps each template into components once per
-scope and resolves references to slots (`build/expand/`). **Emit** merges
-aliased slots into cells with a union-find, numbers cells (essential,
-fixed, then derived) and binds operators into instructions
-(`build/emit.rs`). `BuildOutput::schedule` sorts the instructions
-topologically (`Program::schedule`), and the document computes every
-derived cell once. If a repeat's `count` cell now disagrees with the number
-of iterations it was built with, the build runs again at the new counts;
-`LoadTimings::passes` counts how many builds it took.
-
-**A user drags a point** (`Document::request` and friends,
-`document/request.rs`). The renderer sends cell-addressed requests
-(ADR 0001). Infinite values are dropped. Requests on a sticky group's
-members are snapped (`document/sticky.rs`, `tick/snap.rs`, ADR 0007).
-`tick::invert::invert_requests` walks requests backwards through the
-producing instructions' inverses until they land on essential cells,
-keeping dragged point groups together (ADR 0003, ADR 0006). The essential
-writes are applied, and the document's evaluator recomputes what is
-downstream: the dirty closure, whose tables are built on the first tick
-and dropped by a rebuild, which keeps the choice of strategy. The
-`TickOutcome` lists the cells that changed and the requests that were
-dropped.
-
-**A structural cell changes**, such as a repeat's count. The tick finds the
-structure unsettled after recomputing and calls `Document::rebuild`, which
-builds the whole document again from the compile it kept at load
-(`Document::compiled`, ADR 0015) at the counts the count cells hold,
-reading the document's `Session` (ADR 0004): no compile, lint or check runs
-again, and nothing leaves the document until the new one is ready (the
-math engine, which the session holds, may grow). Scope ids are stable, so an iteration that comes
-back gets its old values, and its nested repeats the counts they last
-asked for (`Session::counts`), so the rebuild settles in one pass;
-`TickOutcome::rebuild_passes` says how many it took. The outcome's `rebuilt` is set and cell indices
-are new. If the rebuild fails, the document is left as it was and
-`rebuild_error` says why.
-
-**An element cannot be built** (ADR 0013). The compiler or the builder
-raises an error and records the innermost element it is about;
-`compile::compile` (`compile/check.rs`) boxes that node, so it compiles as an
-`_error` element with no name, no children and no props, and builds
-again until every element builds. The findings of `lint` (`compile/lint.rs`, one
-walk over the DAST before any compile: the accessibility rules), the
-errors and the warnings of the elements that built are
-`Document::diagnostics`, in node order; the errors seed the boxes of
-every rebuild. An error with no element, a cycle, still fails the load.
-Only a document's first build finds errors (ADR 0014; `compile::compile`
-compiles and boxes, `build::build` only stamps):
-every error depends on the source alone, so the probe, standing for every
-count and every pick, finds them all at load, and a later build that
-finds one fails with `BuildError::Unchecked` rather than boxing mid-session:
-a build's error type (`build::BuildError`) has no variant for an author's
-error.
-
-**The language server asks for every diagnostic** (`diagnose`,
-`compile/check.rs`): the compile's check without the load, through the
-same probe, which builds every option of every select. Its list is a
-function of the DAST alone, at any seed and any count, and equals a
-load's (ADR 0014's amendment).
-
-**An answer is submitted** (`Document::submit`, `document/sections.rs`). This
-is an ordinary request: the response handle is copied into the answer's
-`submitted` cell, and credit recomputes through the cells that
-`build/expand/scoring.rs` wired.
+| `Evaluator` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`. |
+| `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
+| `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells: math-expressions-rs called directly (ADR 0008, ADR 0011). A math cell holds a handle into it. `Tape` compiles a curve of fixed shape to numeric steps. |
 
 ## Where to change things
 
-**Add a component type.** A type is one `component!` block
-(`components/define.rs`) in one of the family directories in
-`components/` (`containers/`, `geometry/`, `inputs/`, `structure/`,
-`values/`). A type planned from its table alone goes in an inline module
-of the family's `mod.rs`:
+### Add a component type
+
+A component type is one `component!` block (`components/define.rs`) in one
+of the family directories under `components/`: `containers/`, `geometry/`,
+`inputs/`, `structure/` or `values/`.
+
+**A type built entirely from its prop table** (attributes, children,
+defaults, and operators over its own props) goes in an inline module of the
+family's `mod.rs`:
 
 ```rust
 pub mod clamped {
@@ -195,60 +270,69 @@ pub mod clamped {
 }
 ```
 
-Then add one line to the `component_types!` list in `components/mod.rs`
-(`Clamped => values::clamped::DEFINITION,`). If code reads a prop by
-position, name it in the module (`pub const VALUE: usize =
-Props::AT.value;`) and re-export the module from `components/prop.rs`.
+Then register it with one line in the `component_types!` list in
+`components/mod.rs`: `Clamped => values::clamped::DEFINITION,`. Nothing else
+is needed; a request on `clamped` inverts through the operators' own
+inverses. If other code reads a prop by position, name it in the module
+(`pub const VALUE: usize = Props::AT.value;`) and re-export the module from
+`components/prop.rs`.
 
-A type whose props are attributes, children, defaults or chains of
-operators over its other props needs nothing else: a request on `clamped`
-inverts through the chain by the operators' own inverses. A type whose
-wiring depends on which attributes the author gave names a planner of its
-own in its block: `planner: Geometric(plan)` for a shape, `PropsThen(plan)`
-to adjust the table's plan, or `Whole(plan)`. It lives in a file of its
-own in its family's directory, the block and the planner together
-(`values/text.rs`, registered as `values::text::DEFINITION`), and uses only
-what `compile/api.rs` exports: it is a function given a `PlanCtx`, which
-reads the source, plans the attributes and children it asks for, and
-writes the element's plan (ADR 0016). `components/geometry/circle.rs` and
-`line.rs` are the models. A type built on shared machinery has a thin
-planner that names it (`values/answer.rs`, `structure/select.rs`), and
-keeps its own decisions (what it refuses) in its file.
+**A type whose wiring depends on which attributes the author gave** names a
+planner of its own as the block's last section:
 
-The block gives the planner its typed plan, `Props`: a planner returns its
-props as a `Props<Wire>` struct literal, each slot's plan with the
-shared state it holds, if any (`ElemWiring::set_public`), and nothing sets a
-slot by position; a `PropsThen` planner reaches the table's plan through
-`Props::AT`. The type's shared state, which a copy shares with its
-original unless it overrides it, is declared in the block too
-(`shared_state { CX, CY, R }`, `CONTEXT.md`). A combination of attributes
-a planner cannot honor is a warning (`PlanCtx::warn`), never a silent NaN.
-What two planners both need belongs in `compile/` behind `api.rs`, once,
-not copied into each; what a family's members share as behavior is in the
-family's `mod.rs`. The renderer side is in
-`packages/cells-viewer/src/renderers/`.
+- `Geometric(plan)` for a shape,
+- `PropsThen(plan)` to adjust the plan the prop table produces (reached
+  through `Props::AT`),
+- `Whole(plan)` to plan the element entirely.
 
-**Add an operator.** Add one entry to `scalar_ops!` in
-`program/scalar.rs` (ADR 0016): its inputs and literal parameters, its
-evaluation, and its inverse, declared `exact`, `projection` or `drops`.
-A document reaches it through a component's table or planner, or
-through math lowering (`build/expand/math.rs`). The macro
-(`program/ops.rs`) makes the `Op` and `OpSpec` variants and every arm; `program::scalar::inverses`
-checks the inverse against what the entry declares, over a fixed table
-of values and the entry's parameter `samples`. Multi-cell operators are
-`VecOp`s in `program/vector.rs`.
+Such a type lives in its own file, block and planner together (for
+example `values/text.rs`, registered as `values::text::DEFINITION`).
+`geometry/circle.rs` and `geometry/line.rs` are the models. A planner is a
+function given a `PlanCtx`: it reads the source, plans the attributes and
+children it asks for, and returns its props as a `Props<Wire>` struct
+literal (ADR 0016). Rules for planners:
 
-**Change how a request inverts.** Scalar inverse rules are `Op::invert`;
-vector rules are `VecOp::invert`; the engine that orders requests and keeps
-point groups together is `tick/invert.rs`.
+- Use only what `compile/api.rs` exports. Logic two planners both need
+  belongs in `compile/` behind `api.rs`, once. Behavior a family shares
+  belongs in the family's `mod.rs`.
+- A type built on shared machinery (answers, selects) has a thin planner
+  that names that machinery and keeps its own decisions, such as what it
+  refuses, in its file (`values/answer.rs`, `structure/select.rs`).
+- Declare the type's *shared state*, which a copy shares with its original
+  unless it overrides it, in the block (`shared_state { CX, CY, R }`; see
+  `CONTEXT.md`).
+- A combination of attributes the planner cannot honor is a warning
+  (`PlanCtx::warn`), never a silent NaN.
 
-**Change what a renderer reads.** The wasm binding is
-`crates/cells-wasm/src/lib.rs` (zero-copy views of the cells and component
-table, ADR 0001); the React side is `packages/cells-viewer/src/`. The core
-runs on the main thread. Graphs are JSXGraph boards
-(`renderers/jsxgraph/`, ADR 0010) whose elements read cells directly and
-redraw once per tick (`CellStore.subscribeTickEnd`); Doenet's styling is
-copied into `jsxgraph/doenet.ts`.
+The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
+
+### Add an operator
+
+Add one entry to `scalar_ops!` in `program/scalar.rs` (ADR 0016) giving its
+inputs and literal parameters, its evaluation, and its inverse, declared
+`exact`, `projection` or `drops`. The macro (`program/ops.rs`) generates the
+`Op` and `OpSpec` variants and every match arm. The tests in
+`program::scalar::inverses` check each inverse against what its entry
+declares, over a fixed table of values and the entry's parameter `samples`.
+
+A document reaches an operator through a component's prop table or planner,
+or through math lowering (`build/expand/math.rs`). Operators over several
+cells are `VecOp`s in `program/vector.rs`.
+
+### Change how a request inverts
+
+Scalar inverse rules are `Op::invert`, vector rules `VecOp::invert`. The
+engine that orders requests and keeps point groups together is
+`tick/invert.rs`.
+
+### Change what a renderer reads
+
+The wasm binding is `crates/cells-wasm/src/lib.rs`; it exposes zero-copy
+views of the cells and the component table (ADR 0001). The React side is
+`packages/cells-viewer/src/`, and the core runs on the main thread. Graphs
+are JSXGraph boards (`renderers/jsxgraph/`, ADR 0010) whose elements read
+cells directly and redraw once per tick; Doenet's styling is copied into
+`jsxgraph/doenet.ts`.
 
 ## The other crates
 
@@ -256,31 +340,29 @@ copied into `jsxgraph/doenet.ts`.
 - `crates/cells-docgen`: the synthetic DoenetML generator behind the
   fixtures.
 - `crates/cells-bench`: fixture helpers, the `stats` binary, and the
-  `golden` example that dumps behavior for `scripts/golden-diff.sh`.
-  Performance is measured across cores by `packages/benchmark`.
+  `golden` example behind `scripts/golden-diff.sh`. Performance across
+  cores is measured in `packages/benchmark`.
 
 ## Checking a change
 
-`cargo test` runs the unit and integration tests. Many of them check the
-scheduled program against `testing/reference.rs`, a naive recursive
-evaluator that does not use the schedule.
-`tests/specs/` holds the component specs (ADR 0016, `testing/spec.rs`):
-per component, `spec!` cases of DoenetML, requests and the values an
-author sees after each, every one also checked against the reference
-evaluator and against the component's cost snapshot
-(`tests/specs/snapshots/`); `SPEC_UPDATE=1` rewrites a snapshot, whose
-change is reviewed with the change that made it.
-`tests/every_count.rs` builds every golden document and fixture at
-iteration counts 0 to 4 and four seeds and checks that a document the
-cycle check passed never fails a build with a cycle or an unsettled
-structure. Every one of those builds, and every seed's build of a document
-without repeats, is also checked against the probe's graph
-(`build/coverage.rs`): each dependency it has must be one the probe has,
-with a label its iterations satisfy. That checks the conventions the
-compile's cycle check rests on (every structural read goes through the
-view, every indexed edge is labelled right) directly, instead of waiting
-for a missed cycle.
-`scripts/golden-diff.sh [base]` compares every component's props, after load
-and after a fixed script of requests, against a base commit, and
-`packages/benchmark/scripts/perf-diff.sh [base]` compares speed. A refactor
-should leave the golden diff identical.
+- `cargo test` runs the unit and integration tests. Many check the scheduled
+  program against `testing/reference.rs`, a naive recursive evaluator that
+  ignores the schedule.
+- `tests/specs/` holds the component specs (`testing/spec.rs`, ADR 0016).
+  Each `spec!` case gives DoenetML, a sequence of requests, and the values an
+  author should see after each. Every case is also checked against the
+  reference evaluator and the component's cost snapshot in
+  `tests/specs/snapshots/`. `SPEC_UPDATE=1` rewrites a snapshot; review the
+  change alongside the code that caused it.
+- `tests/every_count.rs` builds every golden document and fixture at
+  iteration counts 0 to 4 and four seeds, and checks that a document that
+  passed the cycle check never fails a build with a cycle or an unsettled
+  structure. It also checks each build against the probe's graph
+  (`build/coverage.rs`): every dependency must be one the probe has, with a
+  label its iterations satisfy. This tests the assumptions the cycle check
+  rests on directly, instead of waiting for a missed cycle.
+- `scripts/golden-diff.sh [base]` compares every component's props, after
+  load and after a fixed script of requests, against a base commit. A
+  refactor should leave it identical.
+- `packages/benchmark/scripts/perf-diff.sh [base]` compares speed against a
+  base commit.
