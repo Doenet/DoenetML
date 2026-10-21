@@ -44,7 +44,7 @@ typed_props!(LINE_PROPS {
     coeffvar2,
     coeff0,
     basedOnDirection,
-} roles {
+} shared_state {
     // The second point's distance along a slope or direction.
     DIST,
     // A missing point's coordinates.
@@ -136,16 +136,26 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         return Ok(ch);
     }
 
-    let first_default = ([roles::ESS1X, roles::ESS1Y], DEFAULT_FIRST_POINT);
-    let second_default = ([roles::ESS2X, roles::ESS2Y], DEFAULT_SECOND_POINT);
+    let first_default = (
+        [shared_state::ESS1X, shared_state::ESS1Y],
+        DEFAULT_FIRST_POINT,
+    );
+    let second_default = (
+        [shared_state::ESS2X, shared_state::ESS2Y],
+        DEFAULT_SECOND_POINT,
+    );
     // First point: a through point or the essential default, which the
     // current core takes as (1, 0) for a two-point line and (0, 0) when a
     // slope or direction gives the second point.
     let direction_mode = through.len() < 2 && by_direction;
     let [x1, y1, x2, y2, based_on_direction] = if direction_mode {
-        let [x1, y1] =
-            Planned::point_or_default(through.first(), point_roles(0), "through", second_default);
-        let dist = ch.essential(roles::DIST, 1.0);
+        let [x1, y1] = Planned::point_or_default(
+            through.first(),
+            shared_point_state(0),
+            "through",
+            second_default,
+        );
+        let dist = ch.essential(shared_state::DIST, 1.0);
         let [x2, y2] = if let Some(m) = ctx.scalar("slope")? {
             let m = ch.hidden(m);
             ElemPlan::vector(
@@ -170,10 +180,18 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     } else {
         // The line's points are the through points (or essential
         // defaults) themselves; a whole-line drag is a point group.
-        let [x1, y1] =
-            Planned::point_or_default(through.first(), point_roles(0), "through", first_default);
-        let [x2, y2] =
-            Planned::point_or_default(through.get(1), point_roles(1), "through", second_default);
+        let [x1, y1] = Planned::point_or_default(
+            through.first(),
+            shared_point_state(0),
+            "through",
+            first_default,
+        );
+        let [x2, y2] = Planned::point_or_default(
+            through.get(1),
+            shared_point_state(1),
+            "through",
+            second_default,
+        );
         [x1, y1, x2, y2, Planned::fixed(0.0)]
     };
     // slope, intercepts and coefficients from the two points:

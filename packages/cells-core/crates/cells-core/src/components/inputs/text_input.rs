@@ -19,7 +19,7 @@ pub(in crate::components) const TEXT_INPUT: ComponentTypeInfo =
 const TEXT_INPUT_PROPS: &[PropDef] =
     &props([children("value").attribute("prefill").bind("bindValueTo")]);
 
-typed_props!(TEXT_INPUT_PROPS { value } roles {
+typed_props!(TEXT_INPUT_PROPS { value } shared_state {
     // The value, when it is the input's own state.
     VALUE,
 });
@@ -59,7 +59,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
                 None => String::new(),
             };
             let id = ctx.intern(&text);
-            Planned::text_essential(roles::VALUE, id as f64)
+            Planned::text_essential(shared_state::VALUE, id as f64)
         }
         _ => {
             return Err(Error::Unsupported(

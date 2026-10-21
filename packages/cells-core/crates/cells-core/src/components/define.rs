@@ -175,10 +175,10 @@ pub(super) const fn info(
         tags,
         props,
         default_prop: None,
-        views: &[],
+        combined_props: &[],
         arrays: &[],
         list: None,
-        aliases: &[],
+        alternate_names: &[],
         flags: Flags {
             copyable: false,
             container: false,
@@ -225,11 +225,11 @@ impl ComponentTypeInfo {
         self.default_prop = Some(prop);
         self
     }
-    pub(super) const fn views(
+    pub(super) const fn combined_props(
         mut self,
-        views: &'static [(&'static str, &'static [&'static str])],
+        combined_props: &'static [(&'static str, &'static [&'static str])],
     ) -> Self {
-        self.views = views;
+        self.combined_props = combined_props;
         self
     }
     pub(super) const fn arrays(mut self, arrays: &'static [ArrayProp]) -> Self {
@@ -240,11 +240,11 @@ impl ComponentTypeInfo {
         self.list = Some(list);
         self
     }
-    pub(super) const fn aliases(
+    pub(super) const fn alternate_names(
         mut self,
-        aliases: &'static [(&'static str, &'static str)],
+        alternate_names: &'static [(&'static str, &'static str)],
     ) -> Self {
-        self.aliases = aliases;
+        self.alternate_names = alternate_names;
         self
     }
     /// A sticky member with `n` points from the table's prop `first`.
@@ -312,34 +312,34 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// every prop's position. A list that names a prop the table lacks, or
 /// misses or reorders one, fails to compile.
 ///
-/// `roles { .. }` declares the roles the type's planner gives its
-/// essential state, as constants of a `roles` module beside the props: a
-/// copy with overrides shares a slot with its referent by role
-/// (`compile::plan::Role`). A copy extends only its own type, so a type's
-/// roles need differ only from one another, as constants of one module
-/// must.
+/// `shared_state { .. }` names the pieces of essential state a copy with
+/// overrides shares with its original unless it overrides them
+/// (`compile::plan::SharedState`), as constants of a `shared_state` module
+/// beside the props. A copy extends only its own type, so a type's names
+/// need differ only from one another, as constants of one module must.
 ///
 /// ```ignore
-/// typed_props!(CIRCLE_PROPS { cx, cy, radius, ... } roles { CX, CY, R });
+/// typed_props!(CIRCLE_PROPS { cx, cy, radius, ... } shared_state { CX, CY, R });
 /// ```
 macro_rules! typed_props {
-    ($table:ident { $($field:ident),* $(,)? } $(roles { $($role:ident),* $(,)? })?) => {
+    ($table:ident { $($field:ident),* $(,)? } $(shared_state { $($state:ident),* $(,)? })?) => {
         $(
-            /// The roles this type's planner gives its essential state.
-            pub(crate) mod roles {
+            /// The essential state a copy of this type shares with its
+            /// original unless it overrides it.
+            pub(crate) mod shared_state {
                 $(
-                    pub(crate) const $role: $crate::compile::api::Role =
-                        $crate::compile::api::Role::declared(stringify!($role));
+                    pub(crate) const $state: $crate::compile::api::SharedState =
+                        $crate::compile::api::SharedState::declared(stringify!($state));
                 )*
             }
 
-            // `point_roles` names a list's points so; a declared role is
-            // the constant's own name, so two always differ.
+            // `shared_point_state` names a list's points `pt`; a declared
+            // name is the constant's own, so two always differ.
             const _: () = {
                 $(
                     assert!(
-                        !$crate::components::define::str_eq(roles::$role.name(), "pt"),
-                        "typed_props! roles must not be named pt"
+                        !$crate::components::define::str_eq(shared_state::$state.name(), "pt"),
+                        "shared state must not be named pt"
                     );
                 )*
             };
@@ -401,11 +401,12 @@ macro_rules! typed_props {
 pub(crate) use typed_props;
 
 /// A component type's whole definition in one block: its tags, flags,
-/// props, views, list, aliases, roles and planner. It makes the row
-/// `DEFINITION`, which `component_types!` registers, the table `PROPS`,
-/// and through `typed_props!` the typed plan `Props` and its `roles`. Each
-/// prop is named once, as an identifier, so a view or a computed prop
-/// naming one the table lacks fails to compile. The sections come in the
+/// props, combined props, list, alternate names, shared state and
+/// planner. It makes the row `DEFINITION`, which `component_types!`
+/// registers, the table `PROPS`, and through `typed_props!` the typed plan
+/// `Props` and its `shared_state`. Each prop is named once, as an
+/// identifier, so a combined prop or a computed prop naming one the table
+/// lacks fails to compile. The sections come in the
 /// order below; only `tags`, `props` and `planner` are required.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
@@ -437,12 +438,12 @@ macro_rules! component {
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident : $oval:ident),* $(,)? })?),+ $(,)?
         }
-        $(views { $($view:ident : [$($vpart:ident),+ $(,)?]),* $(,)? })?
+        $(combined_props { $($cname:ident : [$($cpart:ident),+ $(,)?]),* $(,)? })?
         $(arrays: $arrays:expr,)?
-        $(list { names: [$($lname:ident),+ $(,)?], item: $litem:ident, coords: [$lx:ident, $ly:ident] $(, alias: $lalias:ident)? $(,)? })?
-        $(aliases { $($afrom:ident : $ato:ident),* $(,)? })?
+        $(list { names: [$($lname:ident),+ $(,)?], item: $litem:ident, coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)? $(,)? })?
+        $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(sticky: $sticky:ident($($sarg:expr),* $(,)?),)?
-        $(roles { $($role:ident),* $(,)? })?
+        $(shared_state { $($state:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -450,15 +451,15 @@ macro_rules! component {
             $crate::components::define::info(&[$($tag),+], PROPS)
                 $($(.$flag())*)?
                 $(.default_prop(stringify!($default)))?
-                $(.views(&[$((stringify!($view), &[$(stringify!($vpart)),+])),*]))?
+                $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.arrays($arrays))?
                 $(.list($crate::components::ListProp {
                     names: &[$(stringify!($lname)),+],
                     item: stringify!($litem),
                     coords: [stringify!($lx), stringify!($ly)],
-                    alias: $crate::components::define::component!(@alias $($lalias)?),
+                    alternate_name: $crate::components::define::component!(@alternate_name $($lalt)?),
                 }))?
-                $(.aliases(&[$((stringify!($afrom), stringify!($ato))),*]))?
+                $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.$sticky($($sarg),*))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
 
@@ -471,14 +472,14 @@ macro_rules! component {
             ),+
         ]);
 
-        $crate::components::define::typed_props!(PROPS { $($pname),+ } $(roles { $($role),* })?);
+        $crate::components::define::typed_props!(PROPS { $($pname),+ } $(shared_state { $($state),* })?);
 
         $($($(
             const _: () = assert!(
-                $crate::components::define::has(PROP_NAMES, stringify!($vpart)),
+                $crate::components::define::has(PROP_NAMES, stringify!($cpart)),
                 concat!(
-                    "component!: view `", stringify!($view), "` names `",
-                    stringify!($vpart), "`, which is not a prop"
+                    "component!: combined prop `", stringify!($cname), "` names `",
+                    stringify!($cpart), "`, which is not a prop"
                 ),
             );
         )+)*)?
@@ -490,8 +491,8 @@ macro_rules! component {
     };
     (@planner $kind:ident) => { $crate::compile::api::Planner::$kind };
     (@planner $kind:ident ($f:path)) => { $crate::compile::api::Planner::$kind($f) };
-    (@alias) => { None };
-    (@alias $alias:ident) => { Some(stringify!($alias)) };
+    (@alternate_name) => { None };
+    (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
     (@prop children $name:ident) => { $crate::components::define::children(stringify!($name)) };
     (@prop derived $name:ident) => { $crate::components::define::derived(stringify!($name)) };

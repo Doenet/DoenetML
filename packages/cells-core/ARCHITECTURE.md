@@ -212,12 +212,14 @@ models. A type built on shared machinery has a thin planner that names
 it (`values/answer.rs`, `structure/select.rs`), and keeps its own
 decisions (what it refuses) in its file. A planner names its
 props through `typed_props!` beside the table and returns them as a
-`Props<Planned>` struct literal, a slot's plan with the role a copy
-shares it by (`ElemPlan::set_public`); nothing sets a slot by position.
-A `PropsThen` planner reaches the table's plan through `Props::AT`.
-The type's roles are declared there too
-(`typed_props!(.. { .. } roles { CX, CY, R })`); a copy extends only
-its own type, so they need differ only from one another. A combination of attributes it cannot honor is a warning
+`Props<Planned>` struct literal, each slot's plan with the shared state
+it holds, if any (`ElemPlan::set_public`); nothing sets a slot by
+position. A `PropsThen` planner reaches the table's plan through
+`Props::AT`. The type's shared state, which a copy shares with its
+original unless it overrides it, is declared there too
+(`shared_state { CX, CY, R }`, `CONTEXT.md`); a copy extends only its own
+type, so the names need differ only from one another. A combination of
+attributes it cannot honor is a warning
 (`PlanCtx::warn`), never a silent NaN. What two planners both need
 belongs in `compile/` behind `api.rs`, once, not copied into each; what
 a family's members share as behavior is in the family's `mod.rs`. The

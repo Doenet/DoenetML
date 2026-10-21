@@ -17,7 +17,7 @@ pub(in crate::components) const ANSWER: ComponentTypeInfo = info(&["answer"], AN
     .symbolic()
     .default_prop("credit")
     // The current core's name for `credit`, so `$ans.creditAchieved` resolves.
-    .aliases(&[("creditAchieved", "credit")]);
+    .alternate_names(&[("creditAchieved", "credit")]);
 
 const ANSWER_PROPS: &[PropDef] = &props([
     attr("response", f64::NAN).ref_prop("expr"),

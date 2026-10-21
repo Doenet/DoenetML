@@ -284,74 +284,75 @@ pub(crate) fn own_slot(i: usize) -> u8 {
     u8::try_from(i).expect("fewer than 256 slots per element")
 }
 
-/// The name a planner gives a piece of essential state, so that a copy
-/// with overrides shares it with its original (`plan_geo`): the copy's
-/// slot with a role aliases the original's slot with the same role. A
-/// copy extends an element of its own type only, so a role need only be
-/// unique within its type. Roles are constants: a component's own, which
-/// `typed_props!` declares beside its props, and a list's points'
-/// ([`point_roles`]), so a planner cannot misspell one.
+/// The name of a piece of essential state a copy shares with its
+/// original unless it overrides it (`plan_geo`): the copy's slot holding
+/// shared state `R` aliases the original's slot holding `R`. A copy
+/// extends an element of its own type only, so a name need only be
+/// unique within its type. Every one is a constant: a component's own,
+/// declared beside its props (`shared_state { .. }` in `component!`), or a
+/// list's points' ([`shared_point_state`]), so a planner cannot misspell
+/// one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Role(&'static str, u32);
+pub(crate) struct SharedState(&'static str, u32);
 
-impl Role {
-    /// A role a component declares in `typed_props!`, which alone calls
-    /// this.
+impl SharedState {
+    /// Shared state a component declares (`shared_state { .. }`); only
+    /// `typed_props!` calls this.
     #[doc(hidden)]
-    pub(crate) const fn declared(name: &'static str) -> Role {
-        Role(name, 0)
+    pub(crate) const fn declared(name: &'static str) -> SharedState {
+        SharedState(name, 0)
     }
 
-    /// The role's name, for `typed_props!`'s check that no declared role
-    /// takes `point_roles`'s.
+    /// Its name, for `typed_props!`'s check that no declared name is the
+    /// one `shared_point_state` uses.
     #[doc(hidden)]
     pub(crate) const fn name(self) -> &'static str {
         self.0
     }
 }
 
-/// A point a planner uses when the author gives none: its essential
-/// roles and value. Both are a component's to say (the line's and
+/// A point a planner uses when the author gives none: the shared state
+/// its coordinates are, and their value. Both are a component's to say (the line's and
 /// segment's values are in `components/geometry/mod.rs`).
-pub(crate) type DefaultPoint = ([Role; 2], [f64; 2]);
+pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
 
-/// A slot's plan and, when it is essential state that a copy shares, its
-/// role and the attribute its value came from: what a typed plan's fields
-/// hold (`typed_props!`), so a role is always on the slot whose plan it
-/// names.
+/// A slot's plan and, when it is essential state that a copy shares,
+/// which shared state it is and the attribute its value came from: what a
+/// typed plan's fields hold (`typed_props!`), so shared state is always
+/// named on the slot that holds it.
 #[derive(Debug, Clone)]
 pub(crate) struct Planned {
     pub(crate) plan: SourcePlan,
-    role: Option<(Role, Option<&'static str>)>,
+    state: Option<(SharedState, Option<&'static str>)>,
 }
 
 impl From<SourcePlan> for Planned {
     fn from(plan: SourcePlan) -> Self {
-        Planned { plan, role: None }
+        Planned { plan, state: None }
     }
 }
 
 impl Planned {
-    /// Essential state with `role`, initially `v`.
-    pub(crate) fn essential(role: Role, v: f64) -> Self {
+    /// Essential state, shared as `state`, initially `v`.
+    pub(crate) fn essential(state: SharedState, v: f64) -> Self {
         Planned {
             plan: SourcePlan::Literal(v),
-            role: Some((role, None)),
+            state: Some((state, None)),
         }
     }
-    /// Essential state with `role`, initially `v`, given by `attr`: a copy
+    /// Essential state, shared as `state`, initially `v`, given by `attr`: a copy
     /// that gives `attr` itself does not share it.
-    pub(crate) fn essential_from(role: Role, attr: &'static str, v: f64) -> Self {
+    pub(crate) fn essential_from(state: SharedState, attr: &'static str, v: f64) -> Self {
         Planned {
             plan: SourcePlan::Literal(v),
-            role: Some((role, Some(attr))),
+            state: Some((state, Some(attr))),
         }
     }
-    /// Essential text state with `role`, initially the string `id`.
-    pub(crate) fn text_essential(role: Role, id: f64) -> Self {
+    /// Essential text state, shared as `state`, initially the string `id`.
+    pub(crate) fn text_essential(state: SharedState, id: f64) -> Self {
         Planned {
             plan: SourcePlan::TextLiteral(id),
-            role: Some((role, None)),
+            state: Some((state, None)),
         }
     }
     /// A constant that is not state.
@@ -377,23 +378,27 @@ impl Planned {
         }
     }
     /// A given point as `point` plans it, else the essential default with
-    /// its roles.
+    /// its shared state.
     pub(crate) fn point_or_default(
         p: Option<&PointPlan>,
-        roles: [Role; 2],
+        shared_state: [SharedState; 2],
         attr: &'static str,
-        (default_roles, default): DefaultPoint,
+        (default_shared_state, default): DefaultPoint,
     ) -> [Self; 2] {
         match p {
-            Some(p) => Self::point(p, roles, attr),
-            None => std::array::from_fn(|j| Self::essential(default_roles[j], default[j])),
+            Some(p) => Self::point(p, shared_state, attr),
+            None => std::array::from_fn(|j| Self::essential(default_shared_state[j], default[j])),
         }
     }
     /// A point's two coordinates: a literal coordinate is essential state
-    /// with its role, given by `attr`.
-    pub(crate) fn point(p: &PointPlan, roles: [Role; 2], attr: &'static str) -> [Self; 2] {
+    /// with its shared state, given by `attr`.
+    pub(crate) fn point(
+        p: &PointPlan,
+        shared_state: [SharedState; 2],
+        attr: &'static str,
+    ) -> [Self; 2] {
         std::array::from_fn(|j| match p.coord(j) {
-            SourcePlan::Literal(v) => Planned::essential_from(roles[j], attr, v),
+            SourcePlan::Literal(v) => Planned::essential_from(shared_state[j], attr, v),
             other => other.into(),
         })
     }
@@ -406,10 +411,11 @@ pub(crate) struct ElemPlan {
     pub(crate) props: Vec<Option<SourcePlan>>,
     /// The public slots: the table's props, then the list's points.
     pub(crate) n_public: usize,
-    pub(crate) roles: HashMap<Role, u8>,
-    /// The attribute a role's value came from, if any; a copy that gives
-    /// that attribute itself does not share the role.
-    pub(crate) role_attr: HashMap<Role, &'static str>,
+    /// Which slot holds each piece of shared state.
+    pub(crate) shared_state: HashMap<SharedState, u8>,
+    /// The attribute a piece of shared state's value came from, if any; a
+    /// copy that gives that attribute itself does not share it.
+    pub(crate) shared_state_attr: HashMap<SharedState, &'static str>,
 }
 
 /// A prop wired from the built tree rather than planned (`SourcePlan::Deferred`).
@@ -475,8 +481,8 @@ impl ElemPlan {
         ElemPlan {
             n_public,
             props: vec![None; n_public],
-            roles: HashMap::new(),
-            role_attr: HashMap::new(),
+            shared_state: HashMap::new(),
+            shared_state_attr: HashMap::new(),
         }
     }
     pub(crate) fn hidden(&mut self, plan: SourcePlan) -> usize {
@@ -485,17 +491,17 @@ impl ElemPlan {
         self.props.len() - 1
     }
     /// Two hidden slots holding a point's coordinates, a literal coordinate
-    /// as essential state with its role, given by `attr`.
-    pub(crate) fn hidden_point_with_roles(
+    /// as essential state with its shared state, given by `attr`.
+    pub(crate) fn hidden_point_with_shared_state(
         &mut self,
         p: &PointPlan,
-        roles: [Role; 2],
+        shared_state: [SharedState; 2],
         attr: &'static str,
     ) -> [usize; 2] {
         std::array::from_fn(|j| match p.coord(j) {
             SourcePlan::Literal(v) => {
-                self.role_from_attr(roles[j], attr);
-                self.essential(roles[j], v)
+                self.shared_state_from_attr(shared_state[j], attr);
+                self.essential(shared_state[j], v)
             }
             other => self.hidden(other),
         })
@@ -504,46 +510,46 @@ impl ElemPlan {
     pub(crate) fn hidden_point(&mut self, p: &PointPlan) -> [usize; 2] {
         [self.hidden(p.coord(0)), self.hidden(p.coord(1))]
     }
-    /// A hidden slot planned as `p`, with its role if it has one.
+    /// A hidden slot planned as `p`, holding its shared state if any.
     pub(crate) fn hidden_planned(&mut self, p: Planned) -> usize {
         let i = self.hidden(p.plan);
-        if let Some((role, attr)) = p.role {
-            self.add_role(i, role, attr);
+        if let Some((state, attr)) = p.state {
+            self.add_shared_state(i, state, attr);
         }
         i
     }
-    /// A hidden essential slot with a role name (see `Elem::roles`).
-    pub(crate) fn essential(&mut self, role: Role, value: f64) -> usize {
+    /// A hidden essential slot holding shared state `state`.
+    pub(crate) fn essential(&mut self, state: SharedState, value: f64) -> usize {
         let i = self.hidden(SourcePlan::Literal(value));
-        self.roles.insert(role, own_slot(i));
+        self.shared_state.insert(state, own_slot(i));
         i
     }
-    /// Record that `role` came from attribute `attr`.
-    pub(crate) fn role_from_attr(&mut self, role: Role, attr: &'static str) {
-        self.role_attr.insert(role, attr);
+    /// Record that shared state `state` came from attribute `attr`.
+    pub(crate) fn shared_state_from_attr(&mut self, state: SharedState, attr: &'static str) {
+        self.shared_state_attr.insert(state, attr);
     }
-    fn add_role(&mut self, i: usize, role: Role, attr: Option<&'static str>) {
-        self.roles.insert(role, own_slot(i));
+    fn add_shared_state(&mut self, i: usize, state: SharedState, attr: Option<&'static str>) {
+        self.shared_state.insert(state, own_slot(i));
         if let Some(a) = attr {
-            self.role_from_attr(role, a);
+            self.shared_state_from_attr(state, a);
         }
     }
     /// Every public slot, from a typed plan's fields in table order
-    /// (`Props::into_vec`), with their roles.
+    /// (`Props::into_vec`), with their shared state.
     pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Planned>) {
         for (i, p) in props.into_iter().enumerate() {
             self.props[i] = Some(p.plan);
-            if let Some((role, attr)) = p.role {
-                self.add_role(i, role, attr);
+            if let Some((state, attr)) = p.state {
+                self.add_shared_state(i, state, attr);
             }
         }
     }
-    /// `set_public` for a typed plan of sources that give no roles.
+    /// `set_public` for a typed plan of sources that hold no shared state.
     pub(crate) fn set_public_sources(&mut self, props: impl IntoIterator<Item = SourcePlan>) {
         self.set_public(props.into_iter().map(Planned::from));
     }
     /// The list's points, which fill the public slots after the table's
-    /// props, with their roles.
+    /// props, with their shared state.
     pub(crate) fn set_list(&mut self, points: Vec<[Planned; 2]>) {
         let n_fixed = self
             .n_public
@@ -553,8 +559,8 @@ impl ElemPlan {
             for (j, p) in point.into_iter().enumerate() {
                 let i = n_fixed + 2 * k + j;
                 self.props[i] = Some(p.plan);
-                if let Some((role, attr)) = p.role {
-                    self.add_role(i, role, attr);
+                if let Some((state, attr)) = p.state {
+                    self.add_shared_state(i, state, attr);
                 }
             }
         }
@@ -602,11 +608,11 @@ impl ElemPlan {
     }
 }
 
-/// Roles of the k-th (0-based) literal point of a point list, as many as
-/// a list holds.
-pub(crate) fn point_roles(k: usize) -> [Role; 2] {
+/// The shared state of the k-th (0-based) literal point of a point list,
+/// for as many points as a list holds.
+pub(crate) fn shared_point_state(k: usize) -> [SharedState; 2] {
     let k = u32::try_from(2 * k).expect("fewer points than a u32 counts");
-    [Role("pt", k), Role("pt", k + 1)]
+    [SharedState("pt", k), SharedState("pt", k + 1)]
 }
 
 /// One point of a point-list attribute (`through`, `vertices`, `endpoints`).
@@ -675,7 +681,7 @@ impl Compiled {
     /// Drop the plans' spare capacity once planning is done, before the
     /// check builds, so the build reuses that memory rather than raising
     /// the load's peak, which in wasm is what the page keeps. (What only
-    /// planning reads, the name table and roles, is the `Compiler`'s and
+    /// planning reads, the name table and shared state, is the `Compiler`'s and
     /// goes with it.)
     pub(crate) fn shrink_to_fit(&mut self) {
         self.templates.shrink_to_fit();

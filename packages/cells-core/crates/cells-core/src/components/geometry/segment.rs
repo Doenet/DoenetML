@@ -33,7 +33,7 @@ const _: () = assert!(
     "a segment's endpoints must be x1 y1 x2 y2"
 );
 
-typed_props!(LINE_SEGMENT_PROPS { x1, y1, x2, y2 } roles {
+typed_props!(LINE_SEGMENT_PROPS { x1, y1, x2, y2 } shared_state {
     // A missing endpoint's coordinates.
     ESS1X, ESS1Y, ESS2X, ESS2Y,
 });
@@ -42,10 +42,18 @@ typed_props!(LINE_SEGMENT_PROPS { x1, y1, x2, y2 } roles {
 /// each defaulted when missing.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let ends = ctx.points("endpoints")?;
-    let first = ([roles::ESS1X, roles::ESS1Y], DEFAULT_FIRST_POINT);
-    let second = ([roles::ESS2X, roles::ESS2Y], DEFAULT_SECOND_POINT);
-    let [x1, y1] = Planned::point_or_default(ends.first(), point_roles(0), "endpoints", first);
-    let [x2, y2] = Planned::point_or_default(ends.get(1), point_roles(1), "endpoints", second);
+    let first = (
+        [shared_state::ESS1X, shared_state::ESS1Y],
+        DEFAULT_FIRST_POINT,
+    );
+    let second = (
+        [shared_state::ESS2X, shared_state::ESS2Y],
+        DEFAULT_SECOND_POINT,
+    );
+    let [x1, y1] =
+        Planned::point_or_default(ends.first(), shared_point_state(0), "endpoints", first);
+    let [x2, y2] =
+        Planned::point_or_default(ends.get(1), shared_point_state(1), "endpoints", second);
     let mut ch = ElemPlan::of(ComponentType::LineSegment);
     ch.set_public(Props { x1, y1, x2, y2 });
     Ok(ch)

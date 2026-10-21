@@ -132,8 +132,9 @@ pub struct ComponentTypeInfo {
     pub props: &'static [PropDef],
     /// The prop a bare `$name` reference resolves to.
     pub default_prop: Option<&'static str>,
-    /// Point- and tuple-valued props that are views over single-cell props.
-    pub views: &'static [(&'static str, &'static [&'static str])],
+    /// Props made of several single-cell props, read together: a point's
+    /// `coords` is `x` and `y`.
+    pub combined_props: &'static [(&'static str, &'static [&'static str])],
     /// Array props whose items are points.
     pub arrays: &'static [ArrayProp],
     /// The type's one list prop, if it has one: points, as many as the
@@ -141,7 +142,7 @@ pub struct ComponentTypeInfo {
     pub list: Option<ListProp>,
     /// The current core's spellings of a few props, accepted in references
     /// so its documents resolve unchanged.
-    pub aliases: &'static [(&'static str, &'static str)],
+    pub alternate_names: &'static [(&'static str, &'static str)],
     pub flags: Flags,
     /// How an element of the type is planned, when the type is defined
     /// with `component!`; else `compile/planner.rs` says.
@@ -164,15 +165,15 @@ pub struct ArrayProp {
 /// points as the element was given, stored after the props of the type's
 /// table (ADR 0016). An element's props are the table's, then two per
 /// point; the list's length is what is left over, so it needs no cell of
-/// its own. Point `k` (1-based) is the view `item` k (`throughPoint2`),
+/// its own. Point `k` (1-based) is the combined prop `item` k (`throughPoint2`),
 /// with coordinates `coords[0]` k and `coords[1]` k (`throughX2`), which
-/// the current core also spells `alias` k `_` 1 and `_` 2
+/// the current core also spells `alternate_name` k `_` 1 and `_` 2
 /// (`throughPointX2_1`).
 pub struct ListProp {
     pub names: &'static [&'static str],
     pub item: &'static str,
     pub coords: [&'static str; 2],
-    pub alias: Option<&'static str>,
+    pub alternate_name: Option<&'static str>,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.
@@ -250,17 +251,17 @@ impl ComponentType {
     /// A prop name with the current core's spellings mapped to ours.
     pub fn canonical_prop(self, name: &str) -> &str {
         self.info()
-            .aliases
+            .alternate_names
             .iter()
             .find(|(from, _)| *from == name)
             .map_or(name, |(_, to)| to)
     }
 
-    /// Multi-cell props that are views over single-cell props: the type's
-    /// views, and each array item by name (`vertex3`, `point1`).
-    pub fn virtual_prop(self, name: &str) -> Option<&'static [&'static str]> {
+    /// A prop made of several single-cell props: one of the type's combined
+    /// props, or an array item by name (`vertex3`, `point1`).
+    pub fn combined_prop(self, name: &str) -> Option<&'static [&'static str]> {
         let info = self.info();
-        if let Some((_, parts)) = info.views.iter().find(|(v, _)| *v == name) {
+        if let Some((_, parts)) = info.combined_props.iter().find(|(v, _)| *v == name) {
             return Some(*parts);
         }
         info.arrays.iter().find_map(|a| {
@@ -312,7 +313,7 @@ impl ComponentType {
                 return Some(PropAt::Coord(k, j));
             }
         }
-        let rest = name.strip_prefix(list.alias?)?;
+        let rest = name.strip_prefix(list.alternate_name?)?;
         let (k, j) = rest.split_once('_')?;
         match (index(k), j) {
             (Some(k), "1") => Some(PropAt::Coord(k, 0)),

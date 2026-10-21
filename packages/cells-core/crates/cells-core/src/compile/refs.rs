@@ -237,7 +237,7 @@ impl<'a> Compiler<'a> {
                         // The coordinates of a point-valued prop: a view
                         // (`center`) or a list's point (`vertex3`).
                         let point_parts: Option<Vec<String>> = match (
-                            component_type.virtual_prop(name),
+                            component_type.combined_prop(name),
                             component_type.prop_at(name),
                         ) {
                             (Some(parts), _) => Some(parts.iter().map(|p| p.to_string()).collect()),
@@ -282,7 +282,7 @@ impl<'a> Compiler<'a> {
                             break;
                         }
                         if component_type.prop_at(name).is_none()
-                            && component_type.virtual_prop(name).is_none()
+                            && component_type.combined_prop(name).is_none()
                             && component_type.array_prop(name).is_none()
                         {
                             return Err(Error::UnknownProp {
@@ -306,7 +306,7 @@ impl<'a> Compiler<'a> {
                 };
                 // `$p[2]`: a coordinate of a point.
                 let ek = self.compiled.templates[cur_t].elems[e].component_type;
-                if let Some(parts_of) = ek.default_prop().and_then(|dp| ek.virtual_prop(dp)) {
+                if let Some(parts_of) = ek.default_prop().and_then(|dp| ek.combined_prop(dp)) {
                     if prop.is_some() || i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display));
                     }

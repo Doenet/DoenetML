@@ -114,12 +114,12 @@ pub use crate::limits::MAX_TUPLE;
 /// A tuple of numbers: a `<math>` that is `(a, b, c)` with three or more
 /// entries (two make a point), and the iterates of a `<functionIterates>`.
 /// `n` is how many entries it has; `x1`, ... the entries, unused ones NaN.
-/// `coords` is the view over the entries, so `$t[2]` is `x2`.
+/// `coords` combines the entries, so `$t[2]` is `x2`.
 pub(super) const TUPLE: ComponentTypeInfo = info(&["tuple"], TUPLE_PROPS)
     .copyable()
     .internal()
     .default_prop("coords")
-    .views(&[("coords", &TUPLE_ENTRIES)]);
+    .combined_props(&[("coords", &TUPLE_ENTRIES)]);
 
 const TUPLE_ENTRIES: [&str; MAX_TUPLE] = ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"];
 

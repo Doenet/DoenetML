@@ -107,9 +107,9 @@ pub(in crate::compile) struct Compiler<'a> {
     /// (template, name scope, name) of every named element: two siblings
     /// with one name can never be told apart.
     sibling_names: HashSet<(u32, u32, u32)>,
-    /// By (template, element), a geometry element's roles: which slot holds
+    /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
-    pub(in crate::compile) roles: HashMap<(u32, u32), HashMap<Role, u8>>,
+    pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
 }
 
 /// A name-table entry naming more than one element.
@@ -164,7 +164,7 @@ impl<'a> Compiler<'a> {
             names: HashMap::new(),
             name_ids: HashMap::new(),
             sibling_names: HashSet::new(),
-            roles: HashMap::new(),
+            shared_state: HashMap::new(),
         };
         match cp.compile_all() {
             Ok(()) => {

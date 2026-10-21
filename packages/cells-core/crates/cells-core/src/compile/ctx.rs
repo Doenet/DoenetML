@@ -9,7 +9,7 @@ use super::*;
 /// when the element omits it and is a shape extending another, its `extend`
 /// referent's. One context serves every kind of planner; the kind decides
 /// what is done around the call. For a shape, `plan_geo` makes it and does
-/// the rest: a bare copy, sharing state with the referent by role, and
+/// the rest: a bare copy, sharing state with the referent, and
 /// `fixed`.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,

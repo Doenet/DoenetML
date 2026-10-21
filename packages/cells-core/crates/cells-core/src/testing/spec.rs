@@ -1,6 +1,6 @@
 //! Component specs (ADR 0016): what an author sees, written as DoenetML, a
 //! script of requests and what must hold after each, in public prop names.
-//! A spec says nothing about slots, roles or operators, so a refactor of
+//! A spec says nothing about slots, shared state or operators, so a refactor of
 //! those is checked against it.
 //!
 //! ```ignore

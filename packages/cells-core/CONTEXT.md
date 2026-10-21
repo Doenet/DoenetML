@@ -44,6 +44,25 @@ Aliasing is structural, decided at load time, never by comparing values.
 ordered list of cells (a point's `coords` maps to its `x` and `y` cells). Props
 are a naming layer over cells; they are not graph nodes.
 
+**Combined prop** — A prop made of several single-cell props of the
+same component, read together: a point's `coords` is its `x` and `y`, a
+circle's `center` its `centerX` and `centerY`. It has no cells of its own.
+_Avoid_: view (the renderer is the view layer, and `View` is the build's
+structure view)
+
+**Alternate name** — The current core's spelling of a prop, accepted in
+references so its documents resolve unchanged (`$c.centerX1` is
+`$c.centerX`).
+_Avoid_: alias (an alias is two state variables sharing one cell)
+
+**Shared state** — Essential state a copy shares with its original unless
+it overrides it: a circle's center and radius when they are its own
+state. Each piece has a name (`SharedState`) declared with its component's
+props; the copy's slot holding a name aliases the original's slot holding
+the same name. A copy extends only its own type, so a name need be unique
+only within its type.
+_Avoid_: role
+
 **List prop** — A component type's one prop of points that holds as many as
 the element was given (a circle's `throughPoints`, a polygon's
 `vertices`), stored after the props

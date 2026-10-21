@@ -5,8 +5,13 @@ for the circle, line and segment, with every component's planner in its
 own file; see Migration. The renderer interface and where numbers
 are formatted are not decided here (see The renderer).
 
+Terms: what this ADR first called a *role* is *shared state* now
+(`SharedState`, declared in a component's `shared_state { .. }`); see
+`CONTEXT.md`. The Context below keeps the old word for what it
+describes.
+
 A component should be writable, and changeable, without knowing cells,
-slots, roles, the probe or the renderer, and without costing load time or
+slots, shared state, the probe or the renderer, and without costing load time or
 tick time. This ADR says what a component's definition holds, what the
 shared machinery does around it, and how its author learns that a
 component is done.
@@ -67,7 +72,7 @@ compiled with the core.
 The prop table stays the source of truth. A `macro_rules!` macro (a proc
 macro only if its errors prove hard to read) turns each table into a plan
 struct, one field per prop, list props as lists of point or scalar slots,
-and roles as declared fields. A planner returns that struct as a literal,
+and shared state as declared fields. A planner returns that struct as a literal,
 so a prop left unplanned does not compile, and a vector operator's outputs
 are typed values, not positions. The macro expands to the same `const`
 tables the core reads today, so it costs no wasm size and no load time.
@@ -138,7 +143,7 @@ author sees; the tables and plans say how. A refactor of the second is checked a
 
 Every case also feeds the generic guards, which a spec's author does not
 write: `extend` variants of the case (a copy, a copy overriding each
-attribute) checking that roles are shared exactly; `every_count` and the
+attribute) checking that state is shared exactly; `every_count` and the
 probe's coverage where the case has a repeat; round trips of the
 operators its program uses.
 
@@ -200,12 +205,12 @@ case), carry every piece before other components follow:
    choice that extends another, are refused there) and a call naming the
    machinery (`PlanCtx::plan_answer`, `plan_choice`, `plan_repeat_for`,
    `plan_function_iterates`), which stays in `compile/`.
-   A component's roles are declared with its props
-   (`typed_props!(.. roles { .. })`), as constants of its own `roles`
-   module: a copy extends only its own type, so a role need be unique
-   only within it, and a misspelled role still does not compile.
-   `compile/plan.rs` declares no component's roles; `point_roles` names
-   a list's points. Every plan is typed: a planner, or the machinery a
+   A component's shared state is declared with its props
+   (`shared_state { .. }`), as constants of its own `shared_state`
+   module: a copy extends only its own type, so a name need be unique
+   only within it, and a misspelled one still does not compile.
+   `compile/plan.rs` declares none of a component's; `shared_point_state`
+   names a list's points. Every plan is typed: a planner, or the machinery a
    thin planner names, builds its element's props as its type's
    `typed_props!` struct, so a prop left unplanned does not compile, and
    no code sets a slot by position (`ElemPlan::set` is gone). A

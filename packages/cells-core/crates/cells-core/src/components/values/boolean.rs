@@ -23,7 +23,7 @@ pub(in crate::components) const BOOLEAN: ComponentTypeInfo = info(&["boolean"], 
 
 const BOOLEAN_PROPS: &[PropDef] = &props([children("value")]);
 
-typed_props!(BOOLEAN_PROPS { value } roles {
+typed_props!(BOOLEAN_PROPS { value } shared_state {
     // The value, when it is the boolean's own state.
     VALUE,
 });
@@ -73,7 +73,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         _ => None,
     };
     let value = if let Some(v) = literal {
-        Planned::essential(roles::VALUE, v)
+        Planned::essential(shared_state::VALUE, v)
     } else if macros == 1 && text.is_empty() {
         SourcePlan::reference(ctx.reference(nodes[0])?).into()
     } else {

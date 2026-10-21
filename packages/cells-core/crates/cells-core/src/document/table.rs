@@ -208,7 +208,7 @@ impl Document {
     /// items only).
     pub fn prop_cells(&self, comp: CompIdx, prop: &str) -> Option<Vec<CellIdx>> {
         let component_type = self.component_type(comp);
-        if let Some(parts) = component_type.virtual_prop(prop) {
+        if let Some(parts) = component_type.combined_prop(prop) {
             return parts
                 .iter()
                 .map(|p| self.prop_cells(comp, p).map(|v| v[0]))

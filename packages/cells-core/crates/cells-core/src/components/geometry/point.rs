@@ -10,17 +10,17 @@ use crate::error::{Error, Result};
 use crate::program::{SymKind, VecOp};
 use crate::tick::snap::Shape;
 
-/// `<point>`. `coords` is a view over `x` and `y`.
+/// `<point>`. `coords` combines `x` and `y`.
 pub(in crate::components) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)
     .copyable()
     .default_prop("coords")
-    .views(&[("coords", &["x", "y"])])
+    .combined_props(&[("coords", &["x", "y"])])
     .sticky(Shape::Point, X, 1);
 
 // `hide` is a boolean in the current core; here it is a 0/1 cell.
 const POINT_PROPS: &[PropDef] = &props([by_planner("x"), by_planner("y"), by_planner("hide")]);
 
-typed_props!(POINT_PROPS { x, y, hide } roles {
+typed_props!(POINT_PROPS { x, y, hide } shared_state {
     // The coordinates, when they are the point's own state.
     X, Y,
 });
@@ -53,20 +53,20 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let mut ch = ElemPlan::of(ComponentType::Point);
     let own_children = ctx.math_children(el);
     let base_children = base.map(|b| ctx.math_children(b)).unwrap_or_default();
-    let roles = [roles::X, roles::Y];
+    let coords_state = [shared_state::X, shared_state::Y];
     let [x, y] = if let Some(a) = ctx.attr("coords") {
         let p = ctx.point_at(a)?;
-        Planned::point(&p, roles, "coords")
+        Planned::point(&p, coords_state, "coords")
     } else if ctx.has("x") || ctx.has("y") || (own_children.is_empty() && base_children.is_empty())
     {
-        let mut coord = |name: &'static str, role: Role| -> Result<Planned> {
+        let mut coord = |name: &'static str, state: SharedState| -> Result<Planned> {
             Ok(match ctx.scalar(name)? {
-                Some(SourcePlan::Literal(v)) => Planned::essential_from(role, name, v),
+                Some(SourcePlan::Literal(v)) => Planned::essential_from(state, name, v),
                 Some(plan) => plan.into(),
-                None => Planned::essential(role, 0.0),
+                None => Planned::essential(state, 0.0),
             })
         };
-        [coord("x", roles[0])?, coord("y", roles[1])?]
+        [coord("x", coords_state[0])?, coord("y", coords_state[1])?]
     } else {
         let nodes = if own_children.is_empty() {
             base_children
@@ -74,7 +74,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             own_children
         };
         let p = PointPlan::Tuple(ctx.tuple(&nodes)?);
-        Planned::point(&p, roles, "children")
+        Planned::point(&p, coords_state, "children")
     };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
@@ -133,7 +133,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
 }
 
 /// The point's coordinates as planned so far move to hidden raw slots,
-/// with their roles, since they are its state; the public `x`, `y` are
+/// with their shared state, since they are its state; the public `x`, `y` are
 /// their projection onto the constraint.
 fn constrain(
     ctx: &mut PlanCtx<'_, '_>,

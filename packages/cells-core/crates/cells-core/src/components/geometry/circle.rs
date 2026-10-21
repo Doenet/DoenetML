@@ -34,7 +34,7 @@ component! {
         centerY: by_planner,
         numThroughPoints: by_planner,
     }
-    views {
+    combined_props {
         center: [centerX, centerY],
         numericalCenter: [cx, cy],
     }
@@ -42,13 +42,13 @@ component! {
         names: [throughPoints],
         item: throughPoint,
         coords: [throughX, throughY],
-        alias: throughPointX,
+        alternate_name: throughPointX,
     }
-    aliases {
+    alternate_names {
         centerX1: centerX,
         centerX2: centerY,
     }
-    roles {
+    shared_state {
         // The center when it is the circle's own state, and the radius.
         CX, CY, R,
     }
@@ -111,9 +111,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     // (projection, ADR 0003).
     let radius_plan = |ch: &mut ElemPlan| -> Planned {
         let pres = ch.hidden_planned(match &radius {
-            Some(SourcePlan::Literal(v)) => Planned::essential_from(roles::R, "radius", *v),
+            Some(SourcePlan::Literal(v)) => Planned::essential_from(shared_state::R, "radius", *v),
             Some(other) => other.clone().into(),
-            None => Planned::essential(roles::R, 1.0),
+            None => Planned::essential(shared_state::R, 1.0),
         });
         Planned::computed(
             OpSpec::Clamp {
@@ -131,7 +131,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         .iter()
         .take(3)
         .enumerate()
-        .map(|(i, p)| Planned::point(p, point_roles(i), "through"))
+        .map(|(i, p)| Planned::point(p, shared_point_state(i), "through"))
         .collect();
     // Coordinate `j` of through point `k` (0-based).
     let n_public = ch.n_public;
@@ -141,7 +141,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             .expect("a through point the circle holds")
     };
     let [center_x, center_y] = match &center {
-        Some(c) => Planned::point(c, [roles::CX, roles::CY], "center"),
+        Some(c) => Planned::point(c, [shared_state::CX, shared_state::CY], "center"),
         None => [Planned::own(at.cx), Planned::own(at.cy)],
     };
     let over = if n > 3 {
@@ -165,8 +165,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
                 [Planned::own(at.centerX), Planned::own(at.centerY)]
             } else {
                 [
-                    Planned::essential(roles::CX, 0.0),
-                    Planned::essential(roles::CY, 0.0),
+                    Planned::essential(shared_state::CX, 0.0),
+                    Planned::essential(shared_state::CY, 0.0),
                 ]
             };
             [cx, cy, radius_plan(&mut ch)]

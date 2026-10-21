@@ -20,7 +20,7 @@ pub(in crate::components) const POLYGON: ComponentTypeInfo =
             names: &["vertices"],
             item: "vertex",
             coords: ["x", "y"],
-            alias: Some("vertexX"),
+            alternate_name: Some("vertexX"),
         })
         .sticky_list(Shape::Closed);
 
@@ -109,7 +109,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         Some(opts) if n > 0 => {
             let mut args = Vec::with_capacity(2 * n + 2);
             for (k, v) in vertices.iter().enumerate() {
-                let [x, y] = ch.hidden_point_with_roles(v, point_roles(k), "vertices");
+                let [x, y] =
+                    ch.hidden_point_with_shared_state(v, shared_point_state(k), "vertices");
                 args.push(x);
                 args.push(y);
             }
@@ -140,7 +141,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         _ => vertices
             .iter()
             .enumerate()
-            .map(|(k, v)| Planned::point(v, point_roles(k), "vertices"))
+            .map(|(k, v)| Planned::point(v, shared_point_state(k), "vertices"))
             .collect(),
     };
     ch.set_public(Props {

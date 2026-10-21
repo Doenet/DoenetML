@@ -289,7 +289,7 @@ impl<'c> Builder<'c> {
         name: &str,
     ) -> Option<Vec<SlotId>> {
         let component_type = self.components.component_type[comp as usize];
-        if let Some(parts) = component_type.virtual_prop(name) {
+        if let Some(parts) = component_type.combined_prop(name) {
             return Some(
                 parts
                     .iter()
