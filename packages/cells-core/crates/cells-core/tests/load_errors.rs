@@ -98,7 +98,7 @@ fn a_prefill_may_name_a_collects_count() {
 }
 
 // An index past the count names the missing referent wherever a reference
-// may point: `extend` and an array prop's items hold the missing value, as
+// may point: `extend` and a list prop's items hold the missing value, as
 // `$r[3].x` does, and take the referent's once the repeat grows.
 #[test]
 fn a_referent_past_the_count_is_missing_not_an_error() {

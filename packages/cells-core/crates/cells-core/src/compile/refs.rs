@@ -183,14 +183,14 @@ impl<'a> Compiler<'a> {
                             _ => component_type,
                         };
                         // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
-                        // items of an array prop, by literal index.
+                        // points of a list, by literal index.
                         let name = component_type.canonical_prop(name);
                         // A list's points are as many as the element has: an
                         // index past them is the missing value when built.
                         let list = component_type
-                            .list()
+                            .given_coords()
                             .filter(|_| component_type.prop_at(name) == Some(PropAt::List));
-                        let items = component_type.array_prop(name);
+                        let items = component_type.table_list(name);
                         if list.is_some() || items.is_some() {
                             let items = items.unwrap_or(&[]);
                             let idx: Vec<i64> = d
@@ -208,7 +208,7 @@ impl<'a> Compiler<'a> {
                                 return Err(Error::BadIndex(display));
                             }
                             let coord_name = |j: usize| match list {
-                                Some(l) => format!("{}{k}", l.coords[j]),
+                                Some(coords) => format!("{}{k}", coords[j]),
                                 None => items[k as usize - 1][j].to_string(),
                             };
                             let coord = match (rest.first(), parts.get(i + 1)) {
@@ -227,9 +227,11 @@ impl<'a> Compiler<'a> {
                                 (Some(1), _) => coord_name(0),
                                 (Some(2), _) => coord_name(1),
                                 (Some(_), _) => return Err(Error::BadIndex(display)),
-                                (None, Some(l)) => format!("{}{k}", l.item),
+                                (None, Some(_)) => {
+                                    format!("{}{k}", component_type.list().expect("a list").item)
+                                }
                                 (None, None) => component_type
-                                    .array_item_prop(name, k as usize)
+                                    .table_list_item(name, k as usize)
                                     .ok_or_else(|| Error::PathTooDeep(display.clone()))?,
                             });
                             break;
@@ -242,8 +244,8 @@ impl<'a> Compiler<'a> {
                         ) {
                             (Some(parts), _) => Some(parts.iter().map(|p| p.to_string()).collect()),
                             (None, Some(PropAt::Item(k))) => component_type
-                                .list()
-                                .map(|l| l.coords.iter().map(|c| format!("{c}{k}")).collect()),
+                                .given_coords()
+                                .map(|coords| coords.iter().map(|c| format!("{c}{k}")).collect()),
                             _ => None,
                         };
                         // `$l.point1[2]`: a coordinate of a point-valued prop.
@@ -283,7 +285,7 @@ impl<'a> Compiler<'a> {
                         }
                         if component_type.prop_at(name).is_none()
                             && component_type.combined_prop(name).is_none()
-                            && component_type.array_prop(name).is_none()
+                            && component_type.table_list(name).is_none()
                         {
                             return Err(Error::UnknownProp {
                                 name: self.elem_label(cur_t, e),
@@ -369,7 +371,7 @@ impl<'a> Compiler<'a> {
         Ok(self.compiled.refs.len() - 1)
     }
 
-    /// A literal integer index (array props are static, so `[$n]` is not
+    /// A literal integer index (list props are static, so `[$n]` is not
     /// supported on them).
     pub(in crate::compile) fn literal_index(&self, expr: &[NodeId], display: &str) -> Result<i64> {
         let d = self.dast;

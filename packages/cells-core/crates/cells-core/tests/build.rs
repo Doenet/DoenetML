@@ -315,7 +315,7 @@ fn a_copys_own_hide_wins_over_the_inherited_one() {
 }
 
 #[test]
-fn point_list_needs_extend_of_an_array_prop() {
+fn point_list_needs_extend_of_a_list_prop() {
     let (code, m) = load_error(r#"<graph><pointList name="ps"/></graph>"#);
     assert_eq!(code, "cells-bad-attribute-value", "{m}");
 }

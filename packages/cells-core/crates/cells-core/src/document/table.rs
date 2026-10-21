@@ -204,7 +204,7 @@ impl Document {
     }
 
     /// Cells of a prop, including virtual props such as a point's `coords`
-    /// and array props such as a line's `points` (items flattened, live
+    /// and list props such as a line's `points` (items flattened, live
     /// items only).
     pub fn prop_cells(&self, comp: CompIdx, prop: &str) -> Option<Vec<CellIdx>> {
         let component_type = self.component_type(comp);
@@ -214,7 +214,7 @@ impl Document {
                 .map(|p| self.prop_cells(comp, p).map(|v| v[0]))
                 .collect();
         }
-        if let Some(items) = component_type.array_prop(prop) {
+        if let Some(items) = component_type.table_list(prop) {
             return items
                 .iter()
                 .map(|[x, y]| Some([self.prop_cells(comp, x)?[0], self.prop_cells(comp, y)?[0]]))

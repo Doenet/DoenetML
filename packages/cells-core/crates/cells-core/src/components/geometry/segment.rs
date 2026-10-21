@@ -2,7 +2,7 @@
 //! endpoints are its own state, or the points `endpoints` names; a
 //! missing endpoint is essential state at the current core's default.
 
-use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT, LINE_POINTS};
+use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT};
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
@@ -19,7 +19,11 @@ component! {
         x2: by_planner,
         y2: by_planner,
     }
-    arrays: LINE_POINTS,
+    list {
+        names: [points, endpoints],
+        item: point,
+        points: [[x1, y1], [x2, y2]],
+    }
     sticky_points: (Shape::Open, X1, 2),
     shared_state {
         // A missing endpoint's coordinates.

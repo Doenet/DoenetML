@@ -44,7 +44,7 @@ impl<'a> Compiler<'a> {
             let el = &mut self.compiled.templates[t].elems[e];
             el.props = vec![SourcePlan::Inherit; n];
             // A list is as long as the referent's, which the build knows.
-            if component_type.list().is_some() {
+            if component_type.given_coords().is_some() {
                 el.n_public = NPublic::AsReferent;
             }
             return Ok(());
@@ -86,7 +86,7 @@ impl<'a> Compiler<'a> {
             self.shared_state
                 .insert((t as u32, e as u32), ch.shared_state.clone());
         }
-        if component_type.list().is_some() {
+        if component_type.given_coords().is_some() {
             self.compiled.templates[t].elems[e].n_public = NPublic::Planned(ch.n_public as u32);
         }
         self.compiled.templates[t].elems[e].props = ch.finish();
@@ -118,7 +118,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// The points of a point-list attribute: bare references, parenthesized
-    /// tuples (which may contain references), and references to array props
+    /// tuples (which may contain references), and references to list props
     /// (`$l.points`), which contribute one point per item.
     pub(in crate::compile) fn plan_point_list(
         &mut self,
@@ -134,7 +134,7 @@ impl<'a> Compiler<'a> {
             match &toks[i] {
                 Token::Cell(p) => {
                     let p = *p as RefId;
-                    // An array prop expands to its items.
+                    // An list prop expands to its items.
                     let items = self.array_items_of_plan(t, p)?;
                     match items {
                         Some(n) => out.extend((0..n).map(|k| PointPlan::Item(p, k))),
@@ -186,7 +186,7 @@ impl<'a> Compiler<'a> {
         Ok(out)
     }
 
-    /// If plan `p` names an array prop, how many items it has (known at
+    /// If plan `p` names a list prop, how many items it has (known at
     /// compile time from the referent element).
     pub(in crate::compile) fn array_items_of_plan(
         &self,
@@ -218,7 +218,7 @@ impl<'a> Compiler<'a> {
                 _ => self.count_points_in_attr(el.node, "vertices")?,
             }));
         }
-        let Some(items) = el.component_type.array_prop(prop) else {
+        let Some(items) = el.component_type.table_list(prop) else {
             return Ok(None);
         };
         Ok(Some(items.len()))

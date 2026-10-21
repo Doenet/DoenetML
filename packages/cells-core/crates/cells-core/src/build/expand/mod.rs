@@ -721,7 +721,7 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// The coordinate slots of each item of an array prop a plan names
+    /// The coordinate slots of each item of a list prop a plan names
     /// (`$l.points`, `$pg.vertices`), trimmed to the live item count.
     pub(in crate::build) fn resolve_items(
         &mut self,
@@ -748,7 +748,7 @@ impl<'c> Builder<'c> {
                 .collect());
         }
         let items = component_type
-            .array_prop(prop)
+            .table_list(prop)
             .ok_or_else(|| Error::UnknownProp {
                 name: self.comp_label(comp),
                 prop: prop.into(),
@@ -765,7 +765,7 @@ impl<'c> Builder<'c> {
     }
 
     /// Give a point list its children: one synthesized point per item of
-    /// the array prop it extends, or copies of the children of the point
+    /// the list prop it extends, or copies of the children of the point
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp as usize] as usize];

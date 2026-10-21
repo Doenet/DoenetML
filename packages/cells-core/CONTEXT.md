@@ -63,12 +63,14 @@ the same name. A copy extends only its own type, so a name need be unique
 only within its type.
 _Avoid_: role
 
-**List prop** — A component type's one prop of points that holds as many as
-the element was given (a circle's `throughPoints`, a polygon's
-`vertices`), stored after the props
-of the type's table; its length is the element's prop count less the
-table's, so it needs no cell of its own. A point past the end is the
-missing value (ADR 0016).
+**List prop** — A component type's one prop of points, read alike however
+they are stored (`$c.throughPoints`, `$c.throughPoint2`, `$l.points[2].x`).
+Its points are either as many as the element was given (a circle's
+`throughPoints`, a polygon's `vertices`), stored after the props of the
+type's table, its length the element's prop count less the table's, so it
+needs no cell of its own, and a point past the end the missing value
+(ADR 0016); or a fixed number of the table's own props (a line's `points`
+are `x1`, `y1` and `x2`, `y2`).
 
 **Component** — A DoenetML tag instance (`number`, `numberInput`, `graph`,
 `point`). Components own props and renderer identity but no computation of
@@ -262,7 +264,7 @@ repeat is a scope. A name inside a repeat template exists once per scope, so
 `p` in iteration 3 is `$r[3].p`. A bare `$p` resolves from the referencing
 component's scope outward. Scope ids are stable for the life of a document.
 
-**Point list** — A `<pointList>` that extends an array prop of points (a
+**Point list** — A `<pointList>` that extends a list prop of points (a
 line's `points`, a polygon's `vertices`): one point per item, each aliasing
 the item's cells.
 

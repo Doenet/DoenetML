@@ -3,7 +3,7 @@
 //! its own two points are derived cells (ADR 0006), and its slope,
 //! intercepts and coefficients follow from them or from the equation.
 
-use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT, LINE_POINTS};
+use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT};
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
@@ -31,7 +31,11 @@ component! {
         coeff0: by_planner,
         basedOnDirection: by_planner,
     }
-    arrays: LINE_POINTS,
+    list {
+        names: [points, endpoints],
+        item: point,
+        points: [[x1, y1], [x2, y2]],
+    }
     shared_state {
         // The second point's distance along a slope or direction.
         DIST,

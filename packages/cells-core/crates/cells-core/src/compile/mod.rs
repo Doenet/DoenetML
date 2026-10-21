@@ -643,7 +643,7 @@ impl<'a> Compiler<'a> {
                 let el = &mut self.compiled.templates[t].elems[e];
                 el.props = props;
                 // A list is as long as the original's.
-                if component_type.list().is_some() {
+                if component_type.given_coords().is_some() {
                     el.n_public = NPublic::AsReferent;
                 }
                 Ok(())

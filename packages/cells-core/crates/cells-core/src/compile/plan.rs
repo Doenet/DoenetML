@@ -33,7 +33,7 @@ pub(crate) enum Arg {
 }
 
 /// Which cell of a reference's target: the single cell, coordinate `j` of a
-/// point-valued prop, or coordinate `j` of item `i` of an array prop.
+/// point-valued prop, or coordinate `j` of item `i` of a list prop.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Sel {
     Whole,
@@ -473,7 +473,7 @@ impl ElemPlan {
     /// A plan for an element of `component_type` whose list holds
     /// `n_points` points, after the table's props.
     pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
-        debug_assert!(component_type.list().is_some());
+        debug_assert!(component_type.given_coords().is_some());
         Self::new(component_type.prop_defs().len() + 2 * n_points)
     }
 
@@ -622,7 +622,7 @@ pub(crate) enum PointPlan {
     Ref(RefId),
     /// `(a, b)`: two scalar plans.
     Tuple([SourcePlan; 2]),
-    /// Item `i` of an array prop: `$l.points` contributes one per item.
+    /// Item `i` of a list prop: `$l.points` contributes one per item.
     Item(RefId, usize),
 }
 

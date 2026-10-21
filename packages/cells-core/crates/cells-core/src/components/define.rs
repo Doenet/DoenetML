@@ -3,7 +3,7 @@
 //! by `props`, the definition's builders, `typed_props!` for the struct
 //! with one field per prop, and `at` for a prop's position by name).
 
-use super::{Args, ArrayProp, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
+use super::{Args, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
 pub(super) use crate::program::OpSpec;
 
 /// A prop as a table writes it: like a [`PropDef`], but naming the props a
@@ -169,7 +169,6 @@ pub(super) const fn definition(
         props,
         default_prop: None,
         combined_props: &[],
-        arrays: &[],
         list: None,
         alternate_names: &[],
         flags: Flags {
@@ -223,10 +222,6 @@ impl ComponentDef {
         combined_props: &'static [(&'static str, &'static [&'static str])],
     ) -> Self {
         self.combined_props = combined_props;
-        self
-    }
-    pub(super) const fn arrays(mut self, arrays: &'static [ArrayProp]) -> Self {
-        self.arrays = arrays;
         self
     }
     pub(super) const fn list(mut self, list: super::ListProp) -> Self {
@@ -447,8 +442,12 @@ macro_rules! component {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident : $oval:ident),* $(,)? })?),+ $(,)?
         }
         $(combined_props { $($cname:ident : [$($cpart:ident),+ $(,)?]),* $(,)? })?
-        $(arrays: $arrays:expr,)?
-        $(list { names: [$($lname:ident),+ $(,)?], item: $litem:ident, coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)? $(,)? })?
+        $(list {
+            names: [$($lname:ident),+ $(,)?],
+            item: $litem:ident,
+            $(points: [$([$px:ident, $py:ident]),+ $(,)?],)?
+            $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)? $(,)?)?
+        })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(sticky_points: ($($sp:expr),+ $(,)?),)?
         $(sticky_list: $sl:expr,)?
@@ -461,12 +460,13 @@ macro_rules! component {
                 $($(.$flag())*)?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
-                $(.arrays($arrays))?
                 $(.list($crate::components::ListProp {
                     names: &[$(stringify!($lname)),+],
                     item: stringify!($litem),
-                    coords: [stringify!($lx), stringify!($ly)],
-                    alternate_name: $crate::components::define::component!(@alternate_name $($lalt)?),
+                    points: $crate::components::define::component!(@list_points
+                        $(table [$([$px, $py]),+])?
+                        $(given [$lx, $ly] [$($lalt)?])?
+                    ),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.sticky($($sp),+))?
@@ -487,6 +487,16 @@ macro_rules! component {
 
         $($($(
             const _: () = assert!(
+                $crate::components::define::has(PROP_NAMES, stringify!($px))
+                    && $crate::components::define::has(PROP_NAMES, stringify!($py)),
+                concat!(
+                    "component!: list point (", stringify!($px), ", ", stringify!($py),
+                    ") names a prop the table lacks"
+                ),
+            );
+        )+)?)?
+        $($($(
+            const _: () = assert!(
                 $crate::components::define::has(PROP_NAMES, stringify!($cpart)),
                 concat!(
                     "component!: combined prop `", stringify!($cname), "` names `",
@@ -502,6 +512,20 @@ macro_rules! component {
     };
     (@planner $kind:ident) => { $crate::compile::api::Planner::$kind };
     (@planner $kind:ident ($f:path)) => { $crate::compile::api::Planner::$kind($f) };
+    (@list_points table [$([$x:ident, $y:ident]),+]) => {
+        $crate::components::ListPoints::Table(&[$([stringify!($x), stringify!($y)]),+])
+    };
+    (@list_points given [$x:ident, $y:ident] [$($alt:ident)?]) => {
+        $crate::components::ListPoints::Given {
+            coords: [stringify!($x), stringify!($y)],
+            alternate_name: $crate::components::define::component!(@alternate_name $($alt)?),
+        }
+    };
+    (@list_points) => {
+        compile_error!(
+            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y]` (as many points as an element is given)"
+        )
+    };
     (@alternate_name) => { None };
     (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };

@@ -136,10 +136,7 @@ pub struct ComponentDef {
     /// Props made of several single-cell props, read together: a point's
     /// `coords` is `x` and `y`.
     pub combined_props: &'static [(&'static str, &'static [&'static str])],
-    /// Array props whose items are points.
-    pub arrays: &'static [ArrayProp],
-    /// The type's one list prop, if it has one: points, as many as the
-    /// element has (ADR 0016), stored after the table's props.
+    /// The type's one list prop of points, if it has one.
     pub list: Option<ListProp>,
     /// The current core's spellings of a few props, accepted in references
     /// so its documents resolve unchanged.
@@ -152,28 +149,33 @@ pub struct ComponentDef {
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
 
-/// An array prop of points, such as a polygon's `vertices`: the names it
-/// goes by, the name of an item (`vertex` for `vertex3`), and each item's
-/// coordinate props, as many as the type can hold.
-pub struct ArrayProp {
-    pub names: &'static [&'static str],
-    pub item: &'static str,
-    pub items: &'static [[&'static str; 2]],
-}
-
-/// A list prop of points, such as a circle's `throughPoints`: as many
-/// points as the element was given, stored after the props of the type's
-/// table (ADR 0016). An element's props are the table's, then two per
-/// point; the list's length is what is left over, so it needs no cell of
-/// its own. Point `k` (1-based) is the combined prop `item` k (`throughPoint2`),
-/// with coordinates `coords[0]` k and `coords[1]` k (`throughX2`), which
-/// the current core also spells `alternate_name` k `_` 1 and `_` 2
-/// (`throughPointX2_1`).
+/// A type's one list prop of points: the names the list goes by
+/// (`throughPoints`, `points`), the name of a point in it (`throughPoint`
+/// for `throughPoint2`), and where its points are. However they are
+/// stored, a document reads them alike: `$l.points`, `$l.point2`,
+/// `$l.points[2].x`.
 pub struct ListProp {
     pub names: &'static [&'static str],
     pub item: &'static str,
-    pub coords: [&'static str; 2],
-    pub alternate_name: Option<&'static str>,
+    pub points: ListPoints,
+}
+
+/// Where a list's points are.
+pub enum ListPoints {
+    /// As many as the element was given, stored after the props of the
+    /// type's table (ADR 0016): a circle's through points, a polygon's
+    /// vertices. An element's props are the table's, then two per point;
+    /// the list's length is what is left over, so it needs no cell of its
+    /// own. Point `k` (1-based) has coordinates `coords[0]` k and
+    /// `coords[1]` k (`throughX2`), which the current core also spells
+    /// `alternate_name` k `_` 1 and `_` 2 (`throughPointX2_1`).
+    Given {
+        coords: [&'static str; 2],
+        alternate_name: Option<&'static str>,
+    },
+    /// A fixed number, each a pair of the table's props: a line's two
+    /// points are `x1`, `y1` and `x2`, `y2`.
+    Table(&'static [[&'static str; 2]]),
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.
@@ -260,28 +262,12 @@ impl ComponentType {
         if let Some((_, parts)) = def.combined_props.iter().find(|(v, _)| *v == name) {
             return Some(*parts);
         }
-        def.arrays.iter().find_map(|a| {
-            let k: usize = name.strip_prefix(a.item)?.parse().ok()?;
-            (1..=a.items.len())
-                .contains(&k)
-                .then(|| &a.items[k - 1][..])
-        })
-    }
-
-    /// Array props whose items are points: the prop names of each item's
-    /// cells, as many items as the type can hold. A polygon's live count is
-    /// its `numVertices` cell; the builder trims the list.
-    pub fn array_prop(self, name: &str) -> Option<&'static [[&'static str; 2]]> {
-        self.array(name).map(|a| a.items)
-    }
-
-    /// The point-valued virtual prop for item `k` (1-based) of an array prop.
-    pub fn array_item_prop(self, name: &str, k: usize) -> Option<String> {
-        self.array(name).map(|a| format!("{}{k}", a.item))
-    }
-
-    fn array(self, name: &str) -> Option<&'static ArrayProp> {
-        self.def().arrays.iter().find(|a| a.names.contains(&name))
+        let list = def.list.as_ref()?;
+        let ListPoints::Table(points) = list.points else {
+            return None;
+        };
+        let k: usize = name.strip_prefix(list.item)?.parse().ok()?;
+        (1..=points.len()).contains(&k).then(|| &points[k - 1][..])
     }
 
     /// The type's list prop, if it has one.
@@ -289,14 +275,53 @@ impl ComponentType {
         self.def().list.as_ref()
     }
 
+    /// The coordinate names of the type's list when its points are as many
+    /// as an element was given (`ListPoints::Given`), with the list.
+    fn given_list(self) -> Option<(&'static ListProp, [&'static str; 2], Option<&'static str>)> {
+        let list = self.list()?;
+        match list.points {
+            ListPoints::Given {
+                coords,
+                alternate_name,
+            } => Some((list, coords, alternate_name)),
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// The coordinate names of the type's list when its points are as many
+    /// as an element was given, stored after the table: `throughX` and
+    /// `throughY`.
+    pub fn given_coords(self) -> Option<[&'static str; 2]> {
+        self.given_list().map(|(_, coords, _)| coords)
+    }
+
+    /// The points of the list `name` when they are the table's props
+    /// (`ListPoints::Table`): each one's two prop names.
+    pub fn table_list(self, name: &str) -> Option<&'static [[&'static str; 2]]> {
+        let list = self.list().filter(|l| l.names.contains(&name))?;
+        match list.points {
+            ListPoints::Table(points) => Some(points),
+            ListPoints::Given { .. } => None,
+        }
+    }
+
+    /// The name of point `k` (1-based) of the list `name` whose points are
+    /// the table's props (`point2`).
+    pub fn table_list_item(self, name: &str, k: usize) -> Option<String> {
+        self.table_list(name)
+            .map(|_| format!("{}{k}", self.list().expect("a list").item))
+    }
+
     /// Where the prop `name` is: a position in the table, or a point (or
-    /// coordinate) of the type's list, or nowhere. Whether a point exists
-    /// depends on the element (`list_slot`).
+    /// coordinate) of the type's list when its points are stored after the
+    /// table (`ListPoints::Given`), or nowhere. Whether such a point exists
+    /// depends on the element (`list_slot`). A table list's points are
+    /// table props already.
     pub fn prop_at(self, name: &str) -> Option<PropAt> {
         if let Some(i) = self.prop_index(name) {
             return Some(PropAt::Fixed(i));
         }
-        let list = self.list()?;
+        let (list, coords, alternate_name) = self.given_list()?;
         if list.names.contains(&name) {
             return Some(PropAt::List);
         }
@@ -304,12 +329,12 @@ impl ComponentType {
         if let Some(k) = name.strip_prefix(list.item).and_then(index) {
             return Some(PropAt::Item(k));
         }
-        for (j, c) in list.coords.iter().enumerate() {
+        for (j, c) in coords.iter().enumerate() {
             if let Some(k) = name.strip_prefix(c).and_then(index) {
                 return Some(PropAt::Coord(k, j));
             }
         }
-        let rest = name.strip_prefix(list.alternate_name?)?;
+        let rest = name.strip_prefix(alternate_name?)?;
         let (k, j) = rest.split_once('_')?;
         match (index(k), j) {
             (Some(k), "1") => Some(PropAt::Coord(k, 0)),
@@ -322,7 +347,7 @@ impl ComponentType {
     /// element with `n_props` props, if the element has that point.
     pub fn list_slot(self, n_props: usize, k: usize, j: usize) -> Option<usize> {
         let fixed = self.prop_defs().len();
-        (self.list().is_some() && k >= 1 && fixed + 2 * k <= n_props)
+        (self.given_list().is_some() && k >= 1 && fixed + 2 * k <= n_props)
             .then(|| fixed + 2 * (k - 1) + j)
     }
 
@@ -334,14 +359,14 @@ impl ComponentType {
         if pi < fixed {
             return Some(self.prop_defs()[pi].name.into());
         }
-        let list = self.list().filter(|_| pi < n_props)?;
+        let coords = self.given_coords().filter(|_| pi < n_props)?;
         let (k, j) = ((pi - fixed) / 2 + 1, (pi - fixed) % 2);
-        Some(format!("{}{k}", list.coords[j]).into())
+        Some(format!("{}{k}", coords[j]).into())
     }
 
     /// How many points the list of an element with `n_props` props holds.
     pub fn list_len(self, n_props: usize) -> usize {
-        match self.list() {
+        match self.given_list() {
             Some(_) => (n_props - self.prop_defs().len()) / 2,
             None => 0,
         }
