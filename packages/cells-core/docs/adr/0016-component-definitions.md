@@ -217,8 +217,9 @@ case), carry every piece before other components follow:
    ns an element at build. Measured against the commit before this step
    (7581113): programs, cells and memory identical on every fixture; a
    load's instruction count (callgrind) at most 1.4% higher (a point),
-   most within 0.6%; `perf-diff.sh` tick and memory unchanged, its load
-   ratios within run-to-run noise (0.94 to 1.09 across reruns).
+   most within 0.6%; `packages/benchmark/scripts/perf-diff.sh` tick and
+   memory unchanged, its load ratios within run-to-run noise (0.94 to
+   1.09 across reruns).
    A nonlinear line equation still makes a line of NaN
    without a diagnostic, as before. The golden diff is identical through
    every move. The segment and the line, which had no specs, have them
@@ -250,7 +251,7 @@ case), carry every piece before other components follow:
 7. The guide to writing a component (ARCHITECTURE.md, "Where to change
    things"), written from the pilots.
 
-Each step is measured with `scripts/perf-diff.sh`.
+Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 
 ## Consequences
 

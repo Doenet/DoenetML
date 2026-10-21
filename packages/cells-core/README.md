@@ -65,5 +65,6 @@ and the golden diff and the speed comparisons below only mean something
 when every machine builds the same dependency tree, `math-expressions`
 being pinned to a git revision.
 
-Speed is measured by `packages/benchmark` (its `scripts/perf-diff.sh`
-compares a base commit with the working tree).
+Speed is measured by `packages/benchmark`
+(`packages/benchmark/scripts/perf-diff.sh` compares a base commit with the
+working tree).
