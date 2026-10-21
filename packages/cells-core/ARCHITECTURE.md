@@ -311,8 +311,8 @@ The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
 Add one entry to `scalar_ops!` in `program/scalar.rs` (ADR 0016) giving its
 inputs and literal parameters, its evaluation, and its inverse, declared
 `exact`, `projection` or `drops`. The macro (`program/ops.rs`) generates the
-`Op` and `OpSpec` variants and every match arm. The test
-`program::scalar::inverses` checks each inverse against what its entry
+`Op` and `OpSpec` variants and every match arm. The tests in
+`program::scalar::inverses` check each inverse against what its entry
 declares, over a fixed table of values and the entry's parameter `samples`.
 
 A document reaches an operator through a component's prop table or planner,
