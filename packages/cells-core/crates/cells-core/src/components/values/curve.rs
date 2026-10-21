@@ -68,15 +68,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
-        plan.set_public(
-            Props {
-                expr: Planned::fixed(f64::NAN),
-                xmin: Planned::fixed(-10.0),
-                xmax: Planned::fixed(10.0),
-                samples: Planned::fixed(f64::NAN),
-            }
-            .into_vec(),
-        );
+        plan.set_public(Props {
+            expr: Planned::fixed(f64::NAN),
+            xmin: Planned::fixed(-10.0),
+            xmax: Planned::fixed(10.0),
+            samples: Planned::fixed(f64::NAN),
+        });
         ctx.set_plan(plan);
         return Ok(());
     }
@@ -94,18 +91,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
         _ => [Planned::fixed(-10.0), Planned::fixed(10.0)],
     };
-    plan.set_public(
-        Props {
-            expr,
-            xmin,
-            xmax,
-            samples: Planned::computed(
-                OpSpec::Sym(SymKind::Sample),
-                vec![at.expr, at.xmin, at.xmax],
-            ),
-        }
-        .into_vec(),
-    );
+    plan.set_public(Props {
+        expr,
+        xmin,
+        xmax,
+        samples: Planned::computed(
+            OpSpec::Sym(SymKind::Sample),
+            vec![at.expr, at.xmin, at.xmax],
+        ),
+    });
     ctx.set_plan(plan);
     Ok(())
 }

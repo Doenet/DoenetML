@@ -120,22 +120,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             OpSpec::Div,
             vec![at.coeff0, at.coeffvar2],
         ));
-        ch.set_public(
-            Props {
-                x1,
-                y1,
-                x2,
-                y2,
-                slope: Planned::computed(OpSpec::Negate, vec![q]),
-                xintercept: Planned::computed(OpSpec::Negate, vec![xi]),
-                yintercept: Planned::computed(OpSpec::Negate, vec![yi]),
-                coeffvar1: a.into(),
-                coeffvar2: b.into(),
-                coeff0: c.into(),
-                basedOnDirection: Planned::fixed(0.0),
-            }
-            .into_vec(),
-        );
+        ch.set_public(Props {
+            x1,
+            y1,
+            x2,
+            y2,
+            slope: Planned::computed(OpSpec::Negate, vec![q]),
+            xintercept: Planned::computed(OpSpec::Negate, vec![xi]),
+            yintercept: Planned::computed(OpSpec::Negate, vec![yi]),
+            coeffvar1: a.into(),
+            coeffvar2: b.into(),
+            coeff0: c.into(),
+            basedOnDirection: Planned::fixed(0.0),
+        });
         return Ok(ch);
     }
 
@@ -190,22 +187,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let ax = ch.hidden(SourcePlan::computed(OpSpec::Mul, vec![at.coeffvar1, at.x1]));
     let by = ch.hidden(SourcePlan::computed(OpSpec::Mul, vec![at.coeffvar2, at.y1]));
     let sum = ch.hidden(SourcePlan::computed(OpSpec::Add, vec![ax, by]));
-    ch.set_public(
-        Props {
-            x1,
-            y1,
-            x2,
-            y2,
-            slope: Planned::computed(OpSpec::Div, vec![dy, dx]),
-            xintercept: Planned::computed(OpSpec::Sub, vec![at.x1, q]),
-            yintercept: Planned::computed(OpSpec::Sub, vec![at.y1, mx]),
-            coeffvar1: Planned::own(dy),
-            coeffvar2: Planned::computed(OpSpec::Sub, vec![at.x1, at.x2]),
-            coeff0: Planned::computed(OpSpec::Negate, vec![sum]),
-            basedOnDirection: based_on_direction,
-        }
-        .into_vec(),
-    );
+    ch.set_public(Props {
+        x1,
+        y1,
+        x2,
+        y2,
+        slope: Planned::computed(OpSpec::Div, vec![dy, dx]),
+        xintercept: Planned::computed(OpSpec::Sub, vec![at.x1, q]),
+        yintercept: Planned::computed(OpSpec::Sub, vec![at.y1, mx]),
+        coeffvar1: Planned::own(dy),
+        coeffvar2: Planned::computed(OpSpec::Sub, vec![at.x1, at.x2]),
+        coeff0: Planned::computed(OpSpec::Negate, vec![sum]),
+        basedOnDirection: based_on_direction,
+    });
     Ok(ch)
 }
 

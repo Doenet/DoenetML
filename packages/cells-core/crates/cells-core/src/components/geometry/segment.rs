@@ -43,6 +43,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let [x1, y1] = Planned::point_or_default(ends.first(), point_roles(0), "endpoints", first);
     let [x2, y2] = Planned::point_or_default(ends.get(1), point_roles(1), "endpoints", second);
     let mut ch = ElemPlan::of(ComponentType::LineSegment);
-    ch.set_public(Props { x1, y1, x2, y2 }.into_vec());
+    ch.set_public(Props { x1, y1, x2, y2 });
     Ok(ch)
 }

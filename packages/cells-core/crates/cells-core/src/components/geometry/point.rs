@@ -37,14 +37,11 @@ const _: () = assert!(Y == X + 1, "a point's y must follow its x");
 pub(crate) fn props_of(x: SourcePlan, y: SourcePlan) -> Vec<SourcePlan> {
     let mut plan = ElemPlan::of(ComponentType::Point);
     let hide = ComponentType::Point.prop_defs()[HIDE].default;
-    plan.set_public(
-        Props {
-            x: x.into(),
-            y: y.into(),
-            hide: SourcePlan::Default(hide).into(),
-        }
-        .into_vec(),
-    );
+    plan.set_public(Props {
+        x: x.into(),
+        y: y.into(),
+        hide: SourcePlan::Default(hide).into(),
+    });
     plan.finish()
 }
 
@@ -127,14 +124,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             ));
         }
     };
-    ch.set_public(
-        Props {
-            x,
-            y,
-            hide: hide.into(),
-        }
-        .into_vec(),
-    );
+    ch.set_public(Props {
+        x,
+        y,
+        hide: hide.into(),
+    });
     Ok(ch)
 }
 

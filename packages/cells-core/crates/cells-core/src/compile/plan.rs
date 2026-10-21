@@ -530,7 +530,7 @@ impl ElemPlan {
     }
     /// Every public slot, from a typed plan's fields in table order
     /// (`Props::into_vec`), with their roles.
-    pub(crate) fn set_public(&mut self, props: Vec<Planned>) {
+    pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Planned>) {
         for (i, p) in props.into_iter().enumerate() {
             self.props[i] = Some(p.plan);
             if let Some((role, attr)) = p.role {
@@ -539,8 +539,8 @@ impl ElemPlan {
         }
     }
     /// `set_public` for a typed plan of sources that give no roles.
-    pub(crate) fn set_public_sources(&mut self, props: Vec<SourcePlan>) {
-        self.set_public(props.into_iter().map(Planned::from).collect());
+    pub(crate) fn set_public_sources(&mut self, props: impl IntoIterator<Item = SourcePlan>) {
+        self.set_public(props.into_iter().map(Planned::from));
     }
     /// The list's points, which fill the public slots after the table's
     /// props, with their roles.

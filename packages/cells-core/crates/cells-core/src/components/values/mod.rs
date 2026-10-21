@@ -163,20 +163,17 @@ pub mod tuple {
             .chain(std::iter::repeat_with(|| Planned::fixed(f64::NAN)));
         let mut next = || entries.next().expect("an endless supply");
         let mut plan = ElemPlan::of(ComponentType::Tuple);
-        plan.set_public(
-            Props {
-                n,
-                x1: next(),
-                x2: next(),
-                x3: next(),
-                x4: next(),
-                x5: next(),
-                x6: next(),
-                x7: next(),
-                x8: next(),
-            }
-            .into_vec(),
-        );
+        plan.set_public(Props {
+            n,
+            x1: next(),
+            x2: next(),
+            x3: next(),
+            x4: next(),
+            x5: next(),
+            x6: next(),
+            x7: next(),
+            x8: next(),
+        });
         plan.finish()
     }
 }

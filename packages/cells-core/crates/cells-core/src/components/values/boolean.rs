@@ -79,7 +79,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     } else {
         Planned::own(ctx.condition(&nodes, &mut plan)?)
     };
-    plan.set_public(Props { value }.into_vec());
+    plan.set_public(Props { value });
     ctx.set_plan(plan);
     Ok(())
 }

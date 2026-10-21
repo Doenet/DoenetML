@@ -26,13 +26,10 @@ pub const VALUE: usize = Props::AT.value;
 /// A math's props: its expression, with `post` applied, and its value.
 pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<SourcePlan> {
     let mut plan = ElemPlan::of(ComponentType::Math);
-    plan.set_public(
-        Props {
-            expr: SourcePlan::MathHandle(id, post).into(),
-            value: SourcePlan::MathValue(id).into(),
-        }
-        .into_vec(),
-    );
+    plan.set_public(Props {
+        expr: SourcePlan::MathHandle(id, post).into(),
+        value: SourcePlan::MathValue(id).into(),
+    });
     plan.finish()
 }
 

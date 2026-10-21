@@ -216,25 +216,22 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
         // A center with two or more points, a radius with three: `over`.
         (None, ..) => unreachable!("an over-determined circle is warned about above"),
     };
-    ch.set_public(
-        Props {
-            cx,
-            cy,
-            radius,
-            diameter: Planned::from_table(ComponentType::Circle, at.diameter),
-            circumference: Planned::from_table(ComponentType::Circle, at.circumference),
-            area: Planned::computed(
-                OpSpec::Scale {
-                    k: std::f64::consts::PI,
-                },
-                vec![r2],
-            ),
-            centerX: center_x,
-            centerY: center_y,
-            numThroughPoints: Planned::fixed(n as f64),
-        }
-        .into_vec(),
-    );
+    ch.set_public(Props {
+        cx,
+        cy,
+        radius,
+        diameter: Planned::from_table(ComponentType::Circle, at.diameter),
+        circumference: Planned::from_table(ComponentType::Circle, at.circumference),
+        area: Planned::computed(
+            OpSpec::Scale {
+                k: std::f64::consts::PI,
+            },
+            vec![r2],
+        ),
+        centerX: center_x,
+        centerY: center_y,
+        numThroughPoints: Planned::fixed(n as f64),
+    });
     ch.set_list(through_points);
     Ok(ch)
 }

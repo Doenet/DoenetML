@@ -154,17 +154,14 @@ impl<'a> Compiler<'a> {
 
         if forms.is_empty() {
             let eq = self.equals_op(&[el]);
-            plan.set_public_sources(
-                answer::Props {
-                    response,
-                    correct,
-                    submitted,
-                    credit: SourcePlan::computed(OpSpec::Sym(eq), vec![at.submitted, at.correct]),
-                    weight,
-                    numSubmissions: SourcePlan::Literal(0.0),
-                }
-                .into_vec(),
-            );
+            plan.set_public_sources(answer::Props {
+                response,
+                correct,
+                submitted,
+                credit: SourcePlan::computed(OpSpec::Sym(eq), vec![at.submitted, at.correct]),
+                weight,
+                numSubmissions: SourcePlan::Literal(0.0),
+            });
             self.compiled.templates[t].elems[e].props = plan.finish();
             return Ok(());
         }
@@ -189,17 +186,14 @@ impl<'a> Compiler<'a> {
             response = SourcePlan::Alias(Arg::Elem(r, own_slot(response::RESPONSE)));
             submitted = SourcePlan::Alias(Arg::Elem(r, own_slot(response::SUBMITTED)));
         }
-        plan.set_public_sources(
-            answer::Props {
-                response,
-                correct,
-                submitted,
-                credit: SourcePlan::own(best),
-                weight,
-                numSubmissions: SourcePlan::Literal(0.0),
-            }
-            .into_vec(),
-        );
+        plan.set_public_sources(answer::Props {
+            response,
+            correct,
+            submitted,
+            credit: SourcePlan::own(best),
+            weight,
+            numSubmissions: SourcePlan::Literal(0.0),
+        });
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
@@ -246,17 +240,14 @@ impl<'a> Compiler<'a> {
             }),
             args,
         ));
-        plan.set_public_sources(
-            answer::Props {
-                response: SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
-                correct: SourcePlan::Fixed(f64::NAN),
-                submitted: SourcePlan::Literal(0.0),
-                credit: SourcePlan::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
-                weight,
-                numSubmissions: SourcePlan::Literal(0.0),
-            }
-            .into_vec(),
-        );
+        plan.set_public_sources(answer::Props {
+            response: SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
+            correct: SourcePlan::Fixed(f64::NAN),
+            submitted: SourcePlan::Literal(0.0),
+            credit: SourcePlan::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
+            weight,
+            numSubmissions: SourcePlan::Literal(0.0),
+        });
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
@@ -329,13 +320,10 @@ impl<'a> Compiler<'a> {
                     Arg::Own(own_slot(correct)),
                 ],
             ));
-            ap.set_public_sources(
-                award::Props {
-                    credit,
-                    awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
-                }
-                .into_vec(),
-            );
+            ap.set_public_sources(award::Props {
+                credit,
+                awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+            });
             self.compiled.templates[t].elems[a].props = ap.finish();
             let awarded = plan.hidden(SourcePlan::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
             best = Some(match best {
@@ -343,17 +331,14 @@ impl<'a> Compiler<'a> {
                 Some(b) => plan.hidden(SourcePlan::computed(OpSpec::Max, vec![b, awarded])),
             });
         }
-        plan.set_public_sources(
-            answer::Props {
-                response: SourcePlan::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
-                correct: SourcePlan::Fixed(f64::NAN),
-                submitted: SourcePlan::TextLiteral(f64::NAN),
-                credit: SourcePlan::own(best.expect("an award")),
-                weight,
-                numSubmissions: SourcePlan::Literal(0.0),
-            }
-            .into_vec(),
-        );
+        plan.set_public_sources(answer::Props {
+            response: SourcePlan::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
+            correct: SourcePlan::Fixed(f64::NAN),
+            submitted: SourcePlan::TextLiteral(f64::NAN),
+            credit: SourcePlan::own(best.expect("an award")),
+            weight,
+            numSubmissions: SourcePlan::Literal(0.0),
+        });
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
@@ -543,12 +528,9 @@ impl<'a> Compiler<'a> {
                 let planned = self.plan_condition_content(t, w, &nodes, compare, &mut wp);
                 self.ref_subst.clear();
                 let slot = planned?;
-                wp.set_public_sources(
-                    when::Props {
-                        value: SourcePlan::own(slot),
-                    }
-                    .into_vec(),
-                );
+                wp.set_public_sources(when::Props {
+                    value: SourcePlan::own(slot),
+                });
                 self.compiled.templates[t].elems[w].props = wp.finish();
                 ap.hidden(SourcePlan::Alias(Arg::Elem(w, own_slot(when::VALUE))))
             }
@@ -569,13 +551,10 @@ impl<'a> Compiler<'a> {
                 ))
             }
         };
-        ap.set_public_sources(
-            award::Props {
-                credit,
-                awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
-            }
-            .into_vec(),
-        );
+        ap.set_public_sources(award::Props {
+            credit,
+            awarded: SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+        });
         self.compiled.templates[t].elems[form.e].props = ap.finish();
         Ok(())
     }

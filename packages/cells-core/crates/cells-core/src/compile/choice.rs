@@ -219,13 +219,10 @@ impl<'a> Compiler<'a> {
             },
             conds,
         ));
-        plan.set_public_sources(
-            conditional_content::Props {
-                choice: SourcePlan::own(first),
-                hide,
-            }
-            .into_vec(),
-        );
+        plan.set_public_sources(conditional_content::Props {
+            choice: SourcePlan::own(first),
+            hide,
+        });
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }

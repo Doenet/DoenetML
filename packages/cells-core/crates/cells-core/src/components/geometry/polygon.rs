@@ -143,12 +143,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
             .map(|(k, v)| Planned::point(v, point_roles(k), "vertices"))
             .collect(),
     };
-    ch.set_public(
-        Props {
-            numVertices: Planned::fixed(n as f64),
-        }
-        .into_vec(),
-    );
+    ch.set_public(Props {
+        numVertices: Planned::fixed(n as f64),
+    });
     ch.set_list(points);
     Ok(ch)
 }

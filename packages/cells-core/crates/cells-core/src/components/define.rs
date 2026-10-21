@@ -339,6 +339,18 @@ macro_rules! typed_props {
             }
         }
 
+        const PROPS_LEN: usize = $table.len();
+
+        /// The props in table order, with no allocation: what
+        /// `ElemPlan::set_public` takes.
+        impl<T> IntoIterator for Props<T> {
+            type Item = T;
+            type IntoIter = std::array::IntoIter<T, PROPS_LEN>;
+            fn into_iter(self) -> Self::IntoIter {
+                [$(self.$field),*].into_iter()
+            }
+        }
+
         #[allow(dead_code)]
         impl Props<usize> {
             /// Each prop's position in the table.

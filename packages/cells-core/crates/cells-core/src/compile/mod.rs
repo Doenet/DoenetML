@@ -516,17 +516,14 @@ impl<'a> Compiler<'a> {
                     let at = sv::Props::AT;
                     let table = |i| Planned::from_table(ComponentType::SequenceValue, i);
                     let mut plan = ElemPlan::of(ComponentType::SequenceValue);
-                    plan.set_public(
-                        sv::Props {
-                            from: SourcePlan::reference(from).into(),
-                            step: SourcePlan::reference(step).into(),
-                            k: SourcePlan::IterIndex.into(),
-                            km1: table(at.km1),
-                            scaled: table(at.scaled),
-                            value: table(at.value),
-                        }
-                        .into_vec(),
-                    );
+                    plan.set_public(sv::Props {
+                        from: SourcePlan::reference(from).into(),
+                        step: SourcePlan::reference(step).into(),
+                        k: SourcePlan::IterIndex.into(),
+                        km1: table(at.km1),
+                        scaled: table(at.scaled),
+                        value: table(at.value),
+                    });
                     self.compiled.templates[sub].elems[v].props = plan.finish();
                 }
                 if let Some(iname) = self.attr_name_str(el, "indexName") {

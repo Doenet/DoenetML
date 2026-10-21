@@ -212,6 +212,13 @@ case), carry every piece before other components follow:
    `PropsThen` planner, which adjusts the table's plan, reaches it
    through `Props::AT`. How a point, math or tuple is made from parts is
    its component's (`point::props_of`, ...), which the machinery calls.
+   A typed plan is passed to `set_public` as an array iterator, not a
+   `Vec`: allocating one per element cost geometric documents about 75
+   ns an element at build. Measured against the commit before this step
+   (7581113): programs, cells and memory identical on every fixture; a
+   load's instruction count (callgrind) at most 1.4% higher (a point),
+   most within 0.6%; `perf-diff.sh` tick and memory unchanged, its load
+   ratios within run-to-run noise (0.94 to 1.09 across reruns).
    A nonlinear line equation still makes a line of NaN
    without a diagnostic, as before. The golden diff is identical through
    every move. The segment and the line, which had no specs, have them
