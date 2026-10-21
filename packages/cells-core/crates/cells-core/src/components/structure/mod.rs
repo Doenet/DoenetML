@@ -105,7 +105,7 @@ pub mod sequence_value {
 /// the children of an active case only.
 pub(super) const CASE: ComponentTypeInfo = info(&["case"], CASE_PROPS);
 
-const CASE_PROPS: &[PropDef] = &props([planned("active")]);
+const CASE_PROPS: &[PropDef] = &props([by_planner("active")]);
 
 pub mod case {
     use super::*;

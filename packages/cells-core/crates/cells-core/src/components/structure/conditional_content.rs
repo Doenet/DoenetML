@@ -17,7 +17,7 @@ pub(in crate::components) const CONDITIONAL_CONTENT: ComponentTypeInfo = info(
 );
 
 // `hide` hides what the choice shows, not copies of its names.
-const CONDITIONAL_CONTENT_PROPS: &[PropDef] = &props([planned("choice"), planned("hide")]);
+const CONDITIONAL_CONTENT_PROPS: &[PropDef] = &props([by_planner("choice"), by_planner("hide")]);
 
 typed_props!(CONDITIONAL_CONTENT_PROPS { choice, hide });
 

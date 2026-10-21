@@ -13,7 +13,7 @@ pub(in crate::components) const SELECT_FROM_SEQUENCE: ComponentTypeInfo =
         .copyable()
         .default_prop("value");
 
-const SELECT_FROM_SEQUENCE_PROPS: &[PropDef] = &props([planned("value")]);
+const SELECT_FROM_SEQUENCE_PROPS: &[PropDef] = &props([by_planner("value")]);
 
 typed_props!(SELECT_FROM_SEQUENCE_PROPS { value });
 

@@ -68,8 +68,11 @@ pub(super) const RESPONSE: ComponentTypeInfo = info(&["response"], RESPONSE_PROP
     .internal()
     .default_prop("value");
 
-const RESPONSE_PROPS: &[PropDef] =
-    &props([planned("response"), planned("submitted"), planned("value")]);
+const RESPONSE_PROPS: &[PropDef] = &props([
+    by_planner("response"),
+    by_planner("submitted"),
+    by_planner("value"),
+]);
 
 pub mod response {
     use super::*;
@@ -121,11 +124,11 @@ pub(super) const TUPLE: ComponentTypeInfo = info(&["tuple"], TUPLE_PROPS)
 const TUPLE_ENTRIES: [&str; MAX_TUPLE] = ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"];
 
 const TUPLE_PROPS: &[PropDef] = &props({
-    let mut out = [planned(""); 1 + MAX_TUPLE];
-    out[0] = planned("n");
+    let mut out = [by_planner(""); 1 + MAX_TUPLE];
+    out[0] = by_planner("n");
     let mut i = 0;
     while i < MAX_TUPLE {
-        out[1 + i] = planned(TUPLE_ENTRIES[i]);
+        out[1 + i] = by_planner(TUPLE_ENTRIES[i]);
         i += 1;
     }
     out

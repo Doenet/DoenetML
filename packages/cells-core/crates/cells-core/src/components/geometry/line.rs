@@ -19,17 +19,17 @@ pub(in crate::components) const LINE: ComponentTypeInfo =
 /// `basedOnDirection` is 1 when the second point is derived from a slope or
 /// direction, so a renderer drags only the first.
 const LINE_PROPS: &[PropDef] = &props([
-    planned("x1"),
-    planned("y1"),
-    planned("x2"),
-    planned("y2"),
-    planned("slope"),
-    planned("xintercept"),
-    planned("yintercept"),
-    planned("coeffvar1"),
-    planned("coeffvar2"),
-    planned("coeff0"),
-    planned("basedOnDirection"),
+    by_planner("x1"),
+    by_planner("y1"),
+    by_planner("x2"),
+    by_planner("y2"),
+    by_planner("slope"),
+    by_planner("xintercept"),
+    by_planner("yintercept"),
+    by_planner("coeffvar1"),
+    by_planner("coeffvar2"),
+    by_planner("coeff0"),
+    by_planner("basedOnDirection"),
 ]);
 
 typed_props!(LINE_PROPS {

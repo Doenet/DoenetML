@@ -14,7 +14,7 @@ use crate::error::Result;
 /// and `iterates`.
 pub(in crate::components) const REPEAT_FOR: ComponentTypeInfo = info(&["repeat"], REPEAT_FOR_PROPS);
 
-const REPEAT_FOR_PROPS: &[PropDef] = &props([planned("count")]);
+const REPEAT_FOR_PROPS: &[PropDef] = &props([by_planner("count")]);
 
 typed_props!(REPEAT_FOR_PROPS { count });
 

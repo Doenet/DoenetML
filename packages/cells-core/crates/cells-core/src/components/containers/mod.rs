@@ -15,8 +15,10 @@ pub use section::SECTION_TAGS;
 /// `build/expand/scoring.rs`).
 pub(super) const DOCUMENT: ComponentTypeInfo = info(&["document"], DOCUMENT_PROPS);
 
-const DOCUMENT_PROPS: &[PropDef] =
-    &props([planned("creditAchieved"), planned("percentCreditAchieved")]);
+const DOCUMENT_PROPS: &[PropDef] = &props([
+    by_planner("creditAchieved"),
+    by_planner("percentCreditAchieved"),
+]);
 
 pub mod document {
     use super::*;

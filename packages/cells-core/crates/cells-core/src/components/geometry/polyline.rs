@@ -12,7 +12,7 @@ use crate::error::{Error, Result};
 pub(in crate::components) const POLYLINE: ComponentTypeInfo =
     info(&["polyline"], POLYLINE_PROPS).copyable();
 
-const POLYLINE_PROPS: &[PropDef] = &props([planned("numVertices")]);
+const POLYLINE_PROPS: &[PropDef] = &props([by_planner("numVertices")]);
 
 pub const NUM_VERTICES: usize = at(POLYLINE_PROPS, "numVertices");
 

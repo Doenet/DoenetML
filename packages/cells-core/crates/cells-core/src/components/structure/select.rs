@@ -10,7 +10,7 @@ use crate::error::Result;
 /// options it picked, flattened like a repeat's iterations.
 pub(in crate::components) const SELECT: ComponentTypeInfo = info(&["select"], SELECT_PROPS);
 
-const SELECT_PROPS: &[PropDef] = &props([planned("hide")]);
+const SELECT_PROPS: &[PropDef] = &props([by_planner("hide")]);
 
 typed_props!(SELECT_PROPS { hide });
 

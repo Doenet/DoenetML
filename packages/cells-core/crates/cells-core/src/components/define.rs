@@ -26,7 +26,7 @@ enum Source {
     Derived,
     Computed(OpSpec, &'static [&'static str]),
     AttributeOr(&'static str),
-    Planned,
+    ByPlanner,
 }
 
 const fn prop_from(name: &'static str, default: f64, source: Source) -> Prop {
@@ -75,9 +75,10 @@ pub(super) const fn derived(name: &'static str) -> Prop {
     prop_from(name, f64::NAN, Source::Derived)
 }
 
-/// A prop whose source the builder plans from the element's specification.
-pub(super) const fn planned(name: &'static str) -> Prop {
-    prop_from(name, f64::NAN, Source::Planned)
+/// Set by the type's planner, which reads the whole element, rather than
+/// by one attribute, the children or an operator.
+pub(super) const fn by_planner(name: &'static str) -> Prop {
+    prop_from(name, f64::NAN, Source::ByPlanner)
 }
 
 impl Prop {
@@ -106,7 +107,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
     let blank = PropDef {
         name: "",
         default: f64::NAN,
-        from: PropFrom::Planned,
+        from: PropFrom::ByPlanner,
         attr: None,
         bind: None,
         ref_prop: None,
@@ -119,7 +120,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             Source::Attribute => PropFrom::Attribute,
             Source::Children => PropFrom::Children,
             Source::Derived => PropFrom::Derived,
-            Source::Planned => PropFrom::Planned,
+            Source::ByPlanner => PropFrom::ByPlanner,
             Source::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: position(&table, or),
             },

@@ -28,9 +28,9 @@ pub(in crate::components) const DERIVATIVE: ComponentTypeInfo = info(&["derivati
 // `SAMPLES` consecutive cells.
 const CURVE_PROPS: &[PropDef] = &props([
     children("expr"),
-    planned("xmin"),
-    planned("xmax"),
-    planned("samples"),
+    by_planner("xmin"),
+    by_planner("xmax"),
+    by_planner("samples"),
 ]);
 
 // The positions of `<function>` and `<derivative>`, which share their table.

@@ -26,30 +26,71 @@ pub(in crate::components) const SECTION: ComponentTypeInfo = info(
 )
 .container();
 
-/// The tags that make a `Section`, in the order of its `label` cell, with
-/// the word a title shows and whether the tag aggregates scores and
-/// includes its parent section's number by default (the current core's
+/// A tag that makes a `Section`, and its defaults (the current core's
 /// `Sectioning.js`).
-pub const SECTION_TAGS: [(&str, &str, bool, bool); 6] = [
-    ("section", "Section", false, true),
-    ("subsection", "Section", false, true),
-    ("subsubsection", "Section", false, true),
-    ("problem", "Problem", true, false),
-    ("exercise", "Exercise", true, false),
-    ("example", "Example", false, false),
+pub struct SectionTag {
+    pub tag: &'static str,
+    /// The word its automatic title shows: "Problem 3".
+    pub title: &'static str,
+    /// Whether it holds the weighted credit of what is inside it, unless
+    /// `aggregateScores` says otherwise.
+    pub aggregates_scores: bool,
+    /// Whether its number includes its parent section's ("2.1"), unless
+    /// `includeParentNumber` says otherwise.
+    pub includes_parent_number: bool,
+}
+
+/// The tags that make a `Section`, in the order of its `label` cell.
+pub const SECTION_TAGS: [SectionTag; 6] = [
+    SectionTag {
+        tag: "section",
+        title: "Section",
+        aggregates_scores: false,
+        includes_parent_number: true,
+    },
+    SectionTag {
+        tag: "subsection",
+        title: "Section",
+        aggregates_scores: false,
+        includes_parent_number: true,
+    },
+    SectionTag {
+        tag: "subsubsection",
+        title: "Section",
+        aggregates_scores: false,
+        includes_parent_number: true,
+    },
+    SectionTag {
+        tag: "problem",
+        title: "Problem",
+        aggregates_scores: true,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "exercise",
+        title: "Exercise",
+        aggregates_scores: true,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "example",
+        title: "Example",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
 ];
 
 // `creditAchieved`, `percentCreditAchieved` and `number` are planned
 // deferred and wired after expansion (`Deferred`); the flags are literals
 // the builder reads, since they decide the wiring.
 const SECTION_PROPS: &[PropDef] = &props([
-    planned("creditAchieved"),
-    planned("percentCreditAchieved"),
+    by_planner("creditAchieved"),
+    by_planner("percentCreditAchieved"),
     attr("weight", 1.0),
-    planned("aggregateScores"),
-    planned("number"),
-    planned("includeParentNumber"),
-    planned("label"),
+    by_planner("aggregateScores"),
+    by_planner("number"),
+    by_planner("includeParentNumber"),
+    by_planner("label"),
 ]);
 
 typed_props!(SECTION_PROPS {
@@ -84,10 +125,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
             .unwrap_or_default(),
         tag => tag.to_string(),
     };
-    let (label, &(_, _, aggregate, parent_number)) = SECTION_TAGS
+    let (label, section_tag) = SECTION_TAGS
         .iter()
         .enumerate()
-        .find(|(_, s)| s.0 == tag)
+        .find(|(_, s)| s.tag == tag)
         .ok_or_else(|| Error::UnsupportedTag(format!("division type=\"{tag}\"")))?;
     let flag = |name: &str, default: bool| -> Result<f64> {
         match d.attr(el, name) {
@@ -101,10 +142,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
         }
     };
     let at = Props::AT;
-    props[at.aggregateScores] = Some(SourcePlan::Fixed(flag("aggregateScores", aggregate)?));
+    props[at.aggregateScores] = Some(SourcePlan::Fixed(flag(
+        "aggregateScores",
+        section_tag.aggregates_scores,
+    )?));
     props[at.includeParentNumber] = Some(SourcePlan::Fixed(flag(
         "includeParentNumber",
-        parent_number,
+        section_tag.includes_parent_number,
     )?));
     props[at.label] = Some(SourcePlan::Fixed(label as f64));
     Ok(())

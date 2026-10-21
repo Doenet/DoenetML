@@ -16,8 +16,12 @@ pub(in crate::components) const LINE_SEGMENT: ComponentTypeInfo =
         .arrays(LINE_POINTS)
         .sticky(Shape::Open, X1, 2);
 
-const LINE_SEGMENT_PROPS: &[PropDef] =
-    &props([planned("x1"), planned("y1"), planned("x2"), planned("y2")]);
+const LINE_SEGMENT_PROPS: &[PropDef] = &props([
+    by_planner("x1"),
+    by_planner("y1"),
+    by_planner("x2"),
+    by_planner("y2"),
+]);
 
 pub const X1: usize = Props::AT.x1;
 pub const Y1: usize = Props::AT.y1;

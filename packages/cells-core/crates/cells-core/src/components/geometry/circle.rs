@@ -32,9 +32,9 @@ pub(in crate::components) const CIRCLE: ComponentTypeInfo = info(&["circle"], CI
 /// The through points are the circle's list (`throughPoints`), after
 /// these.
 const CIRCLE_PROPS: &[PropDef] = &props([
-    planned("cx"),
-    planned("cy"),
-    planned("radius"),
+    by_planner("cx"),
+    by_planner("cy"),
+    by_planner("radius"),
     computed("diameter", OpSpec::Scale { k: 2.0 }, &["radius"]),
     computed(
         "circumference",
@@ -43,13 +43,13 @@ const CIRCLE_PROPS: &[PropDef] = &props([
         },
         &["radius"],
     ),
-    planned("area"),
+    by_planner("area"),
     // The center as a *reference*: the prescribed center when there is one
     // (so a point extending `$c.center` drags that point alone, as in the
     // current core), else the derived center.
-    planned("centerX"),
-    planned("centerY"),
-    planned("numThroughPoints"),
+    by_planner("centerX"),
+    by_planner("centerY"),
+    by_planner("numThroughPoints"),
 ]);
 
 pub const NUM_THROUGH_POINTS: usize = at(CIRCLE_PROPS, "numThroughPoints");

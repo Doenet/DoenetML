@@ -33,7 +33,7 @@ const FUNCTION_ITERATES_PROPS: &[PropDef] = &props([
         &["numIteratesClamped"],
     ),
     computed("count", OpSpec::Offset { k: 1.0 }, &["iterates"]),
-    planned("allIteratesWithInitial"),
+    by_planner("allIteratesWithInitial"),
 ]);
 
 typed_props!(FUNCTION_ITERATES_PROPS {

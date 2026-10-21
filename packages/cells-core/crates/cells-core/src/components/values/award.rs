@@ -11,7 +11,7 @@ use crate::error::{Error, Result};
 pub(in crate::components) const AWARD: ComponentTypeInfo =
     info(&["award"], AWARD_PROPS).default_prop("awarded");
 
-const AWARD_PROPS: &[PropDef] = &props([attr("credit", 1.0), planned("awarded")]);
+const AWARD_PROPS: &[PropDef] = &props([attr("credit", 1.0), by_planner("awarded")]);
 
 typed_props!(AWARD_PROPS { credit, awarded });
 

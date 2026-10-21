@@ -117,7 +117,7 @@ impl Document {
         let label = self.cells[self.comp_cells(c)[prop::section::LABEL] as usize] as usize;
         Some(format!(
             "{} {number}",
-            crate::components::SECTION_TAGS[label].1
+            crate::components::SECTION_TAGS[label].title
         ))
     }
 }

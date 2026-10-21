@@ -397,8 +397,10 @@ pub enum PropFrom {
     /// Value given by the attribute if present, else an alias of the
     /// component's own prop at `alias`.
     AttributeOr { alias: u8 },
-    /// Planned by the builder from the whole element (geometric types).
-    Planned,
+    /// Set by the type's planner (`compile/planner.rs` names it), which
+    /// reads the whole element: a circle's center from whichever of
+    /// `center`, `radius` and `through` the author gave.
+    ByPlanner,
 }
 
 /// The positions of a computed prop's inputs among its component's props.

@@ -18,7 +18,7 @@ pub(in crate::components) const POINT: ComponentTypeInfo = info(&["point"], POIN
     .sticky(Shape::Point, X, 1);
 
 // `hide` is a boolean in the current core; here it is a 0/1 cell.
-const POINT_PROPS: &[PropDef] = &props([planned("x"), planned("y"), planned("hide")]);
+const POINT_PROPS: &[PropDef] = &props([by_planner("x"), by_planner("y"), by_planner("hide")]);
 
 typed_props!(POINT_PROPS { x, y, hide } roles {
     // The coordinates, when they are the point's own state.

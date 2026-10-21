@@ -105,7 +105,7 @@ impl<'a> Compiler<'a> {
                 (None, PropFrom::Derived) => self.plan_op(t, scope, el)?,
                 // Set below, by the type's `PropsThen` planner or
                 // `Deferred::mark`.
-                (None, PropFrom::Planned)
+                (None, PropFrom::ByPlanner)
                     if matches!(
                         component_type,
                         ComponentType::Document
@@ -117,7 +117,7 @@ impl<'a> Compiler<'a> {
                 {
                     SourcePlan::Fixed(f64::NAN)
                 }
-                (None, PropFrom::Planned) => unreachable!("geometric types take plan_geo"),
+                (None, PropFrom::ByPlanner) => unreachable!("geometric types take plan_geo"),
             };
             props[pi] = Some(plan);
         }

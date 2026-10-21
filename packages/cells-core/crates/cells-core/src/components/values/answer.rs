@@ -23,7 +23,7 @@ const ANSWER_PROPS: &[PropDef] = &props([
     attr("response", f64::NAN).ref_prop("expr"),
     children("correct"),
     attr("submitted", f64::NAN),
-    planned("credit"),
+    by_planner("credit"),
     attr("weight", 1.0),
     attr("numSubmissions", 0.0),
 ]);

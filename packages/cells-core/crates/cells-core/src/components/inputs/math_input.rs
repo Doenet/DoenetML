@@ -21,7 +21,7 @@ pub(in crate::components) const MATH_INPUT: ComponentTypeInfo =
 // `expr` from what `value` turned out to be (`plan`).
 const MATH_INPUT_PROPS: &[PropDef] = &props([
     children("value").attribute("prefill").bind("bindValueTo"),
-    planned("expr"),
+    by_planner("expr"),
 ]);
 
 typed_props!(MATH_INPUT_PROPS { value, expr });

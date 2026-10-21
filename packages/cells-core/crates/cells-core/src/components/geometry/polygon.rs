@@ -25,7 +25,7 @@ pub(in crate::components) const POLYGON: ComponentTypeInfo =
         .sticky_list(Shape::Closed);
 
 /// `numVertices`; the vertices follow, as the list.
-const POLYGON_PROPS: &[PropDef] = &props([planned("numVertices")]);
+const POLYGON_PROPS: &[PropDef] = &props([by_planner("numVertices")]);
 
 typed_props!(POLYGON_PROPS { numVertices });
 

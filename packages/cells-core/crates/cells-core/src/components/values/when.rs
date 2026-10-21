@@ -10,7 +10,7 @@ use crate::error::{Error, Result};
 pub(in crate::components) const WHEN: ComponentTypeInfo =
     info(&["when"], WHEN_PROPS).default_prop("value");
 
-const WHEN_PROPS: &[PropDef] = &props([planned("value")]);
+const WHEN_PROPS: &[PropDef] = &props([by_planner("value")]);
 
 typed_props!(WHEN_PROPS { value });
 
