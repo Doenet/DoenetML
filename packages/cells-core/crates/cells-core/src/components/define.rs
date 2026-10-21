@@ -3,10 +3,7 @@
 //! `at` for named prop positions, and `typed_props!` for a struct with one
 //! field per prop.
 
-use super::{
-    Args, ArrayProp, CONTAINER, COPYABLE, ComponentTypeInfo, INTERNAL, MAX_ARGS, PropDef, PropFrom,
-    SYMBOLIC, TEST_ONLY,
-};
+use super::{Args, ArrayProp, ComponentTypeInfo, Flags, MAX_ARGS, PropDef, PropFrom};
 pub(super) use crate::program::OpSpec;
 
 /// A prop as a table writes it: like a [`PropDef`], but naming the props a
@@ -181,35 +178,42 @@ pub(super) const fn info(
         arrays: &[],
         list: None,
         aliases: &[],
-        flags: 0,
+        flags: Flags {
+            copyable: false,
+            container: false,
+            symbolic: false,
+            internal: false,
+            test_only: false,
+        },
         sticky: None,
     }
 }
 
 impl ComponentTypeInfo {
-    const fn flag(mut self, flag: u8) -> Self {
-        self.flags |= flag;
+    /// See [`super::ComponentType::copyable`].
+    pub(super) const fn copyable(mut self) -> Self {
+        self.flags.copyable = true;
         self
     }
-    /// See [`super::ComponentType::copyable`].
-    pub(super) const fn copyable(self) -> Self {
-        self.flag(COPYABLE)
-    }
     /// See [`super::ComponentType::container`].
-    pub(super) const fn container(self) -> Self {
-        self.flag(CONTAINER)
+    pub(super) const fn container(mut self) -> Self {
+        self.flags.container = true;
+        self
     }
     /// See [`super::ComponentType::symbolic`].
-    pub(super) const fn symbolic(self) -> Self {
-        self.flag(SYMBOLIC)
+    pub(super) const fn symbolic(mut self) -> Self {
+        self.flags.symbolic = true;
+        self
     }
     /// Made by the builder, never by a tag in the source.
-    pub(super) const fn internal(self) -> Self {
-        self.flag(INTERNAL)
+    pub(super) const fn internal(mut self) -> Self {
+        self.flags.internal = true;
+        self
     }
     /// A prototype-only tag, registered only with the `testing` feature.
-    pub(super) const fn test_only(self) -> Self {
-        self.flag(TEST_ONLY)
+    pub(super) const fn test_only(mut self) -> Self {
+        self.flags.test_only = true;
+        self
     }
     pub(super) const fn default_prop(mut self, prop: &'static str) -> Self {
         self.default_prop = Some(prop);

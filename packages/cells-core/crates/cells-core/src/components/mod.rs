@@ -58,134 +58,69 @@ macro_rules! component_types {
 }
 
 component_types! {
-    /// The root of every document.
     Document => containers::DOCUMENT,
-    /// `<graph>`.
     Graph => containers::GRAPH,
-    /// `<point>`.
     Point => geometry::point::POINT,
-    /// `<number>`.
     Number => values::NUMBER,
-    /// `<numberInput>`.
     NumberInput => inputs::NUMBER_INPUT,
-    /// `<op>`: a numeric operator over referenced cells (prototype only;
-    /// its tag is registered only with the `testing` feature).
     Op => values::OP,
-    /// `<slider>`.
     Slider => inputs::SLIDER,
-    /// `<repeatForSequence>`.
     RepeatForSequence => structure::REPEAT_FOR_SEQUENCE,
-    /// `<collect>`.
     Collect => structure::collect::COLLECT,
-    /// The hidden component behind a repeat's `valueName`.
     SequenceValue => structure::SEQUENCE_VALUE,
-    /// `<booleanInput>`.
     BooleanInput => inputs::BOOLEAN_INPUT,
-    /// `<math>`.
     Math => values::math::MATH,
-    /// `<evaluate>`.
     Evaluate => values::EVALUATE,
-    /// `<mathInput>`.
     MathInput => inputs::math_input::MATH_INPUT,
-    /// `<choiceInput>`.
     ChoiceInput => inputs::choice_input::CHOICE_INPUT,
-    /// `<choice>`, inside a `<choiceInput>`.
     Choice => inputs::CHOICE,
-    /// `<circle>`.
     Circle => geometry::circle::CIRCLE,
-    /// `<line>`.
     Line => geometry::line::LINE,
-    /// `<lineSegment>`.
     LineSegment => geometry::segment::LINE_SEGMENT,
-    /// `<polygon>` and `<triangle>`.
     Polygon => geometry::polygon::POLYGON,
-    /// `<pointList>`.
     PointList => geometry::POINT_LIST,
-    /// `<p>`.
     P => containers::P,
-    /// `<shortDescription>`: an accessible description, text only.
     ShortDescription => containers::SHORT_DESCRIPTION,
-    /// `_error`: an element that could not be built (ADR 0013).
     Error => containers::ERROR,
-    /// `<hint>`.
     Hint => containers::HINT,
-    /// `<setup>`.
     Setup => containers::SETUP,
-    /// `<stickyGroup>`.
     StickyGroup => containers::STICKY_GROUP,
-    /// `<function>`.
     Function => values::curve::FUNCTION,
-    /// `<derivative>`.
     Derivative => values::curve::DERIVATIVE,
-    /// `<answer>`.
     Answer => values::answer::ANSWER,
-    /// `<text>`.
     Text => values::text::TEXT,
-    /// `<conditionalContent>`.
     ConditionalContent => structure::conditional_content::CONDITIONAL_CONTENT,
-    /// One built branch of a `<conditionalContent>`.
     Case => structure::CASE,
-    /// `<select>`.
     Select => structure::select::SELECT,
-    /// `<selectFromSequence>`.
     SelectFromSequence => structure::select_from_sequence::SELECT_FROM_SEQUENCE,
-    /// `<group>` and `<label>`.
     Group => containers::GROUP,
-    /// `<section>` and its kin (`<problem>`, `<exercise>`, ...).
     Section => containers::section::SECTION,
-    /// `<title>`.
     Title => containers::TITLE,
-    /// `<ref>`.
     Ref => containers::REF,
-    /// `<ul>`.
     List => containers::LIST,
-    /// `<li>`.
     ListItem => containers::LIST_ITEM,
-    /// `<m>`.
     InlineMath => containers::INLINE_MATH,
-    /// `<md>` and `<me>`.
     DisplayMath => containers::DISPLAY_MATH,
-    /// `<mrow>`.
     MathRow => containers::MATH_ROW,
-    /// `<aside>`.
     Aside => containers::ASIDE,
-    /// `<sideBySide>`.
     SideBySide => containers::SIDE_BY_SIDE,
-    /// `<stack>`.
     Stack => containers::STACK,
-    /// `<tabular>`.
     Tabular => containers::TABULAR,
-    /// `<spreadsheet>`.
     Spreadsheet => containers::SPREADSHEET,
-    /// `<row>`.
     Row => containers::ROW,
-    /// `<cell>`.
     Cell => containers::CELL,
-    /// `<legend>`.
     Legend => containers::LEGEND,
-    /// `<triggerSet>`.
     TriggerSet => containers::TRIGGER_SET,
-    /// `<updateValue>`.
     UpdateValue => values::UPDATE_VALUE,
-    /// `<clampNumber>`.
     ClampNumber => values::CLAMP_NUMBER,
-    /// A tuple of three or more numbers (a `<math>`, an iterate).
     Tuple => values::TUPLE,
-    /// `<repeat>`.
     RepeatFor => structure::repeat_for::REPEAT_FOR,
-    /// `<functionIterates>`.
     FunctionIterates => structure::function_iterates::FUNCTION_ITERATES,
-    /// `<polyline>`.
     Polyline => geometry::polyline::POLYLINE,
-    /// `<boolean>`.
     Boolean => values::boolean::BOOLEAN,
-    /// `<award>`.
     Award => values::award::AWARD,
-    /// `<when>`.
     When => values::when::WHEN,
-    /// One submitted response of an answer with awards.
     Response => values::RESPONSE,
-    /// `<textInput>`.
     TextInput => inputs::text_input::TEXT_INPUT,
 }
 
@@ -207,7 +142,7 @@ pub struct ComponentTypeInfo {
     /// The current core's spellings of a few props, accepted in references
     /// so its documents resolve unchanged.
     pub aliases: &'static [(&'static str, &'static str)],
-    pub flags: u8,
+    pub flags: Flags,
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
@@ -257,18 +192,23 @@ pub enum PropAt {
     List,
 }
 
-/// `$name` as a child may produce a copy of the component, and
-/// `<collect componentType>` may name the type.
-const COPYABLE: u8 = 1;
-/// The children are rendered; `extend` copies them deeply.
-const CONTAINER: u8 = 2;
-/// Planned as math cells (`values/curve.rs`); not allowed in a branch
-/// interface.
-const SYMBOLIC: u8 = 8;
-/// Made by the builder, never by a tag in the source.
-const INTERNAL: u8 = 16;
-/// A prototype-only tag, registered only with the `testing` feature.
-const TEST_ONLY: u8 = 32;
+/// What a type is, apart from its props: each false until `info`'s
+/// builder of the same name (`.copyable()`, ...) sets it.
+#[derive(Debug, Clone, Copy)]
+pub struct Flags {
+    /// `$name` as a child may produce a copy of the component, and
+    /// `<collect componentType>` may name the type.
+    pub copyable: bool,
+    /// The children are rendered; `extend` copies them deeply.
+    pub container: bool,
+    /// Planned as math cells (`values/curve.rs`); not allowed in a branch
+    /// interface.
+    pub symbolic: bool,
+    /// Made by the builder, never by a tag in the source.
+    pub internal: bool,
+    /// A prototype-only tag, registered only with the `testing` feature.
+    pub test_only: bool,
+}
 
 impl ComponentType {
     pub fn info(self) -> &'static ComponentTypeInfo {
@@ -281,9 +221,9 @@ impl ComponentType {
         let by_tag = BY_TAG.get_or_init(|| {
             ComponentType::ALL
                 .iter()
-                .filter(|k| k.info().flags & INTERNAL == 0)
+                .filter(|k| !k.info().flags.internal)
                 // Test-only tags are unknown to documents outside tests.
-                .filter(|k| cfg!(feature = "testing") || k.info().flags & TEST_ONLY == 0)
+                .filter(|k| cfg!(feature = "testing") || !k.info().flags.test_only)
                 .flat_map(|&k| k.info().tags.iter().map(move |&t| (t, k)))
                 .collect()
         });
@@ -415,17 +355,17 @@ impl ComponentType {
     /// Whether `$name` as a child may produce a copy of this component, and
     /// `<collect componentType>` name the type.
     pub fn copyable(self) -> bool {
-        self.info().flags & COPYABLE != 0
+        self.info().flags.copyable
     }
 
     /// Containers whose children are rendered; `extend` copies them deeply.
     pub fn container(self) -> bool {
-        self.info().flags & CONTAINER != 0
+        self.info().flags.container
     }
 
     /// Function, derivative and answer: planned as math cells.
     pub fn symbolic(self) -> bool {
-        self.info().flags & SYMBOLIC != 0
+        self.info().flags.symbolic
     }
 
     /// The structural cell of a type built like a repeat (one scope per

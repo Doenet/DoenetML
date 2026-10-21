@@ -190,7 +190,7 @@ const CLAMPED_PROPS: &[PropDef] = &props([
 ```
 
 Then add one line to the `component_types!` list in `components/mod.rs`
-(`Clamped => values::CLAMPED,` with a one-line doc). The build then fails
+(`Clamped => values::CLAMPED,`). The build then fails
 until the type has an arm in `Compiler::planner`
 (`compile/planner.rs`); for this one it is `K::Clamped => Props`,
 planned from its prop table. If code reads a prop by position, name it
