@@ -133,10 +133,6 @@ impl Error {
             ArityMismatch { .. } => "cells-arity-mismatch",
             BadValue { .. } => "cells-bad-attribute-value",
             BadLiteralParam(_) => "cells-bad-literal-param",
-            UnknownOp(_) => "cells-unknown-op",
-            OpArity { .. } => "cells-op-arity",
-            MissingParam { .. } => "cells-missing-param",
-            LiteralArg => "cells-literal-arg",
             // composite-circular-dependency
             Cycle(_) => "doenet-e0005",
             DynamicIndex(_) => "cells-dynamic-index",

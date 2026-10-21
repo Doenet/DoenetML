@@ -217,17 +217,17 @@ fn mixed_text_input_content_is_refused() {
     );
 }
 
-// An operator reads numbers: a string id named as one's input is refused.
+// Math reads numbers: a string id named inside math is refused.
 #[test]
-fn an_operator_does_not_read_text() {
-    let doc = load(r#"<text name="t">hi</text><op name="o" kind="negate" args="$t"/>"#).unwrap();
+fn math_does_not_read_text() {
+    let doc = load(r#"<text name="t">hi</text><number name="o">-$t</number>"#).unwrap();
     let errors: Vec<&str> = doc
         .diagnostics()
         .iter()
         .filter(|d| d.kind == cells_core::DiagnosticKind::Error)
         .map(|d| d.message.as_str())
         .collect();
-    assert_eq!(errors, ["unsupported: a text value ($t) used as a number"]);
+    assert_eq!(errors, ["unsupported: a text value ($t) inside math"]);
 }
 
 // A choice's interface name holds what its branches hold: the value of a

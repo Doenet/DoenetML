@@ -122,20 +122,22 @@ fn number_children_literal_reference_and_bare_text_reference() {
 fn operators_compute_and_propagate() {
     let mut doc = load_ok(
         r#"<numberInput name="a" value="2"/><numberInput name="b" value="5"/>
-           <op name="s" kind="add" args="$a $b"/>
-           <op name="t" kind="scale" k="10" args="$s"/>
-           <op name="u" kind="clamp" lo="0" hi="50" args="$t"/>
-           <op name="v" kind="lerp" t="0.5" args="$a $b"/>
-           <op name="w" kind="sub" args="$b $a"/><op name="m" kind="mul" args="$a $b"/>
-           <op name="n" kind="negate" args="$a"/><op name="o" kind="offset" k="1" args="$a"/>
+           <number name="s">$a + $b</number>
+           <number name="t">10 * $s</number>
+           <number name="u">clamp($t, 0, 50)</number>
+           <number name="v">max($a, $b)</number>
+           <number name="w">$b - $a</number><number name="m">$a * $b</number>
+           <number name="n">-$a</number><number name="o">$a + 1</number>
            <point name="p" x="$t" y="$u"/>"#,
     );
     assert_eq!(doc.n_essential, 3);
-    assert_eq!(doc.cells.len(), 13);
+    // Two of these are `clamp`'s bounds, which lowering makes cells
+    // although the operator keeps them as literal parameters.
+    assert_eq!(doc.cells.len(), 15);
     assert_eq!(doc.value("s", "value"), Some(7.0));
     assert_eq!(doc.value("t", "value"), Some(70.0));
     assert_eq!(doc.value("u", "value"), Some(50.0));
-    assert_eq!(doc.value("v", "value"), Some(3.5));
+    assert_eq!(doc.value("v", "value"), Some(5.0));
     assert_eq!(doc.value("w", "value"), Some(3.0));
     assert_eq!(doc.value("m", "value"), Some(10.0));
     assert_eq!(doc.value("n", "value"), Some(-2.0));
@@ -151,8 +153,8 @@ fn operators_compute_and_propagate() {
 #[test]
 fn forward_references_schedule_correctly() {
     let doc = load_ok(
-        r#"<op name="c" kind="negate" args="$b"/><op name="b" kind="negate" args="$a"/>
-           <op name="a" kind="offset" k="1" args="$n"/><numberInput name="n" value="1"/>"#,
+        r#"<number name="c">-$b</number><number name="b">-$a</number>
+           <number name="a">$n + 1</number><numberInput name="n" value="1"/>"#,
     );
     assert_eq!(doc.value("c", "value"), Some(2.0));
     assert_eq!(doc.program.len(), 3);
@@ -177,9 +179,7 @@ fn alias_cycle_is_rejected() {
 
 #[test]
 fn operator_cycle_is_rejected() {
-    let err =
-        load(r#"<op name="a" kind="negate" args="$b"/><op name="b" kind="negate" args="$a"/>"#)
-            .unwrap_err();
+    let err = load(r#"<number name="a">-$b</number><number name="b">-$a</number>"#).unwrap_err();
     assert!(matches!(err, Error::Cycle(_)), "{err}");
 }
 
@@ -208,14 +208,6 @@ fn error_cases() {
         code(r#"<point name="p"/><number extend="$p"/>"#),
         "cells-extend-type-mismatch"
     );
-    assert_eq!(
-        code(r#"<point name="p"/><op kind="add" args="$p.x"/>"#),
-        "cells-op-arity"
-    );
-    assert_eq!(
-        code(r#"<point name="p"/><op kind="scale" args="$p.x"/>"#),
-        "cells-missing-param"
-    );
     assert_eq!(code(r#"<point name="p"/>$p.x.y"#), "cells-path-too-deep");
     assert_eq!(code(r#"<graph name="g"/>$g"#), "cells-uncopyable-type");
     assert_eq!(code(r#"<codeEditor/>"#), "doenet-e0002");
@@ -224,7 +216,7 @@ fn error_cases() {
 #[test]
 fn load_reports_stages() {
     let json = cells_core::testing::test_utils::dast_json(
-        r#"<numberInput name="a" value="2"/><op kind="negate" args="$a"/>"#,
+        r#"<numberInput name="a" value="2"/><number>-$a</number>"#,
     );
     let (doc, t) = Document::load(json.as_bytes(), Default::default()).unwrap();
     assert_eq!(doc.cells.len(), 4);

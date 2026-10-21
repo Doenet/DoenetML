@@ -143,37 +143,13 @@ fn indexed_references_from_outside_and_a_missing_referent() {
 }
 
 #[test]
-fn lagged_recurrence_with_a_seed() {
-    // x_k = 2 * x_{k-2}, seeded at 1 where the lag has no referent.
-    let doc = load(
-        r#"<numberInput name="n" value="6"/><numberInput name="seed" value="1"/>
-           <repeatForSequence name="r" length="$n" indexName="i">
-             <op name="prev" kind="default" args="$r[$i-2].x $seed"/>
-             <op name="x" kind="scale" k="2" args="$prev"/>
-           </repeatForSequence>"#,
-    )
-    .unwrap();
-    let xs: Vec<f64> = (1..=6)
-        .map(|k| val(&doc, &["r", &k.to_string(), "x"], "value"))
-        .collect();
-    assert_eq!(xs, vec![2.0, 2.0, 4.0, 4.0, 8.0, 8.0]);
-    // Dragging the last term inverts down the chain into the seed.
-    let mut doc = doc;
-    let last = cell(&doc, &["r", "6", "x"], "value");
-    doc.request(&[req(&doc, last, 24.0)]);
-    assert_eq!(doc.value("seed", "value"), Some(3.0));
-    assert_eq!(val(&doc, &["r", "5", "x"], "value"), 24.0);
-    assert_eq!(reference::check(&doc), None);
-}
-
-#[test]
 fn a_forward_lag_is_a_cycle_and_a_dynamic_index_is_rejected() {
-    let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><op name="x" kind="negate" args="$r[$i+1].x"/><op name="y" kind="negate" args="$r[$i-1].x"/></repeatForSequence>"#).err();
+    let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">-$r[$i+1].x</number><number name="y">-$r[$i-1].x</number></repeatForSequence>"#).err();
     assert!(
         err.is_none(),
         "a lag that only goes one way is fine: {err:?}"
     );
-    let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><op name="x" kind="negate" args="$r[$i+1].y"/><op name="y" kind="negate" args="$r[$i-1].x"/></repeatForSequence>"#).unwrap_err();
+    let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">-$r[$i+1].y</number><number name="y">-$r[$i-1].x</number></repeatForSequence>"#).unwrap_err();
     assert!(matches!(err, cells_core::Error::Cycle(_)), "{err}");
     let (code, m) = load_error(
         r#"<numberInput name="k" value="1"/><repeatForSequence name="r" length="3"><point name="p"/></repeatForSequence><number>$r[$k].p.x</number>"#,

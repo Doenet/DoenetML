@@ -228,9 +228,9 @@ renderer side is in
 
 **Add an operator.** Add one entry to `scalar_ops!` in
 `program/scalar.rs` (ADR 0016): its inputs and literal parameters, its
-`<op>` names (the test-only tag, registered under the `testing` feature,
-which `cargo test` turns on), its evaluation, and its inverse, declared
-`exact`, `projection` or `drops`. The macro (`program/ops.rs`) makes the
+evaluation, and its inverse, declared `exact`, `projection` or `drops`.
+A document reaches it through a component's table or planner, or
+through math lowering (`build/expand/math.rs`). The macro (`program/ops.rs`) makes the
 `Op` and `OpSpec` variants and every arm; `program::scalar::inverses`
 checks the inverse against what the entry declares, over a fixed table
 of values and the entry's parameter `samples`. Multi-cell operators are

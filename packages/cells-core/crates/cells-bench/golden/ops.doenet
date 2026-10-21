@@ -1,6 +1,6 @@
-<numberInput name="n" value="1"/><op name="a" kind="offset" k="1" args="$n"/><op name="b" kind="scale" k="2" args="$a"/><op name="c" kind="negate" args="$b"/><op name="d" kind="clamp" lo="-9" hi="9" args="$c"/><op name="e" kind="round" args="$d"/><op name="f" kind="add" args="$e $n"/><op name="g" kind="div" args="$f $b"/><op name="h" kind="default" args="$g $n"/><op name="i" kind="lerp" t="0.25" args="$h $a"/>
+<numberInput name="n" value="1"/><number name="a">$n + 1</number><number name="b">2 * $a</number><number name="c">-$b</number><number name="d">clamp($c, -9, 9)</number><number name="e">round($d)</number><number name="f">$e + $n</number><number name="g">$f / $b</number><number name="h">max($g, $n)</number><number name="i">$h + $a</number>
 <numberInput name="numValues" value="5"/><numberInput name="stored" value="2"/>
-<op name="zeroBased" kind="offset" k="-1" args="$stored"/><op name="quotient" kind="div" args="$zeroBased $numValues"/><op name="laps" kind="floor" args="$quotient"/><op name="multiple" kind="mul" args="$laps $numValues"/><op name="index" kind="sub" args="$stored $multiple"/>
-<op name="upper" kind="min" args="$stored $numValues"/><op name="w" kind="sub" args="$numValues $n"/>
-<numberInput name="fixAxes" value="0"/><op name="xMin" kind="gate" args="$n $fixAxes"/>
+<number name="zeroBased">$stored - 1</number><number name="quotient">$zeroBased / $numValues</number><number name="laps">floor($quotient)</number><number name="multiple">$laps * $numValues</number><number name="index">$stored - $multiple</number>
+<number name="upper">min($stored, $numValues)</number><number name="w">$numValues - $n</number>
+<numberInput name="fixAxes" value="0"/><number name="xMin" fixed="$fixAxes">$n</number>
 <graph><point name="p" x="$i" y="$e"/><point name="q" x="$index" y="$xMin"/></graph>

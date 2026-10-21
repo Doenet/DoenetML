@@ -63,7 +63,6 @@ component_types! {
     Point => geometry::point::POINT,
     Number => values::NUMBER,
     NumberInput => inputs::NUMBER_INPUT,
-    Op => values::OP,
     Slider => inputs::SLIDER,
     RepeatForSequence => structure::REPEAT_FOR_SEQUENCE,
     Collect => structure::collect::COLLECT,
@@ -210,8 +209,6 @@ pub struct Flags {
     pub symbolic: bool,
     /// Made by the builder, never by a tag in the source.
     pub internal: bool,
-    /// A prototype-only tag, registered only with the `testing` feature.
-    pub test_only: bool,
 }
 
 impl ComponentType {
@@ -226,8 +223,6 @@ impl ComponentType {
             ComponentType::ALL
                 .iter()
                 .filter(|k| !k.info().flags.internal)
-                // Test-only tags are unknown to documents outside tests.
-                .filter(|k| cfg!(feature = "testing") || !k.info().flags.test_only)
                 .flat_map(|&k| k.info().tags.iter().map(move |&t| (t, k)))
                 .collect()
         });
@@ -394,8 +389,6 @@ pub enum PropFrom {
     Attribute,
     /// Value given by the element's children (a literal or one reference).
     Children,
-    /// Value computed by an operator from the `<op>` element's `args`.
-    Derived,
     /// Value computed by `op` from the component's own props at `args`.
     Computed { op: OpSpec, args: Args },
     /// Value given by the attribute if present, else an alias of the

@@ -77,7 +77,7 @@ fn a_recurrence_inside_a_nested_repeat_is_legal() {
     let doc = load(
         r#"<repeatForSequence name="o" length="2" indexName="i">
              <repeatForSequence name="r" length="$i" indexName="j">
-               <op name="x" kind="default" args="$r[$j-1].x $i"/>
+               <number name="x">$r[$j-1].x + $i</number>
              </repeatForSequence>
            </repeatForSequence>"#,
     )

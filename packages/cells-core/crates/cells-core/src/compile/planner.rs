@@ -98,7 +98,6 @@ impl<'a> Compiler<'a> {
             K::Tuple => Whole(values::plan_tuple),
             K::Text => Whole(text::plan),
             K::Boolean => Whole(boolean::plan),
-            K::Op => Props,
             K::Math => Whole(math::plan),
             K::Evaluate => Props,
             K::Function => Whole(curve::plan),

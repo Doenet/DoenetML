@@ -26,7 +26,7 @@ until it reaches essential cells.
 **Operator** — The numeric function that computes one derived cell from its
 input cells. Every operator may carry an inverse. Identity references are not
 operators: they alias. Operators reach a document through components and
-math text; the test-only `<op>` tag names one directly.
+math text.
 
 **Instruction** — An operator bound to its input cells and the cell (or
 consecutive cells) it writes. The program is the list of instructions in

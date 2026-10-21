@@ -97,7 +97,7 @@ spec! {
 
     case "bindValueTo a derived value: the request continues down the chain" {
         doenet r#"<numberInput name="n" value="1"/>
-                  <op name="d" kind="scale" k="2" args="$n"/>
+                  <number name="d">2 * $n</number>
                   <slider name="s" from="0" to="20" step="1" bindValueTo="$d"/>"#;
         expect { "s.value" = 2 }
         request { "s.value" = 7.4 }

@@ -34,16 +34,6 @@ pub mod number {
     pub const VALUE: usize = Props::AT.value;
 }
 
-/// Prototype-only tag that applies a numeric operator to referenced cells;
-/// its tag is registered only with the `testing` feature (tests and the
-/// golden documents use it to exercise single operators).
-pub(super) const OP: ComponentTypeInfo = info(&["op"], OP_PROPS)
-    .copyable()
-    .test_only()
-    .default_prop("value");
-
-const OP_PROPS: &[PropDef] = &props([derived("value")]);
-
 /// `<evaluate function="$m" input="$a"/>`: the math's expression with
 /// its free symbol set to the input.
 pub(super) const EVALUATE: ComponentTypeInfo = info(&["evaluate"], EVALUATE_PROPS)

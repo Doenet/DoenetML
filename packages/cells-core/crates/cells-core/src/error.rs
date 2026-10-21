@@ -43,20 +43,8 @@ pub enum Error {
         "attribute '{attr}' must be a number or a single reference, got '{text}' (math expressions are out of scope)"
     )]
     BadValue { attr: String, text: String },
-    #[error("<op> attribute '{0}' must be a literal number")]
+    #[error("attribute '{0}' must be a literal number")]
     BadLiteralParam(String),
-    #[error("unknown <op> kind '{0}'")]
-    UnknownOp(String),
-    #[error("<op kind=\"{kind}\"> takes {expected} argument(s), got {got}")]
-    OpArity {
-        kind: String,
-        expected: usize,
-        got: usize,
-    },
-    #[error("<op kind=\"{kind}\"> is missing attribute '{attr}'")]
-    MissingParam { kind: String, attr: String },
-    #[error("<op> args must be references only; literal arguments are not supported")]
-    LiteralArg,
     #[error("dependency cycle involving component '{0}'")]
     Cycle(String),
     #[error(

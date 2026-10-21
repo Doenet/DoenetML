@@ -23,7 +23,6 @@ pub(super) struct Prop {
 enum Source {
     Attribute,
     Children,
-    Derived,
     Computed(OpSpec, &'static [&'static str]),
     AttributeOr(&'static str),
     ByPlanner,
@@ -70,11 +69,6 @@ pub(super) const fn computed(
     prop_from(name, f64::NAN, Source::Computed(op, args))
 }
 
-/// The `<op>` element's operator over its `args`.
-pub(super) const fn derived(name: &'static str) -> Prop {
-    prop_from(name, f64::NAN, Source::Derived)
-}
-
 /// Set by the type's planner, which reads the whole element, rather than
 /// by one attribute, the children or an operator.
 pub(super) const fn by_planner(name: &'static str) -> Prop {
@@ -119,7 +113,6 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
         let from = match p.source {
             Source::Attribute => PropFrom::Attribute,
             Source::Children => PropFrom::Children,
-            Source::Derived => PropFrom::Derived,
             Source::ByPlanner => PropFrom::ByPlanner,
             Source::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: position(&table, or),
@@ -184,7 +177,6 @@ pub(super) const fn info(
             container: false,
             symbolic: false,
             internal: false,
-            test_only: false,
         },
         sticky: None,
         planner: None,
@@ -210,11 +202,6 @@ impl ComponentTypeInfo {
     /// Made by the builder, never by a tag in the source.
     pub(super) const fn internal(mut self) -> Self {
         self.flags.internal = true;
-        self
-    }
-    /// A prototype-only tag, registered only with the `testing` feature.
-    pub(super) const fn test_only(mut self) -> Self {
-        self.flags.test_only = true;
         self
     }
     pub(super) const fn planner(mut self, planner: crate::compile::api::Planner) -> Self {
@@ -410,7 +397,7 @@ pub(crate) use typed_props;
 /// order below; only `tags`, `props` and `planner` are required.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
-/// `derived`, `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
+/// `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
 /// optionally followed by `{ attribute: a, bind: b, ref_prop: p }`.
 ///
 /// ```ignore
@@ -495,7 +482,6 @@ macro_rules! component {
     (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
     (@prop children $name:ident) => { $crate::components::define::children(stringify!($name)) };
-    (@prop derived $name:ident) => { $crate::components::define::derived(stringify!($name)) };
     (@prop attr $name:ident ($default:expr)) => {
         $crate::components::define::attr(stringify!($name), $default)
     };
@@ -517,7 +503,7 @@ macro_rules! component {
     (@prop $other:ident $name:ident $($rest:tt)*) => {
         compile_error!(concat!(
             "component!: prop `", stringify!($name), "` has source `", stringify!($other),
-            "`; a source is by_planner, children, derived, attr(default), attr_or(other) or computed(op, [args])"
+            "`; a source is by_planner, children, attr(default), attr_or(other) or computed(op, [args])"
         ))
     };
 }

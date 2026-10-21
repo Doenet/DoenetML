@@ -102,7 +102,6 @@ impl<'a> Compiler<'a> {
                         }
                     }
                 }
-                (None, PropFrom::Derived) => self.plan_op(t, scope, el)?,
                 // Set below, by the type's `PropsThen` planner or
                 // `Deferred::mark`.
                 (None, PropFrom::ByPlanner)
@@ -244,53 +243,6 @@ impl<'a> Compiler<'a> {
                 text: text.into(),
             }),
         }
-    }
-
-    pub(in crate::compile) fn plan_op(
-        &mut self,
-        t: TemplateId,
-        scope: ElemId,
-        el: NodeId,
-    ) -> Result<SourcePlan> {
-        let d = self.dast;
-        let kind_text = d
-            .attr(el, "kind")
-            .and_then(|a| self.attr_text(a))
-            .unwrap_or_default();
-        let kind_text = kind_text.trim();
-        let param = |name: &str| -> Result<f64> {
-            let a = d.attr(el, name).ok_or_else(|| Error::MissingParam {
-                kind: kind_text.into(),
-                attr: name.into(),
-            })?;
-            self.attr_text(a)
-                .and_then(|t| t.trim().parse::<f64>().ok())
-                .ok_or_else(|| Error::BadLiteralParam(name.into()))
-        };
-        let spec =
-            OpSpec::named(kind_text, param).ok_or_else(|| Error::UnknownOp(kind_text.into()))??;
-        let mut args = Vec::new();
-        if let Some(a) = d.attr(el, "args") {
-            for &node in d.attr_children(a) {
-                match d.kind(node) {
-                    NodeKind::Macro => args.push(self.plan_ref(t, scope, node)?),
-                    NodeKind::Text if d.str(node).trim().is_empty() => {}
-                    NodeKind::Text => return Err(Error::LiteralArg),
-                    _ => {}
-                }
-            }
-        }
-        if args.len() != spec.arity() {
-            return Err(Error::OpArity {
-                kind: kind_text.into(),
-                expected: spec.arity(),
-                got: args.len(),
-            });
-        }
-        Ok(SourcePlan::Op(
-            spec,
-            args.into_iter().map(|p| Arg::Ref(p, Sel::Whole)).collect(),
-        ))
     }
 
     /// Math text and `$ref` children to an expression template whose cell

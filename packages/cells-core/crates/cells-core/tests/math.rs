@@ -149,7 +149,7 @@ fn function_calls_build_the_same_operators_as_op() {
             "{a}<number name='c'>clamp(min($a, $b), -9, 9)</number>"
         )),
         ops(&format!(
-            r#"{a}<op name="m" kind="min" args="$a $b"/><op name="c" kind="clamp" lo="-9" hi="9" args="$m"/>"#
+            r#"{a}<number name="m">min($a, $b)</number><number name="c">clamp($m, -9, 9)</number>"#
         )),
     );
 }

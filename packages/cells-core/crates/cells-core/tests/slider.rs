@@ -105,7 +105,7 @@ fn bind_value_to_aliases_the_bound_value_and_sends_the_snapped_value_down() {
 fn bind_value_to_a_derived_number_continues_the_inverse_chain() {
     let mut doc = load(
         r#"<numberInput name="n" value="1"/>
-           <op name="d" kind="scale" k="2" args="$n"/>
+           <number name="d">2 * $n</number>
            <slider name="s" from="0" to="20" step="1" bindValueTo="$d"/>"#,
     )
     .unwrap();

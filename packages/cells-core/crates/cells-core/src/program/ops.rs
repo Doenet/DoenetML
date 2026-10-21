@@ -1,7 +1,6 @@
 //! `scalar_ops!`: every scalar operator from one entry (ADR 0016). An entry
 //! names the operator and its inputs (`Mul(a, b)`) and literal parameters
-//! (`Clamp(a; lo, hi)`), the `<op>` names it goes by, its evaluation, and
-//! its inverse as one of
+//! (`Clamp(a; lo, hi)`), its evaluation, and its inverse as one of
 //!
 //! - `exact |d| ..`: the input to write and its value, or None to drop the
 //!   request; where it writes, evaluating again gives `d`;
@@ -11,11 +10,11 @@
 //!
 //! In both expressions the inputs are their cells' values and the
 //! parameters their literals; an inverse names the input it writes by
-//! position, `A` or `B`. From the entries the macro makes `Op` and `OpSpec`
+//! position, `A` for the first. From the entries the macro makes `Op` and `OpSpec`
 //! (with the vector and symbolic variants, whose rules are in `vector.rs`
 //! and the engine), `Op::eval`, `Op::invert`, `Op::input_pair`,
-//! `OpSpec::scalar_arity`, `OpSpec::bind_scalar`, `OpSpec::named` (the
-//! `<op>` names), `OpSpec::inverse` and `OpSpec::scalar_samples`, which
+//! `OpSpec::scalar_arity`, `OpSpec::bind_scalar`, `OpSpec::inverse` and
+//! `OpSpec::scalar_samples`, which
 //! `tests` checks every inverse against over a fixed table of values. An
 //! operator with parameters gives `samples`, the parameters it is checked
 //! with.
@@ -23,12 +22,12 @@
 //! ```ignore
 //! scalar_ops! {
 //!     /// `a * b`.
-//!     Mul(a, b) ["mul"] {
+//!     Mul(a, b) {
 //!         eval: a * b,
 //!         exact |d| (b != 0.0).then_some((A, d / b)),
 //!     }
 //!     /// `a * k`.
-//!     Scale(a; k) ["scale"] samples [{ k: 2.0 }, { k: 0.0 }] {
+//!     Scale(a; k) samples [{ k: 2.0 }, { k: 0.0 }] {
 //!         eval: a * k,
 //!         exact |d| (k != 0.0).then_some((A, d / k)),
 //!     }
@@ -39,11 +38,11 @@
 macro_rules! scalar_ops {
     // Normalize each entry, one at a time, into
     // `{ [attrs] Name [inputs] [params] [op def] [spec def] [spec pattern]
-    //   [names] [samples] eval kind d inverse }`.
+    //   [samples] eval kind d inverse }`.
     (@munch [$($done:tt)*]) => { scalar_ops!(@emit $($done)*); };
     // With parameters.
     (@munch [$($done:tt)*]
-        $(#[$m:meta])* $name:ident ($($in:ident),+ ; $($p:ident),+) [$($tag:literal),*]
+        $(#[$m:meta])* $name:ident ($($in:ident),+ ; $($p:ident),+)
         samples [$($s:tt),+ $(,)?]
         { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(,)? }
         $($rest:tt)*
@@ -53,13 +52,13 @@ macro_rules! scalar_ops {
             [$name($(scalar_ops!(@cell $in)),+, $(scalar_ops!(@param $p)),+)]
             [$name { $($p: f64),+ }]
             [$name { $($p),+ }]
-            [$($tag),*] [$($s),+]
+            [$($s),+]
             $eval, $kind $(|$d| $inv)?
         }] $($rest)*);
     };
     // Without.
     (@munch [$($done:tt)*]
-        $(#[$m:meta])* $name:ident ($($in:ident),+) [$($tag:literal),*]
+        $(#[$m:meta])* $name:ident ($($in:ident),+)
         { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(,)? }
         $($rest:tt)*
     ) => {
@@ -68,7 +67,7 @@ macro_rules! scalar_ops {
             [$name($(scalar_ops!(@cell $in)),+)]
             [$name]
             [$name]
-            [$($tag),*] [{}]
+            [{}]
             $eval, $kind $(|$d| $inv)?
         }] $($rest)*);
     };
@@ -97,7 +96,7 @@ macro_rules! scalar_ops {
     (@emit $({
         [$($attr:tt)*] $name:ident [$($in:ident),+] [$($p:ident),*]
         [$($op_def:tt)*] [$($spec_def:tt)*] [$($spec_pat:tt)*]
-        [$($tag:literal),*] [$($sample:tt),*]
+        [$($sample:tt),*]
         $eval:expr, $kind:ident $(|$d:ident| $inv:expr)?
     })*) => {
         #[derive(Debug, Clone, Copy, PartialEq)]
@@ -195,25 +194,6 @@ macro_rules! scalar_ops {
                     $(OpSpec::$($spec_pat)* => scalar_ops!(@bind inputs $name [$($in),+] [$($p),*]),)*
                     OpSpec::Vec(_) | OpSpec::Sym(_) => unreachable!("not a scalar operator"),
                 }
-            }
-
-            /// The scalar operator an `<op kind>` names, its parameters read
-            /// by `param`; None for a name no operator has.
-            pub(crate) fn named<E>(
-                name: &str,
-                param: impl Fn(&str) -> Result<f64, E>,
-            ) -> Option<Result<OpSpec, E>> {
-                #[allow(unused_variables)]
-                fn make<E>(
-                    name: &str,
-                    param: impl Fn(&str) -> Result<f64, E>,
-                ) -> Result<Option<OpSpec>, E> {
-                    Ok(Some(match name {
-                        $($($tag)|* => OpSpec::$name { $($p: param(stringify!($p))?),* },)*
-                        _ => return Ok(None),
-                    }))
-                }
-                make(name, param).transpose()
             }
 
             /// How a scalar operator's inverse is checked; None for a

@@ -7,7 +7,7 @@ use cells_core::Request;
 use cells_core::testing::test_utils::load;
 
 const DOCS: &[&str] = &[
-    r#"<numberInput name="n" value="1"/><op name="a" kind="offset" k="1" args="$n"/><op name="b" kind="scale" k="2" args="$a"/><op name="c" kind="negate" args="$b"/><op name="d" kind="clamp" lo="-9" hi="9" args="$c"/><op name="e" kind="round" args="$d"/><op name="f" kind="add" args="$e $n"/><op name="g" kind="div" args="$f $b"/><op name="h" kind="default" args="$g $n"/><op name="i" kind="lerp" t="0.25" args="$h $a"/><graph><point name="p" x="$i" y="$e"/></graph>"#,
+    r#"<numberInput name="n" value="1"/><number name="a">$n + 1</number><number name="b">2 * $a</number><number name="c">-$b</number><number name="d">clamp($c, -9, 9)</number><number name="e">round($d)</number><number name="f">$e + $n</number><number name="g">$f / $b</number><number name="h">max($g, $n)</number><number name="i">$h + $a</number><graph><point name="p" x="$i" y="$e"/></graph>"#,
     r#"<numberInput name="n" value="1"/><math name="m">3$n + 2</math><slider name="s" from="-9" to="9" step="0.5" bindValueTo="$m"/><graph><point name="p" x="$s" y="0"/></graph>"#,
     r#"<graph name="g"><point name="a">(1,2)</point><point name="b">(4,7)</point><line name="l" through="$a $b"/><circle name="c" center="$a" through="$b"/><polygon name="pg" vertices="(0,0) (2,0) (1,2)" rigid/></graph>"#,
     r#"<mathInput name="mi" prefill="x+1"/><numberInput name="t" value="2"/><evaluate name="e" function="$mi" input="$t"/><math name="m" simplify>$e x + $mi</math><graph><point name="p" x="$t" y="$e"/></graph>"#,

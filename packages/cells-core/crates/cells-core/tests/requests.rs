@@ -32,10 +32,10 @@ fn dragging_an_aliased_copy_moves_the_original() {
 fn unary_inverses_round_trip() {
     let mut doc = load(
         r#"<numberInput name="n" value="2"/>
-           <op name="neg" kind="negate" args="$n"/>
-           <op name="sc" kind="scale" k="4" args="$n"/>
-           <op name="off" kind="offset" k="1.5" args="$n"/>
-           <op name="cl" kind="clamp" lo="-1" hi="1" args="$n"/>"#,
+           <number name="neg">-$n</number>
+           <number name="sc">4 * $n</number>
+           <number name="off">$n + 1.5</number>
+           <number name="cl">clamp($n, -1, 1)</number>"#,
     )
     .unwrap();
     round_trip(&mut doc, "neg", "value", 7.0);
@@ -52,10 +52,9 @@ fn unary_inverses_round_trip() {
 /// cell receives the clamped value, not the raw request.
 #[test]
 fn clamp_inverts_by_projection() {
-    let mut doc = load(
-        r#"<numberInput name="n" value="0"/><op name="cl" kind="clamp" lo="-1" hi="1" args="$n"/>"#,
-    )
-    .unwrap();
+    let mut doc =
+        load(r#"<numberInput name="n" value="0"/><number name="cl">clamp($n, -1, 1)</number>"#)
+            .unwrap();
     let tick = doc.request(&[req(&doc, "cl", "value", 5.0)]);
     assert_eq!(doc.value("n", "value"), Some(1.0));
     assert_eq!(doc.value("cl", "value"), Some(1.0));
@@ -66,11 +65,11 @@ fn clamp_inverts_by_projection() {
 fn round_floor_min_max_div_inverses() {
     let mut doc = load(
         r#"<numberInput name="a" value="2"/><numberInput name="b" value="5"/>
-           <op name="r" kind="round" args="$a"/>
-           <op name="f" kind="floor" args="$a"/>
-           <op name="mn" kind="min" args="$a $b"/>
-           <op name="mx" kind="max" args="$a $b"/>
-           <op name="d" kind="div" args="$a $b"/>"#,
+           <number name="r">round($a)</number>
+           <number name="f">floor($a)</number>
+           <number name="mn">min($a, $b)</number>
+           <number name="mx">max($a, $b)</number>
+           <number name="d">$a / $b</number>"#,
     )
     .unwrap();
     doc.request(&[req(&doc, "r", "value", 3.7)]);
@@ -97,10 +96,10 @@ fn round_floor_min_max_div_inverses() {
 fn binary_inverses_write_the_first_argument() {
     let mut doc = load(
         r#"<numberInput name="a" value="2"/><numberInput name="b" value="5"/>
-           <op name="s" kind="add" args="$a $b"/>
-           <op name="d" kind="sub" args="$a $b"/>
-           <op name="m" kind="mul" args="$a $b"/>
-           <op name="l" kind="lerp" t="0.25" args="$a $b"/>"#,
+           <number name="s">$a + $b</number>
+           <number name="d">$a - $b</number>
+           <number name="m">$a * $b</number>
+           <number name="q">$a / $b</number>"#,
     )
     .unwrap();
     round_trip(&mut doc, "s", "value", 12.0);
@@ -112,8 +111,8 @@ fn binary_inverses_write_the_first_argument() {
     assert_eq!(doc.value("a", "value"), Some(6.0));
     round_trip(&mut doc, "m", "value", 20.0);
     assert_eq!(doc.value("a", "value"), Some(4.0));
-    round_trip(&mut doc, "l", "value", 5.0);
-    assert_eq!(doc.value("a", "value"), Some(5.0));
+    round_trip(&mut doc, "q", "value", 2.0);
+    assert_eq!(doc.value("a", "value"), Some(10.0));
     assert_eq!(doc.value("b", "value"), Some(5.0));
 }
 
@@ -121,9 +120,9 @@ fn binary_inverses_write_the_first_argument() {
 fn chained_inverse_reaches_the_essential_cell() {
     let mut doc = load(
         r#"<numberInput name="n" value="1"/>
-           <op name="a" kind="scale" k="2" args="$n"/>
-           <op name="b" kind="offset" k="3" args="$a"/>
-           <op name="c" kind="negate" args="$b"/>
+           <number name="a">2 * $n</number>
+           <number name="b">$a + 3</number>
+           <number name="c">-$b</number>
            <point name="p" x="$c" y="$n"/>"#,
     )
     .unwrap();
@@ -138,7 +137,7 @@ fn chained_inverse_reaches_the_essential_cell() {
 
 #[test]
 fn undefined_inverse_drops_the_request() {
-    let mut doc = load(r#"<numberInput name="a" value="2"/><numberInput name="z" value="0"/><op name="m" kind="mul" args="$a $z"/>"#).unwrap();
+    let mut doc = load(r#"<numberInput name="a" value="2"/><numberInput name="z" value="0"/><number name="m">$a * $z</number>"#).unwrap();
     let before = doc.cells.clone();
     let r = req(&doc, "m", "value", 3.0);
     let tick = doc.request(&[r]);
@@ -150,8 +149,7 @@ fn undefined_inverse_drops_the_request() {
 #[test]
 fn conflicting_requests_last_wins() {
     let mut doc =
-        load(r#"<numberInput name="n" value="0"/><op name="neg" kind="negate" args="$n"/>"#)
-            .unwrap();
+        load(r#"<numberInput name="n" value="0"/><number name="neg">-$n</number>"#).unwrap();
     let tick = doc.request(&[req(&doc, "n", "value", 1.0), req(&doc, "neg", "value", 5.0)]);
     assert_eq!(doc.value("n", "value"), Some(-5.0));
     let n = doc.cell("n", "value").unwrap();
@@ -161,15 +159,13 @@ fn conflicting_requests_last_wins() {
 #[test]
 fn unchanged_values_are_not_reported() {
     let mut doc =
-        load(r#"<numberInput name="n" value="3"/><op name="neg" kind="negate" args="$n"/>"#)
-            .unwrap();
+        load(r#"<numberInput name="n" value="3"/><number name="neg">-$n</number>"#).unwrap();
     let tick = doc.request(&[req(&doc, "n", "value", 3.0)]);
     assert!(tick.changed.is_empty());
     // A change upstream that leaves a derived cell equal is also silent.
-    let mut doc = load(
-        r#"<numberInput name="n" value="3"/><op name="cl" kind="clamp" lo="0" hi="1" args="$n"/>"#,
-    )
-    .unwrap();
+    let mut doc =
+        load(r#"<numberInput name="n" value="3"/><number name="cl">clamp($n, 0, 1)</number>"#)
+            .unwrap();
     let tick = doc.request(&[req(&doc, "n", "value", 4.0)]);
     assert_eq!(tick.changed, vec![doc.cell("n", "value").unwrap()]);
 }
@@ -177,10 +173,10 @@ fn unchanged_values_are_not_reported() {
 #[test]
 fn evaluators_agree() {
     let src = r#"<numberInput name="a" value="2"/><numberInput name="b" value="5"/>
-        <op name="s" kind="add" args="$a $b"/><op name="t" kind="scale" k="3" args="$s"/>
-        <op name="u" kind="negate" args="$b"/><op name="v" kind="clamp" lo="0" hi="100" args="$t"/>
-        <op name="w" kind="lerp" t="0.5" args="$u $v"/>
-        <numberInput name="c" value="1"/><op name="x" kind="offset" k="1" args="$c"/>"#;
+        <number name="s">$a + $b</number><number name="t">3 * $s</number>
+        <number name="u">-$b</number><number name="v">clamp($t, 0, 100)</number>
+        <number name="w">max($u, $v)</number>
+        <numberInput name="c" value="1"/><number name="x">$c + 1</number>"#;
     let base = load(src).unwrap();
     // A document ticks through the dirty closure unless told otherwise.
     assert_eq!(base.evaluator(), "dirty-closure");

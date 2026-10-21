@@ -94,7 +94,7 @@ fn an_input_with_dynamic_fixed() {
     let mut doc = load(
         r#"<booleanInput name="b" value="true"/>
            <numberInput name="n" value="3" fixed="$b"/>
-           <op name="twice" kind="scale" k="2" args="$n"/>"#,
+           <number name="twice">2 * $n</number>"#,
     )
     .unwrap();
     assert_eq!(set(&mut doc, "n", "value", 4.0), 1);

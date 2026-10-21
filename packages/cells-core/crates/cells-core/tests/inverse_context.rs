@@ -21,8 +21,8 @@ fn bound_read_from_a_sibling_is_a_forward_min() {
     let mut doc = load(
         r#"<numberInput name="numPages" value="5"/>
            <numberInput name="stored" value="2"/>
-           <op name="upper" kind="min" args="$stored $numPages"/>
-           <op name="page" kind="clamp" lo="1" hi="1e300" args="$upper"/>"#,
+           <number name="upper">min($stored, $numPages)</number>
+           <number name="page">clamp($upper, 1, 1e300)</number>"#,
     )
     .unwrap();
     doc.request(&[req(&doc, "page", "value", 9.0)]);
@@ -49,11 +49,11 @@ fn wrap_read_from_a_sibling_is_a_forward_modulus() {
     let mut doc = load(
         r#"<numberInput name="numValues" value="5"/>
            <numberInput name="stored" value="2"/>
-           <op name="zeroBased" kind="offset" k="-1" args="$stored"/>
-           <op name="quotient" kind="div" args="$zeroBased $numValues"/>
-           <op name="laps" kind="floor" args="$quotient"/>
-           <op name="multiple" kind="mul" args="$laps $numValues"/>
-           <op name="index" kind="sub" args="$stored $multiple"/>"#,
+           <number name="zeroBased">$stored - 1</number>
+           <number name="quotient">$zeroBased / $numValues</number>
+           <number name="laps">floor($quotient)</number>
+           <number name="multiple">$laps * $numValues</number>
+           <number name="index">$stored - $multiple</number>"#,
     )
     .unwrap();
     // The current core: ((7 - 1) % 5) + 1 = 2.
@@ -74,8 +74,8 @@ fn a_gate_drops_requests_while_its_flag_is_set() {
     let mut doc = load(
         r#"<numberInput name="x" value="2"/>
            <numberInput name="fixAxes" value="0"/>
-           <op name="xMin" kind="gate" args="$x $fixAxes"/>
-           <op name="doubled" kind="scale" k="2" args="$xMin"/>"#,
+           <number name="xMin" fixed="$fixAxes">$x</number>
+           <number name="doubled">2 * $xMin</number>"#,
     )
     .unwrap();
     let tick = doc.request(&[req(&doc, "xMin", "value", 3.0)]);
@@ -107,7 +107,7 @@ fn a_gate_with_a_nan_flag_holds() {
     let mut doc = load(
         r#"<numberInput name="x" value="2"/>
            <numberInput name="flag" value="0"/>
-           <op name="g" kind="gate" args="$x $flag"/>"#,
+           <number name="g" fixed="$flag">$x</number>"#,
     )
     .unwrap();
     doc.request(&[req(&doc, "flag", "value", f64::NAN)]);

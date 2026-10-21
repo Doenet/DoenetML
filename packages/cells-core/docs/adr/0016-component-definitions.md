@@ -102,7 +102,7 @@ whose length follows state is planned as one of them, as
 ### Operators are one declaration
 
 An `ops!` entry per operator generates the `Op` and `OpSpec` variants,
-arity, bind, numeric code, `<op>` name and dispatch arms; its author writes
+arity, bind, numeric code and dispatch arms; its author writes
 `eval` and declares the inverse as one of:
 
 - `exact(fn)`: must pass a generated round-trip test,
@@ -225,6 +225,11 @@ case), carry every piece before other components follow:
    most within 0.6%; `packages/benchmark/scripts/perf-diff.sh` tick and
    memory unchanged, its load ratios within run-to-run noise (0.94 to
    1.09 across reruns).
+   The test-only `<op>` tag, which named an operator directly, and the
+   `derived` prop source behind it are gone: tests and golden documents
+   reach operators through math (`<number>2 * $a</number>` is
+   `Scale { k: 2 }`) or `fixed` (`Hold`), as documents do. `Default` and
+   `Lerp`, which only `<op>` reached, went with it.
    A nonlinear line equation still makes a line of NaN
    without a diagnostic, as before. The golden diff is identical through
    every move. The segment and the line, which had no specs, have them

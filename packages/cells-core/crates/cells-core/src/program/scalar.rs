@@ -4,8 +4,7 @@
 //! one, add an entry.
 //!
 //! Inverse rules for the scalar operators here (ADR 0003): a binary operator
-//! writes its first argument (`Default` writes whichever argument it is
-//! passing through); an idempotent operator (Round, Floor, Clamp, Min, Max)
+//! writes its first argument; an idempotent operator (Round, Floor, Clamp, Min, Max)
 //! inverts by projection, applying itself to the requested value; an inverse
 //! that is undefined for the current values, or whose requested value is
 //! outside the operator's domain (a non-finite ask on Round), returns `None`
@@ -56,97 +55,82 @@ fn nan_max(a: f64, b: f64) -> f64 {
     }
 }
 
-/// The input an inverse writes: the operator's first or second.
+/// The input an inverse writes: every scalar operator writes its first.
 const A: usize = 0;
-const B: usize = 1;
 
 scalar_ops! {
     // A request through an operator whose other input is not a finite
     // number (an emptied input) is dropped: no value of `a` gives it, and
     // writing what the arithmetic says would make `a` NaN.
     /// `a + b`.
-    Add(a, b) ["add"] {
+    Add(a, b) {
         eval: a + b,
         exact |d| b.is_finite().then_some((A, d - b)),
     }
     /// `a - b`.
-    Sub(a, b) ["sub"] {
+    Sub(a, b) {
         eval: a - b,
         exact |d| b.is_finite().then_some((A, d + b)),
     }
     /// `a * b`.
-    Mul(a, b) ["mul"] {
+    Mul(a, b) {
         eval: a * b,
         exact |d| (b != 0.0 && b.is_finite()).then_some((A, d / b)),
     }
     /// `a / b`.
-    Div(a, b) ["div"] {
+    Div(a, b) {
         eval: a / b,
         exact |d| (b != 0.0 && b.is_finite()).then_some((A, d * b)),
     }
     /// NaN if either argument is NaN (unlike `f64::min`).
-    Min(a, b) ["min"] {
+    Min(a, b) {
         eval: nan_min(a, b),
         projection |d| Some((A, nan_min(d, b))),
     }
     /// NaN if either argument is NaN (unlike `f64::max`).
-    Max(a, b) ["max"] {
+    Max(a, b) {
         eval: nan_max(a, b),
         projection |d| Some((A, nan_max(d, b))),
     }
-    /// `a` unless it is NaN, then `b`. The cell-level counterpart of the
-    /// current core's `valueOnNaN`; it is what gives a recurrence its seed
-    /// where a lagged reference has no referent. While `a` has no value the
-    /// request belongs to the fallback.
-    Default(a, b) ["default"] {
-        eval: if a.is_nan() { b } else { a },
-        exact |d| Some((if a.is_nan() { B } else { A }, d)),
-    }
     /// `-a`.
-    Negate(a) ["negate"] {
+    Negate(a) {
         eval: -a,
         exact |d| Some((A, -d)),
     }
     /// Round half toward positive infinity, as `Math.round` (`js_round`).
-    Round(a) ["round"] {
+    Round(a) {
         eval: js_round(a),
         projection |d| d.is_finite().then(|| (A, js_round(d))),
     }
     /// `a` rounded down.
-    Floor(a) ["floor"] {
+    Floor(a) {
         eval: a.floor(),
         projection |d| d.is_finite().then(|| (A, d.floor())),
     }
     /// `a * k`.
-    Scale(a; k) ["scale"] samples [{ k: 2.0 }, { k: -0.5 }, { k: 0.0 }] {
+    Scale(a; k) samples [{ k: 2.0 }, { k: -0.5 }, { k: 0.0 }] {
         eval: a * k,
         exact |d| (k != 0.0).then_some((A, d / k)),
     }
     /// `a + k`.
-    Offset(a; k) ["offset"] samples [{ k: 3.0 }] {
+    Offset(a; k) samples [{ k: 3.0 }] {
         eval: a + k,
         exact |d| Some((A, d - k)),
     }
     /// `a` held between `lo` and `hi`.
-    Clamp(a; lo, hi) ["clamp"] samples [{ lo: 0.0, hi: 1.0 }, { lo: -2.5, hi: 4.0 }] {
+    Clamp(a; lo, hi) samples [{ lo: 0.0, hi: 1.0 }, { lo: -2.5, hi: 4.0 }] {
         eval: a.clamp(lo, hi),
         projection |d| Some((A, d.clamp(lo, hi))),
     }
     /// `a` unless it is NaN, then the literal: `valueOnNaN` with a
     /// constant. A NaN ask has no inverse: it would be asking for the
     /// fallback.
-    NanTo(a; k) ["nanTo"] samples [{ k: 7.0 }] {
+    NanTo(a; k) samples [{ k: 7.0 }] {
         eval: if a.is_nan() { k } else { a },
         exact |d| (!d.is_nan()).then_some((A, d)),
     }
-    /// `a + t * (b - a)`.
-    Lerp(a, b; t) ["lerp"] samples [{ t: 0.5 }, { t: 0.25 }, { t: -1.0 }, { t: 1.0 }] {
-        eval: a + t * (b - a),
-        // desired = a(1-t) + t b
-        exact |d| (t != 1.0 && b.is_finite()).then(|| (A, (d - t * b) / (1.0 - t))),
-    }
     /// `a` to the power `b`.
-    Pow(a, b) ["pow"] {
+    Pow(a, b) {
         eval: a.powf(b),
         drops,
     }
@@ -155,32 +139,32 @@ scalar_ops! {
     /// referent, holds): a dynamic `fixed` or `fixAxes`. The flag is still
     /// an input, so the hold is an edge in the graph, like `Shape`'s pivot.
     /// `kind="gate"` predates the op's name.
-    Hold(a, b) ["hold", "gate"] {
+    Hold(a, b) {
         eval: a,
         exact |d| (b == 0.0).then_some((A, d)),
     }
     /// Comparisons for conditions (ADR 0009): 1 or 0, and 0 when either
     /// side is NaN. A request cannot change a condition.
-    Lt(a, b) ["lt"] {
+    Lt(a, b) {
         eval: bit(a < b),
         drops,
     }
-    Le(a, b) ["le"] {
+    Le(a, b) {
         eval: bit(a <= b),
         drops,
     }
     /// Equal within a relative error of `EQ_TOL`.
-    Eq(a, b) ["eq"] {
+    Eq(a, b) {
         eval: bit(a == b || (a - b).abs() <= EQ_TOL * a.abs().max(b.abs())),
         drops,
     }
     /// 1 when `a` holds (nonzero, not NaN), else 0.
-    Truthy(a) ["truthy"] {
+    Truthy(a) {
         eval: bit(holds(a)),
         drops,
     }
     /// 1 when `a` does not hold.
-    Not(a) ["not"] {
+    Not(a) {
         eval: bit(!holds(a)),
         drops,
     }
