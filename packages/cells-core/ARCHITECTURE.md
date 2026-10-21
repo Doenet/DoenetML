@@ -254,7 +254,7 @@ per component, `spec!` cases of DoenetML, requests and the values an
 author sees after each, every one also checked against the reference
 evaluator and against the component's cost snapshot
 (`tests/specs/snapshots/`); `SPEC_UPDATE=1` rewrites a snapshot, whose
-change the core team approves.
+change is reviewed with the change that made it.
 `tests/every_count.rs` builds every golden document and fixture at
 iteration counts 0 to 4 and four seeds and checks that a document the
 cycle check passed never fails a build with a cycle or an unsettled

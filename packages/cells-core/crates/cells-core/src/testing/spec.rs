@@ -30,11 +30,12 @@
 //!   The accessibility lint's are left out: they are about the document a
 //!   case is written in, not the component.
 //!
-//! Every case is also checked by what a contributor does not write: after
+//! Every case is also checked by what its author does not write: after
 //! the load and after every tick, the scheduled program against the
 //! reference evaluator (`testing::reference`); and the load's cost (cells,
 //! instructions, components) against the component's snapshot,
-//! `tests/specs/snapshots/<component>.cost`, which the core team approves.
+//! `tests/specs/snapshots/<component>.cost`, reviewed with the change that
+//! changes it.
 //! `SPEC_UPDATE=1` rewrites a snapshot instead of comparing it.
 
 use crate::testing::reference;
@@ -345,7 +346,7 @@ fn check_snapshot(component: &str, costs: &str) -> Result<(), String> {
     let Ok(old) = std::fs::read_to_string(&path) else {
         return Err(format!(
             "{component} has no cost snapshot ({}): run with SPEC_UPDATE=1 to write one, \
-             and have the core team approve it.",
+             and commit it with the change.",
             path.display()
         ));
     };
@@ -366,7 +367,7 @@ fn check_snapshot(component: &str, costs: &str) -> Result<(), String> {
     }
     Err(format!(
         "{component}: the cost snapshot changed ({}):\n{diff}\
-         If the change is intended, rerun with SPEC_UPDATE=1 and have the core team approve the new snapshot.",
+         If the change is intended, rerun with SPEC_UPDATE=1 and commit the new snapshot with the change.",
         path.display()
     ))
 }

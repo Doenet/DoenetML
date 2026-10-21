@@ -1,13 +1,13 @@
-# Components are written by people who do not know the core
+# Components are defined without knowing the core
 
 Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
 for the circle; see Migration. The renderer interface and where numbers
 are formatted are not decided here (see The renderer).
 
-A component should be writable, and changeable, by a Rust developer who
-does not know cells, slots, roles, the probe or the renderer, without
-costing load time or tick time. This ADR says what such a contributor
-writes, what the core team owns, and how a contributor learns that a
+A component should be writable, and changeable, without knowing cells,
+slots, roles, the probe or the renderer, and without costing load time or
+tick time. This ADR says what a component's definition holds, what the
+shared machinery does around it, and how its author learns that a
 component is done.
 
 ## Context
@@ -34,7 +34,7 @@ enforces:
 - **Unsupported combinations become NaN** with a comment ("the current core
   warns"), not a diagnostic.
 
-Beyond planners, a contributor meets:
+Beyond planners, a component's author meets:
 
 - **Fixed maximum layouts.** A polygon has `1 + 2 * MAX_VERTICES` props
   whatever its vertex count, and each unused slot becomes its own fixed
@@ -50,16 +50,16 @@ Beyond planners, a contributor meets:
 
 The benchmark (`packages/benchmark`, run `2026-10-19-claude-cloud-*`) says
 a drag's core tick is 0.1-0.4 ms on every fixture but `symbolic`; most of
-a frame is the renderer's, which this ADR leaves to a later one. What a
-contributor writes in the core must keep the tick where it is.
+a frame is the renderer's, which this ADR leaves to a later one. A
+component's definition must keep the tick where it is.
 
 ## Decision
 
-### Who
+### Components are Rust
 
-The contributor is a Rust developer who does not know this core. Nothing a
-contributor writes runs as JavaScript or as an interpreted description in
-the build or the tick: a component is Rust, compiled with the core.
+Nothing in a component's definition runs as JavaScript or as an
+interpreted description in the build or the tick: a component is Rust,
+compiled with the core.
 
 ### Plans are typed
 
@@ -85,13 +85,13 @@ saying where each list starts and how long it is. A reference such as
 the header; a renderer reads it once per build. `MAX_VEC_IN` still caps a
 vector operator's inputs.
 
-### Structure follows state only through core components
+### Structure follows state only through structural components
 
 A count that follows state (ADR 0004) belongs to `repeat`,
-`repeatForSequence`, `conditionalContent` or `select`, which the core team
-owns. A contributor's component whose length follows state is planned as
-one of them, as `functionIterates` is already a repeat. `View`, the probe
-(ADR 0012, ADR 0014) and the rebuild are never a contributor's concern.
+`repeatForSequence`, `conditionalContent` or `select`. Any other component
+whose length follows state is planned as one of them, as
+`functionIterates` is already a repeat. `View`, the probe (ADR 0012, ADR
+0014) and the rebuild are never another component's concern.
 
 ### Operators are one declaration
 
@@ -107,9 +107,9 @@ arity, bind, numeric code, `<op>` name and dispatch arms; its author writes
   non-invertible operator on a draggable path is visible.
 
 The tests run over a fixed table of values per argument kind (0, ±1,
-negative, tiny, huge, NaN, ±∞), not random inputs. Anyone may add an
-operator. The macro produces the `enum` and `match` the core has now, so
-the tick dispatches as it does today.
+negative, tiny, huge, NaN, ±∞), not random inputs. The macro produces
+the `enum` and `match` the core has now, so the tick dispatches as it does
+today.
 
 ### The tick never formats
 
@@ -135,16 +135,16 @@ script of requests and drags, and what must then hold, in an author's
 terms: public prop values and diagnostic codes. A spec says what an
 author sees; the tables and plans say how. A refactor of the second is checked against the first.
 
-Every case also feeds the generic guards, which a contributor does not
+Every case also feeds the generic guards, which a spec's author does not
 write: `extend` variants of the case (a copy, a copy overriding each
 attribute) checking that roles are shared exactly; `every_count` and the
 probe's coverage where the case has a repeat; round trips of the
 operators its program uses.
 
 Each case records a **cost snapshot**: cells, essential, fixed,
-instructions and components per element. A changed snapshot is approved by
-the core team (CODEOWNERS on the snapshot directory). This is the check
-that would have caught the padding above.
+instructions and components per element. A changed snapshot shows in the
+diff and is reviewed with the change that made it. This is the check that
+would have caught the padding above.
 
 The JavaScript core's tests, through the parity harness, are an aid to
 porting, not a gate.
@@ -154,7 +154,7 @@ porting, not a gate.
 Two pilots, `<slider>` (a prop table and an operator chain: the easy path)
 and `<circle>` (a planner by attributes, roles under `extend`, padded
 through points, vector inverses, drawn in a graph, an over-determined
-case), carry every piece before anything is opened to contributors:
+case), carry every piece before other components follow:
 
 1. `spec!{}`, with the cost snapshot, and specs for both pilots written
    against today's behavior. They are the refactoring guard for what
@@ -206,19 +206,19 @@ case), carry every piece before anything is opened to contributors:
    into the input it reached; it is dropped now.
 5. The renderer: left to a later ADR (see The renderer).
 6. Where numbers are formatted: left to a later ADR, with the renderer.
-7. The contributor guide (ARCHITECTURE.md, "Where to change things"),
-   written from the pilots.
+7. The guide to writing a component (ARCHITECTURE.md, "Where to change
+   things"), written from the pilots.
 
 Each step is measured with `scripts/perf-diff.sh`.
 
 ## Consequences
 
-- A component's core side is Rust a contributor can write without
-  knowing the core: a prop table, perhaps a planner returning a typed
-  plan, and a spec.
-- The core team's surface grows: structural components, the macros, the
-  guards, the snapshot reviews. That is the price of keeping the hot
-  paths in few hands.
+- A component's core side is Rust that can be written without knowing
+  the core: a prop table, perhaps a planner returning a typed plan, and a
+  spec.
+- The shared machinery grows: the macros, the guards, the planning
+  context. That is the price of keeping the hot paths out of each
+  component.
 - Reading a list prop takes one more lookup at build time and in the
   viewer, and padding's cells, memory and load go away.
 - Text answers with references, and lengths that follow state without a
@@ -231,11 +231,9 @@ Each step is measured with `scripts/perf-diff.sh`.
   call across wasm per instruction in the tick, or interpretation at every
   load.
 - **Positional plans with a conformance test** instead of typed plans.
-  Cheaper to build; a contributor learns of a mistake from `cargo test`
+  Cheaper to build; an author learns of a mistake from `cargo test`
   instead of the compiler, and role mismatches are the silent kind.
 - **Fixed maximum layouts.** Simpler indexing, at the measured cost above
   and a cap per type.
-- **Operators owned by the core team only.** Safer, and the core team in
-  the path of every port; the round-trip tests are the safety instead.
 - **The JavaScript core's tests as the definition of done.** Most of their
   failures on this core are reads of that core's internals.
