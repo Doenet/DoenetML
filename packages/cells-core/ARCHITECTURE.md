@@ -231,7 +231,7 @@ through the cells that `build/expand/scoring.rs` wired.
 | `Counts`, `Structure` | `build/structure.rs` | The counts a build stamps, and what one build made (its repeats and its essential cells' keys). |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. `Program::value_types` records whether each cell holds a number, text or math. |
 | `Document` | `document/mod.rs` | A loaded document and the API to it. |
-| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the range of cells holding each one's props (starting at `prop_base`; ADR 0016). What references and renderers read. |
+| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Evaluator` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`. |
 | `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
