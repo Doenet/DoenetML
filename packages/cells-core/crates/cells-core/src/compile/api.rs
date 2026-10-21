@@ -9,3 +9,4 @@ pub(crate) use super::expr::{ExprId, Token, split_top, unwrap_parens};
 pub(crate) use super::plan::{
     Arg, ElemPlan, Planned, PointPlan, Role, Sel, SourcePlan, point_roles,
 };
+pub(crate) use super::planner::Planner;

@@ -187,6 +187,7 @@ pub(super) const fn info(
             test_only: false,
         },
         sticky: None,
+        planner: None,
     }
 }
 
@@ -214,6 +215,10 @@ impl ComponentTypeInfo {
     /// A prototype-only tag, registered only with the `testing` feature.
     pub(super) const fn test_only(mut self) -> Self {
         self.flags.test_only = true;
+        self
+    }
+    pub(super) const fn planner(mut self, planner: crate::compile::api::Planner) -> Self {
+        self.planner = Some(planner);
         self
     }
     pub(super) const fn default_prop(mut self, prop: &'static str) -> Self {
@@ -270,6 +275,18 @@ pub(crate) const fn at(defs: &[PropDef], name: &str) -> usize {
         i += 1;
     }
     panic!("no such prop")
+}
+
+/// Whether `name` is one of `names`, usable in `const`.
+pub(crate) const fn has(names: &[&str], name: &str) -> bool {
+    let mut i = 0;
+    while i < names.len() {
+        if str_eq(names[i], name) {
+            return true;
+        }
+        i += 1;
+    }
+    false
 }
 
 /// `a == b`, usable in `const`.
@@ -382,3 +399,125 @@ macro_rules! typed_props {
     };
 }
 pub(crate) use typed_props;
+
+/// A component type's whole definition in one block: its tags, flags,
+/// props, views, list, aliases, roles and planner. It makes the row
+/// `DEFINITION`, which `component_types!` registers, the table `PROPS`,
+/// and through `typed_props!` the typed plan `Props` and its `roles`. Each
+/// prop is named once, as an identifier, so a view or a computed prop
+/// naming one the table lacks fails to compile. The sections come in the
+/// order below; only `tags`, `props` and `planner` are required.
+///
+/// A prop is `name: source`, the source one of `by_planner`, `children`,
+/// `derived`, `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
+/// optionally followed by `{ attribute: a, bind: b, ref_prop: p }`.
+///
+/// ```ignore
+/// component! {
+///     /// `<clamped lo="0" hi="1">`: its `value` held between `lo` and `hi`.
+///     tags: ["clamped"],
+///     flags: [copyable],
+///     default_prop: clamped,
+///     props {
+///         value: attr(0.0),
+///         lo: attr(0.0),
+///         hi: attr(1.0),
+///         atLeastLo: computed(OpSpec::Max, [value, lo]),
+///         clamped: computed(OpSpec::Min, [atLeastLo, hi]),
+///     }
+///     planner: Props,
+/// }
+/// ```
+macro_rules! component {
+    (
+        $(#[$doc:meta])*
+        tags: [$($tag:literal),+ $(,)?],
+        $(flags: [$($flag:ident),* $(,)?],)?
+        $(default_prop: $default:ident,)?
+        props {
+            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident : $oval:ident),* $(,)? })?),+ $(,)?
+        }
+        $(views { $($view:ident : [$($vpart:ident),+ $(,)?]),* $(,)? })?
+        $(arrays: $arrays:expr,)?
+        $(list { names: [$($lname:ident),+ $(,)?], item: $litem:ident, coords: [$lx:ident, $ly:ident] $(, alias: $lalias:ident)? $(,)? })?
+        $(aliases { $($afrom:ident : $ato:ident),* $(,)? })?
+        $(sticky: $sticky:ident($($sarg:expr),* $(,)?),)?
+        $(roles { $($role:ident),* $(,)? })?
+        $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
+    ) => {
+        $(#[$doc])*
+        pub(crate) const DEFINITION: $crate::components::ComponentTypeInfo =
+            $crate::components::define::info(&[$($tag),+], PROPS)
+                $($(.$flag())*)?
+                $(.default_prop(stringify!($default)))?
+                $(.views(&[$((stringify!($view), &[$(stringify!($vpart)),+])),*]))?
+                $(.arrays($arrays))?
+                $(.list($crate::components::ListProp {
+                    names: &[$(stringify!($lname)),+],
+                    item: stringify!($litem),
+                    coords: [stringify!($lx), stringify!($ly)],
+                    alias: $crate::components::define::component!(@alias $($lalias)?),
+                }))?
+                $(.aliases(&[$((stringify!($afrom), stringify!($ato))),*]))?
+                $(.$sticky($($sarg),*))?
+                .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
+
+        const PROP_NAMES: &[&str] = &[$(stringify!($pname)),+];
+
+        const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
+            $(
+                $crate::components::define::component!(@prop $kind $pname $(($($karg)*))?)
+                    $($(.$opt(stringify!($oval)))*)?
+            ),+
+        ]);
+
+        $crate::components::define::typed_props!(PROPS { $($pname),+ } $(roles { $($role),* })?);
+
+        $($($(
+            const _: () = assert!(
+                $crate::components::define::has(PROP_NAMES, stringify!($vpart)),
+                concat!(
+                    "component!: view `", stringify!($view), "` names `",
+                    stringify!($vpart), "`, which is not a prop"
+                ),
+            );
+        )+)*)?
+    };
+    (@planner) => {
+        compile_error!(
+            "component! needs `planner: Props`, or `PropsThen(f)`, `Geometric(f)` or `Whole(f)`, as its last section"
+        )
+    };
+    (@planner $kind:ident) => { $crate::compile::api::Planner::$kind };
+    (@planner $kind:ident ($f:path)) => { $crate::compile::api::Planner::$kind($f) };
+    (@alias) => { None };
+    (@alias $alias:ident) => { Some(stringify!($alias)) };
+    (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
+    (@prop children $name:ident) => { $crate::components::define::children(stringify!($name)) };
+    (@prop derived $name:ident) => { $crate::components::define::derived(stringify!($name)) };
+    (@prop attr $name:ident ($default:expr)) => {
+        $crate::components::define::attr(stringify!($name), $default)
+    };
+    (@prop attr_or $name:ident ($or:ident)) => {
+        $crate::components::define::attr_or(stringify!($name), stringify!($or))
+    };
+    (@prop computed $name:ident ($op:expr, [$($arg:ident),+ $(,)?])) => {{
+        $(
+            const _: () = assert!(
+                $crate::components::define::has(PROP_NAMES, stringify!($arg)),
+                concat!(
+                    "component!: computed prop `", stringify!($name), "` reads `",
+                    stringify!($arg), "`, which is not a prop"
+                ),
+            );
+        )+
+        $crate::components::define::computed(stringify!($name), $op, &[$(stringify!($arg)),+])
+    }};
+    (@prop $other:ident $name:ident $($rest:tt)*) => {
+        compile_error!(concat!(
+            "component!: prop `", stringify!($name), "` has source `", stringify!($other),
+            "`; a source is by_planner, children, derived, attr(default), attr_or(other) or computed(op, [args])"
+        ))
+    };
+}
+pub(crate) use component;

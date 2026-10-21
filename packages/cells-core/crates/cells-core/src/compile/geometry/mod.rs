@@ -23,7 +23,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         e: ElemId,
         extend: Option<RefId>,
-        plan: planner::GeoFn<'a>,
+        plan: planner::GeoFn,
     ) -> Result<()> {
         let d = self.dast;
         let Elem {

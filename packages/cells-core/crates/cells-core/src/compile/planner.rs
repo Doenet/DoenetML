@@ -7,35 +7,40 @@ use crate::components::{containers, geometry, inputs, structure, values};
 use ctx::PlanCtx;
 
 /// Adjusts the props `plan_attrs` planned from the table.
-pub(super) type PropsFn<'a> =
-    for<'c> fn(&mut PlanCtx<'c, 'a>, &mut [Option<SourcePlan>]) -> Result<()>;
+pub(crate) type PropsFn =
+    for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<SourcePlan>]) -> Result<()>;
 /// Plans a geometric element, its attributes merged over those of the
 /// element it extends.
-pub(super) type GeoFn<'a> = for<'c> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemPlan>;
+pub(crate) type GeoFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemPlan>;
 /// Plans the whole element.
-pub(super) type WholeFn<'a> = for<'c> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
+pub(crate) type WholeFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
 
 /// How an element is planned once the cases that do not depend on its type
 /// (clones, synthesized elements, `extend` of a prop or of a container) are
 /// ruled out. Every planner but `Props` is a function in the type's file
 /// under `components/` (ADR 0016).
-pub(super) enum Planner<'a> {
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Planner {
     /// From the type's prop table (`plan_attrs`).
     Props,
     /// From the prop table, then adjusted by the function.
-    PropsThen(PropsFn<'a>),
+    PropsThen(PropsFn),
     /// By the function, inside `plan_geo`'s shared handling of `extend`.
-    Geometric(GeoFn<'a>),
+    Geometric(GeoFn),
     /// By the function alone.
-    Whole(WholeFn<'a>),
+    Whole(WholeFn),
 }
 
 impl<'a> Compiler<'a> {
-    pub(super) fn planner(component_type: ComponentType) -> Planner<'a> {
+    pub(super) fn planner(component_type: ComponentType) -> Planner {
+        // A type defined with `component!` names its planner itself.
+        if let Some(planner) = component_type.info().planner {
+            return planner;
+        }
         use ComponentType as K;
         use Planner::*;
         use containers::section;
-        use geometry::{circle, line, point, polygon, polyline, segment};
+        use geometry::{line, point, polygon, polyline, segment};
         use inputs::{choice_input, math_input, text_input};
         use structure::{
             collect, conditional_content, function_iterates, repeat_for, select,
@@ -72,7 +77,7 @@ impl<'a> Compiler<'a> {
             K::TriggerSet => Props,
             // Geometry
             K::Point => Geometric(point::plan),
-            K::Circle => Geometric(circle::plan),
+            K::Circle => unreachable!("defined with component!"),
             K::Line => Geometric(line::plan),
             K::LineSegment => Geometric(segment::plan),
             K::Polygon => Geometric(polygon::plan),

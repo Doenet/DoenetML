@@ -74,7 +74,7 @@ component_types! {
     MathInput => inputs::math_input::MATH_INPUT,
     ChoiceInput => inputs::choice_input::CHOICE_INPUT,
     Choice => inputs::CHOICE,
-    Circle => geometry::circle::CIRCLE,
+    Circle => geometry::circle::DEFINITION,
     Line => geometry::line::LINE,
     LineSegment => geometry::segment::LINE_SEGMENT,
     Polygon => geometry::polygon::POLYGON,
@@ -143,6 +143,9 @@ pub struct ComponentTypeInfo {
     /// so its documents resolve unchanged.
     pub aliases: &'static [(&'static str, &'static str)],
     pub flags: Flags,
+    /// How an element of the type is planned, when the type is defined
+    /// with `component!`; else `compile/planner.rs` says.
+    pub(crate) planner: Option<crate::compile::api::Planner>,
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,

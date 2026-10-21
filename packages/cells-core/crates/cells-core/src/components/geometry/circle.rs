@@ -5,69 +5,55 @@
 //! are in `program/vector.rs`.
 
 use crate::compile::api::*;
+use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::{ComponentType, ComponentTypeInfo, ListProp, PropDef};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::VecOp;
+use std::f64::consts::TAU;
 
-/// `<circle>`: center and radius are derived or essential depending on
-/// how the circle is specified (ADR 0006). `cx`, `cy`, `radius` are the
-/// numerical center and radius; how they are produced depends on which of
-/// `center`, `radius` and `through` the author gave (see `plan`).
-pub(in crate::components) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
-    .copyable()
-    .views(&[
-        ("center", &["centerX", "centerY"]),
-        ("numericalCenter", &["cx", "cy"]),
-    ])
-    .list(ListProp {
-        names: &["throughPoints"],
-        item: "throughPoint",
-        coords: ["throughX", "throughY"],
-        alias: Some("throughPointX"),
-    })
-    .aliases(&[("centerX1", "centerX"), ("centerX2", "centerY")]);
-
-/// The through points are the circle's list (`throughPoints`), after
-/// these.
-const CIRCLE_PROPS: &[PropDef] = &props([
-    by_planner("cx"),
-    by_planner("cy"),
-    by_planner("radius"),
-    computed("diameter", OpSpec::Scale { k: 2.0 }, &["radius"]),
-    computed(
-        "circumference",
-        OpSpec::Scale {
-            k: std::f64::consts::TAU,
-        },
-        &["radius"],
-    ),
-    by_planner("area"),
-    // The center as a *reference*: the prescribed center when there is one
-    // (so a point extending `$c.center` drags that point alone, as in the
-    // current core), else the derived center.
-    by_planner("centerX"),
-    by_planner("centerY"),
-    by_planner("numThroughPoints"),
-]);
-
-pub const NUM_THROUGH_POINTS: usize = at(CIRCLE_PROPS, "numThroughPoints");
-
-typed_props!(CIRCLE_PROPS {
-    cx,
-    cy,
-    radius,
-    diameter,
-    circumference,
-    area,
-    centerX,
-    centerY,
-    numThroughPoints,
-} roles {
-    // The center when it is the circle's own state, and the radius.
-    CX, CY, R,
-});
+component! {
+    /// `<circle>`: center and radius are derived or essential depending on
+    /// how the circle is specified (ADR 0006). `cx`, `cy`, `radius` are
+    /// the numerical center and radius; how they are produced depends on
+    /// which of `center`, `radius` and `through` the author gave (see
+    /// `plan`). The through points are its list, after these props.
+    tags: ["circle"],
+    flags: [copyable],
+    props {
+        cx: by_planner,
+        cy: by_planner,
+        radius: by_planner,
+        diameter: computed(OpSpec::Scale { k: 2.0 }, [radius]),
+        circumference: computed(OpSpec::Scale { k: TAU }, [radius]),
+        area: by_planner,
+        // The center as a *reference*: the prescribed center when there is
+        // one (so a point extending `$c.center` drags that point alone, as
+        // in the current core), else the derived center.
+        centerX: by_planner,
+        centerY: by_planner,
+        numThroughPoints: by_planner,
+    }
+    views {
+        center: [centerX, centerY],
+        numericalCenter: [cx, cy],
+    }
+    list {
+        names: [throughPoints],
+        item: throughPoint,
+        coords: [throughX, throughY],
+        alias: throughPointX,
+    }
+    aliases {
+        centerX1: centerX,
+        centerX2: centerY,
+    }
+    roles {
+        // The center when it is the circle's own state, and the radius.
+        CX, CY, R,
+    }
+    planner: Geometric(plan),
+}
 
 /// Why a circle cannot be what its attributes ask, as the current core's
 /// warnings say it (codes of `packages/i18n/src/diagnostics.ts`).
