@@ -30,7 +30,7 @@
             await window.__cells.loadSource(text);
             while (!window.__cells.ready) {
                 // The viewer shows a load error instead of flipping ready.
-                const err = document.querySelector(".error");
+                const err = document.querySelector(".viewer-error");
                 if (err)
                     throw new Error(
                         "unsupported: " + err.textContent.slice(0, 300),
