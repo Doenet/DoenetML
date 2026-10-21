@@ -58,33 +58,33 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
         wiring.set_public(Props {
-            expr: Planned::fixed(f64::NAN),
-            xmin: Planned::fixed(-10.0),
-            xmax: Planned::fixed(10.0),
-            samples: Planned::fixed(f64::NAN),
+            expr: Wire::fixed(f64::NAN),
+            xmin: Wire::fixed(-10.0),
+            xmax: Wire::fixed(10.0),
+            samples: Wire::fixed(f64::NAN),
         });
         ctx.set_wiring(wiring);
         return Ok(());
     }
     let id = ctx.sym_math(&nodes)?;
     let expr = if component_type == ComponentType::Function {
-        SourcePlan::SymExpr(id, Post::None).into()
+        Source::SymExpr(id, Post::None).into()
     } else {
-        let of = wiring.hidden(SourcePlan::SymExpr(id, Post::None));
-        Planned::computed(OpSpec::Sym(SymKind::Derivative), vec![of])
+        let of = wiring.hidden(Source::SymExpr(id, Post::None));
+        Wire::computed(OpSpec::Sym(SymKind::Derivative), vec![of])
     };
     let [xmin, xmax] = match (
         ctx.enclosing_graph_prop(graph::XMIN),
         ctx.enclosing_graph_prop(graph::XMAX),
     ) {
         (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
-        _ => [Planned::fixed(-10.0), Planned::fixed(10.0)],
+        _ => [Wire::fixed(-10.0), Wire::fixed(10.0)],
     };
     wiring.set_public(Props {
         expr,
         xmin,
         xmax,
-        samples: Planned::computed(
+        samples: Wire::computed(
             OpSpec::Sym(SymKind::Sample),
             vec![at.expr, at.xmin, at.xmax],
         ),

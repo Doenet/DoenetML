@@ -32,7 +32,7 @@ pub const EXPR: usize = Props::AT.expr;
 /// holding the prefill (or its children's text) and `value` evaluates it.
 /// A `prefill="$n"` is not a binding: the expression starts as `$n`'s
 /// value when the input is first built.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> Result<()> {
     let d = ctx.dast();
     let at = Props::AT;
     let el = ctx.node();
@@ -40,10 +40,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
         && d.children(el).iter().all(|&n| ctx.is_blank(n))
         && let Some(a) = d.attr(el, "prefill")
         && ctx.single_macro(a).is_some()
-        && let Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) = props[at.value]
+        && let Some(Source::Alias(Arg::Ref(p, Sel::Whole))) = props[at.value]
     {
-        props[at.expr] = Some(SourcePlan::MathEssentialFrom(p));
-        props[at.value] = Some(SourcePlan::computed(
+        props[at.expr] = Some(Source::MathEssentialFrom(p));
+        props[at.value] = Some(Source::computed(
             OpSpec::Sym(SymKind::Evaluate),
             vec![at.expr],
         ));
@@ -53,10 +53,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
         Some(a) => d.attr_children(a),
         None => d.children(el),
     };
-    let bound = matches!(props[at.value], Some(SourcePlan::Alias(_)))
+    let bound = matches!(props[at.value], Some(Source::Alias(_)))
         || nodes.iter().any(|&n| d.kind(n) == NodeKind::Macro);
     if bound {
-        props[at.expr] = Some(SourcePlan::Fixed(f64::NAN));
+        props[at.expr] = Some(Source::Fixed(f64::NAN));
         return Ok(());
     }
     let text: String = nodes
@@ -78,8 +78,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
                 })?,
         )
     };
-    props[at.expr] = Some(SourcePlan::MathEssential(tree));
-    props[at.value] = Some(SourcePlan::computed(
+    props[at.expr] = Some(Source::MathEssential(tree));
+    props[at.value] = Some(Source::computed(
         OpSpec::Sym(SymKind::Evaluate),
         vec![at.expr],
     ));

@@ -228,7 +228,7 @@ impl<'c> Builder<'c> {
         if !self.view.folds_iterations() {
             return target;
         }
-        let a = self.anon_slot(Source::Alias(target), scope);
+        let a = self.anon_slot(BuiltSource::Alias(target), scope);
         self.record_label(a, target);
         a
     }

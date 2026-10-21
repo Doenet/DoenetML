@@ -41,11 +41,11 @@ pub(in crate::compile) enum Fix {
     /// A literal true: the element's essential cells become fixed cells.
     Literal,
     /// References: flag cells (any nonzero holds) that gate the element.
-    Dynamic(Vec<SourcePlan>),
+    Dynamic(Vec<Source>),
 }
 
 impl Fix {
-    pub(in crate::compile) fn apply(self, props: &mut Vec<Option<SourcePlan>>) {
+    pub(in crate::compile) fn apply(self, props: &mut Vec<Option<Source>>) {
         match self {
             Fix::Off => {}
             Fix::Literal => fix_literals(props),
@@ -61,10 +61,10 @@ impl Fix {
 /// element or out, reads through the hold. Vector heads and outputs stay in
 /// place (they must be consecutive); their inputs are own slots, which are
 /// gated themselves.
-fn gate_slots(props: &mut Vec<Option<SourcePlan>>, flags: Vec<SourcePlan>) {
+fn gate_slots(props: &mut Vec<Option<Source>>, flags: Vec<Source>) {
     let n = props.len();
-    let push = |props: &mut Vec<Option<SourcePlan>>, plan: SourcePlan| {
-        props.push(Some(plan));
+    let push = |props: &mut Vec<Option<Source>>, source: Source| {
+        props.push(Some(source));
         u8::try_from(props.len() - 1).expect("fewer than 256 slots per element")
     };
     let mut flags = flags.into_iter();
@@ -73,39 +73,34 @@ fn gate_slots(props: &mut Vec<Option<SourcePlan>>, flags: Vec<SourcePlan>) {
         let g = push(props, f);
         flag = push(
             props,
-            SourcePlan::Op(OpSpec::Max, vec![Arg::Own(flag), Arg::Own(g)]),
+            Source::Op(OpSpec::Max, vec![Arg::Own(flag), Arg::Own(g)]),
         );
     }
     for i in 0..n {
         let moved = match &props[i] {
-            Some(SourcePlan::Inherit) => SourcePlan::InheritFrom(byte(i)),
+            Some(Source::Inherit) => Source::InheritFrom(byte(i)),
             Some(
-                SourcePlan::Literal(_)
-                | SourcePlan::TextLiteral(_)
-                | SourcePlan::Default(_)
-                | SourcePlan::Alias(Arg::Ref(..) | Arg::Elem(..))
-                | SourcePlan::Math(_),
+                Source::Literal(_)
+                | Source::TextLiteral(_)
+                | Source::Default(_)
+                | Source::Alias(Arg::Ref(..) | Arg::Elem(..))
+                | Source::Math(_),
             ) => props[i].take().unwrap(),
-            Some(SourcePlan::Op(_, args)) if args.iter().any(|a| !matches!(a, Arg::Own(_))) => {
+            Some(Source::Op(_, args)) if args.iter().any(|a| !matches!(a, Arg::Own(_))) => {
                 props[i].take().unwrap()
             }
             _ => continue,
         };
         let h = push(props, moved);
-        props[i] = Some(SourcePlan::Op(
-            OpSpec::Hold,
-            vec![Arg::Own(h), Arg::Own(flag)],
-        ));
+        props[i] = Some(Source::Op(OpSpec::Hold, vec![Arg::Own(h), Arg::Own(flag)]));
     }
 }
 
 /// A literal `fixed`: essential cells, given or defaulted, become constants.
-fn fix_literals(props: &mut [Option<SourcePlan>]) {
+fn fix_literals(props: &mut [Option<Source>]) {
     for p in props.iter_mut() {
-        if let Some(SourcePlan::Literal(v) | SourcePlan::TextLiteral(v) | SourcePlan::Default(v)) =
-            p
-        {
-            *p = Some(SourcePlan::Fixed(*v));
+        if let Some(Source::Literal(v) | Source::TextLiteral(v) | Source::Default(v)) = p {
+            *p = Some(Source::Fixed(*v));
         }
     }
 }

@@ -82,7 +82,7 @@ Observed: loads, settled, at count 2 (`g` is 0). Setting `g` to 1:
 the structure is left unsettled. The same inside a nested repeat (the
 collect and count in an outer iteration) behaves the same.
 
-Why: `expand_collect` sets the collect's slot 0 to `Source::Fixed(n)`, the
+Why: `expand_collect` sets the collect's slot 0 to `BuiltSource::Fixed(n)`, the
 number gathered; a polyline is the same body. The count's DFS in
 `check_counts` stops at the constant, and `check_loops` has no edge either.
 Reading an *item* of the collect instead (`$c[2].x`) is caught, since the
@@ -252,7 +252,7 @@ changes the operator; the set of leaf edges is the same, and the probe
 resolves the leaf to iteration 1 so it decides as the full build would.
 The "reference cycle counts as numeric" memo (`MathMode::Deciding`) breaks
 only the *decision's* recursion; the edges are still emitted and the loop
-is reported. `SourcePlan::Math` emits no edges when the expression has a
+is reported. `Source::Math` emits no edges when the expression has a
 free symbol (`is_numeric`), but that is decided by the DAST text alone.
 
 ### 9. `<functionIterates>` and `<repeat for>`

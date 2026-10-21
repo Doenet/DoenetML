@@ -41,13 +41,13 @@ const _: () = assert!(Y == X + 1, "a point's y must follow its x");
 
 /// A point's props from its two coordinates, as a `<math>` that is a pair
 /// or a copy of a point's coordinates has them; `hide` is the default.
-pub(crate) fn props_of(x: SourcePlan, y: SourcePlan) -> Vec<SourcePlan> {
+pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
     let mut wiring = ElemWiring::of(ComponentType::Point);
     let hide = ComponentType::Point.prop_defs()[HIDE].default;
     wiring.set_public(Props {
         x: x.into(),
         y: y.into(),
-        hide: SourcePlan::Default(hide).into(),
+        hide: Source::Default(hide).into(),
     });
     wiring.finish()
 }
@@ -63,14 +63,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let coords_state = [shared_state::X, shared_state::Y];
     let [x, y] = if let Some(a) = ctx.attr("coords") {
         let p = ctx.point_at(a)?;
-        Planned::point(&p, coords_state, "coords")
+        Wire::point(&p, coords_state, "coords")
     } else if ctx.has("x") || ctx.has("y") || (own_children.is_empty() && base_children.is_empty())
     {
-        let mut coord = |name: &'static str, state: SharedState| -> Result<Planned> {
+        let mut coord = |name: &'static str, state: SharedState| -> Result<Wire> {
             Ok(match ctx.scalar(name)? {
-                Some(SourcePlan::Literal(v)) => Planned::essential_from(state, name, v),
+                Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
                 Some(plan) => plan.into(),
-                None => Planned::essential(state, 0.0),
+                None => Wire::essential(state, 0.0),
             })
         };
         [coord("x", coords_state[0])?, coord("y", coords_state[1])?]
@@ -80,8 +80,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         } else {
             own_children
         };
-        let p = PointPlan::Tuple(ctx.tuple(&nodes)?);
-        Planned::point(&p, coords_state, "children")
+        let p = GivenPoint::Tuple(ctx.tuple(&nodes)?);
+        Wire::point(&p, coords_state, "children")
     };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
@@ -96,10 +96,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 base.unwrap()
             };
             let on = ctx.attr_flag(owner, "hide");
-            SourcePlan::Literal(if on { 1.0 } else { 0.0 })
+            Source::Literal(if on { 1.0 } else { 0.0 })
         }
-        None if base.is_some() => SourcePlan::Inherit,
-        None => SourcePlan::Default(0.0),
+        None if base.is_some() => Source::Inherit,
+        None => Source::Default(0.0),
     };
     // Constraints may sit directly under the point or in <constraints>.
     let mut constraints: Vec<NodeId> = Vec::new();
@@ -145,12 +145,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
 fn constrain(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,
-    [x, y]: [Planned; 2],
+    [x, y]: [Wire; 2],
     c: NodeId,
-) -> Result<[Planned; 2]> {
+) -> Result<[Wire; 2]> {
     let d = ctx.dast();
-    let raw_x = wiring.hidden_planned(x);
-    let raw_y = wiring.hidden_planned(y);
+    let raw_x = wiring.hidden_wire(x);
+    let raw_y = wiring.hidden_wire(y);
     let at = Props::AT;
     match d.str(c) {
         "constrainToGrid" => {
@@ -165,28 +165,23 @@ fn constrain(
             };
             let (dx, dy) = (num("dx", 1.0)?, num("dy", 1.0)?);
             let (xo, yo) = (num("xoffset", 0.0)?, num("yoffset", 0.0)?);
-            let snap = |wiring: &mut ElemWiring, raw: usize, step: f64, offset: f64| -> Planned {
+            let snap = |wiring: &mut ElemWiring, raw: usize, step: f64, offset: f64| -> Wire {
                 let mut cur = raw;
                 if offset != 0.0 {
-                    cur = wiring.hidden(SourcePlan::computed(
-                        OpSpec::Offset { k: -offset },
-                        vec![cur],
-                    ));
+                    cur = wiring.hidden(Source::computed(OpSpec::Offset { k: -offset }, vec![cur]));
                 }
                 if step != 1.0 {
-                    cur = wiring.hidden(SourcePlan::computed(
-                        OpSpec::Scale { k: 1.0 / step },
-                        vec![cur],
-                    ));
+                    cur =
+                        wiring.hidden(Source::computed(OpSpec::Scale { k: 1.0 / step }, vec![cur]));
                 }
-                cur = wiring.hidden(SourcePlan::computed(OpSpec::Round, vec![cur]));
+                cur = wiring.hidden(Source::computed(OpSpec::Round, vec![cur]));
                 if step != 1.0 {
-                    cur = wiring.hidden(SourcePlan::computed(OpSpec::Scale { k: step }, vec![cur]));
+                    cur = wiring.hidden(Source::computed(OpSpec::Scale { k: step }, vec![cur]));
                 }
                 if offset != 0.0 {
-                    return Planned::computed(OpSpec::Offset { k: offset }, vec![cur]);
+                    return Wire::computed(OpSpec::Offset { k: offset }, vec![cur]);
                 }
-                Planned::own(cur)
+                Wire::own(cur)
             };
             let x = snap(wiring, raw_x, dx, xo);
             let y = snap(wiring, raw_y, dy, yo);
@@ -206,7 +201,7 @@ fn constrain(
             let mut refs = |wiring: &mut ElemWiring, props: &[&str]| -> Vec<usize> {
                 props
                     .iter()
-                    .map(|pr| wiring.hidden(SourcePlan::reference(ctx.with_prop(p, pr))))
+                    .map(|pr| wiring.hidden(Source::reference(ctx.with_prop(p, pr))))
                     .collect()
             };
             match target {
@@ -224,8 +219,8 @@ fn constrain(
                     // nearest point of the curve instead.)
                     let f = refs(wiring, &["expr"]);
                     Ok([
-                        Planned::own(raw_x),
-                        Planned::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
+                        Wire::own(raw_x),
+                        Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
                     ])
                 }
                 ComponentType::Line | ComponentType::LineSegment => {

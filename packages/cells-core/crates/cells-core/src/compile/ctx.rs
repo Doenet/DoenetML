@@ -75,12 +75,12 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// The prop at position `pos` of the graph the element sits in
     /// directly, if it sits in one.
-    pub(crate) fn enclosing_graph_prop(&self, pos: usize) -> Option<SourcePlan> {
+    pub(crate) fn enclosing_graph_prop(&self, pos: usize) -> Option<Source> {
         let scope = self.scope();
         (scope != ROOT_SCOPE
             && self.c.compiled.templates[self.t].elems[scope].component_type
                 == ComponentType::Graph)
-            .then(|| SourcePlan::Alias(Arg::Elem(scope, own_slot(pos))))
+            .then(|| Source::Alias(Arg::Elem(scope, own_slot(pos))))
     }
 
     // Attributes.
@@ -167,7 +167,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// A point-valued attribute, a reference (`center="$p"`) or a tuple
     /// (`center="(1, 2)"`), if given.
-    pub(crate) fn point(&mut self, name: &str) -> Result<Option<PointPlan>> {
+    pub(crate) fn point(&mut self, name: &str) -> Result<Option<GivenPoint>> {
         let Some(a) = self.attr(name) else {
             return Ok(None);
         };
@@ -175,13 +175,13 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Attribute `a` as a point.
-    pub(crate) fn point_at(&mut self, a: u32) -> Result<PointPlan> {
+    pub(crate) fn point_at(&mut self, a: u32) -> Result<GivenPoint> {
         let scope = self.scope();
         self.c.plan_point_attr(self.t, scope, a)
     }
 
     /// A scalar attribute, a literal, a reference or math, if given.
-    pub(crate) fn scalar(&mut self, name: &str) -> Result<Option<SourcePlan>> {
+    pub(crate) fn scalar(&mut self, name: &str) -> Result<Option<Source>> {
         let Some(a) = self.attr(name) else {
             return Ok(None);
         };
@@ -191,14 +191,14 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Nodes as a scalar, a literal, a reference or math; `name` is the
     /// attribute they come from, for errors.
-    pub(crate) fn scalar_of(&mut self, name: &str, nodes: &[NodeId]) -> Result<SourcePlan> {
+    pub(crate) fn scalar_of(&mut self, name: &str, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope();
         self.c.plan_scalar(self.t, scope, name, nodes)
     }
 
     /// The points of a point-list attribute (`through="$a (1, 2)"`), none
     /// if it is not given.
-    pub(crate) fn points(&mut self, name: &str) -> Result<Vec<PointPlan>> {
+    pub(crate) fn points(&mut self, name: &str) -> Result<Vec<GivenPoint>> {
         let Some(a) = self.attr(name) else {
             return Ok(Vec::new());
         };
@@ -207,7 +207,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
-    pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[SourcePlan; 2]> {
+    pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
         let scope = self.scope();
         self.c.plan_tuple(self.t, scope, nodes)
     }
@@ -263,7 +263,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// An expression as a plan: lowered to numeric operators when it is
     /// numeric, else symbolic.
-    pub(crate) fn plan_expr(&mut self, id: ExprId) -> SourcePlan {
+    pub(crate) fn plan_expr(&mut self, id: ExprId) -> Source {
         self.c.plan_from_expr(id)
     }
 
@@ -284,7 +284,7 @@ impl<'a> PlanCtx<'_, 'a> {
         nodes: &[NodeId],
         vx: &str,
         vy: &str,
-    ) -> Result<Option<[SourcePlan; 3]>> {
+    ) -> Result<Option<[Source; 3]>> {
         let t = self.t;
         let (toks, text) = self.math_tokens(nodes)?;
         let c = &mut *self.c;
@@ -356,7 +356,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Sets the element's props.
-    pub(crate) fn set_props(&mut self, props: Vec<SourcePlan>) {
+    pub(crate) fn set_props(&mut self, props: Vec<Source>) {
         self.c.compiled.templates[self.t].elems[self.e].props = props;
     }
 
@@ -372,7 +372,7 @@ impl<'a> PlanCtx<'_, 'a> {
         self.name_prop_if_none(p, prop);
         let el = &mut self.c.compiled.templates[self.t].elems[self.e];
         el.extend = None;
-        el.props = vec![SourcePlan::reference(p)];
+        el.props = vec![Source::reference(p)];
         Ok(())
     }
 
@@ -386,7 +386,7 @@ impl<'a> PlanCtx<'_, 'a> {
             from,
             component_type,
         };
-        let mut props = vec![SourcePlan::Fixed(f64::NAN); own_type.prop_defs().len()];
+        let mut props = vec![Source::Fixed(f64::NAN); own_type.prop_defs().len()];
         Deferred::mark(own_type, &mut props);
         el.props = props;
     }

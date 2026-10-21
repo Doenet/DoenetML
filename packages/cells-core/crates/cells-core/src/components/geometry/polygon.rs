@@ -103,7 +103,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             super::MAX_RIGID_VERTICES
         )));
     }
-    let points: Vec<[Planned; 2]> = match rigid_opts {
+    let points: Vec<[Wire; 2]> = match rigid_opts {
         // Rigid: the document declares the coupling, so one instruction
         // owns every vertex.
         Some(opts) if n > 0 => {
@@ -123,8 +123,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                     args.push(y);
                 }
                 None => {
-                    args.push(wiring.hidden(SourcePlan::Fixed(f64::NAN)));
-                    args.push(wiring.hidden(SourcePlan::Fixed(f64::NAN)));
+                    args.push(wiring.hidden(Source::Fixed(f64::NAN)));
+                    args.push(wiring.hidden(Source::Fixed(f64::NAN)));
                 }
             }
             let first = ComponentType::Polygon
@@ -141,11 +141,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ => vertices
             .iter()
             .enumerate()
-            .map(|(k, v)| Planned::point(v, shared_point_state(k), "vertices"))
+            .map(|(k, v)| Wire::point(v, shared_point_state(k), "vertices"))
             .collect(),
     };
     wiring.set_public(Props {
-        numVertices: Planned::fixed(n as f64),
+        numVertices: Wire::fixed(n as f64),
     });
     wiring.set_list(points);
     Ok(wiring)

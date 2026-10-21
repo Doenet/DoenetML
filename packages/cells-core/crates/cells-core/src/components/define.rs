@@ -12,7 +12,7 @@ pub(super) use crate::program::OpSpec;
 pub(super) struct Prop {
     name: &'static str,
     default: f64,
-    source: Source,
+    source: DeclaredSource,
     attr: Option<&'static str>,
     bind: Option<&'static str>,
     ref_prop: Option<&'static str>,
@@ -20,7 +20,7 @@ pub(super) struct Prop {
 
 /// [`PropFrom`] with props named rather than numbered.
 #[derive(Clone, Copy)]
-enum Source {
+enum DeclaredSource {
     Attribute,
     Children,
     Computed(OpSpec, &'static [&'static str]),
@@ -28,7 +28,7 @@ enum Source {
     ByPlanner,
 }
 
-const fn prop_from(name: &'static str, default: f64, source: Source) -> Prop {
+const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> Prop {
     Prop {
         name,
         default,
@@ -41,17 +41,17 @@ const fn prop_from(name: &'static str, default: f64, source: Source) -> Prop {
 
 /// Given by the attribute of the same name, else `default`.
 pub(super) const fn attr(name: &'static str, default: f64) -> Prop {
-    prop_from(name, default, Source::Attribute)
+    prop_from(name, default, DeclaredSource::Attribute)
 }
 
 /// Given by the attribute of the same name, else an alias of the prop `or`.
 pub(super) const fn attr_or(name: &'static str, or: &'static str) -> Prop {
-    prop_from(name, f64::NAN, Source::AttributeOr(or))
+    prop_from(name, f64::NAN, DeclaredSource::AttributeOr(or))
 }
 
 /// Given by the element's children: a literal, one reference, or math.
 pub(super) const fn children(name: &'static str) -> Prop {
-    prop_from(name, f64::NAN, Source::Children)
+    prop_from(name, f64::NAN, DeclaredSource::Children)
 }
 
 /// `op` applied to the component's own props `args`.
@@ -66,13 +66,13 @@ pub(super) const fn computed(
         op.accepts(args.len()),
         "a computed prop's operator takes another number of args"
     );
-    prop_from(name, f64::NAN, Source::Computed(op, args))
+    prop_from(name, f64::NAN, DeclaredSource::Computed(op, args))
 }
 
 /// Set by the type's planner, which reads the whole element, rather than
 /// by one attribute, the children or an operator.
 pub(super) const fn by_planner(name: &'static str) -> Prop {
-    prop_from(name, f64::NAN, Source::ByPlanner)
+    prop_from(name, f64::NAN, DeclaredSource::ByPlanner)
 }
 
 impl Prop {
@@ -111,13 +111,13 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
     while i < N {
         let p = table[i];
         let from = match p.source {
-            Source::Attribute => PropFrom::Attribute,
-            Source::Children => PropFrom::Children,
-            Source::ByPlanner => PropFrom::ByPlanner,
-            Source::AttributeOr(or) => PropFrom::AttributeOr {
+            DeclaredSource::Attribute => PropFrom::Attribute,
+            DeclaredSource::Children => PropFrom::Children,
+            DeclaredSource::ByPlanner => PropFrom::ByPlanner,
+            DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: position(&table, or),
             },
-            Source::Computed(op, names) => {
+            DeclaredSource::Computed(op, names) => {
                 assert!(names.len() <= MAX_ARGS, "too many args");
                 let mut at = [0; MAX_ARGS];
                 let mut j = 0;
@@ -296,7 +296,7 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// What `component!` makes a type's typed plan with: a struct with one
 /// field per prop of a table, named as the props are, in table order, and
 /// generic over what each field holds: a planner fills
-/// `Props<Planned>` (`compile::plan::Planned`) as a struct literal, so a
+/// `Props<Wire>` (`compile::plan::Wire`) as a struct literal, so a
 /// prop left unplanned does not compile, and `Props::<usize>::AT` holds
 /// every prop's position. A list that names a prop the table lacks, or
 /// misses or reorders one, fails to compile.

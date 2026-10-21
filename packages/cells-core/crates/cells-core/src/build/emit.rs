@@ -16,7 +16,7 @@ impl<'c> Builder<'c> {
         let n = self.sources.len();
         let mut uf = UnionFind::new(n);
         for (s, src) in self.sources.iter().enumerate() {
-            if let Source::Alias(t) = src {
+            if let BuiltSource::Alias(t) = src {
                 uf.union(s as SlotId, *t);
             }
         }
@@ -24,8 +24,8 @@ impl<'c> Builder<'c> {
         let mut class_def: Vec<u32> = vec![NONE; n];
         for (s, src) in self.sources.iter().enumerate() {
             match src {
-                Source::Alias(_) => {}
-                Source::Unset => unreachable!(
+                BuiltSource::Alias(_) => {}
+                BuiltSource::Unset => unreachable!(
                     "slot {} never received a source",
                     self.slot_label(s as SlotId)
                 ),
@@ -53,7 +53,7 @@ impl<'c> Builder<'c> {
                         node: None,
                     });
                 }
-                self.sources[s] = Source::Fixed(f64::NAN);
+                self.sources[s] = BuiltSource::Fixed(f64::NAN);
                 class_def[root] = s as u32;
             }
         }
@@ -65,9 +65,9 @@ impl<'c> Builder<'c> {
         for (s, &root) in roots.iter().enumerate() {
             if class_def[root as usize] as usize == s {
                 let (kind, n_out) = match &self.sources[s] {
-                    Source::Literal(_) | Source::Default(_) => (0, 1),
-                    Source::Fixed(_) => (1, 1),
-                    Source::Op(spec, ..) => (2, spec.n_out()),
+                    BuiltSource::Literal(_) | BuiltSource::Default(_) => (0, 1),
+                    BuiltSource::Fixed(_) => (1, 1),
+                    BuiltSource::Op(spec, ..) => (2, spec.n_out()),
                     _ => (3, 0),
                 };
                 counts[kind] += 1;
@@ -89,7 +89,7 @@ impl<'c> Builder<'c> {
                 continue; // not the defining slot of its class
             }
             match &self.sources[s] {
-                Source::Literal(v) | Source::Default(v) => {
+                BuiltSource::Literal(v) | BuiltSource::Default(v) => {
                     let (scope, tslot, key) = self.essential_key(s as SlotId);
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
@@ -104,15 +104,15 @@ impl<'c> Builder<'c> {
                     essential_keys.push(key);
                     essential_defaults.push(*v);
                 }
-                Source::Fixed(_) => fixed_defs.push(s),
-                Source::Op(..) => derived_defs.push(s),
-                Source::VecOut(..) => outputs.push(s),
+                BuiltSource::Fixed(_) => fixed_defs.push(s),
+                BuiltSource::Op(..) => derived_defs.push(s),
+                BuiltSource::VecOut(..) => outputs.push(s),
                 _ => unreachable!(),
             }
         }
         let n_essential = cells.len();
         for &s in &fixed_defs {
-            let Source::Fixed(v) = self.sources[s] else {
+            let BuiltSource::Fixed(v) = self.sources[s] else {
                 unreachable!()
             };
             let root = roots[s] as usize;
@@ -126,7 +126,7 @@ impl<'c> Builder<'c> {
             let root = roots[s] as usize;
             slot_cell[root] = cells.len() as CellIdx;
             let n_out = match self.sources[s] {
-                Source::Op(spec, ..) => spec.n_out(),
+                BuiltSource::Op(spec, ..) => spec.n_out(),
                 _ => 1,
             };
             for _ in 0..n_out {
@@ -135,7 +135,7 @@ impl<'c> Builder<'c> {
             }
         }
         for &s in &outputs {
-            let Source::VecOut(head, k) = self.sources[s] else {
+            let BuiltSource::VecOut(head, k) = self.sources[s] else {
                 unreachable!()
             };
             let head_cell = slot_cell[roots[head as usize] as usize];
@@ -171,7 +171,7 @@ impl<'c> Builder<'c> {
         let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
             let (mut spec, start, count) = match &self.sources[s] {
-                Source::Op(spec, start, count) => (*spec, *start, *count),
+                BuiltSource::Op(spec, start, count) => (*spec, *start, *count),
                 _ => unreachable!(),
             };
             bound.clear();
@@ -361,15 +361,15 @@ impl<'c> Builder<'c> {
         memo: &mut HashMap<SlotId, Option<Handle>>,
     ) -> Option<Handle> {
         let mut root = slot;
-        while let Source::Alias(t) = self.sources[root as usize] {
+        while let BuiltSource::Alias(t) = self.sources[root as usize] {
             root = t;
         }
         if let Some(&h) = memo.get(&root) {
             return h;
         }
         let h = match self.sources[root as usize] {
-            Source::Fixed(h) if !h.is_nan() => Some(h as Handle),
-            Source::Op(OpSpec::Sym(SymKind::Instantiate { template, .. }), _, _) => {
+            BuiltSource::Fixed(h) if !h.is_nan() => Some(h as Handle),
+            BuiltSource::Op(OpSpec::Sym(SymKind::Instantiate { template, .. }), _, _) => {
                 let tree = rebind(&self.sym_templates[template as usize], slot_to_cell);
                 if has_math_leaf(&tree) {
                     None
@@ -377,7 +377,7 @@ impl<'c> Builder<'c> {
                     Some(self.engine.import(&tree))
                 }
             }
-            Source::Op(OpSpec::Sym(SymKind::Derivative), start, _) => {
+            BuiltSource::Op(OpSpec::Sym(SymKind::Derivative), start, _) => {
                 let input = self.op_inputs[start as usize];
                 self.fixed_shape(input, slot_to_cell, memo)
                     .map(|h| self.engine.derivative(h, "x"))
@@ -388,7 +388,7 @@ impl<'c> Builder<'c> {
         h
     }
 
-    /// Give each seeded essential math cell (`SourcePlan::MathEssentialFrom`)
+    /// Give each seeded essential math cell (`Source::MathEssentialFrom`)
     /// its first expression: the source cell's value, unless the cell
     /// carried a value over from an earlier build. The source must be
     /// essential or fixed, so its value is known before anything computes.
@@ -525,11 +525,11 @@ impl<'c> Builder<'c> {
                     }
                 }
                 match &self.sources[sl as usize] {
-                    Source::Alias(t) => stack.push(*t),
-                    Source::Op(_, start, n) => stack.extend_from_slice(
+                    BuiltSource::Alias(t) => stack.push(*t),
+                    BuiltSource::Op(_, start, n) => stack.extend_from_slice(
                         &self.op_inputs[*start as usize..*start as usize + *n as usize],
                     ),
-                    Source::VecOut(head, _) => stack.push(*head),
+                    BuiltSource::VecOut(head, _) => stack.push(*head),
                     _ => {}
                 }
             }

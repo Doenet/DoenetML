@@ -54,7 +54,7 @@ impl<'c> Builder<'c> {
                 let s = self.scope_for(scope, node, k as u32);
                 let n = ComponentType::Case.prop_defs().len();
                 let case = self.new_component(ComponentType::Case, NONE, comp, NONE, scope, n);
-                let pos = self.anon_slot(Source::Fixed(k as f64), scope);
+                let pos = self.anon_slot(BuiltSource::Fixed(k as f64), scope);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
                 self.sources[active_slot as usize] = self.op_source(OpSpec::Eq, &[choice, pos]);
                 self.enter_scope(s, def.branches[k - 1]);

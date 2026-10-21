@@ -13,7 +13,7 @@ impl<'c> Builder<'c> {
         expr: ExprId,
         post: Post,
         scope: ScopeId,
-    ) -> Result<Source> {
+    ) -> Result<BuiltSource> {
         let compiled = self.compiled;
         let text = compiled.sym_text.get(&expr).ok_or_else(|| Error::BadMath {
             text: format!("{:?}", self.compiled.arena.get(expr)),
@@ -38,7 +38,7 @@ impl<'c> Builder<'c> {
             // leaves is a fixed expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
             Err(reason) => match self.engine.parse_fixed(text) {
-                Ok(h) => return Ok(Source::Fixed(self.post(h, post) as f64)),
+                Ok(h) => return Ok(BuiltSource::Fixed(self.post(h, post) as f64)),
                 Err(_) => {
                     return Err(Error::BadMath {
                         text: text.clone(),
@@ -51,10 +51,10 @@ impl<'c> Builder<'c> {
         let tree = self.bind_leaves(tree, scope, &mut leaves)?;
         if leaves.is_empty() {
             let h = self.engine.import(&tree);
-            return Ok(Source::Fixed(self.post(h, post) as f64));
+            return Ok(BuiltSource::Fixed(self.post(h, post) as f64));
         }
         if let (Tree::Cell { cell, math: true }, Post::None) = (&tree, post) {
-            return Ok(Source::Alias(*cell));
+            return Ok(BuiltSource::Alias(*cell));
         }
         let template = self.sym_templates.len() as u32;
         self.sym_templates.push(tree);
@@ -207,7 +207,7 @@ impl<'c> Builder<'c> {
             // A copy or a placed reference aliases what it copies; an
             // interface name holds what its branches' components hold.
             let pi = slot - self.slot_base[comp as usize];
-            if let Source::Alias(t) = self.sources[slot as usize] {
+            if let BuiltSource::Alias(t) = self.sources[slot as usize] {
                 return self.value_type_within(t, depth - 1);
             }
             // A stand-in holds what any branch may: text or math when one
@@ -229,13 +229,13 @@ impl<'c> Builder<'c> {
         let pi = (slot - self.slot_base[comp as usize]) as usize;
         let c: &'c Compiled = self.compiled;
         let next = match c.templates[i.template].elems[i.elem].props.get(pi) {
-            Some(SourcePlan::MathEssential(_) | SourcePlan::MathEssentialFrom(_)) => {
+            Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
                 return ValueType::Math;
             }
-            Some(SourcePlan::TextLiteral(_)) => return ValueType::Text,
-            Some(SourcePlan::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
+            Some(Source::TextLiteral(_)) => return ValueType::Text,
+            Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
-            Some(plan @ (SourcePlan::Inherit | SourcePlan::InheritFrom(_))) => {
+            Some(plan @ (Source::Inherit | Source::InheritFrom(_))) => {
                 let Some(p) = c.templates[i.template].elems[i.elem].extend else {
                     return ValueType::Number;
                 };
@@ -247,26 +247,24 @@ impl<'c> Builder<'c> {
                     Err(_) => return ValueType::Number,
                 };
                 let k = match plan {
-                    SourcePlan::InheritFrom(k) => *k as usize,
+                    Source::InheritFrom(k) => *k as usize,
                     _ => pi,
                 };
                 self.slot(referent, k)
             }
-            Some(SourcePlan::Alias(Arg::Elem(e, k))) => {
+            Some(Source::Alias(Arg::Elem(e, k))) => {
                 let other = self.scope_comps[i.scope as usize][*e];
                 if other == NONE {
                     return ValueType::Number;
                 }
                 self.slot(other, *k as usize)
             }
-            Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) => {
-                match self.resolve_one(*p, i.scope) {
-                    Ok(t) => t,
-                    Err(_) => return ValueType::Number,
-                }
-            }
+            Some(Source::Alias(Arg::Ref(p, Sel::Whole))) => match self.resolve_one(*p, i.scope) {
+                Ok(t) => t,
+                Err(_) => return ValueType::Number,
+            },
             // A dynamic `fixed` holds the moved plan behind a `Hold`.
-            Some(SourcePlan::Op(OpSpec::Hold, args)) => match args.first() {
+            Some(Source::Op(OpSpec::Hold, args)) => match args.first() {
                 Some(Arg::Own(h)) => self.slot(comp, *h as usize),
                 _ => return ValueType::Number,
             },
@@ -305,7 +303,7 @@ impl<'c> Builder<'c> {
                     },
                 ) as usize)
                 {
-                    Some(Source::Alias(t)) => {
+                    Some(BuiltSource::Alias(t)) => {
                         let referent = self.slot_comp[*t as usize];
                         referent != NONE && self.is_symbolic(referent)
                     }
@@ -318,7 +316,7 @@ impl<'c> Builder<'c> {
                     self.compiled.templates[i.template].elems[i.elem]
                         .props
                         .get(prop::math_input::EXPR),
-                    Some(SourcePlan::MathEssential(_))
+                    Some(Source::MathEssential(_))
                 )
             }
             ComponentType::Math => {
@@ -327,7 +325,7 @@ impl<'c> Builder<'c> {
                     .props
                     .get(prop::math::EXPR)
                 {
-                    Some(SourcePlan::MathHandle(id, _)) => {
+                    Some(Source::MathHandle(id, _)) => {
                         let id = *id;
                         let mut syms = Vec::new();
                         self.compiled.arena.symbols(id, &mut syms);
@@ -396,7 +394,7 @@ impl<'c> Builder<'c> {
         };
         let e = self.arena.get(id).clone();
         match e {
-            Expr::Num(v) => self.anon_slot(Source::Fixed(v), scope),
+            Expr::Num(v) => self.anon_slot(BuiltSource::Fixed(v), scope),
             Expr::Cell(slot) => slot,
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {

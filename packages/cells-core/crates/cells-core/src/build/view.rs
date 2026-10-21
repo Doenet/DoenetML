@@ -64,7 +64,7 @@ pub(in crate::build) enum Options {
     Every,
 }
 
-/// The plans of a `SourcePlan::FirstIteration` prop.
+/// The plans of a `Source::FirstIteration` prop.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(in crate::build) enum Plans {
     First,

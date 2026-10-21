@@ -173,7 +173,7 @@ case), carry every piece before other components follow:
    grid point nearest 0, not at `from`; fixed since.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
    **Done for the circle**: `typed_props!` (`components/define.rs`) gives
-   a table its `Props<T>`, and `plan_circle` returns `Props<Planned>`
+   a table its `Props<T>`, and `plan_circle` returns `Props<Wire>`
    (`compile/plan.rs`), a plan with its role, as a struct literal; roles
    are `Role` constants everywhere; a planner warns through
    `Compiler::warn`, and the circle's five NaN cases carry the current

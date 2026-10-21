@@ -10,7 +10,7 @@ component! {
     /// `<textInput>`: `value` is an essential cell holding a string id (the
     /// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
     /// to another text cell. Typing interns the text (`Document::intern`) and
-    /// requests the id. Planned by `plan`; `immediateValue` is the same cell.
+    /// requests the id. Wire by `plan`; `immediateValue` is the same cell.
     tags: ["textInput"],
     flags: [copyable],
     default_prop: value,
@@ -42,16 +42,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .copied()
         .filter(|&n| !ctx.is_blank(n))
         .collect();
-    let value: Planned = match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
-        ([n], _) if d.kind(*n) == NodeKind::Macro => {
-            SourcePlan::reference(ctx.reference(*n)?).into()
-        }
+    let value: Wire = match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
+        ([n], _) if d.kind(*n) == NodeKind::Macro => Source::reference(ctx.reference(*n)?).into(),
         ([], Some(a)) => {
             let m = ctx.single_macro(a).ok_or_else(|| Error::BadValue {
                 attr: "bindValueTo".into(),
                 text: ctx.attr_text(a).unwrap_or_default(),
             })?;
-            SourcePlan::reference(ctx.reference(m)?).into()
+            Source::reference(ctx.reference(m)?).into()
         }
         ([], None) => {
             let text = match d.attr(el, "prefill") {
@@ -59,7 +57,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
                 None => String::new(),
             };
             let id = ctx.intern(&text);
-            Planned::text_essential(shared_state::VALUE, id as f64)
+            Wire::text_essential(shared_state::VALUE, id as f64)
         }
         _ => {
             return Err(Error::Unsupported(

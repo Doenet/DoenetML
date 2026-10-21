@@ -186,14 +186,14 @@ impl<'a> Compiler<'a> {
         } = self.compiled.templates[t].elems[e];
         let hide = match d.attr(node, "hide") {
             Some(a) if self.attr_text(a).is_some() => {
-                SourcePlan::Fixed(if self.attr_flag(node, "hide") {
+                Source::Fixed(if self.attr_flag(node, "hide") {
                     1.0
                 } else {
                     0.0
                 })
             }
             Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
-            None => SourcePlan::Fixed(0.0),
+            None => Source::Fixed(0.0),
         };
         if !self.compiled.choices[cid].reactive {
             self.compiled.templates[t].elems[e].props = prop::select::Props { hide }.into_vec();
@@ -204,7 +204,7 @@ impl<'a> Compiler<'a> {
         for c in self.compiled.choices[cid].conditions.clone() {
             conds.push(match c {
                 Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
-                None => wiring.hidden(SourcePlan::Fixed(1.0)),
+                None => wiring.hidden(Source::Fixed(1.0)),
             });
         }
         if conds.len() > MAX_CASES {
@@ -213,14 +213,14 @@ impl<'a> Compiler<'a> {
             )));
         }
         // After the conditions, so creation order stays an evaluation order.
-        let first = wiring.hidden(SourcePlan::vector(
+        let first = wiring.hidden(Source::vector(
             VecOp::First {
                 n: byte(conds.len()),
             },
             conds,
         ));
         wiring.set_public_sources(conditional_content::Props {
-            choice: SourcePlan::own(first),
+            choice: Source::own(first),
             hide,
         });
         self.compiled.templates[t].elems[e].props = wiring.finish();

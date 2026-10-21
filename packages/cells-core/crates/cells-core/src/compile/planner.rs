@@ -5,8 +5,7 @@ use super::*;
 use ctx::PlanCtx;
 
 /// Adjusts the props `plan_attrs` planned from the table.
-pub(crate) type PropsFn =
-    for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<SourcePlan>]) -> Result<()>;
+pub(crate) type PropsFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<Source>]) -> Result<()>;
 /// Plans a geometric element, its attributes merged over those of the
 /// element it extends.
 pub(crate) type GeoFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemWiring>;

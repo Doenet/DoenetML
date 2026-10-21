@@ -23,12 +23,12 @@ impl<'a> Compiler<'a> {
         // `extend` the referent's prop.
         let default = |v: f64| {
             if extend.is_some() {
-                SourcePlan::Inherit
+                Source::Inherit
             } else {
-                SourcePlan::Default(v)
+                Source::Default(v)
             }
         };
-        let mut props: Vec<Option<SourcePlan>> = vec![None; component_type.prop_defs().len()];
+        let mut props: Vec<Option<Source>> = vec![None; component_type.prop_defs().len()];
         for (pi, def) in component_type.prop_defs().iter().enumerate() {
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -37,7 +37,7 @@ impl<'a> Compiler<'a> {
                         attr: bind.into(),
                         text: self.attr_text(a).unwrap_or_default(),
                     })?;
-                    Some(SourcePlan::reference(self.plan_ref(t, scope, m)?))
+                    Some(Source::reference(self.plan_ref(t, scope, m)?))
                 }
                 None => None,
             };
@@ -57,9 +57,9 @@ impl<'a> Compiler<'a> {
                     Some(a) => {
                         self.plan_value(t, scope, def.attr_name(), d.attr_children(a), None)?
                     }
-                    None => SourcePlan::own(alias as usize),
+                    None => Source::own(alias as usize),
                 },
-                (None, PropFrom::Computed { op, args }) => SourcePlan::from_def(op, &args),
+                (None, PropFrom::Computed { op, args }) => Source::from_def(op, &args),
                 (None, PropFrom::Children) => {
                     let blank = d.children(el).iter().all(|&n| self.is_blank(n));
                     // A mathInput's `prefill` stands in for blank children.
@@ -75,9 +75,11 @@ impl<'a> Compiler<'a> {
                                     None,
                                 ) {
                                     Ok(p) => p,
-                                    Err(Error::BadValue { .. }) => SourcePlan::Math(
-                                        self.plan_math(t, scope, d.attr_children(a))?,
-                                    ),
+                                    Err(Error::BadValue { .. }) => Source::Math(self.plan_math(
+                                        t,
+                                        scope,
+                                        d.attr_children(a),
+                                    )?),
                                     Err(e) => return Err(e),
                                 }
                             }
@@ -88,15 +90,13 @@ impl<'a> Compiler<'a> {
                             // `<number>3</number>` cannot be changed by a drag in
                             // the current core (no math child to write), so it is
                             // a constant; an input's literal is its initial state.
-                            Ok(SourcePlan::Literal(v))
-                                if component_type == ComponentType::Number =>
-                            {
-                                SourcePlan::Fixed(v)
+                            Ok(Source::Literal(v)) if component_type == ComponentType::Number => {
+                                Source::Fixed(v)
                             }
                             Ok(p) => p,
                             // Not a single literal or reference: math text.
                             Err(Error::BadValue { .. }) => {
-                                SourcePlan::Math(self.plan_math(t, scope, d.children(el))?)
+                                Source::Math(self.plan_math(t, scope, d.children(el))?)
                             }
                             Err(e) => return Err(e),
                         }
@@ -114,13 +114,13 @@ impl<'a> Compiler<'a> {
                             | ComponentType::SelectFromSequence
                     ) =>
                 {
-                    SourcePlan::Fixed(f64::NAN)
+                    Source::Fixed(f64::NAN)
                 }
                 (None, PropFrom::ByPlanner) => unreachable!("geometric types take plan_geo"),
             };
             props[pi] = Some(plan);
         }
-        let mut props: Vec<Option<SourcePlan>> = props;
+        let mut props: Vec<Option<Source>> = props;
         if let Planner::PropsThen(then) = Self::planner(component_type) {
             then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
@@ -130,7 +130,7 @@ impl<'a> Compiler<'a> {
             &["fixed"]
         };
         self.plan_fix(t, scope, el, fix_attrs)?.apply(&mut props);
-        let mut props: Vec<SourcePlan> = props.into_iter().map(|p| p.unwrap()).collect();
+        let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
         self.compiled.templates[t].elems[e].props = props;
         Ok(())
@@ -206,7 +206,7 @@ impl<'a> Compiler<'a> {
         attr: &str,
         nodes: &[NodeId],
         ref_prop: Option<&str>,
-    ) -> Result<SourcePlan> {
+    ) -> Result<Source> {
         let d = self.dast;
         let macros: Vec<NodeId> = nodes
             .iter()
@@ -225,14 +225,14 @@ impl<'a> Compiler<'a> {
                 if let (None, Some(rp)) = (&self.compiled.refs[p].prop, ref_prop) {
                     self.compiled.refs[p].prop = Some(rp.to_string());
                 }
-                Ok(SourcePlan::reference(p))
+                Ok(Source::reference(p))
             }
             (0, false) => match text {
-                "true" => Ok(SourcePlan::Literal(1.0)),
-                "false" => Ok(SourcePlan::Literal(0.0)),
+                "true" => Ok(Source::Literal(1.0)),
+                "false" => Ok(Source::Literal(0.0)),
                 _ => text
                     .parse::<f64>()
-                    .map(SourcePlan::Literal)
+                    .map(Source::Literal)
                     .map_err(|_| Error::BadValue {
                         attr: attr.into(),
                         text: text.into(),
@@ -367,7 +367,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         attr: &str,
         nodes: &[NodeId],
-    ) -> Result<SourcePlan> {
+    ) -> Result<Source> {
         match self.plan_value(t, scope, attr, nodes, None) {
             Ok(p) => Ok(p),
             Err(Error::BadValue { .. }) => {
@@ -380,11 +380,11 @@ impl<'a> Compiler<'a> {
 
     /// A plan from an expression template: a constant is an essential
     /// literal, a lone reference an alias, anything else a lowered math.
-    pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> SourcePlan {
+    pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {
         match self.compiled.arena.get(id) {
-            Expr::Num(v) => SourcePlan::Literal(*v),
-            Expr::Cell(p) => SourcePlan::reference(*p as RefId),
-            _ => SourcePlan::Math(id),
+            Expr::Num(v) => Source::Literal(*v),
+            Expr::Cell(p) => Source::reference(*p as RefId),
+            _ => Source::Math(id),
         }
     }
 
@@ -394,7 +394,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
-    ) -> Result<[SourcePlan; 2]> {
+    ) -> Result<[Source; 2]> {
         let d = self.dast;
         let macros: Vec<NodeId> = nodes
             .iter()
@@ -407,7 +407,7 @@ impl<'a> Compiler<'a> {
         if macros.len() == 1 && text_blank {
             // `<point>$q</point>`: alias the referent's coordinates.
             let p = self.plan_ref(t, scope, macros[0])?;
-            return Ok([SourcePlan::coord(p, 0), SourcePlan::coord(p, 1)]);
+            return Ok([Source::coord(p, 0), Source::coord(p, 1)]);
         }
         let (toks, text) = self.math_tokens(t, scope, nodes)?;
         let inner = super::expr::unwrap_parens(&toks).ok_or_else(|| Error::BadMath {
@@ -422,7 +422,7 @@ impl<'a> Compiler<'a> {
         &mut self,
         inner: &[Token],
         text: &str,
-    ) -> Result<[SourcePlan; 2]> {
+    ) -> Result<[Source; 2]> {
         let parts = super::expr::split_top(inner, &Token::Comma);
         let [x, y] = parts.as_slice() else {
             return Err(Error::BadMath {
@@ -440,10 +440,10 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         a: u32,
-    ) -> Result<PointPlan> {
+    ) -> Result<GivenPoint> {
         match self.single_macro(a) {
-            Some(m) => Ok(PointPlan::Ref(self.plan_ref(t, scope, m)?)),
-            None => Ok(PointPlan::Tuple(self.plan_tuple(
+            Some(m) => Ok(GivenPoint::Ref(self.plan_ref(t, scope, m)?)),
+            None => Ok(GivenPoint::Tuple(self.plan_tuple(
                 t,
                 scope,
                 self.dast.attr_children(a),

@@ -207,7 +207,7 @@ pub struct Flags {
     pub copyable: bool,
     /// The children are rendered; `extend` copies them deeply.
     pub container: bool,
-    /// Planned as math cells (`values/curve.rs`); not allowed in a branch
+    /// Wire as math cells (`values/curve.rs`); not allowed in a branch
     /// interface.
     pub symbolic: bool,
     /// Made by the builder, never by a tag in the source.

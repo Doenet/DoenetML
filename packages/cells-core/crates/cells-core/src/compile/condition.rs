@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
             match lone {
                 Some(k) if cp.macro_is_text(t, scope, refs[k]) => {
                     let p = cp.plan_ref(t, scope, refs[k])?;
-                    Ok(wiring.hidden(SourcePlan::reference(p)))
+                    Ok(wiring.hidden(Source::reference(p)))
                 }
                 Some(_) => Err(refuse("a text value compared with a number")),
                 None if s.contains('\u{0}') => {
@@ -105,15 +105,15 @@ impl<'a> Compiler<'a> {
                 }
                 None => {
                     let id = cp.intern_literal(s);
-                    Ok(wiring.hidden(SourcePlan::Fixed(id as f64)))
+                    Ok(wiring.hidden(Source::Fixed(id as f64)))
                 }
             }
         };
         let a = side(self, &lhs)?;
         let b = side(self, &rhs)?;
-        let eq = wiring.hidden(SourcePlan::computed(OpSpec::Eq, vec![a, b]));
+        let eq = wiring.hidden(Source::computed(OpSpec::Eq, vec![a, b]));
         Ok(Some(if negate {
-            wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+            wiring.hidden(Source::computed(OpSpec::Not, vec![eq]))
         } else {
             eq
         }))
@@ -170,9 +170,9 @@ impl<'a> Compiler<'a> {
                 } else {
                     SymKind::Equals
                 });
-                let eq = wiring.hidden(SourcePlan::computed(eq, vec![a, b]));
+                let eq = wiring.hidden(Source::computed(eq, vec![a, b]));
                 Ok(if negate {
-                    wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+                    wiring.hidden(Source::computed(OpSpec::Not, vec![eq]))
                 } else {
                     eq
                 })
@@ -235,7 +235,7 @@ impl<'a> Compiler<'a> {
         // the text itself when the element expands (`sym_source`).
         let id = self.compiled.arena.push(Expr::Sym(sym.clone()));
         self.compiled.sym_text.insert(id, sym);
-        wiring.hidden(SourcePlan::SymExpr(id, post))
+        wiring.hidden(Source::SymExpr(id, post))
     }
 }
 
@@ -252,7 +252,7 @@ struct CondParser<'t> {
 /// lowers to numeric operators (a constant is not state).
 struct Operand {
     span: std::ops::Range<usize>,
-    numeric: Option<SourcePlan>,
+    numeric: Option<Source>,
 }
 
 impl CondParser<'_> {
@@ -303,7 +303,7 @@ impl CondParser<'_> {
                 return Ok(lhs);
             }
             let rhs = next(self, cp, wiring)?;
-            lhs = wiring.hidden(SourcePlan::computed(op, vec![lhs, rhs]));
+            lhs = wiring.hidden(Source::computed(op, vec![lhs, rhs]));
         }
     }
 
@@ -311,7 +311,7 @@ impl CondParser<'_> {
         if self.is_word("not") || (self.is_op(0, '!') && !matches!(self.peek(1), Some(Token::Eq))) {
             self.pos += 1;
             let a = self.not(cp, wiring)?;
-            return Ok(wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![a])));
+            return Ok(wiring.hidden(Source::computed(OpSpec::Not, vec![a])));
         }
         self.cmp(cp, wiring)
     }
@@ -347,7 +347,7 @@ impl CondParser<'_> {
         };
         let Some((rel, width)) = rel else {
             let a = self.number(cp, wiring, &a);
-            return Ok(wiring.hidden(SourcePlan::computed(OpSpec::Truthy, vec![a])));
+            return Ok(wiring.hidden(Source::computed(OpSpec::Truthy, vec![a])));
         };
         self.pos += width;
         let b = self.operand(cp)?;
@@ -372,14 +372,14 @@ impl CondParser<'_> {
             OpSpec::Sym(SymKind::Equals)
         };
         Ok(match rel {
-            "<" => wiring.hidden(SourcePlan::computed(OpSpec::Lt, vec![a, b])),
-            "<=" => wiring.hidden(SourcePlan::computed(OpSpec::Le, vec![a, b])),
-            ">" => wiring.hidden(SourcePlan::computed(OpSpec::Lt, vec![b, a])),
-            ">=" => wiring.hidden(SourcePlan::computed(OpSpec::Le, vec![b, a])),
-            "=" => wiring.hidden(SourcePlan::computed(eq, vec![a, b])),
+            "<" => wiring.hidden(Source::computed(OpSpec::Lt, vec![a, b])),
+            "<=" => wiring.hidden(Source::computed(OpSpec::Le, vec![a, b])),
+            ">" => wiring.hidden(Source::computed(OpSpec::Lt, vec![b, a])),
+            ">=" => wiring.hidden(Source::computed(OpSpec::Le, vec![b, a])),
+            "=" => wiring.hidden(Source::computed(eq, vec![a, b])),
             _ => {
-                let eq = wiring.hidden(SourcePlan::computed(eq, vec![a, b]));
-                wiring.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+                let eq = wiring.hidden(Source::computed(eq, vec![a, b]));
+                wiring.hidden(Source::computed(OpSpec::Not, vec![eq]))
             }
         })
     }
@@ -401,16 +401,16 @@ impl CondParser<'_> {
         let toks = &self.toks[start..self.pos];
         let numeric = match toks {
             [] => return Err(self.err("expected a value".into())),
-            [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(SourcePlan::Fixed(1.0)),
-            [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(SourcePlan::Fixed(0.0)),
+            [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::Fixed(1.0)),
+            [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::Fixed(0.0)),
             _ => match Parser::parse(toks, &mut cp.compiled.arena) {
                 Ok(id) if cp.compiled.arena.is_numeric(id) => {
                     Some(match cp.compiled.arena.get(id) {
                         // A constant in a condition is not state.
-                        Expr::Num(v) => SourcePlan::Fixed(*v),
+                        Expr::Num(v) => Source::Fixed(*v),
                         // A lone reference too, so expand checks it is a
                         // number; it lowers to an alias of the referent.
-                        _ => SourcePlan::Math(id),
+                        _ => Source::Math(id),
                     })
                 }
                 // A free symbol, or a function the lowering does not know
@@ -431,10 +431,7 @@ impl CondParser<'_> {
             Some(p) => wiring.hidden(p.clone()),
             None => {
                 let h = self.symbolic(cp, wiring, a, Post::None);
-                wiring.hidden(SourcePlan::computed(
-                    OpSpec::Sym(SymKind::Evaluate),
-                    vec![h],
-                ))
+                wiring.hidden(Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![h]))
             }
         }
     }

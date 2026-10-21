@@ -128,7 +128,7 @@ enum ElemShape {
     Synthetic,
     ExtendProp(RefId),
     ContainerCopy(RefId),
-    /// Planned as its type's entry in `planner` says.
+    /// Wire as its type's entry in `planner` says.
     ByType(Option<RefId>),
 }
 
@@ -201,10 +201,10 @@ impl<'a> Compiler<'a> {
     /// that does not is a core bug, reported on its element here rather
     /// than when a build binds it (`OpSpec::bind`).
     fn check_arity(&mut self) -> Result<()> {
-        fn misbound(p: &SourcePlan) -> Option<(OpSpec, usize)> {
+        fn misbound(p: &Source) -> Option<(OpSpec, usize)> {
             match p {
-                SourcePlan::Op(op, args) if !op.accepts(args.len()) => Some((*op, args.len())),
-                SourcePlan::FirstIteration(a, b) => misbound(a).or_else(|| misbound(b)),
+                Source::Op(op, args) if !op.accepts(args.len()) => Some((*op, args.len())),
+                Source::FirstIteration(a, b) => misbound(a).or_else(|| misbound(b)),
                 _ => None,
             }
         }
@@ -240,8 +240,8 @@ impl<'a> Compiler<'a> {
                 // Synthesize a root when the DAST was not normalized.
                 let e = cp.add_synthetic(0, ComponentType::Document, NONE);
                 cp.compiled.templates[0].elems[e].props = prop::document::Props {
-                    creditAchieved: SourcePlan::Deferred(Deferred::Credit),
-                    percentCreditAchieved: SourcePlan::Deferred(Deferred::PercentCredit),
+                    creditAchieved: Source::Deferred(Deferred::Credit),
+                    percentCreditAchieved: Source::Deferred(Deferred::PercentCredit),
                 }
                 .into_vec();
                 let kids = cp.add_children(0, Some(e), ROOT_SCOPE, dast.children(Dast::ROOT))?;
@@ -514,12 +514,12 @@ impl<'a> Compiler<'a> {
                     let step = self.own_prop_plan(e, "step");
                     use prop::sequence_value as sv;
                     let at = sv::Props::AT;
-                    let table = |i| Planned::from_table(ComponentType::SequenceValue, i);
+                    let table = |i| Wire::from_table(ComponentType::SequenceValue, i);
                     let mut wiring = ElemWiring::of(ComponentType::SequenceValue);
                     wiring.set_public(sv::Props {
-                        from: SourcePlan::reference(from).into(),
-                        step: SourcePlan::reference(step).into(),
-                        k: SourcePlan::IterIndex.into(),
+                        from: Source::reference(from).into(),
+                        step: Source::reference(step).into(),
+                        k: Source::IterIndex.into(),
                         km1: table(at.km1),
                         scaled: table(at.scaled),
                         value: table(at.value),
@@ -529,7 +529,7 @@ impl<'a> Compiler<'a> {
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
                     let i = self.add_synthetic(sub, ComponentType::Number, iname);
                     self.compiled.templates[sub].elems[i].props = prop::number::Props {
-                        value: SourcePlan::IterIndex,
+                        value: Source::IterIndex,
                     }
                     .into_vec();
                 }
@@ -638,7 +638,7 @@ impl<'a> Compiler<'a> {
             // Every public prop aliases the original's; nothing else to plan.
             ElemShape::Cloned => {
                 let n = component_type.prop_defs().len();
-                let mut props = vec![SourcePlan::Inherit; n];
+                let mut props = vec![Source::Inherit; n];
                 Deferred::mark(component_type, &mut props);
                 let el = &mut self.compiled.templates[t].elems[e];
                 el.props = props;

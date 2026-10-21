@@ -138,12 +138,12 @@ impl<'c> Builder<'c> {
     }
 
     /// The slots a source reads.
-    fn source_inputs(&self, src: &Source, out: &mut Vec<SlotId>) {
+    fn source_inputs(&self, src: &BuiltSource, out: &mut Vec<SlotId>) {
         match src {
-            Source::Alias(t) => out.push(*t),
-            Source::Op(_, start, n) => out
+            BuiltSource::Alias(t) => out.push(*t),
+            BuiltSource::Op(_, start, n) => out
                 .extend_from_slice(&self.op_inputs[*start as usize..*start as usize + *n as usize]),
-            Source::VecOut(head, _) => out.push(*head),
+            BuiltSource::VecOut(head, _) => out.push(*head),
             _ => {}
         }
     }
@@ -153,7 +153,7 @@ impl<'c> Builder<'c> {
     /// is searched.
     fn reads_only_earlier_slots(&self) -> bool {
         let mut inputs = Vec::new();
-        let earlier = |s: usize, src: &Source, inputs: &mut Vec<SlotId>| {
+        let earlier = |s: usize, src: &BuiltSource, inputs: &mut Vec<SlotId>| {
             inputs.clear();
             self.source_inputs(src, inputs);
             inputs.iter().all(|&w| (w as usize) < s)

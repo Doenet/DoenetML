@@ -43,7 +43,7 @@ pub(crate) enum Sel {
 
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
-pub(crate) enum SourcePlan {
+pub(crate) enum Source {
     /// An essential cell with this initial value.
     Literal(f64),
     /// An essential text cell: a string id, or NaN for none.
@@ -91,44 +91,44 @@ pub(crate) enum SourcePlan {
     /// `first` in the first iteration of the enclosing repeat, `rest` in
     /// the others (a function iterate: the initial value, else `f` of the
     /// previous iterate). Chosen per instance, like `IterIndex`.
-    FirstIteration(Box<SourcePlan>, Box<SourcePlan>),
+    FirstIteration(Box<Source>, Box<Source>),
+    /// Wired once the whole tree is built, from what is around the element
+    /// (`build/expand/scoring.rs`, a collect's expansion): no planner can
+    /// wire it, so its wiring says that it is deferred and who fills it.
+    Deferred(Deferred),
     /// Output `k` of the vector instruction headed at own slot `head`
     /// (an `Op(OpSpec::Vec(..))`, which is output 0).
-    /// Wired once the whole tree is built, from what is around the element
-    /// (`build/expand/scoring.rs`, a collect's expansion): no plan can say
-    /// it, so the plan says that it is deferred and who fills it.
-    Deferred(Deferred),
     VecOut(u8, u8),
 }
 
-impl SourcePlan {
+impl Source {
     pub(crate) fn reference(p: RefId) -> Self {
-        SourcePlan::Alias(Arg::Ref(p, Sel::Whole))
+        Source::Alias(Arg::Ref(p, Sel::Whole))
     }
     pub(crate) fn coord(p: RefId, j: usize) -> Self {
-        SourcePlan::Alias(Arg::Ref(p, Sel::Coord(byte(j))))
+        Source::Alias(Arg::Ref(p, Sel::Coord(byte(j))))
     }
     pub(crate) fn item(p: RefId, i: usize, j: usize) -> Self {
-        SourcePlan::Alias(Arg::Ref(p, Sel::Item(byte(i), byte(j))))
+        Source::Alias(Arg::Ref(p, Sel::Item(byte(i), byte(j))))
     }
     pub(crate) fn own(slot: usize) -> Self {
-        SourcePlan::Alias(Arg::Own(own_slot(slot)))
+        Source::Alias(Arg::Own(own_slot(slot)))
     }
     /// Operator over the element's own slots.
     pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
-        SourcePlan::Op(
+        Source::Op(
             op,
             args.into_iter().map(|a| Arg::Own(own_slot(a))).collect(),
         )
     }
     /// A type's `PropFrom::Computed` prop.
     pub(crate) fn from_def(op: OpSpec, args: &[u8]) -> Self {
-        SourcePlan::Op(op, args.iter().map(|&a| Arg::Own(a)).collect())
+        Source::Op(op, args.iter().map(|&a| Arg::Own(a)).collect())
     }
     /// Head of a vector instruction over own slots; this slot is output 0,
     /// the next `n_out - 1` slots are `VecOut`.
     pub(crate) fn vector(op: VecOp, args: Vec<usize>) -> Self {
-        SourcePlan::computed(OpSpec::Vec(op), args)
+        Source::computed(OpSpec::Vec(op), args)
     }
 }
 
@@ -189,7 +189,7 @@ pub(crate) enum NPublic {
     /// Its type table's, whatever type the element ends up with.
     Table,
     /// The table's, then two per point of its list, as planned.
-    Planned(u32),
+    Wire(u32),
     /// As many as its `extend` referent has: a bare or cloned copy of a
     /// type with a list, whose length is known only when built.
     AsReferent,
@@ -214,7 +214,7 @@ pub(crate) struct Elem {
     pub(crate) slot_off: u32,
     /// The element's identity across loads, for saved state.
     pub(crate) key: ElemKey,
-    pub(crate) props: Vec<SourcePlan>,
+    pub(crate) props: Vec<Source>,
     /// How many of `props` are public (ADR 0016); hidden slots follow.
     pub(crate) n_public: NPublic,
     pub(crate) children: Vec<Child>,
@@ -316,61 +316,64 @@ impl SharedState {
 /// segment's values are in `components/geometry/mod.rs`).
 pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
 
-/// A slot's plan and, when it is essential state that a copy shares,
+/// One prop's source and, when it is essential state that a copy shares,
 /// which shared state it is and the attribute its value came from: what a
 /// typed plan's fields hold (`typed_props!`), so shared state is always
 /// named on the slot that holds it.
 #[derive(Debug, Clone)]
-pub(crate) struct Planned {
-    pub(crate) plan: SourcePlan,
+pub(crate) struct Wire {
+    pub(crate) source: Source,
     state: Option<(SharedState, Option<&'static str>)>,
 }
 
-impl From<SourcePlan> for Planned {
-    fn from(plan: SourcePlan) -> Self {
-        Planned { plan, state: None }
+impl From<Source> for Wire {
+    fn from(source: Source) -> Self {
+        Wire {
+            source,
+            state: None,
+        }
     }
 }
 
-impl Planned {
+impl Wire {
     /// Essential state, shared as `state`, initially `v`.
     pub(crate) fn essential(state: SharedState, v: f64) -> Self {
-        Planned {
-            plan: SourcePlan::Literal(v),
+        Wire {
+            source: Source::Literal(v),
             state: Some((state, None)),
         }
     }
     /// Essential state, shared as `state`, initially `v`, given by `attr`: a copy
     /// that gives `attr` itself does not share it.
     pub(crate) fn essential_from(state: SharedState, attr: &'static str, v: f64) -> Self {
-        Planned {
-            plan: SourcePlan::Literal(v),
+        Wire {
+            source: Source::Literal(v),
             state: Some((state, Some(attr))),
         }
     }
     /// Essential text state, shared as `state`, initially the string `id`.
     pub(crate) fn text_essential(state: SharedState, id: f64) -> Self {
-        Planned {
-            plan: SourcePlan::TextLiteral(id),
+        Wire {
+            source: Source::TextLiteral(id),
             state: Some((state, None)),
         }
     }
     /// A constant that is not state.
     pub(crate) fn fixed(v: f64) -> Self {
-        SourcePlan::Fixed(v).into()
+        Source::Fixed(v).into()
     }
     /// An alias of the element's own slot.
     pub(crate) fn own(slot: usize) -> Self {
-        SourcePlan::own(slot).into()
+        Source::own(slot).into()
     }
     /// An operator over the element's own slots.
     pub(crate) fn computed(op: OpSpec, args: Vec<usize>) -> Self {
-        SourcePlan::computed(op, args).into()
+        Source::computed(op, args).into()
     }
     /// Prop `i` as the type's table computes it from its other props.
     pub(crate) fn from_table(component_type: ComponentType, i: usize) -> Self {
         match component_type.prop_defs()[i].from {
-            PropFrom::Computed { op, args } => SourcePlan::from_def(op, &args).into(),
+            PropFrom::Computed { op, args } => Source::from_def(op, &args).into(),
             _ => unreachable!(
                 "{} is not computed by the table",
                 component_type.prop_defs()[i].name
@@ -380,7 +383,7 @@ impl Planned {
     /// A given point as `point` plans it, else the essential default with
     /// its shared state.
     pub(crate) fn point_or_default(
-        p: Option<&PointPlan>,
+        p: Option<&GivenPoint>,
         shared_state: [SharedState; 2],
         attr: &'static str,
         (default_shared_state, default): DefaultPoint,
@@ -393,12 +396,12 @@ impl Planned {
     /// A point's two coordinates: a literal coordinate is essential state
     /// with its shared state, given by `attr`.
     pub(crate) fn point(
-        p: &PointPlan,
+        p: &GivenPoint,
         shared_state: [SharedState; 2],
         attr: &'static str,
     ) -> [Self; 2] {
         std::array::from_fn(|j| match p.coord(j) {
-            SourcePlan::Literal(v) => Planned::essential_from(shared_state[j], attr, v),
+            Source::Literal(v) => Wire::essential_from(shared_state[j], attr, v),
             other => other.into(),
         })
     }
@@ -408,7 +411,7 @@ impl Planned {
 /// the public props (the table's, then the list's points), then hidden
 /// helper values that the props read like any own prop.
 pub(crate) struct ElemWiring {
-    pub(crate) props: Vec<Option<SourcePlan>>,
+    pub(crate) props: Vec<Option<Source>>,
     /// The public slots: the table's props, then the list's points.
     pub(crate) n_public: usize,
     /// Which slot holds each piece of shared state.
@@ -418,7 +421,7 @@ pub(crate) struct ElemWiring {
     pub(crate) shared_state_attr: HashMap<SharedState, &'static str>,
 }
 
-/// A prop wired from the built tree rather than planned (`SourcePlan::Deferred`).
+/// A prop wired from the built tree rather than planned (`Source::Deferred`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Deferred {
     /// The document's or a section's `creditAchieved`: the weighted mean of
@@ -452,25 +455,25 @@ impl Deferred {
         }
     }
 
-    /// `props`, a plan for an element of `component_type`, with its deferred
+    /// `props`, wiring for an element of `component_type`, with its deferred
     /// props planned so.
-    pub(crate) fn mark(component_type: ComponentType, props: &mut [SourcePlan]) {
+    pub(crate) fn mark(component_type: ComponentType, props: &mut [Source]) {
         for (pi, p) in props.iter_mut().enumerate() {
             if let Some(k) = Deferred::of(component_type, pi) {
-                *p = SourcePlan::Deferred(k);
+                *p = Source::Deferred(k);
             }
         }
     }
 }
 
 impl ElemWiring {
-    /// A plan for an element of `component_type`, one public slot per prop
+    /// Wiring for an element of `component_type`, one public slot per prop
     /// in its table, each set by its name's position (`components::prop`).
     pub(crate) fn of(component_type: ComponentType) -> Self {
         Self::new(component_type.prop_defs().len())
     }
 
-    /// A plan for an element of `component_type` whose list holds
+    /// Wiring for an element of `component_type` whose list holds
     /// `n_points` points, after the table's props.
     pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
         debug_assert!(component_type.given_coords().is_some());
@@ -485,8 +488,8 @@ impl ElemWiring {
             shared_state_attr: HashMap::new(),
         }
     }
-    pub(crate) fn hidden(&mut self, plan: SourcePlan) -> usize {
-        self.props.push(Some(plan));
+    pub(crate) fn hidden(&mut self, source: Source) -> usize {
+        self.props.push(Some(source));
         own_slot(self.props.len() - 1);
         self.props.len() - 1
     }
@@ -494,12 +497,12 @@ impl ElemWiring {
     /// as essential state with its shared state, given by `attr`.
     pub(crate) fn hidden_point_with_shared_state(
         &mut self,
-        p: &PointPlan,
+        p: &GivenPoint,
         shared_state: [SharedState; 2],
         attr: &'static str,
     ) -> [usize; 2] {
         std::array::from_fn(|j| match p.coord(j) {
-            SourcePlan::Literal(v) => {
+            Source::Literal(v) => {
                 self.shared_state_from_attr(shared_state[j], attr);
                 self.essential(shared_state[j], v)
             }
@@ -507,12 +510,12 @@ impl ElemWiring {
         })
     }
     /// Two hidden slots holding a point's coordinates.
-    pub(crate) fn hidden_point(&mut self, p: &PointPlan) -> [usize; 2] {
+    pub(crate) fn hidden_point(&mut self, p: &GivenPoint) -> [usize; 2] {
         [self.hidden(p.coord(0)), self.hidden(p.coord(1))]
     }
     /// A hidden slot planned as `p`, holding its shared state if any.
-    pub(crate) fn hidden_planned(&mut self, p: Planned) -> usize {
-        let i = self.hidden(p.plan);
+    pub(crate) fn hidden_wire(&mut self, p: Wire) -> usize {
+        let i = self.hidden(p.source);
         if let Some((state, attr)) = p.state {
             self.add_shared_state(i, state, attr);
         }
@@ -520,7 +523,7 @@ impl ElemWiring {
     }
     /// A hidden essential slot holding shared state `state`.
     pub(crate) fn essential(&mut self, state: SharedState, value: f64) -> usize {
-        let i = self.hidden(SourcePlan::Literal(value));
+        let i = self.hidden(Source::Literal(value));
         self.shared_state.insert(state, own_slot(i));
         i
     }
@@ -536,29 +539,29 @@ impl ElemWiring {
     }
     /// Every public slot, from a typed plan's fields in table order
     /// (`Props::into_vec`), with their shared state.
-    pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Planned>) {
+    pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Wire>) {
         for (i, p) in props.into_iter().enumerate() {
-            self.props[i] = Some(p.plan);
+            self.props[i] = Some(p.source);
             if let Some((state, attr)) = p.state {
                 self.add_shared_state(i, state, attr);
             }
         }
     }
     /// `set_public` for a typed plan of sources that hold no shared state.
-    pub(crate) fn set_public_sources(&mut self, props: impl IntoIterator<Item = SourcePlan>) {
-        self.set_public(props.into_iter().map(Planned::from));
+    pub(crate) fn set_public_sources(&mut self, props: impl IntoIterator<Item = Source>) {
+        self.set_public(props.into_iter().map(Wire::from));
     }
     /// The list's points, which fill the public slots after the table's
     /// props, with their shared state.
-    pub(crate) fn set_list(&mut self, points: Vec<[Planned; 2]>) {
+    pub(crate) fn set_list(&mut self, points: Vec<[Wire; 2]>) {
         let n_fixed = self
             .n_public
             .checked_sub(2 * points.len())
-            .expect("the plan holds the list's points");
+            .expect("the wiring holds the list's points");
         for (k, point) in points.into_iter().enumerate() {
             for (j, p) in point.into_iter().enumerate() {
                 let i = n_fixed + 2 * k + j;
-                self.props[i] = Some(p.plan);
+                self.props[i] = Some(p.source);
                 if let Some((state, attr)) = p.state {
                     self.add_shared_state(i, state, attr);
                 }
@@ -567,13 +570,13 @@ impl ElemWiring {
     }
     /// `vector` for as many consecutive slots as the operator has outputs,
     /// from `head` (a list's points, which a polygon's `Shape` moves).
-    pub(crate) fn vector_from(head: usize, op: VecOp, args: Vec<usize>) -> Vec<Planned> {
+    pub(crate) fn vector_from(head: usize, op: VecOp, args: Vec<usize>) -> Vec<Wire> {
         (0..op.n_out())
             .map(|k| {
                 if k == 0 {
-                    SourcePlan::vector(op, args.clone()).into()
+                    Source::vector(op, args.clone()).into()
                 } else {
-                    SourcePlan::VecOut(own_slot(head), byte(k)).into()
+                    Source::VecOut(own_slot(head), byte(k)).into()
                 }
             })
             .collect()
@@ -581,11 +584,7 @@ impl ElemWiring {
     /// The outputs of a vector instruction over own slots, for the public
     /// slots `at`, which must be consecutive: the head at `at[0]`, output
     /// `k` at `at[k]` (`set_vec`).
-    pub(crate) fn vector<const N: usize>(
-        at: [usize; N],
-        op: VecOp,
-        args: Vec<usize>,
-    ) -> [Planned; N] {
+    pub(crate) fn vector<const N: usize>(at: [usize; N], op: VecOp, args: Vec<usize>) -> [Wire; N] {
         assert_eq!(op.n_out(), N, "a vector operator's outputs are its slots");
         assert!(
             at.iter().enumerate().all(|(k, &a)| a == at[0] + k),
@@ -593,13 +592,13 @@ impl ElemWiring {
         );
         std::array::from_fn(|k| {
             if k == 0 {
-                SourcePlan::vector(op, args.clone()).into()
+                Source::vector(op, args.clone()).into()
             } else {
-                SourcePlan::VecOut(own_slot(at[0]), byte(k)).into()
+                Source::VecOut(own_slot(at[0]), byte(k)).into()
             }
         })
     }
-    pub(crate) fn finish(self) -> Vec<SourcePlan> {
+    pub(crate) fn finish(self) -> Vec<Source> {
         self.props
             .into_iter()
             .enumerate()
@@ -617,21 +616,21 @@ pub(crate) fn shared_point_state(k: usize) -> [SharedState; 2] {
 
 /// One point of a point-list attribute (`through`, `vertices`, `endpoints`).
 #[derive(Debug, Clone)]
-pub(crate) enum PointPlan {
+pub(crate) enum GivenPoint {
     /// `$p`: a point-valued reference (two cells).
     Ref(RefId),
     /// `(a, b)`: two scalar plans.
-    Tuple([SourcePlan; 2]),
+    Tuple([Source; 2]),
     /// Item `i` of a list prop: `$l.points` contributes one per item.
     Item(RefId, usize),
 }
 
-impl PointPlan {
-    pub(crate) fn coord(&self, j: usize) -> SourcePlan {
+impl GivenPoint {
+    pub(crate) fn coord(&self, j: usize) -> Source {
         match self {
-            PointPlan::Ref(p) => SourcePlan::coord(*p, j),
-            PointPlan::Tuple(xy) => xy[j].clone(),
-            PointPlan::Item(p, i) => SourcePlan::item(*p, *i, j),
+            GivenPoint::Ref(p) => Source::coord(*p, j),
+            GivenPoint::Tuple(xy) => xy[j].clone(),
+            GivenPoint::Item(p, i) => Source::item(*p, *i, j),
         }
     }
 }

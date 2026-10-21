@@ -35,7 +35,7 @@ const _: () = assert!(document::CREDIT == CREDIT && document::PERCENT_CREDIT == 
 impl<'c> Builder<'c> {
     /// Wire the document's and every section's `creditAchieved` and
     /// `percentCreditAchieved`, and every section's `number`: the slots
-    /// their plans defer (`SourcePlan::Deferred`). Runs after every other
+    /// their plans defer (`Source::Deferred`). Runs after every other
     /// prop has its source.
     pub(in crate::build) fn scoring_sources(&mut self) {
         let root = self.root;
@@ -58,7 +58,7 @@ impl<'c> Builder<'c> {
         match self.mean_credit(c) {
             Some(mean) => {
                 let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
-                self.fill_deferred(s, Deferred::Credit, Source::Alias(mean));
+                self.fill_deferred(s, Deferred::Credit, BuiltSource::Alias(mean));
                 let percent = self.op_source(OpSpec::Scale { k: 100.0 }, &[s]);
                 self.fill_deferred(p, Deferred::PercentCredit, percent);
             }
@@ -70,12 +70,16 @@ impl<'c> Builder<'c> {
     /// document with nothing to score costs no instruction.
     fn set_constant_credit(&mut self, c: CompIdx, credit: f64) {
         let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
-        self.fill_deferred(s, Deferred::Credit, Source::Fixed(credit));
-        self.fill_deferred(p, Deferred::PercentCredit, Source::Fixed(100.0 * credit));
+        self.fill_deferred(s, Deferred::Credit, BuiltSource::Fixed(credit));
+        self.fill_deferred(
+            p,
+            Deferred::PercentCredit,
+            BuiltSource::Fixed(100.0 * credit),
+        );
     }
 
     fn aggregates(&self, section: CompIdx) -> bool {
-        matches!(self.sources[self.slot(section, AGGREGATE) as usize], Source::Fixed(v) if v != 0.0)
+        matches!(self.sources[self.slot(section, AGGREGATE) as usize], BuiltSource::Fixed(v) if v != 0.0)
     }
 
     fn component_children(&self, c: CompIdx) -> Vec<CompIdx> {
@@ -122,7 +126,7 @@ impl<'c> Builder<'c> {
                     &inputs,
                 );
                 let mean = self.anon_slot(source, scope);
-                let total = self.anon_slot(Source::VecOut(mean, 1), scope);
+                let total = self.anon_slot(BuiltSource::VecOut(mean, 1), scope);
                 next.push((total, mean));
             }
             if next.len() == 1 {
@@ -183,7 +187,7 @@ impl<'c> Builder<'c> {
                 | ComponentType::Collect => self.number_sections(k, gate, counter),
                 ComponentType::Section => {
                     let number = match counter.before {
-                        None => Source::Fixed(counter.fixed + 1.0),
+                        None => BuiltSource::Fixed(counter.fixed + 1.0),
                         Some(b) => self.op_source(
                             OpSpec::Offset {
                                 k: counter.fixed + 1.0,

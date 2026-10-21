@@ -6,7 +6,7 @@ use crate::error::{Error, Result};
 
 component! {
     /// `<when>` inside an `<award>`: `value` is 1 while its condition holds,
-    /// read against the answer's submitted responses. Planned with its answer.
+    /// read against the answer's submitted responses. Wire with its answer.
     tags: ["when"],
     default_prop: value,
     props {

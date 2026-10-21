@@ -425,7 +425,7 @@ impl<'a> Compiler<'a> {
                     }
                     let el = &self.compiled.templates[tt].elems[e];
                     match (el.component_type, el.props.get(prop::number::VALUE)) {
-                        (ComponentType::Number, Some(SourcePlan::IterIndex)) => {
+                        (ComponentType::Number, Some(Source::IterIndex)) => {
                             terms.push(IndexTerm::Iter(hops))
                         }
                         _ => return Err(Error::DynamicIndex(display.to_string())),

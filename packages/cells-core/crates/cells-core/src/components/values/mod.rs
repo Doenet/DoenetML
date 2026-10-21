@@ -109,7 +109,7 @@ pub use crate::limits::MAX_TUPLE;
 
 pub mod tuple {
     use super::*;
-    use crate::compile::api::{ElemWiring, Planned, SourcePlan};
+    use crate::compile::api::{ElemWiring, Source, Wire};
     use crate::components::ComponentType;
 
     component! {
@@ -150,13 +150,13 @@ pub mod tuple {
 
     /// A tuple's props: its entry count, its entries, and NaN in the
     /// entries past them.
-    pub(crate) fn props_of(entries: Vec<SourcePlan>) -> Vec<SourcePlan> {
+    pub(crate) fn props_of(entries: Vec<Source>) -> Vec<Source> {
         debug_assert!(entries.len() <= MAX_TUPLE, "checked against MAX_TUPLE");
-        let n = Planned::fixed(entries.len() as f64);
+        let n = Wire::fixed(entries.len() as f64);
         let mut entries = entries
             .into_iter()
-            .map(Planned::from)
-            .chain(std::iter::repeat_with(|| Planned::fixed(f64::NAN)));
+            .map(Wire::from)
+            .chain(std::iter::repeat_with(|| Wire::fixed(f64::NAN)));
         let mut next = || entries.next().expect("an endless supply");
         let mut wiring = ElemWiring::of(ComponentType::Tuple);
         wiring.set_public(Props {

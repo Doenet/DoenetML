@@ -42,7 +42,7 @@ impl<'a> Compiler<'a> {
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             let n = component_type.prop_defs().len();
             let el = &mut self.compiled.templates[t].elems[e];
-            el.props = vec![SourcePlan::Inherit; n];
+            el.props = vec![Source::Inherit; n];
             // A list is as long as the referent's, which the build knows.
             if component_type.given_coords().is_some() {
                 el.n_public = NPublic::AsReferent;
@@ -73,9 +73,9 @@ impl<'a> Compiler<'a> {
                     continue;
                 }
                 if let Some(&bs) = base_shared_state.get(state)
-                    && matches!(wiring.props[slot as usize], Some(SourcePlan::Literal(_)))
+                    && matches!(wiring.props[slot as usize], Some(Source::Literal(_)))
                 {
-                    wiring.props[slot as usize] = Some(SourcePlan::Alias(Arg::Elem(r, bs)));
+                    wiring.props[slot as usize] = Some(Source::Alias(Arg::Elem(r, bs)));
                 }
             }
         }
@@ -87,7 +87,7 @@ impl<'a> Compiler<'a> {
                 .insert((t as u32, e as u32), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
-            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(wiring.n_public as u32);
+            self.compiled.templates[t].elems[e].n_public = NPublic::Wire(wiring.n_public as u32);
         }
         self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
@@ -125,7 +125,7 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         a: u32,
-    ) -> Result<Vec<PointPlan>> {
+    ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
         let (toks, text) = self.math_tokens(t, scope, d.attr_children(a))?;
         let mut out = Vec::new();
@@ -137,8 +137,8 @@ impl<'a> Compiler<'a> {
                     // An list prop expands to its items.
                     let items = self.array_items_of_plan(t, p)?;
                     match items {
-                        Some(n) => out.extend((0..n).map(|k| PointPlan::Item(p, k))),
-                        None => out.push(PointPlan::Ref(p)),
+                        Some(n) => out.extend((0..n).map(|k| GivenPoint::Item(p, k))),
+                        None => out.push(GivenPoint::Ref(p)),
                     }
                     i += 1;
                 }
@@ -163,15 +163,15 @@ impl<'a> Compiler<'a> {
                         }
                     }
                     let inner = super::expr::unwrap_parens(&toks[start..i]).unwrap();
-                    out.push(PointPlan::Tuple(self.tuple_from_tokens(inner, &text)?));
+                    out.push(GivenPoint::Tuple(self.tuple_from_tokens(inner, &text)?));
                 }
                 Token::Comma => i += 1,
                 // A symbol (`through="A"`) is not a point here: NaN, as the
                 // current core's warning case.
                 Token::Ident(_) => {
-                    out.push(PointPlan::Tuple([
-                        SourcePlan::Fixed(f64::NAN),
-                        SourcePlan::Fixed(f64::NAN),
+                    out.push(GivenPoint::Tuple([
+                        Source::Fixed(f64::NAN),
+                        Source::Fixed(f64::NAN),
                     ]));
                     i += 1;
                 }
@@ -284,7 +284,7 @@ impl<'a> Compiler<'a> {
                     .props
                     .get(prop::math::EXPR)
                 {
-                    Some(SourcePlan::MathHandle(inner, _)) => {
+                    Some(Source::MathHandle(inner, _)) => {
                         let inner = *inner;
                         let mut syms = Vec::new();
                         self.compiled.arena.symbols(inner, &mut syms);

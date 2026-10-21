@@ -82,14 +82,14 @@ const INVALID_CENTER: (&str, &str) = (
 /// `through`.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::AT;
-    let nan = || Planned::fixed(f64::NAN);
+    let nan = || Wire::fixed(f64::NAN);
     let center = match ctx.point("center") {
         // Not a point (`center="A"`): no center.
         Err(Error::BadMath { .. }) if !ctx.is_reference("center") => {
             ctx.warn(INVALID_CENTER.0, INVALID_CENTER.1);
-            Some(PointPlan::Tuple([
-                SourcePlan::Fixed(f64::NAN),
-                SourcePlan::Fixed(f64::NAN),
+            Some(GivenPoint::Tuple([
+                Source::Fixed(f64::NAN),
+                Source::Fixed(f64::NAN),
             ]))
         }
         r => r?,
@@ -102,20 +102,17 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // of the author's, warned about below.
     let mut wiring = ElemWiring::with_list(ComponentType::Circle, n.min(3));
     // The area goes through a hidden square.
-    let r2 = wiring.hidden(SourcePlan::computed(
-        OpSpec::Mul,
-        vec![at.radius, at.radius],
-    ));
+    let r2 = wiring.hidden(Source::computed(OpSpec::Mul, vec![at.radius, at.radius]));
     // The radius shown is never negative; the prescribed radius, or an
     // essential one (1 by default), behind it receives the clamped value
     // (projection, ADR 0003).
-    let radius_plan = |wiring: &mut ElemWiring| -> Planned {
-        let pres = wiring.hidden_planned(match &radius {
-            Some(SourcePlan::Literal(v)) => Planned::essential_from(shared_state::R, "radius", *v),
+    let radius_plan = |wiring: &mut ElemWiring| -> Wire {
+        let pres = wiring.hidden_wire(match &radius {
+            Some(Source::Literal(v)) => Wire::essential_from(shared_state::R, "radius", *v),
             Some(other) => other.clone().into(),
-            None => Planned::essential(shared_state::R, 1.0),
+            None => Wire::essential(shared_state::R, 1.0),
         });
-        Planned::computed(
+        Wire::computed(
             OpSpec::Clamp {
                 lo: 0.0,
                 hi: f64::INFINITY,
@@ -127,11 +124,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // and `<point extend="$c.center">`. The prescribed center lives on
     // `centerX`/`centerY` and the cases read it from there; without one
     // they alias the derived center.
-    let through_points: Vec<[Planned; 2]> = through
+    let through_points: Vec<[Wire; 2]> = through
         .iter()
         .take(3)
         .enumerate()
-        .map(|(i, p)| Planned::point(p, shared_point_state(i), "through"))
+        .map(|(i, p)| Wire::point(p, shared_point_state(i), "through"))
         .collect();
     // Coordinate `j` of through point `k` (0-based).
     let n_public = wiring.n_public;
@@ -141,8 +138,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             .expect("a through point the circle holds")
     };
     let [center_x, center_y] = match &center {
-        Some(c) => Planned::point(c, [shared_state::CX, shared_state::CY], "center"),
-        None => [Planned::own(at.cx), Planned::own(at.cy)],
+        Some(c) => Wire::point(c, [shared_state::CX, shared_state::CY], "center"),
+        None => [Wire::own(at.cx), Wire::own(at.cy)],
     };
     let over = if n > 3 {
         Some(TOO_MANY_THROUGH)
@@ -162,11 +159,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         (None, _, _, 0) => {
             let [cx, cy] = if hc {
-                [Planned::own(at.centerX), Planned::own(at.centerY)]
+                [Wire::own(at.centerX), Wire::own(at.centerY)]
             } else {
                 [
-                    Planned::essential(shared_state::CX, 0.0),
-                    Planned::essential(shared_state::CY, 0.0),
+                    Wire::essential(shared_state::CX, 0.0),
+                    Wire::essential(shared_state::CY, 0.0),
                 ]
             };
             [cx, cy, radius_plan(&mut wiring)]
@@ -180,8 +177,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             // The through point sits on top of the circle.
             let radius = radius_plan(&mut wiring);
             [
-                Planned::own(tp(0, 0)),
-                Planned::computed(OpSpec::Sub, vec![tp(0, 1), at.radius]),
+                Wire::own(tp(0, 0)),
+                Wire::computed(OpSpec::Sub, vec![tp(0, 1), at.radius]),
                 radius,
             ]
         }
@@ -206,9 +203,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         cx,
         cy,
         radius,
-        diameter: Planned::from_table(ComponentType::Circle, at.diameter),
-        circumference: Planned::from_table(ComponentType::Circle, at.circumference),
-        area: Planned::computed(
+        diameter: Wire::from_table(ComponentType::Circle, at.diameter),
+        circumference: Wire::from_table(ComponentType::Circle, at.circumference),
+        area: Wire::computed(
             OpSpec::Scale {
                 k: std::f64::consts::PI,
             },
@@ -216,7 +213,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ),
         centerX: center_x,
         centerY: center_y,
-        numThroughPoints: Planned::fixed(n as f64),
+        numThroughPoints: Wire::fixed(n as f64),
     });
     wiring.set_list(through_points);
     Ok(wiring)

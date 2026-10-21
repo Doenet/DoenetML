@@ -1,5 +1,5 @@
 //! Every size the core caps, in one place. Counts of an operator's inputs
-//! and outputs are stored in a byte (`Op::Vec`, `Op::Sym`, `Source::Op`),
+//! and outputs are stored in a byte (`Op::Vec`, `Op::Sym`, `BuiltSource::Op`),
 //! and a vector operator's inputs are copied into a fixed array
 //! (`MAX_VEC_IN`), so each cap that feeds one is asserted below to fit:
 //! raising a cap past what a byte or that array holds fails to compile.

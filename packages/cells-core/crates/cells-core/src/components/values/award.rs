@@ -7,7 +7,7 @@ use crate::error::{Error, Result};
 component! {
     /// `<award credit="0.5">` inside an `<answer>`: `awarded` is `credit` when
     /// its `<when>` holds (or its content equals the submitted response), else
-    /// 0. Planned with its answer (`plan_answer`).
+    /// 0. Wire with its answer (`plan_answer`).
     tags: ["award"],
     default_prop: awarded,
     props {

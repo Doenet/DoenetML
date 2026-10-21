@@ -15,7 +15,7 @@ mod scoring;
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
-pub(in crate::build) enum Source {
+pub(in crate::build) enum BuiltSource {
     Unset,
     Literal(f64),
     Default(f64),
@@ -103,7 +103,7 @@ pub(in crate::build) struct Builder<'c> {
     /// not its type table's count: an element whose list holds points
     /// (ADR 0016). NONE: the table's.
     pub(in crate::build) n_public: Vec<u32>,
-    pub(in crate::build) sources: Vec<Source>,
+    pub(in crate::build) sources: Vec<BuiltSource>,
     /// Owning component of each slot (prop index = slot - slot_base[comp]).
     pub(in crate::build) slot_comp: Vec<CompIdx>,
     pub(in crate::build) op_inputs: Vec<SlotId>,
@@ -136,7 +136,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
     /// Essential math slots seeded from another slot's value when first
-    /// built (`SourcePlan::MathEssentialFrom`): (slot, source slot).
+    /// built (`Source::MathEssentialFrom`): (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena,
     pub(in crate::build) root: CompIdx,
@@ -152,7 +152,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
     /// Sources a slot has in iterations after the first, when the view
     /// folds iterations (`Plans::Both`): edges the graph carries as well.
-    pub(in crate::build) later_sources: Vec<(SlotId, Source)>,
+    pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
     /// not the identity (`build/probe.rs`).
@@ -316,7 +316,8 @@ impl<'c> Builder<'c> {
 
     pub(in crate::build) fn allocate_slots(&mut self, comp: CompIdx, n: usize) {
         self.slot_base[comp as usize] = self.sources.len() as u32;
-        self.sources.extend(std::iter::repeat_n(Source::Unset, n));
+        self.sources
+            .extend(std::iter::repeat_n(BuiltSource::Unset, n));
         self.slot_comp.extend(std::iter::repeat_n(comp, n));
         self.slot_scope
             .extend(std::iter::repeat_n(self.components.scope[comp as usize], n));
@@ -336,7 +337,7 @@ impl<'c> Builder<'c> {
     /// A slot that belongs to no component, made for an element in `scope`:
     /// a lowered math subexpression, a literal inside one, the
     /// missing-referent cell.
-    pub(in crate::build) fn anon_slot(&mut self, source: Source, scope: ScopeId) -> SlotId {
+    pub(in crate::build) fn anon_slot(&mut self, source: BuiltSource, scope: ScopeId) -> SlotId {
         let s = self.sources.len() as SlotId;
         self.sources.push(source);
         self.slot_comp.push(NONE);
@@ -348,7 +349,7 @@ impl<'c> Builder<'c> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(Source::Fixed(f64::NAN), 0);
+        let s = self.anon_slot(BuiltSource::Fixed(f64::NAN), 0);
         self.missing = Some(s);
         s
     }
@@ -481,7 +482,7 @@ impl<'c> Builder<'c> {
             let n_public = el.n_public;
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
-            if let NPublic::Planned(n) = n_public {
+            if let NPublic::Wire(n) = n_public {
                 self.n_public[comp as usize] = n;
             }
             self.scope_comps[scope as usize][e] = comp;
@@ -667,7 +668,7 @@ impl<'c> Builder<'c> {
                 self.components.component_type[idx as usize] = ComponentType::Number;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, prop::number::VALUE);
-                self.sources[s as usize] = Source::Alias(self.missing_slot());
+                self.sources[s as usize] = BuiltSource::Alias(self.missing_slot());
             }
             (_, Some(prop)) => {
                 let targets = self.targets_of(target, Some(prop), plan, Some(1))?;
@@ -681,7 +682,7 @@ impl<'c> Builder<'c> {
                 self.components.component_type[idx as usize] = component_type;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
-                self.sources[s as usize] = Source::Alias(targets[0]);
+                self.sources[s as usize] = BuiltSource::Alias(targets[0]);
                 self.record_label(s, targets[0]);
             }
             (target, None) => {
@@ -717,7 +718,7 @@ impl<'c> Builder<'c> {
         self.allocate_slots(idx, n);
         for pi in 0..n {
             let s = self.slot(idx, pi);
-            self.sources[s as usize] = Source::Alias(self.slot(referent, pi));
+            self.sources[s as usize] = BuiltSource::Alias(self.slot(referent, pi));
         }
     }
 
@@ -783,12 +784,12 @@ impl<'c> Builder<'c> {
                         self.slot(pt, prop::point::Y),
                         self.slot(pt, prop::point::HIDE),
                     );
-                    self.sources[sx as usize] = Source::Alias(x);
-                    self.sources[sy as usize] = Source::Alias(y);
+                    self.sources[sx as usize] = BuiltSource::Alias(x);
+                    self.sources[sy as usize] = BuiltSource::Alias(y);
                     self.record_label(sx, x);
                     self.record_label(sy, y);
                     // Not state: a synthesized point has no essential key.
-                    self.sources[sh as usize] = Source::Fixed(0.0);
+                    self.sources[sh as usize] = BuiltSource::Fixed(0.0);
                     kids.push(pt);
                 }
             }
@@ -867,7 +868,7 @@ impl<'c> Builder<'c> {
         // With no gathered original in an iteration, the number gathered is
         // a constant at every count.
         let count = if counts.is_empty() {
-            Source::Fixed(copies.len() as f64)
+            BuiltSource::Fixed(copies.len() as f64)
         } else {
             self.follows_counts.insert(comp);
             self.reads(&counts, inst.scope)
@@ -898,7 +899,7 @@ impl<'c> Builder<'c> {
     /// stands for a value that depends on them in a way the view leaves
     /// open (a collect's count over its repeats' counts, an option a later
     /// iteration may draw), so only its edges matter.
-    pub(in crate::build) fn reads(&mut self, inputs: &[SlotId], scope: ScopeId) -> Source {
+    pub(in crate::build) fn reads(&mut self, inputs: &[SlotId], scope: ScopeId) -> BuiltSource {
         match inputs {
             [] => unreachable!("a stand-in reads something"),
             [x] => self.op_source(OpSpec::Truthy, &[*x]),
@@ -1051,18 +1052,18 @@ impl<'c> Builder<'c> {
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
             let plan = &c.templates[inst.template].elems[inst.elem].props[pi];
-            if matches!(plan, SourcePlan::Deferred(_)) {
+            if matches!(plan, Source::Deferred(_)) {
                 continue; // wired from the tree (`fill_deferred`)
             }
             // Nothing but a deferred plan is given its source elsewhere: a
             // slot's source is what its plan says.
             assert!(
-                matches!(self.sources[s as usize], Source::Unset),
+                matches!(self.sources[s as usize], BuiltSource::Unset),
                 "{} was given a source before its plan",
                 self.slot_label(s)
             );
             let source = match plan {
-                SourcePlan::FirstIteration(first, rest) => {
+                Source::FirstIteration(first, rest) => {
                     match self.view.plans(self.scopes[inst.scope].2) {
                         Plans::First => self.plan_source(first, inst, pi, extend, &extend_label)?,
                         Plans::Rest => self.plan_source(rest, inst, pi, extend, &extend_label)?,
@@ -1075,7 +1076,7 @@ impl<'c> Builder<'c> {
                 }
                 plan => self.plan_source(plan, inst, pi, extend, &extend_label)?,
             };
-            if let (Source::Fixed(h), SourcePlan::MathHandle(..) | SourcePlan::SymExpr(..)) =
+            if let (BuiltSource::Fixed(h), Source::MathHandle(..) | Source::SymExpr(..)) =
                 (&source, plan)
                 && !h.is_nan()
             {
@@ -1091,43 +1092,43 @@ impl<'c> Builder<'c> {
     /// reference to it.
     fn plan_source(
         &mut self,
-        plan: &'c SourcePlan,
+        plan: &'c Source,
         inst: Instance,
         pi: usize,
         extend: Option<CompIdx>,
         extend_label: &[Coord],
-    ) -> Result<Source> {
+    ) -> Result<BuiltSource> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp as usize];
         let c: &'c Compiled = self.compiled;
         Ok(match plan {
             // Left unset: wired from the tree by `fill_deferred`.
-            SourcePlan::Deferred(_) => Source::Unset,
-            SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
-            SourcePlan::Literal(v) => Source::Literal(*v),
-            SourcePlan::TextLiteral(v) => {
+            Source::Deferred(_) => BuiltSource::Unset,
+            Source::FirstIteration(..) => unreachable!("nested FirstIteration"),
+            Source::Literal(v) => BuiltSource::Literal(*v),
+            Source::TextLiteral(v) => {
                 self.typed_slots.push((s, ValueType::Text));
-                Source::Literal(*v)
+                BuiltSource::Literal(*v)
             }
-            SourcePlan::Default(v) => Source::Default(*v),
-            SourcePlan::Inherit | SourcePlan::InheritFrom(_) => {
+            Source::Default(v) => BuiltSource::Default(*v),
+            Source::Inherit | Source::InheritFrom(_) => {
                 let Some(referent) = extend else {
-                    return Ok(Source::Alias(self.missing_slot()));
+                    return Ok(BuiltSource::Alias(self.missing_slot()));
                 };
                 let k = match plan {
-                    SourcePlan::InheritFrom(k) => *k as usize,
+                    Source::InheritFrom(k) => *k as usize,
                     _ => pi,
                 };
                 let t = self.slot(referent, k);
                 self.record_label_as(s, t, extend_label);
-                Source::Alias(t)
+                BuiltSource::Alias(t)
             }
-            SourcePlan::Fixed(v) => Source::Fixed(*v),
-            SourcePlan::Alias(arg) => {
-                Source::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
+            Source::Fixed(v) => BuiltSource::Fixed(*v),
+            Source::Alias(arg) => {
+                BuiltSource::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
             }
-            SourcePlan::Op(spec, args) => {
+            Source::Op(spec, args) => {
                 let start = self.op_inputs.len() as u32;
                 for &a in args {
                     let slot = self.arg_slot(a, comp, inst.scope, component_type, pi)?;
@@ -1143,34 +1144,34 @@ impl<'c> Builder<'c> {
                     }
                     self.op_inputs.push(slot);
                 }
-                Source::Op(*spec, start, byte(args.len()))
+                BuiltSource::Op(*spec, start, byte(args.len()))
             }
-            SourcePlan::IterIndex => Source::Fixed(self.scopes[inst.scope].2 as f64),
-            SourcePlan::SequencePick { from, step, count } => {
+            Source::IterIndex => BuiltSource::Fixed(self.scopes[inst.scope].2 as f64),
+            Source::SequencePick { from, step, count } => {
                 let node = c.templates[inst.template].elems[inst.elem].node;
                 let h = choice::splitmix(self.seeded_stream(inst.scope, node));
                 let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
-                Source::Fixed(from + step * k.min(count - 1) as f64)
+                BuiltSource::Fixed(from + step * k.min(count - 1) as f64)
             }
-            SourcePlan::Math(expr) => {
+            Source::Math(expr) => {
                 let id = self.instantiate_expr(*expr, inst.scope)?;
                 if self.arena.is_numeric(id) {
-                    Source::Alias(self.lower(id, inst.scope))
+                    BuiltSource::Alias(self.lower(id, inst.scope))
                 } else {
-                    Source::Fixed(f64::NAN)
+                    BuiltSource::Fixed(f64::NAN)
                 }
             }
-            SourcePlan::MathHandle(expr, post) => {
+            Source::MathHandle(expr, post) => {
                 if self.is_symbolic(comp) {
                     self.sym_source(*expr, *post, inst.scope)?
                 } else {
                     // A numeric math is not a math cell (ADR 0005).
-                    Source::Fixed(f64::NAN)
+                    BuiltSource::Fixed(f64::NAN)
                 }
             }
-            SourcePlan::MathValue(expr) => {
+            Source::MathValue(expr) => {
                 if self.is_symbolic(comp) {
-                    // Planned only as a `<math>`'s value (`math_props`).
+                    // Wire only as a `<math>`'s value (`math_props`).
                     let expr = self.slot(comp, prop::math::EXPR);
                     self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
                 } else {
@@ -1178,36 +1179,41 @@ impl<'c> Builder<'c> {
                     if let Expr::Num(v) = *self.arena.get(id) {
                         // `<math>5</math>` is state, as a number literal is: a
                         // drag that reaches it changes it, as in the current core.
-                        Source::Literal(v)
+                        BuiltSource::Literal(v)
                     } else {
-                        Source::Alias(self.lower(id, inst.scope))
+                        BuiltSource::Alias(self.lower(id, inst.scope))
                     }
                 }
             }
-            SourcePlan::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
-            SourcePlan::MathEssential(tree) => {
+            Source::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
+            Source::MathEssential(tree) => {
                 self.typed_slots.push((s, ValueType::Math));
                 match tree {
-                    Some(tree) => Source::Literal(self.engine.import(tree) as f64),
-                    None => Source::Literal(f64::NAN),
+                    Some(tree) => BuiltSource::Literal(self.engine.import(tree) as f64),
+                    None => BuiltSource::Literal(f64::NAN),
                 }
             }
-            SourcePlan::MathEssentialFrom(p) => {
+            Source::MathEssentialFrom(p) => {
                 self.typed_slots.push((s, ValueType::Math));
                 let from = self
                     .resolve_one(*p, inst.scope)
                     .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
                 self.seeds.push((s, from));
-                Source::Literal(f64::NAN)
+                BuiltSource::Literal(f64::NAN)
             }
-            SourcePlan::VecOut(head, k) => Source::VecOut(self.slot(comp, *head as usize), *k),
+            Source::VecOut(head, k) => BuiltSource::VecOut(self.slot(comp, *head as usize), *k),
         })
     }
 
-    /// Wire `s`, a slot its plan defers as `kind` (`SourcePlan::Deferred`),
+    /// Wire `s`, a slot its plan defers as `kind` (`Source::Deferred`),
     /// once the tree is built: only such a slot, and only once, so no
     /// source the planner set is ever replaced.
-    pub(in crate::build) fn fill_deferred(&mut self, s: SlotId, kind: Deferred, source: Source) {
+    pub(in crate::build) fn fill_deferred(
+        &mut self,
+        s: SlotId,
+        kind: Deferred,
+        source: BuiltSource,
+    ) {
         let comp = self.slot_comp[s as usize];
         let deferred = comp != NONE && {
             let i = self.comp_instance[comp as usize];
@@ -1218,12 +1224,12 @@ impl<'c> Builder<'c> {
                     self.compiled.templates[inst.template].elems[inst.elem]
                         .props
                         .get(pi),
-                    Some(SourcePlan::Deferred(k)) if *k == kind
+                    Some(Source::Deferred(k)) if *k == kind
                 )
             }
         };
         assert!(
-            deferred && matches!(self.sources[s as usize], Source::Unset),
+            deferred && matches!(self.sources[s as usize], BuiltSource::Unset),
             "{} is not a slot left to wire as {kind:?}",
             self.slot_label(s)
         );
@@ -1231,10 +1237,10 @@ impl<'c> Builder<'c> {
     }
 
     /// An operator source over `inputs` (at most 255).
-    pub(in crate::build) fn op_source(&mut self, spec: OpSpec, inputs: &[SlotId]) -> Source {
+    pub(in crate::build) fn op_source(&mut self, spec: OpSpec, inputs: &[SlotId]) -> BuiltSource {
         let start = self.op_inputs.len() as u32;
         self.op_inputs.extend_from_slice(inputs);
-        Source::Op(spec, start, byte(inputs.len()))
+        BuiltSource::Op(spec, start, byte(inputs.len()))
     }
 
     pub(in crate::build) fn op_slot(

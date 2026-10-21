@@ -76,11 +76,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         _ => None,
     };
     let value = if let Some(v) = literal {
-        Planned::essential(shared_state::VALUE, v)
+        Wire::essential(shared_state::VALUE, v)
     } else if macros == 1 && text.is_empty() {
-        SourcePlan::reference(ctx.reference(nodes[0])?).into()
+        Source::reference(ctx.reference(nodes[0])?).into()
     } else {
-        Planned::own(ctx.condition(&nodes, &mut wiring)?)
+        Wire::own(ctx.condition(&nodes, &mut wiring)?)
     };
     wiring.set_public(Props { value });
     ctx.set_wiring(wiring);

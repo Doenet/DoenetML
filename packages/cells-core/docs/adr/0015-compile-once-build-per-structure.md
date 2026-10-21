@@ -281,7 +281,7 @@ the commit that finished this:
 | symchain-1000 | 5.81 | 3.50 |
 
 What remains at the peak is mostly the compile's plans (an `Elem` is 112
-bytes, a prop's `SourcePlan` 48) beside the first build's tables and the
+bytes, a prop's `Source` 48) beside the first build's tables and the
 document it makes.
 
 A document no longer keeps its DAST: it was the largest part of what a

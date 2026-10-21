@@ -21,7 +21,7 @@ pub const VALUE: usize = Props::AT.value;
 
 /// Its `value` is one of `from, from + step, ..., to`, picked per instance
 /// at expansion.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();
     let num = |name: &str, default: f64| -> Result<f64> {
@@ -66,7 +66,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<SourcePlan>]) 
             "<selectFromSequence> with an empty sequence".into(),
         ));
     }
-    props[Props::AT.value] = Some(SourcePlan::SequencePick {
+    props[Props::AT.value] = Some(Source::SequencePick {
         from,
         step,
         count: count as u32,

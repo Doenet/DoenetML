@@ -22,7 +22,7 @@ component! {
 pub const SELECTED_INDEX: usize = Props::AT.selectedIndex;
 
 /// Its choices must be `<choice>` elements; `selectMultiple` is refused.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, _props: &mut [Option<SourcePlan>]) -> Result<()> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, _props: &mut [Option<Source>]) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();
     if ctx.attr_on(el, "selectMultiple") {

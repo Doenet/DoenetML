@@ -51,7 +51,7 @@ impl<'a> Compiler<'a> {
         self.plan_attrs(t, e, None)?;
         let at = function_iterates::Props::AT;
         self.compiled.templates[t].elems[e].props[at.allIteratesWithInitial] =
-            SourcePlan::own(at.count);
+            Source::own(at.count);
         let d = self.dast;
         let Elem {
             node: el,
@@ -136,7 +136,7 @@ impl<'a> Compiler<'a> {
             .into_iter()
             .enumerate()
             .map(|(j, first)| {
-                SourcePlan::FirstIteration(Box::new(first), Box::new(SourcePlan::Math(exprs[j])))
+                Source::FirstIteration(Box::new(first), Box::new(Source::Math(exprs[j])))
             })
             .collect();
         self.compiled.templates[sub].elems[0].props = prop::tuple::props_of(entries);
@@ -146,12 +146,7 @@ impl<'a> Compiler<'a> {
     /// The `n` entries of a `<functionIterates>`' `initialValue`, planned
     /// from its body: a reference (`$x0`, a number, point or tuple) or math
     /// text (`0.5`, `(1, $a, 0)`). Written numbers are constants, not state.
-    fn plan_initial_value(
-        &mut self,
-        sub: TemplateId,
-        el: NodeId,
-        n: usize,
-    ) -> Result<Vec<SourcePlan>> {
+    fn plan_initial_value(&mut self, sub: TemplateId, el: NodeId, n: usize) -> Result<Vec<Source>> {
         let d = self.dast;
         let a = d
             .attr(el, "initialValue")
@@ -159,9 +154,9 @@ impl<'a> Compiler<'a> {
         if let Some(m) = self.single_macro(a) {
             let init = self.plan_ref(sub, ROOT_SCOPE, m)?;
             return Ok(if n == 1 {
-                vec![SourcePlan::reference(init)]
+                vec![Source::reference(init)]
             } else {
-                (0..n).map(|j| SourcePlan::coord(init, j)).collect()
+                (0..n).map(|j| Source::coord(init, j)).collect()
             });
         }
         let nodes: Vec<NodeId> = d.attr_children(a).to_vec();
@@ -181,7 +176,7 @@ impl<'a> Compiler<'a> {
             .map(|part| {
                 let id = self.parse_tokens(part, &text)?;
                 Ok(match self.plan_from_expr(id) {
-                    SourcePlan::Literal(v) => SourcePlan::Fixed(v),
+                    Source::Literal(v) => Source::Fixed(v),
                     plan => plan,
                 })
             })
@@ -247,7 +242,7 @@ impl<'a> Compiler<'a> {
             _ => return Err(unsupported()),
         }
         self.compiled.templates[t].elems[e].props = prop::repeat_for::Props {
-            count: SourcePlan::reference(fp),
+            count: Source::reference(fp),
         }
         .into_vec();
         let has_item = self.compiled.templates[sub]
@@ -270,7 +265,7 @@ impl<'a> Compiler<'a> {
                         display: format!("({}[i]).{prop}", base.display),
                         node: NONE,
                     });
-                    SourcePlan::reference(self.compiled.refs.len() - 1)
+                    Source::reference(self.compiled.refs.len() - 1)
                 })
                 .collect();
             self.compiled.templates[sub].elems[0].props = props;

@@ -93,39 +93,33 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             .linear_equation(&equation, &vx, &vy)?
             // A symbolic or nonlinear equation is not a line here.
             .unwrap_or([
-                SourcePlan::Fixed(f64::NAN),
-                SourcePlan::Fixed(f64::NAN),
-                SourcePlan::Fixed(f64::NAN),
+                Source::Fixed(f64::NAN),
+                Source::Fixed(f64::NAN),
+                Source::Fixed(f64::NAN),
             ]);
         let [x1, y1, x2, y2] = ElemWiring::vector(
             [at.x1, at.y1, at.x2, at.y2],
             VecOp::LinePointsFromCoeffs,
             vec![at.coeffvar1, at.coeffvar2, at.coeff0],
         );
-        let q = wiring.hidden(SourcePlan::computed(
+        let q = wiring.hidden(Source::computed(
             OpSpec::Div,
             vec![at.coeffvar1, at.coeffvar2],
         ));
-        let xi = wiring.hidden(SourcePlan::computed(
-            OpSpec::Div,
-            vec![at.coeff0, at.coeffvar1],
-        ));
-        let yi = wiring.hidden(SourcePlan::computed(
-            OpSpec::Div,
-            vec![at.coeff0, at.coeffvar2],
-        ));
+        let xi = wiring.hidden(Source::computed(OpSpec::Div, vec![at.coeff0, at.coeffvar1]));
+        let yi = wiring.hidden(Source::computed(OpSpec::Div, vec![at.coeff0, at.coeffvar2]));
         wiring.set_public(Props {
             x1,
             y1,
             x2,
             y2,
-            slope: Planned::computed(OpSpec::Negate, vec![q]),
-            xintercept: Planned::computed(OpSpec::Negate, vec![xi]),
-            yintercept: Planned::computed(OpSpec::Negate, vec![yi]),
+            slope: Wire::computed(OpSpec::Negate, vec![q]),
+            xintercept: Wire::computed(OpSpec::Negate, vec![xi]),
+            yintercept: Wire::computed(OpSpec::Negate, vec![yi]),
             coeffvar1: a.into(),
             coeffvar2: b.into(),
             coeff0: c.into(),
-            basedOnDirection: Planned::fixed(0.0),
+            basedOnDirection: Wire::fixed(0.0),
         });
         return Ok(wiring);
     }
@@ -143,7 +137,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // slope or direction gives the second point.
     let direction_mode = through.len() < 2 && by_direction;
     let [x1, y1, x2, y2, based_on_direction] = if direction_mode {
-        let [x1, y1] = Planned::point_or_default(
+        let [x1, y1] = Wire::point_or_default(
             through.first(),
             shared_point_state(0),
             "through",
@@ -170,46 +164,46 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 vec![at.x1, at.y1, ux, uy, dist],
             )
         };
-        [x1, y1, x2, y2, Planned::fixed(1.0)]
+        [x1, y1, x2, y2, Wire::fixed(1.0)]
     } else {
         // The line's points are the through points (or essential
         // defaults) themselves; a whole-line drag is a point group.
-        let [x1, y1] = Planned::point_or_default(
+        let [x1, y1] = Wire::point_or_default(
             through.first(),
             shared_point_state(0),
             "through",
             first_default,
         );
-        let [x2, y2] = Planned::point_or_default(
+        let [x2, y2] = Wire::point_or_default(
             through.get(1),
             shared_point_state(1),
             "through",
             second_default,
         );
-        [x1, y1, x2, y2, Planned::fixed(0.0)]
+        [x1, y1, x2, y2, Wire::fixed(0.0)]
     };
     // slope, intercepts and coefficients from the two points:
     // a = y2 - y1, b = x1 - x2, c = -(a x1 + b y1). The slope is the
     // points' ratio even for a slope-based line, as in the current core
     // (NaN when the points coincide).
-    let dy = wiring.hidden(SourcePlan::computed(OpSpec::Sub, vec![at.y2, at.y1]));
-    let dx = wiring.hidden(SourcePlan::computed(OpSpec::Sub, vec![at.x2, at.x1]));
-    let q = wiring.hidden(SourcePlan::computed(OpSpec::Div, vec![at.y1, at.slope]));
-    let mx = wiring.hidden(SourcePlan::computed(OpSpec::Mul, vec![at.slope, at.x1]));
-    let ax = wiring.hidden(SourcePlan::computed(OpSpec::Mul, vec![at.coeffvar1, at.x1]));
-    let by = wiring.hidden(SourcePlan::computed(OpSpec::Mul, vec![at.coeffvar2, at.y1]));
-    let sum = wiring.hidden(SourcePlan::computed(OpSpec::Add, vec![ax, by]));
+    let dy = wiring.hidden(Source::computed(OpSpec::Sub, vec![at.y2, at.y1]));
+    let dx = wiring.hidden(Source::computed(OpSpec::Sub, vec![at.x2, at.x1]));
+    let q = wiring.hidden(Source::computed(OpSpec::Div, vec![at.y1, at.slope]));
+    let mx = wiring.hidden(Source::computed(OpSpec::Mul, vec![at.slope, at.x1]));
+    let ax = wiring.hidden(Source::computed(OpSpec::Mul, vec![at.coeffvar1, at.x1]));
+    let by = wiring.hidden(Source::computed(OpSpec::Mul, vec![at.coeffvar2, at.y1]));
+    let sum = wiring.hidden(Source::computed(OpSpec::Add, vec![ax, by]));
     wiring.set_public(Props {
         x1,
         y1,
         x2,
         y2,
-        slope: Planned::computed(OpSpec::Div, vec![dy, dx]),
-        xintercept: Planned::computed(OpSpec::Sub, vec![at.x1, q]),
-        yintercept: Planned::computed(OpSpec::Sub, vec![at.y1, mx]),
-        coeffvar1: Planned::own(dy),
-        coeffvar2: Planned::computed(OpSpec::Sub, vec![at.x1, at.x2]),
-        coeff0: Planned::computed(OpSpec::Negate, vec![sum]),
+        slope: Wire::computed(OpSpec::Div, vec![dy, dx]),
+        xintercept: Wire::computed(OpSpec::Sub, vec![at.x1, q]),
+        yintercept: Wire::computed(OpSpec::Sub, vec![at.y1, mx]),
+        coeffvar1: Wire::own(dy),
+        coeffvar2: Wire::computed(OpSpec::Sub, vec![at.x1, at.x2]),
+        coeff0: Wire::computed(OpSpec::Negate, vec![sum]),
         basedOnDirection: based_on_direction,
     });
     Ok(wiring)
@@ -219,15 +213,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
 /// or another line's or segment's `point2 - point1`.
 fn direction(ctx: &mut PlanCtx<'_, '_>, name: &str, wiring: &mut ElemWiring) -> Result<[usize; 2]> {
     let p = ctx.point(name)?.expect("the direction attribute is given");
-    if let PointPlan::Ref(r) = p
+    if let GivenPoint::Ref(r) = p
         && matches!(
             ctx.reference_type(r),
             Some(ComponentType::Line | ComponentType::LineSegment)
         )
     {
         let [x1, y1, x2, y2] = ["x1", "y1", "x2", "y2"].map(|prop| ctx.reference_prop(r, prop));
-        let ux = wiring.hidden(SourcePlan::Op(OpSpec::Sub, vec![x2, x1]));
-        let uy = wiring.hidden(SourcePlan::Op(OpSpec::Sub, vec![y2, y1]));
+        let ux = wiring.hidden(Source::Op(OpSpec::Sub, vec![x2, x1]));
+        let uy = wiring.hidden(Source::Op(OpSpec::Sub, vec![y2, y1]));
         return Ok([ux, uy]);
     }
     Ok(wiring.hidden_point(&p))

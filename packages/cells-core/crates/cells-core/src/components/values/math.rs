@@ -28,11 +28,11 @@ pub const EXPR: usize = Props::AT.expr;
 pub const VALUE: usize = Props::AT.value;
 
 /// A math's props: its expression, with `post` applied, and its value.
-pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<SourcePlan> {
+pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
     let mut wiring = ElemWiring::of(ComponentType::Math);
     wiring.set_public(Props {
-        expr: SourcePlan::MathHandle(id, post).into(),
-        value: SourcePlan::MathValue(id).into(),
+        expr: Source::MathHandle(id, post).into(),
+        value: Source::MathValue(id).into(),
     });
     wiring.finish()
 }

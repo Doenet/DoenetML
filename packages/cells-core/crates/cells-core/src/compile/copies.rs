@@ -15,11 +15,9 @@ impl<'a> Compiler<'a> {
         let component_type = self.compiled.templates[t].elems[e].component_type;
         let display = self.compiled.refs[p].display.clone();
         let props = match component_type {
-            ComponentType::Point => {
-                prop::point::props_of(SourcePlan::coord(p, 0), SourcePlan::coord(p, 1))
-            }
+            ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
             ComponentType::Number | ComponentType::NumberInput | ComponentType::MathInput => {
-                vec![SourcePlan::reference(p)]
+                vec![Source::reference(p)]
             }
             ComponentType::Math => {
                 let id = self.compiled.arena.push(Expr::Cell(p as CellIdx));
