@@ -131,9 +131,7 @@ fn operators_compute_and_propagate() {
            <point name="p" x="$t" y="$u"/>"#,
     );
     assert_eq!(doc.n_essential, 3);
-    // Two of these are `clamp`'s bounds, which lowering makes cells
-    // although the operator keeps them as literal parameters.
-    assert_eq!(doc.cells.len(), 15);
+    assert_eq!(doc.cells.len(), 13);
     assert_eq!(doc.value("s", "value"), Some(7.0));
     assert_eq!(doc.value("t", "value"), Some(70.0));
     assert_eq!(doc.value("u", "value"), Some(50.0));
