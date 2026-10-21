@@ -20,7 +20,8 @@ npm run render                      # the run's pages and the index
 
 `<id>` names the machine: lowercase letters, digits and dashes, the same
 every time you run on it. The run lands in
-`results/runs/<date>-<id>-<commit>/`; commit it with its pages.
+`results/runs/<date>-<id>-<commit>/`; commit it with its pages. A
+trace-only run replaces the machine's previous one (`METHOD.md`).
 
 Options: `--cores=javascript,cells` (default all three), and
 `--fixtures=depth,rebuild-1000,homework`, a list of fixture names or whole

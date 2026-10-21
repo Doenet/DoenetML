@@ -113,12 +113,9 @@ for (const [set, list] of Object.entries(SETS)) {
     if (rows.length <= 8)
         for (const r of rows)
             console.log(`    ${mb(r.raw)}  ${mb(r.brotli)}  ${r.file}`);
-    records.push({
-        set,
-        raw_bytes: raw,
-        brotli_bytes: brotli,
-        files: rows,
-    });
+    // The sum alone: the files are named by content hash, so a list of
+    // them means nothing once the dist is rebuilt.
+    records.push({ set, raw_bytes: raw, brotli_bytes: brotli });
 }
 const machine = process.env.BENCH_MACHINE;
 if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");

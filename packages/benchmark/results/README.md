@@ -9,6 +9,4 @@ Intel(R) Xeon(R) Processor @ 2.80GHz, 4 cores, 16093 MB, Linux 6.18.44-fc-v139 x
 | Run | Commit | Cores | Pages |
 |---|---|---|---|
 | 2026-10-21-claude-cloud-aa2a40e47 | `aa2a40e47` | cells | [trace](runs/2026-10-21-claude-cloud-aa2a40e47/trace.md) |
-| 2026-10-21-claude-cloud-a8cb91711 | `a8cb91711` | cells | [trace](runs/2026-10-21-claude-cloud-a8cb91711/trace.md) |
 | 2026-10-19-claude-cloud-b686555cd | `b686555cd` | JS, Rust, cells | [comparison](runs/2026-10-19-claude-cloud-b686555cd/comparison.md) · [coverage](runs/2026-10-19-claude-cloud-b686555cd/coverage.md) · [budgets](runs/2026-10-19-claude-cloud-b686555cd/budgets.md) |
-| 2026-10-19-claude-cloud-57c94fadf | `57c94fadf` | cells | [trace](runs/2026-10-19-claude-cloud-57c94fadf/trace.md) |

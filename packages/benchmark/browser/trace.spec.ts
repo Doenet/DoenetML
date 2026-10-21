@@ -242,19 +242,15 @@ for (const s of SCENARIOS) {
             }
         }
         for (const v of VISITS)
-            appendRecord(
-                run.records,
-                {
-                    page: s.page,
-                    cpu: s.cpu,
-                    size: s.size,
-                    fixture: fixture.name,
-                    visit: v,
-                    runs: runs[v],
-                    traced: traced[v],
-                },
-                { compact: true },
-            );
+            appendRecord(run.records, {
+                page: s.page,
+                cpu: s.cpu,
+                size: s.size,
+                fixture: fixture.name,
+                visit: v,
+                runs: runs[v],
+                traced: traced[v],
+            });
         const median = (xs: number[]) =>
             [...xs].sort((a, b) => a - b)[xs.length >> 1];
         console.log(

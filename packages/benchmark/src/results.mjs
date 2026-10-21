@@ -23,18 +23,16 @@ export function readRecords(file) {
 }
 
 /**
- * Append one record to a results file, creating it if needed. With
- * `compact`, one record per line: for layers whose records are large (the
- * trace layer's), which indented would be mostly whitespace.
+ * Append one record to a results file, creating it if needed, one record
+ * per line: indented, the records would be mostly whitespace, and every
+ * run is committed.
  */
-export function appendRecord(file, record, { compact = false } = {}) {
+export function appendRecord(file, record) {
     const records = readRecords(file);
     records.push(record);
     writeFileSync(
         file,
-        compact
-            ? `[\n${records.map((r) => JSON.stringify(r)).join(",\n")}\n]\n`
-            : JSON.stringify(records, null, 4) + "\n",
+        `[\n${records.map((r) => JSON.stringify(r)).join(",\n")}\n]\n`,
     );
 }
 
