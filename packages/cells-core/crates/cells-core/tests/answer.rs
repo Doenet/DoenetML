@@ -319,3 +319,16 @@ fn a_placed_text_response_renders_its_text() {
     .unwrap();
     assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hello");
 }
+
+// Every form of answer reads a referenced `weight` the same way.
+#[test]
+fn a_referenced_weight_reaches_choice_and_text_answers() {
+    let doc = load(
+        r#"<number name="w">3</number>
+<answer name="c" weight="$w"><choiceInput><choice credit="1">cat</choice><choice>dog</choice></choiceInput></answer>
+<answer name="t" type="text" weight="$w"><textInput/><award>yes</award></answer>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.value("c", "weight"), Some(3.0));
+    assert_eq!(doc.value("t", "weight"), Some(3.0));
+}

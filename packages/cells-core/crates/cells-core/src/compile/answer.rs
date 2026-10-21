@@ -145,10 +145,7 @@ impl<'a> Compiler<'a> {
             Source::SymExpr(id, Post::None)
         };
         let mut submitted = Source::MathEssential(None);
-        let weight = match d.attr(el, "weight") {
-            Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
-            None => Source::Fixed(1.0),
-        };
+        let weight = self.plan_weight(t, e, el)?;
 
         if forms.is_empty() {
             let eq = self.equals_op(&[el]);
@@ -193,6 +190,17 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
+    /// An answer's `weight` (1 when omitted), its references looked up from
+    /// the answer's scope like any other attribute's.
+    fn plan_weight(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<Source> {
+        let d = self.dast;
+        let scope = self.compiled.templates[t].elems[e].name_scope;
+        Ok(match d.attr(el, "weight") {
+            Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
+            None => Source::Fixed(1.0),
+        })
+    }
+
     /// `<answer><choiceInput>...</choiceInput></answer>`: the response is
     /// the chosen index, the submitted copy is its own cell, and the credit
     /// is the submitted choice's `credit` (0 while nothing is chosen).
@@ -203,7 +211,6 @@ impl<'a> Compiler<'a> {
         el: NodeId,
         ci: ElemId,
     ) -> Result<()> {
-        let d = self.dast;
         let choices: Vec<ElemId> = self
             .elem_children(t, ci)
             .into_iter()
@@ -219,10 +226,7 @@ impl<'a> Compiler<'a> {
         }
         let at = answer::Props::AT;
         let mut wiring = ElemWiring::of(ComponentType::Answer);
-        let weight = match d.attr(el, "weight") {
-            Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
-            None => Source::Fixed(1.0),
-        };
+        let weight = self.plan_weight(t, e, el)?;
         let mut args = vec![Arg::Own(own_slot(at.submitted))];
         args.extend(
             choices
@@ -277,10 +281,7 @@ impl<'a> Compiler<'a> {
             ));
         }
         let mut wiring = ElemWiring::of(ComponentType::Answer);
-        let weight = match d.attr(el, "weight") {
-            Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
-            None => Source::Fixed(1.0),
-        };
+        let weight = self.plan_weight(t, e, el)?;
         let mut best = None;
         for &a in awards {
             let form = self.award_form(t, a)?;
