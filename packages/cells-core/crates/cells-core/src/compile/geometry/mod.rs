@@ -4,10 +4,11 @@
 //! inverse rules of the operators it uses are in `program/vector.rs`.
 //!
 //! This file holds `plan_geo`, which runs each type's planner, the
-//! [`ShapeCtx`] a planner is given, and what the types share: point slots
-//! and roles, point lists, and inherited attributes. The circle's planner
-//! is with its definition, in `components/geometry/circle.rs` (ADR 0016);
-//! the others are each in a file here until they move there too.
+//! [`PlanCtx`] a planner is given, and what the types share: point slots
+//! and roles, point lists, and inherited attributes. The circle's and the
+//! line segment's planners are with their definitions, in
+//! `components/geometry/` (ADR 0016); the others are each in a file here
+//! until they move there too.
 
 use super::*;
 
@@ -15,13 +16,14 @@ mod line;
 mod point;
 mod polygon;
 
-/// What a shape's planner is given (ADR 0016): its element's attributes,
-/// planned the ways every shape shares, and a way to warn. An attribute is
-/// the element's own or, when the element omits it, its `extend`
-/// referent's. `plan_geo` makes one around each planner and does what
-/// every shape needs besides: a bare copy, sharing state with the
-/// referent by role, and `fixed`.
-pub(crate) struct ShapeCtx<'c, 'a> {
+/// What a planner is given (ADR 0016): its element's attributes, planned
+/// the ways every component shares, and a way to warn. An attribute is the
+/// element's own or, when the element omits it, its `extend` referent's.
+/// One context serves every kind of planner; the kind decides what is done
+/// around the call. For a shape, `plan_geo` makes it and does the rest: a
+/// bare copy, sharing state with the referent by role, and `fixed`. Only
+/// shapes are given one so far.
+pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
     e: ElemId,
@@ -29,7 +31,7 @@ pub(crate) struct ShapeCtx<'c, 'a> {
     base: Option<NodeId>,
 }
 
-impl<'a> ShapeCtx<'_, 'a> {
+impl<'a> PlanCtx<'_, 'a> {
     fn node(&self) -> NodeId {
         self.c.compiled.templates[self.t].elems[self.e].node
     }
@@ -137,7 +139,7 @@ impl<'a> Compiler<'a> {
             .and_then(|p| self.plan_elem_target(t, p))
             .filter(|&r| self.compiled.templates[t].elems[r].node != NONE);
         let base = base_elem.map(|r| self.compiled.templates[t].elems[r].node);
-        let mut ch = plan(&mut ShapeCtx {
+        let mut ch = plan(&mut PlanCtx {
             c: self,
             t,
             e,
@@ -474,10 +476,3 @@ impl<'a> Compiler<'a> {
         }
     }
 }
-
-/// A line's or segment's default point: its essential roles and value. The
-/// current core takes a missing first point as (1, 0) and a missing second
-/// one as (0, 0); a direction-based line's first point is the latter.
-type DefaultPoint = ([Role; 2], [f64; 2]);
-const ESS1: DefaultPoint = (roles::ESS1, [1.0, 0.0]);
-const ESS2: DefaultPoint = (roles::ESS2, [0.0, 0.0]);

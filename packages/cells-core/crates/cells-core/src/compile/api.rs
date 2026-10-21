@@ -4,5 +4,7 @@
 //! planner cannot meet from here is met by adding to it, once, for every
 //! component, never by reaching past it.
 
-pub(crate) use super::geometry::ShapeCtx;
-pub(crate) use super::plan::{ElemPlan, Planned, PointPlan, SourcePlan, point_roles, roles};
+pub(crate) use super::geometry::PlanCtx;
+pub(crate) use super::plan::{
+    ESS1, ESS2, ElemPlan, Planned, PointPlan, SourcePlan, point_roles, roles,
+};

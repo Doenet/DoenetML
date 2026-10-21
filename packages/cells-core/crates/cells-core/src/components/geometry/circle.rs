@@ -91,7 +91,7 @@ const INVALID_CENTER: (&str, &str) = (
 
 /// Plans a circle from any combination of `center`, `radius` and
 /// `through`.
-pub(crate) fn plan(ctx: &mut ShapeCtx<'_, '_>) -> Result<ElemPlan> {
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let at = Props::AT;
     let nan = || Planned::fixed(f64::NAN);
     let center = match ctx.point("center") {

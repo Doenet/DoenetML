@@ -311,6 +311,13 @@ pub(crate) mod roles {
     pub(crate) const ESS2: [Role; 2] = [Role("ess2x", 0), Role("ess2y", 0)];
 }
 
+/// A line's or segment's default point: its essential roles and value. The
+/// current core takes a missing first point as (1, 0) and a missing second
+/// one as (0, 0); a direction-based line's first point is the latter.
+pub(crate) type DefaultPoint = ([Role; 2], [f64; 2]);
+pub(crate) const ESS1: DefaultPoint = (roles::ESS1, [1.0, 0.0]);
+pub(crate) const ESS2: DefaultPoint = (roles::ESS2, [0.0, 0.0]);
+
 /// A slot's plan and, when it is essential state that a copy shares, its
 /// role and the attribute its value came from: what a typed plan's fields
 /// hold (`typed_props!`), so a role is always on the slot whose plan it
@@ -363,6 +370,19 @@ impl Planned {
                 "{} is not computed by the table",
                 component_type.prop_defs()[i].name
             ),
+        }
+    }
+    /// A given point as `point` plans it, else the essential default with
+    /// its roles.
+    pub(crate) fn point_or_default(
+        p: Option<&PointPlan>,
+        roles: [Role; 2],
+        attr: &'static str,
+        (default_roles, default): DefaultPoint,
+    ) -> [Self; 2] {
+        match p {
+            Some(p) => Self::point(p, roles, attr),
+            None => std::array::from_fn(|j| Self::essential(default_roles[j], default[j])),
         }
     }
     /// A point's two coordinates: a literal coordinate is essential state

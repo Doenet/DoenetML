@@ -174,15 +174,20 @@ case), carry every piece before other components follow:
    core's warnings (`doenet-w0028` to `w0033`). The golden diff's
    programs are identical. The other planners move with the steps that
    touch them.
-   **Done for the circle, amended 2026-10-21**: a component's definition
-   and its planner are one file, in its family's directory under
-   `components/` (`components/geometry/circle.rs`). The planner is a
-   function, not a `Compiler` method: it is given a `ShapeCtx`, which
-   plans the attributes it asks for, and it uses only what
-   `compile/api.rs` exports. That module is the line between a component
-   and the machinery; what two planners share is added there once, so a
-   component never reimplements it. The family directory keeps what a
-   family's members share visible. The golden diff is identical.
+   **Done for the circle and the line segment, amended 2026-10-21**: a
+   component's definition and its planner are one file, in its family's
+   directory under `components/` (`components/geometry/circle.rs`,
+   `segment.rs`). The planner is a function, not a `Compiler` method: it
+   is given a `PlanCtx`, which plans the attributes it asks for, and it
+   uses only what `compile/api.rs` exports. One `PlanCtx` serves every
+   kind of planner; the kind decides what the machinery does around the
+   call. `compile/api.rs` is the line between a component and the
+   machinery; what two planners share is added there once, so a
+   component never reimplements it (the segment's defaulted endpoints,
+   `Planned::point_or_default`, are the line's too). The family
+   directory keeps what a family's members share visible. The golden
+   diff is identical; the segment, which had no spec, has one
+   (`tests/specs/segment.rs`).
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices. **Done for the circle**: a type's one list
    (`ListProp`, `ComponentType::prop_at`) follows its table's props; an

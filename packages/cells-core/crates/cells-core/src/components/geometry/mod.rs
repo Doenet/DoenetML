@@ -1,14 +1,16 @@
 //! Point, circle, line, line segment, polygon and point list. All but the
 //! point list have a geometric planner (`compile/planner.rs`) that
 //! chooses each prop's source from the attributes the author gave. The
-//! circle is in its own file, its definition and its planner together
-//! (ADR 0016); the others' planners are in `compile/geometry/`.
+//! circle and the line segment are each in their own file, definition
+//! and planner together (ADR 0016); the others' planners are in
+//! `compile/geometry/`.
 
 use super::define::*;
 use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
 pub mod circle;
+pub mod segment;
 
 /// Largest polygon the fixed prop layout holds.
 pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
@@ -75,28 +77,6 @@ pub mod line {
     pub const COEFFVAR2: usize = at(LINE_PROPS, "coeffvar2");
     pub const COEFF0: usize = at(LINE_PROPS, "coeff0");
     pub const BASED_ON_DIRECTION: usize = at(LINE_PROPS, "basedOnDirection");
-}
-
-/// `<lineSegment endpoints="$a $b">`.
-pub(super) const LINE_SEGMENT: ComponentTypeInfo = info(&["lineSegment"], LINE_SEGMENT_PROPS)
-    .copyable()
-    .arrays(LINE_POINTS)
-    .sticky(Shape::Open, segment::X1, 2);
-
-const LINE_SEGMENT_PROPS: &[PropDef] =
-    &props([planned("x1"), planned("y1"), planned("x2"), planned("y2")]);
-
-pub mod segment {
-    use super::*;
-    pub const X1: usize = at(LINE_SEGMENT_PROPS, "x1");
-    pub const Y1: usize = at(LINE_SEGMENT_PROPS, "y1");
-    pub const X2: usize = at(LINE_SEGMENT_PROPS, "x2");
-    pub const Y2: usize = at(LINE_SEGMENT_PROPS, "y2");
-    // Read as (x, y) pairs by a sticky group, like a point's.
-    const _: () = assert!(
-        Y1 == X1 + 1 && X2 == X1 + 2 && Y2 == X1 + 3,
-        "a segment's endpoints must be x1 y1 x2 y2"
-    );
 }
 
 /// `<polygon vertices="...">`, optionally rigid: its vertices are its

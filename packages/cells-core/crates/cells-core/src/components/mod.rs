@@ -94,7 +94,7 @@ component_types! {
     /// `<line>`.
     Line => geometry::LINE,
     /// `<lineSegment>`.
-    LineSegment => geometry::LINE_SEGMENT,
+    LineSegment => geometry::segment::LINE_SEGMENT,
     /// `<polygon>` and `<triangle>`.
     Polygon => geometry::POLYGON,
     /// `<pointList>`.

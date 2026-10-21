@@ -4,4 +4,5 @@
 
 mod circle;
 mod polygon;
+mod segment;
 mod slider;

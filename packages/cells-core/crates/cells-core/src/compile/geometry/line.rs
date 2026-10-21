@@ -2,7 +2,7 @@
 //! slope or direction.
 
 use super::*;
-use crate::components::prop::{line, segment};
+use crate::components::prop::line;
 
 impl Compiler<'_> {
     /// Variable names of a line's equation (`variables="(s,t)"` or `"s t"`).
@@ -282,40 +282,5 @@ impl Compiler<'_> {
             }
             p => Ok(Self::point_slots(ch, &p)),
         }
-    }
-
-    pub(in crate::compile) fn plan_segment(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        base: Option<NodeId>,
-    ) -> Result<ElemPlan> {
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let mut ch = ElemPlan::new(ComponentType::LineSegment.prop_defs().len());
-        let ends = match self.attr_or_inherited(el, base, "endpoints") {
-            Some(a) => self.plan_point_list(t, scope, a)?,
-            None => Vec::new(),
-        };
-        Self::set_point_or_default(
-            &mut ch,
-            [segment::X1, segment::Y1],
-            ends.first(),
-            point_roles(0),
-            "endpoints",
-            ESS1,
-        );
-        Self::set_point_or_default(
-            &mut ch,
-            [segment::X2, segment::Y2],
-            ends.get(1),
-            point_roles(1),
-            "endpoints",
-            ESS2,
-        );
-        Ok(ch)
     }
 }
