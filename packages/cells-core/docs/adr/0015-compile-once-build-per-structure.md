@@ -1,6 +1,6 @@
 # Compile once, build per structure: a hard line between the two
 
-Status: accepted 2026-10-17. Steps 1, 3 and 5 of the migration are done; see Progress.
+Status: accepted 2026-10-17. Every step of the migration is done; see Progress.
 
 The core works in three stages that differ in how often they run and what
 they may depend on, and this ADR makes the line between them hard: each

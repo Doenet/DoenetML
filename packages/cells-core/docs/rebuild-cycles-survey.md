@@ -18,7 +18,8 @@ Closed 2026-10-16, after the survey: the probe now models entries 2, 3, 4
 and 12, each verdict below says how, and the tests are un-ignored. Entry
 1's false rejection is removed too. The rest of this report reads as
 surveyed. Since, the probe has become an implementation of the structure
-view (`build/view.rs`, ADR 0012's Outcome); the names below
+view (`build/view.rs`, ADR 0012's Outcome), in `build/probe.rs` (the
+`build/cycles.rs` below); the names below
 (`Probe::follows_repeat`, `probe_collect_count`, `Probe::iter_repeat`,
 `Probe::extra`, `check_seeds`) are those of the code at 6e66632.
 

@@ -163,7 +163,7 @@ a different operator chain chosen when the document is built, so the variety
 never reaches an inverse.
 
 **Projection inverse** — The inverse rule for an idempotent operator (Round,
-Clamp, Snap): the requested output value is passed through the operator itself
+Floor, Clamp): the requested output value is passed through the operator itself
 and the result is requested of the input. See ADR 0003.
 
 **Iteration** — One expansion of a repeat's template, identified by its
@@ -230,14 +230,14 @@ cell: forward it is the identity, and its inverse drops the request while the
 flag is nonzero. Not to be confused with a gate.
 
 **Slot** — At build time, one prop of one component instance (or a hidden
-value a planned component type needs), before aliases merge slots into cells. A
+value a component type's planner needs), before aliases merge slots into cells. A
 *template slot* is the same position within a template, shared by every
 instance; essential keys use it.
 
-**Plan** — What the compile phase records per template: each prop's *source
-plan* (a literal, an alias, an operator over other props, a math) and each
-reference's *reference plan* (a path through names and indices). Expansion
-turns plans into slots per scope.
+**Plan** — What the compile phase records per template: each prop's
+*source* (`Source`: a literal, an alias, an operator over other props, a
+math) and each reference's *reference plan* (`RefPlan`: a path through names
+and indices). Expansion turns plans into slots per scope.
 
 **Compile** — The once-per-load stage (ADR 0015): the source made into
 templates and plans (*plan*), checked through the probe (*check*), with every
@@ -325,9 +325,9 @@ document can reach, not only the count at load. Rejected at load time
 
 **Diagnostic** — An error, warning, info or accessibility finding about the
 document: a kind, a code, its arguments and the node it is about. A
-function of the document text alone, computed by `diagnose`, an
-exhaustive build that stamps every template, which the language server
-calls and a load never does; a tick never produces one (ADR 0013).
+function of the document text alone, found by the compile's check through
+the probe; `diagnose`, which the language server calls, returns the same
+list a load reports. A tick never produces one (ADR 0013).
 
 **Error component** — The `_error` component an element that could not be
 built stands as: no name, no children, no cells; its DAST node names its

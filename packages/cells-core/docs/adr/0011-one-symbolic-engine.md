@@ -37,8 +37,9 @@ change. The bench set keeps a symbolic family so growth stays visible.
   core with R became the ordinary symbolic tests. Switching them over
   found two wrapper bugs: a derivative was not usable as a template, and
   infinity evaluated to NaN.
-- The cost, measured once at the switch (`scripts/perf-diff.sh`, the
-  per-side minimum of 5 rounds, native release build):
+- The cost, measured once at the switch
+  (`packages/benchmark/scripts/perf-diff.sh`, the per-side minimum of 5
+  rounds, native release build):
 
   | fixture | load before | load after | tick before | tick after | heap before | heap after |
   |---|---|---|---|---|---|---|
@@ -68,7 +69,7 @@ change. The bench set keeps a symbolic family so growth stays visible.
 - The wasm grows from 1.06 MB to 2.61 MB.
 - The crate enables `serde_json/arbitrary_precision`, which cargo's feature
   unification spreads to the whole wasm binary.
-- The build-time numeric parser in `build/compile/expr.rs` (the parse arena,
+- The build-time numeric parser in `compile/expr.rs` (the parse arena,
   ADR 0005) is still the core's own; it is the remaining parser to unify.
 - Found 2026-10-14 through the DoenetML test suite: DoenetML's
   `simplifyOnCompare` has levels (`numbers`, `numbersPreserveOrder`,

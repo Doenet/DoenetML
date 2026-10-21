@@ -78,9 +78,10 @@ Runs once per load and depends on the source alone.
 - **Lint** (`lint.rs`) is one walk over the DAST for the rules that need
   nothing else, such as the accessibility rules.
 - **Plan** walks the DAST and produces a `Template` for the document, each
-  repeat body and each choice branch. Every prop and every reference in a
-  template has a *plan*: a literal, a default, an operator over references,
-  a math expression, or a reference path. Nothing in a plan names an
+  repeat body and each choice branch. Every prop in a template has a
+  `Source` (a literal, a default, an operator over references, a math
+  expression, ...) and every reference a `RefPlan`, its path. Nothing in a
+  plan names an
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
   (see [Add a component type](#add-a-component-type)).
@@ -223,12 +224,12 @@ through the cells that `build/expand/scoring.rs` wired.
 | Type | Where | What it is |
 |---|---|---|
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
-| `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (attribute, default, computed, or its planner), its flags and its planner. |
+| `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
 | `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
 | `View`, `Stamped` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options. The probe (`build/probe.rs`) is the other implementation. |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
-| `Session` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine. |
-| `Counts`, `Structure` | `build/structure.rs` | The counts a build stamps, and what one build made (its repeats and its essential cells' keys). |
+| `Session`, `Counts` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine; and the counts a build stamps. |
+| `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. `Program::value_types` records whether each cell holds a number, text or math. |
 | `Document` | `document/mod.rs` | A loaded document and the API to it. |
 | `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
@@ -289,8 +290,8 @@ Such a type lives in its own file, block and planner together (for
 example `values/text.rs`, registered as `values::text::DEFINITION`).
 `geometry/circle.rs` and `geometry/line.rs` are the models. A planner is a
 function given a `PlanCtx`: it reads the source, plans the attributes and
-children it asks for, and returns its props as a `Props<Wire>` struct
-literal (ADR 0016). Rules for planners:
+children it asks for, and sets its props from a `Props<Wire>` struct
+literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
 
 - Use only what `compile/api.rs` exports. Logic two planners both need
   belongs in `compile/` behind `api.rs`, once. Behavior a family shares

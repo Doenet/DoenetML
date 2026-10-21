@@ -1,8 +1,7 @@
 # Components are defined without knowing the core
 
-Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
-for the circle, line and segment, with every component's planner in its
-own file; see Migration. The renderer interface and where numbers
+Status: proposed 2026-10-20. Migration steps 1 to 4 are done, step 4 for
+the scalar operators; see Migration. The renderer interface and where numbers
 are formatted are not decided here (see The renderer).
 
 Terms: what this ADR first called a *role* is *shared state* now
@@ -165,7 +164,7 @@ case), carry every piece before other components follow:
 1. `spec!{}`, with the cost snapshot, and specs for both pilots written
    against today's behavior. They are the refactoring guard for what
    follows, with `golden-diff`. **Done**: `testing/spec.rs`,
-   `tests/specs/` (13 slider cases, 18 circle cases). The derived guards
+   `tests/specs/`. The derived guards
    so far are the reference evaluator after every tick and the cost
    snapshot; the `extend` variants and the rest come with the steps that
    need them. Writing the slider's spec found one deviation from the
@@ -173,10 +172,10 @@ case), carry every piece before other components follow:
    grid point nearest 0, not at `from`; fixed since.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
    **Done for the circle**: `typed_props!` (`components/define.rs`) gives
-   a table its `Props<T>`, and `plan_circle` returns `Props<Wire>`
-   (`compile/plan.rs`), a plan with its role, as a struct literal; roles
-   are `Role` constants everywhere; a planner warns through
-   `Compiler::warn`, and the circle's five NaN cases carry the current
+   a table its `Props<T>`, and the circle's planner gives its props as a
+   `Props<Wire>` (`compile/plan.rs`), a plan with its role, as a struct
+   literal; roles are `SharedState` constants everywhere; a planner warns
+   through `PlanCtx::warn`, and the circle's five NaN cases carry the current
    core's warnings (`doenet-w0028` to `w0033`). The golden diff's
    programs are identical. The other planners move with the steps that
    touch them.

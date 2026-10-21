@@ -88,10 +88,10 @@ flip is an ordinary tick.
   masks every other problem. The renderer shows the box
   (`cells-viewer/src/renderers/index.tsx`).
 - **Taken from an exhaustive build, by the language server.** The probe
-  view (`build/cycles.rs`) gains one switch, `every_option`: with it,
+  view (`build/probe.rs`) gains one switch, `every_option`: with it,
   every option of every select is built, inside a repeat or not.
   `diagnose(dast) -> Vec<Diagnostic>` runs the one box-and-retry loop
-  `build` runs (`build_boxing`), through that view with the probe's
+  a load runs (`compile/check.rs`), through that view with the probe's
   checks, and returns the list; the build itself is discarded. The list is seed- and count-independent
   because the view's answers do not depend on either. A load does not
   call it. The real build still collects diagnostics for the elements it
@@ -130,7 +130,7 @@ flip is an ordinary tick.
   `<shortDescription>` child or `decorative` (`doenet-a0001`), an input
   without one or a `<label>` child, a `label` attribute or `labelIsName`
   (`doenet-a0003`): each is a fact about the DAST and is found by
-  `lint` (`src/lint.rs`), one walk over the elements before anything is
+  `lint` (`src/compile/lint.rs`), one walk over the elements before anything is
   compiled, so a document whose build fails outright still has them.
   Every DAST-only rule belongs there as it arrives; the image, video and
   contrast rules wait for those types. There is no

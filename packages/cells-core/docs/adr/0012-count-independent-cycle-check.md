@@ -31,7 +31,7 @@ once, since rebuilds change counts but never templates.
   build, so the compile finds every cycle and the schedule's check only
   guards against core bugs; `check_cycles` exists only with the crate's
   `testing` feature.)
-- It is a *probe* expansion of the compiled templates (`build/cycles.rs`):
+- It is a *probe* expansion of the compiled templates (`build/probe.rs`):
   every repeat gets exactly one iteration, so each template slot exists
   once, and an index past that iteration lands in it instead of on the
   missing referent. The probe builder is discarded after the check.
