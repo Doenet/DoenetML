@@ -76,8 +76,5 @@
             "files": [],
             "output": []
         }
-    },
-    "devDependencies": {
-        "binaryen": "^132.0.0"
     }
 }

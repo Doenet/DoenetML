@@ -43,10 +43,9 @@ iterated. `fixtures/sir.doenet` is a document using most of these.
 - `npm run build`: compiles the core to wasm in `pkg/`, which
   `packages/cells-viewer` serves in the browser. Its `npm run dev` depends
   on this through wireit, so running the viewer rebuilds a stale `pkg/`.
-  wasm-pack then runs `wasm-opt` from the `binaryen` package in this
-  package's devDependencies (it takes the first one on its PATH); a system
-  binaryen older than 110 breaks the build's output, as
-  `crates/cells-wasm/Cargo.toml` explains.
+  wasm-pack then runs `wasm-opt`, from its PATH or the binaryen it
+  downloads once; a system binaryen older than 110 breaks the build's
+  output, as `crates/cells-wasm/Cargo.toml` explains.
 - `npm run lint`: fmt and clippy, warnings denied.
 - `cargo test` also runs in CI (`.github/workflows/cells-core.yml`); fmt
   and clippy in the `Lint Rust Code` job of `ci.yml`.

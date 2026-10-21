@@ -15,18 +15,15 @@ wasm-bindgen = "0.2"
 serde_json.workspace = true
 console_error_panic_hook = "0.1"
 
-# wasm-opt shrinks the wasm by a fifth after link-time optimization (2.44 MB
-# to 1.92 MB). wasm-pack runs the first `wasm-opt` on its PATH, which under
-# `npm run` is the `binaryen` package in this package's devDependencies
-# (`node_modules/.bin/wasm-opt`), the same version on every machine; only
-# outside npm does it download its own (binaryen 117 for wasm-pack 0.15).
+# wasm-pack runs wasm-opt `-O` on the release build, its default, which
+# shrinks the wasm by a fifth after link-time optimization (2.44 MB to
+# 1.92 MB). It uses the first `wasm-opt` on its PATH, else the binaryen it
+# downloads once (117 for wasm-pack 0.15).
 #
-# A binaryen older than 110 must not be used: it points the
+# A binaryen older than 110 must not be on the PATH: it points the
 # `__wbindgen_externrefs` export at the function table instead of the
 # externref table, so the load fails with "WebAssembly.Table.grow():
 # failed to grow table by 4" and then "unreachable". Debian 12 and Ubuntu
 # 22.04 ship such versions (108 and 105), which is how it was once taken
 # for a corruption of the function table by wasm-opt itself. Every version
 # from 110 to 132 was checked on this output in October 2026.
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O"]
