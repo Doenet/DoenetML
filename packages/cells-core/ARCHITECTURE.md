@@ -89,8 +89,8 @@ component table (`document/sticky.rs`).
 a `Dast`. Then `compile::compile` runs once: **plan** walks the DAST and plans
 every element with the planner `planner.rs` names for its type
 (`compile/mod.rs`; attributes and math in `attrs.rs`, references in
-`refs.rs`, geometric component types in `geometry/` or, for the circle and
-the line segment, in `components/geometry/`, choices in
+`refs.rs`, geometric component types in `geometry/` or, for the circle,
+line and line segment, in `components/geometry/`, choices in
 `choice.rs`). Expand and emit learn the document's structure only through
 the **structure view** (`View`, `build/view.rs`): how many iterations a
 repeat is stamped with, which iteration, item or pick an index names, what
@@ -202,7 +202,7 @@ attributes the author gave gets a planner of its own, named in its
 `planner` arm: `Geometric` for a shape, `PropsThen` to adjust the table's
 plan, or `Whole`. The planner lives with the type, in a file of its own
 in its family's directory, and uses only what `compile/api.rs` exports;
-`components/geometry/circle.rs` and `segment.rs` are the models (ADR
+`components/geometry/circle.rs`, `line.rs` and `segment.rs` are the models (ADR
 0016), each a function given a `PlanCtx` that plans the attributes for
 it. A planner names its
 props through `typed_props!` beside the table and returns them as a

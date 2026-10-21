@@ -1,8 +1,8 @@
 //! Point, circle, line, line segment, polygon and point list. All but the
 //! point list have a geometric planner (`compile/planner.rs`) that
 //! chooses each prop's source from the attributes the author gave. The
-//! circle and the line segment are each in their own file, definition
-//! and planner together (ADR 0016); the others' planners are in
+//! circle, the line and the line segment are each in their own file,
+//! definition and planner together (ADR 0016); the others' planners are in
 //! `compile/geometry/`.
 
 use super::define::*;
@@ -10,6 +10,7 @@ use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
 pub mod circle;
+pub mod line;
 pub mod segment;
 
 /// Largest polygon the fixed prop layout holds.
@@ -48,43 +49,6 @@ const LINE_POINTS: &[ArrayProp] = &[ArrayProp {
 /// them its own roles.
 pub(crate) const DEFAULT_FIRST_POINT: [f64; 2] = [1.0, 0.0];
 pub(crate) const DEFAULT_SECOND_POINT: [f64; 2] = [0.0, 0.0];
-
-/// `<line>`: its own two points are derived cells (ADR 0006); slope,
-/// intercepts and coefficients follow from them or from the equation.
-pub(super) const LINE: ComponentTypeInfo =
-    info(&["line"], LINE_PROPS).copyable().arrays(LINE_POINTS);
-
-/// The first four props are the line's own points (ADR 0006).
-/// `basedOnDirection` is 1 when the second point is derived from a slope or
-/// direction, so a renderer drags only the first.
-const LINE_PROPS: &[PropDef] = &props([
-    planned("x1"),
-    planned("y1"),
-    planned("x2"),
-    planned("y2"),
-    planned("slope"),
-    planned("xintercept"),
-    planned("yintercept"),
-    planned("coeffvar1"),
-    planned("coeffvar2"),
-    planned("coeff0"),
-    planned("basedOnDirection"),
-]);
-
-pub mod line {
-    use super::*;
-    pub const X1: usize = at(LINE_PROPS, "x1");
-    pub const Y1: usize = at(LINE_PROPS, "y1");
-    pub const X2: usize = at(LINE_PROPS, "x2");
-    pub const Y2: usize = at(LINE_PROPS, "y2");
-    pub const SLOPE: usize = at(LINE_PROPS, "slope");
-    pub const XINTERCEPT: usize = at(LINE_PROPS, "xintercept");
-    pub const YINTERCEPT: usize = at(LINE_PROPS, "yintercept");
-    pub const COEFFVAR1: usize = at(LINE_PROPS, "coeffvar1");
-    pub const COEFFVAR2: usize = at(LINE_PROPS, "coeffvar2");
-    pub const COEFF0: usize = at(LINE_PROPS, "coeff0");
-    pub const BASED_ON_DIRECTION: usize = at(LINE_PROPS, "basedOnDirection");
-}
 
 /// `<polygon vertices="...">`, optionally rigid: its vertices are its
 /// list (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when

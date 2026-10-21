@@ -1,0 +1,25 @@
+no attributes: through (1, 0) and (0, 0), both free: cells 23 · essential 8 · fixed 3 · instrs 12 · components 3
+two points: slope, intercepts and coefficients follow: cells 23 · essential 8 · fixed 3 · instrs 12 · components 3
+one point: the other at the origin: cells 23 · essential 8 · fixed 3 · instrs 12 · components 3
+points from points: a drag moves them: cells 25 · essential 10 · fixed 3 · instrs 12 · components 5
+a point and a slope: the second point a unit along it: cells 25 · essential 8 · fixed 3 · instrs 13 · components 3
+a slope alone: through the origin: cells 25 · essential 8 · fixed 3 · instrs 13 · components 3
+a slope from a number: cells 25 · essential 7 · fixed 4 · instrs 13 · components 4
+parallel to another line, following it: cells 43 · essential 11 · fixed 4 · instrs 27 · components 4
+parallel to a segment: cells 30 · essential 11 · fixed 3 · instrs 15 · components 4
+perpendicular to a vector: cells 26 · essential 9 · fixed 3 · instrs 13 · components 3
+perpendicular to a point's coordinates: cells 27 · essential 10 · fixed 3 · instrs 13 · components 4
+an equation attribute: coefficients are the state: cells 20 · essential 7 · fixed 3 · instrs 7 · components 3
+an equation as the line's text: cells 20 · essential 7 · fixed 3 · instrs 7 · components 3
+an equation in other variables: cells 20 · essential 7 · fixed 3 · instrs 7 · components 3
+variables that are not two are x and y: cells 20 · essential 7 · fixed 3 · instrs 7 · components 3
+an equation over a number: cells 21 · essential 6 · fixed 4 · instrs 8 · components 4
+a nonlinear equation is not a line: cells 20 · essential 4 · fixed 6 · instrs 7 · components 3
+an equation without one '=' is refused: cells 6 · essential 4 · fixed 2 · instrs 0 · components 3
+more than two points are refused: cells 6 · essential 4 · fixed 2 · instrs 0 · components 3
+a bare copy shares the line: cells 23 · essential 8 · fixed 3 · instrs 12 · components 4
+a copy of an equation line takes its equation: cells 34 · essential 10 · fixed 4 · instrs 14 · components 4
+a copy given points is a two-point line: cells 37 · essential 11 · fixed 4 · instrs 19 · components 4
+a copy overriding the slope shares the point: cells 41 · essential 9 · fixed 4 · instrs 26 · components 4
+a copy of a defaulted line shares both points: cells 36 · essential 8 · fixed 4 · instrs 24 · components 4
+fixed: drags are refused: cells 23 · essential 4 · fixed 7 · instrs 12 · components 3

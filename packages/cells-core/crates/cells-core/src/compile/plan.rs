@@ -317,13 +317,8 @@ pub(crate) mod roles {
     /// A point's coordinates.
     pub(crate) const X: Role = Role("x", 0);
     pub(crate) const Y: Role = Role("y", 0);
-    /// A line's second point's distance along its direction.
-    pub(crate) const DIST: Role = Role("dist", 0);
     /// A value that is the element's state (a text, a boolean).
     pub(crate) const VALUE: Role = Role("value", 0);
-    /// The default points of a line given by fewer than two.
-    pub(crate) const ESS1: [Role; 2] = [Role("ess1x", 0), Role("ess1y", 0)];
-    pub(crate) const ESS2: [Role; 2] = [Role("ess2x", 0), Role("ess2y", 0)];
 }
 
 /// A point a planner uses when the author gives none: its essential
@@ -539,6 +534,10 @@ impl ElemPlan {
         self.props.push(Some(plan));
         own_slot(self.props.len() - 1);
         self.props.len() - 1
+    }
+    /// Two hidden slots holding a point's coordinates.
+    pub(crate) fn hidden_point(&mut self, p: &PointPlan) -> [usize; 2] {
+        [self.hidden(p.coord(0)), self.hidden(p.coord(1))]
     }
     /// A hidden slot planned as `p`, with its role if it has one.
     pub(crate) fn hidden_planned(&mut self, p: Planned) -> usize {

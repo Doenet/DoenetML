@@ -3,7 +3,7 @@
 //! until it is given one here.
 
 use super::*;
-use crate::components::geometry::{circle, segment};
+use crate::components::geometry::{circle, line, segment};
 use geometry::PlanCtx;
 
 /// Adjusts the props `plan_attrs` planned, from the element.
@@ -68,7 +68,7 @@ impl<'a> Compiler<'a> {
             // Geometry
             K::Point => Geometric(|cx| cx.run_compiler_planner(Self::plan_point)),
             K::Circle => Geometric(circle::plan),
-            K::Line => Geometric(|cx| cx.run_compiler_planner(Self::plan_line)),
+            K::Line => Geometric(line::plan),
             K::LineSegment => Geometric(segment::plan),
             K::Polygon => Geometric(|cx| cx.run_compiler_planner(Self::plan_polygon)),
             K::PointList => Whole(Self::reject_point_list),

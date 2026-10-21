@@ -5,14 +5,13 @@
 //!
 //! This file holds `plan_geo`, which runs each type's planner, the
 //! [`PlanCtx`] a planner is given, and what the types share: point slots
-//! and roles, point lists, and inherited attributes. The circle's and the
-//! line segment's planners are with their definitions, in
-//! `components/geometry/` (ADR 0016); the others are each in a file here
-//! until they move there too.
+//! and roles, point lists, and inherited attributes. The circle's, line's
+//! and line segment's planners are with their definitions, in
+//! `components/geometry/` (ADR 0016); the point's and polygon's are each
+//! in a file here until they move there too.
 
 use super::*;
 
-mod line;
 mod point;
 mod polygon;
 
@@ -23,6 +22,10 @@ mod polygon;
 /// around the call. For a shape, `plan_geo` makes it and does the rest: a
 /// bare copy, sharing state with the referent by role, and `fixed`. Only
 /// shapes are given one so far.
+/// Math text a planner has found but not yet planned (`PlanCtx::math`),
+/// for `PlanCtx::linear_equation`.
+pub(crate) struct MathSource(Vec<NodeId>);
+
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
@@ -79,6 +82,91 @@ impl<'a> PlanCtx<'_, 'a> {
         };
         let scope = self.scope();
         self.c.plan_point_list(self.t, scope, a)
+    }
+
+    /// Whether the attribute is given.
+    pub(crate) fn has(&self, name: &str) -> bool {
+        self.attr(name).is_some()
+    }
+
+    /// An attribute's text, if it is given and holds no reference.
+    pub(crate) fn text(&self, name: &str) -> Option<String> {
+        self.attr(name).and_then(|a| self.c.attr_text(a))
+    }
+
+    /// An attribute's math text, if given.
+    pub(crate) fn math(&self, name: &str) -> Option<MathSource> {
+        self.attr(name)
+            .map(|a| MathSource(self.c.dast.attr_children(a).to_vec()))
+    }
+
+    /// The element's own children as math text (text and `$ref`s, not
+    /// elements), if it has any.
+    pub(crate) fn child_math(&self) -> Option<MathSource> {
+        Some(self.c.math_children(self.node()))
+            .filter(|n| !n.is_empty())
+            .map(MathSource)
+    }
+
+    /// The `extend` referent's children as math text, if it has any. A
+    /// planner decides when they stand for the element's own.
+    pub(crate) fn referent_child_math(&self) -> Option<MathSource> {
+        let base = self.base?;
+        Some(self.c.math_children(base))
+            .filter(|n| !n.is_empty())
+            .map(MathSource)
+    }
+
+    /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as plans
+    /// of `[a, b, c]`; `None` when it is not linear in them (or symbolic).
+    /// A referenced `<math>` carrying the variables is inlined first, so
+    /// `$m = y` with `$m` standing for `2x` is linear. Math that is not
+    /// one equation is an error.
+    pub(crate) fn linear_equation(
+        &mut self,
+        src: &MathSource,
+        vx: &str,
+        vy: &str,
+    ) -> Result<Option<[SourcePlan; 3]>> {
+        let (t, scope) = (self.t, self.scope());
+        let c = &mut *self.c;
+        let (toks, text) = c.math_tokens(t, scope, &src.0)?;
+        let sides = super::expr::split_top(&toks, &Token::Eq);
+        if sides.len() != 2 {
+            return Err(Error::BadMath {
+                text,
+                reason: "a line equation needs one '='".into(),
+            });
+        }
+        let (lhs, rhs) = (
+            c.parse_tokens(&sides[0], &text)?,
+            c.parse_tokens(&sides[1], &text)?,
+        );
+        let diff = c.compiled.arena.push(Expr::Sub(lhs, rhs));
+        let diff = c.inline_symbolic_maths(t, diff);
+        Ok(
+            super::expr::linear_coeffs(&mut c.compiled.arena, diff, vx, vy).map(|[a, b, k]| {
+                [
+                    c.plan_from_expr(a),
+                    c.plan_from_expr(b),
+                    c.plan_from_expr(k),
+                ]
+            }),
+        )
+    }
+
+    /// The component type of the element a reference names, when it
+    /// names one in this template (`$l`, not `$l.x` or `$r[2]`).
+    pub(crate) fn reference_type(&self, p: RefId) -> Option<ComponentType> {
+        self.c
+            .plan_elem_target(self.t, p)
+            .map(|e| self.c.compiled.templates[self.t].elems[e].component_type)
+    }
+
+    /// A prop of the element a reference names (`$l` -> `$l.x2`), as an
+    /// operator's argument.
+    pub(crate) fn reference_prop(&mut self, p: RefId, prop: &str) -> Arg {
+        Arg::Ref(self.c.plan_with_prop(p, prop), Sel::Whole)
     }
 
     /// Warns that the element cannot be what its attributes ask, with a
@@ -206,12 +294,6 @@ impl<'a> Compiler<'a> {
             .or_else(|| base.and_then(|b| d.attr(b, name)))
     }
 
-    /// Two hidden slots holding a point. A literal coordinate is essential
-    /// state and gets a role from `roles`, so a copy with overrides shares it.
-    pub(in crate::compile) fn point_slots(ch: &mut ElemPlan, p: &PointPlan) -> [usize; 2] {
-        [ch.hidden(p.coord(0)), ch.hidden(p.coord(1))]
-    }
-
     /// Put a point's coordinates on two public slots, tagging literal
     /// coordinates with roles. A free shape's own points are the points
     /// themselves: no instruction stands between (ADR 0006).
@@ -229,25 +311,6 @@ impl<'a> Compiler<'a> {
                     ch.set_essential(slots[j], roles[j], v)
                 }
                 other => ch.set(slots[j], other),
-            }
-        }
-    }
-
-    /// A given point as `set_point_with_roles` sets it, else an essential
-    /// default with its roles.
-    fn set_point_or_default(
-        ch: &mut ElemPlan,
-        slots: [usize; 2],
-        p: Option<&PointPlan>,
-        roles: [Role; 2],
-        attr: &'static str,
-        (default_roles, default): DefaultPoint,
-    ) {
-        match p {
-            Some(p) => Self::set_point_with_roles(ch, slots, p, roles, attr),
-            None => {
-                ch.set_essential(slots[0], default_roles[0], default[0]);
-                ch.set_essential(slots[1], default_roles[1], default[1]);
             }
         }
     }

@@ -3,6 +3,7 @@
 //! `snapshots/`.
 
 mod circle;
+mod line;
 mod polygon;
 mod segment;
 mod slider;

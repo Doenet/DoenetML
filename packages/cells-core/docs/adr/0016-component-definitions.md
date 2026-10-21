@@ -174,10 +174,10 @@ case), carry every piece before other components follow:
    core's warnings (`doenet-w0028` to `w0033`). The golden diff's
    programs are identical. The other planners move with the steps that
    touch them.
-   **Done for the circle and the line segment, amended 2026-10-21**: a
-   component's definition and its planner are one file, in its family's
-   directory under `components/` (`components/geometry/circle.rs`,
-   `segment.rs`). The planner is a function, not a `Compiler` method: it
+   **Done for the circle, the line and the line segment, amended
+   2026-10-21**: a component's definition and its planner are one file,
+   in its family's directory under `components/`
+   (`components/geometry/circle.rs`, `line.rs`, `segment.rs`). The planner is a function, not a `Compiler` method: it
    is given a `PlanCtx`, which plans the attributes it asks for, and it
    uses only what `compile/api.rs` exports. One `PlanCtx` serves every
    kind of planner; the kind decides what the machinery does around the
@@ -192,9 +192,15 @@ case), carry every piece before other components follow:
    constants of its own `roles` module: a copy extends only its own
    type, so a role need be unique only within it, and a misspelled role
    still does not compile. `compile/plan.rs` keeps the roles of the
-   planners still there. The golden
-   diff is identical; the segment, which had no spec, has one
-   (`tests/specs/segment.rs`).
+   planners still there. The line asked more of `PlanCtx` than the
+   others: an attribute's text, math children (its own and its
+   referent's), a linear equation's coefficients, and the type and props
+   of what a reference names; each is general, not the line's. The golden
+   diff is identical. The segment and the line, which had no specs, have
+   them (`tests/specs/segment.rs`, `line.rs`); the line's passes, cost
+   snapshot included, on the commit before it moved too. A nonlinear
+   equation still makes a line of NaN without a diagnostic, as before;
+   that case is left for the step that brings the line's warnings.
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices. **Done for the circle**: a type's one list
    (`ListProp`, `ComponentType::prop_at`) follows its table's props; an

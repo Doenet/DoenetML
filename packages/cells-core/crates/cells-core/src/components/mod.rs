@@ -92,7 +92,7 @@ component_types! {
     /// `<circle>`.
     Circle => geometry::circle::CIRCLE,
     /// `<line>`.
-    Line => geometry::LINE,
+    Line => geometry::line::LINE,
     /// `<lineSegment>`.
     LineSegment => geometry::segment::LINE_SEGMENT,
     /// `<polygon>` and `<triangle>`.

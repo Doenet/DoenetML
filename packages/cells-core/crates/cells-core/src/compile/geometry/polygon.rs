@@ -115,7 +115,7 @@ impl Compiler<'_> {
                 // the shape rotates about a centroid or vertex.
                 match &pivot_point {
                     Some(pp) => {
-                        let [x, y] = Self::point_slots(&mut ch, pp);
+                        let [x, y] = ch.hidden_point(pp);
                         args.push(x);
                         args.push(y);
                     }
