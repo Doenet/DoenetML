@@ -452,6 +452,13 @@ impl<'c> Builder<'c> {
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
                 self.op_slot(OpSpec::Pow, &[a, b], scope)
             }
+            // Clamp's bounds are parameters, so only its argument is lowered.
+            Expr::Call(Func::Clamp, args) => {
+                let bound = |a: &Arena, e| num(a, e).expect("the parser checks clamp's bounds");
+                let (lo, hi) = (bound(&self.arena, args[1]), bound(&self.arena, args[2]));
+                let x = self.lower(args[0], scope);
+                self.op_slot(OpSpec::Clamp { lo, hi }, &[x], scope)
+            }
             Expr::Call(f, args) => {
                 let mut xs = args
                     .iter()
@@ -471,12 +478,7 @@ impl<'c> Builder<'c> {
                         xs.into_iter()
                             .fold(first, |acc, x| self.op_slot(spec, &[acc, x], scope))
                     }
-                    Func::Clamp => {
-                        let bound =
-                            |a: &Arena, e| num(a, e).expect("the parser checks clamp's bounds");
-                        let (lo, hi) = (bound(&self.arena, args[1]), bound(&self.arena, args[2]));
-                        self.op_slot(OpSpec::Clamp { lo, hi }, &xs[..1], scope)
-                    }
+                    Func::Clamp => unreachable!("clamp is lowered above"),
                 }
             }
         }
