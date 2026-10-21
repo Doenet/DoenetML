@@ -4,6 +4,10 @@
 use super::define::*;
 use super::{ComponentTypeInfo, PropDef};
 
+pub mod choice_input;
+pub mod math_input;
+pub mod text_input;
+
 /// `<numberInput>`.
 pub(super) const NUMBER_INPUT: ComponentTypeInfo = info(&["numberInput"], NUMBER_INPUT_PROPS)
     .copyable()
@@ -24,21 +28,6 @@ pub mod boolean_input {
     pub const VALUE: usize = at(BOOLEAN_INPUT_PROPS, "value");
 }
 
-/// `<choiceInput>`: `selectedIndex` is the 1-based position of the chosen
-/// `<choice>` child, 0 for none; it is the input's own state. Choices are
-/// shown in document order (`shuffleOrder` is not modelled);
-/// `selectMultiple` is refused.
-pub(super) const CHOICE_INPUT: ComponentTypeInfo = info(&["choiceInput"], CHOICE_INPUT_PROPS)
-    .copyable()
-    .default_prop("selectedIndex");
-
-const CHOICE_INPUT_PROPS: &[PropDef] = &props([attr("selectedIndex", 0.0)]);
-
-pub mod choice_input {
-    use super::*;
-    pub const SELECTED_INDEX: usize = at(CHOICE_INPUT_PROPS, "selectedIndex");
-}
-
 /// `<choice credit="1">text</choice>` inside a `<choiceInput>`: a rendered
 /// container whose `credit` is what choosing it earns.
 pub(super) const CHOICE: ComponentTypeInfo = info(&["choice"], CHOICE_PROPS).container();
@@ -48,28 +37,6 @@ const CHOICE_PROPS: &[PropDef] = &props([attr("credit", 0.0)]);
 pub mod choice {
     use super::*;
     pub const CREDIT: usize = at(CHOICE_PROPS, "credit");
-}
-
-/// `<mathInput>`: bound to another cell by a child reference or
-/// `bindValueTo`, it is a numeric input (`expr` NaN). Unbound, its `expr`
-/// is an essential math cell (typing writes a parsed handle) and `value`
-/// evaluates it; a request on `value` writes a constant expression.
-pub(super) const MATH_INPUT: ComponentTypeInfo = info(&["mathInput"], MATH_INPUT_PROPS)
-    .copyable()
-    .default_prop("value");
-
-// A mathInput's value is bound by a child reference or `bindValueTo`,
-// else it is the `prefill` (the builder reads it). The builder plans
-// `expr` from what `value` turned out to be (`plan_math_input`).
-const MATH_INPUT_PROPS: &[PropDef] = &props([
-    children("value").attribute("prefill").bind("bindValueTo"),
-    planned("expr"),
-]);
-
-pub mod math_input {
-    use super::*;
-    pub const VALUE: usize = at(MATH_INPUT_PROPS, "value");
-    pub const EXPR: usize = at(MATH_INPUT_PROPS, "expr");
 }
 
 /// `<slider>` in numeric mode. Its whole value chain is computed props, so
@@ -119,20 +86,3 @@ const SLIDER_PROPS: &[PropDef] = &props([
     computed("scaled", OpSpec::Mul, &["index", "step"]),
     computed("value", OpSpec::Add, &["scaled", "from"]),
 ]);
-
-/// `<textInput>`: `value` is an essential cell holding a string id (the
-/// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
-/// to another text cell. Typing interns the text (`Document::intern`) and
-/// requests the id. Planned by `plan_text_input`; `immediateValue` is the
-/// same cell.
-pub(super) const TEXT_INPUT: ComponentTypeInfo = info(&["textInput"], TEXT_INPUT_PROPS)
-    .copyable()
-    .default_prop("value");
-
-const TEXT_INPUT_PROPS: &[PropDef] =
-    &props([children("value").attribute("prefill").bind("bindValueTo")]);
-
-pub mod text_input {
-    use super::*;
-    pub const VALUE: usize = at(TEXT_INPUT_PROPS, "value");
-}

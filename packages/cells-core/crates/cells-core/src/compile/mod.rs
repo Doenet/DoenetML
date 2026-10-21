@@ -12,11 +12,15 @@
 //! fails (ADR 0013); `lint.rs` holds the rules that need only the DAST.
 //!
 //! Files: this one walks the DAST and decides each element's shape;
-//! `attrs.rs` plans attribute and math sources, `refs.rs` names and
-//! reference paths, `expr.rs` the parse arena for math text, `geometry/`
-//! the planned types, `api.rs` what a planner in `components/` may use, `choice.rs` with `condition.rs` the choices,
-//! `copies.rs` `extend`, `fix.rs` `fixed`, `answer.rs`, `boolean.rs` and
-//! `iterates.rs` theirs. What compile produces is in `plan.rs`.
+//! `planner.rs` names each type's planner, which is in the type's file
+//! under `components/` (ADR 0016), and `ctx.rs` the [`PlanCtx`] it is
+//! given; `api.rs` is all of `compile/` a planner may use. The rest is
+//! machinery planners build on: `attrs.rs` plans attribute and math
+//! sources, `refs.rs` names and reference paths, `expr.rs` the parse
+//! arena for math text, `geometry/` what shapes share (`plan_geo`),
+//! `choice.rs` with `condition.rs` the choices, `copies.rs` `extend`,
+//! `fix.rs` `fixed`, `answer.rs` answers and `iterates.rs` repeats over
+//! lists. What compile produces is in `plan.rs`.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
@@ -26,7 +30,7 @@ use crate::dast::{Dast, NodeId, NodeKind, StrId};
 use crate::document::{CellIdx, NONE};
 use crate::error::{Error, Result};
 use crate::limits::byte;
-use crate::program::{OpSpec, Pivot, Post, RigidOpts, SymKind, VecOp};
+use crate::program::{OpSpec, Post, SymKind, VecOp};
 use crate::sym::Tree;
 use expr::{Arena, Expr, ExprId, Parser, Token};
 use plan::*;
@@ -34,11 +38,11 @@ use plan::*;
 mod answer;
 pub(crate) mod api;
 mod attrs;
-mod boolean;
 mod check;
 mod choice;
 mod condition;
 mod copies;
+mod ctx;
 pub(crate) mod expr;
 mod fix;
 mod geometry;
@@ -67,6 +71,7 @@ impl From<Failure> for Error {
     }
 }
 
+use ctx::PlanCtx;
 use planner::Planner;
 
 pub(in crate::compile) struct Compiler<'a> {
@@ -650,94 +655,9 @@ impl<'a> Compiler<'a> {
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props | Planner::PropsThen(_) => self.plan_attrs(t, e, extend),
                 Planner::Geometric(plan) => self.plan_geo(t, e, extend, plan),
-                Planner::Whole(plan) => plan(self, t, e),
+                Planner::Whole(plan) => plan(&mut PlanCtx::new(self, t, e, None)),
             },
         }
-    }
-
-    /// `<math>`. A tuple-valued math (`<math>(a, b)</math>`) is a point for
-    /// the cells core: two cells, draggable as a direction source. With
-    /// three or more entries it is a tuple, one cell per entry.
-    fn plan_math_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.dast;
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let nodes: Vec<NodeId> = d.children(el).to_vec();
-        let (toks, text) = self.math_tokens(t, scope, &nodes)?;
-        if let Some(inner) = expr::unwrap_parens(&toks)
-            && expr::split_top(inner, &Token::Comma).len() == 2
-        {
-            let [x, y] = self.plan_tuple(t, scope, &nodes)?;
-            self.compiled.templates[t].elems[e].component_type = ComponentType::Point;
-            self.compiled.templates[t].elems[e].props = point_props(x, y);
-            return Ok(());
-        }
-        if let Some(inner) = expr::unwrap_parens(&toks)
-            && expr::split_top(inner, &Token::Comma).len() > 2
-        {
-            let parts = expr::split_top(inner, &Token::Comma);
-            if parts.len() > crate::components::MAX_TUPLE {
-                return Err(Error::Unsupported(format!(
-                    "a tuple of {} entries (at most {})",
-                    parts.len(),
-                    crate::components::MAX_TUPLE
-                )));
-            }
-            let mut entries = Vec::with_capacity(parts.len());
-            for part in &parts {
-                let id = self.parse_tokens(part, &text)?;
-                entries.push(self.plan_from_expr(id));
-            }
-            self.compiled.templates[t].elems[e].component_type = ComponentType::Tuple;
-            self.compiled.templates[t].elems[e].props = tuple_props(entries);
-            return Ok(());
-        }
-        let id = self.plan_sym_math(t, scope, &nodes)?;
-        let post = if self.attr_on(el, "expand") {
-            Post::Expand
-        } else if self.attr_on(el, "simplify") {
-            Post::Simplify
-        } else {
-            Post::None
-        };
-        self.compiled.templates[t].elems[e].props = math_props(id, post);
-        Ok(())
-    }
-
-    /// `<collect>`: what it collects is resolved when it expands.
-    fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.dast;
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let from = d
-            .attr(el, "from")
-            .and_then(|a| self.single_macro(a))
-            .ok_or(Error::BadCollect)?;
-        let type_text = d
-            .attr(el, "componentType")
-            .and_then(|a| self.attr_text(a))
-            .ok_or(Error::BadCollect)?;
-        let ck = ComponentType::from_tag(type_text.trim())
-            .filter(|k| k.copyable())
-            .ok_or_else(|| Error::BadCollectType(type_text.trim().into()))?;
-        let p = self.plan_ref(t, scope, from)?;
-        if self.compiled.refs[p].prop.is_some() {
-            return Err(Error::BadCollect);
-        }
-        self.compiled.templates[t].elems[e].body = Body::Collect {
-            from: p,
-            component_type: ck,
-        };
-        let mut props = vec![SourcePlan::Fixed(f64::NAN); ComponentType::Collect.prop_defs().len()];
-        Deferred::mark(ComponentType::Collect, &mut props);
-        self.compiled.templates[t].elems[e].props = props;
-        Ok(())
     }
 
     /// Which way an element is planned, decided from its `extend` attribute

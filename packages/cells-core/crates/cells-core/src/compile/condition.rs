@@ -1,7 +1,7 @@
 //! Conditions: comparisons and boolean operators over math, planned as
 //! hidden slots of an element. A `<case condition>` and a
 //! `<conditionalContent condition>` plan theirs on the choice element; a
-//! `<boolean>` plans its content on itself (`boolean.rs`).
+//! `<boolean>` plans its content on itself (`components/values/boolean.rs`).
 //!
 //! An operand that lowers to numeric operators (ADR 0005) is compared
 //! numerically. One that does not (a free symbol, a function the lowering

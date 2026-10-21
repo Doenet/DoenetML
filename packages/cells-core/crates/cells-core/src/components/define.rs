@@ -323,13 +323,15 @@ macro_rules! typed_props {
             };
         )?
 
-        /// One field per prop of the table, in its order.
-        #[allow(non_snake_case)]
+        /// One field per prop of the table, in its order. A type may use
+        /// only its positions (`AT`), or only its plan.
+        #[allow(non_snake_case, dead_code)]
         #[derive(Debug, Clone)]
         pub(crate) struct Props<T> {
             $(pub(crate) $field: T,)*
         }
 
+        #[allow(dead_code)]
         impl<T> Props<T> {
             /// The props in table order.
             pub(crate) fn into_vec(self) -> Vec<T> {
@@ -337,6 +339,7 @@ macro_rules! typed_props {
             }
         }
 
+        #[allow(dead_code)]
         impl Props<usize> {
             /// Each prop's position in the table.
             pub(crate) const AT: Props<usize> = Props {

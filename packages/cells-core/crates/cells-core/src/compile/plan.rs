@@ -289,8 +289,8 @@ pub(crate) fn own_slot(i: usize) -> u8 {
 /// slot with a role aliases the original's slot with the same role. A
 /// copy extends an element of its own type only, so a role need only be
 /// unique within its type. Roles are constants: a component's own, which
-/// `typed_props!` declares beside its props, and those of [`roles`] and
-/// [`point_roles`], so a planner cannot misspell one.
+/// `typed_props!` declares beside its props, and a list's points'
+/// ([`point_roles`]), so a planner cannot misspell one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Role(&'static str, u32);
 
@@ -308,17 +308,6 @@ impl Role {
     pub(crate) const fn name(self) -> &'static str {
         self.0
     }
-}
-
-/// The roles of the planners still in `compile/`; a component in
-/// `components/` declares its own in `typed_props!`.
-pub(crate) mod roles {
-    use super::Role;
-    /// A point's coordinates.
-    pub(crate) const X: Role = Role("x", 0);
-    pub(crate) const Y: Role = Role("y", 0);
-    /// A value that is the element's state (a text, a boolean).
-    pub(crate) const VALUE: Role = Role("value", 0);
 }
 
 /// A point a planner uses when the author gives none: its essential
@@ -534,6 +523,49 @@ impl ElemPlan {
         self.props.push(Some(plan));
         own_slot(self.props.len() - 1);
         self.props.len() - 1
+    }
+    /// Puts a point's coordinates on two public slots, a literal
+    /// coordinate as essential state with its role, given by `attr`. A free
+    /// shape's own points are the points themselves: no instruction stands
+    /// between (ADR 0006).
+    pub(crate) fn set_point(
+        &mut self,
+        slots: [usize; 2],
+        p: &PointPlan,
+        roles: [Role; 2],
+        attr: &'static str,
+    ) {
+        for j in 0..2 {
+            match p.coord(j) {
+                SourcePlan::Literal(v) => {
+                    self.role_from_attr(roles[j], attr);
+                    self.set_essential(slots[j], roles[j], v)
+                }
+                other => self.set(slots[j], other),
+            }
+        }
+    }
+    /// Two hidden slots holding a point's coordinates, a literal coordinate
+    /// as essential state with its role, given by `attr`.
+    pub(crate) fn hidden_point_with_roles(
+        &mut self,
+        p: &PointPlan,
+        roles: [Role; 2],
+        attr: &'static str,
+    ) -> [usize; 2] {
+        std::array::from_fn(|j| match p.coord(j) {
+            SourcePlan::Literal(v) => {
+                self.role_from_attr(roles[j], attr);
+                self.essential(roles[j], v)
+            }
+            other => self.hidden(other),
+        })
+    }
+    /// Moves `role`, if the plan gives it, to slot `i`.
+    pub(crate) fn move_role(&mut self, role: Role, i: usize) {
+        if let Some(slot) = self.roles.get_mut(&role) {
+            *slot = own_slot(i);
+        }
     }
     /// Two hidden slots holding a point's coordinates.
     pub(crate) fn hidden_point(&mut self, p: &PointPlan) -> [usize; 2] {

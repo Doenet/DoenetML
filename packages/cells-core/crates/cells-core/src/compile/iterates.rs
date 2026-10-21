@@ -273,32 +273,4 @@ impl<'a> Compiler<'a> {
         }
         Ok(())
     }
-
-    /// `<polyline vertices="$r">`: gathers the points under what `vertices`
-    /// names, as `<collect componentType="point">` would; `numVertices` is
-    /// set when it expands.
-    pub(super) fn plan_polyline(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let m = self.attr_macro(el, "polyline", "vertices")?;
-        let p = self.plan_ref(t, scope, m)?;
-        if self.compiled.refs[p].prop.is_some() {
-            return Err(Error::Unsupported(
-                "<polyline vertices> must name a component holding points".into(),
-            ));
-        }
-        let el = &mut self.compiled.templates[t].elems[e];
-        el.body = Body::Collect {
-            from: p,
-            component_type: ComponentType::Point,
-        };
-        let mut props =
-            vec![SourcePlan::Fixed(f64::NAN); ComponentType::Polyline.prop_defs().len()];
-        Deferred::mark(ComponentType::Polyline, &mut props);
-        el.props = props;
-        Ok(())
-    }
 }

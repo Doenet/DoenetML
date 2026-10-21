@@ -1,7 +1,8 @@
 # Components are defined without knowing the core
 
 Status: proposed 2026-10-20. Migration steps 1, 3 and 4 are done, step 2
-for the circle; see Migration. The renderer interface and where numbers
+for the circle, line and segment, with every component's planner in its
+own file; see Migration. The renderer interface and where numbers
 are formatted are not decided here (see The renderer).
 
 A component should be writable, and changeable, without knowing cells,
@@ -174,33 +175,44 @@ case), carry every piece before other components follow:
    core's warnings (`doenet-w0028` to `w0033`). The golden diff's
    programs are identical. The other planners move with the steps that
    touch them.
-   **Done for the circle, the line and the line segment, amended
-   2026-10-21**: a component's definition and its planner are one file,
-   in its family's directory under `components/`
-   (`components/geometry/circle.rs`, `line.rs`, `segment.rs`). The planner is a function, not a `Compiler` method: it
-   is given a `PlanCtx`, which plans the attributes it asks for, and it
-   uses only what `compile/api.rs` exports. One `PlanCtx` serves every
-   kind of planner; the kind decides what the machinery does around the
-   call. `compile/api.rs` is the line between a component and the
-   machinery; what two planners share is added there once, so a
-   component never reimplements it (`Planned::point_or_default` plans
-   a line's and a segment's defaulted points). What members of a family
-   share as behavior, rather than as machinery, is in the family's
-   `mod.rs` (the default points themselves, `components/geometry/`), so
-   the family directory keeps it visible. A component's roles are
-   declared with its props (`typed_props!(.. roles { .. })`), as
-   constants of its own `roles` module: a copy extends only its own
-   type, so a role need be unique only within it, and a misspelled role
-   still does not compile. `compile/plan.rs` keeps the roles of the
-   planners still there. The line asked more of `PlanCtx` than the
-   others: an attribute's text, math children (its own and its
-   referent's), a linear equation's coefficients, and the type and props
-   of what a reference names; each is general, not the line's. The golden
-   diff is identical. The segment and the line, which had no specs, have
-   them (`tests/specs/segment.rs`, `line.rs`); the line's passes, cost
-   snapshot included, on the commit before it moved too. A nonlinear
-   equation still makes a line of NaN without a diagnostic, as before;
-   that case is left for the step that brings the line's warnings.
+   **Done for every component, amended 2026-10-21**: a component's
+   definition and its planner are one file, in its family's directory
+   under `components/` (`geometry/circle.rs`, `values/text.rs`,
+   `structure/collect.rs`, ...); a type planned from its table alone, or
+   whose planner only refuses it (a tuple, a response, a point list, an
+   error), is in its family's `mod.rs`, which also holds what the
+   family's members share as behavior (the line's and segment's default
+   points, the choices' refusal of `extend`). `compile/planner.rs` is
+   only the table naming each type's planner. Every planner is a
+   function given a `PlanCtx` (`compile/ctx.rs`), whatever its kind:
+   `Geometric` returns a plan that `plan_geo` wraps in the handling of
+   `extend` every shape shares, `PropsThen` adjusts the table's plan,
+   passed beside the context, and `Whole` writes the element's plan
+   through it. A `PlanCtx` gives the source read-only (the DAST), the
+   element's attributes and children planned the ways every component
+   shares, and the writes that make the element's plan; a planner uses
+   only what `compile/api.rs` exports. `compile/api.rs` is the line
+   between a component and the machinery; what two planners share is
+   added there once, so a component never reimplements it.
+   A type built on machinery several components share (answer, the
+   choices, the repeats over lists) has a thin planner: its file holds
+   its definition, its own decisions (an award outside an answer, a
+   choice that extends another, are refused there) and a call naming the
+   machinery (`PlanCtx::plan_answer`, `plan_choice`, `plan_repeat_for`,
+   `plan_function_iterates`), which stays in `compile/`.
+   A component's roles are declared with its props
+   (`typed_props!(.. roles { .. })`), as constants of its own `roles`
+   module: a copy extends only its own type, so a role need be unique
+   only within it, and a misspelled role still does not compile.
+   `compile/plan.rs` declares no component's roles; `point_roles` names
+   a list's points. Plans are typed for the circle, line and segment;
+   the other planners moved as they were, setting slots by the
+   positions named beside their tables, and become typed with the steps
+   that touch them. A nonlinear line equation still makes a line of NaN
+   without a diagnostic, as before. The golden diff is identical through
+   every move. The segment and the line, which had no specs, have them
+   (`tests/specs/segment.rs`, `line.rs`); the line's passes, cost
+   snapshot included, on the commit before it moved too.
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices. **Done for the circle**: a type's one list
    (`ListProp`, `ComponentType::prop_at`) follows its table's props; an

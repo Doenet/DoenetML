@@ -2,7 +2,6 @@
 //! `<op>`, or math text, and the helpers that read attribute text.
 
 use super::*;
-use crate::components::prop::{math_input, section, text, text_input};
 
 impl<'a> Compiler<'a> {
     /// Plans for a type described by `PropFrom`: attributes, bindings,
@@ -104,8 +103,8 @@ impl<'a> Compiler<'a> {
                     }
                 }
                 (None, PropFrom::Derived) => self.plan_op(t, scope, el)?,
-                // Set below (`plan_math_input`, `plan_section_flags`,
-                // `plan_select_from_sequence`, `Deferred::mark`).
+                // Set below, by the type's `PropsThen` planner or
+                // `Deferred::mark`.
                 (None, PropFrom::Planned)
                     if matches!(
                         component_type,
@@ -124,7 +123,7 @@ impl<'a> Compiler<'a> {
         }
         let mut props: Vec<Option<SourcePlan>> = props;
         if let Planner::PropsThen(then) = Self::planner(component_type) {
-            then(self, el, &mut props)?;
+            then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
         let fix_attrs: &[&str] = if component_type == ComponentType::Graph {
             &["fixed", "fixAxes"]
@@ -135,280 +134,6 @@ impl<'a> Compiler<'a> {
         let mut props: Vec<SourcePlan> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
         self.compiled.templates[t].elems[e].props = props;
-        Ok(())
-    }
-
-    /// A section's `aggregateScores`, `includeParentNumber` and `label`:
-    /// literals, defaulted by tag as in the current core, since they decide
-    /// how credit and numbers are wired.
-    pub(super) fn plan_section_flags(
-        &mut self,
-        el: NodeId,
-        props: &mut [Option<SourcePlan>],
-    ) -> Result<()> {
-        let d = self.dast;
-        let tag = match d.str(el) {
-            "division" => d
-                .attr(el, "type")
-                .and_then(|a| self.attr_text(a))
-                .map(|t| t.trim().to_string())
-                .unwrap_or_default(),
-            tag => tag.to_string(),
-        };
-        let (label, &(_, _, aggregate, parent_number)) = crate::components::SECTION_TAGS
-            .iter()
-            .enumerate()
-            .find(|(_, s)| s.0 == tag)
-            .ok_or_else(|| Error::UnsupportedTag(format!("division type=\"{tag}\"")))?;
-        let flag = |name: &str, default: bool| -> Result<f64> {
-            match d.attr(el, name) {
-                None => Ok(if default { 1.0 } else { 0.0 }),
-                Some(a) if self.attr_text(a).is_some() => {
-                    Ok(if self.attr_flag(el, name) { 1.0 } else { 0.0 })
-                }
-                Some(_) => Err(Error::Unsupported(format!(
-                    "'{name}' on a <{tag}> must be a literal: it decides how the section is wired"
-                ))),
-            }
-        };
-        props[section::AGGREGATE] = Some(SourcePlan::Fixed(flag("aggregateScores", aggregate)?));
-        props[section::INCLUDE_PARENT_NUMBER] = Some(SourcePlan::Fixed(flag(
-            "includeParentNumber",
-            parent_number,
-        )?));
-        props[section::LABEL] = Some(SourcePlan::Fixed(label as f64));
-        Ok(())
-    }
-
-    /// A mathInput bound to a cell (a reference child or `bindValueTo`)
-    /// stays a numeric input. Unbound, its `expr` is an essential math cell
-    /// holding the prefill (or its children's text) and `value` evaluates it.
-    /// A `prefill="$n"` is not a binding: the expression starts as `$n`'s
-    /// value when the input is first built.
-    pub(super) fn plan_math_input(
-        &mut self,
-        el: NodeId,
-        props: &mut [Option<SourcePlan>],
-    ) -> Result<()> {
-        let d = self.dast;
-        if d.attr(el, "bindValueTo").is_none()
-            && d.children(el).iter().all(|&n| self.is_blank(n))
-            && let Some(a) = d.attr(el, "prefill")
-            && self.single_macro(a).is_some()
-            && let Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) = props[math_input::VALUE]
-        {
-            props[math_input::EXPR] = Some(SourcePlan::MathEssentialFrom(p));
-            props[math_input::VALUE] = Some(SourcePlan::computed(
-                OpSpec::Sym(SymKind::Evaluate),
-                vec![math_input::EXPR],
-            ));
-            return Ok(());
-        }
-        let nodes = match d.attr(el, "prefill") {
-            Some(a) => d.attr_children(a),
-            None => d.children(el),
-        };
-        let bound = matches!(props[math_input::VALUE], Some(SourcePlan::Alias(_)))
-            || nodes.iter().any(|&n| d.kind(n) == NodeKind::Macro);
-        if bound {
-            props[math_input::EXPR] = Some(SourcePlan::Fixed(f64::NAN));
-            return Ok(());
-        }
-        let text: String = nodes
-            .iter()
-            .filter(|&&n| d.kind(n) == NodeKind::Text)
-            .map(|&n| d.str(n))
-            .collect();
-        let text = text.trim();
-        let tree = if text.is_empty() {
-            None
-        } else {
-            Some(
-                // Build-time only, so a throwaway engine parses it.
-                crate::sym::Engine::new()
-                    .parse_tree(text)
-                    .map_err(|reason| Error::BadMath {
-                        text: text.into(),
-                        reason,
-                    })?,
-            )
-        };
-        props[math_input::EXPR] = Some(SourcePlan::MathEssential(tree));
-        props[math_input::VALUE] = Some(SourcePlan::computed(
-            OpSpec::Sym(SymKind::Evaluate),
-            vec![math_input::EXPR],
-        ));
-        Ok(())
-    }
-
-    /// `<function>`, `<derivative>`: a curve samples over the x-range of
-    /// the graph it sits in, else [-10, 10].
-    pub(in crate::compile) fn plan_symbolic(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.dast;
-        let Elem {
-            node: el,
-            component_type,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let nodes: Vec<NodeId> = d.children(el).to_vec();
-        use crate::components::prop::{curve, graph};
-        let mut plan = ElemPlan::of(component_type);
-        if component_type == ComponentType::Function && self.is_vector_function(t, scope, el)? {
-            // Not a curve and not a math cell: a function of several
-            // variables, or one returning a tuple, is only iterated
-            // (`plan_function_iterates` reads its text).
-            plan.set(curve::EXPR, SourcePlan::Fixed(f64::NAN));
-            plan.set(curve::XMIN, SourcePlan::Fixed(-10.0));
-            plan.set(curve::XMAX, SourcePlan::Fixed(10.0));
-            plan.set(curve::SAMPLES, SourcePlan::Fixed(f64::NAN));
-            self.compiled.templates[t].elems[e].props = plan.finish();
-            return Ok(());
-        }
-        let id = self.plan_sym_math(t, scope, &nodes)?;
-        match component_type {
-            ComponentType::Function | ComponentType::Derivative => {
-                if component_type == ComponentType::Function {
-                    plan.set(curve::EXPR, SourcePlan::SymExpr(id, Post::None));
-                } else {
-                    let of = plan.hidden(SourcePlan::SymExpr(id, Post::None));
-                    plan.set(
-                        curve::EXPR,
-                        SourcePlan::Op(
-                            OpSpec::Sym(SymKind::Derivative),
-                            vec![Arg::Own(own_slot(of))],
-                        ),
-                    );
-                }
-                let graph = (scope != ROOT_SCOPE
-                    && self.compiled.templates[t].elems[scope].component_type
-                        == ComponentType::Graph)
-                    .then_some(scope);
-                match graph {
-                    Some(g) => {
-                        let at = |p: usize| SourcePlan::Alias(Arg::Elem(g, own_slot(p)));
-                        plan.set(curve::XMIN, at(graph::XMIN));
-                        plan.set(curve::XMAX, at(graph::XMAX));
-                    }
-                    None => {
-                        plan.set(curve::XMIN, SourcePlan::Fixed(-10.0));
-                        plan.set(curve::XMAX, SourcePlan::Fixed(10.0));
-                    }
-                }
-                plan.set(
-                    curve::SAMPLES,
-                    SourcePlan::Op(
-                        OpSpec::Sym(SymKind::Sample),
-                        vec![
-                            Arg::Own(own_slot(curve::EXPR)),
-                            Arg::Own(own_slot(curve::XMIN)),
-                            Arg::Own(own_slot(curve::XMAX)),
-                        ],
-                    ),
-                );
-            }
-            _ => unreachable!(),
-        }
-        self.compiled.templates[t].elems[e].props = plan.finish();
-        Ok(())
-    }
-
-    /// Whether a `<function>` takes several variables or returns a tuple.
-    fn is_vector_function(&mut self, t: TemplateId, scope: ElemId, el: NodeId) -> Result<bool> {
-        if self.function_variables(el).len() > 1 {
-            return Ok(true);
-        }
-        let nodes: Vec<NodeId> = self.dast.children(el).to_vec();
-        let (toks, _) = self.math_tokens(t, scope, &nodes)?;
-        Ok(super::expr::unwrap_parens(&toks)
-            .is_some_and(|inner| super::expr::split_top(inner, &Token::Comma).len() > 1))
-    }
-
-    /// `<text>`: literal text (or nothing) is an essential cell holding its
-    /// string id, since DoenetML's text value is state (a bound `<textInput>`
-    /// writes it); a lone reference aliases another text's value.
-    pub(in crate::compile) fn plan_text(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.dast;
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let nodes: Vec<NodeId> = d
-            .children(el)
-            .iter()
-            .copied()
-            .filter(|&n| !self.is_blank(n))
-            .collect();
-        let mut plan = ElemPlan::of(ComponentType::Text);
-        match nodes.as_slice() {
-            [] => {
-                plan.set_text_essential(text::VALUE, roles::VALUE, self.intern_literal("") as f64)
-            }
-            [n] if d.kind(*n) == NodeKind::Text => {
-                plan.set_text_essential(text::VALUE, roles::VALUE, d.str_id(*n) as f64)
-            }
-            [n] if d.kind(*n) == NodeKind::Macro => plan.set(
-                text::VALUE,
-                SourcePlan::reference(self.plan_ref(t, scope, *n)?),
-            ),
-            _ => {
-                return Err(Error::Unsupported(
-                    "<text> whose content mixes text, references or elements".into(),
-                ));
-            }
-        };
-        self.compiled.templates[t].elems[e].props = plan.finish();
-        Ok(())
-    }
-
-    /// `<textInput>`: `value` aliases what a lone `$ref` child names, else
-    /// what `bindValueTo` names (a child wins, as in DoenetML); otherwise it
-    /// is an essential cell holding the id of its `prefill` text (or of "").
-    pub(in crate::compile) fn plan_text_input(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let d = self.dast;
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t].elems[e];
-        let nodes: Vec<NodeId> = d
-            .children(el)
-            .iter()
-            .copied()
-            .filter(|&n| !self.is_blank(n))
-            .collect();
-        let mut plan = ElemPlan::of(ComponentType::TextInput);
-        match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
-            ([n], _) if d.kind(*n) == NodeKind::Macro => plan.set(
-                text_input::VALUE,
-                SourcePlan::reference(self.plan_ref(t, scope, *n)?),
-            ),
-            ([], Some(a)) => {
-                let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
-                    attr: "bindValueTo".into(),
-                    text: self.attr_text(a).unwrap_or_default(),
-                })?;
-                plan.set(
-                    text_input::VALUE,
-                    SourcePlan::reference(self.plan_ref(t, scope, m)?),
-                );
-            }
-            ([], None) => {
-                let text = match d.attr(el, "prefill") {
-                    Some(a) => self.attr_text(a).unwrap_or_default(),
-                    None => String::new(),
-                };
-                let id = self.intern_literal(&text);
-                plan.set_text_essential(text_input::VALUE, roles::VALUE, id as f64);
-            }
-            _ => {
-                return Err(Error::Unsupported(
-                    "<textInput> with content other than one reference".into(),
-                ));
-            }
-        }
-        self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
 

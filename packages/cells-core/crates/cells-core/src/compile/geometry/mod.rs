@@ -1,19 +1,11 @@
-//! Planned types: point, circle, line, line segment and polygon. Each
+//! What the geometric types share: `plan_geo`, which runs each type's
+//! planner (in its file under `components/geometry/`, ADR 0016) and
+//! handles `extend` around it, point lists, and inherited attributes. A
 //! planner reads the element's attributes and children and chooses the
-//! operator chain that produces the type's public props (ADR 0006). The
+//! operator chain that produces the type's public props (ADR 0006); the
 //! inverse rules of the operators it uses are in `program/vector.rs`.
-//!
-//! This file holds `plan_geo`, which runs each type's planner, the
-//! [`PlanCtx`] a planner is given, and what the types share: point slots
-//! and roles, point lists, and inherited attributes. The circle's, line's
-//! and line segment's planners are with their definitions, in
-//! `components/geometry/` (ADR 0016); the point's and polygon's are each
-//! in a file here until they move there too.
 
 use super::*;
-
-mod point;
-mod polygon;
 
 /// What a planner is given (ADR 0016): its element's attributes, planned
 /// the ways every component shares, and a way to warn. An attribute is the
@@ -22,171 +14,6 @@ mod polygon;
 /// around the call. For a shape, `plan_geo` makes it and does the rest: a
 /// bare copy, sharing state with the referent by role, and `fixed`. Only
 /// shapes are given one so far.
-/// Math text a planner has found but not yet planned (`PlanCtx::math`),
-/// for `PlanCtx::linear_equation`.
-pub(crate) struct MathSource(Vec<NodeId>);
-
-pub(crate) struct PlanCtx<'c, 'a> {
-    c: &'c mut Compiler<'a>,
-    t: TemplateId,
-    e: ElemId,
-    /// The `extend` referent's node, which supplies what the element omits.
-    base: Option<NodeId>,
-}
-
-impl<'a> PlanCtx<'_, 'a> {
-    fn node(&self) -> NodeId {
-        self.c.compiled.templates[self.t].elems[self.e].node
-    }
-
-    fn scope(&self) -> ElemId {
-        self.c.compiled.templates[self.t].elems[self.e].name_scope
-    }
-
-    fn attr(&self, name: &str) -> Option<u32> {
-        self.c.attr_or_inherited(self.node(), self.base, name)
-    }
-
-    /// A point-valued attribute, a reference (`center="$p"`) or a tuple
-    /// (`center="(1, 2)"`), if given.
-    pub(crate) fn point(&mut self, name: &str) -> Result<Option<PointPlan>> {
-        let Some(a) = self.attr(name) else {
-            return Ok(None);
-        };
-        let scope = self.scope();
-        self.c.plan_point_attr(self.t, scope, a).map(Some)
-    }
-
-    /// Whether the attribute is one reference and nothing else
-    /// (`center="$p"`).
-    pub(crate) fn is_reference(&self, name: &str) -> bool {
-        self.attr(name)
-            .is_some_and(|a| self.c.single_macro(a).is_some())
-    }
-
-    /// A scalar attribute, a literal, a reference or math, if given.
-    pub(crate) fn scalar(&mut self, name: &str) -> Result<Option<SourcePlan>> {
-        let Some(a) = self.attr(name) else {
-            return Ok(None);
-        };
-        let scope = self.scope();
-        let nodes = self.c.dast.attr_children(a);
-        self.c.plan_scalar(self.t, scope, name, nodes).map(Some)
-    }
-
-    /// The points of a point-list attribute (`through="$a (1, 2)"`), none
-    /// if it is not given.
-    pub(crate) fn points(&mut self, name: &str) -> Result<Vec<PointPlan>> {
-        let Some(a) = self.attr(name) else {
-            return Ok(Vec::new());
-        };
-        let scope = self.scope();
-        self.c.plan_point_list(self.t, scope, a)
-    }
-
-    /// Whether the attribute is given.
-    pub(crate) fn has(&self, name: &str) -> bool {
-        self.attr(name).is_some()
-    }
-
-    /// An attribute's text, if it is given and holds no reference.
-    pub(crate) fn text(&self, name: &str) -> Option<String> {
-        self.attr(name).and_then(|a| self.c.attr_text(a))
-    }
-
-    /// An attribute's math text, if given.
-    pub(crate) fn math(&self, name: &str) -> Option<MathSource> {
-        self.attr(name)
-            .map(|a| MathSource(self.c.dast.attr_children(a).to_vec()))
-    }
-
-    /// The element's own children as math text (text and `$ref`s, not
-    /// elements), if it has any.
-    pub(crate) fn child_math(&self) -> Option<MathSource> {
-        Some(self.c.math_children(self.node()))
-            .filter(|n| !n.is_empty())
-            .map(MathSource)
-    }
-
-    /// The `extend` referent's children as math text, if it has any. A
-    /// planner decides when they stand for the element's own.
-    pub(crate) fn referent_child_math(&self) -> Option<MathSource> {
-        let base = self.base?;
-        Some(self.c.math_children(base))
-            .filter(|n| !n.is_empty())
-            .map(MathSource)
-    }
-
-    /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as plans
-    /// of `[a, b, c]`; `None` when it is not linear in them (or symbolic).
-    /// A referenced `<math>` carrying the variables is inlined first, so
-    /// `$m = y` with `$m` standing for `2x` is linear. Math that is not
-    /// one equation is an error.
-    pub(crate) fn linear_equation(
-        &mut self,
-        src: &MathSource,
-        vx: &str,
-        vy: &str,
-    ) -> Result<Option<[SourcePlan; 3]>> {
-        let (t, scope) = (self.t, self.scope());
-        let c = &mut *self.c;
-        let (toks, text) = c.math_tokens(t, scope, &src.0)?;
-        let sides = super::expr::split_top(&toks, &Token::Eq);
-        if sides.len() != 2 {
-            return Err(Error::BadMath {
-                text,
-                reason: "a line equation needs one '='".into(),
-            });
-        }
-        let (lhs, rhs) = (
-            c.parse_tokens(&sides[0], &text)?,
-            c.parse_tokens(&sides[1], &text)?,
-        );
-        let diff = c.compiled.arena.push(Expr::Sub(lhs, rhs));
-        let diff = c.inline_symbolic_maths(t, diff);
-        Ok(
-            super::expr::linear_coeffs(&mut c.compiled.arena, diff, vx, vy).map(|[a, b, k]| {
-                [
-                    c.plan_from_expr(a),
-                    c.plan_from_expr(b),
-                    c.plan_from_expr(k),
-                ]
-            }),
-        )
-    }
-
-    /// The component type of the element a reference names, when it
-    /// names one in this template (`$l`, not `$l.x` or `$r[2]`).
-    pub(crate) fn reference_type(&self, p: RefId) -> Option<ComponentType> {
-        self.c
-            .plan_elem_target(self.t, p)
-            .map(|e| self.c.compiled.templates[self.t].elems[e].component_type)
-    }
-
-    /// A prop of the element a reference names (`$l` -> `$l.x2`), as an
-    /// operator's argument.
-    pub(crate) fn reference_prop(&mut self, p: RefId, prop: &str) -> Arg {
-        Arg::Ref(self.c.plan_with_prop(p, prop), Sel::Whole)
-    }
-
-    /// Warns that the element cannot be what its attributes ask, with a
-    /// code and message of `packages/i18n/src/diagnostics.ts` (ADR 0013).
-    /// A planner warns rather than leave a NaN to explain itself.
-    pub(crate) fn warn(&mut self, code: &'static str, message: &str) {
-        let node = self.node();
-        self.c.warn(node, code, message);
-    }
-
-    /// Runs a planner that is still a `Compiler` method, until it moves
-    /// to its component's file.
-    pub(in crate::compile) fn run_compiler_planner(
-        &mut self,
-        plan: planner::CompilerGeoFn<'a>,
-    ) -> Result<ElemPlan> {
-        plan(self.c, self.t, self.e, self.base)
-    }
-}
-
 impl<'a> Compiler<'a> {
     /// Runs a geometric type's planner (`plan`, from `planner`) with what
     /// the types share around it: a bare copy aliases every prop, and a copy
@@ -227,12 +54,7 @@ impl<'a> Compiler<'a> {
             .and_then(|p| self.plan_elem_target(t, p))
             .filter(|&r| self.compiled.templates[t].elems[r].node != NONE);
         let base = base_elem.map(|r| self.compiled.templates[t].elems[r].node);
-        let mut ch = plan(&mut PlanCtx {
-            c: self,
-            t,
-            e,
-            base,
-        })?;
+        let mut ch = plan(&mut PlanCtx::new(self, t, e, base))?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables.
         if let Some(r) = base_elem {
@@ -272,7 +94,7 @@ impl<'a> Compiler<'a> {
 
     /// The children that make up math text: text and `$ref`s, not blanks
     /// or elements (constraints).
-    fn math_children(&self, node: NodeId) -> Vec<NodeId> {
+    pub(in crate::compile) fn math_children(&self, node: NodeId) -> Vec<NodeId> {
         let d = self.dast;
         d.children(node)
             .iter()
@@ -292,46 +114,6 @@ impl<'a> Compiler<'a> {
         let d = self.dast;
         d.attr(el, name)
             .or_else(|| base.and_then(|b| d.attr(b, name)))
-    }
-
-    /// Put a point's coordinates on two public slots, tagging literal
-    /// coordinates with roles. A free shape's own points are the points
-    /// themselves: no instruction stands between (ADR 0006).
-    pub(in crate::compile) fn set_point_with_roles(
-        ch: &mut ElemPlan,
-        slots: [usize; 2],
-        p: &PointPlan,
-        roles: [Role; 2],
-        attr: &'static str,
-    ) {
-        for j in 0..2 {
-            match p.coord(j) {
-                SourcePlan::Literal(v) => {
-                    ch.role_from_attr(roles[j], attr);
-                    ch.set_essential(slots[j], roles[j], v)
-                }
-                other => ch.set(slots[j], other),
-            }
-        }
-    }
-
-    pub(in crate::compile) fn point_slots_with_roles(
-        ch: &mut ElemPlan,
-        p: &PointPlan,
-        roles: [Role; 2],
-        attr: &'static str,
-    ) -> [usize; 2] {
-        let mut out = [0; 2];
-        for j in 0..2 {
-            out[j] = match p.coord(j) {
-                SourcePlan::Literal(v) => {
-                    ch.role_from_attr(roles[j], attr);
-                    ch.essential(roles[j], v)
-                }
-                other => ch.hidden(other),
-            };
-        }
-        out
     }
 
     /// The points of a point-list attribute: bare references, parenthesized

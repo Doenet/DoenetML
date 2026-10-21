@@ -354,32 +354,6 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// `<choiceInput>`: its choices must be `<choice>` elements;
-    /// `selectMultiple` is refused.
-    pub(super) fn plan_choice_input(
-        &mut self,
-        el: NodeId,
-        _props: &mut [Option<SourcePlan>],
-    ) -> Result<()> {
-        let d = self.dast;
-        if self.attr_on(el, "selectMultiple") {
-            return Err(Error::Unsupported("<choiceInput selectMultiple>".into()));
-        }
-        for &n in d.children(el) {
-            match d.kind(n) {
-                NodeKind::Text if d.str(n).trim().is_empty() => {}
-                NodeKind::Other => {}
-                NodeKind::Element if d.str(n) == "choice" => {}
-                _ => {
-                    return Err(Error::Unsupported(
-                        "the children of <choiceInput> must be <choice> elements".into(),
-                    ));
-                }
-            }
-        }
-        Ok(())
-    }
-
     /// Attributes that change what an answer checks and are out of scope.
     /// Returns whether the answer is `type="text"`.
     fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
@@ -688,21 +662,5 @@ impl<'a> Compiler<'a> {
         } else {
             SymKind::Equals
         }
-    }
-
-    /// An `<award>` is planned by its answer; one elsewhere has no plan.
-    pub(super) fn plan_award_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        if self.compiled.templates[t].elems[e].props.is_empty() {
-            return Err(Error::Unsupported("an <award> outside an <answer>".into()));
-        }
-        Ok(())
-    }
-
-    /// A `<when>` is planned by its answer; one elsewhere has no plan.
-    pub(super) fn plan_when_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        if self.compiled.templates[t].elems[e].props.is_empty() {
-            return Err(Error::Unsupported("a <when> outside an <award>".into()));
-        }
-        Ok(())
     }
 }

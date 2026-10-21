@@ -3,24 +3,22 @@
 //! until it is given one here.
 
 use super::*;
-use crate::components::geometry::{circle, line, segment};
-use geometry::PlanCtx;
+use crate::components::{containers, geometry, inputs, structure, values};
+use ctx::PlanCtx;
 
-/// Adjusts the props `plan_attrs` planned, from the element.
+/// Adjusts the props `plan_attrs` planned from the table.
 pub(super) type PropsFn<'a> =
-    fn(&mut Compiler<'a>, NodeId, &mut [Option<SourcePlan>]) -> Result<()>;
-/// Plans a geometric element from what its context gives it.
+    for<'c> fn(&mut PlanCtx<'c, 'a>, &mut [Option<SourcePlan>]) -> Result<()>;
+/// Plans a geometric element, its attributes merged over those of the
+/// element it extends.
 pub(super) type GeoFn<'a> = for<'c> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemPlan>;
-/// A geometric planner that is still a `Compiler` method, given the node
-/// of the element it extends; run through `PlanCtx::run_compiler_planner`.
-pub(super) type CompilerGeoFn<'a> =
-    fn(&mut Compiler<'a>, TemplateId, ElemId, Option<NodeId>) -> Result<ElemPlan>;
 /// Plans the whole element.
-pub(super) type WholeFn<'a> = fn(&mut Compiler<'a>, TemplateId, ElemId) -> Result<()>;
+pub(super) type WholeFn<'a> = for<'c> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
 
 /// How an element is planned once the cases that do not depend on its type
 /// (clones, synthesized elements, `extend` of a prop or of a container) are
-/// ruled out.
+/// ruled out. Every planner but `Props` is a function in the type's file
+/// under `components/` (ADR 0016).
 pub(super) enum Planner<'a> {
     /// From the type's prop table (`plan_attrs`).
     Props,
@@ -36,19 +34,26 @@ impl<'a> Compiler<'a> {
     pub(super) fn planner(component_type: ComponentType) -> Planner<'a> {
         use ComponentType as K;
         use Planner::*;
+        use containers::section;
+        use geometry::{circle, line, point, polygon, polyline, segment};
+        use inputs::{choice_input, math_input, text_input};
+        use structure::{
+            collect, conditional_content, function_iterates, repeat_for, select,
+            select_from_sequence,
+        };
+        use values::{answer, award, boolean, curve, math, text, when};
         match component_type {
             // Containers
             K::Document => Props,
             K::Graph => Props,
             K::P => Props,
             K::ShortDescription => Props,
-            // Made boxed by `add_elem`, already planned.
-            K::Error => Whole(|_, _, _| Ok(())),
+            K::Error => Whole(containers::plan_error),
             K::Hint => Props,
             K::Setup => Props,
             K::Group => Props,
             K::StickyGroup => Props,
-            K::Section => PropsThen(Self::plan_section_flags),
+            K::Section => PropsThen(section::plan),
             K::Title => Props,
             K::Ref => Props,
             K::List => Props,
@@ -66,95 +71,47 @@ impl<'a> Compiler<'a> {
             K::Legend => Props,
             K::TriggerSet => Props,
             // Geometry
-            K::Point => Geometric(|cx| cx.run_compiler_planner(Self::plan_point)),
+            K::Point => Geometric(point::plan),
             K::Circle => Geometric(circle::plan),
             K::Line => Geometric(line::plan),
             K::LineSegment => Geometric(segment::plan),
-            K::Polygon => Geometric(|cx| cx.run_compiler_planner(Self::plan_polygon)),
-            K::PointList => Whole(Self::reject_point_list),
-            K::Polyline => Whole(Self::plan_polyline),
+            K::Polygon => Geometric(polygon::plan),
+            K::PointList => Whole(geometry::plan_point_list),
+            K::Polyline => Whole(polyline::plan),
             // Inputs
             K::NumberInput => Props,
             K::BooleanInput => Props,
-            K::MathInput => PropsThen(Self::plan_math_input),
-            K::ChoiceInput => PropsThen(Self::plan_choice_input),
+            K::MathInput => PropsThen(math_input::plan),
+            K::ChoiceInput => PropsThen(choice_input::plan),
             K::Choice => Props,
-            K::TextInput => Whole(Self::plan_text_input_elem),
+            K::TextInput => Whole(text_input::plan),
             K::Slider => Props,
             K::UpdateValue => Props,
             // Values
             K::Number => Props,
             K::ClampNumber => Props,
-            K::Tuple => Whole(Self::reject_tuple),
-            K::Text => Whole(Self::plan_text_elem),
-            K::Boolean => Whole(Self::plan_boolean_elem),
+            K::Tuple => Whole(values::plan_tuple),
+            K::Text => Whole(text::plan),
+            K::Boolean => Whole(boolean::plan),
             K::Op => Props,
-            K::Math => Whole(Self::plan_math_elem),
+            K::Math => Whole(math::plan),
             K::Evaluate => Props,
-            K::Function => Whole(Self::plan_symbolic),
-            K::Derivative => Whole(Self::plan_symbolic),
-            K::Answer => Whole(Self::plan_answer),
-            K::Award => Whole(Self::plan_award_elem),
-            K::When => Whole(Self::plan_when_elem),
-            K::Response => Whole(Self::reject_response),
+            K::Function => Whole(curve::plan),
+            K::Derivative => Whole(curve::plan),
+            K::Answer => Whole(answer::plan),
+            K::Award => Whole(award::plan),
+            K::When => Whole(when::plan),
+            K::Response => Whole(values::plan_response),
             // Structure
             K::RepeatForSequence => Props,
-            K::RepeatFor => Whole(Self::plan_repeat_for),
-            K::FunctionIterates => Whole(Self::plan_function_iterates),
+            K::RepeatFor => Whole(repeat_for::plan),
+            K::FunctionIterates => Whole(function_iterates::plan),
             K::SequenceValue => Props,
-            K::Collect => Whole(Self::plan_collect),
-            K::ConditionalContent => Whole(Self::plan_choice_elem),
+            K::Collect => Whole(collect::plan),
+            K::ConditionalContent => Whole(conditional_content::plan),
             K::Case => Props,
-            K::Select => Whole(Self::plan_choice_elem),
-            K::SelectFromSequence => PropsThen(Self::plan_select_from_sequence),
+            K::Select => Whole(select::plan),
+            K::SelectFromSequence => PropsThen(select_from_sequence::plan),
         }
-    }
-
-    /// A `<pointList>` only exists as `extend="$shape.points"`, which
-    /// `elem_shape` takes before asking for a planner.
-    fn reject_point_list(&mut self, _: TemplateId, _: ElemId) -> Result<()> {
-        Err(Error::BadValue {
-            attr: "extend".into(),
-            text: "<pointList> needs extend=\"$shape.points\"".into(),
-        })
-    }
-
-    /// A tuple is made from a `<math>` or by the builder, never by a tag.
-    fn reject_tuple(&mut self, _: TemplateId, _: ElemId) -> Result<()> {
-        Err(Error::Unsupported("extending a tuple".into()))
-    }
-
-    /// A response is made by an answer's planner, never by a tag.
-    fn reject_response(&mut self, _: TemplateId, _: ElemId) -> Result<()> {
-        Err(Error::Unsupported("extending a response".into()))
-    }
-
-    /// A `<text>` that extends another is planned from its prop table.
-    fn plan_text_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        match self.compiled.templates[t].elems[e].extend {
-            Some(p) => self.plan_attrs(t, e, Some(p)),
-            None => self.plan_text(t, e),
-        }
-    }
-
-    /// A `<textInput>` that extends another is planned from its prop table.
-    fn plan_text_input_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        match self.compiled.templates[t].elems[e].extend {
-            Some(p) => self.plan_attrs(t, e, Some(p)),
-            None => self.plan_text_input(t, e),
-        }
-    }
-
-    /// A choice cannot be extended: its interface names are referenced
-    /// instead.
-    fn plan_choice_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let elem = &self.compiled.templates[t].elems[e];
-        if elem.extend.is_some() {
-            return Err(Error::Banned(format!(
-                "extend on a <{}>: reference its interface names instead",
-                elem.component_type.tag()
-            )));
-        }
-        self.plan_choice(t, e)
     }
 }

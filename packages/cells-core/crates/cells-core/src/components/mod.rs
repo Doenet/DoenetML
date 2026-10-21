@@ -10,23 +10,25 @@
 //!
 //! This file holds the types, the lookups the build uses, and the list of
 //! every type (`component_types!`). Each type's definition (its docs, its
-//! prop table, its row and its named prop positions) is in a family file:
-//! `containers.rs`, `geometry/`, `inputs.rs`, `structure.rs`,
-//! `values.rs`. A type with a planner of its own has a file of its own in
-//! its family's directory, its definition and its planner together
-//! (`geometry/circle.rs`, ADR 0016). `define.rs` has the builders they are
+//! prop table, its row and its named prop positions) is in its family's
+//! directory: `containers/`, `geometry/`, `inputs/`, `structure/`,
+//! `values/`. A type with a planner of its own has a file of its own
+//! there, its definition and its planner together (`geometry/circle.rs`,
+//! ADR 0016); a type planned from its table alone, or whose planner only
+//! refuses it, is in the family's `mod.rs`, which also holds what the
+//! family's members share. `define.rs` has the builders they are
 //! written with, and `prop.rs` gathers the named positions.
 //! ARCHITECTURE.md walks through adding a type.
 
 use crate::program::OpSpec;
 
-mod containers;
+pub(crate) mod containers;
 pub(crate) mod define;
 pub(crate) mod geometry;
-mod inputs;
+pub(crate) mod inputs;
 pub mod prop;
-mod structure;
-mod values;
+pub(crate) mod structure;
+pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
@@ -61,7 +63,7 @@ component_types! {
     /// `<graph>`.
     Graph => containers::GRAPH,
     /// `<point>`.
-    Point => geometry::POINT,
+    Point => geometry::point::POINT,
     /// `<number>`.
     Number => values::NUMBER,
     /// `<numberInput>`.
@@ -74,19 +76,19 @@ component_types! {
     /// `<repeatForSequence>`.
     RepeatForSequence => structure::REPEAT_FOR_SEQUENCE,
     /// `<collect>`.
-    Collect => structure::COLLECT,
+    Collect => structure::collect::COLLECT,
     /// The hidden component behind a repeat's `valueName`.
     SequenceValue => structure::SEQUENCE_VALUE,
     /// `<booleanInput>`.
     BooleanInput => inputs::BOOLEAN_INPUT,
     /// `<math>`.
-    Math => values::MATH,
+    Math => values::math::MATH,
     /// `<evaluate>`.
     Evaluate => values::EVALUATE,
     /// `<mathInput>`.
-    MathInput => inputs::MATH_INPUT,
+    MathInput => inputs::math_input::MATH_INPUT,
     /// `<choiceInput>`.
-    ChoiceInput => inputs::CHOICE_INPUT,
+    ChoiceInput => inputs::choice_input::CHOICE_INPUT,
     /// `<choice>`, inside a `<choiceInput>`.
     Choice => inputs::CHOICE,
     /// `<circle>`.
@@ -96,7 +98,7 @@ component_types! {
     /// `<lineSegment>`.
     LineSegment => geometry::segment::LINE_SEGMENT,
     /// `<polygon>` and `<triangle>`.
-    Polygon => geometry::POLYGON,
+    Polygon => geometry::polygon::POLYGON,
     /// `<pointList>`.
     PointList => geometry::POINT_LIST,
     /// `<p>`.
@@ -112,25 +114,25 @@ component_types! {
     /// `<stickyGroup>`.
     StickyGroup => containers::STICKY_GROUP,
     /// `<function>`.
-    Function => values::FUNCTION,
+    Function => values::curve::FUNCTION,
     /// `<derivative>`.
-    Derivative => values::DERIVATIVE,
+    Derivative => values::curve::DERIVATIVE,
     /// `<answer>`.
-    Answer => values::ANSWER,
+    Answer => values::answer::ANSWER,
     /// `<text>`.
-    Text => values::TEXT,
+    Text => values::text::TEXT,
     /// `<conditionalContent>`.
-    ConditionalContent => structure::CONDITIONAL_CONTENT,
+    ConditionalContent => structure::conditional_content::CONDITIONAL_CONTENT,
     /// One built branch of a `<conditionalContent>`.
     Case => structure::CASE,
     /// `<select>`.
-    Select => structure::SELECT,
+    Select => structure::select::SELECT,
     /// `<selectFromSequence>`.
-    SelectFromSequence => structure::SELECT_FROM_SEQUENCE,
+    SelectFromSequence => structure::select_from_sequence::SELECT_FROM_SEQUENCE,
     /// `<group>` and `<label>`.
     Group => containers::GROUP,
     /// `<section>` and its kin (`<problem>`, `<exercise>`, ...).
-    Section => containers::SECTION,
+    Section => containers::section::SECTION,
     /// `<title>`.
     Title => containers::TITLE,
     /// `<ref>`.
@@ -170,21 +172,21 @@ component_types! {
     /// A tuple of three or more numbers (a `<math>`, an iterate).
     Tuple => values::TUPLE,
     /// `<repeat>`.
-    RepeatFor => structure::REPEAT_FOR,
+    RepeatFor => structure::repeat_for::REPEAT_FOR,
     /// `<functionIterates>`.
-    FunctionIterates => structure::FUNCTION_ITERATES,
+    FunctionIterates => structure::function_iterates::FUNCTION_ITERATES,
     /// `<polyline>`.
-    Polyline => geometry::POLYLINE,
+    Polyline => geometry::polyline::POLYLINE,
     /// `<boolean>`.
-    Boolean => values::BOOLEAN,
+    Boolean => values::boolean::BOOLEAN,
     /// `<award>`.
-    Award => values::AWARD,
+    Award => values::award::AWARD,
     /// `<when>`.
-    When => values::WHEN,
+    When => values::when::WHEN,
     /// One submitted response of an answer with awards.
     Response => values::RESPONSE,
     /// `<textInput>`.
-    TextInput => inputs::TEXT_INPUT,
+    TextInput => inputs::text_input::TEXT_INPUT,
 }
 
 /// What the core knows about a type apart from how it is planned and
@@ -260,7 +262,7 @@ pub enum PropAt {
 const COPYABLE: u8 = 1;
 /// The children are rendered; `extend` copies them deeply.
 const CONTAINER: u8 = 2;
-/// Planned as math cells (`plan_symbolic`); not allowed in a branch
+/// Planned as math cells (`values/curve.rs`); not allowed in a branch
 /// interface.
 const SYMBOLIC: u8 = 8;
 /// Made by the builder, never by a tag in the source.

@@ -164,68 +164,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// A literal number attribute of a choice; a reference is banned, since
-    /// a load-time choice depends only on the seed and literals (ADR 0009).
-    /// `<selectFromSequence>`: its `value` is one of `from, from + step, ...,
-    /// to`, picked per instance at expansion.
-    pub(super) fn plan_select_from_sequence(
-        &mut self,
-        el: NodeId,
-        props: &mut [Option<SourcePlan>],
-    ) -> Result<()> {
-        let d = self.dast;
-        let num = |me: &Self, name: &str, default: f64| -> Result<f64> {
-            match d.attr(el, name) {
-                None => Ok(default),
-                Some(a) => me.literal_attr(a, name),
-            }
-        };
-        for banned in [
-            "exclude",
-            "excludeCombinations",
-            "sortResults",
-            "withReplacement",
-        ] {
-            if d.attr(el, banned).is_some() {
-                return Err(Error::Unsupported(format!("<selectFromSequence {banned}>")));
-            }
-        }
-        if let Some(a) = d.attr(el, "type")
-            && self.attr_text(a).unwrap_or_default().trim() != "number"
-        {
-            return Err(Error::Unsupported(
-                "<selectFromSequence> of letters or math".into(),
-            ));
-        }
-        if num(self, "numToSelect", 1.0)? != 1.0 {
-            return Err(Error::Unsupported(
-                "<selectFromSequence numToSelect>".into(),
-            ));
-        }
-        let from = num(self, "from", 1.0)?;
-        let step = num(self, "step", 1.0)?;
-        let to = num(self, "to", f64::NAN)?;
-        if to.is_nan() || step == 0.0 {
-            return Err(Error::Unsupported(
-                "<selectFromSequence> needs literal from, to and a nonzero step".into(),
-            ));
-        }
-        let count = ((to - from) / step + 1e-10).floor() + 1.0;
-        if count < 1.0 {
-            return Err(Error::Unsupported(
-                "<selectFromSequence> with an empty sequence".into(),
-            ));
-        }
-        props[crate::components::prop::select_from_sequence::VALUE] =
-            Some(SourcePlan::SequencePick {
-                from,
-                step,
-                count: count as u32,
-            });
-        Ok(())
-    }
-
-    fn literal_attr(&self, a: u32, name: &str) -> Result<f64> {
+    pub(in crate::compile) fn literal_attr(&self, a: u32, name: &str) -> Result<f64> {
         let text = self.attr_text(a).ok_or_else(|| Error::Banned(format!("'{name}' must be a literal number: a load-time choice depends only on the document seed and literals")))?;
         text.trim().parse::<f64>().map_err(|_| Error::BadValue {
             attr: name.into(),

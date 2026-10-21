@@ -4,5 +4,9 @@
 //! planner cannot meet from here is met by adding to it, once, for every
 //! component, never by reaching past it.
 
-pub(crate) use super::geometry::PlanCtx;
-pub(crate) use super::plan::{ElemPlan, Planned, PointPlan, Role, SourcePlan, point_roles};
+pub(crate) use super::ctx::PlanCtx;
+pub(crate) use super::expr::{Token, split_top, unwrap_parens};
+pub(crate) use super::plan::{
+    Arg, ElemPlan, Planned, PointPlan, Role, Sel, SourcePlan, math_props, point_props, point_roles,
+    tuple_props,
+};

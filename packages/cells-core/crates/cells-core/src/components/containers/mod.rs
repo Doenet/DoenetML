@@ -3,6 +3,12 @@
 
 use super::define::*;
 use super::{ComponentTypeInfo, PropDef};
+use crate::compile::api::PlanCtx;
+use crate::error::Result;
+
+pub mod section;
+
+pub use section::SECTION_TAGS;
 
 /// The root. `creditAchieved` and `percentCreditAchieved` are planned
 /// deferred and wired after expansion (`Deferred`,
@@ -49,6 +55,11 @@ pub(super) const SHORT_DESCRIPTION: ComponentTypeInfo =
 /// the document's list. Made by the build, never by a tag.
 pub(super) const ERROR: ComponentTypeInfo = info(&["_error"], &[]).internal();
 
+/// An error element is made planned by the build (`add_elem`).
+pub(crate) fn plan_error(_: &mut PlanCtx<'_, '_>) -> Result<()> {
+    Ok(())
+}
+
 /// `<hint>`: a container the reader opens; `open` is its own state (0 or 1).
 pub(super) const HINT: ComponentTypeInfo = info(&["hint"], HINT_PROPS).container();
 
@@ -75,63 +86,6 @@ pub mod sticky_group {
     use super::*;
     pub const THRESHOLD: usize = at(STICKY_GROUP_PROPS, "threshold");
     pub const RELATIVE: usize = at(STICKY_GROUP_PROPS, "relativeToGraphScales");
-}
-
-/// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
-/// `<exercise>`, `<example>`: a rendered container that is numbered
-/// among its sibling sections and, when it aggregates scores, holds the
-/// weighted credit of the answers and sections inside it. Both are
-/// wired after expansion (`build/expand/scoring.rs`). The parser writes
-/// `<section>` as `<division type="section">`.
-pub(super) const SECTION: ComponentTypeInfo = info(
-    &[
-        "section",
-        "division",
-        "subsection",
-        "subsubsection",
-        "problem",
-        "exercise",
-        "example",
-    ],
-    SECTION_PROPS,
-)
-.container();
-
-/// The tags that make a `Section`, in the order of its `label` cell, with
-/// the word a title shows and whether the tag aggregates scores and
-/// includes its parent section's number by default (the current core's
-/// `Sectioning.js`).
-pub const SECTION_TAGS: [(&str, &str, bool, bool); 6] = [
-    ("section", "Section", false, true),
-    ("subsection", "Section", false, true),
-    ("subsubsection", "Section", false, true),
-    ("problem", "Problem", true, false),
-    ("exercise", "Exercise", true, false),
-    ("example", "Example", false, false),
-];
-
-// `creditAchieved`, `percentCreditAchieved` and `number` are planned
-// deferred and wired after expansion (`Deferred`); the flags are literals
-// the builder reads, since they decide the wiring.
-const SECTION_PROPS: &[PropDef] = &props([
-    planned("creditAchieved"),
-    planned("percentCreditAchieved"),
-    attr("weight", 1.0),
-    planned("aggregateScores"),
-    planned("number"),
-    planned("includeParentNumber"),
-    planned("label"),
-]);
-
-pub mod section {
-    use super::*;
-    pub const CREDIT: usize = at(SECTION_PROPS, "creditAchieved");
-    pub const PERCENT_CREDIT: usize = at(SECTION_PROPS, "percentCreditAchieved");
-    pub const WEIGHT: usize = at(SECTION_PROPS, "weight");
-    pub const AGGREGATE: usize = at(SECTION_PROPS, "aggregateScores");
-    pub const NUMBER: usize = at(SECTION_PROPS, "number");
-    pub const INCLUDE_PARENT_NUMBER: usize = at(SECTION_PROPS, "includeParentNumber");
-    pub const LABEL: usize = at(SECTION_PROPS, "label");
 }
 
 // Text and layout containers: rendered, with no props of their own. What
