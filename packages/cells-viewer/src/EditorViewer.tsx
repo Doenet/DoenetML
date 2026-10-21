@@ -1,14 +1,35 @@
 import React from "react";
-import { CodeMirror } from "@doenet/codemirror";
 import { VscRefresh } from "react-icons/vsc";
 import type { CellStore } from "./core";
 import { CellsViewer } from "./CellsViewer";
+import { editorReady } from "./editor-gate";
 import { ResizablePanelPair } from "./ResizablePanelPair";
 import { measure } from "./trace";
 import "@doenet/codemirror/style.css";
 import "./EditorViewer.css";
 
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+
+type CodeMirrorProps = React.ComponentProps<
+    typeof import("@doenet/codemirror").CodeMirror
+>;
+
+/** CodeMirror with lsp-tools and the language server: a chunk of its own,
+ * imported once the first document has rendered (`editor-gate.ts`), so the
+ * document never waits for it. Its first mount is the step `editor`. */
+const Editor = React.lazy(async () => {
+    await editorReady;
+    const { CodeMirror } = await import("@doenet/codemirror");
+    return {
+        default: function Editor(props: CodeMirrorProps) {
+            return (
+                <EditorMountStep>
+                    <CodeMirror {...props} />
+                </EditorMountStep>
+            );
+        },
+    };
+});
 
 /**
  * A source editor and the rendered document side by side, in the shape of
@@ -80,15 +101,15 @@ export function EditorViewer({
                 <ResizablePanelPair
                     panelA={
                         <div className="editor-panel">
-                            <EditorMountStep>
-                                <CodeMirror
+                            <React.Suspense fallback={null}>
+                                <Editor
                                     value={source}
                                     onChange={(text) => {
                                         if (text !== source)
                                             onSourceChange(text);
                                     }}
                                 />
-                            </EditorMountStep>
+                            </React.Suspense>
                         </div>
                     }
                     panelB={
@@ -106,8 +127,9 @@ export function EditorViewer({
 }
 
 /** Records the editor's first mount as the step `editor`: from this
- * component's first render until its effects run, which is after the
- * editor's own (React runs a child's effects before its parent's). */
+ * component's first render (with the editor's code in hand) until its
+ * effects run, which is after the editor's own (React runs a child's
+ * effects before its parent's). */
 function EditorMountStep({ children }: { children: React.ReactNode }) {
     const [start] = React.useState(() => performance.now());
     React.useEffect(() => {

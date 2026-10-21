@@ -26,12 +26,13 @@
     "repository": "github:Doenet/DoenetML",
     "wireit": {
         "build:rust": {
-            "command": "npx wasm-pack build crates/cells-wasm --target web --release --out-dir ../../pkg --out-name cells_wasm",
+            "command": "npx wasm-pack build crates/cells-wasm --target web --release --out-dir ../../pkg --out-name cells_wasm && node scripts/wasm-opt.mjs",
             "files": [
                 "crates/**/*.rs",
                 "crates/**/Cargo.toml",
                 "Cargo.toml",
-                "Cargo.lock"
+                "Cargo.lock",
+                "scripts/wasm-opt.mjs"
             ],
             "output": [
                 "pkg/**"
@@ -76,5 +77,8 @@
             "files": [],
             "output": []
         }
+    },
+    "devDependencies": {
+        "binaryen": "^132.0.0"
     }
 }

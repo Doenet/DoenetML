@@ -13,3 +13,9 @@ thiserror = "2"
 
 [profile.release]
 debug = 1
+# The wasm is what a page downloads, validates and compiles on its first
+# load, so its size is load time: optimizing across the crates at link time
+# in one codegen unit shrinks it (and `scripts/wasm-opt.mjs` shrinks it
+# further after wasm-pack).
+lto = "fat"
+codegen-units = 1

@@ -47,6 +47,33 @@ export interface TickSample {
 type Listener = () => void;
 
 let wasmMemory: WebAssembly.Memory | null = null;
+let wasmReady: Promise<WebAssembly.Memory> | null = null;
+
+declare global {
+    interface Window {
+        /** The core's wasm, compiled by the built page's head before its
+         * scripts arrived (`vite.config.ts`); absent on the dev server, or
+         * when that compile failed, and the wasm is fetched here instead. */
+        __cellsWasm?: Promise<WebAssembly.Module | undefined>;
+    }
+}
+
+/** Fetch (or take from the head's compile), compile and instantiate the
+ * core's wasm, once per page: the step `wasm init`. Called at boot
+ * (`dev/main.tsx`) so it runs alongside the page's render and the
+ * document's fetch and parse; `loadDocument` waits for it. */
+export function preloadCore(): Promise<WebAssembly.Memory> {
+    return (wasmReady ??= (async () => {
+        const t = performance.now();
+        const compiled = await window.__cellsWasm;
+        const out = await init(
+            compiled ? { module_or_path: compiled } : undefined,
+        );
+        wasmMemory = out.memory;
+        measure("wasm init", t, { precompiled: compiled ? 1 : 0 });
+        return out.memory;
+    })());
+}
 
 /** One entry of the core's diagnostics list (`diagnostics_json`,
  * `diagnose_json`): see ADR 0013. */
@@ -265,9 +292,10 @@ export async function loadDocument(
 ): Promise<CellStore> {
     let t = performance.now();
     const firstInit = wasmMemory === null;
-    const memory = wasmMemory ?? (wasmMemory = (await init()).memory);
+    const memory = await preloadCore();
     timings.wasmInit = performance.now() - t;
-    // Only the first load on a page fetches and compiles the wasm.
+    // Only the first load on a page waits for the wasm: what its fetch and
+    // compile, started at boot, had left to do.
     if (firstInit) measure("core/wasm init", t);
     t = performance.now();
     const core = new Core(bytes);

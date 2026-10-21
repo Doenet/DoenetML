@@ -15,15 +15,27 @@ const C = "packages/cells-core/crates/cells-core/src";
 /** Steps by full path: [what it does, where]. */
 export const STEPS = {
     boot: [
-        "From navigation until the page's own code starts: the HTML, then downloading, parsing, compiling and running every eagerly loaded script (React, JSXGraph, CodeMirror with the language server's source, the viewer). Nothing about the document has happened yet. Much of a script's compiling happens on a background thread while it downloads (streaming), which is why the main thread can sit idle during boot.",
+        "From navigation until the page's own code starts: the HTML, then downloading, parsing, compiling and running every eagerly loaded script (React, JSXGraph and the viewer, each its own script so they compile on separate background threads as they stream in; the editor's code is not among them). Nothing about the document has happened yet, except what the page's head started: the text's fetch and the wasm's compile (`wasm compile`).",
         `${V}/dev/main.tsx (top of the module)`,
     ],
+    "wasm compile": [
+        "The core's wasm fetched and compiled, on a background thread, by a script in the built page's head: started before the page's own scripts have arrived, and over before they need it. Only the first load on a page has it; the dev server's page, which has no such head, fetches the wasm in `wasm init` instead.",
+        `${V}/vite.config.ts (headScript)`,
+    ],
+    "wasm init": [
+        "The core's wasm instantiated from that compile (or fetched and compiled here, without it): started as soon as the page's code runs, alongside `app`, `fetch` and `parse`, rather than when the first document's bytes are ready. Once per page.",
+        `${V}/src/core.ts (preloadCore)`,
+    ],
+    "parser import": [
+        "The parser's code (@doenet/parser), a chunk of its own, preloaded by the page and imported as soon as the page's code runs, so it is in hand when the text is.",
+        `${V}/src/parse.ts (preloadParser)`,
+    ],
     app: [
-        "React's first render of the page around the document: the toolbar and the editor beside an empty viewer, until its effects have run.",
+        "React's first render of the page around the document: the toolbar and the panels beside an empty viewer, until its effects have run. The editor's code is not loaded yet.",
         `${V}/dev/main.tsx (App)`,
     ],
     editor: [
-        "The editor's first mount (CodeMirror), part of `app`.",
+        "The editor's first mount (CodeMirror), once its code has loaded: after the first document has rendered (`src/editor-gate.ts`), so it is not part of the first render.",
         `${V}/src/EditorViewer.tsx`,
     ],
     fetch: [
@@ -32,7 +44,7 @@ export const STEPS = {
     ],
     parse: ["DoenetML text to the bytes the core reads.", `${V}/src/parse.ts`],
     "parse/import": [
-        "The parser's code (@doenet/parser), a separate chunk loaded the first time a page parses.",
+        "Waiting for the parser's code when a parse comes before `parser import` has finished; absent once it is in hand.",
         `${V}/src/parse.ts`,
     ],
     "parse/lezerToDast": [
@@ -52,7 +64,7 @@ export const STEPS = {
         `${V}/src/core.ts (loadDocument)`,
     ],
     "core/wasm init": [
-        "The core's wasm fetched, compiled and instantiated: once per page, on its first load. The wasm is compiled lazily, function by function, the first time each runs, so much of its compiling lands in `core/new Core`.",
+        "Waiting for `wasm init`, on a page's first load: what the wasm's fetch, compile and instantiation, started at boot, had left to do when the bytes were ready. The wasm is compiled lazily, function by function, the first time each runs, so much of its compiling lands in `core/new Core`.",
         `${V}/src/core.ts`,
     ],
     "core/new Core": [

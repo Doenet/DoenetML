@@ -1,5 +1,8 @@
 import React from "react";
 import { measure, measureBetween } from "../src/trace";
+import { preloadCore } from "../src/core";
+import { preloadParser } from "../src/parse";
+import { releaseEditor } from "../src/editor-gate";
 import { createRoot } from "react-dom/client";
 import { CellsViewer } from "../src/CellsViewer";
 import { EditorViewer } from "../src/EditorViewer";
@@ -80,12 +83,22 @@ declare global {
              * JSXGraph board, scrolling the board into view first. */
             locate: (name: string | number) => [number, number] | null;
         };
+        /** The `?src=` text, fetched by the built page's head before its
+         * scripts arrived (`vite.config.ts`), and when that fetch began. */
+        __cellsDoc?: Promise<Response>;
+        __cellsDocAt?: number;
     }
 }
 
 // The load trace's first step: navigation until this module runs, which
 // is the page's HTML and every eagerly loaded script (`src/trace.ts`).
 measureBetween("boot", 0, performance.now());
+
+// What the first load will need, started now rather than when the text is
+// in hand: the core's wasm (already compiling, if the page's head started
+// it) and the parser's chunk. Both overlap the page's render and the fetch.
+preloadCore();
+preloadParser();
 
 const params = new URLSearchParams(window.location.search);
 /** `?editor=0` shows the viewer alone, from the same bundle: the load
@@ -139,6 +152,10 @@ function App() {
             window.__cells!.ready = true;
         } catch (e) {
             setError(String(e));
+        } finally {
+            // The first document is on screen (or failed): the editor's
+            // code may load now.
+            releaseEditor();
         }
     }, []);
 
@@ -190,8 +207,9 @@ function App() {
         if (doc) loadFixture(doc);
         // `?src=<url>` loads DoenetML text from a URL, as a host would.
         else if (src) {
-            const start = performance.now();
-            fetch(src)
+            // The built page's head may have started this fetch already.
+            const start = window.__cellsDocAt ?? performance.now();
+            (window.__cellsDoc ?? fetch(src))
                 .then((r) => {
                     if (!r.ok) throw new Error(`${src}: ${r.status}`);
                     return r.text();
@@ -201,10 +219,14 @@ function App() {
                     setSource(text);
                     return loadSource(text);
                 })
-                .catch((e) => setError(String(e)));
+                .catch((e) => {
+                    setError(String(e));
+                    releaseEditor();
+                });
         }
         // `?blank=1` (the benchmark) waits for `loadSource` instead.
         else if (params.get("blank") !== "1") loadSource(source);
+        else releaseEditor();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

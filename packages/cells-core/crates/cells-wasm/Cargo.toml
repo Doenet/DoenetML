@@ -15,10 +15,11 @@ wasm-bindgen = "0.2"
 serde_json.workspace = true
 console_error_panic_hook = "0.1"
 
-# wasm-opt (binaryen, whichever one wasm-pack finds) corrupts the function
-# table of current wasm-bindgen output ("WebAssembly.Table.grow() failed",
-# then "unreachable" on load); checked again with wasm-pack 0.15 and the
-# system binaryen in October 2026. The Rust release profile already
-# optimizes; skip it.
+# wasm-pack's own wasm-opt (a binaryen it downloads, whichever version it
+# finds) corrupted the function table of current wasm-bindgen output
+# ("WebAssembly.Table.grow() failed", then "unreachable" on load; checked
+# again with wasm-pack 0.15 in October 2026). It is off here;
+# `scripts/wasm-opt.mjs` runs the `binaryen` npm package's wasm-opt after
+# the build instead, the same version on every machine.
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
