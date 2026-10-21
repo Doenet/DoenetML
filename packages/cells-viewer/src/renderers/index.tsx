@@ -3,6 +3,7 @@ import { useStore } from "../hooks";
 import type { Child } from "../components";
 import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
+import { MathInput } from "./MathInput";
 import { TextInput } from "./TextInput";
 import { Slider } from "./Slider";
 import { BooleanInput } from "./BooleanInput";
@@ -103,7 +104,7 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
         case "math":
             return <MathView idx={idx} />;
         case "mathInput":
-            return <NumberInput idx={idx} />;
+            return <MathInput idx={idx} />;
         case "textInput":
             return <TextInput idx={idx} />;
         case "answer":
