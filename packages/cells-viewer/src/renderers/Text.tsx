@@ -205,14 +205,6 @@ export function Aside({ idx }: { idx: number }) {
 }
 
 /** `<title>`: the document's heading (inside an aside it is the summary). */
-export function Title({ idx }: { idx: number }) {
-    return (
-        <h2 className="title">
-            <Children idx={idx} inGraph={false} />
-        </h2>
-    );
-}
-
 export function List({ idx }: { idx: number }) {
     return (
         <ul>

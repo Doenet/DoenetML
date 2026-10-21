@@ -8,10 +8,12 @@
 // either: React mounts the components a rebuild adds and unmounts the ones
 // it drops, and leaves the rest.
 import { memo, useLayoutEffect, useRef } from "react";
-import { useStableStore } from "../hooks";
+import { useStableStore, useStore } from "../hooks";
 import type { Prim, PrimUse, Shape } from "../generated/shapes";
-import { JxCircle, JxPoint } from "./jsxgraph/elements";
+import { JxCircle, JxPoint, JxPolygon } from "./jsxgraph/elements";
 import { JsxGraph } from "./jsxgraph/Board";
+import { Children } from "./index";
+import { SECTION_LABELS } from "./Choice";
 
 type PrimProps = { id: string; use: PrimUse };
 
@@ -25,19 +27,27 @@ function useBinding(
     use: PrimUse,
     draw: (cells: number[], values: number[], comp: number) => void,
     onRebuild = false,
+    // Cells beyond the shape's own that the drawing reads (a section
+    // heading's enclosing numbers), after them.
+    more?: (comp: number) => number[],
 ) {
     const store = useStableStore();
     useLayoutEffect(() => {
         let unsubs: (() => void)[] = [];
         // The values last drawn, refilled in place: a tick allocates nothing.
-        const values = new Array<number>(use.at.length).fill(NaN);
+        let values = new Array<number>(use.at.length).fill(NaN);
         let drawn = false;
         const bind = () => {
             unsubs.forEach((u) => u());
             unsubs = [];
             const c = store.comps.byId(id);
             if (c === undefined) return;
-            const cells = store.comps.primCells(c, use);
+            let cells = store.comps.primCells(c, use);
+            if (more) cells = cells.concat(more(c));
+            if (values.length !== cells.length) {
+                values = new Array<number>(cells.length).fill(NaN);
+                drawn = false;
+            }
             const redraw = () => {
                 const all = store.cells();
                 for (let i = 0; i < cells.length; i++)
@@ -61,7 +71,7 @@ function useBinding(
             unsubs.forEach((u) => u());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [store, id, use, onRebuild]);
+    }, [store, id, use, onRebuild, more]);
 }
 
 /** Write `text` only when it differs: any write to a text node makes the
@@ -149,6 +159,140 @@ function RangePrim({ id, use }: PrimProps) {
     }
 }
 
+/** `mathField(expr)`: a text field showing the expression `expr` holds;
+ * what a student types is parsed by the core on commit (Enter or blur) and
+ * requested on `expr`. Text that does not parse stays, marked invalid. */
+function MathFieldPrim({ id, use }: PrimProps) {
+    const store = useStableStore();
+    const ref = useRef<HTMLInputElement>(null);
+    const exprCell = useRef(-1);
+    useBinding(
+        id,
+        use,
+        (cells, [h]) => {
+            exprCell.current = cells[0];
+            const el = ref.current!;
+            // Not while the student is typing in it.
+            if (document.activeElement === el) return;
+            const text = Number.isNaN(h) ? "" : store.exprText(cells[0]);
+            if (el.value !== text) el.value = text;
+            el.removeAttribute("aria-invalid");
+        },
+        true,
+    );
+    const commit = () => {
+        const el = ref.current!;
+        const text = el.value.trim();
+        let h = NaN;
+        if (text !== "") {
+            try {
+                h = store.parseMath(text);
+            } catch {
+                el.setAttribute("aria-invalid", "true");
+                return;
+            }
+        }
+        el.removeAttribute("aria-invalid");
+        store.request([[exprCell.current, h]]);
+    };
+    return (
+        <input
+            ref={ref}
+            className="mathInput"
+            type="text"
+            onBlur={commit}
+            onKeyDown={(e) => e.key === "Enter" && commit()}
+        />
+    );
+}
+
+/** `submit()`: a button submitting the component's answer. */
+function SubmitPrim({ id }: PrimProps) {
+    const store = useStableStore();
+    return (
+        <button
+            className="submitAnswer"
+            style={{ marginLeft: "0.4em" }}
+            onClick={() => {
+                const c = store.comps.byId(id);
+                if (c !== undefined) store.submit(c);
+            }}
+        >
+            Submit
+        </button>
+    );
+}
+
+/** `credit(credit, submissions)`: the credit as a percentage, colored by
+ * how much, once there has been a submission. */
+function CreditPrim({ id, use }: PrimProps) {
+    const ref = useRef<HTMLSpanElement>(null);
+    useBinding(id, use, (_, [credit, submissions]) => {
+        const el = ref.current!;
+        const shown = Number.isNaN(credit) ? 0 : credit;
+        el.hidden = !(submissions > 0);
+        el.style.color = shown >= 1 ? "green" : shown > 0 ? "orange" : "red";
+        setText(el, `${Math.round(shown * 100)}%`);
+    });
+    return (
+        <span
+            ref={ref}
+            className="answerCredit"
+            style={{ marginLeft: "0.4em" }}
+            hidden
+        />
+    );
+}
+
+/** `heading(label, number, includeParentNumber)`: a section's heading, its
+ * label's word and its number ("Problem 2.1"), after its enclosing
+ * section's when it includes it: the one primitive that reads cells of
+ * other components. */
+function HeadingPrim({ id, use }: PrimProps) {
+    const store = useStableStore();
+    const ref = useRef<HTMLHeadingElement>(null);
+    useBinding(
+        id,
+        use,
+        (_, values) => {
+            // The enclosing sections' numbers follow the shape's slots.
+            const [label, number] = values;
+            const n = [...values.slice(3), number].join(".");
+            setText(ref.current!, `${SECTION_LABELS[label] ?? "Section"} ${n}`);
+        },
+        false,
+        enclosingNumbers,
+    );
+    return <h3 ref={ref} />;
+
+    /** The `number` cells of the sections around `c`, outermost first,
+     * each included while the one inside includes its parent's. */
+    function enclosingNumbers(c: number): number[] {
+        const out: number[] = [];
+        let inner = c;
+        for (
+            let p = store.comps.parent(c);
+            p !== null;
+            p = store.comps.parent(p)
+        ) {
+            if (store.comps.componentType(p) !== "section") continue;
+            if (store.get(store.comps.cell(inner, "includeParentNumber")) === 0)
+                break;
+            out.unshift(store.comps.cell(p, "number"));
+            inner = p;
+        }
+        return out;
+    }
+}
+
+/** `contents()`: the component's children, where the shape puts them. It
+ * renders with the tree on a rebuild, as children do. */
+function ContentsPrim({ id }: PrimProps) {
+    const store = useStore();
+    const c = store.comps.byId(id);
+    return c === undefined ? null : <Children idx={c} inGraph={false} />;
+}
+
 const PRIMS: Record<Prim, (p: PrimProps) => React.ReactNode> = {
     number: NumberPrim,
     range: RangePrim,
@@ -156,12 +300,18 @@ const PRIMS: Record<Prim, (p: PrimProps) => React.ReactNode> = {
     coords: CoordsPrim,
     circle: JxCircle,
     board: JsxGraph,
+    polygon: JxPolygon,
+    mathField: MathFieldPrim,
+    submit: SubmitPrim,
+    credit: CreditPrim,
+    heading: HeadingPrim,
+    contents: ContentsPrim,
 };
 
 /** Primitives drawn on a graph's board rather than in the page. */
-const ON_BOARD: ReadonlySet<Prim> = new Set(["point", "circle"]);
+const ON_BOARD: ReadonlySet<Prim> = new Set(["point", "circle", "polygon"]);
 /** Primitives that are blocks, held in a `div` rather than a `span`. */
-const BLOCK: ReadonlySet<Prim> = new Set(["board"]);
+const BLOCK: ReadonlySet<Prim> = new Set(["board", "heading"]);
 
 /** A component drawn by its shape: each primitive bound to it. Memoized on
  * the component's identity and shape, so a rebuild that leaves both alone
@@ -180,7 +330,10 @@ export const ShapeView = memo(function ShapeView({
     });
     if (shape.nodes.every((n) => ON_BOARD.has(n.prim))) return <>{prims}</>;
     const c = store.comps.byId(id);
-    const Holder = shape.nodes.some((n) => BLOCK.has(n.prim)) ? "div" : "span";
+    const Holder = (shape.tag ??
+        (shape.nodes.some((n) => BLOCK.has(n.prim))
+            ? "div"
+            : "span")) as React.ElementType;
     return (
         <Holder
             className={shape.name}

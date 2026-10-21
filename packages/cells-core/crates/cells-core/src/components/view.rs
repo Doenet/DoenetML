@@ -35,6 +35,21 @@ pub enum Prim {
     /// JSXGraph's order), which a pan or zoom requests; it draws the
     /// component's children on itself.
     Board,
+    /// A polygon on the board: its vertex count and its list, the vertices,
+    /// each dragged on its own and the whole by its interior.
+    Polygon,
+    /// A field a student types math into, showing the expression its
+    /// `expr` holds and requesting what they type, parsed, on commit.
+    MathField,
+    /// A button that submits the component's answer.
+    Submit,
+    /// The credit an answer earned, once it has been submitted.
+    Credit,
+    /// A section's heading: its label's word and its number, after its
+    /// enclosing section's when it includes it.
+    Heading,
+    /// The component's children, drawn where the shape puts them.
+    Contents,
 }
 
 /// The most slots a primitive binds.
@@ -48,6 +63,12 @@ impl Prim {
         Prim::Coords,
         Prim::Circle,
         Prim::Board,
+        Prim::Polygon,
+        Prim::MathField,
+        Prim::Submit,
+        Prim::Credit,
+        Prim::Heading,
+        Prim::Contents,
     ];
 
     pub const fn name(self) -> &'static str {
@@ -58,6 +79,12 @@ impl Prim {
             Prim::Coords => "coords",
             Prim::Circle => "circle",
             Prim::Board => "board",
+            Prim::Polygon => "polygon",
+            Prim::MathField => "mathField",
+            Prim::Submit => "submit",
+            Prim::Credit => "credit",
+            Prim::Heading => "heading",
+            Prim::Contents => "contents",
         }
     }
 
@@ -69,6 +96,11 @@ impl Prim {
             Prim::Point | Prim::Coords => &["x", "y", "hide"],
             Prim::Circle => &["cx", "cy", "radius"],
             Prim::Board => &["xmin", "ymax", "xmax", "ymin"],
+            Prim::Polygon => &["count", "vertices[]"],
+            Prim::MathField => &["expr"],
+            Prim::Submit | Prim::Contents => &[],
+            Prim::Credit => &["credit", "submissions"],
+            Prim::Heading => &["label", "number", "includeParentNumber"],
         }
     }
 }
@@ -87,10 +119,29 @@ pub struct PrimUse {
     at: [u8; MAX_PRIM_SLOTS],
 }
 
+/// A slot's position for the component's list (`Prim::Polygon`'s
+/// vertices): every coordinate of every point it has, not one prop.
+pub const LIST: u8 = 254;
+
+/// The name a shape binds a list slot with.
+const LIST_NAME: &str = "[list]";
+
 impl PrimUse {
-    /// The position of each slot's prop.
+    /// The position of each slot's prop, or `LIST`.
     pub fn props(&self) -> &[u8] {
         &self.at[..self.prim.slots().len()]
+    }
+
+    /// Whether a slot binds the component's list.
+    pub const fn binds_list(&self) -> bool {
+        let mut i = 0;
+        while i < self.prim.slots().len() {
+            if self.at[i] == LIST {
+                return true;
+            }
+            i += 1;
+        }
+        false
     }
 }
 
@@ -112,10 +163,26 @@ pub struct ViewShape {
     pub name: &'static str,
     pub when: When,
     pub nodes: &'static [PrimUse],
+    /// The element that holds its primitives in the page (`h2`,
+    /// `section`), when not a `span` or, for a block, a `div`.
+    pub tag: Option<&'static str>,
 }
 
 pub const fn shape(name: &'static str, when: When, nodes: &'static [PrimUse]) -> ViewShape {
-    ViewShape { name, when, nodes }
+    ViewShape {
+        name,
+        when,
+        nodes,
+        tag: None,
+    }
+}
+
+impl ViewShape {
+    /// Held in the page by a `tag` element.
+    pub const fn tag(mut self, tag: &'static str) -> ViewShape {
+        self.tag = Some(tag);
+        self
+    }
 }
 
 const fn bind_of(prim: Prim, names: &[&'static str]) -> Bind {
@@ -172,6 +239,55 @@ pub const fn board(
     bind_of(Prim::Board, &[xmin, ymax, xmax, ymin])
 }
 
+/// `polygon(count)`: the count and the component's list.
+pub const fn polygon(count: &'static str) -> Bind {
+    bind_of(Prim::Polygon, &[count, LIST_NAME])
+}
+
+/// `mathField(expr)`.
+pub const fn math_field(expr: &'static str) -> Bind {
+    bind_of(Prim::MathField, &[expr])
+}
+
+/// `submit()`.
+pub const fn submit() -> Bind {
+    bind_of(Prim::Submit, &[])
+}
+
+/// `credit(credit, submissions)`.
+pub const fn credit(credit: &'static str, submissions: &'static str) -> Bind {
+    bind_of(Prim::Credit, &[credit, submissions])
+}
+
+/// `heading(label, number, includeParentNumber)`.
+pub const fn heading(
+    label: &'static str,
+    number: &'static str,
+    include_parent: &'static str,
+) -> Bind {
+    bind_of(Prim::Heading, &[label, number, include_parent])
+}
+
+/// `contents()`.
+pub const fn contents() -> Bind {
+    bind_of(Prim::Contents, &[])
+}
+
+const fn str_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut i = 0;
+    while i < a.len() {
+        if a[i] != b[i] {
+            return false;
+        }
+        i += 1;
+    }
+    true
+}
+
 /// The binds of a shape with their props resolved in `table`. A name not
 /// in the table fails to compile.
 pub const fn bind<const N: usize>(table: &[PropDef], binds: [Bind; N]) -> [PrimUse; N] {
@@ -186,7 +302,11 @@ pub const fn bind<const N: usize>(table: &[PropDef], binds: [Bind; N]) -> [PrimU
         let mut at_ = [0u8; MAX_PRIM_SLOTS];
         let mut j = 0;
         while j < b.prim.slots().len() {
-            at_[j] = at(table, b.props[j]) as u8;
+            at_[j] = if str_eq(b.props[j], LIST_NAME) {
+                LIST
+            } else {
+                at(table, b.props[j]) as u8
+            };
             j += 1;
         }
         out[i] = PrimUse {

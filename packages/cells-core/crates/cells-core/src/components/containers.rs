@@ -2,7 +2,7 @@
 //! hold other components. Document and section also hold credit.
 
 use super::define::*;
-use super::view::{PrimUse, When, bind, board, shape};
+use super::view::{PrimUse, When, bind, board, contents, heading, shape};
 use super::{ComponentTypeInfo, PropDef};
 
 /// The root. `creditAchieved` and `percentCreditAchieved` are planned
@@ -101,7 +101,16 @@ pub(super) const SECTION: ComponentTypeInfo = info(
     ],
     SECTION_PROPS,
 )
-.container();
+.container()
+.shapes(&[shape("section", When::Always, SECTION_VIEW).tag("section")]);
+
+const SECTION_VIEW: &[PrimUse] = &bind(
+    SECTION_PROPS,
+    [
+        heading("label", "number", "includeParentNumber"),
+        contents(),
+    ],
+);
 
 /// The tags that make a `Section`, in the order of its `label` cell, with
 /// the word a title shows and whether the tag aggregates scores and
@@ -146,7 +155,12 @@ pub mod section {
 // element's attributes (`Document::attr_text`), not state.
 
 /// `<title>`: the heading of the document or of the section it sits in.
-pub(super) const TITLE: ComponentTypeInfo = info(&["title"], &[]).container();
+pub(super) const TITLE: ComponentTypeInfo =
+    info(&["title"], &[])
+        .container()
+        .shapes(&[shape("title", When::Always, TITLE_VIEW).tag("h2")]);
+
+const TITLE_VIEW: &[PrimUse] = &bind(&[], [contents()]);
 
 /// `<ref to="...">`: a link around its content.
 pub(super) const REF: ComponentTypeInfo = info(&["ref"], &[]).container();

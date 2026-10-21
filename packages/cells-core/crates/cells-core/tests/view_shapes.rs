@@ -23,10 +23,15 @@ fn render() -> String {
     }
     out.push_str(
         "} as const;\n\nexport type Prim = keyof typeof PRIM_SLOTS;\n\n\
+         /** A slot's position for the component's list: every coordinate of\n \
+         * every point it has. */\n\
+         export const LIST = 254;\n\n\
          /** A primitive and the position, in its component's props, of the\n \
-         * prop each of its slots binds. */\n\
+         * prop each of its slots binds, or `LIST`. */\n\
          export type PrimUse = { prim: Prim; at: readonly number[] };\n\
-         export type Shape = { name: string; nodes: readonly PrimUse[] };\n\n\
+         /** `tag`: the element that holds it in the page, when not a span\n \
+         * (or, for a block, a div). */\n\
+         export type Shape = {\n    name: string;\n    nodes: readonly PrimUse[];\n    tag?: string;\n};\n\n\
          /** By component tag, the type's shapes: a component's shape column\n \
          * indexes this list (255: none). */\n\
          export const SHAPES: Record<string, readonly Shape[]> = {\n",
@@ -39,6 +44,9 @@ fn render() -> String {
         for s in k.shapes() {
             writeln!(out, "        {{").unwrap();
             writeln!(out, "            name: {:?},", s.name).unwrap();
+            if let Some(tag) = s.tag {
+                writeln!(out, "            tag: {tag:?},").unwrap();
+            }
             writeln!(out, "            nodes: [").unwrap();
             for n in s.nodes {
                 let at: Vec<String> = n.props().iter().map(|a| a.to_string()).collect();

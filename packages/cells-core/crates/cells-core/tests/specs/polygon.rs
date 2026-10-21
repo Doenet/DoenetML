@@ -15,6 +15,9 @@ spec! {
         }
         request { "t.x2" = 4, "t.y2" = 6 }
         expect { "t.vertex2" = (4, 6), "t.vertex1" = (1, 2) }
+        // Drawn by a primitive bound to its list, as long as it is.
+        shape { "t" = "polygon" }
+        export { "t" = r#"<polygon at="polygon_0" points="((1,2),(4,6),(-5,2))" closed="yes" />"# }
     }
 
     case "a whole-shape drag moves every vertex by the same shift" {

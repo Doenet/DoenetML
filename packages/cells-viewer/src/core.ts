@@ -148,6 +148,12 @@ export class CellStore {
         return this.core.expr_text(cell);
     }
 
+    /** Parse what a student typed into the core's math engine: the value to
+     * request on a mathInput's `expr`. Throws on text that does not parse. */
+    parseMath(text: string): number {
+        return this.core.parse_math(text);
+    }
+
     /** `v` as component `c` shows a number: the core's formatter (ADR
      * 0016), with the component's `displayDecimals`. */
     formatNumber(c: number, v: number): string {

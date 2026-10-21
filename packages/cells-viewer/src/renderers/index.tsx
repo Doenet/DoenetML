@@ -6,12 +6,11 @@ import { NumberInput } from "./NumberInput";
 import { TextInput } from "./TextInput";
 import { BooleanInput } from "./BooleanInput";
 import { BooleanView } from "./Boolean";
-import { AnswerView } from "./Answer";
 import { MathView } from "./Math";
-import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
+import { CaseView, ChoiceView, TextView } from "./Choice";
 import { ChoiceInputView, HintView } from "./Hint";
 import { ShapeView } from "./prims";
-import { JxLine, JxPolygon, JxPolyline } from "./jsxgraph/elements";
+import { JxLine, JxPolyline } from "./jsxgraph/elements";
 import {
     Aside,
     Cell,
@@ -24,7 +23,6 @@ import {
     SideBySide,
     Stack,
     Table,
-    Title,
     TriggerSet,
     TupleView,
 } from "./Text";
@@ -50,8 +48,6 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return <TupleView idx={idx} />;
         case "polyline":
             return inGraph ? <JxPolyline idx={idx} /> : null;
-        case "title":
-            return <Title idx={idx} />;
         case "ref":
             return <Ref idx={idx} />;
         case "ul":
@@ -89,12 +85,8 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return <BooleanView idx={idx} />;
         case "math":
             return <MathView idx={idx} />;
-        case "mathInput":
-            return <NumberInput idx={idx} />;
         case "textInput":
             return <TextInput idx={idx} />;
-        case "answer":
-            return <AnswerView idx={idx} />;
         // An answer's awards, whens and submitted responses have no view.
         case "award":
         case "when":
@@ -109,8 +101,6 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
         // A circle is drawn in a graph, by its shape, and nowhere else.
         case "circle":
             return null;
-        case "polygon":
-            return inGraph ? <JxPolygon idx={idx} /> : null;
         // A point list's children are points aliasing a shape's own points.
         case "pointList":
         case "group":
@@ -132,8 +122,6 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return <ChoiceView idx={idx} inGraph={inGraph} />;
         case "case":
             return <CaseView idx={idx} inGraph={inGraph} />;
-        case "section":
-            return <SectionView idx={idx} inGraph={inGraph} />;
         case "hint":
             return <HintView idx={idx} />;
         case "choiceInput":

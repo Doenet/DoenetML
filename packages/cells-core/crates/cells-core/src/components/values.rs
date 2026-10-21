@@ -4,7 +4,7 @@
 //! plans them as math cells (`plan_symbolic`); so is answer (`plan_answer`).
 
 use super::define::*;
-use super::view::{PrimUse, When, bind, number, shape};
+use super::view::{PrimUse, When, bind, contents, credit, number, shape, submit};
 use super::{ComponentTypeInfo, PropDef};
 use crate::program::SymKind;
 
@@ -139,7 +139,14 @@ pub(super) const ANSWER: ComponentTypeInfo = info(&["answer"], ANSWER_PROPS)
     .symbolic()
     .default_prop("credit")
     // The current core's name for `credit`, so `$ans.creditAchieved` resolves.
-    .aliases(&[("creditAchieved", "credit")]);
+    .aliases(&[("creditAchieved", "credit")])
+    // Its inputs, a Submit button, and the credit once submitted.
+    .shapes(&[shape("answer", When::Always, ANSWER_VIEW)]);
+
+const ANSWER_VIEW: &[PrimUse] = &bind(
+    ANSWER_PROPS,
+    [contents(), submit(), credit("credit", "numSubmissions")],
+);
 
 const ANSWER_PROPS: &[PropDef] = &props([
     attr("response", f64::NAN).ref_prop("expr"),

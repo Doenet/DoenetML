@@ -6,7 +6,7 @@
 //! export writes. Components without a shape export their text, or pass
 //! their children through, until they have one.
 
-use crate::components::view::{Prim, PrimUse};
+use crate::components::view::{LIST, Prim, PrimUse};
 use crate::components::{ComponentType, prop};
 use crate::document::{Child, CompIdx, Document, NO_SHAPE};
 use crate::format::js_string;
@@ -56,8 +56,25 @@ impl Export<'_> {
         let shape = doc.components.shape[c as usize];
         if shape != NO_SHAPE {
             let shape = &doc.component_type(c).shapes()[shape as usize];
+            // What holds a shape in the page holds it in PreTeXt: a title,
+            // or a division, which a heading names.
+            let wrap = if shape.tag == Some("h2") {
+                Some("title")
+            } else {
+                shape
+                    .nodes
+                    .iter()
+                    .find(|u| u.prim == Prim::Heading)
+                    .map(|u| division(doc.cells[doc.comp_cells(c)[u.props()[0] as usize] as usize]))
+            };
+            if let Some(w) = wrap {
+                self.out.push_str(&format!("<{w}>"));
+            }
             for use_ in shape.nodes {
                 self.prim(c, use_);
+            }
+            if let Some(w) = wrap {
+                self.out.push_str(&format!("</{w}>"));
             }
             return;
         }
@@ -102,11 +119,24 @@ impl Export<'_> {
     fn prim(&mut self, c: CompIdx, use_: &PrimUse) {
         let doc = self.doc;
         let cells = doc.comp_cells(c);
+        // A list slot reads as NaN here; its points are `list`.
         let v: Vec<f64> = use_
             .props()
             .iter()
-            .map(|&i| doc.cells[cells[i as usize] as usize])
+            .map(|&i| match i {
+                LIST => f64::NAN,
+                i => doc.cells[cells[i as usize] as usize],
+            })
             .collect();
+        let list: Vec<f64> = if use_.binds_list() {
+            let fixed = doc.component_type(c).prop_defs().len();
+            cells[fixed..]
+                .iter()
+                .map(|&x| doc.cells[x as usize])
+                .collect()
+        } else {
+            Vec::new()
+        };
         let format = doc.components.format[c as usize];
         match (use_.prim, self.board.is_some()) {
             (Prim::Number, false) => escape_into(&mut self.out, &format.apply(v[0])),
@@ -136,6 +166,26 @@ impl Export<'_> {
                     js_string(v[2])
                 ));
             }
+            (Prim::Polygon, true) => {
+                let n = if v[0].is_finite() { v[0] as usize } else { 0 };
+                let pts = &list[..(2 * n).min(list.len())];
+                if pts.len() >= 4 && finite(pts) {
+                    let at = self.handle(c);
+                    let points: Vec<String> = pts
+                        .chunks(2)
+                        .map(|p| format!("({},{})", js_string(p[0]), js_string(p[1])))
+                        .collect();
+                    self.out.push_str(&format!(
+                        r#"<polygon at="{at}" points="({})" closed="yes" />"#,
+                        points.join(",")
+                    ));
+                }
+            }
+            (Prim::MathField, false) => self.out.push_str(r#"<m><fillin characters="8" /></m>"#),
+            (Prim::Contents, _) => self.children(c),
+            // A button, a score and a section's number have no print form;
+            // PreTeXt numbers its divisions itself.
+            (Prim::Submit | Prim::Credit | Prim::Heading, _) => {}
             _ => {}
         }
     }
@@ -178,6 +228,14 @@ impl Export<'_> {
         };
         format!("{}_{n}", handle_text(t.tag()))
     }
+}
+
+/// The PreTeXt division a section's `label` makes: its tag.
+fn division(label: f64) -> &'static str {
+    let i = if label.is_finite() { label as usize } else { 0 };
+    crate::components::SECTION_TAGS
+        .get(i)
+        .map_or("section", |t| t.0)
 }
 
 /// A `hide` value that hides: anything but 0 and NaN.

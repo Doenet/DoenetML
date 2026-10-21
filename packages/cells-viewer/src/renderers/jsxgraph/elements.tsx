@@ -490,9 +490,9 @@ function polygonElement(h: BoardHandle): BoardElement {
     return e;
 }
 
-export function JxPolygon({ idx }: { idx: number }) {
-    const store = useStore();
-    useBoardElementCells(idx, () => store.comps.props(idx), polygonElement);
+/** The `polygon` primitive (ADR 0016): bound to the count and the list. */
+export function JxPolygon({ id, use }: { id: string; use: PrimUse }) {
+    useBoardPrim(id, use, polygonElement);
     return null;
 }
 

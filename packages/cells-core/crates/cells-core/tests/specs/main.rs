@@ -2,7 +2,9 @@
 //! each a `spec!` of what an author sees. Their cost snapshots are in
 //! `snapshots/`.
 
+mod answer;
 mod circle;
 mod number;
 mod polygon;
+mod section;
 mod slider;

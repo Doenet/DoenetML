@@ -2,7 +2,7 @@
 //! whose value a user sets. Each value is an essential cell unless bound to another.
 
 use super::define::*;
-use super::view::{PrimUse, When, bind, number, range, shape};
+use super::view::{PrimUse, When, bind, math_field, number, range, shape};
 use super::{ComponentTypeInfo, PropDef};
 
 /// `<numberInput>`.
@@ -57,7 +57,10 @@ pub mod choice {
 /// evaluates it; a request on `value` writes a constant expression.
 pub(super) const MATH_INPUT: ComponentTypeInfo = info(&["mathInput"], MATH_INPUT_PROPS)
     .copyable()
-    .default_prop("value");
+    .default_prop("value")
+    .shapes(&[shape("mathInput", When::Always, MATH_INPUT_VIEW)]);
+
+const MATH_INPUT_VIEW: &[PrimUse] = &bind(MATH_INPUT_PROPS, [math_field("expr")]);
 
 // A mathInput's value is bound by a child reference or `bindValueTo`,
 // else it is the `prefill` (the builder reads it). The builder plans

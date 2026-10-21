@@ -240,6 +240,19 @@ impl ComponentTypeInfo {
     }
     /// The ways the type is drawn (`view`), the first that applies chosen.
     pub(super) const fn shapes(mut self, shapes: &'static [super::view::ViewShape]) -> Self {
+        // A list slot binds the type's list: one without fails to compile.
+        let mut i = 0;
+        while i < shapes.len() {
+            let mut j = 0;
+            while j < shapes[i].nodes.len() {
+                assert!(
+                    !shapes[i].nodes[j].binds_list() || self.list.is_some(),
+                    "a shape binds a list the type does not have"
+                );
+                j += 1;
+            }
+            i += 1;
+        }
         self.shapes = shapes;
         self
     }

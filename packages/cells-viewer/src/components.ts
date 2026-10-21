@@ -2,7 +2,7 @@
 // extended: the renderer reads components the same way it reads cells).
 // The typed arrays are views over wasm memory.
 
-import { SHAPES, type PrimUse, type Shape } from "./generated/shapes";
+import { LIST, SHAPES, type PrimUse, type Shape } from "./generated/shapes";
 
 export interface ComponentColumns {
     root: number;
@@ -133,10 +133,16 @@ export class ComponentTable {
     }
 
     /** The cells a shape's primitive binds on component `c`, in its
-     * slots' order. */
+     * slots' order; a list slot (`LIST`) binds every cell of the list. */
     primCells(c: number, use: PrimUse): number[] {
         const base = this.cols.propBase[c];
-        return use.at.map((i) => this.cols.propCells[base + i]);
+        return use.at.flatMap((i) =>
+            i === LIST
+                ? this.props(c).slice(
+                      this.cols.typeProps[this.cols.componentType[c]].length,
+                  )
+                : [this.cols.propCells[base + i]],
+        );
     }
 
     /** The DAST node the component was made from, or NONE for a

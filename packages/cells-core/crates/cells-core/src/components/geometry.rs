@@ -4,7 +4,7 @@
 //! (`compile/geometry/`).
 
 use super::define::*;
-use super::view::{PrimUse, When, bind, circle, coords, point, shape};
+use super::view::{PrimUse, When, bind, circle, coords, point, polygon, shape};
 use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
 use crate::tick::snap::Shape;
 
@@ -178,7 +178,10 @@ pub(super) const POLYGON: ComponentTypeInfo = info(&["polygon", "triangle"], POL
         coords: ["x", "y"],
         alias: Some("vertexX"),
     })
-    .sticky_list(Shape::Closed);
+    .sticky_list(Shape::Closed)
+    .shapes(&[shape("polygon", When::InGraph, POLYGON_VIEW)]);
+
+const POLYGON_VIEW: &[PrimUse] = &bind(POLYGON_PROPS, [polygon("numVertices")]);
 
 /// `numVertices`; the vertices follow, as the list.
 const POLYGON_PROPS: &[PropDef] = &props([planned("numVertices")]);
