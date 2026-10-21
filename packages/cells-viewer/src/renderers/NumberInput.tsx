@@ -6,10 +6,10 @@ export function NumberInput({ idx }: { idx: number }) {
     const v = useCell(store.comps.cell(idx, "value"));
     const [text, setText] = useState(Number.isNaN(v) ? "" : String(v));
     useEffect(() => setText(Number.isNaN(v) ? "" : String(v)), [v]);
-    const commit = () => {
+    function commit() {
         const n = text.trim() === "" ? NaN : Number(text);
         store.request([[store.comps.cell(idx, "value"), n]]);
-    };
+    }
     return (
         <input
             className="numberInput"

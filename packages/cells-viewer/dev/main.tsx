@@ -97,8 +97,9 @@ measureBetween("boot", 0, performance.now());
 // What the first load will need, started now rather than when the text is
 // in hand: the core's wasm (already compiling, if the page's head started
 // it) and the parser's chunk. Both overlap the page's render and the fetch.
-preloadCore();
-preloadParser();
+// A failure surfaces where the first load awaits the same promise.
+preloadCore().catch(() => {});
+preloadParser().catch(() => {});
 
 const params = new URLSearchParams(window.location.search);
 /** `?editor=0` shows the viewer alone, from the same bundle: the load
@@ -209,20 +210,19 @@ function App() {
         else if (src) {
             // The built page's head may have started this fetch already.
             const start = window.__cellsDocAt ?? performance.now();
-            (window.__cellsDoc ?? fetch(src))
-                .then((r) => {
+            (async () => {
+                try {
+                    const r = await (window.__cellsDoc ?? fetch(src));
                     if (!r.ok) throw new Error(`${src}: ${r.status}`);
-                    return r.text();
-                })
-                .then((text) => {
+                    const text = await r.text();
                     measure("fetch", start, { chars: text.length });
                     setSource(text);
-                    return loadSource(text);
-                })
-                .catch((e) => {
+                    await loadSource(text);
+                } catch (e) {
                     setError(String(e));
                     releaseEditor();
-                });
+                }
+            })();
         }
         // `?blank=1` (the benchmark) waits for `loadSource` instead.
         else if (params.get("blank") !== "1") loadSource(source);
@@ -363,7 +363,8 @@ function Timings({
     );
 }
 
-const ms = (v?: number) =>
-    v === undefined || Number.isNaN(v)
+function ms(v?: number): string {
+    return v === undefined || Number.isNaN(v)
         ? "…"
         : `${v < 10 ? v.toFixed(1) : Math.round(v)} ms`;
+}

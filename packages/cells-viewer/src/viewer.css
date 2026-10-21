@@ -58,7 +58,7 @@ details.aside > summary h2.title {
 button.triggerSet {
     padding: 4px 12px;
 }
-/* JSXGraph boards (plan 7): Doenet's light theme and its .jxgbox and
+/* JSXGraph boards (ADR 0010): Doenet's light theme and its .jxgbox and
    navigation rules (packages/doenetml/src/DoenetML.css). */
 :root {
     --canvas: white;

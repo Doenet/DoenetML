@@ -10,9 +10,9 @@ export function TextInput({ idx }: { idx: number }) {
     const current = Number.isNaN(id) ? "" : store.comps.string(id);
     const [text, setText] = useState(current);
     useEffect(() => setText(current), [current]);
-    const commit = () => {
+    function commit() {
         if (text !== current) store.requestText(cell, text);
-    };
+    }
     return (
         <input
             className="textInput"

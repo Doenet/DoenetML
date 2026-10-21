@@ -37,7 +37,8 @@ export function CaseView({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     return active === 1 ? <Children idx={idx} inGraph={inGraph} /> : null;
 }
 
-/** Words of a section's `label` cell, in the core's `SECTION_TAGS` order. */
+/** A section's title by its `label` cell: the `title`s of the core's
+ * `SECTION_TAGS`, in order. */
 const SECTION_LABELS = [
     "Section",
     "Section",

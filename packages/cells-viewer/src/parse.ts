@@ -1,5 +1,5 @@
 // In-browser DoenetML parsing via the existing TypeScript parser, for the
-// textarea in the UI. Benchmarks use pre-parsed fixtures instead. Each
+// editor in the UI. Benchmarks use pre-parsed fixtures instead. Each
 // stage is a step of the load trace (`trace.ts`).
 import { encodeDast } from "@doenet/cells-core/cdast-encode";
 import { step, stepAsync } from "./trace";
@@ -13,10 +13,14 @@ let parserLoad: Promise<Parser> | null = null;
  * Called at boot (`dev/main.tsx`), so the chunk arrives while the page
  * renders and the document's text is fetched, instead of after. */
 export function preloadParser(): Promise<Parser> {
-    return (parserLoad ??= stepAsync(
-        "parser import",
-        () => import("@doenet/parser"),
-    ).then((m) => (parser = m)));
+    return (parserLoad ??= (async () => {
+        const m = await stepAsync(
+            "parser import",
+            () => import("@doenet/parser"),
+        );
+        parser = m;
+        return m;
+    })());
 }
 
 export async function parseDoenetML(source: string): Promise<Uint8Array> {

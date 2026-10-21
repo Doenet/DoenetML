@@ -13,6 +13,7 @@ export interface LoadTimings {
         build: number;
         schedule: number;
         initial_compute: number;
+        cycle_check: number;
         passes: number;
         structural_depth: number;
     };
@@ -89,12 +90,14 @@ export type Diagnostic = {
 
 export class CellStore {
     comps: ComponentTable;
-    private core: Core;
-    private view: Float64Array;
-    private listeners: (Set<Listener> | undefined)[];
-    private anyListeners = new Set<Listener>();
-    private structureListeners = new Set<Listener>();
-    private tickEndListeners = new Set<Listener>();
+    /** The wasm core; the benchmark's harness calls it directly
+     * (`packages/benchmark/browser/cells-adapter.js`). */
+    core: Core;
+    _view: Float64Array;
+    _listeners: (Set<Listener> | undefined)[];
+    _anyListeners = new Set<Listener>();
+    _structureListeners = new Set<Listener>();
+    _tickEndListeners = new Set<Listener>();
     /** Incremented when a tick rebuilt the document; the renderer re-reads the table. */
     structureVersion = 0;
     samples: TickSample[] = [];
@@ -102,7 +105,7 @@ export class CellStore {
     version = 0;
     /** performance.now() of the first React commit after construction. */
     firstCommitAt: number | null = null;
-    private pendingCommit: { start: number; sample: TickSample } | null = null;
+    _pendingCommit: { start: number; sample: TickSample } | null = null;
 
     /** What the load reported about the elements it stamped (ADR 0013);
      * an `_error` component's DAST node names its entry. */
@@ -116,11 +119,11 @@ export class CellStore {
         this.core = core;
         this.comps = comps;
         this.diagnostics = diagnostics;
-        this.view = this.makeView();
-        this.listeners = new Array(comps.nCells);
+        this._view = this._makeView();
+        this._listeners = new Array(comps.nCells);
     }
 
-    private makeView() {
+    _makeView() {
         return new Float64Array(
             wasmMemory!.buffer,
             this.core.cells_ptr(),
@@ -132,12 +135,12 @@ export class CellStore {
      * so the view is checked per read. */
     cells(): Float64Array {
         if (
-            this.view.buffer !== wasmMemory!.buffer ||
-            this.view.byteOffset !== this.core.cells_ptr() ||
-            this.view.length !== this.core.cells_len()
+            this._view.buffer !== wasmMemory!.buffer ||
+            this._view.byteOffset !== this.core.cells_ptr() ||
+            this._view.length !== this.core.cells_len()
         )
-            this.view = this.makeView();
-        return this.view;
+            this._view = this._makeView();
+        return this._view;
     }
 
     get(cell: number): number {
@@ -145,25 +148,25 @@ export class CellStore {
     }
 
     subscribe(cell: number, fn: Listener): () => void {
-        (this.listeners[cell] ??= new Set()).add(fn);
-        return () => this.listeners[cell]?.delete(fn);
+        (this._listeners[cell] ??= new Set()).add(fn);
+        return () => this._listeners[cell]?.delete(fn);
     }
 
     subscribeAny(fn: Listener): () => void {
-        this.anyListeners.add(fn);
-        return () => this.anyListeners.delete(fn);
+        this._anyListeners.add(fn);
+        return () => this._anyListeners.delete(fn);
     }
 
     subscribeStructure(fn: Listener): () => void {
-        this.structureListeners.add(fn);
-        return () => this.structureListeners.delete(fn);
+        this._structureListeners.add(fn);
+        return () => this._structureListeners.delete(fn);
     }
 
     /** Called once per applied tick, after every per-cell listener: a
      * renderer that batches its drawing redraws here, once per tick. */
     subscribeTickEnd(fn: Listener): () => void {
-        this.tickEndListeners.add(fn);
-        return () => this.tickEndListeners.delete(fn);
+        this._tickEndListeners.add(fn);
+        return () => this._tickEndListeners.delete(fn);
     }
 
     setEvaluator(name: string) {
@@ -190,7 +193,7 @@ export class CellStore {
 
     /** Cell-addressed write. Listeners fire before this returns. */
     request(pairs: [number, number][]): void {
-        this.send(pairs, false);
+        this._send(pairs, false);
     }
 
     /** Write text to a text cell (a textInput's `value`): the text is
@@ -203,7 +206,7 @@ export class CellStore {
     /** Points dragged together: `[xCell, yCell, x, y]` per point. The core
      * keeps them a translation apart if one of them is constrained. */
     requestPoints(points: [number, number, number, number][]): void {
-        this.send(
+        this._send(
             points.flatMap(
                 ([cx, cy, x, y]) =>
                     [
@@ -218,13 +221,13 @@ export class CellStore {
     /** Submit an answer: its live responses become its submitted ones and
      * credit recomputes, as one tick (`Core::submit`). */
     submit(answer: number): void {
-        this.tick(() => this.core.submit(answer));
+        this._tick(() => this.core.submit(answer));
     }
 
-    private send(pairs: [number, number][], points: boolean): void {
+    _send(pairs: [number, number][], points: boolean): void {
         const cells = new Uint32Array(pairs.map((p) => p[0]));
         const values = new Float64Array(pairs.map((p) => p[1]));
-        this.tick(() =>
+        this._tick(() =>
             points
                 ? this.core.request_points(cells, values)
                 : this.core.request(cells, values),
@@ -232,7 +235,7 @@ export class CellStore {
     }
 
     /** One tick: `run` asks the core and returns the changed cells. */
-    private tick(run: () => Uint32Array): void {
+    _tick(run: () => Uint32Array): void {
         const start = performance.now();
         const sample: TickSample = {
             core: NaN,
@@ -253,7 +256,7 @@ export class CellStore {
         sample.roundTrip = performance.now() - start;
         sample.changed = changed.length;
         sample.rebuilt = rebuilt;
-        this.pendingCommit = { start, sample };
+        this._pendingCommit = { start, sample };
         this.version++;
         requestAnimationFrame(() => {
             sample.frame = performance.now() - start;
@@ -270,29 +273,29 @@ export class CellStore {
                 columnsFromCore(this.core, wasmMemory!),
                 () => columnsFromCore(this.core, wasmMemory!),
             );
-            this.listeners = new Array(this.comps.nCells);
+            this._listeners = new Array(this.comps.nCells);
             this.structureVersion++;
-            for (const fn of this.structureListeners) fn();
+            for (const fn of this._structureListeners) fn();
         } else {
             // A tick that interned text grew the string table.
             this.comps.syncStrings(this.core, wasmMemory!);
             for (let i = 0; i < changed.length; i++) {
-                const set = this.listeners[changed[i]];
+                const set = this._listeners[changed[i]];
                 if (set) for (const fn of set) fn();
             }
         }
-        for (const fn of this.tickEndListeners) fn();
+        for (const fn of this._tickEndListeners) fn();
         sample.sync = performance.now() - start;
-        for (const fn of this.anyListeners) fn();
+        for (const fn of this._anyListeners) fn();
     }
 
     /** Called by the renderer after React commits a tick's updates. */
     markCommit() {
         this.firstCommitAt ??= performance.now();
-        if (this.pendingCommit) {
-            this.pendingCommit.sample.commit =
-                performance.now() - this.pendingCommit.start;
-            this.pendingCommit = null;
+        if (this._pendingCommit) {
+            this._pendingCommit.sample.commit =
+                performance.now() - this._pendingCommit.start;
+            this._pendingCommit = null;
         }
     }
 }

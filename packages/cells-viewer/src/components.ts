@@ -32,28 +32,27 @@ export const TEXT_BIT = 0x80000000;
 export type Child = { c: number } | { t: string };
 
 export class ComponentTable {
-    private decoder = new TextDecoder();
-    private strCache = new Map<number, string>();
-    private propIndex: Map<string, number>[];
-    private _cols: ComponentColumns;
+    _decoder = new TextDecoder();
+    _strCache = new Map<number, string>();
+    _propIndex: Map<string, number>[];
+    _cols: ComponentColumns;
+    _reload?: () => ComponentColumns;
     /**
      * @param reload re-reads the columns from the core. The views detach
      * when wasm memory grows (parsing typed math, interning text), which
      * leaves their buffer with no bytes, so the table re-reads them on the
      * next access after that.
      */
-    constructor(
-        cols: ComponentColumns,
-        private reload?: () => ComponentColumns,
-    ) {
+    constructor(cols: ComponentColumns, reload?: () => ComponentColumns) {
         this._cols = cols;
-        this.propIndex = cols.typeProps.map(
+        this._reload = reload;
+        this._propIndex = cols.typeProps.map(
             (names) => new Map(names.map((n, i) => [n, i])),
         );
     }
     get cols(): ComponentColumns {
-        if (this._cols.componentType.buffer.byteLength === 0 && this.reload) {
-            this._cols = this.reload();
+        if (this._cols.componentType.buffer.byteLength === 0 && this._reload) {
+            this._cols = this._reload();
         }
         return this._cols;
     }
@@ -72,11 +71,11 @@ export class ComponentTable {
     }
 
     string(id: number): string {
-        let s = this.strCache.get(id);
+        let s = this._strCache.get(id);
         if (s === undefined) {
             const { stringOffsets: o, stringBytes: b } = this.cols;
-            s = this.decoder.decode(b.subarray(o[id], o[id + 1]));
-            this.strCache.set(id, s);
+            s = this._decoder.decode(b.subarray(o[id], o[id + 1]));
+            this._strCache.set(id, s);
         }
         return s;
     }
@@ -97,7 +96,7 @@ export class ComponentTable {
 
     /** Cell index of prop `name` on component `c`. */
     cell(c: number, name: string): number {
-        const i = this.propIndex[this.cols.componentType[c]].get(name);
+        const i = this._propIndex[this.cols.componentType[c]].get(name);
         if (i === undefined)
             throw new Error(
                 `component ${c} (${this.componentType(c)}) has no prop ${name}`,
@@ -197,10 +196,12 @@ export function columnsFromCore(
     memory: WebAssembly.Memory,
 ): ComponentColumns {
     const n = core.n_components();
-    const u32 = (ptr: number, len: number) =>
-        new Uint32Array(memory.buffer, ptr, len);
-    const u8 = (ptr: number, len: number) =>
-        new Uint8Array(memory.buffer, ptr, len);
+    function u32(ptr: number, len: number) {
+        return new Uint32Array(memory.buffer, ptr, len);
+    }
+    function u8(ptr: number, len: number) {
+        return new Uint8Array(memory.buffer, ptr, len);
+    }
     const nStrings = core.n_strings();
     const cols: ComponentColumns = {
         root: core.root(),

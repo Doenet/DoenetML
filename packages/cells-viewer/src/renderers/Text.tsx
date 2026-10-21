@@ -27,11 +27,11 @@ function latex(text: string): ReactNode[] {
         .replace(/\\cdot\b/g, "·");
     let i = 0,
         plain = "";
-    const flush = () => {
+    function flush() {
         if (plain) out.push(plain);
         plain = "";
-    };
-    const group = (at: number): [string, number] => {
+    }
+    function group(at: number): [string, number] {
         if (s[at] === "{") {
             let depth = 1,
                 j = at + 1;
@@ -43,7 +43,7 @@ function latex(text: string): ReactNode[] {
             return [s.slice(at + 1, j - 1), j];
         }
         return [s[at] ?? "", at + 1];
-    };
+    }
     while (i < s.length) {
         const c = s[i];
         if (c === "_" || c === "^") {
@@ -361,7 +361,7 @@ export function TriggerSet({ idx }: { idx: number }) {
     const store = useStore();
     // `<label>` is a group in the core.
     const label = childrenOfType(store, idx, "group")[0];
-    const press = () => {
+    function press() {
         const pairs = updates(store, idx).map(
             (u) =>
                 [
@@ -370,7 +370,7 @@ export function TriggerSet({ idx }: { idx: number }) {
                 ] as [number, number],
         );
         store.request(pairs);
-    };
+    }
     return (
         <button
             className="triggerSet"

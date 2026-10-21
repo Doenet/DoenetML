@@ -172,7 +172,7 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
         case "_error":
             return <ErrorBox idx={idx} />;
         default:
-            return null; // <op> has no rendering
+            return null;
     }
 }
 

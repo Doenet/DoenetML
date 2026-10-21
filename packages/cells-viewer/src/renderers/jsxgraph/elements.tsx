@@ -1,7 +1,8 @@
-// Point, line, line segment, circle and polygon as JSXGraph elements, built
-// and dragged the way Doenet's component renderers are (point.tsx, line.tsx,
-// lineSegment.tsx, circle.tsx, polygon.tsx), but reading cells directly:
-// each component renders nothing through React after it mounts.
+// Point, line, line segment, circle, polygon and polyline as JSXGraph
+// elements, built and dragged the way Doenet's component renderers are
+// (point.tsx, line.tsx, lineSegment.tsx, circle.tsx, polygon.tsx), but
+// reading cells directly: each component renders nothing through React
+// after it mounts.
 //
 // Drags follow Doenet's pattern: what the user drags is either an invisible
 // twin (a point's shadow point) or an object whose defining points are put
@@ -81,7 +82,9 @@ function attachDrag(
     });
 }
 
-const finite = (...v: number[]) => v.every(Number.isFinite);
+function finite(...v: number[]) {
+    return v.every(Number.isFinite);
+}
 
 // ---------------------------------------------------------------- point
 
@@ -89,8 +92,9 @@ const POINT_PROPS = ["x", "y", "hide"] as const;
 
 /** JSXGraph layer of an element with Doenet's `layer` attribute: ten
  * layers per DoenetML layer, above the type's offset (point.tsx). */
-const layerOf = (layer: string | null, offset: number) =>
-    10 * (Number(layer) || 0) + offset;
+function layerOf(layer: string | null, offset: number) {
+    return 10 * (Number(layer) || 0) + offset;
+}
 
 function pointElement(
     h: BoardHandle,
@@ -403,13 +407,13 @@ function polygonElement(h: BoardHandle): BoardElement {
         ...h.attrs,
     };
 
-    const destroy = () => {
+    function destroy() {
         h.removeObjects(polygon ? [polygon, ...vertices] : vertices);
         polygon = null;
         vertices = [];
-    };
+    }
     // Doenet rebuilds the polygon when its vertex count changes; so does this.
-    const build = (n: number, xy: number[]) => {
+    function build(n: number, xy: number[]) {
         destroy();
         count = n;
         if (n < 2) return;
@@ -449,7 +453,7 @@ function polygonElement(h: BoardHandle): BoardElement {
                 },
             );
         }
-    };
+    }
 
     const e: BoardElement = {
         cells: [],

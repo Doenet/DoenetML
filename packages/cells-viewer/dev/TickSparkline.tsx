@@ -56,14 +56,17 @@ function durations(s: TickSample): number[] {
     return out;
 }
 
-const busy = (s: TickSample) => durations(s).reduce((sum, v) => sum + v, 0);
+function busy(s: TickSample): number {
+    return durations(s).reduce((sum, v) => sum + v, 0);
+}
 
 /**
- * The latest ticks, as many as the width holds, as stacked bars of busy time, newest at the
- * right: the core's time, the JSXGraph boards' redraw, React's commit, and
- * the browser's layout and paint, on a square-root scale against a line
- * at one frame's budget. Hover a bar for its numbers. Redrawn after each tick and again once that tick's frame
- * has painted, since `frame` and `paint` are measured then.
+ * The latest ticks, as many as the width holds, as stacked bars of busy
+ * time, newest at the right: the core's time, the JSXGraph boards' redraw,
+ * React's commit, and the browser's layout and paint, on a square-root
+ * scale against a line at one frame's budget. Hover a bar for its numbers.
+ * Redrawn after each tick and again once that tick's frame has painted,
+ * since `frame` and `paint` are measured then.
  */
 export function TickSparkline({ store }: { store: CellStore }) {
     const canvas = React.useRef<HTMLCanvasElement>(null);

@@ -1,4 +1,4 @@
-// A graph drawn by JSXGraph with Doenet's look (plan 7). React mounts the
+// A graph drawn by JSXGraph with Doenet's look (ADR 0010). React mounts the
 // board and its children; after that, each child's JSXGraph element reads
 // its cells directly and never re-renders through React. A tick marks the
 // elements whose cells changed, and the board redraws once at the end of
@@ -54,8 +54,8 @@ export class BoardHandle {
     readonly elements = new Set<BoardElement>();
     /** Component index to element, for `locate`. Re-registered on rebuild. */
     readonly byComp = new Map<number, BoardElement>();
-    private pending = new Set<BoardElement>();
-    private scheduled = false;
+    _pending = new Set<BoardElement>();
+    _scheduled = false;
 
     constructor(
         readonly board: any,
@@ -71,21 +71,21 @@ export class BoardHandle {
      * anything marked outside a tick (a mount, a rebuild) is flushed in a
      * microtask, still before the frame. */
     mark(e: BoardElement) {
-        this.pending.add(e);
-        if (!this.scheduled) {
-            this.scheduled = true;
+        this._pending.add(e);
+        if (!this._scheduled) {
+            this._scheduled = true;
             queueMicrotask(() => this.flush());
         }
     }
 
     flush() {
-        this.scheduled = false;
-        if (this.pending.size === 0) return;
+        this._scheduled = false;
+        if (this._pending.size === 0) return;
         const cells = this.store.cells();
         const b = this.board;
         // Only the changed elements' objects are redrawn.
         b.renderer.suspendRedraw(b);
-        for (const e of this.pending) {
+        for (const e of this._pending) {
             const values = e.cells.map((c) => cells[c]);
             if (e.last && values.every((v, i) => Object.is(v, e.last![i])))
                 continue;
@@ -93,7 +93,7 @@ export class BoardHandle {
             e.sync(values);
             for (const o of e.objects()) o.updateRenderer();
         }
-        this.pending.clear();
+        this._pending.clear();
         b.renderer.unsuspendRedraw();
         lastBoardFlushAt = performance.now();
     }
@@ -150,7 +150,9 @@ export class BoardHandle {
 }
 
 export const BoardContext = createContext<BoardHandle | null>(null);
-export const useBoard = () => useContext(BoardContext)!;
+export function useBoard() {
+    return useContext(BoardContext)!;
+}
 
 let nextBoardId = 0;
 
@@ -160,8 +162,11 @@ export function JsxGraph({ idx }: { idx: number }) {
     const [id] = useState(() => `cells-board-${nextBoardId++}`);
     const [handle, setHandle] = useState<BoardHandle | null>(null);
     const settingBBox = useRef(false);
-    const bboxCells = () =>
-        ["xmin", "ymax", "xmax", "ymin"].map((p) => store.comps.cell(idx, p));
+    function bboxCells() {
+        return ["xmin", "ymax", "xmax", "ymin"].map((p) =>
+            store.comps.cell(idx, p),
+        );
+    }
 
     useLayoutEffect(() => {
         const cells = store.cells();

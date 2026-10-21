@@ -35,8 +35,9 @@ const Editor = React.lazy(async () => {
  * A source editor and the rendered document side by side, in the shape of
  * `packages/doenetml-prototype`'s `EditorViewer`: a strip with a Refresh
  * button (also Ctrl/Cmd+S) and the status, the editor on the left and the
- * viewer on the right. Loading is the caller's: it owns the source, the store and what
- * the header reports, so `dev/main.tsx` can also load pre-encoded fixtures.
+ * viewer on the right. Loading is the caller's: it owns the source, the
+ * store and what the header reports, so `dev/main.tsx` can also load
+ * pre-encoded fixtures.
  */
 export function EditorViewer({
     source,
@@ -69,13 +70,13 @@ export function EditorViewer({
     React.useEffect(() => {
         const container = ref.current;
         if (!container) return;
-        const onKeyDown = (event: KeyboardEvent) => {
+        function onKeyDown(event: KeyboardEvent) {
             if ((event.ctrlKey || event.metaKey) && event.key === "s") {
                 event.preventDefault();
                 event.stopPropagation();
                 if (refreshable.current) refresh.current();
             }
-        };
+        }
         container.addEventListener("keydown", onKeyDown);
         return () => container.removeEventListener("keydown", onKeyDown);
     }, []);

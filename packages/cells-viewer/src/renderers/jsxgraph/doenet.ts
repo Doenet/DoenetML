@@ -1,7 +1,7 @@
 // What makes a JSXGraph board look like Doenet's: style values, attribute
 // builders, axis and navigation setup, and the small geometry helpers the
 // component renderers use. Copied from this repository's renderers with
-// Doenet-only inputs (layers, labels, dark mode, tick scale factors, grids)
+// Doenet-only inputs (labels, dark mode, tick scale factors, grids)
 // fixed at their defaults. Sources:
 //   packages/utils/src/style/styleDefinitionHelpers.ts   DEFAULT_STYLE_VALUES
 //   packages/doenetml/src/Viewer/renderers/utils/buildGraphicalAttributes.ts
@@ -72,7 +72,8 @@ export function styleFor(styleNumber: string | null): Style {
 
 export const HANDLE_COLOR = "#404040";
 
-// Layer offsets (graph.tsx); DoenetML's `layer` is always 0 here.
+// Layer offsets (graph.tsx), above ten layers per DoenetML `layer`
+// (`layerOf` in elements.tsx).
 export const LINE_LAYER_OFFSET = 2;
 export const VERTEX_LAYER_OFFSET = 3;
 export const POINT_LAYER_OFFSET = 5;

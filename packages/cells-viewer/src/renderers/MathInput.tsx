@@ -25,7 +25,7 @@ export function MathInput({ idx }: { idx: number }) {
         setText(current);
         setInvalid(false);
     }, [current]);
-    const commit = () => {
+    function commit() {
         if (text === current) return;
         if (!symbolic) {
             const n = text.trim() === "" ? NaN : Number(text);
@@ -45,7 +45,7 @@ export function MathInput({ idx }: { idx: number }) {
         }
         setInvalid(false);
         store.request([[exprCell, h]]);
-    };
+    }
     return (
         <input
             className="mathInput"
