@@ -35,7 +35,8 @@ impl<'a> Compiler<'a> {
     /// referencing element `from` (or `ROOT_SCOPE`) walk up the ancestors;
     /// at each, the ancestor's own name wins, then a unique descendant with
     /// the name; several descendants are an ambiguity. Then continue in the
-    /// enclosing template from the repeat element. Returns (hops, element).
+    /// enclosing template from the repeat or choice element. Returns
+    /// (hops, element).
     pub(in crate::compile) fn lookup(
         &self,
         mut t: TemplateId,
@@ -236,7 +237,7 @@ impl<'a> Compiler<'a> {
                             });
                             break;
                         }
-                        // The coordinates of a point-valued prop: a view
+                        // The coordinates of a point-valued prop: a combined prop
                         // (`center`) or a list's point (`vertex3`).
                         let point_parts: Option<Vec<String>> = match (
                             component_type.combined_prop(name),

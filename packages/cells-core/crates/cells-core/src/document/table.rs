@@ -203,7 +203,7 @@ impl Document {
         self.resolve_path(path)
     }
 
-    /// Cells of a prop, including virtual props such as a point's `coords`
+    /// Cells of a prop, including combined props such as a point's `coords`
     /// and list props such as a line's `points` (items flattened, live
     /// items only).
     pub fn prop_cells(&self, comp: CompIdx, prop: &str) -> Option<Vec<CellIdx>> {

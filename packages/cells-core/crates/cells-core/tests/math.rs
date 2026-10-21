@@ -10,7 +10,7 @@ use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error};
 use common::req;
 
-fn has_evaluate(doc: &Document) -> bool {
+fn has_symbolic(doc: &Document) -> bool {
     doc.program
         .instrs
         .iter()
@@ -22,7 +22,7 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
     let mut doc =
         load(r#"<numberInput name="a" value="2"/><math name="m">3$a + 2</math>"#).unwrap();
     assert_eq!(doc.value("m", "value"), Some(8.0));
-    assert!(!has_evaluate(&doc), "a numeric math is plain operators");
+    assert!(!has_symbolic(&doc), "a numeric math is plain operators");
     // Scale then Offset: two instructions, no fixed literal cells.
     assert_eq!(doc.program.len(), 2);
     assert_eq!(
@@ -40,7 +40,7 @@ fn number_children_accept_math_text() {
     let doc = load(r#"<numberInput name="a" value="3"/><number name="n">2$a^2 - (1 + $a)/2</number><number name="k">4 * pi</number>"#).unwrap();
     assert_eq!(doc.value("n", "value"), Some(16.0));
     assert!((doc.value("k", "value").unwrap() - 4.0 * std::f64::consts::PI).abs() < 1e-12);
-    assert!(!has_evaluate(&doc));
+    assert!(!has_symbolic(&doc));
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn symbolic_math_is_a_handle_and_evaluates_to_nan() {
     let doc = load(r#"<numberInput name="a" value="2"/><math name="f">x^2 + $a</math><number name="n">$f</number>"#).unwrap();
     assert!(doc.value("f", "value").unwrap().is_nan());
     assert!(doc.value("n", "value").unwrap().is_nan());
-    assert!(has_evaluate(&doc));
+    assert!(has_symbolic(&doc));
     let handle = doc.value("f", "expr").unwrap();
     assert!(handle.fract() == 0.0 && handle >= 0.0);
     // The handle is derived from the template and `a`: no inverse.
@@ -122,7 +122,7 @@ fn function_calls_lower_to_their_operators() {
     assert_eq!(doc.value("hi", "value"), Some(2.6));
     assert_eq!(doc.value("c", "value"), Some(6.0));
     assert_eq!(doc.value("k", "value"), Some(2.0), "constant calls fold");
-    assert!(!has_evaluate(&doc));
+    assert!(!has_symbolic(&doc));
     // A clamp inverts by projection: asking for 9 asks for 6, so a = 2.
     doc.request(&[req(&doc, "c", "value", 9.0)]);
     assert_eq!(doc.value("a", "value"), Some(2.0));
@@ -130,7 +130,7 @@ fn function_calls_lower_to_their_operators() {
 }
 
 #[test]
-fn function_calls_build_the_same_operators_as_op() {
+fn a_nested_call_builds_the_same_operators_as_a_chain_of_numbers() {
     let ops = |src: &str| {
         let doc = load(src).unwrap();
         doc.program

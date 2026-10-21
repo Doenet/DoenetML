@@ -4,9 +4,9 @@
 
 mod common;
 
+use cells_core::Document;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error};
-use cells_core::{CompIdx, Document};
 use common::{close, set, type_into};
 
 /// Type into `input` and submit `answer`.
@@ -187,8 +187,6 @@ fn hidden_answers_still_count() {
 <conditionalContent name="cc" hide="$h"><case condition="true"><mathInput name="m2"/><answer name="a2" response="$m2">2</answer></case></conditionalContent>"#,
     )
     .unwrap();
-    let a1 = doc.resolve_path("a1").unwrap();
-    let _: CompIdx = a1;
     assert_credit!(doc_credit(&doc), 0.0);
     let mut doc = doc;
     answer(&mut doc, "m1", "a1", "1");

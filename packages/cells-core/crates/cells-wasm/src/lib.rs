@@ -1,6 +1,6 @@
 //! Browser binding. The renderer reads cells through a `Float64Array` view
-//! over wasm memory (see `cells_ptr`/`cells_len`), receives a one-time render
-//! manifest, and writes with cell-addressed requests. See ADR 0001.
+//! over wasm memory (see `cells_ptr`/`cells_len`), reads the component
+//! tables the same way, and writes with cell-addressed requests. See ADR 0001.
 
 use cells_core::{Document, LoadOptions, PointRequest, Request};
 use wasm_bindgen::prelude::*;
@@ -353,8 +353,8 @@ impl Core {
         }
     }
 
-    /// Cells of a prop by name, including virtual (`coords`, `center`) and
-    /// array (`points`, `vertices`) props; empty if no such prop.
+    /// Cells of a prop by name, including combined (`coords`, `center`) and
+    /// list (`points`, `vertices`) props; empty if no such prop.
     pub fn prop_cells(&self, idx: u32, prop: &str) -> Vec<u32> {
         if (idx as usize) >= self.doc.n_components() {
             return Vec::new();

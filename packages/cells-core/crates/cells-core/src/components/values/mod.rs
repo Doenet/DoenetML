@@ -1,5 +1,6 @@
-//! Number, boolean, text, op, math, evaluate, function, derivative and
-//! answer (with its award, when and response): types that hold a value,
+//! Number, boolean, text, math, evaluate, clamp number, tuple, update
+//! value, function, derivative and answer (with its award, when and
+//! response): types that hold a value,
 //! numeric or symbolic. Function and derivative are `symbolic`, planned as
 //! math cells (`curve.rs`); so is answer (`answer.rs`). Each type with a
 //! planner is in its own file, its definition and its planner together

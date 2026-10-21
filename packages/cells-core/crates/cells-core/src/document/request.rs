@@ -70,10 +70,11 @@ impl Document {
         // An infinite ask is never meaningful state (NaN is: an emptied
         // input), and the current core rejects it; drop it before inverting,
         // with any value the cell cannot hold (a number asked of a math cell).
-        let (mut finite, refused): (Vec<Request>, Vec<Request>) = requests.iter().partition(|r| {
-            (!r.value.is_infinite() || self.accepts_infinity(r.cell))
-                && self.can_hold(r.cell, r.value)
-        });
+        let (mut accepted, refused): (Vec<Request>, Vec<Request>) =
+            requests.iter().partition(|r| {
+                (!r.value.is_infinite() || self.accepts_infinity(r.cell))
+                    && self.can_hold(r.cell, r.value)
+            });
         tick.dropped.extend(refused);
         let mut finite_groups: Vec<Vec<PointRequest>> = Vec::with_capacity(groups.len());
         for g in groups {
@@ -86,12 +87,12 @@ impl Document {
                 finite_groups.push(g.clone());
             }
         }
-        self.snap_sticky(&mut finite, &mut finite_groups);
+        self.snap_sticky(&mut accepted, &mut finite_groups);
         let inv = invert_requests(
             &self.program,
             &self.cells,
             self.n_essential,
-            &finite,
+            &accepted,
             &finite_groups,
         );
         tick.dropped.extend(inv.dropped);
@@ -128,7 +129,7 @@ impl Document {
                         }
                         self.recompute();
                         tick.changed.clear();
-                        tick.dropped.extend(finite);
+                        tick.dropped.extend(accepted);
                         tick.dropped
                             .extend(finite_groups.iter().flatten().map(|p| Request {
                                 cell: p.cells[0],

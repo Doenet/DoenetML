@@ -128,7 +128,7 @@ enum ElemShape {
     Synthetic,
     ExtendProp(RefId),
     ContainerCopy(RefId),
-    /// Wire as its type's entry in `planner` says.
+    /// Planned as its type's entry in `planner` says.
     ByType(Option<RefId>),
 }
 
@@ -476,7 +476,6 @@ impl<'a> Compiler<'a> {
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.pending_elems.push((t, e));
         let child_scope = e;
-        let _ = name_scope;
         match component_type {
             ComponentType::FunctionIterates => {
                 // One hidden tuple per iteration, planned with the element

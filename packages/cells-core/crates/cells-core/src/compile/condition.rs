@@ -248,7 +248,7 @@ struct CondParser<'t> {
     compare: Compare,
 }
 
-/// One side of a comparison: the tokens it spans, and its plan when it
+/// One side of a comparison: the tokens it spans, and its source when it
 /// lowers to numeric operators (a constant is not state).
 struct Operand {
     span: std::ops::Range<usize>,
@@ -424,7 +424,7 @@ impl CondParser<'_> {
         })
     }
 
-    /// The operand as a numeric slot: its lowered plan, else its
+    /// The operand as a numeric slot: its lowered source, else its
     /// expression evaluated (NaN with free symbols).
     fn number(&mut self, cp: &mut Compiler, wiring: &mut ElemWiring, a: &Operand) -> usize {
         match &a.numeric {

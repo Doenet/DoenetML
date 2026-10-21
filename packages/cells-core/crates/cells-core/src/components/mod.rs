@@ -198,8 +198,9 @@ pub enum PropAt {
     List,
 }
 
-/// What a type is, apart from its props: each false until `info`'s
-/// builder of the same name (`.copyable()`, ...) sets it.
+/// What a type is, apart from its props: each false until its
+/// `component!` block's `flags` names it, which calls the builder of the
+/// same name (`.copyable()`, ...).
 #[derive(Debug, Clone, Copy)]
 pub struct Flags {
     /// `$name` as a child may produce a copy of the component, and
@@ -207,7 +208,7 @@ pub struct Flags {
     pub copyable: bool,
     /// The children are rendered; `extend` copies them deeply.
     pub container: bool,
-    /// Wire as math cells (`values/curve.rs`); not allowed in a branch
+    /// Planned as math cells (`values/curve.rs`); not allowed in a branch
     /// interface.
     pub symbolic: bool,
     /// Made by the builder, never by a tag in the source.
@@ -420,7 +421,7 @@ pub enum PropFrom {
     /// Value given by the attribute if present, else an alias of the
     /// component's own prop at `alias`.
     AttributeOr { alias: u8 },
-    /// Set by the type's planner (`compile/planner.rs` names it), which
+    /// Set by the type's planner (its `component!` block names it), which
     /// reads the whole element: a circle's center from whichever of
     /// `center`, `radius` and `through` the author gave.
     ByPlanner,

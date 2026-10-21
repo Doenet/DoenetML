@@ -133,8 +133,8 @@ fn line_through_two_points_one_constrained_translates_as_a_whole() {
            </graph>"#,
     )
     .unwrap();
-    // Request a translation by (0.7, 1.4): a snaps to (0, 0)... no, to the
-    // nearest grid point of (0.7, 1.4), which is (0, 0); b then stays.
+    // Request a translation by (0.7, 1.4): a snaps to the nearest grid
+    // point, (0, 0), so b stays.
     move_points(
         &mut doc,
         "l",

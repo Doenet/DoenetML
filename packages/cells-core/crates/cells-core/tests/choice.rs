@@ -8,8 +8,8 @@ use cells_core::testing::test_utils::{dast_json, load, load_error};
 use cells_core::{Document, Error};
 use common::{set, v};
 
-/// The value of `$path` as a number, through a `<number>` the document
-/// defines for the purpose.
+/// The value of the `<number>` named `probe`, which the document defines to
+/// read a path as a number.
 fn num(doc: &Document, probe: &str) -> f64 {
     v(doc, probe, "value")
 }

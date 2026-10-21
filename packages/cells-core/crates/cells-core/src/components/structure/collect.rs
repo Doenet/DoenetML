@@ -29,13 +29,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .attr(el, "componentType")
         .and_then(|a| ctx.attr_text(a))
         .ok_or(Error::BadCollect)?;
-    let ck = ComponentType::from_tag(type_text.trim())
+    let collected_type = ComponentType::from_tag(type_text.trim())
         .filter(|k| k.copyable())
         .ok_or_else(|| Error::BadCollectType(type_text.trim().into()))?;
     let p = ctx.reference(from)?;
     if ctx.names_prop(p) {
         return Err(Error::BadCollect);
     }
-    ctx.collect(p, ck);
+    ctx.collect(p, collected_type);
     Ok(())
 }

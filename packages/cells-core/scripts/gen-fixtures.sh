@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Generate the benchmark fixtures: DoenetML text and parsed DAST JSON for each
-# spec in the default sweep (or the specs given as arguments).
+# Generate the benchmark fixtures: DoenetML text, parsed DAST JSON and its
+# binary encoding (.cdast) for each spec in the default sweep (or the specs
+# given as arguments).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 cargo build -q --release -p cells-docgen

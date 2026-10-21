@@ -203,11 +203,11 @@ spec! {
                     <circle name="c" through="$p1 $p2"/>
                     <point name="q" extend="$c.throughPoint2"/>
                   </graph>
-                  <number name="alias">$c.throughPointX2_1</number>
+                  <number name="alternate">$c.throughPointX2_1</number>
                   <number name="past">$c.throughX3</number>"#;
         expect {
             "c.throughPoint2" = (4, 0), "c.throughX1" = 0, "q.coords" = (4, 0),
-            "alias.value" = 4, "past.value" = f64::NAN,
+            "alternate.value" = 4, "past.value" = f64::NAN,
         }
         request { "q.x" = 6 }
         expect { "p2.x" = 6, "c.throughX2" = 6, "c.radius" = 3 }

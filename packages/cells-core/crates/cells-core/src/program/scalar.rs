@@ -138,7 +138,6 @@ scalar_ops! {
     /// drops a request unless the flag is exactly 0 (a NaN flag, a missing
     /// referent, holds): a dynamic `fixed` or `fixAxes`. The flag is still
     /// an input, so the hold is an edge in the graph, like `Shape`'s pivot.
-    /// `kind="gate"` predates the op's name.
     Hold(a, b) {
         eval: a,
         exact |d| (b == 0.0).then_some((A, d)),

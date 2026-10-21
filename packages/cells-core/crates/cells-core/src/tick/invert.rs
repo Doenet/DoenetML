@@ -149,6 +149,7 @@ pub fn realize(
     }
     out.extend(requests.iter().map(|&(c, _)| scratch[c as usize]));
 }
+
 /// One run of the inversion engine.
 struct RequestEngine<'a> {
     program: &'a Program,

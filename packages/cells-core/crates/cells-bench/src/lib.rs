@@ -1,4 +1,5 @@
-//! Shared fixture loading for benches and the stats binary.
+//! Shared fixture loading for the stats binary and the examples, and the
+//! golden script (`script`).
 
 use std::path::PathBuf;
 

@@ -56,7 +56,7 @@ impl Fix {
 
 /// Put a `Hold` on every slot a request could write through: its essential
 /// literals, its references and its operators and math over other cells.
-/// Each such plan moves to a new hidden slot and its old slot becomes
+/// Each such source moves to a new hidden slot and its old slot becomes
 /// `Hold(moved, flag)`, so everything that reads the slot, inside the
 /// element or out, reads through the hold. Vector heads and outputs stay in
 /// place (they must be consecutive); their inputs are own slots, which are

@@ -6,7 +6,7 @@ use crate::error::{Error, Result};
 
 component! {
     /// `<when>` inside an `<award>`: `value` is 1 while its condition holds,
-    /// read against the answer's submitted responses. Wire with its answer.
+    /// read against the answer's submitted responses. Planned with its answer.
     tags: ["when"],
     default_prop: value,
     props {
@@ -17,7 +17,7 @@ component! {
 
 pub const VALUE: usize = Props::AT.value;
 
-/// A when is planned by its answer; one elsewhere has no plan.
+/// A when is planned by its answer; one elsewhere is not planned.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     if !ctx.is_planned() {
         return Err(Error::Unsupported("a <when> outside an <award>".into()));

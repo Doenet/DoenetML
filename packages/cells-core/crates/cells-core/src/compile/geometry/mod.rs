@@ -7,13 +7,6 @@
 
 use super::*;
 
-/// What a planner is given (ADR 0016): its element's attributes, planned
-/// the ways every component shares, and a way to warn. An attribute is the
-/// element's own or, when the element omits it, its `extend` referent's.
-/// One context serves every kind of planner; the kind decides what is done
-/// around the call. For a shape, `plan_geo` makes it and does the rest: a
-/// bare copy, sharing state with the referent, and `fixed`. Only
-/// shapes are given one so far.
 impl<'a> Compiler<'a> {
     /// Runs a geometric type's planner (`plan`, from `planner`) with what
     /// the types share around it: a bare copy aliases every prop, and a copy
@@ -87,7 +80,7 @@ impl<'a> Compiler<'a> {
                 .insert((t as u32, e as u32), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
-            self.compiled.templates[t].elems[e].n_public = NPublic::Wire(wiring.n_public as u32);
+            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(wiring.n_public as u32);
         }
         self.compiled.templates[t].elems[e].props = wiring.finish();
         Ok(())
@@ -134,7 +127,7 @@ impl<'a> Compiler<'a> {
             match &toks[i] {
                 Token::Cell(p) => {
                     let p = *p as RefId;
-                    // An list prop expands to its items.
+                    // A list prop expands to its items.
                     let items = self.array_items_of_plan(t, p)?;
                     match items {
                         Some(n) => out.extend((0..n).map(|k| GivenPoint::Item(p, k))),

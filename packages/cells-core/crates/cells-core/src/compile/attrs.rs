@@ -1,11 +1,11 @@
-//! Attributes and math: each prop's source from a literal, a reference, an
-//! `<op>`, or math text, and the helpers that read attribute text.
+//! Attributes and math: each prop's source from a literal, a reference,
+//! or math text, and the helpers that read attribute text.
 
 use super::*;
 
 impl<'a> Compiler<'a> {
-    /// Plans for a type described by `PropFrom`: attributes, bindings,
-    /// computed chains, children.
+    /// The prop sources of a type described by `PropFrom`: attributes,
+    /// bindings, computed chains, children.
     pub(in crate::compile) fn plan_attrs(
         &mut self,
         t: TemplateId,
@@ -41,7 +41,7 @@ impl<'a> Compiler<'a> {
                 }
                 None => None,
             };
-            let plan = match (bound, def.from) {
+            let source = match (bound, def.from) {
                 (Some(p), _) => p,
                 (None, PropFrom::Attribute) => match d.attr(el, def.attr_name()) {
                     Some(a) => self.plan_value(
@@ -118,9 +118,8 @@ impl<'a> Compiler<'a> {
                 }
                 (None, PropFrom::ByPlanner) => unreachable!("geometric types take plan_geo"),
             };
-            props[pi] = Some(plan);
+            props[pi] = Some(source);
         }
-        let mut props: Vec<Option<Source>> = props;
         if let Planner::PropsThen(then) = Self::planner(component_type) {
             then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
@@ -378,7 +377,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// A plan from an expression template: a constant is an essential
+    /// A source from an expression template: a constant is an essential
     /// literal, a lone reference an alias, anything else a lowered math.
     pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {
         match self.compiled.arena.get(id) {
@@ -388,7 +387,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// `(a, b)`: two scalar plans from tuple text, with `$ref` leaves.
+    /// `(a, b)`: two scalar sources from tuple text, with `$ref` leaves.
     pub(in crate::compile) fn plan_tuple(
         &mut self,
         t: TemplateId,
@@ -417,7 +416,7 @@ impl<'a> Compiler<'a> {
         self.tuple_from_tokens(inner, &text)
     }
 
-    /// The inside of `(a, b)`, as two scalar plans.
+    /// The inside of `(a, b)`, as two scalar sources.
     pub(in crate::compile) fn tuple_from_tokens(
         &mut self,
         inner: &[Token],

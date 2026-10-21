@@ -21,17 +21,9 @@ impl<'c> Builder<'c> {
                 self.slot(other, slot as usize)
             }
             Arg::Ref(p, Sel::Whole) => {
-                let t = self.resolve_one(p, scope).map_err(|e| {
-                    arity_error(
-                        e,
-                        component_type,
-                        component_type
-                            .prop_defs()
-                            .get(pi)
-                            .map(|d| d.name)
-                            .unwrap_or("args"),
-                    )
-                })?;
+                let t = self
+                    .resolve_one(p, scope)
+                    .map_err(|e| arity_error_for(e, component_type, pi))?;
                 self.record_label(from, t);
                 t
             }
@@ -312,7 +304,7 @@ impl<'c> Builder<'c> {
         self.targets_of(target, prop, plan, expected)
     }
 
-    /// The one slot a reference names, without allocating. Errors with a
+    /// The one slot a reference names. Errors with a
     /// placeholder `ArityMismatch` (callers fill in type and prop) when the
     /// reference names several cells.
     pub(in crate::build) fn resolve_one(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {

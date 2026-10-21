@@ -5,7 +5,7 @@ use super::*;
 /// What a planner is given (ADR 0016): its element and the source it reads
 /// (the DAST, read-only), its attributes planned the ways every component
 /// shares, the machinery several components build on, and the writes that
-/// make the element's plan. An attribute by name is the element's own or,
+/// make the element's wiring. An attribute by name is the element's own or,
 /// when the element omits it and is a shape extending another, its `extend`
 /// referent's. One context serves every kind of planner; the kind decides
 /// what is done around the call. For a shape, `plan_geo` makes it and does
@@ -226,9 +226,9 @@ impl<'a> PlanCtx<'_, 'a> {
     /// Makes a reference that names no prop name `prop` (`$b` reads as
     /// `$b.value`).
     pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &str) {
-        let plan = &mut self.c.compiled.refs[p];
-        if plan.prop.is_none() {
-            plan.prop = Some(prop.into());
+        let reference = &mut self.c.compiled.refs[p];
+        if reference.prop.is_none() {
+            reference.prop = Some(prop.into());
         }
     }
 
@@ -261,7 +261,7 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.parse_tokens(toks, text)
     }
 
-    /// An expression as a plan: lowered to numeric operators when it is
+    /// An expression as a source: lowered to numeric operators when it is
     /// numeric, else symbolic.
     pub(crate) fn plan_expr(&mut self, id: ExprId) -> Source {
         self.c.plan_from_expr(id)
@@ -274,7 +274,7 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.plan_sym_math(self.t, scope, nodes)
     }
 
-    /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as plans
+    /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
     /// of `[a, b, c]`; `None` when it is not linear in them (or symbolic).
     /// A referenced `<math>` carrying the variables is inlined first, so
     /// `$m = y` with `$m` standing for `2x` is linear. Math that is not
@@ -399,8 +399,8 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.plan_answer(self.t, self.e)
     }
 
-    /// Plans a choice, reactive or at load: its cases' conditions or its
-    /// picks (`compile/choice.rs`).
+    /// Plans a choice, reactive or at load: its cases' conditions, or a
+    /// select's `hide` (`compile/choice.rs`).
     pub(crate) fn plan_choice(&mut self) -> Result<()> {
         self.c.plan_choice(self.t, self.e)
     }

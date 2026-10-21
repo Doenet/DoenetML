@@ -15,7 +15,7 @@
 //! text).
 //!
 //! Version 1 keyed an entry by the raw scope id and slot offset; it is
-//! still read, as before.
+//! still read.
 use std::collections::HashMap;
 
 use serde_json::{Value, json};

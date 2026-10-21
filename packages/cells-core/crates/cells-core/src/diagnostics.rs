@@ -5,7 +5,7 @@
 //!
 //! A diagnostic is a function of the document text alone. The build
 //! collects them (`BuildOutput::diagnostics`); [`crate::diagnose`] builds
-//! once through the exhaustive view, so the list covers every branch and
+//! once through the probe, so the list covers every branch and
 //! every repeat body whatever the seed or the counts; a tick never
 //! produces one. Each names its node in the DAST, not a position: the
 //! caller that holds the parser's DAST (the language server, the viewer)

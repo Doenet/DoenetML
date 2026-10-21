@@ -15,7 +15,8 @@
 //! and the engine), `Op::eval`, `Op::invert`, `Op::input_pair`,
 //! `OpSpec::scalar_arity`, `OpSpec::bind_scalar`, `OpSpec::inverse` and
 //! `OpSpec::scalar_samples`, which
-//! `tests` checks every inverse against over a fixed table of values. An
+//! the `inverses` tests in `scalar.rs` check every inverse against over a
+//! fixed table of values. An
 //! operator with parameters gives `samples`, the parameters it is checked
 //! with.
 //!
@@ -171,7 +172,7 @@ macro_rules! scalar_ops {
             }
         }
 
-        /// How a scalar operator's inverse is checked (`tests`).
+        /// How a scalar operator's inverse is checked (`scalar.rs`'s `inverses`).
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum Inverse {
             Exact,

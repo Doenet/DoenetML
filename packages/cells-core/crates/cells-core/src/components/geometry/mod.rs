@@ -16,7 +16,7 @@ pub mod polygon;
 pub mod polyline;
 pub mod segment;
 
-/// Largest polygon the fixed prop layout holds.
+/// The most vertices of a polygon, and of a rigid one.
 pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};
 
 /// A line's or segment's default points, as the current core takes them:

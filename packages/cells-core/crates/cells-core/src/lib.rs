@@ -9,7 +9,7 @@
 //!
 //! - [`dast`]: the input, the parser's DAST in flat, columnar form.
 //! - [`components`]: the tag vocabulary, meaning each type's props and where
-//!   their values come from. The build plans from it, and the component
+//!   their values come from. The compile plans from it, and the component
 //!   table names cells with it.
 //! - `compile`: the source made, once per load, into the templates every
 //!   build stamps, checked and with every failing element boxed (ADR 0015).

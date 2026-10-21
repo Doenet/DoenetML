@@ -1,7 +1,7 @@
 //! `<slider>` in numeric mode: the value chain is composed from ordinary
-//! operators (see `SLIDER_PROPS`), so snapping, clamping and binding are all
-//! the generic inverse at work. These tests mirror the current core's
-//! behavior described in `docs/history/instructions2.md`.
+//! operators (see its `component!` block in `components/inputs/mod.rs`), so
+//! snapping, clamping and binding are all the generic inverse at work. These
+//! tests mirror the current core's behavior.
 
 mod common;
 

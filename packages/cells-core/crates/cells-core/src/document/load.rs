@@ -52,7 +52,8 @@ pub struct LoadTimings {
     pub initial_compute: Duration,
     /// The load check, part of `build`: the probe build that stands for
     /// every count and pick, which finds the document's cycles (ADR 0012)
-    /// and its errors (ADR 0014). Only a document with repeats runs it.
+    /// and its errors (ADR 0014). Only a document with repeats or
+    /// selects runs it.
     pub cycle_check: Duration,
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,

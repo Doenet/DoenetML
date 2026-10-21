@@ -5,7 +5,7 @@
 use super::*;
 
 /// An element's identity across loads of one document, what saved state
-/// names it by, assigned by the compile: its DAST node and 0; for an element the build makes (an
+/// names it by, assigned by the compile: its DAST node and 0; for an element the compile makes (an
 /// answer's implicit input, a container copy's clones, a repeat's hidden
 /// iteration components), the node of the nearest element it belongs to
 /// and its 1-based position among the elements made for that node.
@@ -189,7 +189,7 @@ pub(crate) enum NPublic {
     /// Its type table's, whatever type the element ends up with.
     Table,
     /// The table's, then two per point of its list, as planned.
-    Wire(u32),
+    Planned(u32),
     /// As many as its `extend` referent has: a bare or cloned copy of a
     /// type with a list, whose length is known only when built.
     AsReferent,
@@ -227,15 +227,16 @@ pub(crate) struct Elem {
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Template {
-    /// (template, element) of the repeat this template belongs to.
+    /// (template, element) of the repeat or choice this template belongs to.
     pub(crate) parent: Option<(TemplateId, ElemId)>,
     /// The node of the element that owns the template (0, the DAST root,
-    /// for the document's): what an element the build makes at the top of
+    /// for the document's): what an element the compile makes at the top of
     /// the template is keyed by.
     pub(crate) owner: NodeId,
     pub(crate) elems: Vec<Elem>,
     pub(crate) n_slots: u32,
-    /// Children of the template itself (the document, or the repeat body).
+    /// Children of the template itself (the document, a repeat body or a
+    /// choice branch).
     pub(crate) children: Vec<Child>,
 }
 
@@ -583,7 +584,7 @@ impl ElemWiring {
     }
     /// The outputs of a vector instruction over own slots, for the public
     /// slots `at`, which must be consecutive: the head at `at[0]`, output
-    /// `k` at `at[k]` (`set_vec`).
+    /// `k` at `at[k]`.
     pub(crate) fn vector<const N: usize>(at: [usize; N], op: VecOp, args: Vec<usize>) -> [Wire; N] {
         assert_eq!(op.n_out(), N, "a vector operator's outputs are its slots");
         assert!(
@@ -619,7 +620,7 @@ pub(crate) fn shared_point_state(k: usize) -> [SharedState; 2] {
 pub(crate) enum GivenPoint {
     /// `$p`: a point-valued reference (two cells).
     Ref(RefId),
-    /// `(a, b)`: two scalar plans.
+    /// `(a, b)`: two scalar sources.
     Tuple([Source; 2]),
     /// Item `i` of a list prop: `$l.points` contributes one per item.
     Item(RefId, usize),

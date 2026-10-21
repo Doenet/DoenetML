@@ -4,14 +4,13 @@ use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error, load_via_binary};
 use cells_core::{Child, Document, Request};
 
-fn req(_doc: &Document, cell: u32, value: f64) -> Request {
+fn req(cell: u32, value: f64) -> Request {
     Request { cell, value }
 }
 
 /// Cell of `$path.prop` where `path` alternates names and 1-based positions,
-/// e.g. `["r", "3", "p"]`.
+/// e.g. `["r", "3", "p"]` for `r[3].p`.
 fn cell(doc: &Document, path: &[&str], prop: &str) -> u32 {
-    // ["r", "3", "p"] is the path `r[3].p`.
     let mut text = String::new();
     for (i, part) in path.iter().enumerate() {
         if part.parse::<usize>().is_ok() {
@@ -54,7 +53,7 @@ fn repeat_expands_to_its_count_and_names_are_scoped() {
     // Dragging a coordinate bound to the fixed sequence value is dropped,
     // as it is in the current core.
     let mut doc = doc;
-    let tick = doc.request(&[req(&doc, cell(&doc, &["r", "2", "p"], "x"), 5.0)]);
+    let tick = doc.request(&[req(cell(&doc, &["r", "2", "p"], "x"), 5.0)]);
     assert_eq!(tick.dropped.len(), 1);
     // The same document from the binary wire format.
     let bin = load_via_binary(POINTS).unwrap();
@@ -74,12 +73,12 @@ fn changing_the_count_rebuilds_within_the_tick_and_keeps_moved_points() {
     let mut doc = load(POINTS).unwrap();
     // Move iteration 2's point, then shrink past it, then grow back.
     let p2y = cell(&doc, &["r", "2", "p"], "y");
-    let tick = doc.request(&[req(&doc, p2y, 7.5)]);
+    let tick = doc.request(&[req(p2y, 7.5)]);
     assert!(!tick.rebuilt);
     assert_eq!(val(&doc, &["r", "2", "p"], "y"), 7.5);
 
     let n = doc.cell("n", "value").unwrap();
-    let tick = doc.request(&[req(&doc, n, 1.0)]);
+    let tick = doc.request(&[req(n, 1.0)]);
     assert!(tick.rebuilt, "a structural change rebuilds");
     assert!(tick.changed.is_empty());
     assert_eq!(doc.children(doc.component("r").unwrap()).count(), 1);
@@ -90,7 +89,7 @@ fn changing_the_count_rebuilds_within_the_tick_and_keeps_moved_points() {
     );
 
     let n = doc.cell("n", "value").unwrap();
-    let tick = doc.request(&[req(&doc, n, 5.0)]);
+    let tick = doc.request(&[req(n, 5.0)]);
     assert!(tick.rebuilt);
     assert_eq!(doc.children(doc.component("r").unwrap()).count(), 5);
     assert_eq!(
@@ -114,7 +113,7 @@ fn bad_counts_are_floored_clamped_and_capped() {
     assert_eq!(doc.children(r).count(), 2);
     for (ask, expect) in [(-3.0, 0), (f64::NAN, 0), (1e9, 4), (3.2, 3)] {
         let n = doc.cell("n", "value").unwrap();
-        doc.request(&[req(&doc, n, ask)]);
+        doc.request(&[req(n, ask)]);
         let r = doc.component("r").unwrap();
         assert_eq!(doc.children(r).count(), expect, "length {ask}");
     }
@@ -130,14 +129,14 @@ fn indexed_references_from_outside_and_a_missing_referent() {
     );
     assert_eq!(doc.value("q", "x"), Some(2.0));
     // A request on the missing cell is dropped, not stored.
-    let tick = doc.request(&[req(&doc, doc.cell("tenth", "value").unwrap(), 4.0)]);
+    let tick = doc.request(&[req(doc.cell("tenth", "value").unwrap(), 4.0)]);
     assert_eq!(tick.dropped.len(), 1);
     // Growing past 10 gives the reference a referent after the rebuild.
     let n = doc.cell("n", "value").unwrap();
-    doc.request(&[req(&doc, n, 12.0)]);
+    doc.request(&[req(n, 12.0)]);
     assert_eq!(doc.value("tenth", "value"), Some(1.0));
     // And dragging the tenth point through the reference works.
-    doc.request(&[req(&doc, doc.cell("tenth", "value").unwrap(), 4.5)]);
+    doc.request(&[req(doc.cell("tenth", "value").unwrap(), 4.5)]);
     assert_eq!(val(&doc, &["r", "10", "p"], "y"), 4.5);
     assert_eq!(reference::check(&doc), None);
 }
@@ -202,11 +201,11 @@ fn collect_gathers_through_a_repeat_and_follows_its_growth() {
     );
     // Growing the repeat grows the collect in the same rebuild.
     let n = doc.cell("n", "value").unwrap();
-    doc.request(&[req(&doc, n, 5.0)]);
+    doc.request(&[req(n, 5.0)]);
     assert_eq!(doc.value("cnt", "value"), Some(5.0));
     assert_eq!(doc.children(doc.component("c").unwrap()).count(), 5);
     // A request on the collect count is dropped: it is fixed, not state.
-    let tick = doc.request(&[req(&doc, doc.cell("cnt", "value").unwrap(), 9.0)]);
+    let tick = doc.request(&[req(doc.cell("cnt", "value").unwrap(), 9.0)]);
     assert_eq!(tick.dropped.len(), 1);
 }
 
@@ -225,9 +224,9 @@ fn nested_repeats_scope_names_per_iteration_and_survive_rebuilds() {
     assert_eq!(val(&doc, &["outer", "2", "inner", "3", "p"], "x"), 2.0);
     assert_eq!(val(&doc, &["outer", "2", "inner", "3", "p"], "y"), 3.0);
     let c = cell(&doc, &["outer", "1", "inner", "2", "q"], "x");
-    doc.request(&[req(&doc, c, 9.0)]);
+    doc.request(&[req(c, 9.0)]);
     let n = doc.cell("n", "value").unwrap();
-    doc.request(&[req(&doc, n, 3.0)]);
+    doc.request(&[req(n, 3.0)]);
     assert_eq!(val(&doc, &["outer", "1", "inner", "2", "q"], "x"), 9.0);
     assert_eq!(val(&doc, &["outer", "2", "inner", "2", "q"], "x"), 0.0);
     assert_eq!(val(&doc, &["outer", "3", "inner", "1", "p"], "x"), 3.0);
@@ -308,9 +307,9 @@ fn sibling_repeats_do_not_share_scopes() {
     assert_eq!(doc.value("by", "value"), Some(2.0));
     // Values survive a rebuild per repeat, not per position.
     let c = cell(&doc, &["b", "2", "p"], "y");
-    doc.request(&[req(&doc, c, 7.0)]);
+    doc.request(&[req(c, 7.0)]);
     let n = doc.cell("n", "value").unwrap();
-    doc.request(&[req(&doc, n, 3.0)]);
+    doc.request(&[req(n, 3.0)]);
     assert_eq!(val(&doc, &["a", "2", "p"], "y"), 1.0);
     assert_eq!(val(&doc, &["b", "2", "p"], "y"), 7.0);
 }
@@ -343,20 +342,20 @@ fn a_returning_iteration_stamps_its_nested_repeat_in_one_pass() {
     };
     assert_eq!(inner(&doc), [2, 2]);
     let m2 = cell(&doc, &["outer", "2", "m"], "value");
-    let t = doc.request(&[req(&doc, m2, 5.0)]);
+    let t = doc.request(&[req(m2, 5.0)]);
     assert_eq!((t.rebuilt, t.rebuild_passes), (true, 1));
     assert_eq!(inner(&doc), [2, 5]);
     let n = doc.cell("n", "value").unwrap();
-    let t = doc.request(&[req(&doc, n, 1.0)]);
+    let t = doc.request(&[req(n, 1.0)]);
     assert_eq!((t.rebuilt, t.rebuild_passes), (true, 1));
     assert_eq!(inner(&doc), [2]);
     // Iteration 2 returns with m and its inner count as they were left.
-    let t = doc.request(&[req(&doc, n, 2.0)]);
+    let t = doc.request(&[req(n, 2.0)]);
     assert_eq!((t.rebuilt, t.rebuild_passes), (true, 1));
     assert_eq!(inner(&doc), [2, 5]);
     assert_eq!(val(&doc, &["outer", "2", "m"], "value"), 5.0);
     // Iteration 3 is new.
-    let t = doc.request(&[req(&doc, n, 3.0)]);
+    let t = doc.request(&[req(n, 3.0)]);
     assert_eq!((t.rebuilt, t.rebuild_passes), (true, 2));
     assert_eq!(inner(&doc), [2, 5, 2]);
     assert!(doc.structure_settled());

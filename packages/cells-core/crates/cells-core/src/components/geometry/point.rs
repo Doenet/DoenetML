@@ -69,7 +69,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let mut coord = |name: &'static str, state: SharedState| -> Result<Wire> {
             Ok(match ctx.scalar(name)? {
                 Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
-                Some(plan) => plan.into(),
+                Some(source) => source.into(),
                 None => Wire::essential(state, 0.0),
             })
         };

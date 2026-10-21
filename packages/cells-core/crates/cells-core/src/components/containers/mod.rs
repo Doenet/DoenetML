@@ -1,5 +1,5 @@
-//! Document, graph, p, setup, group, sticky group and section: types that
-//! hold other components. Document and section also hold credit.
+//! Document, graph, p, setup, group, sticky group, section, and the text
+//! and layout containers: types that hold other components. Document and section also hold credit.
 
 use super::define::*;
 use crate::compile::api::PlanCtx;

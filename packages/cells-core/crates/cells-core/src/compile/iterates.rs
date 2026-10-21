@@ -1,5 +1,5 @@
-//! `<functionIterates>`, the `<repeat for>` over its iterates, and
-//! `<polyline>`: the planners of types whose contents follow a list.
+//! `<functionIterates>` and the `<repeat for>` over its iterates: the
+//! planners of types whose contents follow a list.
 
 use super::*;
 use crate::components::MAX_TUPLE;
@@ -177,7 +177,7 @@ impl<'a> Compiler<'a> {
                 let id = self.parse_tokens(part, &text)?;
                 Ok(match self.plan_from_expr(id) {
                     Source::Literal(v) => Source::Fixed(v),
-                    plan => plan,
+                    other => other,
                 })
             })
             .collect()

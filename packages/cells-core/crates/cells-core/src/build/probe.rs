@@ -1,5 +1,5 @@
 //! The probe (ADR 0012, ADR 0014), the build the compile's check runs
-//! through: the count-independent cycle check (ADR 0012): a document is rejected at
+//! through, and the count-independent cycle check: a document is rejected at
 //! load when a dependency loop would close at an iteration count a repeat
 //! can reach, not only at the count it loads with.
 //!

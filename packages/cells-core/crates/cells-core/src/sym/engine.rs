@@ -382,12 +382,12 @@ fn count_nodes(e: &Expr) -> usize {
     1 + e.children().into_iter().map(count_nodes).sum::<usize>()
 }
 
-/// An engine expression as a builder tree; cell leaves come back from their
-/// `cellN<i>`/`cellM<i>` symbol names.
 /// The blank expression's spelling as a tree symbol (`＿`, as DoenetML
 /// prints a missing operand).
 const BLANK: &str = "\u{ff3f}";
 
+/// An engine expression as a builder tree; cell leaves come back from their
+/// `cellN<i>`/`cellM<i>` symbol names.
 fn to_tree(e: &Expr) -> Option<Tree> {
     let all = |es: &[Expr]| es.iter().map(to_tree).collect::<Option<Vec<_>>>();
     let one = |e: &Expr| to_tree(e).map(Box::new);

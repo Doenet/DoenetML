@@ -361,7 +361,7 @@ fn the_probe_covers_every_build_of_a_document_without_repeats() {
         let Ok(compiled) = cells_core::testing::compile(&dast, 0) else {
             continue;
         };
-        if compiled_has_repeats(&dast) {
+        if has_repeats(&dast) {
             continue; // `stamp` covers these at every count
         }
         let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
@@ -380,7 +380,7 @@ fn the_probe_covers_every_build_of_a_document_without_repeats() {
     assert!(checked > 0);
 }
 
-fn compiled_has_repeats(dast: &Dast) -> bool {
+fn has_repeats(dast: &Dast) -> bool {
     element_types(dast)
         .iter()
         .any(|(_, t)| t.count_prop().is_some())

@@ -57,7 +57,7 @@ pub fn plan(doc: &Document) -> Vec<(String, Action)> {
                 "circle" => Action::Shift("center", 0.5, 1.0),
                 "numberInput" => Action::Add("value", 1.0),
                 "slider" => Action::Add("value", 0.7),
-                "op" | "number" => Action::Add("value", 2.0),
+                "number" => Action::Add("value", 2.0),
                 "booleanInput" => Action::Toggle,
                 "mathInput" => Action::Type("2x+1"),
                 "answer" => Action::Submit,

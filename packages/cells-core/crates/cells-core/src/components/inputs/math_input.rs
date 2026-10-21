@@ -16,8 +16,8 @@ component! {
     default_prop: value,
     props {
         // A mathInput's value is bound by a child reference or `bindValueTo`,
-        // else it is the `prefill` (the builder reads it). The builder plans
-        // `expr` from what `value` turned out to be (`plan`).
+        // else it is the `prefill` (the builder reads it). `plan` sets `expr`
+        // from what `value` turned out to be.
         value: children { attribute: prefill, bind: bindValueTo },
         expr: by_planner,
     }

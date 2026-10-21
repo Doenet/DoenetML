@@ -114,7 +114,7 @@ fn number_children_literal_reference_and_bare_text_reference() {
         .find(|&c| doc.name(c).is_none() && doc.component_type(c) == ComponentType::Number)
         .expect("anonymous number");
     assert_eq!(doc.comp_cells(anon), &[doc.cell("p1", "y").unwrap()]);
-    // p1.x, p1.y, a, c
+    // p1.x, p1.y, p1's hide, a, c and the document's two credit cells
     assert_eq!(doc.cells.len(), 7);
 }
 

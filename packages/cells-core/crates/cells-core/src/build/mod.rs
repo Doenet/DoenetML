@@ -13,9 +13,10 @@
 //! (scope, template slot).
 //!
 //! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (essential, then fixed, then derived); operators are bound; and the
-//! instruction list is scheduled, with a fast path when creation order is
-//! already a valid evaluation order.
+//! (essential, then fixed, then derived); operators are bound; and
+//! structural depth is measured. [`BuildOutput::schedule`] then orders the
+//! instructions, with a fast path when creation order is already a valid
+//! evaluation order.
 //!
 //! Files: **`expand/`**: `mod.rs` holds the builder's state and stamps
 //! templates; `resolve.rs` follows reference plans, `math.rs` gives math
@@ -28,7 +29,8 @@
 //! compile's check runs (ADR 0012, ADR 0014). This file holds [`build`] and
 //! what a build returns ([`BuildOutput`]); `structure.rs` what a build
 //! records about the document's shape ([`Structure`], [`ScopeTable`],
-//! [`Repeat`]).
+//! [`Repeat`]); `coverage.rs`, for tests, checks that the probe's graph
+//! covers a real build's.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;

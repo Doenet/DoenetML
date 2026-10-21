@@ -128,8 +128,8 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
         match attempt {
             // The build is not wanted, but its warnings are, with the
             // planners'.
-            Ok((u, planned)) => {
-                list.extend(planned);
+            Ok((u, planner_warnings)) => {
+                list.extend(planner_warnings);
                 list.extend(u.warnings());
                 break;
             }

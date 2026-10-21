@@ -1,6 +1,6 @@
 //! Copies: `extend` with a prop path, container copies whose children are
 //! clones, and the clone elements themselves. The merged-attribute rule for
-//! a planned type with overrides is in `geometry/mod.rs` (`plan_geo`).
+//! a geometric type with overrides is in `geometry/mod.rs` (`plan_geo`).
 
 use super::*;
 

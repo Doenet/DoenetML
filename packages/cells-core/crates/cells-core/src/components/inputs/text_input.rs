@@ -10,7 +10,7 @@ component! {
     /// `<textInput>`: `value` is an essential cell holding a string id (the
     /// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
     /// to another text cell. Typing interns the text (`Document::intern`) and
-    /// requests the id. Wire by `plan`; `immediateValue` is the same cell.
+    /// requests the id. Planned by `plan`; `immediateValue` is the same cell.
     tags: ["textInput"],
     flags: [copyable],
     default_prop: value,

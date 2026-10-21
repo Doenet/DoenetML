@@ -52,7 +52,7 @@ pub fn load(source: &str) -> crate::Result<crate::Document> {
 }
 
 /// The first error the load reported (ADR 0013): its code and message.
-/// An element that cannot be built no longer fails the load; it becomes
+/// An element that cannot be built does not fail the load; it becomes
 /// an `_error` component with this diagnostic. Panics when the document
 /// loads without one, or does not load at all.
 pub fn load_error(source: &str) -> (&'static str, String) {

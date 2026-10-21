@@ -90,5 +90,4 @@ fn self_referencing_shapes_are_not_cycles() {
     assert_eq!((v(&doc, "pg", "x4"), v(&doc, "pg", "y4")), (-2.0, 10.0));
     let doc2 = load(r#"<graph><point name="A">(1,2)</point><line name="l" through="$A ($l.point1.y, $l.point1.x)"/></graph>"#).unwrap();
     assert_eq!((v(&doc2, "l", "x2"), v(&doc2, "l", "y2")), (2.0, 1.0));
-    let _ = doc;
 }

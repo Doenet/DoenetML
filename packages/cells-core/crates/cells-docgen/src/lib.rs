@@ -249,8 +249,8 @@ pub fn hidden(n: usize) -> String {
 
 /// N circles, each through three of its own points, in one graph; a
 /// numberInput drives the x of every first point so one request moves N
-/// circumcenters. Dragging a circle's center fans out to its three points
-/// (plan 3 sanity run). Cells per circle: 6 point cells + 3 derived.
+/// circumcenters. Dragging a circle's center fans out to its three points.
+/// Cells per circle: 6 point cells + 3 derived.
 pub fn circles3(n: usize) -> String {
     let mut s = String::from("<numberInput name=\"n\" value=\"0\"/>\n<graph name=\"g\">\n");
     for i in 0..n {
@@ -268,7 +268,7 @@ pub fn circles3(n: usize) -> String {
     s
 }
 
-/// Plan 4: `n` free polygons of 4 to 6 vertices on a grid, in one sticky
+/// `n` free polygons of 4 to 6 vertices on a grid, in one sticky
 /// group (or, with `sticky` false, the same polygons with no group, as the
 /// baseline). Every fourth polygon is rigid. Polygon `p0` is the one dragged.
 pub fn sticky(n: usize, sticky: bool) -> String {
@@ -304,7 +304,7 @@ pub fn sticky(n: usize, sticky: bool) -> String {
     s
 }
 
-/// Plan 5, fixture 1: N answers, each a mathInput response checked against
+/// N answers, each a mathInput response checked against
 /// a symbolic correct answer. Typing into one costs a parse; submitting one
 /// costs one `equals`.
 pub fn answers(n: usize) -> String {
@@ -330,7 +330,7 @@ pub fn correct_answer(i: usize) -> String {
     }
 }
 
-/// Plan 5, fixture 2: N functions with cell leaves, each with its
+/// N functions with cell leaves, each with its
 /// derivative, all drawn as curves in one graph. `a` is shared by every
 /// function (dragging it re-derives and resamples all N); `b{i}` belongs to
 /// one.
@@ -351,7 +351,7 @@ pub fn curves(n: usize) -> String {
     s
 }
 
-/// Plan 5, fixture 3: a mathInput feeding a chain of N simplified maths
+/// A mathInput feeding a chain of N simplified maths
 /// and a fan-out of N more. Every third chain link goes through a number:
 /// the previous math evaluated at `t`, fed back into the next math (math →
 /// number → math). Typing reruns everything; dragging `t` reruns the chain
@@ -387,7 +387,7 @@ pub fn symchain(n: usize) -> String {
     s
 }
 
-/// Plan 6, use case 1: N small reactive choices that change wording, all
+/// N small reactive choices that change wording, all
 /// driven by one input `n` (1, -1 or 0 flips every one of them), plus a
 /// point `p0` to drag that no choice reads. Each choice's interface is a
 /// `<math>` and a `<number>`, both copied outside it.
@@ -454,7 +454,7 @@ pub fn select_all(n: usize) -> String {
     s
 }
 
-/// Plan 6, use case 2: a chain of K reactive choices of 4 branches, each
+/// A chain of K reactive choices of 4 branches, each
 /// branch a graph of `size - 2` points and a `score` in the interface;
 /// choice j's conditions read choice j-1's score, so changing `path`
 /// flips the whole chain.
@@ -494,7 +494,7 @@ pub fn adventure(k: usize, size: usize) -> String {
     s
 }
 
-/// Plan 6, load-time choices: N selects of 4 options, each option a
+/// N selects of 4 options, each option a
 /// sentence with a `<number>` and a `<math>`, the number copied outside.
 pub fn select(n: usize) -> String {
     let mut s = String::new();
@@ -562,9 +562,8 @@ pub fn from_spec(spec: &str) -> Option<String> {
     })
 }
 
-/// The bench set used by `scripts/gen-fixtures.sh` and the benches: one to
-/// three sizes per shape, small enough that a criterion run takes minutes.
-/// The smallest size of each shape is also a golden document
+/// The fixture set `scripts/gen-fixtures.sh` generates: one to three sizes
+/// per shape. The smallest size of each shape is also a golden document
 /// (`crates/cells-bench/examples/golden.rs`).
 pub const DEFAULT_SWEEP: &[&str] = &[
     "points-100",

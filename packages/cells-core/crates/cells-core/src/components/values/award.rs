@@ -7,7 +7,7 @@ use crate::error::{Error, Result};
 component! {
     /// `<award credit="0.5">` inside an `<answer>`: `awarded` is `credit` when
     /// its `<when>` holds (or its content equals the submitted response), else
-    /// 0. Wire with its answer (`plan_answer`).
+    /// 0. Planned with its answer (`plan_answer`).
     tags: ["award"],
     default_prop: awarded,
     props {
@@ -20,7 +20,7 @@ component! {
 pub const CREDIT: usize = Props::AT.credit;
 pub const AWARDED: usize = Props::AT.awarded;
 
-/// An award is planned by its answer; one elsewhere has no plan.
+/// An award is planned by its answer; one elsewhere is not planned.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     if !ctx.is_planned() {
         return Err(Error::Unsupported("an <award> outside an <answer>".into()));

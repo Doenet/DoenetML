@@ -11,15 +11,11 @@
 //! content's `choice` cell is the first case whose condition holds. Every
 //! case is built, inside a `Case` component whose `active` cell says
 //! whether it is shown, and an interface name is a `Choose` over the
-//! branches' cells, so a flip is an ordinary tick. (An earlier version also
-//! built the other mechanism, rebuilding with only the active case; it lost on every
-//! tick and was removed. See ADR 0009.)
+//! branches' cells, so a flip is an ordinary tick. (Rebuilding with only
+//! the active case lost on every tick; see ADR 0009.)
 
 use super::*;
 use crate::components::prop::conditional_content;
-
-/// `Choose` reads the choice cell and one cell per branch; `First` one
-/// condition per case. Vector operators read at most `MAX_VEC_IN`.
 use crate::limits::MAX_CASES;
 
 impl<'a> Compiler<'a> {
@@ -172,8 +168,9 @@ impl<'a> Compiler<'a> {
         })
     }
 
-    /// A reactive choice's props: a hidden slot per case condition (an else
-    /// is a constant 1) and `choice`, the first of them that holds.
+    /// A choice's props: a select's `hide`; for a reactive choice also a
+    /// hidden slot per case condition (an else is a constant 1) and
+    /// `choice`, the first of them that holds.
     pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Body::Choice(cid) = self.compiled.templates[t].elems[e].body else {
             unreachable!()
@@ -319,10 +316,10 @@ impl<'a> Compiler<'a> {
                         let component_type = self.compiled.templates[tpl].elems[x].component_type;
                         match first {
                             None => first = Some((b, component_type)),
-                            Some((b0, k0)) if k0 != component_type => {
+                            Some((b0, type0)) if type0 != component_type => {
                                 reason = format!(
                                     "'{name}' is a <{}> in {what} {} but a <{}> in {what} {}",
-                                    k0.tag(),
+                                    type0.tag(),
                                     b0 + 1,
                                     component_type.tag(),
                                     b + 1

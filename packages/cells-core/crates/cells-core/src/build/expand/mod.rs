@@ -1,6 +1,7 @@
 //! Expand: stamp templates into components per scope, give `$ref` children
-//! their type, expand collects and point lists, and turn every plan into a
-//! source (an essential value, an alias, or an operator over slots).
+//! their type, expand collects and point lists, and turn every prop's
+//! `Source` into a `BuiltSource` (an essential value, an alias, or an
+//! operator over slots).
 
 use super::*;
 use crate::components::PropAt;
@@ -482,7 +483,7 @@ impl<'c> Builder<'c> {
             let n_public = el.n_public;
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
-            if let NPublic::Wire(n) = n_public {
+            if let NPublic::Planned(n) = n_public {
                 self.n_public[comp as usize] = n;
             }
             self.scope_comps[scope as usize][e] = comp;
@@ -604,9 +605,11 @@ impl<'c> Builder<'c> {
 
     // ---- resolution ----------------------------------------------------------
 
-    /// Placeholders without an index first (a collect may gather copies),
-    /// then collects in document order, then indexed placeholders (which may
-    /// name a collect's items), then every prop source.
+    /// Copies of a type with a list first, then placeholders without an
+    /// index (a collect may gather copies), then collects in document order
+    /// and point lists, then indexed placeholders (which may name a
+    /// collect's items), then choices' and every prop's sources, then
+    /// credit and section numbers.
     pub(in crate::build) fn resolve_all(&mut self) -> Result<()> {
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
@@ -1171,7 +1174,7 @@ impl<'c> Builder<'c> {
             }
             Source::MathValue(expr) => {
                 if self.is_symbolic(comp) {
-                    // Wire only as a `<math>`'s value (`math_props`).
+                    // Planned only as a `<math>`'s value (`math::props_of`).
                     let expr = self.slot(comp, prop::math::EXPR);
                     self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
                 } else {

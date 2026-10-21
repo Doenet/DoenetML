@@ -16,7 +16,7 @@ component! {
     tags: ["polygon", "triangle"],
     flags: [copyable],
     props {
-        // `numVertices`; the vertices follow, as the list.
+        // The vertices follow, as the list.
         numVertices: by_planner,
     }
     list {

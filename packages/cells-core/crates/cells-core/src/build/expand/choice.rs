@@ -237,8 +237,9 @@ impl<'c> Builder<'c> {
         picks
     }
 
-    /// Sources of the `Choose` components of built reactive choices: each
-    /// public prop chooses among the branches' cells by the choice cell.
+    /// Sources of the interface components of built choices: each public
+    /// prop chooses among the branches' cells by the choice cell (a reactive
+    /// choice), or only reads them (a select built with every option).
     /// Runs before instance sources, so a symbolic interface math is known
     /// to be one when its copies are planned.
     pub(in crate::build) fn choice_sources(&mut self) -> Result<()> {

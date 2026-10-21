@@ -25,8 +25,6 @@ use super::*;
 use crate::components::prop::{
     answer, award, choice, choice_input, math_input, response, text_input, when,
 };
-
-/// Most choices one `Choose` reads: the choice cell and one credit each.
 use crate::limits::MAX_CHOICES;
 
 /// An `<award>` as read from the DAST: its `<when>`, or its content.

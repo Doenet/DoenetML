@@ -1,5 +1,5 @@
-//! Repeat, sequence value, collect, conditional content, case and select:
-//! types whose children the builder makes, so they shape the document
+//! Repeat, sequence value, function iterates, collect, conditional
+//! content, case, select and select from sequence: types whose children the builder makes, so they shape the document
 //! rather than hold a value.
 
 use super::define::*;

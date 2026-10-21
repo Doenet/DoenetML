@@ -18,9 +18,10 @@ thiserror.workspace = true
 web-time = "1"
 
 [features]
-# Registers the test-only `<op>` tag, which the tests and golden
-# documents use to exercise single operators. Enabled for this crate's own
-# tests by the self-dependency below.
+# Test-only hooks: `LoadOptions::check_cycles`, to load with the cycle
+# check off, and the probe-coverage helpers (`testing::probe_edges`,
+# `testing::uncovered`). Enabled for this crate's own tests by the
+# self-dependency below.
 testing = []
 
 [dev-dependencies]

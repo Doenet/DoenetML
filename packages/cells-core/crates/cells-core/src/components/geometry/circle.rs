@@ -106,7 +106,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // The radius shown is never negative; the prescribed radius, or an
     // essential one (1 by default), behind it receives the clamped value
     // (projection, ADR 0003).
-    let radius_plan = |wiring: &mut ElemWiring| -> Wire {
+    let radius_wire = |wiring: &mut ElemWiring| -> Wire {
         let pres = wiring.hidden_wire(match &radius {
             Some(Source::Literal(v)) => Wire::essential_from(shared_state::R, "radius", *v),
             Some(other) => other.clone().into(),
@@ -166,7 +166,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                     Wire::essential(shared_state::CY, 0.0),
                 ]
             };
-            [cx, cy, radius_plan(&mut wiring)]
+            [cx, cy, radius_wire(&mut wiring)]
         }
         (None, true, false, 1) => ElemWiring::vector(
             [at.cx, at.cy, at.radius],
@@ -175,7 +175,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ),
         (None, false, _, 1) => {
             // The through point sits on top of the circle.
-            let radius = radius_plan(&mut wiring);
+            let radius = radius_wire(&mut wiring);
             [
                 Wire::own(tp(0, 0)),
                 Wire::computed(OpSpec::Sub, vec![tp(0, 1), at.radius]),
@@ -183,7 +183,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ]
         }
         (None, false, true, 2) => {
-            let radius = radius_plan(&mut wiring);
+            let radius = radius_wire(&mut wiring);
             let [cx, cy] = ElemWiring::vector(
                 [at.cx, at.cy],
                 VecOp::CircleTwoPointsRadius,

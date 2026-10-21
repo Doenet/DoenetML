@@ -10,7 +10,7 @@ impl<'c> Builder<'c> {
         let clock = web_time::Instant::now();
         let lap = |what: &str| {
             if profile {
-                eprintln!("    cd/{what}: {:.2?}", clock.elapsed());
+                eprintln!("    emit/{what}: {:.2?}", clock.elapsed());
             }
         };
         let n = self.sources.len();
@@ -233,7 +233,8 @@ impl<'c> Builder<'c> {
         }
         lap("bind instructions");
 
-        // Prop cells: contiguous per component, in slot order.
+        // Each component's prop cell indices, one component after another,
+        // in slot order; the cells themselves are not contiguous.
         let n_comps = self.components.len();
         self.components.prop_base = Vec::with_capacity(n_comps);
         self.components.prop_cells = Vec::with_capacity(n);

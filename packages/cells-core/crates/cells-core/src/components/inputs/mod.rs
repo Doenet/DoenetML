@@ -1,5 +1,5 @@
-//! Number input, boolean input, math input, text input and slider: types
-//! whose value a user sets. Each value is an essential cell unless bound to another.
+//! Number input, boolean input, choice input (and its choices), math
+//! input, text input and slider: types whose value a user sets. Each value is an essential cell unless bound to another.
 
 use super::define::*;
 
