@@ -75,7 +75,7 @@ export async function createTestCore({
     Awaited<ReturnType<typeof createTestCoreJavascript>>
 > {
     if (process.env.DOENET_TEST_CORE === "cells") {
-        // Measures the cells prototype's parity; see `test-core-cells.ts`.
+        // Measures the cells core's parity; see `test-core-cells.ts`.
         return (await createTestCoreCells({
             doenetML,
             requestedVariantIndex,

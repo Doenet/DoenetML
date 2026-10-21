@@ -237,7 +237,7 @@ describe("Conditional content and select through interface names", async () => {
     });
 
     // Banned: `extend="$cc"` and `<text extend="$x1">` of a text (fine)
-    // inside the cases next to maths nested in maths (a prototype gap,
+    // inside the cases next to maths nested in maths (a cells-core gap,
     // not a ban). Rewrite: the copy written out; references go through
     // interface names.
     it("references to internal and external components", async () => {
@@ -379,7 +379,7 @@ describe("Conditional content and select through interface names", async () => {
     });
 
     // Banned: `<text extend="$cc1">` (a choice coerced to a text).
-    // Rewrite: `$cc1.t`. `hide` on a choice is a prototype gap.
+    // Rewrite: `$cc1.t`. `hide` on a choice is a cells-core gap.
     it("conditional contents hide dynamically", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

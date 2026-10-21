@@ -427,6 +427,8 @@ export function servedCatalogProblems(sourceLocales, emittedLocales) {
  * wasm. Only a script can actually execute a duplicated Rust core.
  *
  * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
+ * @param budgets `[relativePath, budget]` pairs, from {@link loadBudgets};
+ *   only scripts a `maxBrotliBytes` budget matches get a `brotliSize`.
  */
 function collectEmittedScripts(probes, budgets = []) {
     const scripts = new Map();

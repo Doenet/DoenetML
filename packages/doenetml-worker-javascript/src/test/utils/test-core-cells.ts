@@ -14,7 +14,7 @@
  * the JavaScript core's state variable names onto those cells and wraps the
  * numbers the way the tests expect (`math-expressions` objects where the
  * JavaScript core holds maths). Actions are translated to cell requests the
- * same way the prototype's renderers send them. Anything the table does not
+ * same way the cells viewer's renderers send them. Anything the table does not
  * cover throws `CellsCoreGap` naming the component type and state variable,
  * so a list of failures reads as a list of gaps.
  */
@@ -181,7 +181,7 @@ const textOf: Reader = (_g, x) => x.cells.component_text(x.idx);
 const containerReaders: Record<string, Reader> = { text: textOf };
 
 /**
- * JavaScript-core state variable name -> reader over the prototype's props,
+ * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
  */
 const STATE: Record<string, Record<string, Reader>> = {
@@ -357,10 +357,10 @@ export async function createTestCoreCells({
     const dast = stripPositions(
         normalizeDocumentDast(lezerToDast(doenetML), true),
     );
-    let core_: any;
+    let cells: any;
     try {
         const bytes = new TextEncoder().encode(JSON.stringify(dast));
-        core_ =
+        cells =
             initialState === undefined
                 ? mod.Core.with_seed(bytes, requestedVariantIndex)
                 : mod.Core.with_seed_and_state(
@@ -371,7 +371,6 @@ export async function createTestCoreCells({
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
-    const cells = core_;
 
     let actionCount = 0;
     const rawValues = new Map<number, string>();
@@ -699,14 +698,12 @@ export async function createTestCoreCells({
                         latex.trim() !== ""
                     ) {
                         let handle = NaN;
-                        if (latex.trim() !== "") {
-                            try {
-                                handle = cells.parse_math(
-                                    me.fromLatex(latex).toString(),
-                                );
-                            } catch {
-                                handle = NaN;
-                            }
+                        try {
+                            handle = cells.parse_math(
+                                me.fromLatex(latex).toString(),
+                            );
+                        } catch {
+                            handle = NaN;
                         }
                         request([[expr, handle]]);
                         return;

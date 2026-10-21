@@ -99,22 +99,22 @@ for (const f of data.testResults) {
     const name = path
         .relative(path.resolve("src/test"), f.name)
         .replace(/\\/g, "/");
-    let fp = 0,
-        ff = 0,
-        fs_ = 0;
+    let filePassed = 0,
+        fileFailed = 0,
+        fileSkipped = 0;
     for (const t of f.assertionResults) {
         if (t.status === "passed") {
             passed++;
-            fp++;
+            filePassed++;
             continue;
         }
         if (t.status !== "failed") {
             skipped++;
-            fs_++;
+            fileSkipped++;
             continue;
         }
         failed++;
-        ff++;
+        fileFailed++;
         const c = classify(t.failureMessages[0] ?? "");
         byKind.set(c.kind, (byKind.get(c.kind) ?? 0) + 1);
         if (c.key) {
@@ -129,10 +129,14 @@ for (const f of data.testResults) {
             byKey.set(`${c.kind}\u0000${c.key}`, e);
         }
     }
-    files.push({ name, fp, ff, fs_ });
+    files.push({
+        name,
+        passed: filePassed,
+        failed: fileFailed,
+        skipped: fileSkipped,
+    });
 }
-files.sort((a, b) => b.ff - a.ff || a.name.localeCompare(b.name));
-const total = passed + failed + skipped;
+files.sort((a, b) => b.failed - a.failed || a.name.localeCompare(b.name));
 const pct = (n) => `${((100 * n) / Math.max(1, passed + failed)).toFixed(1)}%`;
 
 const out = [];
@@ -182,6 +186,7 @@ out.push(`## Files`);
 out.push(``);
 out.push(`| file | passed | failed | skipped |`);
 out.push(`|---|---|---|---|`);
-for (const f of files) out.push(`| ${f.name} | ${f.fp} | ${f.ff} | ${f.fs_} |`);
+for (const f of files)
+    out.push(`| ${f.name} | ${f.passed} | ${f.failed} | ${f.skipped} |`);
 out.push(``);
 process.stdout.write(out.join("\n"));
