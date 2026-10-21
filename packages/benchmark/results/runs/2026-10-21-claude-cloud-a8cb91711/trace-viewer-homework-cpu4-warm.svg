@@ -1,0 +1,493 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="724" viewBox="0 0 1000 724" font-family="Helvetica, Arial, sans-serif" font-size="11">
+<style>text{fill:#222}.h{font-weight:bold}.t{fill:#777;text-anchor:middle;font-size:10px}.d{fill:#555;font-size:10px}</style>
+<rect width="1000" height="724" fill="#fff"/>
+<line x1="250" x2="250" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="250" y="20" class="t">0 ms</text>
+<line x1="326.47203085635294" x2="326.47203085635294" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="326.47203085635294" y="20" class="t">200 ms</text>
+<line x1="402.94406171270595" x2="402.94406171270595" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="402.94406171270595" y="20" class="t">400 ms</text>
+<line x1="479.41609256905895" x2="479.41609256905895" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="479.41609256905895" y="20" class="t">600 ms</text>
+<line x1="555.8881234254119" x2="555.8881234254119" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="555.8881234254119" y="20" class="t">800 ms</text>
+<line x1="632.3601542817648" x2="632.3601542817648" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="632.3601542817648" y="20" class="t">1000 ms</text>
+<line x1="708.8321851381179" x2="708.8321851381179" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="708.8321851381179" y="20" class="t">1200 ms</text>
+<line x1="785.3042159944708" x2="785.3042159944708" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="785.3042159944708" y="20" class="t">1400 ms</text>
+<line x1="861.7762468508238" x2="861.7762468508238" y1="24" y2="694" stroke="#e4e4e4"/>
+<text x="861.7762468508238" y="20" class="t">1600 ms</text>
+<text x="4" y="39" class="h">files</text>
+<text x="12" y="55">index-CmaxcA_h.js</text>
+<rect x="260.95844202171537" y="47" width="5.96099480525271" height="10" fill="#6c8ebf"><title>/assets/index-CmaxcA_h.js: 16 ms, from cache</title></rect>
+<text x="12" y="71">react-D-PZQL8L.js</text>
+<rect x="261.2643301451408" y="63" width="5.425690589258238" height="10" fill="#6c8ebf"><title>/assets/react-D-PZQL8L.js: 14 ms, from cache</title></rect>
+<text x="12" y="87">jsxgraph-DhZbC0V5.js</text>
+<rect x="261.302566160569" y="79" width="5.983936414509628" height="10" fill="#6c8ebf"><title>/assets/jsxgraph-DhZbC0V5.js: 16 ms, from cache</title></rect>
+<text x="12" y="103">index-47QDyy8r.css</text>
+<rect x="262.518471451185" y="95" width="4.301551735669818" height="10" fill="#6c8ebf"><title>/assets/index-47QDyy8r.css: 11 ms, from cache</title></rect>
+<text x="12" y="119">index-B3Ycnc06.js</text>
+<rect x="262.5911198804985" y="111" width="4.43920139121127" height="10" fill="#6c8ebf"><title>/assets/index-B3Ycnc06.js: 12 ms, from cache</title></rect>
+<text x="12" y="135">homework.doenet</text>
+<rect x="280.77616881813924" y="127" width="1.8009163266671067" height="10" fill="#6c8ebf"><title>/fixtures/homework.doenet: 4.7 ms, 0.00 MB over the network</title></rect>
+<text x="12" y="151">cells_wasm_bg-Dr4z2iUm.wasm</text>
+<rect x="281.31912023721935" y="143" width="2.1182752547209702" height="10" fill="#6c8ebf"><title>/assets/cells_wasm_bg-Dr4z2iUm.wasm: 5.5 ms, from cache</title></rect>
+<text x="12" y="167">entity-map-Dj2UZMKc.js</text>
+<rect x="391.9932668940762" y="159" width="1.0056072057610663" height="10" fill="#6c8ebf"><title>/assets/entity-map-Dj2UZMKc.js: 2.6 ms, from cache</title></rect>
+<text x="4" y="187" class="h">main thread</text>
+<rect x="250" y="178" width="686" height="12" fill="none" stroke="#ccc"/>
+<rect x="253.05888123425413" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="253.44124138853587" y="178" width="0.5" height="12" fill="#b0b0b0"><title>html: 1.0 ms</title></rect>
+<rect x="253.82360154281764" y="178" width="6.8824827770718" height="12" fill="#9fb3c8"><title>other: 18 ms</title></rect>
+<rect x="260.70608431988944" y="178" width="1.9118007714088208" height="12" fill="#b0b0b0"><title>html: 5.0 ms</title></rect>
+<rect x="262.61788509129826" y="178" width="15.294406171270566" height="12" fill="#9fb3c8"><title>other: 40 ms</title></rect>
+<rect x="277.91229126256883" y="178" width="0.7647203085635397" height="12" fill="#b0b0b0"><title>html: 2.0 ms</title></rect>
+<rect x="278.67701157113237" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="279.4417318796959" y="178" width="2.294160925690562" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="281.73589280538647" y="178" width="2.294160925690619" height="12" fill="#b0b0b0"><title>html: 6.0 ms</title></rect>
+<rect x="284.0300537310771" y="178" width="5.353042159944664" height="12" fill="#9fb3c8"><title>other: 14 ms</title></rect>
+<rect x="289.38309589102175" y="178" width="1.9118007714088776" height="12" fill="#8a63d2"><title>style &amp; layout: 5.0 ms</title></rect>
+<rect x="291.29489666243063" y="178" width="2.6765210799723604" height="12" fill="#3fa34d"><title>paint: 7.0 ms</title></rect>
+<rect x="293.971417742403" y="178" width="1.5294406171270225" height="12" fill="#9fb3c8"><title>other: 4.0 ms</title></rect>
+<rect x="295.8832185138118" y="178" width="1.147080462845281" height="12" fill="#9fb3c8"><title>other: 3.0 ms</title></rect>
+<rect x="297.41265913093883" y="178" width="2.294160925690619" height="12" fill="#9fb3c8"><title>other: 6.0 ms</title></rect>
+<rect x="299.70682005662945" y="178" width="1.9118007714088208" height="12" fill="#b0b0b0"><title>html: 5.0 ms</title></rect>
+<rect x="301.6186208280383" y="178" width="1.5294406171270225" height="12" fill="#9fb3c8"><title>other: 4.0 ms</title></rect>
+<rect x="303.5304215994471" y="178" width="6.500122622790002" height="12" fill="#9fb3c8"><title>other: 17 ms</title></rect>
+<rect x="310.0305442222371" y="178" width="11.853164782734723" height="12" fill="#e8743b"><title>wasm compile: 31 ms</title></rect>
+<rect x="321.8837090049718" y="178" width="6.117762468508204" height="12" fill="#9fb3c8"><title>other: 16 ms</title></rect>
+<rect x="328.00147147348" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="328.76619178204356" y="178" width="1.147080462845281" height="12" fill="#8a63d2"><title>style &amp; layout: 3.0 ms</title></rect>
+<rect x="329.91327224488884" y="178" width="0.5" height="12" fill="#3fa34d"><title>paint: 1.0 ms</title></rect>
+<rect x="330.6779925534524" y="178" width="0.7647203085635397" height="12" fill="#9fb3c8"><title>other: 2.0 ms</title></rect>
+<rect x="331.4427128620159" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="331.82507301629767" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="332.5897933248612" y="178" width="3.058881234254102" height="12" fill="#f2cf5b"><title>script run: 8.0 ms</title></rect>
+<rect x="335.6486745591153" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="336.0310347133971" y="178" width="6.500122622790002" height="12" fill="#f2cf5b"><title>script run: 17 ms</title></rect>
+<rect x="342.5311573361871" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="342.91351749046885" y="178" width="5.735402314226462" height="12" fill="#f2cf5b"><title>script run: 15 ms</title></rect>
+<rect x="348.6489198046953" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="349.0312799589771" y="178" width="5.353042159944721" height="12" fill="#f2cf5b"><title>script run: 14 ms</title></rect>
+<rect x="354.38432211892183" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="355.14904242748537" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="355.91376273604885" y="178" width="3.0588812342541587" height="12" fill="#d9a400"><title>script compile: 8.0 ms</title></rect>
+<rect x="358.972643970303" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="359.35500412458475" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="359.7373642788665" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="361.2668048959936" y="178" width="12.235524937016521" height="12" fill="#d9a400"><title>script compile: 32 ms</title></rect>
+<rect x="373.5023298330101" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="373.88468998729184" y="178" width="13.382605399861745" height="12" fill="#d9a400"><title>script compile: 35 ms</title></rect>
+<rect x="387.2672953871536" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="387.6496555414354" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="388.0320156957172" y="178" width="1.5294406171270225" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="389.5614563128442" y="178" width="1.5294406171270225" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="391.0908969299712" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="391.473257084253" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="391.85561723853476" y="178" width="0.7647203085635397" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="392.6203375470983" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="393.38505785566184" y="178" width="3.058881234254102" height="12" fill="#c94c4c"><title>gc: 8.0 ms</title></rect>
+<rect x="396.44393908991594" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="397.5910195527613" y="178" width="1.5294406171270225" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="399.1204601698883" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="399.5028203241701" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="401.0322609412972" y="178" width="1.1470804628452242" height="12" fill="#e8743b"><title>wasm compile: 3.0 ms</title></rect>
+<rect x="402.1793414041424" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="403.7087820212695" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="404.0911421755512" y="178" width="1.5294406171270793" height="12" fill="#b0b0b0"><title>html: 4.0 ms</title></rect>
+<rect x="405.6205827926783" y="178" width="2.6765210799723604" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="408.29710387265067" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="408.67946402693246" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="409.44418433549595" y="178" width="0.5" height="12" fill="#b0b0b0"><title>html: 1.0 ms</title></rect>
+<rect x="410.2089046440595" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="410.5912647983413" y="178" width="0.5" height="12" fill="#3fa34d"><title>paint: 1.0 ms</title></rect>
+<rect x="410.973624952623" y="178" width="1.9118007714088208" height="12" fill="#9fb3c8"><title>other: 5.0 ms</title></rect>
+<rect x="413.6501460325954" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="414.03250618687713" y="178" width="0.7647203085635397" height="12" fill="#9fb3c8"><title>other: 2.0 ms</title></rect>
+<rect x="414.79722649544067" y="178" width="1.147080462845281" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="415.94430695828595" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="416.7090272668495" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="417.09138742113123" y="178" width="2.6765210799724173" height="12" fill="#d9a400"><title>script compile: 7.0 ms</title></rect>
+<rect x="419.76790850110365" y="178" width="1.5294406171270225" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="421.29734911823067" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="422.0620694267942" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="422.44442958107595" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="422.8267897353577" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="423.20914988963955" y="178" width="2.294160925690562" height="12" fill="#d9a400"><title>script compile: 6.0 ms</title></rect>
+<rect x="425.5033108153301" y="178" width="1.147080462845281" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="426.6503912781754" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="427.41511158673893" y="178" width="1.147080462845281" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="428.5621920495842" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="428.94455220386595" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="430.47399282099303" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="432.0034334381201" y="178" width="1.147080462845281" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="433.53287405524713" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="434.2975943638107" y="178" width="4.588321851381181" height="12" fill="#9fb3c8"><title>other: 12 ms</title></rect>
+<rect x="438.88591621519186" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="439.65063652375534" y="178" width="12.235524937016521" height="12" fill="#d9a400"><title>script compile: 32 ms</title></rect>
+<rect x="451.88616146077186" y="178" width="2.6765210799723604" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="454.5626825407442" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="454.945042695026" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="455.32740284930776" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="456.85684346643484" y="178" width="1.147080462845281" height="12" fill="#9fb3c8"><title>other: 3.0 ms</title></rect>
+<rect x="458.0039239292801" y="178" width="7.264842931353485" height="12" fill="#8a63d2"><title>style &amp; layout: 19 ms</title></rect>
+<rect x="465.2687668606336" y="178" width="3.4412413885359" height="12" fill="#3fa34d"><title>paint: 9.0 ms</title></rect>
+<rect x="468.7100082491695" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="469.09236840345125" y="178" width="1.9118007714088776" height="12" fill="#d9a400"><title>script compile: 5.0 ms</title></rect>
+<rect x="471.0041691748601" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="471.38652932914187" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="471.76888948342366" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="472.1512496377054" y="178" width="0.7647203085635397" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="472.91596994626894" y="178" width="2.294160925690562" height="12" fill="#d9a400"><title>script compile: 6.0 ms</title></rect>
+<rect x="475.2101308719595" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="476.35721133480484" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="477.1219316433683" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="477.5042917976501" y="178" width="1.147080462845281" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="478.6513722604954" y="178" width="0.7647203085635397" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="479.41609256905895" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="479.7984527233407" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="480.1808128776225" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="480.5631730319042" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="480.945533186186" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="481.32789334046777" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="481.7102534947495" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="482.85733395759485" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="484.3867745747219" y="178" width="4.205961697099383" height="12" fill="#d9a400"><title>script compile: 11 ms</title></rect>
+<rect x="488.5927362718213" y="178" width="2.294160925690562" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="490.88689719751187" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="491.2692573517936" y="178" width="7.2648429313535985" height="12" fill="#f2cf5b"><title>script run: 19 ms</title></rect>
+<rect x="498.5341002831472" y="178" width="1.9118007714088208" height="12" fill="#c94c4c"><title>gc: 5.0 ms</title></rect>
+<rect x="500.44590105455603" y="178" width="4.205961697099383" height="12" fill="#f2cf5b"><title>script run: 11 ms</title></rect>
+<rect x="504.6518627516554" y="178" width="0.7647203085635397" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="505.41658306021895" y="178" width="2.294160925690619" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="507.7107439859096" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="508.0931041401913" y="178" width="0.7647203085635397" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="508.85782444875485" y="178" width="1.9118007714088208" height="12" fill="#d9a400"><title>script compile: 5.0 ms</title></rect>
+<rect x="510.7696252201637" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="511.1519853744454" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="512.2990658372908" y="178" width="3.058881234254045" height="12" fill="#f2cf5b"><title>script run: 8.0 ms</title></rect>
+<rect x="515.3579470715448" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="515.7403072258267" y="178" width="1.5294406171269657" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="517.2697478429536" y="178" width="3.0588812342541587" height="12" fill="#d9a400"><title>script compile: 8.0 ms</title></rect>
+<rect x="520.3286290772078" y="178" width="1.1470804628452242" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="521.475709540053" y="178" width="2.294160925690676" height="12" fill="#d9a400"><title>script compile: 6.0 ms</title></rect>
+<rect x="523.7698704657437" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="524.5345907743072" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="525.6816712371525" y="178" width="2.294160925690562" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="527.9758321628431" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="529.5052727799701" y="178" width="4.205961697099383" height="12" fill="#f2cf5b"><title>script run: 11 ms</title></rect>
+<rect x="533.7112344770695" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="534.0935946313514" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="534.4759547856331" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="534.8583149399149" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="535.6230352484783" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="536.0053954027601" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="536.7701157113237" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="537.1524758656054" y="178" width="8.029563239917138" height="12" fill="#f2cf5b"><title>script run: 21 ms</title></rect>
+<rect x="545.1820391055226" y="178" width="2.6765210799723036" height="12" fill="#d9a400"><title>script compile: 7.0 ms</title></rect>
+<rect x="547.8585601854949" y="178" width="2.6765210799723036" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="550.5350812654672" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="551.2998015740308" y="178" width="1.9118007714088208" height="12" fill="#f2cf5b"><title>script run: 5.0 ms</title></rect>
+<rect x="553.2116023454396" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="553.9763226540031" y="178" width="3.8236015428176415" height="12" fill="#f2cf5b"><title>script run: 10 ms</title></rect>
+<rect x="557.7999241968207" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="558.947004659666" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="559.3293648139478" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="560.4764452767931" y="178" width="3.0588812342541587" height="12" fill="#f2cf5b"><title>script run: 8.0 ms</title></rect>
+<rect x="563.5353265110473" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="564.3000468196108" y="178" width="2.6765210799724173" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="566.9765678995832" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="568.1236483624284" y="178" width="4.588321851381124" height="12" fill="#f2cf5b"><title>script run: 12 ms</title></rect>
+<rect x="572.7119702138095" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="573.0943303680913" y="178" width="5.353042159944835" height="12" fill="#e8743b"><title>wasm compile: 14 ms</title></rect>
+<rect x="578.4473725280361" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="578.8297326823179" y="178" width="3.058881234254045" height="12" fill="#e8743b"><title>wasm compile: 8.0 ms</title></rect>
+<rect x="581.8886139165719" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="582.2709740708538" y="178" width="12.617885091298149" height="12" fill="#e8743b"><title>wasm compile: 33 ms</title></rect>
+<rect x="594.8888591621519" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="595.6535794707154" y="178" width="8.794283548480735" height="12" fill="#e8743b"><title>wasm compile: 23 ms</title></rect>
+<rect x="604.4478630191961" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="605.2125833277596" y="178" width="14.912046016988825" height="12" fill="#e8743b"><title>wasm compile: 39 ms</title></rect>
+<rect x="620.1246293447484" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="620.5069894990302" y="178" width="2.294160925690676" height="12" fill="#e8743b"><title>wasm compile: 6.0 ms</title></rect>
+<rect x="622.8011504247208" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="623.5658707332843" y="178" width="1.1470804628452242" height="12" fill="#e8743b"><title>wasm compile: 3.0 ms</title></rect>
+<rect x="624.7129511961296" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="625.477671504693" y="178" width="6.500122622790059" height="12" fill="#e8743b"><title>wasm compile: 17 ms</title></rect>
+<rect x="631.9777941274831" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="632.3601542817648" y="178" width="2.294160925690676" height="12" fill="#e8743b"><title>wasm compile: 6.0 ms</title></rect>
+<rect x="634.6543152074555" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="635.0366753617373" y="178" width="14.147325708425342" height="12" fill="#e8743b"><title>wasm compile: 37 ms</title></rect>
+<rect x="649.1840010701626" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="649.5663612244443" y="178" width="5.353042159944721" height="12" fill="#e8743b"><title>wasm compile: 14 ms</title></rect>
+<rect x="654.919403384389" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="655.3017635386708" y="178" width="13.382605399861745" height="12" fill="#e8743b"><title>wasm compile: 35 ms</title></rect>
+<rect x="668.6843689385325" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="669.0667290928143" y="178" width="4.9706820056629795" height="12" fill="#e8743b"><title>wasm compile: 13 ms</title></rect>
+<rect x="674.0374110984773" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="674.8021314070409" y="178" width="1.5294406171269657" height="12" fill="#e8743b"><title>wasm compile: 4.0 ms</title></rect>
+<rect x="676.3315720241678" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="676.7139321784496" y="178" width="0.7647203085634828" height="12" fill="#e8743b"><title>wasm compile: 2.0 ms</title></rect>
+<rect x="677.861012641295" y="178" width="1.1470804628452242" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="679.0080931041402" y="178" width="1.5294406171269657" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="680.5375337212672" y="178" width="0.5" height="12" fill="#e8743b"><title>wasm compile: 1.0 ms</title></rect>
+<rect x="680.919893875549" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="681.3022540298309" y="178" width="2.2941609256904485" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="683.5964149555214" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="684.7434954183667" y="178" width="0.7647203085635965" height="12" fill="#e8743b"><title>wasm compile: 2.0 ms</title></rect>
+<rect x="685.890575881212" y="178" width="1.5294406171269657" height="12" fill="#e8743b"><title>wasm compile: 4.0 ms</title></rect>
+<rect x="687.420016498339" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="688.5670969611843" y="178" width="0.5" height="12" fill="#e8743b"><title>wasm compile: 1.0 ms</title></rect>
+<rect x="688.9494571154661" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="690.0965375783114" y="178" width="1.1470804628452242" height="12" fill="#9fb3c8"><title>other: 3.0 ms</title></rect>
+<rect x="691.2436180411567" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="691.6259781954384" y="178" width="0.7647203085635965" height="12" fill="#3fa34d"><title>paint: 2.0 ms</title></rect>
+<rect x="692.390698504002" y="178" width="2.294160925690562" height="12" fill="#9fb3c8"><title>other: 6.0 ms</title></rect>
+<rect x="695.0672195839743" y="178" width="0.5" height="12" fill="#9fb3c8"><title>other: 1.0 ms</title></rect>
+<rect x="695.4495797382561" y="178" width="2.294160925690562" height="12" fill="#d9a400"><title>script compile: 6.0 ms</title></rect>
+<rect x="697.7437406639467" y="178" width="0.7647203085634828" height="12" fill="#9fb3c8"><title>other: 2.0 ms</title></rect>
+<rect x="698.5084609725102" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="699.6555414353555" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="700.0379015896373" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="701.5673422067644" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="702.7144226696097" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="703.4791429781732" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="705.0085835953003" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="705.7733039038637" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="706.9203843667091" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="707.3027445209908" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="708.0674648295544" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="708.4498249838362" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="709.2145452923996" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="709.5969054466814" y="178" width="3.8236015428176415" height="12" fill="#f2cf5b"><title>script run: 10 ms</title></rect>
+<rect x="713.420506989499" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="714.1852272980625" y="178" width="1.9118007714089345" height="12" fill="#c94c4c"><title>gc: 5.0 ms</title></rect>
+<rect x="716.0970280694714" y="178" width="4.588321851381124" height="12" fill="#f2cf5b"><title>script run: 12 ms</title></rect>
+<rect x="720.6853499208526" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="721.0677100751343" y="178" width="4.970682005663093" height="12" fill="#e8743b"><title>wasm compile: 13 ms</title></rect>
+<rect x="726.0383920807974" y="178" width="3.4412413885359" height="12" fill="#f2cf5b"><title>script run: 9.0 ms</title></rect>
+<rect x="729.4796334693333" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="729.861993623615" y="178" width="2.2941609256904485" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="732.1561545493055" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="732.9208748578691" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="734.0679553207144" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="734.8326756292779" y="178" width="1.1470804628452242" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="735.9797560921231" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="736.7444764006867" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="737.1268365549685" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="737.5091967092502" y="178" width="2.6765210799724173" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="740.1857177892226" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="741.3327982520678" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="741.7151584063497" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="742.0975185606314" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="743.6269591777585" y="178" width="14.52968586270697" height="12" fill="#8a63d2"><title>style &amp; layout: 38 ms</title></rect>
+<rect x="758.1566450404655" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="758.9213653490291" y="178" width="2.6765210799723036" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="761.5978864290014" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="762.362606737565" y="178" width="3.0588812342541587" height="12" fill="#f2cf5b"><title>script run: 8.0 ms</title></rect>
+<rect x="765.4214879718191" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="766.1862082803826" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="766.5685684346644" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="766.9509285889461" y="178" width="2.294160925690562" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="769.2450895146367" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="769.6274496689185" y="178" width="15.676766325552308" height="12" fill="#f2cf5b"><title>script run: 41 ms</title></rect>
+<rect x="785.3042159944708" y="178" width="1.9118007714088208" height="12" fill="#d9a400"><title>script compile: 5.0 ms</title></rect>
+<rect x="787.2160167658797" y="178" width="2.6765210799724173" height="12" fill="#f2cf5b"><title>script run: 7.0 ms</title></rect>
+<rect x="789.8925378458521" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="791.4219784629792" y="178" width="1.1470804628452242" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="792.5690589258244" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="792.9514190801061" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="793.7161393886697" y="178" width="0.7647203085634828" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="794.4808596972332" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="795.2455800057968" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="796.392660468642" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="796.7750206229239" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="797.9221010857691" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="798.3044612400508" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="799.4515417028962" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="799.8339018571779" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="800.5986221657415" y="178" width="2.6765210799723036" height="12" fill="#8a63d2"><title>style &amp; layout: 7.0 ms</title></rect>
+<rect x="803.6575033999956" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="804.0398635542774" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="804.4222237085592" y="178" width="0.7647203085634828" height="12" fill="#b0b0b0"><title>html: 2.0 ms</title></rect>
+<rect x="805.1869440171226" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="806.334024479968" y="178" width="1.9118007714088208" height="12" fill="#8a63d2"><title>style &amp; layout: 5.0 ms</title></rect>
+<rect x="808.2458252513768" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="808.6281854056585" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="809.7752658685039" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="810.9223463313491" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="811.6870666399127" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="812.8341471027579" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="813.2165072570397" y="178" width="1.5294406171270793" height="12" fill="#8a63d2"><title>style &amp; layout: 4.0 ms</title></rect>
+<rect x="814.7459478741667" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="815.1283080284485" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="815.8930283370121" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="816.2753884912938" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="817.0401087998573" y="178" width="0.7647203085635965" height="12" fill="#8a63d2"><title>style &amp; layout: 2.0 ms</title></rect>
+<rect x="817.8048291084209" y="178" width="1.9118007714088208" height="12" fill="#f2cf5b"><title>script run: 5.0 ms</title></rect>
+<rect x="819.7166298798297" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="820.0989900341115" y="178" width="2.294160925690562" height="12" fill="#f2cf5b"><title>script run: 6.0 ms</title></rect>
+<rect x="822.393150959802" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="822.7755111140838" y="178" width="0.7647203085635965" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="823.5402314226474" y="178" width="1.5294406171269657" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="825.0696720397743" y="178" width="4.9706820056629795" height="12" fill="#f2cf5b"><title>script run: 13 ms</title></rect>
+<rect x="830.0403540454373" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="830.8050743540009" y="178" width="3.058881234254045" height="12" fill="#f2cf5b"><title>script run: 8.0 ms</title></rect>
+<rect x="833.863955588255" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="834.2463157425368" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="835.0110360511003" y="178" width="1.9118007714088208" height="12" fill="#d9a400"><title>script compile: 5.0 ms</title></rect>
+<rect x="836.9228368225091" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="837.3051969767909" y="178" width="1.5294406171270793" height="12" fill="#d9a400"><title>script compile: 4.0 ms</title></rect>
+<rect x="838.8346375939179" y="178" width="3.8236015428176415" height="12" fill="#f2cf5b"><title>script run: 10 ms</title></rect>
+<rect x="842.6582391367356" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="843.0405992910174" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="843.8053195995809" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="844.9524000624262" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<rect x="845.334760216708" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="845.7171203709897" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="846.4818406795532" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="847.6289211423986" y="178" width="1.147080462845338" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="848.7760016052439" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="849.9230820680891" y="178" width="3.4412413885359" height="12" fill="#f2cf5b"><title>script run: 9.0 ms</title></rect>
+<rect x="853.364323456625" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="853.7466836109068" y="178" width="1.9118007714088208" height="12" fill="#f2cf5b"><title>script run: 5.0 ms</title></rect>
+<rect x="855.6584843823156" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="856.0408445365974" y="178" width="1.1470804628452242" height="12" fill="#f2cf5b"><title>script run: 3.0 ms</title></rect>
+<rect x="857.1879249994427" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="857.5702851537244" y="178" width="20.647448331215287" height="12" fill="#f2cf5b"><title>script run: 54 ms</title></rect>
+<rect x="878.2177334849397" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="878.6000936392215" y="178" width="1.5294406171269657" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="880.1295342563485" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="880.8942545649121" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="881.6589748734756" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="882.0413350277573" y="178" width="1.9118007714089345" height="12" fill="#f2cf5b"><title>script run: 5.0 ms</title></rect>
+<rect x="883.9531357991663" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="884.335495953448" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="885.1002162620115" y="178" width="3.0588812342541587" height="12" fill="#c94c4c"><title>gc: 8.0 ms</title></rect>
+<rect x="888.1590974962656" y="178" width="19.118007714088208" height="12" fill="#f2cf5b"><title>script run: 50 ms</title></rect>
+<rect x="907.2771052103539" y="178" width="4.205961697099383" height="12" fill="#8a63d2"><title>style &amp; layout: 11 ms</title></rect>
+<rect x="911.4830669074532" y="178" width="4.205961697099383" height="12" fill="#f2cf5b"><title>script run: 11 ms</title></rect>
+<rect x="915.6890286045526" y="178" width="0.7647203085635965" height="12" fill="#d9a400"><title>script compile: 2.0 ms</title></rect>
+<rect x="916.4537489131162" y="178" width="4.9706820056629795" height="12" fill="#f2cf5b"><title>script run: 13 ms</title></rect>
+<rect x="921.4244309187792" y="178" width="1.1470804628452242" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="922.5715113816244" y="178" width="1.5294406171270793" height="12" fill="#f2cf5b"><title>script run: 4.0 ms</title></rect>
+<rect x="924.1009519987515" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="924.4833121530332" y="178" width="3.4412413885359" height="12" fill="#f2cf5b"><title>script run: 9.0 ms</title></rect>
+<rect x="927.9245535415691" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="928.306913695851" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="929.0716340044145" y="178" width="2.294160925690562" height="12" fill="#d9a400"><title>script compile: 6.0 ms</title></rect>
+<rect x="931.365794930105" y="178" width="1.9118007714088208" height="12" fill="#f2cf5b"><title>script run: 5.0 ms</title></rect>
+<rect x="933.2775957015139" y="178" width="0.5" height="12" fill="#d9a400"><title>script compile: 1.0 ms</title></rect>
+<rect x="933.6599558557957" y="178" width="0.7647203085634828" height="12" fill="#f2cf5b"><title>script run: 2.0 ms</title></rect>
+<rect x="934.4246761643592" y="178" width="1.147080462845338" height="12" fill="#d9a400"><title>script compile: 3.0 ms</title></rect>
+<rect x="935.5717566272045" y="178" width="0.5" height="12" fill="#f2cf5b"><title>script run: 1.0 ms</title></rect>
+<text x="4" y="209" class="h">steps</text>
+<text x="8" y="225">boot</text>
+<rect x="250" y="217" width="139.56527991438702" height="10" fill="#8c8c8c" opacity="1"><title>boot: 365 ms from 0.00 ms</title></rect>
+<text x="392.565279914387" y="225" class="d">365 ms</text>
+<text x="8" y="241">fetch</text>
+<rect x="279.8317392370633" y="233" width="203.121184759102" height="10" fill="#2a9d8f" opacity="1"><title>fetch: 531 ms from 78 ms; 3,922 chars</title></rect>
+<text x="485.9529239961653" y="241" class="d">531 ms</text>
+<text x="8" y="257">wasm compile</text>
+<rect x="280.8105812320246" y="249" width="47.09530020288497" height="10" fill="#777" opacity="1"><title>wasm compile: 123 ms from 81 ms</title></rect>
+<text x="330.9058814349096" y="257" class="d">123 ms</text>
+<text x="8" y="273">wasm init</text>
+<rect x="390.12352573963835" y="265" width="14.074677279111825" height="10" fill="#777" opacity="1"><title>wasm init: 37 ms from 366 ms; 1 precompiled</title></rect>
+<text x="407.1982030187502" y="273" class="d">37 ms</text>
+<text x="8" y="289">parser import</text>
+<rect x="390.14264374735245" y="281" width="89.5793369451319" height="10" fill="#777" opacity="1"><title>parser import: 234 ms from 367 ms</title></rect>
+<text x="482.72198069248435" y="289" class="d">234 ms</text>
+<text x="8" y="305">app</text>
+<rect x="419.7029072748757" y="297" width="50.999197378101826" height="10" fill="#9b6bd3" opacity="1"><title>app: 133 ms from 444 ms</title></rect>
+<text x="473.70210465297754" y="305" class="d">133 ms</text>
+<text x="8" y="321">parse</text>
+<rect x="484.4708938086639" y="313" width="87.7707734153791" height="10" fill="#3a7bd5" opacity="1"><title>parse: 230 ms from 613 ms; 3,922 chars</title></rect>
+<text x="575.241667224043" y="321" class="d">230 ms</text>
+<text x="18" y="337">lezerToDast</text>
+<rect x="484.79207633826053" y="329" width="59.82789334046771" height="10" fill="#3a7bd5" opacity="0.88"><title>parse/lezerToDast: 156 ms from 614 ms; 3,922 chars</title></rect>
+<text x="547.6199696787282" y="337" class="d">156 ms</text>
+<text x="18" y="353">normalize</text>
+<rect x="545.0405658484383" y="345" width="18.735647559806466" height="10" fill="#3a7bd5" opacity="0.88"><title>parse/normalize: 49 ms from 772 ms</title></rect>
+<text x="566.7762134082448" y="353" class="d">49 ms</text>
+<text x="18" y="369">encode</text>
+<rect x="563.8144494236728" y="361" width="7.895737185918506" height="10" fill="#3a7bd5" opacity="0.88"><title>parse/encode: 21 ms from 821 ms</title></rect>
+<text x="574.7101866095913" y="369" class="d">21 ms</text>
+<text x="8" y="385">core</text>
+<rect x="572.5934385659823" y="377" width="116.52425701736774" height="10" fill="#e07b24" opacity="1"><title>core: 305 ms from 844 ms</title></rect>
+<text x="692.11769558335" y="385" class="d">305 ms</text>
+<text x="18" y="401">new Core</text>
+<rect x="572.9069738924933" y="393" width="101.65427061735" height="10" fill="#e07b24" opacity="0.88"><title>core/new Core: 266 ms from 845 ms; 12,920 bytes</title></rect>
+<text x="677.5612445098433" y="401" class="d">266 ms</text>
+<text x="28" y="417">load</text>
+<rect x="572.933739103293" y="409" width="97.47889773259317" height="10" fill="#e07b24" opacity="0.76"><title>core/new Core/load: 255 ms from 845 ms</title></rect>
+<text x="673.4126368358861" y="417" class="d">255 ms</text>
+<text x="38" y="433">deserialize</text>
+<rect x="572.9566807125499" y="425" width="1.1050208458742645" height="10" fill="#e07b24" opacity="0.64"><title>core/new Core/load/deserialize: 2.9 ms from 845 ms; 12,920 bytes, 379 dast nodes</title></rect>
+<text x="577.0617015584241" y="433" class="d">2.9 ms</text>
+<text x="38" y="449">compile</text>
+<rect x="574.7270082268744" y="441" width="50.012708180054915" height="10" fill="#e07b24" opacity="0.64"><title>core/new Core/load/compile: 131 ms from 849 ms</title></rect>
+<text x="627.7397164069293" y="449" class="d">131 ms</text>
+<text x="48" y="465">plan</text>
+<rect x="575.0826031703566" y="457" width="17.267384567364388" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/plan: 45 ms from 850 ms; 122 elements, 2 templates</title></rect>
+<text x="595.349987737721" y="465" class="d">45 ms</text>
+<text x="48" y="481">first build</text>
+<rect x="592.349987737721" y="473" width="30.347925445343662" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/first build: 79 ms from 895 ms</title></rect>
+<text x="625.6979131830647" y="481" class="d">79 ms</text>
+<text x="58" y="497">expand</text>
+<rect x="600.5745546563218" y="489" width="3.7738947227610424" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/first build/expand: 9.9 ms from 917 ms</title></rect>
+<text x="607.3484493790828" y="497" class="d">9.9 ms</text>
+<text x="58" y="513">resolve</text>
+<rect x="604.3484493790828" y="505" width="16.078244487548204" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/first build/resolve: 42 ms from 927 ms</title></rect>
+<text x="623.426693866631" y="513" class="d">42 ms</text>
+<text x="58" y="529">loop check</text>
+<rect x="620.426693866631" y="521" width="1" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/first build/loop check: 1.1 ms from 969 ms</title></rect>
+<text x="623.8396428332553" y="529" class="d">1.1 ms</text>
+<text x="58" y="545">emit</text>
+<rect x="620.8396428332553" y="537" width="1.8582703498093451" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/first build/emit: 4.9 ms from 970 ms; 467 cells, 124 components, 95 instructions</title></rect>
+<text x="625.6979131830647" y="545" class="d">4.9 ms</text>
+<text x="48" y="561">lint</text>
+<rect x="622.6979131830647" y="553" width="1.3612021492431268" height="10" fill="#e07b24" opacity="0.52"><title>core/new Core/load/compile/lint: 3.6 ms from 975 ms</title></rect>
+<text x="627.0591153323078" y="561" class="d">3.6 ms</text>
+<text x="38" y="577">schedule</text>
+<rect x="624.7397164069293" y="569" width="3.9841928076159547" height="10" fill="#e07b24" opacity="0.64"><title>core/new Core/load/schedule: 10 ms from 980 ms; 95 instructions</title></rect>
+<text x="631.7239092145453" y="577" class="d">10 ms</text>
+<text x="38" y="593">compute</text>
+<rect x="628.7277328160881" y="585" width="37.21893741778706" height="10" fill="#e07b24" opacity="0.64"><title>core/new Core/load/compute: 97 ms from 991 ms; 467 cells</title></rect>
+<text x="668.9466702338751" y="593" class="d">97 ms</text>
+<text x="38" y="609">attributes</text>
+<rect x="665.9466702338751" y="601" width="1" height="10" fill="#e07b24" opacity="0.64"><title>core/new Core/load/attributes: 0.04 ms from 1.09 s</title></rect>
+<text x="668.9619646400464" y="609" class="d">0.04 ms</text>
+<text x="18" y="625">component table</text>
+<rect x="683.374646066038" y="617" width="5.28039373063109" height="10" fill="#e07b24" opacity="0.88"><title>core/component table: 14 ms from 1.13 s; 124 components</title></rect>
+<text x="691.6550397966691" y="625" class="d">14 ms</text>
+<text x="8" y="641">render</text>
+<rect x="689.1291663879786" y="633" width="246.87083361202144" height="10" fill="#3fa34d" opacity="1"><title>render: 646 ms from 1.15 s; 124 components, 370 elements</title></rect>
+<text x="939" y="641" class="d">646 ms</text>
+<text x="18" y="657">react commit</text>
+<rect x="689.1291663879786" y="649" width="47.09147660134215" height="10" fill="#3fa34d" opacity="0.88"><title>render/react commit: 123 ms from 1.15 s; 124 components</title></rect>
+<text x="739.2206429893207" y="657" class="d">123 ms</text>
+<text x="18" y="673">boards</text>
+<rect x="736.2206429893207" y="665" width="199.7793570106794" height="10" fill="#3fa34d" opacity="0.88"><title>render/boards: 522 ms from 1.27 s; 1 boards</title></rect>
+<text x="939.0000000000001" y="673" class="d">522 ms</text>
+<text x="18" y="689">board init</text>
+<rect x="736.6412391590306" y="681" width="81.39682964350209" height="10" fill="#3fa34d" opacity="0.88"><title>render/board init: 213 ms from 1.27 s</title></rect>
+<text x="821.0380688025327" y="689" class="d">213 ms</text>
+<rect x="4" y="704" width="10" height="10" fill="#b0b0b0"/>
+<text x="18" y="713">html</text>
+<rect x="52.8" y="704" width="10" height="10" fill="#d9a400"/>
+<text x="66.8" y="713">script compile</text>
+<rect x="163.6" y="704" width="10" height="10" fill="#f2cf5b"/>
+<text x="177.6" y="713">script run</text>
+<rect x="249.6" y="704" width="10" height="10" fill="#e8743b"/>
+<text x="263.6" y="713">wasm compile</text>
+<rect x="348" y="704" width="10" height="10" fill="#c94c4c"/>
+<text x="362" y="713">gc</text>
+<rect x="384.4" y="704" width="10" height="10" fill="#8a63d2"/>
+<text x="398.4" y="713">style &amp; layout</text>
+<rect x="495.2" y="704" width="10" height="10" fill="#3fa34d"/>
+<text x="509.2" y="713">paint</text>
+<rect x="550.2" y="704" width="10" height="10" fill="#9fb3c8"/>
+<text x="564.2" y="713">other</text>
+</svg>
