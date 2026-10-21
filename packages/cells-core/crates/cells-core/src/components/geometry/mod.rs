@@ -7,7 +7,6 @@
 
 use super::define::*;
 use super::{ArrayProp, ComponentTypeInfo, ListProp, PropDef};
-use crate::compile::api::{DefaultPoint, roles};
 use crate::tick::snap::Shape;
 
 pub mod circle;
@@ -45,9 +44,10 @@ const LINE_POINTS: &[ArrayProp] = &[ArrayProp {
 
 /// A line's or segment's default points, as the current core takes them:
 /// a missing first point is (1, 0) and a missing second one (0, 0); a
-/// direction-based line's first point is the latter.
-pub(crate) const ESS1: DefaultPoint = (roles::ESS1, [1.0, 0.0]);
-pub(crate) const ESS2: DefaultPoint = (roles::ESS2, [0.0, 0.0]);
+/// direction-based line's first point is the latter. Each type gives
+/// them its own roles.
+pub(crate) const DEFAULT_FIRST_POINT: [f64; 2] = [1.0, 0.0];
+pub(crate) const DEFAULT_SECOND_POINT: [f64; 2] = [0.0, 0.0];
 
 /// `<line>`: its own two points are derived cells (ADR 0006); slope,
 /// intercepts and coefficients follow from them or from the equation.

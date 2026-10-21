@@ -290,11 +290,39 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// every prop's position. A list that names a prop the table lacks, or
 /// misses or reorders one, fails to compile.
 ///
+/// `roles { .. }` declares the roles the type's planner gives its
+/// essential state, as constants of a `roles` module beside the props: a
+/// copy with overrides shares a slot with its referent by role
+/// (`compile::plan::Role`). A copy extends only its own type, so a type's
+/// roles need differ only from one another, as constants of one module
+/// must.
+///
 /// ```ignore
-/// typed_props!(CIRCLE_PROPS { cx, cy, radius, ... });
+/// typed_props!(CIRCLE_PROPS { cx, cy, radius, ... } roles { CX, CY, R });
 /// ```
 macro_rules! typed_props {
-    ($table:ident { $($field:ident),* $(,)? }) => {
+    ($table:ident { $($field:ident),* $(,)? } $(roles { $($role:ident),* $(,)? })?) => {
+        $(
+            /// The roles this type's planner gives its essential state.
+            pub(crate) mod roles {
+                $(
+                    pub(crate) const $role: $crate::compile::api::Role =
+                        $crate::compile::api::Role::declared(stringify!($role));
+                )*
+            }
+
+            // `point_roles` names a list's points so; a declared role is
+            // the constant's own name, so two always differ.
+            const _: () = {
+                $(
+                    assert!(
+                        !$crate::components::define::str_eq(roles::$role.name(), "pt"),
+                        "typed_props! roles must not be named pt"
+                    );
+                )*
+            };
+        )?
+
         /// One field per prop of the table, in its order.
         #[allow(non_snake_case)]
         #[derive(Debug, Clone)]

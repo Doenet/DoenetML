@@ -187,7 +187,12 @@ case), carry every piece before other components follow:
    a line's and a segment's defaulted points). What members of a family
    share as behavior, rather than as machinery, is in the family's
    `mod.rs` (the default points themselves, `components/geometry/`), so
-   the family directory keeps it visible. The golden
+   the family directory keeps it visible. A component's roles are
+   declared with its props (`typed_props!(.. roles { .. })`), as
+   constants of its own `roles` module: a copy extends only its own
+   type, so a role need be unique only within it, and a misspelled role
+   still does not compile. `compile/plan.rs` keeps the roles of the
+   planners still there. The golden
    diff is identical; the segment, which had no spec, has one
    (`tests/specs/segment.rs`).
 3. Lists with per-element lengths, for the circle's through points, then

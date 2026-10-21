@@ -2,7 +2,7 @@
 //! endpoints are its own state, or the points `endpoints` names; a
 //! missing endpoint is essential state at the current core's default.
 
-use super::{ESS1, ESS2, LINE_POINTS};
+use super::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT, LINE_POINTS};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::components::{ComponentType, ComponentTypeInfo, PropDef};
@@ -29,14 +29,19 @@ const _: () = assert!(
     "a segment's endpoints must be x1 y1 x2 y2"
 );
 
-typed_props!(LINE_SEGMENT_PROPS { x1, y1, x2, y2 });
+typed_props!(LINE_SEGMENT_PROPS { x1, y1, x2, y2 } roles {
+    // A missing endpoint's coordinates.
+    ESS1X, ESS1Y, ESS2X, ESS2Y,
+});
 
 /// Plans a segment from its `endpoints`: the first two points it names,
 /// each defaulted when missing.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemPlan> {
     let ends = ctx.points("endpoints")?;
-    let [x1, y1] = Planned::point_or_default(ends.first(), point_roles(0), "endpoints", ESS1);
-    let [x2, y2] = Planned::point_or_default(ends.get(1), point_roles(1), "endpoints", ESS2);
+    let first = ([roles::ESS1X, roles::ESS1Y], DEFAULT_FIRST_POINT);
+    let second = ([roles::ESS2X, roles::ESS2Y], DEFAULT_SECOND_POINT);
+    let [x1, y1] = Planned::point_or_default(ends.first(), point_roles(0), "endpoints", first);
+    let [x2, y2] = Planned::point_or_default(ends.get(1), point_roles(1), "endpoints", second);
     let mut ch = ElemPlan::of(ComponentType::LineSegment);
     ch.set_public(Props { x1, y1, x2, y2 }.into_vec());
     Ok(ch)

@@ -5,6 +5,4 @@
 //! component, never by reaching past it.
 
 pub(crate) use super::geometry::PlanCtx;
-pub(crate) use super::plan::{
-    DefaultPoint, ElemPlan, Planned, PointPlan, SourcePlan, point_roles, roles,
-};
+pub(crate) use super::plan::{ElemPlan, Planned, PointPlan, Role, SourcePlan, point_roles};

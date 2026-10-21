@@ -207,7 +207,9 @@ in its family's directory, and uses only what `compile/api.rs` exports;
 it. A planner names its
 props through `typed_props!` beside the table and returns them as a
 `Props<Planned>` struct literal, a slot's plan with the role a copy
-shares it by; a combination of attributes it cannot honor is a warning
+shares it by. The type's roles are declared there too
+(`typed_props!(.. { .. } roles { CX, CY, R })`); a copy extends only
+its own type, so they need differ only from one another. A combination of attributes it cannot honor is a warning
 (`PlanCtx::warn`), never a silent NaN. What two planners both need
 belongs in `compile/` behind `api.rs`, once, not copied into each.
 Other planners are still `Compiler` methods in `compile/` (the other

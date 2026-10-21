@@ -286,22 +286,37 @@ pub(crate) fn own_slot(i: usize) -> u8 {
 
 /// The name a planner gives a piece of essential state, so that a copy
 /// with overrides shares it with its original (`plan_geo`): the copy's
-/// slot with a role aliases the original's slot with the same role. Roles
-/// are the constants of [`roles`] and [`point_roles`]; nothing else can
-/// make one, so a planner cannot misspell one.
+/// slot with a role aliases the original's slot with the same role. A
+/// copy extends an element of its own type only, so a role need only be
+/// unique within its type. Roles are constants: a component's own, which
+/// `typed_props!` declares beside its props, and those of [`roles`] and
+/// [`point_roles`], so a planner cannot misspell one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Role(&'static str, u32);
 
-/// Every role a planner gives.
+impl Role {
+    /// A role a component declares in `typed_props!`, which alone calls
+    /// this.
+    #[doc(hidden)]
+    pub(crate) const fn declared(name: &'static str) -> Role {
+        Role(name, 0)
+    }
+
+    /// The role's name, for `typed_props!`'s check that no declared role
+    /// takes `point_roles`'s.
+    #[doc(hidden)]
+    pub(crate) const fn name(self) -> &'static str {
+        self.0
+    }
+}
+
+/// The roles of the planners still in `compile/`; a component in
+/// `components/` declares its own in `typed_props!`.
 pub(crate) mod roles {
     use super::Role;
     /// A point's coordinates.
     pub(crate) const X: Role = Role("x", 0);
     pub(crate) const Y: Role = Role("y", 0);
-    /// A circle's center when it is its own state, and its radius.
-    pub(crate) const CX: Role = Role("cx", 0);
-    pub(crate) const CY: Role = Role("cy", 0);
-    pub(crate) const R: Role = Role("r", 0);
     /// A line's second point's distance along its direction.
     pub(crate) const DIST: Role = Role("dist", 0);
     /// A value that is the element's state (a text, a boolean).
@@ -312,8 +327,8 @@ pub(crate) mod roles {
 }
 
 /// A point a planner uses when the author gives none: its essential
-/// roles and value. Which point is a component's to say
-/// (`components::geometry::ESS1`).
+/// roles and value. Both are a component's to say (the line's and
+/// segment's values are in `components/geometry/mod.rs`).
 pub(crate) type DefaultPoint = ([Role; 2], [f64; 2]);
 
 /// A slot's plan and, when it is essential state that a copy shares, its

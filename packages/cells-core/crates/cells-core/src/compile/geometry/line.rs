@@ -2,8 +2,12 @@
 //! slope or direction.
 
 use super::*;
-use crate::components::geometry::{ESS1, ESS2};
+use crate::components::geometry::{DEFAULT_FIRST_POINT, DEFAULT_SECOND_POINT};
 use crate::components::prop::line;
+
+/// A line's default points, with its roles for them.
+const ESS1: DefaultPoint = (roles::ESS1, DEFAULT_FIRST_POINT);
+const ESS2: DefaultPoint = (roles::ESS2, DEFAULT_SECOND_POINT);
 
 impl Compiler<'_> {
     /// Variable names of a line's equation (`variables="(s,t)"` or `"s t"`).

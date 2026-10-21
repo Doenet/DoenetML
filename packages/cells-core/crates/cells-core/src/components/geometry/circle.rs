@@ -64,6 +64,9 @@ typed_props!(CIRCLE_PROPS {
     centerX,
     centerY,
     numThroughPoints,
+} roles {
+    // The center when it is the circle's own state, and the radius.
+    CX, CY, R,
 });
 
 /// Why a circle cannot be what its attributes ask, as the current core's
