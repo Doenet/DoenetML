@@ -213,7 +213,9 @@ it (`values/answer.rs`, `structure/select.rs`), and keeps its own
 decisions (what it refuses) in its file. A planner names its
 props through `typed_props!` beside the table and returns them as a
 `Props<Planned>` struct literal, a slot's plan with the role a copy
-shares it by. The type's roles are declared there too
+shares it by (`ElemPlan::set_public`); nothing sets a slot by position.
+A `PropsThen` planner reaches the table's plan through `Props::AT`.
+The type's roles are declared there too
 (`typed_props!(.. { .. } roles { CX, CY, R })`); a copy extends only
 its own type, so they need differ only from one another. A combination of attributes it cannot honor is a warning
 (`PlanCtx::warn`), never a silent NaN. What two planners both need

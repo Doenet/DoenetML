@@ -205,10 +205,14 @@ case), carry every piece before other components follow:
    module: a copy extends only its own type, so a role need be unique
    only within it, and a misspelled role still does not compile.
    `compile/plan.rs` declares no component's roles; `point_roles` names
-   a list's points. Plans are typed for the circle, line and segment;
-   the other planners moved as they were, setting slots by the
-   positions named beside their tables, and become typed with the steps
-   that touch them. A nonlinear line equation still makes a line of NaN
+   a list's points. Every plan is typed: a planner, or the machinery a
+   thin planner names, builds its element's props as its type's
+   `typed_props!` struct, so a prop left unplanned does not compile, and
+   no code sets a slot by position (`ElemPlan::set` is gone). A
+   `PropsThen` planner, which adjusts the table's plan, reaches it
+   through `Props::AT`. How a point, math or tuple is made from parts is
+   its component's (`point::props_of`, ...), which the machinery calls.
+   A nonlinear line equation still makes a line of NaN
    without a diagnostic, as before. The golden diff is identical through
    every move. The segment and the line, which had no specs, have them
    (`tests/specs/segment.rs`, `line.rs`); the line's passes, cost
