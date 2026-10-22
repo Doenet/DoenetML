@@ -197,6 +197,16 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.plan_scalar(self.t, scope, name.name(), nodes)
     }
 
+    /// A 0/1 flag attribute (`hide`), as a copy inherits it
+    /// (`Compiler::plan_flag`): the element's own, else its referent's, else
+    /// `default`.
+    pub(crate) fn flag(&mut self, name: Attr, default: bool) -> Result<Source> {
+        let scope = self.scope();
+        let (node, base) = (self.node(), self.base);
+        self.c
+            .plan_flag(self.t, scope, node, base, name.name(), default)
+    }
+
     /// The points of a point-list attribute (`through="$a (1, 2)"`), none
     /// if it is not given.
     pub(crate) fn points(&mut self, name: Attr) -> Result<Vec<GivenPoint>> {

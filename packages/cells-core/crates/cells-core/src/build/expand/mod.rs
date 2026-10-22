@@ -1270,3 +1270,110 @@ impl<'c> Builder<'c> {
         }
     }
 }
+
+/// Inheritance as the build makes it (ADR 0016, Migration step 8), against
+/// the test-only components: an `Inherit` prop aliases its referent's slot
+/// in every instance, a copy of a list holds as many points as its
+/// referent, and a gated `InheritFrom` reads the referent through a hold.
+#[cfg(test)]
+mod tests {
+    use crate::Document;
+    use crate::testing::dast::{document, el, load, mac};
+    use crate::testing::{prop_value as value, request_prop as request};
+
+    /// The cells of `name.prop`, which may be several.
+    fn cells(doc: &Document, path: &str) -> Vec<f64> {
+        let (name, prop) = path.rsplit_once('.').unwrap();
+        let comp = doc.component(name).unwrap_or_else(|| panic!("no {name}"));
+        doc.prop_cells(comp, prop)
+            .unwrap_or_else(|| panic!("{name} has no {prop}"))
+            .iter()
+            .map(|&c| doc.cells[c as usize])
+            .collect()
+    }
+
+    #[test]
+    fn a_bare_copy_of_a_list_holds_its_referents_points() {
+        let mut doc = load(document([
+            el("testList").name("l").attr("points", "(1,2) (3,4) (5,6)"),
+            el("testList").name("m").attr("extend", mac("l")),
+        ]))
+        .unwrap();
+        assert_eq!(cells(&doc, "m.points"), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        assert_eq!(value(&doc, "m.numPoints"), 3.0);
+        request(&mut doc, "m.px3", 7.0);
+        assert_eq!(cells(&doc, "l.point3"), [7.0, 6.0]);
+    }
+
+    #[test]
+    fn a_copy_giving_its_own_list_holds_its_own() {
+        let doc = load(document([
+            el("testList").name("l").attr("points", "(1,2) (3,4) (5,6)"),
+            el("testList")
+                .name("m")
+                .attr("extend", mac("l"))
+                .attr("points", "(7,8)"),
+        ]))
+        .unwrap();
+        assert_eq!(cells(&doc, "m.points"), [7.0, 8.0]);
+        assert_eq!(value(&doc, "m.numPoints"), 1.0);
+        assert_eq!(cells(&doc, "l.points").len(), 6);
+    }
+
+    #[test]
+    fn copies_in_a_repeat_alias_the_referent_outside() {
+        let mut doc = load(document([
+            el("testShape").name("s").attr("a", "1"),
+            el("repeatForSequence")
+                .name("r")
+                .attr("length", "2")
+                .child(el("testShape").name("d").attr("extend", mac("s"))),
+        ]))
+        .unwrap();
+        assert_eq!(
+            (value(&doc, "r[1].d.a"), value(&doc, "r[2].d.a")),
+            (1.0, 1.0)
+        );
+        request(&mut doc, "r[2].d.a", 5.0);
+        assert_eq!((value(&doc, "s.a"), value(&doc, "r[1].d.a")), (5.0, 5.0));
+    }
+
+    #[test]
+    fn copies_in_a_repeat_alias_their_own_iterations_referent() {
+        let mut doc = load(document([el("repeatForSequence")
+            .name("r")
+            .attr("length", "2")
+            .child(el("testShape").name("s").attr("a", "1"))
+            .child(el("testShape").name("d").attr("extend", mac("s")))]))
+        .unwrap();
+        request(&mut doc, "r[1].d.a", 5.0);
+        assert_eq!(
+            (value(&doc, "r[1].s.a"), value(&doc, "r[2].s.a")),
+            (5.0, 1.0)
+        );
+        assert_eq!(value(&doc, "r[2].d.a"), 1.0);
+    }
+
+    #[test]
+    fn a_gated_copy_reads_its_referent_through_the_hold() {
+        // `fixed="$f"` gates the copy: its inherited `value` moves to a
+        // hidden `InheritFrom` slot read through a `Hold` (`compile/fix.rs`).
+        let mut doc = load(document([
+            el("testValue").name("f").attr("value", "1"),
+            el("testValue").name("v").attr("value", "3"),
+            el("testValue")
+                .name("w")
+                .attr("extend", mac("v"))
+                .attr("fixed", mac("f")),
+        ]))
+        .unwrap();
+        assert_eq!(value(&doc, "w.value"), 3.0);
+        request(&mut doc, "v.value", 4.0);
+        assert_eq!(value(&doc, "w.value"), 4.0);
+        assert_eq!(request(&mut doc, "w.value", 9.0).dropped.len(), 1);
+        assert_eq!(value(&doc, "v.value"), 4.0);
+        request(&mut doc, "f.value", 0.0);
+        assert!(request(&mut doc, "w.value", 9.0).dropped.is_empty());
+        assert_eq!(value(&doc, "v.value"), 9.0);
+    }
+}

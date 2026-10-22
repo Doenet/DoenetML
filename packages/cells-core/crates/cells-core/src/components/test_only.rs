@@ -10,7 +10,9 @@
 //!   `plan_with_extend`'s handling of `extend`, with two pieces of shared
 //!   state, each supplied by the attribute of the same name, `a` else by
 //!   the element's children (`<testShape>3</testShape>`) or its
-//!   referent's.
+//!   referent's, and a `hide` flag.
+//! - `<testList points="(1,2) (3,4)">`: a list of as many points as it is
+//!   given, planned by a function inside `plan_with_extend`.
 
 /// `<testValue>`: a value and its double, from the table alone.
 pub(crate) mod test_value {
@@ -49,8 +51,9 @@ pub(crate) mod test_shape {
             a: by_planner,
             b: by_planner,
             sum: computed(OpSpec::Add, [a, b]),
+            hide: by_planner,
         }
-        attributes { a, b }
+        attributes { a, b, hide }
         shared_state { A, B }
         planner: Plan(plan),
     }
@@ -61,6 +64,7 @@ pub(crate) mod test_shape {
             a: a(ctx)?,
             b: given(ctx, shared_state::B, attr::b)?,
             sum: Wire::from_table(ComponentType::TestShape, Props::AT.sum),
+            hide: ctx.flag(attr::hide, false)?.into(),
         });
         Ok(wiring)
     }
@@ -90,6 +94,47 @@ pub(crate) mod test_shape {
             Some(other) => other.into(),
             None => Wire::essential(state, 0.0),
         })
+    }
+}
+
+/// `<testList>`: a list of points, and how many.
+pub(crate) mod test_list {
+    use crate::compile::api::*;
+    use crate::components::ComponentType;
+    use crate::components::define::*;
+    use crate::error::Result;
+
+    component! {
+        /// `<testList points="(1,2) (3,4)">`: its points are its list
+        /// (`point1`, `px1`, ...), as many as given.
+        tags: ["testList"],
+        flags: [copyable],
+        props {
+            numPoints: by_planner,
+        }
+        list {
+            names: [points],
+            item: point,
+            coords: [px, py],
+        }
+        attributes { points }
+        planner: Plan(plan),
+    }
+
+    pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let points = ctx.points(attr::points)?;
+        let mut wiring = ElemWiring::with_list(ComponentType::TestList, points.len());
+        wiring.set_public(Props {
+            numPoints: Wire::fixed(points.len() as f64),
+        });
+        wiring.set_list(
+            points
+                .iter()
+                .enumerate()
+                .map(|(k, p)| Wire::point(p, shared_point_state(k), attr::points))
+                .collect(),
+        );
+        Ok(wiring)
     }
 }
 

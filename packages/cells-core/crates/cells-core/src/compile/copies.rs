@@ -190,6 +190,43 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
+    /// A 0/1 flag attribute of a `Plan` type (`hide`), as a copy inherits
+    /// it: a reference is bound; a literal (a bare attribute is true) is
+    /// the element's own value when it gives the attribute, else its
+    /// referent's; with no attribute at all, a copy's is its referent's
+    /// slot and an element's is `default`.
+    pub(in crate::compile) fn plan_flag(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        el: NodeId,
+        base: Option<NodeId>,
+        name: &str,
+        default: bool,
+    ) -> Result<Source> {
+        let d = self.dast;
+        Ok(match self.attr_or_inherited(el, base, name) {
+            Some(a) if self.single_macro(a).is_some() => {
+                self.plan_scalar(t, scope, name, d.attr_children(a))?
+            }
+            Some(_) => {
+                // The copy's own attribute wins: `hide="false"` reveals a
+                // copy of a hidden point, as in the current core.
+                let owner = match base {
+                    Some(b) if d.attr(el, name).is_none() => b,
+                    _ => el,
+                };
+                Source::Literal(if self.attr_flag(owner, name) {
+                    1.0
+                } else {
+                    0.0
+                })
+            }
+            None if base.is_some() => Source::Inherit,
+            None => Source::Default(if default { 1.0 } else { 0.0 }),
+        })
+    }
+
     /// Attribute of the element, or of the `extend` referent when the
     /// element does not give it (a copy with overrides).
     pub(in crate::compile) fn attr_or_inherited(
@@ -341,5 +378,49 @@ mod tests {
         assert_eq!(value(&doc, "s.a"), 5.0);
         request(&mut doc, "s.a", 6.0);
         assert_eq!(value(&doc, "d.a"), 6.0);
+    }
+
+    #[test]
+    fn a_flag_is_the_elements_else_its_referents_else_the_default() {
+        let mut doc = load(document([
+            el("testValue").name("v").attr("value", "1"),
+            el("testShape").name("plain"),
+            el("testShape").name("s").flag("hide"),
+            el("testShape").name("t").attr("hide", "false"),
+            el("testShape").name("r").attr("hide", mac("v")),
+            // Each copy gives `b`, so none is bare.
+            el("testShape")
+                .name("sCopy")
+                .attr("extend", mac("s"))
+                .attr("b", "1"),
+            el("testShape")
+                .name("shown")
+                .attr("extend", mac("s"))
+                .attr("b", "1")
+                .attr("hide", "false"),
+            el("testShape")
+                .name("plainCopy")
+                .attr("extend", mac("plain"))
+                .attr("b", "1"),
+            el("testShape")
+                .name("rCopy")
+                .attr("extend", mac("r"))
+                .attr("b", "1"),
+        ]))
+        .unwrap();
+        let hide = |doc: &crate::Document, n: &str| value(doc, &format!("{n}.hide"));
+        assert_eq!(
+            (hide(&doc, "plain"), hide(&doc, "s"), hide(&doc, "t")),
+            (0.0, 1.0, 0.0)
+        );
+        assert_eq!(hide(&doc, "r"), 1.0);
+        // The referent's literal, unless the copy gives its own.
+        assert_eq!((hide(&doc, "sCopy"), hide(&doc, "shown")), (1.0, 0.0));
+        // No attribute anywhere: the copy's is its referent's slot.
+        request(&mut doc, "plain.hide", 1.0);
+        assert_eq!(hide(&doc, "plainCopy"), 1.0);
+        // A referent's reference binds the copy too.
+        request(&mut doc, "v.value", 0.0);
+        assert_eq!((hide(&doc, "r"), hide(&doc, "rCopy")), (0.0, 0.0));
     }
 }

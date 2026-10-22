@@ -98,24 +98,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
-    let hide = match ctx.attr(attr::hide) {
-        Some(a) if ctx.single_macro(a).is_some() => {
-            ctx.scalar_of(attr::hide, d.attr_children(a))?
-        }
-        Some(_) => {
-            // The copy's own attribute wins: `hide="false"` reveals a
-            // copy of a hidden point, as in the current core.
-            let owner = if d.attr(el, attr::hide.name()).is_some() {
-                el
-            } else {
-                base.unwrap()
-            };
-            let on = ctx.attr_flag(owner, attr::hide.name());
-            Source::Literal(if on { 1.0 } else { 0.0 })
-        }
-        None if base.is_some() => Source::Inherit,
-        None => Source::Default(0.0),
-    };
+    let hide = ctx.flag(attr::hide, false)?;
     // Constraints may sit directly under the point or in <constraints>.
     let mut constraints: Vec<NodeId> = Vec::new();
     for node in std::iter::once(el).chain(base) {

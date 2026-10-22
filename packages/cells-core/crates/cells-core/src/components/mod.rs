@@ -147,6 +147,8 @@ component_types! {
         TestValue => test_only::test_value::DEFINITION,
         /// `<testShape>`: planned by a function inside `plan_with_extend`.
         TestShape => test_only::test_shape::DEFINITION,
+        /// `<testList>`: a list of points, planned by a function.
+        TestList => test_only::test_list::DEFINITION,
     }
 }
 

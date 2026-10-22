@@ -391,6 +391,18 @@ case), carry every piece before other components follow:
    that read the DAST directly (`d.attr(el, "prefill")`), and
    `attr_flag`/`attr_on`, which take any node, still name attributes by
    string. The golden diff is identical.
+   **Done: a copy's inheritance is the machinery's.** The point's rule
+   for `hide` (the copy's own attribute, else its referent's, else
+   `Source::Inherit`) is `PlanCtx::flag` (`Compiler::plan_flag`,
+   `compile/copies.rs`), and no component writes `Source::Inherit`.
+   Unit tests in `compile/copies.rs` cover the flag rule with
+   `<testShape>`'s `hide`, and in `build/expand/mod.rs` the build's side
+   with `<testList>`, a third test-only component with a list: a bare
+   copy of a list holds its referent's points, a copy giving its own list
+   its own, copies in a repeat alias the referent outside or in their own
+   iteration, and a copy gated by `fixed="$f"` reads its referent through
+   the hold (`InheritFrom`). Breaking `InheritFrom` or the list copy's
+   placement fails them. The golden diff is identical.
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 
