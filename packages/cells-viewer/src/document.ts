@@ -1,7 +1,12 @@
 // Getting a document into a store: from a pre-encoded fixture or from
 // DoenetML text parsed in the browser, with the load timings the benchmark
 // reads through `window.__cells` (see `dev/main.tsx`).
-import { CellStore, loadDocument, type LoadTimings } from "./core";
+import {
+    CellStore,
+    loadDocument,
+    type LoadOptions,
+    type LoadTimings,
+} from "./core";
 import { parseDoenetML } from "./parse";
 import { boardCount, lastBoardFlushAt } from "./renderers/jsxgraph/Board";
 import { measure, measureBetween, stepAsync } from "./trace";
@@ -38,16 +43,17 @@ export async function encodeSource(text: string): Promise<Encoded> {
     return { bytes, timings: { fetch: performance.now() - t0 } };
 }
 
-/** Builds the store, hands it to `mount` (which should render it), and
- * resolves once React has committed the tree and the JSXGraph boards have
- * drawn, with `firstRender` filled in. */
+/** Builds the store (with `options`' seed and state), hands it to `mount`
+ * (which should render it), and resolves once React has committed the
+ * tree and the JSXGraph boards have drawn, with `firstRender` filled in. */
 export async function openDocument(
     { bytes, timings }: Encoded,
     evaluator: string,
     mount: (store: CellStore) => void,
+    options: LoadOptions = {},
 ): Promise<{ store: CellStore; timings: Partial<LoadTimings> }> {
     const store = await stepAsync("core", () =>
-        loadDocument(bytes, evaluator, timings),
+        loadDocument(bytes, evaluator, timings, options),
     );
     const t0 = performance.now();
     timings.firstRender = NaN;

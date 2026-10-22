@@ -66,9 +66,19 @@ sized and empty, until JSXGraph draws it in the browser.
 
 `scripts/prerender.mjs` reads the client build's files from its manifest
 (`dist/.vite/manifest.json`) and starts the server's core from the client
-build's wasm, so a page and its server run the same core. Until the client
-build has the module that replaces a prerendered page with the live
-viewer, a page has no scripts and stays as rendered.
+build's wasm, so a page and its server run the same core.
+
+In the browser, the page's script is `src/snapshot-entry.tsx`, an entry of
+the client build without the dev page's shell or the editor. It loads the
+page's source with the page's seed and state, the document the server
+rendered, and renders the live viewer into `#root`, replacing the
+prerendered HTML in one commit; graphs draw into boxes of the size the
+server gave them. What the student did to the snapshot meanwhile is
+carried over (`src/prerender/carry.ts`): typed text (committed if the
+student had left the input, still being typed if it has the focus, with
+its selection), checkboxes, radio buttons, sliders and opened hints, and
+the buttons pressed, which an inline script in the page's head records
+from the start. The swap is the step `interactive`.
 
 The toolbar, besides what the other test viewers have:
 

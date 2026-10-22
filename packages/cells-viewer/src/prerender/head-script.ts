@@ -20,3 +20,22 @@ export function compileWasmEarly(wasmUrl: string): string {
         );
     }`;
 }
+
+/**
+ * A prerendered page's first script: from the moment the page begins, note
+ * every button and hint summary pressed in the snapshot (`#root` while it
+ * is `data-prerendered`), into `window.__cellsClicks`, so the live viewer
+ * can press them again (`carry.ts`). Nothing in the snapshot answers a
+ * press until then.
+ */
+export function recordEarlyClicks(): string {
+    return `
+    var clicks = (window.__cellsClicks = []);
+    document.addEventListener("click", function (e) {
+        var root = document.getElementById("root");
+        var t = e.target;
+        if (!root || !root.hasAttribute("data-prerendered") || !t || !t.closest) return;
+        var b = t.closest("button, summary");
+        if (b && root.contains(b)) clicks.push(b);
+    }, true);`;
+}

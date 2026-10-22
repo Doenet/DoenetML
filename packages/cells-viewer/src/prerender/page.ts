@@ -8,7 +8,7 @@
 // - `<script type="application/json" id="doenet-meta">`: `PageMeta`;
 // - `<script type="application/json" id="doenet-source">`: the DoenetML
 //   source as a JSON string, which the browser parses and loads.
-import { compileWasmEarly } from "./head-script";
+import { compileWasmEarly, recordEarlyClicks } from "./head-script";
 
 /** The version of this layout, in every page's meta: a viewer build that
  * cannot read a page's format leaves its HTML as it is. */
@@ -80,12 +80,11 @@ export function writePage({
         `<style>${PAGE_CSS}\n${assets.css}</style>`,
     ];
     if (assets.entry) {
-        if (assets.wasm)
-            head.push(
-                // Inline, so the browser starts it at once; it imports
-                // nothing (`head-script.ts` writes it).
-                `<script>(function () {${compileWasmEarly(assets.wasm)}\n})();</script>`,
-            );
+        // Inline, so the browser runs it at once, before the body is
+        // parsed; it imports nothing (`head-script.ts` writes it).
+        head.push(
+            `<script>(function () {${recordEarlyClicks()}${assets.wasm ? compileWasmEarly(assets.wasm) : ""}\n})();</script>`,
+        );
         for (const href of [assets.entry, ...assets.preload])
             head.push(
                 `<link rel="modulepreload" crossorigin href="${escapeHtml(href)}" />`,

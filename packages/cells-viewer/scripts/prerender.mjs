@@ -48,12 +48,14 @@ function clientFiles(manifest) {
         if (!chunk || preload.has(chunk.file)) return;
         preload.add(chunk.file);
         for (const k of chunk.imports ?? []) visit(k);
+        // The parser is a dynamic import, of whichever chunk holds
+        // `src/parse.ts`. The manifest names a workspace package's module
+        // by its path from this package: `../parser/dist/index.js`.
+        for (const k of chunk.dynamicImports ?? [])
+            if (k.startsWith("../parser/")) visit(k);
     };
-    for (const k of entry.imports ?? []) visit(k);
-    // The manifest names a workspace package's module by its path from
-    // this package: the parser's is `../parser/dist/index.js`.
-    for (const k of entry.dynamicImports ?? [])
-        if (k.startsWith("../parser/")) visit(k);
+    visit(ENTRY);
+    preload.delete(entry.file);
     return { wasm, entry: entry.file, preload: [...preload] };
 }
 

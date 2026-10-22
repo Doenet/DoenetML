@@ -83,6 +83,9 @@ describe("writePage", () => {
                 `rel="modulepreload" crossorigin href="${href}"`,
             );
         expect(head).toContain(JSON.stringify(assets.wasm));
+        // Presses in the snapshot are recorded from the start, before the
+        // body is parsed, for the live viewer to press again.
+        expect(head).toContain("window.__cellsClicks");
     });
 
     test("without a client entry, stays as rendered", async () => {

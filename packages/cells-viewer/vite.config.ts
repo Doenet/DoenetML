@@ -97,6 +97,12 @@ export default defineConfig({
         // writer (`scripts/prerender.mjs`) finds the build's hashed files.
         manifest: true,
         rollupOptions: {
+            // The dev page, and the script of a prerendered page
+            // (`scripts/prerender.mjs` finds it in the manifest).
+            input: {
+                index: resolve(__dirname, "index.html"),
+                snapshot: resolve(__dirname, "src/snapshot-entry.tsx"),
+            },
             output: {
                 // One script per big library, so the browser compiles them
                 // on separate background threads as they stream in, instead
