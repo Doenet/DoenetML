@@ -1,7 +1,9 @@
 //! Support for tests and benches, not used by the library itself: an
 //! independent oracle for the scheduled program, helpers that turn
-//! DoenetML source into a document, and component specs (`spec!`).
+//! DoenetML source into a document, DASTs built in Rust for tests that
+//! need no parser (`dast`), and component specs (`spec!`).
 
+pub mod dast;
 pub mod reference;
 pub mod spec;
 pub mod test_utils;

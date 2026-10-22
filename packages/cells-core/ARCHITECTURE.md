@@ -349,6 +349,9 @@ cells directly and redraw once per tick; Doenet's styling is copied into
 - `cargo test` runs the unit and integration tests. Many check the scheduled
   program against `testing/reference.rs`, a naive recursive evaluator that
   ignores the schedule.
+- `testing/dast.rs` builds a DAST in Rust, for a unit test of the core that
+  needs neither the parser nor node; `tests/dast_builder.rs` checks it
+  against the parser.
 - `tests/specs/` holds the component specs (`testing/spec.rs`, ADR 0016),
   laid out as `src/components/` is: `tests/specs/geometry/circle.rs` is the
   spec of `components/geometry/circle.rs`, and a type defined in its family's

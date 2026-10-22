@@ -1,24 +1,13 @@
 //! The JSON loader, for the DAST `@doenet/parser` emits.
 
-use std::collections::HashMap;
-
-use super::{Dast, NodeId, NodeKind, StrId, StringTable};
+use super::{Dast, DastWriter, NodeId, NodeKind, StrId};
 
 impl Dast {
     /// Load from DAST JSON as produced by `@doenet/parser`.
     pub fn from_json(json: &str) -> crate::Result<Dast> {
-        let mut b = JsonBuilder {
-            dast: Dast {
-                strings: StringTable::new(),
-                ..Default::default()
-            },
-            intern: HashMap::new(),
-        };
-        let empty = b.intern("");
-        let root = b.dast.push_node(NodeKind::Element, empty);
-        let kids = b.parse_root(json)?;
-        b.dast.set_children(root, &kids);
-        Ok(b.dast)
+        let mut b = DastWriter::new();
+        let kids = parse_root(&mut b, json)?;
+        Ok(b.finish(&kids))
     }
 }
 
@@ -28,37 +17,21 @@ impl Dast {
 // node before dispatching on `type`, which doubled deserialization time.
 // Children are deserialized recursively into a scratch list and then
 // appended to the flat `children` array so each node's range is contiguous.
-// Node numbering (each node after its contents, the root first) and string
-// interning (document order) are what `scripts/cdast-encode.mjs` does too,
-// so `to_binary` reproduces its bytes (`tests/wire.rs`).
+// Nodes and strings are written in document order through `DastWriter`,
+// which is what `scripts/cdast-encode.mjs` does too, so `to_binary`
+// reproduces its bytes (`tests/wire.rs`).
 
-struct JsonBuilder {
-    dast: Dast,
-    intern: HashMap<String, StrId>,
-}
-
-impl JsonBuilder {
-    fn intern(&mut self, s: &str) -> StrId {
-        if let Some(&id) = self.intern.get(s) {
-            return id;
-        }
-        let id = self.dast.strings.push(s);
-        self.intern.insert(s.to_string(), id);
-        id
-    }
-
-    fn parse_root(&mut self, json: &str) -> crate::Result<Vec<NodeId>> {
-        let mut de = serde_json::Deserializer::from_str(json);
-        let kids = Seed(
-            self,
-            Field {
-                key: "children",
-                what: "a DAST root object",
-            },
-        )
-        .deserialize(&mut de)?;
-        Ok(kids)
-    }
+fn parse_root(b: &mut DastWriter, json: &str) -> crate::Result<Vec<NodeId>> {
+    let mut de = serde_json::Deserializer::from_str(json);
+    let kids = Seed(
+        b,
+        Field {
+            key: "children",
+            what: "a DAST root object",
+        },
+    )
+    .deserialize(&mut de)?;
+    Ok(kids)
 }
 
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
@@ -70,12 +43,12 @@ trait Item: Copy {
     type Value;
     fn read<'de, D: de::Deserializer<'de>>(
         self,
-        b: &mut JsonBuilder,
+        b: &mut DastWriter,
         d: D,
     ) -> Result<Self::Value, D::Error>;
 }
 
-struct Seed<'b, I>(&'b mut JsonBuilder, I);
+struct Seed<'b, I>(&'b mut DastWriter, I);
 
 impl<'de, I: Item> DeserializeSeed<'de> for Seed<'_, I> {
     type Value = I::Value;
@@ -92,10 +65,10 @@ impl<I: Item> Item for Seq<I> {
     type Value = Vec<I::Value>;
     fn read<'de, D: de::Deserializer<'de>>(
         self,
-        b: &mut JsonBuilder,
+        b: &mut DastWriter,
         d: D,
     ) -> Result<Self::Value, D::Error> {
-        struct V<'b, I>(&'b mut JsonBuilder, Seq<I>);
+        struct V<'b, I>(&'b mut DastWriter, Seq<I>);
         impl<'de, I: Item> Visitor<'de> for V<'_, I> {
             type Value = Vec<I::Value>;
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -125,10 +98,10 @@ impl Item for Field {
     type Value = Vec<NodeId>;
     fn read<'de, D: de::Deserializer<'de>>(
         self,
-        b: &mut JsonBuilder,
+        b: &mut DastWriter,
         d: D,
     ) -> Result<Self::Value, D::Error> {
-        struct V<'b>(&'b mut JsonBuilder, Field);
+        struct V<'b>(&'b mut DastWriter, Field);
         impl<'de> Visitor<'de> for V<'_> {
             type Value = Vec<NodeId>;
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -160,10 +133,10 @@ impl Item for Node {
     type Value = NodeId;
     fn read<'de, D: de::Deserializer<'de>>(
         self,
-        b: &mut JsonBuilder,
+        b: &mut DastWriter,
         d: D,
     ) -> Result<Self::Value, D::Error> {
-        struct V<'b>(&'b mut JsonBuilder);
+        struct V<'b>(&'b mut DastWriter);
         impl<'de> Visitor<'de> for V<'_> {
             type Value = NodeId;
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -209,42 +182,18 @@ impl Item for Node {
                         }
                     }
                 }
-                let s = match kind {
-                    NodeKind::Element => name.unwrap_or_else(|| b.intern("")),
-                    NodeKind::Text => value.unwrap_or_else(|| b.intern("")),
-                    _ => 0,
-                };
-                // Numbered after its contents (post-order); node ids feed
-                // `<select>`'s choice, so the order is part of behaviour.
-                let id = b.dast.push_node(kind, s);
-                match kind {
+                let id = match kind {
                     NodeKind::Element => {
-                        b.dast.a_start[id as usize] = b.dast.attr_name.len() as u32;
-                        b.dast.a_count[id as usize] = attrs.len() as u32;
-                        for (n, c) in attrs {
-                            b.dast.attr_name.push(n);
-                            b.dast.attr_c_start.push(b.dast.children.len() as u32);
-                            b.dast.attr_c_count.push(c.len() as u32);
-                            b.dast.children.extend_from_slice(&c);
-                        }
-                        b.dast.set_children(id, &kids);
+                        let tag = name.unwrap_or_else(|| b.intern(""));
+                        b.element(tag, attrs, &kids)
                     }
-                    NodeKind::Macro => {
-                        b.dast.a_start[id as usize] = b.dast.path.len() as u32;
-                        b.dast.a_count[id as usize] = path.len() as u32;
-                        for (name, indices) in path {
-                            b.dast.path.push(name);
-                            b.dast.path_i_start.push(b.dast.idx_c_start.len() as u32);
-                            b.dast.path_i_count.push(indices.len() as u32);
-                            for nodes in indices {
-                                b.dast.idx_c_start.push(b.dast.children.len() as u32);
-                                b.dast.idx_c_count.push(nodes.len() as u32);
-                                b.dast.children.extend_from_slice(&nodes);
-                            }
-                        }
+                    NodeKind::Text => {
+                        let v = value.unwrap_or_else(|| b.intern(""));
+                        b.leaf(NodeKind::Text, v)
                     }
-                    _ => {}
-                }
+                    NodeKind::Macro => b.macro_(path),
+                    NodeKind::Other => b.leaf(NodeKind::Other, 0),
+                };
                 Ok(id)
             }
         }
@@ -260,10 +209,10 @@ impl Item for Part {
     type Value = (StrId, Vec<Vec<NodeId>>);
     fn read<'de, D: de::Deserializer<'de>>(
         self,
-        b: &mut JsonBuilder,
+        b: &mut DastWriter,
         d: D,
     ) -> Result<Self::Value, D::Error> {
-        struct V<'b>(&'b mut JsonBuilder);
+        struct V<'b>(&'b mut DastWriter);
         impl<'de> Visitor<'de> for V<'_> {
             type Value = (StrId, Vec<Vec<NodeId>>);
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -312,10 +261,10 @@ impl Item for Attrs {
     type Value = Vec<(StrId, Vec<NodeId>)>;
     fn read<'de, D: de::Deserializer<'de>>(
         self,
-        b: &mut JsonBuilder,
+        b: &mut DastWriter,
         d: D,
     ) -> Result<Self::Value, D::Error> {
-        struct V<'b>(&'b mut JsonBuilder);
+        struct V<'b>(&'b mut DastWriter);
         impl<'de> Visitor<'de> for V<'_> {
             type Value = Vec<(StrId, Vec<NodeId>)>;
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

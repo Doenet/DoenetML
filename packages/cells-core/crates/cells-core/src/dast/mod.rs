@@ -18,6 +18,8 @@ mod json;
 
 pub use attrs::LiteralAttrs;
 
+use std::collections::HashMap;
+
 pub type NodeId = u32;
 pub type AttrId = u32;
 pub type StrId = u32;
@@ -243,23 +245,115 @@ impl Dast {
                 + self.idx_c_start.capacity()
                 + self.idx_c_count.capacity())
     }
+}
 
-    // ---- construction ----------------------------------------------------
+// ---- construction ------------------------------------------------------------
+
+/// Builds a [`Dast`] node by node, the way every builder of one from a tree
+/// does (the JSON loader, `testing::dast`): a node is numbered after its
+/// contents (post-order), with node 0 the root; strings are interned in the
+/// order they are first written. Node ids feed `<select>`'s choice, so the
+/// order is part of behaviour, and `to_binary` reproduces the JavaScript
+/// encoder's bytes only for this order (`tests/wire.rs`).
+pub(crate) struct DastWriter {
+    dast: Dast,
+    intern: HashMap<String, StrId>,
+}
+
+impl DastWriter {
+    /// A writer holding only the root, whose children `finish` sets.
+    pub(crate) fn new() -> Self {
+        let mut w = DastWriter {
+            dast: Dast {
+                strings: StringTable::new(),
+                ..Default::default()
+            },
+            intern: HashMap::new(),
+        };
+        let empty = w.intern("");
+        w.push_node(NodeKind::Element, empty);
+        w
+    }
+
+    pub(crate) fn intern(&mut self, s: &str) -> StrId {
+        if let Some(&id) = self.intern.get(s) {
+            return id;
+        }
+        let id = self.dast.strings.push(s);
+        self.intern.insert(s.to_string(), id);
+        id
+    }
+
+    /// A text node, or a node of another kind than element and macro (whose
+    /// string is unused).
+    pub(crate) fn leaf(&mut self, kind: NodeKind, s: StrId) -> NodeId {
+        self.push_node(kind, s)
+    }
+
+    /// An element of the tag `tag`, written after its attributes' children
+    /// and its children.
+    pub(crate) fn element(
+        &mut self,
+        tag: StrId,
+        attrs: Vec<(StrId, Vec<NodeId>)>,
+        kids: &[NodeId],
+    ) -> NodeId {
+        let id = self.push_node(NodeKind::Element, tag);
+        let d = &mut self.dast;
+        d.a_start[id as usize] = d.attr_name.len() as u32;
+        d.a_count[id as usize] = attrs.len() as u32;
+        for (n, c) in attrs {
+            d.attr_name.push(n);
+            d.attr_c_start.push(d.children.len() as u32);
+            d.attr_c_count.push(c.len() as u32);
+            d.children.extend_from_slice(&c);
+        }
+        self.set_children(id, kids);
+        id
+    }
+
+    /// A macro of the path `path`: each part's name and its `[index]`
+    /// expressions, each as its value nodes, written before the macro.
+    pub(crate) fn macro_(&mut self, path: Vec<(StrId, Vec<Vec<NodeId>>)>) -> NodeId {
+        let id = self.push_node(NodeKind::Macro, 0);
+        let d = &mut self.dast;
+        d.a_start[id as usize] = d.path.len() as u32;
+        d.a_count[id as usize] = path.len() as u32;
+        for (name, indices) in path {
+            d.path.push(name);
+            d.path_i_start.push(d.idx_c_start.len() as u32);
+            d.path_i_count.push(indices.len() as u32);
+            for nodes in indices {
+                d.idx_c_start.push(d.children.len() as u32);
+                d.idx_c_count.push(nodes.len() as u32);
+                d.children.extend_from_slice(&nodes);
+            }
+        }
+        id
+    }
+
+    /// The DAST, with `kids` as the root's children.
+    pub(crate) fn finish(mut self, kids: &[NodeId]) -> Dast {
+        self.set_children(Dast::ROOT, kids);
+        self.dast
+    }
 
     fn push_node(&mut self, kind: NodeKind, s: StrId) -> NodeId {
-        self.kind.push(kind as u8);
-        self.str_.push(s);
-        self.a_start.push(0);
-        self.a_count.push(0);
-        self.c_start.push(0);
-        self.c_count.push(0);
-        (self.kind.len() - 1) as NodeId
+        let d = &mut self.dast;
+        d.kind.push(kind as u8);
+        d.str_.push(s);
+        d.a_start.push(0);
+        d.a_count.push(0);
+        d.c_start.push(0);
+        d.c_count.push(0);
+        (d.kind.len() - 1) as NodeId
     }
 
     fn set_children(&mut self, n: NodeId, kids: &[NodeId]) {
-        self.c_start[n as usize] = self.children.len() as u32;
-        self.c_count[n as usize] = kids.len() as u32;
-        self.children.extend_from_slice(kids);
+        let d = &mut self.dast;
+        d.c_start[n as usize] = d.children.len() as u32;
+        d.c_count[n as usize] = kids.len() as u32;
+        d.children.extend_from_slice(kids);
     }
 }
 

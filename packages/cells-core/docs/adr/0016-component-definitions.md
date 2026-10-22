@@ -327,6 +327,15 @@ case), carry every piece before other components follow:
    in a plan. A test generated from the definitions fails for a component
    with no spec at `tests/specs/<family>/<name>.rs`, unless it is on a
    list of components still without one, which only shrinks.
+   **Done: the DAST builder** (`testing/dast.rs`). A tree is written as
+   elements, text and references (`el("circle").name("c")
+   .attr("radius", mac("r"))`) and loaded without the parser. It writes
+   nodes and strings through `dast::DastWriter`, which the JSON loader
+   now uses too, so a tree written as the parser produces it is the same
+   DAST, byte for byte (`tests/dast_builder.rs`). It does not normalize:
+   a test writes the normalized form. The JSON loader's deserialize time
+   is unchanged (`stats`, 7 runs, on `points-10000`, `fanout-10000` and
+   `chain-100000`).
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 
