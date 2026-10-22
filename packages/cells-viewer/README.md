@@ -45,6 +45,31 @@ its board's container, sized and empty. A renderer that reads a store
 value goes through `useStoreSnapshot` (`src/hooks.ts`), which gives React
 the server snapshot it needs there.
 
+## Prerendering
+
+```bash
+npm run build -w @doenet/cells-viewer            # the client build, dist/
+npm run build:prerender -w @doenet/cells-viewer  # the server build, dist-prerender/
+node scripts/prerender.mjs <document.doenet> --out <page.html> [--seed <n>] [--state <state.json>]
+```
+
+A prerendered page is a document rendered to HTML in Node, so it paints
+before any script or the core's wasm arrives. `src/prerender/render.tsx`
+(`prerender`) parses and loads the document as the browser does, with
+the seed and saved state the page names, and renders it with
+`renderToString`; `src/prerender/page.ts` (`writePage`) writes the page:
+the viewer's styles inlined, the document's HTML in `#root`, the
+DoenetML source and the load's seed and state in JSON script elements,
+and the client build's files to load the live viewer, as module scripts
+that do not hold up the first paint. A graph is its board's container,
+sized and empty, until JSXGraph draws it in the browser.
+
+`scripts/prerender.mjs` reads the client build's files from its manifest
+(`dist/.vite/manifest.json`) and starts the server's core from the client
+build's wasm, so a page and its server run the same core. Until the client
+build has the module that replaces a prerendered page with the live
+viewer, a page has no scripts and stays as rendered.
+
 The toolbar, besides what the other test viewers have:
 
 - **Evaluator** (`?eval=full|dirty-closure`): how a tick recomputes the

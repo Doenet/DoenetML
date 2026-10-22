@@ -8,7 +8,8 @@
         "build": "wireit",
         "preview": "vite preview --port 4173",
         "typecheck": "tsc --noEmit -p .",
-        "test": "vitest"
+        "test": "vitest",
+        "build:prerender": "wireit"
     },
     "dependencies": {
         "@doenet/cells-core": "*",
@@ -55,6 +56,21 @@
             "dependencies": [
                 "../parser:build",
                 "../codemirror:build",
+                "../cells-core:build:rust"
+            ]
+        },
+        "build:prerender": {
+            "command": "vite build -c vite.prerender.config.ts",
+            "files": [
+                "src/**",
+                "vite.prerender.config.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist-prerender/**"
+            ],
+            "dependencies": [
+                "../parser:build",
                 "../cells-core:build:rust"
             ]
         }

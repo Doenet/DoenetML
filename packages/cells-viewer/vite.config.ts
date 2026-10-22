@@ -2,6 +2,7 @@ import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { compileWasmEarly } from "./src/prerender/head-script";
 
 const core = resolve(__dirname, "../cells-core");
 
@@ -35,17 +36,7 @@ function headScript(wasmUrl: string | null): string {
         window.__cellsDocAt = performance.now();
         window.__cellsDoc = fetch(src);
     }
-    var url = ${JSON.stringify(wasmUrl)};
-    if (url && typeof WebAssembly.compileStreaming === "function") {
-        var start = performance.now();
-        window.__cellsWasm = WebAssembly.compileStreaming(fetch(url)).then(
-            function (module) {
-                performance.measure("cells:wasm compile", { start: start, end: performance.now(), detail: { counts: {} } });
-                return module;
-            },
-            function () { return undefined; }
-        );
-    }
+${wasmUrl ? compileWasmEarly(wasmUrl) : ""}
 })();`;
 }
 
@@ -102,6 +93,9 @@ export default defineConfig({
     server: { port: 5173 },
     build: {
         target: "esnext",
+        // `dist/.vite/manifest.json`: where the prerendered pages'
+        // writer (`scripts/prerender.mjs`) finds the build's hashed files.
+        manifest: true,
         rollupOptions: {
             output: {
                 // One script per big library, so the browser compiles them

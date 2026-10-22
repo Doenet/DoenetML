@@ -11,5 +11,11 @@
         "allowImportingTsExtensions": true,
         "types": ["vite/client", "node"]
     },
-    "include": ["src", "dev", "vite.config.ts", "vitest.config.ts"]
+    "include": [
+        "src",
+        "dev",
+        "vite.config.ts",
+        "vitest.config.ts",
+        "vite.prerender.config.ts"
+    ]
 }
