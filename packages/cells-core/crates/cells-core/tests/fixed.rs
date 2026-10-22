@@ -1,7 +1,8 @@
 //! `fixed` (and a graph's `fixAxes`) given by a reference: the element's
 //! cells sit behind `Hold` instructions on the flag, so requests through the
 //! element are dropped while the flag is set, and the element follows its
-//! sources either way. A literal `fixed` still makes fixed cells.
+//! sources either way. A literal `fixed` makes fixed cells and holds the
+//! rest (references, a copy's referent) by a constant flag.
 
 mod common;
 use common::*;
@@ -149,4 +150,63 @@ fn graph_with_literal_fix_axes() {
     let mut doc = load(r#"<graph name="g" fixAxes/>"#).unwrap();
     assert_eq!(set(&mut doc, "g", "xmin", -3.0), 1);
     assert_eq!(v(&doc, "g", "xmin"), -10.0);
+}
+
+/// A copy with a literal `fixed` refuses requests, like `fixed="$b"` while
+/// `$b` is true, and still follows its referent.
+fn literal_fixed_copy(source: &str, prop: &str, from: f64) {
+    let mut doc = load(source).unwrap();
+    assert_eq!(set(&mut doc, "Q", prop, 9.0), 1, "{source}");
+    assert_eq!(v(&doc, "P", prop), from, "{source}");
+    assert_eq!(v(&doc, "Q", prop), from, "{source}");
+    assert_eq!(set(&mut doc, "P", prop, 5.0), 0, "{source}");
+    assert_eq!(v(&doc, "Q", prop), 5.0, "{source}");
+    assert_eq!(set(&mut doc, "Q", prop, 9.0), 1, "{source}");
+    assert_eq!(v(&doc, "P", prop), 5.0, "{source}");
+}
+
+#[test]
+fn a_point_copy_with_literal_fixed() {
+    for fixed in ["fixed", r#"fixed="true""#] {
+        literal_fixed_copy(
+            &format!(
+                r#"<graph><point name="P">(1,2)</point><point name="Q" extend="$P" {fixed}/></graph>"#
+            ),
+            "x",
+            1.0,
+        );
+    }
+}
+
+#[test]
+fn a_circle_copy_with_literal_fixed() {
+    literal_fixed_copy(
+        r#"<graph><circle name="P" radius="2"/><circle name="Q" extend="$P" fixed="true"/></graph>"#,
+        "radius",
+        2.0,
+    );
+}
+
+#[test]
+fn a_number_input_copy_with_literal_fixed() {
+    literal_fixed_copy(
+        r#"<numberInput name="P" value="3"/><numberInput name="Q" extend="$P" fixed="true"/>"#,
+        "value",
+        3.0,
+    );
+}
+
+/// A literal `fixed` holds references too: the point refuses a move rather
+/// than moving the point it references, and still follows it.
+#[test]
+fn a_literal_fixed_point_follows_the_point_it_references() {
+    let mut doc = load(
+        r#"<point name="A" x="1" y="2"/>
+           <point name="P" x="$A.x" y="3" fixed/>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "P", "x", 5.0), 1);
+    assert_eq!(v(&doc, "A", "x"), 1.0);
+    set(&mut doc, "A", "x", 4.0);
+    assert_eq!(v(&doc, "P", "x"), 4.0);
 }

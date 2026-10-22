@@ -1,6 +1,7 @@
 //! `fixed` (and a graph's `fixAxes`): a literal true turns the element's
-//! essential values into constants; references put a `Hold` on every slot
-//! a request could write through.
+//! essential values into constants and holds the rest (references, a
+//! copy's referent) for good; references put a `Hold` on every slot a request could write
+//! through.
 
 use super::*;
 
@@ -38,7 +39,9 @@ impl<'a> Compiler<'a> {
 /// How a `fixed` attribute (and a graph's `fixAxes`) reaches an element.
 pub(in crate::compile) enum Fix {
     Off,
-    /// A literal true: the element's essential cells become fixed cells.
+    /// A literal true: the element's essential cells become fixed cells,
+    /// and the slots a request could still write through (references, a
+    /// copy's referent) are held by a constant flag.
     Literal,
     /// References: flag cells (any nonzero holds) that gate the element.
     Dynamic(Vec<Source>),
@@ -48,7 +51,12 @@ impl Fix {
     pub(in crate::compile) fn apply(self, props: &mut Vec<Option<Source>>) {
         match self {
             Fix::Off => {}
-            Fix::Literal => fix_literals(props),
+            Fix::Literal => {
+                fix_literals(props);
+                if props.iter().flatten().any(writable) {
+                    gate_slots(props, vec![Source::Fixed(1.0)]);
+                }
+            }
             Fix::Dynamic(flags) => gate_slots(props, flags),
         }
     }
@@ -79,20 +87,27 @@ fn gate_slots(props: &mut Vec<Option<Source>>, flags: Vec<Source>) {
     for i in 0..n {
         let moved = match &props[i] {
             Some(Source::Inherit) => Source::InheritFrom(byte(i)),
-            Some(
-                Source::Literal(_)
-                | Source::TextLiteral(_)
-                | Source::Default(_)
-                | Source::Alias(Arg::Ref(..) | Arg::Elem(..))
-                | Source::Math(_),
-            ) => props[i].take().unwrap(),
-            Some(Source::Op(_, args)) if args.iter().any(|a| !matches!(a, Arg::Own(_))) => {
-                props[i].take().unwrap()
-            }
+            Some(p) if writable(p) => props[i].take().unwrap(),
             _ => continue,
         };
         let h = push(props, moved);
         props[i] = Some(Source::Op(OpSpec::Hold, vec![Arg::Own(h), Arg::Own(flag)]));
+    }
+}
+
+/// Whether a request could write through a slot with this source: an
+/// essential literal, a reference or the `extend` referent's slot, or
+/// operators and math over other cells.
+fn writable(source: &Source) -> bool {
+    match source {
+        Source::Inherit
+        | Source::Literal(_)
+        | Source::TextLiteral(_)
+        | Source::Default(_)
+        | Source::Alias(Arg::Ref(..) | Arg::Elem(..))
+        | Source::Math(_) => true,
+        Source::Op(_, args) => args.iter().any(|a| !matches!(a, Arg::Own(_))),
+        _ => false,
     }
 }
 

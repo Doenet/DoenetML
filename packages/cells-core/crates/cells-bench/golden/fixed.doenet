@@ -4,3 +4,7 @@
 <numberInput name="n" value="3" fixed="$b"/>
 <number name="twice">2 * $n</number>
 <point name="Q" x="4" y="5" fixed/>
+<point name="R" extend="$A" fixed/>
+<point name="S" x="$A.x" y="6" fixed/>
+<numberInput name="m" extend="$n" fixed="true"/>
+<graph><circle name="c" radius="2"/><circle name="d" extend="$c" fixed="true"/></graph>
