@@ -24,6 +24,7 @@ component! {
         item: vertex,
         coords: [x, y],
         alternate_name: vertexX,
+        attribute: vertices,
     }
     sticky_list: Shape::Closed,
     attributes {

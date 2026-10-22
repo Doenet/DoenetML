@@ -455,7 +455,8 @@ macro_rules! component {
             names: [$($lname:ident),+ $(,)?],
             item: $litem:ident,
             $(points: [$([$px:ident, $py:ident]),+ $(,)?],)?
-            $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)? $(,)?)?
+            $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
+                attribute: $lattr:ident $(, max: $lmax:expr)? $(,)?)?
         })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(sticky_points: ($($sp:expr),+ $(,)?),)?
@@ -475,7 +476,7 @@ macro_rules! component {
                     item: stringify!($litem),
                     points: $crate::components::define::component!(@list_points
                         $(table [$([$px, $py]),+])?
-                        $(given [$lx, $ly] [$($lalt)?])?
+                        $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
                     ),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
@@ -537,17 +538,21 @@ macro_rules! component {
     (@list_points table [$([$x:ident, $y:ident]),+]) => {
         $crate::components::ListPoints::Table(&[$([stringify!($x), stringify!($y)]),+])
     };
-    (@list_points given [$x:ident, $y:ident] [$($alt:ident)?]) => {
+    (@list_points given [$x:ident, $y:ident] [$($alt:ident)?] [$attr:ident] [$($max:expr)?]) => {
         $crate::components::ListPoints::Given {
             coords: [stringify!($x), stringify!($y)],
             alternate_name: $crate::components::define::component!(@alternate_name $($alt)?),
+            attribute: attr::$attr,
+            max: $crate::components::define::component!(@max $($max)?),
         }
     };
     (@list_points) => {
         compile_error!(
-            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y]` (as many points as an element is given)"
+            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`)"
         )
     };
+    (@max) => { None };
+    (@max $max:expr) => { Some($max) };
     (@alternate_name) => { None };
     (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
