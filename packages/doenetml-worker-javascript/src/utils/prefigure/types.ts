@@ -93,6 +93,11 @@ export interface PrefigureStateValues extends Record<string, unknown> {
 
 export interface Descendant {
     componentType: string;
+    /**
+     * For a graph text, the text-like type it is drawn as, which may be one
+     * its `componentType` inherits from (see `graphTextType`).
+     */
+    textType?: string;
     componentName?: string;
     componentIdx?: number;
     position?: Position;

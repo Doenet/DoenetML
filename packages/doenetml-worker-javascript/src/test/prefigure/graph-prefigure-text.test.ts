@@ -42,6 +42,35 @@ describe("Graph prefigure renderer text @group4", () => {
         ]);
     });
 
+    it("draws a numbered md row without its \\tag, which aligned does not allow", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<md anchor="(1,1)"><mrow number>a = b</mrow><mrow>c = d</mrow></md>',
+            ),
+        );
+
+        expect(labels(prefigureXML)).toEqual([
+            '<label at="md_0" anchor="(1,1)" alignment="c" color="currentColor"><m>\\begin{aligned}a = b\\\\c = d\\end{aligned}</m></label>',
+        ]);
+    });
+
+    it("draws components that inherit from a text-like type as that type", async () => {
+        const prefigureXML = await getPrefigureXML(`
+<function name="f">x^2</function>
+${prefigureGraph(`
+  <integer anchor="(1,1)">3</integer>
+  <mdn anchor="(2,2)"><mrow>a = b</mrow></mdn>
+  <me anchor="(3,3)">y</me>
+  <evaluate anchor="(4,4)" function="$f" input="2" />`)}`);
+
+        expect(labels(prefigureXML)).toEqual([
+            '<label at="integer_0" anchor="(1,1)" alignment="c" color="currentColor">3</label>',
+            '<label at="mdn_1" anchor="(2,2)" alignment="c" color="currentColor"><m>\\begin{aligned}a = b\\end{aligned}</m></label>',
+            '<label at="me_2" anchor="(3,3)" alignment="c" color="currentColor"><m>y</m></label>',
+            '<label at="evaluate_3" anchor="(4,4)" alignment="c" color="currentColor"><m>4</m></label>',
+        ]);
+    });
+
     it("maps positionFromAnchor to alignment", async () => {
         const positions: [string, string][] = [
             ["upperRight", "ne"],

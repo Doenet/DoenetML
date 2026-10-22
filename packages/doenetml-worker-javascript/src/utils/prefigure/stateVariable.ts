@@ -6,6 +6,7 @@ import {
     GRAPH_TEXT_COMMON_VARIABLES,
     GRAPH_TEXT_CONTENT_VARIABLES,
     graphTextMarkup,
+    graphTextType,
 } from "./components/text";
 
 interface DescendantDependency {
@@ -375,23 +376,23 @@ function returnGraphTextChildrenStateVariableDefinition() {
         },
         definition({
             dependencyValues,
+            componentInfoObjects,
         }: {
             dependencyValues: GraphDependencyValues;
+            componentInfoObjects: Parameters<typeof graphTextType>[1];
         }) {
             const ownTextChildren = (
                 (dependencyValues.graphicalChildren as
                     Descendant[] | undefined) ?? []
-            )
-                .filter(
-                    (child) =>
-                        child.componentType in GRAPH_TEXT_CONTENT_VARIABLES &&
-                        Number.isFinite(child.componentIdx),
-                )
-                .map(({ componentType, componentIdx, position }) => ({
+            ).flatMap(({ componentType, componentIdx, position }) => {
+                const textType = graphTextType(
                     componentType,
-                    componentIdx,
-                    position,
-                }));
+                    componentInfoObjects,
+                );
+                return textType !== null && Number.isFinite(componentIdx)
+                    ? [{ componentType, textType, componentIdx, position }]
+                    : [];
+            });
 
             const nestedTextChildren = (
                 (dependencyValues.graphChildren as Descendant[] | undefined) ??
@@ -432,7 +433,7 @@ function graphTextValueDependencies(
             dependencyType: "multipleStateVariables",
             componentIdx: child.componentIdx,
             variableNames: [
-                ...(GRAPH_TEXT_CONTENT_VARIABLES[child.componentType] ?? []),
+                ...(GRAPH_TEXT_CONTENT_VARIABLES[child.textType ?? ""] ?? []),
                 ...GRAPH_TEXT_COMMON_VARIABLES,
             ],
             variablesOptional: true,
@@ -455,7 +456,7 @@ function collectGraphTexts(
         const stateValues =
             (dependencyValues[`textChild${index}`] as Descendant | undefined)
                 ?.stateValues ?? {};
-        if (graphTextMarkup(child.componentType, stateValues) === null) {
+        if (graphTextMarkup(child.textType ?? "", stateValues) === null) {
             return [];
         }
         return [{ ...child, stateValues }];

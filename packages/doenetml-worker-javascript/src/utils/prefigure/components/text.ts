@@ -22,6 +22,34 @@ export const GRAPH_TEXT_CONTENT_VARIABLES: Record<string, string[]> = {
     label: ["value", "hasLatex"],
 };
 
+/**
+ * The entry of `GRAPH_TEXT_CONTENT_VARIABLES` a graph child is drawn as: its
+ * own type, or the one it inherits from, so `<integer>` is drawn as a
+ * `<number>`, `<mdn>` as an `<md>`, and `<evaluate>` as a `<math>`. Null for
+ * a child that is none of them.
+ */
+export function graphTextType(
+    componentType: string,
+    componentInfoObjects: {
+        isInheritedComponentType: (args: {
+            inheritedComponentType: string;
+            baseComponentType: string;
+        }) => boolean;
+    },
+): string | null {
+    if (componentType in GRAPH_TEXT_CONTENT_VARIABLES) {
+        return componentType;
+    }
+    return (
+        Object.keys(GRAPH_TEXT_CONTENT_VARIABLES).find((baseComponentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: componentType,
+                baseComponentType,
+            }),
+        ) ?? null
+    );
+}
+
 /** State variables every graph text needs besides its content. */
 export const GRAPH_TEXT_COMMON_VARIABLES = [
     "anchor",
@@ -48,14 +76,16 @@ export function graphTextMarkup(
             return mathMarkup(sv.latex);
         case "md": {
             // An `<md>` is displayed in an `align` environment, with `\notag`
-            // on each row to keep it unnumbered. Inside a label, which MathJax
-            // typesets inline, `aligned` is the form that keeps its rows, and
-            // it takes no `\notag`.
+            // on each row to keep it unnumbered, or `\tag{n}` on a numbered
+            // row. Inside a label, which MathJax typesets inline, `aligned` is
+            // the form that keeps its rows, and it allows neither, so a
+            // numbered row is drawn without its number.
             if (typeof sv.latex !== "string") {
                 return null;
             }
             const rows = sv.latex
                 .replace(/\\(notag|nonumber)\b\s*/g, "")
+                .replace(/\\tag\{[^{}]*\}\s*/g, "")
                 .trim();
             return rows
                 ? `<m>\\begin{aligned}${escapeXml(rows)}\\end{aligned}</m>`

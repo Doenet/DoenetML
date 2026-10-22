@@ -129,7 +129,8 @@ export function convertGraphicalDescendantToPrefigure({
         includeFill: styleIncludesFill(descendant.componentType, sv),
     });
 
-    const converter = convertByComponentType[descendant.componentType];
+    const converter =
+        convertByComponentType[descendant.textType ?? descendant.componentType];
     if (!converter) {
         pushWarning({
             diagnostics,
