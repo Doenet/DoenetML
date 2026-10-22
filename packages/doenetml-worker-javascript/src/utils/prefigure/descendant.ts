@@ -108,6 +108,7 @@ export function convertGraphicalDescendantToPrefigure({
         ...(descendant?.stateValues ?? {}),
         graphBounds,
         graphDimensions,
+        darkMode,
     };
 
     // Swap in dark-mode colors once, here, so every downstream converter and the

@@ -350,6 +350,9 @@ function returnGraphCurveDescendantsStateVariableDefinition() {
  * Children are used rather than descendants because a descendant search would
  * also find text that is part of another component and not drawn on its own,
  * such as a point's `<label>` or a `<shortDescription>`.
+ *
+ * A `<textList>`, `<numberList>`, or `<mathList>` child is listed once for each
+ * entry, by the list's `componentIdx` and the entry's `listEntryIndex`.
  */
 function returnGraphTextChildrenStateVariableDefinition() {
     return {
@@ -384,15 +387,28 @@ function returnGraphTextChildrenStateVariableDefinition() {
             const ownTextChildren = (
                 (dependencyValues.graphicalChildren as
                     Descendant[] | undefined) ?? []
-            ).flatMap(({ componentType, componentIdx, position }) => {
-                const textType = graphTextType(
-                    componentType,
-                    componentInfoObjects,
-                );
-                return textType !== null && Number.isFinite(componentIdx)
-                    ? [{ componentType, textType, componentIdx, position }]
-                    : [];
-            });
+            ).flatMap(
+                ({ componentType, componentIdx, position, listEntryIndex }) => {
+                    const textType = graphTextType(
+                        componentType,
+                        componentInfoObjects,
+                    );
+                    if (textType === null || !Number.isFinite(componentIdx)) {
+                        return [];
+                    }
+                    return [
+                        {
+                            componentType,
+                            textType,
+                            componentIdx,
+                            position,
+                            ...(listEntryIndex === undefined
+                                ? {}
+                                : { listEntryIndex }),
+                        },
+                    ];
+                },
+            );
 
             const nestedTextChildren = (
                 (dependencyValues.graphChildren as Descendant[] | undefined) ??
@@ -415,9 +431,22 @@ function returnGraphTextChildrenStateVariableDefinition() {
     };
 }
 
+function graphTextVariableNames(textType: string | undefined): string[] {
+    return [
+        ...(GRAPH_TEXT_CONTENT_VARIABLES[textType ?? ""] ?? []),
+        ...GRAPH_TEXT_COMMON_VARIABLES,
+    ];
+}
+
 /**
  * The values of each listed graph text, as `textChild<i>` dependencies, so a
  * text is asked only for the variables its type draws.
+ *
+ * A list entry has no component of its own to ask. Its values come instead
+ * from one `listTextEntries` descendant dependency that presents each list as
+ * its entries, mapping each variable to the list's own, as the renderer of an
+ * entry is given them; `collectGraphTexts` keeps the entries of the lists
+ * listed here.
  */
 function graphTextValueDependencies(
     graphTextChildren: unknown,
@@ -426,17 +455,32 @@ function graphTextValueDependencies(
     if (!Array.isArray(graphTextChildren)) {
         return dependencies;
     }
+    const listEntryTypes = new Set<string>();
+    const listVariableNames = new Set<string>();
     for (const [index, child] of (
         graphTextChildren as Descendant[]
     ).entries()) {
+        if (child.listEntryIndex !== undefined) {
+            listEntryTypes.add(child.componentType);
+            for (const name of graphTextVariableNames(child.textType)) {
+                listVariableNames.add(name);
+            }
+            continue;
+        }
         dependencies[`textChild${index}`] = {
             dependencyType: "multipleStateVariables",
             componentIdx: child.componentIdx,
-            variableNames: [
-                ...(GRAPH_TEXT_CONTENT_VARIABLES[child.textType ?? ""] ?? []),
-                ...GRAPH_TEXT_COMMON_VARIABLES,
-            ],
+            variableNames: graphTextVariableNames(child.textType),
             variablesOptional: true,
+        };
+    }
+    if (listEntryTypes.size > 0) {
+        dependencies.listTextEntries = {
+            dependencyType: "descendant",
+            componentTypes: [...listEntryTypes],
+            variableNames: [...listVariableNames],
+            variablesOptional: true,
+            presentListsAsEntries: true,
         };
     }
     return dependencies;
@@ -452,14 +496,47 @@ function collectGraphTexts(
     const graphTextChildren =
         (dependencyValues.graphTextChildren as Descendant[] | undefined) ?? [];
 
+    const listEntries = new Map<string, Descendant>();
+    for (const entry of (dependencyValues.listTextEntries as
+        Descendant[] | undefined) ?? []) {
+        if (entry.listIdx !== undefined && entry.listEntryIndex !== undefined) {
+            listEntries.set(`${entry.listIdx}:${entry.listEntryIndex}`, entry);
+        }
+    }
+
     return graphTextChildren.flatMap((child, index) => {
-        const stateValues =
-            (dependencyValues[`textChild${index}`] as Descendant | undefined)
-                ?.stateValues ?? {};
-        if (graphTextMarkup(child.textType ?? "", stateValues) === null) {
+        let text: Descendant;
+        if (child.listEntryIndex === undefined) {
+            const stateValues =
+                (
+                    dependencyValues[`textChild${index}`] as
+                        Descendant | undefined
+                )?.stateValues ?? {};
+            text = { ...child, stateValues };
+        } else {
+            // An entry is drawn as the record the descendant dependency gives
+            // it, whose `componentIdx` is the one its renderer is given, so
+            // each entry has a handle and a place in the order of its own.
+            const entry = listEntries.get(
+                `${child.componentIdx}:${child.listEntryIndex}`,
+            );
+            if (entry === undefined) {
+                return [];
+            }
+            text = {
+                ...entry,
+                textType: child.textType,
+                position: child.position,
+                stateValues: entry.stateValues ?? {},
+            };
+        }
+        if (
+            graphTextMarkup(text.textType ?? "", text.stateValues ?? {}) ===
+            null
+        ) {
             return [];
         }
-        return [{ ...child, stateValues }];
+        return [text];
     });
 }
 

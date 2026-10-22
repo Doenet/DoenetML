@@ -35,6 +35,7 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
   - If a variable is only present on some inherited subtypes, set `variablesOptional: true` on that dependency config.
    - Include it in the merged `descendants` array.
    - Text-like components are the exception: they come from the graph's `graphical` child group (`graphTextChildren`), not from a descendant query, because a descendant query would also find text that belongs to another component and is not drawn on its own, such as a point's `<label>` or a `<shortDescription>`.
+     A list child (`<textList>`, `<numberList>`, `<mathList>`) is listed once per entry; the entries' values come from a `descendant` dependency with `presentListsAsEntries` (`listTextEntries`), since an entry has no component of its own to ask.
 4. Add/adjust tests in `src/test/prefigure/*.test.ts`
    - Cover happy path XML shape.
    - Cover warning cases if style/geometry fallbacks are expected.

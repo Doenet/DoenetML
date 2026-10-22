@@ -146,13 +146,21 @@ function anchorCoordinates(anchor: unknown): [number, number] {
 }
 
 /**
- * The `color` for a graph text. Text in the default style color follows the
- * page's light or dark text color (see `THEME_AWARE_LABEL_COLOR_ATTR`); any
- * other color the author chose is written out, already resolved for the theme.
+ * The `color` for a graph text. Text in the theme's default text color (black,
+ * or white in dark mode) follows the page's text color (see
+ * `THEME_AWARE_LABEL_COLOR_ATTR`); any other color, already resolved for the
+ * theme, is written out, so white chosen for light mode stays white.
  */
-function textColorAttr(selectedStyle: SelectedStyle | undefined): string {
+function textColorAttr(
+    selectedStyle: SelectedStyle | undefined,
+    darkMode: boolean,
+): string {
     const color = selectedStyle?.textColor;
-    if (typeof color !== "string" || /^(black|white)$/i.test(color.trim())) {
+    const themeDefault = darkMode ? "white" : "black";
+    if (
+        typeof color !== "string" ||
+        color.trim().toLowerCase() === themeDefault
+    ) {
         return THEME_AWARE_LABEL_COLOR_ATTR;
     }
     return `color="${escapeXml(color)}"`;
@@ -176,7 +184,7 @@ export function graphTextConverter(componentType: string): Converter {
             `alignment="${escapeXml(
                 prefigureAlignmentForAnchorPosition(sv.positionFromAnchor),
             )}"`,
-            textColorAttr(sv.selectedStyle),
+            textColorAttr(sv.selectedStyle, sv.darkMode === true),
         ];
 
         return `<label ${attrs.join(" ")}>${markup}</label>`;

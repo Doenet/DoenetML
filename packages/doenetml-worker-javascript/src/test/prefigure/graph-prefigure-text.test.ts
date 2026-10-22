@@ -217,4 +217,61 @@ ${prefigureGraph(`
         expect(dark[0]).toContain('color="pink"');
         expect(dark[1]).toContain('color="currentColor"');
     });
+
+    it("keeps an author's white in light mode and black in dark mode", async () => {
+        // Only the theme's own text color follows the page; white chosen for
+        // light mode (or black for dark) is the author's, as the Doenet
+        // renderer's `resolveTextColor` keeps it.
+        const doenetML = withStyleDefinitions(
+            '    <styleDefinition styleNumber="5" textColor="white" textColorDarkMode="black" />',
+            prefigureGraph('<text anchor="(1,1)" styleNumber="5">T</text>'),
+        );
+
+        const light = labels(await getPrefigureXML(doenetML));
+        expect(light[0]).toContain('color="white"');
+
+        const dark = labels(
+            await getPrefigureXML(doenetML, "g", { theme: "dark" }),
+        );
+        expect(dark[0]).toContain('color="black"');
+    });
+
+    it("draws each entry of a text, number, or math list", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(`
+  <textList>a b</textList>
+  <textList><text anchor="(1,2)">p</text><text anchor="(3,4)" positionFromAnchor="left">q</text></textList>
+  <numberList>7 8</numberList>
+  <mathList><math anchor="(5,5)">x</math><math anchor="(6,6)">y</math></mathList>
+  <graph><textList><text anchor="(-3,3)">nested</text></textList></graph>`),
+        );
+
+        const drawn = labels(prefigureXML).map((label) => ({
+            anchor: label.match(/anchor="([^"]*)"/)?.[1],
+            alignment: label.match(/alignment="([^"]*)"/)?.[1],
+            content: label.match(/">(.*)<\/label>$/)?.[1],
+        }));
+
+        expect(drawn).toEqual(
+            expect.arrayContaining([
+                { anchor: "(0,0)", alignment: "c", content: "a" },
+                { anchor: "(0,0)", alignment: "c", content: "b" },
+                { anchor: "(1,2)", alignment: "c", content: "p" },
+                { anchor: "(3,4)", alignment: "w", content: "q" },
+                { anchor: "(0,0)", alignment: "c", content: "7" },
+                { anchor: "(0,0)", alignment: "c", content: "8" },
+                { anchor: "(5,5)", alignment: "c", content: "<m>x</m>" },
+                { anchor: "(6,6)", alignment: "c", content: "<m>y</m>" },
+                { anchor: "(-3,3)", alignment: "c", content: "nested" },
+            ]),
+        );
+        // An authored `<text>` in a list is drawn as its entry, not again.
+        expect(drawn).toHaveLength(9);
+
+        // Each entry gets a handle of its own.
+        const handles = labels(prefigureXML).map(
+            (label) => label.match(/at="([^"]*)"/)?.[1],
+        );
+        expect(new Set(handles).size).eq(handles.length);
+    });
 });
