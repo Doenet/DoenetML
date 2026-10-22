@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
-import { useStore } from "../hooks";
+import { useLayoutEffect, useMemo } from "react";
+import { useStore, useStoreSnapshot } from "../hooks";
 import type { Child } from "../components";
 import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
@@ -286,7 +286,7 @@ function ChildRange({
 /** Reports React commits back to the store for commit-latency samples. */
 export function CommitReporter() {
     const store = useStore();
-    const version = useSyncExternalStore(
+    const version = useStoreSnapshot(
         (fn) => store.subscribeAny(fn),
         () => store.version,
     );

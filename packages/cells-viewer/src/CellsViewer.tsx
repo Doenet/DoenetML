@@ -1,6 +1,6 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo } from "react";
 import type { CellStore } from "./core";
-import { StoreContext } from "./hooks";
+import { StoreContext, useStoreSnapshot } from "./hooks";
 import { CommitReporter, Component } from "./renderers";
 import "./viewer.css";
 
@@ -9,7 +9,7 @@ import "./viewer.css";
  * this is an update pass over surviving components, not a remount
  * (ADR 0004). */
 export function CellsViewer({ store }: { store: CellStore }) {
-    const version = useSyncExternalStore(
+    const version = useStoreSnapshot(
         (fn) => store.subscribeStructure(fn),
         () => store.structureVersion,
     );
