@@ -1,7 +1,7 @@
 # Components are defined without knowing the core
 
-Status: proposed 2026-10-20. Migration steps 1 to 4 are done, step 4 for
-the scalar operators; see Migration. The renderer interface and where numbers
+Status: proposed 2026-10-20. Migration steps 1 to 4 and 8 are done, step
+4 for the scalar operators; see Migration. The renderer interface and where numbers
 are formatted are not decided here (see The renderer). Amended 2026-10-22:
 a spec tests its component, and the language's rules are kept by the core
 (see Done is a green spec, and Migration step 8).
@@ -418,6 +418,15 @@ case), carry every piece before other components follow:
    takes one (`cells-point-not-numerical`, in `compile/points.rs`, tested
    with `<testList>`). The golden diff is identical: only diagnostics are
    new.
+   **Done: every component has a spec, or is listed without one.**
+   `component_types!` names where each type is defined
+   (`geometry::circle::DEFINITION`), which is where its spec is
+   (`tests/specs/geometry/circle.rs`); a unit test in `components/mod.rs`
+   fails for a type an author writes (not `internal`) with no spec there,
+   unless it is in `WITHOUT_SPEC`, and for one in `WITHOUT_SPEC` that has
+   a spec, so the list only shrinks. It starts with 54 types; the
+   circle, line, polygon, segment and slider have specs. Step 8 is done
+   but for that list.
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 

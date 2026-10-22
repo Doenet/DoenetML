@@ -74,6 +74,13 @@ macro_rules! component_types {
             $($def,)*
             $(#[cfg(test)] $tdef,)*
         ];
+
+        /// Where each type (but the test-only ones) is defined, as its
+        /// entry names it (`geometry::circle::DEFINITION`): where its spec
+        /// is, under `tests/specs/` (`geometry/circle.rs`).
+        #[cfg(test)]
+        const DEFINED_IN: &[(ComponentType, &str)] =
+            &[$((ComponentType::$variant, stringify!($def)),)*];
     };
 }
 
@@ -540,6 +547,99 @@ mod tests {
             found.is_empty(),
             "write NO_VALUE for a value not given, or Wire::undefined after a warning:\n{}",
             found.join("\n")
+        );
+    }
+
+    /// Types a spec is still to be written for (ADR 0016, Migration step
+    /// 8): the list only shrinks. A type with a spec must leave it, and a
+    /// new type comes with its spec.
+    const WITHOUT_SPEC: &[super::ComponentType] = {
+        use super::ComponentType::*;
+        &[
+            Document,
+            Graph,
+            Point,
+            Number,
+            NumberInput,
+            RepeatForSequence,
+            Collect,
+            BooleanInput,
+            Math,
+            Evaluate,
+            MathInput,
+            ChoiceInput,
+            Choice,
+            PointList,
+            P,
+            ShortDescription,
+            Hint,
+            Setup,
+            StickyGroup,
+            Function,
+            Derivative,
+            Answer,
+            Text,
+            ConditionalContent,
+            Case,
+            Select,
+            SelectFromSequence,
+            Group,
+            Section,
+            Title,
+            Ref,
+            List,
+            ListItem,
+            InlineMath,
+            DisplayMath,
+            MathRow,
+            Aside,
+            SideBySide,
+            Stack,
+            Tabular,
+            Spreadsheet,
+            Row,
+            Cell,
+            Legend,
+            TriggerSet,
+            UpdateValue,
+            ClampNumber,
+            RepeatFor,
+            FunctionIterates,
+            Polyline,
+            Boolean,
+            Award,
+            When,
+            TextInput,
+        ]
+    };
+
+    /// Every type an author writes has a spec at
+    /// `tests/specs/<family>/<file>.rs`, where its definition is, unless it
+    /// is in `WITHOUT_SPEC`; one in `WITHOUT_SPEC` has none.
+    #[test]
+    fn every_component_has_a_spec() {
+        let specs = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/specs");
+        let mut missing = Vec::new();
+        let mut listed_with_spec = Vec::new();
+        for &(component_type, defined_in) in super::DEFINED_IN {
+            if component_type.def().flags.internal {
+                continue;
+            }
+            // `geometry::circle::DEFINITION` is `geometry/circle.rs`.
+            let (module, _) = defined_in.rsplit_once("::").unwrap();
+            let file = format!("{}.rs", module.replace("::", "/"));
+            let has_spec = specs.join(&file).is_file();
+            let listed = WITHOUT_SPEC.contains(&component_type);
+            if !has_spec && !listed {
+                missing.push(format!("{component_type:?} (tests/specs/{file})"));
+            }
+            if has_spec && listed {
+                listed_with_spec.push(format!("{component_type:?}"));
+            }
+        }
+        assert!(
+            missing.is_empty() && listed_with_spec.is_empty(),
+            "without a spec: {missing:?}\nin WITHOUT_SPEC but with a spec (take them off): {listed_with_spec:?}"
         );
     }
 }

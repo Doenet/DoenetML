@@ -375,7 +375,10 @@ cells directly and redraw once per tick; Doenet's styling is copied into
   author should see after each. Every case is also checked against the
   reference evaluator and the component's cost snapshot in
   `tests/specs/snapshots/`. `SPEC_UPDATE=1` rewrites a snapshot; review the
-  change alongside the code that caused it.
+  change alongside the code that caused it. A new component comes with its
+  spec: a unit test (`components/mod.rs`) fails for one without, unless
+  it is in `WITHOUT_SPEC`, a list that only shrinks; writing a listed
+  type's spec means taking it off the list.
 - `tests/every_count.rs` builds every golden document and fixture at
   iteration counts 0 to 4 and four seeds, and checks that a document that
   passed the cycle check never fails a build with a cycle or an unsettled
