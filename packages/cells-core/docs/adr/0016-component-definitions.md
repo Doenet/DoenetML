@@ -366,8 +366,8 @@ case), carry every piece before other components follow:
    recorded the hole: a copy's own `a` was silently replaced by its
    referent's. Writing them found that a copy with a literal `fixed` (`<point extend="$P" fixed/>`, as for a circle
    or a `numberInput`) passes a request through to its referent, where
-   `fixed="$b"` drops it: `fix_literals` leaves aliased state alone. Not
-   fixed here.
+   `fixed="$b"` drops it: `fix_literals` left aliased state alone. Fixed
+   since (3c2b440): a literal `fixed` holds those slots by a constant flag.
    **Done: attributes and the typed binding.** `component!` takes an
    `attributes { .. }` section, the attributes a planner reads itself,
    and makes a module `attr` of `Attr` handles (`attr::radius`), which
