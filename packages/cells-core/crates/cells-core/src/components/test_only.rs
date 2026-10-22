@@ -1,0 +1,114 @@
+//! Components that exist only in this crate's unit tests (ADR 0016,
+//! Migration step 8), registered in `component_types!`'s `#[cfg(test)]`
+//! section. They are here, not in `testing/`, because only `components/`
+//! can define a component (`define.rs`). Each has only what a rule of the core needs, so a unit test of
+//! that rule depends on no real component: a rule is tested where it is
+//! implemented, against these, and fails there rather than in a spec.
+//!
+//! - `<testValue value="..">`: planned from its table alone (`Props`).
+//! - `<testShape a=".." b="..">`: planned by a function inside
+//!   `plan_geo`'s handling of `extend`, with two pieces of shared state,
+//!   each supplied by the attribute of the same name.
+
+/// `<testValue>`: a value and its double, from the table alone.
+pub(crate) mod test_value {
+    use crate::components::define::*;
+
+    component! {
+        /// `<testValue value="..">`: `value` from its attribute, `double`
+        /// computed from it.
+        tags: ["testValue"],
+        flags: [copyable],
+        default_prop: value,
+        props {
+            value: attr(0.0),
+            double: computed(OpSpec::Scale { k: 2.0 }, [value]),
+        }
+        planner: Props,
+    }
+}
+
+/// `<testShape>`: two pieces of shared state and their sum, planned by a
+/// function.
+pub(crate) mod test_shape {
+    use crate::compile::api::*;
+    use crate::components::ComponentType;
+    use crate::components::define::*;
+    use crate::error::Result;
+
+    component! {
+        /// `<testShape a=".." b="..">`: `a` and `b` are essential, 0 by
+        /// default, unless their attribute is a reference or math; `sum`
+        /// is computed from them.
+        tags: ["testShape"],
+        flags: [copyable],
+        props {
+            a: by_planner,
+            b: by_planner,
+            sum: computed(OpSpec::Add, [a, b]),
+        }
+        shared_state { A, B }
+        planner: Geometric(plan),
+    }
+
+    pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let mut wiring = ElemWiring::of(ComponentType::TestShape);
+        wiring.set_public(Props {
+            a: given(ctx, shared_state::A, "a")?,
+            b: given(ctx, shared_state::B, "b")?,
+            sum: Wire::from_table(ComponentType::TestShape, Props::AT.sum),
+        });
+        Ok(wiring)
+    }
+
+    /// The attribute `attr` as the shared state `state`: a literal is its
+    /// value, anything else is what it computes, and none is 0.
+    fn given(ctx: &mut PlanCtx<'_, '_>, state: SharedState, attr: &'static str) -> Result<Wire> {
+        Ok(match ctx.scalar(attr)? {
+            Some(Source::Literal(v)) => Wire::essential_from(state, attr, v),
+            Some(other) => other.into(),
+            None => Wire::essential(state, 0.0),
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Document;
+    use crate::testing::dast::{document, el, load, mac};
+
+    fn read(doc: &Document, name: &str, prop: &str) -> f64 {
+        let comp = doc.component(name).unwrap();
+        let cells = doc.prop_cells(comp, prop).unwrap();
+        assert_eq!(cells.len(), 1, "{name}.{prop}");
+        doc.cells[cells[0] as usize]
+    }
+
+    #[test]
+    fn test_value_loads_from_its_table() {
+        let doc = load(document([
+            el("testValue").name("v").attr("value", "3"),
+            el("testValue").name("w"),
+        ]))
+        .unwrap();
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        assert_eq!(read(&doc, "v", "value"), 3.0);
+        assert_eq!(read(&doc, "v", "double"), 6.0);
+        assert_eq!(read(&doc, "w", "value"), 0.0);
+    }
+
+    #[test]
+    fn test_shape_loads_through_its_planner() {
+        let doc = load(document([
+            el("testValue").name("v").attr("value", "5"),
+            el("testShape").name("s").attr("a", "1").attr("b", "2"),
+            el("testShape").name("t").attr("a", mac("v")),
+        ]))
+        .unwrap();
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        assert_eq!(read(&doc, "s", "sum"), 3.0);
+        assert_eq!(read(&doc, "t", "a"), 5.0);
+        assert_eq!(read(&doc, "t", "b"), 0.0);
+        assert_eq!(read(&doc, "t", "sum"), 5.0);
+    }
+}

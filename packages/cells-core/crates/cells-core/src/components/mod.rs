@@ -18,7 +18,8 @@
 //! (`geometry/circle.rs`); a type planned from its table alone, or whose
 //! planner only refuses it, has an inline module in the family's
 //! `mod.rs`, which also holds what the family's members share. `prop.rs`
-//! gathers the named positions. ARCHITECTURE.md walks through adding a
+//! gathers the named positions. `test_only.rs` holds components that
+//! exist only in this crate's unit tests. ARCHITECTURE.md walks through adding a
 //! type.
 
 use crate::program::OpSpec;
@@ -29,6 +30,8 @@ pub(crate) mod geometry;
 pub(crate) mod inputs;
 pub mod prop;
 pub(crate) mod structure;
+#[cfg(test)]
+pub(crate) mod test_only;
 pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
@@ -38,24 +41,39 @@ pub use values::MAX_TUPLE;
 /// Declares every component type from one list: the `ComponentType` enum,
 /// `ComponentType::ALL`, and `COMPONENT_DEFS`, all in list order. Each
 /// entry names its type's definition, a `component!` block's
-/// `DEFINITION`.
+/// `DEFINITION`. The entries of the `#[cfg(test)]` section, after the
+/// `;`, exist only in this crate's unit tests (`test_only.rs`, ADR 0016);
+/// they come after every other type, so no other type's discriminant
+/// depends on them.
 macro_rules! component_types {
-    ($($(#[$doc:meta])* $variant:ident => $def:expr,)*) => {
+    (
+        $($(#[$doc:meta])* $variant:ident => $def:expr,)*;
+        #[cfg(test)] {
+            $($(#[$tdoc:meta])* $tvariant:ident => $tdef:expr,)*
+        }
+    ) => {
         /// `repr(u8)` so the renderer can read the type column as a byte
         /// array; the discriminants follow the list in `component_types!`.
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         #[repr(u8)]
         pub enum ComponentType {
             $($(#[$doc])* $variant,)*
+            $(#[cfg(test)] $(#[$tdoc])* $tvariant,)*
         }
 
         impl ComponentType {
             /// Every type, in discriminant order.
-            pub const ALL: &[ComponentType] = &[$(ComponentType::$variant,)*];
+            pub const ALL: &[ComponentType] = &[
+                $(ComponentType::$variant,)*
+                $(#[cfg(test)] ComponentType::$tvariant,)*
+            ];
         }
 
         /// Every type's row, indexed by discriminant.
-        pub const COMPONENT_DEFS: &[ComponentDef] = &[$($def,)*];
+        pub const COMPONENT_DEFS: &[ComponentDef] = &[
+            $($def,)*
+            $(#[cfg(test)] $tdef,)*
+        ];
     };
 }
 
@@ -123,6 +141,13 @@ component_types! {
     When => values::when::DEFINITION,
     Response => values::response::DEFINITION,
     TextInput => inputs::text_input::DEFINITION,
+    ;
+    #[cfg(test)] {
+        /// `<testValue>`: planned from its table alone.
+        TestValue => test_only::test_value::DEFINITION,
+        /// `<testShape>`: planned by a function inside `plan_geo`.
+        TestShape => test_only::test_shape::DEFINITION,
+    }
 }
 
 /// What the core knows about a type apart from how it is planned and

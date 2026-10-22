@@ -176,8 +176,9 @@ They are kept in three layers instead:
   its rule for `hide` (`point.rs`), move there.
 - **Unit tests of the core.** Each rule is tested where it is
   implemented, in `compile/` and `build/`, against test-only components
-  (`#[cfg(test)]` entries of `component!` with only what a rule needs)
-  and documents built in Rust (a DAST builder in `testing/`). A test
+  (`#[cfg(test)]` entries of `component!` with only what a rule needs,
+  in `components/test_only.rs`) and documents built in Rust (a DAST
+  builder in `testing/`). A test
   needs neither the parser nor a real component, reaches combinations no
   component has yet, and fails at the rule rather than at a spec. The
   tests hold the contracts at the machinery's boundaries (`compile/api.rs`
@@ -318,7 +319,7 @@ case), carry every piece before other components follow:
 7. The guide to writing a component (ARCHITECTURE.md, "Where to change
    things"), written from the pilots.
 8. The language's rules out of the specs (amended 2026-10-22; see Done is
-   a green spec). A DAST builder and test-only components in `testing/`;
+   a green spec). A DAST builder in `testing/` and test-only components;
    unit tests of the copy rules in `compile/geometry/mod.rs` (a bare
    copy, an override that keeps its own state, an override that shares
    the base's) and of inheritance in `build/expand/`; shared state bound
@@ -336,6 +337,15 @@ case), carry every piece before other components follow:
    a test writes the normalized form. The JSON loader's deserialize time
    is unchanged (`stats`, 7 runs, on `points-10000`, `fanout-10000` and
    `chain-100000`).
+   **Done: the test-only components** (`components/test_only.rs`):
+   `<testValue>`, planned from its table, and `<testShape>`, planned by a
+   function inside `plan_geo`, with two pieces of shared state each
+   supplied by an attribute. They are in `components/` because only it
+   can define a component, and are registered in `component_types!`'s
+   `#[cfg(test)]` section, after every other type: they exist only in
+   this crate's unit tests, not in its integration tests, `cells-bench`
+   (which enables the `testing` feature) or the wasm build, and no other
+   type's discriminant moves. The golden diff is identical.
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 
