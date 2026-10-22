@@ -16,9 +16,9 @@ component! {
     flags: [copyable, symbolic],
     default_prop: credit,
     props {
-        response: attr(f64::NAN) { ref_prop: expr },
+        response: attr(NO_VALUE) { ref_prop: expr },
         correct: children,
-        submitted: attr(f64::NAN),
+        submitted: attr(NO_VALUE),
         credit: by_planner,
         weight: attr(1.0),
         numSubmissions: attr(0.0),

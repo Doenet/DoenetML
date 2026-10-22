@@ -87,14 +87,13 @@ const INVALID_CENTER: (&str, &str) = (
 /// `through`.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::AT;
-    let nan = || Wire::fixed(f64::NAN);
     let center = match ctx.point(attr::center) {
         // Not a point (`center="A"`): no center.
         Err(Error::BadMath { .. }) if !ctx.is_reference(attr::center) => {
-            ctx.warn(INVALID_CENTER.0, INVALID_CENTER.1);
+            let w = ctx.warn(INVALID_CENTER.0, INVALID_CENTER.1);
             Some(GivenPoint::Tuple([
-                Source::Fixed(f64::NAN),
-                Source::Fixed(f64::NAN),
+                Source::undefined(w),
+                Source::undefined(w),
             ]))
         }
         r => r?,
@@ -159,8 +158,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     let [cx, cy, radius] = match (over, hc, hr, n) {
         (Some((code, message)), ..) => {
-            ctx.warn(code, message);
-            [nan(), nan(), nan()]
+            let w = ctx.warn(code, message);
+            [Wire::undefined(w), Wire::undefined(w), Wire::undefined(w)]
         }
         (None, _, _, 0) => {
             let [cx, cy] = if hc {

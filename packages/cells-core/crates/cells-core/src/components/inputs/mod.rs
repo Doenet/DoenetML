@@ -16,7 +16,7 @@ pub mod number_input {
         flags: [copyable],
         default_prop: value,
         props {
-            value: attr(f64::NAN),
+            value: attr(NO_VALUE),
         }
         planner: Props,
     }
@@ -83,7 +83,7 @@ pub mod slider {
             step: attr(1.0),
             // Without an initialValue nothing is stored, and the slider shows
             // `from` (index 0), as in the current core.
-            preliminaryValue: attr(f64::NAN) { attribute: initialValue, bind: bindValueTo },
+            preliminaryValue: attr(NO_VALUE) { attribute: initialValue, bind: bindValueTo },
             span: computed(OpSpec::Sub, [to, from]),
             spanSteps: computed(OpSpec::Div, [span, step]),
             spanStepsEps: computed(OpSpec::Offset { k: 1e-10 }, [spanSteps]),

@@ -135,8 +135,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                     args.push(y);
                 }
                 None => {
-                    args.push(wiring.hidden(Source::Fixed(f64::NAN)));
-                    args.push(wiring.hidden(Source::Fixed(f64::NAN)));
+                    args.push(wiring.hidden(Source::absent()));
+                    args.push(wiring.hidden(Source::absent()));
                 }
             }
             let first = ComponentType::Polygon

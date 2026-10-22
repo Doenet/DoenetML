@@ -98,14 +98,21 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     if let Some(equation) = equation {
         // Equation mode: coefficients are the state, points follow.
         let (vx, vy) = variables(ctx);
-        let [a, b, c] = ctx
-            .linear_equation(&equation, &vx, &vy)?
+        let [a, b, c] = match ctx.linear_equation(&equation, &vx, &vy)? {
+            Some(coeffs) => coeffs,
             // A symbolic or nonlinear equation is not a line here.
-            .unwrap_or([
-                Source::Fixed(f64::NAN),
-                Source::Fixed(f64::NAN),
-                Source::Fixed(f64::NAN),
-            ]);
+            None => {
+                let w = ctx.warn(
+                    "doenet-w0004",
+                    &format!("Invalid format for equation of line in variables {vx} and {vy}."),
+                );
+                [
+                    Source::undefined(w),
+                    Source::undefined(w),
+                    Source::undefined(w),
+                ]
+            }
+        };
         let [x1, y1, x2, y2] = ElemWiring::vector(
             [at.x1, at.y1, at.x2, at.y2],
             VecOp::LinePointsFromCoeffs,

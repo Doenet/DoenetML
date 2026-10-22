@@ -138,7 +138,7 @@ pub mod sticky_group {
         tags: ["stickyGroup"],
         flags: [container],
         props {
-            threshold: attr(f64::NAN),
+            threshold: attr(NO_VALUE),
             relativeToGraphScales: attr(0.0),
         }
         planner: Props,

@@ -4,6 +4,7 @@
 //! with one field per prop, and `at` for a prop's position by name).
 
 use super::{Args, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
+pub(super) use crate::compile::api::NO_VALUE;
 pub(super) use crate::program::OpSpec;
 
 /// A prop as a table writes it: like a [`PropDef`], but naming the props a

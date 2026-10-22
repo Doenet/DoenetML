@@ -58,10 +58,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
         wiring.set_public(Props {
-            expr: Wire::fixed(f64::NAN),
+            expr: Wire::absent(),
             xmin: Wire::fixed(-10.0),
             xmax: Wire::fixed(10.0),
-            samples: Wire::fixed(f64::NAN),
+            samples: Wire::absent(),
         });
         ctx.set_wiring(wiring);
         return Ok(());

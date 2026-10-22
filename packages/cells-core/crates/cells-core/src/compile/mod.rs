@@ -188,7 +188,12 @@ impl<'a> Compiler<'a> {
     /// (ADR 0014), kept with the compile's diagnostics. A planner that
     /// cannot honor what the author wrote says so here rather than leaving
     /// a NaN to explain itself (ADR 0016).
-    pub(in crate::compile) fn warn(&mut self, node: NodeId, code: &'static str, message: &str) {
+    pub(in crate::compile) fn warn(
+        &mut self,
+        node: NodeId,
+        code: &'static str,
+        message: &str,
+    ) -> Warned {
         self.compiled
             .diagnostics
             .push(crate::diagnostics::Diagnostic::warning(
@@ -196,6 +201,7 @@ impl<'a> Compiler<'a> {
                 Some(node),
                 message.into(),
             ));
+        Warned::raised()
     }
 
     /// Every operator a plan names reads as many inputs as it takes. One

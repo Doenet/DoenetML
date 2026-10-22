@@ -135,6 +135,7 @@ spec! {
 
     case "a nonlinear equation is not a line" {
         doenet r#"<graph><line name="l">y = x^2</line></graph>"#;
+        diagnostics["doenet-w0004"]
         expect {
             "l.slope" = NAN, "l.coeffvar1" = NAN, "l.coeffvar2" = NAN,
             "l.coeff0" = NAN,

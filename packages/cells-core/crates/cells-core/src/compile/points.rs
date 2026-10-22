@@ -5,13 +5,15 @@
 use super::*;
 
 impl<'a> Compiler<'a> {
-    /// The points of a point-list attribute: bare references, parenthesized
-    /// tuples (which may contain references), and references to list props
-    /// (`$l.points`), which contribute one point per item.
+    /// The points of attribute `a` of the element at `node`: bare
+    /// references, parenthesized tuples (which may contain references), and
+    /// references to list props (`$l.points`), which contribute one point
+    /// per item.
     pub(in crate::compile) fn plan_point_list(
         &mut self,
         t: TemplateId,
         scope: ElemId,
+        node: NodeId,
         a: u32,
     ) -> Result<Vec<GivenPoint>> {
         let d = self.dast;
@@ -54,12 +56,18 @@ impl<'a> Compiler<'a> {
                     out.push(GivenPoint::Tuple(self.tuple_from_tokens(inner, &text)?));
                 }
                 Token::Comma => i += 1,
-                // A symbol (`through="A"`) is not a point here: NaN, as the
-                // current core's warning case.
-                Token::Ident(_) => {
+                // A symbol (`through="A"`) is not a point here: undefined,
+                // with a warning, for every type that takes a point list.
+                Token::Ident(sym) => {
+                    let message = format!(
+                        "`{}` holds `{sym}`, which is not a point with numbers: \
+                         the point is undefined.",
+                        d.attr_name(a)
+                    );
+                    let w = self.warn(node, "cells-point-not-numerical", &message);
                     out.push(GivenPoint::Tuple([
-                        Source::Fixed(f64::NAN),
-                        Source::Fixed(f64::NAN),
+                        Source::undefined(w),
+                        Source::undefined(w),
                     ]));
                     i += 1;
                 }
@@ -141,5 +149,24 @@ impl<'a> Compiler<'a> {
             }
         }
         Ok(n)
+    }
+}
+
+/// Point lists against `<testList>`: a symbol is not a point, and says so.
+#[cfg(test)]
+mod tests {
+    use crate::testing::dast::{document, el, load};
+    use crate::testing::prop_value as value;
+
+    #[test]
+    fn a_symbol_is_an_undefined_point_with_a_warning() {
+        let doc = load(document([el("testList")
+            .name("l")
+            .attr("points", "A (1,2)")]))
+        .unwrap();
+        let codes: Vec<&str> = doc.diagnostics().iter().map(|d| d.code).collect();
+        assert_eq!(codes, ["cells-point-not-numerical"]);
+        assert!(value(&doc, "l.px1").is_nan() && value(&doc, "l.py1").is_nan());
+        assert_eq!((value(&doc, "l.px2"), value(&doc, "l.py2")), (1.0, 2.0));
     }
 }

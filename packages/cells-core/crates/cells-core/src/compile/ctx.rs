@@ -214,7 +214,8 @@ impl<'a> PlanCtx<'_, 'a> {
             return Ok(Vec::new());
         };
         let scope = self.scope();
-        self.c.plan_point_list(self.t, scope, a)
+        let node = self.node();
+        self.c.plan_point_list(self.t, scope, node, a)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
@@ -346,10 +347,11 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Warns that the element cannot be what its attributes ask, with a
     /// code and message of `packages/i18n/src/diagnostics.ts` (ADR 0013).
-    /// A planner warns rather than leave a NaN to explain itself.
-    pub(crate) fn warn(&mut self, code: &'static str, message: &str) {
+    /// A planner warns rather than leave a NaN to explain itself: what it
+    /// cannot define is `Wire::undefined` of what this returns.
+    pub(crate) fn warn(&mut self, code: &'static str, message: &str) -> Warned {
         let node = self.node();
-        self.c.warn(node, code, message);
+        self.c.warn(node, code, message)
     }
 
     // The element's wiring.
@@ -397,7 +399,7 @@ impl<'a> PlanCtx<'_, 'a> {
             from,
             component_type,
         };
-        let mut props = vec![Source::Fixed(f64::NAN); own_type.prop_defs().len()];
+        let mut props = vec![Source::absent(); own_type.prop_defs().len()];
         Deferred::mark(own_type, &mut props);
         el.props = props;
     }

@@ -403,6 +403,21 @@ case), carry every piece before other components follow:
    iteration, and a copy gated by `fixed="$f"` reads its referent through
    the hold (`InheritFrom`). Breaking `InheritFrom` or the list copy's
    placement fails them. The golden diff is identical.
+   **Done: no silent NaN.** `PlanCtx::warn` returns a `Warned`, which only
+   the compile makes, and `Wire::undefined(warned)` /
+   `Source::undefined(warned)` are how a planner leaves a value it cannot
+   define: its NaN always comes with its diagnostic. A value not given (an
+   attribute's default, an emptied input, an answer not submitted, an
+   entry past a tuple's end, an operator input left out) is `NO_VALUE`,
+   `Wire::absent()` or `Source::absent()`. `Wire::fixed` refuses NaN, and
+   a test finds any `f64::NAN` a component writes (`define.rs` aside).
+   A literal NaN in a plan is not refused outright, since a value not
+   given is one. Two silent cases now warn: a line whose equation is not
+   linear (`doenet-w0004`, as the current core; the line spec states it),
+   and a symbol in a point list (`through="A"`), for every type that
+   takes one (`cells-point-not-numerical`, in `compile/points.rs`, tested
+   with `<testList>`). The golden diff is identical: only diagnostics are
+   new.
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 

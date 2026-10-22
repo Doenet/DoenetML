@@ -313,7 +313,12 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   as its own. State from the element's own children is `Given::Children`,
   from its referent's `Given::Referent`.
 - A combination of attributes the planner cannot honor is a warning
-  (`PlanCtx::warn`), never a silent NaN.
+  (`PlanCtx::warn`), never a silent NaN: what it cannot define is
+  `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A
+  value not given (an attribute's default, an emptied input, an entry
+  past a tuple's end) is `NO_VALUE` or `Wire::absent()`. `Wire::fixed`
+  refuses NaN, and a test (`components/mod.rs`) finds any `f64::NAN` a
+  component writes.
 
 The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
 

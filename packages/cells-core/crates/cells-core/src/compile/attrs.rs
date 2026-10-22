@@ -114,7 +114,7 @@ impl<'a> Compiler<'a> {
                             | ComponentType::SelectFromSequence
                     ) =>
                 {
-                    Source::Fixed(f64::NAN)
+                    Source::absent()
                 }
                 (None, PropFrom::ByPlanner) => unreachable!("`Plan` types take plan_with_extend"),
             };

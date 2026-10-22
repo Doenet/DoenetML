@@ -46,8 +46,8 @@ pub mod evaluate {
         flags: [copyable],
         default_prop: value,
         props {
-            function: attr(f64::NAN) { ref_prop: expr },
-            input: attr(f64::NAN),
+            function: attr(NO_VALUE) { ref_prop: expr },
+            input: attr(NO_VALUE),
             value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]),
         }
         planner: Props,
@@ -157,7 +157,7 @@ pub mod tuple {
         let mut entries = entries
             .into_iter()
             .map(Wire::from)
-            .chain(std::iter::repeat_with(|| Wire::fixed(f64::NAN)));
+            .chain(std::iter::repeat_with(Wire::absent));
         let mut next = || entries.next().expect("an endless supply");
         let mut wiring = ElemWiring::of(ComponentType::Tuple);
         wiring.set_public(Props {
@@ -189,8 +189,8 @@ pub mod update_value {
         /// request on that cell for `newValue`'s current value.
         tags: ["updateValue"],
         props {
-            target: attr(f64::NAN),
-            newValue: attr(f64::NAN),
+            target: attr(NO_VALUE),
+            newValue: attr(NO_VALUE),
         }
         planner: Props,
     }

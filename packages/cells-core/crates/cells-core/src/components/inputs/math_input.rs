@@ -56,7 +56,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
     let bound = matches!(props[at.value], Some(Source::Alias(_)))
         || nodes.iter().any(|&n| d.kind(n) == NodeKind::Macro);
     if bound {
-        props[at.expr] = Some(Source::Fixed(f64::NAN));
+        props[at.expr] = Some(Source::absent());
         return Ok(());
     }
     let text: String = nodes

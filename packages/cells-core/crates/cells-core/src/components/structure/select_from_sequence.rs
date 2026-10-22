@@ -54,7 +54,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
     }
     let from = num("from", 1.0)?;
     let step = num("step", 1.0)?;
-    let to = num("to", f64::NAN)?;
+    let to = num("to", NO_VALUE)?;
     if to.is_nan() || step == 0.0 {
         return Err(Error::Unsupported(
             "<selectFromSequence> needs literal from, to and a nonzero step".into(),

@@ -41,6 +41,27 @@ pub(crate) enum Sel {
     Item(u8, u8),
 }
 
+/// A value not given (yet): an attribute's default when it has no value
+/// of its own, an emptied input, an answer not submitted, an entry past a
+/// tuple's end, an operator input left out. A component writes NaN only
+/// as this, or as `Wire::undefined`/`Source::undefined` after a warning
+/// (ADR 0016, "No silent NaN"); a test in `components/mod.rs` holds it to
+/// that.
+pub(crate) const NO_VALUE: f64 = f64::NAN;
+
+/// What `PlanCtx::warn` returns: that the element's diagnostic was
+/// raised. Only the compile makes one, so a value a planner cannot
+/// define (`Wire::undefined`, `Source::undefined`) always comes with the
+/// diagnostic that explains it.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Warned(());
+
+impl Warned {
+    pub(in crate::compile) fn raised() -> Self {
+        Warned(())
+    }
+}
+
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
@@ -102,6 +123,14 @@ pub(crate) enum Source {
 }
 
 impl Source {
+    /// A value the element cannot have, as `warned` explains: NaN.
+    pub(crate) fn undefined(_: Warned) -> Self {
+        Source::Fixed(f64::NAN)
+    }
+    /// A value not given (`NO_VALUE`), as a constant.
+    pub(crate) fn absent() -> Self {
+        Source::Fixed(NO_VALUE)
+    }
     pub(crate) fn reference(p: RefId) -> Self {
         Source::Alias(Arg::Ref(p, Sel::Whole))
     }
@@ -401,9 +430,22 @@ impl Wire {
             state: Some((state, None)),
         }
     }
-    /// A constant that is not state.
+    /// A constant that is not state, and not NaN: a value not given is
+    /// `absent`, one the element cannot have `undefined`.
     pub(crate) fn fixed(v: f64) -> Self {
+        assert!(
+            !v.is_nan(),
+            "Wire::fixed(NaN): use Wire::absent, or Wire::undefined after a warning"
+        );
         Source::Fixed(v).into()
+    }
+    /// A value not given (`NO_VALUE`), as a constant.
+    pub(crate) fn absent() -> Self {
+        Source::absent().into()
+    }
+    /// A value the element cannot have, as `warned` explains: NaN.
+    pub(crate) fn undefined(warned: Warned) -> Self {
+        Source::undefined(warned).into()
     }
     /// An alias of the element's own slot.
     pub(crate) fn own(slot: usize) -> Self {

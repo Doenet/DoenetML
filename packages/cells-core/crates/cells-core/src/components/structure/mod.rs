@@ -43,7 +43,7 @@ pub mod repeat_for_sequence {
         tags: ["repeatForSequence"],
         props {
             from: attr(1.0),
-            to: attr(f64::NAN),
+            to: attr(NO_VALUE),
             step: attr(1.0),
             maxNumber: attr(10_000.0),
             span: computed(OpSpec::Sub, [to, from]),

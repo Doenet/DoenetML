@@ -496,3 +496,50 @@ impl PropDef {
         self.attr.unwrap_or(self.name)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    /// Every `.rs` file under `dir`.
+    fn sources(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                sources(&path, out);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                out.push(path);
+            }
+        }
+    }
+
+    /// No silent NaN (ADR 0016): a component writes NaN only as
+    /// `NO_VALUE` (a value not given) or as `Wire::undefined` /
+    /// `Source::undefined` after a warning, never as `f64::NAN`. Only
+    /// `define.rs`, the machinery of definitions, uses NaN itself.
+    #[test]
+    fn components_write_no_nan_of_their_own() {
+        // Spelled in two halves, so this file does not find itself.
+        let needle = concat!("f64", "::NAN");
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components");
+        let mut files = Vec::new();
+        sources(&dir, &mut files);
+        let found: Vec<String> = files
+            .iter()
+            .filter(|p| p.file_name().is_some_and(|n| n != "define.rs"))
+            .flat_map(|p| {
+                let text = std::fs::read_to_string(p).unwrap();
+                text.lines()
+                    .enumerate()
+                    .filter(|(_, l)| l.contains(needle) && !l.trim_start().starts_with("//"))
+                    .map(|(i, l)| format!("{}:{}: {}", p.display(), i + 1, l.trim()))
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        assert!(
+            found.is_empty(),
+            "write NO_VALUE for a value not given, or Wire::undefined after a warning:\n{}",
+            found.join("\n")
+        );
+    }
+}

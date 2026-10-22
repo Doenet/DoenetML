@@ -136,10 +136,10 @@ impl<'a> Compiler<'a> {
                 ));
             }
             // Set from the first referenced input below.
-            (false, None, _) => Source::Fixed(f64::NAN),
+            (false, None, _) => Source::absent(),
         };
         let correct = if text_nodes.is_empty() {
-            Source::Fixed(f64::NAN)
+            Source::absent()
         } else {
             let id = self.plan_sym_math(t, scope, &text_nodes)?;
             Source::SymExpr(id, Post::None)
@@ -241,7 +241,7 @@ impl<'a> Compiler<'a> {
         ));
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
-            correct: Source::Fixed(f64::NAN),
+            correct: Source::absent(),
             submitted: Source::Literal(0.0),
             credit: Source::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
             weight,
@@ -329,8 +329,8 @@ impl<'a> Compiler<'a> {
         }
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
-            correct: Source::Fixed(f64::NAN),
-            submitted: Source::TextLiteral(f64::NAN),
+            correct: Source::absent(),
+            submitted: Source::TextLiteral(NO_VALUE),
             credit: Source::own(best.expect("an award")),
             weight,
             numSubmissions: Source::Literal(0.0),
