@@ -36,6 +36,14 @@ component! {
         item: point,
         points: [[x1, y1], [x2, y2]],
     }
+    attributes {
+        through,
+        slope,
+        parallelTo,
+        perpendicularTo,
+        equation,
+        variables,
+    }
     shared_state {
         // The second point's distance along a slope or direction.
         DIST,
@@ -49,7 +57,7 @@ component! {
 /// and `y` unless exactly two are given.
 fn variables(ctx: &PlanCtx<'_, '_>) -> (String, String) {
     let names: Vec<String> = ctx
-        .text("variables")
+        .text(attr::variables)
         .map(|text| {
             text.split(|c: char| !c.is_alphanumeric())
                 .filter(|s| !s.is_empty())
@@ -68,12 +76,13 @@ fn variables(ctx: &PlanCtx<'_, '_>) -> (String, String) {
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::AT;
     let mut wiring = ElemWiring::of(ComponentType::Line);
-    let through = ctx.points("through")?;
-    let by_direction = ctx.has("slope") || ctx.has("parallelTo") || ctx.has("perpendicularTo");
+    let through = ctx.points(attr::through)?;
+    let by_direction =
+        ctx.has(attr::slope) || ctx.has(attr::parallelTo) || ctx.has(attr::perpendicularTo);
     // The equation is the attribute, or the element's own math, or its
     // referent's when nothing else says how the line is made.
     let equation = ctx
-        .math("equation")
+        .math(attr::equation)
         .or_else(|| ctx.child_math())
         .or_else(|| {
             (through.is_empty() && !by_direction)
@@ -140,11 +149,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let [x1, y1] = Wire::point_or_default(
             through.first(),
             shared_point_state(0),
-            "through",
+            attr::through,
             second_default,
         );
         let dist = wiring.essential(shared_state::DIST, 1.0);
-        let [x2, y2] = if let Some(m) = ctx.scalar("slope")? {
+        let [x2, y2] = if let Some(m) = ctx.scalar(attr::slope)? {
             let m = wiring.hidden(m);
             ElemWiring::vector(
                 [at.x2, at.y2],
@@ -152,10 +161,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 vec![at.x1, at.y1, m, dist],
             )
         } else {
-            let (name, perpendicular) = if ctx.has("parallelTo") {
-                ("parallelTo", false)
+            let (name, perpendicular) = if ctx.has(attr::parallelTo) {
+                (attr::parallelTo, false)
             } else {
-                ("perpendicularTo", true)
+                (attr::perpendicularTo, true)
             };
             let [ux, uy] = direction(ctx, name, &mut wiring)?;
             ElemWiring::vector(
@@ -171,13 +180,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let [x1, y1] = Wire::point_or_default(
             through.first(),
             shared_point_state(0),
-            "through",
+            attr::through,
             first_default,
         );
         let [x2, y2] = Wire::point_or_default(
             through.get(1),
             shared_point_state(1),
-            "through",
+            attr::through,
             second_default,
         );
         [x1, y1, x2, y2, Wire::fixed(0.0)]
@@ -211,7 +220,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
 
 /// Two hidden slots holding a direction: a point or tuple's coordinates,
 /// or another line's or segment's `point2 - point1`.
-fn direction(ctx: &mut PlanCtx<'_, '_>, name: &str, wiring: &mut ElemWiring) -> Result<[usize; 2]> {
+fn direction(ctx: &mut PlanCtx<'_, '_>, name: Attr, wiring: &mut ElemWiring) -> Result<[usize; 2]> {
     let p = ctx.point(name)?.expect("the direction attribute is given");
     if let GivenPoint::Ref(r) = p
         && matches!(

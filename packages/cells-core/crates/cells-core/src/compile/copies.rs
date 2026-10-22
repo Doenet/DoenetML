@@ -158,12 +158,15 @@ impl<'a> Compiler<'a> {
                 .cloned()
                 .unwrap_or_default();
             for (state, &slot) in &wiring.shared_state {
-                // Shared state the copy's own attribute supplied is its own.
-                if wiring
-                    .shared_state_attr
-                    .get(state)
-                    .is_some_and(|a| own_attrs.iter().any(|o| o == a))
-                {
+                // Shared state the copy gave itself is its own.
+                let own = match wiring.shared_state_given.get(state) {
+                    Some(Given::Attr(a)) => {
+                        own_attrs.iter().any(|o| o.eq_ignore_ascii_case(a.name()))
+                    }
+                    Some(Given::Children) => true,
+                    Some(Given::Referent) | None => false,
+                };
+                if own {
                     continue;
                 }
                 if let Some(&bs) = base_shared_state.get(state)
@@ -309,22 +312,34 @@ mod tests {
         assert_eq!(value(&doc, "s.b"), 5.0);
     }
 
-    /// The hole binding shared state by identifier closes: the planner
-    /// names `aa` as supplying `A`, the copy's `a` does not match it, and
-    /// the copy's own value is silently replaced by its referent's. When
-    /// the binding is an identifier, `<testMisspelled>` does not compile
-    /// and this test goes with it.
     #[test]
-    fn a_misspelled_binding_silently_shares_the_referents_state() {
-        let doc = load(document([
-            el("testMisspelled").name("s").attr("a", "1").attr("b", "2"),
-            el("testMisspelled")
-                .name("d")
-                .attr("extend", mac("s"))
-                .attr("a", "7"),
+    fn own_children_keep_their_state() {
+        let mut doc = load(document([
+            el("testShape").name("s").text("1"),
+            el("testShape").name("d").attr("extend", mac("s")).text("7"),
         ]))
         .unwrap();
-        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
-        assert_eq!(value(&doc, "d.a"), 1.0, "the override of `a` is lost");
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (7.0, 1.0));
+        request(&mut doc, "d.a", 8.0);
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (8.0, 1.0));
+    }
+
+    #[test]
+    fn the_referents_children_are_shared() {
+        // `b` makes the copy not bare; its `a` stands on the referent's
+        // children.
+        let mut doc = load(document([
+            el("testShape").name("s").text("1"),
+            el("testShape")
+                .name("d")
+                .attr("extend", mac("s"))
+                .attr("b", "4"),
+        ]))
+        .unwrap();
+        assert_eq!((value(&doc, "d.a"), value(&doc, "d.b")), (1.0, 4.0));
+        request(&mut doc, "d.a", 5.0);
+        assert_eq!(value(&doc, "s.a"), 5.0);
+        request(&mut doc, "s.a", 6.0);
+        assert_eq!(value(&doc, "d.a"), 6.0);
     }
 }

@@ -7,6 +7,6 @@
 pub(crate) use super::ctx::PlanCtx;
 pub(crate) use super::expr::{ExprId, Token, split_top, unwrap_parens};
 pub(crate) use super::plan::{
-    Arg, ElemWiring, GivenPoint, Sel, SharedState, Source, Wire, shared_point_state,
+    Arg, Attr, ElemWiring, Given, GivenPoint, Sel, SharedState, Source, Wire, shared_point_state,
 };
 pub(crate) use super::planner::Planner;

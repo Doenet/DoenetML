@@ -170,13 +170,16 @@ They are kept in three layers instead:
   does not compile, or the rule is out of the component's reach. A bare
   copy is planned before the component's planner runs
   (`plan_with_extend`, and `compile/mod.rs` for the other kinds); `View`,
-  the probe and the rebuild are never a component's concern (above). What is still a convention
-  moves into the definition. Which attribute supplies each piece of shared
-  state is declared in `shared_state { .. }`, by identifiers checked
-  against the component's attributes; today it is a string passed to
-  `Wire::essential_from` that `plan_with_extend` compares with a copy's
-  own attributes, and a misspelling silently shares the base's value where
-  the copy's own was asked for. A plan cannot hold a literal NaN, so an
+  the probe and the rebuild are never a component's concern (above). What
+  is still a convention moves into the definition. A planner names an
+  attribute by a typed handle its block declares (`attributes { .. }`,
+  `attr::radius`), both to read it and to say it supplied a piece of
+  shared state (`Wire::essential_from(shared_state::R, attr::radius, v)`),
+  so a misspelling does not compile; it was a string that
+  `plan_with_extend` compared with a copy's own attributes, and a
+  misspelling silently shared the base's value where the copy's own was
+  asked for (amended 2026-10-22, see Migration step 8). A plan cannot
+  hold a literal NaN, so an
   unsupported combination goes through `PlanCtx::warn`. What a copy
   inherits is the machinery's: the point's own `Source::Inherit`, and
   its rule for `hide` (`point.rs`), move there.
@@ -329,7 +332,7 @@ case), carry every piece before other components follow:
    unit tests of the copy rules in `compile/copies.rs` (a bare
    copy, an override that keeps its own state, an override that shares
    the base's) and of inheritance in `build/expand/`; shared state bound
-   to its attribute by identifier in `component!`; the point's copy
+   to its attribute by a typed handle from `component!`; the point's copy
    handling moved into the machinery, under those tests; no literal NaN
    in a plan. A test generated from the definitions fails for a component
    with no spec at `tests/specs/<family>/<name>.rs`, unless it is on a
@@ -358,13 +361,36 @@ case), carry every piece before other components follow:
    ways, state the referent defaulted, an own reference, an attribute
    supplying no state, a copy of a copy. Breaking either half of
    `plan_with_extend`'s rule (never keeping a copy's own state, or never
-   sharing the base's) fails them. `<testMisspelled>`, a third test-only component, names `aa` as
-   the attribute supplying its `A`, and its test records the hole: a
-   copy's own `a` is silently replaced by its referent's. Writing them found that a copy
-   with a literal `fixed` (`<point extend="$P" fixed/>`, as for a circle
+   sharing the base's) fails them. `<testMisspelled>`, a third test-only
+   component, named `aa` as the attribute supplying its `A`, and its test
+   recorded the hole: a copy's own `a` was silently replaced by its
+   referent's. Writing them found that a copy with a literal `fixed` (`<point extend="$P" fixed/>`, as for a circle
    or a `numberInput`) passes a request through to its referent, where
    `fixed="$b"` drops it: `fix_literals` leaves aliased state alone. Not
    fixed here.
+   **Done: attributes and the typed binding.** `component!` takes an
+   `attributes { .. }` section, the attributes a planner reads itself,
+   and makes a module `attr` of `Attr` handles (`attr::radius`), which
+   only the macro can make. `PlanCtx`'s readers of the element's
+   attributes (`attr`, `has`, `text`, `is_reference`, `math`, `point`,
+   `scalar`, `scalar_of`, `points`) take an `Attr`, so a planner reads
+   only attributes its type declares. A piece of shared state says where
+   its value was given (`Given`): by an attribute (`Attr`), by the
+   element's own children, or by its referent's; `plan_with_extend`
+   keeps the first when the copy gives the attribute, always keeps the
+   second, and shares the third. The binding is made where the value is
+   planned, not declared in `shared_state { .. }`: a point's `X` comes
+   from `x`, from `coords` or from children, as the author wrote it.
+   `<testMisspelled>` cannot be written now and went, with its test.
+   This found one more of the same hole: a point's coordinates from its
+   children were bound to `"children"`, which no attribute matches, so
+   `<point extend="$P">(3,4)</point>` showed `P`'s coordinates. It keeps
+   its own now (`tests/requests.rs`), as its planner always meant: it
+   chose its own children over the referent's, and only the sharing
+   undid that. The five `Plan` types declare their attributes; planners
+   that read the DAST directly (`d.attr(el, "prefill")`), and
+   `attr_flag`/`attr_on`, which take any node, still name attributes by
+   string. The golden diff is identical.
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 

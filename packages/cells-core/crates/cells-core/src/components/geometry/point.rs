@@ -25,6 +25,12 @@ component! {
         coords: [x, y],
     }
     sticky_points: (Shape::Point, X, 1),
+    attributes {
+        coords,
+        x,
+        y,
+        hide,
+    }
     shared_state {
         // The coordinates, when they are the point's own state.
         X, Y,
@@ -61,41 +67,50 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let own_children = ctx.math_children(el);
     let base_children = base.map(|b| ctx.math_children(b)).unwrap_or_default();
     let coords_state = [shared_state::X, shared_state::Y];
-    let [x, y] = if let Some(a) = ctx.attr("coords") {
+    let [x, y] = if let Some(a) = ctx.attr(attr::coords) {
         let p = ctx.point_at(a)?;
-        Wire::point(&p, coords_state, "coords")
-    } else if ctx.has("x") || ctx.has("y") || (own_children.is_empty() && base_children.is_empty())
+        Wire::point(&p, coords_state, attr::coords)
+    } else if ctx.has(attr::x)
+        || ctx.has(attr::y)
+        || (own_children.is_empty() && base_children.is_empty())
     {
-        let mut coord = |name: &'static str, state: SharedState| -> Result<Wire> {
+        let mut coord = |name: Attr, state: SharedState| -> Result<Wire> {
             Ok(match ctx.scalar(name)? {
                 Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
                 Some(source) => source.into(),
                 None => Wire::essential(state, 0.0),
             })
         };
-        [coord("x", coords_state[0])?, coord("y", coords_state[1])?]
+        [
+            coord(attr::x, coords_state[0])?,
+            coord(attr::y, coords_state[1])?,
+        ]
     } else {
-        let nodes = if own_children.is_empty() {
-            base_children
+        // The point's own children, else its referent's, which a copy
+        // then shares.
+        let (nodes, given) = if own_children.is_empty() {
+            (base_children, Given::Referent)
         } else {
-            own_children
+            (own_children, Given::Children)
         };
         let p = GivenPoint::Tuple(ctx.tuple(&nodes)?);
-        Wire::point(&p, coords_state, "children")
+        Wire::point(&p, coords_state, given)
     };
     // `hide` is a 0/1 cell: a bare or literal flag, or a bound cell; a
     // copy inherits the original's.
-    let hide = match ctx.attr("hide") {
-        Some(a) if ctx.single_macro(a).is_some() => ctx.scalar_of("hide", d.attr_children(a))?,
+    let hide = match ctx.attr(attr::hide) {
+        Some(a) if ctx.single_macro(a).is_some() => {
+            ctx.scalar_of(attr::hide, d.attr_children(a))?
+        }
         Some(_) => {
             // The copy's own attribute wins: `hide="false"` reveals a
             // copy of a hidden point, as in the current core.
-            let owner = if d.attr(el, "hide").is_some() {
+            let owner = if d.attr(el, attr::hide.name()).is_some() {
                 el
             } else {
                 base.unwrap()
             };
-            let on = ctx.attr_flag(owner, "hide");
+            let on = ctx.attr_flag(owner, attr::hide.name());
             Source::Literal(if on { 1.0 } else { 0.0 })
         }
         None if base.is_some() => Source::Inherit,

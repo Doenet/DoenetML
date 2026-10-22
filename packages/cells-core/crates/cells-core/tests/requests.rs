@@ -28,6 +28,30 @@ fn dragging_an_aliased_copy_moves_the_original() {
     assert_eq!(tick.changed.len(), 2);
 }
 
+/// A copy's own children are its coordinates: `(3,4)` is not the
+/// original's `(1,2)`, and moving one leaves the other. A copy that gives
+/// none shares the original's.
+#[test]
+fn a_copy_with_its_own_children_keeps_them() {
+    let mut doc = load(
+        r#"<graph><point name="p1">(1,2)</point>
+           <point name="p2" extend="$p1">(3,4)</point>
+           <point name="p3" extend="$p1" hide="false"/></graph>"#,
+    )
+    .unwrap();
+    assert_eq!(
+        (doc.value("p2", "x"), doc.value("p2", "y")),
+        (Some(3.0), Some(4.0))
+    );
+    doc.request(&[req(&doc, "p2", "x", 5.0)]);
+    assert_eq!(
+        (doc.value("p1", "x"), doc.value("p2", "x")),
+        (Some(1.0), Some(5.0))
+    );
+    doc.request(&[req(&doc, "p3", "x", 6.0)]);
+    assert_eq!(doc.value("p1", "x"), Some(6.0));
+}
+
 #[test]
 fn unary_inverses_round_trip() {
     let mut doc = load(

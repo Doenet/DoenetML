@@ -305,6 +305,13 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
 - Declare the type's *shared state*, which a copy shares with its original
   unless it overrides it, in the block (`shared_state { CX, CY, R }`; see
   `CONTEXT.md`).
+- Declare the attributes the planner reads itself (`attributes { center,
+  radius, through }`) and name them by their handles (`attr::radius`):
+  `ctx.scalar(attr::radius)` to read one, and
+  `Wire::essential_from(shared_state::R, attr::radius, v)` to say it gave
+  a piece of shared state, which a copy giving the same attribute keeps
+  as its own. State from the element's own children is `Given::Children`,
+  from its referent's `Given::Referent`.
 - A combination of attributes the planner cannot honor is a warning
   (`PlanCtx::warn`), never a silent NaN.
 

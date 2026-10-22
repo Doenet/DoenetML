@@ -48,6 +48,11 @@ component! {
         centerX1: centerX,
         centerX2: centerY,
     }
+    attributes {
+        center,
+        radius,
+        through,
+    }
     shared_state {
         // The center when it is the circle's own state, and the radius.
         CX, CY, R,
@@ -83,9 +88,9 @@ const INVALID_CENTER: (&str, &str) = (
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::AT;
     let nan = || Wire::fixed(f64::NAN);
-    let center = match ctx.point("center") {
+    let center = match ctx.point(attr::center) {
         // Not a point (`center="A"`): no center.
-        Err(Error::BadMath { .. }) if !ctx.is_reference("center") => {
+        Err(Error::BadMath { .. }) if !ctx.is_reference(attr::center) => {
             ctx.warn(INVALID_CENTER.0, INVALID_CENTER.1);
             Some(GivenPoint::Tuple([
                 Source::Fixed(f64::NAN),
@@ -94,8 +99,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         r => r?,
     };
-    let radius = ctx.scalar("radius")?;
-    let through = ctx.points("through")?;
+    let radius = ctx.scalar(attr::radius)?;
+    let through = ctx.points(attr::through)?;
     let n = through.len();
     let (hc, hr) = (center.is_some(), radius.is_some());
     // The list holds the points given, up to three; more is an error
@@ -108,7 +113,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // (projection, ADR 0003).
     let radius_wire = |wiring: &mut ElemWiring| -> Wire {
         let pres = wiring.hidden_wire(match &radius {
-            Some(Source::Literal(v)) => Wire::essential_from(shared_state::R, "radius", *v),
+            Some(Source::Literal(v)) => Wire::essential_from(shared_state::R, attr::radius, *v),
             Some(other) => other.clone().into(),
             None => Wire::essential(shared_state::R, 1.0),
         });
@@ -128,7 +133,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         .iter()
         .take(3)
         .enumerate()
-        .map(|(i, p)| Wire::point(p, shared_point_state(i), "through"))
+        .map(|(i, p)| Wire::point(p, shared_point_state(i), attr::through))
         .collect();
     // Coordinate `j` of through point `k` (0-based).
     let n_public = wiring.n_public;
@@ -138,7 +143,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             .expect("a through point the circle holds")
     };
     let [center_x, center_y] = match &center {
-        Some(c) => Wire::point(c, [shared_state::CX, shared_state::CY], "center"),
+        Some(c) => Wire::point(c, [shared_state::CX, shared_state::CY], attr::center),
         None => [Wire::own(at.cx), Wire::own(at.cy)],
     };
     let over = if n > 3 {

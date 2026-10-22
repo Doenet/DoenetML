@@ -85,19 +85,20 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // Attributes.
 
-    /// An attribute by name: the element's own, else its `extend`
-    /// referent's for a `Plan` type.
-    pub(crate) fn attr(&self, name: &str) -> Option<u32> {
-        self.c.attr_or_inherited(self.node(), self.base, name)
+    /// An attribute the type declares (`attributes { .. }`): the
+    /// element's own, else its `extend` referent's for a `Plan` type.
+    pub(crate) fn attr(&self, name: Attr) -> Option<u32> {
+        self.c
+            .attr_or_inherited(self.node(), self.base, name.name())
     }
 
     /// Whether the attribute is given.
-    pub(crate) fn has(&self, name: &str) -> bool {
+    pub(crate) fn has(&self, name: Attr) -> bool {
         self.attr(name).is_some()
     }
 
     /// An attribute's text, if it is given and holds no reference.
-    pub(crate) fn text(&self, name: &str) -> Option<String> {
+    pub(crate) fn text(&self, name: Attr) -> Option<String> {
         self.attr(name).and_then(|a| self.c.attr_text(a))
     }
 
@@ -124,7 +125,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Whether the attribute is one reference and nothing else
     /// (`center="$p"`).
-    pub(crate) fn is_reference(&self, name: &str) -> bool {
+    pub(crate) fn is_reference(&self, name: Attr) -> bool {
         self.attr(name)
             .is_some_and(|a| self.c.single_macro(a).is_some())
     }
@@ -141,7 +142,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// An attribute's math text, if given.
-    pub(crate) fn math(&self, name: &str) -> Option<Vec<NodeId>> {
+    pub(crate) fn math(&self, name: Attr) -> Option<Vec<NodeId>> {
         self.attr(name)
             .map(|a| self.c.dast.attr_children(a).to_vec())
     }
@@ -167,7 +168,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// A point-valued attribute, a reference (`center="$p"`) or a tuple
     /// (`center="(1, 2)"`), if given.
-    pub(crate) fn point(&mut self, name: &str) -> Result<Option<GivenPoint>> {
+    pub(crate) fn point(&mut self, name: Attr) -> Result<Option<GivenPoint>> {
         let Some(a) = self.attr(name) else {
             return Ok(None);
         };
@@ -181,7 +182,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// A scalar attribute, a literal, a reference or math, if given.
-    pub(crate) fn scalar(&mut self, name: &str) -> Result<Option<Source>> {
+    pub(crate) fn scalar(&mut self, name: Attr) -> Result<Option<Source>> {
         let Some(a) = self.attr(name) else {
             return Ok(None);
         };
@@ -191,14 +192,14 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Nodes as a scalar, a literal, a reference or math; `name` is the
     /// attribute they come from, for errors.
-    pub(crate) fn scalar_of(&mut self, name: &str, nodes: &[NodeId]) -> Result<Source> {
+    pub(crate) fn scalar_of(&mut self, name: Attr, nodes: &[NodeId]) -> Result<Source> {
         let scope = self.scope();
-        self.c.plan_scalar(self.t, scope, name, nodes)
+        self.c.plan_scalar(self.t, scope, name.name(), nodes)
     }
 
     /// The points of a point-list attribute (`through="$a (1, 2)"`), none
     /// if it is not given.
-    pub(crate) fn points(&mut self, name: &str) -> Result<Vec<GivenPoint>> {
+    pub(crate) fn points(&mut self, name: Attr) -> Result<Vec<GivenPoint>> {
         let Some(a) = self.attr(name) else {
             return Ok(Vec::new());
         };

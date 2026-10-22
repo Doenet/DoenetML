@@ -26,6 +26,18 @@ component! {
         alternate_name: vertexX,
     }
     sticky_list: Shape::Closed,
+    attributes {
+        vertices,
+        rigid,
+        preserveSimilarity,
+        rotationCenter,
+        rotateAround,
+        rotationVertex,
+        minShrink,
+        allowDilation,
+        allowRotation,
+        allowTranslation,
+    }
     planner: Plan(plan),
 }
 
@@ -34,7 +46,7 @@ pub const NUM_VERTICES: usize = Props::AT.numVertices;
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let vertices = ctx.points("vertices")?;
+    let vertices = ctx.points(attr::vertices)?;
     let n = vertices.len();
     if n > super::MAX_VERTICES {
         return Err(Error::Unsupported(format!(
@@ -45,7 +57,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // The vertices are the list (ADR 0016), as many as given.
     let mut wiring = ElemWiring::with_list(ComponentType::Polygon, n);
     let n_public = wiring.n_public;
-    let flag = |ctx: &PlanCtx<'_, '_>, name: &str, default: bool| -> bool {
+    let flag = |ctx: &PlanCtx<'_, '_>, name: Attr, default: bool| -> bool {
         match ctx.attr(name) {
             None => default,
             Some(a) => {
@@ -55,13 +67,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             }
         }
     };
-    let rigid = flag(ctx, "rigid", false);
-    let similar = flag(ctx, "preserveSimilarity", false);
-    let pivot_point = match ctx.attr("rotationCenter") {
+    let rigid = flag(ctx, attr::rigid, false);
+    let similar = flag(ctx, attr::preserveSimilarity, false);
+    let pivot_point = match ctx.attr(attr::rotationCenter) {
         Some(a)
-            if flag(ctx, "rotateAround", false)
+            if flag(ctx, attr::rotateAround, false)
                 || ctx
-                    .text("rotateAround")
+                    .text(attr::rotateAround)
                     .is_some_and(|r| r.trim() == "point") =>
         {
             Some(ctx.point_at(a)?)
@@ -69,11 +81,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ => None,
     };
     let rigid_opts = if rigid || similar {
-        let rotate_around = ctx.text("rotateAround").unwrap_or_default();
+        let rotate_around = ctx.text(attr::rotateAround).unwrap_or_default();
         let pivot = match rotate_around.trim() {
             "vertex" => {
                 let k = ctx
-                    .text("rotationVertex")
+                    .text(attr::rotationVertex)
                     .and_then(|s| s.trim().parse::<usize>().ok())
                     .unwrap_or(1);
                 Pivot::Vertex(byte(k.saturating_sub(1)))
@@ -82,15 +94,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             _ => Pivot::Centroid,
         };
         let min_shrink = ctx
-            .text("minShrink")
+            .text(attr::minShrink)
             .and_then(|s| s.trim().parse::<f64>().ok())
             .unwrap_or(0.1);
         Some(RigidOpts {
             // `rigid` forbids dilation; `preserveSimilarity` allows it
             // unless `allowDilation` says otherwise.
-            dilate: !rigid && flag(ctx, "allowDilation", true),
-            rotate: flag(ctx, "allowRotation", true),
-            translate: flag(ctx, "allowTranslation", true),
+            dilate: !rigid && flag(ctx, attr::allowDilation, true),
+            rotate: flag(ctx, attr::allowRotation, true),
+            translate: flag(ctx, attr::allowTranslation, true),
             min_shrink,
             pivot,
         })
@@ -110,7 +122,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             let mut args = Vec::with_capacity(2 * n + 2);
             for (k, v) in vertices.iter().enumerate() {
                 let [x, y] =
-                    wiring.hidden_point_with_shared_state(v, shared_point_state(k), "vertices");
+                    wiring.hidden_point_with_shared_state(v, shared_point_state(k), attr::vertices);
                 args.push(x);
                 args.push(y);
             }
@@ -141,7 +153,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ => vertices
             .iter()
             .enumerate()
-            .map(|(k, v)| Wire::point(v, shared_point_state(k), "vertices"))
+            .map(|(k, v)| Wire::point(v, shared_point_state(k), attr::vertices))
             .collect(),
     };
     wiring.set_public(Props {

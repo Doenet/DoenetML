@@ -312,19 +312,61 @@ impl SharedState {
     }
 }
 
+/// An attribute a component's planner reads, as its `attributes { .. }`
+/// declares it (`component!`): only the macro makes one, as a constant of
+/// the component's `attr` module (`attr::radius`), so a planner can name
+/// only an attribute its type declares, and a misspelling does not
+/// compile.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Attr(&'static str);
+
+impl Attr {
+    /// An attribute a component declares; only `component!` calls this.
+    #[doc(hidden)]
+    pub(crate) const fn declared(name: &'static str) -> Attr {
+        Attr(name)
+    }
+
+    /// Its name, as the source spells it (ignoring case).
+    pub(crate) const fn name(self) -> &'static str {
+        self.0
+    }
+}
+
+/// Where the value of a piece of essential state was given, which decides
+/// whether a copy with overrides keeps it or shares its referent's
+/// (`plan_with_extend`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Given {
+    /// By the attribute, the element's own or, when it omits it, its
+    /// referent's: a copy that gives the attribute keeps the value.
+    Attr(Attr),
+    /// By the element's own children: a copy keeps the value.
+    Children,
+    /// By the referent's children, which the element stands on when it
+    /// has none of its own: a copy shares the value.
+    Referent,
+}
+
+impl From<Attr> for Given {
+    fn from(a: Attr) -> Self {
+        Given::Attr(a)
+    }
+}
+
 /// A point a planner uses when the author gives none: the shared state
 /// its coordinates are, and their value. Both are a component's to say (the line's and
 /// segment's values are in `components/geometry/mod.rs`).
 pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
 
 /// One prop's source and, when it is essential state that a copy shares,
-/// which shared state it is and the attribute its value came from: what a
-/// typed plan's fields hold (`typed_props!`), so shared state is always
-/// named on the slot that holds it.
+/// which shared state it is and where its value was given: what a typed
+/// plan's fields hold (`typed_props!`), so shared state is always named on
+/// the slot that holds it.
 #[derive(Debug, Clone)]
 pub(crate) struct Wire {
     pub(crate) source: Source,
-    state: Option<(SharedState, Option<&'static str>)>,
+    state: Option<(SharedState, Option<Given>)>,
 }
 
 impl From<Source> for Wire {
@@ -344,12 +386,12 @@ impl Wire {
             state: Some((state, None)),
         }
     }
-    /// Essential state, shared as `state`, initially `v`, given by `attr`: a copy
-    /// that gives `attr` itself does not share it.
-    pub(crate) fn essential_from(state: SharedState, attr: &'static str, v: f64) -> Self {
+    /// Essential state, shared as `state`, initially `v`, given as `given`
+    /// says: a copy that gives it itself does not share it.
+    pub(crate) fn essential_from(state: SharedState, given: impl Into<Given>, v: f64) -> Self {
         Wire {
             source: Source::Literal(v),
-            state: Some((state, Some(attr))),
+            state: Some((state, Some(given.into()))),
         }
     }
     /// Essential text state, shared as `state`, initially the string `id`.
@@ -386,23 +428,24 @@ impl Wire {
     pub(crate) fn point_or_default(
         p: Option<&GivenPoint>,
         shared_state: [SharedState; 2],
-        attr: &'static str,
+        given: impl Into<Given>,
         (default_shared_state, default): DefaultPoint,
     ) -> [Self; 2] {
         match p {
-            Some(p) => Self::point(p, shared_state, attr),
+            Some(p) => Self::point(p, shared_state, given),
             None => std::array::from_fn(|j| Self::essential(default_shared_state[j], default[j])),
         }
     }
     /// A point's two coordinates: a literal coordinate is essential state
-    /// with its shared state, given by `attr`.
+    /// with its shared state, given as `given` says.
     pub(crate) fn point(
         p: &GivenPoint,
         shared_state: [SharedState; 2],
-        attr: &'static str,
+        given: impl Into<Given>,
     ) -> [Self; 2] {
+        let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
-            Source::Literal(v) => Wire::essential_from(shared_state[j], attr, v),
+            Source::Literal(v) => Wire::essential_from(shared_state[j], given, v),
             other => other.into(),
         })
     }
@@ -417,9 +460,9 @@ pub(crate) struct ElemWiring {
     pub(crate) n_public: usize,
     /// Which slot holds each piece of shared state.
     pub(crate) shared_state: HashMap<SharedState, u8>,
-    /// The attribute a piece of shared state's value came from, if any; a
-    /// copy that gives that attribute itself does not share it.
-    pub(crate) shared_state_attr: HashMap<SharedState, &'static str>,
+    /// Where a piece of shared state's value was given, if it was; a copy
+    /// that gives it itself does not share it.
+    pub(crate) shared_state_given: HashMap<SharedState, Given>,
 }
 
 /// A prop wired from the built tree rather than planned (`Source::Deferred`).
@@ -486,7 +529,7 @@ impl ElemWiring {
             n_public,
             props: vec![None; n_public],
             shared_state: HashMap::new(),
-            shared_state_attr: HashMap::new(),
+            shared_state_given: HashMap::new(),
         }
     }
     pub(crate) fn hidden(&mut self, source: Source) -> usize {
@@ -495,16 +538,17 @@ impl ElemWiring {
         self.props.len() - 1
     }
     /// Two hidden slots holding a point's coordinates, a literal coordinate
-    /// as essential state with its shared state, given by `attr`.
+    /// as essential state with its shared state, given as `given` says.
     pub(crate) fn hidden_point_with_shared_state(
         &mut self,
         p: &GivenPoint,
         shared_state: [SharedState; 2],
-        attr: &'static str,
+        given: impl Into<Given>,
     ) -> [usize; 2] {
+        let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
             Source::Literal(v) => {
-                self.shared_state_from_attr(shared_state[j], attr);
+                self.shared_state_given.insert(shared_state[j], given);
                 self.essential(shared_state[j], v)
             }
             other => self.hidden(other),
@@ -517,8 +561,8 @@ impl ElemWiring {
     /// A hidden slot planned as `p`, holding its shared state if any.
     pub(crate) fn hidden_wire(&mut self, p: Wire) -> usize {
         let i = self.hidden(p.source);
-        if let Some((state, attr)) = p.state {
-            self.add_shared_state(i, state, attr);
+        if let Some((state, given)) = p.state {
+            self.add_shared_state(i, state, given);
         }
         i
     }
@@ -528,14 +572,10 @@ impl ElemWiring {
         self.shared_state.insert(state, own_slot(i));
         i
     }
-    /// Record that shared state `state` came from attribute `attr`.
-    pub(crate) fn shared_state_from_attr(&mut self, state: SharedState, attr: &'static str) {
-        self.shared_state_attr.insert(state, attr);
-    }
-    fn add_shared_state(&mut self, i: usize, state: SharedState, attr: Option<&'static str>) {
+    fn add_shared_state(&mut self, i: usize, state: SharedState, given: Option<Given>) {
         self.shared_state.insert(state, own_slot(i));
-        if let Some(a) = attr {
-            self.shared_state_from_attr(state, a);
+        if let Some(g) = given {
+            self.shared_state_given.insert(state, g);
         }
     }
     /// Every public slot, from a typed plan's fields in table order
@@ -543,8 +583,8 @@ impl ElemWiring {
     pub(crate) fn set_public(&mut self, props: impl IntoIterator<Item = Wire>) {
         for (i, p) in props.into_iter().enumerate() {
             self.props[i] = Some(p.source);
-            if let Some((state, attr)) = p.state {
-                self.add_shared_state(i, state, attr);
+            if let Some((state, given)) = p.state {
+                self.add_shared_state(i, state, given);
             }
         }
     }
@@ -563,8 +603,8 @@ impl ElemWiring {
             for (j, p) in point.into_iter().enumerate() {
                 let i = n_fixed + 2 * k + j;
                 self.props[i] = Some(p.source);
-                if let Some((state, attr)) = p.state {
-                    self.add_shared_state(i, state, attr);
+                if let Some((state, given)) = p.state {
+                    self.add_shared_state(i, state, given);
                 }
             }
         }

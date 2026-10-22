@@ -391,13 +391,21 @@ macro_rules! typed_props {
 pub(crate) use typed_props;
 
 /// A component type's whole definition in one block: its tags, flags,
-/// props, combined props, list, alternate names, shared state and
-/// planner. It makes the row `DEFINITION`, which `component_types!`
+/// props, combined props, list, alternate names, attributes, shared state
+/// and planner. It makes the row `DEFINITION`, which `component_types!`
 /// registers, the table `PROPS`, and through `typed_props!` the typed plan
 /// `Props` and its `shared_state`. Each prop is named once, as an
 /// identifier, so a combined prop or a computed prop naming one the table
 /// lacks fails to compile. The sections come in the
 /// order below; only `tags`, `props` and `planner` are required.
+///
+/// `attributes { .. }` names the attributes the type's planner reads
+/// itself, beyond its table's: a module `attr` holds one
+/// `compile::api::Attr` per name (`attr::radius`), which is how a planner
+/// names an attribute (`ctx.scalar(attr::radius)`), and where a piece of
+/// shared state's value was given (`Wire::essential_from(shared_state::R,
+/// attr::radius, v)`). Only the macro makes an `Attr`, so a planner names
+/// only attributes its type declares, and a misspelling does not compile.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
@@ -451,6 +459,7 @@ macro_rules! component {
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(sticky_points: ($($sp:expr),+ $(,)?),)?
         $(sticky_list: $sl:expr,)?
+        $(attributes { $($aname:ident),* $(,)? })?
         $(shared_state { $($state:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
@@ -484,6 +493,18 @@ macro_rules! component {
         ]);
 
         $crate::components::define::typed_props!(PROPS { $($pname),+ } $(shared_state { $($state),* })?);
+
+        $(
+            /// The attributes this type's planner reads itself
+            /// (`attributes { .. }`), as the planner names them.
+            #[allow(non_upper_case_globals, dead_code)]
+            pub(crate) mod attr {
+                $(
+                    pub(crate) const $aname: $crate::compile::api::Attr =
+                        $crate::compile::api::Attr::declared(stringify!($aname));
+                )*
+            }
+        )?
 
         $($($(
             const _: () = assert!(

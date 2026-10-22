@@ -8,11 +8,9 @@
 //! - `<testValue value="..">`: planned from its table alone (`Props`).
 //! - `<testShape a=".." b="..">`: planned by a function inside
 //!   `plan_with_extend`'s handling of `extend`, with two pieces of shared
-//!   state, each supplied by the attribute of the same name.
-//! - `<testMisspelled a=".." b="..">`: `<testShape>` whose planner names
-//!   the attribute supplying `A` as `"aa"`, a misspelling nothing checks
-//!   yet. Binding shared state to its attribute by identifier (Migration
-//!   step 8) makes it a compile error, and this component goes then.
+//!   state, each supplied by the attribute of the same name, `a` else by
+//!   the element's children (`<testShape>3</testShape>`) or its
+//!   referent's.
 
 /// `<testValue>`: a value and its double, from the table alone.
 pub(crate) mod test_value {
@@ -42,8 +40,9 @@ pub(crate) mod test_shape {
 
     component! {
         /// `<testShape a=".." b="..">`: `a` and `b` are essential, 0 by
-        /// default, unless their attribute is a reference or math; `sum`
-        /// is computed from them.
+        /// default, unless their attribute is a reference or math; without
+        /// its attribute, `a` is the element's children, else its
+        /// referent's; `sum` is computed from them.
         tags: ["testShape"],
         flags: [copyable],
         props {
@@ -51,6 +50,7 @@ pub(crate) mod test_shape {
             b: by_planner,
             sum: computed(OpSpec::Add, [a, b]),
         }
+        attributes { a, b }
         shared_state { A, B }
         planner: Plan(plan),
     }
@@ -58,66 +58,38 @@ pub(crate) mod test_shape {
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let mut wiring = ElemWiring::of(ComponentType::TestShape);
         wiring.set_public(Props {
-            a: given(ctx, shared_state::A, "a")?,
-            b: given(ctx, shared_state::B, "b")?,
+            a: a(ctx)?,
+            b: given(ctx, shared_state::B, attr::b)?,
             sum: Wire::from_table(ComponentType::TestShape, Props::AT.sum),
         });
         Ok(wiring)
     }
 
-    /// The attribute `attr` as the shared state `state`: a literal is its
-    /// value, anything else is what it computes, and none is 0. `binding`
-    /// is the attribute named as supplying `state`, which is `attr` but
-    /// for `<testMisspelled>`.
-    pub(super) fn given_as(
-        ctx: &mut PlanCtx<'_, '_>,
-        state: SharedState,
-        attr: &'static str,
-        binding: &'static str,
-    ) -> Result<Wire> {
-        Ok(match ctx.scalar(attr)? {
-            Some(Source::Literal(v)) => Wire::essential_from(state, binding, v),
-            Some(other) => other.into(),
-            None => Wire::essential(state, 0.0),
+    /// `a`: its attribute, else the element's children, else its
+    /// referent's, which a copy then shares.
+    fn a(ctx: &mut PlanCtx<'_, '_>) -> Result<Wire> {
+        if ctx.has(attr::a) {
+            return given(ctx, shared_state::A, attr::a);
+        }
+        let (nodes, from) = match (ctx.child_math(), ctx.referent_child_math()) {
+            (Some(own), _) => (own, Given::Children),
+            (None, Some(referent)) => (referent, Given::Referent),
+            (None, None) => return Ok(Wire::essential(shared_state::A, 0.0)),
+        };
+        Ok(match ctx.scalar_of(attr::a, &nodes)? {
+            Source::Literal(v) => Wire::essential_from(shared_state::A, from, v),
+            other => other.into(),
         })
     }
 
-    fn given(ctx: &mut PlanCtx<'_, '_>, state: SharedState, attr: &'static str) -> Result<Wire> {
-        given_as(ctx, state, attr, attr)
-    }
-}
-
-/// `<testMisspelled>`: `<testShape>` with the attribute supplying `A`
-/// misspelled.
-pub(crate) mod test_misspelled {
-    use super::test_shape::given_as;
-    use crate::compile::api::*;
-    use crate::components::ComponentType;
-    use crate::components::define::*;
-    use crate::error::Result;
-
-    component! {
-        /// `<testMisspelled a=".." b="..">`: as `<testShape>`, but its
-        /// planner says `A` comes from `aa`.
-        tags: ["testMisspelled"],
-        flags: [copyable],
-        props {
-            a: by_planner,
-            b: by_planner,
-            sum: computed(OpSpec::Add, [a, b]),
-        }
-        shared_state { A, B }
-        planner: Plan(plan),
-    }
-
-    pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-        let mut wiring = ElemWiring::of(ComponentType::TestMisspelled);
-        wiring.set_public(Props {
-            a: given_as(ctx, shared_state::A, "a", "aa")?,
-            b: given_as(ctx, shared_state::B, "b", "b")?,
-            sum: Wire::from_table(ComponentType::TestMisspelled, Props::AT.sum),
-        });
-        Ok(wiring)
+    /// The attribute `name` as the shared state `state`: a literal is its
+    /// value, anything else is what it computes, and none is 0.
+    fn given(ctx: &mut PlanCtx<'_, '_>, state: SharedState, name: Attr) -> Result<Wire> {
+        Ok(match ctx.scalar(name)? {
+            Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
+            Some(other) => other.into(),
+            None => Wire::essential(state, 0.0),
+        })
     }
 }
 
