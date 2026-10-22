@@ -349,7 +349,10 @@ cells directly and redraw once per tick; Doenet's styling is copied into
 - `cargo test` runs the unit and integration tests. Many check the scheduled
   program against `testing/reference.rs`, a naive recursive evaluator that
   ignores the schedule.
-- `tests/specs/` holds the component specs (`testing/spec.rs`, ADR 0016).
+- `tests/specs/` holds the component specs (`testing/spec.rs`, ADR 0016),
+  laid out as `src/components/` is: `tests/specs/geometry/circle.rs` is the
+  spec of `components/geometry/circle.rs`, and a type defined in its family's
+  `mod.rs` (the slider) has a file of its own (`tests/specs/inputs/slider.rs`).
   Each `spec!` case gives DoenetML, a sequence of requests, and the values an
   author should see after each. Every case is also checked against the
   reference evaluator and the component's cost snapshot in

@@ -239,8 +239,11 @@ case), carry every piece before other components follow:
    A nonlinear line equation still makes a line of NaN
    without a diagnostic, as before. The golden diff is identical through
    every move. The segment and the line, which had no specs, have them
-   (`tests/specs/segment.rs`, `line.rs`); the line's passes, cost
+   (`tests/specs/geometry/segment.rs`, `line.rs`); the line's passes, cost
    snapshot included, on the commit before it moved too.
+   The specs are laid out as the components are
+   (`tests/specs/geometry/circle.rs` for `components/geometry/circle.rs`),
+   and stay integration tests so that a spec can use only the public API.
 3. Lists with per-element lengths, for the circle's through points, then
    the polygon's vertices. **Done for the circle**: a type's one list
    (`ListProp`, `ComponentType::prop_at`) follows its table's props; an
