@@ -1,8 +1,8 @@
 {
-    "id": "2026-10-22-claude-cloud-aa1490af7",
+    "id": "2026-10-22-claude-cloud-e7f3dc46d",
     "date": "2026-10-22",
     "machine": "claude-cloud",
-    "commit": "aa1490af7",
+    "commit": "e7f3dc46d",
     "dirty": false,
     "hardware": {
         "cpu": "Intel(R) Xeon(R) Processor",
@@ -65,11 +65,56 @@
                     "page": "viewer",
                     "device": "slow-phone",
                     "network": "slow-4g"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "desktop",
+                    "network": "none"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "desktop",
+                    "network": "4g"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "desktop",
+                    "network": "slow-4g"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "mid-phone",
+                    "network": "none"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "mid-phone",
+                    "network": "4g"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "mid-phone",
+                    "network": "slow-4g"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "slow-phone",
+                    "network": "none"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "slow-phone",
+                    "network": "4g"
+                },
+                {
+                    "page": "prerendered",
+                    "device": "slow-phone",
+                    "network": "slow-4g"
                 }
             ],
             "load_timeout_ms": 120000,
-            "session": "9466-1792699846235",
-            "started": "2026-10-22T20:10:46.395Z"
+            "session": "6813-1792702045017",
+            "started": "2026-10-22T20:47:25.177Z"
         }
     }
 }
