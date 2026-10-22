@@ -286,8 +286,8 @@ pub(crate) fn own_slot(i: usize) -> u8 {
 }
 
 /// The name of a piece of essential state a copy shares with its
-/// original unless it overrides it (`plan_geo`): the copy's slot holding
-/// shared state `R` aliases the original's slot holding `R`. A copy
+/// original unless it overrides it (`plan_with_extend`): the copy's slot
+/// holding shared state `R` aliases the original's slot holding `R`. A copy
 /// extends an element of its own type only, so a name need only be
 /// unique within its type. Every one is a constant: a component's own,
 /// declared beside its props (`shared_state { .. }` in `component!`), or a

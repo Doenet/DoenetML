@@ -6,9 +6,10 @@ use ctx::PlanCtx;
 
 /// Adjusts the props `plan_attrs` planned from the table.
 pub(crate) type PropsFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>, &mut [Option<Source>]) -> Result<()>;
-/// Plans a geometric element, its attributes merged over those of the
-/// element it extends.
-pub(crate) type GeoFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemWiring>;
+/// Returns the element's plan, its attributes merged over those of the
+/// element it extends; `plan_with_extend` applies the copy rules around
+/// it.
+pub(crate) type PlanFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<ElemWiring>;
 /// Plans the whole element.
 pub(crate) type WholeFn = for<'c, 'a> fn(&mut PlanCtx<'c, 'a>) -> Result<()>;
 
@@ -22,9 +23,11 @@ pub(crate) enum Planner {
     Props,
     /// From the prop table, then adjusted by the function.
     PropsThen(PropsFn),
-    /// By the function, inside `plan_geo`'s shared handling of `extend`.
-    Geometric(GeoFn),
-    /// By the function alone.
+    /// By the function, which returns the plan; `plan_with_extend` applies
+    /// the copy rules, `fixed` and the list's length around it, and the
+    /// function reads the element's children itself.
+    Plan(PlanFn),
+    /// By the function alone, which writes the plan itself.
     Whole(WholeFn),
 }
 

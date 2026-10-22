@@ -26,7 +26,7 @@ component! {
         alternate_name: vertexX,
     }
     sticky_list: Shape::Closed,
-    planner: Geometric(plan),
+    planner: Plan(plan),
 }
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;

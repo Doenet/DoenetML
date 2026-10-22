@@ -7,8 +7,8 @@
 //!
 //! - `<testValue value="..">`: planned from its table alone (`Props`).
 //! - `<testShape a=".." b="..">`: planned by a function inside
-//!   `plan_geo`'s handling of `extend`, with two pieces of shared state,
-//!   each supplied by the attribute of the same name.
+//!   `plan_with_extend`'s handling of `extend`, with two pieces of shared
+//!   state, each supplied by the attribute of the same name.
 //! - `<testMisspelled a=".." b="..">`: `<testShape>` whose planner names
 //!   the attribute supplying `A` as `"aa"`, a misspelling nothing checks
 //!   yet. Binding shared state to its attribute by identifier (Migration
@@ -52,7 +52,7 @@ pub(crate) mod test_shape {
             sum: computed(OpSpec::Add, [a, b]),
         }
         shared_state { A, B }
-        planner: Geometric(plan),
+        planner: Plan(plan),
     }
 
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
@@ -107,7 +107,7 @@ pub(crate) mod test_misspelled {
             sum: computed(OpSpec::Add, [a, b]),
         }
         shared_state { A, B }
-        planner: Geometric(plan),
+        planner: Plan(plan),
     }
 
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {

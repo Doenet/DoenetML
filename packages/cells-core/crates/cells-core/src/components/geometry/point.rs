@@ -29,7 +29,7 @@ component! {
         // The coordinates, when they are the point's own state.
         X, Y,
     }
-    planner: Geometric(plan),
+    planner: Plan(plan),
 }
 
 pub const X: usize = Props::AT.x;

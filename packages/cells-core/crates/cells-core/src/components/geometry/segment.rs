@@ -29,7 +29,7 @@ component! {
         // A missing endpoint's coordinates.
         ESS1X, ESS1Y, ESS2X, ESS2Y,
     }
-    planner: Geometric(plan),
+    planner: Plan(plan),
 }
 
 pub const X1: usize = Props::AT.x1;

@@ -281,7 +281,10 @@ inverses. If other code reads a prop by position, name it in the module
 **A type whose wiring depends on which attributes the author gave** names a
 planner of its own as the block's last section:
 
-- `Geometric(plan)` for a shape,
+- `Plan(plan)` to return the element's plan, with the copy rules
+  (`extend`), `fixed` and its list's length applied around it
+  (`plan_with_extend`, `compile/copies.rs`); the points, lines and circle
+  are planned this way,
 - `PropsThen(plan)` to adjust the plan the prop table produces (reached
   through `Props::AT`),
 - `Whole(plan)` to plan the element entirely.

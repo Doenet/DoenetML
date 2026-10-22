@@ -6,11 +6,11 @@ use super::*;
 /// (the DAST, read-only), its attributes planned the ways every component
 /// shares, the machinery several components build on, and the writes that
 /// make the element's wiring. An attribute by name is the element's own or,
-/// when the element omits it and is a shape extending another, its `extend`
-/// referent's. One context serves every kind of planner; the kind decides
-/// what is done around the call. For a shape, `plan_geo` makes it and does
-/// the rest: a bare copy, sharing state with the referent, and
-/// `fixed`.
+/// when the element omits it and is a `Plan` type extending another, its
+/// `extend` referent's. One context serves every kind of planner; the kind
+/// decides what is done around the call. For a `Plan` type,
+/// `plan_with_extend` makes it and does the rest: a bare copy, sharing
+/// state with the referent, and `fixed`.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
@@ -56,7 +56,7 @@ impl<'a> PlanCtx<'_, 'a> {
         self.elem().component_type
     }
 
-    /// The node of the element a shape extends, which supplies the
+    /// The node of the element a `Plan` type extends, which supplies the
     /// attributes and children the element omits.
     pub(crate) fn base(&self) -> Option<NodeId> {
         self.base
@@ -86,7 +86,7 @@ impl<'a> PlanCtx<'_, 'a> {
     // Attributes.
 
     /// An attribute by name: the element's own, else its `extend`
-    /// referent's for a shape.
+    /// referent's for a `Plan` type.
     pub(crate) fn attr(&self, name: &str) -> Option<u32> {
         self.c.attr_or_inherited(self.node(), self.base, name)
     }

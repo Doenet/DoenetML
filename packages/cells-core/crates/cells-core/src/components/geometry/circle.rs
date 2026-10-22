@@ -52,7 +52,7 @@ component! {
         // The center when it is the circle's own state, and the radius.
         CX, CY, R,
     }
-    planner: Geometric(plan),
+    planner: Plan(plan),
 }
 
 /// Why a circle cannot be what its attributes ask, as the current core's

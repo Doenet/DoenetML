@@ -9,7 +9,13 @@ a spec tests its component, and the language's rules are kept by the core
 Terms: what this ADR first called a *role* is *shared state* now
 (`SharedState`, declared in a component's `shared_state { .. }`); see
 `CONTEXT.md`. The Context below keeps the old word for what it
-describes.
+describes. The planner kind first called `Geometric` is `Plan` now, and
+`plan_geo`, which runs it and applies the copy rules around it, is
+`plan_with_extend` (`compile/copies.rs`): nothing in either is
+geometric (renamed 2026-10-22). `compile/geometry/mod.rs` went then too:
+its copy rules to `compile/copies.rs`, its point lists to
+`compile/points.rs`, its math helpers to `compile/attrs.rs`. Text
+written before then keeps the old names.
 
 A component should be writable, and changeable, without knowing cells,
 slots, shared state, the probe or the renderer, and without costing load time or
@@ -162,14 +168,14 @@ They are kept in three layers instead:
 
 - **By construction.** Where a component could break a rule, breaking it
   does not compile, or the rule is out of the component's reach. A bare
-  copy is planned before the component's planner runs (`plan_geo`, and
-  `compile/mod.rs` for the other kinds); `View`, the probe and the rebuild
-  are never a component's concern (above). What is still a convention
+  copy is planned before the component's planner runs
+  (`plan_with_extend`, and `compile/mod.rs` for the other kinds); `View`,
+  the probe and the rebuild are never a component's concern (above). What is still a convention
   moves into the definition. Which attribute supplies each piece of shared
   state is declared in `shared_state { .. }`, by identifiers checked
   against the component's attributes; today it is a string passed to
-  `Wire::essential_from` that `plan_geo` compares with a copy's own
-  attributes, and a misspelling silently shares the base's value where
+  `Wire::essential_from` that `plan_with_extend` compares with a copy's
+  own attributes, and a misspelling silently shares the base's value where
   the copy's own was asked for. A plan cannot hold a literal NaN, so an
   unsupported combination goes through `PlanCtx::warn`. What a copy
   inherits is the machinery's: the point's own `Source::Inherit`, and
@@ -320,7 +326,7 @@ case), carry every piece before other components follow:
    things"), written from the pilots.
 8. The language's rules out of the specs (amended 2026-10-22; see Done is
    a green spec). A DAST builder in `testing/` and test-only components;
-   unit tests of the copy rules in `compile/geometry/mod.rs` (a bare
+   unit tests of the copy rules in `compile/copies.rs` (a bare
    copy, an override that keeps its own state, an override that shares
    the base's) and of inheritance in `build/expand/`; shared state bound
    to its attribute by identifier in `component!`; the point's copy
@@ -339,20 +345,20 @@ case), carry every piece before other components follow:
    `chain-100000`).
    **Done: the test-only components** (`components/test_only.rs`):
    `<testValue>`, planned from its table, and `<testShape>`, planned by a
-   function inside `plan_geo`, with two pieces of shared state each
-   supplied by an attribute. They are in `components/` because only it
+   function inside `plan_with_extend`, with two pieces of shared state
+   each supplied by an attribute. They are in `components/` because only it
    can define a component, and are registered in `component_types!`'s
    `#[cfg(test)]` section, after every other type: they exist only in
    this crate's unit tests, not in its integration tests, `cells-bench`
    (which enables the `testing` feature) or the wasm build, and no other
    type's discriminant moves. The golden diff is identical.
-   **Done: the copy rules' unit tests**, in `compile/geometry/mod.rs`
-   (`plan_geo`) and `compile/attrs.rs` (`plan_attrs`): a bare copy, an
-   own attribute keeping its state and sharing the rest both ways, state
-   the referent defaulted, an own reference, an attribute supplying no
-   state, a copy of a copy. Breaking either half of `plan_geo`'s rule
-   (never keeping a copy's own state, or never sharing the base's) fails
-   them. `<testMisspelled>`, a third test-only component, names `aa` as
+   **Done: the copy rules' unit tests**, in `compile/copies.rs`
+   (`plan_with_extend`) and `compile/attrs.rs` (`plan_attrs`): a bare
+   copy, an own attribute keeping its state and sharing the rest both
+   ways, state the referent defaulted, an own reference, an attribute
+   supplying no state, a copy of a copy. Breaking either half of
+   `plan_with_extend`'s rule (never keeping a copy's own state, or never
+   sharing the base's) fails them. `<testMisspelled>`, a third test-only component, names `aa` as
    the attribute supplying its `A`, and its test records the hole: a
    copy's own `a` is silently replaced by its referent's. Writing them found that a copy
    with a literal `fixed` (`<point extend="$P" fixed/>`, as for a circle

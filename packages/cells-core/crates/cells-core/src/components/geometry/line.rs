@@ -42,7 +42,7 @@ component! {
         // A missing point's coordinates.
         ESS1X, ESS1Y, ESS2X, ESS2Y,
     }
-    planner: Geometric(plan),
+    planner: Plan(plan),
 }
 
 /// Variable names of the equation (`variables="(s,t)"` or `"s t"`), `x`

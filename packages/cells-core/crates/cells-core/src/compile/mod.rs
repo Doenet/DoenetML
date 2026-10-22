@@ -17,8 +17,9 @@
 //! given; `api.rs` is all of `compile/` a planner may use. The rest is
 //! machinery planners build on: `attrs.rs` plans attribute and math
 //! sources, `refs.rs` names and reference paths, `expr.rs` the parse
-//! arena for math text, `geometry/` what shapes share (`plan_geo`),
-//! `choice.rs` with `condition.rs` the choices, `copies.rs` `extend`,
+//! arena for math text, `points.rs` point lists, `choice.rs` with
+//! `condition.rs` the choices, `copies.rs` `extend` and the copy rules
+//! (`plan_with_extend`),
 //! `fix.rs` `fixed`, `answer.rs` answers and `iterates.rs` repeats over
 //! lists. What compile produces is in `plan.rs`.
 
@@ -45,11 +46,11 @@ mod copies;
 mod ctx;
 pub(crate) mod expr;
 mod fix;
-mod geometry;
 mod iterates;
 pub mod lint;
 pub(crate) mod plan;
 mod planner;
+mod points;
 mod refs;
 
 pub use check::diagnose;
@@ -553,10 +554,10 @@ impl<'a> Compiler<'a> {
                 self.compiled.templates[t].elems[e].children = kids;
             }
             ComponentType::When => {}
-            // A number's children are its value, not rendered children; the
-            // geometric types read their children themselves (a line's
+            // A number's children are its value, not rendered children; a
+            // `Plan` type's planner reads its children itself (a line's
             // equation, a point's constraints).
-            _ if matches!(Self::planner(component_type), Planner::Geometric(_))
+            _ if matches!(Self::planner(component_type), Planner::Plan(_))
                 || component_type
                     .prop_defs()
                     .iter()
@@ -653,7 +654,7 @@ impl<'a> Compiler<'a> {
             ElemShape::ContainerCopy(p) => self.plan_container_copy(t, e, p),
             ElemShape::ByType(extend) => match Self::planner(component_type) {
                 Planner::Props | Planner::PropsThen(_) => self.plan_attrs(t, e, extend),
-                Planner::Geometric(plan) => self.plan_geo(t, e, extend, plan),
+                Planner::Plan(plan) => self.plan_with_extend(t, e, extend, plan),
                 Planner::Whole(plan) => plan(&mut PlanCtx::new(self, t, e, None)),
             },
         }

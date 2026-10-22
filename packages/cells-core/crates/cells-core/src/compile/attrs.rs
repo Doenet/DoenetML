@@ -116,7 +116,7 @@ impl<'a> Compiler<'a> {
                 {
                     Source::Fixed(f64::NAN)
                 }
-                (None, PropFrom::ByPlanner) => unreachable!("geometric types take plan_geo"),
+                (None, PropFrom::ByPlanner) => unreachable!("`Plan` types take plan_with_extend"),
             };
             props[pi] = Some(source);
         }
@@ -483,6 +483,84 @@ impl<'a> Compiler<'a> {
             NodeKind::Text => self.dast.str(n).trim().is_empty(),
             NodeKind::Other => true,
             _ => false,
+        }
+    }
+
+    /// The children that make up math text: text and `$ref`s, not blanks
+    /// or elements (constraints).
+    pub(in crate::compile) fn math_children(&self, node: NodeId) -> Vec<NodeId> {
+        let d = self.dast;
+        d.children(node)
+            .iter()
+            .copied()
+            .filter(|&n| !self.is_blank(n) && d.kind(n) != NodeKind::Element)
+            .collect()
+    }
+
+    /// Replace cell leaves that name a `<math>` element of this template
+    /// with that math's own expression when it has free symbols.
+    pub(in crate::compile) fn inline_symbolic_maths(
+        &mut self,
+        t: TemplateId,
+        id: ExprId,
+    ) -> ExprId {
+        let e = self.compiled.arena.get(id).clone();
+        match e {
+            Expr::Cell(p) => {
+                let plan = &self.compiled.refs[p as usize];
+                let is_value = plan.prop.as_deref().is_none_or(|pr| pr == "value");
+                let Some(target) = (is_value)
+                    .then(|| self.plan_elem_target(t, p as RefId))
+                    .flatten()
+                else {
+                    return id;
+                };
+                // The math may come later in the document and not be planned yet.
+                if self.compiled.templates[t].elems[target].component_type == ComponentType::Math
+                    && self.compiled.templates[t].elems[target].props.is_empty()
+                    && self.plan_elem(t, target).is_err()
+                {
+                    return id;
+                }
+                match self.compiled.templates[t].elems[target]
+                    .props
+                    .get(prop::math::EXPR)
+                {
+                    Some(Source::MathHandle(inner, _)) => {
+                        let inner = *inner;
+                        let mut syms = Vec::new();
+                        self.compiled.arena.symbols(inner, &mut syms);
+                        if syms.is_empty() {
+                            return id;
+                        }
+                        self.inline_symbolic_maths(t, inner)
+                    }
+                    _ => id,
+                }
+            }
+            Expr::Num(_) | Expr::Sym(_) => id,
+            Expr::Neg(a) => {
+                let a = self.inline_symbolic_maths(t, a);
+                self.compiled.arena.push(Expr::Neg(a))
+            }
+            Expr::Call(f, args) => {
+                let args = args
+                    .into_iter()
+                    .map(|a| self.inline_symbolic_maths(t, a))
+                    .collect();
+                self.compiled.arena.push(Expr::Call(f, args))
+            }
+            Expr::Add(a, b)
+            | Expr::Sub(a, b)
+            | Expr::Mul(a, b)
+            | Expr::Div(a, b)
+            | Expr::Pow(a, b) => {
+                let (na, nb) = (
+                    self.inline_symbolic_maths(t, a),
+                    self.inline_symbolic_maths(t, b),
+                );
+                self.compiled.arena.push(e.with_operands(na, nb))
+            }
         }
     }
 }

@@ -507,7 +507,7 @@ macro_rules! component {
     };
     (@planner) => {
         compile_error!(
-            "component! needs `planner: Props`, or `PropsThen(f)`, `Geometric(f)` or `Whole(f)`, as its last section"
+            "component! needs `planner: Props`, or `PropsThen(f)`, `Plan(f)` or `Whole(f)`, as its last section"
         )
     };
     (@planner $kind:ident) => { $crate::compile::api::Planner::$kind };
