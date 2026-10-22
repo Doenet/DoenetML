@@ -1,0 +1,75 @@
+{
+    "id": "2026-10-22-claude-cloud-3694719",
+    "date": "2026-10-22",
+    "machine": "claude-cloud",
+    "commit": "3694719",
+    "dirty": false,
+    "hardware": {
+        "cpu": "Intel(R) Xeon(R) Processor",
+        "cores": 4,
+        "memory_bytes": 16872808448,
+        "os": "Linux 6.18.44-fc-v140 x64",
+        "node": "v22.22.0"
+    },
+    "builds": {
+        "cells": "wasm-pack --release (npm run build -w packages/cells-core)"
+    },
+    "layers": {
+        "load": {
+            "cores": [
+                "cells"
+            ],
+            "runs": 5,
+            "scenarios": [
+                {
+                    "page": "viewer",
+                    "device": "desktop",
+                    "network": "none"
+                },
+                {
+                    "page": "viewer",
+                    "device": "desktop",
+                    "network": "4g"
+                },
+                {
+                    "page": "viewer",
+                    "device": "desktop",
+                    "network": "slow-4g"
+                },
+                {
+                    "page": "viewer",
+                    "device": "mid-phone",
+                    "network": "none"
+                },
+                {
+                    "page": "viewer",
+                    "device": "mid-phone",
+                    "network": "4g"
+                },
+                {
+                    "page": "viewer",
+                    "device": "mid-phone",
+                    "network": "slow-4g"
+                },
+                {
+                    "page": "viewer",
+                    "device": "slow-phone",
+                    "network": "none"
+                },
+                {
+                    "page": "viewer",
+                    "device": "slow-phone",
+                    "network": "4g"
+                },
+                {
+                    "page": "viewer",
+                    "device": "slow-phone",
+                    "network": "slow-4g"
+                }
+            ],
+            "load_timeout_ms": 120000,
+            "session": "4588-1792696257608",
+            "started": "2026-10-22T19:10:57.888Z"
+        }
+    }
+}
