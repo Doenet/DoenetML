@@ -362,7 +362,17 @@ browser profile) and `warm` (the same profile again, with the files in
 the HTTP cache), `BENCH_LOAD_RUNS` times (5 by default), each repetition
 in a new profile. A cell on the page is the median of its runs, with the
 fastest and slowest under it. The pages are the viewer alone
-(`?editor=0&src=`) and the editor page.
+(`?editor=0&src=`) and the editor page, which render the document in the
+browser, and the prerendered page, which arrives with the document
+rendered on a server (`scripts/prerender-fixtures.mjs` writes it, against
+the viewer build being served) and paints it before any script runs. For
+it, *readable* is the first paint, which is the document, and *usable* is
+the end of its `interactive` step: the live viewer has replaced the
+server's HTML and has what the student did meanwhile. The span between
+the two is where blocking time is counted. Whether the prerendered page
+shows the same document as the live viewer that replaces it is not this
+layer's question but the parity check's (`browser/parity.spec.ts`, in
+`README.md`).
 
 ## Budgets
 

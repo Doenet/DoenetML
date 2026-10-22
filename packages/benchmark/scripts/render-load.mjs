@@ -283,11 +283,11 @@ export function loadPage(run, header) {
             [
                 [
                     "First paint",
-                    "The browser's first contentful paint. On the client-rendered pages this is the page's toolbar, not the document.",
+                    "The browser's first contentful paint. On the client-rendered pages this is the page's toolbar, not the document; on the `prerendered` page it is the document.",
                 ],
                 [
                     "Readable",
-                    "When the document can be read. For the client-rendered pages (`viewer`, `editor`), the end of the `render` step: React has committed the document and the boards have drawn.",
+                    "When the document can be read. For the client-rendered pages (`viewer`, `editor`), the end of the `render` step: React has committed the document and the boards have drawn. For the `prerendered` page, its first paint, which is the document.",
                 ],
                 [
                     "Usable",

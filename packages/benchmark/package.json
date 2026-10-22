@@ -15,9 +15,11 @@
         "build:rust-viewer": "vite build -c browser/rust-viewer/vite.config.ts",
         "browser": "playwright test -c browser/playwright.config.ts perf.spec.ts",
         "trace": "playwright test -c browser/playwright.config.ts trace.spec.ts",
-        "load": "playwright test -c browser/playwright.config.ts load.spec.ts",
+        "load": "node scripts/prerender-fixtures.mjs && playwright test -c browser/playwright.config.ts load.spec.ts",
         "render": "node scripts/render.mjs",
-        "perf-diff": "scripts/perf-diff.sh"
+        "perf-diff": "scripts/perf-diff.sh",
+        "parity": "node scripts/prerender-fixtures.mjs && playwright test -c browser/playwright.config.ts parity.spec.ts",
+        "prerender-fixtures": "node scripts/prerender-fixtures.mjs"
     },
     "devDependencies": {
         "@playwright/test": "^1.61.1"

@@ -120,6 +120,7 @@ Performance panel when recording the dev page by hand.
 
 ```bash
 npm run build -w packages/cells-viewer
+npm run build:prerender -w packages/cells-viewer
 BENCH_MACHINE=<id> npm run load
 npm run render
 ```
@@ -139,10 +140,26 @@ every file with its bytes on the wire and when it arrived.
 | `BENCH_LOAD_RUNS`     | `5`                             | runs per scenario, each in a new browser profile                                |
 | `BENCH_LOAD_DEVICES`  | `desktop,mid-phone,slow-phone`  | the devices                                                                     |
 | `BENCH_LOAD_NETWORKS` | each device's own               | networks to load every device over (`none`, `4g`, `slow-4g`, `3g`), instead     |
-| `BENCH_LOAD_PAGES`    | `viewer`                        | the pages: `viewer` (`?editor=0`) and `editor`                                  |
+| `BENCH_LOAD_PAGES`    | `viewer,prerendered`            | the pages: `viewer` (`?editor=0`), `editor` and `prerendered`                   |
 
 Load on a network of `none` to read a device's CPU alone, as in
 `BENCH_LOAD_NETWORKS=none,slow-4g`.
+
+The `prerendered` page is the document rendered on a server, which the
+browser paints before any script arrives and then replaces with the live
+viewer (`packages/cells-viewer`, Prerendering). `npm run load` first
+writes the pages, `scripts/prerender-fixtures.mjs`: each of this suite's
+documents and the cells core's golden documents, against the viewer
+build `browser/serve.mjs` serves, into `fixtures/generated/prerendered/`.
+
+`npm run parity` checks those pages: each opened with its script held
+back, every component's text and box read from the snapshot, then again
+once the live viewer has replaced it (`browser/parity.spec.ts`). The text
+must be the same, the boxes the same size (a graph's, its board's), and
+the swap must not shift the layout (layout shift under 0.01). It fails
+when the server and the browser load a document differently, as a wrong
+seed in a page's meta makes them. It measures nothing, so it writes no
+records.
 
 ## Regressions
 

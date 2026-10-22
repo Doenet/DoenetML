@@ -6,6 +6,10 @@
 // machine, a network and a screen. Visits are `cold` (a new browser
 // profile) and `warm` (the same profile again, files in the HTTP cache).
 //
+// The pages are the viewer alone and the editor page, which render the
+// document in the browser, and the prerendered page, which arrives with
+// the document rendered.
+//
 // A visit records what the browser reports about painting (first paint,
 // largest paint, layout shift, long tasks), the page's own `cells:`
 // steps, and the files fetched with their bytes on the wire. Records go
@@ -23,6 +27,7 @@ import {
 } from "../src/devices.mjs";
 import { appendRecord, openRun, readRecords } from "../src/results.mjs";
 import { homeworkFixture } from "../src/trace-fixtures.mjs";
+import { prerenderedUrl } from "../scripts/prerender-fixtures.mjs";
 
 type DeviceName = keyof typeof DEVICES;
 
@@ -35,7 +40,7 @@ const DEVICE_NAMES: DeviceName[] = listEnv(
 const NETWORK_NAMES: string[] | null = process.env.BENCH_LOAD_NETWORKS
     ? listEnv("BENCH_LOAD_NETWORKS", "")
     : null;
-const PAGE_NAMES: string[] = listEnv("BENCH_LOAD_PAGES", "viewer");
+const PAGE_NAMES: string[] = listEnv("BENCH_LOAD_PAGES", "viewer,prerendered");
 const ORIGIN = "http://localhost:4177";
 /** The longest one visit may take before it counts as failed. */
 const LOAD_MS = 120_000;
@@ -51,20 +56,30 @@ for (const n of NETWORK_NAMES ?? [])
     if (!(n in NETWORKS)) throw new Error(`no network ${n}`);
 
 /**
- * The pages. `path` is where the document is loaded from its URL.
+ * The pages. `path` is where a document is loaded from, by its fixture.
  * `visible` is the moment the document can be read: the client-rendered
  * pages show nothing of it before their first render (their first paint
- * is the page's toolbar), so it is the `render` step's end.
+ * is the page's toolbar), so it is the `render` step's end; a prerendered
+ * page (`scripts/prerender-fixtures.mjs`) paints the document itself
+ * first, and becomes usable at its `interactive` step.
  */
+type Fixture = { name: string; url: string };
 const PAGES: Record<
     string,
-    { path: (url: string) => string; visible: "first_render" | "first_paint" }
+    {
+        path: (f: Fixture) => string;
+        visible: "first_render" | "first_paint";
+    }
 > = {
     viewer: {
-        path: (url) => `/?src=${url}&editor=0`,
+        path: (f) => `/?src=${f.url}&editor=0`,
         visible: "first_render",
     },
-    editor: { path: (url) => `/?src=${url}`, visible: "first_render" },
+    editor: { path: (f) => `/?src=${f.url}`, visible: "first_render" },
+    prerendered: {
+        path: (f) => prerenderedUrl(f.name),
+        visible: "first_paint",
+    },
 };
 for (const p of PAGE_NAMES) if (!(p in PAGES)) throw new Error(`no page ${p}`);
 
@@ -268,7 +283,7 @@ test("warm the server", async ({ browser }) => {
         for (const p of PAGE_NAMES) {
             const page = await context.newPage();
             page.on("pageerror", (e) => console.warn(String(e)));
-            await load(page, PAGES[p].path(fixture.url));
+            await load(page, PAGES[p].path(fixture));
             await page.close();
         }
     } finally {
@@ -296,7 +311,7 @@ for (const s of SCENARIOS) {
             try {
                 for (const v of VISITS) {
                     const p = await devicePage(context, rate, s.network);
-                    await load(p, page.path(fixture.url));
+                    await load(p, page.path(fixture));
                     runs[v].push(await collect(p, page.visible));
                     await p.close();
                 }
