@@ -379,3 +379,10 @@ section that does not aggregate is looked through.
 load-time choice draws from its own stream derived from the seed and the
 choice's essential key, so a choice draws the same way wherever it is
 rebuilt.
+
+**Prerendered page** — A document's page with the document already
+rendered to HTML on a server, by the same parser, core and renderers the
+browser runs, with the DoenetML source and the document seed and saved
+state it was loaded with. The browser paints it before any script
+arrives, then renders the live viewer in its place (ADR 0017). The
+prerendered HTML is the **snapshot**; the replacing is the **swap**.

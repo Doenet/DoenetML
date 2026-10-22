@@ -155,6 +155,14 @@ downstream, and report a `TickOutcome`. See
    number of iterations it was built with, the build runs again at the new
    counts. `LoadTimings::passes` records how many builds it took.
 
+### A prerendered page loads
+
+The page arrives with the document rendered on a server, and the browser
+paints it before any script runs (ADR 0017). Its script then loads the
+page's embedded source with the page's seed and state, as above, renders
+the live viewer in place of the server's HTML, and carries over what the
+student did to the page meanwhile.
+
 ### A user drags a point
 
 `Document::request` and its variants (`document/request.rs`):
@@ -349,6 +357,12 @@ views of the cells and the component table (ADR 0001). The React side is
 are JSXGraph boards (`renderers/jsxgraph/`, ADR 0010) whose elements read
 cells directly and redraw once per tick; Doenet's styling is copied into
 `jsxgraph/doenet.ts`.
+
+A renderer also runs on a server, where a page is prerendered (ADR 0017):
+it reads store values through `useStoreSnapshot` (`src/hooks.ts`) and no
+browser API while rendering, and a graph renders there as its empty,
+sized container. `src/prerender/render-to-html.test.tsx` renders every
+golden document to HTML in Node.
 
 ## The other crates
 

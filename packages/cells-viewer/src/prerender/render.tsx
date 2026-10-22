@@ -1,4 +1,4 @@
-// Prerendering: a document rendered to HTML on a server, so a
+// Prerendering (ADR 0017): a document rendered to HTML on a server, so a
 // page shows it before any of its scripts or the core's wasm arrive. The
 // browser later loads the same source with the same seed and state,
 // renders the live viewer and replaces this HTML with it. This is the

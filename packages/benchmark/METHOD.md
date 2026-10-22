@@ -364,8 +364,9 @@ in a new profile. A cell on the page is the median of its runs, with the
 fastest and slowest under it. The pages are the viewer alone
 (`?editor=0&src=`) and the editor page, which render the document in the
 browser, and the prerendered page, which arrives with the document
-rendered on a server (`scripts/prerender-fixtures.mjs` writes it, against
-the viewer build being served) and paints it before any script runs. For
+rendered on a server (ADR 0017 in `packages/cells-core/docs/adr/`;
+`scripts/prerender-fixtures.mjs` writes it, against the viewer build
+being served) and paints it before any script runs. For
 it, *readable* is the first paint, which is the document, and *usable* is
 the end of its `interactive` step: the live viewer has replaced the
 server's HTML and has what the student did meanwhile. The span between

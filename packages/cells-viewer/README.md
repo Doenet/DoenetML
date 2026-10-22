@@ -54,7 +54,8 @@ node scripts/prerender.mjs <document.doenet> --out <page.html> [--seed <n>] [--s
 ```
 
 A prerendered page is a document rendered to HTML in Node, so it paints
-before any script or the core's wasm arrives. `src/prerender/render.tsx`
+before any script or the core's wasm arrives (ADR 0017 in
+`../cells-core/docs/adr/`, with what it measured and what it rejected). `src/prerender/render.tsx`
 (`prerender`) parses and loads the document as the browser does, with
 the seed and saved state the page names, and renders it with
 `renderToString`; `src/prerender/page.ts` (`writePage`) writes the page:

@@ -1,4 +1,4 @@
-// A prerendered page: one self-contained HTML file per
+// A prerendered page (ADR 0017): one self-contained HTML file per
 // document, seed and state. It paints the document from its own HTML and
 // styles, before any script arrives; its scripts are module scripts, which
 // the browser runs only after the page is parsed, so nothing they do
