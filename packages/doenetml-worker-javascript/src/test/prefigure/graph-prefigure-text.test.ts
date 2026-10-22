@@ -148,7 +148,20 @@ ${prefigureGraph(`
         expect(warnings).toEqual([]);
     });
 
-    it("draws a point's label once, as part of the point", async () => {
+    it("draws an empty math as its placeholder, and skips an empty m and md", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(`
+  <math anchor="(1,1)"></math>
+  <m anchor="(2,2)"></m>
+  <md anchor="(3,3)"></md>`),
+        );
+
+        expect(labels(prefigureXML)).toEqual([
+            '<label at="math_0" anchor="(1,1)" alignment="c" color="currentColor"><m>＿</m></label>',
+        ]);
+    });
+
+    it("draws a point's label once, as part of the point, and not a shortDescription", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(`
   <shortDescription>A labeled point</shortDescription>
