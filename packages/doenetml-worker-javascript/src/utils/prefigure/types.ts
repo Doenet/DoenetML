@@ -86,6 +86,8 @@ export interface PrefigureStateValues extends Record<string, unknown> {
     extrapolateForward?: unknown;
     graphBounds?: GraphBounds;
     graphDimensions?: GraphDimensions;
+    /** Whether the document is drawn in its dark theme. */
+    darkMode?: boolean;
     lineLabelLocationOverride?: number;
     lineLabelAlignmentLocationOverride?: number;
     lineLabelAbsoluteEndpointOffset?: boolean;
@@ -93,6 +95,14 @@ export interface PrefigureStateValues extends Record<string, unknown> {
 
 export interface Descendant {
     componentType: string;
+    /**
+     * For a graph text, the text-like type it is drawn as, which may be one
+     * its `componentType` inherits from (see `graphTextType`).
+     */
+    textType?: string;
+    /** For a list entry, the list's `componentIdx` and the entry's index. */
+    listIdx?: number;
+    listEntryIndex?: number;
     componentName?: string;
     componentIdx?: number;
     position?: Position;

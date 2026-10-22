@@ -72,6 +72,10 @@ export function resolveSelectedStyleForTheme(
             "markerColorWordDarkMode",
             selectedStyle.markerColorWord,
         ),
+        textColor: pickDark(
+            "textColorDarkMode",
+            selectedStyle.textColor as string | undefined,
+        ),
     };
 }
 

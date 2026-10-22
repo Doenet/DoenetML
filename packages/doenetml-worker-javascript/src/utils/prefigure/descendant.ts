@@ -19,6 +19,10 @@ import {
 import { convertAngleToPrefigure } from "./components/angle";
 import { convertCurveToPrefigure } from "./components/curve";
 import { convertRegionBetweenCurvesToPrefigure } from "./components/regionBetweenCurves";
+import {
+    GRAPH_TEXT_CONTENT_VARIABLES,
+    graphTextConverter,
+} from "./components/text";
 import type {
     Converter,
     Descendant,
@@ -64,6 +68,12 @@ const convertByComponentType: Record<string, Converter> = {
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,
     rectangle: convertPolygonToPrefigure,
+    ...Object.fromEntries(
+        Object.keys(GRAPH_TEXT_CONTENT_VARIABLES).map((componentType) => [
+            componentType,
+            graphTextConverter(componentType),
+        ]),
+    ),
 };
 
 interface ConvertGraphicalDescendantArgs {
@@ -98,6 +108,7 @@ export function convertGraphicalDescendantToPrefigure({
         ...(descendant?.stateValues ?? {}),
         graphBounds,
         graphDimensions,
+        darkMode,
     };
 
     // Swap in dark-mode colors once, here, so every downstream converter and the
@@ -119,7 +130,8 @@ export function convertGraphicalDescendantToPrefigure({
         includeFill: styleIncludesFill(descendant.componentType, sv),
     });
 
-    const converter = convertByComponentType[descendant.componentType];
+    const converter =
+        convertByComponentType[descendant.textType ?? descendant.componentType];
     if (!converter) {
         pushWarning({
             diagnostics,
