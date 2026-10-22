@@ -347,7 +347,7 @@ impl SharedState {
 /// only an attribute its type declares, and a misspelling does not
 /// compile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct Attr(&'static str);
+pub struct Attr(&'static str);
 
 impl Attr {
     /// An attribute a component declares; only `component!` calls this.

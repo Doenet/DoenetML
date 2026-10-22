@@ -116,6 +116,7 @@ pub(crate) mod test_list {
             names: [points],
             item: point,
             coords: [px, py],
+        attribute: points,
         }
         attributes { points }
         planner: Plan(plan),

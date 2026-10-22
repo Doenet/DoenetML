@@ -202,10 +202,15 @@ pub enum ListPoints {
     /// the list's length is what is left over, so it needs no cell of its
     /// own. Point `k` (1-based) has coordinates `coords[0]` k and
     /// `coords[1]` k (`throughX2`), which the current core also spells
-    /// `alternate_name` k `_` 1 and `_` 2 (`throughPointX2_1`).
+    /// `alternate_name` k `_` 1 and `_` 2 (`throughPointX2_1`). The
+    /// points are given by the attribute `attribute`, one of the type's
+    /// `attributes { .. }`, and the list keeps at most `max` of them (a
+    /// circle's three through points).
     Given {
         coords: [&'static str; 2],
         alternate_name: Option<&'static str>,
+        attribute: crate::compile::api::Attr,
+        max: Option<usize>,
     },
     /// A fixed number, each a pair of the table's props: a line's two
     /// points are `x1`, `y1` and `x2`, `y2`.
@@ -318,6 +323,7 @@ impl ComponentType {
             ListPoints::Given {
                 coords,
                 alternate_name,
+                ..
             } => Some((list, coords, alternate_name)),
             ListPoints::Table(_) => None,
         }
@@ -328,6 +334,16 @@ impl ComponentType {
     /// `throughY`.
     pub fn given_coords(self) -> Option<[&'static str; 2]> {
         self.given_list().map(|(_, coords, _)| coords)
+    }
+
+    /// The attribute that gives the type's list its points, and the most
+    /// the list keeps, when they are as many as an element was given
+    /// (`ListPoints::Given`): a circle's `through`, at most three.
+    pub(crate) fn given_from(self) -> Option<(crate::compile::api::Attr, Option<usize>)> {
+        match self.list()?.points {
+            ListPoints::Given { attribute, max, .. } => Some((attribute, max)),
+            ListPoints::Table(_) => None,
+        }
     }
 
     /// The points of the list `name` when they are the table's props

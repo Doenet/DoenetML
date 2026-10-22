@@ -107,12 +107,13 @@ impl<'a> Compiler<'a> {
         }
         let Some(e) = e else { return Ok(None) };
         let el = &self.compiled.templates[cur_t].elems[e];
-        // A list holds the points given: a circle's up to three.
-        if el.component_type.prop_at(prop) == Some(PropAt::List) {
-            return Ok(Some(match el.component_type {
-                ComponentType::Circle => self.count_points_in_attr(el.node, "through")?.min(3),
-                _ => self.count_points_in_attr(el.node, "vertices")?,
-            }));
+        // A list holds the points its attribute gives, up to its type's
+        // most: a circle's `through`, up to three.
+        if el.component_type.prop_at(prop) == Some(PropAt::List)
+            && let Some((attribute, max)) = el.component_type.given_from()
+        {
+            let n = self.count_points_in_attr(el.node, attribute.name())?;
+            return Ok(Some(max.map_or(n, |max| n.min(max))));
         }
         let Some(items) = el.component_type.table_list(prop) else {
             return Ok(None);
@@ -155,7 +156,7 @@ impl<'a> Compiler<'a> {
 /// Point lists against `<testList>`: a symbol is not a point, and says so.
 #[cfg(test)]
 mod tests {
-    use crate::testing::dast::{document, el, load};
+    use crate::testing::dast::{document, el, load, mac};
     use crate::testing::prop_value as value;
 
     #[test]
@@ -168,5 +169,17 @@ mod tests {
         assert_eq!(codes, ["cells-point-not-numerical"]);
         assert!(value(&doc, "l.px1").is_nan() && value(&doc, "l.py1").is_nan());
         assert_eq!((value(&doc, "l.px2"), value(&doc, "l.py2")), (1.0, 2.0));
+    }
+
+    #[test]
+    fn a_list_prop_gives_as_many_points_as_its_referent_has() {
+        let doc = load(document([
+            el("testList").name("l").attr("points", "(1,2) (3,4)"),
+            el("testList").name("m").attr("points", mac("l.points")),
+        ]))
+        .unwrap();
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        assert_eq!(value(&doc, "m.numPoints"), 2.0);
+        assert_eq!((value(&doc, "m.px2"), value(&doc, "m.py2")), (3.0, 4.0));
     }
 }

@@ -43,6 +43,8 @@ component! {
         item: throughPoint,
         coords: [throughX, throughY],
         alternate_name: throughPointX,
+        attribute: through,
+        max: 3,
     }
     alternate_names {
         centerX1: centerX,
