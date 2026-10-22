@@ -149,9 +149,23 @@ export function listRuns() {
             );
             return { dir, manifest, layers };
         })
-        .sort((a, b) =>
-            a.manifest.date === b.manifest.date
-                ? b.manifest.id.localeCompare(a.manifest.id)
-                : b.manifest.date.localeCompare(a.manifest.date),
+        .sort(
+            (a, b) =>
+                b.manifest.date.localeCompare(a.manifest.date) ||
+                lastStarted(b.manifest).localeCompare(
+                    lastStarted(a.manifest),
+                ) ||
+                b.manifest.id.localeCompare(a.manifest.id),
         );
+}
+
+/**
+ * When a run's latest layer started (ISO), or "" if none says: orders runs
+ * made on one day, whose ids differ only by commit hash, which says nothing
+ * of which came last.
+ */
+function lastStarted(manifest) {
+    return Object.values(manifest.layers)
+        .map((l) => l.started ?? "")
+        .reduce((x, y) => (y > x ? y : x), "");
 }
