@@ -486,3 +486,65 @@ impl<'a> Compiler<'a> {
         }
     }
 }
+
+/// The copy rules of `plan_attrs` (ADR 0016, Migration step 8), against
+/// `<testValue>`: under `extend`, a prop without its attribute is its
+/// referent's, and one with it is the copy's own.
+#[cfg(test)]
+mod tests {
+    use crate::testing::dast::{document, el, load, mac};
+    use crate::testing::{prop_value as value, request_prop as request};
+
+    #[test]
+    fn a_bare_copy_is_its_referent() {
+        let mut doc = load(document([
+            el("testValue").name("v").attr("value", "3"),
+            el("testValue").name("w").attr("extend", mac("v")),
+        ]))
+        .unwrap();
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        assert_eq!(
+            (value(&doc, "w.value"), value(&doc, "w.double")),
+            (3.0, 6.0)
+        );
+        assert!(request(&mut doc, "w.value", 4.0).dropped.is_empty());
+        assert_eq!(value(&doc, "v.value"), 4.0);
+        request(&mut doc, "v.value", 1.0);
+        assert_eq!(
+            (value(&doc, "w.value"), value(&doc, "w.double")),
+            (1.0, 2.0)
+        );
+    }
+
+    #[test]
+    fn an_own_attribute_is_the_copys() {
+        let mut doc = load(document([
+            el("testValue").name("v").attr("value", "3"),
+            el("testValue")
+                .name("w")
+                .attr("extend", mac("v"))
+                .attr("value", "5"),
+        ]))
+        .unwrap();
+        assert_eq!(
+            (value(&doc, "w.value"), value(&doc, "w.double")),
+            (5.0, 10.0)
+        );
+        request(&mut doc, "w.value", 6.0);
+        assert_eq!((value(&doc, "w.value"), value(&doc, "v.value")), (6.0, 3.0));
+        request(&mut doc, "v.value", 2.0);
+        assert_eq!((value(&doc, "w.value"), value(&doc, "v.value")), (6.0, 2.0));
+    }
+
+    #[test]
+    fn a_defaulted_referent_is_shared() {
+        let mut doc = load(document([
+            el("testValue").name("v"),
+            el("testValue").name("w").attr("extend", mac("v")),
+        ]))
+        .unwrap();
+        assert_eq!(value(&doc, "w.value"), 0.0);
+        request(&mut doc, "w.value", 7.0);
+        assert_eq!(value(&doc, "v.value"), 7.0);
+    }
+}

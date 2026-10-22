@@ -27,3 +27,28 @@ pub fn compile(
 pub fn compile_fingerprint(dast: &crate::dast::Dast, seed: u64) -> crate::Result<String> {
     Ok(compile(dast, seed)?.fingerprint())
 }
+
+/// The value of the one-cell prop at `path` (`"c.radius"`), for a unit
+/// test; panics when there is no such prop or it has several cells.
+pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
+    match spec::cells(doc, path)
+        .unwrap_or_else(|e| panic!("{e}"))
+        .as_slice()
+    {
+        [c] => doc.cells[*c as usize],
+        cs => panic!("{path}: {} cells, not one", cs.len()),
+    }
+}
+
+/// One tick requesting `value` for the one-cell prop at `path`, for a unit
+/// test; panics as `prop_value` does.
+pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate::TickOutcome {
+    let cell = match spec::cells(doc, path)
+        .unwrap_or_else(|e| panic!("{e}"))
+        .as_slice()
+    {
+        [c] => *c,
+        cs => panic!("{path}: {} cells, not one", cs.len()),
+    };
+    doc.request(&[crate::Request { cell, value }])
+}

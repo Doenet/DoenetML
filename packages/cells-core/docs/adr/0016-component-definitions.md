@@ -346,6 +346,19 @@ case), carry every piece before other components follow:
    this crate's unit tests, not in its integration tests, `cells-bench`
    (which enables the `testing` feature) or the wasm build, and no other
    type's discriminant moves. The golden diff is identical.
+   **Done: the copy rules' unit tests**, in `compile/geometry/mod.rs`
+   (`plan_geo`) and `compile/attrs.rs` (`plan_attrs`): a bare copy, an
+   own attribute keeping its state and sharing the rest both ways, state
+   the referent defaulted, an own reference, an attribute supplying no
+   state, a copy of a copy. Breaking either half of `plan_geo`'s rule
+   (never keeping a copy's own state, or never sharing the base's) fails
+   them. `<testMisspelled>`, a third test-only component, names `aa` as
+   the attribute supplying its `A`, and its test records the hole: a
+   copy's own `a` is silently replaced by its referent's. Writing them found that a copy
+   with a literal `fixed` (`<point extend="$P" fixed/>`, as for a circle
+   or a `numberInput`) passes a request through to its referent, where
+   `fixed="$b"` drops it: `fix_literals` leaves aliased state alone. Not
+   fixed here.
 
 Each step is measured with `packages/benchmark/scripts/perf-diff.sh`.
 

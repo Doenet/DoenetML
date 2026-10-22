@@ -267,7 +267,7 @@ fn check_reference(doc: &Document, at: &str) -> Result<(), String> {
 
 /// The cells behind `name.prop`; the last dot splits the path, so a name
 /// may itself be a path (`t.vertex1` is not one, `g.p.x` names `g.p`).
-fn cells(doc: &Document, path: &str) -> Result<Vec<crate::CellIdx>, String> {
+pub(crate) fn cells(doc: &Document, path: &str) -> Result<Vec<crate::CellIdx>, String> {
     let (name, prop) = path
         .rsplit_once('.')
         .ok_or_else(|| format!("{path}: not name.prop"))?;

@@ -315,3 +315,131 @@ impl<'a> Compiler<'a> {
         }
     }
 }
+
+/// The copy rules of `plan_geo` (ADR 0016, Migration step 8), against the
+/// test-only components: a bare copy aliases its referent; a copy with
+/// its own attributes keeps the shared state those attributes supply, and
+/// shares the rest with its referent, in both directions.
+#[cfg(test)]
+mod tests {
+    use crate::testing::dast::{document, el, load, mac};
+    use crate::testing::{prop_value as value, request_prop as request};
+
+    /// `<testShape name="s" a="1" b="2"/>` and `copy`, extending it.
+    fn with_copy(copy: crate::testing::dast::Element) -> crate::Document {
+        let doc = load(document([
+            el("testValue").name("v").attr("value", "5"),
+            el("testShape").name("s").attr("a", "1").attr("b", "2"),
+            copy.attr("extend", mac("s")),
+        ]))
+        .unwrap();
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        doc
+    }
+
+    #[test]
+    fn a_bare_copy_is_its_referent() {
+        let mut doc = with_copy(el("testShape").name("d"));
+        assert_eq!((value(&doc, "d.a"), value(&doc, "d.b")), (1.0, 2.0));
+        assert_eq!(value(&doc, "d.sum"), 3.0);
+        assert!(request(&mut doc, "d.a", 5.0).dropped.is_empty());
+        assert_eq!((value(&doc, "s.a"), value(&doc, "d.sum")), (5.0, 7.0));
+        assert!(request(&mut doc, "s.b", 4.0).dropped.is_empty());
+        assert_eq!((value(&doc, "d.b"), value(&doc, "d.sum")), (4.0, 9.0));
+    }
+
+    #[test]
+    fn an_own_attribute_keeps_its_state_and_shares_the_rest() {
+        let mut doc = with_copy(el("testShape").name("d").attr("a", "7"));
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (7.0, 1.0));
+        assert_eq!((value(&doc, "d.b"), value(&doc, "d.sum")), (2.0, 9.0));
+        // `a` is the copy's own: a change of either leaves the other.
+        request(&mut doc, "d.a", 8.0);
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (8.0, 1.0));
+        request(&mut doc, "s.a", 0.0);
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (8.0, 0.0));
+        // `b` is shared, from either side.
+        request(&mut doc, "d.b", 9.0);
+        assert_eq!(value(&doc, "s.b"), 9.0);
+        request(&mut doc, "s.b", 3.0);
+        assert_eq!((value(&doc, "d.b"), value(&doc, "d.sum")), (3.0, 11.0));
+    }
+
+    #[test]
+    fn state_the_referent_defaulted_is_shared() {
+        let mut doc = load(document([
+            el("testShape").name("s"),
+            el("testShape")
+                .name("d")
+                .attr("extend", mac("s"))
+                .attr("b", "4"),
+        ]))
+        .unwrap();
+        assert_eq!((value(&doc, "d.a"), value(&doc, "d.b")), (0.0, 4.0));
+        assert_eq!(value(&doc, "s.b"), 0.0);
+        request(&mut doc, "s.a", 6.0);
+        assert_eq!(value(&doc, "d.a"), 6.0);
+        request(&mut doc, "d.a", 2.0);
+        assert_eq!(value(&doc, "s.a"), 2.0);
+    }
+
+    #[test]
+    fn an_own_reference_follows_what_it_names() {
+        let mut doc = with_copy(el("testShape").name("d").attr("a", mac("v")));
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (5.0, 1.0));
+        request(&mut doc, "v.value", 6.0);
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (6.0, 1.0));
+        // A request on the copy reaches what its attribute names, not the
+        // referent.
+        request(&mut doc, "d.a", 4.0);
+        assert_eq!((value(&doc, "v.value"), value(&doc, "s.a")), (4.0, 1.0));
+    }
+
+    #[test]
+    fn an_attribute_supplying_no_state_shares_it_all() {
+        // `fixed` makes the copy not bare, but supplies neither `a` nor `b`.
+        // (What a request on the fixed copy does is `fixed`'s rule, not
+        // the copy's.)
+        let mut doc = with_copy(el("testShape").name("d").attr("fixed", "true"));
+        assert_eq!((value(&doc, "d.a"), value(&doc, "d.b")), (1.0, 2.0));
+        request(&mut doc, "s.a", 3.0);
+        assert_eq!(value(&doc, "d.a"), 3.0);
+    }
+
+    #[test]
+    fn a_copy_of_a_copy_shows_the_copy() {
+        let mut doc = load(document([
+            el("testShape").name("s").attr("a", "1").attr("b", "2"),
+            el("testShape")
+                .name("d")
+                .attr("extend", mac("s"))
+                .attr("a", "7"),
+            el("testShape").name("e").attr("extend", mac("d")),
+        ]))
+        .unwrap();
+        assert_eq!((value(&doc, "e.a"), value(&doc, "e.b")), (7.0, 2.0));
+        request(&mut doc, "e.a", 8.0);
+        assert_eq!((value(&doc, "d.a"), value(&doc, "s.a")), (8.0, 1.0));
+        request(&mut doc, "e.b", 5.0);
+        assert_eq!(value(&doc, "s.b"), 5.0);
+    }
+
+    /// The hole binding shared state by identifier closes: the planner
+    /// names `aa` as supplying `A`, the copy's `a` does not match it, and
+    /// the copy's own value is silently replaced by its referent's. When
+    /// the binding is an identifier, `<testMisspelled>` does not compile
+    /// and this test goes with it.
+    #[test]
+    fn a_misspelled_binding_silently_shares_the_referents_state() {
+        let doc = load(document([
+            el("testMisspelled").name("s").attr("a", "1").attr("b", "2"),
+            el("testMisspelled")
+                .name("d")
+                .attr("extend", mac("s"))
+                .attr("a", "7"),
+        ]))
+        .unwrap();
+        assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+        assert_eq!(value(&doc, "d.a"), 1.0, "the override of `a` is lost");
+    }
+}

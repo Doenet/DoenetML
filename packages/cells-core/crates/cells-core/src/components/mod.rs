@@ -147,6 +147,8 @@ component_types! {
         TestValue => test_only::test_value::DEFINITION,
         /// `<testShape>`: planned by a function inside `plan_geo`.
         TestShape => test_only::test_shape::DEFINITION,
+        /// `<testMisspelled>`: `<testShape>` with a misspelled binding.
+        TestMisspelled => test_only::test_misspelled::DEFINITION,
     }
 }
 
