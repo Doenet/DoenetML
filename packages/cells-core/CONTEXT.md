@@ -227,7 +227,9 @@ essential key; a request that reaches one is dropped.
 
 **Hold** — The instruction that puts a dynamic `fixed` (or `fixAxes`) on a
 cell: forward it is the identity, and its inverse drops the request while the
-flag is nonzero. Not to be confused with a gate.
+flag is nonzero. A literal `fixed` holds, by a constant flag, the cells it
+cannot make fixed: references and a copy's referent. Not to be confused with
+a gate.
 
 **Slot** — At build time, one prop of one component instance (or a hidden
 value a component type's planner needs), before aliases merge slots into cells. A
