@@ -1,0 +1,70 @@
+{
+    "id": "2026-10-22-claude-cloud-bbcd457",
+    "date": "2026-10-22",
+    "machine": "claude-cloud",
+    "commit": "bbcd457",
+    "dirty": false,
+    "hardware": {
+        "cpu": "Intel(R) Xeon(R) Processor",
+        "cores": 4,
+        "memory_bytes": 16872808448,
+        "os": "Linux 6.18.44-fc-v140 x64",
+        "node": "v22.22.0"
+    },
+    "builds": {
+        "cells": "wasm-pack --release (npm run build -w packages/cells-core), wasm-opt -O from binaryen 117 on the PATH"
+    },
+    "layers": {
+        "trace": {
+            "cores": [
+                "cells"
+            ],
+            "runs": 5,
+            "scenarios": [
+                {
+                    "page": "editor",
+                    "cpu": 1,
+                    "size": 1
+                },
+                {
+                    "page": "editor",
+                    "cpu": 1,
+                    "size": 4
+                },
+                {
+                    "page": "editor",
+                    "cpu": 1,
+                    "size": 16
+                },
+                {
+                    "page": "editor",
+                    "cpu": 4,
+                    "size": 1
+                },
+                {
+                    "page": "editor",
+                    "cpu": 4,
+                    "size": 4
+                },
+                {
+                    "page": "editor",
+                    "cpu": 4,
+                    "size": 16
+                },
+                {
+                    "page": "viewer",
+                    "cpu": 1,
+                    "size": 1
+                },
+                {
+                    "page": "viewer",
+                    "cpu": 4,
+                    "size": 1
+                }
+            ],
+            "load_timeout_ms": 120000,
+            "session": "7988-1792678275024",
+            "started": "2026-10-22T14:11:15.320Z"
+        }
+    }
+}
