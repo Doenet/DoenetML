@@ -193,9 +193,16 @@ function pointElement(
 
 export function JxPoint({ idx }: { idx: number }) {
     const store = useStore();
-    const style = styleFor(store.comps.attr(idx, "styleNumber"));
-    const layer = layerOf(store.comps.attr(idx, "layer"), POINT_LAYER_OFFSET);
-    useBoardElement(idx, POINT_PROPS, (h) => pointElement(h, style, layer));
+    const styleNumber = store.comps.attr(idx, "styleNumber");
+    const layerAttr = store.comps.attr(idx, "layer");
+    const style = styleFor(styleNumber);
+    const layer = layerOf(layerAttr, POINT_LAYER_OFFSET);
+    useBoardElement(
+        idx,
+        POINT_PROPS,
+        (h) => pointElement(h, style, layer),
+        `${styleNumber}|${layerAttr}`,
+    );
     return null;
 }
 
@@ -306,8 +313,11 @@ function lineElement(h: BoardHandle, segment: boolean): BoardElement {
 }
 
 export function JxLine({ idx, segment }: { idx: number; segment: boolean }) {
-    useBoardElement(idx, segment ? SEGMENT_PROPS : LINE_PROPS, (h) =>
-        lineElement(h, segment),
+    useBoardElement(
+        idx,
+        segment ? SEGMENT_PROPS : LINE_PROPS,
+        (h) => lineElement(h, segment),
+        String(segment),
     );
     return null;
 }
@@ -547,8 +557,10 @@ function polylineElement(
 
 export function JxPolyline({ idx }: { idx: number }) {
     const store = useStore();
-    const style = styleFor(store.comps.attr(idx, "styleNumber"));
-    const layer = layerOf(store.comps.attr(idx, "layer"), LINE_LAYER_OFFSET);
+    const styleNumber = store.comps.attr(idx, "styleNumber");
+    const layerAttr = store.comps.attr(idx, "layer");
+    const style = styleFor(styleNumber);
+    const layer = layerOf(layerAttr, LINE_LAYER_OFFSET);
     // The vertices are the polyline's children: copies of the points it gathered.
     useBoardElementCells(
         idx,
@@ -564,6 +576,7 @@ export function JxPolyline({ idx }: { idx: number }) {
                         : [],
                 ),
         (h) => polylineElement(h, style, layer),
+        `${styleNumber}|${layerAttr}`,
     );
     return null;
 }

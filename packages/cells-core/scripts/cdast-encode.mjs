@@ -21,8 +21,12 @@
 // the two encoders produce identical bytes for one source
 // (`crates/cells-core/tests/wire.rs`). Node ids feed `<select>`'s choice, so
 // the numbering is part of a document's behaviour.
+//
+// `onNode(id, n)`, if given, is called with each node's id and the parsed
+// node it encodes, so a caller can keep what the wire format drops (the
+// node's source position) by the id the core will report.
 
-export function encodeDast(dast) {
+export function encodeDast(dast, onNode) {
     const strings = [];
     const intern = new Map();
     const str = (s) => {
@@ -65,6 +69,11 @@ export function encodeDast(dast) {
         for (const k of kids) children.push(k);
     }
     function node(n) {
+        const id = encodeNode(n);
+        onNode?.(id, n);
+        return id;
+    }
+    function encodeNode(n) {
         switch (n.type) {
             case "element": {
                 // The element's name, then each attribute's name and children, then

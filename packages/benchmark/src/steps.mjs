@@ -119,8 +119,12 @@ export const STEPS = {
         "Views over wasm memory through which the renderer reads components and their cells without copying.",
         `${V}/src/components.ts`,
     ],
+    "carry state": [
+        "Only on an edit: what the reader did to the elements the edit left alone (their essential cells, saved by the old core) renamed to the new load's nodes and restored into it, before the old core is freed.",
+        `${V}/src/core.ts (CellStore.replace), src/identity.ts`,
+    ],
     render: [
-        "From handing the loaded core to React until the first commit and every board drawn: the first render.",
+        "From handing the loaded core to React until the first commit and every board drawn: the first render. On an edit, the new load replaces the document in the store on screen, and React updates the tree in place.",
         `${V}/src/document.ts (openDocument)`,
     ],
     "render/react commit": [

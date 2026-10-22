@@ -23,10 +23,20 @@ at http://localhost:5173. The first build is long: the editor's language
 server depends on the main Rust core.
 
 The page opens on `dev/testCode.doenet`, or on what you last typed: the
-source is saved to local storage as you edit, and Reset clears it. Edit
-the source and press Refresh (Ctrl/Cmd+S) to rebuild. After changing Rust,
-restart `dev` (or run `npm run build -w @doenet/cells-core` beside it) and
-reload.
+source is saved to local storage as you edit, and Reset clears it. With
+**Live** on (the default; `?live=0` turns it off) the document is rendered
+as you type, once typing pauses for 100 ms; otherwise press Refresh
+(Ctrl/Cmd+S). After changing Rust, restart `dev` (or run
+`npm run build -w @doenet/cells-core` beside it) and reload.
+
+An edit does not render a new page: the new load replaces the document in
+the store on screen (`CellStore.replace`), which the renderer treats as a
+rebuild. Components are keyed by where their element is in the source,
+carried across the edit (`src/identity.ts`), so an edit anywhere keeps
+the rest of the rendering: the React tree and its DOM, the JSXGraph
+boards and their elements, scroll and focus. What the reader did (a
+dragged point, a typed answer) is kept too, for every element whose own
+source the edit did not touch.
 
 The toolbar, besides what the other test viewers have:
 

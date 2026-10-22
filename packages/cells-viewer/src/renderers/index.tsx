@@ -1,5 +1,10 @@
-import { useLayoutEffect, useMemo, useSyncExternalStore } from "react";
-import { useStore } from "../hooks";
+import {
+    useContext,
+    useLayoutEffect,
+    useMemo,
+    useSyncExternalStore,
+} from "react";
+import { StoreContext, useStore } from "../hooks";
 import type { Child } from "../components";
 import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
@@ -283,15 +288,17 @@ function ChildRange({
     return <>{parts}</>;
 }
 
-/** Reports React commits back to the store for commit-latency samples. */
+/** Reports React commits back to the store for commit-latency samples,
+ * and the commit of a new document (`CellStore.replace`) for the load's. */
 export function CommitReporter() {
     const store = useStore();
+    const structure = useContext(StoreContext)!.version;
     const version = useSyncExternalStore(
         (fn) => store.subscribeAny(fn),
         () => store.version,
     );
     useLayoutEffect(() => {
         store.markCommit();
-    }, [store, version]);
+    }, [store, version, structure]);
     return null;
 }

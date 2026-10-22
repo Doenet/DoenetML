@@ -22,7 +22,11 @@ import doenetMLstring from "./testCode.doenet?raw";
 
 const SOURCE_STORAGE_KEY = "cells-viewer-dev-source";
 const EVALUATOR_STORAGE_KEY = "cells-viewer-dev-evaluator";
+const LIVE_STORAGE_KEY = "cells-viewer-dev-live";
 const SAVE_DEBOUNCE_MS = 500;
+/** With live refresh on, how long typing must pause before the editor's
+ * text is rendered. */
+const LIVE_DEBOUNCE_MS = 100;
 /** A fixture's DoenetML is shown in the editor up to this size; the largest
  * (`chain-100000`) is 3.9 MB, more than the editor handles comfortably. */
 const MAX_EDITOR_SOURCE = 1 << 20;
@@ -135,8 +139,15 @@ function App() {
         null,
     );
     const [error, setError] = React.useState<string | null>(null);
+    /** Render the editor's text as it is typed (`?live=0|1`). */
+    const [live, setLive] = React.useState(
+        () => (params.get("live") ?? readSetting(LIVE_STORAGE_KEY)) !== "0",
+    );
     const evaluatorRef = React.useRef(evaluator);
     evaluatorRef.current = evaluator;
+    // The store on screen: every load after the first replaces its
+    // document, so an edit updates the rendering in place.
+    const storeRef = React.useRef<CellStore | null>(null);
 
     const open = React.useCallback(async (encoded: Promise<Encoded>) => {
         setError(null);
@@ -145,7 +156,11 @@ function App() {
             const loaded = await openDocument(
                 await encoded,
                 evaluatorRef.current,
-                (s) => setStore(s),
+                (s) => {
+                    storeRef.current = s;
+                    setStore(s);
+                },
+                storeRef.current,
             );
             setTimings(loaded.timings);
             window.__cells!.timings = loaded.timings;
@@ -167,6 +182,36 @@ function App() {
             return open(encodeSource(text));
         },
         [open],
+    );
+
+    // Live refresh: one load at a time, of the latest text. Typing during a
+    // load queues its text; the load after it takes whatever is latest.
+    const liveRef = React.useRef<{
+        timer: number | null;
+        running: boolean;
+        next: string | null;
+    }>({ timer: null, running: false, next: null });
+    const refreshLive = React.useCallback(
+        (text: string) => {
+            const l = liveRef.current;
+            l.next = text;
+            if (l.timer !== null) window.clearTimeout(l.timer);
+            l.timer = window.setTimeout(async () => {
+                l.timer = null;
+                if (l.running) return;
+                l.running = true;
+                try {
+                    while (l.next !== null) {
+                        const t = l.next;
+                        l.next = null;
+                        await loadSource(t);
+                    }
+                } finally {
+                    l.running = false;
+                }
+            }, LIVE_DEBOUNCE_MS);
+        },
+        [loadSource],
     );
 
     const loadFixture = React.useCallback(
@@ -239,6 +284,13 @@ function App() {
         store?.setEvaluator(next);
     }
 
+    function handleLiveChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const next = event.target.checked;
+        setLive(next);
+        writeSetting(LIVE_STORAGE_KEY, next ? "1" : "0");
+        if (next && source !== rendered) refreshLive(source);
+    }
+
     function handleFixtureChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const spec = event.target.value;
         if (spec) loadFixture(spec);
@@ -284,6 +336,18 @@ function App() {
                         </select>
                     </label>
                 )}
+                <label
+                    className="dev-control"
+                    title="Render the source as it is typed, once typing pauses; otherwise on Refresh (`?live=`)."
+                >
+                    <input
+                        type="checkbox"
+                        aria-label="Live"
+                        checked={live}
+                        onChange={handleLiveChange}
+                    />
+                    Live
+                </label>
                 <span className="dev-toolbar-status">
                     DoenetML source is saved to local storage as you edit.
                 </span>
@@ -302,6 +366,7 @@ function App() {
                         onSourceChange={(text) => {
                             setSource(text);
                             saveSource(text);
+                            if (live) refreshLive(text);
                         }}
                         canRefresh={source !== rendered}
                         onRefresh={() => loadSource(source)}

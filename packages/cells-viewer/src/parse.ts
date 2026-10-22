@@ -2,6 +2,7 @@
 // editor in the UI. Benchmarks use pre-parsed fixtures instead. Each
 // stage is a step of the load trace (`trace.ts`).
 import { encodeDast } from "@doenet/cells-core/cdast-encode";
+import { originsCollector, type NodeOrigins } from "./identity";
 import { step, stepAsync } from "./trace";
 
 type Parser = typeof import("@doenet/parser");
@@ -23,7 +24,11 @@ export function preloadParser(): Promise<Parser> {
     })());
 }
 
-export async function parseDoenetML(source: string): Promise<Uint8Array> {
+/** The wire-format bytes of `source`, and where each of their nodes came
+ * from in it (`identity.ts`). */
+export async function parseDoenetML(
+    source: string,
+): Promise<{ bytes: Uint8Array; origins: NodeOrigins }> {
     // With the parser in hand there is no import to wait for, and no task
     // boundary between the call and the parse: a Refresh parses and loads
     // before React's next render.
@@ -33,6 +38,14 @@ export async function parseDoenetML(source: string): Promise<Uint8Array> {
         chars: source.length,
     });
     const dast = step("parse/normalize", () => normalizeDocumentDast(raw));
-    const bytes = step("parse/encode", () => encodeDast(dast));
-    return bytes;
+    const origins = originsCollector(source);
+    let nNodes = 0;
+    const bytes = step("parse/encode", () =>
+        encodeDast(dast, (id, n) => {
+            origins.onNode(id, n);
+            nNodes = Math.max(nNodes, id + 1);
+        }),
+    );
+    // The root the encoder adds (node 0) has no origin.
+    return { bytes, origins: origins.finish(nNodes) };
 }

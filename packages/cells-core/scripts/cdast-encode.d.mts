@@ -1,1 +1,4 @@
-export function encodeDast(dast: unknown): Uint8Array;
+export function encodeDast(
+    dast: unknown,
+    onNode?: (id: number, node: any) => void,
+): Uint8Array;

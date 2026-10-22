@@ -81,6 +81,15 @@ impl Core {
         self.doc.save_state()
     }
 
+    /// Put saved state (`save_state`'s JSON) into this document: the values
+    /// it names, then recompute. A count it changes rebuilds the document,
+    /// so every pointer and length must be re-read after this call.
+    pub fn restore_state(&mut self, state: &str) -> Result<(), JsError> {
+        self.doc
+            .restore_state(state)
+            .map_err(|e| JsError::new(&e.to_string()))
+    }
+
     /// Parse what a student typed into the engine: the value to request on
     /// a mathInput's `expr` cell.
     pub fn parse_math(&self, text: &str) -> Result<f64, JsError> {

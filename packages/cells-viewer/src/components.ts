@@ -37,6 +37,9 @@ export class ComponentTable {
     _propIndex: Map<string, number>[];
     _cols: ComponentColumns;
     _reload?: () => ComponentColumns;
+    /** Stable identity of each DAST node across loads of an edited source
+     * (`identity.ts`), set by the store; without it, a node is its id. */
+    nodeIds: Uint32Array | null = null;
     /**
      * @param reload re-reads the columns from the core. The views detach
      * when wasm memory grows (parsing typed math, interning text), which
@@ -133,14 +136,17 @@ export class ComponentTable {
         return null;
     }
 
-    /** A key that identifies the component across rebuilds. Synthesized
-     * components (copies made by `$ref` children or collects) have no DAST
-     * node, so they are keyed by their position under the parent instead. */
+    /** A key that identifies the component across rebuilds, and across
+     * edits of the source when the store knows the nodes' identities.
+     * Synthesized components (copies made by `$ref` children or collects)
+     * have no DAST node, so they are keyed by their position under the
+     * parent instead. */
     key(c: number, positionInParent: number): string {
         const n = this.cols.node[c];
-        return n === NONE
-            ? `#${positionInParent}`
-            : `${n}:${this.cols.scope[c]}`;
+        if (n === NONE) return `#${positionInParent}`;
+        const id =
+            this.nodeIds && n < this.nodeIds.length ? this.nodeIds[n] : n;
+        return `${id}:${this.cols.scope[c]}`;
     }
 
     children(c: number): Child[] {

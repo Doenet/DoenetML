@@ -379,18 +379,22 @@ function GraphLegend({ idx }: { idx: number }) {
 }
 
 /** Mount a board element for the component's lifetime and keep it bound to
- * the component's current cells: after a rebuild the indices change, the
- * element stays. */
+ * the component's current cells: after a rebuild or an edit of the source
+ * the indices change, the element stays. `variant` names what `make` built
+ * the element from besides the cells (its style, from the element's
+ * attributes): when an edit changes it, the element is made again. */
 export function useBoardElement(
     idx: number,
     props: readonly string[],
     make: (h: BoardHandle) => BoardElement,
+    variant = "",
 ) {
     const store = useStore();
     useBoardElementCells(
         idx,
         () => props.map((p) => store.comps.cell(idx, p)),
         make,
+        variant,
     );
 }
 
@@ -400,6 +404,7 @@ export function useBoardElementCells(
     idx: number,
     cellsOf: () => number[],
     make: (h: BoardHandle) => BoardElement,
+    variant = "",
 ) {
     const store = useStore();
     const h = useBoard();
@@ -414,11 +419,12 @@ export function useBoardElementCells(
             el.current = null;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [h]);
+    }, [h, variant]);
     const cells = cellsOf();
     const key = cells.join(",");
     // A rebuild drops every per-cell subscription, so the table is a
     // dependency too: indices that came out the same still re-subscribe.
+    // So is the variant: an element made again is bound afresh.
     useLayoutEffect(() => {
         const e = el.current!;
         e.cells = cells;
@@ -431,7 +437,7 @@ export function useBoardElementCells(
             if (h.byComp.get(idx) === e) h.byComp.delete(idx);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [h, store, store.comps, idx, key]);
+    }, [h, store, store.comps, idx, key, variant]);
 }
 
 /** Where to press to drag the named component (or the component with

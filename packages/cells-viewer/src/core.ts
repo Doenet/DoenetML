@@ -3,6 +3,7 @@
 // zero-copy), per-cell-index subscriptions, and cell-addressed requests.
 import init, { Core } from "@doenet/cells-core/pkg/cells_wasm.js";
 import { ComponentTable, columnsFromCore } from "./components";
+import { NodeIdentity, type NodeOrigins } from "./identity";
 import { measure, measureCoreSpans } from "./trace";
 
 export interface LoadTimings {
@@ -110,17 +111,72 @@ export class CellStore {
     /** What the load reported about the elements it stamped (ADR 0013);
      * an `_error` component's DAST node names its entry. */
     diagnostics: Diagnostic[];
+    /** Stable identities of the DAST nodes, when the source is known: what
+     * keeps a component's rendering across an edit (`replace`). */
+    identity: NodeIdentity | null;
 
     constructor(
         core: Core,
         comps: ComponentTable,
         diagnostics: Diagnostic[] = [],
+        origins: NodeOrigins | null = null,
     ) {
         this.core = core;
         this.comps = comps;
         this.diagnostics = diagnostics;
+        this.identity = origins ? NodeIdentity.of(origins, null) : null;
+        this.comps.nodeIds = this.identity?.ids ?? null;
         this._view = this._makeView();
         this._listeners = new Array(comps.nCells);
+    }
+
+    /**
+     * Show another load of the document (an edit of its source) in place of
+     * this one, and free this one's core. To the renderer it is a rebuild:
+     * every cell and component index is new, and the tree updates from the
+     * root. A component made from the same element as one on screen, by
+     * its place in the source (`identity.ts`), keeps its React state, its
+     * DOM and its JSXGraph objects; without `origins`, nothing is kept.
+     */
+    replace(loaded: LoadedCore, origins: NodeOrigins | null = null) {
+        const old = this.core;
+        this.core = loaded.core;
+        this.diagnostics = loaded.diagnostics;
+        const identity = origins
+            ? NodeIdentity.of(origins, this.identity)
+            : null;
+        this.comps = loaded.comps;
+        // What the reader did to the elements the edit left alone carries
+        // over: their essential cells, renamed to the new load's nodes.
+        if (identity && this.identity) {
+            const t = performance.now();
+            try {
+                const state = identity.carryState(old.save_state());
+                if (state !== null) {
+                    this.core.restore_state(state);
+                    // A restored count may have rebuilt the document.
+                    this.comps = new ComponentTable(
+                        columnsFromCore(this.core, wasmMemory!),
+                        () => columnsFromCore(this.core, wasmMemory!),
+                    );
+                }
+            } catch (e) {
+                console.warn(
+                    "the edit could not keep the document's state:",
+                    e,
+                );
+            }
+            measure("carry state", t);
+        }
+        this.identity = identity;
+        this.comps.nodeIds = this.identity?.ids ?? null;
+        this._view = this._makeView();
+        this._listeners = new Array(this.comps.nCells);
+        this._pendingCommit = null;
+        this.firstCommitAt = null;
+        this.structureVersion++;
+        for (const fn of this._structureListeners) fn();
+        old.free();
     }
 
     _makeView() {
@@ -300,12 +356,19 @@ export class CellStore {
     }
 }
 
+/** A loaded core, before it is in a store. */
+export type LoadedCore = {
+    core: Core;
+    comps: ComponentTable;
+    diagnostics: Diagnostic[];
+};
+
 /** `bytes` is either DAST JSON (UTF-8) or the binary CDST wire format. */
-export async function loadDocument(
+export async function loadCore(
     bytes: Uint8Array,
     evaluator: string,
     timings: Partial<LoadTimings>,
-): Promise<CellStore> {
+): Promise<LoadedCore> {
     let t = performance.now();
     const firstInit = wasmMemory === null;
     const memory = await preloadCore();
@@ -332,5 +395,5 @@ export async function loadDocument(
     );
     timings.componentTable = performance.now() - t;
     measure("core/component table", t, { components: comps.length });
-    return new CellStore(core, comps, diagnostics);
+    return { core, comps, diagnostics };
 }
