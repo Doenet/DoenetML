@@ -416,6 +416,10 @@ export default class Core {
             // the shared state-variable functions in StateVariableInitializer
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
+            // Whether a component is still in the document, for an action
+            // that may have deleted the component carrying it out.
+            componentExists: (componentIdx: ComponentIdx) =>
+                this._components[componentIdx] !== undefined,
             addDiagnostic: this.addDiagnostic.bind(this),
             // What a save holds of an unlinked copy's snapshot
             // (`utils/copySnapshot.js`), by the copy's stateId.
@@ -1134,23 +1138,35 @@ export default class Core {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        announcement,
     }: {
         actionId?: string;
         sourceInformation?: any;
         skipRendererUpdate?: boolean;
+        /**
+         * What the viewer is to announce to a screen reader along with this
+         * update, `""` for its default (see `finishActionButtonPress`).
+         */
+        announcement?: string;
     }): Promise<void> {
         if (!skipRendererUpdate) {
-            await this.updateAllChangedRenderers(sourceInformation, actionId);
+            await this.updateAllChangedRenderers(
+                sourceInformation,
+                actionId,
+                announcement,
+            );
         }
     }
 
     async updateAllChangedRenderers(
         sourceInformation: any = {},
         actionId?: string,
+        announcement?: string,
     ): Promise<any> {
         return this.rendererInstructionBuilder.updateAllChangedRenderers(
             sourceInformation,
             actionId,
+            announcement,
         );
     }
 

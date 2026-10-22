@@ -11,6 +11,10 @@ import {
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
+    finishActionButtonPress,
+    returnStatusMessageStateVariableDefinition,
+} from "../utils/statusMessage";
+import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
 } from "../utils/triggering";
@@ -53,12 +57,18 @@ export default class CallAction extends InlineComponent {
         if (serializedComponent.children === undefined) {
             return [];
         } else {
+            // A `<label>` and a `<statusMessage>` describe the button rather
+            // than being handed to the action, so they become real children.
             let keepSerializedInds = [];
             for (let [ind, child] of serializedComponent.children.entries()) {
                 if (
                     !componentInfoObjects.componentIsSpecifiedType(
                         child,
                         "label",
+                    ) &&
+                    !componentInfoObjects.componentIsSpecifiedType(
+                        child,
+                        "statusMessage",
                     )
                 ) {
                     keepSerializedInds.push(ind);
@@ -127,6 +137,10 @@ export default class CallAction extends InlineComponent {
                 group: "labels",
                 componentTypes: ["label"],
             },
+            {
+                group: "statusMessages",
+                componentTypes: ["statusMessage"],
+            },
         ];
     }
 
@@ -148,6 +162,10 @@ export default class CallAction extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnRenderOnlyLabelChildDefinitions(),
+        );
+        Object.assign(
+            stateVariableDefinitions,
+            returnStatusMessageStateVariableDefinition(),
         );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
@@ -260,8 +278,7 @@ export default class CallAction extends InlineComponent {
                 await this.warnActionUnavailable(actionName);
             }
 
-            await this.coreFunctions.triggerChainedActions({
-                componentIdx: this.componentIdx,
+            await finishActionButtonPress(this, {
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -308,7 +325,10 @@ export default class CallAction extends InlineComponent {
             previousValues.triggerWhen === false &&
             !(await this.stateValues.insideTriggerSet)
         ) {
-            return await this.callAction({ actionId });
+            return await this.callAction({
+                actionId,
+                skipRendererUpdate: true,
+            });
         }
     }
 

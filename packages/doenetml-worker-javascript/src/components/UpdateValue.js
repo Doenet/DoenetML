@@ -8,6 +8,10 @@ import {
     returnLabelStateVariableDefinitions,
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
+import {
+    finishActionButtonPress,
+    returnStatusMessageStateVariableDefinition,
+} from "../utils/statusMessage";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
     addStandardTriggeringStateVariableDefinitions,
@@ -144,6 +148,10 @@ export default class UpdateValue extends InlineComponent {
                 group: "labels",
                 componentTypes: ["label"],
             },
+            {
+                group: "statusMessages",
+                componentTypes: ["statusMessage"],
+            },
         ];
     }
 
@@ -165,6 +173,10 @@ export default class UpdateValue extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnRenderOnlyLabelChildDefinitions(),
+        );
+        Object.assign(
+            stateVariableDefinitions,
+            returnStatusMessageStateVariableDefinition(),
         );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
@@ -587,8 +599,7 @@ export default class UpdateValue extends InlineComponent {
             },
         });
 
-        return await this.coreFunctions.triggerChainedActions({
-            componentIdx: this.componentIdx,
+        await finishActionButtonPress(this, {
             actionId,
             sourceInformation,
             skipRendererUpdate,

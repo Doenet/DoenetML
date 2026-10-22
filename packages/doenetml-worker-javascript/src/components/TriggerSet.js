@@ -9,6 +9,10 @@ import {
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
+    finishActionButtonPress,
+    returnStatusMessageStateVariableDefinition,
+} from "../utils/statusMessage";
+import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
 } from "../utils/triggering";
@@ -73,6 +77,10 @@ export default class triggerSet extends InlineComponent {
                 group: "labels",
                 componentTypes: ["label"],
             },
+            {
+                group: "statusMessages",
+                componentTypes: ["statusMessage"],
+            },
         ];
     }
 
@@ -94,6 +102,10 @@ export default class triggerSet extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnRenderOnlyLabelChildDefinitions(),
+        );
+        Object.assign(
+            stateVariableDefinitions,
+            returnStatusMessageStateVariableDefinition(),
         );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
@@ -165,8 +177,7 @@ export default class triggerSet extends InlineComponent {
             }
         }
 
-        return await this.coreFunctions.triggerChainedActions({
-            componentIdx: this.componentIdx,
+        await finishActionButtonPress(this, {
             actionId,
             sourceInformation,
             skipRendererUpdate,

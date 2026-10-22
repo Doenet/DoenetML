@@ -44,6 +44,12 @@ export type UpdateRenderersCallback = (arg: {
      * message in place of the document. Sent with no update instructions.
      */
     documentStopped?: string;
+    /**
+     * A press of an action button that this batch settles: what the viewer
+     * is to announce to a screen reader, or `""` for its default
+     * announcement, which is in the reader's language (#2277).
+     */
+    announcement?: string;
 }) => void | Promise<void>;
 export type ReportScoreAndStateCallback = (data: {
     score: number;

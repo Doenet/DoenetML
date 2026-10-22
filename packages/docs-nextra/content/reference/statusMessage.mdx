@@ -1,0 +1,88 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<statusMessage>{:dn}`
+
+<ComponentDisplay name='statusMessage'/>
+
+`<statusMessage>{:dn}` is the message a screen reader announces after someone presses
+the button of an `<updateValue>{:dn}`, `<callAction>{:dn}` or `<triggerSet>{:dn}`.
+It is **only read by assistive technology** and is never shown on screen: a sighted
+reader already sees what the button changed, but a screen reader user hears nothing
+unless the change is announced.
+
+When a button has no `<statusMessage>{:dn}`, pressing it announces a general
+"Value updated", in the reader's own language. A `<statusMessage>{:dn}` replaces that
+with a message that says what actually happened, such as "The circle is now red."
+An empty `<statusMessage>{:dn}` announces the default.
+
+The message is computed *after* the button has done its work, so a reference inside it
+names the new value: `<statusMessage>Count is now $n.</statusMessage>{:dn}` announces
+"Count is now 2." after a press that changes `$n` from 1 to 2. If a button has more than
+one `<statusMessage>{:dn}`, the last one is used. A press is announced even when the
+button hides itself, as a button that reveals a hint with `hide="$shown"` does. A press
+that removes its button from the document, for example by switching the
+`<conditionalContent>{:dn}` holding it to another case or to its `<else>{:dn}`,
+announces the default instead, because the message was removed along with the button.
+
+The message is announced as plain text. Write values in words when the way they read
+aloud matters: a math value is announced as its plain text (for example `x²/3`), not
+the way it is spoken.
+
+Changes made without a press of the button, such as those from `triggerWhen`,
+`triggerWith` or `triggerWhenObjectsClicked`, are not announced.
+
+
+<AttrPropDisplay name='statusMessage'/>
+
+## Examples
+
+### Example: Announce the new value of a `<number>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Count: <number name="n">1</number></p>
+
+<p>
+<updateValue target="$n" newValue="$n + 1">
+  <label>Add 1</label>
+  <statusMessage>Count is now $n.</statusMessage>
+</updateValue>
+</p>
+```
+
+
+
+After each press, a screen reader announces "Count is now 2.", then "Count is now 3.", and
+so on. The message is never displayed.
+
+
+
+---
+
+### Example: Describe a change a screen reader cannot see
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A graph of a filled circle</shortDescription>
+  <circle name="circ" radius="6" filled/>
+</graph>
+
+<updateValue
+  target="$circ.styleNumber"
+  newValue="2"
+  disabled="$circ.styleNumber = 2"
+>
+  <label>Change color</label>
+  <statusMessage>The circle is now $circ.styleDescription.</statusMessage>
+</updateValue>
+```
+
+
+
+Without the `<statusMessage>{:dn}`, a screen reader would only hear "Value updated". With it,
+the reader learns what changed, which is something they could not discover from the
+graph's description alone.

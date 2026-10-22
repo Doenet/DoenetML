@@ -5,6 +5,7 @@ import React, {
     ReactNode,
     useCallback,
     useEffect,
+    useImperativeHandle,
     useMemo,
     useRef,
     useState,
@@ -24,6 +25,7 @@ import { UiButton } from "@doenet/ui-components";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
+    DEFAULT_LOCALE,
     directionOf,
     reachableCatalogLocales,
     resolveDocumentLocale,
@@ -276,6 +278,131 @@ function StateLoadNoticeRegion({
                     <b>{leadIn}</b> {message}
                 </div>
             ) : null}
+        </div>
+    );
+}
+
+/** How long after a press its announcement is put in the region. */
+const ANNOUNCEMENT_DELAY_MS = 100;
+/** How long an announcement stays in the region before it is cleared. */
+const ANNOUNCEMENT_LIFETIME_MS = 5000;
+
+/**
+ * The id of a document's announcement region: the viewer's `prefixForIds`
+ * followed by `_announcements`. A renderer's DOM id is `prefixForIds` followed
+ * by an author's name or `_id_<n>`, and an author's name cannot start with an
+ * underscore, so this one cannot collide with a renderer's. Two viewers on
+ * one page are kept apart the same way their renderers are, by being given
+ * different prefixes.
+ */
+function announcementRegionId(prefixForIds: string) {
+    return prefixForIds + "_announcements";
+}
+
+/**
+ * Hidden from sight, not from a screen reader: the reader who can see the
+ * page already sees what the announced action changed.
+ */
+const visuallyHiddenStyle: React.CSSProperties = {
+    position: "absolute",
+    width: "1px",
+    height: "1px",
+    margin: "-1px",
+    padding: 0,
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+};
+
+type AnnouncementRegionHandle = {
+    /**
+     * Announce `message`. `lang` is the language it is in when that is not the
+     * document's, which the region otherwise inherits.
+     */
+    announce: (message: string, lang?: string) => void;
+};
+
+/**
+ * The one live region a document's announcements are made in
+ * (Doenet/DoenetML#2277): for now, a press of an action button, whose
+ * message core sends with the update that settles the press (see
+ * `updateRenderers`).
+ *
+ * One per document rather than one per button, so that it outlives the
+ * button: a button that hides itself when pressed is unmounted by the time
+ * its press is announced, and a region inside it would have gone with it. A
+ * region in each button also had to keep a hidden button mounted, which put
+ * an element where its parent expected nothing.
+ *
+ * On the page, empty, from the first render: a live region that appears with
+ * its text already in it is announced unreliably. Each announcement empties
+ * it first and fills it a moment later, so that the same message twice is
+ * announced twice, and empties it again a few seconds later, so that a
+ * reader moving through the page does not come across a message that has
+ * since gone stale. A new announcement cancels what is left of the previous
+ * one. The timers belong to this component and go with it.
+ *
+ * An announcement in a language other than the document's carries its own
+ * `lang`, even where the two share a direction and other chrome would not
+ * (`useChromeLangDir`): this text exists only to be spoken, and a screen
+ * reader picks its voice from `lang`.
+ *
+ * Its own component, holding its own text, so that an announcement redraws
+ * only the region and not the document.
+ */
+function AnnouncementRegion({
+    id,
+    ref,
+}: {
+    id: string;
+    ref: React.Ref<AnnouncementRegionHandle>;
+}) {
+    const [announcement, setAnnouncement] = useState<{
+        text: string;
+        lang?: string;
+    }>({ text: "" });
+    const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    function clearTimers() {
+        timers.current.forEach(clearTimeout);
+        timers.current = [];
+    }
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            announce(message: string, lang?: string) {
+                clearTimers();
+                setAnnouncement({ text: "" });
+                timers.current.push(
+                    setTimeout(
+                        () => setAnnouncement({ text: message, lang }),
+                        ANNOUNCEMENT_DELAY_MS,
+                    ),
+                    setTimeout(
+                        () => setAnnouncement({ text: "" }),
+                        ANNOUNCEMENT_LIFETIME_MS,
+                    ),
+                );
+            },
+        }),
+        [],
+    );
+
+    useEffect(() => clearTimers, []);
+
+    return (
+        <div
+            id={id}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            style={visuallyHiddenStyle}
+        >
+            {announcement.text && (
+                <span lang={announcement.lang}>{announcement.text}</span>
+            )}
         </div>
     );
 }
@@ -720,6 +847,9 @@ export function DocViewer({
     // their other side checks this (`bootAbandoned`) rather than going on
     // booting a worker for a viewer that is gone.
     const viewerUnmounted = useRef(false);
+
+    // The document's announcement region (`AnnouncementRegion`).
+    const announcementRegion = useRef<AnnouncementRegionHandle>(null);
     // The `coreId` whose boot ladder is running, or null between ladders. One
     // of `startCoreSafely`'s three callers is render-phase code that re-runs
     // on every re-render until the ladder moves `stage` off
@@ -936,6 +1066,10 @@ export function DocViewer({
     // has to be rendered in the language in effect now.
     const formatDiagnosticRef = useRef(formatDiagnostic);
     formatDiagnosticRef.current = formatDiagnostic;
+    // Through a ref for the same reason: the default announcement of a press
+    // (`updateRenderers`) is in the language in effect at the press.
+    const translateRef = useRef(translate);
+    translateRef.current = translate;
 
     useEffect(() => {
         resolvedUiLocaleCallback?.(effectiveUiLocale);
@@ -2137,6 +2271,7 @@ export function DocViewer({
         init = false,
         deferred = false,
         documentStopped,
+        announcement,
     }: {
         updateInstructions: Record<string, any>[];
         actionId?: string;
@@ -2174,6 +2309,13 @@ export function DocViewer({
          * could not be built is shown.
          */
         documentStopped?: string;
+        /**
+         * This batch settles a press of an action button, and this is what
+         * the press is to be announced as: the author's `<statusMessage>`, or
+         * `""` for the default, which is addressed to the reader and so is in
+         * their language rather than the document's (#2277).
+         */
+        announcement?: string;
     }) {
         if (documentStopped !== undefined) {
             const message = translate(
@@ -2245,6 +2387,27 @@ export function DocViewer({
                         }),
                     );
                 }
+            }
+        }
+
+        if (announcement !== undefined) {
+            // Named `translate` so that `lint:i18n` sees the key.
+            // The author's message is in the document's language, which the
+            // region inherits. The default is in the reader's, or in English
+            // where their language has no translation of it.
+            const translate = translateRef.current;
+            if (announcement) {
+                announcementRegion.current?.announce(announcement);
+            } else {
+                announcementRegion.current?.announce(
+                    translate(
+                        "action-button-updated",
+                        undefined,
+                        "Value updated",
+                    ),
+                    translate.localeOf?.("action-button-updated") ??
+                        DEFAULT_LOCALE,
+                );
             }
         }
 
@@ -4098,6 +4261,10 @@ export function DocViewer({
                 ref={viewerContainerRef}
             >
                 {stateNoticeBanner}
+                <AnnouncementRegion
+                    id={announcementRegionId(prefixForIds)}
+                    ref={announcementRegion}
+                />
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>
                     {/* Nested inside the provider `doenetml.tsx` mounts from
