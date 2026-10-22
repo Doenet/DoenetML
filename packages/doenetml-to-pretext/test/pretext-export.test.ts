@@ -792,6 +792,17 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a hidden solution or given answer is left out", async () => {
+        // Not an empty `<solution/>`, which PreTeXt would still print with its title.
+        source = `<problem><statement><p>What is 1+1?</p></statement><givenAnswer hide><p>2</p></givenAnswer><solution hide><p>It is 2.</p></solution></problem>`;
+        let exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(
+            `<statement><p>What is 1+1?</p></statement>`,
+        );
+        expect(exported).not.toContain("<solution");
+        expect(exported).not.toContain("<answer");
+    });
+
     it("the parts of a statement are not taken into a paragraph", async () => {
         // A `<statement>` or `<solution>` inside a `<p>` is no longer read as a part of
         // the problem: the solution escapes the publisher's settings for solutions.
