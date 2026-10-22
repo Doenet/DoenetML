@@ -1,6 +1,7 @@
 import * as path from "path";
+import { fileURLToPath } from "node:url";
 import * as fs from "fs/promises";
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const rootPackageJson = JSON.parse(
     await fs.readFile(path.join(__dirname, "..", "package.json"), "utf-8"),
