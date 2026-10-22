@@ -191,10 +191,24 @@ export function JsxGraph({ idx }: { idx: number }) {
         }
         createAxes(board);
         addNavigationButtons(board, container.current!);
+        // JSXGraph cancels the pointerdown on an element, so the press does
+        // not take focus from an input the way a click elsewhere does. Each
+        // board update then hands focus back to that input with `focus()`
+        // (minimizeReflow), which scrolls it into view and the board out
+        // from under the pointer, ending the drag. Blur it as the press
+        // would have (a mathInput commits on blur), before JSXGraph sees it.
+        const box = container.current!;
+        const blurOutside = () => {
+            const active = document.activeElement;
+            if (active instanceof HTMLElement && !box.contains(active))
+                active.blur();
+        };
+        box.addEventListener("pointerdown", blurOutside, true);
         const h = new BoardHandle(board, store);
         boards.add(h);
         setHandle(h);
         return () => {
+            box.removeEventListener("pointerdown", blurOutside, true);
             boards.delete(h);
             (JXG.JSXGraph as any).freeBoard(board);
             container.current?.querySelector(".JXG_navigation")?.remove();

@@ -15,6 +15,7 @@
         "build:rust-viewer": "vite build -c browser/rust-viewer/vite.config.ts",
         "browser": "playwright test -c browser/playwright.config.ts perf.spec.ts",
         "trace": "playwright test -c browser/playwright.config.ts trace.spec.ts",
+        "interaction": "playwright test -c browser/playwright.config.ts interaction.spec.ts",
         "render": "node scripts/render.mjs",
         "perf-diff": "scripts/perf-diff.sh"
     },
