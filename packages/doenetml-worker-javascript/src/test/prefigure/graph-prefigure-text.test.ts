@@ -71,6 +71,30 @@ ${prefigureGraph(`
         ]);
     });
 
+    it("skips a component that inherits from math but has no renderer", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(`
+  <periodicSet offsets="1" period="2" />
+  <text anchor="(1,1)">shown</text>`),
+        );
+
+        expect(labels(prefigureXML)).toEqual([
+            '<label at="text_0" anchor="(1,1)" alignment="c" color="currentColor">shown</label>',
+        ]);
+    });
+
+    it("lets an annotation refer to a drawn text", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(`
+  <text name="t" anchor="(1,1)">hi</text>
+  <annotations><annotation ref="$t" text="a text" /></annotations>`),
+        );
+
+        expect(prefigureXML).toContain(
+            '<annotation ref="text_0" text="a text"></annotation>',
+        );
+    });
+
     it("maps positionFromAnchor to alignment", async () => {
         const positions: [string, string][] = [
             ["upperRight", "ne"],

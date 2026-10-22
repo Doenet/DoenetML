@@ -22,21 +22,32 @@ export const GRAPH_TEXT_CONTENT_VARIABLES: Record<string, string[]> = {
     label: ["value", "hasLatex"],
 };
 
+/** The Doenet renderers of the types in `GRAPH_TEXT_CONTENT_VARIABLES`. */
+const GRAPH_TEXT_RENDERER_TYPES = new Set(["text", "number", "math", "label"]);
+
 /**
  * The entry of `GRAPH_TEXT_CONTENT_VARIABLES` a graph child is drawn as: its
  * own type, or the one it inherits from, so `<integer>` is drawn as a
  * `<number>`, `<mdn>` as an `<md>`, and `<evaluate>` as a `<math>`. Null for
- * a child that is none of them.
+ * a child that is none of them, or that does not display as text in a Doenet
+ * graph, such as `<periodicSet>`, which inherits from `<math>` but has no
+ * renderer.
  */
 export function graphTextType(
     componentType: string,
     componentInfoObjects: {
+        allComponentClasses: Record<string, { rendererType?: string }>;
         isInheritedComponentType: (args: {
             inheritedComponentType: string;
             baseComponentType: string;
         }) => boolean;
     },
 ): string | null {
+    const rendererType =
+        componentInfoObjects.allComponentClasses[componentType]?.rendererType;
+    if (!rendererType || !GRAPH_TEXT_RENDERER_TYPES.has(rendererType)) {
+        return null;
+    }
     if (componentType in GRAPH_TEXT_CONTENT_VARIABLES) {
         return componentType;
     }
