@@ -2,6 +2,11 @@ import { createPrefigureXML } from "./graph";
 import { sortDescendantsByOrder } from "./common";
 import type { Descendant, GraphDependencyValues } from "./types";
 import { codedDiagnostic } from "../diagnostics";
+import {
+    GRAPH_TEXT_COMMON_VARIABLES,
+    GRAPH_TEXT_CONTENT_VARIABLES,
+    graphTextMarkup,
+} from "./components/text";
 
 interface DescendantDependency {
     dependencyType: "descendant";
@@ -333,6 +338,131 @@ function returnGraphCurveDescendantsStateVariableDefinition() {
 }
 
 /**
+ * Lists the text-like children this graph draws (`<text>`, `<math>`,
+ * `<label>`, ...), with those of any nested graph, which draws into this one.
+ *
+ * Only identities are gathered here. The graph's `graphical` child group also
+ * holds points, lines, and the rest, and a child dependency cannot pick out
+ * component types, so asking it for `text` or `latex` would compute those for
+ * every child. `prefigureXML` instead asks each listed text for its values.
+ *
+ * Children are used rather than descendants because a descendant search would
+ * also find text that is part of another component and not drawn on its own,
+ * such as a point's `<label>` or a `<shortDescription>`.
+ */
+function returnGraphTextChildrenStateVariableDefinition() {
+    return {
+        stateVariablesDeterminingDependencies: ["effectiveRenderer"],
+        returnDependencies: ({
+            stateValues,
+        }: {
+            stateValues: GraphDependencyValues;
+        }) => {
+            if (stateValues.effectiveRenderer !== "prefigure") {
+                return {};
+            }
+            return {
+                graphicalChildren: {
+                    dependencyType: "child",
+                    childGroups: ["graphical"],
+                },
+                graphChildren: {
+                    dependencyType: "child",
+                    childGroups: ["graphs"],
+                    variableNames: ["graphTextChildren"],
+                },
+            };
+        },
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: GraphDependencyValues;
+        }) {
+            const ownTextChildren = (
+                (dependencyValues.graphicalChildren as
+                    Descendant[] | undefined) ?? []
+            )
+                .filter(
+                    (child) =>
+                        child.componentType in GRAPH_TEXT_CONTENT_VARIABLES &&
+                        Number.isFinite(child.componentIdx),
+                )
+                .map(({ componentType, componentIdx, position }) => ({
+                    componentType,
+                    componentIdx,
+                    position,
+                }));
+
+            const nestedTextChildren = (
+                (dependencyValues.graphChildren as Descendant[] | undefined) ??
+                []
+            ).flatMap(
+                (graph) =>
+                    (graph.stateValues?.graphTextChildren as
+                        Descendant[] | undefined) ?? [],
+            );
+
+            return {
+                setValue: {
+                    graphTextChildren: [
+                        ...ownTextChildren,
+                        ...nestedTextChildren,
+                    ],
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The values of each listed graph text, as `textChild<i>` dependencies, so a
+ * text is asked only for the variables its type draws.
+ */
+function graphTextValueDependencies(
+    graphTextChildren: unknown,
+): Record<string, unknown> {
+    const dependencies: Record<string, unknown> = {};
+    if (!Array.isArray(graphTextChildren)) {
+        return dependencies;
+    }
+    for (const [index, child] of (
+        graphTextChildren as Descendant[]
+    ).entries()) {
+        dependencies[`textChild${index}`] = {
+            dependencyType: "multipleStateVariables",
+            componentIdx: child.componentIdx,
+            variableNames: [
+                ...(GRAPH_TEXT_CONTENT_VARIABLES[child.componentType] ?? []),
+                ...GRAPH_TEXT_COMMON_VARIABLES,
+            ],
+            variablesOptional: true,
+        };
+    }
+    return dependencies;
+}
+
+/**
+ * The graph texts to draw, each with its values, leaving out any that would
+ * show nothing.
+ */
+function collectGraphTexts(
+    dependencyValues: GraphDependencyValues,
+): Descendant[] {
+    const graphTextChildren =
+        (dependencyValues.graphTextChildren as Descendant[] | undefined) ?? [];
+
+    return graphTextChildren.flatMap((child, index) => {
+        const stateValues =
+            (dependencyValues[`textChild${index}`] as Descendant | undefined)
+                ?.stateValues ?? {};
+        if (graphTextMarkup(child.componentType, stateValues) === null) {
+            return [];
+        }
+        return [{ ...child, stateValues }];
+    });
+}
+
+/**
  * Computes a stable ordered list of curve component indices for this graph.
  *
  * Relationship to other helpers:
@@ -485,7 +615,10 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
             "The Prefigure-formatted XML rendered for this graph, or null if not using the Prefigure renderer.",
         public: true,
         forRenderer: true,
-        stateVariablesDeterminingDependencies: ["effectiveRenderer"],
+        stateVariablesDeterminingDependencies: [
+            "effectiveRenderer",
+            "graphTextChildren",
+        ],
         shadowingInstructions: {
             createComponentOfType: "text",
         },
@@ -517,6 +650,11 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                     dependencyType: "stateVariable",
                     variableName: "functionToCurveComponentIdx",
                 },
+                graphTextChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "graphTextChildren",
+                },
+                ...graphTextValueDependencies(stateValues.graphTextChildren),
                 ...annotationsChildren,
                 allGraphicalDescendants: {
                     dependencyType: "descendant",
@@ -560,7 +698,10 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                 return { setValue: { prefigureXML: null } };
             }
 
-            const descendants = collectConfiguredDescendants(dependencyValues);
+            const descendants = [
+                ...collectConfiguredDescendants(dependencyValues),
+                ...collectGraphTexts(dependencyValues),
+            ];
             descendants.sort(sortDescendantsByOrder);
 
             const handledDescendantIndices = new Set(
@@ -670,6 +811,7 @@ export function returnGraphPrefigureStateVariableDefinitions() {
         curveDescendants: returnGraphCurveDescendantsStateVariableDefinition(),
         curveDescendantComponentIndices:
             returnGraphCurveDescendantComponentIndicesStateVariableDefinition(),
+        graphTextChildren: returnGraphTextChildrenStateVariableDefinition(),
         functionToCurveComponentIdx:
             returnGraphFunctionCurveAliasMapStateVariableDefinition(),
         hasAuthorAnnotations:

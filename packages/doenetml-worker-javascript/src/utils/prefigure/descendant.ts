@@ -19,6 +19,10 @@ import {
 import { convertAngleToPrefigure } from "./components/angle";
 import { convertCurveToPrefigure } from "./components/curve";
 import { convertRegionBetweenCurvesToPrefigure } from "./components/regionBetweenCurves";
+import {
+    GRAPH_TEXT_CONTENT_VARIABLES,
+    graphTextConverter,
+} from "./components/text";
 import type {
     Converter,
     Descendant,
@@ -64,6 +68,12 @@ const convertByComponentType: Record<string, Converter> = {
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,
     rectangle: convertPolygonToPrefigure,
+    ...Object.fromEntries(
+        Object.keys(GRAPH_TEXT_CONTENT_VARIABLES).map((componentType) => [
+            componentType,
+            graphTextConverter(componentType),
+        ]),
+    ),
 };
 
 interface ConvertGraphicalDescendantArgs {

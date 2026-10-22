@@ -14,6 +14,7 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
   - The `grid` attribute translated to PreFigure's `<grid>`, including a port of PreFigure's own automatic-spacing algorithm (`find_gridspacing()` in `prefig/core/grid_axes.py`) so `grid="dense"` subdivides the spacing PreFigure would have chosen. Keep it in step with that function.
 - `components/`
   - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline, angle).
+  - `text.ts`: the text-like graph children (`text`, `number`, `math`, `m`, `md`, `label`), drawn as PreFigure `<label>` elements at their `anchor`, with `positionFromAnchor` as the `alignment`.
 - `descendant.ts`
   - Dispatcher that routes each graphical descendant to the correct component converter and normalizes warning behavior.
 - `graph.ts`
@@ -33,6 +34,7 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
    - Add a new `*Descendants` dependency with required `variableNames`.
   - If a variable is only present on some inherited subtypes, set `variablesOptional: true` on that dependency config.
    - Include it in the merged `descendants` array.
+   - Text-like components are the exception: they come from the graph's `graphical` child group (`graphTextChildren`), not from a descendant query, because a descendant query would also find text that belongs to another component and is not drawn on its own, such as a point's `<label>` or a `<shortDescription>`.
 4. Add/adjust tests in `src/test/prefigure/*.test.ts`
    - Cover happy path XML shape.
    - Cover warning cases if style/geometry fallbacks are expected.
