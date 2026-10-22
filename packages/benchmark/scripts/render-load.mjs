@@ -7,6 +7,9 @@ import { CPUS, DEVICES, NETWORKS } from "../src/devices.mjs";
  * slow phone, cold. */
 export const VISIBLE_BUDGET_MS = 300;
 const BUDGET_DEVICE = "slow-phone";
+/** A change in the host's speed beyond this, between the calibration and
+ * the recheck after the run, is flagged on the page. */
+const DRIFT_LIMIT = 0.1;
 
 const VISITS = ["cold", "warm"];
 const VISIT_TEXT = {
@@ -72,7 +75,8 @@ function scenarioName(r) {
 export function loadPage(run, header) {
     const all = run.layers.load ?? [];
     const calibration = all.find((r) => r.kind === "calibration");
-    const records = all.filter((r) => r.kind !== "calibration");
+    const recheck = all.find((r) => r.kind === "recheck");
+    const records = all.filter((r) => r.kind === undefined);
     const nRuns = run.manifest.layers.load?.runs;
     const out = [];
 
@@ -88,10 +92,14 @@ export function loadPage(run, header) {
 
     // The devices, as calibrated.
     if (calibration) {
+        const rounds = calibration.host_rounds_ms ?? [];
+        const drift = recheck
+            ? recheck.host_workload_ms / calibration.host_workload_ms - 1
+            : null;
         out.push(
             "## Devices",
             "",
-            `The calibration workload took **${ms(calibration.host_workload_ms)}** on this machine, unthrottled (the fastest of its repetitions). A CPU class is the workload's time on that class; its throttling factor is that time over this machine's.`,
+            `The calibration workload took **${ms(calibration.host_workload_ms)}** on this machine, unthrottled${rounds.length ? ` (the median of ${rounds.length} rounds' fastest repetitions, which ranged ${ms(Math.min(...rounds))}–${ms(Math.max(...rounds))})` : ""}. A CPU class is the workload's time on that class. Its factor is the throttling at which the workload takes that time, found by timing it throttled and fitting the timings; Achieved is the workload's time at that factor, timed again, a check that carries the noise of one throttled timing.`,
             "",
             table(
                 [
@@ -99,6 +107,7 @@ export function loadPage(run, header) {
                     "CPU class",
                     "Workload",
                     "Factor",
+                    "Achieved",
                     "Network",
                     "Screen",
                 ],
@@ -112,17 +121,24 @@ export function loadPage(run, header) {
                         c
                             ? `×${c.rate.toFixed(2)}${c.slower_than_host ? "" : " (the class is faster than this machine: run at its speed)"}`
                             : "—",
+                        c?.achieved_ms !== undefined ? ms(c.achieved_ms) : "—",
                         networkText(d.network),
                         `${s.viewport.width}×${s.viewport.height} at ${s.deviceScaleFactor}×${s.isMobile ? ", mobile, touch" : ""}`,
                     ];
                 }),
             ),
             "",
-            CPUS["mid-phone"] && CPUS["slow-phone"]
-                ? "The phones' workload times are provisional until measured on real phones (`src/devices.mjs`)."
-                : "",
-            "",
         );
+        if (drift !== null)
+            out.push(
+                `After the run the workload took ${ms(recheck.host_workload_ms)} on this machine, ${drift >= 0 ? "+" : ""}${(drift * 100).toFixed(1)}% against the calibration${Math.abs(drift) > DRIFT_LIMIT ? `: **the machine's speed moved by more than ${DRIFT_LIMIT * 100}% during the run**, so by its end the devices ran up to that much off their times, and the run is not one to compare with another` : ", within the run's tolerance"}.`,
+                "",
+            );
+        if (CPUS["mid-phone"] && CPUS["slow-phone"])
+            out.push(
+                "The phones' workload times are provisional until measured on real phones (`src/devices.mjs`).",
+                "",
+            );
     }
 
     // The budget.

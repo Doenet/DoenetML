@@ -282,16 +282,41 @@ context options take them): `desktop`, this machine as it is; `mid-phone`;
 threads by a factor of the machine the suite runs on, so a fixed factor
 is a faster phone on a faster machine. A CPU class therefore names a
 speed: how long a fixed JavaScript workload (`WORKLOAD`: allocation, a
-sort, a map, string building) takes on it. At the start of a run the
-workload is timed on the host, unthrottled, as the fastest of 15
-repetitions (the one least disturbed by garbage collection and other
-processes), and each class's factor is its time over the host's. The
-host's time and every factor are the run's first record, so the page
-shows what each device was. A class faster than the host runs at the
-host's speed, and the page says so. The phones' times are provisional:
-four and six times the reference machine's 80 ms, the factors the trace
-layer used. Replace them with the workload's time on real phones,
-measured through Chrome's remote debugging.
+sort, a map, string building) takes on it. At the start of a run each
+class's factor is found by timing the workload throttled:
+
+- The host's time is the median, over 9 rounds each in a new page, of
+  each round's fastest of 9 repetitions (the fastest being the one least
+  disturbed by garbage collection). The machines the suite runs on are
+  shared and their speed moves by several percent from moment to moment,
+  so one round's fastest repetition is not stable enough: on the
+  reference machine single rounds ranged 67–78 ms within a minute, where
+  the median of rounds stays within 2%.
+- A class's factor is not its time over the host's. Throttling slows
+  plain arithmetic by about its factor, but the workload's allocation by
+  up to half as much again: at ×4 the workload took about 6.4 times the
+  host's time, at ×6 about 9 times. A page's scripts allocate like the
+  workload does, so the factor is searched: starting from the ratio of
+  the times, it is corrected by the ratio of the target to the measured
+  throttled time until they agree within 5% (at most five steps, each
+  the median of 5 rounds' fastest of 5). Each throttled timing is noisy,
+  by about 10%, as throttling slices the thread's time, so the factor kept
+  is the one a fit through every step gives (time as a power of the
+  factor, least squares on the logs). Repeated calibrations on the
+  reference machine gave factors within 4% of each other.
+- The workload is timed once more at each factor found (`achieved`, on
+  the page), as a check that carries one timing's noise.
+
+The calibration is the run's first record, with every step of each
+search. After the scenarios the host's time is measured again (`recheck`);
+if it moved by more than 10% the page says the machine's speed changed
+during the run and the run should not be compared with another. A class
+faster than the host runs at the host's speed, and the page says so. The
+phones' times are provisional: four and six times the reference
+machine's 80 ms, the factors the trace layer used, which on that machine
+are about ×2.7 and ×4.0 once the throttled workload is timed. Replace
+them with the workload's time on real phones, measured through Chrome's
+remote debugging.
 
 **Networks.** The DevTools and Lighthouse presets: `4g` (60 ms latency,
 9 Mbps down, 1.5 Mbps up), `slow-4g` (150 ms, 1.6 Mbps, 750 kbps), `3g`

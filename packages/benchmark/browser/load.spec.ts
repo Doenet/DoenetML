@@ -14,7 +14,13 @@
 //
 //   BENCH_MACHINE=<id> npm run load
 import { test, type Browser, type Page } from "@playwright/test";
-import { DEVICES, NETWORKS, calibrate, listEnv } from "../src/devices.mjs";
+import {
+    DEVICES,
+    NETWORKS,
+    calibrate,
+    listEnv,
+    recheck,
+} from "../src/devices.mjs";
 import { appendRecord, openRun, readRecords } from "../src/results.mjs";
 import { homeworkFixture } from "../src/trace-fixtures.mjs";
 
@@ -33,6 +39,8 @@ const PAGE_NAMES: string[] = listEnv("BENCH_LOAD_PAGES", "viewer");
 const ORIGIN = "http://localhost:4177";
 /** The longest one visit may take before it counts as failed. */
 const LOAD_MS = 120_000;
+/** The longest the calibration, or the recheck after the run, may take. */
+const CALIBRATE_MS = 600_000;
 /** A long task's time beyond this blocks input (as total blocking time
  * counts it). */
 const LONG_TASK_MS = 50;
@@ -235,7 +243,8 @@ async function load(page: Page, path: string) {
 
 /** The CPU calibration, once per session: kept as the records' first, so
  * a worker Playwright restarts after a timeout reuses it instead of timing
- * the workload again under different conditions. */
+ * the workload again under different conditions. It searches each class's
+ * factor (`src/devices.mjs`), which takes a few minutes. */
 async function calibration(browser: Browser) {
     const done = readRecords(run.records).find(
         (r: any) => r.kind === "calibration",
@@ -265,6 +274,11 @@ test("warm the server", async ({ browser }) => {
     } finally {
         await context.close();
     }
+});
+
+test("calibrate", async ({ browser }) => {
+    test.setTimeout(CALIBRATE_MS);
+    await calibration(browser);
 });
 
 for (const s of SCENARIOS) {
@@ -312,3 +326,10 @@ for (const s of SCENARIOS) {
         );
     });
 }
+
+test("recheck the host", async ({ browser }) => {
+    // The host's time again: whether the machine's speed moved during the
+    // run, and so how far off the factors may have been by its end.
+    test.setTimeout(CALIBRATE_MS);
+    appendRecord(run.records, { kind: "recheck", ...(await recheck(browser)) });
+});
