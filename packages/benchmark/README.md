@@ -2,8 +2,9 @@
 
 The performance suite: how the JS core, the Rust core and the cells core
 compare on tick, load and memory, what each can run, and whether each
-meets the product budgets in a real page, and where the cells viewer's load
-spends its time, step by step (the trace layer). `METHOD.md` says what is
+meets the product budgets in a real page, where the cells viewer's load
+spends its time, step by step (the trace layer), and how long a student
+waits for a document on a phone (the load layer). `METHOD.md` says what is
 measured and why; this file says how to run it. The results are in
 `results/README.md`, one directory per run.
 
@@ -114,6 +115,34 @@ The traced runs' full Chrome traces are in `results/traces/<run>/`
 (ignored by git); open one in Chrome's DevTools (Performance, Load
 profile) to see every task. The same `cells:` steps show in the
 Performance panel when recording the dev page by hand.
+
+## The load layer
+
+```bash
+npm run build -w packages/cells-viewer
+BENCH_MACHINE=<id> npm run load
+npm run render
+```
+
+`browser/load.spec.ts` loads `homework` in the cells viewer's build on each
+device of `src/devices.mjs` (a CPU class, a network and a screen), cold
+and warm, served compressed as a deployed host serves it (port 4177 of
+`browser/serve.mjs`), into the run's `load.json`. It first times a fixed
+workload on this machine to turn each CPU class into a throttling factor
+(`METHOD.md`). `npm run render` makes `load.md`: the devices as
+calibrated, the budget, first paint, readable, usable, largest paint,
+blocking time, layout shift and bytes per scenario, the page's steps, and
+every file with its bytes on the wire and when it arrived.
+
+| Variable              | Default                         | Meaning                                                                         |
+| --------------------- | ------------------------------- | ------------------------------------------------------------------------------- |
+| `BENCH_LOAD_RUNS`     | `5`                             | runs per scenario, each in a new browser profile                                |
+| `BENCH_LOAD_DEVICES`  | `desktop,mid-phone,slow-phone`  | the devices                                                                     |
+| `BENCH_LOAD_NETWORKS` | each device's own               | networks to load every device over (`none`, `4g`, `slow-4g`, `3g`), instead     |
+| `BENCH_LOAD_PAGES`    | `viewer`                        | the pages: `viewer` (`?editor=0`) and `editor`                                  |
+
+Load on a network of `none` to read a device's CPU alone, as in
+`BENCH_LOAD_NETWORKS=none,slow-4g`.
 
 ## Regressions
 
