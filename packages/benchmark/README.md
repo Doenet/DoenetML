@@ -115,6 +115,18 @@ The traced runs' full Chrome traces are in `results/traces/<run>/`
 profile) to see every task. The same `cells:` steps show in the
 Performance panel when recording the dev page by hand.
 
+## The interaction layer
+
+```bash
+npm run build -w packages/cells-viewer
+npm run interaction
+```
+
+`browser/interaction.spec.ts` drives the cells viewer's build with real
+pointer and keyboard events and checks the outcome in the core: a point
+dragged on a graph moves, with nothing focused and with a `<mathInput>`
+focused. Nothing is timed or recorded; a failure is a bug in the viewer.
+
 ## Regressions
 
 `scripts/perf-diff.sh [base] [fixtures]` compares the cells core on a base
