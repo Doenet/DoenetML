@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -31,6 +32,18 @@ async function closeSolution({
         componentIdx,
         args: {},
     });
+}
+
+/**
+ * The component indices of the component children the renderer is sent for
+ * `parentIdx`, read from the core's renderer state.
+ */
+function renderedChildIndices(core: PublicDoenetMLCore, parentIdx: number) {
+    const rendererState = (core as any).core.rendererInstructionBuilder
+        .rendererState;
+    return rendererState[parentIdx].childrenInstructions
+        .filter((child: any) => child?.componentType)
+        .map((child: any) => child.componentIdx);
 }
 
 describe("Solution tag tests @group4", async () => {
@@ -637,5 +650,60 @@ describe("Solution tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
         ).eq("This is the text of the solution.");
+    });
+
+    it("a hidden solution is not sent to the renderer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <booleanInput name="hideSol" />
+  <div name="container">
+    <solution name="sol" hide="$hideSol">
+      <p>The solution</p>
+    </solution>
+    <givenAnswer name="ans" hide="$hideSol">
+      <p>The answer</p>
+    </givenAnswer>
+  </div>
+  `,
+        });
+
+        const container = await resolvePathToNodeIdx("container");
+        const sol = await resolvePathToNodeIdx("sol");
+        const ans = await resolvePathToNodeIdx("ans");
+        const hideSol = await resolvePathToNodeIdx("hideSol");
+
+        expect(renderedChildIndices(core, container)).eqls([sol, ans]);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: hideSol,
+            core,
+        });
+        expect(renderedChildIndices(core, container)).eqls([]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: hideSol,
+            core,
+        });
+        expect(renderedChildIndices(core, container)).eqls([sol, ans]);
+    });
+
+    it("solution display mode none: solution is not sent to the renderer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <div name="container">
+    <p name="p">Before</p>
+    <solution name="sol">
+      <p>The solution</p>
+    </solution>
+  </div>
+  `,
+            flags: { solutionDisplayMode: "none" },
+        });
+
+        expect(
+            renderedChildIndices(core, await resolvePathToNodeIdx("container")),
+        ).eqls([await resolvePathToNodeIdx("p")]);
     });
 });

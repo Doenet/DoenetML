@@ -645,10 +645,7 @@ export async function returnActiveChildrenIndicesToRender({
         }
 
         if (typeof child === "object") {
-            if (
-                child.constructor.sendToRendererEvenIfHidden ||
-                !(await child.stateValues.hidden)
-            ) {
+            if (!(await child.stateValues.hidden)) {
                 indicesToRender.push(ind);
             }
         } else {

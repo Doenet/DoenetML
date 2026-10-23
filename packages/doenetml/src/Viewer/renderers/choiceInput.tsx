@@ -240,10 +240,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     // drops the component from its parent's rendered children (see
     // `returnActiveChildrenIndicesToRender` in the worker's `ChildMatcher`),
     // so React unmounts the instance instead of re-rendering it past the
-    // return. But that is an invariant of the worker, not of this file, and a
-    // component that opts into `sendToRendererEvenIfHidden` does keep
-    // re-rendering while hidden — at which point a hook below the return
-    // changes the hook count and React throws.
+    // return. But that is an invariant of the worker, not of this file, and
+    // if a hidden instance ever were re-rendered, a hook below the return
+    // would change the hook count and React would throw.
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
