@@ -328,3 +328,70 @@ chosen in the same dialog.
   `CONTEXT.md` gains *touched*, *view state*, *input*, *input signature*,
   *domain*, *derivation* and *safe for every student*, and its *element
   key* becomes the stable key.
+
+## Migration
+
+Each phase leaves the tree green. Phases 0 to 2 need nothing new; phase
+3 can run beside them; 4 needs 1 and 3; 5 needs 4; 6 needs 5, though its
+session generator can start after 3.
+
+0. **Release pinning and format 3** (step 6). `cells_core::RELEASE` is
+   the crate version and the source revision, set at build time, with a
+   fallback when no revision is known. `save_state` writes format 3,
+   with `doc` empty until phase 4. `restore_state` refuses any other
+   format and any other release, with an error, before reading an entry;
+   the readers of formats 1 and 2 go. `cells-wasm` exposes the release.
+1. **Stable keys** (step 1). An element's key replaces `ElemKey`'s
+   `(NodeId, u32)`: computed by the compile beside its count of made
+   elements, interned per `Compiled`, carried on `Elem` and in
+   `Structure::essential_keys`. A scope path's level is the repeat's or
+   select's stable key and the iteration, or the branch's key. A public
+   prop is saved by its name in the definition; a hidden essential slot
+   by the shared state it holds (`ElemWiring::essential`, `hidden_wire`),
+   and not at all without one. `restore_state` skips an entry whose kind
+   is not its cell's value type. `seeded_stream` hashes the select's
+   stable key and the stable scope path, not `NodeId`. Each row of
+   Context's table is a test in `tests/state.rs`; the golden diff is
+   identical.
+2. **Touched and view state** (step 2). The session keeps the touched
+   essential values by scope and slot, so they survive a rebuild; a tick
+   marks every essential cell its inversion writes, whether or not the
+   value changed. A view cell is marked when it is built; its entry
+   carries the default it had.
+3. **Interactive props** (step 3's declaration). `component!` marks a
+   prop `interactive`, and the points a whole-shape drag moves; ADR 0016
+   is amended to say so. The core exposes which cells are interactive,
+   and a test of `packages/cells-viewer` fails when a renderer requests a
+   cell that is not.
+4. **The input signature** (step 3). `compile/signature.rs`, run on the
+   build the check already makes (the probe, or the one stamped build of
+   a document without repeats or selects), whose graph holds every edge
+   any count or pick can create. An input's derivation is the backward
+   closure from it and from the cells that decide whether it exists or
+   can be acted on, each slot's plan hashed with `Arg::Own`, `Arg::Elem`,
+   references and expressions resolved to stable keys, names and trees. A
+   test inserts unrelated elements and checks that no hash moves. Format
+   3's `doc` is the signature's hash.
+5. **`compare_versions`** (step 4), in `compile/check.rs`, with an
+   optional map of renames, its failures tied to nodes as diagnostics
+   are; exposed by `cells-wasm`. Each row of step 4's table is a test.
+6. **`tests/safe_edits.rs`** (step 5): generated edits and sessions over
+   the golden set and the fixtures, seeded, a short run in CI and a long
+   one on request.
+7. **Docs.** `ARCHITECTURE.md` and `CONTEXT.md` as Consequences says,
+   `document/state.rs`'s header, and this ADR's status. The editor's
+   dialog (step 7) and pinning an attempt to a release are the
+   platform's, and not part of this migration.
+
+Settled while planning:
+
+- A restore writes no new touch, but an entry it restores was touched
+  when it was saved and stays touched, or the next save would lose it.
+- A name that is ambiguous under its nearest named ancestor (two
+  `<point name="a">` in different unnamed `<p>`s) does not name its
+  element; the element is keyed as an unnamed one.
+- A select's branch is keyed by its option's key and, since a select may
+  pick one option more than once, the pick's position among the picks of
+  that option.
+- The core does not refuse a request on a prop that is not interactive;
+  the viewer's test is the check, as step 3 says.
