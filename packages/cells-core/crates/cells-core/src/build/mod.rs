@@ -57,6 +57,7 @@ pub mod coverage;
 mod emit;
 mod expand;
 mod probe;
+pub mod signature;
 mod structure;
 mod view;
 
@@ -201,6 +202,9 @@ pub struct BuildOutput {
     operands: Vec<CellIdx>,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
+    /// Each component's element's stable key, `NONE` for one no element
+    /// makes (a case): what the input signature names components by.
+    comp_keys: Vec<ElemKey>,
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
     cell_label: Box<dyn Fn(CellIdx) -> String>,

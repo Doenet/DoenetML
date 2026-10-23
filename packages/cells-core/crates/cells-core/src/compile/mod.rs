@@ -41,6 +41,7 @@ pub(crate) mod api;
 mod attrs;
 mod check;
 mod choice;
+pub(crate) mod compare;
 mod condition;
 mod copies;
 mod ctx;
@@ -152,6 +153,7 @@ impl<'a> Compiler<'a> {
                 sym_trees: HashMap::new(),
                 choices: Vec::new(),
                 keys: Arc::default(),
+                version: dast.version_hash(),
                 extra_strings: Vec::new(),
                 diagnostics: Vec::new(),
                 rebuilds: false,

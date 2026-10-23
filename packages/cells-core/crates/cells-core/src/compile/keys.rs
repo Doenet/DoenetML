@@ -62,12 +62,29 @@ pub(crate) fn pick_position(b: usize, m: u32) -> u32 {
     (b as u32) << PICK_SHIFT | m
 }
 
-fn join(base: &str, part: &str) -> String {
-    if base.is_empty() {
-        part.to_string()
-    } else {
-        format!("{base}.{part}")
+/// How many public props an element has, as far as the compile knows: a
+/// bare copy's list is its referent's, which only a build knows.
+fn n_public(el: &Elem) -> usize {
+    match el.n_public {
+        NPublic::Planned(n) => n as usize,
+        NPublic::Table | NPublic::AsReferent => el.component_type.prop_defs().len(),
     }
+}
+
+fn join(base: &str, part: &str) -> String {
+    let mut out = String::with_capacity(base.len() + part.len() + 5);
+    if !base.is_empty() {
+        out.push_str(base);
+        out.push('.');
+    }
+    out.push_str(part);
+    out
+}
+
+/// Append `k` in decimal.
+fn push_number(out: &mut String, k: u32) {
+    use std::fmt::Write;
+    let _ = write!(out, "{k}");
 }
 
 impl Compiler<'_> {
@@ -84,8 +101,10 @@ impl Compiler<'_> {
         }
         // Per base key: how many unnamed elements of each type, and how
         // many made elements, it has so far.
-        let mut unnamed: HashMap<(String, ComponentType), u32> = HashMap::new();
-        let mut made: HashMap<String, u32> = HashMap::new();
+        // A base is (template, the element whose key it is, or ROOT_SCOPE
+        // for the template's prefix).
+        let mut unnamed: HashMap<(TemplateId, ElemId, ComponentType), u32> = HashMap::new();
+        let mut made: HashMap<(TemplateId, ElemId), u32> = HashMap::new();
         let mut elem_keys: Vec<Vec<ElemKey>> = Vec::with_capacity(c.templates.len());
         // Templates are made after the template of the element that owns
         // them, so the owner's key is known first.
@@ -121,19 +140,22 @@ impl Compiler<'_> {
                 let text = if el.node == NONE {
                     // Made for the nearest element that has a node.
                     let mut a = el.name_scope;
-                    let owner = loop {
-                        if a == ROOT_SCOPE {
-                            break prefix.as_str();
-                        }
-                        if tpl.elems[a].node != NONE {
-                            break keys.text_of(ids[a]);
-                        }
+                    while a != ROOT_SCOPE && tpl.elems[a].node == NONE {
                         a = tpl.elems[a].name_scope;
+                    }
+                    let owner = if a == ROOT_SCOPE {
+                        prefix.as_str()
+                    } else {
+                        keys.text_of(ids[a])
                     };
-                    let k = made.entry(owner.to_string()).or_insert(0);
+                    let k = made.entry((t, a)).or_insert(0);
                     *k += 1;
                     named.push(false);
-                    format!("{owner}+{k}")
+                    let mut text = String::with_capacity(owner.len() + 4);
+                    text.push_str(owner);
+                    text.push('+');
+                    push_number(&mut text, *k);
+                    text
                 } else {
                     // Named only when no other element under the anchor
                     // carries the name.
@@ -148,11 +170,12 @@ impl Compiler<'_> {
                     match name {
                         Some(name) => join(base, name),
                         None => {
-                            let k = unnamed
-                                .entry((base.to_string(), el.component_type))
-                                .or_insert(0);
+                            let k = unnamed.entry((t, anchor, el.component_type)).or_insert(0);
                             *k += 1;
-                            join(base, &format!("{}#{k}", el.component_type.tag()))
+                            let mut text = join(base, el.component_type.tag());
+                            text.push('#');
+                            push_number(&mut text, *k);
+                            text
                         }
                     }
                 };
@@ -183,21 +206,22 @@ impl Compiler<'_> {
             },
             "two elements share a key"
         );
+        // A hidden slot holding shared state is saved by its name; a
+        // public one by the prop's.
         for (&(t, e), state) in &self.shared_state {
             let id = elem_keys[t as usize][e as usize];
+            let n_public = n_public(&c.templates[t as usize].elems[e as usize]);
             for (s, &slot) in state {
-                keys.hidden.insert((id, slot as u32), s.key().into());
+                if slot as usize >= n_public {
+                    keys.hidden.insert((id, slot as u32), s.key().into());
+                }
             }
         }
         // A `fixed` moves a slot's source to a hidden slot, which holds the
         // state saved under the held slot's name.
         for (&(t, e), held) in &self.held {
             let id = elem_keys[t as usize][e as usize];
-            let el = &c.templates[t as usize].elems[e as usize];
-            let n_public = match el.n_public {
-                NPublic::Planned(n) => n as usize,
-                NPublic::Table | NPublic::AsReferent => el.component_type.prop_defs().len(),
-            };
+            let n_public = n_public(&c.templates[t as usize].elems[e as usize]);
             for &(from, to) in held {
                 let (from, to) = (from as u32, to as u32);
                 let name = keys

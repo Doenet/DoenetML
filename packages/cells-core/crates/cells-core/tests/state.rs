@@ -23,10 +23,24 @@ const DOC: &str = r#"<mathInput name="mi" prefill="x"/><textInput name="ti" pref
 fn an_untouched_document_saves_nothing() {
     let doc = load(DOC).unwrap();
     let saved: serde_json::Value = serde_json::from_str(&doc.save_state()).unwrap();
+    let version = saved["doc"].as_str().unwrap().to_string();
     assert_eq!(
         saved,
-        serde_json::json!({ "v": 3, "core": RELEASE, "doc": null, "state": [] })
+        serde_json::json!({ "v": 3, "core": RELEASE, "doc": version, "state": [] })
     );
+}
+
+// A save names the version it was made in: the same for the same source,
+// another for an edit.
+#[test]
+fn a_save_names_the_version_it_was_made_in() {
+    let version = |src: &str| {
+        let saved: serde_json::Value =
+            serde_json::from_str(&load(src).unwrap().save_state()).unwrap();
+        saved["doc"].as_str().unwrap().to_string()
+    };
+    assert_eq!(version(DOC), version(DOC));
+    assert_ne!(version(DOC), version(&format!("<p>Intro</p>{DOC}")));
 }
 
 // State stays with the release that made it (ADR 0017, step 6): another

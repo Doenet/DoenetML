@@ -417,9 +417,34 @@ session generator can start after 3.
    references and expressions resolved to stable keys, names and trees. A
    test inserts unrelated elements and checks that no hash moves. Format
    3's `doc` is the signature's hash.
+   **Done**, in `build/signature.rs` since it reads the build: the
+   signature is read off the probe, which `input_signature` and
+   `compare_versions` build, not off a load, so a load pays nothing for
+   it. A cell hashes as what it is: an essential cell by its key and
+   prop, a fixed one by its value, a derived one by its operator with its
+   literal parameters (`Op::unbound`) over its inputs' hashes, an
+   expression with its leaves numbered by input. The defaults are kept
+   beside the derivation, each with whether any other input's closure
+   reaches its cell; a default may change only where it is the input's
+   starting value in both versions. The cells an input writes are its
+   closure's essential leaves but a hold's flag; which elements share a
+   cell needs no list of its own, since a cell is named by the element
+   that defines it, so a copy given an override writes another cell.
+   Format 3's `doc` names the version by a hash of its source instead
+   (`Dast::version_hash`), since a signature at every load would cost a
+   probe; what a platform needs it for is which version a save was made
+   in. The keys cost a load at most 3% more instructions
+   (`points-10000`, callgrind, against phase 0), and memory grows by the
+   keys' text: 8% on `chain-100000`, 53% on `select-1000`, whose many
+   small elements have long keys; `points-10000` is unchanged.
 5. **`compare_versions`** (step 4), in `compile/check.rs`, with an
    optional map of renames, its failures tied to nodes as diagnostics
    are; exposed by `cells-wasm`. Each row of step 4's table is a test.
+   **Done**: `compile/compare.rs`, `tests/compare.rs`,
+   `compare_versions_json`. A rename applies to the old version's keys
+   before its signature is hashed, and to every key under the renamed
+   one. Wrapping an input in a new conditional moves its key, so it
+   fails condition 1 rather than 3.
 6. **`tests/safe_edits.rs`** (step 5): generated edits and sessions over
    the golden set and the fixtures, seeded, a short run in CI and a long
    one on request.

@@ -305,6 +305,17 @@ impl<'c> Builder<'c> {
             engine: self.session.engine.clone(),
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
+        let comp_keys: Vec<ElemKey> = self
+            .comp_instance
+            .iter()
+            .map(|&i| {
+                if i == NONE {
+                    return NONE;
+                }
+                let inst = self.instances[i as usize];
+                self.compiled.templates[inst.template].elems[inst.elem].key
+            })
+            .collect();
         let structure = Structure {
             essential_slots,
             essential_keys,
@@ -366,6 +377,7 @@ impl<'c> Builder<'c> {
             operands,
             value_types,
             tapes,
+            comp_keys,
             cell_label,
         })
     }

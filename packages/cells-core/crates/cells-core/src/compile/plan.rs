@@ -750,6 +750,9 @@ pub struct Compiled {
     /// its load's peak memory by keeping the trees.
     pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
+    /// The source's `Dast::version_hash`, once per load rather than per
+    /// build.
+    pub(crate) version: u64,
     /// Every element's stable key (ADR 0017), set once planning is done.
     pub(crate) keys: Arc<super::keys::Keys>,
     /// Text the build needs that is not a DAST string (a textInput's

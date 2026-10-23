@@ -10,8 +10,9 @@
 //! dropped on restore when the default changed, so an author's new bounds
 //! win over a student's old pan. `core` is the release
 //! that saved it (`crate::RELEASE`), and only that release restores it
-//! (ADR 0017, step 6); `doc` names the document version, and is empty until
-//! the compile computes its input signature.
+//! (ADR 0017, step 6); `doc` names the document version it was made in, by
+//! a hash of its source, for a platform that must not let a tab still open
+//! on an older version overwrite state moved to a newer one.
 //!
 //! An entry names its cell by keys an ordinary edit does not move (ADR
 //! 0017, step 1; `compile/keys.rs`): `path` is the cell's scope from the
@@ -79,7 +80,8 @@ impl Document {
             }
             out.push(Value::Array(entry));
         }
-        json!({ "v": FORMAT, "core": crate::RELEASE, "doc": Value::Null, "state": out }).to_string()
+        let doc = format!("{:016x}", self.version);
+        json!({ "v": FORMAT, "core": crate::RELEASE, "doc": doc, "state": out }).to_string()
     }
 
     /// Apply saved state to a freshly loaded document and recompute,

@@ -73,6 +73,7 @@ macro_rules! scalar_ops {
         }] $($rest)*);
     };
     (@cell $x:ident) => { CellIdx };
+    (@zero $x:ident) => { 0 };
     (@param $x:ident) => { f64 };
     // The inverse's body, and its kind.
     (@inverse drops $desired:ident) => { None };
@@ -155,6 +156,17 @@ macro_rules! scalar_ops {
                     // (`tick/invert.rs`).
                     Op::Sym(..) => None,
                     Op::Vec(..) => unreachable!("vector operators are inverted jointly by the program"),
+                }
+            }
+
+            /// The operator with its inputs left out: what it computes, with
+            /// its literal parameters, whatever cells it reads.
+            #[allow(unused_variables)]
+            pub fn unbound(&self) -> Op {
+                match *self {
+                    $(Op::$name($($in,)+ $($p,)*) => Op::$name($(scalar_ops!(@zero $in),)+ $($p,)*),)*
+                    Op::Sym(kind, _, n) => Op::Sym(kind, 0, n),
+                    Op::Vec(op, _, n_in, n_out) => Op::Vec(op, 0, n_in, n_out),
                 }
             }
 

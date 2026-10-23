@@ -79,6 +79,9 @@ pub struct Document {
     /// The elements' stable keys (ADR 0017), what saved state names cells
     /// by: kept by every document, with its compile or without.
     pub(crate) keys: Arc<crate::compile::keys::Keys>,
+    /// The source's `Dast::version_hash`: the version saved state was made
+    /// in.
+    pub(crate) version: u64,
     /// Sticky groups as cells, for the request pre-pass (ADR 0007).
     sticky: Vec<sticky::StickyTable>,
     /// How a tick recomputes (`request`): a dirty closure unless set
@@ -120,6 +123,7 @@ impl Document {
             session,
             literal_attrs: Arc::default(),
             keys: compiled.keys.clone(),
+            version: compiled.version,
             compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
             evaluator: Recompute::default(),
