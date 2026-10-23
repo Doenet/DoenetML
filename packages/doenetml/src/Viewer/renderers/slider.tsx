@@ -252,7 +252,9 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         }
     }, [SVs, ignoreUpdate]);
 
-    const changeValue = React.useCallback((v: string, isTransient: boolean) => {
+    // Reads `SVs` at call time, so a value is computed from the slider's
+    // current `from`, `step` and `items`, not the ones it first rendered with.
+    function changeValue(v: string, isTransient: boolean) {
         const index = Number(v);
         if (!(SVs.type === "text")) {
             const value =
@@ -284,7 +286,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 baseVariableValue: index,
             });
         }
-    }, []);
+    }
 
     if (SVs.hidden) {
         return null;
