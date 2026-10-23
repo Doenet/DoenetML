@@ -684,6 +684,259 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
     });
 
+    it("inline choiceInput menu with math choices stays visible once typeset", () => {
+        // In an iframe sized to its content, nothing below the frame can be
+        // scrolled into view. Choices that are math are typeset only after the
+        // menu opens, and grow as they are, so a menu that fit below the
+        // control when it opened may no longer fit once typeset (#2298).
+        cy.viewport(900, 800);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputMath" placeholder="Choose">
+        <choice><m>\\frac{1}{2}</m></choice>
+        <choice><m>\\frac{1}{3}</m></choice>
+        <choice><m>\\frac{1}{4}</m></choice>
+        <choice><m>\\frac{1}{5}</m></choice>
+        <choice><m>\\frac{1}{6}</m></choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputMath").should("be.visible");
+
+        // Leave less room below the control than the typeset menu needs, but
+        // more than the menu needs before its choices are typeset, and clip
+        // the page at the bottom of the window as the iframe would.
+        cy.get("#choiceInputMath").then(($control) => {
+            const controlBottom = $control[0].getBoundingClientRect().bottom;
+            cy.viewport(900, Math.ceil(controlBottom) + 130);
+        });
+        cy.document().then((doc) => {
+            for (const element of [doc.documentElement, doc.body]) {
+                element.style.overflow = "hidden";
+                element.style.height = "100%";
+            }
+        });
+
+        cy.get("#choiceInputMath").click();
+
+        getOpenInlineChoiceMenu()
+            .find("mjx-container")
+            .should("have.length", 5);
+
+        cy.window().then((win) => {
+            getOpenInlineChoiceMenu()
+                .find('[role="option"]')
+                .should(($options) => {
+                    expect($options).to.have.length(5);
+                    for (const option of $options.toArray()) {
+                        const rect = option.getBoundingClientRect();
+                        expect(rect.top).to.be.at.least(0);
+                        expect(rect.bottom).to.be.at.most(win.innerHeight);
+                    }
+                });
+        });
+    });
+
+    it("inline choiceInput menu placed again after growing twice before rendering", () => {
+        // Choices may grow again before the request to place the menu again
+        // has been rendered, as when typesetting keeps the page busy. The
+        // menu must still be placed from its final height.
+        cy.viewport(900, 800);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputGrow" placeholder="Choose">
+        <choice>x</choice>
+        <choice>y</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputGrow").should("be.visible");
+
+        cy.get("#choiceInputGrow").then(($control) => {
+            const controlBottom = $control[0].getBoundingClientRect().bottom;
+            cy.viewport(900, Math.ceil(controlBottom) + 130);
+        });
+        cy.document().then((doc) => {
+            for (const element of [doc.documentElement, doc.body]) {
+                element.style.overflow = "hidden";
+                element.style.height = "100%";
+            }
+        });
+
+        cy.get("#choiceInputGrow").click();
+        getOpenInlineChoiceMenu()
+            .find('[role="option"]')
+            .should("have.length", 2);
+
+        // Grow the first choice a little, so the menu still fits below, then,
+        // after a long task that lets the page draw before React renders,
+        // grow the second so that it no longer does.
+        cy.window().then(
+            (win) =>
+                new Cypress.Promise((resolve) => {
+                    const options = win.document.querySelectorAll(
+                        '[id$="-listbox"] [role="option"]',
+                    );
+                    win.requestAnimationFrame(() => {
+                        options[0].style.height = "50px";
+                        const channel = new win.MessageChannel();
+                        channel.port1.onmessage = () => {
+                            const start = win.performance.now();
+                            while (win.performance.now() - start < 200) {
+                                // keep the page busy
+                            }
+                            options[1].style.height = "100px";
+                            resolve();
+                        };
+                        channel.port2.postMessage(null);
+                    });
+                }),
+        );
+
+        cy.window().then((win) => {
+            getOpenInlineChoiceMenu().should(($menu) => {
+                const rect = $menu[0].getBoundingClientRect();
+                expect(rect.top).to.be.at.least(0);
+                expect(rect.bottom).to.be.at.most(win.innerHeight);
+            });
+        });
+    });
+
+    it("inline choiceInput menu above the control stays above as it grows", () => {
+        // Choices may keep growing after the menu has moved above the
+        // control, as when their math is typeset in more than one pass.
+        cy.viewport(900, 800);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputAbove" placeholder="Choose">
+        <choice>x</choice>
+        <choice>y</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputAbove").should("be.visible");
+
+        cy.get("#choiceInputAbove").then(($control) => {
+            const controlBottom = $control[0].getBoundingClientRect().bottom;
+            cy.viewport(900, Math.ceil(controlBottom) + 130);
+        });
+        cy.document().then((doc) => {
+            for (const element of [doc.documentElement, doc.body]) {
+                element.style.overflow = "hidden";
+                element.style.height = "100%";
+            }
+        });
+
+        cy.get("#choiceInputAbove").click();
+        getOpenInlineChoiceMenu()
+            .find('[role="option"]')
+            .should("have.length", 2);
+
+        // Grow the menu past the room below, so that it moves above.
+        cy.window().then((win) => {
+            win.document.querySelectorAll(
+                '[id$="-listbox"] [role="option"]',
+            )[1].style.height = "100px";
+        });
+        cy.get("#choiceInputAbove").then(($control) => {
+            const controlTop = $control[0].getBoundingClientRect().top;
+            getOpenInlineChoiceMenu().should(($menu) => {
+                expect($menu[0].getBoundingClientRect().bottom).to.be.at.most(
+                    controlTop,
+                );
+            });
+        });
+
+        // Grow it again while it is above, and follow where it is drawn for
+        // the next ten frames, long enough for any re-placement to render.
+        cy.window()
+            .then(
+                (win) =>
+                    new Cypress.Promise((resolve) => {
+                        const control =
+                            win.document.getElementById("choiceInputAbove");
+                        const listbox =
+                            win.document.querySelector('[id$="-listbox"]');
+                        listbox.querySelector('[role="option"]').style.height =
+                            "60px";
+                        const samples = [];
+                        const sample = () => {
+                            const menu = listbox.parentElement;
+                            samples.push({
+                                menu: menu.getBoundingClientRect(),
+                                controlTop: control.getBoundingClientRect().top,
+                            });
+                            if (samples.length < 10) {
+                                win.requestAnimationFrame(sample);
+                            } else {
+                                resolve(samples);
+                            }
+                        };
+                        win.requestAnimationFrame(sample);
+                    }),
+            )
+            .then((samples) => {
+                cy.window().then((win) => {
+                    for (const { menu, controlTop } of samples) {
+                        expect(menu.top).to.be.at.least(0);
+                        expect(menu.bottom).to.be.at.most(controlTop);
+                        expect(menu.bottom).to.be.at.most(win.innerHeight);
+                    }
+                });
+            });
+    });
+
     it("inline choiceInput menu escapes a scroll-clipped viewer container", () => {
         cy.viewport(900, 700);
 
