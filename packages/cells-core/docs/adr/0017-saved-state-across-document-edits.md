@@ -10,7 +10,9 @@ from the two sources alone, with no student's state, by comparing what
 students can act on and what those inputs depend on. Whether students in
 progress then move to the new version is the author's choice when they
 publish, not the core's. The claim that the check is never optimistic is
-tested, not assumed.
+tested, not assumed. State never crosses core releases: an attempt stays
+on the release it started on, and a document edit is checked and restored
+under that release.
 
 ## Context
 
@@ -97,8 +99,8 @@ dropped, so the author's new bounds win over a student's old pan. The
 classification is per cell, not per prop: with `xmin="$n"` a pan inverts
 onto `n`, an input, and that cell is the student's work, never dropped.
 
-The format is `{"v": 3, "doc": <signature>, "state": [...]}`, the
-signature being step 3's. No saves of versions 1 or 2 exist, so their
+The format is `{"v": 3, "core": <release>, "doc": <signature>, "state":
+[...]}`, the release being step 6's and the signature step 3's. No saves of versions 1 or 2 exist, so their
 reader is removed.
 
 ### 3. The compile computes the document's input signature
@@ -132,8 +134,8 @@ input the signature records:
   hold.
 
 The derivation is recorded as a hash of the plans involved, which name no
-iteration (ADR 0015). The hash is taken over stable keys, literals and
-operator versions (step 6) only, never over the compile's internal ids
+iteration (ADR 0015). The hash is taken over stable keys and literals
+only, never over the compile's internal ids
 (`ElemId`, slot offsets, `Arg::Own` and `Arg::Elem` positions). Hashing
 an internal id would make an unrelated insertion look unsafe, and worse,
 would let two different elements that land on the same position hash
@@ -218,22 +220,29 @@ values it had and inside its new domain, and every new input inside its
 domain. A failure is a hole in the check, found before a student finds
 it.
 
-### 6. Core releases are checked like edits
+### 6. State never crosses core releases
 
 What a derivation computes depends on the core as well as the source: an
-operator's evaluation, math lowering, and the symbolic engine's revision.
-Each carries a version (an entry in `scalar_ops!` and each `VecOp` its
-own; lowering and the engine one each), bumped when a change alters what
-it computes, and a derivation's hash includes the versions it uses.
-Changes to inverses need no version: they decide what later requests do,
-not what a restore shows. A planner change that alters a plan changes the
-hash by itself.
+operator's evaluation, math lowering, the symbolic engine's revision, a
+planner. Nothing in a document's signature sees those, so the same source
+under two releases can restore the same state to different values. State
+therefore stays with the release that made it:
 
-A core release is then an edit to every published document at once.
-Before deploying, the platform runs `compare_versions` for each document
-under both cores; for one the release makes unsafe, what happens to its
-students in progress is the platform's decision (keep them on the
-previous core, or ask the author).
+- Every build of the core carries a *release id*, its crate version and
+  source revision, and saved state records it (`core`).
+- `restore_state` refuses state whose release id is not its own, with an
+  error, before reading any entry. No release reads another's state, even
+  a patch release, and no signature or version scheme makes an exception.
+- The platform runs several releases at once. An attempt is pinned to the
+  release it started on and stays there until the student starts a new
+  attempt; a new attempt starts on the current release.
+- `compare_versions` runs under the pinned release, on both document
+  versions. A new version that release cannot load (a tag added in a
+  later release) is not safe for the attempts pinned to it, and the
+  editor says so.
+
+So a core release needs no check of its own: it reaches a student only
+through a new attempt, which has no state to carry.
 
 ### 7. The author decides whether students move
 
@@ -248,8 +257,8 @@ asks:
   version. Leave them on the old version / Start them over", with the
   inputs that made it unsafe.
 
-When a student moves to the new version, the restore is today's, by
-stable keys: every saved key exists in the new version (condition 2), so
+When a student moves to the new version, it runs under the release their
+attempt is pinned to, and the restore is today's, by stable keys: every saved key exists in the new version (condition 2), so
 nothing is parked, remapped or replayed. An answer whose correct answer
 changed regrades; what that does to a score already recorded is the
 platform's policy, chosen in the same dialog.
@@ -278,6 +287,12 @@ platform's policy, chosen in the same dialog.
   remember to change; starting over covers it.
 - **Restore, then validate.** A misplaced value looks exactly like a
   right one (Context).
+- **Let state cross core releases.** Version each operator, lowering and
+  the engine, put the versions in the derivation hashes, and check a
+  release against every published document like an edit. Rejected: a
+  version bump forgotten in one release would restore wrong values with
+  no check to catch it, and the platform can run several releases at
+  once, so nothing needs state to cross one.
 
 ## Consequences
 
@@ -297,8 +312,11 @@ platform's policy, chosen in the same dialog.
   latter's key. The report names it, and naming the input fixes it.
 - Component definitions declare their interactive props, and planners
   name the hidden slots they want saved.
-- Operators, lowering and the engine carry versions, and a change to what
-  one computes bumps its version.
+- The platform keeps every release that has an attempt in progress. A
+  core fix reaches a student only on a new attempt.
+- An author's edit that needs a newer release (a new tag) reaches only
+  new attempts; students in progress on an older release stay on the
+  version they have, or start over.
 - A restore is per student and a migration is per edit, so state is never
   migrated through a chain of versions: a student on version 1 moves to
   version 3 only if 1 to 3 is safe.
