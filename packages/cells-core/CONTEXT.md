@@ -252,9 +252,10 @@ cells, program and component table: expand, resolve, emit, schedule. A
 is builds until it settles again.
 
 **Session** — What survives every build of a document (ADR 0015): the scope
-table, every essential value by key, values parked for scopes not yet
-stamped, strings interned at runtime, the seed. A build reads it and
-returns the next; saved state is the session written out.
+table, every essential value by key, which of them a student touched,
+values parked for scopes not yet stamped, strings interned at runtime, the
+seed. A build reads it and returns the next; saved state is the touched
+part of the session written out.
 
 **Template** — The body of a repeat (or the document itself) as compiled
 once from the DAST: its elements, their props' sources, and their references
@@ -303,10 +304,26 @@ index: the scope it lives in and its slot within that scope's template (which
 element, which prop). A document's boxes are fixed at load (ADR 0014), so the
 slot is the same in every build. Essential values are kept by key across
 rebuilds, so an iteration that disappears and reappears returns with its last
-values. Saved state names a cell instead by its scope's path from the
-document and its **element key** (its DAST node, or for an element the build
-makes, the node it is made for and its position among those), which no
-session order changes.
+values. Saved state names a cell instead by its stable keys, which no
+session order and no ordinary edit changes.
+
+**Stable key** — What saved state names an element by (ADR 0017): its name
+path through its named ancestors (`s.a`; `r[*].q` in a repeat body), or for
+an unnamed element its nearest named ancestor's key, its tag and its
+position among that ancestor's unnamed elements of the tag
+(`s.mathInput#2`), or for an element the compile makes the element it is
+made for and its position among those (`a+1`). A prop is named by its name,
+a hidden slot by the shared state it holds; a scope by the repeat's
+iteration, the case's key or the select's option.
+
+**Touched** — An essential cell a request wrote, whether or not the value
+changed, or one restored from saved state that held it. Saved state holds
+exactly the touched values; an untouched cell takes the version's default.
+
+**View state** — A graph's own bounds, which only pan and zoom write. Saved
+with the default they had; a restore drops them when the author changed
+that default. Bounds given by a reference (`xmin="$n"`) are the referent's
+cell, the student's work.
 
 **Structural depth** — Of a repeat: how many repeats must be expanded in
 sequence before its count can be computed, plus one. Nesting adds one; a
@@ -377,5 +394,5 @@ section that does not aggregate is looked through.
 
 **Document seed** — The one random seed a document is loaded with. Each
 load-time choice draws from its own stream derived from the seed and the
-choice's essential key, so a choice draws the same way wherever it is
-rebuilt.
+choice's stable key and scope, so a choice draws the same way wherever it is
+rebuilt and in every version of the document that keeps its key.
