@@ -3,6 +3,7 @@ import React, {
     useCallback,
     useContext,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -187,12 +188,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const t = useT();
 
     // Flipped to have react-select place the open menu again; see
-    // `MenuThatRechecksPlacement`.
+    // `MenuThatRechecksPlacement`. The menu can grow more than once before
+    // the flip is rendered, so a request made while one is already pending is
+    // left to that one, which places the menu from its height at render time.
     const [altMinMenuHeight, setAltMinMenuHeight] = useState(false);
-    const recheckMenuPlacement = useCallback(
-        () => setAltMinMenuHeight((alt) => !alt),
-        [],
-    );
+    const menuRecheckPending = useRef(false);
+    const recheckMenuPlacement = useCallback(() => {
+        if (!menuRecheckPending.current) {
+            menuRecheckPending.current = true;
+            setAltMinMenuHeight((alt) => !alt);
+        }
+    }, []);
+    useLayoutEffect(() => {
+        menuRecheckPending.current = false;
+    }, [altMinMenuHeight]);
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see

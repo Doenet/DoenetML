@@ -752,6 +752,84 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
     });
 
+    it("inline choiceInput menu placed again after growing twice before rendering", () => {
+        // Choices may grow again before the request to place the menu again
+        // has been rendered, as when typesetting keeps the page busy. The
+        // menu must still be placed from its final height.
+        cy.viewport(900, 800);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputGrow" placeholder="Choose">
+        <choice>x</choice>
+        <choice>y</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputGrow").should("be.visible");
+
+        cy.get("#choiceInputGrow").then(($control) => {
+            const controlBottom = $control[0].getBoundingClientRect().bottom;
+            cy.viewport(900, Math.ceil(controlBottom) + 130);
+        });
+        cy.document().then((doc) => {
+            for (const element of [doc.documentElement, doc.body]) {
+                element.style.overflow = "hidden";
+                element.style.height = "100%";
+            }
+        });
+
+        cy.get("#choiceInputGrow").click();
+        getOpenInlineChoiceMenu()
+            .find('[role="option"]')
+            .should("have.length", 2);
+
+        // Grow the first choice a little, so the menu still fits below, then,
+        // after a long task that lets the page draw before React renders,
+        // grow the second so that it no longer does.
+        cy.window().then(
+            (win) =>
+                new Cypress.Promise((resolve) => {
+                    const options = win.document.querySelectorAll(
+                        '[id$="-listbox"] [role="option"]',
+                    );
+                    win.requestAnimationFrame(() => {
+                        options[0].style.height = "50px";
+                        const channel = new win.MessageChannel();
+                        channel.port1.onmessage = () => {
+                            const start = win.performance.now();
+                            while (win.performance.now() - start < 200) {
+                                // keep the page busy
+                            }
+                            options[1].style.height = "100px";
+                            resolve();
+                        };
+                        channel.port2.postMessage(null);
+                    });
+                }),
+        );
+
+        cy.window().then((win) => {
+            getOpenInlineChoiceMenu().should(($menu) => {
+                const rect = $menu[0].getBoundingClientRect();
+                expect(rect.top).to.be.at.least(0);
+                expect(rect.bottom).to.be.at.most(win.innerHeight);
+            });
+        });
+    });
+
     it("inline choiceInput menu escapes a scroll-clipped viewer container", () => {
         cy.viewport(900, 700);
 
