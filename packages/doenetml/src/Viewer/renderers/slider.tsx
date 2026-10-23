@@ -241,8 +241,10 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // resends an action's target even when its value did not change, and
     // keying on `SVs` rather than `SVs.index` lets that answer snap the handle
     // when it repeats the index core sent during the drag. The viewer sets
-    // `ignoreUpdate` on an update core built before it processed one of the
-    // slider's own actions, which still carries the value from before it.
+    // `ignoreUpdate` on core's answer to one of the slider's own actions when
+    // it matches the index the slider already shows, and on an update core
+    // built before it processed one of those actions, which still carries the
+    // value from before it.
     // Resyncing on mouseup instead would show core's stale value whenever core
     // had not answered yet, making the handle flash back to where it started.
     useEffect(() => {
