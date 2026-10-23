@@ -18,8 +18,10 @@ component! {
         // A mathInput's value is bound by a child reference or `bindValueTo`,
         // else it is the `prefill` (the builder reads it). `plan` sets `expr`
         // from what `value` turned out to be.
-        value: children { attribute: prefill, bind: bindValueTo },
-        expr: by_planner,
+        // Typing requests `expr`, or `value` when the input is bound to a
+        // number.
+        value: children { attribute: prefill, bind: bindValueTo, interactive },
+        expr: by_planner { interactive },
     }
     planner: PropsThen(plan),
 }

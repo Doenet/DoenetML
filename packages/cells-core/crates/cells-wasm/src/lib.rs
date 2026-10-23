@@ -387,6 +387,18 @@ impl Core {
         }
     }
 
+    /// Whether a renderer may request a cell: one of a prop its component's
+    /// definition marks interactive (ADR 0017).
+    pub fn is_interactive(&self, cell: u32) -> bool {
+        self.doc.is_interactive(cell)
+    }
+
+    /// Every cell a renderer may request, ascending; new indices after a
+    /// rebuild.
+    pub fn interactive_cells(&self) -> Vec<u32> {
+        self.doc.interactive_cells()
+    }
+
     pub fn last_dropped(&self) -> u32 {
         self.last_dropped
     }

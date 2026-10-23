@@ -35,6 +35,8 @@ component! {
         names: [points, endpoints],
         item: point,
         points: [[x1, y1], [x2, y2]],
+        // A whole-line drag requests both points.
+        interactive: true,
     }
     attributes {
         through,

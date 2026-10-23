@@ -15,7 +15,7 @@ component! {
     flags: [copyable],
     default_prop: value,
     props {
-        value: children { attribute: prefill, bind: bindValueTo },
+        value: children { attribute: prefill, bind: bindValueTo, interactive },
     }
     shared_state {
         // The value, when it is the input's own state.

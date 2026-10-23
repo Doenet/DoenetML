@@ -23,6 +23,8 @@ component! {
         names: [points, endpoints],
         item: point,
         points: [[x1, y1], [x2, y2]],
+        // An endpoint drag requests one, a whole-segment drag both.
+        interactive: true,
     }
     sticky_points: (Shape::Open, X1, 2),
     attributes {

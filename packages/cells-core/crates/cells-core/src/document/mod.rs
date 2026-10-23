@@ -17,6 +17,7 @@ use crate::program::{Program, ValueType};
 use crate::tick::eval::Recompute;
 use crate::tick::{Request, TickOutcome};
 
+mod interactive;
 mod load;
 mod paths;
 mod request;
