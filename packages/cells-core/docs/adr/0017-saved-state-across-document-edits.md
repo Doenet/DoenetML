@@ -100,8 +100,8 @@ classification is per cell, not per prop: with `xmin="$n"` a pan inverts
 onto `n`, an input, and that cell is the student's work, never dropped.
 
 The format is `{"v": 3, "core": <release>, "doc": <signature>, "state":
-[...]}`, the release being step 6's and the signature step 3's. No saves of versions 1 or 2 exist, so their
-reader is removed.
+[...]}`, the release being step 6's and the signature step 3's. No saves
+of versions 1 or 2 exist, so their reader is removed.
 
 ### 3. The compile computes the document's input signature
 
