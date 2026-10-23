@@ -135,11 +135,10 @@ input the signature records:
 
 The derivation is recorded as a hash of the plans involved, which name no
 iteration (ADR 0015). The hash is taken over stable keys and literals
-only, never over the compile's internal ids
-(`ElemId`, slot offsets, `Arg::Own` and `Arg::Elem` positions). Hashing
-an internal id would make an unrelated insertion look unsafe, and worse,
-would let two different elements that land on the same position hash
-alike.
+only, never over the compile's internal ids (`ElemId`, slot offsets,
+`Arg::Own` and `Arg::Elem` positions). Hashing an internal id would make
+an unrelated insertion look unsafe, and worse, would let two different
+elements that land on the same position hash alike.
 
 The domains so far:
 
@@ -260,9 +259,9 @@ asks:
 When a student moves to the new version, it runs under the release their
 attempt is pinned to, and the restore is today's, by stable keys: every
 saved key exists in the new version (condition 2), so nothing is parked,
-remapped or replayed. An answer whose correct answer
-changed regrades; what that does to a score already recorded is the
-platform's policy, chosen in the same dialog.
+remapped or replayed. An answer whose correct answer changed regrades;
+what that does to a score already recorded is the platform's policy,
+chosen in the same dialog.
 
 ## Considered options
 
