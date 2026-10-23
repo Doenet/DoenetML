@@ -4,7 +4,7 @@
 //! document, so a failed rebuild leaves the document as it was.
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -37,9 +37,13 @@ pub struct Session {
     /// Shared with the builds that read it.
     pub counts: Arc<Counts>,
     /// Restored values whose scope no build has stamped yet, by (scope,
-    /// element key, position), with the type they were saved as: the build
-    /// that stamps it takes them, if its cell has that type.
-    pub parked: HashMap<(ScopeId, ElemKey, u32), (f64, crate::ValueType)>,
+    /// element key, position): the build that stamps it takes them.
+    pub parked: HashMap<(ScopeId, ElemKey, u32), Parked>,
+    /// Every essential value a request has written, by (scope, template
+    /// slot), and every value restored from one (ADR 0017): what saved
+    /// state holds, whether or not it equals its default. Shared with the
+    /// builds that read it.
+    pub touched: Arc<HashSet<(ScopeId, u32)>>,
     /// Strings interned since load (`Document::intern`), appended after
     /// every build's own table so an interned id keeps its text.
     pub runtime_strings: Vec<String>,
@@ -97,7 +101,31 @@ impl Session {
                 .map(|r| r.capacity() * 16 + 24)
                 .sum::<usize>()
             + self.counts.0.capacity() * 24
+            + self.touched.capacity() * 8
     }
+}
+
+/// A restored value waiting for the build that stamps its scope.
+#[derive(Debug, Clone, Copy)]
+pub struct Parked {
+    pub value: f64,
+    /// The type it was saved as: it goes only into a cell of that type.
+    pub ty: crate::ValueType,
+    /// For view state, the default it had when saved: a cell whose default
+    /// is now another keeps its own (ADR 0017, step 2).
+    pub view_default: Option<f64>,
+}
+
+impl Parked {
+    /// Whether it goes into a cell of type `ty` whose default is `default`.
+    pub fn fits(&self, ty: crate::ValueType, default: f64) -> bool {
+        self.ty == ty && self.view_default.is_none_or(|d| same(d, default))
+    }
+}
+
+/// Equal, or both NaN.
+pub(crate) fn same(a: f64, b: f64) -> bool {
+    a == b || (a.is_nan() && b.is_nan())
 }
 
 /// How many iterations each repeat is stamped with, by (scope, node):

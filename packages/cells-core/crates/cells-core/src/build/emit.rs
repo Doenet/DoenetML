@@ -79,9 +79,9 @@ impl<'c> Builder<'c> {
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
         let mut parked = self.session.parked.clone();
-        // Restored values the build takes from `parked`, with the type
-        // they were saved as: (cell, value, type).
-        let mut unparked: Vec<(CellIdx, f64, ValueType)> = Vec::new();
+        // Restored values the build takes from `parked`: (cell, what was
+        // parked, its key).
+        let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, u32))> = Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
         let mut fixed_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
@@ -96,10 +96,10 @@ impl<'c> Builder<'c> {
                     let (scope, tslot, key) = self.essential_key(s as SlotId);
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
-                        && let Some((p, ty)) = parked.remove(&(scope, key.0, key.1))
+                        && let Some(p) = parked.remove(&(scope, key.0, key.1))
                     {
-                        value = p;
-                        unparked.push((cells.len() as CellIdx, p, ty));
+                        value = p.value;
+                        unparked.push((cells.len() as CellIdx, p, (scope, tslot)));
                     }
                     slot_cell[root] = cells.len() as CellIdx;
                     cells.push(value);
@@ -169,12 +169,17 @@ impl<'c> Builder<'c> {
             value_types[slot_to_cell[s as usize] as usize] = ty;
         }
         // A restored value stays only in a cell of the type it was saved
-        // as (ADR 0017), and wins over a seed, as a carried value does.
-        for &(cell, value, ty) in &unparked {
-            cells[cell as usize] = if value_types[cell as usize] == ty {
-                value
+        // as, and view state only while its default is the one it had
+        // (ADR 0017); it wins over a seed, as a carried value does, and
+        // counts as touched.
+        let mut touched = self.session.touched.clone();
+        for &(cell, p, at) in &unparked {
+            let c = cell as usize;
+            cells[c] = if p.fits(value_types[c], essential_defaults[c]) {
+                std::sync::Arc::make_mut(&mut touched).insert(at);
+                p.value
             } else {
-                essential_defaults[cell as usize]
+                essential_defaults[c]
             };
         }
         let mut tapes = Vec::new();
@@ -295,6 +300,7 @@ impl<'c> Builder<'c> {
             values: self.session.values.clone(),
             counts: self.session.counts.clone(),
             parked,
+            touched,
             runtime_strings: self.session.runtime_strings.clone(),
             engine: self.session.engine.clone(),
             last_build: (self.components.component_type.len(), self.sources.len()),

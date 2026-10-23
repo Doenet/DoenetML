@@ -2,8 +2,13 @@
 //! document can be reloaded where the student left it.
 //!
 //! The form is `{"v": 3, "core": release, "doc": signature, "state":
-//! [[path, element, prop, kind, value], ...]}` with one entry per essential
-//! cell whose value differs from the build's default. `core` is the release
+//! [[path, element, prop, kind, value, view default?], ...]}` with one entry
+//! per essential cell a student touched (ADR 0017, step 2): one a request
+//! wrote, or one restored from a save that held it, whether or not it
+//! equals its default. An untouched cell takes the version's default. A
+//! graph's own bounds are view state, saved with the default they had and
+//! dropped on restore when the default changed, so an author's new bounds
+//! win over a student's old pan. `core` is the release
 //! that saved it (`crate::RELEASE`), and only that release restores it
 //! (ADR 0017, step 6); `doc` names the document version, and is empty until
 //! the compile computes its input signature.
@@ -23,6 +28,7 @@
 //! kind.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use serde_json::{Value, json};
 
@@ -31,54 +37,47 @@ use crate::Error;
 use crate::build::ScopeId;
 use crate::compile::plan::ElemKey;
 use crate::program::ValueType;
+use crate::session::Parked;
 
 /// The saved state format `save_state` writes and `restore_state` reads.
 const FORMAT: u64 = 3;
 
 impl Document {
-    /// The essential cells that differ from their defaults, as JSON.
+    /// The essential values a student touched (ADR 0017, step 2), as JSON,
+    /// whether or not they equal their defaults; view state with the
+    /// default it had.
     pub fn save_state(&self) -> String {
         let st = &self.structure;
         let mut out = Vec::new();
-        for (i, &(scope, _)) in st.essential_slots.iter().enumerate() {
-            let cell = i as CellIdx;
-            let v = self.cells[i];
-            let d = st.essential_defaults[i];
-            let (kind, value) = match self.program.value_types[i] {
-                ValueType::Number => {
-                    if v == d || (v.is_nan() && d.is_nan()) {
-                        continue;
-                    }
-                    ("n", if v.is_nan() { Value::Null } else { json!(v) })
-                }
-                ValueType::Text => {
-                    if v == d || self.text_value(cell) == self.text_of(d) {
-                        continue;
-                    }
-                    let text = self.text_value(cell);
-                    ("t", if v.is_nan() { Value::Null } else { json!(text) })
-                }
-                ValueType::Math => {
-                    if v == d || self.math_text(cell) == self.math_of(d) {
-                        continue;
-                    }
-                    let text = self.math_text(cell);
-                    ("m", if v.is_nan() { Value::Null } else { json!(text) })
-                }
-            };
+        for (i, &(scope, tslot)) in st.essential_slots.iter().enumerate() {
+            if !self.session.touched.contains(&(scope, tslot)) {
+                continue;
+            }
             let (key, prop) = st.essential_keys[i];
             // A hidden slot that holds no shared state has no name to save
             // it by.
             let Some(prop) = self.keys.prop_key(key, prop) else {
                 continue;
             };
-            out.push(json!([
+            let cell = i as CellIdx;
+            let v = self.cells[i];
+            let (kind, value) = match self.program.value_types[i] {
+                _ if v.is_nan() => (kind_of(self.program.value_types[i]), Value::Null),
+                ValueType::Number => ("n", json!(v)),
+                ValueType::Text => ("t", json!(self.text_value(cell))),
+                ValueType::Math => ("m", json!(self.math_text(cell))),
+            };
+            let mut entry = vec![
                 self.scope_path(scope),
-                self.keys.key_text(key),
-                prop,
-                kind,
-                value
-            ]));
+                json!(self.keys.key_text(key)),
+                json!(prop),
+                json!(kind),
+                value,
+            ];
+            if self.keys.is_view(key, &prop) {
+                entry.push(number(st.essential_defaults[i]));
+            }
+            out.push(Value::Array(entry));
         }
         json!({ "v": FORMAT, "core": crate::RELEASE, "doc": Value::Null, "state": out }).to_string()
     }
@@ -143,10 +142,26 @@ impl Document {
             let Some(scope) = self.scope_at(path) else {
                 continue;
             };
+            // View state carries the default it had (ADR 0017, step 2).
+            let view_default = match e.get(5) {
+                None => None,
+                Some(d) if d.is_null() => Some(f64::NAN),
+                Some(d) => Some(d.as_f64().ok_or_else(bad)?),
+            };
+            let parked_kind = Parked {
+                value: f64::NAN,
+                ty,
+                view_default,
+            };
             let live = by_element.get(&(scope, key, prop)).copied();
-            // A value goes only into a cell of the type it was saved as.
-            if live.is_some_and(|cell| self.program.value_types[cell as usize] != ty) {
-                continue;
+            // A value goes only into a cell of the type it was saved as, and
+            // view state only while its default is the one it had.
+            if let Some(cell) = live {
+                let c = cell as usize;
+                let default = self.structure.essential_defaults[c];
+                if !parked_kind.fits(self.program.value_types[c], default) {
+                    continue;
+                }
             }
             // `null` is NaN for every kind: an emptied input.
             let value = match ty {
@@ -158,9 +173,18 @@ impl Document {
                     .map_err(Error::Unsupported)?,
             };
             match live {
-                Some(cell) => self.cells[cell as usize] = value,
+                Some(cell) => {
+                    self.cells[cell as usize] = value;
+                    // What was saved was touched, and stays so.
+                    let at = self.structure.essential_slots[cell as usize];
+                    Arc::make_mut(&mut self.session.touched).insert(at);
+                }
                 None => {
-                    self.session.parked.insert((scope, key, prop), (value, ty));
+                    let parked = Parked {
+                        value,
+                        ..parked_kind
+                    };
+                    self.session.parked.insert((scope, key, prop), parked);
                 }
             }
         }
@@ -195,23 +219,18 @@ impl Document {
         }
         Some(scope)
     }
+}
 
-    fn text_of(&self, id: f64) -> String {
-        if id.is_nan() || id < 0.0 || id as usize >= self.strings.len() {
-            String::new()
-        } else {
-            self.strings.get(id as u32).to_string()
-        }
+/// The kind saved state writes a value of type `ty` as.
+fn kind_of(ty: ValueType) -> &'static str {
+    match ty {
+        ValueType::Number => "n",
+        ValueType::Text => "t",
+        ValueType::Math => "m",
     }
+}
 
-    fn math_of(&self, handle: f64) -> String {
-        if handle.is_nan() {
-            String::new()
-        } else {
-            self.session
-                .engine
-                .borrow()
-                .text(handle as crate::sym::Handle)
-        }
-    }
+/// A number as JSON, `null` for NaN.
+fn number(v: f64) -> Value {
+    if v.is_nan() { Value::Null } else { json!(v) }
 }

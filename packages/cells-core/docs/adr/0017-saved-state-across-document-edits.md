@@ -371,6 +371,12 @@ session generator can start after 3.
    marks every essential cell its inversion writes, whether or not the
    value changed. A view cell is marked when it is built; its entry
    carries the default it had.
+   **Done**: `Session::touched`, by scope and template slot; a tick that
+   fails its rebuild takes its touches back. A restored value is
+   touched, here and when a build takes it from `parked`. A view cell is
+   known by its key rather than marked: a graph's `xmin`, `xmax`,
+   `ymin` or `ymax` saved under the graph's own key, which a bound given
+   by a reference never is.
 3. **Interactive props** (step 3's declaration). `component!` marks a
    prop `interactive`, and the points a whole-shape drag moves; ADR 0016
    is amended to say so. The core exposes which cells are interactive,

@@ -73,9 +73,10 @@ fn changed_values_come_back_after_a_reload() {
     );
     assert_eq!(v(&fresh, "twice", "value"), 10.0);
     assert_eq!(v(&fresh, "p", "x"), 3.5);
-    // A value put back to its default drops out of the saved state.
+    // A value put back to its default stays in the saved state: the
+    // student put it there (ADR 0017, step 2).
     set(&mut fresh, "p", "x", 1.0);
-    assert!(!fresh.save_state().contains(r#""n",3.5"#));
+    assert!(fresh.save_state().contains(r#""p","x","n",1.0"#));
 }
 
 #[test]
@@ -325,4 +326,93 @@ fn every_essential_cell_of_the_golden_set_is_saved_by_name() {
         checked += 1;
     }
     assert!(checked >= 10, "the golden set is missing");
+}
+
+// ADR 0017, step 2: saved state holds every value a student touched,
+// whether or not it equals the default, and nothing else.
+
+const POINT: &str = r#"<graph><point name="p" x="1" y="2"/><point name="q" x="1" y="2"/></graph>"#;
+
+#[test]
+fn a_point_put_back_at_its_start_stays_there_when_the_author_moves_the_start() {
+    let after = POINT.replace(r#"x="1""#, r#"x="3""#);
+    let doc = carried(
+        POINT,
+        |doc| {
+            set(doc, "p", "x", 5.0);
+            set(doc, "p", "x", 1.0);
+        },
+        &after,
+    );
+    // The student put `p` at 1; nobody touched `q`, which moves.
+    assert_eq!(v(&doc, "p", "x"), 1.0);
+    assert_eq!(v(&doc, "q", "x"), 3.0);
+}
+
+#[test]
+fn a_restored_value_stays_touched_through_the_next_save() {
+    let mut doc = load(POINT).unwrap();
+    set(&mut doc, "p", "x", 1.0);
+    let saved = doc.save_state();
+    let mut again = load(POINT).unwrap();
+    again.restore_state(&saved).unwrap();
+    assert_eq!(again.save_state(), saved);
+}
+
+#[test]
+fn only_what_a_request_writes_is_touched() {
+    // A request a fixed point drops writes nothing.
+    let src = r#"<graph><point name="p" x="1" y="2" fixed/></graph>"#;
+    let mut fixed = load(src).unwrap();
+    set(&mut fixed, "p", "x", 4.0);
+    assert!(
+        !fixed.save_state().contains(r#""p""#),
+        "{}",
+        fixed.save_state()
+    );
+    // A request on `p` touches `p.y`, not `p.x` or `q`.
+    let mut doc = load(POINT).unwrap();
+    set(&mut doc, "p", "y", 2.0);
+    let saved = doc.save_state();
+    assert!(saved.contains(r#""p","y""#), "{saved}");
+    assert!(
+        !saved.contains(r#""p","x""#) && !saved.contains(r#""q""#),
+        "{saved}"
+    );
+}
+
+// A graph's own bounds are view state: restored while the author keeps
+// their default, dropped when the author changes it.
+#[test]
+fn a_pan_is_kept_until_the_author_changes_the_bounds() {
+    let before = r#"<graph name="g" xmin="-10"><point name="p" x="1" y="2"/></graph>"#;
+    let pan = |doc: &mut Document| {
+        set(doc, "g", "xmin", -4.0);
+        set(doc, "p", "x", 5.0);
+    };
+    let same = carried(
+        before,
+        pan,
+        &before.replace("<point", "<point name=\"r\"/><point"),
+    );
+    assert_eq!(v(&same, "g", "xmin"), -4.0);
+    let changed = carried(
+        before,
+        pan,
+        &before.replace(r#"xmin="-10""#, r#"xmin="-20""#),
+    );
+    assert_eq!(v(&changed, "g", "xmin"), -20.0);
+    // The student's work is kept either way.
+    assert_eq!(v(&changed, "p", "x"), 5.0);
+}
+
+// With `xmin="$n"` a pan inverts onto `n`, an input: the student's work,
+// never dropped as view state.
+#[test]
+fn bounds_given_by_an_input_are_the_students_work() {
+    let before = r#"<numberInput name="n" value="-10"/><graph name="g" xmin="$n"/>"#;
+    let after = r#"<numberInput name="n" value="-20"/><graph name="g" xmin="$n"/>"#;
+    let doc = carried(before, |doc| drop(set(doc, "g", "xmin", -4.0)), after);
+    assert_eq!(v(&doc, "n", "value"), -4.0);
+    assert_eq!(v(&doc, "g", "xmin"), -4.0);
 }

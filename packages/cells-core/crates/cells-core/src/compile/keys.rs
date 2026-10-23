@@ -273,6 +273,13 @@ impl Keys {
             .map(|n| n.into_owned())
     }
 
+    /// Whether the slot of `key` saved as `prop` is view state (ADR 0017,
+    /// step 2): a graph's own bounds, which only pan and zoom write.
+    pub(crate) fn is_view(&self, key: ElemKey, prop: &str) -> bool {
+        self.types[key as usize] == ComponentType::Graph
+            && matches!(prop, "xmin" | "xmax" | "ymin" | "ymax")
+    }
+
     /// The slot of `key` that saved state names `name`, as `prop_key` names
     /// it.
     pub(crate) fn prop_named(&self, key: ElemKey, name: &str) -> Option<u32> {
