@@ -684,6 +684,74 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
     });
 
+    it("inline choiceInput menu with math choices stays visible once typeset", () => {
+        // In an iframe sized to its content, nothing below the frame can be
+        // scrolled into view. Choices that are math are typeset only after the
+        // menu opens, and grow as they are, so a menu that fit below the
+        // control when it opened may no longer fit once typeset (#2298).
+        cy.viewport(900, 800);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputMath" placeholder="Choose">
+        <choice><m>\\frac{1}{2}</m></choice>
+        <choice><m>\\frac{1}{3}</m></choice>
+        <choice><m>\\frac{1}{4}</m></choice>
+        <choice><m>\\frac{1}{5}</m></choice>
+        <choice><m>\\frac{1}{6}</m></choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputMath").should("be.visible");
+
+        // Leave less room below the control than the typeset menu needs, but
+        // more than the menu needs before its choices are typeset, and clip
+        // the page at the bottom of the window as the iframe would.
+        cy.get("#choiceInputMath").then(($control) => {
+            const controlBottom = $control[0].getBoundingClientRect().bottom;
+            cy.viewport(900, Math.ceil(controlBottom) + 130);
+        });
+        cy.document().then((doc) => {
+            for (const element of [doc.documentElement, doc.body]) {
+                element.style.overflow = "hidden";
+                element.style.height = "100%";
+            }
+        });
+
+        cy.get("#choiceInputMath").click();
+
+        getOpenInlineChoiceMenu()
+            .find("mjx-container")
+            .should("have.length", 5);
+
+        cy.window().then((win) => {
+            getOpenInlineChoiceMenu()
+                .find('[role="option"]')
+                .should(($options) => {
+                    expect($options).to.have.length(5);
+                    for (const option of $options.toArray()) {
+                        const rect = option.getBoundingClientRect();
+                        expect(rect.top).to.be.at.least(0);
+                        expect(rect.bottom).to.be.at.most(win.innerHeight);
+                    }
+                });
+        });
+    });
+
     it("inline choiceInput menu escapes a scroll-clipped viewer container", () => {
         cy.viewport(900, 700);
 
