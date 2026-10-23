@@ -240,15 +240,12 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // settled on, such as a coarser step imposed by a bound slider. Core
     // resends an action's target even when its value did not change, and
     // keying on `SVs` rather than `SVs.index` lets that answer snap the handle
-    // when it repeats the index core sent during the drag. The viewer sets
-    // `ignoreUpdate` on core's answer to one of the slider's own actions when
-    // it matches the index the slider sent with that action and arrives while
-    // the action is still pending, and on an update core built before it
-    // processed one of those actions, which still carries the value from
-    // before it. A matching answer that arrives after its action has settled
-    // is not marked; it resyncs the handle to the index it already shows.
-    // Resyncing on mouseup instead would show core's stale value whenever core
-    // had not answered yet, making the handle flash back to where it started.
+    // when it repeats the index core sent during the drag. Skip an update the
+    // viewer marks `ignoreUpdate`: it repeats the index the slider sent or
+    // predates core processing the slider's action (`updateRendererSVs` in
+    // `state/slices/main.ts` says when). Resyncing on mouseup instead would
+    // show core's stale value whenever core had not answered yet, making the
+    // handle flash back to where it started.
     useEffect(() => {
         if (!transientRef.current && !ignoreUpdate) {
             setIndex(SVs.index);
