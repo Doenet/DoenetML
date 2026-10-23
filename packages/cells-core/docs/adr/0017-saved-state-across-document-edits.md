@@ -9,7 +9,8 @@ exactly, and stays reachable, in the new one. The compile decides this
 from the two sources alone, with no student's state, by comparing what
 students can act on and what those inputs depend on. Whether students in
 progress then move to the new version is the author's choice when they
-publish, not the core's.
+publish, not the core's. The claim that the check is never optimistic is
+tested, not assumed.
 
 ## Context
 
@@ -83,46 +84,67 @@ same select with the same options draws the same pick in every version.
 
 A request that writes an essential cell marks it *touched*, and saved
 state holds every touched value, whether or not it equals the default.
-Untouched values are not saved and take the new version's default. So
-when an author moves a point's starting position, a student who placed
-the point keeps it where they put it, even back at the old start, and a
-student who never touched it sees it at the new start.
+Writes by a load, a restore or a rebuild do not mark it. Untouched values
+are not saved and take the new version's default. So when an author moves
+a point's starting position, a student who placed the point keeps it
+where they put it, even back at the old start, and a student who never
+touched it sees it at the new start.
 
-*View state*, what a student changes to look at the document rather than
-to work in it, is saved with the default it had: a graph's `xmin`,
-`xmax`, `ymin` and `ymax`, which pan and zoom request. On restore, a view
-value whose default changed is dropped, so the author's new bounds win
-over a student's old pan.
+*View state* is an essential cell that only pan and zoom write: a graph's
+`xmin`, `xmax`, `ymin` and `ymax` when they are its own. It is saved with
+the default it had, and on restore a view value whose default changed is
+dropped, so the author's new bounds win over a student's old pan. The
+classification is per cell, not per prop: with `xmin="$n"` a pan inverts
+onto `n`, an input, and that cell is the student's work, never dropped.
 
-The format is version 3; `{"v": 3, "doc": <signature>, "state": [...]}`,
-the signature being step 3's. Versions 1 and 2 are still read, but only
-into the version they were saved from, since they carry no stable keys.
+The format is `{"v": 3, "doc": <signature>, "state": [...]}`, the
+signature being step 3's. No saves of versions 1 or 2 exist, so their
+reader is removed.
 
 ### 3. The compile computes the document's input signature
 
 Beside its diagnostics, and like them a function of the source alone, the
 compile produces the document's *input signature*, per template (the
-document, each repeat body, each branch), so it covers every iteration:
+document, each repeat body, each branch), so it covers every iteration.
 
-- **Inputs.** Every prop a request can name (a point's coordinates, an
-  input's value, a choice's selection), every answer a student can
-  submit, and every select. For each: its stable key, value type and
-  *domain*, the values a live request on it can take.
-- **Essential cells.** The essential cells those inputs land on: stable
-  key, value type, and which other elements share them (a copy and its
-  original).
-- **Derivations.** For each input, its *derivation*: the operators and
-  literal parameters on every path from an essential cell to it, and to
-  whatever decides whether a student can act on it (the gates of the cases
-  around it, `hide`, a hold). It is recorded as a hash of the plans
-  involved, which name no iteration (ADR 0015).
+**Inputs** are every prop a renderer may send a request to, every answer
+a student can submit, every `updateValue` and `triggerSet`, and every
+select. Which props are inputs is declared, not inferred: each component
+definition marks its interactive props (`interactive` in its prop table,
+ADR 0016), including those a whole-shape drag moves (a line's, a circle's,
+a polygon's points). A test checks that `packages/cells-viewer` sends
+requests only to declared props, since the core accepts a request on any
+cell and an action the declaration misses would go unchecked. For each
+input the signature records:
+
+- its stable key, value type and *domain*, the values a live request on
+  it can take;
+- the essential cells it writes (for `updateValue` and `triggerSet`, the
+  cells they set): stable key, value type, and which other elements share
+  them (a copy and its original);
+- its *derivation*: everything that decides what the input shows and
+  whether a student can act on it. That is the operators and literal
+  parameters on every path from an essential cell to the input; the
+  defaults of the essential cells on those paths, except those only this
+  input writes; and the same for whatever decides whether the input
+  exists or can be acted on: the count of every repeat and the choice of
+  every branch around it, the gates of the cases around it, `hide`, and a
+  hold.
+
+The derivation is recorded as a hash of the plans involved, which name no
+iteration (ADR 0015). The hash is taken over stable keys, literals and
+operator versions (step 6) only, never over the compile's internal ids
+(`ElemId`, slot offsets, `Arg::Own` and `Arg::Elem` positions). Hashing
+an internal id would make an unrelated insertion look unsafe, and worse,
+would let two different elements that land on the same position hash
+alike.
 
 The domains so far:
 
 | Input | Domain |
 |---|---|
-| A point in a graph the student cannot pan | inside the graph's bounds |
-| A point in a graph the student can pan; number, math and text inputs | any value of its type |
+| A point in a graph | inside the graph's bounds as the author set them, whether or not the student can pan: a point a student does not know to pan to is as lost as one they cannot reach |
+| A number, math or text input | any value of its type |
 | A math input | also its parse settings, which decide what typed text means |
 | A slider | any number: it stores `preliminaryValue` and clamps the index it derives |
 | A `choiceInput` | its choices by stable key, in order, since it stores a position |
@@ -132,48 +154,88 @@ The domains so far:
 A domain given by cells (`xmin="$n"`) is compared by derivation, as
 above, and not by value.
 
-### 4. An edit is safe for every student when three conditions hold
+### 4. An edit is safe for every student when four conditions hold
 
-Between the published version's signature and the draft's, for every
-input of the published version:
+Between the published version's signature and the draft's:
 
-1. **The input is unchanged.** It exists under the same stable key with
-   the same value type, and its domain is the same or larger: bounds that
-   only widen, choices only appended. A select's options are identical.
-2. **The essential cells it lands on are unchanged.** Same stable keys,
-   same value types, shared with exactly the same elements.
-3. **Its derivation is unchanged.**
+1. **Every old input is unchanged.** It exists under the same stable key
+   with the same value type, and its domain is the same or larger: bounds
+   that only widen, choices only appended. A select's options are
+   identical.
+2. **The essential cells it writes are unchanged.** Same stable keys, same
+   value types, shared with exactly the same elements.
+3. **Its derivation is unchanged,** defaults and existence included.
+4. **Every new input reads no old essential cell,** unless its domain
+   holds every value its derivation can produce. A new `<point x="$n"/>`
+   would otherwise start wherever each student's `n` puts it, outside the
+   graph for some.
 
-New inputs, new answers and new selects are allowed: they have no saved
-state and take their defaults. Everything outside the three conditions
-may change freely: text, layout, hints, feedback, formulas that feed only
-what is displayed or credited, correct answers, awards, weights, and the
-conditions of content that holds no input.
+New inputs that meet condition 4, new answers and new selects are
+allowed. Everything else may change freely: text, layout, hints,
+feedback, formulas that feed only what is displayed or credited, correct
+answers, awards, weights, the conditions of content that holds no input,
+and the starting value of an input that only it writes.
 
-**Why this is enough.** Every saved value is one the student actually
-had (step 2), in a cell with the same key, type and sharing (condition
-2). Through an unchanged derivation (condition 3), every input then shows
-exactly what it showed before, and can be acted on exactly when it could
-before. That value was in the old domain, which the new one contains
-(condition 1), so everything the student could see and reach, they still
-can. Nothing about it depends on any student's values, so it holds for
-every student.
+**Why this is enough.** Every essential cell an old input reads holds,
+after the restore, either a value the student actually had (step 2) or a
+default that is unchanged (condition 3), in a cell with the same key, type
+and sharing (condition 2). Through an unchanged derivation, the input then
+shows exactly what it showed before, exists exactly when it did before,
+and can be acted on exactly when it could before. That value was in the
+old domain, which the new one contains (condition 1), so everything the
+student could see and reach, they still can. A new input starts from new
+cells or inside its domain (condition 4). Nothing here depends on any
+student's values, so it holds for every student.
 
-Each condition rules out a failure Context names, or one the earlier draft
-found: condition 1 a raised `xmin` or a reordered `choiceInput`; condition
-2 a type change or a copy given an override; condition 3 a changed formula
-between a saved value and a dragged point (`q.x = 2*$n` to `3*$n` moves
-`q` though `n` is restored exactly), or a `fixed` or condition added
-around an input.
+Each condition rules out a failure found in drafting:
 
-The check is conservative: a "not safe" edit may in fact harm no one
-(an input every student left alone). It is never optimistic.
+| Failure | Caught by |
+|---|---|
+| A raised `xmin`; a reordered `choiceInput` | condition 1 |
+| A type change; a copy given an override | condition 2 |
+| `q.x = 2*$n` changed to `3*$n`: `q` moves though `n` restores exactly | condition 3, operators |
+| `q.x = $k*$n`, `<number name="k">` changed from 2 to 3 | condition 3, defaults |
+| `length="$n"` changed to `$n/2`: iterations with the student's work vanish | condition 3, existence |
+| A `fixed`, `hide` or condition added around an input | condition 3, acting on it |
+| A new point at `x="$n"` | condition 4 |
 
 `compare_versions` (beside `diagnose` in `compile/check.rs`) takes the two
 sources and returns whether the edit is safe and, if not, which inputs
 fail which condition, tied to their nodes, so the editor can show them.
 
-### 5. The author decides whether students move
+### 5. The check is tested for soundness
+
+The check may be conservative: a "not safe" edit may harm no one (an
+input every student left alone). It must never be optimistic, and that is
+tested, as `tests/every_count.rs` tests the cycle check against the
+probe: `tests/safe_edits.rs` takes every golden document and fixture,
+applies generated edits to it (literals, formulas, defaults, bounds,
+inserted, removed and renamed elements, added inputs), and runs generated
+sessions of requests and submits on the original. Whenever
+`compare_versions` says an edit is safe, the session's saved state,
+restored into the edited version, must show every old input with the
+values it had and inside its new domain, and every new input inside its
+domain. A failure is a hole in the check, found before a student finds
+it.
+
+### 6. Core releases are checked like edits
+
+What a derivation computes depends on the core as well as the source: an
+operator's evaluation, math lowering, and the symbolic engine's revision.
+Each carries a version (an entry in `scalar_ops!` and each `VecOp` its
+own; lowering and the engine one each), bumped when a change alters what
+it computes, and a derivation's hash includes the versions it uses.
+Changes to inverses need no version: they decide what later requests do,
+not what a restore shows. A planner change that alters a plan changes the
+hash by itself.
+
+A core release is then an edit to every published document at once.
+Before deploying, the platform runs `compare_versions` for each document
+under both cores; for one the release makes unsafe, what happens to its
+students in progress is the platform's decision (keep them on the
+previous core, or ask the author).
+
+### 7. The author decides whether students move
 
 The core decides only whether an edit is safe. On publish, the editor
 asks:
@@ -220,10 +282,12 @@ platform's policy, chosen in the same dialog.
 ## Consequences
 
 - The edits authors make most, wording, hints, feedback, correct answers,
-  a new input or question, keep every student's work.
+  a point's starting position, a new input or question, keep every
+  student's work.
 - Some harmless edits are reported unsafe: renaming an input, removing one
-  nobody touched, narrowing a graph no student's point was near. The
-  author can still start students over or leave them where they are.
+  nobody touched, narrowing a graph no student's point was near, changing
+  a default some input reads. The author can still start students over or
+  leave them where they are.
 - Renaming an input changes its key and so fails condition 1. An editor
   that makes a rename may record it in a map published with the version,
   which `compare_versions` applies to the old signature; a rename by hand
@@ -231,7 +295,10 @@ platform's policy, chosen in the same dialog.
 - Unnamed inputs are the weak case: inserting a second unnamed
   `<mathInput>` before another under the same named ancestor moves the
   latter's key. The report names it, and naming the input fixes it.
-- Planners must name the hidden slots they want saved.
+- Component definitions declare their interactive props, and planners
+  name the hidden slots they want saved.
+- Operators, lowering and the engine carry versions, and a change to what
+  one computes bumps its version.
 - A restore is per student and a migration is per edit, so state is never
   migrated through a chain of versions: a student on version 1 moves to
   version 3 only if 1 to 3 is safe.
@@ -239,6 +306,7 @@ platform's policy, chosen in the same dialog.
   still open on an older version must not overwrite state already moved
   to a newer one; the platform refuses it or restores it into the newer
   version first, if that edit is safe.
-- `CONTEXT.md` gains *touched*, *view state*, *input signature*, *domain*,
-  *derivation* and *safe for every student*, and its *element key* becomes
-  the stable key.
+- `ARCHITECTURE.md`'s "Checking a change" gains `tests/safe_edits.rs`.
+  `CONTEXT.md` gains *touched*, *view state*, *input*, *input signature*,
+  *domain*, *derivation* and *safe for every student*, and its *element
+  key* becomes the stable key.
