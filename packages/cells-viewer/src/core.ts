@@ -59,21 +59,41 @@ declare global {
     }
 }
 
+/** What the core's wasm is instantiated from: a compiled module, its
+ * bytes, or nothing, for the glue to fetch it beside itself. */
+type WasmSource = WebAssembly.Module | BufferSource | undefined;
+
+/** Instantiate the core's wasm from what `source` gives, once per page or
+ * process: the step `wasm init`. */
+function startCore(
+    source: () => Promise<WasmSource>,
+): Promise<WebAssembly.Memory> {
+    return (wasmReady ??= (async () => {
+        const t = performance.now();
+        const wasm = await source();
+        const out = await init(wasm ? { module_or_path: wasm } : undefined);
+        wasmMemory = out.memory;
+        measure("wasm init", t, {
+            precompiled: wasm instanceof WebAssembly.Module ? 1 : 0,
+        });
+        return out.memory;
+    })());
+}
+
 /** Fetch (or take from the head's compile), compile and instantiate the
  * core's wasm, once per page: the step `wasm init`. Called at boot
  * (`dev/main.tsx`) so it runs alongside the page's render and the
  * document's fetch and parse; `loadDocument` waits for it. */
 export function preloadCore(): Promise<WebAssembly.Memory> {
-    return (wasmReady ??= (async () => {
-        const t = performance.now();
-        const compiled = await window.__cellsWasm;
-        const out = await init(
-            compiled ? { module_or_path: compiled } : undefined,
-        );
-        wasmMemory = out.memory;
-        measure("wasm init", t, { precompiled: compiled ? 1 : 0 });
-        return out.memory;
-    })());
+    return startCore(async () => window.__cellsWasm);
+}
+
+/** Instantiate the core's wasm from its bytes (or a compiled module),
+ * where there is no page to fetch it from: in Node, rendering a document
+ * to HTML on a server. Call it before `loadDocument`; a later call, or
+ * `preloadCore`, returns the same instance. */
+export function initCore(wasm: WebAssembly.Module | BufferSource) {
+    return startCore(async () => wasm);
 }
 
 /** One entry of the core's diagnostics list (`diagnostics_json`,
@@ -300,11 +320,18 @@ export class CellStore {
     }
 }
 
+/** What a load is seeded with: the document seed that load-time choices
+ * draw from (ADR 0009), and saved state (`Core.save_state`'s JSON) to
+ * resume from. A prerendered page and the browser that replaces it load
+ * with the same ones, so both show the same document. */
+export type LoadOptions = { seed?: number; state?: string };
+
 /** `bytes` is either DAST JSON (UTF-8) or the binary CDST wire format. */
 export async function loadDocument(
     bytes: Uint8Array,
     evaluator: string,
     timings: Partial<LoadTimings>,
+    { seed = 0, state }: LoadOptions = {},
 ): Promise<CellStore> {
     let t = performance.now();
     const firstInit = wasmMemory === null;
@@ -314,7 +341,10 @@ export async function loadDocument(
     // compile, started at boot, had left to do.
     if (firstInit) measure("core/wasm init", t);
     t = performance.now();
-    const core = new Core(bytes);
+    const core =
+        state === undefined
+            ? Core.with_seed(bytes, seed)
+            : Core.with_seed_and_state(bytes, seed, state);
     measure("core/new Core", t, { bytes: bytes.length });
     measureCoreSpans("core/new Core", t, core.load_trace_json());
     core.set_evaluator(evaluator);

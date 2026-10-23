@@ -15,10 +15,23 @@ export function useStore(): CellStore {
     return s.store;
 }
 
+/**
+ * `useSyncExternalStore` for a value read from the store. The store is
+ * the same object on a server rendering the document to HTML
+ * (`renderToString`) as in the browser, so the server's snapshot is the
+ * browser's getter; React throws on the server without one.
+ */
+export function useStoreSnapshot<T>(
+    subscribe: (fn: () => void) => () => void,
+    getSnapshot: () => T,
+): T {
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
 /** Subscribe one component to one cell index. */
 export function useCell(cell: number): number {
     const store = useStore();
-    return useSyncExternalStore(
+    return useStoreSnapshot(
         (fn) => store.subscribe(cell, fn),
         () => store.get(cell),
     );

@@ -1,5 +1,5 @@
-import { useMemo, useSyncExternalStore } from "react";
-import { useCell, useStore } from "../hooks";
+import { useMemo } from "react";
+import { useCell, useStore, useStoreSnapshot } from "../hooks";
 import { Children } from "./index";
 
 /** A `<text>`, or a textInput's value shown as text: the value cell holds
@@ -82,7 +82,7 @@ export function SectionView({
         () => numberCells(store, idx),
         [store, store.comps, idx],
     );
-    const number = useSyncExternalStore(
+    const number = useStoreSnapshot(
         (fn) => {
             const offs = cells.map((c) => store.subscribe(c, fn));
             return () => offs.forEach((off) => off());

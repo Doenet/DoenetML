@@ -7,7 +7,7 @@ process.env.BENCH_SESSION ??= `${process.pid}-${Date.now()}`;
 
 export default defineConfig({
     testDir: ".",
-    testMatch: /(perf|trace|interaction)\.spec\.ts/,
+    testMatch: /(perf|trace|load|interaction)\.spec\.ts/,
     timeout: 600_000,
     workers: 1,
     retries: 0,

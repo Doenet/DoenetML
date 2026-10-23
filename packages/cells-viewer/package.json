@@ -7,7 +7,8 @@
         "dev": "wireit",
         "build": "wireit",
         "preview": "vite preview --port 4173",
-        "typecheck": "tsc --noEmit -p ."
+        "typecheck": "tsc --noEmit -p .",
+        "test": "vitest"
     },
     "dependencies": {
         "@doenet/cells-core": "*",

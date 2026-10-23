@@ -2,8 +2,8 @@
 // side-by-side), the trigger button, tuples and numbers with decimals.
 // Presentation (widths, decimals) comes from the element's literal
 // attributes (`ComponentTable.attr`), not from cells.
-import { useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { useCell, useStore } from "../hooks";
+import { useMemo, type ReactNode } from "react";
+import { useCell, useStore, useStoreSnapshot } from "../hooks";
 import type { CellStore } from "../core";
 import { Children, ChildItems, Component } from "./index";
 import { TextView } from "./Choice";
@@ -169,7 +169,7 @@ export function TupleView({ idx }: { idx: number }) {
             ),
         [store, store.comps, idx],
     );
-    const text = useSyncExternalStore(
+    const text = useStoreSnapshot(
         (fn) => {
             const offs = cells.map((c) => store.subscribe(c, fn));
             return () => offs.forEach((o) => o());

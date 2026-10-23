@@ -28,6 +28,23 @@ the source and press Refresh (Ctrl/Cmd+S) to rebuild. After changing Rust,
 restart `dev` (or run `npm run build -w @doenet/cells-core` beside it) and
 reload.
 
+## Tests
+
+```bash
+npm run build -w @doenet/parser -w @doenet/cells-core
+npm run test -w @doenet/cells-viewer
+```
+
+`src/prerender/render-to-html.test.tsx` renders documents to HTML in
+Node, as a server prerendering a page would: the core's golden documents,
+the benchmark's documents and the dev page's, each parsed and loaded as
+the browser does and rendered with `renderToString`. JSXGraph cannot load
+outside a browser, so the tests replace it with
+`src/prerender/jsxgraph-stub.ts` (`vitest.config.ts`): a graph renders as
+its board's container, sized and empty. A renderer that reads a store
+value goes through `useStoreSnapshot` (`src/hooks.ts`), which gives React
+the server snapshot it needs there.
+
 The toolbar, besides what the other test viewers have:
 
 - **Evaluator** (`?eval=full|dirty-closure`): how a tick recomputes the
