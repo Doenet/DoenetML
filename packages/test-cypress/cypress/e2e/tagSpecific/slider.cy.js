@@ -437,6 +437,81 @@ describe("Slider Tag Tests", { tags: ["@group1"] }, function () {
         });
     });
 
+    it("slider handle does not flash back to its old value after a click", () => {
+        // Regression: the renderer used to resync its handle to core's index
+        // as soon as the mouse went up. If core had not answered the click by
+        // then, the handle jumped back to its old value until core caught up.
+        // The click below is dispatched within a single task: React renders
+        // between the events, in microtasks, but core's answer arrives as a
+        // worker message, a later task. So core cannot answer before mouseup,
+        // and every value React writes to the handle in between is recorded.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <slider name="s" />
+  <p>Value: <number name="sv">$s</number></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#sv").should("have.text", "0");
+        cy.get("#s").should("have.value", "0");
+
+        const handleValues = [];
+
+        cy.get("#s").then(async ($el) => {
+            const el = $el[0];
+            const win = el.ownerDocument.defaultView;
+
+            // Wrap whatever setter is on the element (React's value tracker
+            // installs its own), so React's bookkeeping keeps working.
+            const descriptor =
+                Object.getOwnPropertyDescriptor(el, "value") ??
+                Object.getOwnPropertyDescriptor(
+                    win.HTMLInputElement.prototype,
+                    "value",
+                );
+            Object.defineProperty(el, "value", {
+                configurable: true,
+                get() {
+                    return descriptor.get.call(this);
+                },
+                set(v) {
+                    handleValues.push(String(v));
+                    descriptor.set.call(this, v);
+                },
+            });
+
+            // Let React render each event before the next one, as it would
+            // for a real click, without yielding to the worker.
+            async function flushMicrotasks() {
+                for (let i = 0; i < 10; i++) {
+                    await Promise.resolve();
+                }
+            }
+
+            el.dispatchEvent(
+                new win.MouseEvent("mousedown", { bubbles: true }),
+            );
+            await flushMicrotasks();
+            descriptor.set.call(el, "7");
+            el.dispatchEvent(new win.Event("input", { bubbles: true }));
+            await flushMicrotasks();
+            el.dispatchEvent(new win.MouseEvent("mouseup", { bubbles: true }));
+            await flushMicrotasks();
+        });
+
+        cy.get("#sv").should("have.text", "7");
+        cy.get("#s")
+            .should("have.value", "7")
+            .then(() => {
+                expect(handleValues).not.include("0");
+            });
+    });
+
     it("sizes an authored percentage width against the column", () => {
         // The track is pinned to `dir="ltr"` so a right-to-left document does
         // not mirror it, and a pinned block needs a width of its own or it
