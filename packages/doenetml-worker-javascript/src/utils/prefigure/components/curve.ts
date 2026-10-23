@@ -1,7 +1,7 @@
 import { find_effective_domains_piecewise_children } from "@doenet/utils";
 import { escapeXml, pushWarning } from "../common";
 import {
-    astToExpressionString,
+    astToVariableName,
     parseFormulaDefinition,
     rewriteExpressionVariable,
     type ParsedFormulaDefinition,
@@ -254,7 +254,7 @@ function parsedInterpolatedDefinitionPieces({
     }
 
     const parsedVariable = Array.isArray(definition.variables)
-        ? astToExpressionString(definition.variables[0])
+        ? astToVariableName(definition.variables[0])
         : null;
     const variableName = parsedVariable || fallbackVariableName;
 
@@ -373,7 +373,7 @@ function parsedBezierDefinitionPieces({
     curveBounds: { min: number; max: number };
 }): ParsedFormulaPiecesResult | null {
     const parsedVariable = Array.isArray(definition.variables)
-        ? astToExpressionString(definition.variables[0])
+        ? astToVariableName(definition.variables[0])
         : null;
     const variableName = parsedVariable || fallbackVariableName;
 
@@ -834,7 +834,15 @@ function parsedFormulaPiecesFromDefinition({
     }
 
     if (definition.functionType === "formula") {
-        const parsed = parseFormulaDefinition(definition, fallbackVariableName);
+        const parsed = parseFormulaDefinition(
+            definition,
+            fallbackVariableName,
+            {
+                diagnostics,
+                subject: warningPrefix,
+                position: warningPosition,
+            },
+        );
         if (!parsed) {
             return null;
         }

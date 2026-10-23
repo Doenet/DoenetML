@@ -608,6 +608,10 @@ prefigure-region-flip-functions-unsupported = { $subject }: unsupported flipFunc
 
 prefigure-region-non-formula-child = { $subject }: only formula-typed child functions are supported on regionBetweenCurves; descendant skipped.
 
+# $feature is the function, operator, or symbol as math-expressions names it
+# (for example `sign`, `prime`, or a free parameter `a`), shown verbatim.
+prefigure-formula-unsupported = { $subject }: the PreFigure renderer cannot evaluate '{ $feature }' in this formula; formula not drawn.
+
 # $labelKind says which family of object carried the label, since the advice
 # is the same but the object is not.
 prefigure-label-position-unsupported =
