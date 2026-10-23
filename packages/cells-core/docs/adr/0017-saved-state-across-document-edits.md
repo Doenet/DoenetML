@@ -376,6 +376,32 @@ session generator can start after 3.
    is amended to say so. The core exposes which cells are interactive,
    and a test of `packages/cells-viewer` fails when a renderer requests a
    cell that is not.
+   **Done**: a prop is marked in its table (`value: attr(0.0) {
+   interactive }`, a flag on `PropDef`), and a list whose points a drag
+   moves is marked `interactive: true` (a flag on `ListProp`), which for a
+   line's or segment's list marks the table props it names
+   (`ComponentType::is_interactive_prop`). Marked: a point's `x` and `y`;
+   the lists of the line, segment, circle and polygon, and the circle's
+   `cx` and `cy`, which a whole-circle drag requests; a graph's `xmin`,
+   `xmax`, `ymin` and `ymax`, for pan and zoom; the `value` of a
+   `numberInput`, `booleanInput`, `textInput` and `slider` (computed,
+   inverting onto `preliminaryValue`); a `mathInput`'s `expr` and, when
+   bound to a number, `value`; a `choiceInput`'s `selectedIndex`; a
+   `hint`'s `open`; an `updateValue`'s `target`, which a `triggerSet`
+   requests; and what a submit writes (`Document::submit_requests`): an
+   answer's `submitted` and `numSubmissions` and a response's
+   `submitted`, since every answer is an input. A polyline is not dragged;
+   its vertices are points, marked as points. `Document::interactive_cells`
+   and `is_interactive` (`document/interactive.rs`), exposed by
+   `cells-wasm`, give the cells; a cell several components share is
+   interactive when any of them marks it. `CellStore` checks each request
+   against them in development and tests, and
+   `packages/cells-viewer/src/interactive.test.tsx` renders a document
+   with every renderer in jsdom, uses every control, drag handler and
+   board pan, and fails on a request the check refuses or a kind of
+   control it did not reach. `tests/interactive.rs` checks the marking
+   against the props the renderers request, that derived props are not
+   marked, and that a submit and a trigger write only marked cells.
 4. **The input signature** (step 3). `compile/signature.rs`, run on the
    build the check already makes (the probe, or the one stamped build of
    a document without repeats or selects), whose graph holds every edge

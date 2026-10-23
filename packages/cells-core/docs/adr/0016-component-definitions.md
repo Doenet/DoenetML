@@ -4,7 +4,9 @@ Status: proposed 2026-10-20. Migration steps 1 to 4 and 8 are done, step
 4 for the scalar operators; see Migration. The renderer interface and where numbers
 are formatted are not decided here (see The renderer). Amended 2026-10-22:
 a spec tests its component, and the language's rules are kept by the core
-(see Done is a green spec, and Migration step 8).
+(see Done is a green spec, and Migration step 8). Amended 2026-10-23: a
+prop declares whether a renderer may request it (`interactive`, ADR 0017;
+see Plans are typed).
 
 Terms: what this ADR first called a *role* is *shared state* now
 (`SharedState`, declared in a component's `shared_state { .. }`); see
@@ -83,6 +85,14 @@ and shared state as declared fields. A planner returns that struct as a literal,
 so a prop left unplanned does not compile, and a vector operator's outputs
 are typed values, not positions. The macro expands to the same `const`
 tables the core reads today, so it costs no wasm size and no load time.
+
+The table also says which props a renderer may request: such a prop is
+marked `interactive` (`x: by_planner { interactive }`), and a list whose
+points a drag moves, one point or the whole shape, is marked
+`interactive: true`. These are the document's inputs that saved state is
+checked against (ADR 0017); `Document::interactive_cells` lists their
+cells, and the viewer's test fails for a request on any other (amended
+2026-10-23).
 
 **No silent NaN.** A planner never produces NaN for a combination of
 attributes it does not support: it raises a diagnostic (ADR 0013). A NaN

@@ -321,6 +321,10 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   component writes.
 
 The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
+Mark every prop it requests `interactive` in the block (`value: attr(0.0) {
+interactive }`; a list whose points it drags, `interactive: true`): these
+are the document's inputs (ADR 0017), and the viewer's test
+(`src/interactive.test.tsx`) fails for a request on any other.
 
 ### Add an operator
 
