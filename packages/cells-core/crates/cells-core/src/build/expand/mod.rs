@@ -1151,8 +1151,8 @@ impl<'c> Builder<'c> {
             }
             Source::IterIndex => BuiltSource::Fixed(self.scopes[inst.scope].2 as f64),
             Source::SequencePick { from, step, count } => {
-                let node = c.templates[inst.template].elems[inst.elem].node;
-                let h = choice::splitmix(self.seeded_stream(inst.scope, node));
+                let key = c.templates[inst.template].elems[inst.elem].key;
+                let h = choice::splitmix(self.seeded_stream(inst.scope, key));
                 let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
                 BuiltSource::Fixed(from + step * k.min(count - 1) as f64)
             }

@@ -128,7 +128,8 @@ impl<'a> Compiler<'a> {
         } else {
             &["fixed"]
         };
-        self.plan_fix(t, scope, el, fix_attrs)?.apply(&mut props);
+        let held = self.plan_fix(t, scope, el, fix_attrs)?.apply(&mut props);
+        self.record_held(t, e, held);
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
         self.compiled.templates[t].elems[e].props = props;

@@ -30,10 +30,17 @@ impl<'c> Builder<'c> {
             let picks = if every_option {
                 (0..def.branches.len()).collect()
             } else {
-                self.pick(def, scope, node)
+                let (t, e) = def.at;
+                self.pick(def, scope, c.templates[t].elems[e].key)
             };
-            for (j, b) in picks.into_iter().enumerate() {
-                let s = self.scope_for(scope, node, j as u32 + 1);
+            // A pick's scope is its option and which pick of it this is
+            // (ADR 0017), so its state is the option's whatever order the
+            // options were drawn in.
+            let mut picked: HashMap<usize, u32> = HashMap::new();
+            for b in picks {
+                let m = picked.entry(b).or_insert(0);
+                *m += 1;
+                let s = self.scope_for(scope, node, pick_position(b, *m));
                 self.enter_scope(s, def.branches[b]);
                 kids.extend(self.expand(def.branches[b], s, comp)?);
                 inst.scopes.push(s);
@@ -208,13 +215,13 @@ impl<'c> Builder<'c> {
     /// the document seed and the select's position (its element and the
     /// iteration chain it sits in), so it draws the same way in every build.
     /// Compile has checked that the picks can be drawn (`plan_choice`).
-    fn pick(&self, def: &ChoiceDef, scope: ScopeId, node: NodeId) -> Vec<usize> {
+    fn pick(&self, def: &ChoiceDef, scope: ScopeId, key: ElemKey) -> Vec<usize> {
         let n = def.branches.len();
         // A select with no options picks nothing.
         if n == 0 {
             return Vec::new();
         }
-        let mut h = self.seeded_stream(scope, node);
+        let mut h = self.seeded_stream(scope, key);
         let mut weights = def.weights.clone();
         let mut picks = Vec::with_capacity(def.num_to_select as usize);
         for _ in 0..def.num_to_select {
@@ -300,19 +307,28 @@ impl<'c> Builder<'c> {
 
 impl<'c> Builder<'c> {
     /// The start of a load-time choice's stream: the document seed mixed
-    /// with the element and the iteration chain it sits in, so it draws the
-    /// same way in every build.
-    pub(super) fn seeded_stream(&self, scope: ScopeId, node: NodeId) -> u64 {
+    /// with the element's stable key and the stable levels of the scope it
+    /// sits in (ADR 0017), so it draws the same way in every build and in
+    /// every version of the document that keeps the element's key.
+    pub(super) fn seeded_stream(&self, scope: ScopeId, key: ElemKey) -> u64 {
         let mut h = splitmix(self.view.seed() ^ 0x5eed_5e1e_c7ed_0001);
-        h = splitmix(h ^ node as u64);
+        h = splitmix(h ^ stable_hash(self.compiled.keys.key_text(key).as_bytes()));
         let mut s = scope;
         while s != 0 {
             let (parent, n, k) = self.scopes[s];
-            h = splitmix(h ^ ((n as u64) << 32 | k as u64));
+            let level = self.compiled.keys.scope_level(n, k).to_string();
+            h = splitmix(h ^ stable_hash(level.as_bytes()));
             s = parent;
         }
         h
     }
+}
+
+/// FNV-1a: a hash of bytes that no Rust release or platform changes.
+fn stable_hash(bytes: &[u8]) -> u64 {
+    bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
+        (h ^ b as u64).wrapping_mul(0x0100_0000_01b3)
+    })
 }
 
 pub(super) fn splitmix(x: u64) -> u64 {

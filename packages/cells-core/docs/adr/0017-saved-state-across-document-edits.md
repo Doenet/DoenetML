@@ -358,6 +358,14 @@ session generator can start after 3.
    stable key and the stable scope path, not `NodeId`. Each row of
    Context's table is a test in `tests/state.rs`; the golden diff is
    identical.
+   **Done**: `compile/keys.rs`. The keys are text, kept in one buffer
+   by every document, since one without repeats drops its compile after
+   load. A slot a `fixed` holds is saved by its name too, in the hidden
+   slot its source moved to, so adding a `fixed` moves no key; a test
+   holds every essential cell of the golden set to having a name. A
+   select's pick scope is its option and which pick of it this is. The
+   golden diff differs only in select draws, which the new seeding
+   changes once.
 2. **Touched and view state** (step 2). The session keeps the touched
    essential values by scope and slot, so they survive a rebuild; a tick
    marks every essential cell its inversion writes, whether or not the

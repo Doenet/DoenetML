@@ -48,13 +48,17 @@ pub(in crate::compile) enum Fix {
 }
 
 impl Fix {
-    pub(in crate::compile) fn apply(self, props: &mut Vec<Option<Source>>) {
+    /// Fix `props`; returns each slot it held and the hidden slot its
+    /// source moved to, which saved state names as the held slot (ADR 0017).
+    pub(in crate::compile) fn apply(self, props: &mut Vec<Option<Source>>) -> Vec<(u8, u8)> {
         match self {
-            Fix::Off => {}
+            Fix::Off => Vec::new(),
             Fix::Literal => {
                 fix_literals(props);
                 if props.iter().flatten().any(writable) {
-                    gate_slots(props, vec![Source::Fixed(1.0)]);
+                    gate_slots(props, vec![Source::Fixed(1.0)])
+                } else {
+                    Vec::new()
                 }
             }
             Fix::Dynamic(flags) => gate_slots(props, flags),
@@ -69,7 +73,7 @@ impl Fix {
 /// element or out, reads through the hold. Vector heads and outputs stay in
 /// place (they must be consecutive); their inputs are own slots, which are
 /// gated themselves.
-fn gate_slots(props: &mut Vec<Option<Source>>, flags: Vec<Source>) {
+fn gate_slots(props: &mut Vec<Option<Source>>, flags: Vec<Source>) -> Vec<(u8, u8)> {
     let n = props.len();
     let push = |props: &mut Vec<Option<Source>>, source: Source| {
         props.push(Some(source));
@@ -84,6 +88,7 @@ fn gate_slots(props: &mut Vec<Option<Source>>, flags: Vec<Source>) {
             Source::Op(OpSpec::Max, vec![Arg::Own(flag), Arg::Own(g)]),
         );
     }
+    let mut held = Vec::new();
     for i in 0..n {
         let moved = match &props[i] {
             Some(Source::Inherit) => Source::InheritFrom(byte(i)),
@@ -92,7 +97,9 @@ fn gate_slots(props: &mut Vec<Option<Source>>, flags: Vec<Source>) {
         };
         let h = push(props, moved);
         props[i] = Some(Source::Op(OpSpec::Hold, vec![Arg::Own(h), Arg::Own(flag)]));
+        held.push((byte(i), h));
     }
+    held
 }
 
 /// Whether a request could write through a slot with this source: an

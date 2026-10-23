@@ -79,6 +79,9 @@ impl<'c> Builder<'c> {
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
         let mut parked = self.session.parked.clone();
+        // Restored values the build takes from `parked`, with the type
+        // they were saved as: (cell, value, type).
+        let mut unparked: Vec<(CellIdx, f64, ValueType)> = Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
         let mut fixed_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
@@ -93,9 +96,10 @@ impl<'c> Builder<'c> {
                     let (scope, tslot, key) = self.essential_key(s as SlotId);
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
-                        && let Some(p) = parked.remove(&(scope, key.0, key.1))
+                        && let Some((p, ty)) = parked.remove(&(scope, key.0, key.1))
                     {
                         value = p;
+                        unparked.push((cells.len() as CellIdx, p, ty));
                     }
                     slot_cell[root] = cells.len() as CellIdx;
                     cells.push(value);
@@ -163,6 +167,15 @@ impl<'c> Builder<'c> {
         let mut value_types = vec![ValueType::Number; cells.len()];
         for &(s, ty) in &self.typed_slots {
             value_types[slot_to_cell[s as usize] as usize] = ty;
+        }
+        // A restored value stays only in a cell of the type it was saved
+        // as (ADR 0017), and wins over a seed, as a carried value does.
+        for &(cell, value, ty) in &unparked {
+            cells[cell as usize] = if value_types[cell as usize] == ty {
+                value
+            } else {
+                essential_defaults[cell as usize]
+            };
         }
         let mut tapes = Vec::new();
         // Compile curves whose expression has a fixed shape into tapes, unless
@@ -455,14 +468,19 @@ impl<'c> Builder<'c> {
     /// An essential slot's key: its scope, its template slot (the element's
     /// slot offset plus the prop's position; a document's boxes are fixed
     /// at load, ADR 0014, so the offsets are the same in every build), and
-    /// its element's key and position.
+    /// its element's key and position, `HIDDEN` marking a hidden slot.
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot as usize];
         let inst = self.instances[self.comp_instance[comp as usize] as usize];
         let pi = slot - self.slot_base[comp as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
-        (inst.scope, el.slot_off + pi, (el.key, pi))
+        let prop = if (pi as usize) < self.n_public(comp) {
+            pi
+        } else {
+            pi | HIDDEN
+        };
+        (inst.scope, el.slot_off + pi, (el.key, prop))
     }
 
     /// Structural depth per repeat: how many repeats must be expanded, in

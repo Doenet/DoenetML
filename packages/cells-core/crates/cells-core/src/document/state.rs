@@ -6,16 +6,22 @@
 //! cell whose value differs from the build's default. `core` is the release
 //! that saved it (`crate::RELEASE`), and only that release restores it
 //! (ADR 0017, step 6); `doc` names the document version, and is empty until
-//! the compile computes its input signature. `path` names the cell's scope from the document down, one
-//! `[node, position]` per repeat iteration or choice branch; `element` is
-//! the element's key, `[node, k]` (`ElemKey`), and `prop` the
-//! position among its slots. None depends on the order a session made
-//! scopes or on which elements were boxed, so the keys are the same across
-//! loads of the same document and seed, including for iterations that
-//! exist only after a count changes: an entry whose scope is not live is
-//! parked for the build that stamps it. `kind` is `"n"` (a number; `null`
-//! is NaN, an emptied input), `"t"` (text) or `"m"` (an expression as
-//! text).
+//! the compile computes its input signature.
+//!
+//! An entry names its cell by keys an ordinary edit does not move (ADR
+//! 0017, step 1; `compile/keys.rs`): `path` is the cell's scope from the
+//! document down, one level per repeat iteration (`[repeat, k]`),
+//! conditional branch (`[choice, branch]`) or select pick (`[select,
+//! option, m]`); `element` is the element's stable key and `prop` the
+//! prop's name, or for a hidden slot the shared state it holds. None
+//! depends on the order a session made scopes or on which elements were
+//! boxed, including for iterations that exist only after a count changes:
+//! an entry whose scope is not live is parked for the build that stamps
+//! it. An entry this version has no cell for is dropped. `kind` is `"n"` (a
+//! number; `null` is NaN, an emptied input), `"t"` (text) or `"m"` (an
+//! expression as text), and a value is restored only into a cell of its
+//! kind.
+
 use std::collections::HashMap;
 
 use serde_json::{Value, json};
@@ -24,7 +30,6 @@ use super::{CellIdx, Document};
 use crate::Error;
 use crate::build::ScopeId;
 use crate::compile::plan::ElemKey;
-use crate::document::NONE;
 use crate::program::ValueType;
 
 /// The saved state format `save_state` writes and `restore_state` reads.
@@ -61,10 +66,15 @@ impl Document {
                     ("m", if v.is_nan() { Value::Null } else { json!(text) })
                 }
             };
-            let ((node, k), prop) = st.essential_keys[i];
+            let (key, prop) = st.essential_keys[i];
+            // A hidden slot that holds no shared state has no name to save
+            // it by.
+            let Some(prop) = self.keys.prop_key(key, prop) else {
+                continue;
+            };
             out.push(json!([
                 self.scope_path(scope),
-                [node, k],
+                self.keys.key_text(key),
                 prop,
                 kind,
                 value
@@ -107,30 +117,50 @@ impl Document {
             .enumerate()
             .map(|(i, (&(scope, _), &(key, prop)))| ((scope, key, prop), i as CellIdx))
             .collect();
+        let keys = self.keys.clone();
+        let by_text = keys.by_text();
         for e in entries {
             let bad = || Error::Unsupported(format!("malformed saved state entry {e}"));
             let path = e.get(0).and_then(Value::as_array).ok_or_else(bad)?;
-            let element = e.get(1).and_then(Value::as_array).ok_or_else(bad)?;
-            let node = element.first().and_then(Value::as_u64).ok_or_else(bad)? as u32;
-            let k = element.get(1).and_then(Value::as_u64).ok_or_else(bad)? as u32;
-            let prop = e.get(2).and_then(Value::as_u64).ok_or_else(bad)? as u32;
-            let scope = self.scope_at(path).ok_or_else(bad)?;
+            let element = e.get(1).and_then(Value::as_str).ok_or_else(bad)?;
+            let prop = e.get(2).and_then(Value::as_str).ok_or_else(bad)?;
             let kind = e.get(3).and_then(Value::as_str).ok_or_else(bad)?;
             let raw = e.get(4).ok_or_else(bad)?;
-            // `null` is NaN for every kind: an emptied input.
-            let value = match kind {
-                _ if raw.is_null() => f64::NAN,
-                "n" => raw.as_f64().unwrap_or(f64::NAN),
-                "t" => self.intern(raw.as_str().ok_or_else(bad)?),
-                "m" => self
-                    .parse_math(raw.as_str().ok_or_else(bad)?)
-                    .map_err(Error::Unsupported)?,
+            let ty = match kind {
+                "n" => ValueType::Number,
+                "t" => ValueType::Text,
+                "m" => ValueType::Math,
                 _ => return Err(bad()),
             };
-            match by_element.get(&(scope, (node, k), prop)) {
-                Some(&cell) => self.cells[cell as usize] = value,
+            // An element, prop or scope this version does not have holds
+            // nothing to restore.
+            let Some(&key) = by_text.get(element) else {
+                continue;
+            };
+            let Some(prop) = keys.prop_named(key, prop) else {
+                continue;
+            };
+            let Some(scope) = self.scope_at(path) else {
+                continue;
+            };
+            let live = by_element.get(&(scope, key, prop)).copied();
+            // A value goes only into a cell of the type it was saved as.
+            if live.is_some_and(|cell| self.program.value_types[cell as usize] != ty) {
+                continue;
+            }
+            // `null` is NaN for every kind: an emptied input.
+            let value = match ty {
+                _ if raw.is_null() => f64::NAN,
+                ValueType::Number => raw.as_f64().unwrap_or(f64::NAN),
+                ValueType::Text => self.intern(raw.as_str().ok_or_else(bad)?),
+                ValueType::Math => self
+                    .parse_math(raw.as_str().ok_or_else(bad)?)
+                    .map_err(Error::Unsupported)?,
+            };
+            match live {
+                Some(cell) => self.cells[cell as usize] = value,
                 None => {
-                    self.session.parked.insert((scope, (node, k), prop), value);
+                    self.session.parked.insert((scope, key, prop), (value, ty));
                 }
             }
         }
@@ -141,12 +171,13 @@ impl Document {
         Ok(())
     }
 
-    /// `scope`'s path from the document: `[node, position]` per level.
+    /// `scope`'s path from the document, one stable level per repeat
+    /// iteration or choice branch (`Keys::scope_level`).
     fn scope_path(&self, mut scope: ScopeId) -> Value {
         let mut path = Vec::new();
         while scope != 0 {
             let (parent, node, k) = self.session.scopes[scope];
-            path.push(json!([node, k]));
+            path.push(self.keys.scope_level(node, k));
             scope = parent;
         }
         path.reverse();
@@ -154,15 +185,12 @@ impl Document {
     }
 
     /// The scope a saved path names, made in the scope table if no build
-    /// has stamped it yet (its values wait for the iteration).
+    /// has stamped it yet (its values wait for the iteration); None when
+    /// this version has no such repeat, choice or branch.
     fn scope_at(&mut self, path: &[Value]) -> Option<ScopeId> {
         let mut scope = 0;
         for level in path {
-            let node = level.get(0)?.as_u64()? as u32;
-            let k = level.get(1)?.as_u64()? as u32;
-            if node == NONE {
-                return None;
-            }
+            let (node, k) = self.keys.level_at(level)?;
             scope = self.session.scopes.get_or_insert(scope, node, k);
         }
         Some(scope)

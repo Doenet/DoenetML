@@ -52,3 +52,26 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
     };
     doc.request(&[crate::Request { cell, value }])
 }
+
+/// The essential cells saved state cannot name (ADR 0017): hidden slots
+/// holding no shared state, as `key (hidden slot k)`.
+pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
+    use crate::compile::plan::HIDDEN;
+    let mut out: Vec<String> = doc
+        .structure
+        .essential_keys
+        .iter()
+        .filter(|&&(key, prop)| doc.keys.prop_key(key, prop).is_none())
+        .map(|&(key, prop)| {
+            format!(
+                "{} {} (hidden slot {})",
+                doc.keys.key_type(key).tag(),
+                doc.keys.key_text(key),
+                prop & !HIDDEN
+            )
+        })
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}

@@ -37,8 +37,9 @@ pub struct Session {
     /// Shared with the builds that read it.
     pub counts: Arc<Counts>,
     /// Restored values whose scope no build has stamped yet, by (scope,
-    /// element key, position): the build that stamps it takes them.
-    pub parked: HashMap<(ScopeId, ElemKey, u32), f64>,
+    /// element key, position), with the type they were saved as: the build
+    /// that stamps it takes them, if its cell has that type.
+    pub parked: HashMap<(ScopeId, ElemKey, u32), (f64, crate::ValueType)>,
     /// Strings interned since load (`Document::intern`), appended after
     /// every build's own table so an interned id keeps its text.
     pub runtime_strings: Vec<String>,
