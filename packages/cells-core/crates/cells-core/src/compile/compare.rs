@@ -78,12 +78,13 @@ pub fn compare_versions(
     };
     let old = signature_renamed(old, &rename)?;
     let new = input_signature(new)?;
-    Ok(compare(&old, &new))
+    Ok(compare_signatures(&old, &new))
 }
 
 /// Step 4's four conditions, between the published version's signature and
-/// the draft's.
-pub(crate) fn compare(old: &Signature, new: &Signature) -> EditReport {
+/// the draft's: `compare_versions` for a caller that keeps the published
+/// version's signature rather than computing it for every draft.
+pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
     let mut failures = Vec::new();
     let mut fail = |key: &str, condition, o: Option<&Input>, n: Option<&Input>, reason: String| {
         failures.push(EditFailure {

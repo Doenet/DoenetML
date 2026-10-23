@@ -12,9 +12,10 @@
 //! what it is: an essential cell by its key and prop, a fixed cell by its
 //! value, a derived cell by its operator and literal parameters over its
 //! inputs' hashes; never by a cell index. The defaults of the essential
-//! cells in the closure are kept beside it, with whether any other input's
-//! closure reaches each: a default only this input can write is its
-//! starting value, which an author may change.
+//! cells in the closure are kept beside it, with whether each is the
+//! input's starting value, which an author may change: a cell that is one
+//! of the input's props itself, that no operator around the input mixes
+//! into anything else, and that no other input's closure reaches.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -49,9 +50,8 @@ pub struct Input {
     /// but for the defaults of the essential cells it reads.
     pub derivation: u64,
     /// The defaults of every essential cell its closure reads, by the
-    /// cell's key: the default's hash, and whether
-    /// only this input can write the cell (no other input's closure reaches
-    /// it), which makes the default its starting value.
+    /// cell's key: the default's hash, and whether it is the input's
+    /// starting value (see the module's comment), which may change.
     pub defaults: BTreeMap<(String, String), (u64, bool)>,
 }
 
@@ -255,6 +255,12 @@ impl<'a> Signer<'a> {
         for ((c, seeds, n_interactive), leaves) in found.iter().zip(&closures) {
             let c = *c;
             let written = self.essential_leaves(seeds[..*n_interactive].iter().map(|s| s.1), true);
+            // A default is the input's starting value only when it is one
+            // of the input's props itself, no operator around the input
+            // mixes it into anything else, and no other input reaches it.
+            let own: BTreeSet<CellIdx> = seeds[..*n_interactive].iter().map(|s| s.1).collect();
+            let mixed = self.read_by_ops(seeds.iter().map(|s| s.1));
+            let starting = |l: CellIdx| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
             let ty = t.component_type[c as usize];
             let cells = comp_cells(t, c);
             let mut h = DefaultHasher::new();
@@ -283,12 +289,7 @@ impl<'a> Signer<'a> {
                 derivation: h.finish(),
                 defaults: leaves
                     .iter()
-                    .map(|&l| {
-                        (
-                            self.named[&l].clone(),
-                            (self.default_hash(l), reached[&l] == 1),
-                        )
-                    })
+                    .map(|&l| (self.named[&l].clone(), (self.default_hash(l), starting(l))))
                     .collect(),
             };
             let key = self.key(out.comp_keys[c as usize]);
@@ -338,6 +339,28 @@ impl<'a> Signer<'a> {
             }
         }
         leaves
+    }
+
+    /// The essential cells an instruction in the closure of `seeds`
+    /// reads: those whose default reaches a seed only through an operator.
+    fn read_by_ops(&self, seeds: impl Iterator<Item = CellIdx>) -> BTreeSet<CellIdx> {
+        let mut read = BTreeSet::new();
+        let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
+        let mut stack: Vec<CellIdx> = seeds.collect();
+        while let Some(cell) = stack.pop() {
+            if !seen.insert(cell) || (cell as usize) < self.out.n_essential {
+                continue;
+            }
+            if let Some(instr) = self.instr_of(cell) {
+                for i in instr.op.inputs(&self.out.operands) {
+                    if (i as usize) < self.out.n_essential {
+                        read.insert(i);
+                    }
+                    stack.push(i);
+                }
+            }
+        }
+        read
     }
 
     fn instr_of(&self, cell: CellIdx) -> Option<&Instr> {

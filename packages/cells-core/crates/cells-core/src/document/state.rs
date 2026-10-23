@@ -197,6 +197,14 @@ impl Document {
         Ok(())
     }
 
+    /// `scope_path` as text, for a test naming a cell across versions.
+    pub(crate) fn scope_path_text(&self, scope: ScopeId) -> String {
+        match self.scope_path(scope) {
+            Value::Array(levels) if levels.is_empty() => String::new(),
+            path => format!("{path} "),
+        }
+    }
+
     /// `scope`'s path from the document, one stable level per repeat
     /// iteration or choice branch (`Keys::scope_level`).
     fn scope_path(&self, mut scope: ScopeId) -> Value {

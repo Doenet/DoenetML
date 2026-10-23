@@ -392,6 +392,24 @@ skip its sections) is a gate multiplied in. `hide` is not a gate.
 in the credit of the nearest document or aggregating section above it. A
 section that does not aggregate is looked through.
 
+**Input** — What a student can act on (ADR 0017): an element with a prop
+its definition marks *interactive* (one a renderer may request), an answer,
+a select. Its *domain* is the values a request on it can take: any value of
+its type, or inside a graph the bounds the author set, a choice input's
+choices in order, a select's options.
+
+**Input signature** — Per input of a document, from its source alone (ADR
+0017): its interactive props, its domain, the essential cells it writes, and
+its *derivation*, a hash over everything that decides what it shows and
+whether it exists or can be acted on, named by stable keys and literals,
+never by cell indices.
+
+**Safe for every student** — Of an edit: every old input is unchanged, with
+a domain the same or larger, writes the same cells and has the same
+derivation, and no new input reads old state unless its domain holds every
+value. Saved state then carries over exactly, whatever a student did
+(`compare_versions`).
+
 **Document seed** — The one random seed a document is loaded with. Each
 load-time choice draws from its own stream derived from the seed and the
 choice's stable key and scope, so a choice draws the same way wherever it is

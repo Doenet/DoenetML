@@ -1,6 +1,6 @@
 # Saved state carries over only edits that are safe for every student
 
-Status: proposed 2026-10-23.
+Status: proposed 2026-10-23. Every migration step is done; see Migration.
 
 When an author publishes a new version of a document, a student's saved
 state carries over to it only if the edit is *safe for every student*:
@@ -448,10 +448,23 @@ session generator can start after 3.
 6. **`tests/safe_edits.rs`** (step 5): generated edits and sessions over
    the golden set and the fixtures, seeded, a short run in CI and a long
    one on request.
+   **Done**: literals changed, paragraphs, inputs and points inserted
+   (some reading an input), self-closing elements removed, elements
+   renamed, over the golden set and five documents of inputs; with
+   `SAFE_EDITS_LONG=1`, many more of each and `fixtures/sir.doenet`. The
+   test found that step 4's argument is short a case: a default only one
+   input reaches is its starting value only when it is one of the
+   input's props itself and no operator around the input mixes it into
+   another (a circle's radius, through its two through points, moves the
+   circle a student placed), and the signature says so. Its oracle allows
+   what step 2 allows: an untouched prop takes the new start, and a
+   graph's own bounds the author's new ones.
 7. **Docs.** `ARCHITECTURE.md` and `CONTEXT.md` as Consequences says,
    `document/state.rs`'s header, and this ADR's status. The editor's
    dialog (step 7) and pinning an attempt to a release are the
    platform's, and not part of this migration.
+   **Done**, but for the status, which stays proposed until the ADR is
+   accepted.
 
 Settled while planning:
 

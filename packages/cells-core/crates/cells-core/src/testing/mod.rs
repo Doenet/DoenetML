@@ -75,3 +75,105 @@ pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
     out.dedup();
     out
 }
+
+/// What a student sees of one input (ADR 0017's soundness test): its
+/// interactive props' values as text, the points among them, and the
+/// bounds of the graph it is in, as the author set them.
+#[derive(Debug, Clone, PartialEq)]
+pub struct InputState {
+    pub values: Vec<(String, String)>,
+    pub points: Vec<(f64, f64)>,
+    pub bounds: Option<[f64; 4]>,
+}
+
+/// Every input of `doc` by its scope path and stable key, as `compiled`
+/// (the document's compile, from `compile`) keys its elements: what a
+/// restore must give back.
+pub fn inputs(
+    doc: &crate::Document,
+    compiled: &crate::Compiled,
+) -> std::collections::BTreeMap<String, InputState> {
+    use crate::ValueType;
+    use crate::components::ComponentType;
+    use crate::document::NONE;
+    let mut key_of = std::collections::HashMap::new();
+    for t in &compiled.templates {
+        for el in &t.elems {
+            if el.node != NONE {
+                key_of.insert(el.node, compiled.keys.key_text(el.key).to_string());
+            }
+        }
+    }
+    let t = &doc.components;
+    let mut out = std::collections::BTreeMap::new();
+    for c in 0..doc.n_components() as crate::CompIdx {
+        let ty = doc.component_type(c);
+        let cells = doc.comp_cells(c);
+        let node = t.dast_node[c as usize];
+        let Some(key) = key_of.get(&node) else {
+            continue;
+        };
+        let names: Vec<(String, crate::CellIdx)> = (0..cells.len())
+            .filter(|&pi| ty.is_interactive_prop(cells.len(), pi))
+            .filter_map(|pi| Some((ty.prop_name(cells.len(), pi)?.into_owned(), cells[pi])))
+            .collect();
+        if names.is_empty() {
+            continue;
+        }
+        let text = |cell: crate::CellIdx| match doc.program.value_types[cell as usize] {
+            ValueType::Number => format!("{:?}", doc.cells[cell as usize]),
+            ValueType::Text => doc.text_value(cell),
+            ValueType::Math => doc.math_text(cell),
+        };
+        let values = names.iter().map(|(n, c)| (n.clone(), text(*c))).collect();
+        let value = |name: &str| {
+            names
+                .iter()
+                .find(|(n, _)| n == name)
+                .map(|&(_, c)| doc.cells[c as usize])
+        };
+        let mut points = Vec::new();
+        for (n, _) in &names {
+            let partner = match n.as_str() {
+                "cx" => Some("cy".to_string()),
+                n => n.strip_prefix('x').map(|rest| format!("y{rest}")),
+            };
+            if let Some(p) = partner
+                && let (Some(x), Some(y)) = (value(n), value(&p))
+            {
+                points.push((x, y));
+            }
+        }
+        let mut a = t.parent[c as usize];
+        while a != NONE && doc.component_type(a) != ComponentType::Graph {
+            a = t.parent[a as usize];
+        }
+        let bounds = (a != NONE && ty != ComponentType::Graph).then(|| {
+            let g = doc.comp_cells(a);
+            let author = |p: &str| {
+                let cell = g[ComponentType::Graph.prop_index(p).unwrap()] as usize;
+                if cell < doc.n_essential {
+                    doc.structure.essential_defaults[cell]
+                } else {
+                    doc.cells[cell]
+                }
+            };
+            [
+                author("xmin"),
+                author("xmax"),
+                author("ymin"),
+                author("ymax"),
+            ]
+        });
+        let scope = doc.scope_path_text(t.scope[c as usize]);
+        out.insert(
+            format!("{scope}{key}"),
+            InputState {
+                values,
+                points,
+                bounds,
+            },
+        );
+    }
+    out
+}
