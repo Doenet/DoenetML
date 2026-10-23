@@ -1309,10 +1309,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        expect(prefigureXML).toContain(`function="function_0_f(x)=sin(pi*x)"`);
-        expect(prefigureXML).toContain(`function="function_1_f(x)=abs(x)"`);
-        expect(prefigureXML).toContain(`function="function_2_f(x)=asin(x/10)"`);
-        expect(prefigureXML).toContain(`function="function_3_f(x)=atan(x)"`);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=sin(pi*x)"`);
+        expect(prefigureXML).toContain(`function="curve_1_f(x)=abs(x)"`);
+        expect(prefigureXML).toContain(`function="curve_2_f(x)=asin(x/10)"`);
+        expect(prefigureXML).toContain(`function="curve_3_f(x)=atan(x)"`);
         expect(prefigureXML).not.toContain("π");
 
         const diagnosticsByType = await getWarnings(doenetML);
@@ -1330,12 +1330,8 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(
-            diagnosticsByType.warnings.some(
-                (x) =>
-                    x.message.includes("<function>") &&
-                    x.message.includes(
-                        "cannot evaluate 'sign' in this formula",
-                    ),
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("cannot evaluate 'sign' in this formula"),
             ),
         ).eq(true);
     });

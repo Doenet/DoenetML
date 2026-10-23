@@ -317,7 +317,7 @@ function emit(
             const factors = operands.map((factor, i) =>
                 wrap(
                     emit(factor, allowedSymbols),
-                    i === 0 ? PREC_UNARY : PREC_POWER,
+                    i === 0 ? PREC_PRODUCT : PREC_POWER,
                 ),
             );
             return { text: factors.join("*"), prec: PREC_PRODUCT };
@@ -329,7 +329,7 @@ function emit(
             const numerator = emit(operands[0], allowedSymbols);
             const denominator = emit(operands[1], allowedSymbols);
             return {
-                text: `${wrap(numerator, PREC_UNARY)}/${wrap(denominator, PREC_POWER)}`,
+                text: `${wrap(numerator, PREC_PRODUCT)}/${wrap(denominator, PREC_POWER)}`,
                 prec: PREC_PRODUCT,
             };
         }
