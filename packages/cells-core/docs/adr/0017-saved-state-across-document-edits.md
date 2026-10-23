@@ -93,10 +93,20 @@ change that while the type stays the same:
 
 - a `choiceInput`'s `selectedIndex` is a position among its choices;
 - a select's pick (step 4) is one of its options;
+- a draggable point's coordinates are *in view*: inside the bounds of the
+  graph it is drawn in, unless the student can pan that graph. Unlike the
+  others, this domain depends on other cells, so it is checked after the
+  restore, against the new version's values (step 3);
 - everything else, so far, is *free*: any value of its type means the same
   thing in both versions. A slider is free, because it stores
   `preliminaryValue` and derives its clamped index, so a changed range is
   absorbed by the graph.
+
+The schema also records each essential slot's default, the value its
+literal gives it, and whether the slot is *view state*: what the student
+changes to look at the document rather than to work in it. A graph's
+`xmin`, `xmax`, `ymin` and `ymax` are view state, since pan and zoom
+request them.
 
 ### 3. Restoring compares schemas, entry by entry
 
@@ -113,6 +123,20 @@ and classifies each saved entry:
 | Type changed | `numberInput` to `mathInput`; a text answer made math | drop it, reported; never written |
 | Domain changed | a `choiceInput`'s choices reordered or added | remap by the choices' own stable keys if the old domain recorded them, else drop it, reported |
 | New key | an input, answer or repeat added | the default, as now |
+| View state whose default changed | the author changed a graph's `xmin` | the new default; the student's old pan is dropped |
+
+Then the restore recomputes and checks the domains that depend on other
+cells. A draggable point out of view in the new version, where it was in
+view in the old (a point the student dragged to x = -8, in a graph whose
+`xmin` the author raised from -10 to -5), could never be reached again:
+the student cannot see it, and nothing else moves it. Its saved entries,
+the essential cells its coordinates invert to, are dropped and reported,
+and it takes the new version's default, which the author placed in view.
+It is not projected onto the edge of the graph, which would make a
+different answer that the student never gave; and the graph is not widened
+to show it, which would undo the author's edit for that student. A default
+that is itself out of view is the author's error, and the editor reports it
+for every version, not only at migration.
 
 Then the state as a whole is
 
@@ -183,6 +207,9 @@ before diffing; a rename made by hand is a delete and an add.
   per select. Still only the cells that differ from their defaults.
 - Planners must name the hidden slots they want saved. A planner that does
   not loses that state across edits but never misplaces it.
+- Changing a graph's bounds keeps a student's points where they were if
+  they are still in view, and resets those that are not. The platform's
+  dry run (step 6) counts them across students in progress.
 - A `choiceInput` needs its choices' stable keys in its domain; until it
   has them, any change to its choices drops the selection.
 - Unnamed elements are the weak case: inserting a second `<mathInput>`
