@@ -1,57 +1,60 @@
-# Saved state survives an edit to the document when its schema allows
+# Saved state carries over only edits that are safe for every student
 
 Status: proposed 2026-10-23.
 
-A student's saved state should restore into a later version of the same
-document whenever every value in it still names a cell of the same meaning
-and type. Whether it does is decided by comparing the two versions'
-*essential schemas*, the essential cells each version's compile can make,
-never by comparing their graphs or by trying the restore and seeing what
-happens. What cannot carry over is dropped, replayed as a request, or makes
-the state incompatible, by rules fixed here, and the author is told which
-before publishing.
+When an author publishes a new version of a document, a student's saved
+state carries over to it only if the edit is *safe for every student*:
+everything any student could see or reach in the old version restores
+exactly, and stays reachable, in the new one. The compile decides this
+from the two sources alone, with no student's state, by comparing what
+students can act on and what those inputs depend on. Whether students in
+progress then move to the new version is the author's choice when they
+publish, not the core's.
 
 ## Context
 
-Saved state (`document/state.rs`) is the session's essential cells that
-differ from their defaults, one entry per cell:
-`[scopePath, [node, k], slot, kind, value]`. Derived cells, credit among
-them, are never saved; they are recomputed from the restored essential
-cells. So most edits an author makes, even ones that reshape the graph,
-need nothing of saved state at all:
+Saved state (`document/state.rs`) is the essential cells that differ from
+their defaults, one entry per cell: `[scopePath, [node, k], slot, kind,
+value]`. Derived cells, credit among them, are not saved; they are
+recomputed from the essential cells. A restored value can never make the
+document unbuildable: every error depends on the source alone (ADR 0014)
+and the probe covers every count and every pick, so restored values only
+reach structures the load's check accepted.
 
-- Text, layout, titles, hints and feedback have no essential cells.
-- A formula, an operator, a derived component, a `<conditionalContent>`
-  condition or an answer's weight changes derived cells and literal
-  parameters, which are recomputed.
-- Changing an `<answer>`'s correct answer or its awards changes `correct`
-  and the award comparisons; `submitted` and `numSubmissions` are
-  essential and unchanged, and `credit` is recomputed against the new key.
+So most edits need nothing of saved state: text, layout, hints, feedback,
+formulas that feed only what is displayed, an answer's correct answer and
+awards (`submitted` is essential, `credit` derived, so the answer
+regrades). But today any edit can break it, silently:
 
-And a restored value can never make the document unbuildable. Every error
-depends on the source alone (ADR 0014), and the probe covers every count
-and every pick, so restoring old values, including counts that grow
-repeats, only ever reaches structures the load's check already accepted.
+- An entry names its element by DAST `NodeId`, the node's position in the
+  parsed tree, and its prop by its position among the element's slots,
+  hidden slots included. `restore_state` writes each value into whatever
+  cell now has that key and parks an entry with no such cell. Against
+  `<numberInput name="a"/><numberInput name="b"/>` with `b` set to 7:
 
-What does go wrong is identity and meaning. An entry names its element by
-DAST `NodeId`, a node's position in the parsed tree, and its prop by the
-slot's position among the element's slots, hidden slots included.
-`restore_state` writes each value into whatever cell has that key, and
-parks an entry with no such cell without a word. Against
-`<numberInput name="a"/><numberInput name="b"/>` with `b` set to 7:
+  | Edit | After restore |
+  |---|---|
+  | Insert `<p>Intro</p>` first | `a` is 7, `b` its default |
+  | Delete `a`, add `c` after `b` | `c` is 7, `b` its default |
+  | Make `b` a `<mathInput>` | restores without error; 7 lands in a math cell as a handle it never was |
 
-| Edit | After restore |
-|---|---|
-| Insert `<p>Intro</p>` first | `a` is 7, `b` its default |
-| Delete `a`, add `c` after `b` | `c` is 7, `b` its default |
-| Make `b` a `<mathInput>` | restores without error; 7 lands in a math cell as a handle it never was |
+- The same `NodeId` seeds every `<select>` (`seeded_stream`,
+  `build/expand/choice.rs`), so inserting a paragraph above one draws the
+  student a different variant under the responses they submitted.
+- A value equal to its default is not saved. When the author changes a
+  point's starting position, a student who left the point there, or put
+  it back on purpose, finds it moved.
+- Nothing checks that a restored value is still reachable. When an author
+  raised a graph's `xmin`, students whose points were left of the new
+  bound could no longer see or drag them.
 
-The same `NodeId` seeds every `<select>` (`seeded_stream`,
-`build/expand/choice.rs`), so inserting a paragraph above one draws the
-student a different variant, with the responses submitted to the old one
-still in place.
-
-So today any edit invalidates saved state, and nothing notices.
+An earlier draft of this ADR tried to carry over as much as possible: it
+diffed the two versions' essential cells and gave each kind of change a
+rule (drop, replay as a request, remap). Every rule had edge cases where
+the restore succeeded and quietly gave the student the wrong thing: a
+changed default, a copy gaining an override, a formula between an
+essential cell and a dragged point, branches identified by position. This
+ADR carries over less, and what it carries over is exact.
 
 ## Decision
 
@@ -60,160 +63,182 @@ So today any edit invalidates saved state, and nothing notices.
 An entry names its cell by keys an ordinary edit does not move:
 
 - **Element.** A named element is its name path from the document
-  (`r[*].q`: a repeat's iterations are a level of the path, as in
-  `scopePath` now). An unnamed element is its nearest named ancestor's
-  path, its tag, and its position among that ancestor's descendants of
-  the same tag in document order. An element the compile makes (an
-  answer's implicit input, a copy's clones) keeps today's rule of the
-  element it is made for and its position among those, over the new key.
-- **Prop.** A public prop is its name from the component's definition
-  (ADR 0016), not its position. A hidden slot is named by its planner,
-  which declares the name with the slot (an answer's extra response slots
-  by the response they hold); a hidden slot without a name is not saved.
-- **Value type.** Each entry keeps its `kind`, and the schema records the
-  type of each cell, so a mismatch is found rather than written.
+  (`r[*].q`; a repeat's iterations and a choice's branches are levels of
+  the path, a branch named by its own stable key, not its position). An
+  unnamed element is its nearest named ancestor's path, its tag, and its
+  position among that ancestor's descendants of the same tag. An element
+  the compile makes (an answer's implicit input, a copy's clones) is the
+  element it is made for and its position among those, as `ElemKey` is
+  now.
+- **Prop.** A public prop is its name in the component's definition (ADR
+  0016). A hidden slot is named by the planner that makes it; one without
+  a name is not saved.
+- **Value type.** Each entry keeps its `kind`. `restore_state` never
+  writes a value whose kind differs from its cell's value type.
 
-A select's stream is seeded from its stable key, not its `NodeId`.
+A select's stream is seeded from its stable key, not its `NodeId`, so the
+same select with the same options draws the same pick in every version.
 
-The format is version 3. Versions 1 and 2 are still read, but only into
-the document version they were saved from (step 3); they carry no stable
-keys to migrate by.
+### 2. Saved state holds every value a student touched
 
-### 2. Each compile emits an essential schema
+A request that writes an essential cell marks it *touched*, and saved
+state holds every touched value, whether or not it equals the default.
+Untouched values are not saved and take the new version's default. So
+when an author moves a point's starting position, a student who placed
+the point keeps it where they put it, even back at the old start, and a
+student who never touched it sees it at the new start.
 
-`Compiled` gains a schema: for each template (the document, each repeat
-body, each branch), each essential slot's stable key, component type, prop
-name, value type and a domain (below). Like the diagnostics, it depends
-on the source alone (ADR 0014), so the language server and the editor can
-compute it without loading the document. Its hash, the *schema
-fingerprint*, is saved with the state.
+*View state*, what a student changes to look at the document rather than
+to work in it, is saved with the default it had: a graph's `xmin`,
+`xmax`, `ymin` and `ymax`, which pan and zoom request. On restore, a view
+value whose default changed is dropped, so the author's new bounds win
+over a student's old pan.
 
-A **domain** says what a value means beyond its type, where an edit could
-change that while the type stays the same:
+The format is version 3; `{"v": 3, "doc": <signature>, "state": [...]}`,
+the signature being step 3's. Versions 1 and 2 are still read, but only
+into the version they were saved from, since they carry no stable keys.
 
-- a `choiceInput`'s `selectedIndex` is a position among its choices;
-- a select's pick (step 4) is one of its options;
-- a draggable point's coordinates are *in view*: inside the bounds of the
-  graph it is drawn in, unless the student can pan that graph. Unlike the
-  others, this domain depends on other cells, so it is checked after the
-  restore, against the new version's values (step 3);
-- everything else, so far, is *free*: any value of its type means the same
-  thing in both versions. A slider is free, because it stores
-  `preliminaryValue` and derives its clamped index, so a changed range is
-  absorbed by the graph.
+### 3. The compile computes the document's input signature
 
-The schema also records each essential slot's default, the value its
-literal gives it, and whether the slot is *view state*: what the student
-changes to look at the document rather than to work in it. A graph's
-`xmin`, `xmax`, `ymin` and `ymax` are view state, since pan and zoom
-request them.
+Beside its diagnostics, and like them a function of the source alone, the
+compile produces the document's *input signature*, per template (the
+document, each repeat body, each branch), so it covers every iteration:
 
-### 3. Restoring compares schemas, entry by entry
+- **Inputs.** Every prop a request can name (a point's coordinates, an
+  input's value, a choice's selection), every answer a student can
+  submit, and every select. For each: its stable key, value type and
+  *domain*, the values a live request on it can take.
+- **Essential cells.** The essential cells those inputs land on: stable
+  key, value type, and which other elements share them (a copy and its
+  original).
+- **Derivations.** For each input, its *derivation*: the operators and
+  literal parameters on every path from an essential cell to it, and to
+  whatever decides whether a student can act on it (the gates of the cases
+  around it, `hide`, a hold). It is recorded as a hash of the plans
+  involved, which name no iteration (ADR 0015).
 
-When the fingerprint matches, state restores as it does today. Otherwise
-the restore diffs the old schema (kept with the document version, or
-recovered from the saved state's own keys and kinds) against the new one,
-and classifies each saved entry:
+The domains so far:
 
-| Class | Example | Action |
-|---|---|---|
-| Same key, type and domain | anything in Context above | write it |
-| Key gone, no prop of that name remains | an input deleted | drop it, reported |
-| Key's prop remains but is no longer essential | a free point given `x="$n"` | replay the value as a request on the prop's cell, so it inverts through the new graph or is dropped by it |
-| Type changed | `numberInput` to `mathInput`; a text answer made math | drop it, reported; never written |
-| Domain changed | a `choiceInput`'s choices reordered or added | remap by the choices' own stable keys if the old domain recorded them, else drop it, reported |
-| New key | an input, answer or repeat added | the default, as now |
-| View state whose default changed | the author changed a graph's `xmin` | the new default; the student's old pan is dropped |
+| Input | Domain |
+|---|---|
+| A point in a graph the student cannot pan | inside the graph's bounds |
+| A point in a graph the student can pan; number, math and text inputs | any value of its type |
+| A math input | also its parse settings, which decide what typed text means |
+| A slider | any number: it stores `preliminaryValue` and clamps the index it derives |
+| A `choiceInput` | its choices by stable key, in order, since it stores a position |
+| A select | its options by stable key, in order, and their count |
+| An answer | its responses and its limit on attempts, once the core has one |
 
-Then the restore recomputes and checks the domains that depend on other
-cells. A draggable point out of view in the new version, where it was in
-view in the old (a point the student dragged to x = -8, in a graph whose
-`xmin` the author raised from -10 to -5), could never be reached again:
-the student cannot see it, and nothing else moves it. Its saved entries,
-the essential cells its coordinates invert to, are dropped and reported,
-and it takes the new version's default, which the author placed in view.
-It is not projected onto the edge of the graph, which would make a
-different answer that the student never gave; and the graph is not widened
-to show it, which would undo the author's edit for that student. A default
-that is itself out of view is the author's error, and the editor reports it
-for every version, not only at migration.
+A domain given by cells (`xmin="$n"`) is compared by derivation, as
+above, and not by value.
 
-Then the state as a whole is
+### 4. An edit is safe for every student when three conditions hold
 
-- **compatible** when every entry was written or replayed;
-- **compatible with loss** when some entries were dropped: restored if the
-  author allowed loss for this edit;
-- **incompatible** when a load-time choice's pick cannot carry over
-  (step 4), or an answer's `submitted` entry was dropped and the author
-  did not allow it: not restored, and the student keeps the old version.
+Between the published version's signature and the draft's, for every
+input of the published version:
 
-`restore_state` never writes a value whose kind differs from its cell's
-value type, in any version of the format.
+1. **The input is unchanged.** It exists under the same stable key with
+   the same value type, and its domain is the same or larger: bounds that
+   only widen, choices only appended. A select's options are identical.
+2. **The essential cells it lands on are unchanged.** Same stable keys,
+   same value types, shared with exactly the same elements.
+3. **Its derivation is unchanged.**
 
-### 4. Load-time picks are saved, not re-derived
+New inputs, new answers and new selects are allowed: they have no saved
+state and take their defaults. Everything outside the three conditions
+may change freely: text, layout, hints, feedback, formulas that feed only
+what is displayed or credited, correct answers, awards, weights, and the
+conditions of content that holds no input.
 
-A select's (and a `selectFromSequence`'s) pick is saved as state, by the
-stable key of the chosen option, rather than re-derived from the seed on
-every load. An edit elsewhere then never changes a student's variant. A
-pick whose option is gone, or a select whose option list changed shape,
-makes the state incompatible: the student's responses were made against
-that variant.
+**Why this is enough.** Every saved value is one the student actually
+had (step 2), in a cell with the same key, type and sharing (condition
+2). Through an unchanged derivation (condition 3), every input then shows
+exactly what it showed before, and can be acted on exactly when it could
+before. That value was in the old domain, which the new one contains
+(condition 1), so everything the student could see and reach, they still
+can. Nothing about it depends on any student's values, so it holds for
+every student.
 
-### 5. A changed answer regrades unless the author says otherwise
+Each condition rules out a failure Context names, or one the earlier draft
+found: condition 1 a raised `xmin` or a reordered `choiceInput`; condition
+2 a type change or a copy given an override; condition 3 a changed formula
+between a saved value and a dragged point (`q.x = 2*$n` to `3*$n` moves
+`q` though `n` is restored exactly), or a `fixed` or condition added
+around an input.
 
-Regrading is what the graph does on its own and is the default. An answer
-can instead keep the credit earned: `submit` also writes an essential
-`creditAtSubmission`, and a restore asked to keep credit sets a flag that
-makes the answer's credit read it until the student's next submit. The
-choice is the author's, per edit, when they publish; the core only offers
-both.
+The check is conservative: a "not safe" edit may in fact harm no one
+(an input every student left alone). It is never optimistic.
 
-### 6. The editor reports before publishing
+`compare_versions` (beside `diagnose` in `compile/check.rs`) takes the two
+sources and returns whether the edit is safe and, if not, which inputs
+fail which condition, tied to their nodes, so the editor can show them.
 
-Because the schema depends only on the source, the editor diffs the
-published version's schema against the draft's and tells the author, before
-anyone's state is touched, what the edit costs: "students in progress keep
-everything", "2 inputs reset", or "variants change; students in progress
-stay on the old version". The same diff, dry-run against one student's
-saved state, is what the platform runs before migrating it.
+### 5. The author decides whether students move
 
-A rename changes a stable key. The editor records the renames it makes in
-a map published with the version, which step 3 applies to the old schema
-before diffing; a rename made by hand is a delete and an add.
+The core decides only whether an edit is safe. On publish, the editor
+asks:
+
+- **Safe:** "Students in progress will keep their work. Keep their work /
+  Start them over." Keeping is the default. Starting over is the escape
+  hatch for a change of meaning no check can see ("drag the point to the
+  velocity" rewritten as "to the position").
+- **Not safe:** "Students in progress cannot keep their work in this
+  version. Leave them on the old version / Start them over", with the
+  inputs that made it unsafe.
+
+When a student moves to the new version, the restore is today's, by
+stable keys: every saved key exists in the new version (condition 2), so
+nothing is parked, remapped or replayed. An answer whose correct answer
+changed regrades; what that does to a score already recorded is the
+platform's policy, chosen in the same dialog.
 
 ## Considered options
 
-- **Tree-diff the two sources.** Match old nodes to new by an edit-script
-  algorithm (GumTree and its kin) instead of stable keys. Handles unnamed
-  elements better and needs no rename map, but every document version must
-  be kept and the match is a heuristic whose mistakes are silent
-  misplacements, the failure this ADR exists to stop. Kept as a possible
-  fallback for unnamed elements whose same-tag position moved.
-- **Author-assigned ids on every element** (`_key` attributes the editor
-  writes). Exact, but it puts machinery in the author's source and does
-  nothing for documents written outside the editor.
-- **Diff the graphs.** Compare instructions or derived cells. Rejected:
-  the graph is not what state depends on; most graph changes are harmless
-  and the harmful changes are visible in the schema alone.
-- **Restore and validate after.** Load the new version, restore, and reject
-  if anything looks wrong. Rejected: a misplaced value looks exactly like a
-  right one, as the table in Context shows.
+- **Carry over as much as possible, entry by entry.** The earlier draft:
+  diff the essential cells and drop, replay or remap each entry. Rejected
+  for the silent edge cases in Context, each needing its own rule.
+- **Replay the student's requests.** Save the requests a student made
+  (compacted to the last per input, with submits as barriers) and replay
+  them through the new version's ordinary request path. Every result is
+  then a state the new version allows, which would carry over many unsafe
+  edits with a per-student report of what was dropped. Not needed while
+  only safe edits carry over, since for those a snapshot restores exactly
+  (step 4). If the platform may later want unsafe edits to carry over, it
+  should start recording requests beside the snapshot early: a log only
+  helps sessions recorded after it began.
+- **Tree-diff the two sources** to match unnamed elements. A heuristic
+  whose mistakes are silent misplacements; stable keys are enough for a
+  check that only needs to say whether anything moved.
+- **Author-assigned ids on every element.** Exact, but machinery in the
+  author's source.
+- **An attribute to reset one element's state.** Finer than starting
+  over, but a mechanism in the core and an attribute authors must
+  remember to change; starting over covers it.
+- **Restore, then validate.** A misplaced value looks exactly like a
+  right one (Context).
 
 ## Consequences
 
-- An edit that touches no essential cell keeps every student's state:
-  wording, hints, feedback, formulas, correct answers.
-- Saved state grows: names and prop names instead of numbers, and a pick
-  per select. Still only the cells that differ from their defaults.
-- Planners must name the hidden slots they want saved. A planner that does
-  not loses that state across edits but never misplaces it.
-- Changing a graph's bounds keeps a student's points where they were if
-  they are still in view, and resets those that are not. The platform's
-  dry run (step 6) counts them across students in progress.
-- A `choiceInput` needs its choices' stable keys in its domain; until it
-  has them, any change to its choices drops the selection.
-- Unnamed elements are the weak case: inserting a second `<mathInput>`
-  before an unnamed one under the same named ancestor moves its key. The
-  editor's report says so, and naming the input fixes it.
-- `CONTEXT.md` gains *essential schema*, *schema fingerprint* and *domain*,
-  and its *element key* changes to the stable key.
+- The edits authors make most, wording, hints, feedback, correct answers,
+  a new input or question, keep every student's work.
+- Some harmless edits are reported unsafe: renaming an input, removing one
+  nobody touched, narrowing a graph no student's point was near. The
+  author can still start students over or leave them where they are.
+- Renaming an input changes its key and so fails condition 1. An editor
+  that makes a rename may record it in a map published with the version,
+  which `compare_versions` applies to the old signature; a rename by hand
+  is a removal and an addition.
+- Unnamed inputs are the weak case: inserting a second unnamed
+  `<mathInput>` before another under the same named ancestor moves the
+  latter's key. The report names it, and naming the input fixes it.
+- Planners must name the hidden slots they want saved.
+- A restore is per student and a migration is per edit, so state is never
+  migrated through a chain of versions: a student on version 1 moves to
+  version 3 only if 1 to 3 is safe.
+- Saves name the version they were made in (`doc`). A save from a tab
+  still open on an older version must not overwrite state already moved
+  to a newer one; the platform refuses it or restores it into the newer
+  version first, if that edit is safe.
+- `CONTEXT.md` gains *touched*, *view state*, *input signature*, *domain*,
+  *derivation* and *safe for every student*, and its *element key* becomes
+  the stable key.
