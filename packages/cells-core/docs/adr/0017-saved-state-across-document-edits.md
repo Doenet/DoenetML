@@ -258,8 +258,9 @@ asks:
   inputs that made it unsafe.
 
 When a student moves to the new version, it runs under the release their
-attempt is pinned to, and the restore is today's, by stable keys: every saved key exists in the new version (condition 2), so
-nothing is parked, remapped or replayed. An answer whose correct answer
+attempt is pinned to, and the restore is today's, by stable keys: every
+saved key exists in the new version (condition 2), so nothing is parked,
+remapped or replayed. An answer whose correct answer
 changed regrades; what that does to a score already recorded is the
 platform's policy, chosen in the same dialog.
 
