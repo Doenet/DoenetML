@@ -108,8 +108,9 @@ const RecheckMenuPlacementContext = createContext<() => void>(() => {});
  * time it grows, asks for the placement to be made again from its new height.
  * The menu then opens above the control instead, or is shortened to scroll
  * within the room below it, as it would have been had it opened at its full
- * height. A menu above the control grows upward, so it is not watched, and a
- * shortened menu scrolls rather than growing.
+ * height. A shortened menu scrolls rather than growing. A menu above the
+ * control grows upward and is not watched: react-select measures the room
+ * below from the menu's own top, so placing it again would move it back below.
  */
 function MenuThatRechecksPlacement(props: MenuProps<Option, boolean>) {
     const recheckPlacement = useContext(RecheckMenuPlacementContext);
