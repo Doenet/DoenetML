@@ -202,7 +202,16 @@ fn check(old: &Version, new: &Version, seed: u64, rng: &mut Rng) -> Result<(), S
         let Some(r) = restored.get(key) else {
             return Err(format!("{key} is gone"));
         };
-        let (s, f) = (started.get(key), fresh.get(key));
+        // An iteration the session added has no fresh counterpart: the
+        // same element in another iteration starts the same way.
+        let element = key.rsplit(' ').next().unwrap();
+        let f = fresh.get(key).or_else(|| {
+            fresh
+                .iter()
+                .find(|(k, _)| k.rsplit(' ').next() == Some(element))
+                .map(|(_, v)| v)
+        });
+        let s = started.get(key);
         for (i, (prop, was)) in b.values.iter().enumerate() {
             let now = r.values.get(i).map(|v| &v.1);
             // Left as it started: as the load showed it, or for an input of
