@@ -144,6 +144,7 @@ impl Error {
             UnstableStructure(_) => "cells-unstable-structure",
             BadMath { .. } => "cells-bad-math",
             Unsupported(_) => "cells-unsupported",
+            OtherRelease { .. } => "cells-other-release",
             Banned(_) => "cells-banned",
             NotInInterface { .. } => "cells-not-in-interface",
             Unchecked(_) => "cells-unchecked",

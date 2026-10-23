@@ -5,7 +5,7 @@
 mod common;
 
 use cells_core::testing::test_utils::load;
-use cells_core::{Document, Request};
+use cells_core::{Document, Error, RELEASE, Request};
 use common::{set, type_into, v};
 
 fn type_text(doc: &mut Document, name: &str, s: &str) {
@@ -21,7 +21,30 @@ const DOC: &str = r#"<mathInput name="mi" prefill="x"/><textInput name="ti" pref
 #[test]
 fn an_untouched_document_saves_nothing() {
     let doc = load(DOC).unwrap();
-    assert_eq!(doc.save_state(), r#"{"state":[],"v":2}"#);
+    let saved: serde_json::Value = serde_json::from_str(&doc.save_state()).unwrap();
+    assert_eq!(
+        saved,
+        serde_json::json!({ "v": 3, "core": RELEASE, "doc": null, "state": [] })
+    );
+}
+
+// State stays with the release that made it (ADR 0017, step 6): another
+// release's is refused before any entry is read, as is another format's.
+#[test]
+fn state_from_another_release_or_format_is_refused() {
+    let mut doc = load(DOC).unwrap();
+    set(&mut doc, "p", "x", 3.5);
+    let saved = doc.save_state();
+    let other = saved.replace(RELEASE, "0.0.0+elsewhere");
+    let mut fresh = load(DOC).unwrap();
+    assert!(matches!(
+        fresh.restore_state(&other),
+        Err(Error::OtherRelease { .. })
+    ));
+    assert_eq!(v(&fresh, "p", "x"), 1.0);
+    let v2 = r#"{"v":2,"state":[[[],[9,0],0,"n",3.5]]}"#;
+    assert!(fresh.restore_state(v2).is_err());
+    assert_eq!(v(&fresh, "p", "x"), 1.0);
 }
 
 #[test]

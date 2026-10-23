@@ -55,3 +55,8 @@ pub use program::ValueType;
 pub use tick::eval::{DirtyClosure, Evaluator, FullRecompute, Recompute};
 pub use tick::invert::PointRequest;
 pub use tick::{Request, TickOutcome};
+
+/// This build's release id (ADR 0017, step 6): the crate version and the
+/// source revision. Saved state records it, and only a core with the same
+/// id restores it.
+pub const RELEASE: &str = env!("CELLS_CORE_RELEASE");

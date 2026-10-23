@@ -75,6 +75,12 @@ impl Core {
         Ok(core)
     }
 
+    /// This core's release id (ADR 0017): saved state records it, and only
+    /// a core with the same id restores it.
+    pub fn release_id() -> String {
+        cells_core::RELEASE.to_string()
+    }
+
     /// The session's state as JSON: every essential cell that differs from
     /// its default, by essential key (`Document::save_state`).
     pub fn save_state(&self) -> String {

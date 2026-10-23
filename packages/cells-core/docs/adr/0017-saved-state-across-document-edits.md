@@ -341,6 +341,11 @@ session generator can start after 3.
    with `doc` empty until phase 4. `restore_state` refuses any other
    format and any other release, with an error, before reading an entry;
    the readers of formats 1 and 2 go. `cells-wasm` exposes the release.
+   **Done**: `crates/cells-core/build.rs` sets `RELEASE` to the version
+   and the commit, marked `.dirty` when the crate's source or the lock
+   file has uncommitted changes, or to `CELLS_CORE_RELEASE` when a
+   platform build sets it; `Error::OtherRelease` is the refusal, and
+   `Core.release_id()` the export.
 1. **Stable keys** (step 1). An element's key replaces `ElemKey`'s
    `(NodeId, u32)`: computed by the compile beside its count of made
    elements, interned per `Compiled`, carried on `Elem` and in

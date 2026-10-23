@@ -1,9 +1,12 @@
 //! Saved state: the essential cells a session changed, as JSON, so a
 //! document can be reloaded where the student left it.
 //!
-//! The form is `{"v": 2, "state": [[path, element, prop, kind, value], ...]}`
-//! with one entry per essential cell whose value differs from the build's
-//! default. `path` names the cell's scope from the document down, one
+//! The form is `{"v": 3, "core": release, "doc": signature, "state":
+//! [[path, element, prop, kind, value], ...]}` with one entry per essential
+//! cell whose value differs from the build's default. `core` is the release
+//! that saved it (`crate::RELEASE`), and only that release restores it
+//! (ADR 0017, step 6); `doc` names the document version, and is empty until
+//! the compile computes its input signature. `path` names the cell's scope from the document down, one
 //! `[node, position]` per repeat iteration or choice branch; `element` is
 //! the element's key, `[node, k]` (`ElemKey`), and `prop` the
 //! position among its slots. None depends on the order a session made
@@ -13,9 +16,6 @@
 //! parked for the build that stamps it. `kind` is `"n"` (a number; `null`
 //! is NaN, an emptied input), `"t"` (text) or `"m"` (an expression as
 //! text).
-//!
-//! Version 1 keyed an entry by the raw scope id and slot offset; it is
-//! still read.
 use std::collections::HashMap;
 
 use serde_json::{Value, json};
@@ -27,12 +27,8 @@ use crate::compile::plan::ElemKey;
 use crate::document::NONE;
 use crate::program::ValueType;
 
-/// Where a saved entry goes: an essential key of version 1, or a scope and
-/// an element's slot.
-enum Key {
-    Slot(ScopeId, u32),
-    Element(ScopeId, ElemKey, u32),
-}
+/// The saved state format `save_state` writes and `restore_state` reads.
+const FORMAT: u64 = 3;
 
 impl Document {
     /// The essential cells that differ from their defaults, as JSON.
@@ -74,7 +70,7 @@ impl Document {
                 value
             ]));
         }
-        json!({ "v": 2, "state": out }).to_string()
+        json!({ "v": FORMAT, "core": crate::RELEASE, "doc": Value::Null, "state": out }).to_string()
     }
 
     /// Apply saved state to a freshly loaded document and recompute,
@@ -83,48 +79,44 @@ impl Document {
     /// them.
     pub fn restore_state(&mut self, state: &str) -> crate::Result<()> {
         let saved: Value = serde_json::from_str(state)?;
-        let version = saved.get("v").and_then(Value::as_u64).unwrap_or(1);
+        // Nothing is read from state another format or release wrote.
+        let version = saved.get("v").and_then(Value::as_u64);
+        if version != Some(FORMAT) {
+            return Err(Error::Unsupported(format!(
+                "saved state of format {}, not {FORMAT}",
+                version.map_or("none".to_string(), |v| v.to_string())
+            )));
+        }
+        let core = saved.get("core").and_then(Value::as_str).unwrap_or("");
+        if core != crate::RELEASE {
+            return Err(Error::OtherRelease {
+                saved: core.to_string(),
+                core: crate::RELEASE.to_string(),
+            });
+        }
         let entries = saved
             .get("state")
             .and_then(Value::as_array)
             .ok_or_else(|| Error::Unsupported("saved state without a `state` array".into()))?;
-        // The live cells by the key this version names them with.
+        // The live cells by the key they are saved under.
         let st = &self.structure;
-        let mut by_slot: HashMap<(ScopeId, u32), CellIdx> = HashMap::new();
-        let mut by_element: HashMap<(ScopeId, ElemKey, u32), CellIdx> = HashMap::new();
-        if version >= 2 {
-            by_element.extend(
-                st.essential_slots
-                    .iter()
-                    .zip(&st.essential_keys)
-                    .enumerate()
-                    .map(|(i, (&(scope, _), &(key, prop)))| ((scope, key, prop), i as CellIdx)),
-            );
-        } else {
-            by_slot.extend(
-                st.essential_slots
-                    .iter()
-                    .enumerate()
-                    .map(|(i, &k)| (k, i as CellIdx)),
-            );
-        }
+        let by_element: HashMap<(ScopeId, ElemKey, u32), CellIdx> = st
+            .essential_slots
+            .iter()
+            .zip(&st.essential_keys)
+            .enumerate()
+            .map(|(i, (&(scope, _), &(key, prop)))| ((scope, key, prop), i as CellIdx))
+            .collect();
         for e in entries {
             let bad = || Error::Unsupported(format!("malformed saved state entry {e}"));
-            let (key, rest) = if version >= 2 {
-                let path = e.get(0).and_then(Value::as_array).ok_or_else(bad)?;
-                let element = e.get(1).and_then(Value::as_array).ok_or_else(bad)?;
-                let node = element.first().and_then(Value::as_u64).ok_or_else(bad)? as u32;
-                let k = element.get(1).and_then(Value::as_u64).ok_or_else(bad)? as u32;
-                let prop = e.get(2).and_then(Value::as_u64).ok_or_else(bad)? as u32;
-                let scope = self.scope_at(path).ok_or_else(bad)?;
-                (Key::Element(scope, (node, k), prop), 3)
-            } else {
-                let scope = e.get(0).and_then(Value::as_u64).ok_or_else(bad)? as u32;
-                let slot = e.get(1).and_then(Value::as_u64).ok_or_else(bad)? as u32;
-                (Key::Slot(scope, slot), 2)
-            };
-            let kind = e.get(rest).and_then(Value::as_str).ok_or_else(bad)?;
-            let raw = e.get(rest + 1).ok_or_else(bad)?;
+            let path = e.get(0).and_then(Value::as_array).ok_or_else(bad)?;
+            let element = e.get(1).and_then(Value::as_array).ok_or_else(bad)?;
+            let node = element.first().and_then(Value::as_u64).ok_or_else(bad)? as u32;
+            let k = element.get(1).and_then(Value::as_u64).ok_or_else(bad)? as u32;
+            let prop = e.get(2).and_then(Value::as_u64).ok_or_else(bad)? as u32;
+            let scope = self.scope_at(path).ok_or_else(bad)?;
+            let kind = e.get(3).and_then(Value::as_str).ok_or_else(bad)?;
+            let raw = e.get(4).ok_or_else(bad)?;
             // `null` is NaN for every kind: an emptied input.
             let value = match kind {
                 _ if raw.is_null() => f64::NAN,
@@ -135,27 +127,11 @@ impl Document {
                     .map_err(Error::Unsupported)?,
                 _ => return Err(bad()),
             };
-            match key {
-                Key::Element(scope, key, prop) => match by_element.get(&(scope, key, prop)) {
-                    Some(&cell) => self.cells[cell as usize] = value,
-                    None => {
-                        self.session.parked.insert((scope, key, prop), value);
-                    }
-                },
-                Key::Slot(scope, slot) => match by_slot.get(&(scope, slot)) {
-                    Some(&cell) => self.cells[cell as usize] = value,
-                    None => {
-                        let rows = std::sync::Arc::make_mut(&mut self.session.values);
-                        if rows.len() <= scope as usize {
-                            rows.resize(scope as usize + 1, Vec::new());
-                        }
-                        let row = &mut rows[scope as usize];
-                        if row.len() <= slot as usize {
-                            row.resize(slot as usize + 1, None);
-                        }
-                        row[slot as usize] = Some(value);
-                    }
-                },
+            match by_element.get(&(scope, (node, k), prop)) {
+                Some(&cell) => self.cells[cell as usize] = value,
+                None => {
+                    self.session.parked.insert((scope, (node, k), prop), value);
+                }
             }
         }
         self.recompute();
