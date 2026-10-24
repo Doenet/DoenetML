@@ -2,6 +2,7 @@ import type Core from "../Core";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { errorComponentState } from "../utils/dast/errors";
 import { deepClone } from "@doenet/utils";
+import { stateIdSegmentForCopiesOfReplacements } from "../utils/componentIndices";
 import {
     deriveChildResultsFromDefiningChildren,
     findChildGroup,
@@ -475,7 +476,10 @@ async function expandShadowingComposite({
     }
 
     const stateIdInfo = {
-        prefix: `${component.stateId}|`,
+        prefix: await shadowReplacementsStateIdPrefix(
+            component,
+            shadowedComposite,
+        ),
         num: component.replacementsWorkspace.replacementsCreated,
     };
 
@@ -742,6 +746,18 @@ function reserveComponentIndices(core: Core, newNComponents: number) {
     if (newNComponents > core._components.length) {
         core._components[newNComponents - 1] = undefined;
     }
+}
+
+/**
+ * The prefix of the `stateId`s given to the replacements of `shadowing`, a
+ * composite made from the replacements of `shadowed`. See
+ * `stateIdSegmentForCopiesOfReplacements`.
+ */
+export async function shadowReplacementsStateIdPrefix(
+    shadowing: any,
+    shadowed: any,
+) {
+    return `${shadowing.stateId}|${await stateIdSegmentForCopiesOfReplacements(shadowed)}`;
 }
 
 /**

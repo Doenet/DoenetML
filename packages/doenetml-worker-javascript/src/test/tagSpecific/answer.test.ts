@@ -9067,14 +9067,24 @@ What is the derivative of <function name="f">x^2</function>?
         });
         await checkResponse(["x", "z"], ["x", "z"], 0);
 
-        // switch back to other condition
+        // switch back to other condition, whose inputs keep what was typed
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: await resolvePathToNodeIdx("bi"),
             core,
         });
-        await checkResponse(["u", "v"], ["x", "z"], 0);
+        await checkResponse(["x", "y"], ["x", "z"], 0);
 
+        await updateMathInputValue({
+            latex: "u",
+            componentIdx: await resolvePathToNodeIdx("cc.mi1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "v",
+            componentIdx: await resolvePathToNodeIdx("cc.mi2"),
+            core,
+        });
         await submitAnswer({
             componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
@@ -9087,12 +9097,12 @@ What is the derivative of <function name="f">x^2</function>?
             componentIdx: await resolvePathToNodeIdx("bi"),
             core,
         });
-        await checkResponse(["\uff3f", "\uff3f"], ["u", "v"], 1);
+        await checkResponse(["x", "z"], ["u", "v"], 1);
         await submitAnswer({
             componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
         });
-        await checkResponse(["\uff3f", "\uff3f"], ["\uff3f", "\uff3f"], 0);
+        await checkResponse(["x", "z"], ["x", "z"], 0);
     });
 
     it("responses determined by forAnswer on input plus referencesAreResponses", async () => {

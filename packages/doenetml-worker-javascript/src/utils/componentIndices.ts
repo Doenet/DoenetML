@@ -14,6 +14,25 @@ import {
 import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
 
 /**
+ * What the `stateId`s of copies of `composite`'s replacements add after the
+ * copy's own: `""` unless `composite`'s replacements can come from different
+ * parts of its DoenetML, as the cases of a `<conditionalContent>` do
+ * (`stateIdSegmentForCopiesOfReplacements`). A copy counts the ids of the
+ * components it makes from its own, so without the segment each part would
+ * give them the same ones, and what was saved of one part's components would
+ * be applied to another's.
+ */
+export async function stateIdSegmentForCopiesOfReplacements(
+    composite: any,
+): Promise<string> {
+    return (
+        (await composite?.constructor.stateIdSegmentForCopiesOfReplacements?.(
+            composite,
+        )) ?? ""
+    );
+}
+
+/**
  * Recurse through all serialized components and update their component indices
  * to new values, starting with `nComponents`.
  *

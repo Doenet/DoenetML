@@ -80,10 +80,11 @@ export function copySnapshotOf(serializedComponents) {
  *
  * Only state, primitive children and literals are held, not the
  * replacements' shape. A copy made again need not make the components it
- * made before: a copy of
- * a `<conditionalContent>` is made from whichever case is active then, so
- * its replacements can be fewer, or others, and a component of another type
- * can have a `stateId` an earlier one had (`stateId`s are positional). An
+ * made before: a copy of a composite's replacements is made from what the
+ * composite has then, so its replacements can be fewer, or others, and a
+ * component of another type can have a `stateId` an earlier one had
+ * (`stateId`s count up from the copy's own; those made from different cases
+ * of a `<conditionalContent>` name the case, so do not collide). An
  * entry therefore applies only to a replacement of its own `componentType`
  * (an entry without one, from before it was held, applies to none), and
  * none applies within a replacement whose `stateId` has an entry only of

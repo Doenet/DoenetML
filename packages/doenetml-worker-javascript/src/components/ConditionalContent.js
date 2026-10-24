@@ -273,6 +273,12 @@ export default class ConditionalContent extends CompositeComponent {
         };
     }
 
+    // See `stateIdSegmentForCopiesOfReplacements` (utils/componentIndices.ts).
+    static async stateIdSegmentForCopiesOfReplacements(component) {
+        const selectedIndex = await component.stateValues.selectedIndex;
+        return selectedIndex === null ? "" : `case${selectedIndex}|`;
+    }
+
     static async calculateReplacementChanges({
         component,
         components,
@@ -342,9 +348,12 @@ export default class ConditionalContent extends CompositeComponent {
             }
         }
 
-        // delete previous replacements and create new ones
-        // TODO: could we find a way to withhold old ones?
-        // Either change order of replacements or allow to withhold later replacements
+        // Delete the previous case's replacements and create the new case's.
+        // Only a suffix of the replacements can be withheld, so the inactive
+        // cases cannot be kept (Doenet/DoenetML#1947). What a reader did in
+        // the previous case is kept instead (`keepSavedState`), and applied
+        // when that case is made again: its components get the `stateId`s
+        // they had, which come from the document.
 
         const replacementChanges = [];
 
@@ -361,6 +370,7 @@ export default class ConditionalContent extends CompositeComponent {
             numberReplacementsToReplace: component.replacements.length,
             serializedReplacements: replacementResults.replacements,
             replacementsToWithhold: 0,
+            keepSavedState: true,
         };
 
         replacementChanges.push(replacementInstruction);
