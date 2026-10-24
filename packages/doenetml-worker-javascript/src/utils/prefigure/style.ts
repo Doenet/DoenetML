@@ -177,7 +177,9 @@ export function styleAttributes({
  *
  * PreFigure 0.7.6 reads an arrow's line width as an integer and divides by it
  * when building the arrowhead, so a `thickness` of `2.5` or `0` makes it
- * abandon the arrow and everything drawn after it in the diagram.
+ * abandon the arrow and everything drawn after it in the diagram. A line
+ * width of 0 draws nothing in the JSXGraph renderer, so the callers draw
+ * nothing for it rather than round it up.
  */
 export function wholePixelThickness(lineWidth: unknown): number | null {
     const width = asFiniteNumber(lineWidth);

@@ -1082,7 +1082,9 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             [...prefigureXML.matchAll(new RegExp(`<${tag} [^>]*>`, "g"))].map(
                 (m) => m[0].match(/ thickness="([^"]*)"/)?.[1],
             );
-        expect(thicknesses("vector")).toEqual(["3", "1", "1", "1", "4"]);
+        expect(thicknesses("vector")).toEqual(["3", "1", "1", "4"]);
+        // A line width of 0 draws nothing, as in the JSXGraph renderer.
+        expect(prefigureXML).toContain('<group at="vector_1" />');
         // A line has no arrowhead, so its width is passed through.
         expect(thicknesses("line")).toEqual(["2.5"]);
     });

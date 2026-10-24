@@ -5,7 +5,7 @@ import {
     thinnedLatticeLines,
     vectorOperators,
 } from "@doenet/utils";
-import { asFiniteNumber, escapeXml, pushWarning } from "../common";
+import { asFiniteNumber, emptyGroup, escapeXml, pushWarning } from "../common";
 import { snapNumber } from "../chart/scale";
 import { wholePixelThickness, wholePixelThicknessAttributes } from "../style";
 import {
@@ -702,14 +702,6 @@ function numInputsOf(definition: CurveFunctionDefinition): number {
 }
 
 /**
- * An empty group standing in for a field with nothing to draw, so the field
- * still has its handle for an annotation to name.
- */
-function emptyField(handle: string): string {
-    return `<group at="${escapeXml(handle)}" />`;
-}
-
-/**
  * Converts a `<slopeField>` to a PreFigure `<definition>` and `<slope-field>`.
  */
 export function convertSlopeFieldToPrefigure({
@@ -724,7 +716,7 @@ export function convertSlopeFieldToPrefigure({
 
     const definitions = usableDefinitions(sv, 1);
     if (definitions === null) {
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
     const [definition] = definitions;
 
@@ -753,7 +745,7 @@ export function convertSlopeFieldToPrefigure({
     const attrs = fieldStyleAttributes({ sv, styleAttrs, ...warningContext });
 
     if (lattice.spacings === null) {
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
 
     const f = fieldFunctionFromDefinition(definition);
@@ -766,7 +758,7 @@ export function convertSlopeFieldToPrefigure({
         // sqrt(-1 - x^2) that has no real value anywhere. (A formula with a
         // symbol that is not one of its variables never gets here: the
         // translation rejects it.)
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
 
     warnIfUndefinedAtLatticePoint({
@@ -878,7 +870,7 @@ export function convertVectorFieldToPrefigure({
 
     const definitions = usableDefinitions(sv, 2);
     if (definitions === null) {
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
     const [definition] = definitions;
 
@@ -898,7 +890,7 @@ export function convertVectorFieldToPrefigure({
     const attrs = fieldStyleAttributes({ sv, styleAttrs, ...warningContext });
 
     if (lattice.spacings === null) {
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
 
     const [xMin, yMin, xMax, yMax] = sv.graphBounds ?? [-10, -10, 10, 10];
@@ -922,14 +914,14 @@ export function convertVectorFieldToPrefigure({
     if (maxMagnitude === 0) {
         // Every vector is zero or undefined, so there is no arrow to draw, and
         // nothing for PreFigure to lose.
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
 
     const lineWidth = asFiniteNumber(sv.selectedStyle?.lineWidth);
     if (lineWidth !== null && lineWidth <= 0) {
         // The JSXGraph renderer's arrows are invisible, and PreFigure divides
         // by an arrow's line width, losing the field to a ZeroDivisionError.
-        return emptyField(handle);
+        return emptyGroup(handle);
     }
 
     warnIfUndefinedAtLatticePoint({
