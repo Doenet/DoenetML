@@ -269,6 +269,11 @@ function emitNumber(value: number): Emitted {
             ? { text: "inf", prec: PREC_ATOM }
             : { text: "-inf", prec: PREC_UNARY };
     }
+    // String(-0) is "0", which would lose the sign that `arccot`'s
+    // `copysign` depends on.
+    if (Object.is(value, -0)) {
+        return { text: "-0.0", prec: PREC_UNARY };
+    }
     return value < 0
         ? { text: String(value), prec: PREC_UNARY }
         : { text: String(value), prec: PREC_ATOM };

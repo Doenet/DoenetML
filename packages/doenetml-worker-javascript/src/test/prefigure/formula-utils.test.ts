@@ -92,6 +92,14 @@ describe("PreFigure formula translation @group4", () => {
         }
     });
 
+    it("keeps the sign of a negative-zero literal", () => {
+        expect(astToPythonExpression(-0).expression).eq("-0.0");
+        expect(astToPythonExpression(["apply", "arccot", -0]).expression).eq(
+            "atan2(copysign(1, -0.0), abs(-0.0))",
+        );
+        expect(astToPythonExpression(0).expression).eq("0");
+    });
+
     it("accepts the short inverse names DoenetML parses", () => {
         for (const name of [
             "asin",
