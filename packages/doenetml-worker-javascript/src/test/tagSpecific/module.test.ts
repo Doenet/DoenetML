@@ -1540,6 +1540,34 @@ describe("Module tag tests @group1", async () => {
         }
     });
 
+    it("module attribute named isResponse", async () => {
+        // `isResponse` is a `<module>`'s own attribute, kept raw, so it never
+        // threw. A module attribute with that name took the value set on the
+        // module. Like any other name a `<module>` already has, it now warns
+        // and keeps its own value.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="n" isResponse="x">
+            <moduleAttributes><text name="isResponse">d</text></moduleAttributes>
+            <p name="p">$isResponse</p>
+        </module>
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            'The component `<text name="isResponse">` cannot be used as an attribute for a module because the `<module>` component type already has a "isResponse" attribute defined.',
+        ]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n.p")].stateValues.text,
+        ).eq("d");
+    });
+
     it("copy of a module with a module attribute named like a copy attribute", async () => {
         // `link` is the copy's own attribute, so the copy takes it and the
         // module keeps its default. The module used to be handed the copy's

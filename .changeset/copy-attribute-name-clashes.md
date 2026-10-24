@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-A `link` attribute written on a copy or an extend no longer stops the document with an error:
+Fixes for a `link` attribute written on a copy or an extend:
 
 - `LINK="false"`, or `link` in any other letter case, on a component with `copy` used to report `Cannot repeat attribute link.` It is now accepted.
 - `link` on a list's copy or extend, such as `<mathList extend="$ml" link="false"/>`, used to report that the list does not take a `link` attribute. On an extend it now applies, so that extend is unlinked. On a copy it is treated as on any other copy, as the next item says.
