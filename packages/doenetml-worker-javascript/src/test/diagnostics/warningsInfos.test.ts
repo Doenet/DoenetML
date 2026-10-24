@@ -1329,8 +1329,9 @@ describe("Warning Tests @group4", async () => {
     });
 
     it("warns about only the attributes an author wrote on an extend of a module", async () => {
-        // A `<module>` accepts any attribute, so it is handed the `_copy`'s
-        // own (`createComponentIdx`, `copyInChildren`, …) too.
+        // A `<module>` accepts any attribute, but is not handed the `_copy`'s
+        // own (`createComponentIdx`, `copyInChildren`, …), so only `a` is
+        // reported.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <module name="m"><moduleAttributes><text name="a">hi</text></moduleAttributes><text>$a</text></module>
