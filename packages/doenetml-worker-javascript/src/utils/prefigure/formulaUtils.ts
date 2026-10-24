@@ -70,8 +70,9 @@ const MAPPED_FUNCTIONS: Record<string, (arg: string) => string> = {
     arccoth: (a) => `atanh(1/(${a}))`,
     // math-expressions evaluates n! as gamma(n+1), so non-integers work.
     factorial: (a) => `gamma(${a} + 1)`,
-    // Python's round() rounds half to even; Doenet rounds half up.
-    round: (a) => `floor(${a} + 0.5)`,
+    // Python's round() rounds half to even; math-expressions rounds half
+    // away from zero, so round(-2.5) is -3.
+    round: (a) => `copysign(floor(abs(${a}) + 0.5), ${a})`,
 };
 
 const PASS_THROUGH_FUNCTIONS = new Set([
@@ -153,6 +154,14 @@ const PYTHON_KEYWORDS = new Set([
 /** Constants PreFigure's namespace defines. */
 const PYTHON_CONSTANTS = new Set(["pi", "e"]);
 
+/**
+ * Own-property lookup, so a function named like an `Object.prototype`
+ * member (`constructor`, `toString`) does not match an inherited value.
+ */
+function hasOwn(table: object, key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(table, key);
+}
+
 function wrap(emitted: Emitted, minPrec: number): string {
     return emitted.prec < minPrec ? `(${emitted.text})` : emitted.text;
 }
@@ -202,7 +211,7 @@ function emitApply(
     // apply(["^", "sin", -1], x).
     if (Array.isArray(fn) && fn[0] === "^" && typeof fn[1] === "string") {
         const [, name, exponent] = fn;
-        if (exponent === -1 && INVERSE_FUNCTIONS[name]) {
+        if (exponent === -1 && hasOwn(INVERSE_FUNCTIONS, name)) {
             return emitApply(INVERSE_FUNCTIONS[name], arg, allowedSymbols);
         }
         const base = emitApply(name, arg, allowedSymbols);
@@ -229,9 +238,8 @@ function emitApply(
     }
 
     const argText = emit(arg, allowedSymbols).text;
-    const mapped = MAPPED_FUNCTIONS[fn];
-    if (mapped) {
-        const text = mapped(argText);
+    if (hasOwn(MAPPED_FUNCTIONS, fn)) {
+        const text = MAPPED_FUNCTIONS[fn](argText);
         return {
             text,
             prec: text.startsWith("1/") ? PREC_PRODUCT : PREC_ATOM,

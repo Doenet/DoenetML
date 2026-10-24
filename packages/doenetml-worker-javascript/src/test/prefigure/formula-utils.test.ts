@@ -54,7 +54,10 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromText("sech(x)").expression).eq("1/cosh(x)");
         expect(fromText("x/sech(x)").expression).eq("x/(1/cosh(x))");
         expect(fromText("x!").expression).eq("gamma(x + 1)");
-        expect(fromText("round(x)").expression).eq("floor(x + 0.5)");
+        // Half away from zero, as math-expressions rounds.
+        expect(fromText("round(x)").expression).eq(
+            "copysign(floor(abs(x) + 0.5), x)",
+        );
         expect(fromLatex("\\sqrt[3]{x}").expression).eq("cbrt(x)");
         expect(fromLatex("\\log_2 x").expression).eq("log(x, 2)");
         expect(fromText("log_10(x)").expression).eq("log10(x)");
@@ -99,6 +102,16 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromText("x'").unsupportedFeature).eq("prime");
         expect(fromText("x < 2").unsupportedFeature).eq("<");
         expect(fromText("nthroot(x,3)").unsupportedFeature).eq("nthroot");
+        // Names of Object.prototype members are not mapped functions.
+        for (const name of ["toString", "constructor"]) {
+            expect(
+                astToPythonExpression(["apply", name, "x"]).unsupportedFeature,
+            ).eq(name);
+            expect(
+                astToPythonExpression(["apply", ["^", name, -1], "x"])
+                    .unsupportedFeature,
+            ).eq(name);
+        }
     });
 
     it("reports free symbols other than the allowed variables", () => {
