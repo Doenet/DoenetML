@@ -2870,6 +2870,53 @@ describe("Cascade tag tests @group4", async () => {
                 .hideChildren,
         ).eq(false);
     });
+
+    // A blank math response is saved as the tree of a math-expression, so it
+    // counts as blank after a reload only once it is a math-expression again.
+    it("a blank hand-graded math response stays incomplete through a reload", async () => {
+        const doenetML = `
+<cascade name="w">
+  <section name="section1">
+    <p name="p">Show your work. <answer handGraded name="ans" /></p>
+  </section>
+
+  <section name="section2">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+</cascade>`;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("section1.p.ans"),
+            core,
+        });
+
+        let stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("w")].stateValues
+                .numCompleted,
+        ).eq(0);
+
+        await core.saveImmediately();
+
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+
+        stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("w")].stateValues
+                .numCompleted,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("section2")].stateValues
+                .hideChildren,
+        ).eq(true);
+    });
     it("a cascade takes no number from the section, figure and table counter", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
