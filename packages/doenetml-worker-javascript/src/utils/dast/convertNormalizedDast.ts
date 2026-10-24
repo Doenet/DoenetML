@@ -1465,13 +1465,16 @@ export function convertUnresolvedAttributesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
+    // Without a prototype, so that an attribute an author names
+    // `constructor` or `toString` finds nothing rather than `Object`'s.
+    let attributeLowerCaseMapping: Record<string, string> = Object.create(null);
 
     for (let attrName in newAttributesObj) {
         attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
     }
 
-    const compositeAttributeLowerCaseMapping: Record<string, string> = {};
+    const compositeAttributeLowerCaseMapping: Record<string, string> =
+        Object.create(null);
     for (const attrName in compositeAttributesObj) {
         compositeAttributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
     }

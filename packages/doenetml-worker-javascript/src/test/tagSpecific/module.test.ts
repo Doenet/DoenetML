@@ -1471,6 +1471,37 @@ describe("Module tag tests @group1", async () => {
         ).eq("hi");
     });
 
+    it("copy and extend of a module with an attribute named like an Object property", async () => {
+        // The attribute names are looked up in plain objects, where
+        // `constructor` and `toString` would find `Object.prototype`'s.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m">
+            <moduleAttributes>
+                <text name="constructor">c0</text>
+                <text name="toString">t0</text>
+            </moduleAttributes>
+            <p name="p">$constructor $toString</p>
+        </module>
+        <module name="c" copy="$m" constructor="c1" toString="t1" />
+        <module name="e" extend="$m" constructor="c1" toString="t1" />
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m.p")].stateValues.text,
+        ).eq("c0 t0");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c.p")].stateValues.text,
+        ).eq("c1 t1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e.p")].stateValues.text,
+        ).eq("c0 t0");
+    });
+
     it("copy of a module with a module attribute named like a copy attribute", async () => {
         // `link` is the copy's own attribute, so the copy takes it and the
         // module keeps its default. The module used to be handed the copy's
