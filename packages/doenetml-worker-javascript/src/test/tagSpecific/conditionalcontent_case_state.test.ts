@@ -402,6 +402,33 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         );
     });
 
+    it("forgets what was kept of a case of an extend once it is deleted", async () => {
+        // an extend numbers what it makes from its own id
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <p><mathInput name="ex" prefill="7" /></p>
+    <repeatForSequence name="r" from="1" to="2" exclude="$ex">
+        <conditionalContent name="cc">
+            <case condition="$b"><mathInput name="mi" /></case>
+            <else>no</else>
+        </conditionalContent>
+        <conditionalContent extend="$cc" name="e" />
+    </repeatForSequence>
+    `);
+        await h.typeMath("r[1].e.mi", "3");
+        await h.setB(false);
+        let saved = await h.reload();
+        expect(Object.keys(saved).some((key) => key.startsWith("/~r|"))).eq(
+            true,
+        );
+
+        await h.typeMath("ex", "8");
+        saved = await h.reload();
+        expect(Object.keys(saved).some((key) => key.startsWith("/~r|"))).eq(
+            false,
+        );
+    });
+
     it("applies nothing kept of one case of an extend to another case", async () => {
         // The extend's answers are shadows of the cases' answers, made at the
         // same position in each case. The else answer starts with no credit,

@@ -410,8 +410,9 @@ export class UpdateExecutor {
         // What is written, by `stateId`, until it is merged below: the update
         // can delete a component written to (a `<conditionalContent>`
         // switching cases) while keeping its saved state, which must include
-        // these writes (`core.unsavedWrites`).
-        const stateIdsWritten = new Set<string>();
+        // these writes (`core.unsavedWrites`). Each update removes only the
+        // entries it recorded, as one run by a trigger finishes inside it.
+        const unsavedWritesRecorded: [string, Record<string, any>][] = [];
         const recordUnsavedWrites = () => {
             if (doNotSave) {
                 return;
@@ -422,7 +423,6 @@ export class UpdateExecutor {
                 if (stateId === undefined) {
                     continue;
                 }
-                stateIdsWritten.add(stateId);
                 let writes = this.core.unsavedWrites.get(stateId);
                 if (!writes) {
                     writes = [];
@@ -431,6 +431,10 @@ export class UpdateExecutor {
                 // the values themselves, as merged below once
                 // `executeUpdateStateVariables` has processed them
                 writes.push(newStateVariableValues[componentIdxStr]);
+                unsavedWritesRecorded.push([
+                    stateId,
+                    newStateVariableValues[componentIdxStr],
+                ]);
             }
         };
 
@@ -680,8 +684,14 @@ export class UpdateExecutor {
             }
         }
 
-        for (const stateId of stateIdsWritten) {
-            this.core.unsavedWrites.delete(stateId);
+        for (const [stateId, values] of unsavedWritesRecorded) {
+            const writes = this.core.unsavedWrites.get(stateId);
+            const remaining = writes?.filter((w) => w !== values) ?? [];
+            if (remaining.length > 0) {
+                this.core.unsavedWrites.set(stateId, remaining);
+            } else {
+                this.core.unsavedWrites.delete(stateId);
+            }
         }
 
         if (recordComponentSubmissions.length > 0) {

@@ -276,10 +276,12 @@ export default class ConditionalContent extends CompositeComponent {
     /**
      * The `stateId` of every component the cases of `component` can make,
      * including those a reload made from saved state: what is kept of a case
-     * not active is kept under these (see `deleteComponents`).
+     * not active is kept under these (see `deleteComponents`). Its own
+     * `stateId` comes first: a `<conditionalContent>` that shadows another
+     * (`extend`) numbers its replacements from it.
      */
     static stateIdsOfPossibleReplacements(component) {
-        const stateIds = [];
+        const stateIds = [component.stateId];
         const addStateIds = (value) => {
             if (Array.isArray(value)) {
                 value.forEach(addStateIds);
