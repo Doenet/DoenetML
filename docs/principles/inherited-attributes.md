@@ -23,15 +23,32 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
 
 ## 1. What each attribute means
 
-### CTX-1: `fixed`: no interaction can change it, but it still recomputes (Tier 1)
-A fixed component refuses every write:
-- a drag;
-- typing into it;
-- a write from an input bound to it with `bindValueTo`;
+### CTX-1: `fixed`: it follows what defines it, and nothing can push a change into it (Tier 1)
+A fixed component still changes whenever what defines it changes: its children and its
+attributes. `<math fixed>$n+1</math>` follows `n`, including when the reader types into an
+input that `n` reads.
+
+What `fixed` refuses is every change pushed into the component from the other direction:
+- a change passed back from something that depends on it, such as an input bound to it with
+  `bindValueTo`, or a dragged reference to it;
 - an `<updateValue>` that targets it;
+- the reader dragging it, or typing into it, directly;
 - since #2230, a click that would trigger an action on it.
 
-Its value still follows what it depends on. `fixed` itself always stays writable.
+A write that would pass *through* a fixed component to its own sources stops there:
+`<math fixed>$a</math>` with an input bound to it does not change `a`
+(`T/copying/value_references.test.ts:226`). `fixed` itself always stays writable.
+
+Two other attributes refuse part of what `fixed` refuses:
+- `modifyIndirectly="false"` refuses only changes passed back from things that depend on the
+  component, and still allows the reader's direct drag (`W/core/EssentialValueWriter.ts:846-860`
+  checks `initialChange`);
+- `draggable="false"` refuses only the reader's direct drag (CTX-3).
+
+Authors are unlikely to understand or want the distinction between `fixed` and
+`modifyIndirectly="false"`. `modifyIndirectly` is already left out of the schema
+(`excludeFromSchema`, `BaseComponent.js:584-593`) and the docs, but 12 test files use it. The
+word "fixed" also suggests a constant value, which is not what it means. See D23.
 
 Enforcement is central, in `W/core/EssentialValueWriter.ts:800-809` and at `:1195-1210` for
 shadow sources.
