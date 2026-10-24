@@ -1481,8 +1481,8 @@ export function convertUnresolvedAttributesForComponentType({
     for (const attrNameOrig in attributes) {
         const attribute = attributes[attrNameOrig];
 
-        const attrName =
-            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
+        const attrNameLower = attrNameOrig.toLowerCase();
+        const attrName = attributeLowerCaseMapping[attrNameLower];
 
         const attrDef = newAttributesObj[attrName];
 
@@ -1492,9 +1492,7 @@ export function convertUnresolvedAttributesForComponentType({
         // otherwise be handed it, along with the rest of a `_copy`'s own
         // attributes (#2227).
         const compositeAttrName =
-            compositeAttributeLowerCaseMapping[
-                attrNameOrig.toLocaleLowerCase()
-            ];
+            compositeAttributeLowerCaseMapping[attrNameLower];
 
         if (
             compositeAttrName !== undefined &&

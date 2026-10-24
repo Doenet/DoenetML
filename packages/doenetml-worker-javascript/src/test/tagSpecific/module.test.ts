@@ -1471,6 +1471,29 @@ describe("Module tag tests @group1", async () => {
         ).eq("hi");
     });
 
+    it("copy of a module with a module attribute named like a copy attribute", async () => {
+        // `link` is the copy's own attribute, so the copy takes it and the
+        // module keeps its default. The module used to be handed the copy's
+        // resolved `link` too, which stopped the document with an error.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m"><moduleAttributes><text name="link">default</text></moduleAttributes><text name="t">$link</text></module>
+        <p name="p1"><module copy="$m" link="custom" /></p>
+        <p name="p2"><module extend="$m" link="custom" /></p>
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["p1", "p2"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("default");
+        }
+    });
+
     it("module state inside repeat loaded correctly", async () => {
         const doenetML = `
 <module name="p">
