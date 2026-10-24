@@ -34,14 +34,6 @@ export function convertVectorToPrefigure({
     warningPrefix,
     warningPosition,
 }: ConverterArgs): string | null {
-    const lineWidth = asFiniteNumber(sv.selectedStyle?.lineWidth);
-    if (lineWidth !== null && lineWidth <= 0) {
-        // The JSXGraph renderer draws neither shaft nor arrowhead, which it
-        // sizes by the line width, and PreFigure divides by an arrow's line
-        // width, losing the vector and all drawn after it.
-        return emptyGroup(handle);
-    }
-
     const endpoints = extractFinitePointPair(sv.numericalEndpoints);
     if (!endpoints) {
         return null;
@@ -79,7 +71,16 @@ export function convertVectorToPrefigure({
         ),
     ];
 
-    const vectorXml = `<vector ${attrs.join(" ")} />`;
+    // At a line width of 0 the JSXGraph renderer draws neither shaft nor
+    // arrowhead, which it sizes by the line width, but still draws the label.
+    // PreFigure divides by an arrow's line width, losing the vector and all
+    // drawn after it, so the vector is an empty group, keeping its handle for
+    // an annotation, and the label is drawn as usual.
+    const lineWidth = asFiniteNumber(sv.selectedStyle?.lineWidth);
+    const vectorXml =
+        lineWidth !== null && lineWidth <= 0
+            ? emptyGroup(handle)
+            : `<vector ${attrs.join(" ")} />`;
 
     if (!label) {
         return vectorXml;
