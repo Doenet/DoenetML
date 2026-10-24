@@ -4394,8 +4394,8 @@ function extendIgnoresAttributesAndChildren({
         replacementClass.prototype instanceof Group
             ? Object.keys(Group.createAttributesObject())
             : []),
-        // The `_copy`'s own attributes that it hands on to what it makes,
-        // such as `asList` (`dontSkipAttributes`), which the parent reads.
+        // The `_copy`'s own attributes. Of these, only `asList` is handed on
+        // to what it makes (`dontSkipAttributes`), and the parent reads it.
         ...copyAttributeNames,
     ]);
 
