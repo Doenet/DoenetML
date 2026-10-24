@@ -101,7 +101,16 @@ input. Today they behave differently (**[probe]**, D15):
 ADR 0003 says "project, then pass the projected value down" reproduces the current core. That
 is true only for a slider dragged directly.
 
-### INT-6: `fixed` blocks every change, `draggable="false"` blocks only the reader's drag, and `modifyIndirectly="false"` blocks only changes that arrive from downstream (Tier 1, Tier 1, Tier 2)
+### INT-6: what blocks a change
+Each of these refuses a different set of changes, while the component's value still follows its
+children and attributes:
+
+| Attribute | Refuses | Tier |
+|---|---|---|
+| `fixed` | every change pushed into the component | 1 |
+| `draggable="false"` | only the reader's direct drag | 1 |
+| `modifyIndirectly="false"` | only changes passed back from things that depend on the component | 2, a candidate to retire (D23) |
+
 See [inherited-attributes.md](inherited-attributes.md), CTX-1 to CTX-3.
 
 ---

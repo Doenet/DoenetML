@@ -254,7 +254,7 @@ does not count them. The common shapes are:
 ## 4. Suggested order of work
 
 1. Fix B1 and B2 in [decisions.md](decisions.md). They break a Tier 1 guarantee today.
-2. Settle D1, D2, D7, D8, D9 and D13. These decide what the Tier 1 author model says.
+2. Settle D1, D2, D7, D8, D9, D13, D22 and D23. These decide what the Tier 1 author model says.
 3. Add `registry.ts`, the tags and the `principle()` helper. Tag the principle-stating files.
    Change the parity scripts to report by principle.
 4. Add `diagnostics()` and a rendered-tree query to the public core. Rebase the three coupled

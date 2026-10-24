@@ -273,6 +273,9 @@ rebuild.
 
 ## D13. Accept ADR 0009's branch interface for choices?
 
+This goes together with D22, which asks how names inside a `conditionalContent` should work
+at all.
+
 **Proposed rule:** "A name is visible outside a `select` or `conditionalContent` only if every
 branch declares it, with the same type."
 
@@ -391,3 +394,128 @@ carries.
 property carries `modifyIndirectly`. Declare an exception only where a property needs more, such
 as list entries carrying `fixed`, `hide`, `styleNumber`, `draggable` and `renderMode`. This is
 mostly internal, but it makes VAL-1 true by construction.
+
+## D21. Which components does a bare reference read as a value?
+
+**Today.** A bare `$x` to most components puts x itself there again (REF-1). For classes with a
+`variableForImplicitProp` it gives a value instead (REF-1a):
+
+| Referent | `$x` gives |
+|---|---|
+| every input | its value: `$mi` is a math, `$ti` a text |
+| `<answer>` | its submitted responses |
+| `<award>` | whether it was awarded |
+| `<choice>` | whether it was submitted |
+
+A name on the reference, or an explicit type equal to the referent's own (`<mathInput extend="$mi"/>`),
+gives the component instead. A reference to something that *contains* an input
+(`$repeat[1]`, `$group`) copies the input.
+
+**Recommendation.**
+- Keep the input rule as a Tier 1 author guarantee, and state it in the docs: "a reference to an
+  input is the value the reader entered; use `extend` with the input's tag for a second input".
+- Decide whether answer, award and choice are worth keeping as special cases. Each could instead
+  require the explicit property (`$ans.submittedResponses`). Keeping them is cheap if they are
+  declared in one table, but each is one more thing an author must learn.
+- Either way, make it a declared, schema-visible property of the class ("a bare reference reads
+  `value`"), so that docs and a new core read the same list.
+
+## D22. How should names inside a `conditionalContent` work?
+
+**Today.** Names inside both forms of `<conditionalContent>` are private (**[probe]**):
+- a plain `$x` from outside reports "No referent found";
+- `$cc.x` reaches the `x` in the active case, and is empty when no case is active;
+- a name declared in only some cases, or with different types in different cases, is
+  accepted. With a math `x` in one case and a text `x` in another, `<math>$cc.x+1</math>`
+  becomes `h i + 1` when the case switches.
+
+Privacy is necessary for a repeat, which makes several instances of a name, and for a copy,
+which sits beside its source. A `conditionalContent` shows at most one case at a time, so for
+it privacy is a choice.
+
+**Options.**
+- **(a) Keep it private, as today.** Authors must always write `$cc.x`. Add a load-time
+  diagnostic when cases disagree about a name.
+- **(b) The branch interface of ADR 0009.** Keep `$cc.x` as the only way in, and allow it only
+  for a name that every case declares, with the same type. Names in only some cases are private
+  to their case. This is D13's rule, and PR #2281 already implements it.
+- **(c) Make the names visible, like a `<group>`'s.**
+  - A plain `$x` from outside finds the `x` in whichever case is active.
+  - Every case must declare it with the same type, or it is a load-time error.
+  - When no case is active, `$x` is missing, like an index past the end (VAL-5).
+  - Two cases of one `conditionalContent` declaring `x` do not make `$x` ambiguous, because only
+    one of them can exist at a time.
+
+**Discussion.**
+- Option (c) is the easiest to teach. Authors already think of a conditionalContent as
+  "this or that content shown here", and it then behaves like a group whose contents change.
+- It also treats the single-case form, `<conditionalContent condition="…">`, as what it looks
+  like: a group that is sometimes absent.
+- Its costs:
+  - names inside cases join the enclosing scope, so a case's `x` can collide with an `x` beside
+    the conditionalContent, giving an ambiguity that is reported;
+  - the resolver must treat sibling cases as mutually exclusive rather than ambiguous.
+- `<select>` with one pick could follow the same rule. With several picks it makes several
+  instances, so it stays private, like a repeat.
+
+**Recommendation.** Choose between (b) and (c) together with D13. Lean towards (c) with (b)'s
+same-type rule: one interface, reachable both as `$x` and as `$cc.x`. Whichever is chosen,
+warn on main now for names that cases disagree about, so that documents can migrate.
+
+**Tests that change under (c):**
+- the tests that assert `$x` from outside does not resolve;
+- the `conditionalcontent.test.ts` and `select.test.ts` tests listed under D13.
+
+## D23. What `fixed` means, and whether `modifyIndirectly` stays
+
+**Today** (CTX-1, INT-6):
+- **`fixed`** refuses every change pushed into the component. It still follows its children and
+  attributes.
+- **`modifyIndirectly="false"`** refuses only changes passed back from things that depend on the
+  component, and still allows the reader's direct drag (`initialChange`,
+  `W/core/EssentialValueWriter.ts:846-860`).
+- **`draggable="false"`** refuses only the direct drag.
+
+Problems for authors:
+- "Fixed" suggests a constant value. Authors may expect `<math fixed>$n+1</math>` not to follow
+  `n`.
+- The difference between `fixed` and `modifyIndirectly="false"` is one no author is likely to
+  want. `modifyIndirectly` is already left out of the schema and the docs. Twelve test files use
+  it, and it has plumbing in `Math.js`, `Matrix.js`, `MathBaseOperator.js`, `repeatList.js` and
+  `referenceSlotDefinitions.js`, plus `propagateToProps`.
+
+**Recommendation.**
+- **Retire `modifyIndirectly` as an author attribute.** If no published document uses it,
+  remove it. If some do, keep accepting it, but treat `false` as `fixed`, with an info
+  diagnostic.
+- **Document `fixed` by what it refuses:** "A fixed component shows what its own definition
+  gives, and nothing can change it from outside — not the reader, not an input bound to it, not
+  an action". Keep the name, since many documents use it.
+- Keep `draggable="false"`. It answers a different author question ("can the reader grab
+  this?").
+- Keep `fixLocation` as "`fixed`, for position only".
+
+**Tests that change:** those using `modifyIndirectly="false"` with a direct drag that is
+expected to succeed. Tests where it only blocks a dependent's write keep passing under
+"treat as fixed".
+
+## D24. How to present repeating, choosing and grouping to authors
+
+**Today.** The docs and these principles group `group`, `repeat`, `select`, `conditionalContent`,
+`collect`, `module` and others as "composites" that disappear and are replaced by their content.
+That is how the current core is built, but it is not a distinction authors need. To an author:
+- a `<repeat>` shows its content once per item;
+- a `<select>` shows what it picked;
+- a `<conditionalContent>` shows the active case;
+- a `<group>` just holds content together.
+
+**Recommendation.** Teach each tag by what it shows, and drop "composite" from author-facing
+text. Three rules then cover what the category was used to explain:
+1. "Content a tag produces appears where the tag is written, and any parent reads it as if you
+   had written it there." This is true for every tag, so it needs no category name.
+2. "Several items that a tag repeats, picks or gathers are shown as a list, separated by
+   commas. A `<group>` is not a list unless you say `asList`."
+3. The naming rules, which depend on the tag: repeat iterations are private; a choice per D22.
+
+What remains genuinely composite-specific, such as an `extend` of a repeat ignoring `for` (REF-7)
+or children on a copy of a repeat (D4), should be stated on the tag's own reference page.
