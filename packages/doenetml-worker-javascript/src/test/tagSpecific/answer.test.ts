@@ -10310,12 +10310,13 @@ describe("An answer's submitted responses through a reload @group4", async () =>
         <angle name="A4" extend="$ans.submittedResponse" degrees="30" />
         <angle name="A5" extend="$ans.submittedResponse" through="(1,0) (0,0) (-1,1)" />
         <angle name="A6" extend="$ans.submittedResponse" betweenLines="$l1 $l2" />
+        <angle name="A7" extend="$ans.submittedResponse" betweenLines="$l2" />
     </graph>
     `;
 
         // A2's third point for each response. A3's first point is (1,1),
-        // so its third point is A2's rotated by π/4. A blank or symbolic
-        // response gives no third point.
+        // and A7's first arm lies along l2, so their third points are A2's
+        // rotated by π/4. A blank or symbolic response gives no third point.
         for (const { latex, radians, third } of [
             {
                 latex: "\\pi/3",
@@ -10344,6 +10345,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
                 for (const [name, offset] of [
                     ["A2", 0],
                     ["A3", Math.PI / 4],
+                    ["A7", Math.PI / 4],
                 ] as const) {
                     const { radians: r, points } = await stateValues(name);
                     expect(r.tree).eqls(radians);
@@ -10375,5 +10377,62 @@ describe("An answer's submitted responses through a reload @group4", async () =>
                 ).closeTo(Math.PI / 4, 1e-12);
             }
         }
+    });
+
+    it("a copy of an angle extending a submitted angle response keeps the response for when its points drop below three", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+    <angle name="A">pi/3</angle>
+    <answer name="ans">
+        <considerAsResponses>$A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <graph>
+        <repeatForSequence name="pts" length="$n" valueName="i"><point>($i, $i^2)</point></repeatForSequence>
+        <angle name="C" extend="$ans.submittedResponse" through="$pts" />
+        <conditionalContent name="cc" condition="$ans.creditAchieved = 1">
+            <angle name="D" copy="$C" />
+        </conditionalContent>
+    </graph>
+    `,
+        });
+
+        // D is made once the response is submitted
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+
+        async function check_items(radians: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["C", "cc.D"]) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.radians.evaluate_to_constant(),
+                ).closeTo(radians, 1e-12);
+            }
+        }
+
+        const r3 = 2 * Math.PI - Math.atan2(5, 1) + Math.atan2(-3, -1);
+        await check_items(r3);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(Math.PI / 3);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(r3);
     });
 });
