@@ -20,6 +20,10 @@ import { convertAngleToPrefigure } from "./components/angle";
 import { convertCurveToPrefigure } from "./components/curve";
 import { convertRegionBetweenCurvesToPrefigure } from "./components/regionBetweenCurves";
 import {
+    convertSlopeFieldToPrefigure,
+    convertVectorFieldToPrefigure,
+} from "./components/field";
+import {
     GRAPH_TEXT_CONTENT_VARIABLES,
     graphTextConverter,
 } from "./components/text";
@@ -39,7 +43,13 @@ const FILLED_COMPONENT_TYPES = new Set([
     "rectangle",
 ]);
 
-const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle", "curve"]);
+const NO_FILL_COMPONENT_TYPES = new Set([
+    "polyline",
+    "angle",
+    "curve",
+    "slopeField",
+    "vectorField",
+]);
 
 function styleIncludesFill(
     componentType: string,
@@ -64,6 +74,8 @@ const convertByComponentType: Record<string, Converter> = {
     angle: convertAngleToPrefigure,
     curve: convertCurveToPrefigure,
     regionBetweenCurves: convertRegionBetweenCurvesToPrefigure,
+    slopeField: convertSlopeFieldToPrefigure,
+    vectorField: convertVectorFieldToPrefigure,
     endpoint: convertPointToPrefigure,
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,

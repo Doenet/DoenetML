@@ -80,6 +80,45 @@ the slope function is defined separately and referenced inside the field, which 
 to writing the expression out.
 
 
+---
+
+### Example: Drawn with PreFigure
+
+```doenet-editor-horiz
+<graph size="small" renderer="prefigure" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>The slope field of y' = y - x, drawn by PreFigure</shortDescription>
+  <slopeField name="sf">y - x</slopeField>
+  <annotations>
+    <annotation text="The slope field of y' = y - x">
+      <annotation ref="$sf" text="Marks are horizontal along the line y = x." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+In a graph with `renderer="prefigure"`, the field is drawn as PreFigure's own slope field, so an
+[`<annotation>{:dn}`](annotation) can describe it as a single object. PreFigure draws the field once,
+at the graph's axis limits, on the same lattice: `dx`, `dy`, `xoffset`, `yoffset` and `maxMarks`
+mean what they mean above, and a lattice point outside the function's `domain` gets no mark.
+
+A few things are drawn differently:
+
+- PreFigure sizes each mark from the lattice: a mark spans half the horizontal spacing, or, if it is
+  steep, half the vertical spacing. `markLength` is ignored, with a warning. Marks still lie along
+  the slope, but their lengths vary with it: with equal `dx` and `dy` on equally scaled axes, a mark
+  of slope 1 is about 1.4 times as long as a level one.
+- Where the slope is infinite, as for `y/x` on the vertical axis, PreFigure draws a vertical mark
+  rather than none.
+- Marks are solid and fully opaque. A dashed or dotted `lineStyle` is ignored, with a warning. The
+  style's line opacity is ignored too, without one.
+- The function must be given by a formula. A function defined by the points it passes through, or by
+  pieces, draws nothing, with a warning. So does a formula using something PreFigure cannot evaluate,
+  as a curve's does.
+- PreFigure may draw no field at all when a function such as `sqrt` or `log` is undefined at a
+  lattice point — `sqrt(y)` below the horizontal axis, for example — or when `exp` overflows there.
+  Give the `<function>{:dn}` a `domain` that avoids those points, and they are left out. A warning
+  names the first such lattice point.
+
 ## Attribute Examples
 
 ### Attribute Example: variables

@@ -453,6 +453,11 @@ export type MessageKey =
     | "prefigure-region-non-formula-child"
     | "prefigure-formula-unsupported"
     | "prefigure-label-position-unsupported"
+    | "prefigure-field-non-formula-function"
+    | "prefigure-field-function-undefined"
+    | "prefigure-slope-field-mark-length-ignored"
+    | "prefigure-vector-field-normalize-unequal-scales"
+    | "prefigure-field-line-style-ignored"
     | "prefigure-fill-style-unsupported"
     | "prefigure-line-style-unknown"
     | "prefigure-marker-style-mapped-to-diamond"
@@ -1093,6 +1098,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "prefigure-region-non-formula-child",
     "prefigure-formula-unsupported",
     "prefigure-label-position-unsupported",
+    "prefigure-field-non-formula-function",
+    "prefigure-field-function-undefined",
+    "prefigure-slope-field-mark-length-ignored",
+    "prefigure-vector-field-normalize-unequal-scales",
+    "prefigure-field-line-style-ignored",
     "prefigure-fill-style-unsupported",
     "prefigure-line-style-unknown",
     "prefigure-marker-style-mapped-to-diamond",

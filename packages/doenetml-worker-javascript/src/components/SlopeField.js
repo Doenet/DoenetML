@@ -5,6 +5,7 @@ import {
     returnFieldFunctionStateVariableDefinitions,
     returnFieldLatticeAttributes,
     returnFieldVariablesAttribute,
+    SLOPE_FIELD_DEFAULT_MARK_LENGTH,
 } from "../utils/field";
 
 export default class SlopeField extends GraphicalComponent {
@@ -38,7 +39,7 @@ export default class SlopeField extends GraphicalComponent {
             returnFieldVariablesAttribute(),
             returnFieldLatticeAttributes({
                 markNoun: "marks",
-                markLengthDefault: 20,
+                markLengthDefault: SLOPE_FIELD_DEFAULT_MARK_LENGTH,
                 markLengthDescription:
                     "Length of each mark, in pixels. Marks keep this length whatever the axis scaling, so slopes are drawn at their true visual angle.",
             }),
