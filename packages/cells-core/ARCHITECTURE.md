@@ -15,8 +15,10 @@ variables. This one is organized around data:
 
 - **Cells.** All document state is one flat array of `f64`. A cell may stand
   for a number, a boolean, a string id or a handle into the symbolic engine.
-  Every cell is *essential* (independent state, the only thing a write can
-  land on), *fixed*, or *derived* (computed from other cells).
+  Every cell is *essential* (independent state a student's action can
+  write, the only thing a write can land on), *fixed* (a constant, an
+  author's value no student can change among them), or *derived* (computed
+  from other cells).
 - **Instructions.** The dependency graph is a list of instructions, each an
   operator bound to its input cells and the cell(s) it writes. Operators may
   carry an inverse, so a request to change a derived cell can be pushed back
@@ -29,7 +31,8 @@ The work splits by when it happens:
 
 - **Build time** does all the string work and all the reasoning about the
   document's shape: parse, compile, build, schedule.
-- **Tick time** handles a request from a renderer. It only reads the
+- **Tick time** handles a request from a renderer, on an input's cell, or
+  an action (a submit, a trigger). It only reads the
   scheduled program and writes cells. It never consults components, tag
   names or the DAST, with one exception: snapping a sticky group reads the
   component table (`document/sticky.rs`).
@@ -109,7 +112,13 @@ draw for every select.
   references to slots.
 - **Emit** (`build/emit.rs`) merges aliased slots into cells with a
   union-find, numbers the cells (essential, then fixed, then derived) and
-  binds operators to them as instructions.
+  binds operators to them as instructions. A value slot (a literal or a
+  default) is essential only when a student's action can write it (ADR
+  0018): `build/writable.rs` walks back from every input prop through the
+  inputs each inverse may write. The probe records the writable template
+  slots in `Compiled` (`Classes::Record`), and every build of a document
+  with repeats or selects classes by that record; a document without
+  either classes its one build by its own walk.
 
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
@@ -159,8 +168,10 @@ downstream, and report a `TickOutcome`. See
 
 `Document::request` and its variants (`document/request.rs`):
 
-1. The renderer sends requests addressed by cell index (ADR 0001).
-   Infinite values are dropped.
+1. The renderer sends requests addressed by cell index (ADR 0001). A
+   request on a cell that is not interactive (`document/interactive.rs`,
+   a bit per cell made with each build) is refused (ADR 0018), and
+   infinite values are dropped.
 2. Requests on members of a sticky group are snapped (`document/sticky.rs`,
    `tick/snap.rs`, ADR 0007).
 3. `tick::invert::invert_requests` walks each request backwards through the
@@ -215,9 +226,14 @@ count, and equals what a load reports.
 
 ### An answer is submitted
 
-`Document::submit` (`document/sections.rs`) is an ordinary request: it copies
-the response into the answer's `submitted` cell, and credit recomputes
-through the cells that `build/expand/scoring.rs` wired.
+`Document::submit` (`document/sections.rs`) is an action, not a request (ADR
+0018): the core copies the response into the answer's `submitted` cell and
+counts the submission as one tick, through the same inversion a request
+uses, and credit recomputes through the cells that
+`build/expand/scoring.rs` wired. The props it writes are marked
+`written_by_action`, not `interactive`, so no renderer can set them.
+`Document::trigger` (`document/request.rs`), a `<triggerSet>`'s press, is
+the other action: it sets each `<updateValue>`'s target.
 
 ## The main types
 
@@ -323,8 +339,12 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
 The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
 Mark every prop it requests `interactive` in the block (`value: attr(0.0) {
 interactive }`; a list whose points it drags, `interactive: true`): these
-are the document's inputs (ADR 0017), and the viewer's test
-(`src/interactive.test.tsx`) fails for a request on any other.
+are the document's inputs (ADR 0017), and the core refuses a request on any
+other (ADR 0018), which the viewer's test (`src/interactive.test.tsx`)
+catches first. A prop an action writes instead is `written_by_action`. A
+spec reaches a prop no renderer requests (a circle's `radius`) through an
+input bound to it, `<mathInput bindValueTo="$c.radius"/>`, as a document
+does; never mark a prop interactive for its spec.
 
 ### Add an operator
 
@@ -333,7 +353,12 @@ inputs and literal parameters, its evaluation, and its inverse, declared
 `exact`, `projection` or `drops`. The macro (`program/ops.rs`) generates the
 `Op` and `OpSpec` variants and every match arm. The tests in
 `program::scalar::inverses` check each inverse against what its entry
-declares, over a fixed table of values and the entry's parameter `samples`.
+declares, over a fixed table of values and the entry's parameter `samples`,
+and that it writes only an input it declares (`OpSpec::writes`, ADR 0018:
+an `exact` or `projection` inverse its first, a `drops` one none). The
+compile finds what a student can write by those declarations, so a vector
+operator declares its own in `VecOp::writes`, the last column of the table
+in `program/vector.rs`, checked by the `writes` tests there.
 
 A document reaches an operator through a component's prop table or planner,
 or through math lowering (`build/expand/math.rs`). Operators over several
@@ -389,7 +414,16 @@ cells directly and redraw once per tick; Doenet's styling is copied into
   structure. It also checks each build against the probe's graph
   (`build/coverage.rs`): every dependency must be one the probe has, with a
   label its iterations satisfy. This tests the assumptions the cycle check
-  rests on directly, instead of waiting for a missed cycle.
+  rests on directly, instead of waiting for a missed cycle. The same holds
+  for the classing (ADR 0018): at each count and seed, nothing a build's
+  own walk finds writable is missing from the probe's record, and every
+  request on an interactive cell, submit and trigger, made with every value
+  essential (`LoadOptions::classify` off), writes only cells the record
+  makes essential.
+- A test of a component requests only what a renderer would, through an
+  input where none does. A test of the core's machinery (an inversion
+  through a `<number>`, a forced count) uses `testing::request_unchecked`,
+  and, where no input reaches its document, loads with the classing off.
 - `tests/safe_edits.rs` tests `compare_versions` (ADR 0017) the same way:
   every golden document and a few with inputs of every kind get generated
   edits, and for every edit it calls safe, a generated session's saved

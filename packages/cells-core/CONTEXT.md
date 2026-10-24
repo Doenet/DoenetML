@@ -14,10 +14,13 @@ its **value type**, recorded by the build from the source that defines the
 cell (an alias never changes it) and read when a request arrives or state is
 saved, never while the tick recomputes.
 
-**Essential cell** — A cell with no dependencies. Its value is part of the
-minimum independent data needed to recreate the document state. Initialized
-from an attribute literal or a component default. The only cells a write can
-ultimately land on.
+**Essential cell** — A cell with no dependencies that a student's action can
+write: a request through the inverses, a submit or a trigger (ADR 0018).
+Its value is part of the minimum independent data needed to recreate the
+document state, with the seed. Initialized from an attribute literal or a
+component default. The only cells a write can ultimately land on. An author's
+value nothing a student does can reach is a fixed cell instead; the compile
+decides which per template slot, once, from the source.
 
 **Derived cell** — A cell whose value is computed by an operator from other
 cells. Never written directly; a request naming a derived cell is inverted
@@ -92,8 +95,9 @@ to the referent's default prop (`value` for numbers and inputs).
 override individual props with attributes (`<point extend="$p1" y="3"/>`);
 overridden props get their own cells, the rest stay aliased.
 
-**Tick** — One pass of the core in response to an action: resolve requests to
-essential cells, recompute derived cells, report changed cells. What a tick
+**Tick** — One pass of the core in response to a request or an action (a
+submit, a trigger): resolve requests to essential cells, recompute derived
+cells, report changed cells. What a tick
 reports is its **tick outcome** (`TickOutcome`): the changed cells, dropped
 requests, and whether the document was rebuilt.
 
@@ -104,14 +108,25 @@ The code that draws one component type is a **component renderer**.
 _Avoid_: renderer for a single component type's view (say component renderer)
 
 **Request** — A renderer's ask to change a cell to a value. Requests are
-cell-addressed. The core resolves a request by inverting through operators
-until essential cells are reached, then recomputes.
+cell-addressed, and the core accepts one only on an *interactive* cell, one
+of a prop some component's definition marks interactive (ADR 0018); a
+request on any other cell is dropped. The core resolves a request by
+inverting through operators until essential cells are reached, then
+recomputes.
+
+**Action** — A student's act the core carries out itself, as one tick:
+`submit` copies an answer's responses into its `submitted` cells and counts
+the submission, `trigger` sets each `<updateValue>`'s target. The props an
+action writes are marked *written by action*, not interactive, so no renderer
+can set them directly (ADR 0018).
 
 **Inverse** — The rule an operator uses to turn a requested output value into
 requested input values. Most operators write one input, their first argument;
-a fan-out inverse writes several. Every derived cell has an essential
-ancestor, because literal parameters are not cells, so inversion fails only
-dynamically (division by zero); such a request is dropped.
+a fan-out inverse writes several. Each operator declares the inputs its
+inverse may write (`OpSpec::writes`, ADR 0018), which is how the compile
+finds the essential cells. A request is dropped when its inversion is
+undefined for the current values (division by zero) or reaches only fixed
+cells: a derived cell no input reaches has only fixed ancestors.
 
 **Fan-out inverse** — An inverse that turns one requested output value into
 requests on several inputs at once (a circle's radius moving both coordinates
@@ -221,9 +236,11 @@ becomes a math cell. Decided at build time, never from runtime values.
 
 **Fixed cell** — A cell that holds a constant which is not state: an
 iteration's index, a collect's count, the shared missing-referent NaN, an
-expression written in the document (a math handle), and the essential values
-of an element under a literal `fixed`. Fixed cells have no producer and no
-essential key; a request that reaches one is dropped.
+expression written in the document (a math handle), the values of an element
+under a literal `fixed`, and every author's value, given or defaulted, that
+no student's action can write (ADR 0018), such as a point's default `hide`.
+Fixed cells have no producer and no essential key; a request that reaches
+one is dropped.
 
 **Hold** — The instruction that puts a dynamic `fixed` (or `fixAxes`) on a
 cell: forward it is the identity, and its inverse drops the request while the
@@ -393,8 +410,8 @@ in the credit of the nearest document or aggregating section above it. A
 section that does not aggregate is looked through.
 
 **Input** — What a student can act on (ADR 0017): an element with a prop
-its definition marks *interactive* (one a renderer may request), an answer,
-a select. Its *domain* is the values a request on it can take: any value of
+its definition marks *interactive* (one a renderer may request) or *written
+by action* (an answer, an `<updateValue>`, ADR 0018), or a select. Its *domain* is the values a request on it can take: any value of
 its type, or inside a graph the bounds the author set, a choice input's
 choices in order, a select's options.
 

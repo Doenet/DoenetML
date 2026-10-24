@@ -1,6 +1,6 @@
 # Essential means a student can write it
 
-Status: proposed 2026-10-24.
+Status: proposed 2026-10-24. Every migration step is done; see Migration.
 
 A cell is essential when a student's action can write it, and only then.
 Every other value the author wrote, given as a literal or left to a
@@ -148,7 +148,7 @@ and step 1's walk starts from them as it does from interactive cells.
 A spec tests a component in isolation, and a mark is production
 behaviour, so no prop is marked for a spec's sake. A prop no renderer
 requests, like a circle's `radius` or a slider's `index`, is reached as a
-document reaches it: through an input bound to it, such as `<numberInput
+document reaches it: through an input bound to it, such as `<mathInput
 bindValueTo="$c.radius"/>`. The binding is an alias, so the input's cell
 is the prop's cell, and the request is the same request on the same cell:
 the spec still tests the circle's own inverse, in a document of one
@@ -206,7 +206,7 @@ cell is an input's.
 
 - `CONTEXT.md`'s *essential cell* becomes what it already claims to be:
   the state a student can change, and the only cells a write lands on.
-- On `sir.doenet`, at most 16 essential cells instead of 622; a rebuild
+- On `sir.doenet`, 10 essential cells instead of 622; a rebuild
   carries, and a save scans, only those.
 - ADR 0017 simplifies: every leaf of an input's signature is state some
   input can write, an unwritable author value is a fixed cell hashed by
@@ -292,12 +292,14 @@ snapshots only.
      on a cell without the bit, before snapping and inverting, and
      reports it in `dropped` as an infinite value is.
    - `submit` and `trigger` call the tick as actions, which skip that
-     check; `submit_with` and `trigger_with` take an evaluator, which
-     `cells-wasm`'s `submit` uses in place of `submit_requests`, now
-     private. `cells-wasm` gains `trigger`; the viewer's `TriggerSet`
-     (`renderers/Text.tsx`) calls it instead of requesting the target
-     itself, and `src/interactive.test.tsx` drops `number.value` from
-     what renderers request and checks the press moves `k`.
+     check (`Document::tick_unchecked`); `cells-wasm`'s `submit` calls
+     `Document::submit`, which ticks through the document's evaluator as
+     its requests do, so `submit_requests` is crate-private and no
+     `submit_with` is needed. `cells-wasm` gains `trigger`; the viewer's
+     `TriggerSet` (`renderers/Text.tsx`) calls it instead of requesting
+     the target itself, and `src/interactive.test.tsx` drops
+     `number.value` from what renderers request and checks the press
+     sets `k`.
    - The answer's and `<response>`'s `submitted`, the answer's
      `numSubmissions` and `<updateValue>`'s `target` lose `interactive`
      and gain `written_by_action`. The signature (`build/signature.rs`)
@@ -315,15 +317,13 @@ snapshots only.
    - `testing::request_unchecked`, behind the `testing` feature,
      inverts a request on any cell as `request` did. The tests the
      Consequences count move: a spec of a component through a bound
-     input (`circle.radius` through `<numberInput bindValueTo=
-     "$c.radius"/>`, `slider.index` likewise); a test of the machinery
-     (`tests/every_count.rs`, `tests/diagnostics.rs`,
-     `tests/requests.rs`, `tests/evaluators.rs`,
-     `tests/inverse_context.rs`, the unit tests with test-only
-     components) to `request_unchecked`. `every_count`'s tick half
-     already accepts a dropped request, so it keeps requesting counts
-     with `request`: a count no input can carry is dropped, and the
-     forced builds still cover every count.
+     input (`circle.radius` through `<mathInput bindValueTo=
+     "$c.radius"/>`, `slider.index` and a line's `coeff0` likewise); a
+     test of the machinery (`tests/every_count.rs`,
+     `tests/diagnostics.rs`, `tests/requests.rs`,
+     `tests/inverse_context.rs`, `tests/math.rs`'s inversions through
+     lowered math, the unit tests with test-only components through
+     `request_prop`) to `request_unchecked`.
    - The JavaScript worker's harness (`test-core-cells.ts`) runs
      `npm run parity:cells` before and after; a request it makes on an
      unmarked cell shows as a new gap in `CELLS_CORE_PARITY.md`, and is
@@ -402,3 +402,56 @@ Settled while planning:
 - A request refused for not being an input's is reported in `dropped`,
   with no new field in `TickOutcome`; the viewer's test already names
   the cell when it happens.
+
+Measured when the migration was done, against the commit before phase 3:
+
+- **Census** (`tests/writable.rs`): the golden set's 226 essential cells
+  are 154, and `sir.doenet`'s 622 are 10, under Context's upper bounds of
+  164 and 16. Each point's default `hide`, a slider's `from`, `to` and
+  `step`, a repeat's counts given as literals and a circle's `radius`
+  without an input bound to it are fixed.
+- **Golden diff**: every value identical after phases 3 and 4; phase 4
+  changes the programs of all 12 documents.
+- **Speed and memory**, natively (`cells-bench`, release, the minimum of
+  five runs in each of three interleaved rounds), since
+  `packages/benchmark`'s driver needs the JavaScript and Rust workers
+  built: a load within the noise, ±5%, on every fixture; a rebuild 1.00
+  to 1.05, so not faster on `sir.doenet` as Consequences expected, the
+  build itself being the cost; resident memory 0.78 on `sir.doenet` and
+  the `recur` fixtures, 0.91 on the `points` and `adventure` fixtures and
+  about 1 elsewhere. A save was not timed.
+- **Parity** (`CELLS_CORE_PARITY.md`, the base's core and this one through
+  the same harness): no test newly fails, and one newly passes, that a
+  repeat's value cannot be written through a reference.
+
+Settled while implementing:
+
+- `<numberInput>` has no `bindValueTo` in this core, so a spec binds a
+  `<mathInput>` (step 5's example says so now).
+- A literal `<number>`'s value was a fixed cell before this ADR
+  (`compile/attrs.rs`), so a trigger whose target is one sets nothing;
+  the viewer's and the core's tests of a trigger target a `<boolean>`.
+- `tests/every_count.rs` and `tests/diagnostics.rs` force counts with
+  `request_unchecked`, not `request`: with the classing on, a literal
+  count is fixed either way, but before it the forced ticks would have
+  been refused and the tests weakened silently.
+- The unit tests of the copy rules run over test-only components no input
+  reaches: `testing::request_prop` is unchecked and `testing::dast::load`
+  loads with the classing off.
+- The interactive bit is made in `Document::new`, from the component
+  table, once per build, rather than in emit; the cost is the same.
+- The golden script (`cells-bench/src/script.rs`) no longer requests a
+  `<number>`, which no renderer does. The JavaScript harness's
+  `changeRadius` is a named gap; no test calls it.
+- The walk follows the probe's later-iteration sources, so it sees the
+  edges the cycle check sees. No document here needs it (a later
+  iterate's source writes nothing, or folds onto its own slot), and the
+  soundness test does not notice its absence.
+- The soundness test catches an undeclared write where it is the only way
+  to a cell: dropping `PolarSlope`'s distance from its declaration fails
+  it on `lines.doenet`. Dropping `CircleCenterPoint`'s point does not,
+  since the golden circles' through points are inputs themselves; the
+  `writes` tests in `program/vector.rs` catch that one.
+- Phase 6's rows are in `tests/compare.rs`, beside the other rows of ADR
+  0017's table, with one for the narrower declaration: a point at `$a +
+  $b` writes `a` alone.
