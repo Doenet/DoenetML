@@ -804,4 +804,50 @@ describe("Matrix tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("Ah")].stateValues.text,
         ).eqls("[[x_, y_], [a_, b_]]");
     });
+
+    it("a matrix with no entries written through an input reloads as a matrix", async () => {
+        const doenetML = `
+    <matrix name="A" numRows="2" numColumns="2"/>
+    <matrixInput name="mi" bindValueTo="$A"/>
+    <matrix extend="$A" name="A2" />
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await updateMatrixInputValue({
+            latex: "5x",
+            rowInd: 0,
+            colInd: 1,
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        const expectedTree = [
+            "matrix",
+            ["tuple", 2, 2],
+            ["tuple", ["tuple", 0, ["*", 5, "x"]], ["tuple", 0, 0]],
+        ];
+
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["A", "A2"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .value.tree,
+                ).eqls(expectedTree);
+            }
+        }
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
 });

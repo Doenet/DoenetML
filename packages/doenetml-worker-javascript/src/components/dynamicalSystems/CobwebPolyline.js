@@ -5,6 +5,7 @@ import {
 } from "../../utils/numberDisplay";
 import Polyline from "../Polyline";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { evaluateToNumber, toNumberOrNaN } from "../../utils/math";
 
 export default class CobwebPolyline extends Polyline {
@@ -284,6 +285,9 @@ export default class CobwebPolyline extends Polyline {
             isArray: true,
             numDimensions: 2,
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             entryPrefixes: ["originalVertexX", "originalVertex"],
             returnEntryDimensions: (prefix) =>
                 prefix === "originalVertex" ? 1 : 0,

@@ -563,4 +563,48 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         });
         expect(await correctOf()).eqls([true, false]);
     });
+
+    it("moved vertices are kept through a reload", async () => {
+        const doenetML = `
+  <function name="f">x/2</function>
+  <graph>
+    <cobwebPolyline name="cw" function="$f" numPoints="3" initialPoint="(1,0)" />
+  </graph>
+  `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await movePolyline({
+            componentIdx: await resolvePathToNodeIdx("cw"),
+            pointCoords: { 0: [2, 0], 1: [2, 1], 2: [1, 1] },
+            core,
+        });
+
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("cw")
+                ].stateValues.vertices.map((v: any) =>
+                    v.map((x: any) => x.tree),
+                ),
+            ).eqls([
+                [2, 0],
+                [2, 1],
+                [1, 1],
+            ]);
+        }
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
 });
