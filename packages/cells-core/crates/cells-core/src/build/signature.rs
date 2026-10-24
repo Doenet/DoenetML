@@ -315,8 +315,8 @@ impl<'a> Signer<'a> {
     }
 
     /// The essential cells the closure of `seeds` reads; with `writes`,
-    /// only those a request on a seed may write, which a hold's flag never
-    /// is.
+    /// only those a request on a seed may write: through the inputs each
+    /// inverse declares (`Op::writes`, ADR 0018), never a hold's flag.
     fn essential_leaves(
         &self,
         seeds: impl Iterator<Item = CellIdx>,
@@ -332,9 +332,10 @@ impl<'a> Signer<'a> {
             if (cell as usize) < self.out.n_essential {
                 leaves.insert(cell);
             } else if let Some(instr) = self.instr_of(cell) {
-                match instr.op {
-                    Op::Hold(held, _) if writes => stack.push(held),
-                    op => stack.extend(op.inputs(&self.out.operands)),
+                if writes {
+                    stack.extend(instr.op.written_inputs(&self.out.operands));
+                } else {
+                    stack.extend(instr.op.inputs(&self.out.operands));
                 }
             }
         }

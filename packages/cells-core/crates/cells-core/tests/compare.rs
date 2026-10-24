@@ -135,6 +135,34 @@ fn a_copy_given_an_override_fails_condition_2() {
     fails_with(old, new, "c", 2);
 }
 
+/// ADR 0018: an author's value is state only while an input reaches it.
+/// Unbinding the input leaves the boolean a student wrote a fixed cell,
+/// and the input writes a cell of its own: what it writes changed.
+#[test]
+fn an_edit_that_leaves_a_written_value_fixed_fails_condition_2() {
+    let old = r#"<boolean name="b"/><booleanInput name="bi" bindValueTo="$b"/>"#;
+    let new = r#"<boolean name="b"/><booleanInput name="bi"/>"#;
+    fails_with(old, new, "bi", 2);
+}
+
+/// What a point writes is what its inverses declare (ADR 0018): `Add`
+/// writes its first input, so a point at `$a + $b` writes `a` alone, and
+/// an edit to the input it only reads is no change to what it writes.
+#[test]
+fn an_input_read_but_not_written_is_not_among_what_a_point_writes() {
+    let old = r#"<numberInput name="a"/><numberInput name="b"/>
+<graph><point name="p" x="$a + $b" y="0"/></graph>"#;
+    let new = old.replace(
+        r#"<numberInput name="b"/>"#,
+        r#"<numberInput name="b" fixed="true"/>"#,
+    );
+    let f = fails(old, &new);
+    assert!(
+        !f.iter().any(|(k, c)| k == "p" && *c == 2),
+        "the point writes only a: {f:?}"
+    );
+}
+
 #[test]
 fn an_operator_changed_between_an_input_and_a_point_fails_condition_3() {
     let old = r#"<numberInput name="n" value="1"/><graph><point name="q" x="2 $n" y="0"/></graph>"#;
