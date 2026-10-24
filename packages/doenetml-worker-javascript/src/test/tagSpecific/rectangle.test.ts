@@ -1752,4 +1752,47 @@ describe("Rectangle tag tests @group3", async () => {
         expect(rect.stateValues.width).eqls(NaN);
         expect(rect.stateValues.height).eqls(NaN);
     });
+
+    it("a rectangle with no vertices specified keeps a moved vertex through a reload", async () => {
+        const doenetML = `
+  <graph>
+    <rectangle name="r" />
+  </graph>
+  `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("r"),
+            pointCoords: { 0: [1, 2], 1: [5, 2], 2: [5, 7], 3: [1, 7] },
+            core,
+        });
+
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const rect = stateVariables[await resolvePathToNodeIdx("r")];
+            expect(
+                rect.stateValues.vertices.map((v: any) =>
+                    v.map((x: any) => x.tree),
+                ),
+            ).eqls([
+                [1, 2],
+                [5, 2],
+                [5, 7],
+                [1, 7],
+            ]);
+        }
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
 });

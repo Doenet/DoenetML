@@ -317,6 +317,9 @@ export default class MathComponent extends InlineComponent {
             defaultValue: me.fromAst("\uff3f"), // long underscore
             hasEssential: true,
             essentialVarName: "value",
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: {

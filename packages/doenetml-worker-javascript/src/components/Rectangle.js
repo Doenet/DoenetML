@@ -1,4 +1,7 @@
-import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
+import {
+    convertValueToMathExpression,
+    returnGraphicalStyleDescriptionDefinitions,
+} from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 // Every vertex read below goes through `evaluateToNumber`, never a bare
 // `evaluate_to_constant()` — it can answer a math.js `Complex`, which
@@ -121,6 +124,9 @@ export default class Rectangle extends Polygon {
             entryPrefixes: ["essentialVertexX"],
             defaultValueByArrayKey: () => me.fromAst(0),
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({
                 numVerticesSpecified: {
                     dependencyType: "stateVariable",

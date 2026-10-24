@@ -1,6 +1,7 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathComponent from "./Math";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
@@ -287,6 +288,9 @@ export default class Matrix extends MathComponent {
             isArray: true,
             numDimensions: 2,
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({
                 matrixSizePre: {
                     dependencyType: "stateVariable",
