@@ -273,6 +273,29 @@ export default class ConditionalContent extends CompositeComponent {
         };
     }
 
+    /**
+     * The `stateId` of every component the cases of `component` can make,
+     * including those a reload made from saved state: what is kept of a case
+     * not active is kept under these (see `deleteComponents`).
+     */
+    static stateIdsOfPossibleReplacements(component) {
+        const stateIds = [];
+        const addStateIds = (value) => {
+            if (Array.isArray(value)) {
+                value.forEach(addStateIds);
+            } else if (value !== null && typeof value === "object") {
+                if (typeof value.stateId === "string") {
+                    stateIds.push(value.stateId);
+                }
+                Object.values(value).forEach(addStateIds);
+            }
+        };
+        for (const child of component.definingChildren) {
+            addStateIds(child.serializedChildren);
+        }
+        return stateIds;
+    }
+
     // See `stateIdSegmentForCopiesOfReplacements` (utils/componentIndices.ts).
     // Names the case the replacements were made from, not `selectedIndex`:
     // within the update that changes `selectedIndex`, a copy can be made from

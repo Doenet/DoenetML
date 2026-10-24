@@ -2,7 +2,10 @@ import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentIdx } from "@doenet/utils";
 import { addComponents } from "./ComponentBuilder";
-import { deleteComponents } from "./DeletionEngine";
+import {
+    deleteComponents,
+    queueSavedStateForRecreation,
+} from "./DeletionEngine";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 import { listEntryActionNames } from "./RendererInstructionBuilder";
@@ -407,6 +410,20 @@ export class UpdateExecutor {
         >[] = [];
         let workspace = {};
         let recordComponentSubmissions: any[] = [];
+        // The `stateId` of each component written to, taken before the write
+        // runs: the update can delete the component (a `<conditionalContent>`
+        // switching cases) while keeping its saved state to apply when it is
+        // made again, and that state must include this update's writes.
+        const stateIdsWritten: Record<string, string> = {};
+        const recordStateIdsWritten = () => {
+            for (const componentIdxStr in newStateVariableValues) {
+                const component =
+                    this.core._components[Number(componentIdxStr)];
+                if (component) {
+                    stateIdsWritten[componentIdxStr] = component.stateId;
+                }
+            }
+        };
 
         for (let instruction of updateInstructions) {
             this._recordSourceDetails(instruction, sourceInformation);
@@ -456,6 +473,7 @@ export class UpdateExecutor {
                 // state variables updated,
                 // i.e., the subsequent inverse definitions use stateValues
                 // in their calculations that need to be updated
+                recordStateIdsWritten();
                 await this.core.executeUpdateStateVariables(
                     newStateVariableValues,
                 );
@@ -477,6 +495,7 @@ export class UpdateExecutor {
             }
         }
 
+        recordStateIdsWritten();
         await this.core.executeUpdateStateVariables(newStateVariableValues);
 
         newStateVariableValuesProcessed.push(newStateVariableValues);
@@ -615,6 +634,30 @@ export class UpdateExecutor {
                 for (const componentIdxStr in newValuesProcessed) {
                     const component =
                         this.core._components[Number(componentIdxStr)];
+                    const keptStateId = stateIdsWritten[componentIdxStr];
+                    if (
+                        !component &&
+                        keptStateId !== undefined &&
+                        keptStateId in
+                            this.core.updateInfo
+                                .stateVariableUpdatesForMissingComponents
+                    ) {
+                        // Deleted with its saved state kept: add the writes
+                        // to what is kept, and to what is queued for when the
+                        // component is made again.
+                        this.core.readerTouchedStateIds.add(keptStateId);
+                        for (let varName in newValuesProcessed[
+                            componentIdxStr
+                        ]) {
+                            this.core.essentialValueWriter.mergeIntoCumulative(
+                                keptStateId,
+                                varName,
+                                newValuesProcessed[componentIdxStr][varName],
+                            );
+                        }
+                        queueSavedStateForRecreation(this.core, keptStateId);
+                        continue;
+                    }
                     if (!component) {
                         // The update deleted this component after writing to
                         // it — a composite recreating its replacements is the

@@ -44,23 +44,27 @@ import {
  * results are about to be re-derived by a different code path, so we
  * don't pay for two redundant passes.
  *
- * Pass `keepSavedState` when `components` can be made again from the same
- * DoenetML, with the same `stateId`s, as the case of a `<conditionalContent>`
- * can: what a reader did to them is kept, saved as before, and applied when
- * they are made again, as a reload would.
+ * Pass `keepSavedStateFor`, the composite whose replacements `components`
+ * are, when they can be made again from the same DoenetML, with the same
+ * `stateId`s, as the case of a `<conditionalContent>` can: what a reader did
+ * to them is kept, saved as before, and applied when they are made again, as
+ * a reload would. What is kept is forgotten when the composite itself is
+ * deleted without `keepSavedStateFor`: the composite remembers what it kept,
+ * and a `<conditionalContent>` also names what a reload kept for it
+ * (`stateIdsOfPossibleReplacements`).
  */
 export async function deleteComponents({
     core,
     components,
     deleteUpstreamDependencies = true,
     skipProcessingChildrenOfParents = [],
-    keepSavedState = false,
+    keepSavedStateFor,
 }: {
     core: Core;
     components: any | any[];
     deleteUpstreamDependencies?: boolean;
     skipProcessingChildrenOfParents?: number[];
-    keepSavedState?: boolean;
+    keepSavedStateFor?: any;
 }): Promise<any> {
     if (!Array.isArray(components)) {
         components = [components];
@@ -83,7 +87,7 @@ export async function deleteComponents({
     // a component in a case, is made again as a shadow of whatever it then
     // refers to, which can be another case's component.
     const componentsToKeepStateOf: Record<number, any> = {};
-    if (keepSavedState) {
+    if (keepSavedStateFor) {
         determineComponentsToDelete({
             core,
             components,
@@ -322,14 +326,29 @@ export async function deleteComponents({
         componentsToRemove: componentsToRemoveFromResolver,
     });
 
+    const stateIdsToForget: string[] = [];
+
     for (const componentIdxStr in componentsToDelete) {
         const componentIdx = Number(componentIdxStr);
         let component = core._components[componentIdx];
 
         if (componentIdx in componentsToKeepStateOf) {
             keepSavedStateForRecreation(core, component);
+            const kept = (keepSavedStateFor.stateIdsKeptForRecreation ??=
+                new Set<string>());
+            kept.add(component.stateId);
+            // what a composite in the case kept is now kept with the case
+            for (const stateId of component.stateIdsKeptForRecreation ?? []) {
+                kept.add(stateId);
+            }
         } else {
             deleteSavedState(core, component.stateId);
+            stateIdsToForget.push(
+                ...(component.stateIdsKeptForRecreation ?? []),
+                ...(component.constructor.stateIdsOfPossibleReplacements?.(
+                    component,
+                ) ?? []),
+            );
         }
 
         // don't use recursive form since all children should already be included
@@ -341,6 +360,18 @@ export async function deleteComponents({
         core.updateInfo.inactiveCompositesToUpdateReplacements.delete(
             componentIdx,
         );
+    }
+
+    // Forget what was kept for components that will not be made again, other
+    // than those that are live, such as the active case's
+    for (const stateId of stateIdsToForget) {
+        const componentIdx = core.componentIdxByStateId[stateId];
+        if (core._components[componentIdx]?.stateId !== stateId) {
+            deleteSavedState(core, stateId);
+            delete core.updateInfo.stateVariableUpdatesForMissingComponents[
+                stateId
+            ];
+        }
     }
 
     return {
@@ -488,13 +519,22 @@ function keepSavedStateForRecreation(core: Core, component: any) {
             [stateId]: component.unlinkedSnapshot,
         };
     }
+    queueSavedStateForRecreation(core, stateId);
+}
+
+/**
+ * Queue a copy of what is saved for `stateId` to be applied to the component
+ * made later with that `stateId`, replacing anything queued for it before.
+ * With nothing saved yet, the entry is empty, which still marks what is kept:
+ * a write later in the same update is added to it (`performUpdate`).
+ */
+export function queueSavedStateForRecreation(core: Core, stateId: string) {
     const entry = core.cumulativeStateVariableChanges[stateId];
-    if (entry === undefined) {
-        return;
-    }
     core.updateInfo.stateVariableUpdatesForMissingComponents[stateId] =
-        JSON.parse(
-            JSON.stringify(entry, serializedComponentsReplacer),
-            serializedComponentsReviver,
-        );
+        entry === undefined
+            ? {}
+            : JSON.parse(
+                  JSON.stringify(entry, serializedComponentsReplacer),
+                  serializedComponentsReviver,
+              );
 }

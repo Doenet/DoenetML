@@ -789,7 +789,8 @@ export class CompositeReplacementUpdater {
                 core: this.core,
                 components: replacementsToDelete,
                 skipProcessingChildrenOfParents: [composite.parentIdx!],
-                keepSavedState: change.keepSavedState === true,
+                keepSavedStateFor:
+                    change.keepSavedState === true ? composite : undefined,
             });
 
             if (processNewChildren) {

@@ -33,9 +33,12 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
                 return (await h.sv(name)).stateValues.value.tree;
             },
             async setB(boolean: boolean) {
+                await h.setBoolean("b", boolean);
+            },
+            async setBoolean(name: string, boolean: boolean) {
                 await updateBooleanInputValue({
                     boolean,
-                    componentIdx: await resolvePathToNodeIdx("b"),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     core,
                 });
             },
@@ -218,6 +221,83 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         await check(1, true);
         await h.reload();
         await check(1, true);
+    });
+
+    it("keeps a submission that makes another case active", async () => {
+        // the case is switched by a trigger while the submission is still
+        // being made, before its writes are saved
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b">
+            <answer name="ans"><mathInput name="mi" /><award>x</award></answer>
+            <updateValue triggerWhen="$ans.creditAchieved = 1" target="$b" newValue="false" type="boolean" />
+        </case>
+        <else>done</else>
+    </conditionalContent>
+    `);
+        async function check(credit: number, numSubmissions: number) {
+            const ans = (await h.sv("cc.ans")).stateValues;
+            expect(ans.creditAchieved).eq(credit);
+            expect(ans.numSubmissions).eq(numSubmissions);
+        }
+        await h.typeMath("cc.mi", "y");
+        await h.submit("cc.ans");
+        await check(0, 1);
+        await h.typeMath("cc.mi", "x");
+        await h.submit("cc.ans");
+        expect((await h.sv("b")).stateValues.value).eq(false);
+        await h.setB(true);
+        await check(1, 2);
+        await h.reload();
+        await check(1, 2);
+    });
+
+    it("keeps the first change to an input that makes another case active", async () => {
+        // nothing was saved of the input before the change
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b">
+            <booleanInput name="bi" />
+            <updateValue triggerWhen="$bi" target="$b" newValue="false" type="boolean" />
+        </case>
+        <else>done</else>
+    </conditionalContent>
+    `);
+        await h.setBoolean("cc.bi", true);
+        expect((await h.sv("b")).stateValues.value).eq(false);
+        await h.setB(true);
+        expect((await h.sv("cc.bi")).stateValues.value).eq(true);
+        await h.reload();
+        expect((await h.sv("cc.bi")).stateValues.value).eq(true);
+    });
+
+    it("forgets what was kept of a case once its conditionalContent is deleted", async () => {
+        // each change of `ex` makes the iterations, and the
+        // conditionalContent in them, again
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <p><mathInput name="ex" prefill="7" /></p>
+    <repeatForSequence name="r" from="1" to="2" exclude="$ex">
+        <conditionalContent name="cc">
+            <case condition="$b"><mathInput name="mi" /></case>
+            <else>no</else>
+        </conditionalContent>
+    </repeatForSequence>
+    `);
+        await h.typeMath("r[1].cc.mi", "3");
+        await h.setB(false);
+        let saved = await h.reload();
+        expect(Object.keys(saved).some((key) => key.startsWith("/~r|"))).eq(
+            true,
+        );
+
+        await h.typeMath("ex", "8");
+        saved = await h.reload();
+        expect(Object.keys(saved).some((key) => key.startsWith("/~r|"))).eq(
+            false,
+        );
     });
 
     it("applies nothing kept of one case of an extend to another case", async () => {
