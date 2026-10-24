@@ -209,10 +209,13 @@ export default class CallAction extends InlineComponent {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        disabledCheckedByTriggerSet = false,
     }) {
         // A disabled action does nothing, whether its button was clicked or
         // it was triggered, and so triggers none of the actions chained to it.
-        if (await this.stateValues.disabled) {
+        // A parent `<triggerSet>` checks before running any of its children
+        // (see `triggerActions` there).
+        if (!disabledCheckedByTriggerSet && (await this.stateValues.disabled)) {
             return;
         }
         let targetIdx = await this.stateValues.targetComponentIdx;

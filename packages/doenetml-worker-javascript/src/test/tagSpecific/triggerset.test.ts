@@ -1853,4 +1853,58 @@ describe("TriggerSet tag tests @group3", async () => {
         await fireAll();
         await check([2, 1, 2, 1, 2, 2]);
     });
+
+    it("a triggerSet decides which children are disabled before running any", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">0</number>
+    <text name="animal">monkey</text>
+    <number name="m">0</number>
+    <number name="k">0</number>
+
+    <triggerSet name="ts" disabled="$n = 1">
+      <updateValue target="$n" newValue="1" />
+      <updateValue target="$animal" newValue="kangaroo" type="text" />
+      <updateValue target="$m" newValue="$m+1" />
+      <updateValue target="$k" newValue="$k+1" disabled="$m > 0" />
+    </triggerSet>
+    `,
+        });
+
+        // The first child disables the trigger set, and the third child
+        // disables the fourth, but all four run on this click.
+        await triggerActions({
+            componentIdx: await resolvePathToNodeIdx("ts"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("animal")].stateValues
+                .value,
+        ).eq("kangaroo");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.value,
+        ).eq(1);
+
+        // Now disabled, the trigger set does nothing.
+        await triggerActions({
+            componentIdx: await resolvePathToNodeIdx("ts"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.value,
+        ).eq(1);
+    });
 });

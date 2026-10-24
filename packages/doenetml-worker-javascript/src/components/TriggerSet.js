@@ -110,6 +110,7 @@ export default class triggerSet extends InlineComponent {
                 updateValueAndCallActionChildren: {
                     dependencyType: "child",
                     childGroups: ["updateValuesCallActions"],
+                    variableNames: ["disabled"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -137,10 +138,15 @@ export default class triggerSet extends InlineComponent {
             return;
         }
 
-        // A disabled child is skipped, as its own action returns without
-        // acting, while its siblings still run.
-        for (let child of await this.stateValues
-            .updateValueAndActionsToTrigger) {
+        // Which children are disabled is decided before any of them runs, so
+        // that a child that disables this trigger set, or a later sibling,
+        // does not stop the rest partway. A disabled child is skipped while
+        // its siblings still run; the others are told not to check again.
+        const childrenToRun = (
+            await this.stateValues.updateValueAndActionsToTrigger
+        ).filter((child) => !child.stateValues.disabled);
+
+        for (let child of childrenToRun) {
             if (
                 this.componentInfoObjects.isInheritedComponentType({
                     inheritedComponentType: child.componentType,
@@ -154,6 +160,7 @@ export default class triggerSet extends InlineComponent {
                         actionId,
                         sourceInformation,
                         skipRendererUpdate: true,
+                        disabledCheckedByTriggerSet: true,
                     },
                 });
             } else if (
@@ -169,6 +176,7 @@ export default class triggerSet extends InlineComponent {
                         actionId,
                         sourceInformation,
                         skipRendererUpdate: true,
+                        disabledCheckedByTriggerSet: true,
                     },
                 });
             }
