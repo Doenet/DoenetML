@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { vectorOperators } from "@doenet/utils";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     roundForDisplay,
     isNumericConstant,
@@ -25,6 +25,11 @@ export default class Angle extends GraphicalComponent {
     static canBeInList = true;
 
     static representsClosedPath = true;
+
+    // A reference to a state variable that creates an angle (an answer's
+    // submitted angle response) gives its value to `radiansShadow`
+    static primaryStateVariableForDefinition = "radiansShadow";
+    static stateVariableToBeShadowed = "radians";
 
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["number", "math", "string"];
@@ -119,6 +124,23 @@ export default class Angle extends GraphicalComponent {
         return sugarInstructions;
     }
 
+    // A copy given this angle's radians (`<repeat copy>`, or an unlinked
+    // copy of a reference) is given its `radiansShadow` instead, or nothing
+    // when there is none. The copy measures its angle from its own points
+    // or lines whenever they determine it, as this angle does.
+    async serialize(parameters = {}) {
+        const serialized = await super.serialize(parameters);
+        if (serialized.state && "radians" in serialized.state) {
+            const radiansShadow = await this.stateValues.radiansShadow;
+            if (radiansShadow === null) {
+                delete serialized.state.radians;
+            } else {
+                serialized.state.radians = radiansShadow;
+            }
+        }
+        return serialized;
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -148,6 +170,72 @@ export default class Angle extends GraphicalComponent {
                         dependencyValues.betweenLines.componentIdx;
                 }
                 return { setValue: { betweenLinesName } };
+            },
+        };
+
+        // radiansShadow will be null unless the angle was created
+        // from a reference to a state variable or from serialized state
+        // with a radians value. For a reference, given the
+        // primaryStateVariableForDefinition static variable, the definition
+        // of radiansShadow will be changed to be the value it shadows.
+        stateVariableDefinitions.radiansShadow = {
+            defaultValue: null,
+            hasEssential: true,
+            essentialVarName: "radians",
+            set: convertValueToMathExpression,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: {
+                    radiansShadow: true,
+                },
+            }),
+            inverseDefinition: async function ({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "radiansShadow",
+                            value: desiredStateVariableValues.radiansShadow,
+                        },
+                    ],
+                };
+            },
+        };
+
+        // Whether `radiansShadow` gives the angle's measure: it does unless
+        // three points or two lines determine the angle
+        stateVariableDefinitions.measureFromShadow = {
+            stateVariablesDeterminingDependencies: ["betweenLinesName"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    radiansShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "radiansShadow",
+                    },
+                    numPointsSpecified: {
+                        dependencyType: "stateVariable",
+                        variableName: "numPointsSpecified",
+                    },
+                };
+                if (stateValues.betweenLinesName !== null) {
+                    dependencies.lineChildren = {
+                        dependencyType: "child",
+                        parentIdx: stateValues.betweenLinesName,
+                        childGroups: ["lines"],
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let measureFromShadow = dependencyValues.radiansShadow !== null;
+                if (dependencyValues.lineChildren) {
+                    measureFromShadow &&=
+                        dependencyValues.lineChildren.length === 1;
+                } else {
+                    measureFromShadow &&=
+                        dependencyValues.numPointsSpecified < 3;
+                }
+                return { setValue: { measureFromShadow } };
             },
         };
 
@@ -256,6 +344,10 @@ export default class Angle extends GraphicalComponent {
                         dependencyType: "attributeComponent",
                         attributeName: "degrees",
                         variableNames: ["value"],
+                    },
+                    radiansShadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "radiansShadow",
                     },
                 };
 
@@ -371,6 +463,14 @@ export default class Angle extends GraphicalComponent {
                             if (Number.isFinite(degrees)) {
                                 radians = (degrees / 180) * Math.PI;
                             } else {
+                                points["2,0"] = me.fromAst("\uff3f");
+                                points["2,1"] = me.fromAst("\uff3f");
+                                return { setValue: { points } };
+                            }
+                        } else if (globalDependencyValues.radiansShadow) {
+                            radians =
+                                globalDependencyValues.radiansShadow.evaluate_to_constant();
+                            if (!Number.isFinite(radians)) {
                                 points["2,0"] = me.fromAst("\uff3f");
                                 points["2,1"] = me.fromAst("\uff3f");
                                 return { setValue: { points } };
@@ -532,6 +632,17 @@ export default class Angle extends GraphicalComponent {
                                 sendDiagnostics: diagnostics,
                             };
                         }
+                    } else if (globalDependencyValues.radiansShadow) {
+                        radians =
+                            globalDependencyValues.radiansShadow.evaluate_to_constant();
+                        if (!Number.isFinite(radians)) {
+                            points["2,0"] = me.fromAst("\uff3f");
+                            points["2,1"] = me.fromAst("\uff3f");
+                            return {
+                                setValue: { points },
+                                sendDiagnostics: diagnostics,
+                            };
+                        }
                     } else {
                         radians = Math.PI / 2;
                     }
@@ -594,6 +705,14 @@ export default class Angle extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "chooseReflexAngle",
                 },
+                radiansShadow: {
+                    dependencyType: "stateVariable",
+                    variableName: "radiansShadow",
+                },
+                measureFromShadow: {
+                    dependencyType: "stateVariable",
+                    variableName: "measureFromShadow",
+                },
             }),
             definition({ dependencyValues }) {
                 let swapPointOrder = false;
@@ -614,6 +733,13 @@ export default class Angle extends GraphicalComponent {
                                 .simplify()
                                 .multiply(me.fromAst("pi"))
                                 .simplify(),
+                            swapPointOrder,
+                        },
+                    };
+                } else if (dependencyValues.measureFromShadow) {
+                    return {
+                        setValue: {
+                            radians: dependencyValues.radiansShadow.simplify(),
                             swapPointOrder,
                         },
                     };

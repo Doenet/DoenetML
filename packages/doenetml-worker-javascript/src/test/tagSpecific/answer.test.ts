@@ -10263,4 +10263,176 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             expect(submittedResponses[3].tree).eqls(["/", "pi", 3]);
         }
     });
+
+    it("a submitted angle response is read as that angle through a reference", async () => {
+        const doenetML = `
+    <angle name="A">pi/3</angle>
+    <answer name="ans">
+        <considerAsResponses>$A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <math name="m">$ans.submittedResponse</math>
+    <math name="m2" extend="$ans.submittedResponse" />
+    <angle name="A2" extend="$ans.submittedResponse" />
+    <boolean name="b">$ans.submittedResponse = pi/3</boolean>
+    <feedback name="fb" condition="$ans.submittedResponse = pi/3">matched</feedback>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs() {},
+        });
+
+        for (const sv of [before, after]) {
+            const stateValues = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await stateValues("m")).value.tree).eqls(["/", "pi", 3]);
+            expect((await stateValues("m2")).value.tree).eqls(["/", "pi", 3]);
+            expect((await stateValues("A2")).radians.tree).eqls(["/", "pi", 3]);
+            expect((await stateValues("b")).value).eq(true);
+            expect((await stateValues("fb")).hide).eq(false);
+        }
+    });
+
+    it("an angle extending a submitted angle response draws it unless its attributes, points or lines give the angle", async () => {
+        const doenetML = `
+    <mathInput name="mi" />
+    <angle name="A" radians="$mi" />
+    <answer name="ans">
+        <considerAsResponses>$A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <graph>
+        <line name="l1" through="(0,0) (1,0)" />
+        <line name="l2" through="(0,0) (1,1)" />
+        <angle name="A2" extend="$ans.submittedResponse" />
+        <angle name="A3" extend="$ans.submittedResponse" through="(1,1) (0,0)" />
+        <angle name="A4" extend="$ans.submittedResponse" degrees="30" />
+        <angle name="A5" extend="$ans.submittedResponse" through="(1,0) (0,0) (-1,1)" />
+        <angle name="A6" extend="$ans.submittedResponse" betweenLines="$l1 $l2" />
+        <angle name="A7" extend="$ans.submittedResponse" betweenLines="$l2" />
+    </graph>
+    `;
+
+        // A2's third point for each response. A3's first point is (1,1),
+        // and A7's first arm lies along l2, so their third points are A2's
+        // rotated by π/4. A blank or symbolic response gives no third point.
+        for (const { latex, radians, third } of [
+            {
+                latex: "\\pi/3",
+                radians: ["/", "pi", 3],
+                third: [Math.cos(Math.PI / 3), Math.sin(Math.PI / 3)],
+            },
+            { latex: "", radians: "\uff3f", third: null },
+            { latex: "x", radians: "x", third: null },
+        ]) {
+            const { before, after, resolvePathToNodeIdx } =
+                await submitAndReload({
+                    doenetML,
+                    async inputs(core, resolvePathToNodeIdx) {
+                        await updateMathInputValue({
+                            latex,
+                            componentIdx: await resolvePathToNodeIdx("mi"),
+                            core,
+                        });
+                    },
+                });
+
+            for (const sv of [before, after]) {
+                const stateValues = async (name: string) =>
+                    sv[await resolvePathToNodeIdx(name)].stateValues;
+
+                for (const [name, offset] of [
+                    ["A2", 0],
+                    ["A3", Math.PI / 4],
+                    ["A7", Math.PI / 4],
+                ] as const) {
+                    const { radians: r, points } = await stateValues(name);
+                    expect(r.tree).eqls(radians);
+                    if (third) {
+                        const [x, y] = points[2].map((c: any) =>
+                            c.evaluate_to_constant(),
+                        );
+                        const [c, s] = [Math.cos(offset), Math.sin(offset)];
+                        expect(x).closeTo(c * third[0] - s * third[1], 1e-12);
+                        expect(y).closeTo(s * third[0] + c * third[1], 1e-12);
+                    } else {
+                        expect(points[2].map((c: any) => c.tree)).eqls([
+                            "\uff3f",
+                            "\uff3f",
+                        ]);
+                    }
+                }
+
+                expect((await stateValues("A4")).radians.tree).eqls([
+                    "/",
+                    "pi",
+                    6,
+                ]);
+                expect(
+                    (await stateValues("A5")).radians.evaluate_to_constant(),
+                ).closeTo((3 * Math.PI) / 4, 1e-12);
+                expect(
+                    (await stateValues("A6")).radians.evaluate_to_constant(),
+                ).closeTo(Math.PI / 4, 1e-12);
+            }
+        }
+    });
+
+    it("a copy of an angle extending a submitted angle response keeps the response for when its points drop below three", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+    <angle name="A">pi/3</angle>
+    <answer name="ans">
+        <considerAsResponses>$A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <graph>
+        <repeatForSequence name="pts" length="$n" valueName="i"><point>($i, $i^2)</point></repeatForSequence>
+        <angle name="C" extend="$ans.submittedResponse" through="$pts" />
+        <conditionalContent name="cc" condition="$ans.creditAchieved = 1">
+            <angle name="D" copy="$C" />
+        </conditionalContent>
+    </graph>
+    `,
+        });
+
+        // D is made once the response is submitted
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+
+        async function check_items(radians: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["C", "cc.D"]) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.radians.evaluate_to_constant(),
+                ).closeTo(radians, 1e-12);
+            }
+        }
+
+        const r3 = 2 * Math.PI - Math.atan2(5, 1) + Math.atan2(-3, -1);
+        await check_items(r3);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(Math.PI / 3);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(r3);
+    });
 });
