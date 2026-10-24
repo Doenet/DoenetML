@@ -3008,7 +3008,8 @@ describe("Bezier controls through a reload @group3", async () => {
         }));
         const after = await controlVectors();
 
-        // the controls can still be dragged after the reload
+        // `controlVectors` reads from the reloaded core, which is returned so
+        // that a test can drag the controls again after the reload
         const curveIdx = await resolvePathToNodeIdx("c");
         return { before, after, core, curveIdx, controlVectors };
     }
