@@ -5,6 +5,7 @@ import {
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -2897,4 +2898,154 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // https://github.com/Doenet/DoenetML/issues/1822. Add a warning
         // assertion here once that is fixed.
     }, 60000);
+
+    it("excluding a value an input gives, with inputs in the template", async () => {
+        // made again on every update, it used to never finish loading
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ex" prefill="2" />
+    <repeatForSequence name="r" from="1" to="3" exclude="$ex" valueName="v">
+        <mathInput name="mi" prefill="$v" />
+    </repeatForSequence>
+    `,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const i of [1, 2]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].mi`)]
+                        .stateValues.value.tree,
+                );
+            }
+            return result;
+        }
+        expect(await values()).eqls([1, 3]);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls([1, 2]);
+    });
+
+    it("letters with an exclude follow a change of case", async () => {
+        // a and A are both letter 1, so the case is checked on its own
+        // when deciding whether anything changed
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="start" prefill="a" />
+    <repeatForSequence name="r" type="letters" from="$start" length="3" exclude="b" valueName="v">
+        <text name="t">$v</text>
+    </repeatForSequence>
+    <repeatForSequence name="r2" type="letters" from="$start" length="2" valueName="v">
+        <text name="t">$v</text>
+    </repeatForSequence>
+    <p name="p">$r[1].v $r[2].v $r2[1].v $r2[2].v</p>
+    `,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("a c a b");
+
+        await updateTextInputValue({
+            text: "A",
+            componentIdx: await resolvePathToNodeIdx("start"),
+            core,
+        });
+        expect(await text()).eq("A C A B");
+    });
+
+    it("excluding a blank input, with inputs in the template", async () => {
+        // a blank input excludes NaN, which is not equal to itself
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ex" />
+    <repeatForSequence name="r" from="1" to="3" exclude="$ex" valueName="v">
+        <mathInput name="mi" prefill="$v" />
+    </repeatForSequence>
+    `,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const i of [1, 2, 3]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].mi`)]
+                        .stateValues.value.tree,
+                );
+            }
+            return result;
+        }
+        expect(await values()).eqls([1, 2, 3]);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls([1, 2, 3]);
+    });
+
+    it("math sequence excluding an input's value, keeps what was entered when the value is rewritten", async () => {
+        // a math exclude is compared with equals, so x+1 matches 1+x
+        // and nothing is made again
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ex" prefill="x+1" />
+    <repeatForSequence name="r" type="math" from="x" step="1" length="3" exclude="$ex" valueName="v">
+        <mathInput name="mi" prefill="$v" />
+    </repeatForSequence>
+    `,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const i of [1, 2]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].mi`)]
+                        .stateValues.value.tree,
+                );
+            }
+            return result;
+        }
+        expect(await values()).eqls(["x", ["+", "x", 2]]);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("r[2].mi"),
+            core,
+        });
+        expect(await values()).eqls(["x", "y"]);
+
+        await updateMathInputValue({
+            latex: "1+x",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls(["x", "y"]);
+
+        await updateMathInputValue({
+            latex: "x+2",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls(["x", ["+", "x", 1]]);
+    });
 });
