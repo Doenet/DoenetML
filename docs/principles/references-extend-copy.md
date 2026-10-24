@@ -265,8 +265,41 @@ Evidence: `T/copying/extend_references.test.ts`:
 
 Code: `W/components/abstract/Copy.js:1747-1758`, `addChildrenFromComposite` (`:4448`).
 
-Exceptions: composites (REF-7) and the `<label>` of a point, which replaces rather than appends.
-The general rule for a child kind that can appear only once is unstated (gap).
+Exception: composites (REF-7).
+
+### REF-4a: of a child a component uses only one of, the last one written wins (Tier 1)
+A component uses only one `<label>`, `<title>` or `<shortDescription>`. When more than one is
+written, the last one is used. REF-4 appends added children after the source's, so a `<label>`
+or `<title>` written inside an `extend` or `copy` replaces the source's. That is not an
+exception to REF-4; it is the same rule an author meets when writing two labels directly.
+
+**[probe]** These were checked by writing two labels directly, and by adding one in an
+`extend` and in a `copy`:
+
+| What | Components | Two written | Added in `extend` or `copy` |
+|---|---|---|---|
+| `<label>` | `point`, `vector`, `line`, `lineSegment`, `ray`, `circle`, `polygon`, `polyline`, `curve`, `function`, `piecewiseFunction`, `mathInput`, `textInput`, `booleanInput`, `choiceInput`, `slider`, `matrixInput`, `fractionInput`, `updateValue`, `callAction`, `triggerSet`, `answer` | the second | the added one |
+| `<title>` | `section`, `hint` | the second | the added one |
+| `<title>` | `<table>` | **the first** | **the source's** |
+| `<caption>` | `<figure>` | **the first** | **the source's** |
+| `<shortDescription>` | `graph`, `image` | the second | the added one |
+
+Code:
+- `<label>`: one shared definition in `W/utils/label.ts:454`, which takes the last label child.
+  The renderer's `labelChildInd` (`:239`) also uses the last.
+- `<title>`: `SectioningComponent.js:509`, `Hint.js:109` and `Chart.js:1022` take the last.
+- `<shortDescription>`: `Input.js:949` and `Video.js:169` take the last.
+- The two exceptions: `Table.js:140`, `:165` and `Figure.js:155`, `:181` take index `[0]`. So
+  does `Document.js:199`, though a document is not extended. On a table or figure, an `extend`
+  cannot change the title or caption at all. This looks like an accident, and D25 proposes
+  making them follow the rule.
+
+`<legend>` is different on purpose: it takes one `<label>` per item.
+
+No test pins the "last one wins" rule, for any component, either written directly or through an
+`extend`. The only related test is a point's label being overridden on an extend
+(`extend_references.test.ts:86`). This rule should be one schema-driven sweep over every
+component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
 ### REF-5: a different tag converts, and stays linked (Tier 1)
 `<T extend="$x"/>` with T different from x's type behaves like `<T>$x</T>`.
