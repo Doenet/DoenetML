@@ -20,11 +20,17 @@ import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
  * (`stateIdSegmentForCopiesOfReplacements`). A copy counts the ids of the
  * components it makes from its own, so without the segment each part would
  * give them the same ones, and what was saved of one part's components would
- * be applied to another's.
+ * be applied to another's. A composite that shadows another holds the segment
+ * of the replacements it made its own from (`shadowReplacementsStateIdPrefix`).
  */
 export async function stateIdSegmentForCopiesOfReplacements(
     composite: any,
 ): Promise<string> {
+    const segmentOfShadowed =
+        composite?.replacementsWorkspace?.stateIdSegmentOfShadowed;
+    if (segmentOfShadowed !== undefined) {
+        return segmentOfShadowed;
+    }
     return (
         (await composite?.constructor.stateIdSegmentForCopiesOfReplacements?.(
             composite,

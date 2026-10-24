@@ -160,6 +160,34 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect(t.stateValues.value).eq("hi");
     });
 
+    for (const source of ["cc", "e"]) {
+        it(`names the case a copy was made from, made as $${source} changes case`, async () => {
+            // `cc2` comes first, so when `b` changes, its else's copy is made
+            // while `cc` (and `e`) still hold the case's replacements: the
+            // copy is a mathInput, though `cc` now selects its else.
+            const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc2">
+        <case condition="$b"><p copy="$${source}.p" name="cp" /></case>
+        <else><p copy="$${source}.p" name="cp" /></else>
+    </conditionalContent>
+    <conditionalContent name="cc">
+        <case condition="$b"><p name="p"><mathInput name="a" prefill="1" /></p></case>
+        <else><p name="p"><textInput name="a" prefill="hi" /></p></else>
+    </conditionalContent>
+    <conditionalContent extend="$cc" name="e" />
+    `);
+            await h.setB(false);
+            expect((await h.sv("cc2.cp.a")).componentType).eq("mathInput");
+            await h.typeMath("cc2.cp.a", "7");
+            await h.reload();
+            const t = await h.sv("cc2.cp.a");
+            expect(t.componentType).eq("textInput");
+            expect(t.stateValues.value).eq("hi");
+            expect(t.stateValues.numWords).eq(1);
+        });
+    }
+
     it("keeps an answer's submission in a case once another case is active and back", async () => {
         const h = await setup(`
     <booleanInput name="b" prefill="true" />

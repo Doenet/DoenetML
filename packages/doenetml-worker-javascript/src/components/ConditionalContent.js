@@ -274,9 +274,12 @@ export default class ConditionalContent extends CompositeComponent {
     }
 
     // See `stateIdSegmentForCopiesOfReplacements` (utils/componentIndices.ts).
-    static async stateIdSegmentForCopiesOfReplacements(component) {
-        const selectedIndex = await component.stateValues.selectedIndex;
-        return selectedIndex === null ? "" : `case${selectedIndex}|`;
+    // Names the case the replacements were made from, not `selectedIndex`:
+    // within the update that changes `selectedIndex`, a copy can be made from
+    // the previous case's replacements before they are replaced.
+    static stateIdSegmentForCopiesOfReplacements(component) {
+        const caseIndex = component.replacementsWorkspace.previousSelectedIndex;
+        return caseIndex == null ? "" : `case${caseIndex}|`;
     }
 
     static async calculateReplacementChanges({

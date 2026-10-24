@@ -751,13 +751,17 @@ function reserveComponentIndices(core: Core, newNComponents: number) {
 /**
  * The prefix of the `stateId`s given to the replacements of `shadowing`, a
  * composite made from the replacements of `shadowed`. See
- * `stateIdSegmentForCopiesOfReplacements`.
+ * `stateIdSegmentForCopiesOfReplacements`. The segment is held in
+ * `shadowing`'s workspace, as the segment of copies of its replacements: they
+ * come from the same part of the DoenetML as `shadowed`'s do now.
  */
 export async function shadowReplacementsStateIdPrefix(
     shadowing: any,
     shadowed: any,
 ) {
-    return `${shadowing.stateId}|${await stateIdSegmentForCopiesOfReplacements(shadowed)}`;
+    const segment = await stateIdSegmentForCopiesOfReplacements(shadowed);
+    shadowing.replacementsWorkspace.stateIdSegmentOfShadowed = segment;
+    return `${shadowing.stateId}|${segment}`;
 }
 
 /**
