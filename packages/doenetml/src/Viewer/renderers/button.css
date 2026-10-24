@@ -7,3 +7,13 @@
 .doenet-viewer .doenet-button-label mjx-container {
     pointer-events: none;
 }
+
+/*
+ * Outside a graph, the button sits in a line of text, so it is kept no taller
+ * than an inline check-work button. `.doenet-button` sets `all: unset` after
+ * `box-sizing`, so its `min-height` holds the content box and its vertical
+ * padding is added on top of it.
+ */
+.doenet-viewer .doenet-button.doenet-inline-action-button {
+    padding-block: 0;
+}
