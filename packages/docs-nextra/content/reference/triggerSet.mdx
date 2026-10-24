@@ -46,6 +46,8 @@ component that combines the actions of multiple `<updateValue>{:dn}`, `<triggerS
 
 A `<triggerSet>{:dn}` is used to link muliple actions that take place with one button click.
 
+Once $n$ is $1$, the `<triggerSet>{:dn}` is disabled, and none of its actions run. The click that sets $n$ to $1$ still runs all three actions, because a `<triggerSet>{:dn}` decides which of its actions are disabled before running any of them. A disabled `<triggerSet>{:dn}` does not run its actions even when it is triggered by `triggerWhen`, `triggerWith`, `triggerWhenObjectsClicked` or `triggerWhenObjectsFocused`. A disabled `<updateValue>{:dn}` or `<callAction>{:dn}` inside a `<triggerSet>{:dn}` is skipped, while the others still run.
+
 
 
 ---

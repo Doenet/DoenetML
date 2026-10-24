@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    callAction,
     moveButton,
     movePoint,
     clickPoint,
@@ -1759,5 +1760,230 @@ describe("TriggerSet tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("ts2")].stateValues
                 .selectedStyle.fillColor,
         ).eq("yellow");
+    });
+
+    it("a disabled triggerSet runs none of its children, and a disabled child is skipped", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="dis" prefill="true" />
+    <booleanInput name="childDis" />
+    <booleanInput name="b" />
+    <number name="n1">0</number>
+    <number name="n2">0</number>
+    <number name="n3">0</number>
+    <number name="n4">0</number>
+    <number name="n5">0</number>
+    <number name="n6">0</number>
+
+    <updateValue name="uv3" target="$n3" newValue="$n3+1" />
+    <updateValue name="uv4" target="$n4" newValue="$n4+1" />
+
+    <triggerSet name="ts" disabled="$dis">
+      <updateValue target="$n1" newValue="$n1+1" />
+      <updateValue target="$n2" newValue="$n2+1" disabled="$childDis" />
+      <callAction target="$uv3" actionName="updateValue" />
+      <callAction target="$uv4" actionName="updateValue" disabled="$childDis" />
+    </triggerSet>
+    <updateValue target="$n5" newValue="$n5+1" triggerWith="$ts" />
+
+    <triggerSet triggerWhen="$b" disabled="$dis">
+      <updateValue target="$n6" newValue="$n6+1" />
+    </triggerSet>
+    `,
+        });
+
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        async function check(expected: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [ind, value] of expected.entries()) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`n${ind + 1}`)]
+                        .stateValues.value,
+                    `n${ind + 1}`,
+                ).eq(value);
+            }
+        }
+
+        async function fireAll() {
+            await triggerActions({
+                componentIdx: await resolvePathToNodeIdx("ts"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: bIdx,
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: bIdx,
+                core,
+            });
+        }
+
+        // The trigger set is disabled: none of its children run, including
+        // those explicitly not disabled, nor does the action chained to it.
+        await fireAll();
+        await check([0, 0, 0, 0, 0, 0]);
+
+        // Enable the trigger set but disable two of its children: those two
+        // are skipped while the others run.
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("dis"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("childDis"),
+            core,
+        });
+        await fireAll();
+        await check([1, 0, 1, 0, 1, 1]);
+
+        // Nothing disabled: everything runs.
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("childDis"),
+            core,
+        });
+        await fireAll();
+        await check([2, 1, 2, 1, 2, 2]);
+    });
+
+    it("a triggerSet decides which children are disabled before running any", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">0</number>
+    <text name="animal">monkey</text>
+    <number name="m">0</number>
+    <number name="k">0</number>
+
+    <triggerSet name="ts" disabled="$n = 1">
+      <updateValue target="$n" newValue="1" />
+      <updateValue target="$animal" newValue="kangaroo" type="text" />
+      <updateValue target="$m" newValue="$m+1" />
+      <updateValue target="$k" newValue="$k+1" disabled="$m > 0" />
+    </triggerSet>
+    `,
+        });
+
+        // The first child disables the trigger set, and the third child
+        // disables the fourth, but all four run on this click.
+        await triggerActions({
+            componentIdx: await resolvePathToNodeIdx("ts"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("animal")].stateValues
+                .value,
+        ).eq("kangaroo");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.value,
+        ).eq(1);
+
+        // Now disabled, the trigger set does nothing.
+        await triggerActions({
+            componentIdx: await resolvePathToNodeIdx("ts"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("k")].stateValues.value,
+        ).eq(1);
+    });
+
+    it("a disabled triggerSet does not run when triggered by triggerWith, a click, a focus or a callAction", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P">(1,2)</point>
+      <point name="Q">(3,4)</point>
+    </graph>
+    <booleanInput name="dis" prefill="true" />
+    <booleanInput name="b" />
+    <number name="n1">0</number>
+    <number name="n2">0</number>
+    <number name="n3">0</number>
+    <number name="n4">0</number>
+
+    <triggerSet triggerWith="$b" disabled="$dis">
+      <updateValue target="$n1" newValue="$n1+1" />
+    </triggerSet>
+    <triggerSet triggerWhenObjectsClicked="$P" disabled="$dis">
+      <updateValue target="$n2" newValue="$n2+1" />
+    </triggerSet>
+    <triggerSet triggerWhenObjectsFocused="$Q" disabled="$dis">
+      <updateValue target="$n3" newValue="$n3+1" />
+    </triggerSet>
+    <triggerSet name="ts4" disabled="$dis">
+      <updateValue target="$n4" newValue="$n4+1" />
+    </triggerSet>
+    <callAction name="ca" target="$ts4" actionName="triggerActions" />
+    `,
+        });
+
+        async function check(expected: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [ind, value] of expected.entries()) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`n${ind + 1}`)]
+                        .stateValues.value,
+                    `n${ind + 1}`,
+                ).eq(value);
+            }
+        }
+
+        async function fireAll() {
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            await clickPoint({
+                componentIdx: await resolvePathToNodeIdx("P"),
+                core,
+            });
+            await focusPoint({
+                componentIdx: await resolvePathToNodeIdx("Q"),
+                core,
+            });
+            await callAction({
+                componentIdx: await resolvePathToNodeIdx("ca"),
+                core,
+            });
+        }
+
+        await fireAll();
+        await check([0, 0, 0, 0]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("dis"),
+            core,
+        });
+
+        // `b` changes from true back to false here, which also fires `triggerWith`
+        await fireAll();
+        await check([1, 1, 1, 1]);
     });
 });

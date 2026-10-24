@@ -209,7 +209,22 @@ export default class CallAction extends InlineComponent {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        disabledCheckedByTriggerSet = false,
     }) {
+        // A disabled action does nothing, whether its button was clicked or
+        // it was triggered, and so triggers none of the actions chained to it.
+        // A parent `<triggerSet>` checks before running any of its children
+        // (see `triggerActions` there). In read-only mode, where everything is
+        // disabled, the action still runs as before: updates are blocked
+        // there anyway, and the actions read-only mode allows, such as
+        // revealing a hint or changing a page, still go through.
+        if (
+            !disabledCheckedByTriggerSet &&
+            !this.flags.readOnly &&
+            (await this.stateValues.disabled)
+        ) {
+            return;
+        }
         let targetIdx = await this.stateValues.targetComponentIdx;
         let actionName = await this.stateValues.actionName;
         if (targetIdx != null && actionName != null) {
