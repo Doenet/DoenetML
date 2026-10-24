@@ -2673,4 +2673,46 @@ describe("Unlinked Copying Tests @group4", async () => {
             le3: "x,y",
         });
     });
+
+    it("a link written twice, in two cases, on a copy or an extend", async () => {
+        // A copy drops every `link` written on it, warning for each but
+        // `false`. On an extend, of a list as of a point, `link` written
+        // twice is a repeated attribute.
+        const copyCore = await createTestCore({
+            doenetML: `
+<point name="P">(1,2)</point>
+<mathList name="ml">x y</mathList>
+<point name="c1" copy="$P" link="false" LINK="true" />
+<mathList name="c2" copy="$ml" link="true" LINK="false" />
+`,
+        });
+        const copyDiagnostics = getDiagnosticsByType(copyCore.core);
+        expect(copyDiagnostics.errors).eqls([]);
+        expect(
+            copyDiagnostics.warnings.map((warning) => [
+                warning.message,
+                warning.position?.start.line,
+            ]),
+        ).eqls([
+            [
+                "The `link` attribute is ignored on a component with `copy`: a copy is never linked to what it copies. Use `extend` for a linked one.",
+                4,
+            ],
+            [
+                "The `link` attribute is ignored on a component with `copy`: a copy is never linked to what it copies. Use `extend` for a linked one.",
+                5,
+            ],
+        ]);
+
+        for (const doenetML of [
+            `<point name="P">(1,2)</point><point extend="$P" link="false" LINK="true" />`,
+            `<mathList name="ml">x y</mathList><mathList extend="$ml" link="true" LINK="false" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            expect(
+                getDiagnosticsByType(core).errors.map((error) => error.message),
+                doenetML,
+            ).eqls(["Cannot repeat attribute link."]);
+        }
+    });
 });

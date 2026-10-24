@@ -165,11 +165,15 @@ export function convertRefsToCopies({
                 }
 
                 if ("CopyAttribute" in extending) {
-                    dropAuthoredLinkOfCopy({
-                        attributes: wrappingComponent.attributes,
-                        component: wrappingComponent,
-                        diagnostics,
-                    });
+                    for (const link of Object.values(
+                        takeAuthoredLinks(wrappingComponent.attributes),
+                    )) {
+                        warnIfLinkNotFalse({
+                            link,
+                            component: wrappingComponent,
+                            diagnostics,
+                        });
+                    }
                     newComponent.attributes.link = {
                         name: "link",
                         children: ["false"],
@@ -178,14 +182,14 @@ export function convertRefsToCopies({
                     wrappingComponent.doenetAttributes.copyListViaComposite =
                         newComponent.componentIdx;
                 } else {
-                    // `link` is the copy's to read, not the list's
-                    const link = takeAuthoredLink(wrappingComponent.attributes);
-                    if (link) {
-                        newComponent.attributes.link = {
-                            ...link,
-                            name: "link",
-                        };
-                    }
+                    // `link` is the copy's to read, not the list's. Each keeps
+                    // the name it was written with, so the copy reads it in
+                    // any case and reports one written twice, as it does for
+                    // a single component's extend.
+                    Object.assign(
+                        newComponent.attributes,
+                        takeAuthoredLinks(wrappingComponent.attributes),
+                    );
 
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;
@@ -271,11 +275,11 @@ export function convertRefsToCopies({
                 };
 
                 if ("CopyAttribute" in extending) {
-                    dropAuthoredLinkOfCopy({
-                        attributes: outerAttributes,
-                        component,
-                        diagnostics,
-                    });
+                    for (const link of Object.values(
+                        takeAuthoredLinks(outerAttributes),
+                    )) {
+                        warnIfLinkNotFalse({ link, component, diagnostics });
+                    }
                     outerAttributes.link = {
                         name: "link",
                         children: ["false"],
@@ -418,42 +422,38 @@ export function convertRefsToCopies({
 }
 
 /**
- * Take the `link` the author wrote, in any case, off `attributes` and return
- * it (the last, if written more than once).
+ * Take every `link` the author wrote, in any letter case, off `attributes`
+ * and return them under the names they were written with.
  *
  * A copy sets `link` itself, under that exact name, so an author's `LINK`
  * left beside it would be a second `link` attribute.
  */
-function takeAuthoredLink(
+function takeAuthoredLinks(
     attributes: Record<string, UnflattenedAttribute>,
-): UnflattenedAttribute | undefined {
-    let link: UnflattenedAttribute | undefined;
+): Record<string, UnflattenedAttribute> {
+    const links: Record<string, UnflattenedAttribute> = {};
     for (const attrName of Object.keys(attributes)) {
         if (attrName.toLowerCase() === "link") {
-            link = attributes[attrName];
+            links[attrName] = attributes[attrName];
             delete attributes[attrName];
         }
     }
-    return link;
+    return links;
 }
 
 /**
- * Drop the `link` the author wrote on a `copy`, which is never linked, with a
- * warning unless they wrote `link="false"`, which says so already.
+ * Warn that a `link` the author wrote on a `copy`, which is never linked, is
+ * ignored, unless it is `link="false"`, which says so already.
  */
-function dropAuthoredLinkOfCopy({
-    attributes,
+function warnIfLinkNotFalse({
+    link,
     component,
     diagnostics,
 }: {
-    attributes: Record<string, UnflattenedAttribute>;
+    link: UnflattenedAttribute;
     component: UnflattenedComponent;
     diagnostics: DiagnosticRecord[];
 }) {
-    const link = takeAuthoredLink(attributes);
-    if (!link) {
-        return;
-    }
     const child = link.children.length === 1 ? link.children[0] : null;
     if (typeof child === "string" && child.trim().toLowerCase() === "false") {
         return;
