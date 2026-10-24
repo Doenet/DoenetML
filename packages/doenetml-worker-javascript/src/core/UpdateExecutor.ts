@@ -407,6 +407,36 @@ export class UpdateExecutor {
         >[] = [];
         let workspace = {};
         let recordComponentSubmissions: any[] = [];
+        // What is written, by `stateId`, until it is merged below: the update
+        // can delete a component written to (a `<conditionalContent>`
+        // switching cases) while keeping its saved state, which must include
+        // these writes (`core.unsavedWrites`). Each update removes only the
+        // entries it recorded, as one run by a trigger finishes inside it.
+        const unsavedWritesRecorded: [string, Record<string, any>][] = [];
+        const recordUnsavedWrites = () => {
+            if (doNotSave) {
+                return;
+            }
+            for (const componentIdxStr in newStateVariableValues) {
+                const stateId =
+                    this.core._components[Number(componentIdxStr)]?.stateId;
+                if (stateId === undefined) {
+                    continue;
+                }
+                let writes = this.core.unsavedWrites.get(stateId);
+                if (!writes) {
+                    writes = [];
+                    this.core.unsavedWrites.set(stateId, writes);
+                }
+                // the values themselves, as merged below once
+                // `executeUpdateStateVariables` has processed them
+                writes.push(newStateVariableValues[componentIdxStr]);
+                unsavedWritesRecorded.push([
+                    stateId,
+                    newStateVariableValues[componentIdxStr],
+                ]);
+            }
+        };
 
         for (let instruction of updateInstructions) {
             this._recordSourceDetails(instruction, sourceInformation);
@@ -456,6 +486,7 @@ export class UpdateExecutor {
                 // state variables updated,
                 // i.e., the subsequent inverse definitions use stateValues
                 // in their calculations that need to be updated
+                recordUnsavedWrites();
                 await this.core.executeUpdateStateVariables(
                     newStateVariableValues,
                 );
@@ -477,6 +508,7 @@ export class UpdateExecutor {
             }
         }
 
+        recordUnsavedWrites();
         await this.core.executeUpdateStateVariables(newStateVariableValues);
 
         newStateVariableValuesProcessed.push(newStateVariableValues);
@@ -649,6 +681,16 @@ export class UpdateExecutor {
                         );
                     }
                 }
+            }
+        }
+
+        for (const [stateId, values] of unsavedWritesRecorded) {
+            const writes = this.core.unsavedWrites.get(stateId);
+            const remaining = writes?.filter((w) => w !== values) ?? [];
+            if (remaining.length > 0) {
+                this.core.unsavedWrites.set(stateId, remaining);
+            } else {
+                this.core.unsavedWrites.delete(stateId);
             }
         }
 

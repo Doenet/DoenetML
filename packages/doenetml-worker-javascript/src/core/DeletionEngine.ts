@@ -4,6 +4,10 @@ import {
     processNewDefiningChildren,
 } from "./ComponentLifecycle";
 import { removeComponentsFromResolver } from "./ResolverAdapter";
+import {
+    serializedComponentsReplacer,
+    serializedComponentsReviver,
+} from "@doenet/utils";
 /**
  * Deletes components from the live tree. The bulk of the work is the
  * two-phase walk:
@@ -39,17 +43,28 @@ import { removeComponentsFromResolver } from "./ResolverAdapter";
  * Pass `skipProcessingChildrenOfParents` for parents whose child
  * results are about to be re-derived by a different code path, so we
  * don't pay for two redundant passes.
+ *
+ * Pass `keepSavedStateFor`, the composite whose replacements `components`
+ * are, when they can be made again from the same DoenetML, with the same
+ * `stateId`s, as the case of a `<conditionalContent>` can: what a reader did
+ * to them is kept, saved as before, and applied when they are made again, as
+ * a reload would. What is kept is forgotten when the composite itself is
+ * deleted without `keepSavedStateFor`: the composite remembers what it kept,
+ * and a `<conditionalContent>` also names what a reload kept for it
+ * (`stateIdsOfPossibleReplacements`).
  */
 export async function deleteComponents({
     core,
     components,
     deleteUpstreamDependencies = true,
     skipProcessingChildrenOfParents = [],
+    keepSavedStateFor,
 }: {
     core: Core;
     components: any | any[];
     deleteUpstreamDependencies?: boolean;
     skipProcessingChildrenOfParents?: number[];
+    keepSavedStateFor?: any;
 }): Promise<any> {
     if (!Array.isArray(components)) {
         components = [components];
@@ -66,6 +81,21 @@ export async function deleteComponents({
         deleteUpstreamDependencies,
         componentsToDelete,
     });
+
+    // Only the components made from the DoenetML of `components` are made
+    // again with their `stateId`s. A shadow elsewhere, such as an `extend` of
+    // a component in a case, is made again as a shadow of whatever it then
+    // refers to, which can be another case's component.
+    const componentsToKeepStateOf: Record<number, any> = {};
+    if (keepSavedStateFor) {
+        determineComponentsToDelete({
+            core,
+            components,
+            deleteUpstreamDependencies,
+            componentsToDelete: componentsToKeepStateOf,
+            followShadows: false,
+        });
+    }
 
     //Calculate parent set
     const parentsOfPotentiallyDeleted: Record<
@@ -296,25 +326,32 @@ export async function deleteComponents({
         componentsToRemove: componentsToRemoveFromResolver,
     });
 
+    const stateIdsToForget: string[] = [];
+    const stateIdsDeleted: string[] = [];
+
     for (const componentIdxStr in componentsToDelete) {
         const componentIdx = Number(componentIdxStr);
         let component = core._components[componentIdx];
 
-        // delete from cumulativeStateVariableChanges
-        delete core.cumulativeStateVariableChanges[component.stateId];
-        // and the snapshot a save held of it as an unlinked copy, with the
-        // key once it holds none: a save with no unlinked copies left does
-        // not reach `recordCopySnapshots` to remove it
-        const copySnapshots =
-            core.cumulativeStateVariableChanges.__copySnapshots;
-        if (copySnapshots) {
-            delete copySnapshots[component.stateId];
-            if (Object.keys(copySnapshots).length === 0) {
-                delete core.cumulativeStateVariableChanges.__copySnapshots;
+        if (componentIdx in componentsToKeepStateOf) {
+            keepSavedStateForRecreation(core, component);
+            const kept = (keepSavedStateFor.stateIdsKeptForRecreation ??=
+                new Set<string>());
+            kept.add(component.stateId);
+            // what a composite in the case kept is now kept with the case
+            for (const stateId of component.stateIdsKeptForRecreation ?? []) {
+                kept.add(stateId);
             }
+        } else {
+            deleteSavedState(core, component.stateId);
+            stateIdsDeleted.push(component.stateId);
+            stateIdsToForget.push(
+                ...(component.stateIdsKeptForRecreation ?? []),
+                ...(component.constructor.stateIdsOfPossibleReplacements?.(
+                    component,
+                ) ?? []),
+            );
         }
-        core.readerTouchedStateIds.delete(component.stateId);
-        core.definitionSetStateIds.delete(component.stateId);
 
         // don't use recursive form since all children should already be included
         deregisterComponent({ core, component, recursive: false });
@@ -326,6 +363,8 @@ export async function deleteComponents({
             componentIdx,
         );
     }
+
+    forgetKeptState(core, new Set(stateIdsToForget), new Set(stateIdsDeleted));
 
     return {
         success: true,
@@ -341,18 +380,21 @@ export async function deleteComponents({
  * to resolve reference-path indices (`refResolution.originalPath`),
  * the source of any adapter, and (when `deleteUpstreamDependencies`)
  * shadows, the adapter the component itself produced, and any
- * replacements.
+ * replacements. With `followShadows` false, shadows are left out, which
+ * leaves the components made from the DoenetML of `components`.
  */
 export function determineComponentsToDelete({
     core,
     components,
     deleteUpstreamDependencies,
     componentsToDelete,
+    followShadows = true,
 }: {
     core: Core;
     components: any[];
     deleteUpstreamDependencies: boolean;
     componentsToDelete: Record<number, any>;
+    followShadows?: boolean;
 }): void {
     for (let component of components) {
         if (typeof component !== "object") {
@@ -411,7 +453,7 @@ export function determineComponentsToDelete({
             // TODO: recurse on copy of the component (other composites?)
 
             // recurse on components that shadow
-            if (component.shadowedBy) {
+            if (followShadows && component.shadowedBy) {
                 componentsToRecurse.push(...component.shadowedBy);
             }
 
@@ -429,6 +471,133 @@ export function determineComponentsToDelete({
             components: componentsToRecurse,
             deleteUpstreamDependencies,
             componentsToDelete,
+            followShadows,
         });
     }
+}
+
+/**
+ * Forget what was saved of the component with `stateId`: its entry in
+ * `cumulativeStateVariableChanges`, and the snapshot a save held of it as an
+ * unlinked copy, with the key once it holds none (a save with no unlinked
+ * copies left does not reach `recordCopySnapshots` to remove it).
+ */
+function deleteSavedState(core: Core, stateId: string) {
+    delete core.cumulativeStateVariableChanges[stateId];
+    const copySnapshots = core.cumulativeStateVariableChanges.__copySnapshots;
+    if (copySnapshots) {
+        delete copySnapshots[stateId];
+        if (Object.keys(copySnapshots).length === 0) {
+            delete core.cumulativeStateVariableChanges.__copySnapshots;
+        }
+    }
+    core.readerTouchedStateIds.delete(stateId);
+    core.definitionSetStateIds.delete(stateId);
+}
+
+/**
+ * Forget what was saved for components that will not be made again, other
+ * than those that are live, such as the active case's.
+ *
+ * `stateIds` names what a deleted composite kept, or can make, for parts of
+ * it that are not live, such as the cases of a `<conditionalContent>` not
+ * active: everything saved under them is forgotten. `stateIdsDeleted` names
+ * the components deleted outright: what is still queued from a load under
+ * them, or held as a copy's snapshot, would only ever be applied to their
+ * descendants, so it is forgotten too. Under an id means the id itself or
+ * one that continues it with `|` (what a composite makes, such as a copy's
+ * replacements or a `<repeatForSequence>`'s iterations) or `@@` (an adapter).
+ */
+function forgetKeptState(
+    core: Core,
+    stateIds: Set<string>,
+    stateIdsDeleted: Set<string>,
+) {
+    const isUnder = (stateId: string, owners: Set<string>) => {
+        if (owners.has(stateId)) {
+            return true;
+        }
+        for (let i = 0; i < stateId.length; i++) {
+            if (
+                (stateId[i] === "|" || stateId.startsWith("@@", i)) &&
+                owners.has(stateId.slice(0, i))
+            ) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const queued = core.updateInfo.stateVariableUpdatesForMissingComponents;
+    const copySnapshots =
+        core.cumulativeStateVariableChanges.__copySnapshots ?? {};
+    const notMadeYet = [...Object.keys(queued), ...Object.keys(copySnapshots)];
+    if (notMadeYet.length === 0 && stateIds.size === 0) {
+        return;
+    }
+    const candidates = new Set(notMadeYet);
+    if (stateIds.size > 0) {
+        for (const stateId of Object.keys(
+            core.cumulativeStateVariableChanges,
+        )) {
+            candidates.add(stateId);
+        }
+    }
+    for (const stateId of candidates) {
+        if (stateId.startsWith("__")) {
+            continue;
+        }
+        if (
+            !isUnder(stateId, stateIds) &&
+            !(
+                (stateId in queued || stateId in copySnapshots) &&
+                isUnder(stateId, stateIdsDeleted)
+            )
+        ) {
+            continue;
+        }
+        const componentIdx = core.componentIdxByStateId[stateId];
+        if (core._components[componentIdx]?.stateId !== stateId) {
+            deleteSavedState(core, stateId);
+            delete queued[stateId];
+        }
+    }
+}
+
+/**
+ * Keep what was saved of `component`, and queue it to be applied to a
+ * component made later with its `stateId`, as a reload queues what it
+ * restores. An unlinked copy also keeps the snapshot of what it made: a save
+ * holds one only while a copy made again would differ, and it is not known
+ * here whether a save has looked, so it is held until the next save after
+ * the copy is made again (`recordCopySnapshots`).
+ */
+function keepSavedStateForRecreation(core: Core, component: any) {
+    const stateId = component.stateId;
+    if (component.unlinkedSnapshot) {
+        core.cumulativeStateVariableChanges.__copySnapshots = {
+            ...core.cumulativeStateVariableChanges.__copySnapshots,
+            [stateId]: component.unlinkedSnapshot,
+        };
+    }
+    // what the current update wrote is merged only at its end
+    // (`performUpdate`), after the component is gone
+    for (const values of core.unsavedWrites.get(stateId) ?? []) {
+        for (const varName in values) {
+            core.essentialValueWriter.mergeIntoCumulative(
+                stateId,
+                varName,
+                values[varName],
+            );
+        }
+        core.readerTouchedStateIds.add(stateId);
+    }
+    const entry = core.cumulativeStateVariableChanges[stateId];
+    if (entry === undefined) {
+        return;
+    }
+    core.updateInfo.stateVariableUpdatesForMissingComponents[stateId] =
+        JSON.parse(
+            JSON.stringify(entry, serializedComponentsReplacer),
+            serializedComponentsReviver,
+        );
 }

@@ -106,38 +106,58 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(coreState.__copySnapshots).eq(undefined);
     });
 
-    it("holds nothing once its only held copy is deleted", async () => {
-        // switching the case deletes the copy in the case left
+    it("keeps what it made while its case is not active", async () => {
+        // Switching the case deletes the copy in the case left, and makes it
+        // again when the case comes back, with what it made before, as a
+        // `<conditionalContent>` with one case keeps it by withholding it.
+        // That holds whether or not a save came between.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <mathInput name="mi" prefill="1" />
-    <conditionalContent>
+    <conditionalContent name="cc">
         <case condition="$b"><math copy="$mi" name="c" /></case>
         <else><text>none</text></else>
     </conditionalContent>
     `;
-        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
-            { doenetML },
-        );
-        await updateMathInputValue({
-            latex: "5",
-            componentIdx: await resolvePathToNodeIdx("mi"),
-            core,
-        });
-        await core.saveImmediately();
-        expect(
-            Object.keys(JSON.parse(scoreState.state).__copySnapshots).length,
-        ).eq(1);
+        for (const saveBetween of [true, false]) {
+            const { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML });
+            async function setB(boolean: boolean) {
+                await updateBooleanInputValue({
+                    boolean,
+                    componentIdx: await resolvePathToNodeIdx("b"),
+                    core,
+                });
+            }
+            async function c() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx("cc.c")]
+                    .stateValues.value.tree;
+            }
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            if (saveBetween) {
+                await core.saveImmediately();
+            }
+            await setB(false);
+            await core.saveImmediately();
+            expect(
+                Object.keys(JSON.parse(scoreState.state).__copySnapshots),
+            ).toHaveLength(1);
 
-        await updateBooleanInputValue({
-            boolean: false,
-            componentIdx: await resolvePathToNodeIdx("b"),
-            core,
-        });
-        await core.saveImmediately();
-        expect(JSON.parse(scoreState.state)).not.toHaveProperty(
-            "__copySnapshots",
-        );
+            await setB(true);
+            expect(await c()).eq(1);
+            await core.saveImmediately();
+            expect(
+                Object.keys(JSON.parse(scoreState.state).__copySnapshots),
+            ).toHaveLength(1);
+        }
     });
 
     it("keeps its value through a reload while its source is inactive", async () => {
@@ -208,9 +228,10 @@ describe("An unlinked copy through a reload @group4", () => {
 
     it("takes a held entry only for a component of its type", async () => {
         // A copy of a `<conditionalContent>` is made from whichever case is
-        // active: made again on load with `b` false, its textInput has the
-        // `stateId`s the mathInput had, and takes nothing held of the
-        // mathInput (its prefill `1` would have shown in the textInput).
+        // active: made again on load with `b` false, its textInput takes
+        // nothing held of the mathInput (its prefill `1` would have shown in
+        // the textInput). The ids of a copy's components name the case they
+        // were made from, so nothing held of one case reaches another's.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
@@ -339,10 +360,10 @@ describe("An unlinked copy through a reload @group4", () => {
 
     it("takes nothing held of another case's components", async () => {
         // The cases' wrappers differ in type and their mathInputs do not:
-        // made again on load with `b` false, the copy's div has the
-        // `stateId` its p had and takes nothing held. Made again with `b`
-        // true, its mathInput has the `stateId` the div's had, but shows
-        // its source as restored, not the div's mathInput's prefill `2`.
+        // made again on load with `b` false, the copy's div and mathInput
+        // take nothing held of the p's. Made again with `b` true, its
+        // mathInput shows its source as restored, not the div's mathInput's
+        // prefill `2`.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">

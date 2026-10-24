@@ -15,7 +15,10 @@ import {
     primaryEssentialStateVariableOf,
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
-import { createNewComponentIndices } from "../../utils/componentIndices";
+import {
+    createNewComponentIndices,
+    stateIdSegmentForCopyOf,
+} from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
@@ -1571,11 +1574,19 @@ export default class Copy extends CompositeComponent {
                 }),
             ];
 
+            // Counted from the copy's own `stateId`, the ids would be the
+            // same whichever case of a `<conditionalContent>` the copy is made
+            // from, so what was saved of one case would be applied to another.
+            const sourceStateIdInfo = {
+                prefix: `${stateIdInfo.prefix}${await stateIdSegmentForCopyOf(replacementSourceComponent)}`,
+                num: stateIdInfo.num,
+            };
             let res = createNewComponentIndices(
                 serializedReplacements,
                 nComponents,
-                stateIdInfo,
+                sourceStateIdInfo,
             );
+            stateIdInfo.num = sourceStateIdInfo.num;
             serializedReplacements = res.components;
             nComponents = res.nComponents;
         } catch (e) {

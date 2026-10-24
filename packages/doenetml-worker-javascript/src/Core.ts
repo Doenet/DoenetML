@@ -238,6 +238,15 @@ export default class Core {
      */
     readerTouchedStateIds!: Set<string>;
     definitionSetStateIds!: Set<string>;
+    /**
+     * What an update has written to each `stateId` but not yet merged into
+     * `cumulativeStateVariableChanges`, which it does at its end
+     * (`performUpdate`): the values written, in the order written. A component
+     * deleted before then with its saved state kept (`deleteComponents`'
+     * `keepSavedStateFor`) has them merged as it is deleted, so they are kept
+     * with the rest.
+     */
+    unsavedWrites!: Map<string, Record<string, any>[]>;
     canonicalGeneratedVariantString?: string;
     canonicalDocVariantStrings?: string[];
     coreInfoString?: string;
@@ -467,6 +476,7 @@ export default class Core {
             ),
         );
         this.definitionSetStateIds = new Set();
+        this.unsavedWrites = new Map();
 
         this.requestedVariantIndex = requestedVariantIndex;
         this.requestedVariant = requestedVariant;

@@ -12,6 +12,7 @@ import {
     adjustForCreateComponentIdxName,
     componentAndRenderedDescendants,
     expandCompositeComponent,
+    shadowReplacementsStateIdPrefix,
 } from "./CompositeExpander";
 import { deleteComponents } from "./DeletionEngine";
 import {
@@ -788,6 +789,8 @@ export class CompositeReplacementUpdater {
                 core: this.core,
                 components: replacementsToDelete,
                 skipProcessingChildrenOfParents: [composite.parentIdx!],
+                keepSavedStateFor:
+                    change.keepSavedState === true ? composite : undefined,
             });
 
             if (processNewChildren) {
@@ -950,7 +953,10 @@ export class CompositeReplacementUpdater {
                 shadowingComponent.replacementsWorkspace.replacementsCreated = 0;
 
                 const stateIdInfo = {
-                    prefix: `${shadowingComponent.stateId}|`,
+                    prefix: await shadowReplacementsStateIdPrefix(
+                        shadowingComponent,
+                        componentToShadow,
+                    ),
                     num: shadowingComponent.replacementsWorkspace
                         .replacementsCreated,
                 };

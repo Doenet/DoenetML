@@ -14,6 +14,53 @@ import {
 import { addSource, unwrapSource } from "./dast/convertNormalizedDast";
 
 /**
+ * What the `stateId`s of copies of `composite`'s replacements add after the
+ * copy's own: `""` unless `composite`'s replacements can come from different
+ * parts of its DoenetML, as the cases of a `<conditionalContent>` do
+ * (`stateIdSegmentForCopiesOfReplacements`). A copy counts the ids of the
+ * components it makes from its own, so without the segment each part would
+ * give them the same ones, and what was saved of one part's components would
+ * be applied to another's. A composite that shadows another holds the segment
+ * of the replacements it made its own from (`shadowReplacementsStateIdPrefix`).
+ */
+export async function stateIdSegmentForCopiesOfReplacements(
+    composite: any,
+): Promise<string> {
+    const segmentOfShadowed =
+        composite?.replacementsWorkspace?.stateIdSegmentOfShadowed;
+    if (segmentOfShadowed !== undefined) {
+        return segmentOfShadowed;
+    }
+    return (
+        (await composite?.constructor.stateIdSegmentForCopiesOfReplacements?.(
+            composite,
+        )) ?? ""
+    );
+}
+
+/**
+ * What the `stateId`s of the components a copy makes from `component` add
+ * after the copy's own: the segment (`stateIdSegmentForCopiesOfReplacements`)
+ * of each composite that `component` is a replacement of, or is in a
+ * replacement of, outermost first. A component named in a case of a
+ * `<conditionalContent>` is in a replacement of the case's `<group>`, which is
+ * a replacement of the `<conditionalContent>`, so the composites are followed
+ * out through `replacementOf`.
+ */
+export async function stateIdSegmentForCopyOf(component: any): Promise<string> {
+    let segment = "";
+    for (
+        let composite = component?.replacementOf;
+        composite;
+        composite = composite.replacementOf
+    ) {
+        segment =
+            (await stateIdSegmentForCopiesOfReplacements(composite)) + segment;
+    }
+    return segment;
+}
+
+/**
  * Recurse through all serialized components and update their component indices
  * to new values, starting with `nComponents`.
  *

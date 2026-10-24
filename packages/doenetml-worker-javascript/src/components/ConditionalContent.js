@@ -273,6 +273,45 @@ export default class ConditionalContent extends CompositeComponent {
         };
     }
 
+    /**
+     * The `stateId` of every component the cases of `component` can make,
+     * including those a reload made from saved state: what is kept of a case
+     * not active is kept under these (see `deleteComponents`). Its own
+     * `stateId` comes first: a `<conditionalContent>` that shadows another
+     * (`extend`) numbers its replacements from it.
+     */
+    static stateIdsOfPossibleReplacements(component) {
+        const stateIds = [component.stateId];
+        const addStateIds = (value) => {
+            if (Array.isArray(value)) {
+                value.forEach(addStateIds);
+            } else if (value !== null && typeof value === "object") {
+                if (typeof value.stateId === "string") {
+                    stateIds.push(value.stateId);
+                }
+                Object.values(value).forEach(addStateIds);
+            }
+        };
+        for (const child of component.definingChildren) {
+            addStateIds(child.serializedChildren);
+        }
+        return stateIds;
+    }
+
+    // See `stateIdSegmentForCopiesOfReplacements` (utils/componentIndices.ts).
+    // Names the case the replacements were made from, not `selectedIndex`:
+    // within the update that changes `selectedIndex`, a copy can be made from
+    // the previous case's replacements before they are replaced.
+    // With one case there is no other to tell apart, and a copy made while it
+    // is not active, which has nothing to name, gets the same ids.
+    static async stateIdSegmentForCopiesOfReplacements(component) {
+        if ((await component.stateValues.numCases) === 1) {
+            return "";
+        }
+        const caseIndex = component.replacementsWorkspace.previousSelectedIndex;
+        return caseIndex == null ? "" : `case${caseIndex}|`;
+    }
+
     static async calculateReplacementChanges({
         component,
         components,
@@ -342,9 +381,12 @@ export default class ConditionalContent extends CompositeComponent {
             }
         }
 
-        // delete previous replacements and create new ones
-        // TODO: could we find a way to withhold old ones?
-        // Either change order of replacements or allow to withhold later replacements
+        // Delete the previous case's replacements and create the new case's.
+        // Only a suffix of the replacements can be withheld, so the inactive
+        // cases cannot be kept (Doenet/DoenetML#1947). What a reader did in
+        // the previous case is kept instead (`keepSavedState`), and applied
+        // when that case is made again: its components get the `stateId`s
+        // they had, which come from the document.
 
         const replacementChanges = [];
 
@@ -361,6 +403,7 @@ export default class ConditionalContent extends CompositeComponent {
             numberReplacementsToReplace: component.replacements.length,
             serializedReplacements: replacementResults.replacements,
             replacementsToWithhold: 0,
+            keepSavedState: true,
         };
 
         replacementChanges.push(replacementInstruction);
