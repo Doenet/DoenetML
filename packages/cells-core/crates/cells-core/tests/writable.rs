@@ -4,8 +4,8 @@
 
 use std::path::Path;
 
-use cells_core::Document;
 use cells_core::testing::test_utils::{dast_json, repo_root};
+use cells_core::{Document, LoadOptions};
 
 /// (name, source) of the golden set and `sir.doenet`.
 fn documents() -> Vec<(String, String)> {
@@ -27,21 +27,33 @@ fn documents() -> Vec<(String, String)> {
         .collect()
 }
 
-/// Every document's essential and writable cells, beside the upper bound
-/// ADR 0018's Context counted by a walk through every input of every
-/// operator: 164 writable on the golden set, 16 on `sir.doenet`.
+fn load(src: &str, classify: bool) -> Document {
+    let options = LoadOptions {
+        classify,
+        ..Default::default()
+    };
+    Document::load(dast_json(src).as_bytes(), options)
+        .unwrap()
+        .0
+}
+
+/// Every document's essential cells, as before ADR 0018 (every author's
+/// value) and as now (what a student's action can write). Context's walk
+/// through every input of every operator, an upper bound, counted 164
+/// writable on the golden set and 16 on `sir.doenet`.
 #[test]
 fn census() {
     let (mut golden, mut sir) = ((0, 0), (0, 0));
     for (name, src) in documents() {
-        let doc = Document::from_bytes(dast_json(&src).as_bytes()).unwrap();
-        let (essential, writable) = (doc.n_essential, doc.structure.n_writable);
-        eprintln!("{name:>12}: {essential:>4} essential, {writable:>4} writable");
+        let (before, now) = (load(&src, false).n_essential, load(&src, true).n_essential);
+        eprintln!("{name:>12}: {before:>4} essential before, {now:>4} now");
         let total = if name == "sir" { &mut sir } else { &mut golden };
-        total.0 += essential;
-        total.1 += writable;
+        total.0 += before;
+        total.1 += now;
     }
     eprintln!("golden: {golden:?}, sir: {sir:?}");
+    assert_eq!(golden.0, 226, "the golden set as Context counted it");
+    assert_eq!(sir.0, 622, "sir.doenet as Context counted it");
     assert!(golden.1 > 0 && golden.1 <= 164, "golden set: {golden:?}");
     assert!(sir.1 > 0 && sir.1 <= 16, "sir.doenet: {sir:?}");
 }

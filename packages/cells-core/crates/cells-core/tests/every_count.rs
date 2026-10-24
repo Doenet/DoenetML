@@ -386,3 +386,134 @@ fn has_repeats(dast: &Dast) -> bool {
         .iter()
         .any(|(_, t)| t.count_prop().is_some())
 }
+
+/// ADR 0018: a value slot is essential when a student's action can write
+/// it, and the probe's record of those slots stands for every build. For
+/// every document, at every seed it draws with and every repeat at 0 to 4
+/// iterations, two things are checked against builds at those counts:
+///
+/// - every slot a build's own walk finds writable is one the record holds,
+///   so no build meets a write it did not expect;
+/// - a request on every interactive cell, every submit and every trigger,
+///   made in the same build with every value essential (the classing off),
+///   writes only cells the record makes essential. That checks the walk
+///   against the inverses themselves, not against their declarations.
+#[test]
+fn every_write_lands_on_a_cell_the_record_makes_essential() {
+    let docs = documents();
+    assert!(docs.len() >= 12, "the golden set is missing");
+    for (name, bytes) in &docs {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let types = element_types(&dast);
+        let draws = types
+            .iter()
+            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
+        let counts: Vec<Option<u32>> = if has_repeats(&dast) {
+            COUNTS.map(Some).collect()
+        } else {
+            vec![None]
+        };
+        for &seed in seeds {
+            let Ok(on) = cells_core::testing::compile(&dast, seed) else {
+                continue; // the promise is about documents that load
+            };
+            let off = cells_core::testing::compile_unclassified(&dast, seed).unwrap();
+            let own = cells_core::testing::with_own_walk(&on);
+            for &c in &counts {
+                let what = format!("{name}, seed {seed}, count {c:?}");
+                let (session, stamped) = settle_at(&on, seed, c);
+                let at = |compiled: &Arc<Compiled>| {
+                    let mut doc = build(compiled, &session, &stamped, false)
+                        .and_then(|b| b.schedule(compiled.clone()))
+                        .unwrap_or_else(|e| panic!("{what}: {e}"));
+                    doc.recompute();
+                    doc
+                };
+                let essential: BTreeSet<(ScopeId, u32)> =
+                    at(&on).structure.essential_slots.iter().copied().collect();
+                for key in &at(&own).structure.essential_slots {
+                    assert!(
+                        essential.contains(key),
+                        "{what}: {key:?} is writable in this build's own walk, not in the record"
+                    );
+                }
+                let unclassified = at(&off);
+                for (action, key) in writes(&unclassified) {
+                    assert!(
+                        essential.contains(&key),
+                        "{what}: {action} writes {key:?}, which the record makes fixed"
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// The session and counts of a build with every repeat at `c` (None: as
+/// the document's cells settle), letting nested repeats appear.
+fn settle_at(compiled: &Arc<Compiled>, seed: u64, c: Option<u32>) -> (Session, Counts) {
+    let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
+    for _ in 0..MAX_PASSES {
+        let session = Session::new(seed, false);
+        let mut stamped = Counts::default();
+        for (&(scope, node), &n) in &counts {
+            stamped.set(scope, node, n);
+        }
+        let mut doc = build(compiled, &session, &stamped, false)
+            .and_then(|b| b.schedule(compiled.clone()))
+            .unwrap();
+        doc.recompute();
+        let mut settled = true;
+        for r in &doc.structure.repeats {
+            let want = c.unwrap_or_else(|| doc.repeat_count(r));
+            if r.iterations != want {
+                counts.insert((r.scope, r.node), want);
+                settled = false;
+            }
+        }
+        if settled {
+            return (Session::new(seed, false), stamped);
+        }
+    }
+    panic!("the counts did not settle within {MAX_PASSES} builds");
+}
+
+/// Every action a student can take on `doc`, each on a copy of it, with
+/// the essential keys it writes: those it touches (ADR 0017).
+fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
+    let mut out = Vec::new();
+    let mut record = |action: String, tick: &dyn Fn(&mut Document)| {
+        let mut copy = doc.clone();
+        tick(&mut copy);
+        for &key in copy.session.touched.iter() {
+            out.push((action.clone(), key));
+        }
+    };
+    for cell in doc.interactive_cells() {
+        let cur = doc.cells[cell as usize];
+        let value = match doc.program.value_types[cell as usize] {
+            cells_core::ValueType::Number if cur.is_nan() => 1.0,
+            cells_core::ValueType::Number => cur + 1.5,
+            // Text and math ask for what they hold: the walk is the same.
+            _ => cur,
+        };
+        record(format!("a request on cell {cell}"), &|d| {
+            d.request(&[Request { cell, value }]);
+        });
+    }
+    for c in 0..doc.n_components() as u32 {
+        match doc.component_type(c) {
+            ComponentType::Answer => record(format!("a submit of {c}"), &|d| {
+                d.submit(c);
+            }),
+            ComponentType::TriggerSet | ComponentType::UpdateValue => {
+                record(format!("a trigger of {c}"), &|d| {
+                    d.trigger(c);
+                })
+            }
+            _ => {}
+        }
+    }
+    out
+}

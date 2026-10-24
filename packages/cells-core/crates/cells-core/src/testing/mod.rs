@@ -19,7 +19,30 @@ pub fn compile(
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
     let session = crate::session::Session::new(seed, false);
-    Ok(crate::compile::compile(&dast, &session, true)?.compiled)
+    Ok(crate::compile::compile(&dast, &session, true, true)?.compiled)
+}
+
+/// `compile`, with every value slot essential, as before ADR 0018
+/// (`LoadOptions::classify` off): what the classing is checked against.
+#[cfg(feature = "testing")]
+pub fn compile_unclassified(
+    dast: &crate::dast::Dast,
+    seed: u64,
+) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
+    let dast = std::sync::Arc::new(dast.clone());
+    let session = crate::session::Session::new(seed, false);
+    Ok(crate::compile::compile(&dast, &session, true, false)?.compiled)
+}
+
+/// `compiled`, but each of its builds classes its value slots by its own
+/// walk, not by the probe's record (ADR 0018): what the record must hold.
+#[cfg(feature = "testing")]
+pub fn with_own_walk(
+    compiled: &crate::compile::Compiled,
+) -> std::sync::Arc<crate::compile::Compiled> {
+    let mut own = compiled.clone();
+    own.classes = crate::compile::plan::Classes::Walk;
+    std::sync::Arc::new(own)
 }
 
 /// The compile of `dast` for a session at `seed`, as text equal exactly when

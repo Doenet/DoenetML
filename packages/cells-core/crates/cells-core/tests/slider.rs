@@ -15,8 +15,12 @@ fn slider_derives_value_from_its_essential_cell() {
     assert_eq!(v(&doc, "s", "value"), 3.0);
     assert_eq!(v(&doc, "s", "index"), 3.0);
     assert_eq!(v(&doc, "s", "maxIndex"), 10.0);
-    // One essential cell per attribute plus the stored value.
-    assert_eq!(doc.n_essential, 4);
+    // The stored value: `from`, `to` and `step` are the author's, which no
+    // student can change, so they are fixed (ADR 0018).
+    assert_eq!(doc.n_essential, 1);
+    let stored = doc.cell("s", "preliminaryValue").unwrap();
+    assert!(doc.is_essential(stored));
+    assert!(doc.is_fixed(doc.cell("s", "step").unwrap()));
     assert_eq!(reference::check(&doc), None);
 }
 

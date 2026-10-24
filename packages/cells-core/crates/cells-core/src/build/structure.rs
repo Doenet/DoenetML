@@ -92,9 +92,6 @@ pub struct Structure {
     /// Per essential cell, in cell order: the value the build gives it when
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
-    /// How many essential cells a student's action can write (ADR 0018,
-    /// `build/writable.rs`).
-    pub n_writable: usize,
     pub repeats: Vec<Repeat>,
     /// Per repeat (same order as `repeats`): how many repeats must be
     /// expanded in sequence before this one's count is known, plus one.

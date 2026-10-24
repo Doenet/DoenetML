@@ -1,8 +1,8 @@
 no endpoints: from (1, 0) to (0, 0), both free: cells 10 · essential 8 · fixed 2 · instrs 0 · components 3
 one endpoint: the other at the origin: cells 10 · essential 8 · fixed 2 · instrs 0 · components 3
 literal endpoints, by every name: cells 10 · essential 8 · fixed 2 · instrs 0 · components 3
-endpoints from points: a drag moves the points: cells 12 · essential 10 · fixed 2 · instrs 0 · components 5
-an endpoint from math over a point: cells 11 · essential 8 · fixed 2 · instrs 1 · components 4
+endpoints from points: a drag moves the points: cells 12 · essential 8 · fixed 4 · instrs 0 · components 5
+an endpoint from math over a point: cells 11 · essential 7 · fixed 3 · instrs 1 · components 4
 a bare copy shares both endpoints: cells 10 · essential 8 · fixed 2 · instrs 0 · components 4
 a copy that overrides the endpoints has its own: cells 14 · essential 12 · fixed 2 · instrs 0 · components 4
 a copy that overrides another attribute shares the endpoints: cells 10 · essential 8 · fixed 2 · instrs 0 · components 4

@@ -733,7 +733,7 @@ impl GivenPoint {
 
 /// A document as compiled: its templates and plans, made once from its
 /// source and kept for the life of the document (ADR 0015).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Compiled {
     pub(crate) dast: Arc<Dast>,
     pub(crate) templates: Vec<Template>,
@@ -770,6 +770,36 @@ pub struct Compiled {
     /// each build's chains of repeats map onto the probe's; 0 without a
     /// repeat. None when the check was skipped (a test load).
     pub(crate) structural_depth: Option<u32>,
+    /// How a build classes its value slots, essential or fixed (ADR 0018).
+    pub(crate) classes: Classes,
+}
+
+/// How a build classes its value slots (ADR 0018): essential when a
+/// student's action can write one (`build/writable.rs`), else fixed.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub(crate) enum Classes {
+    /// By the build's own walk: the probe, and the one build of a document
+    /// without repeats or selects.
+    #[default]
+    Walk,
+    /// By the probe's walk, which holds every edge any count or pick can
+    /// create: per template, a bit per template slot (`slot_off + pi`),
+    /// set for a writable one. Every build of a document with repeats or
+    /// selects reads it, so a slot's class is the same in every build.
+    Record(Arc<Vec<Vec<u64>>>),
+    /// Every value slot essential, as before ADR 0018: a test load with
+    /// the classing off (`LoadOptions::classify`), or with the check off
+    /// and a repeat or select, which has no probe to record.
+    Off,
+}
+
+impl Classes {
+    /// Whether the record marks template slot `slot` of `template`.
+    pub(crate) fn recorded(record: &[Vec<u64>], template: usize, slot: u32) -> bool {
+        record[template]
+            .get(slot as usize / 64)
+            .is_some_and(|w| w & (1 << (slot % 64)) != 0)
+    }
 }
 
 impl Compiled {
@@ -833,6 +863,7 @@ impl Compiled {
         let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
         let _ = writeln!(out, "rebuilds {}", self.rebuilds);
         let _ = writeln!(out, "structural_depth {:?}", self.structural_depth);
+        let _ = writeln!(out, "classes {:?}", self.classes);
         out
     }
 

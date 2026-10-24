@@ -235,8 +235,17 @@ fn write_all(w: &mut DastWriter, nodes: Vec<Node>) -> Vec<NodeId> {
     nodes.into_iter().map(|n| write(w, n)).collect()
 }
 
-/// Loads the document `dast`, as `test_utils::load` loads source.
+/// Loads the document `dast`, as `test_utils::load` loads source, but with
+/// every author's value essential (`LoadOptions::classify` off, ADR 0018):
+/// the unit tests it serves check the language's rules over test-only
+/// components, which no input reaches, and request their props unchecked
+/// (`request_prop`).
+#[cfg(any(test, feature = "testing"))]
 pub fn load(dast: Dast) -> crate::Result<crate::Document> {
     let mut t = crate::LoadTimings::default();
-    crate::Document::load_dast(std::sync::Arc::new(dast), Default::default(), &mut t)
+    let options = crate::LoadOptions {
+        classify: false,
+        ..Default::default()
+    };
+    crate::Document::load_dast(std::sync::Arc::new(dast), options, &mut t)
 }

@@ -209,6 +209,9 @@ pub struct BuildOutput {
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
     cell_label: Box<dyn Fn(CellIdx) -> String>,
+    /// The probe's writable template slots (`Classes::Record`); None for
+    /// any other build.
+    record: Option<Vec<Vec<u64>>>,
 }
 
 impl BuildOutput {
@@ -219,6 +222,12 @@ impl BuildOutput {
         list.append(&mut self.structure.diagnostics);
         crate::diagnostics::sort(&mut list);
         self.structure.diagnostics = list;
+    }
+
+    /// The writable template slots the probe found, which every later
+    /// build classes its value slots by (ADR 0018).
+    pub(crate) fn writable_record(&self) -> Option<Vec<Vec<u64>>> {
+        self.record.clone()
     }
 
     /// The structural depth this build found (`Structure`).

@@ -1,15 +1,15 @@
-defaults: from 0 to 10 by 1, at 0: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-without an initialValue: at `from`, wherever that is: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-starts at initialValue: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-an initialValue off the grid shows snapped: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-a request snaps to the nearest step and clamps to the range: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-a range that does not start at zero: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-non-finite requests are dropped: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-a fractional step counts its items as the current core does: cells 18 · essential 4 · fixed 2 · instrs 12 · components 2
-a request on index snaps too: cells 19 · essential 4 · fixed 3 · instrs 12 · components 3
-bindValueTo an input: the input receives the snapped value: cells 18 · essential 4 · fixed 2 · instrs 12 · components 3
-bindValueTo a derived value: the request continues down the chain: cells 19 · essential 4 · fixed 2 · instrs 13 · components 4
-bound to a sum with an emptied input: the request is dropped, not written as NaN: cells 20 · essential 5 · fixed 2 · instrs 13 · components 5
-a slider bound to a slider with another step: cells 33 · essential 7 · fixed 2 · instrs 24 · components 3
-step from another slider: cells 33 · essential 7 · fixed 2 · instrs 24 · components 3
-a point whose x is a slider drags the slider: cells 24 · essential 10 · fixed 2 · instrs 12 · components 4
+defaults: from 0 to 10 by 1, at 0: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+without an initialValue: at `from`, wherever that is: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+starts at initialValue: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+an initialValue off the grid shows snapped: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+a request snaps to the nearest step and clamps to the range: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+a range that does not start at zero: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+non-finite requests are dropped: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+a fractional step counts its items as the current core does: cells 18 · essential 1 · fixed 5 · instrs 12 · components 2
+a request on index snaps too: cells 19 · essential 1 · fixed 6 · instrs 12 · components 3
+bindValueTo an input: the input receives the snapped value: cells 18 · essential 1 · fixed 5 · instrs 12 · components 3
+bindValueTo a derived value: the request continues down the chain: cells 19 · essential 1 · fixed 5 · instrs 13 · components 4
+bound to a sum with an emptied input: the request is dropped, not written as NaN: cells 20 · essential 2 · fixed 5 · instrs 13 · components 5
+a slider bound to a slider with another step: cells 33 · essential 1 · fixed 8 · instrs 24 · components 3
+step from another slider: cells 33 · essential 2 · fixed 7 · instrs 24 · components 3
+a point whose x is a slider drags the slider: cells 24 · essential 6 · fixed 6 · instrs 12 · components 4
