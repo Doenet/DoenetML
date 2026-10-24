@@ -15,6 +15,18 @@ Main uses two mechanisms that authors should not be able to tell apart:
 The cells core keeps neither mechanism. It stamps templates per scope, rebuilds on a count
 change (ADR 0004), and splits choices by timing (ADR 0009).
 
+**"Composite" is an implementation term, not an author concept.** The tags grouped here do
+different jobs:
+- grouping: `group`, `module`, `setup`;
+- repeating: `repeat`, `repeatForSequence`;
+- choosing: `select`, `conditionalContent`, `shuffle`;
+- gathering: `collect`, `sort`.
+
+That they all "replace themselves with their content" is how the current core works. Authors
+should not have to think about it. The principles below are stated so that each can be taught
+as part of its own tag ("a repeat shows its content once per item, where the repeat is
+written"), without the category. D24 proposes how to present them.
+
 Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
 `packages/doenetml-worker-javascript/src/`. Tiers are defined in the [README](README.md).
 
@@ -213,6 +225,9 @@ marked "just submitted" (#2325).
 ### COMP-11: `$cc.x` names the `x` in whichever case is active (Tier 1 when every case declares `x` with the same type)
 When the cases declare `x` with different types the result is meaningless. With a math `x` in one
 case and a text `x` in the else, `<math>$cc.x+1</math>` becomes `h i + 1` (**[probe]**).
+
+Names inside cases are private today: a plain `$x` from outside finds nothing (**[probe]**).
+Whether they should be is an open decision (D22).
 
 ADR 0009 makes the following a rule, and it is easy to state:
 

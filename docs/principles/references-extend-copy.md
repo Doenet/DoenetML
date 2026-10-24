@@ -39,8 +39,14 @@ Sub-rules. All three are Tier 2: they rarely matter, but they keep the rule tota
 - An ancestor's name beats a descendant with the same name
   (`parent_name_supersedes_unique_descendant`).
 - Children of `repeat`, `repeatForSequence`, `option`, `case` and `else` are invisible from
-  outside. They are reached only through the container: `$r[2].x`, `$opt.x`
-  (`elements_with_children_invisible_to_their_grandparents`).
+  outside. They are reached only through the container: `$r[2].x`, `$opt.x`, `$cc.x`
+  (`elements_with_children_invisible_to_their_grandparents`, `RS/resolve.rs:64`).
+  - **[probe]** This covers both forms of `<conditionalContent>`. A plain `$x` from outside
+    reports "No referent found". `$cc.x` follows the active case, and is empty when no case
+    is active.
+  - For repeats and options the privacy is needed, because they make several instances of a
+    name. A `conditionalContent` shows at most one case at a time, so it is the one place where
+    the privacy is a choice rather than a necessity (D22).
 
 Evidence:
 - `packages/docs-nextra/content/concepts/references.mdx` ("Resolving to the nearest match",
@@ -168,6 +174,31 @@ Exceptions:
 - An extend stops being bare-equivalent as soon as it has a name, an attribute, children or a
   different type.
 - A name alone already changes the click identity (REF-9).
+
+### REF-1a: a bare reference to an input is the input's value (Tier 1)
+`$mi` is the math the reader entered, not a second input. `<mathInput extend="$mi"/>` gives a
+second input tied to the first. So for these components, a bare reference and the unadorned
+extend differ.
+
+**[probe]** `<p>$mi $ti $bi $s</p>` (a mathInput, a textInput, a booleanInput and a slider)
+holds four value references. `<p><mathInput extend="$mi"/></p>` holds a `mathInput`.
+
+The mechanism is `variableForImplicitProp` on the referent's class
+(`W/components/abstract/Copy.js:493-595`). An implicit prop is used unless `createComponentOfType`
+names the referent's own type, which the written-out extend does.
+- **Classes that read as a different type:** every input (`Input.js`, `MathInput`, `TextInput`,
+  `BooleanInput`, `ChoiceInput`, `Slider`, `MatrixInput`, `FractionInput`, `CodeEditor`,
+  `SubsetOfRealsInput`, `OrbitalDiagramInput`), `Answer` (`submittedResponses`), `Award`
+  (`awarded`) and `Choice` (`submitted`).
+- **Classes where it is only an optimization:** `Math`, `Text`, `Number`, `Boolean` and `Label`
+  read their own `value`, which gives the same type.
+
+Evidence: `T/copying/extend_references.test.ts:6040` "implicitProp from an input", `:6172`
+"references of composites ignore implicitProp", and `:6209` (`$repeat[1]` gives an input, while
+`$repeat[1].mi` gives a math).
+
+The input case is a long-standing author idiom. The answer, award and choice cases are less
+obvious, and none is documented as a rule (D21).
 
 Tier 3: that both forms are built as a `_ref` value reference is an implementation choice
 (the `_ref` assertions in `extend_parity.test.ts` and `extend_references.test.ts`).
