@@ -124,6 +124,25 @@ export default class Angle extends GraphicalComponent {
         return sugarInstructions;
     }
 
+    // A copy given this angle's radians (`<repeat copy>`, or an unlinked
+    // copy of a reference) keeps them only when they come from
+    // `radiansShadow`. Radians measured from points or lines are measured
+    // again from the copy's own points or lines, which can later change in
+    // number.
+    async serialize(parameters = {}) {
+        const serialized = await super.serialize(parameters);
+        if (serialized.state && "radians" in serialized.state) {
+            const fromShadow =
+                (await this.stateValues.radiansShadow) !== null &&
+                (await this.stateValues.numPointsSpecified) < 3 &&
+                (await this.stateValues.betweenLinesName) === null;
+            if (!fromShadow) {
+                delete serialized.state.radians;
+            }
+        }
+        return serialized;
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 

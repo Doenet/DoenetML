@@ -1681,4 +1681,60 @@ describe("Angle tag tests @group4", async () => {
             true,
         ]);
     });
+
+    it("a copy's angle through points drops to its default when its points drop below three", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <mathInput name="n" prefill="3" />
+  <graph>
+    <repeatForSequence name="pts" length="$n" valueName="i"><point>($i, $i^2)</point></repeatForSequence>
+    <repeat name="r" for="1" valueName="v">
+      <angle name="a" through="$pts" />
+    </repeat>
+    <repeat copy="$r" name="rc" />
+    <angle name="B" through="(1,0) (0,0) $pts[3]" />
+    <angle name="C" extend="$B" />
+    <angle name="D" copy="$C" />
+  </graph>
+  `,
+        });
+
+        async function check_items(ra: number, rb: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, radians] of [
+                ["r[1].a", ra],
+                ["rc[1].a", ra],
+                ["B", rb],
+                ["C", rb],
+                ["D", rb],
+            ] as const) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.radians.evaluate_to_constant(),
+                ).closeTo(radians, 1e-12);
+            }
+        }
+
+        const ra3 = 2 * Math.PI - Math.atan2(5, 1) + Math.atan2(-3, -1);
+        const rb3 = Math.atan2(9, 3);
+        await check_items(ra3, rb3);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(Math.PI / 2, Math.PI / 2);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(ra3, rb3);
+    });
 });
