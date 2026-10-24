@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
     moveLine,
+    moveText,
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
@@ -55,6 +56,17 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
                     componentIdx: await resolvePathToNodeIdx(name),
                     point1coords: point1,
                     point2coords: point2,
+                    core,
+                });
+            },
+            async moveAdapterOf(name: string, x: number, y: number) {
+                const adapter =
+                    core.core!._components[await resolvePathToNodeIdx(name)]!
+                        .adapterUsed;
+                await moveText({
+                    componentIdx: adapter.componentIdx,
+                    x,
+                    y,
                     core,
                 });
             },
@@ -425,6 +437,41 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         await h.typeMath("ex", "8");
         saved = await h.reload();
         expect(Object.keys(saved).some((key) => key.startsWith("/~r|"))).eq(
+            false,
+        );
+    });
+
+    it("forgets what a reload kept for a copy and an adapter once they are deleted", async () => {
+        // the copy's ids for the case not active, and the adapter's, are
+        // made as they run: under the copy's id and with `@@adapt`
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <p><mathInput name="ex" prefill="7" /></p>
+    <repeatForSequence name="r" from="1" to="1" exclude="$ex">
+        <conditionalContent name="cc">
+            <case condition="$b">
+                <mathInput name="mi" />
+                <graph><boolean name="bo">true</boolean></graph>
+            </case>
+            <else><mathInput name="mi" /></else>
+        </conditionalContent>
+        <group copy="$cc" name="c" />
+    </repeatForSequence>
+    `);
+        await h.typeMath("r[1].c.mi", "3");
+        await h.moveAdapterOf("r[1].cc.bo", 7, -7);
+        await h.setB(false);
+        let saved = await h.reload();
+        const keys = Object.keys(saved);
+        expect(keys.some((key) => key.includes("|case0|"))).eq(true);
+        expect(keys.some((key) => key.includes("@@adapt"))).eq(true);
+
+        await h.typeMath("ex", "8");
+        saved = await h.reload();
+        expect(Object.keys(saved).some((key) => key.includes("|case0|"))).eq(
+            false,
+        );
+        expect(Object.keys(saved).some((key) => key.includes("@@adapt"))).eq(
             false,
         );
     });

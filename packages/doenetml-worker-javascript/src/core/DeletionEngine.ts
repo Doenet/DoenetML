@@ -327,6 +327,7 @@ export async function deleteComponents({
     });
 
     const stateIdsToForget: string[] = [];
+    const stateIdsDeleted: string[] = [];
 
     for (const componentIdxStr in componentsToDelete) {
         const componentIdx = Number(componentIdxStr);
@@ -343,6 +344,7 @@ export async function deleteComponents({
             }
         } else {
             deleteSavedState(core, component.stateId);
+            stateIdsDeleted.push(component.stateId);
             stateIdsToForget.push(
                 ...(component.stateIdsKeptForRecreation ?? []),
                 ...(component.constructor.stateIdsOfPossibleReplacements?.(
@@ -362,9 +364,7 @@ export async function deleteComponents({
         );
     }
 
-    if (stateIdsToForget.length > 0) {
-        forgetKeptState(core, new Set(stateIdsToForget));
-    }
+    forgetKeptState(core, new Set(stateIdsToForget), new Set(stateIdsDeleted));
 
     return {
         success: true,
@@ -496,37 +496,63 @@ function deleteSavedState(core: Core, stateId: string) {
 }
 
 /**
- * Forget what was kept for the components with `stateIds`, other than those
- * that are live, such as the active case's. A composite among them, such as a
- * `<repeatForSequence>` in a case, gives what it makes ids that start with its
- * own and a `|`, so those are forgotten too.
+ * Forget what was saved for components that will not be made again, other
+ * than those that are live, such as the active case's.
+ *
+ * `stateIds` names what a deleted composite kept, or can make, for parts of
+ * it that are not live, such as the cases of a `<conditionalContent>` not
+ * active: everything saved under them is forgotten. `stateIdsDeleted` names
+ * the components deleted outright: what is still queued from a load under
+ * them, or held as a copy's snapshot, would only ever be applied to their
+ * descendants, so it is forgotten too. Under an id means the id itself or
+ * one that continues it with `|` (what a composite makes, such as a copy's
+ * replacements or a `<repeatForSequence>`'s iterations) or `@@` (an adapter).
  */
-function forgetKeptState(core: Core, stateIds: Set<string>) {
-    const isForgotten = (stateId: string) => {
-        if (stateIds.has(stateId)) {
+function forgetKeptState(
+    core: Core,
+    stateIds: Set<string>,
+    stateIdsDeleted: Set<string>,
+) {
+    const isUnder = (stateId: string, owners: Set<string>) => {
+        if (owners.has(stateId)) {
             return true;
         }
-        for (
-            let i = stateId.indexOf("|");
-            i !== -1;
-            i = stateId.indexOf("|", i + 1)
-        ) {
-            if (stateIds.has(stateId.slice(0, i))) {
+        for (let i = 0; i < stateId.length; i++) {
+            if (
+                (stateId[i] === "|" || stateId.startsWith("@@", i)) &&
+                owners.has(stateId.slice(0, i))
+            ) {
                 return true;
             }
         }
         return false;
     };
     const queued = core.updateInfo.stateVariableUpdatesForMissingComponents;
-    const candidates = new Set([
-        ...Object.keys(core.cumulativeStateVariableChanges),
-        ...Object.keys(
-            core.cumulativeStateVariableChanges.__copySnapshots ?? {},
-        ),
-        ...Object.keys(queued),
-    ]);
+    const copySnapshots =
+        core.cumulativeStateVariableChanges.__copySnapshots ?? {};
+    const notMadeYet = [...Object.keys(queued), ...Object.keys(copySnapshots)];
+    if (notMadeYet.length === 0 && stateIds.size === 0) {
+        return;
+    }
+    const candidates = new Set(notMadeYet);
+    if (stateIds.size > 0) {
+        for (const stateId of Object.keys(
+            core.cumulativeStateVariableChanges,
+        )) {
+            candidates.add(stateId);
+        }
+    }
     for (const stateId of candidates) {
-        if (stateId.startsWith("__") || !isForgotten(stateId)) {
+        if (stateId.startsWith("__")) {
+            continue;
+        }
+        if (
+            !isUnder(stateId, stateIds) &&
+            !(
+                (stateId in queued || stateId in copySnapshots) &&
+                isUnder(stateId, stateIdsDeleted)
+            )
+        ) {
             continue;
         }
         const componentIdx = core.componentIdxByStateId[stateId];
