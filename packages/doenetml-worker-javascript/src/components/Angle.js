@@ -647,6 +647,14 @@ export default class Angle extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "radiansShadow",
                 },
+                numPointsSpecified: {
+                    dependencyType: "stateVariable",
+                    variableName: "numPointsSpecified",
+                },
+                betweenLinesName: {
+                    dependencyType: "stateVariable",
+                    variableName: "betweenLinesName",
+                },
             }),
             definition({ dependencyValues }) {
                 let swapPointOrder = false;
@@ -670,7 +678,14 @@ export default class Angle extends GraphicalComponent {
                             swapPointOrder,
                         },
                     };
-                } else if (dependencyValues.radiansShadow !== null) {
+                } else if (
+                    dependencyValues.radiansShadow !== null &&
+                    dependencyValues.numPointsSpecified < 3 &&
+                    dependencyValues.betweenLinesName === null
+                ) {
+                    // Three points or two lines determine the angle from
+                    // `points`, as they do in a `<repeat copy>`, whose angles
+                    // are given their source's radians as `radiansShadow`
                     return {
                         setValue: {
                             radians: dependencyValues.radiansShadow.simplify(),
