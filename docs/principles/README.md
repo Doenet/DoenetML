@@ -60,11 +60,24 @@ removed.
 2. Names inside a copied or repeated piece are private to it. Reach them through the
    container's name: `$copy.h`, `$r[2].h`. (NAME-3)
 
+   Names inside a `<conditionalContent>` are private too: a plain `$x` from outside finds
+   nothing, and only `$cc.x` reaches the `x` in the active case. Privacy is needed for repeats
+   and copies, because they make several instances of a name. A `conditionalContent` shows at
+   most one case at a time, so it does not need privacy. How names and `conditionalContent`
+   should work is open ([decisions.md](decisions.md), D22).
+
 **References and `extend`**
 
 3. `$x` puts x itself there, again. It shows x's current state, and interacting with it
    changes x. `<T extend="$x"/>` is the same reference, written out so that you can change it.
    (REF-1, REF-2)
+
+   **Exception: inputs.** A bare reference to an input is the input's value, not a second
+   input: `$mi` is the math the reader entered. Write `<mathInput extend="$mi"/>` to get a
+   second input box tied to the first. A few other components also read as a value when
+   referenced bare: an `<answer>` gives its submitted responses, an `<award>` whether it was
+   awarded, and a `<choice>` whether it was submitted. These come from each class's
+   `variableForImplicitProp` (REF-1a; [decisions.md](decisions.md), D21).
 4. On an `extend`:
    - an attribute you write replaces x's;
    - an attribute you don't write comes from x;
@@ -95,11 +108,14 @@ removed.
 
    (VAL-6 to VAL-8)
 
-**Composites**
+**Grouping, repeating and choosing**
 
-10. A composite (`group`, `repeat`, `select`, `conditionalContent`, `module`, …) disappears;
-    its content sits where it was written. A list-like composite separates its items with
-    commas. (COMP-1, COMP-2)
+These rules are stated per tag, in terms of what the reader sees. "Composite" is an
+implementation term, and authors do not need it ([decisions.md](decisions.md), D24).
+
+10. What a `<repeat>`, `<select>`, `<conditionalContent>`, `<collect>` or `<group>` produces is
+    shown where the tag is written, as if written there. Content it repeats, picks or gathers
+    is separated by commas, as a list is. (COMP-1, COMP-2)
 11. Selections are made once, from the variant, and never change. The same variant gives the
     same selections. (COMP-8, VAR-1)
 
@@ -112,12 +128,13 @@ removed.
 
     | Attribute | Effect |
     |---|---|
-    | `fixed` | no interaction can change the component |
-    | `fixLocation` | it cannot move |
-    | `draggable="false"` | the reader cannot drag it |
+    | `fixed` | the component still follows what defines it (its children and attributes), but nothing can push a change into it: not a drag, not an input bound to it, not an `<updateValue>`, and not a change passed back from something that depends on it |
+    | `fixLocation` | the same as `fixed`, but only for where it is; other properties, such as its label, can still be changed |
+    | `draggable="false"` | the reader cannot drag it; other changes still reach it |
     | `disabled` | an input or button takes no input and does not act |
 
-    (CTX-1 to CTX-4)
+    `fixed` is confusing to authors as it stands, and `modifyIndirectly` overlaps with it. See
+    [decisions.md](decisions.md), D23. (CTX-1 to CTX-4)
 
 **Interaction**
 
@@ -125,25 +142,6 @@ removed.
     can be run backward (`2$n+1`, `($a,$b)`). Otherwise it snaps back. (INT-1 to INT-3)
 15. A reader's work survives a reload, and survives content being hidden and shown again.
     (SAVE-1, SAVE-4)
-
-## A correction to the framing that started this
-
-The principle "a construction behaves as if the referent's DoenetML were pasted here" belongs
-to **`copy`**, not to `extend`. The survey confirms it for `copy` (#2240, #2259, #2231,
-`copying/copy_of_extend.test.ts`).
-
-An `extend` is *the same component, with your changes*. It does not re-paste the source.
-References inside an extended subtree keep the meaning they have in the source, however many
-`extend`s are chained (REF-6). A copy, by contrast, is pasted, so references to names outside
-the copied part are looked up again where the copy lands (CPY-6). That difference is
-author-visible ([decisions.md](decisions.md), D1).
-
-The exception remembered from the recent PRs is **a copy of an extend** (#2259). `r` names a
-linked reference, which has no DoenetML of its own, so `copy="$r"` pastes the DoenetML of what
-`r` points to, with r's own attributes on top. That is principled. The leftover special case is
-in the implementation: a per-class list (`attributesDefiningPrimaryValue`) decides which classes
-re-paste their definition, and the rest freeze their value
-([references-extend-copy.md](references-extend-copy.md), CPY-4).
 
 ## How to use these documents
 
