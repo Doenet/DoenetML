@@ -19,10 +19,10 @@ component! {
         response: attr(NO_VALUE) { ref_prop: expr },
         correct: children,
         // A submit writes these (`Document::submit_requests`).
-        submitted: attr(NO_VALUE) { interactive },
+        submitted: attr(NO_VALUE) { interactive, written_by_action },
         credit: by_planner,
         weight: attr(1.0),
-        numSubmissions: attr(0.0) { interactive },
+        numSubmissions: attr(0.0) { interactive, written_by_action },
     }
     alternate_names {
         // The current core's name for `credit`, so `$ans.creditAchieved`

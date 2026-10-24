@@ -57,6 +57,10 @@ impl<'c> Builder<'c> {
                 class_def[root] = s as u32;
             }
         }
+        // Which value slots a student's action can write (ADR 0018);
+        // measured, not yet used to class them.
+        let writable = self.writable_slots(&roots, &class_def);
+        let mut n_writable = 0;
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         // Count each kind of defining slot first: the essential tables are
         // kept, and none of these should reserve more than it fills.
@@ -93,6 +97,7 @@ impl<'c> Builder<'c> {
             }
             match &self.sources[s] {
                 BuiltSource::Literal(v) | BuiltSource::Default(v) => {
+                    n_writable += writable[s] as usize;
                     let (scope, tslot, key) = self.essential_key(s as SlotId);
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
@@ -320,6 +325,7 @@ impl<'c> Builder<'c> {
             essential_slots,
             essential_keys,
             essential_defaults,
+            n_writable,
             structural_depth: depths.iter().copied().max().unwrap_or(0),
             repeat_depths: depths,
             repeat_cross_reads: cross_reads,

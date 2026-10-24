@@ -69,7 +69,7 @@ pub mod response {
         props {
             response: by_planner,
             // A submit writes it (`Document::submit_requests`).
-            submitted: by_planner { interactive },
+            submitted: by_planner { interactive, written_by_action },
             value: by_planner,
         }
         planner: Whole(plan),
@@ -191,7 +191,7 @@ pub mod update_value {
         tags: ["updateValue"],
         props {
             // Pressing its `<triggerSet>` requests it (`Document::trigger`).
-            target: attr(NO_VALUE) { interactive },
+            target: attr(NO_VALUE) { interactive, written_by_action },
             newValue: attr(NO_VALUE),
         }
         planner: Props,

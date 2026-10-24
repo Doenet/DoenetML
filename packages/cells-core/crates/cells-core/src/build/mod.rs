@@ -60,6 +60,7 @@ mod probe;
 pub mod signature;
 mod structure;
 mod view;
+mod writable;
 
 pub(crate) use probe::probe;
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};

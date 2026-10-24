@@ -443,6 +443,19 @@ impl ComponentType {
         pi < n_props && self.list().is_some_and(|list| list.interactive)
     }
 
+    /// Whether prop `pi` is one an action writes (ADR 0018).
+    pub fn is_action_prop(self, pi: usize) -> bool {
+        self.prop_defs()
+            .get(pi)
+            .is_some_and(|d| d.written_by_action)
+    }
+
+    /// Whether prop `pi` is where a student's action starts: a renderer's
+    /// request (`is_interactive_prop`) or an action (`is_action_prop`).
+    pub fn is_input_prop(self, n_props: usize, pi: usize) -> bool {
+        self.is_interactive_prop(n_props, pi) || self.is_action_prop(pi)
+    }
+
     /// The prop a bare `$name` reference resolves to.
     pub fn default_prop(self) -> Option<&'static str> {
         self.def().default_prop
@@ -535,6 +548,9 @@ pub struct PropDef {
     /// A renderer may request this prop: a student's action writes it, so
     /// it is one of the document's inputs (ADR 0017).
     pub interactive: bool,
+    /// An action writes this prop (a submit, a trigger): student state,
+    /// though no renderer requests it (ADR 0018).
+    pub written_by_action: bool,
 }
 
 impl PropDef {
