@@ -1547,6 +1547,53 @@ describe("UpdateValue tag tests @group1", async () => {
         await check(5, 5, 5);
     });
 
+    it("one pointer down on two overlapping objects of a focus-triggered action runs it once", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <rectangle name="r" vertices="(0,0) (4,2)" filled />
+      <text name="t" anchor="(2,1)">label</text>
+    </graph>
+    <number name="n">0</number>
+    <updateValue triggerWhenObjectsFocused="$r $t" target="$n" newValue="$n+1" />
+    `,
+        });
+
+        const rIdx = await resolvePathToNodeIdx("r");
+        const tIdx = await resolvePathToNodeIdx("t");
+
+        async function check(n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(n);
+        }
+
+        // what the renderers send for one pointer down on the label
+        async function pressLabel(gestureId: string) {
+            await core.requestAction({
+                componentIdx: tIdx,
+                actionName: "textFocused",
+                args: { componentIdx: tIdx, gestureId },
+            });
+            await core.requestAction({
+                componentIdx: rIdx,
+                actionName: "polygonFocused",
+                args: { componentIdx: rIdx, gestureId },
+            });
+        }
+
+        await pressLabel("1|100");
+        await check(1);
+
+        await pressLabel("1|200");
+        await check(2);
+    });
+
     it("update triggered when object focused", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
