@@ -109,8 +109,18 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromDoenetText("round(x + 1, 2)").expression).eq(
             "copysign(floor(abs(x + 1)*10^2 + 0.5)/10^2, x + 1)",
         );
-        // math-expressions takes only 0 to 15 whole places.
-        for (const text of ["round(x, -1)", "round(x, 1.5)", "round(x, x)"]) {
+        expect(fromDoenetText("round(x, 15)").expression).eq(
+            "copysign(floor(abs(x)*10^15 + 0.5)/10^15, x)",
+        );
+        // math-expressions takes only 0 to 15 whole places, and the places
+        // must be written as a number.
+        for (const text of [
+            "round(x, -1)",
+            "round(x, 1.5)",
+            "round(x, 16)",
+            "round(x, x)",
+            "round(x, 1+1)",
+        ]) {
             expect(fromDoenetText(text).unsupportedFeature).eq("round");
         }
     });

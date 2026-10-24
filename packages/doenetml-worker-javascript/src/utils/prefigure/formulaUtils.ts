@@ -71,7 +71,8 @@ const MAPPED_FUNCTIONS: Record<string, (arg: string) => string> = {
     // math-expressions evaluates n! as gamma(n+1), so non-integers work.
     factorial: (a) => `gamma(${a} + 1)`,
     // Python's round() rounds half to even; math-expressions rounds half
-    // away from zero, so round(-2.5) is -3.
+    // away from zero, so round(-2.5) is -3. `round(x, n)` is handled by
+    // `emitRoundToPlaces`.
     round: (a) => `copysign(floor(abs(${a}) + 0.5), ${a})`,
 };
 
@@ -94,7 +95,7 @@ const FUNCTION_ALIASES: Record<string, string> = {
  * Functions of several arguments, given as a tuple, that PreFigure's
  * namespace has under the same name, with the number of arguments each
  * accepts. `log(x, b)` is the base-`b` logarithm in both math-expressions
- * and Python.
+ * and Python. `round(x, n)` is translated by `emitRoundToPlaces` instead.
  */
 const MULTI_ARGUMENT_FUNCTIONS: Record<string, { min: number; max: number }> = {
     atan2: { min: 2, max: 2 },
@@ -104,33 +105,9 @@ const MULTI_ARGUMENT_FUNCTIONS: Record<string, { min: number; max: number }> = {
 };
 
 /**
- * Emit `round(x, n)`, rounding `x` to `n` decimal places half away from
- * zero, as math-expressions does (Python's `round(x, n)` rounds half to
- * even). math-expressions accepts only a whole number of places from 0 to
- * 15, so any other `n`, including one that is not a number, is reported as
- * unsupported rather than drawn where DoenetML's own graph draws nothing.
+ * One-argument functions PreFigure's namespace has under the same name as
+ * math-expressions, emitted unchanged.
  */
-function emitRoundToPlaces(
-    args: unknown[],
-    allowedSymbols: ReadonlySet<string> | undefined,
-): Emitted {
-    const [value, places] = args;
-    if (
-        typeof places !== "number" ||
-        !Number.isInteger(places) ||
-        places < 0 ||
-        places > 15
-    ) {
-        throw new UnsupportedFormulaError("round");
-    }
-    const x = emit(value, allowedSymbols).text;
-    const scale = `10^${places}`;
-    return {
-        text: `copysign(floor(abs(${x})*${scale} + 0.5)/${scale}, ${x})`,
-        prec: PREC_ATOM,
-    };
-}
-
 const PASS_THROUGH_FUNCTIONS = new Set([
     "asin",
     "acos",
@@ -263,6 +240,38 @@ function emitNumber(value: number): Emitted {
     return value < 0
         ? { text: String(value), prec: PREC_UNARY }
         : { text: String(value), prec: PREC_ATOM };
+}
+
+/**
+ * Emit `round(x, n)`, rounding `x` to `n` decimal places half away from
+ * zero, as math-expressions does (Python's `round(x, n)` rounds half to
+ * even). math-expressions accepts only a whole number of places from 0 to
+ * 15, so `n` must be such a number as written; any other `n` is reported as
+ * unsupported. That includes an expression such as `1+1`, which
+ * math-expressions would evaluate, but a referenced `<number>` arrives
+ * here as a number. The rounding happens in floating point, so a value
+ * stored just below a tie, such as `1.005` to two places, rounds down,
+ * where DoenetML's own graph rounds it up.
+ */
+function emitRoundToPlaces(
+    args: unknown[],
+    allowedSymbols: ReadonlySet<string> | undefined,
+): Emitted {
+    const [value, places] = args;
+    if (
+        typeof places !== "number" ||
+        !Number.isInteger(places) ||
+        places < 0 ||
+        places > 15
+    ) {
+        throw new UnsupportedFormulaError("round");
+    }
+    const x = emit(value, allowedSymbols).text;
+    const scale = `10^${places}`;
+    return {
+        text: `copysign(floor(abs(${x})*${scale} + 0.5)/${scale}, ${x})`,
+        prec: PREC_ATOM,
+    };
 }
 
 function emitApply(
