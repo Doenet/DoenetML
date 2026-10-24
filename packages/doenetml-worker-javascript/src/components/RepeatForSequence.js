@@ -299,6 +299,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 step: null,
                 type: null,
                 exclude: null,
+                lowercase: null,
             };
             return { replacements: [], diagnostics, nComponents };
         }
@@ -308,6 +309,7 @@ export default class RepeatForSequence extends CompositeComponent {
         let step = await component.stateValues.step;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
+        let lowercase = await component.stateValues.lowercase;
 
         workspace.lastReplacementParameters = {
             from,
@@ -315,6 +317,7 @@ export default class RepeatForSequence extends CompositeComponent {
             step,
             type,
             exclude,
+            lowercase,
         };
 
         const numIterates = await component.stateValues.numIterates;
@@ -477,6 +480,9 @@ export default class RepeatForSequence extends CompositeComponent {
         let step = await component.stateValues.step;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
+        // letters are numbered from 1 whatever their case, so `from` alone
+        // does not show that `a` became `A`
+        let lowercase = await component.stateValues.lowercase;
 
         // Nothing to change. Without this check, a sequence with excluded
         // elements would be made again on every call. Making it again changes
@@ -494,7 +500,8 @@ export default class RepeatForSequence extends CompositeComponent {
             lrp.length === length &&
             sameValue(lrp.step, step) &&
             lrp.exclude?.length === exclude.length &&
-            exclude.every((x, i) => sameValue(lrp.exclude[i], x))
+            exclude.every((x, i) => sameValue(lrp.exclude[i], x)) &&
+            lrp.lowercase === lowercase
         ) {
             return { replacementChanges, diagnostics, nComponents };
         }
@@ -532,7 +539,11 @@ export default class RepeatForSequence extends CompositeComponent {
                     modifyExistingValues = true;
                 }
             } else {
-                if (from !== lrp.from || step !== lrp.step) {
+                if (
+                    from !== lrp.from ||
+                    step !== lrp.step ||
+                    lowercase !== lrp.lowercase
+                ) {
                     modifyExistingValues = true;
                 }
             }
@@ -660,6 +671,7 @@ export default class RepeatForSequence extends CompositeComponent {
         lrp.length = length;
         lrp.step = step;
         lrp.exclude = exclude;
+        lrp.lowercase = lowercase;
 
         workspace.lastReplacementParameters = lrp;
 

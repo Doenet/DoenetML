@@ -5,6 +5,7 @@ import {
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -2930,6 +2931,39 @@ describe("RepeatForSequence tag tests @group3", async () => {
             core,
         });
         expect(await values()).eqls([1, 2]);
+    });
+
+    it("letters with an exclude follow a change of case", async () => {
+        // a and A are both letter 1, so the case is checked on its own
+        // when deciding whether anything changed
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="start" prefill="a" />
+    <repeatForSequence name="r" type="letters" from="$start" length="3" exclude="b" valueName="v">
+        <text name="t">$v</text>
+    </repeatForSequence>
+    <repeatForSequence name="r2" type="letters" from="$start" length="2" valueName="v">
+        <text name="t">$v</text>
+    </repeatForSequence>
+    <p name="p">$r[1].v $r[2].v $r2[1].v $r2[2].v</p>
+    `,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("a c a b");
+
+        await updateTextInputValue({
+            text: "A",
+            componentIdx: await resolvePathToNodeIdx("start"),
+            core,
+        });
+        expect(await text()).eq("A C A B");
     });
 
     it("excluding a blank input, with inputs in the template", async () => {
