@@ -58,6 +58,16 @@ impl SymKind {
         }
     }
 
+    /// The input positions its inverse may write (`OpSpec::writes`):
+    /// `Evaluate`'s expression, which a math input's value request writes
+    /// (`tick/invert.rs`); no other symbolic operator inverts.
+    pub fn writes(self) -> u64 {
+        match self {
+            SymKind::Evaluate => 1,
+            _ => 0,
+        }
+    }
+
     /// Whether the output is an expression handle (a math cell).
     pub fn makes_math(self) -> bool {
         matches!(self, SymKind::Instantiate { .. } | SymKind::Derivative)

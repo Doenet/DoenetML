@@ -247,9 +247,9 @@ snapshots only.
 1. **Declared writes** (step 2). `OpSpec::writes()` gives the input
    positions an inverse may write as a mask, a `u64` since a vector
    operator reads at most `MAX_VEC_IN` (64) inputs. In `scalar_ops!` an
-   `exact` or `projection` entry writes its first input unless it says
-   `writes(..)`, and a `drops` entry writes none; every entry today
-   writes `A`, `Hold` included, which never writes its flag. The
+   `exact` or `projection` entry writes its first input and a `drops`
+   entry none; every entry writes `A`, `Hold` included, which never
+   writes its flag. The
    `inverses` tests in `program/scalar.rs` check that the position each
    inverse returns is declared. `VecOp::writes` sits beside
    `VecOp::invert` and becomes a column of the table in `vector.rs`:
@@ -392,9 +392,10 @@ Settled while planning:
 - The record is of template slots, not of classes or cells: a value
   slot defines its own class, so its own template slot names it in
   every build, whatever aliases join it.
-- Every inverse that writes a scalar today writes its first input, so
-  the scalar declaration is a default with an override, not a field
-  every entry repeats.
+- Every scalar inverse writes its first input, so the scalar
+  declaration follows from the inverse's kind, not a field every entry
+  repeats. An entry that writes another input will need a form that says
+  so; the test fails until it has one.
 - `request_unchecked` alone cannot reach a value no input reaches,
   which is fixed after phase 4; the machinery tests that need one load
   with `classify` off. Step 5 holds otherwise.

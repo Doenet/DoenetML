@@ -209,6 +209,19 @@ impl Op {
         }
     }
 
+    /// The input cells its inverse may write (`writes`), each once per
+    /// position, in input order.
+    pub fn written_inputs<'a>(
+        &self,
+        operands: &'a [CellIdx],
+    ) -> impl Iterator<Item = CellIdx> + 'a {
+        let mask = self.writes();
+        self.inputs(operands)
+            .enumerate()
+            .filter(move |&(k, _)| k < 64 && mask & (1 << k) != 0)
+            .map(|(_, c)| c)
+    }
+
     /// All input cells, direct and in `operands`.
     pub fn inputs<'a>(&self, operands: &'a [CellIdx]) -> impl Iterator<Item = CellIdx> + 'a {
         let (a, b) = match self {
@@ -264,6 +277,27 @@ mod inverses {
             .filter(|v| v.is_finite())
             .fold(1.0f64, |m, v| m.max(v.abs()));
         (got.is_nan() && want.is_nan()) || got == want || (got - want).abs() <= 1e-9 * scale
+    }
+
+    /// Every input an inverse writes is one its entry declares
+    /// (`OpSpec::writes`, ADR 0018).
+    #[test]
+    fn every_inverse_writes_a_declared_input() {
+        for spec in OpSpec::scalar_samples() {
+            let n = spec.scalar_arity().unwrap();
+            let op = spec.bind_scalar(&(0..n as CellIdx).collect::<Vec<_>>());
+            assert_eq!(op.writes(), spec.writes(), "{spec:?}");
+            for cur in &assignments(n) {
+                for &d in &VALUES {
+                    if let Some((c, _)) = op.invert(cur, d) {
+                        assert!(
+                            spec.writes() & (1 << c) != 0,
+                            "{spec:?} at {cur:?}, asked {d}, wrote input {c}, which it does not declare"
+                        );
+                    }
+                }
+            }
+        }
     }
 
     #[test]

@@ -5,27 +5,29 @@
 //! component it serves. Inputs are consecutive entries of `Program::operands`,
 //! outputs are consecutive cells.
 //!
-//! Inverse rules, in one place so they can be judged together:
+//! Inverse rules, in one place so they can be judged together. The last
+//! column is the inputs each inverse may write (`VecOp::writes`, ADR
+//! 0018), which the `writes` tests below check:
 //!
-//! | operator                 | forward                               | inverse (requested outputs → inputs)                                 |
-//! |--------------------------|---------------------------------------|----------------------------------------------------------------------|
-//! | `Shape` (rigid)          | identity on n points                  | one point requested: rotate (and dilate if allowed) all about the    |
-//! |                          |                                       | pivot; several: translate all by the smallest requested shift        |
-//! | `CircleCenterPoint`      | (C, P) → (C, |P−C|)                   | center: translate P with C; radius: move P along its ray from C      |
-//! | `CirclePoints{n}`        | n points → (circumcenter or midpoint, | center: translate every point; radius: scale every point about the   |
-//! |                          | radius)                               | center                                                               |
-//! | `CircleTwoPointsRadius`  | (P1, P2, r) → center                  | center: translate both points                                        |
-//! | `PolarSlope`             | (P1, m, d) → P1 + d·(cos θ, sin θ)    | P2: write m = dy/dx and the signed distance d                        |
-//! | `PolarDirection`         | (P1, u, d) → P1 + d·unit(u) (or ⊥)    | P2: write u = unit(P2 − P1) (rotated back if ⊥) and d = |P2 − P1|   |
-//! | `LinePointsFromCoeffs`   | (a, b, c) → two points on ax+by+c=0   | points: translation keeps a, b and rescales c; otherwise all three   |
-//! | `ProjectCircle`          | (P, C, r) → nearest point on circle   | projection: the requested point is projected and written to P        |
-//! | `ProjectLine`            | (P, A, B) → nearest point on line AB  | projection: the requested point is projected and written to P        |
-//! | `First{n}`               | n conditions → position of the first  | none: a request cannot flip a branch                                 |
-//! |                          | that holds, or 0                      |                                                                      |
-//! | `Choose{n}`              | (choice, n branch cells) → the active | the active branch's cell only                                        |
-//! |                          | branch's cell                         |                                                                      |
-//! | `WeightedMean{n}`        | (n weights, n credits) → (mean,       | none: credit is not set by a request                                 |
-//! |                          | total weight)                         |                                                                      |
+//! | operator                 | forward                               | inverse (requested outputs → inputs)                                 | writes            |
+//! |--------------------------|---------------------------------------|----------------------------------------------------------------------|-------------------|
+//! | `Shape` (rigid)          | identity on n points                  | one point requested: rotate (and dilate if allowed) all about the    | the n points,     |
+//! |                          |                                       | pivot; several: translate all by the smallest requested shift        | never the pivot   |
+//! | `CircleCenterPoint`      | (C, P) → (C, |P−C|)                   | center: translate P with C; radius: move P along its ray from C      | C, P              |
+//! | `CirclePoints{n}`        | n points → (circumcenter or midpoint, | center: translate every point; radius: scale every point about the   | every point       |
+//! |                          | radius)                               | center                                                               |                   |
+//! | `CircleTwoPointsRadius`  | (P1, P2, r) → center                  | center: translate both points                                        | P1, P2, never r   |
+//! | `PolarSlope`             | (P1, m, d) → P1 + d·(cos θ, sin θ)    | P2: write m = dy/dx and the signed distance d                        | m, d              |
+//! | `PolarDirection`         | (P1, u, d) → P1 + d·unit(u) (or ⊥)    | P2: write u = unit(P2 − P1) (rotated back if ⊥) and d = |P2 − P1|   | u, d              |
+//! | `LinePointsFromCoeffs`   | (a, b, c) → two points on ax+by+c=0   | points: translation keeps a, b and rescales c; otherwise all three   | a, b, c           |
+//! | `ProjectCircle`          | (P, C, r) → nearest point on circle   | projection: the requested point is projected and written to P        | P                 |
+//! | `ProjectLine`            | (P, A, B) → nearest point on line AB  | projection: the requested point is projected and written to P        | P                 |
+//! | `First{n}`               | n conditions → position of the first  | none: a request cannot flip a branch                                 | none              |
+//! |                          | that holds, or 0                      |                                                                      |                   |
+//! | `Choose{n}`              | (choice, n branch cells) → the active | the active branch's cell only                                        | every branch cell,|
+//! |                          | branch's cell                         |                                                                      | never the choice  |
+//! | `WeightedMean{n}`        | (n weights, n credits) → (mean,       | none: credit is not set by a request                                 | none              |
+//! |                          | total weight)                         |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]); the engine, not the
@@ -153,6 +155,23 @@ impl VecOp {
             VecOp::First { n } => n as usize,
             VecOp::Choose { n } => n as usize + 1,
             VecOp::WeightedMean { n } => 2 * n as usize,
+        }
+    }
+
+    /// The input positions its inverse may write, as a mask (the table's
+    /// last column; `OpSpec::writes`).
+    pub fn writes(&self) -> u64 {
+        let first = |k: usize| (1u64 << k) - 1;
+        match *self {
+            VecOp::Shape { n, .. } => first(2 * n as usize),
+            VecOp::CircleCenterPoint | VecOp::CircleTwoPointsRadius => first(4),
+            VecOp::CirclePoints { n } => first(2 * n as usize),
+            VecOp::PolarSlope => 0b1100,
+            VecOp::PolarDirection { .. } => 0b11100,
+            VecOp::LinePointsFromCoeffs => 0b111,
+            VecOp::ProjectCircle | VecOp::ProjectLine => 0b11,
+            VecOp::First { .. } | VecOp::WeightedMean { .. } => 0,
+            VecOp::Choose { n } => first(n as usize + 1) & !1,
         }
     }
 
@@ -646,4 +665,108 @@ fn project_line(x: f64, y: f64, x1: f64, y1: f64, x2: f64, y2: f64) -> (f64, f64
     }
     let t = ((x - x1) * dx + (y - y1) * dy) / len2;
     (x1 + t * dx, y1 + t * dy)
+}
+
+/// Every input a vector inverse writes, as a scalar write or a point of a
+/// group, is one `VecOp::writes` declares (ADR 0018).
+#[cfg(test)]
+mod writes {
+    use super::*;
+
+    fn ops() -> Vec<VecOp> {
+        let dilating = RigidOpts {
+            dilate: true,
+            pivot: Pivot::Point,
+            ..RigidOpts::RIGID
+        };
+        let fixed_pivot = RigidOpts {
+            rotate: false,
+            dilate: true,
+            pivot: Pivot::Vertex(1),
+            ..RigidOpts::RIGID
+        };
+        vec![
+            VecOp::Shape {
+                n: 3,
+                opts: RigidOpts::RIGID,
+            },
+            VecOp::Shape {
+                n: 3,
+                opts: dilating,
+            },
+            VecOp::Shape {
+                n: 2,
+                opts: fixed_pivot,
+            },
+            VecOp::CircleCenterPoint,
+            VecOp::CirclePoints { n: 2 },
+            VecOp::CirclePoints { n: 3 },
+            VecOp::CircleTwoPointsRadius,
+            VecOp::PolarSlope,
+            VecOp::PolarDirection {
+                perpendicular: false,
+            },
+            VecOp::PolarDirection {
+                perpendicular: true,
+            },
+            VecOp::LinePointsFromCoeffs,
+            VecOp::ProjectCircle,
+            VecOp::ProjectLine,
+            VecOp::First { n: 2 },
+            VecOp::Choose { n: 3 },
+            VecOp::WeightedMean { n: 2 },
+        ]
+    }
+
+    /// Input values: generic, with zeros, with a NaN, and a choice of
+    /// each branch for `Choose`.
+    fn inputs(n: usize) -> Vec<Vec<f64>> {
+        let generic: Vec<f64> = (0..n).map(|k| 0.5 + k as f64 * 1.25).collect();
+        let zeros = vec![0.0; n];
+        let mut nan = generic.clone();
+        nan[n - 1] = f64::NAN;
+        let mut out = vec![generic, zeros, nan];
+        for choice in 1..=3 {
+            let mut v: Vec<f64> = (0..n).map(|k| k as f64 + 2.0).collect();
+            v[0] = choice as f64;
+            out.push(v);
+        }
+        out
+    }
+
+    #[test]
+    fn every_vector_inverse_writes_a_declared_input() {
+        for op in ops() {
+            let (n_in, n_out) = (op.n_in(), op.n_out());
+            let cells: Vec<CellIdx> = (0..n_in as CellIdx).collect();
+            for inp in inputs(n_in) {
+                let mut cur = vec![0.0; n_out];
+                op.eval(&inp, &mut cur);
+                // Each output alone, then all together, asked to move.
+                let mut asks: Vec<Vec<Option<f64>>> = (0..n_out)
+                    .map(|k| {
+                        let mut d = vec![None; n_out];
+                        d[k] = Some(cur[k] + 1.5);
+                        d
+                    })
+                    .collect();
+                asks.push(cur.iter().map(|v| Some(v - 0.75)).collect());
+                for desired in asks {
+                    let mut out = Produced::default();
+                    op.invert(&cells, &inp, &cur, &desired, &mut out);
+                    let written = out
+                        .writes
+                        .iter()
+                        .map(|w| w.0)
+                        .chain(out.groups.iter().flatten().flat_map(|p| p.cells));
+                    for c in written {
+                        assert!(
+                            op.writes() & (1 << c) != 0,
+                            "{op:?} at {inp:?}, asked {desired:?}, wrote input {c}, which it does not declare"
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
