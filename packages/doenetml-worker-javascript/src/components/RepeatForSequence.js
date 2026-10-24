@@ -479,8 +479,9 @@ export default class RepeatForSequence extends CompositeComponent {
         let exclude = await component.stateValues.exclude;
 
         // Nothing to change. Without this check, a sequence with excluded
-        // elements would be made again on every call, and its new components
-        // can call for another update, without end.
+        // elements would be made again on every call. Making it again changes
+        // its parent's children, which can mark the excluded values, and so
+        // this sequence, for another update, without end.
         // (An exclude value that is not a number, such as a blank input,
         // is NaN for a number sequence, so NaN must match NaN.)
         const sameValue = (a, b) =>
