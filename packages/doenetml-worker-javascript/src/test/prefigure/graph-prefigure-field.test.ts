@@ -594,6 +594,29 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         ]);
     });
 
+    it("warns on floor of a numpy NaN and on round(x, n), but not on factorial of infinity", async () => {
+        const doenetML = prefigureGraph(`
+  <vectorField>(1, floor(x y/(x^2+y^2)))</vectorField>
+  <slopeField>round(x y/(x^2+y^2))</slopeField>
+  <vectorField>(1, round(1/x, 2))</vectorField>
+  <slopeField>(1/x^2)!</slopeField>`);
+        const diagnostics = await getWarnings(doenetML);
+
+        // x y/(x^2 + y^2) is a numpy NaN at the origin, on which math.floor
+        // raises; round(x, n) is written with floor, of its first argument.
+        // But math.gamma(inf) is inf, so (1/x^2)! at x = 0 is drawn.
+        expect(
+            diagnostics.warnings.map((w) => [
+                w.code,
+                w.message.match(/\(-?[0-9.]+, -?[0-9.]+\)/)?.[0],
+            ]),
+        ).toEqual([
+            ["doenet-w0172", "(0, 0)"],
+            ["doenet-w0172", "(0, 0)"],
+            ["doenet-w0172", "(0, -10)"],
+        ]);
+    });
+
     it("draws the component a one-output function selects from a tuple", async () => {
         // The numerical function takes the first entry of `(x, y)` as the
         // slope, so PreFigure must be given `x`, not the tuple.

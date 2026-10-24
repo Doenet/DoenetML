@@ -51,12 +51,22 @@ type Raise = "error" | "division" | null;
 
 /**
  * Whether `a` is an infinity a `math` function receives from numpy arithmetic,
- * such as `1/x` at x = 0: `math.sin(inf)` raises, as does `math.floor(inf)`.
- * A Python number is never infinite here, since a Python division by zero or
- * an overflow raises before it can be passed on.
+ * such as `1/x` at x = 0, on which `math.sin` raises. A Python number reaching
+ * a `math` function is not taken to be infinite: a Python division by zero
+ * raises before it can be passed on. (A Python product that overflows to an
+ * infinity, such as `exp(400)*exp(400)`, is not modelled.)
  */
 function numpyInfinity(a: number, argumentIsPython: boolean): boolean {
     return !argumentIsPython && (a === Infinity || a === -Infinity);
+}
+
+/**
+ * Whether `a` is an infinity or a NaN from numpy arithmetic, as `1/x` and
+ * `x*y/(x^2+y^2)` give at the origin: `math.floor` raises on either, since it
+ * cannot convert them to an integer.
+ */
+function numpyNonFinite(a: number, argumentIsPython: boolean): boolean {
+    return !argumentIsPython && !Number.isFinite(a);
 }
 
 /** The largest `n` whose `math.gamma(n)` does not overflow a float. */
@@ -110,8 +120,11 @@ const RAISING_ARGUMENTS: Record<
     atanh: (a) => (Math.abs(a) >= 1 ? "error" : null),
     arctanh: (a) => (Math.abs(a) >= 1 ? "error" : null),
     // gamma(a + 1)
+    // gamma(a + 1), which is infinite at an infinity but raises at minus one.
     factorial: (a) =>
-        (Number.isInteger(a + 1) && a + 1 <= 0) || a + 1 > GAMMA_OVERFLOW
+        (Number.isInteger(a + 1) && a + 1 <= 0) ||
+        a === -Infinity ||
+        (Number.isFinite(a) && a + 1 > GAMMA_OVERFLOW)
             ? "error"
             : null,
     sin: (a, py) => (numpyInfinity(a, py) ? "error" : null),
@@ -123,10 +136,11 @@ const RAISING_ARGUMENTS: Record<
         numpyInfinity(a, py) ? "error" : Math.cos(a) === 0 ? "division" : null,
     cot: (a, py) =>
         numpyInfinity(a, py) ? "error" : Math.tan(a) === 0 ? "division" : null,
-    // `round` is translated to `floor`.
-    floor: (a, py) => (numpyInfinity(a, py) ? "error" : null),
-    ceil: (a, py) => (numpyInfinity(a, py) ? "error" : null),
-    round: (a, py) => (numpyInfinity(a, py) ? "error" : null),
+    // `round` is translated to `floor`, as is `round(x, n)`, which
+    // `pushFunctionCheck` gives its first argument.
+    floor: (a, py) => (numpyNonFinite(a, py) ? "error" : null),
+    ceil: (a, py) => (numpyNonFinite(a, py) ? "error" : null),
+    round: (a, py) => (numpyNonFinite(a, py) ? "error" : null),
     // 1/cosh(a), 1/sinh(a), 1/tanh(a)
     sech: (a) => (hyperbolicOverflows(a) ? "error" : null),
     csch: (a) =>
@@ -404,6 +418,16 @@ function firstRaisingLatticePoint({
         raise === "error" || (raise === "division" && divisionRaises);
 
     function pushFunctionCheck(fn: unknown, argumentAst: unknown) {
+        // round(x, n), written as floor(abs(x)*10^n + 0.5), raises as
+        // round(x) does.
+        if (
+            resolveAppliedFunctionName(fn) === "round" &&
+            Array.isArray(argumentAst) &&
+            argumentAst[0] === "tuple"
+        ) {
+            pushFunctionCheck(fn, argumentAst[1]);
+            return;
+        }
         // log(x, b), and log_b(x)
         const isLog = resolveAppliedFunctionName(fn) === "log";
         if (isLog && Array.isArray(argumentAst) && argumentAst[0] === "tuple") {
