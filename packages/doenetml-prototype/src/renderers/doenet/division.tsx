@@ -77,7 +77,8 @@ export const Division: BasicComponentWithPassthroughChildren<DivisionData> = ({
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
     const xrefLabel = node.data.props.xrefLabel;
-    const displayName = `${xrefLabel.label}${
+    // The Rust core sends no `xrefLabel` for every division.
+    const displayName = `${xrefLabel?.label ?? ""}${
         codeNumber ? ` ${codeNumber}.` : ""
     }`;
     const boxed = node.data.props.boxed || node.data.props.collapsible;

@@ -38,6 +38,14 @@ import { chromium } from "playwright";
 const HERE = import.meta.dirname;
 const require = createRequire(import.meta.url);
 const STANDALONE_DIST = path.resolve(HERE, "../../standalone/dist");
+// The cells core's viewer build, for `--core cells` (packages/benchmark).
+const CELLS_VIEWER_DIST = path.resolve(HERE, "../../cells-viewer/dist");
+// The Rust core's page (the prototype viewer on the Rust core), for
+// `--core rust`; it loads the core worker from /doenetml-worker/.
+const RUST_VIEWER_DIST = path.resolve(
+    HERE,
+    "../../benchmark/browser/rust-viewer/dist",
+);
 const PAGES = path.resolve(HERE, "../pages");
 // The core worker bundle, served same-origin for the workers-* scenarios so
 // they can boot raw workers without going through a viewer.
@@ -108,6 +116,10 @@ function parseArgs() {
         sizes: [25, 250],
         doenetML: DEFAULT_DOENETML,
         only: null,
+        // Which core's viewer the scenarios embed: the JS core through the
+        // standalone bundle, the Rust core through the prototype viewer, or
+        // the cells core through its viewer build.
+        core: "javascript",
     };
     for (let i = 0; i < args.length; i++) {
         if (args[i] === "--counts") {
@@ -116,6 +128,12 @@ function parseArgs() {
             opts.sizes = args[++i].split(",").filter(Boolean).map(Number);
         } else if (args[i] === "--doenetml") {
             opts.doenetML = fs.readFileSync(args[++i], "utf8");
+        } else if (args[i] === "--core") {
+            opts.core = args[++i];
+            if (!["javascript", "rust", "cells"].includes(opts.core)) {
+                console.error(`--core must be javascript, rust or cells`);
+                process.exit(1);
+            }
         } else if (args[i] === "--only") {
             // Regex over scenario names; non-matching scenarios are skipped.
             opts.only = new RegExp(args[++i]);
@@ -188,6 +206,20 @@ function startServer(docs, { cors = false, json = {}, extra = {} } = {}) {
         } else if (url.pathname.startsWith("/worker/")) {
             root = WORKER_DIST;
             rel = url.pathname.slice("/worker/".length);
+        } else if (url.pathname.startsWith("/doenetml-worker/")) {
+            // Where the Rust core's page loads the core worker from.
+            root = WORKER_DIST;
+            rel = url.pathname.slice("/doenetml-worker/".length);
+        } else if (url.pathname.startsWith("/rust/")) {
+            root = RUST_VIEWER_DIST;
+            rel = url.pathname.slice("/rust/".length) || "index.html";
+        } else if (url.pathname.startsWith("/cells/")) {
+            // The cells viewer's page; its index.html loads /assets/*.
+            root = CELLS_VIEWER_DIST;
+            rel = url.pathname.slice("/cells/".length) || "index.html";
+        } else if (url.pathname.startsWith("/assets/")) {
+            root = path.join(CELLS_VIEWER_DIST, "assets");
+            rel = url.pathname.slice("/assets/".length);
         } else if (url.pathname === "/comlink.mjs") {
             root = path.dirname(COMLINK_ESM);
             rel = path.basename(COMLINK_ESM);
@@ -297,6 +329,12 @@ async function runScenario({ name, url, expectInitialized }, idx) {
     const context = await chromium.launchPersistentContext(userDataDir, {
         headless: true,
         args: ["--no-sandbox", "--disable-dev-shm-usage"],
+        // The workspace's Playwright may be newer than the browsers on this
+        // machine; BENCH_CHROMIUM points it at one that is installed (the
+        // same variable packages/benchmark's browser harness reads).
+        ...(process.env.BENCH_CHROMIUM
+            ? { executablePath: process.env.BENCH_CHROMIUM }
+            : {}),
     });
     try {
         const page = context.pages()[0] ?? (await context.newPage());
@@ -306,11 +344,18 @@ async function runScenario({ name, url, expectInitialized }, idx) {
         await page.waitForFunction(() => window.__done === true, null, {
             timeout: 120_000,
         });
+        // A page reports a document its core could not load through
+        // window.__loadError instead of counting it initialized.
         await page.waitForFunction(
-            (expected) => window.__initializedCount >= expected,
+            (expected) =>
+                window.__initializedCount >= expected || window.__loadError,
             expectInitialized ?? 0,
             { timeout: 300_000 },
         );
+        const loadError = await page.evaluate(() => window.__loadError);
+        if (loadError) {
+            throw new Error(`document did not load: ${loadError}`);
+        }
         await page.waitForTimeout(SETTLE_MS);
 
         // Force a GC in the main realm so we measure retained, not garbage.
@@ -346,10 +391,33 @@ async function runScenario({ name, url, expectInitialized }, idx) {
 
 const opts = parseArgs();
 
-if (!fs.existsSync(path.join(STANDALONE_DIST, "doenet-standalone.js"))) {
+if (
+    opts.core === "javascript" &&
+    !fs.existsSync(path.join(STANDALONE_DIST, "doenet-standalone.js"))
+) {
     console.error(
         `Built standalone bundle not found at ${STANDALONE_DIST}.\n` +
             "Run: npm run build -w @doenet/standalone",
+    );
+    process.exit(1);
+}
+if (
+    opts.core === "cells" &&
+    !fs.existsSync(path.join(CELLS_VIEWER_DIST, "index.html"))
+) {
+    console.error(
+        `Built cells viewer not found at ${CELLS_VIEWER_DIST}.\n` +
+            "Run: npm run build -w packages/cells-viewer",
+    );
+    process.exit(1);
+}
+if (
+    opts.core === "rust" &&
+    !fs.existsSync(path.join(RUST_VIEWER_DIST, "index.html"))
+) {
+    console.error(
+        `Built Rust core page not found at ${RUST_VIEWER_DIST}.\n` +
+            "Run: npm run build:rust-viewer -w @doenet/benchmark",
     );
     process.exit(1);
 }
@@ -371,14 +439,22 @@ for (const size of opts.sizes) {
 const parser = await import("@doenet/parser");
 const emptyDast = parser.normalizeDocumentDast(parser.lezerToDast(""), true);
 
+// The windowed page's script is bundled from @doenet/doenetml-iframe's
+// build, which only the JS core's windowed-* scenarios need.
+const needWindowed =
+    opts.core === "javascript" &&
+    (!opts.only ||
+        ["windowed-8-3", "windowed-16-3"].some((n) => opts.only.test(n)));
 const { server, port } = await startServer(docs, {
     json: { "/empty-dast.json": emptyDast },
-    extra: {
-        "/windowed.js": {
-            content: await buildWindowedPageScript(),
-            type: "text/javascript",
-        },
-    },
+    extra: needWindowed
+        ? {
+              "/windowed.js": {
+                  content: await buildWindowedPageScript(),
+                  type: "text/javascript",
+              },
+          }
+        : {},
 });
 const base = `http://127.0.0.1:${port}`;
 // Second, CORS-enabled server on a different port = a different origin. It
@@ -390,7 +466,24 @@ const { server: cdnServer, port: cdnPort } = await startServer(docs, {
     cors: true,
 });
 const cdnBase = `http://127.0.0.1:${cdnPort}`;
-const scenarios = [
+// The cells and Rust cores' viewers have no embed API, so only the scenarios
+// that put each viewer in its own same-origin iframe have an equivalent; the
+// rest (one realm, shared workers, raw workers, windowed mounting) are the JS
+// core's.
+const iframeScenarios = (page) => [
+    { name: "blank", url: `${base}/blank.html`, expectInitialized: 0 },
+    ...opts.counts.map((n) => ({
+        name: `iframe-${n}`,
+        url: `${base}/${page}?n=${n}`,
+        expectInitialized: n,
+    })),
+    ...opts.sizes.map((size) => ({
+        name: `repeat-${size}`,
+        url: `${base}/${page}?n=1&doc=repeat-${size}`,
+        expectInitialized: 1,
+    })),
+];
+const javascriptScenarios = [
     { name: "blank", url: `${base}/blank.html`, expectInitialized: 0 },
     ...opts.counts.flatMap((n) => [
         {
@@ -462,16 +555,29 @@ const scenarios = [
         url: `${base}/direct.html?n=1&doc=repeat-${size}`,
         expectInitialized: 1,
     })),
-].filter((s) => !opts.only || opts.only.test(s.name));
+];
+const scenarios = (
+    opts.core === "javascript"
+        ? javascriptScenarios
+        : iframeScenarios(`${opts.core}-iframes.html`).filter(
+              // The Rust core has no repeat: it drops the repeat documents'
+              // iterations, so their rows would measure an empty document.
+              (s) => !(opts.core === "rust" && s.name.startsWith("repeat-")),
+          )
+).filter((s) => !opts.only || opts.only.test(s.name));
 
 const results = [];
 for (let i = 0; i < scenarios.length; i++) {
     const s = scenarios[i];
     process.stderr.write(`Running ${s.name} ...\n`);
     try {
-        results.push(await runScenario(s, i));
+        results.push({ core: opts.core, ...(await runScenario(s, i)) });
     } catch (e) {
-        results.push({ name: s.name, error: String(e).slice(0, 300) });
+        results.push({
+            core: opts.core,
+            name: s.name,
+            error: String(e).slice(0, 300),
+        });
     }
 }
 server.close();
@@ -523,7 +629,9 @@ if (windowedLo?.totalPssMB != null && windowedHi?.totalPssMB != null) {
         )} MB`,
     );
 }
-const small = byName["direct-1"];
+// One viewer with the small document: in its own realm for the JS core, in
+// an iframe for the Rust and cells cores (the only embedding they have).
+const small = byName["direct-1"] ?? byName["iframe-1"];
 for (const size of opts.sizes) {
     const big = byName[`repeat-${size}`];
     if (small?.totalPssMB != null && big?.totalPssMB != null) {

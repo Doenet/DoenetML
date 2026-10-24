@@ -21,6 +21,18 @@ node src/measure.mjs --doenetml path/to/doc.doenetml
 
 # Run a subset of scenarios (regex over scenario names)
 node src/measure.mjs --only 'workers' --sizes ""
+
+# The cells or Rust core instead of the JS core (packages/benchmark's
+# comparison). Only the scenarios with an equivalent run: blank, iframe-N and
+# repeat-S; neither viewer has an embed API, so one-realm, shared-worker,
+# raw-worker and windowed scenarios are the JS core's alone. The Rust core
+# runs in the prototype viewer (packages/doenetml-prototype) through
+# packages/benchmark's page for it, and skips repeat-S, since the Rust core
+# drops a repeat's iterations. Build them first:
+# npm run build -w packages/cells-viewer
+# npm run build:rust-viewer -w @doenet/benchmark
+node src/measure.mjs --core cells
+node src/measure.mjs --core rust
 ```
 
 Playwright's Chromium must be installed once: `npx playwright install chromium`.

@@ -1,0 +1,62 @@
+{
+    "name": "@doenet/cells-viewer",
+    "private": true,
+    "license": "AGPL-3.0-or-later",
+    "type": "module",
+    "scripts": {
+        "dev": "wireit",
+        "build": "wireit",
+        "preview": "vite preview --port 4173",
+        "typecheck": "tsc --noEmit -p .",
+        "test": "vitest"
+    },
+    "dependencies": {
+        "@doenet/cells-core": "*",
+        "@doenet/codemirror": "*",
+        "jsxgraph": "^1.12.2",
+        "react": "^19.2.7",
+        "react-dom": "^19.2.7",
+        "react-icons": "^5.7.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25.9.4",
+        "@types/react": "^19.2.17",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^5.2.0",
+        "typescript": "^5.9.3",
+        "vite": "^7.3.6"
+    },
+    "version": "0.1.0",
+    "description": "A viewer for the cells core: React for the document tree, JSXGraph for graphs, reading cells straight from wasm memory.",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "repository": "github:Doenet/DoenetML",
+    "wireit": {
+        "dev": {
+            "command": "vite",
+            "service": true,
+            "dependencies": [
+                "../parser:build",
+                "../codemirror:build",
+                "../cells-core:build:rust"
+            ]
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**",
+                "dev/**",
+                "index.html",
+                "tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**"
+            ],
+            "dependencies": [
+                "../parser:build",
+                "../codemirror:build",
+                "../cells-core:build:rust"
+            ]
+        }
+    }
+}

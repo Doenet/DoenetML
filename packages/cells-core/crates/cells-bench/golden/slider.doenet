@@ -1,0 +1,4 @@
+<numberInput name="n" value="1"/><math name="m">3$n + 2</math>
+<slider name="s" from="-9" to="9" step="0.5" bindValueTo="$m"/>
+<slider name="s2" from="0" to="10" step="1" initialValue="3"/>
+<graph><point name="p" x="$s" y="$s2"/></graph>

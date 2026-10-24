@@ -450,6 +450,14 @@ jobs:
               working-directory: ./packages/doenetml-worker-rust
               run: cargo clippy -- -D warnings
 
+            - name: Cargo fmt (cells core)
+              working-directory: ./packages/cells-core
+              run: cargo fmt --all -- --check
+
+            - name: Cargo clippy (cells core)
+              working-directory: ./packages/cells-core
+              run: cargo clippy --workspace --all-targets -- -D warnings
+
     build-docs:
         runs-on: ubuntu-latest
         needs: build

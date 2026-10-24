@@ -1,0 +1,7 @@
+[
+{"set":"javascript (eager set)","raw_bytes":22729608,"brotli_bytes":4439410},
+{"set":"javascript (whole dist, no maps)","raw_bytes":62828287,"brotli_bytes":13409746},
+{"set":"rust (wasm only)","raw_bytes":6951550,"brotli_bytes":588886},
+{"set":"rust (prototype viewer page)","raw_bytes":20579372,"brotli_bytes":3999732},
+{"set":"cells (viewer build)","raw_bytes":6630510,"brotli_bytes":1292769}
+]

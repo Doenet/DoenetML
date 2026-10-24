@@ -1,0 +1,85 @@
+<title>Homework 4: Derivatives and their applications</title>
+
+<p>Answer each question. You may submit as many times as you like; hints are
+available on the harder problems.</p>
+
+<problem name="p1"><title>Power rule</title>
+  <p>Find <m>\frac{d}{dx}\left(x^5\right)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>5x^4</award></answer></p>
+</problem>
+
+<problem name="p2"><title>Constant multiple</title>
+  <p>Find <m>\frac{d}{dx}\left(7x^3\right)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>21x^2</award></answer></p>
+</problem>
+
+<problem name="p3"><title>Sum rule</title>
+  <p>Find <m>\frac{d}{dx}\left(x^2 + 3x - 4\right)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>2x+3</award></answer></p>
+  <feedback condition="$ans.creditAchieved = 0 and $ans.numSubmissions > 0">
+    <p>Differentiate each term separately; the derivative of a constant is zero.</p>
+  </feedback>
+</problem>
+
+<problem name="p4"><title>Product rule</title>
+  <p>Find <m>\frac{d}{dx}\left(x^2 \sin x\right)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>2x sin(x) + x^2 cos(x)</award></answer></p>
+  <hint><p>The product rule: <m>(fg)' = f'g + fg'</m>.</p></hint>
+</problem>
+
+<problem name="p5"><title>Quotient rule</title>
+  <p>Find <m>\frac{d}{dx}\left(\frac{x}{x+1}\right)</m>.</p>
+  <p><answer name="ans" simplifyOnCompare><mathInput name="mi" /><award>1/(x+1)^2</award></answer></p>
+  <hint><p>The quotient rule: <m>\left(\frac{f}{g}\right)' = \frac{f'g - fg'}{g^2}</m>.</p></hint>
+</problem>
+
+<problem name="p6"><title>Chain rule</title>
+  <p>Find <m>\frac{d}{dx}\left(e^{3x}\right)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>3e^(3x)</award></answer></p>
+</problem>
+
+<problem name="p7"><title>Evaluate a derivative</title>
+  <setup>
+    <selectFromSequence name="a" from="2" to="5" />
+    <math name="f">x^2 + $a x</math>
+  </setup>
+  <p>Let <m>f(x) = $f</m>. Compute <m>f'(1)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award><math>2 + $a</math></award></answer></p>
+</problem>
+
+<problem name="p8"><title>Tangent line</title>
+  <p>Find the slope of the tangent line to <m>y = x^3</m> at <m>x = 2</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>12</award></answer></p>
+</problem>
+
+<problem name="p9"><title>Reading a graph</title>
+  <p>Drag the point <m>P</m> to the place on the parabola where the tangent line is horizontal.</p>
+  <graph name="g" size="small" xmin="-4" xmax="4" ymin="-3" ymax="5">
+    <function name="h">x^2 - 2x</function>
+    <point name="P" x="2" y="0"><constrainTo>$h</constrainTo></point>
+  </graph>
+  <p><answer name="ans"><award><when>abs($P.x - 1) &lt; 0.1</when></award></answer></p>
+</problem>
+
+<problem name="p10"><title>Increasing or decreasing</title>
+  <p>Is <m>f(x) = x^3 - 3x</m> increasing or decreasing at <m>x = 0</m>?</p>
+  <p><answer name="ans">
+    <choiceInput name="ci" shuffleOrder>
+      <choice>increasing</choice>
+      <choice credit="1">decreasing</choice>
+      <choice>neither</choice>
+    </choiceInput>
+  </answer></p>
+</problem>
+
+<problem name="p11"><title>Second derivative</title>
+  <p>Find <m>\frac{d^2}{dx^2}\left(x^4 - x^2\right)</m>.</p>
+  <p><answer name="ans"><mathInput name="mi" /><award>12x^2 - 2</award></answer></p>
+</problem>
+
+<problem name="p12"><title>Explain</title>
+  <p>In one sentence, what does the sign of <m>f''(x)</m> tell you about the graph of <m>f</m>?</p>
+  <p><answer name="ans" type="text"><textInput name="ti" width="400px" /><award>concave</award></answer></p>
+</problem>
+
+<p>Score: <number name="score" displayDigits="3">$p1.ans.creditAchieved + $p2.ans.creditAchieved + $p3.ans.creditAchieved + $p4.ans.creditAchieved + $p5.ans.creditAchieved + $p6.ans.creditAchieved + $p7.ans.creditAchieved + $p8.ans.creditAchieved + $p9.ans.creditAchieved + $p10.ans.creditAchieved + $p11.ans.creditAchieved + $p12.ans.creditAchieved</number> / 12</p>

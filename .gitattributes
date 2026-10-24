@@ -1,0 +1,2 @@
+# Benchmark runs: machine-written records, pages and index (scripts/render.mjs).
+packages/benchmark/results/** linguist-generated=true

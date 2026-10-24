@@ -17,9 +17,13 @@ import { serializedComponentsReviver, toNumberOrNaN } from "@doenet/utils";
  * @returns number
  */
 export function numberFromSerializedAst(serializedAst: string): number {
-    return toNumberOrNaN(
-        me
-            .fromAst(JSON.parse(serializedAst, serializedComponentsReviver))
-            .evaluate_to_constant(),
-    );
+    let ast;
+    try {
+        ast = JSON.parse(serializedAst, serializedComponentsReviver);
+    } catch {
+        // Not JSON: the Rust core sends a blank expression as its text,
+        // `＿`, which has no number.
+        return NaN;
+    }
+    return toNumberOrNaN(me.fromAst(ast).evaluate_to_constant());
 }

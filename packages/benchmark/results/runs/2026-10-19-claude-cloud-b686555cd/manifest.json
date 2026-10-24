@@ -1,0 +1,95 @@
+{
+    "id": "2026-10-19-claude-cloud-b686555cd",
+    "date": "2026-10-19",
+    "machine": "claude-cloud",
+    "commit": "b686555cd",
+    "dirty": false,
+    "hardware": {
+        "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+        "cores": 4,
+        "memory_bytes": 16874930176,
+        "os": "Linux 6.18.44-fc-v139 x64",
+        "node": "v22.22.0"
+    },
+    "builds": {
+        "javascript": "source, bundled by scripts/bundle-driver.mjs",
+        "rust": "wasm-pack --release, without logging features",
+        "cells": "wasm-pack --release (npm run build -w packages/cells-core)"
+    },
+    "layers": {
+        "node": {
+            "cores": [
+                "javascript",
+                "rust",
+                "cells"
+            ],
+            "fixtures": [
+                "depth-1000",
+                "depth-10000",
+                "depth-100000",
+                "breadth-1000",
+                "breadth-10000",
+                "breadth-100000",
+                "inversion-1000",
+                "inversion-10000",
+                "inversion-100000",
+                "symbolic-1000",
+                "symbolic-10000",
+                "symbolic-100000",
+                "rebuild-1000",
+                "rebuild-10000",
+                "rebuild-100000",
+                "homework",
+                "lesson",
+                "sir",
+                "venn"
+            ],
+            "load_timeout_ms": 120000,
+            "step_timeout_ms": 15000,
+            "started": "2026-10-19T18:51:20.000Z"
+        },
+        "browser": {
+            "cores": [
+                "javascript",
+                "rust",
+                "cells"
+            ],
+            "fixtures": [
+                "depth-1000",
+                "depth-10000",
+                "depth-100000",
+                "breadth-1000",
+                "breadth-10000",
+                "breadth-100000",
+                "inversion-1000",
+                "inversion-10000",
+                "inversion-100000",
+                "symbolic-1000",
+                "symbolic-10000",
+                "symbolic-100000",
+                "rebuild-1000",
+                "rebuild-10000",
+                "rebuild-100000",
+                "homework",
+                "lesson",
+                "sir",
+                "venn"
+            ],
+            "load_timeout_ms": 120000,
+            "step_timeout_ms": 15000,
+            "session": "23582-1792436976776",
+            "started": "2026-10-19T19:09:37.185Z"
+        },
+        "bundle": {
+            "cores": [],
+            "sets": [
+                "javascript (eager set)",
+                "javascript (whole dist, no maps)",
+                "rust (wasm only)",
+                "rust (prototype viewer page)",
+                "cells (viewer build)"
+            ],
+            "started": "2026-10-19T19:49:12.190Z"
+        }
+    }
+}

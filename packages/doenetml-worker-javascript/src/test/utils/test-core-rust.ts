@@ -109,7 +109,7 @@ export async function createTestCoreRust({
             "../../../../doenetml-worker-rust/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
         ),
     );
-    await init({ module_or_path: wasmBuffer });
+    const wasm = await init({ module_or_path: wasmBuffer });
 
     const rustCore = PublicDoenetMLCoreRust.new();
 
@@ -303,6 +303,8 @@ export async function createTestCoreRust({
         core: withJavascriptOnlyGaps(core),
         rustCore,
         resolvePathToNodeIdx,
+        /** Bytes of wasm linear memory; the benchmark's memory column. */
+        wasmMemoryBytes: () => wasm.memory.buffer.byteLength as number,
         // The JavaScript stand-in fills these from the core's score and state
         // reports, which the Rust core does not send.
         scoreState: unreported("scoreState"),

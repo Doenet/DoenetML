@@ -1,0 +1,258 @@
+//! Symbolic instructions in the tick (ADR 0008): simplify on leaf
+//! changes, mathInputs as essential math cells, answers, function curves,
+//! gating, and equal handles for equal expressions: the cutoff, and an
+//! engine that does not grow with expressions made again.
+
+mod common;
+
+use cells_core::Document;
+use cells_core::testing::reference;
+use cells_core::testing::test_utils::load;
+use common::{req, set, type_into};
+
+fn text(doc: &Document, name: &str) -> String {
+    doc.math_text(doc.cell(name, "expr").unwrap())
+}
+
+/// How many symbolic instructions have called the engine.
+fn runs(doc: &Document) -> u64 {
+    doc.program.sym.stats.get().runs
+}
+
+#[test]
+fn simplify_reruns_when_a_numeric_leaf_changes() {
+    let mut doc =
+        load(r#"<numberInput name="n" value="2"/><math name="m" simplify>$n x + 2x</math>"#)
+            .unwrap();
+    assert_eq!(text(&doc, "m"), "4 x");
+    doc.request(&[req(&doc, "n", "value", 3.0)]);
+    assert_eq!(text(&doc, "m"), "5 x");
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn expand_multiplies_out() {
+    let doc = load(r#"<numberInput name="n" value="3"/><math name="m" expand>(x + $n)^2</math>"#)
+        .unwrap();
+    assert_eq!(text(&doc, "m"), "x^2 + 6 x + 9");
+}
+
+#[test]
+fn unbound_math_input_is_an_essential_math_cell() {
+    let mut doc =
+        load(r#"<mathInput name="mi" prefill="x+1"/><math name="m" simplify>$mi + $mi</math>"#)
+            .unwrap();
+    assert_eq!(text(&doc, "m"), "2 x + 2");
+    assert!(doc.is_essential(doc.cell("mi", "expr").unwrap()));
+    type_into(&mut doc, "mi", "y");
+    assert_eq!(text(&doc, "m"), "2 y");
+    assert!(doc.value("mi", "value").unwrap().is_nan());
+    // A number typed as a request on `value` becomes a constant expression.
+    doc.request(&[req(&doc, "mi", "value", 5.0)]);
+    assert_eq!(text(&doc, "mi"), "5");
+    assert_eq!(doc.value("m", "value"), Some(10.0));
+    // Emptied: a blank expression.
+    doc.request(&[req(&doc, "mi", "value", f64::NAN)]);
+    assert!(doc.value("mi", "expr").unwrap().is_nan());
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn a_bound_math_input_stays_numeric() {
+    let mut doc =
+        load(r#"<numberInput name="a" value="2"/><mathInput name="mi" bindValueTo="$a"/>"#)
+            .unwrap();
+    assert!(doc.value("mi", "expr").unwrap().is_nan());
+    doc.request(&[req(&doc, "mi", "value", 7.0)]);
+    assert_eq!(doc.value("a", "value"), Some(7.0));
+}
+
+#[test]
+fn answers_check_only_on_submit() {
+    let mut doc = load(
+        r#"<mathInput name="mi"/><answer name="a" response="$mi">x^2+1</answer>
+           <mathInput name="mi2"/><answer name="b" response="$mi2" symbolicEquality>x^2+1</answer>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.value("a", "credit"), Some(0.0));
+    type_into(&mut doc, "mi", "1+x^2");
+    type_into(&mut doc, "mi2", "1+x^2");
+    assert_eq!(doc.value("a", "credit"), Some(0.0), "typing does not check");
+    let before = runs(&doc);
+    let a = doc.resolve_path("a").unwrap();
+    doc.submit(a);
+    assert_eq!(doc.value("a", "credit"), Some(1.0));
+    assert_eq!(runs(&doc) - before, 1, "one check, nothing else reruns");
+    let b = doc.resolve_path("b").unwrap();
+    doc.submit(b);
+    assert_eq!(
+        doc.value("b", "credit"),
+        Some(0.0),
+        "as written, 1+x^2 is not x^2+1"
+    );
+    type_into(&mut doc, "mi2", "x^2+1");
+    doc.submit(b);
+    assert_eq!(doc.value("b", "credit"), Some(1.0));
+}
+
+#[test]
+fn function_and_derivative_curves_resample_on_a_drag() {
+    let mut doc = load(
+        r#"<numberInput name="a" value="3"/>
+           <graph xmin="-2" xmax="2"><function name="f">$a x^2</function><derivative name="df">$f</derivative></graph>"#,
+    )
+    .unwrap();
+    let ys = |doc: &Document, name: &str| {
+        let c = doc.cell(name, "samples").unwrap() as usize;
+        doc.cells[c..c + cells_core::program::SAMPLES].to_vec()
+    };
+    let (f, df) = (ys(&doc, "f"), ys(&doc, "df"));
+    assert_eq!((f[0], *f.last().unwrap()), (12.0, 12.0));
+    assert_eq!((df[0], *df.last().unwrap()), (-12.0, 12.0));
+    doc.request(&[req(&doc, "a", "value", 1.0)]);
+    assert_eq!(ys(&doc, "f")[0], 4.0);
+    assert_eq!(ys(&doc, "df")[0], -4.0);
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn symbolic_instructions_are_gated_on_their_inputs() {
+    let mut doc = load(r#"<numberInput name="a" value="1"/><numberInput name="b" value="1"/><math name="m" simplify>$a x + x</math>"#).unwrap();
+    let before = runs(&doc);
+    doc.request(&[req(&doc, "b", "value", 2.0)]);
+    assert_eq!(
+        runs(&doc),
+        before,
+        "an unrelated drag runs no symbolic work"
+    );
+    doc.request(&[req(&doc, "a", "value", 2.0)]);
+    assert_eq!(runs(&doc) - before, 2, "instantiate and evaluate");
+}
+
+#[test]
+fn an_expression_that_does_not_change_cuts_off() {
+    // `0 $n` vanishes under simplify, so m's expression does not change:
+    // the engine finds the recomputed expression's handle, the old one
+    // (`sym::engine`), so m2 and both evaluates do not rerun.
+    let mut doc = load(r#"<numberInput name="n" value="2"/><math name="m" simplify>0 $n + x</math><math name="m2" simplify>$m + 1</math>"#).unwrap();
+    let before = runs(&doc);
+    doc.request(&[req(&doc, "n", "value", 3.0)]);
+    assert_eq!(runs(&doc) - before, 1);
+    assert_eq!(text(&doc, "m"), "x");
+    assert_eq!(text(&doc, "m2"), "x + 1");
+}
+
+#[test]
+fn math_to_number_to_math() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="x^2"/>
+           <numberInput name="t" value="2"/>
+           <evaluate name="e" function="$mi" input="$t"/>
+           <math name="m" simplify>$e x + $mi</math>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.value("e", "value"), Some(4.0));
+    assert_eq!(text(&doc, "m"), "x^2 + 4 x");
+    type_into(&mut doc, "mi", "x^3");
+    assert_eq!(text(&doc, "m"), "x^3 + 8 x");
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn a_copy_of_a_symbolic_math_shares_its_cell() {
+    let doc = load(
+        r#"<numberInput name="n" value="2"/><math name="m">$n x</math><math name="c">$m</math>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.cell("c", "expr"), doc.cell("m", "expr"));
+}
+
+fn engine_len(doc: &Document) -> usize {
+    doc.program.sym.engine.borrow().len()
+}
+
+// The `Evaluate` inverse (`tick/invert.rs`) makes the requested number's
+// expression, which is the current one's handle when the value is the
+// same: a drag to where the point already is changes nothing.
+#[test]
+fn a_drag_to_the_same_place_changes_nothing() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="3"/><math name="mm" simplify>$mi x</math>
+<graph><point name="p" x="$mi" y="0"/></graph>"#,
+    )
+    .unwrap();
+    set(&mut doc, "p", "x", 5.0);
+    let len = engine_len(&doc);
+    let t = set(&mut doc, "p", "x", 5.0);
+    assert!(t.changed.is_empty(), "changed {:?}", t.changed);
+    assert_eq!(engine_len(&doc), len);
+}
+
+// A rebuild imports every math template again; each finds the handle it
+// had, so toggling a count back and forth does not grow the engine.
+#[test]
+fn rebuilding_back_and_forth_does_not_grow_the_engine() {
+    let mut doc = load(
+        r#"<numberInput name="n" value="1"/>
+<repeatForSequence name="r" length="$n"><math name="m" simplify>x + x</math></repeatForSequence>"#,
+    )
+    .unwrap();
+    set(&mut doc, "n", "value", 2.0);
+    set(&mut doc, "n", "value", 1.0);
+    let len = engine_len(&doc);
+    for _ in 0..10 {
+        set(&mut doc, "n", "value", 2.0);
+        set(&mut doc, "n", "value", 1.0);
+    }
+    assert_eq!(engine_len(&doc), len);
+}
+
+// A dragged group looks ahead (`realize`) at where its points would land,
+// stepping the symbolic instructions on the way on a copy of the cells: it
+// must leave no expression in the session's engine and no memo behind, and
+// give what the tick then computes.
+#[test]
+fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
+    use cells_core::tick::invert::realize;
+    let src = r#"<graph>
+             <point name="p">(1,2)</point>
+             <math name="m" simplify>$p.x x + 1</math>
+             <evaluate name="e" function="$m" input="3"/>
+             <point name="q">($e, 0)</point>
+           </graph>"#;
+    let mut doc = load(src).unwrap();
+    let cell = |doc: &Document, n: &str, p: &str| doc.cell(n, p).unwrap();
+    assert_eq!(doc.cells[cell(&doc, "q", "x") as usize], 4.0);
+    let ran = runs(&doc);
+    let asked = [
+        (cell(&doc, "p", "x"), 5.0),
+        (cell(&doc, "p", "y"), 2.0),
+        (cell(&doc, "q", "x"), 16.0),
+        (cell(&doc, "q", "y"), 0.0),
+    ];
+    let bits = |doc: &Document| doc.cells.iter().map(|v| v.to_bits()).collect::<Vec<_>>();
+    let (len, cells) = (engine_len(&doc), bits(&doc));
+    let mut realized = Vec::new();
+    realize(
+        &doc.program,
+        &doc.cells,
+        doc.n_essential,
+        &asked,
+        &mut realized,
+    );
+    assert_eq!(realized, [5.0, 2.0, 16.0, 0.0]);
+    assert_eq!(engine_len(&doc), len, "the lookahead kept an expression");
+    assert_eq!(runs(&doc), ran, "the lookahead counted as a run");
+    assert_eq!(bits(&doc), cells);
+    // The tick computes what the lookahead saw, through the memo it left.
+    doc.request(&[req(&doc, "p", "x", 5.0)]);
+    assert_eq!(doc.cells[cell(&doc, "q", "x") as usize], 16.0);
+    assert!(engine_len(&doc) > len, "the tick stores what it computes");
+    // As many runs as a tick no lookahead preceded: no memo the lookahead
+    // wrote spared one.
+    let mut fresh = load(src).unwrap();
+    let ran_fresh = runs(&fresh);
+    fresh.request(&[req(&fresh, "p", "x", 5.0)]);
+    assert_eq!(runs(&doc) - ran, runs(&fresh) - ran_fresh);
+    assert_eq!(reference::check(&doc), None);
+}

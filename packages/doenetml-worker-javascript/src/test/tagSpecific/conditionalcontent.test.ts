@@ -237,8 +237,8 @@ describe("Conditional content tag tests @group2", async () => {
     `,
         });
 
-        // `show` reads the text as a document does: before the fix it kept
-        // the case's text after the switch to the else.
+        // `show` reads the text as a document does, so it must not keep the
+        // case's text after the switch to the else.
         async function check_text(text: string) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
