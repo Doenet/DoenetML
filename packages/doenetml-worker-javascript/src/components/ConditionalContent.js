@@ -300,7 +300,12 @@ export default class ConditionalContent extends CompositeComponent {
     // Names the case the replacements were made from, not `selectedIndex`:
     // within the update that changes `selectedIndex`, a copy can be made from
     // the previous case's replacements before they are replaced.
-    static stateIdSegmentForCopiesOfReplacements(component) {
+    // With one case there is no other to tell apart, and a copy made while it
+    // is not active, which has nothing to name, gets the same ids.
+    static async stateIdSegmentForCopiesOfReplacements(component) {
+        if ((await component.stateValues.numCases) === 1) {
+            return "";
+        }
         const caseIndex = component.replacementsWorkspace.previousSelectedIndex;
         return caseIndex == null ? "" : `case${caseIndex}|`;
     }

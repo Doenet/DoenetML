@@ -362,16 +362,8 @@ export async function deleteComponents({
         );
     }
 
-    // Forget what was kept for components that will not be made again, other
-    // than those that are live, such as the active case's
-    for (const stateId of stateIdsToForget) {
-        const componentIdx = core.componentIdxByStateId[stateId];
-        if (core._components[componentIdx]?.stateId !== stateId) {
-            deleteSavedState(core, stateId);
-            delete core.updateInfo.stateVariableUpdatesForMissingComponents[
-                stateId
-            ];
-        }
+    if (stateIdsToForget.length > 0) {
+        forgetKeptState(core, new Set(stateIdsToForget));
     }
 
     return {
@@ -504,6 +496,48 @@ function deleteSavedState(core: Core, stateId: string) {
 }
 
 /**
+ * Forget what was kept for the components with `stateIds`, other than those
+ * that are live, such as the active case's. A composite among them, such as a
+ * `<repeatForSequence>` in a case, gives what it makes ids that start with its
+ * own and a `|`, so those are forgotten too.
+ */
+function forgetKeptState(core: Core, stateIds: Set<string>) {
+    const isForgotten = (stateId: string) => {
+        if (stateIds.has(stateId)) {
+            return true;
+        }
+        for (
+            let i = stateId.indexOf("|");
+            i !== -1;
+            i = stateId.indexOf("|", i + 1)
+        ) {
+            if (stateIds.has(stateId.slice(0, i))) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const queued = core.updateInfo.stateVariableUpdatesForMissingComponents;
+    const candidates = new Set([
+        ...Object.keys(core.cumulativeStateVariableChanges),
+        ...Object.keys(
+            core.cumulativeStateVariableChanges.__copySnapshots ?? {},
+        ),
+        ...Object.keys(queued),
+    ]);
+    for (const stateId of candidates) {
+        if (stateId.startsWith("__") || !isForgotten(stateId)) {
+            continue;
+        }
+        const componentIdx = core.componentIdxByStateId[stateId];
+        if (core._components[componentIdx]?.stateId !== stateId) {
+            deleteSavedState(core, stateId);
+            delete queued[stateId];
+        }
+    }
+}
+
+/**
  * Keep what was saved of `component`, and queue it to be applied to a
  * component made later with its `stateId`, as a reload queues what it
  * restores. An unlinked copy also keeps the snapshot of what it made: a save
@@ -519,22 +553,29 @@ function keepSavedStateForRecreation(core: Core, component: any) {
             [stateId]: component.unlinkedSnapshot,
         };
     }
-    queueSavedStateForRecreation(core, stateId);
-}
-
-/**
- * Queue a copy of what is saved for `stateId` to be applied to the component
- * made later with that `stateId`, replacing anything queued for it before.
- * With nothing saved yet, the entry is empty, which still marks what is kept:
- * a write later in the same update is added to it (`performUpdate`).
- */
-export function queueSavedStateForRecreation(core: Core, stateId: string) {
+    // what the current update wrote is merged only at its end
+    // (`performUpdate`), after the component is gone
+    const unsaved = core.unsavedWrites.get(stateId);
+    if (unsaved) {
+        for (const varName of unsaved) {
+            const value = component.essentialState?.[varName];
+            if (value !== undefined) {
+                core.essentialValueWriter.mergeIntoCumulative(
+                    stateId,
+                    varName,
+                    value,
+                );
+            }
+        }
+        core.readerTouchedStateIds.add(stateId);
+    }
     const entry = core.cumulativeStateVariableChanges[stateId];
+    if (entry === undefined) {
+        return;
+    }
     core.updateInfo.stateVariableUpdatesForMissingComponents[stateId] =
-        entry === undefined
-            ? {}
-            : JSON.parse(
-                  JSON.stringify(entry, serializedComponentsReplacer),
-                  serializedComponentsReviver,
-              );
+        JSON.parse(
+            JSON.stringify(entry, serializedComponentsReplacer),
+            serializedComponentsReviver,
+        );
 }

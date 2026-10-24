@@ -273,20 +273,61 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect((await h.sv("cc.bi")).stateValues.value).eq(true);
     });
 
+    it("keeps the first change to an input whose case is hidden and shown again in one update", async () => {
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b">
+            <booleanInput name="bi" />
+            <updateValue triggerWhen="$bi" target="$b" newValue="false" type="boolean" />
+        </case>
+        <else>done</else>
+    </conditionalContent>
+    <updateValue triggerWhen="not $b" target="$b" newValue="true" type="boolean" />
+    `);
+        await h.setBoolean("cc.bi", true);
+        expect((await h.sv("b")).stateValues.value).eq(true);
+        expect((await h.sv("cc.bi")).stateValues.value).eq(true);
+    });
+
+    it("a copy from a single case keeps what was entered through a reload while the case is hidden", async () => {
+        // a single case is withheld, not made again, so a copy of it is not
+        // told apart by case
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b"><mathInput name="a" prefill="1" /></case>
+    </conditionalContent>
+    <mathInput copy="$cc.a" name="c" />
+    `);
+        await h.typeMath("c", "5");
+        await h.setB(false);
+        expect(await h.math("c")).eq(5);
+        await h.reload();
+        expect(await h.math("c")).eq(5);
+        await h.setB(true);
+        expect(await h.math("c")).eq(5);
+    });
+
     it("forgets what was kept of a case once its conditionalContent is deleted", async () => {
         // each change of `ex` makes the iterations, and the
-        // conditionalContent in them, again
+        // conditionalContent in them, again; the inner repeat's inputs have
+        // ids made as it runs, which its case's DoenetML does not name
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <p><mathInput name="ex" prefill="7" /></p>
     <repeatForSequence name="r" from="1" to="2" exclude="$ex">
         <conditionalContent name="cc">
-            <case condition="$b"><mathInput name="mi" /></case>
+            <case condition="$b">
+                <mathInput name="mi" />
+                <repeatForSequence name="inner" from="1" to="2"><mathInput name="mj" /></repeatForSequence>
+            </case>
             <else>no</else>
         </conditionalContent>
     </repeatForSequence>
     `);
         await h.typeMath("r[1].cc.mi", "3");
+        await h.typeMath("r[1].cc.inner[2].mj", "4");
         await h.setB(false);
         let saved = await h.reload();
         expect(Object.keys(saved).some((key) => key.startsWith("/~r|"))).eq(
