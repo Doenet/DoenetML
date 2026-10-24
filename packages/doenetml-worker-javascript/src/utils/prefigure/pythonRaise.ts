@@ -20,9 +20,13 @@ import { resolveAppliedFunctionName } from "./formulaUtils";
  * Not modelled: Python integers, which `floor` returns and which never
  * overflow (a power of them is taken to overflow as a float's would), and
  * the value of a complex number, which a Python power of a negative number
- * gives (`sin(x)^(1/3)`). A complex number is followed only so far as to
- * know that a `math` function, a comparison in `min` or `max`, or `floor`
- * raises on it; `abs` of one is a real number whose value is not followed.
+ * gives (`sin(x)^(1/3)`). A Python complex number is followed only so far as
+ * to know that a `math` function, a comparison in `min` or `max`, or a
+ * division by zero raises on it; `abs` of one is a real number whose value
+ * is not followed. Arithmetic with a numpy number on its left (or a numpy
+ * complex number on its right) makes a numpy complex number instead, of
+ * which a `math` function takes the real part without raising, so it is
+ * followed no further at all.
  */
 
 /** How evaluating a formula raises in PreFigure. */
@@ -41,8 +45,9 @@ const RAISES_DIVISION = new Raised("division");
 
 /**
  * A value as Python holds it: a number, and whether it is a plain Python
- * number rather than a numpy float. A `"complex"` value or one whose value is
- * `"unknown"` has `value` NaN, and is not checked against a domain.
+ * number rather than a numpy float. A `"complex"` value, always a Python
+ * complex number, or one whose value is `"unknown"` has `value` NaN, and is
+ * not checked against a domain.
  */
 interface PythonValue {
     value: number;
@@ -56,6 +61,14 @@ type Evaluate = (x: number, y: number) => PythonValue;
 const GAMMA_OVERFLOW = 171.62437695630272;
 
 const meErf = me.fromAst(["apply", "erf", "t"]).f();
+/**
+ * `gamma(a)`, from math-expressions' factorial, which overflows from about
+ * `a` = 171 where `math.gamma` does not until {@link GAMMA_OVERFLOW}. There
+ * it is taken to be the largest float, near enough for what follows.
+ */
+function finiteGamma(a: number, value: number): number {
+    return value === Infinity && a <= GAMMA_OVERFLOW ? Number.MAX_VALUE : value;
+}
 const meFactorial = me.fromAst(["apply", "factorial", "t"]).f();
 
 function realOrNaN(value: unknown): number {
@@ -104,7 +117,7 @@ const MATH_FUNCTIONS: Record<string, (a: number) => number> = {
             (Number.isInteger(a) && a <= 0) ||
                 a === -Infinity ||
                 (Number.isFinite(a) && a > GAMMA_OVERFLOW),
-            realOrNaN(meFactorial({ t: a - 1 })),
+            finiteGamma(a, realOrNaN(meFactorial({ t: a - 1 }))),
         ),
     floor: (a) => domainError(!Number.isFinite(a), Math.floor(a)),
     ceil: (a) => domainError(!Number.isFinite(a), Math.ceil(a)),
@@ -114,27 +127,41 @@ function python(value: number): PythonValue {
     return { value, python: true };
 }
 
-/** The kind of the result of arithmetic on `a` and `b`. */
-function combinedKind(a: PythonValue, b: PythonValue): PythonValue["kind"] {
-    if (a.kind === "complex" || b.kind === "complex") {
-        return "complex";
-    }
-    return a.kind ?? b.kind;
-}
-
+/**
+ * Arithmetic on `a` and `b`, whose result is `value` if both are real.
+ *
+ * With a complex number, the result is a Python complex number if `a` is a
+ * Python number and `b` is not numpy, or `a` is a Python complex number and
+ * `b` a numpy float, which Python's `complex` accepts as a `float`. Otherwise
+ * numpy's operator comes first, and the result is a numpy complex number.
+ */
 function arithmetic(
     a: PythonValue,
     b: PythonValue,
     value: number,
 ): PythonValue {
-    const kind = combinedKind(a, b);
-    return kind
-        ? { value: NaN, python: a.python && b.python, kind }
-        : { value, python: a.python && b.python };
+    const aComplex = a.kind === "complex";
+    const bComplex = b.kind === "complex";
+    if (aComplex || bComplex) {
+        const python = a.python && (bComplex ? b.python : aComplex || b.python);
+        return python
+            ? { value: NaN, python: true, kind: "complex" }
+            : { value: NaN, python: false, kind: "unknown" };
+    }
+    const python = a.python && b.python;
+    const kind = a.kind ?? b.kind;
+    return kind ? { value: NaN, python, kind } : { value, python };
 }
 
+/**
+ * `a / b`, which raises on a zero `b` if both are Python numbers, or if `a`
+ * is a Python complex number, whose division accepts a numpy float.
+ */
 function divide(a: PythonValue, b: PythonValue): PythonValue {
-    if (a.python && b.python && b.value === 0) {
+    if (
+        b.value === 0 &&
+        ((a.python && b.python) || (a.kind === "complex" && a.python))
+    ) {
         throw RAISES_DIVISION;
     }
     return arithmetic(a, b, a.value / b.value);

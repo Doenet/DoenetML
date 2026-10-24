@@ -618,35 +618,55 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
     });
 
     it("follows infinities, NaNs and complex numbers through Python's math functions", async () => {
-        const doenetML = prefigureGraph(`
-  <slopeField>sin((1/x^2)!)</slopeField>
-  <slopeField>floor(exp(1/x^2))</slopeField>
-  <slopeField>floor(sin(x y/(x^2+y^2)))</slopeField>
-  <slopeField>floor(max(x, y/y))</slopeField>
-  <slopeField>(csc(x)^2)!</slopeField>
-  <slopeField>sin(sin(x)^(1/3))</slopeField>
-  <slopeField>abs(sin(x)^(1/3))</slopeField>
-  <slopeField>10^400</slopeField>`);
+        const fields = {
+            gammaInf: "<slopeField>sin((1/x^2)!)</slopeField>",
+            expInf: "<slopeField>floor(exp(1/x^2))</slopeField>",
+            sinNaN: "<slopeField>floor(sin(x y/(x^2+y^2)))</slopeField>",
+            maxNaN: "<slopeField>floor(max(x, y/y))</slopeField>",
+            divisionFirst: "<slopeField>(csc(x)^2)!</slopeField>",
+            gammaLarge: "<slopeField>sin((x/100+170.5)!)</slopeField>",
+            sinComplex: "<slopeField>sin(sin(x)^(1/3))</slopeField>",
+            absComplex: "<slopeField>abs(sin(x)^(1/3))</slopeField>",
+            complexPlusNumpy: "<slopeField>sin(sin(y)^(1/3) + x)</slopeField>",
+            numpyPlusComplex: "<slopeField>sin(x + sin(y)^(1/3))</slopeField>",
+            numpyTimesComplex:
+                "<slopeField>max(x sin(y)^(1/3), 1)</slopeField>",
+            complexOverNumpy: "<vectorField>(sin(x)^(1/3)/y, 1)</vectorField>",
+        };
+        const doenetML = prefigureGraph(
+            Object.entries(fields)
+                .map(([name, field]) =>
+                    field.replace(/^<(\w+)>/, `<$1 name="${name}">`),
+                )
+                .join("\n"),
+        );
         const diagnostics = await getWarnings(doenetML);
 
         // A math function passes an infinity or a NaN on as a Python float,
         // on which the next function raises as on a numpy one: gamma(inf)
         // and exp(inf) are inf, and sin(nan) is nan. But max(x, nan) is x,
         // since a NaN never compares greater, and in (csc(x)^2)! the
-        // division by sin(0) raises first, which a slope field catches. A
-        // Python power of a negative number is complex, on which sin raises
-        // but abs does not, and one that overflows raises.
+        // division by sin(0) raises first, which a slope field catches.
+        // gamma(171.5) is a float, though math-expressions overflows there.
+        // A Python power of a negative number is a Python complex number,
+        // on which sin raises but abs does not; so does a sum with it on the
+        // left, but a sum or product with a numpy float on the left is a
+        // numpy complex number, whose real part sin takes. A Python complex
+        // number divided by a numpy 0 raises.
         expect(
             diagnostics.warnings.map((w) => [
                 w.code,
+                // Each field is on its own line, after the <graph> tag's.
+                Object.keys(fields)[(w.position?.start.line ?? 0) - 2],
                 w.message.match(/\(-?[0-9.]+, -?[0-9.]+\)/)?.[0],
             ]),
         ).toEqual([
-            ["doenet-w0172", "(0, -10)"],
-            ["doenet-w0172", "(0, -10)"],
-            ["doenet-w0172", "(0, 0)"],
-            ["doenet-w0172", "(-9, -10)"],
-            ["doenet-w0172", "(-10, -10)"],
+            ["doenet-w0172", "gammaInf", "(0, -10)"],
+            ["doenet-w0172", "expInf", "(0, -10)"],
+            ["doenet-w0172", "sinNaN", "(0, 0)"],
+            ["doenet-w0172", "sinComplex", "(-9, -10)"],
+            ["doenet-w0172", "complexPlusNumpy", "(-10, -9)"],
+            ["doenet-w0172", "complexOverNumpy", "(-9, 0)"],
         ]);
     });
 
