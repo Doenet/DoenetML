@@ -2965,4 +2965,53 @@ describe("RepeatForSequence tag tests @group3", async () => {
         });
         expect(await values()).eqls([1, 2, 3]);
     });
+
+    it("math sequence excluding an input's value, keeps what was entered when the value is rewritten", async () => {
+        // a math exclude is compared with equals, so x+1 matches 1+x
+        // and nothing is made again
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ex" prefill="x+1" />
+    <repeatForSequence name="r" type="math" from="x" step="1" length="3" exclude="$ex" valueName="v">
+        <mathInput name="mi" prefill="$v" />
+    </repeatForSequence>
+    `,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const i of [1, 2]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].mi`)]
+                        .stateValues.value.tree,
+                );
+            }
+            return result;
+        }
+        expect(await values()).eqls(["x", ["+", "x", 2]]);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("r[2].mi"),
+            core,
+        });
+        expect(await values()).eqls(["x", "y"]);
+
+        await updateMathInputValue({
+            latex: "1+x",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls(["x", "y"]);
+
+        await updateMathInputValue({
+            latex: "x+2",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls(["x", ["+", "x", 1]]);
+    });
 });
