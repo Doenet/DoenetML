@@ -632,6 +632,12 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
             numpyTimesComplex:
                 "<slopeField>max(x sin(y)^(1/3), 1)</slopeField>",
             complexOverNumpy: "<vectorField>(sin(x)^(1/3)/y, 1)</vectorField>",
+            complexPlusNumpyComplex:
+                "<slopeField>sin(sin(y)^(1/3) + x sin(y)^(1/3))</slopeField>",
+            maxComplexPython: "<slopeField>max(sin(x)^(1/3), 1)</slopeField>",
+            maxComplexNumpy: "<slopeField>max(sin(x)^(1/3), y)</slopeField>",
+            zeroToMinusInfinity:
+                "<vectorField>(sin(pi x)^(-exp(1/x^2)), 1)</vectorField>",
         };
         const doenetML = prefigureGraph(
             Object.entries(fields)
@@ -651,8 +657,10 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         // A Python power of a negative number is a Python complex number,
         // on which sin raises but abs does not; so does a sum with it on the
         // left, but a sum or product with a numpy float on the left is a
-        // numpy complex number, whose real part sin takes. A Python complex
-        // number divided by a numpy 0 raises.
+        // numpy complex number, whose real part sin takes, as is a sum with
+        // a numpy complex number. A Python complex number divided by a numpy
+        // 0 raises, and so does comparing it with a Python number, but numpy
+        // compares it with a numpy number. And 0.0**-inf is inf.
         expect(
             diagnostics.warnings.map((w) => [
                 w.code,
@@ -667,6 +675,7 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
             ["doenet-w0172", "sinComplex", "(-9, -10)"],
             ["doenet-w0172", "complexPlusNumpy", "(-10, -9)"],
             ["doenet-w0172", "complexOverNumpy", "(-9, 0)"],
+            ["doenet-w0172", "maxComplexPython", "(-9, -10)"],
         ]);
     });
 

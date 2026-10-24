@@ -21,8 +21,8 @@ import { resolveAppliedFunctionName } from "./formulaUtils";
  * overflow (a power of them is taken to overflow as a float's would), and
  * the value of a complex number, which a Python power of a negative number
  * gives (`sin(x)^(1/3)`). A Python complex number is followed only so far as
- * to know that a `math` function, a comparison in `min` or `max`, or a
- * division by zero raises on it; `abs` of one is a real number whose value
+ * to know that a `math` function, a comparison in `min` or `max` with
+ * another Python number, or a division by zero raises on it; `abs` of one is a real number whose value
  * is not followed. Arithmetic with a numpy number on its left (or a numpy
  * complex number on its right) makes a numpy complex number instead, of
  * which a `math` function takes the real part without raising, so it is
@@ -143,7 +143,14 @@ function arithmetic(
     const aComplex = a.kind === "complex";
     const bComplex = b.kind === "complex";
     if (aComplex || bComplex) {
-        const python = a.python && (bComplex ? b.python : aComplex || b.python);
+        // A numpy complex `b`, which is followed as an unknown value, also
+        // makes a numpy complex number of a Python complex `a`; so an
+        // unknown numpy `b` is taken to be one.
+        const python =
+            a.python &&
+            (bComplex
+                ? b.python
+                : b.python || (aComplex && b.kind === undefined));
         return python
             ? { value: NaN, python: true, kind: "complex" }
             : { value: NaN, python: false, kind: "unknown" };
@@ -179,7 +186,7 @@ function power(a: PythonValue, b: PythonValue): PythonValue {
     if (a.kind || b.kind || !(a.python && b.python)) {
         return arithmetic(a, b, realPower(a.value, b.value));
     }
-    if (a.value === 0 && b.value < 0) {
+    if (a.value === 0 && b.value < 0 && b.value !== -Infinity) {
         throw RAISES_DIVISION;
     }
     if (
@@ -254,21 +261,27 @@ function logBase(a: PythonValue, b: PythonValue): PythonValue {
 /**
  * The builtin `max` or `min`, which returns the argument it selects: the
  * first, unless a later one compares greater (or less), so that a NaN is
- * selected only if it comes first. Comparing a complex number raises.
+ * selected only if it comes first. Comparing a Python complex number with
+ * a Python number raises; with a numpy number, numpy compares them, so what
+ * is selected is not followed.
  */
 function select(name: "max" | "min", args: PythonValue[]): PythonValue {
-    if (args.some((a) => a.kind === "complex")) {
-        throw RAISES_ERROR;
-    }
-    if (args.some((a) => a.kind)) {
-        return {
-            value: NaN,
-            python: args.every((a) => a.python),
-            kind: "unknown",
-        };
-    }
     let selected = args[0];
     for (const a of args.slice(1)) {
+        if (a.kind || selected.kind) {
+            if (
+                (a.kind === "complex" || selected.kind === "complex") &&
+                a.python &&
+                selected.python
+            ) {
+                throw RAISES_ERROR;
+            }
+            return {
+                value: NaN,
+                python: args.every((a) => a.python),
+                kind: "unknown",
+            };
+        }
         if (
             name === "max" ? a.value > selected.value : a.value < selected.value
         ) {
