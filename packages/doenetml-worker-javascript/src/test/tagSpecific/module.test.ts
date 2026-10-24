@@ -1438,6 +1438,93 @@ describe("Module tag tests @group1", async () => {
         ).eqls(["vector", 6, 7]);
     });
 
+    it("extend of a module with a single child and no moduleAttributes", async () => {
+        // A `<module>` accepts any attribute, and was handed the `_copy`'s
+        // `createComponentIdx` -- its own index -- which its lone
+        // replacement then took, so nothing was shown (#2227).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m"><text name="t">hi</text></module>
+        <p name="p1"><module extend="$m" /></p>
+        <p name="p2">$m</p>
+        <p name="p3"><module copy="$m" /></p>
+        <p name="p4"><module extend="$m" name="e" /></p>
+        <p name="p5"><text extend="$e.t" /></p>
+        <p name="p6"><module copy="$m" name="c" /> <module extend="$c" name="ec" /></p>
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("hi");
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
+        ).eq("hi hi");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ec.t")].stateValues.text,
+        ).eq("hi");
+    });
+
+    it("copy and extend of a module with an attribute named like an Object property", async () => {
+        // The attribute names are looked up in plain objects, where
+        // `constructor` and `toString` would find `Object.prototype`'s.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m">
+            <moduleAttributes>
+                <text name="constructor">c0</text>
+                <text name="toString">t0</text>
+            </moduleAttributes>
+            <p name="p">$constructor $toString</p>
+        </module>
+        <module name="c" copy="$m" constructor="c1" toString="t1" />
+        <module name="e" extend="$m" constructor="c1" toString="t1" />
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m.p")].stateValues.text,
+        ).eq("c0 t0");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c.p")].stateValues.text,
+        ).eq("c1 t1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e.p")].stateValues.text,
+        ).eq("c0 t0");
+    });
+
+    it("copy of a module with a module attribute named like a copy attribute", async () => {
+        // `link` is the copy's own attribute, so the copy takes it and the
+        // module keeps its default. The module used to be handed the copy's
+        // resolved `link` too, which stopped the document with an error.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m"><moduleAttributes><text name="link">default</text></moduleAttributes><text name="t">$link</text></module>
+        <p name="p1"><module copy="$m" link="custom" /></p>
+        <p name="p2"><module extend="$m" link="custom" /></p>
+    `,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["p1", "p2"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("default");
+        }
+    });
+
     it("module state inside repeat loaded correctly", async () => {
         const doenetML = `
 <module name="p">

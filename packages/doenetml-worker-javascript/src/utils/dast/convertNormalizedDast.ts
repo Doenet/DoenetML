@@ -1465,10 +1465,18 @@ export function convertUnresolvedAttributesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
+    // Without a prototype, so that an attribute an author names
+    // `constructor` or `toString` finds nothing rather than `Object`'s.
+    let attributeLowerCaseMapping: Record<string, string> = Object.create(null);
 
     for (let attrName in newAttributesObj) {
         attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
+    }
+
+    const compositeAttributeLowerCaseMapping: Record<string, string> =
+        Object.create(null);
+    for (const attrName in compositeAttributesObj) {
+        compositeAttributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
     }
 
     const newAttributes: Record<string, SerializedAttribute> = {};
@@ -1476,15 +1484,23 @@ export function convertUnresolvedAttributesForComponentType({
     for (const attrNameOrig in attributes) {
         const attribute = attributes[attrNameOrig];
 
-        const attrName =
-            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
+        const attrNameLower = attrNameOrig.toLowerCase();
+        const attrName = attributeLowerCaseMapping[attrNameLower];
 
         const attrDef = newAttributesObj[attrName];
 
+        // Look the attribute up by the composite's own name for it, not the
+        // new class's: a class that accepts any attribute (`<module>`) does
+        // not declare the composite's `createComponentIdx`, and would
+        // otherwise be handed it, along with the rest of a `_copy`'s own
+        // attributes (#2227).
+        const compositeAttrName =
+            compositeAttributeLowerCaseMapping[attrNameLower];
+
         if (
-            attrName in compositeAttributesObj &&
-            !compositeAttributesObj[attrName].leaveRaw &&
-            !dontSkipAttributes.includes(attrName)
+            compositeAttrName !== undefined &&
+            !compositeAttributesObj[compositeAttrName].leaveRaw &&
+            !dontSkipAttributes.includes(compositeAttrName)
         ) {
             // skip any attributes in the composite itself
             // unless specifically marked to not be processed for the composite
