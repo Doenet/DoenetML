@@ -1,6 +1,8 @@
 # Saved state carries over only edits that are safe for every student
 
 Status: proposed 2026-10-23. Every migration step is done; see Migration.
+Amended 2026-10-24: step 3 defines an input's *starting value*, which
+`tests/safe_edits.rs` found the first wording too loose about.
 
 When an author publishes a new version of a document, a student's saved
 state carries over to it only if the edit is *safe for every student*:
@@ -127,11 +129,32 @@ input the signature records:
 - its *derivation*: everything that decides what the input shows and
   whether a student can act on it. That is the operators and literal
   parameters on every path from an essential cell to the input; the
-  defaults of the essential cells on those paths, except those only this
-  input writes; and the same for whatever decides whether the input
+  defaults of the essential cells on those paths, except the input's
+  *starting values*; and the same for whatever decides whether the input
   exists or can be acted on: the count of every repeat and the choice of
   every branch around it, the gates of the cases around it, `hide`, and a
   hold.
+
+A default is the input's *starting value*, which the author may change,
+only when it is the whole value of something the student drags or types
+into, and nothing else is calculated from it: the cell is one of the
+input's own props, no operator around the input reads it, and no other
+input reaches it. A student who changed it gets their value back; one who
+did not sees the new start, and nothing else moves with it.
+
+- `<point x="1" y="2"/>`: `x` is the point's own prop and nothing is
+  calculated from it. Changing `x="1"` to `x="4"` is allowed.
+- `<circle through="$a $b" radius="4"/>`: the radius is not something the
+  student drags; the circle's centre is calculated from it and from the
+  points the student placed. Changing it would move their circle, so it
+  is part of the derivation.
+- A polygon whose fourth vertex is calculated from the other three: the
+  first vertex is the student's to drag, but the fourth is calculated from
+  it. Changing its start would move the fourth, so it is part of the
+  derivation.
+
+An earlier wording exempted every default that only one input reaches,
+which allowed the circle's and the polygon's edits.
 
 The derivation is recorded as a hash of the plans involved, which name no
 iteration (ADR 0015). The hash is taken over stable keys and literals
@@ -175,14 +198,17 @@ New inputs that meet condition 4, new answers and new selects are
 allowed. Everything else may change freely: text, layout, hints,
 feedback, formulas that feed only what is displayed or credited, correct
 answers, awards, weights, the conditions of content that holds no input,
-and the starting value of an input that only it writes.
+and an input's starting values (step 3).
 
 **Why this is enough.** Every essential cell an old input reads holds,
-after the restore, either a value the student actually had (step 2) or a
-default that is unchanged (condition 3), in a cell with the same key, type
-and sharing (condition 2). Through an unchanged derivation, the input then
-shows exactly what it showed before, exists exactly when it did before,
-and can be acted on exactly when it could before. That value was in the
+after the restore, a value the student actually had (step 2), a default
+that is unchanged (condition 3), or a starting value the student never
+changed, in a cell with the same key, type and sharing (condition 2).
+Through an unchanged derivation, the input then shows exactly what it
+showed before, but for a prop the student never changed, which shows its
+new start; nothing is calculated from a starting value, so nothing else
+moves with it. It exists exactly when it did before, and can be acted on
+exactly when it could before. That value was in the
 old domain, which the new one contains (condition 1), so everything the
 student could see and reach, they still can. A new input starts from new
 cells or inside its domain (condition 4). Nothing here depends on any
@@ -196,6 +222,8 @@ Each condition rules out a failure found in drafting:
 | A type change; a copy given an override | condition 2 |
 | `q.x = 2*$n` changed to `3*$n`: `q` moves though `n` restores exactly | condition 3, operators |
 | `q.x = $k*$n`, `<number name="k">` changed from 2 to 3 | condition 3, defaults |
+| A circle's `radius` changed: the circle through the student's points moves | condition 3, defaults |
+| A polygon's first vertex moved, which its fourth is calculated from | condition 3, defaults |
 | `length="$n"` changed to `$n/2`: iterations with the student's work vanish | condition 3, existence |
 | A `fixed`, `hide` or condition added around an input | condition 3, acting on it |
 | A new point at `x="$n"` | condition 4 |
@@ -452,11 +480,9 @@ session generator can start after 3.
    (some reading an input), self-closing elements removed, elements
    renamed, over the golden set and five documents of inputs; with
    `SAFE_EDITS_LONG=1`, many more of each and `fixtures/sir.doenet`. The
-   test found that step 4's argument is short a case: a default only one
-   input reaches is its starting value only when it is one of the
-   input's props itself and no operator around the input mixes it into
-   another (a circle's radius, through its two through points, moves the
-   circle a student placed), and the signature says so. Its oracle allows
+   test found that exempting every default only one input reaches was too
+   loose (a circle's radius, a polygon's vertex another is calculated
+   from), which step 3's *starting value* now fixes. Its oracle allows
    what step 2 allows: an untouched prop takes the new start, and a
    graph's own bounds the author's new ones.
 7. **Docs.** `ARCHITECTURE.md` and `CONTEXT.md` as Consequences says,
