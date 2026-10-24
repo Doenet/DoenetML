@@ -1329,7 +1329,9 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`function="curve_1_f(x)=erf(x)"`);
         expect(prefigureXML).toContain(`function="curve_2_f(x)=max(x, 0)"`);
         expect(prefigureXML).toContain(`function="curve_3_f(x)=atan2(x, 2)"`);
-        expect(prefigureXML).toContain(`function="curve_4_f(x)=atan(1/(x))"`);
+        expect(prefigureXML).toContain(
+            `function="curve_4_f(x)=atan2(copysign(1, x), abs(x))"`,
+        );
         expect(prefigureXML).toContain(`function="curve_5_f(x)=log(x, 2)"`);
         expect(prefigureXML).toContain(
             `function="curve_6_f(x)=copysign(floor(abs(x)*10^1 + 0.5)/10^1, x)"`,

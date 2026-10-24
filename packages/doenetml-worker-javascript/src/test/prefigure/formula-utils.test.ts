@@ -56,7 +56,9 @@ describe("PreFigure formula translation @group4", () => {
     it("rewrites functions Python's math module lacks", () => {
         expect(fromText("arcsec(x)").expression).eq("acos(1/(x))");
         expect(fromText("arccsc(x)").expression).eq("asin(1/(x))");
-        expect(fromText("arccot(x)").expression).eq("atan(1/(x))");
+        expect(fromText("arccot(x)").expression).eq(
+            "atan2(copysign(1, x), abs(x))",
+        );
         expect(fromText("sech(x)").expression).eq("1/cosh(x)");
         expect(fromText("x/sech(x)").expression).eq("x/(1/cosh(x))");
         expect(fromText("x!").expression).eq("gamma(x + 1)");
@@ -67,6 +69,27 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromLatex("\\sqrt[3]{x}").expression).eq("cbrt(x)");
         expect(fromLatex("\\log_2 x").expression).eq("log(x, 2)");
         expect(fromText("log_10(x)").expression).eq("log10(x)");
+    });
+
+    it("matches math-expressions' arccot at zero and negative inputs", () => {
+        const pythonArccot = new Function(
+            "x",
+            "atan2",
+            "copysign",
+            "abs",
+            `return ${fromText("arccot(x)").expression};`,
+        );
+        const copysign = (magnitude: number, sign: number) =>
+            sign < 0 || Object.is(sign, -0)
+                ? -Math.abs(magnitude)
+                : Math.abs(magnitude);
+        const arccot = me.fromText("arccot(x)").f();
+        for (const x of [0, -0, 0.5, -0.5, 1, -1, 3, -3]) {
+            expect(pythonArccot(x, Math.atan2, copysign, Math.abs)).toBeCloseTo(
+                arccot({ x }),
+                12,
+            );
+        }
     });
 
     it("accepts the short inverse names DoenetML parses", () => {
@@ -82,7 +105,9 @@ describe("PreFigure formula translation @group4", () => {
         }
         expect(fromDoenetText("asec(x)").expression).eq("acos(1/(x))");
         expect(fromDoenetText("acsc(x)").expression).eq("asin(1/(x))");
-        expect(fromDoenetText("acot(x)").expression).eq("atan(1/(x))");
+        expect(fromDoenetText("acot(x)").expression).eq(
+            "atan2(copysign(1, x), abs(x))",
+        );
         expect(fromDoenetText("asech(x)").expression).eq("acosh(1/(x))");
         expect(fromDoenetText("acsch(x)").expression).eq("asinh(1/(x))");
         expect(fromDoenetText("acoth(x)").expression).eq("atanh(1/(x))");

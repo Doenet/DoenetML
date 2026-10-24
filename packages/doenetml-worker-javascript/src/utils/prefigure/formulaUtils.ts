@@ -58,7 +58,11 @@ const MAPPED_FUNCTIONS: Record<string, (arg: string) => string> = {
     // function, so arccot(-1) is -pi/4 (not 3pi/4).
     arcsec: (a) => `acos(1/(${a}))`,
     arccsc: (a) => `asin(1/(${a}))`,
-    arccot: (a) => `atan(1/(${a}))`,
+    // atan(1/x) for x != 0. Unlike `atan(1/(x))`, it doesn't divide by zero at
+    // x = 0, which raises in Python but where math-expressions' arccot is
+    // finite: pi/2 at 0 and -pi/2 at -0. The other inverse reciprocals are
+    // infinite or complex at 0, so DoenetML draws nothing there either.
+    arccot: (a) => `atan2(copysign(1, ${a}), abs(${a}))`,
     arcsinh: (a) => `asinh(${a})`,
     arccosh: (a) => `acosh(${a})`,
     arctanh: (a) => `atanh(${a})`,
