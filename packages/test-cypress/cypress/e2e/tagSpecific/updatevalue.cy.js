@@ -163,4 +163,43 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#m").should("have.text", "1");
         cy.get("#n").should("have.text", "1");
     });
+
+    it("a click on a label over a curve runs an action listing both once", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="g">
+      <curve name="c"><function>x-1</function></curve>
+      <text name="t" anchor="(2,1)">label</text>
+    </graph>
+    <p>Count: <number name="n">0</number></p>
+    <updateValue triggerWhenObjectsClicked="$c $t" target="$n" newValue="$n+1" hide />
+    <p>Curve clicks: <number name="k">0</number></p>
+    <updateValue triggerWhenObjectsClicked="$c" target="$k" newValue="$k+1" hide />
+    <p><updateValue name="done" target="$m" newValue="$m+1"><label>Done</label></updateValue> <number name="m">0</number></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#g").contains("label");
+        cy.get("#g").then(($el) => {
+            const rect = $el[0].getBoundingClientRect();
+            // (2,1) in the default [-10, 10] bounding box
+            cy.wrap($el).click((12 / 20) * rect.width, (9 / 20) * rect.height, {
+                force: true,
+            });
+        });
+        cy.get("#k").should("have.text", "1");
+        cy.get("#n").should("have.text", "1");
+
+        // Actions run in order, so once the button's has run, the click's
+        // have all run too
+        cy.get("#done_button").click();
+        cy.get("#m").should("have.text", "1");
+        cy.get("#k").should("have.text", "1");
+        cy.get("#n").should("have.text", "1");
+    });
 });
