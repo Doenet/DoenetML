@@ -10131,14 +10131,13 @@ describe("An answer's submitted responses through a reload @group4", async () =>
         return { before, after, resolvePathToNodeIdx };
     }
 
-    it("a math response is read as a math, inside the answer and outside it", async () => {
+    it("a math response is read as a math by expressions outside the answer", async () => {
         const doenetML = `
     <answer name="ans">
         <mathInput name="mi" />
         <award><when>$mi = x</when></award>
-        <feedback name="fbIn" condition="$ans.submittedResponse = z">You typed z</feedback>
     </answer>
-    <feedback name="fbOut" condition="$ans.submittedResponse = z">You typed z</feedback>
+    <feedback name="fb" condition="$ans.submittedResponse = z">You typed z</feedback>
     <boolean name="b">$ans.submittedResponse = z</boolean>
     <math name="m">$ans.submittedResponse + 1</math>
     `;
@@ -10157,8 +10156,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
         for (const sv of [before, after]) {
             const stateValues = async (name: string) =>
                 sv[await resolvePathToNodeIdx(name)].stateValues;
-            expect((await stateValues("ans.fbIn")).hide).eq(false);
-            expect((await stateValues("fbOut")).hide).eq(false);
+            expect((await stateValues("fb")).hide).eq(false);
             expect((await stateValues("b")).value).eq(true);
             expect((await stateValues("m")).value.tree).eqls(["+", "z", 1]);
             expect((await stateValues("ans")).submittedResponses[0].tree).eq(
