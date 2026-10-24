@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-A `<repeatForSequence>` whose `exclude` refers to a `<math>`, `<mathList>` or `<mathInput>` with the same parent (for example, both directly inside one `<section>`) now loads. Depending on its template, it used to stop the document with an error about an infinite loop.
+Some `<repeatForSequence>` components whose `exclude` refers to another component, such as a `<mathInput>`, no longer stop the document from loading with an error about an infinite loop.
