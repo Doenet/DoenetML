@@ -13703,4 +13703,83 @@ describe("Math tag tests @group3", async () => {
         });
         expect(await anchorOf("t")).eqls(["vector", 7, 5, 3]);
     });
+
+    it("a math with no children written through an input reloads as a math", async () => {
+        const doenetML = `
+    <math name="m"/>
+    <mathInput name="mi" bindValueTo="$m"/>
+    <math extend="$m" name="m2" />
+    <math copy="$m" name="m3" />
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await updateMathInputValue({
+            latex: "5x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["m", "m2"]) {
+                const { value, number } =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(value.tree).eqls(["*", 5, "x"]);
+                expect(number).eqls(NaN);
+            }
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .value.tree,
+            ).eqls(["*", 5, "x"]);
+            // an unlinked copy keeps the blank it was made with
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .value.tree,
+            ).eq("\uff3f");
+        }
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
+    it("a math with no children whose value is a number reloads as a math", async () => {
+        const doenetML = `
+    <math name="m"/>
+    <mathInput name="mi" bindValueTo="$m"/>
+    <number name="n">$m.number</number>
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+        expect(m.value.tree).eq(5);
+        expect(m.number).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(5);
+    });
 });
