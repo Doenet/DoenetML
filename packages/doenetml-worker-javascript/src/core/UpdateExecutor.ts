@@ -423,14 +423,14 @@ export class UpdateExecutor {
                     continue;
                 }
                 stateIdsWritten.add(stateId);
-                let varNames = this.core.unsavedWrites.get(stateId);
-                if (!varNames) {
-                    varNames = new Set();
-                    this.core.unsavedWrites.set(stateId, varNames);
+                let writes = this.core.unsavedWrites.get(stateId);
+                if (!writes) {
+                    writes = [];
+                    this.core.unsavedWrites.set(stateId, writes);
                 }
-                for (const varName in newStateVariableValues[componentIdxStr]) {
-                    varNames.add(varName);
-                }
+                // the values themselves, as merged below once
+                // `executeUpdateStateVariables` has processed them
+                writes.push(newStateVariableValues[componentIdxStr]);
             }
         };
 

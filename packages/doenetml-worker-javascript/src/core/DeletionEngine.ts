@@ -555,17 +555,13 @@ function keepSavedStateForRecreation(core: Core, component: any) {
     }
     // what the current update wrote is merged only at its end
     // (`performUpdate`), after the component is gone
-    const unsaved = core.unsavedWrites.get(stateId);
-    if (unsaved) {
-        for (const varName of unsaved) {
-            const value = component.essentialState?.[varName];
-            if (value !== undefined) {
-                core.essentialValueWriter.mergeIntoCumulative(
-                    stateId,
-                    varName,
-                    value,
-                );
-            }
+    for (const values of core.unsavedWrites.get(stateId) ?? []) {
+        for (const varName in values) {
+            core.essentialValueWriter.mergeIntoCumulative(
+                stateId,
+                varName,
+                values[varName],
+            );
         }
         core.readerTouchedStateIds.add(stateId);
     }

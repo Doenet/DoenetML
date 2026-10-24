@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
+    moveLine,
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
@@ -46,6 +47,14 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
                 await updateMathInputValue({
                     latex,
                     componentIdx: await resolvePathToNodeIdx(name),
+                    core,
+                });
+            },
+            async moveLine(name: string, point1: number[], point2: number[]) {
+                await moveLine({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    point1coords: point1,
+                    point2coords: point2,
                     core,
                 });
             },
@@ -288,6 +297,58 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         await h.setBoolean("cc.bi", true);
         expect((await h.sv("b")).stateValues.value).eq(true);
         expect((await h.sv("cc.bi")).stateValues.value).eq(true);
+    });
+
+    it("keeps the move of a line that makes another case active", async () => {
+        // a line with no points given keeps its own, saved by entry, which a
+        // second move merges into
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b">
+            <graph><line name="l" /></graph>
+            <updateValue triggerWhen="$l.point1.x > 5" target="$b" newValue="false" type="boolean" />
+        </case>
+        <else>done</else>
+    </conditionalContent>
+    `);
+        async function point1() {
+            return (await h.sv("cc.l")).stateValues.points[0].map(
+                (x: any) => x.tree,
+            );
+        }
+        await h.moveLine("cc.l", [2, 2], [3, 4]);
+        expect(await point1()).eqls([2, 2]);
+        await h.moveLine("cc.l", [6, 2], [7, 4]);
+        expect((await h.sv("b")).stateValues.value).eq(false);
+        await h.setB(true);
+        expect(await point1()).eqls([6, 2]);
+        await h.reload();
+        expect(await point1()).eqls([6, 2]);
+    });
+
+    it("keeps a change to a math with a literal child that makes another case active", async () => {
+        // the input writes to the math's literal child, which is saved apart
+        // from the math's essential state
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b">
+            <math name="m">1</math>
+            <mathInput name="mi" bindValueTo="$m" />
+            <updateValue triggerWhen="$m = 5" target="$b" newValue="false" type="boolean" />
+        </case>
+        <else>done</else>
+    </conditionalContent>
+    `);
+        await h.typeMath("cc.mi", "3");
+        expect(await h.math("cc.m")).eq(3);
+        await h.typeMath("cc.mi", "5");
+        expect((await h.sv("b")).stateValues.value).eq(false);
+        await h.setB(true);
+        expect(await h.math("cc.m")).eq(5);
+        await h.reload();
+        expect(await h.math("cc.m")).eq(5);
     });
 
     it("a copy from a single case keeps what was entered through a reload while the case is hidden", async () => {

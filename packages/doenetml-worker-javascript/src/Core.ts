@@ -239,13 +239,14 @@ export default class Core {
     readerTouchedStateIds!: Set<string>;
     definitionSetStateIds!: Set<string>;
     /**
-     * The state variables written to each `stateId` by an update that has not
-     * yet merged them into `cumulativeStateVariableChanges`, which it does at
-     * its end (`performUpdate`). A component deleted before then with its saved
-     * state kept (`deleteComponents`' `keepSavedStateFor`) has them merged as
-     * it is deleted, so they are kept with the rest.
+     * What an update has written to each `stateId` but not yet merged into
+     * `cumulativeStateVariableChanges`, which it does at its end
+     * (`performUpdate`): the values written, in the order written. A component
+     * deleted before then with its saved state kept (`deleteComponents`'
+     * `keepSavedStateFor`) has them merged as it is deleted, so they are kept
+     * with the rest.
      */
-    unsavedWrites!: Map<string, Set<string>>;
+    unsavedWrites!: Map<string, Record<string, any>[]>;
     canonicalGeneratedVariantString?: string;
     canonicalDocVariantStrings?: string[];
     coreInfoString?: string;
