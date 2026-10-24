@@ -157,5 +157,34 @@ liveDescribe(
                 }
             });
         });
+
+        it("draws a field of vectors shorter than PreFigure's cutoff", () => {
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure">
+  <shortDescription>Fields of vectors a trillionth of a unit long</shortDescription>
+  <vectorField>(10^(-12), 0)</vectorField>
+  <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#ready").should("have.text", "ready");
+            cy.get("#g .svg svg", { timeout: 30000 }).should(($svg) => {
+                const svg = $svg[0];
+                // PreFigure draws a vector shorter than 1e-10 as zero, and
+                // loses a field of only such vectors to a division by zero.
+                // Magnified, every lattice point has an arrow, but the origin
+                // of the second, where the vector is zero.
+                expect(fieldLines(svg, "vectorfield_0").length).to.eq(441);
+                expect(fieldLines(svg, "vectorfield_1").length).to.eq(440);
+            });
+        });
     },
 );

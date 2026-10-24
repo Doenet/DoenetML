@@ -310,6 +310,39 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         expect(await warningCodes(doenetML)).toEqual([]);
     });
 
+    it("magnifies a field of vectors too short for PreFigure, and scales it back", async () => {
+        const doenetML = prefigureGraph(`
+  <vectorField>(10^(-12), 0)</vectorField>
+  <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>`);
+        const prefigureXML = await getPrefigureXML(doenetML);
+
+        // PreFigure draws a vector shorter than 1e-10 as zero, so the
+        // function it calls multiplies by the reciprocal of the longest
+        // vector's length, and the scale divides by it.
+        expect(prefigureXML).toContain(
+            "<definition>vectorfield_0_f(x,y)=1000000000000.0*vectorfield_0_f_formula(",
+        );
+        const scales = [...prefigureXML.matchAll(/ scale="([^"]*)"/g)].map(
+            (m) => Number(m[1]),
+        );
+        expect(scales[0]).toBeCloseTo(24 / UNIT, 10);
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_1_f\(x,y\)=[0-9.e]+\*vectorfield_1_f_formula\(/,
+        );
+        expect(scales[1]).toBeCloseTo(24 / UNIT, 10);
+        expect(await warningCodes(doenetML)).toEqual([]);
+    });
+
+    it("draws nothing for a vectorField with an undefined markLength", async () => {
+        const doenetML = prefigureGraph(
+            '<vectorField markLength="q">(1, 0)</vectorField>',
+        );
+        const prefigureXML = await getPrefigureXML(doenetML);
+
+        expect(prefigureXML).toContain('<group at="vectorfield_0" />');
+        expect(prefigureXML).not.toContain("<vector-field");
+    });
+
     it("sizes arrowheads for an arrow markLength long, on a whole-pixel line", async () => {
         // PreFigure's default head, about 4.5 line widths long, would be 18 of
         // the longest arrow's 24 pixels. The JSXGraph head along the shaft is

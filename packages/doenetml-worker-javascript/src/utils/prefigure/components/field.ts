@@ -255,6 +255,7 @@ function fieldFunctionDefinitions({
     name,
     definitions,
     grid,
+    factor = 1,
     diagnostics,
     warningPrefix,
     warningPosition,
@@ -262,6 +263,8 @@ function fieldFunctionDefinitions({
     name: string;
     definitions: CurveFunctionDefinition[];
     grid: FieldLattice["grid"];
+    /** A factor PreFigure's function multiplies the field's values by. */
+    factor?: number;
 }): string | null {
     const warnNotFormula = (definition: CurveFunctionDefinition) => {
         pushWarning({
@@ -331,7 +334,7 @@ function fieldFunctionDefinitions({
 
     return [
         `${formulaName}(x,y)=${body}`,
-        `${name}(x,y)=${formulaName}(${snap("x", grid.dx, grid.xoffset)},${snap("y", grid.dy, grid.yoffset)})`,
+        `${name}(x,y)=${factor === 1 ? "" : `${pythonFloat(factor)}*`}${formulaName}(${snap("x", grid.dx, grid.xoffset)},${snap("y", grid.dy, grid.yoffset)})`,
     ]
         .map((text) => `<definition>${escapeXml(text)}</definition>`)
         .join("");
@@ -514,6 +517,12 @@ export function convertSlopeFieldToPrefigure({
  * length, at this angle, in radians, from the shaft (`buildVectorFieldData`).
  */
 const BARB_FRACTION = 0.3;
+
+/**
+ * The length, in graph units, below which a vector field's longest vector is
+ * magnified before PreFigure draws it: 1e6 times PreFigure's cutoff of 1e-10.
+ */
+const MIN_UNSCALED_NORM = 1e-4;
 const BARB_ANGLE = 0.44;
 
 /**
@@ -604,11 +613,40 @@ export function convertVectorFieldToPrefigure({
 
     const lattice = fieldLattice(sv, definition, numInputsOf(definition));
 
+    const [xMin, yMin, xMax, yMax] = sv.graphBounds ?? [-10, -10, 10, 10];
+    const [width, height] = sv.graphDimensions ?? [425, 425];
+    const unitX = width / Math.abs(xMax - xMin);
+    const unitY = height / Math.abs(yMax - yMin);
+
+    const u = fieldFunctionFromDefinition(definitions[0]);
+    const v = fieldFunctionFromDefinition(definitions[1]);
+    // The longest vector, in pixels and in graph units.
+    let maxMagnitude = 0;
+    let maxNorm = 0;
+    for (const x of lattice.xs) {
+        for (const y of lattice.ys) {
+            const ux = u(x, y);
+            const uy = v(x, y);
+            const magnitude = Math.hypot(ux * unitX, uy * unitY);
+            if (Number.isFinite(magnitude)) {
+                maxMagnitude = Math.max(maxMagnitude, magnitude);
+                maxNorm = Math.max(maxNorm, Math.hypot(ux, uy));
+            }
+        }
+    }
+    // PreFigure draws a vector shorter than 1e-10 in graph units as zero, and
+    // loses the field to a division by zero if every vector is. So a field
+    // of such short vectors is given to PreFigure magnified to a longest
+    // vector of 1, and `scale` shrinks it back. Either way, only a vector
+    // under a millionth of the longest one, too short to draw, is lost.
+    const factor = maxNorm > 0 && maxNorm < MIN_UNSCALED_NORM ? 1 / maxNorm : 1;
+
     const functionName = `${handle}_f`;
     const definitionXml = fieldFunctionDefinitions({
         name: functionName,
         definitions,
         grid: lattice.grid,
+        factor,
         ...warningContext,
     });
     if (definitionXml === null) {
@@ -621,24 +659,6 @@ export function convertVectorFieldToPrefigure({
         return emptyGroup(handle);
     }
 
-    const [xMin, yMin, xMax, yMax] = sv.graphBounds ?? [-10, -10, 10, 10];
-    const [width, height] = sv.graphDimensions ?? [425, 425];
-    const unitX = width / Math.abs(xMax - xMin);
-    const unitY = height / Math.abs(yMax - yMin);
-
-    const u = fieldFunctionFromDefinition(definitions[0]);
-    const v = fieldFunctionFromDefinition(definitions[1]);
-    let maxMagnitude = 0;
-    for (const x of lattice.xs) {
-        for (const y of lattice.ys) {
-            const ux = u(x, y);
-            const uy = v(x, y);
-            const magnitude = Math.hypot(ux * unitX, uy * unitY);
-            if (Number.isFinite(magnitude)) {
-                maxMagnitude = Math.max(maxMagnitude, magnitude);
-            }
-        }
-    }
     if (maxMagnitude === 0) {
         // Every vector is zero or undefined, so there is no arrow to draw, and
         // nothing for PreFigure to lose.
@@ -664,6 +684,10 @@ export function convertVectorFieldToPrefigure({
     });
 
     const markLength = asFiniteNumber(sv.markLength);
+    if (markLength === null) {
+        // The JSXGraph renderer draws no arrows of an undefined length.
+        return emptyGroup(handle);
+    }
     const fieldAttrs = [
         `at="${escapeXml(handle)}"`,
         `function="${escapeXml(functionName)}"`,
@@ -682,12 +706,10 @@ export function convertVectorFieldToPrefigure({
                 position: warningPosition,
             });
         }
-        if (markLength !== null) {
-            const unit = equalScales ? unitX : Math.sqrt(unitX * unitY);
-            fieldAttrs.push(`scale="${markLength / unit}"`);
-        }
-    } else if (markLength !== null) {
-        fieldAttrs.push(`scale="${markLength / maxMagnitude}"`);
+        const unit = equalScales ? unitX : Math.sqrt(unitX * unitY);
+        fieldAttrs.push(`scale="${markLength / unit}"`);
+    } else {
+        fieldAttrs.push(`scale="${markLength / (factor * maxMagnitude)}"`);
     }
 
     fieldAttrs.push(
