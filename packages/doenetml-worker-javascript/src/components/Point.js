@@ -1455,6 +1455,7 @@ export default class Point extends GraphicalComponent {
 
     async pointClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1464,6 +1465,7 @@ export default class Point extends GraphicalComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -1472,6 +1474,7 @@ export default class Point extends GraphicalComponent {
 
     async pointFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1481,6 +1484,7 @@ export default class Point extends GraphicalComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

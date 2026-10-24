@@ -2563,6 +2563,7 @@ export default class Polyline extends GraphicalComponent {
 
     async polylineClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -2572,6 +2573,7 @@ export default class Polyline extends GraphicalComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -2580,6 +2582,7 @@ export default class Polyline extends GraphicalComponent {
 
     async polylineFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -2589,6 +2592,7 @@ export default class Polyline extends GraphicalComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

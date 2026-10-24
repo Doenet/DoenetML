@@ -860,7 +860,12 @@ export default class GraphicalValueList extends AuthoredValueList {
      * entry (`$pl[2]`) and to the list (`$pl`; `triggerChainedActions`).
      */
     async performOnEntryChild({ actionName, triggeringAction, args }) {
-        const { listEntryIndex, actionId, sourceInformation = {} } = args;
+        const {
+            listEntryIndex,
+            actionId,
+            gestureId,
+            sourceInformation = {},
+        } = args;
         const skipRendererUpdate = args.skipRendererUpdate ?? false;
         // An entry the list does not have (a `<callAction>` naming `$pl[5]`
         // of two) has no `entryFixed` and fires nothing.
@@ -890,6 +895,7 @@ export default class GraphicalValueList extends AuthoredValueList {
                 componentIdx: this.componentIdx,
                 listEntryIndex,
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

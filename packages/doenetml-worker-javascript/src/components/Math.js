@@ -1180,6 +1180,7 @@ export default class MathComponent extends InlineComponent {
 
     async mathClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1189,6 +1190,7 @@ export default class MathComponent extends InlineComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -1197,6 +1199,7 @@ export default class MathComponent extends InlineComponent {
 
     async mathFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1206,6 +1209,7 @@ export default class MathComponent extends InlineComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

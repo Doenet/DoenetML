@@ -1882,6 +1882,7 @@ export default class Ray extends GraphicalComponent {
 
     async rayClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1891,6 +1892,7 @@ export default class Ray extends GraphicalComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -1899,6 +1901,7 @@ export default class Ray extends GraphicalComponent {
 
     async rayFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -1908,6 +1911,7 @@ export default class Ray extends GraphicalComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

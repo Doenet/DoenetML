@@ -970,6 +970,7 @@ export default class Label extends InlineComponent {
 
     async labelClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -979,6 +980,7 @@ export default class Label extends InlineComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -987,6 +989,7 @@ export default class Label extends InlineComponent {
 
     async labelFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -996,6 +999,7 @@ export default class Label extends InlineComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

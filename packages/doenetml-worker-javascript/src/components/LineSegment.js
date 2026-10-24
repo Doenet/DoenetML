@@ -2503,6 +2503,7 @@ export default class LineSegment extends GraphicalComponent {
 
     async lineSegmentClicked({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -2512,6 +2513,7 @@ export default class LineSegment extends GraphicalComponent {
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -2520,6 +2522,7 @@ export default class LineSegment extends GraphicalComponent {
 
     async lineSegmentFocused({
         actionId,
+        gestureId,
         componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -2529,6 +2532,7 @@ export default class LineSegment extends GraphicalComponent {
                 triggeringAction: "focus",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

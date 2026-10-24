@@ -3,6 +3,7 @@ import { JXGElement, JXGEvent } from "../jsxgraph-distrib/types";
 import { exceededDragThreshold } from "./dragThreshold";
 import { hasNavigationModifier } from "../../../utils/sourceNavigation";
 import { PointerDragState } from "./pointerDragState";
+import { clickActionArgs } from "./gestureId";
 
 export type CallActionFn = (params: {
     action: any;
@@ -223,7 +224,6 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         onKeyFocusOutExtra,
     } = config;
 
-    const focusArgs = { componentIdx };
     let currentSnapshot: TSnapshot | null = null;
 
     /**
@@ -241,13 +241,16 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         );
     }
 
-    function dispatchFocus() {
+    function dispatchFocus(e?: JXGEvent) {
         if (actions.focus) {
-            callAction({ action: actions.focus, args: focusArgs });
+            callAction({
+                action: actions.focus,
+                args: clickActionArgs(componentIdx, e),
+            });
         }
     }
 
-    function dispatchClick() {
+    function dispatchClick(e?: JXGEvent) {
         if (!actions.click) {
             return;
         }
@@ -255,7 +258,10 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         if (actions.clickPrelude && preludeOk) {
             callAction({ action: actions.clickPrelude });
         }
-        callAction({ action: actions.click, args: focusArgs });
+        callAction({
+            action: actions.click,
+            args: clickActionArgs(componentIdx, e),
+        });
     }
 
     function dispatchCommit(variant: CommitVariant) {
@@ -291,7 +297,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
             coordination.downOnTag.current !== null &&
             coordination.downOnTag.current !== tag;
         if (focusGate && !focusSuppressed) {
-            dispatchFocus();
+            dispatchFocus(e);
         }
 
         onDownExtra?.(e);
@@ -341,7 +347,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         ) {
             reportNavigationClick(e);
             if (!fixedRef.current) {
-                dispatchClick();
+                dispatchClick(e);
             }
         }
 

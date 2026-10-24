@@ -11,6 +11,7 @@ import type { CallActionArgs, RendererAction } from "../../useDoenetRenderer";
 import { exceededDragThreshold } from "./dragThreshold";
 import { pointerEventToUserCoords } from "./pointerToBoardCoords";
 import type { PointerDragState } from "./pointerDragState";
+import { clickActionArgs } from "./gestureId";
 import { LINE_FAMILY_EVENTS, removeJXGEventHandlers } from "./jsxgraph";
 
 /**
@@ -161,7 +162,7 @@ export function attachAnchoredGraphDragHandlers(
         if (!fixed.current) {
             callAction({
                 action: actions[actionNames.focused],
-                args: { componentIdx },
+                args: clickActionArgs(componentIdx, e),
             });
         }
     });
@@ -175,7 +176,7 @@ export function attachAnchoredGraphDragHandlers(
         });
     });
 
-    newJXG.on("up", function () {
+    newJXG.on("up", function (e: JXGEvent) {
         if (pointerState.dragged.current) {
             callAction({
                 action: actions[actionNames.move],
@@ -191,7 +192,7 @@ export function attachAnchoredGraphDragHandlers(
         ) {
             callAction({
                 action: actions[actionNames.clicked],
-                args: { componentIdx },
+                args: clickActionArgs(componentIdx, e),
             });
         }
         pointerState.pointerIsDown.current = false;

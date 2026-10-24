@@ -1461,6 +1461,92 @@ describe("UpdateValue tag tests @group1", async () => {
         ).eq("9x");
     });
 
+    it("one click on two overlapping objects of a triggered action runs it once", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <rectangle name="r" vertices="(0,0) (4,2)" filled />
+      <text name="t" anchor="(2,1)">label</text>
+    </graph>
+    <number name="n">0</number>
+    <number name="m">0</number>
+    <number name="f">0</number>
+    <updateValue name="incN" triggerWhenObjectsClicked="$r $t" target="$n" newValue="$n+1" />
+    <updateValue name="incM" triggerWhenObjectsClicked="$t $r" target="$m" newValue="$m+1" />
+    <updateValue name="incF" triggerWhenObjectsFocused="$t" triggerWhenObjectsClicked="$r" target="$f" newValue="$f+1" />
+    `,
+        });
+
+        const rIdx = await resolvePathToNodeIdx("r");
+        const tIdx = await resolvePathToNodeIdx("t");
+
+        async function check(n: number, m: number, f: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(n);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value,
+            ).eq(m);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                    .value,
+            ).eq(f);
+        }
+
+        // what the renderers send for one pointer click on the label
+        async function clickLabel(gestureId?: string) {
+            const extra = gestureId === undefined ? {} : { gestureId };
+            await core.requestAction({
+                componentIdx: tIdx,
+                actionName: "textClicked",
+                args: { componentIdx: tIdx, ...extra },
+            });
+            await core.requestAction({
+                componentIdx: rIdx,
+                actionName: "polygonClicked",
+                args: { componentIdx: rIdx, ...extra },
+            });
+        }
+
+        await check(0, 0, 0);
+
+        // one gesture: each triggered action runs once
+        await clickLabel("1|100");
+        await check(1, 1, 1);
+
+        // another gesture runs them again
+        await clickLabel("1|200");
+        await check(2, 2, 2);
+
+        // a repeat of a gesture already handled runs nothing
+        await clickLabel("1|200");
+        await check(2, 2, 2);
+
+        // without a gesture id, each object's click runs the action
+        await clickLabel();
+        await check(4, 4, 3);
+
+        // a focus and a click of one gesture are not repeats of each other
+        await core.requestAction({
+            componentIdx: tIdx,
+            actionName: "textFocused",
+            args: { componentIdx: tIdx, gestureId: "1|300" },
+        });
+        await check(4, 4, 4);
+        await core.requestAction({
+            componentIdx: rIdx,
+            actionName: "polygonClicked",
+            args: { componentIdx: rIdx, gestureId: "1|300" },
+        });
+        await check(5, 5, 5);
+    });
+
     it("update triggered when object focused", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
