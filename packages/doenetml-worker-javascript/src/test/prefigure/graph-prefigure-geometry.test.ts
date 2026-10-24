@@ -1836,6 +1836,23 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
     });
 
+    it("renderer=prefigure renames a function variable that would shadow a function it calls", async () => {
+        const doenetML = prefigureGraph(
+            '<function variable="gamma">gamma!</function><regionBetweenCurves boundaryValues="0 2"><function variable="gamma">gamma!</function><function>x</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(
+            `function="curve_1_f(gamma_)=gamma(gamma_ + 1)"`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=gamma(x + 1)</definition>`,
+        );
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
     it("renderer=prefigure regionBetweenCurves warns about a formula PreFigure cannot evaluate", async () => {
         const doenetML = prefigureGraph(
             '<regionBetweenCurves boundaryValues="0 2"><function>sign(x)</function><function>x</function></regionBetweenCurves>',

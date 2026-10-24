@@ -183,6 +183,54 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromText("x_1^2").expression).eq("x_1^2");
     });
 
+    it("renames a variable that would shadow a function the expression calls", () => {
+        expect(astToVariableName("gamma")).eq("gamma_");
+        expect(astToVariableName("abs")).eq("abs_");
+        expect(fromText("gamma!", ["gamma_"]).expression).eq(
+            "gamma(gamma_ + 1)",
+        );
+        expect(
+            astToPythonExpression(["apply", "round", "abs"], new Set(["abs_"]))
+                .expression,
+        ).eq("copysign(floor(abs(abs_) + 0.5), abs_)");
+
+        const parsed = parseFormulaDefinition(
+            {
+                functionType: "formula",
+                formula: me.fromText("gamma!").tree,
+                variables: ["gamma"],
+            },
+            "x",
+        );
+        expect(parsed).toEqual({
+            variableName: "gamma_",
+            expression: "gamma(gamma_ + 1)",
+        });
+    });
+
+    it("reports nested rewrites that would grow too long", () => {
+        // Each `round` writes its argument twice, so the output doubles with
+        // every level of nesting.
+        const nest = (depth: number, wrap: (inner: unknown) => unknown) => {
+            let ast: unknown = "x";
+            for (let i = 0; i < depth; i++) {
+                ast = wrap(ast);
+            }
+            return astToPythonExpression(ast);
+        };
+        const round = (inner: unknown) => ["apply", "round", inner];
+        const roundToPlace = (inner: unknown) => [
+            "apply",
+            "round",
+            ["tuple", inner, 1],
+        ];
+        const arccot = (inner: unknown) => ["apply", "arccot", inner];
+        expect(nest(3, round).expression).toBeDefined();
+        expect(nest(24, round).unsupportedFeature).eq("round");
+        expect(nest(24, roundToPlace).unsupportedFeature).eq("round");
+        expect(nest(24, arccot).unsupportedFeature).eq("arccot");
+    });
+
     it("reports functions and operators PreFigure cannot evaluate", () => {
         expect(fromText("sign(x)").unsupportedFeature).eq("sign");
         expect(fromText("f(x)").unsupportedFeature).eq("f");

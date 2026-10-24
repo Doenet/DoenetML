@@ -140,6 +140,29 @@ const PASS_THROUGH_FUNCTIONS = new Set([
     "ceil",
 ]);
 
+/**
+ * Names of the functions an emitted expression can call. A variable with one
+ * of these names would shadow the function: PreFigure evaluates
+ * `f(gamma)=gamma(gamma + 1)` as `lambda gamma: gamma(gamma + 1)`. Such a
+ * variable is written with a trailing underscore instead, which no other
+ * identifier the translation emits ends with.
+ */
+const EMITTED_FUNCTION_NAMES: ReadonlySet<string> = new Set([
+    ...PASS_THROUGH_FUNCTIONS,
+    ...Object.keys(MULTI_ARGUMENT_FUNCTIONS),
+    // Called only from the `MAPPED_FUNCTIONS` and `round(x, n)` rewrites.
+    "copysign",
+    "gamma",
+]);
+
+/**
+ * The longest expression a rewrite that writes its argument twice (`round`,
+ * `arccot`) may produce. Each nested one doubles the output, so 24 nested
+ * `round`s would otherwise grow to hundreds of millions of characters. A
+ * longer one is reported as unsupported.
+ */
+const MAX_DUPLICATING_EXPRESSION_LENGTH = 100_000;
+
 /** Functions whose `f^(-1)(x)` notation means the inverse function. */
 const INVERSE_FUNCTIONS: Record<string, string> = {
     sin: "arcsin",
@@ -232,6 +255,11 @@ function symbolName(ast: unknown): string | null {
     return null;
 }
 
+/** The Python identifier for a variable or other free symbol `name`. */
+function pythonIdentifier(name: string): string {
+    return EMITTED_FUNCTION_NAMES.has(name) ? `${name}_` : name;
+}
+
 function emitNumber(value: number): Emitted {
     if (Number.isNaN(value)) {
         throw new UnsupportedFormulaError("NaN");
@@ -272,10 +300,11 @@ function emitRoundToPlaces(
     }
     const x = emit(value, allowedSymbols).text;
     const scale = `10^${places}`;
-    return {
-        text: `copysign(floor(abs(${x})*${scale} + 0.5)/${scale}, ${x})`,
-        prec: PREC_ATOM,
-    };
+    const text = `copysign(floor(abs(${x})*${scale} + 0.5)/${scale}, ${x})`;
+    if (text.length > MAX_DUPLICATING_EXPRESSION_LENGTH) {
+        throw new UnsupportedFormulaError("round");
+    }
+    return { text, prec: PREC_ATOM };
 }
 
 function emitApply(
@@ -328,6 +357,9 @@ function emitApply(
     const argText = emit(arg, allowedSymbols).text;
     if (hasOwn(MAPPED_FUNCTIONS, name)) {
         const text = MAPPED_FUNCTIONS[name](argText);
+        if (text.length > MAX_DUPLICATING_EXPRESSION_LENGTH) {
+            throw new UnsupportedFormulaError(fn);
+        }
         return {
             text,
             prec: text.startsWith("1/") ? PREC_PRODUCT : PREC_ATOM,
@@ -368,13 +400,14 @@ function emit(
         if (PYTHON_CONSTANTS.has(name)) {
             return { text: name, prec: PREC_ATOM };
         }
+        const identifier = pythonIdentifier(name);
         if (
             PYTHON_KEYWORDS.has(name) ||
-            (allowedSymbols && !allowedSymbols.has(name))
+            (allowedSymbols && !allowedSymbols.has(identifier))
         ) {
             throw new UnsupportedFormulaError(name);
         }
-        return { text: name, prec: PREC_ATOM };
+        return { text: identifier, prec: PREC_ATOM };
     }
 
     if (!Array.isArray(ast) || ast.length < 2) {
@@ -464,8 +497,9 @@ function emit(
  *
  * @param ast - The abstract syntax tree from math-expressions
  * @param allowedSymbols - If given, the only free symbols (besides `pi` and
- *   `e`) the expression may use; any other symbol is reported as unsupported,
- *   since PreFigure would reject it as an unknown name
+ *   `e`) the expression may use, as `astToVariableName` writes them; any
+ *   other symbol is reported as unsupported, since PreFigure would reject it
+ *   as an unknown name
  * @returns The expression, or the feature that has no PreFigure counterpart
  */
 export function astToPythonExpression(
@@ -491,7 +525,7 @@ export function astToVariableName(ast: unknown): string | null {
     if (name === null || PYTHON_KEYWORDS.has(name)) {
         return null;
     }
-    return name;
+    return pythonIdentifier(name);
 }
 
 function escapeRegex(value: string): string {
