@@ -14,8 +14,13 @@ export function roundForDisplay({
     value: Expression | Tree;
     dependencyValues: RoundingDependencyValues;
 }): Expression {
+    // Wrap a bare tree ourselves: the math engine reads a bare string argument
+    // as text to parse, so the symbol tree "apple" would come back as the
+    // product a*p*p*l*e.
+    const expr = value instanceof me.class ? value : me.fromAst(value);
+
     let rounded = me.round_numbers_to_precision_plus_decimals(
-        value,
+        expr,
         dependencyValues.displayDigits,
         dependencyValues.displayDecimals,
     );
