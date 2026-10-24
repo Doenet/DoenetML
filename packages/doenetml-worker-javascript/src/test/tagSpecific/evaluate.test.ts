@@ -6125,7 +6125,7 @@ describe("Evaluate tag tests @group2", async () => {
   <function name="f" symbolic="false">x^2</function>
   <function name="plain" extend="$f" />
   <function name="copyOfCopy" extend="$plain" />
-  <function name="unlinked" extend="$f" link="false" />
+  <function name="unlinked" copy="$f" />
   <function name="withDomain" extend="$f" domain="[0,1]" />
   <function name="withVariables" extend="$f" variables="y" />
   <function name="withVariable" extend="$f" variable="y" />

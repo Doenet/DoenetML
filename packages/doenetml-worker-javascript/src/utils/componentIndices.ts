@@ -263,7 +263,7 @@ function newComponentIndicesForAttributes(
             nComponents = attrResult.nComponents;
         } else if (attribute.type === "primitive") {
             if (
-                attrName === "createComponentIdx" &&
+                attrName === "_createComponentIdx" &&
                 attribute.primitive.type === "number"
             ) {
                 const originalIdx = attribute.primitive.value;
@@ -355,7 +355,7 @@ function createNewComponentIndicesUnflattened(
             nComponents = attrResult.nComponents;
 
             if (
-                attrName === "createComponentIdx" &&
+                attrName === "_createComponentIdx" &&
                 attribute.children.length === 1 &&
                 typeof attribute.children[0] === "string"
             ) {
@@ -825,7 +825,7 @@ function newComponentIndicesForAttributesFromSerialized(
             nComponents = attrResult.nComponents;
         } else if (attribute.type === "primitive") {
             if (
-                attrName === "createComponentIdx" &&
+                attrName === "_createComponentIdx" &&
                 attribute.primitive.type === "number"
             ) {
                 if (
@@ -892,8 +892,9 @@ export function extractCreateComponentIdxMapping(
             continue;
         }
 
-        if (component.attributes?.createComponentIdx?.type === "primitive") {
-            const primitive = component.attributes.createComponentIdx.primitive;
+        if (component.attributes?._createComponentIdx?.type === "primitive") {
+            const primitive =
+                component.attributes._createComponentIdx.primitive;
             if (primitive.type === "number") {
                 const createComponentIdx = primitive.value;
                 createComponentIdxMapping[createComponentIdx] =

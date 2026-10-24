@@ -90,11 +90,11 @@ const LIST_FORM_ATTRIBUTES: Record<string, Set<string>> = {
  * keeps the list it copies a composite, as do any others.
  */
 const COPY_MECHANICS = [
-    "createcomponentoftype",
-    "createcomponentidx",
-    "createcomponentname",
-    "copyinchildren",
-    "link",
+    "_createcomponentoftype",
+    "_createcomponentidx",
+    "_createcomponentname",
+    "_copyinchildren",
+    "_link",
     "name",
 ];
 const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
@@ -173,7 +173,7 @@ export function convertToListForms({
 
     /** The composite of `LIST_FORMS` a copy makes, if one. */
     function createdCompositeType(copy: SerializedComponent) {
-        const createdType = copy.attributes.createComponentOfType;
+        const createdType = copy.attributes._createComponentOfType;
         if (createdType?.type !== "primitive") {
             return undefined;
         }
@@ -265,7 +265,7 @@ export function convertToListForms({
         if (!reference.extending || !("Ref" in reference.extending)) {
             return undefined;
         }
-        const createdType = reference.attributes.createComponentOfType;
+        const createdType = reference.attributes._createComponentOfType;
         if (createdType !== undefined) {
             // an `extend` or `copy` that makes a component of its own
             return undefined;
@@ -431,8 +431,8 @@ export function convertToListForms({
             continue;
         }
         for (const copy of copies) {
-            copy.attributes.createComponentOfType = {
-                ...copy.attributes.createComponentOfType,
+            copy.attributes._createComponentOfType = {
+                ...copy.attributes._createComponentOfType,
                 type: "primitive",
                 primitive: { type: "string", value: candidate.componentType },
             } as SerializedAttribute;

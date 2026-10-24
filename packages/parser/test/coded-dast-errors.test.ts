@@ -154,13 +154,15 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
 
     it("invalid names", () => {
         // A component whose name starts with `_`, a `name` attribute starting
-        // with a digit, and one holding a character names may not contain.
+        // with a digit, one holding a character names may not contain, and an
+        // attribute whose own name starts with `_`.
         const errors = [
             ...normalizedErrors(`<_p>hi</_p>`),
             ...normalizedErrors(`<p name="1st">hi</p>`),
             ...normalizedErrors(`<p name="a!b">hi</p>`),
+            ...normalizedErrors(`<p _link="true">hi</p>`),
         ];
-        expect(codedErrors(errors).length).toBe(3);
+        expect(codedErrors(errors).length).toBe(4);
         expectRoundTrip(errors);
     });
 

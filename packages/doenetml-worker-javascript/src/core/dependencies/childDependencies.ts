@@ -300,7 +300,7 @@ export class ChildDependency extends Dependency {
                                 compositeNotReady
                             ];
                         if (
-                            compositeComp.attributes.createComponentOfType
+                            compositeComp.attributes._createComponentOfType
                                 ?.primitive
                         ) {
                             compositesBlockingWithComponentType.push(
@@ -1533,11 +1533,11 @@ export class DescendantDependency extends Dependency {
         let adjustedUnexpanded = [];
         for (let compositeIdx of unexpandedComposites) {
             let composite = this.dependencyHandler._components[compositeIdx];
-            if (composite.attributes.createComponentOfType) {
+            if (composite.attributes._createComponentOfType) {
                 let placeholderType =
                     this.dependencyHandler.componentInfoObjects
                         .componentTypeLowerCaseMapping[
-                        composite.attributes.createComponentOfType.primitive.value.toLowerCase()
+                        composite.attributes._createComponentOfType.primitive.value.toLowerCase()
                     ];
 
                 let matches = this.componentTypes.some((ct: any) =>

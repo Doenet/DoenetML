@@ -82,7 +82,7 @@ export function addNodesToFlatFragment({
                         // we already dealt with name, above
                         if (
                             attrName === "name" ||
-                            attrName === "createComponentName"
+                            attrName === "_createComponentName"
                         ) {
                             break;
                         }
@@ -204,8 +204,8 @@ export function getEffectiveComponentIdx(
     let componentIdx = component.componentIdx;
 
     if (component.type === "unflattened") {
-        if (component.attributes.createComponentIdx?.children.length === 1) {
-            const child = component.attributes.createComponentIdx.children[0];
+        if (component.attributes._createComponentIdx?.children.length === 1) {
+            const child = component.attributes._createComponentIdx.children[0];
             if (typeof child === "string") {
                 const idx = Number(child);
                 if (Number.isInteger(idx)) {
@@ -214,13 +214,13 @@ export function getEffectiveComponentIdx(
             }
         }
     } else {
-        if (component.attributes.createComponentIdx?.type === "primitive") {
+        if (component.attributes._createComponentIdx?.type === "primitive") {
             if (
-                component.attributes.createComponentIdx.primitive.type ===
+                component.attributes._createComponentIdx.primitive.type ===
                 "number"
             ) {
                 componentIdx =
-                    component.attributes.createComponentIdx.primitive.value;
+                    component.attributes._createComponentIdx.primitive.value;
             }
         }
     }
@@ -237,8 +237,8 @@ function getEffectiveComponentName(
     component: SerializedComponent | UnflattenedComponent,
 ) {
     if (component.type === "unflattened") {
-        if (component.attributes.createComponentName?.children.length === 1) {
-            const child = component.attributes.createComponentName.children[0];
+        if (component.attributes._createComponentName?.children.length === 1) {
+            const child = component.attributes._createComponentName.children[0];
             if (typeof child === "string") {
                 return child;
             }
@@ -254,10 +254,11 @@ function getEffectiveComponentName(
         return null;
     } else {
         if (
-            component.attributes.createComponentName?.type === "primitive" &&
-            component.attributes.createComponentName.primitive.type === "string"
+            component.attributes._createComponentName?.type === "primitive" &&
+            component.attributes._createComponentName.primitive.type ===
+                "string"
         ) {
-            return component.attributes.createComponentName.primitive.value;
+            return component.attributes._createComponentName.primitive.value;
         } else if (
             component.attributes.name?.type === "primitive" &&
             component.attributes.name.primitive.type === "string"

@@ -153,7 +153,9 @@ export default class ModuleAttributes extends CompositeComponent {
 
             // check if the attribute name is already defined in a module
             // in which case it won't work to use it as a custom module attribute
-            if (existingModuleAttrNames.includes(attributeName)) {
+            // (compared lowercased, as `existingModuleAttrNames` is, so that
+            // a camel-cased one such as `asList` is caught too)
+            if (existingModuleAttrNames.includes(attributeName.toLowerCase())) {
                 diagnostics.push(
                     codedDiagnostic({
                         type: "warning",

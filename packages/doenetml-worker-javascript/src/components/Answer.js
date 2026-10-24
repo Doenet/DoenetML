@@ -630,7 +630,7 @@ export default class Answer extends InlineComponent {
                                         grandChild.componentType,
                                     baseComponentType: "_composite",
                                 }) &&
-                                !grandChild.attributes?.createComponentOfType
+                                !grandChild.attributes?._createComponentOfType
                                     ?.primitive
                             ) {
                                 mayNeedInput = true;
@@ -671,7 +671,7 @@ export default class Answer extends InlineComponent {
                         inheritedComponentType: child.componentType,
                         baseComponentType: "_composite",
                     }) &&
-                    !child.attributes?.createComponentOfType?.primitive
+                    !child.attributes?._createComponentOfType?.primitive
                 ) {
                     // have a composite without specified componentType
                     childIsWrappable.push(true);

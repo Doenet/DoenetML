@@ -1702,14 +1702,14 @@ export default class Choiceinput extends Input {
                         inheritedComponentType: child.componentType,
                         baseComponentType: "_composite",
                     }) &&
-                    child.attributes.createComponentOfType?.primitive.value ===
+                    child.attributes._createComponentOfType?.primitive.value ===
                         "choice"
                 ) {
                     if (
-                        child.attributes.numComponents?.primitive !== undefined
+                        child.attributes._numComponents?.primitive !== undefined
                     ) {
                         let newChoices = Number(
-                            child.attributes.numComponents?.primitive.value,
+                            child.attributes._numComponents?.primitive.value,
                         );
                         if (Number.isInteger(newChoices) && newChoices >= 0) {
                             numChoices += newChoices;

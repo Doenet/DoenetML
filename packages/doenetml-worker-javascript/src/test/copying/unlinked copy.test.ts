@@ -10,6 +10,7 @@ import {
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2556,6 +2557,122 @@ describe("Unlinked Copying Tests @group4", async () => {
         // source's display settings
         for (const name of ["me", "mc", "xe", "xc", "xu", "le", "lc", "lu"]) {
             expect((await stateValues(name)).text, name).eq("1.2");
+        }
+    });
+
+    it("link is not an attribute: it is treated as any unknown attribute, such as blink", async () => {
+        // Whether a component is linked to what it names is said by `extend`
+        // or `copy`. The copy's own settings, such as `_link`, start with `_`,
+        // which an author cannot write, so `link` is just a name, like `blink`
+        // (#2326).
+        async function outcome(attribute: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<point name="P">(1,2)</point>
+<point name="plain" ${attribute}="false">(1,2)</point>
+<point name="c" copy="$P" ${attribute}="true" />
+<point name="e" extend="$P" ${attribute}="false" />
+<module name="m"><moduleAttributes><text name="${attribute}">default</text></moduleAttributes><text name="t">$${attribute}</text></module>
+<module name="mc" copy="$m" ${attribute}="custom" />
+`,
+            });
+
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("P"),
+                x: 3,
+                y: 4,
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values: Record<string, string> = {};
+            for (const name of ["c", "e"]) {
+                values[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.coords.toString();
+            }
+            values.mc =
+                stateVariables[
+                    await resolvePathToNodeIdx("mc.t")
+                ].stateValues.text;
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            return {
+                values,
+                errors: diagnosticsByType.errors.map((error) =>
+                    error.message.replaceAll(attribute, "ATTR"),
+                ),
+                warnings: diagnosticsByType.warnings.map((warning) =>
+                    warning.message.replaceAll(attribute, "ATTR"),
+                ),
+            };
+        }
+
+        const link = await outcome("link");
+        expect(link).eqls(await outcome("blink"));
+        expect(link.values).eqls({ c: "(1, 2)", e: "(3, 4)", mc: "custom" });
+        expect(link.errors).eqls([
+            'Invalid attribute "ATTR" for a component of type `<point>`.',
+        ]);
+    });
+
+    it("an attribute starting with _ is rejected, so cannot set a copy's own settings", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P">(1,2)</point>
+<point name="c" copy="$P" _link="true" />
+`,
+        });
+
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls([
+            'Invalid attribute "_link". Attribute names must start with a letter.',
+        ]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 3,
+            y: 4,
+            core,
+        });
+
+        // still a copy, not linked
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("c")
+            ].stateValues.coords.toString(),
+        ).eq("(1, 2)");
+    });
+
+    it("removeEmptyArrayEntries on an extend of a list, in any case", async () => {
+        // It is the copy's to read, so it is moved off the list onto the copy
+        // whatever case it is written in; it used to be moved only as
+        // `removeEmptyArrayEntries`, and left on the list otherwise, which
+        // does not take it.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathList name="ml">x y</mathList>
+<mathList name="e1" extend="$ml" removeEmptyArrayEntries />
+<mathList name="e2" extend="$ml" RemoveEmptyArrayEntries />
+`,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["e1", "e2"]) {
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.maths
+                    .map((m) => m.toString())
+                    .join(","),
+            ).eq("x,y");
         }
     });
 });

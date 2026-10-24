@@ -357,7 +357,7 @@ export class ActionTriggerScheduler {
             if (comp?.shadows) {
                 let composite =
                     this.core._components[comp.shadows.compositeIdx];
-                if (composite.attributes.createComponentOfType != null) {
+                if (composite.attributes._createComponentOfType != null) {
                     break;
                 }
 

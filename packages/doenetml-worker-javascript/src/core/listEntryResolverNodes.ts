@@ -74,10 +74,10 @@ function indexParentOf(
                 : undefined;
         }
         const createComponentIdx =
-            component.attributes.createComponentIdx?.primitive;
+            component.attributes._createComponentIdx?.primitive;
         if (createComponentIdx) {
             const createType =
-                component.attributes.createComponentOfType?.primitive?.value;
+                component.attributes._createComponentOfType?.primitive?.value;
             return createType &&
                 core.componentInfoObjects.isCompositeComponent({
                     componentType: createType,

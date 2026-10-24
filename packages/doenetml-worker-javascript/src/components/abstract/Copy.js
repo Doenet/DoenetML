@@ -67,28 +67,26 @@ export default class Copy extends CompositeComponent {
         delete attributes.isPotentialResponse;
         delete attributes.hide;
 
-        attributes.createComponentOfType = {
+        // The `_copy`'s own settings, set by core when it turns a reference,
+        // `extend` or `copy` into a `_copy`. The leading `_` keeps them apart
+        // from the attributes an author writes on the component, which the
+        // `_copy` passes on to what it makes.
+        attributes._createComponentOfType = {
             createPrimitiveOfType: "string",
         };
-        attributes.createComponentIdx = {
+        attributes._createComponentIdx = {
             createPrimitiveOfType: "integer",
         };
-        attributes.createComponentName = {
+        attributes._createComponentName = {
             createPrimitiveOfType: "string",
         };
-        attributes.numComponents = {
+        attributes._numComponents = {
             createPrimitiveOfType: "number",
         };
-        attributes.copyInChildren = {
+        attributes._copyInChildren = {
             createPrimitiveOfType: "boolean",
         };
-        attributes.uri = {
-            createPrimitiveOfType: "string",
-            createStateVariable: "uri",
-            defaultValue: null,
-            public: true,
-        };
-        attributes.link = {
+        attributes._link = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "link",
             defaultValue: true,
@@ -248,46 +246,11 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.cid = {
-            additionalStateVariablesDefined: ["doenetId"],
-            returnDependencies: () => ({
-                uri: {
-                    dependencyType: "stateVariable",
-                    variableName: "uri",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                if (
-                    !dependencyValues.uri ||
-                    dependencyValues.uri.substring(0, 7).toLowerCase() !==
-                        "doenet:"
-                ) {
-                    return {
-                        setValue: { cid: null, doenetId: null },
-                    };
-                }
-
-                let cid = null,
-                    doenetId = null;
-
-                let result = dependencyValues.uri.match(/[:&]cid=([^&]+)/i);
-                if (result) {
-                    cid = result[1];
-                }
-                result = dependencyValues.uri.match(/[:&]doenetid=([^&]+)/i);
-                if (result) {
-                    doenetId = result[1];
-                }
-
-                return { setValue: { cid, doenetId } };
-            },
-        };
-
         stateVariableDefinitions.createComponentOfType = {
             returnDependencies: () => ({
                 typeAttr: {
                     dependencyType: "attributePrimitive",
-                    attributeName: "createComponentOfType",
+                    attributeName: "_createComponentOfType",
                 },
             }),
             definition({ dependencyValues }) {
@@ -527,7 +490,7 @@ export default class Copy extends CompositeComponent {
                     };
                     dependencies.typeAttr = {
                         dependencyType: "attributePrimitive",
-                        attributeName: "createComponentOfType",
+                        attributeName: "_createComponentOfType",
                     };
                 }
 
@@ -755,11 +718,11 @@ export default class Copy extends CompositeComponent {
             returnDependencies: () => ({
                 numComponentsAttr: {
                     dependencyType: "attributePrimitive",
-                    attributeName: "numComponents",
+                    attributeName: "_numComponents",
                 },
                 typeAttr: {
                     dependencyType: "attributePrimitive",
-                    attributeName: "createComponentOfType",
+                    attributeName: "_createComponentOfType",
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -1155,13 +1118,13 @@ export default class Copy extends CompositeComponent {
                 num: workspace.replacementsCreated,
             };
 
-            if (component.attributes.copyInChildren?.primitive.value) {
+            if (component.attributes._copyInChildren?.primitive.value) {
                 // even though don't have valid target,
                 // if copyInChildren, then include children added directly to component
 
                 let componentType =
                     componentInfoObjects.componentTypeLowerCaseMapping[
-                        component.attributes.createComponentOfType.primitive.value.toLowerCase()
+                        component.attributes._createComponentOfType.primitive.value.toLowerCase()
                     ];
 
                 let componentClass =
@@ -1291,7 +1254,7 @@ export default class Copy extends CompositeComponent {
         for (let sourceNum in replacementSourceIdentities) {
             let numComponentsForSource;
 
-            if (component.attributes.createComponentOfType?.primitive) {
+            if (component.attributes._createComponentOfType?.primitive) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
@@ -1322,7 +1285,7 @@ export default class Copy extends CompositeComponent {
 
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.attributes.copyInChildren?.primitive.value,
+                    component.attributes._copyInChildren?.primitive.value,
             });
 
             diagnostics.push(...results.diagnostics);
@@ -1489,7 +1452,7 @@ export default class Copy extends CompositeComponent {
 
                     let componentType =
                         componentInfoObjects.componentTypeLowerCaseMapping[
-                            component.attributes.createComponentOfType.primitive.value.toLowerCase()
+                            component.attributes._createComponentOfType.primitive.value.toLowerCase()
                         ];
 
                     let componentClass =
@@ -1648,7 +1611,7 @@ export default class Copy extends CompositeComponent {
                 code: "doenet-e0005",
                 args: {
                     componentType:
-                        component.attributes.createComponentOfType?.primitive
+                        component.attributes._createComponentOfType?.primitive
                             ?.value ?? "none",
                 },
             });
@@ -1982,7 +1945,7 @@ export default class Copy extends CompositeComponent {
         for (let sourceNum = 0; sourceNum < maxSourceLength; sourceNum++) {
             let numComponentsForSource;
 
-            if (component.attributes.createComponentOfType?.primitive) {
+            if (component.attributes._createComponentOfType?.primitive) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
@@ -2270,7 +2233,7 @@ export default class Copy extends CompositeComponent {
                 publicCaseInsensitiveAliasSubstitutions,
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    component.attributes.copyInChildren?.primitive.value,
+                    component.attributes._copyInChildren?.primitive.value,
             });
             diagnostics.push(...results.diagnostics);
             const nComponentsForNew = results.nComponents;
@@ -2496,7 +2459,7 @@ export default class Copy extends CompositeComponent {
             publicCaseInsensitiveAliasSubstitutions,
             copyInChildren:
                 Number(sourceNum) === 0 &&
-                component.attributes.copyInChildren?.primitive.value,
+                component.attributes._copyInChildren?.primitive.value,
         });
         diagnostics.push(...results.diagnostics);
         nComponents = results.nComponents;
@@ -2644,7 +2607,7 @@ export async function replacementFromProp({
     // is made as it always was.
     const parentClass = component.ancestors[0]?.componentClass;
     const mayBeValueReference =
-        link && !component.attributes.createComponentOfType?.primitive;
+        link && !component.attributes._createComponentOfType?.primitive;
 
     if (stateVarObj.isArray || stateVarObj.isArrayEntry) {
         let arrayStateVarObj, unflattenedArrayKeys, arraySize, arrayKeys;

@@ -498,6 +498,7 @@ export type MessageKey =
     | "index-element-not-used-as-index"
     | "name-attribute-invalid"
     | "component-name-invalid-start"
+    | "attribute-name-invalid-start"
     | "answer-video-watched-missing-video"
     | "answer-video-watched-video-not-reference"
     | "answer-name-not-single-text"
@@ -1143,6 +1144,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "index-element-not-used-as-index",
     "name-attribute-invalid",
     "component-name-invalid-start",
+    "attribute-name-invalid-start",
     "answer-video-watched-missing-video",
     "answer-video-watched-video-not-reference",
     "answer-name-not-single-text",

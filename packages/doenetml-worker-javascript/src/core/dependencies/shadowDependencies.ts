@@ -381,7 +381,7 @@ export class ShadowSourceStateVariableDependency extends Dependency {
                 compositeIdx === undefined
                     ? undefined
                     : this.dependencyHandler._components[compositeIdx];
-            if (composite?.attributes.createComponentOfType != null) {
+            if (composite?.attributes._createComponentOfType != null) {
                 return {
                     success: true,
                     downstreamComponentIndices: [],

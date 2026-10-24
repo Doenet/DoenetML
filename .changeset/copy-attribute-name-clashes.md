@@ -1,0 +1,17 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+`link`, `createComponentOfType`, `numComponents`, `uri`, `createComponentIdx`, `createComponentName` and `copyInChildren` are no longer treated specially when written on a component with `copy` or `extend`. They were settings of the internal copy DoenetML makes for `copy` and `extend`, left over from v0.6, and an author's attribute of the same name was taken for one of them. Whether a component is linked to what it names is said by `extend` or `copy` alone. Each is now an attribute like any other name the component does not have. For example, `<module copy="$m" link="x"/>` now passes `link` on to a module attribute named `link`, where it used to be taken by the copy, and `LINK="false"` on a copy no longer reports `Cannot repeat attribute link.`
+
+- An attribute whose name starts with `_` is now an error, `Invalid attribute "_x". Attribute names must start with a letter.`, and is removed, as a component or `name` starting with `_` already is. Such names are kept for the settings DoenetML sets itself.
+- `<group>` no longer lists `createComponentOfType` or `numComponents` among its attributes.
+- `removeEmptyArrayEntries` on an extend of a list now applies in any letter case. Written as `RemoveEmptyArrayEntries`, it used to be reported as an attribute the list does not take.
+
+A `<moduleAttributes>` child named like a camel-cased attribute of `<module>` itself, such as `asList`, now gets the same warning as one named `hide` or `rendered`: the name is already taken, and the child keeps its own value. Before, setting that attribute on the module or on a copy of it stopped the document with `A module attribute that isn't an existing attribute must be unresolved!`. One named `isResponse` or `isPotentialResponse` was instead taken as a module attribute when set; it now gets the warning too, as the rule for a module's own attribute names says.
+
+Closes #2326. Closes #2330.

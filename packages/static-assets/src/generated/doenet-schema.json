@@ -112607,16 +112607,6 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "createComponentOfType",
-                    "description": "Component type to wrap each child as when expanding the group.",
-                    "type": "text"
-                },
-                {
-                    "name": "numComponents",
-                    "description": "Number of components to create when expanding (used with createComponentOfType).",
-                    "type": "number"
-                },
-                {
                     "name": "asList",
                     "description": "Whether to render the group's children separated by commas (true) or with no separator (false).",
                     "defaultValue": false,
@@ -123018,16 +123008,6 @@
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "createComponentOfType",
-                    "description": "Component type to wrap each child as when expanding the group.",
-                    "type": "text"
-                },
-                {
-                    "name": "numComponents",
-                    "description": "Number of components to create when expanding (used with createComponentOfType).",
-                    "type": "number"
                 },
                 {
                     "name": "asList",

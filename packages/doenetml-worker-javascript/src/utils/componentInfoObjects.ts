@@ -296,9 +296,9 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         specifiedCType: string,
     ) =>
         componentTypeIsSpecifiedType(comp.componentType, specifiedCType) ||
-        (comp.attributes?.createComponentOfType?.primitive !== undefined &&
+        (comp.attributes?._createComponentOfType?.primitive !== undefined &&
             componentTypeIsSpecifiedType(
-                comp.attributes?.createComponentOfType?.primitive.value,
+                comp.attributes?._createComponentOfType?.primitive.value,
                 specifiedCType,
             ));
 

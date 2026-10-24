@@ -493,7 +493,7 @@ async function expandShadowingComposite({
     // to the indices of the children of `component` and override the component indices created on the new replacements.
     const idxMapOverride: Record<string, number> = {};
     const copyInChildren =
-        shadowedComposite.attributes.copyInChildren?.primitive.value;
+        shadowedComposite.attributes._copyInChildren?.primitive.value;
     if (copyInChildren) {
         const componentChildren = JSON.parse(
             JSON.stringify(component.serializedChildren),
@@ -524,7 +524,7 @@ async function expandShadowingComposite({
     // given one stands where the composite it copies does, and copies a
     // value reference as one.
     const valueReferenceAsComponent =
-        component.attributes.createComponentOfType?.primitive != null;
+        component.attributes._createComponentOfType?.primitive != null;
     for (let [idx, repl] of shadowedComposite.replacements.entries()) {
         if (typeof repl === "object") {
             const serializedComponent = await repl.serialize({
@@ -612,7 +612,7 @@ async function expandShadowingComposite({
                 code: "doenet-e0005",
                 args: {
                     componentType:
-                        component.attributes.createComponentOfType?.primitive
+                        component.attributes._createComponentOfType?.primitive
                             ?.value ?? "none",
                 },
                 position: compositeMediatingTheShadow.position,
@@ -779,15 +779,15 @@ export function adjustForCreateComponentIdxName({
 }) {
     if (serializedReplacements.length === 1) {
         if (
-            composite.attributes.createComponentIdx?.primitive.value !=
+            composite.attributes._createComponentIdx?.primitive.value !=
             undefined
         ) {
             serializedReplacements[0].componentIdx =
-                composite.attributes.createComponentIdx.primitive.value;
+                composite.attributes._createComponentIdx.primitive.value;
         }
 
         if (
-            composite.attributes.createComponentName?.primitive.value !=
+            composite.attributes._createComponentName?.primitive.value !=
             undefined
         ) {
             serializedReplacements[0].attributes.name = {
@@ -795,7 +795,7 @@ export function adjustForCreateComponentIdxName({
                 name: "name",
                 primitive: {
                     type: "string",
-                    value: composite.attributes.createComponentName.primitive
+                    value: composite.attributes._createComponentName.primitive
                         .value,
                 },
             };
@@ -937,7 +937,7 @@ export async function replaceCompositeChildren({
             // replace with placeholders
             // otherwise, leave composite as an activeChild
             if (!child.isExpanded) {
-                if (child.attributes.createComponentOfType?.primitive) {
+                if (child.attributes._createComponentOfType?.primitive) {
                     replaceWithPlaceholders = true;
                 } else {
                     continue;
@@ -949,16 +949,16 @@ export async function replaceCompositeChildren({
             if (replaceWithPlaceholders) {
                 let numComponents;
 
-                if (child.attributes.numComponents) {
+                if (child.attributes._numComponents) {
                     numComponents =
-                        child.attributes.numComponents.primitive.value;
+                        child.attributes._numComponents.primitive.value;
                 } else {
                     numComponents = 1;
                 }
 
                 let componentType =
                     core.componentInfoObjects.componentTypeLowerCaseMapping[
-                        child.attributes.createComponentOfType.primitive.value.toLowerCase()
+                        child.attributes._createComponentOfType.primitive.value.toLowerCase()
                     ];
                 replacements = [];
 

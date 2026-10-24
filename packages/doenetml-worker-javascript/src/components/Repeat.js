@@ -900,14 +900,14 @@ async function addAndLinkAliasComponents(
             componentIdx: nComponents++,
             stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             attributes: {
-                createComponentIdx: {
+                _createComponentIdx: {
                     type: "primitive",
-                    name: "createComponentIdx",
+                    name: "_createComponentIdx",
                     primitive: { type: "number", value: valueComponentIdx },
                 },
-                createComponentName: {
+                _createComponentName: {
                     type: "primitive",
-                    name: "createComponentName",
+                    name: "_createComponentName",
                     primitive: { type: "string", value: valueName },
                 },
             },

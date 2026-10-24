@@ -712,6 +712,29 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("Attributes whose names start with `_` are removed, with an error after the element", () => {
+        // A leading `_` is kept for the attributes core sets itself, such as
+        // the `_link` of a copy, so an author cannot write one.
+        const source = `<p name="a" _link="true" title="t" _x="1">hi</p>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+        expect(toXml(normalized)).toEqual(
+            `<document><p name="a" title="t">hi</p></document>`,
+        );
+        expect(extractDastErrors(normalized)).toMatchObject([
+            {
+                code: "doenet-e0054",
+                args: { attribute: "_link" },
+                type: "error",
+            },
+            {
+                code: "doenet-e0054",
+                args: { attribute: "_x" },
+                type: "error",
+            },
+        ]);
+    });
+
     it("Adds error when answer type=videoWatched is missing video attribute", () => {
         const source = `<answer type="videoWatched" />`;
         const dast = lezerToDast(source);

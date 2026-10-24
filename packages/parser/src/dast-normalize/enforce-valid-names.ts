@@ -21,7 +21,12 @@ function containsInvalidNameCharacters(str: unknown): boolean {
 }
 
 /**
- * Ensure that no component names start with `_` and that all `name` attributes start with a letter.
+ * Ensure that no component names start with `_`, that no attribute names
+ * start with `_`, and that all `name` attributes start with a letter.
+ *
+ * An attribute starting with `_` is reserved for the ones core sets itself
+ * (the `_copy`'s own settings, such as `_link`), so that an author's attribute
+ * can never be taken for one of them.
  */
 export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
@@ -93,6 +98,39 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                 }
             }
 
+            // Report an error from right after this element, where the
+            // element itself stays, or from the nearest element when it
+            // cannot be placed beside it.
+            const reportAfterElement = (dastError: DastError) => {
+                if (replaceableInPlace) {
+                    info.containingArray!.splice(info.index! + 1, 0, dastError);
+                } else if (siblings) {
+                    siblings.push(dastError);
+                } else {
+                    // If for some reason we don't have an index, append the error to the root
+                    console.warn(
+                        "No index found for error element, appending to root.",
+                    );
+                    tree.children.push(dastError);
+                }
+            };
+
+            // Ensure no attribute name starts with `_`. Reported in reverse,
+            // as each error goes in right after the element.
+            const reservedAttributes = Object.keys(node.attributes).filter(
+                (attribute) => attribute.startsWith("_"),
+            );
+            for (const attribute of reservedAttributes.reverse()) {
+                const dastError: DastError = codedDastError({
+                    code: "doenet-e0054",
+                    message: `Invalid attribute "${attribute}". Attribute names must start with a letter.`,
+                    args: { attribute },
+                    position: node.attributes[attribute].position,
+                });
+                delete node.attributes[attribute];
+                reportAfterElement(dastError);
+            }
+
             // Ensure the value of any `name` attribute
             // - is non-empty,
             // - does not start with a non-letter, and
@@ -116,28 +154,11 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                         position: node.attributes.name?.position,
                     });
 
-                    // Remove the `name` attribute and insert an `_error` element right after this element
+                    // Remove the `name` attribute and insert an `_error` element right after this element.
+                    // The element itself stays where it was written — only
+                    // its `name` was invalid, and that has just been removed.
                     delete node.attributes.name;
-
-                    if (replaceableInPlace) {
-                        info.containingArray!.splice(
-                            info.index! + 1,
-                            0,
-                            dastError,
-                        );
-                    } else if (siblings) {
-                        // The element itself stays where it was written — only
-                        // its `name` was invalid, and that has just been
-                        // removed — so the error is simply reported from the
-                        // nearest element.
-                        siblings.push(dastError);
-                    } else {
-                        // If for some reason we don't have an index, append the error to the root
-                        console.warn(
-                            "No index found for error element, appending to root.",
-                        );
-                        tree.children.push(dastError);
-                    }
+                    reportAfterElement(dastError);
                 }
             }
         });

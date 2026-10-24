@@ -65,8 +65,6 @@ export const RESERVED_MODULE_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
     "extend",
     "copy",
     "rendered",
-    "createcomponentoftype",
-    "numcomponents",
     "aslist",
 ]);
 

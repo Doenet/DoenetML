@@ -100,7 +100,7 @@ export async function addReplacementsToResolver({
         // then add that as the `parentSourceSequence` of the flat fragment
         let sourceSequence = fragmentParent.attributes["source:sequence"];
         const createComponentIdxPrimitive =
-            component.attributes.createComponentIdx?.primitive;
+            component.attributes._createComponentIdx?.primitive;
         if (sourceSequence && createComponentIdxPrimitive?.type === "number") {
             parentSourceSequence = {
                 type: "attribute",
@@ -176,7 +176,7 @@ function replacementActingAsFragmentParent(
     component: any,
 ): any | null {
     const createComponentIdx =
-        component.attributes.createComponentIdx?.primitive?.value;
+        component.attributes._createComponentIdx?.primitive?.value;
 
     if (createComponentIdx == null || serializedReplacements.length !== 1) {
         return null;
@@ -245,18 +245,18 @@ export async function determineParentAndIndexResolutionForResolver({
         // Don't add index resolutions in this case,
         // we're just adding to the children of the list, not the replacements of the list
         parentIdx = component.parentIdx;
-    } else if (component.attributes.createComponentIdx?.primitive) {
+    } else if (component.attributes._createComponentIdx?.primitive) {
         // If `createComponentIdx` is set, then we have a copy component created from an `extend` attribute.
         // That component is already in the resolver so will be the parent of the fragment added to the browser.
-        parentIdx = component.attributes.createComponentIdx?.primitive.value;
+        parentIdx = component.attributes._createComponentIdx?.primitive.value;
 
         // If the component type of that parent, specified by `createComponentOfType`, is a composite,
         // then it could have an index specified, so we add an index resolution
         if (
-            component.attributes.createComponentOfType?.primitive &&
+            component.attributes._createComponentOfType?.primitive &&
             core.componentInfoObjects.isCompositeComponent({
                 componentType:
-                    component.attributes.createComponentOfType.primitive.value,
+                    component.attributes._createComponentOfType.primitive.value,
                 includeNonStandard: true,
             })
         ) {
@@ -431,12 +431,14 @@ export function removeComponentsFromResolver({
             idx: comp.componentIdx,
         };
 
-        if (comp.attributes.createComponentName && !comp.isExpanded) {
+        if (comp.attributes._createComponentName && !comp.isExpanded) {
             flatElement.attributes.push({
                 type: "attribute",
                 name: "name",
                 parent: comp.parentIdx,
-                children: [comp.attributes.createComponentName.primitive.value],
+                children: [
+                    comp.attributes._createComponentName.primitive.value,
+                ],
             });
         } else if (comp.attributes.name) {
             flatElement.attributes.push({

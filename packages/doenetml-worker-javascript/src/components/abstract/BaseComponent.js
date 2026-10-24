@@ -1538,7 +1538,7 @@ export default class BaseComponent {
                     // then its serialized children will have actual components made from them,
                     // so they should be shadowed.
                     let shadowComponents =
-                        this.attributes.copyInChildren?.primitive?.value;
+                        this.attributes._copyInChildren?.primitive?.value;
                     for (let child of this.serializedChildren) {
                         serializedChildren.push(
                             this.copySerializedComponent(
@@ -1642,8 +1642,8 @@ export default class BaseComponent {
                         JSON.stringify(attribute),
                     );
                     // // set to create a new componentIdx
-                    // if (attrName === "createComponentIdx") {
-                    //     serializedComponent.attributes.createComponentIdx.primitive.value =
+                    // if (attrName === "_createComponentIdx") {
+                    //     serializedComponent.attributes._createComponentIdx.primitive.value =
                     //         nComponents++;
                     // }
                 }
