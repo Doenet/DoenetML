@@ -177,8 +177,10 @@ impl<'a> Compiler<'a> {
             }
         }
         let scope = self.compiled.templates[t].elems[e].name_scope;
-        self.plan_fix(t, scope, el, &["fixed"])?
+        let held = self
+            .plan_fix(t, scope, el, &["fixed"])?
             .apply(&mut wiring.props);
+        self.record_held(t, e, held);
         if !wiring.shared_state.is_empty() {
             self.shared_state
                 .insert((t as u32, e as u32), wiring.shared_state.clone());

@@ -79,6 +79,9 @@ impl<'c> Builder<'c> {
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
         let mut parked = self.session.parked.clone();
+        // Restored values the build takes from `parked`: (cell, what was
+        // parked, its key).
+        let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, u32))> = Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
         let mut fixed_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
@@ -95,7 +98,8 @@ impl<'c> Builder<'c> {
                     if !parked.is_empty()
                         && let Some(p) = parked.remove(&(scope, key.0, key.1))
                     {
-                        value = p;
+                        value = p.value;
+                        unparked.push((cells.len() as CellIdx, p, (scope, tslot)));
                     }
                     slot_cell[root] = cells.len() as CellIdx;
                     cells.push(value);
@@ -163,6 +167,20 @@ impl<'c> Builder<'c> {
         let mut value_types = vec![ValueType::Number; cells.len()];
         for &(s, ty) in &self.typed_slots {
             value_types[slot_to_cell[s as usize] as usize] = ty;
+        }
+        // A restored value stays only in a cell of the type it was saved
+        // as, and view state only while its default is the one it had
+        // (ADR 0017); it wins over a seed, as a carried value does, and
+        // counts as touched.
+        let mut touched = self.session.touched.clone();
+        for &(cell, p, at) in &unparked {
+            let c = cell as usize;
+            cells[c] = if p.fits(value_types[c], essential_defaults[c]) {
+                std::sync::Arc::make_mut(&mut touched).insert(at);
+                p.value
+            } else {
+                essential_defaults[c]
+            };
         }
         let mut tapes = Vec::new();
         // Compile curves whose expression has a fixed shape into tapes, unless
@@ -282,10 +300,22 @@ impl<'c> Builder<'c> {
             values: self.session.values.clone(),
             counts: self.session.counts.clone(),
             parked,
+            touched,
             runtime_strings: self.session.runtime_strings.clone(),
             engine: self.session.engine.clone(),
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
+        let comp_keys: Vec<ElemKey> = self
+            .comp_instance
+            .iter()
+            .map(|&i| {
+                if i == NONE {
+                    return NONE;
+                }
+                let inst = self.instances[i as usize];
+                self.compiled.templates[inst.template].elems[inst.elem].key
+            })
+            .collect();
         let structure = Structure {
             essential_slots,
             essential_keys,
@@ -347,6 +377,7 @@ impl<'c> Builder<'c> {
             operands,
             value_types,
             tapes,
+            comp_keys,
             cell_label,
         })
     }
@@ -455,14 +486,19 @@ impl<'c> Builder<'c> {
     /// An essential slot's key: its scope, its template slot (the element's
     /// slot offset plus the prop's position; a document's boxes are fixed
     /// at load, ADR 0014, so the offsets are the same in every build), and
-    /// its element's key and position.
+    /// its element's key and position, `HIDDEN` marking a hidden slot.
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot as usize];
         let inst = self.instances[self.comp_instance[comp as usize] as usize];
         let pi = slot - self.slot_base[comp as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
-        (inst.scope, el.slot_off + pi, (el.key, pi))
+        let prop = if (pi as usize) < self.n_public(comp) {
+            pi
+        } else {
+            pi | HIDDEN
+        };
+        (inst.scope, el.slot_off + pi, (el.key, prop))
     }
 
     /// Structural depth per repeat: how many repeats must be expanded, in

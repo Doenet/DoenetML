@@ -31,19 +31,27 @@ reload.
 ## Tests
 
 ```bash
-npm run build -w @doenet/parser -w @doenet/cells-core
 npm run test -w @doenet/cells-viewer
 ```
+
+The script builds `@doenet/parser` and the core's wasm first. The tests
+run as two vitest projects (`vitest.config.ts`): `prerender`, in Node, and
+`renderers`, in jsdom.
 
 `src/prerender/render-to-html.test.tsx` renders documents to HTML in
 Node, as a server prerendering a page would: the core's golden documents,
 the benchmark's documents and the dev page's, each parsed and loaded as
 the browser does and rendered with `renderToString`. JSXGraph cannot load
-outside a browser, so the tests replace it with
-`src/prerender/jsxgraph-stub.ts` (`vitest.config.ts`): a graph renders as
+outside a browser, so these tests replace it with
+`src/prerender/jsxgraph-stub.ts`: a graph renders as
 its board's container, sized and empty. A renderer that reads a store
 value goes through `useStoreSnapshot` (`src/hooks.ts`), which gives React
 the server snapshot it needs there.
+
+`src/interactive.test.tsx` drives every renderer in jsdom, JSXGraph
+included, and fails when one requests a cell no component definition
+marks interactive (ADR 0017): in development and in tests,
+`CellStore.checkRequests` throws on such a request.
 
 The toolbar, besides what the other test viewers have:
 

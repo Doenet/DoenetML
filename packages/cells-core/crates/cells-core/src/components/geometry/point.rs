@@ -16,8 +16,8 @@ component! {
     flags: [copyable],
     default_prop: coords,
     props {
-        x: by_planner,
-        y: by_planner,
+        x: by_planner { interactive },
+        y: by_planner { interactive },
         // A boolean in the current core; here a 0/1 cell.
         hide: by_planner,
     }

@@ -1,6 +1,8 @@
 # Saved state carries over only edits that are safe for every student
 
-Status: proposed 2026-10-23.
+Status: proposed 2026-10-23. Every migration step is done; see Migration.
+Amended 2026-10-24: step 3 defines an input's *starting value*, which
+`tests/safe_edits.rs` found the first wording too loose about.
 
 When an author publishes a new version of a document, a student's saved
 state carries over to it only if the edit is *safe for every student*:
@@ -127,11 +129,32 @@ input the signature records:
 - its *derivation*: everything that decides what the input shows and
   whether a student can act on it. That is the operators and literal
   parameters on every path from an essential cell to the input; the
-  defaults of the essential cells on those paths, except those only this
-  input writes; and the same for whatever decides whether the input
+  defaults of the essential cells on those paths, except the input's
+  *starting values*; and the same for whatever decides whether the input
   exists or can be acted on: the count of every repeat and the choice of
   every branch around it, the gates of the cases around it, `hide`, and a
   hold.
+
+A default is the input's *starting value*, which the author may change,
+only when it is the whole value of something the student drags or types
+into, and nothing else is calculated from it: the cell is one of the
+input's own props, no operator around the input reads it, and no other
+input reaches it. A student who changed it gets their value back; one who
+did not sees the new start, and nothing else moves with it.
+
+- `<point x="1" y="2"/>`: `x` is the point's own prop and nothing is
+  calculated from it. Changing `x="1"` to `x="4"` is allowed.
+- `<circle through="$a $b" radius="4"/>`: the radius is not something the
+  student drags; the circle's centre is calculated from it and from the
+  points the student placed. Changing it would move their circle, so it
+  is part of the derivation.
+- A polygon whose fourth vertex is calculated from the other three: the
+  first vertex is the student's to drag, but the fourth is calculated from
+  it. Changing its start would move the fourth, so it is part of the
+  derivation.
+
+An earlier wording exempted every default that only one input reaches,
+which allowed the circle's and the polygon's edits.
 
 The derivation is recorded as a hash of the plans involved, which name no
 iteration (ADR 0015). The hash is taken over stable keys and literals
@@ -175,14 +198,17 @@ New inputs that meet condition 4, new answers and new selects are
 allowed. Everything else may change freely: text, layout, hints,
 feedback, formulas that feed only what is displayed or credited, correct
 answers, awards, weights, the conditions of content that holds no input,
-and the starting value of an input that only it writes.
+and an input's starting values (step 3).
 
 **Why this is enough.** Every essential cell an old input reads holds,
-after the restore, either a value the student actually had (step 2) or a
-default that is unchanged (condition 3), in a cell with the same key, type
-and sharing (condition 2). Through an unchanged derivation, the input then
-shows exactly what it showed before, exists exactly when it did before,
-and can be acted on exactly when it could before. That value was in the
+after the restore, a value the student actually had (step 2), a default
+that is unchanged (condition 3), or a starting value the student never
+changed, in a cell with the same key, type and sharing (condition 2).
+Through an unchanged derivation, the input then shows exactly what it
+showed before, but for a prop the student never changed, which shows its
+new start; nothing is calculated from a starting value, so nothing else
+moves with it. It exists exactly when it did before, and can be acted on
+exactly when it could before. That value was in the
 old domain, which the new one contains (condition 1), so everything the
 student could see and reach, they still can. A new input starts from new
 cells or inside its domain (condition 4). Nothing here depends on any
@@ -196,6 +222,8 @@ Each condition rules out a failure found in drafting:
 | A type change; a copy given an override | condition 2 |
 | `q.x = 2*$n` changed to `3*$n`: `q` moves though `n` restores exactly | condition 3, operators |
 | `q.x = $k*$n`, `<number name="k">` changed from 2 to 3 | condition 3, defaults |
+| A circle's `radius` changed: the circle through the student's points moves | condition 3, defaults |
+| A polygon's first vertex moved, which its fourth is calculated from | condition 3, defaults |
 | `length="$n"` changed to `$n/2`: iterations with the student's work vanish | condition 3, existence |
 | A `fixed`, `hide` or condition added around an input | condition 3, acting on it |
 | A new point at `x="$n"` | condition 4 |
@@ -328,3 +356,152 @@ chosen in the same dialog.
   `CONTEXT.md` gains *touched*, *view state*, *input*, *input signature*,
   *domain*, *derivation* and *safe for every student*, and its *element
   key* becomes the stable key.
+
+## Migration
+
+Each phase leaves the tree green. Phases 0 to 2 need nothing new; phase
+3 can run beside them; 4 needs 1 and 3; 5 needs 4; 6 needs 5, though its
+session generator can start after 3.
+
+0. **Release pinning and format 3** (step 6). `cells_core::RELEASE` is
+   the crate version and the source revision, set at build time, with a
+   fallback when no revision is known. `save_state` writes format 3,
+   with `doc` empty until phase 4. `restore_state` refuses any other
+   format and any other release, with an error, before reading an entry;
+   the readers of formats 1 and 2 go. `cells-wasm` exposes the release.
+   **Done**: `crates/cells-core/build.rs` sets `RELEASE` to the version
+   and the commit, marked `.dirty` when the crate's source or the lock
+   file has uncommitted changes, or to `CELLS_CORE_RELEASE` when a
+   platform build sets it; `Error::OtherRelease` is the refusal, and
+   `Core.release_id()` the export.
+1. **Stable keys** (step 1). An element's key replaces `ElemKey`'s
+   `(NodeId, u32)`: computed by the compile beside its count of made
+   elements, interned per `Compiled`, carried on `Elem` and in
+   `Structure::essential_keys`. A scope path's level is the repeat's or
+   select's stable key and the iteration, or the branch's key. A public
+   prop is saved by its name in the definition; a hidden essential slot
+   by the shared state it holds (`ElemWiring::essential`, `hidden_wire`),
+   and not at all without one. `restore_state` skips an entry whose kind
+   is not its cell's value type. `seeded_stream` hashes the select's
+   stable key and the stable scope path, not `NodeId`. Each row of
+   Context's table is a test in `tests/state.rs`; the golden diff is
+   identical.
+   **Done**: `compile/keys.rs`. The keys are text, kept in one buffer
+   by every document, since one without repeats drops its compile after
+   load. A slot a `fixed` holds is saved by its name too, in the hidden
+   slot its source moved to, so adding a `fixed` moves no key; a test
+   holds every essential cell of the golden set to having a name. A
+   select's pick scope is its option and which pick of it this is. The
+   golden diff differs only in select draws, which the new seeding
+   changes once.
+2. **Touched and view state** (step 2). The session keeps the touched
+   essential values by scope and slot, so they survive a rebuild; a tick
+   marks every essential cell its inversion writes, whether or not the
+   value changed. A view cell is marked when it is built; its entry
+   carries the default it had.
+   **Done**: `Session::touched`, by scope and template slot; a tick that
+   fails its rebuild takes its touches back. A restored value is
+   touched, here and when a build takes it from `parked`. A view cell is
+   known by its key rather than marked: a graph's `xmin`, `xmax`,
+   `ymin` or `ymax` saved under the graph's own key, which a bound given
+   by a reference never is.
+3. **Interactive props** (step 3's declaration). `component!` marks a
+   prop `interactive`, and the points a whole-shape drag moves; ADR 0016
+   is amended to say so. The core exposes which cells are interactive,
+   and a test of `packages/cells-viewer` fails when a renderer requests a
+   cell that is not.
+   **Done**: a prop is marked in its table (`value: attr(0.0) {
+   interactive }`, a flag on `PropDef`), and a list whose points a drag
+   moves is marked `interactive: true` (a flag on `ListProp`), which for a
+   line's or segment's list marks the table props it names
+   (`ComponentType::is_interactive_prop`). Marked: a point's `x` and `y`;
+   the lists of the line, segment, circle and polygon, and the circle's
+   `cx` and `cy`, which a whole-circle drag requests; a graph's `xmin`,
+   `xmax`, `ymin` and `ymax`, for pan and zoom; the `value` of a
+   `numberInput`, `booleanInput`, `textInput` and `slider` (computed,
+   inverting onto `preliminaryValue`); a `mathInput`'s `expr` and, when
+   bound to a number, `value`; a `choiceInput`'s `selectedIndex`; a
+   `hint`'s `open`; an `updateValue`'s `target`, which a `triggerSet`
+   requests; and what a submit writes (`Document::submit_requests`): an
+   answer's `submitted` and `numSubmissions` and a response's
+   `submitted`, since every answer is an input. A polyline is not dragged;
+   its vertices are points, marked as points. `Document::interactive_cells`
+   and `is_interactive` (`document/interactive.rs`), exposed by
+   `cells-wasm`, give the cells; a cell several components share is
+   interactive when any of them marks it. `CellStore` checks each request
+   against them in development and tests, and
+   `packages/cells-viewer/src/interactive.test.tsx` renders a document
+   with every renderer in jsdom, uses every control, drag handler and
+   board pan, and fails on a request the check refuses or a kind of
+   control it did not reach. `tests/interactive.rs` checks the marking
+   against the props the renderers request, that derived props are not
+   marked, and that a submit and a trigger write only marked cells.
+4. **The input signature** (step 3). `compile/signature.rs`, run on the
+   build the check already makes (the probe, or the one stamped build of
+   a document without repeats or selects), whose graph holds every edge
+   any count or pick can create. An input's derivation is the backward
+   closure from it and from the cells that decide whether it exists or
+   can be acted on, each slot's plan hashed with `Arg::Own`, `Arg::Elem`,
+   references and expressions resolved to stable keys, names and trees. A
+   test inserts unrelated elements and checks that no hash moves. Format
+   3's `doc` is the signature's hash.
+   **Done**, in `build/signature.rs` since it reads the build: the
+   signature is read off the probe, which `input_signature` and
+   `compare_versions` build, not off a load, so a load pays nothing for
+   it. A cell hashes as what it is: an essential cell by its key and
+   prop, a fixed one by its value, a derived one by its operator with its
+   literal parameters (`Op::unbound`) over its inputs' hashes, an
+   expression with its leaves numbered by input. The defaults are kept
+   beside the derivation, each with whether any other input's closure
+   reaches its cell; a default may change only where it is the input's
+   starting value in both versions. The cells an input writes are its
+   closure's essential leaves but a hold's flag; which elements share a
+   cell needs no list of its own, since a cell is named by the element
+   that defines it, so a copy given an override writes another cell.
+   Format 3's `doc` names the version by a hash of its source instead
+   (`Dast::version_hash`), since a signature at every load would cost a
+   probe; what a platform needs it for is which version a save was made
+   in. The keys cost a load at most 3% more instructions
+   (`points-10000`, callgrind, against phase 0), and memory grows by the
+   keys' text: 8% on `chain-100000`, 53% on `select-1000`, whose many
+   small elements have long keys; `points-10000` is unchanged.
+5. **`compare_versions`** (step 4), in `compile/check.rs`, with an
+   optional map of renames, its failures tied to nodes as diagnostics
+   are; exposed by `cells-wasm`. Each row of step 4's table is a test.
+   **Done**: `compile/compare.rs`, `tests/compare.rs`,
+   `compare_versions_json`. A rename applies to the old version's keys
+   before its signature is hashed, and to every key under the renamed
+   one. Wrapping an input in a new conditional moves its key, so it
+   fails condition 1 rather than 3.
+6. **`tests/safe_edits.rs`** (step 5): generated edits and sessions over
+   the golden set and the fixtures, seeded, a short run in CI and a long
+   one on request.
+   **Done**: literals changed, paragraphs, inputs and points inserted
+   (some reading an input), self-closing elements removed, elements
+   renamed, over the golden set and five documents of inputs; with
+   `SAFE_EDITS_LONG=1`, many more of each and `fixtures/sir.doenet`. The
+   test found that exempting every default only one input reaches was too
+   loose (a circle's radius, a polygon's vertex another is calculated
+   from), which step 3's *starting value* now fixes. Its oracle allows
+   what step 2 allows: an untouched prop takes the new start, and a
+   graph's own bounds the author's new ones.
+7. **Docs.** `ARCHITECTURE.md` and `CONTEXT.md` as Consequences says,
+   `document/state.rs`'s header, and this ADR's status. The editor's
+   dialog (step 7) and pinning an attempt to a release are the
+   platform's, and not part of this migration.
+   **Done**, but for the status, which stays proposed until the ADR is
+   accepted.
+
+Settled while planning:
+
+- A restore writes no new touch, but an entry it restores was touched
+  when it was saved and stays touched, or the next save would lose it.
+- A name that is ambiguous under its nearest named ancestor (two
+  `<point name="a">` in different unnamed `<p>`s) does not name its
+  element; the element is keyed as an unnamed one.
+- A select's branch is keyed by its option's key and, since a select may
+  pick one option more than once, the pick's position among the picks of
+  that option.
+- The core does not refuse a request on a prop that is not interactive;
+  the viewer's test is the check, as step 3 says. (ADR 0018 proposes to
+  reverse this: the core accepts a request only on an input's cell.)

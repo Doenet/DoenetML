@@ -25,6 +25,8 @@ component! {
         coords: [x, y],
         alternate_name: vertexX,
         attribute: vertices,
+        // A vertex drag requests one, a whole-polygon drag all.
+        interactive: true,
     }
     sticky_list: Shape::Closed,
     attributes {

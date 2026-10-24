@@ -44,6 +44,9 @@ pub mod tick;
 pub mod trace;
 
 // The API of a loaded document: load it, read it, send it requests.
+pub use compile::compare::{
+    EditFailure, EditReport, compare_signatures, compare_versions, input_signature,
+};
 pub use compile::lint::lint;
 pub use compile::{Compiled, diagnose, lint};
 pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
@@ -55,3 +58,8 @@ pub use program::ValueType;
 pub use tick::eval::{DirtyClosure, Evaluator, FullRecompute, Recompute};
 pub use tick::invert::PointRequest;
 pub use tick::{Request, TickOutcome};
+
+/// This build's release id (ADR 0017, step 6): the crate version and the
+/// source revision. Saved state records it, and only a core with the same
+/// id restores it.
+pub const RELEASE: &str = env!("CELLS_CORE_RELEASE");

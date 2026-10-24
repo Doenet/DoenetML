@@ -4,6 +4,8 @@
 //! inversion (`tick/invert.rs`) and recompute (`tick/eval.rs`), then a
 //! rebuild if a structural cell changed (`load.rs`).
 
+use std::sync::Arc;
+
 use super::{CellIdx, Document};
 use crate::tick::eval::{Evaluator, Recompute};
 use crate::tick::invert::{PointRequest, invert_requests};
@@ -98,6 +100,18 @@ impl Document {
         tick.dropped.extend(inv.dropped);
         // The values the tick overwrites, so a failed rebuild can undo it.
         let mut before: Vec<(CellIdx, f64)> = Vec::new();
+        // Every essential cell a request writes is touched (ADR 0017), even
+        // with the value it had: a student who puts a point back where it
+        // started put it there.
+        let mut newly_touched = Vec::new();
+        for &(cell, _) in &inv.writes {
+            if (cell as usize) < self.n_essential {
+                let at = self.structure.essential_slots[cell as usize];
+                if Arc::make_mut(&mut self.session.touched).insert(at) {
+                    newly_touched.push(at);
+                }
+            }
+        }
         for (cell, value) in inv.writes {
             let old = self.cells[cell as usize];
             if value != old && !(value.is_nan() && old.is_nan()) {
@@ -126,6 +140,10 @@ impl Document {
                         // report every request of the tick as dropped.
                         for &(cell, old) in &before {
                             self.cells[cell as usize] = old;
+                        }
+                        let touched = Arc::make_mut(&mut self.session.touched);
+                        for at in &newly_touched {
+                            touched.remove(at);
                         }
                         self.recompute();
                         tick.changed.clear();

@@ -17,6 +17,7 @@ pub(super) struct Prop {
     attr: Option<&'static str>,
     bind: Option<&'static str>,
     ref_prop: Option<&'static str>,
+    interactive: bool,
 }
 
 /// [`PropFrom`] with props named rather than numbered.
@@ -37,6 +38,7 @@ const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> 
         attr: None,
         bind: None,
         ref_prop: None,
+        interactive: false,
     }
 }
 
@@ -94,6 +96,12 @@ impl Prop {
         self.ref_prop = Some(prop);
         self
     }
+    /// A renderer may request this prop: a student's action writes it
+    /// (ADR 0017's inputs).
+    pub(super) const fn interactive(mut self) -> Self {
+        self.interactive = true;
+        self
+    }
 }
 
 /// A table's [`PropDef`]s, with each prop name a computed prop reads
@@ -106,6 +114,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
         attr: None,
         bind: None,
         ref_prop: None,
+        interactive: false,
     };
     let mut out = [blank; N];
     let mut i = 0;
@@ -142,6 +151,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             attr: p.attr,
             bind: p.bind,
             ref_prop: p.ref_prop,
+            interactive: p.interactive,
         };
         i += 1;
     }
@@ -410,7 +420,11 @@ pub(crate) use typed_props;
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
-/// optionally followed by `{ attribute: a, bind: b, ref_prop: p }`.
+/// optionally followed by `{ attribute: a, bind: b, ref_prop: p,
+/// interactive }`. `interactive` marks a prop a renderer may request (ADR
+/// 0017's inputs); a list ending `interactive: true` has every point
+/// interactive, for a shape a drag of one point or of the whole shape
+/// moves.
 ///
 /// ```ignore
 /// component! {
@@ -448,15 +462,17 @@ macro_rules! component {
         $(flags: [$($flag:ident),* $(,)?],)?
         $(default_prop: $default:ident,)?
         props {
-            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident : $oval:ident),* $(,)? })?),+ $(,)?
+            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
         }
         $(combined_props { $($cname:ident : [$($cpart:ident),+ $(,)?]),* $(,)? })?
         $(list {
             names: [$($lname:ident),+ $(,)?],
             item: $litem:ident,
-            $(points: [$([$px:ident, $py:ident]),+ $(,)?],)?
+            $(points: [$([$px:ident, $py:ident]),+ $(,)?]
+                $(, interactive: $lpinteractive:literal)? $(,)?)?
             $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
-                attribute: $lattr:ident $(, max: $lmax:expr)? $(,)?)?
+                attribute: $lattr:ident $(, max: $lmax:expr)?
+                $(, interactive: $lcinteractive:literal)? $(,)?)?
         })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(sticky_points: ($($sp:expr),+ $(,)?),)?
@@ -478,6 +494,7 @@ macro_rules! component {
                         $(table [$([$px, $py]),+])?
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
                     ),
+                    interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.sticky($($sp),+))?
@@ -490,7 +507,7 @@ macro_rules! component {
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
             $(
                 $crate::components::define::component!(@prop $kind $pname $(($($karg)*))?)
-                    $($(.$opt(stringify!($oval)))*)?
+                    $($(.$opt($(stringify!($oval))?))*)?
             ),+
         ]);
 
@@ -548,9 +565,11 @@ macro_rules! component {
     };
     (@list_points) => {
         compile_error!(
-            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`)"
+            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`), either optionally ending `interactive: true`"
         )
     };
+    (@flag) => { false };
+    (@flag $flag:literal) => { $flag };
     (@max) => { None };
     (@max $max:expr) => { Some($max) };
     (@alternate_name) => { None };

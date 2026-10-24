@@ -109,11 +109,20 @@ export type Diagnostic = {
 };
 
 export class CellStore {
+    /** Check each request against the cells the core marks interactive
+     * (ADR 0017) and throw on any other: on in development and in tests,
+     * off in a production build. The core accepts a request on any cell,
+     * so a renderer that requests a prop its definition does not mark is
+     * an input the saved-state check would not see. */
+    static checkRequests: boolean = import.meta.env?.DEV ?? false;
+
     comps: ComponentTable;
     /** The wasm core; the benchmark's harness calls it directly
      * (`packages/benchmark/browser/cells-adapter.js`). */
     core: Core;
     _view: Float64Array;
+    /** The interactive cells, read once per build when checked. */
+    _interactive: Set<number> | null = null;
     _listeners: (Set<Listener> | undefined)[];
     _anyListeners = new Set<Listener>();
     _structureListeners = new Set<Listener>();
@@ -245,6 +254,7 @@ export class CellStore {
     }
 
     _send(pairs: [number, number][], points: boolean): void {
+        if (CellStore.checkRequests) this._checkInteractive(pairs);
         const cells = new Uint32Array(pairs.map((p) => p[0]));
         const values = new Float64Array(pairs.map((p) => p[1]));
         this._tick(() =>
@@ -252,6 +262,34 @@ export class CellStore {
                 ? this.core.request_points(cells, values)
                 : this.core.request(cells, values),
         );
+    }
+
+    _checkInteractive(pairs: [number, number][]): void {
+        this._interactive ??= new Set(this.core.interactive_cells());
+        for (const [cell] of pairs) {
+            if (this._interactive.has(cell)) continue;
+            throw new Error(
+                `request on cell ${cell} (${this._describeCell(cell)}), ` +
+                    "which no component definition marks interactive",
+            );
+        }
+    }
+
+    /** The props a cell is, as `type.prop`, for an error message. */
+    _describeCell(cell: number): string {
+        const names: string[] = [];
+        for (let c = 0; c < this.comps.length; c++) {
+            const props = this.comps.props(c);
+            const tableProps =
+                this.comps.cols.typeProps[this.comps.cols.componentType[c]];
+            props.forEach((p, i) => {
+                if (p === cell)
+                    names.push(
+                        `${this.comps.componentType(c)}.${tableProps[i] ?? `list[${i - tableProps.length}]`}`,
+                    );
+            });
+        }
+        return names.join(", ") || "no prop";
     }
 
     /** One tick: `run` asks the core and returns the changed cells. */
@@ -294,6 +332,7 @@ export class CellStore {
                 () => columnsFromCore(this.core, wasmMemory!),
             );
             this._listeners = new Array(this.comps.nCells);
+            this._interactive = null;
             this.structureVersion++;
             for (const fn of this._structureListeners) fn();
         } else {

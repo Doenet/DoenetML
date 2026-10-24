@@ -321,6 +321,10 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   component writes.
 
 The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
+Mark every prop it requests `interactive` in the block (`value: attr(0.0) {
+interactive }`; a list whose points it drags, `interactive: true`): these
+are the document's inputs (ADR 0017), and the viewer's test
+(`src/interactive.test.tsx`) fails for a request on any other.
 
 ### Add an operator
 
@@ -386,6 +390,13 @@ cells directly and redraw once per tick; Doenet's styling is copied into
   (`build/coverage.rs`): every dependency must be one the probe has, with a
   label its iterations satisfy. This tests the assumptions the cycle check
   rests on directly, instead of waiting for a missed cycle.
+- `tests/safe_edits.rs` tests `compare_versions` (ADR 0017) the same way:
+  every golden document and a few with inputs of every kind get generated
+  edits, and for every edit it calls safe, a generated session's saved
+  state, restored into the edited version, must give every input back as
+  the student left it (or, where the student left it as it started, the new
+  start) and keep every point inside its graph. `SAFE_EDITS_LONG=1` runs
+  many more edits and sessions, and `fixtures/sir.doenet`.
 - `scripts/golden-diff.sh [base]` compares every component's props, after
   load and after a fixed script of requests, against a base commit. A
   refactor should leave it identical.

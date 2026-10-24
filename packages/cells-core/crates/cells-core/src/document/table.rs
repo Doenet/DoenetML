@@ -254,7 +254,8 @@ impl Document {
             strings: self.strings.heap_bytes(),
             structure: self.session.heap_bytes()
                 + self.structure.essential_slots.capacity() * 8
-                + self.structure.essential_keys.capacity() * 12,
+                + self.structure.essential_keys.capacity() * 8
+                + self.keys.heap_bytes(),
             attrs: self.literal_attrs.heap_bytes(),
         }
     }

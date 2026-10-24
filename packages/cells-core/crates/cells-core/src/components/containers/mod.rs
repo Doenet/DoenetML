@@ -36,10 +36,11 @@ pub mod graph {
         tags: ["graph"],
         flags: [container],
         props {
-            xmin: attr(-10.0),
-            xmax: attr(10.0),
-            ymin: attr(-10.0),
-            ymax: attr(10.0),
+            // Pan and zoom request all four.
+            xmin: attr(-10.0) { interactive },
+            xmax: attr(10.0) { interactive },
+            ymin: attr(-10.0) { interactive },
+            ymax: attr(10.0) { interactive },
         }
         planner: Props,
     }
@@ -100,7 +101,7 @@ pub mod hint {
         tags: ["hint"],
         flags: [container],
         props {
-            open: attr(0.0),
+            open: attr(0.0) { interactive },
         }
         planner: Props,
     }

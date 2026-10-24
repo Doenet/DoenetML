@@ -192,6 +192,10 @@ pub struct ListProp {
     pub names: &'static [&'static str],
     pub item: &'static str,
     pub points: ListPoints,
+    /// A renderer may request every point: a drag of one point or of the
+    /// whole shape moves them (a line's, a circle's through points, a
+    /// polygon's vertices).
+    pub interactive: bool,
 }
 
 /// Where a list's points are.
@@ -423,6 +427,22 @@ impl ComponentType {
         }
     }
 
+    /// Whether prop `pi` of an element with `n_props` public props is
+    /// interactive: marked so in the table, or a point of a list marked
+    /// so (ADR 0017).
+    pub fn is_interactive_prop(self, n_props: usize, pi: usize) -> bool {
+        let defs = self.prop_defs();
+        if let Some(def) = defs.get(pi) {
+            return def.interactive
+                || self.list().is_some_and(|list| {
+                    list.interactive
+                        && matches!(list.points, ListPoints::Table(points)
+                            if points.iter().flatten().any(|&p| p == def.name))
+                });
+        }
+        pi < n_props && self.list().is_some_and(|list| list.interactive)
+    }
+
     /// The prop a bare `$name` reference resolves to.
     pub fn default_prop(self) -> Option<&'static str> {
         self.def().default_prop
@@ -512,6 +532,9 @@ pub struct PropDef {
     /// the referent instead of its default prop (`function="$m"` wants the
     /// math's `expr`, not its `value`).
     pub ref_prop: Option<&'static str>,
+    /// A renderer may request this prop: a student's action writes it, so
+    /// it is one of the document's inputs (ADR 0017).
+    pub interactive: bool,
 }
 
 impl PropDef {

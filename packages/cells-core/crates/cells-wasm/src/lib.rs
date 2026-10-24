@@ -18,6 +18,41 @@ pub fn diagnose_json(dast: &[u8]) -> Result<String, JsError> {
     Ok(serde_json::to_string(&cells_core::diagnose(&dast)).unwrap())
 }
 
+/// Whether publishing the document `new` over `old` is safe for every
+/// student (ADR 0017): their saved state then carries over exactly. Both
+/// are DAST bytes in either wire format; `renames` is a JSON array of
+/// `[oldKey, newKey]` pairs an editor recorded. The result is JSON: `safe`,
+/// and `failures`, each with the input's `key`, the `condition` (1 to 4)
+/// it fails, its DAST `node` in `new` and `oldNode` in `old` where it has
+/// one, and a `reason`. An error when either version does not load under
+/// this release, which makes the edit not safe for attempts pinned to it.
+#[wasm_bindgen]
+pub fn compare_versions_json(old: &[u8], new: &[u8], renames: &str) -> Result<String, JsError> {
+    let err = |e: cells_core::Error| JsError::new(&e.to_string());
+    let old = cells_core::dast::load(old).map_err(err)?;
+    let new = cells_core::dast::load(new).map_err(err)?;
+    let renames: Vec<(String, String)> = if renames.trim().is_empty() {
+        Vec::new()
+    } else {
+        serde_json::from_str(renames).map_err(|e| JsError::new(&e.to_string()))?
+    };
+    let report = cells_core::compare_versions(&old, &new, &renames).map_err(err)?;
+    let failures: Vec<serde_json::Value> = report
+        .failures
+        .iter()
+        .map(|f| {
+            serde_json::json!({
+                "key": f.key,
+                "condition": f.condition,
+                "node": f.node,
+                "oldNode": f.old_node,
+                "reason": f.reason,
+            })
+        })
+        .collect();
+    Ok(serde_json::json!({ "safe": report.safe(), "failures": failures }).to_string())
+}
+
 #[wasm_bindgen]
 pub struct Core {
     doc: Document,
@@ -73,6 +108,12 @@ impl Core {
             .restore_state(state)
             .map_err(|e| JsError::new(&e.to_string()))?;
         Ok(core)
+    }
+
+    /// This core's release id (ADR 0017): saved state records it, and only
+    /// a core with the same id restores it.
+    pub fn release_id() -> String {
+        cells_core::RELEASE.to_string()
     }
 
     /// The session's state as JSON: every essential cell that differs from
@@ -379,6 +420,18 @@ impl Core {
         } else {
             "derived".into()
         }
+    }
+
+    /// Whether a renderer may request a cell: one of a prop its component's
+    /// definition marks interactive (ADR 0017).
+    pub fn is_interactive(&self, cell: u32) -> bool {
+        self.doc.is_interactive(cell)
+    }
+
+    /// Every cell a renderer may request, ascending; new indices after a
+    /// rebuild.
+    pub fn interactive_cells(&self) -> Vec<u32> {
+        self.doc.interactive_cells()
     }
 
     pub fn last_dropped(&self) -> u32 {

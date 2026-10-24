@@ -41,12 +41,14 @@ pub(crate) mod api;
 mod attrs;
 mod check;
 mod choice;
+pub(crate) mod compare;
 mod condition;
 mod copies;
 mod ctx;
 pub(crate) mod expr;
 mod fix;
 mod iterates;
+pub(crate) mod keys;
 pub mod lint;
 pub(crate) mod plan;
 mod planner;
@@ -96,9 +98,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// The node of the innermost element whose planning failed, set on
     /// the way out of a failed compile; `build` boxes it and tries again.
     pub(in crate::compile) failed_node: Option<NodeId>,
-    /// Per node, how many elements the compile has made for it (an
-    /// element's key, `ElemKey`).
-    made: HashMap<NodeId, u32>,
     /// The name table: by (template, scope, name), the one descendant of
     /// the scope (or `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when
     /// several do. A name is registered at every ancestor of its element.
@@ -111,6 +110,9 @@ pub(in crate::compile) struct Compiler<'a> {
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
+    /// By (template, element), the slots a `fixed` holds and the hidden
+    /// slot each one's source moved to (`Fix::apply`).
+    held: HashMap<(u32, u32), Vec<(u8, u8)>>,
 }
 
 /// A name-table entry naming more than one element.
@@ -150,6 +152,8 @@ impl<'a> Compiler<'a> {
                 sym_text: HashMap::new(),
                 sym_trees: HashMap::new(),
                 choices: Vec::new(),
+                keys: Arc::default(),
+                version: dast.version_hash(),
                 extra_strings: Vec::new(),
                 diagnostics: Vec::new(),
                 rebuilds: false,
@@ -161,11 +165,11 @@ impl<'a> Compiler<'a> {
             string_ids: None,
             boxed,
             failed_node: None,
-            made: HashMap::new(),
             names: HashMap::new(),
             name_ids: HashMap::new(),
             sibling_names: HashSet::new(),
             shared_state: HashMap::new(),
+            held: HashMap::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -287,6 +291,7 @@ impl<'a> Compiler<'a> {
         }
         cp.finish_choices()?;
         cp.check_arity()?;
+        cp.assign_keys();
         // Slot offsets, now that planned types know their hidden slot count.
         for tpl in &mut cp.compiled.templates {
             let mut off = 0;
@@ -297,6 +302,18 @@ impl<'a> Compiler<'a> {
             tpl.n_slots = off;
         }
         Ok(())
+    }
+
+    /// Record the slots a `fixed` on element `e` holds (`Fix::apply`).
+    pub(in crate::compile) fn record_held(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        held: Vec<(u8, u8)>,
+    ) {
+        if !held.is_empty() {
+            self.held.insert((t as u32, e as u32), held);
+        }
     }
 
     /// Record `node` as the element to box if the compile fails: the
@@ -355,29 +372,10 @@ impl<'a> Compiler<'a> {
         });
         let tpl = &mut self.compiled.templates[t];
         let e = tpl.elems.len();
-        // A made element is known by the nearest element it belongs to (the
-        // template's owner at the top) and its position among those made
-        // for that one.
-        let key = if node != NONE {
-            (node, 0)
-        } else {
-            let mut a = name_scope;
-            let anchor = loop {
-                if a == ROOT_SCOPE {
-                    break tpl.owner;
-                }
-                if tpl.elems[a].node != NONE {
-                    break tpl.elems[a].node;
-                }
-                a = tpl.elems[a].name_scope;
-            };
-            let k = self.made.entry(anchor).or_insert(0);
-            *k += 1;
-            (anchor, *k)
-        };
         tpl.elems.push(Elem {
             node,
-            key,
+            // Set once every element is planned (`assign_keys`).
+            key: 0,
             component_type,
             name,
             name_scope,
@@ -490,7 +488,6 @@ impl<'a> Compiler<'a> {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
-                    owner: el,
                     ..Default::default()
                 });
                 let it = self.add_synthetic(sub, ComponentType::Tuple, NONE);
@@ -501,7 +498,6 @@ impl<'a> Compiler<'a> {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
-                    owner: el,
                     ..Default::default()
                 });
                 // Hidden iteration components first, so `$v` and `$i` resolve

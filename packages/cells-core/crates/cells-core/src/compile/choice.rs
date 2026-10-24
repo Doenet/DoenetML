@@ -36,18 +36,32 @@ impl<'a> Compiler<'a> {
                 "extend on a <{tag}>: reference its interface names instead"
             )));
         }
-        // (condition attribute, body nodes, weight) per branch.
+        // (condition attribute, body nodes, weight) per branch, and its key.
         let mut branches: Vec<(Option<u32>, Vec<NodeId>, f64)> = Vec::new();
+        let mut branch_keys: Vec<Box<str>> = Vec::new();
+        // A case's or option's key (ADR 0017): its name, else its tag and
+        // its position among the branches with that tag.
+        let mut tag_counts: HashMap<&str, u32> = HashMap::new();
+        let mut branch_key = |n: NodeId| -> Box<str> {
+            if let Some(name) = self.attr_name_str(n, "name") {
+                return d.strings.get(name).trim().into();
+            }
+            let k = tag_counts.entry(d.str(n)).or_insert(0);
+            *k += 1;
+            format!("{}#{k}", d.str(n)).into()
+        };
         let is_branch = |n: NodeId| {
             d.kind(n) == NodeKind::Element && matches!(d.str(n), "case" | "else" | "option")
         };
         if tag == "group" {
             branches.push((d.attr(el, "rendered"), d.children(el).to_vec(), 1.0));
+            branch_keys.push("body".into());
         } else if reactive
             && d.attr(el, "condition").is_some()
             && !d.children(el).iter().any(|&n| is_branch(n))
         {
             branches.push((d.attr(el, "condition"), d.children(el).to_vec(), 1.0));
+            branch_keys.push("body".into());
         } else {
             let want = if reactive {
                 "<case> or <else>"
@@ -60,6 +74,7 @@ impl<'a> Compiler<'a> {
                     NodeKind::Other => {}
                     NodeKind::Element if reactive && matches!(d.str(n), "case" | "else") => {
                         branches.push((d.attr(n, "condition"), self.branch_body(n), 1.0));
+                        branch_keys.push(branch_key(n));
                     }
                     NodeKind::Element if !reactive && d.str(n) == "option" => {
                         let weight = match d.attr(n, "selectWeight") {
@@ -67,6 +82,7 @@ impl<'a> Compiler<'a> {
                             None => 1.0,
                         };
                         branches.push((None, self.branch_body(n), weight));
+                        branch_keys.push(branch_key(n));
                     }
                     _ => {
                         return Err(Error::Unsupported(format!(
@@ -116,7 +132,6 @@ impl<'a> Compiler<'a> {
             let sub = self.compiled.templates.len();
             self.compiled.templates.push(Template {
                 parent: Some((t, e)),
-                owner: self.compiled.templates[t].elems[e].node,
                 ..Default::default()
             });
             let kids = self.add_children(sub, None, ROOT_SCOPE, nodes)?;
@@ -128,6 +143,7 @@ impl<'a> Compiler<'a> {
             at: (t, e),
             reactive,
             branches: templates,
+            branch_keys,
             conditions: branches.iter().map(|b| b.0).collect(),
             num_to_select,
             with_replacement,

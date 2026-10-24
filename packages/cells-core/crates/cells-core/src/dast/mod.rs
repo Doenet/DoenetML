@@ -119,6 +119,54 @@ pub type PathPart = u32;
 impl Dast {
     pub const ROOT: NodeId = 0;
 
+    /// A hash of the whole tree, equal for equal trees: what saved state
+    /// names the document version it was made in by (ADR 0017). Not a
+    /// cryptographic hash, and fast: it runs once per load over the whole
+    /// tree.
+    pub fn version_hash(&self) -> u64 {
+        fn words(h: u64, xs: &[u32]) -> u64 {
+            let h = xs.iter().fold(h, |h, &x| {
+                (h ^ x as u64)
+                    .wrapping_mul(0x9e37_79b9_7f4a_7c15)
+                    .rotate_left(29)
+            });
+            (h ^ xs.len() as u64).wrapping_mul(0xbf58_476d_1ce4_e5b9)
+        }
+        let mut h = self
+            .strings
+            .bytes
+            .chunks(8)
+            .fold(0x5eed_d457_0000_0017, |h, c| {
+                let mut w = [0u8; 8];
+                w[..c.len()].copy_from_slice(c);
+                (h ^ u64::from_le_bytes(w))
+                    .wrapping_mul(0x9e37_79b9_7f4a_7c15)
+                    .rotate_left(29)
+            });
+        let kinds: Vec<u32> = self.kind.iter().map(|&k| k as u32).collect();
+        for xs in [
+            &self.strings.offsets,
+            &kinds,
+            &self.str_,
+            &self.a_start,
+            &self.a_count,
+            &self.c_start,
+            &self.c_count,
+            &self.attr_name,
+            &self.attr_c_start,
+            &self.attr_c_count,
+            &self.children,
+            &self.path,
+            &self.path_i_start,
+            &self.path_i_count,
+            &self.idx_c_start,
+            &self.idx_c_count,
+        ] {
+            h = words(h, xs);
+        }
+        h
+    }
+
     pub fn len(&self) -> usize {
         self.kind.len()
     }

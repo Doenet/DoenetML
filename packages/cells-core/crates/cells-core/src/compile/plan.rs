@@ -4,12 +4,15 @@
 
 use super::*;
 
-/// An element's identity across loads of one document, what saved state
-/// names it by, assigned by the compile: its DAST node and 0; for an element the compile makes (an
-/// answer's implicit input, a container copy's clones, a repeat's hidden
-/// iteration components), the node of the nearest element it belongs to
-/// and its 1-based position among the elements made for that node.
-pub type ElemKey = (NodeId, u32);
+/// An element's stable key (ADR 0017), as an index into the compile's
+/// [`Keys`]: what saved state names it by, the same across versions of the
+/// document that an ordinary edit makes. Every instance of a template
+/// element shares its key; the scope tells them apart.
+pub type ElemKey = u32;
+
+/// A slot's position among its element's, as an essential key holds it:
+/// a public prop's position, or a hidden slot's with `HIDDEN` set.
+pub const HIDDEN: u32 = 1 << 31;
 
 pub(crate) type TemplateId = usize;
 pub(crate) type ElemId = usize;
@@ -198,6 +201,10 @@ pub(crate) struct ChoiceDef {
     pub(crate) reactive: bool,
     /// One template per case or option, in document order.
     pub(crate) branches: Vec<TemplateId>,
+    /// Each branch's stable key (ADR 0017): the case's or option's name,
+    /// else its tag and its position among the choice's branches with that
+    /// tag (`option#2`); `body` for a choice that is its own one branch.
+    pub(crate) branch_keys: Vec<Box<str>>,
     /// Reactive: each case's `condition` attribute (None: an else).
     pub(crate) conditions: Vec<Option<u32>>,
     /// Load-time: picks, with replacement or not, and a weight per option.
@@ -258,10 +265,6 @@ pub(crate) struct Elem {
 pub(crate) struct Template {
     /// (template, element) of the repeat or choice this template belongs to.
     pub(crate) parent: Option<(TemplateId, ElemId)>,
-    /// The node of the element that owns the template (0, the DAST root,
-    /// for the document's): what an element the compile makes at the top of
-    /// the template is keyed by.
-    pub(crate) owner: NodeId,
     pub(crate) elems: Vec<Elem>,
     pub(crate) n_slots: u32,
     /// Children of the template itself (the document, a repeat body or a
@@ -338,6 +341,16 @@ impl SharedState {
     #[doc(hidden)]
     pub(crate) const fn name(self) -> &'static str {
         self.0
+    }
+
+    /// What saved state names a hidden slot holding it by (ADR 0017): its
+    /// name, and its position for a list's points (`pt3`).
+    pub(crate) fn key(self) -> String {
+        if self.1 == 0 {
+            self.0.to_string()
+        } else {
+            format!("{}{}", self.0, self.1)
+        }
     }
 }
 
@@ -737,6 +750,11 @@ pub struct Compiled {
     /// its load's peak memory by keeping the trees.
     pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
+    /// The source's `Dast::version_hash`, once per load rather than per
+    /// build.
+    pub(crate) version: u64,
+    /// Every element's stable key (ADR 0017), set once planning is done.
+    pub(crate) keys: Arc<super::keys::Keys>,
     /// Text the build needs that is not a DAST string (a textInput's
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.
@@ -798,10 +816,11 @@ impl Compiled {
             iface.sort_by(|a, b| a.0.cmp(b.0));
             let _ = writeln!(
                 out,
-                "choice {:?} {} {:?} {:?} {} {} {:?} {:?} {iface:?}",
+                "choice {:?} {} {:?} {:?} {:?} {} {} {:?} {:?} {iface:?}",
                 c.at,
                 c.reactive,
                 c.branches,
+                c.branch_keys,
                 c.conditions,
                 c.num_to_select,
                 c.with_replacement,
@@ -809,6 +828,7 @@ impl Compiled {
                 c.used,
             );
         }
+        let _ = writeln!(out, "keys {}", self.keys.fingerprint());
         let _ = writeln!(out, "extra_strings {:?}", self.extra_strings);
         let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
         let _ = writeln!(out, "rebuilds {}", self.rebuilds);

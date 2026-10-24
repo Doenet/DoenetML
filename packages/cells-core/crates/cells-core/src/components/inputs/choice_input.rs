@@ -14,7 +14,7 @@ component! {
     flags: [copyable],
     default_prop: selectedIndex,
     props {
-        selectedIndex: attr(0.0),
+        selectedIndex: attr(0.0) { interactive },
     }
     planner: PropsThen(plan),
 }

@@ -68,7 +68,8 @@ pub mod response {
         default_prop: value,
         props {
             response: by_planner,
-            submitted: by_planner,
+            // A submit writes it (`Document::submit_requests`).
+            submitted: by_planner { interactive },
             value: by_planner,
         }
         planner: Whole(plan),
@@ -189,7 +190,8 @@ pub mod update_value {
         /// request on that cell for `newValue`'s current value.
         tags: ["updateValue"],
         props {
-            target: attr(NO_VALUE),
+            // Pressing its `<triggerSet>` requests it (`Document::trigger`).
+            target: attr(NO_VALUE) { interactive },
             newValue: attr(NO_VALUE),
         }
         planner: Props,

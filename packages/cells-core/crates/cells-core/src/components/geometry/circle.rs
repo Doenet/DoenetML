@@ -21,8 +21,9 @@ component! {
     tags: ["circle"],
     flags: [copyable],
     props {
-        cx: by_planner,
-        cy: by_planner,
+        // A whole-circle drag requests the center.
+        cx: by_planner { interactive },
+        cy: by_planner { interactive },
         radius: by_planner,
         diameter: computed(OpSpec::Scale { k: 2.0 }, [radius]),
         circumference: computed(OpSpec::Scale { k: TAU }, [radius]),
@@ -45,6 +46,8 @@ component! {
         alternate_name: throughPointX,
         attribute: through,
         max: 3,
+        // The center's request moves them.
+        interactive: true,
     }
     alternate_names {
         centerX1: centerX,
