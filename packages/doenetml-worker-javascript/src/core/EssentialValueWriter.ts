@@ -469,9 +469,18 @@ export class EssentialValueWriter {
                             continue;
                         }
 
+                        // An entry's `set` is also told which entry it is and
+                        // what else this write holds for the component, for
+                        // an array whose entries differ in type (an
+                        // `<answer>`'s `submittedResponses`).
                         let set = (x: any) => x;
                         if (compStateObj.set) {
-                            set = compStateObj.set;
+                            const setContext = {
+                                arrayKey,
+                                newValues: newComponentStateVariables,
+                                component: comp,
+                            };
+                            set = (x: any) => compStateObj.set(x, setContext);
                         }
 
                         // A repeat made a list keeps what was written to

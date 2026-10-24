@@ -14,7 +14,7 @@ import {
 } from "../utils/actions";
 import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import { Expression } from "math-expressions";
+import me, { Expression } from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
@@ -10098,5 +10098,169 @@ What is the derivative of <function name="f">x^2</function>?
         expect(sv[ansIdx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
         expect(sv[mi1Idx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
         expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
+    });
+});
+
+describe("An answer's submitted responses through a reload @group4", async () => {
+    async function submitAndReload({
+        doenetML,
+        inputs,
+    }: {
+        doenetML: string;
+        inputs: (
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) => Promise<void>;
+    }) {
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await inputs(core, resolvePathToNodeIdx);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        const before = await core.returnAllStateVariables(false, true);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        const after = await core.returnAllStateVariables(false, true);
+        return { before, after, resolvePathToNodeIdx };
+    }
+
+    it("a math response is read as a math by expressions outside the answer", async () => {
+        const doenetML = `
+    <answer name="ans">
+        <mathInput name="mi" />
+        <award><when>$mi = x</when></award>
+    </answer>
+    <feedback name="fb" condition="$ans.submittedResponse = z">You typed z</feedback>
+    <boolean name="b">$ans.submittedResponse = z</boolean>
+    <math name="m">$ans.submittedResponse + 1</math>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await updateMathInputValue({
+                    latex: "z",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+        });
+
+        for (const sv of [before, after]) {
+            const stateValues = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await stateValues("fb")).hide).eq(false);
+            expect((await stateValues("b")).value).eq(true);
+            expect((await stateValues("m")).value.tree).eqls(["+", "z", 1]);
+            expect((await stateValues("ans")).submittedResponses[0].tree).eq(
+                "z",
+            );
+        }
+    });
+
+    it("responses of each type come back as they were submitted", async () => {
+        const doenetML = `
+    <answer name="ans">
+        <mathInput name="mi" />
+        <textInput name="ti" />
+        <booleanInput name="bi" />
+        <award><when>
+            $mi = x and $ti = hello and $bi
+            and <number isResponse>2$mi</number> = 6
+            and <point isResponse>($mi, 2)</point> = (3, 2)
+        </when></award>
+    </answer>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateTextInputValue({
+                    text: "hello",
+                    componentIdx: await resolvePathToNodeIdx("ti"),
+                    core,
+                });
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("bi"),
+                    core,
+                });
+            },
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const sv of [before, after]) {
+            const { submittedResponses, submittedResponsesComponentType } =
+                sv[ansIdx].stateValues;
+            expect(submittedResponsesComponentType).eqls([
+                "math",
+                "text",
+                "boolean",
+                "number",
+                "point",
+            ]);
+            expect(submittedResponses[0].tree).eq(3);
+            expect(submittedResponses[1]).eq("hello");
+            expect(submittedResponses[2]).eq(true);
+            expect(submittedResponses[3]).eq(6);
+            expect(submittedResponses[4].tree).eqls(["vector", 3, 2]);
+        }
+    });
+
+    it("a label, a subset, a matrix and an angle response keep their kinds of value", async () => {
+        const doenetML = `
+    <label name="L">hello</label>
+    <subsetOfRealsInput name="S" />
+    <matrix name="M"><row>1 2</row></matrix>
+    <angle name="A">pi/3</angle>
+    <answer name="ans">
+        <considerAsResponses>$L $S $M $A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx("S"),
+                    actionName: "setToR",
+                    args: {},
+                });
+            },
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const sv of [before, after]) {
+            const { submittedResponses, submittedResponsesComponentType } =
+                sv[ansIdx].stateValues;
+            expect(submittedResponsesComponentType).eqls([
+                "label",
+                "subsetOfReals",
+                "matrix",
+                "angle",
+            ]);
+            expect(submittedResponses[0]).eq("hello");
+            expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
+            expect(submittedResponses[1].toString()).eq("ℝ");
+            expect(submittedResponses[2].tree).eqls([
+                "matrix",
+                ["tuple", 1, 2],
+                ["tuple", ["tuple", 1, 2]],
+            ]);
+            expect(submittedResponses[3].tree).eqls(["/", "pi", 3]);
+        }
     });
 });

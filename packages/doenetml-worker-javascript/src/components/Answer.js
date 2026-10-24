@@ -1,6 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import { renameStateVariable } from "../utils/stateVariables";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnSimplifyExpandOnCompareWarning,
     returnStandardAnswerAttributes,
@@ -23,6 +24,51 @@ import {
  * and far smaller than any credit an author would write.
  */
 const CREDIT_ROUNDOFF_TOLERANCE = 1e-12;
+
+/**
+ * The types of response whose values are math-expressions, with the types
+ * that inherit from them (other than a `subsetOfReals`, which inherits from
+ * `math` but holds a subset). A response of any other type (a `text`, a
+ * `label`, …) is kept as it was submitted.
+ */
+const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
+
+/**
+ * The `set` of `submittedResponses`: an entry written to it, as the value of
+ * the type `submittedResponsesComponentType` records for it.
+ *
+ * A save holds a math-expression as its tree
+ * (`removeFunctionsMathExpressionClass`), so an entry restored from one is a
+ * bare tree until it is made a math-expression again here. Anything reading
+ * the entry directly — `$ans.submittedResponse` in an expression such as
+ * `<feedback condition="$ans.submittedResponse = z">` — needs one. The type is
+ * read from the same write when it carries it, as a restore does, and an
+ * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`. An
+ * entry that is not a bare tree, or whose type neither is in
+ * `MATH_RESPONSE_TYPES` nor inherits from one of them, is returned unchanged.
+ */
+function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
+    // only a bare tree is made a math-expression: a `subsetOfReals`, which
+    // inherits from `math`, holds a subset, and a save restores it as one
+    if (
+        typeof value !== "string" &&
+        typeof value !== "number" &&
+        !Array.isArray(value)
+    ) {
+        return value;
+    }
+    const componentTypes =
+        newValues.submittedResponsesComponentType ??
+        component.essentialState.submittedResponsesComponentType;
+    const componentType = componentTypes?.[arrayKey] ?? "math";
+    const holdsMath = MATH_RESPONSE_TYPES.some((baseComponentType) =>
+        component.componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType,
+        }),
+    );
+    return holdsMath ? convertValueToMathExpression(value) : value;
+}
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -2016,6 +2062,7 @@ export default class Answer extends InlineComponent {
             entryPrefixes: ["submittedResponse"],
             defaultValueByArrayKey: () => "\uFF3F",
             hasEssential: true,
+            set: submittedResponseOfItsType,
             inverseShadowToSetEntireArray: true,
             doNotCombineInverseArrayInstructions: true,
             returnArraySizeDependencies: () => ({
