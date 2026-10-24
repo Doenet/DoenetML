@@ -1,5 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 // Control components are read through `evaluateToNumber`. Each of these
 // readings is handed straight to `me.fromAst`, and the engine used to answer
@@ -395,6 +396,9 @@ export default class BezierControls extends InlineComponent {
             numDimensions: 2,
             hasEssential: true,
             isLocation: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             defaultValueByArrayKey: () => me.fromAst(1),
             returnArraySizeDependencies: () => ({
                 numControls: {
@@ -461,6 +465,9 @@ export default class BezierControls extends InlineComponent {
             hasEssential: true,
             shadowVariable: true,
             isLocation: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             defaultValueByArrayKey: () => me.fromAst(1),
             stateVariablesDeterminingDependencies: [
                 "pointIndMap",

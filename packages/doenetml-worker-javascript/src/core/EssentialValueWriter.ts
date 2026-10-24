@@ -483,19 +483,30 @@ export class EssentialValueWriter {
                             set = (x: any) => compStateObj.set(x, setContext);
                         }
 
-                        // A repeat made a list keeps what was written to
+                        // A saved entry is restored even when it is past
+                        // the array's end, and is read once the array's size
+                        // covers it. A new component's size can be smaller
+                        // than it will be: a `<bezierControls>` is built
+                        // before the `<curve>` it takes its number of
+                        // controls from, so its size starts out as 0. A
+                        // repeat made a list also keeps what was written to
                         // entries past its end (`listKeepsEntryWritesPastEnd`),
-                        // so a saved one is restored past its end too, and
-                        // shown when it grows.
-                        if (
-                            newComponent &&
-                            comp.constructor.listKeepsEntryWritesPastEnd &&
-                            compStateObj.numDimensions === 1
-                        ) {
-                            const ind = compStateObj.keyToIndex(arrayKey);
-                            if (Number.isInteger(ind) && ind >= arraySize[0]) {
-                                essentialArray[ind] = set(
-                                    newComponentStateVariables[vName][arrayKey],
+                        // and shows a saved one when it grows.
+                        if (newComponent) {
+                            const index = indexPastArraySize({
+                                stateVarObj: compStateObj,
+                                arrayKey,
+                                arraySize,
+                            });
+                            if (index) {
+                                setNestedArrayValue(
+                                    essentialArray,
+                                    index,
+                                    set(
+                                        newComponentStateVariables[vName][
+                                            arrayKey
+                                        ],
+                                    ),
                                 );
                                 continue;
                             }
@@ -1818,4 +1829,51 @@ function convertMultidimensionalArrayToKeyedObject(
         }
     }
     return newObj;
+}
+
+/**
+ * The index of `arrayKey` in an array of size `arraySize`, if it names a
+ * single entry of the array that falls outside that size.
+ *
+ * A key with fewer indices than the array has dimensions names a sub-array,
+ * and a key that is not made of non-negative integers names no entry; for
+ * either, `undefined` is returned, and `setArrayValue` decides what to do
+ * with it.
+ */
+function indexPastArraySize({
+    stateVarObj,
+    arrayKey,
+    arraySize,
+}: {
+    stateVarObj: any;
+    arrayKey: string;
+    arraySize: number[];
+}): number[] | undefined {
+    const keyIndex = stateVarObj.keyToIndex(arrayKey);
+    const index: number[] = Array.isArray(keyIndex) ? keyIndex : [keyIndex];
+    if (
+        index.length !== stateVarObj.numDimensions ||
+        !index.every((ind) => Number.isInteger(ind) && ind >= 0)
+    ) {
+        return undefined;
+    }
+    if (index.every((ind, dim) => ind < (arraySize[dim] ?? 0))) {
+        return undefined;
+    }
+    return index;
+}
+
+/**
+ * Set the entry of the nested array `arrayValues` at `index` to `value`,
+ * making any sub-array on the way that is not there yet.
+ */
+function setNestedArrayValue(arrayValues: any[], index: number[], value: any) {
+    let drillDown = arrayValues;
+    for (const ind of index.slice(0, -1)) {
+        if (!Array.isArray(drillDown[ind])) {
+            drillDown[ind] = [];
+        }
+        drillDown = drillDown[ind];
+    }
+    drillDown[index[index.length - 1]] = value;
 }
