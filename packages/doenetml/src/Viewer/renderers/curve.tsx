@@ -29,6 +29,7 @@ import {
 } from "./utils/labelMaskStyle";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { clickActionArgs } from "./utils/gestureId";
 
 interface CurveSVs extends DraggableGraphicalSVs {
     curveType: "function" | "parameterization" | "bezier";
@@ -271,7 +272,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 }
                 callAction({
                     action: actions.curveClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    // send componentIdx so get original componentIdx if adapted
+                    args: clickActionArgs(componentIdx, e),
                 });
             }
             pointerIsDown.current = false;
@@ -305,7 +307,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 if (!fixed.current) {
                     callAction({
                         action: actions.curveFocused,
-                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                        // send componentIdx so get original componentIdx if adapted
+                        args: clickActionArgs(componentIdx, e),
                     });
                 }
             });
@@ -395,7 +398,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 if (!fixed.current) {
                     callAction({
                         action: actions.curveFocused,
-                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                        // send componentIdx so get original componentIdx if adapted
+                        args: clickActionArgs(componentIdx, e),
                     });
                 }
             });

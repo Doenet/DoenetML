@@ -27,6 +27,8 @@ export type JXGEvent = {
     // hand in unit tests only fill in what they use.
     metaKey?: boolean;
     ctrlKey?: boolean;
+    pointerId?: number;
+    timeStamp?: number;
 };
 
 /** Common base for the per-kind interfaces. New code only. */

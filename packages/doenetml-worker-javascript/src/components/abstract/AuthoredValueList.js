@@ -1300,6 +1300,7 @@ export default class AuthoredValueList extends ValueListComponent {
         const {
             listEntryIndex,
             actionId,
+            gestureId,
             sourceInformation = {},
             skipRendererUpdate = false,
         } = args;
@@ -1317,6 +1318,7 @@ export default class AuthoredValueList extends ValueListComponent {
                 triggeringAction,
                 componentIdx: source,
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate: true,
             });
@@ -1326,6 +1328,7 @@ export default class AuthoredValueList extends ValueListComponent {
             componentIdx: this.componentIdx,
             listEntryIndex,
             actionId,
+            gestureId,
             sourceInformation,
             skipRendererUpdate,
         });

@@ -258,7 +258,12 @@ export default class ValueRef extends BaseComponent {
      */
     async _performOnReferent(
         actionName,
-        { actionId, sourceInformation = {}, skipRendererUpdate = false } = {},
+        {
+            actionId,
+            gestureId,
+            sourceInformation = {},
+            skipRendererUpdate = false,
+        } = {},
     ) {
         const referentInfo =
             this.fixedReferent ?? (await this.stateValues.referentInfo);
@@ -271,6 +276,7 @@ export default class ValueRef extends BaseComponent {
                 : "focus",
             componentIdx: referentInfo.componentIdx,
             actionId,
+            gestureId,
             sourceInformation,
             skipRendererUpdate,
         });

@@ -383,6 +383,7 @@ export class Md extends InlineComponent {
 
     async mathClicked({
         actionId,
+        gestureId,
         name,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -392,6 +393,7 @@ export class Md extends InlineComponent {
                 triggeringAction: "click",
                 componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -400,6 +402,7 @@ export class Md extends InlineComponent {
 
     async mathFocused({
         actionId,
+        gestureId,
         name,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -409,6 +412,7 @@ export class Md extends InlineComponent {
                 triggeringAction: "focus",
                 componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });

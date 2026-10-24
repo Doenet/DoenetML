@@ -12,6 +12,9 @@ import type Core from "../Core";
  *  - `originsOfActionsChangedToActions`: bookkeeping that lets us find
  *    and unregister chained actions when their declaring state variable
  *    re-resolves to a different target list
+ *  - `gestureId` / `actionsRunForGesture`: the most recent pointer gesture
+ *    and the chained actions it has already run, so that one click landing
+ *    on several of an action's objects runs that action once
  *
  * Holds a back-reference to Core to read `_components` and `updateInfo`
  * and to dispatch via `performAction` and `updateAllChangedRenderers`.
@@ -24,12 +27,16 @@ export class ActionTriggerScheduler {
     >;
     actionsChangedToActions: Record<string, any[]>;
     originsOfActionsChangedToActions: Record<number, Record<string, any[]>>;
+    gestureId: string | null;
+    actionsRunForGesture: Set<string>;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
         this.stateVariableChangeTriggers = {};
         this.actionsChangedToActions = {};
         this.originsOfActionsChangedToActions = {};
+        this.gestureId = null;
+        this.actionsRunForGesture = new Set();
     }
 
     /**
@@ -40,6 +47,8 @@ export class ActionTriggerScheduler {
         this.stateVariableChangeTriggers = {};
         this.actionsChangedToActions = {};
         this.originsOfActionsChangedToActions = {};
+        this.gestureId = null;
+        this.actionsRunForGesture = new Set();
     }
 
     /**
@@ -253,12 +262,21 @@ export class ActionTriggerScheduler {
      * entries fires; along the shadows, those chained to the same entry of
      * the list a reference to the whole list shadows. An action chained to
      * more than one of these fires once.
+     *
+     * A renderer passes a `gestureId` with a click or focus from a pointer.
+     * JSXGraph hands one pointer event to every object under the pointer, so
+     * a click on a label lying over a polygon arrives as `textClicked` and
+     * then `polygonClicked`, with the same `gestureId`. An action chained to
+     * a click (or focus) of both runs for the first and not again for that
+     * gesture. Gestures arrive one after another, so only the latest one is
+     * remembered.
      */
     async triggerChainedActions({
         componentIdx,
         listEntryIndex,
         triggeringAction,
         actionId,
+        gestureId,
         sourceInformation = {},
         skipRendererUpdate = false,
     }: {
@@ -266,6 +284,7 @@ export class ActionTriggerScheduler {
         listEntryIndex?: number;
         triggeringAction?: string;
         actionId?: string;
+        gestureId?: string;
         sourceInformation?: any;
         skipRendererUpdate?: boolean;
     }): Promise<void> {
@@ -282,6 +301,15 @@ export class ActionTriggerScheduler {
 
         this.core.updateInfo.componentsToUpdateActionChaining = {};
 
+        let actionsRunForGesture: Set<string> | null = null;
+        if (gestureId !== undefined) {
+            if (gestureId !== this.gestureId) {
+                this.gestureId = gestureId;
+                this.actionsRunForGesture = new Set();
+            }
+            actionsRunForGesture = this.actionsRunForGesture;
+        }
+
         let actionsToChain: any[] = [];
         const chainedKeys = new Set<string>();
         const actionsChangedToActions = this.actionsChangedToActions;
@@ -292,10 +320,18 @@ export class ActionTriggerScheduler {
             const id = triggeringAction ? `${idx}|${triggeringAction}` : idx;
             for (const chained of actionsChangedToActions[id] ?? []) {
                 const key = `${chained.componentIdx}|${chained.actionName}`;
-                if (!chainedKeys.has(key)) {
-                    chainedKeys.add(key);
-                    actionsToChain.push(chained);
+                if (chainedKeys.has(key)) {
+                    continue;
                 }
+                chainedKeys.add(key);
+                if (actionsRunForGesture) {
+                    const gestureKey = `${key}|${triggeringAction}`;
+                    if (actionsRunForGesture.has(gestureKey)) {
+                        continue;
+                    }
+                    actionsRunForGesture.add(gestureKey);
+                }
+                actionsToChain.push(chained);
             }
         }
 

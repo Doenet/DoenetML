@@ -575,6 +575,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
 
     async polylineClicked({
         actionId,
+        gestureId,
         name,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -584,6 +585,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 triggeringAction: "click",
                 componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
@@ -592,6 +594,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
 
     async polylineFocused({
         actionId,
+        gestureId,
         name,
         sourceInformation = {},
         skipRendererUpdate = false,
@@ -601,6 +604,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                 triggeringAction: "focus",
                 componentIdx: name, // use name rather than this.componentIdx to get original name if adapted
                 actionId,
+                gestureId,
                 sourceInformation,
                 skipRendererUpdate,
             });
