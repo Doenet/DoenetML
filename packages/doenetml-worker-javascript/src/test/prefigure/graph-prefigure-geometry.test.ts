@@ -1062,6 +1062,31 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`v="(-7,-3)"`);
     });
 
+    it("renderer=prefigure rounds a vector's line width to a whole pixel", async () => {
+        // PreFigure reads an arrow's line width as an integer and divides by
+        // it, so `2.5` or `0` would drop the vector and all that follows it.
+        const prefigureXML = await getPrefigureXML(
+            withStyleDefinitions(
+                '    <styleDefinition styleNumber="5" lineWidth="1.4" />',
+                prefigureGraph(`
+  <vector tail="(0,0)" head="(3,2)" lineWidth="2.5" />
+  <vector tail="(0,0)" head="(2,-3)" lineWidth="0" />
+  <vector tail="(0,0)" head="(-2,3)" lineWidth="0.4" />
+  <vector tail="(0,0)" head="(-3,-2)" styleNumber="5" />
+  <vector tail="(0,0)" head="(1,1)" />
+  <line through="(1,2) (3,4)" lineWidth="2.5" />`),
+            ),
+        );
+
+        const thicknesses = (tag: string) =>
+            [...prefigureXML.matchAll(new RegExp(`<${tag} [^>]*>`, "g"))].map(
+                (m) => m[0].match(/ thickness="([^"]*)"/)?.[1],
+            );
+        expect(thicknesses("vector")).toEqual(["3", "1", "1", "1", "4"]);
+        // A line has no arrowhead, so its width is passed through.
+        expect(thicknesses("line")).toEqual(["2.5"]);
+    });
+
     it("renderer=prefigure maps vector label and labelPosition", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
