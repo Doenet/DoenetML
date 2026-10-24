@@ -33,6 +33,28 @@ export async function stateIdSegmentForCopiesOfReplacements(
 }
 
 /**
+ * What the `stateId`s of the components a copy makes from `component` add
+ * after the copy's own: the segment (`stateIdSegmentForCopiesOfReplacements`)
+ * of each composite that `component` is a replacement of, or is in a
+ * replacement of, outermost first. A component named in a case of a
+ * `<conditionalContent>` is in a replacement of the case's `<group>`, which is
+ * a replacement of the `<conditionalContent>`, so the composites are followed
+ * out through `replacementOf`.
+ */
+export async function stateIdSegmentForCopyOf(component: any): Promise<string> {
+    let segment = "";
+    for (
+        let composite = component?.replacementOf;
+        composite;
+        composite = composite.replacementOf
+    ) {
+        segment =
+            (await stateIdSegmentForCopiesOfReplacements(composite)) + segment;
+    }
+    return segment;
+}
+
+/**
  * Recurse through all serialized components and update their component indices
  * to new values, starting with `nComponents`.
  *

@@ -140,6 +140,26 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect(t.stateValues.numWords).eq(1);
     });
 
+    it("applies nothing saved of a copy of a component named in one case to a copy from another", async () => {
+        // The copied `<p>` is in a case's group, not itself a replacement of
+        // the conditionalContent.
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b"><p name="p"><mathInput name="a" prefill="1" /></p></case>
+        <else><p name="p"><textInput name="a" prefill="hi" /></p></else>
+    </conditionalContent>
+    <p copy="$cc.p" name="cp" />
+    `);
+        await h.typeMath("cp.a", "7");
+        expect(await h.math("cp.a")).eq(7);
+        await h.setB(false);
+        await h.reload();
+        const t = await h.sv("cp.a");
+        expect(t.componentType).eq("textInput");
+        expect(t.stateValues.value).eq("hi");
+    });
+
     it("keeps an answer's submission in a case once another case is active and back", async () => {
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
