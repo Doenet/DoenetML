@@ -303,7 +303,8 @@ fn drive(what: &str, doc: &mut Document, which: &dyn Fn(NodeId) -> bool, c: u32)
     if requests.is_empty() {
         return;
     }
-    let outcome = doc.request(&requests);
+    // A count is no input's prop: forcing it is the machinery's test.
+    let outcome = cells_core::testing::request_unchecked(doc, &requests);
     if let Some(e) = outcome.rebuild_error {
         assert!(
             !structural(&e),

@@ -1,14 +1,14 @@
-no attributes: the unit circle, its center and radius free: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
-center only: radius 1: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
+no attributes: the unit circle, its center and radius free: cells 16 · essential 7 · fixed 4 · instrs 5 · components 4
+center only: radius 1: cells 16 · essential 7 · fixed 4 · instrs 5 · components 4
 radius only: centered at the origin: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
-center and radius: cells 15 · essential 7 · fixed 3 · instrs 5 · components 3
-center from a point, radius from an input: cells 18 · essential 9 · fixed 3 · instrs 6 · components 6
-center and a through point: cells 20 · essential 10 · fixed 3 · instrs 5 · components 5
-one through point: the circle sits on it: cells 16 · essential 7 · fixed 3 · instrs 6 · components 3
+center and radius: cells 16 · essential 7 · fixed 4 · instrs 5 · components 4
+center from a point, radius from an input: cells 19 · essential 9 · fixed 4 · instrs 6 · components 7
+center and a through point: cells 21 · essential 10 · fixed 4 · instrs 5 · components 6
+one through point: the circle sits on it: cells 17 · essential 7 · fixed 4 · instrs 6 · components 4
 one through point and a radius: cells 16 · essential 7 · fixed 3 · instrs 6 · components 3
 two through points: cells 20 · essential 10 · fixed 3 · instrs 5 · components 5
 two through points and a radius: the center on the left of p1 to p2: cells 21 · essential 11 · fixed 3 · instrs 6 · components 5
-three through points: dragged rigidly, scaled about the center: cells 23 · essential 13 · fixed 3 · instrs 5 · components 6
+three through points: dragged rigidly, scaled about the center: cells 24 · essential 13 · fixed 4 · instrs 5 · components 7
 three through points, one on a grid: the shape moves with the snap: cells 29 · essential 13 · fixed 3 · instrs 11 · components 6
 a center on a grid carries the through point: cells 26 · essential 10 · fixed 3 · instrs 11 · components 5
 through a triangle's vertices: cells 21 · essential 10 · fixed 4 · instrs 5 · components 4

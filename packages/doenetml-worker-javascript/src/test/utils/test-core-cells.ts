@@ -578,13 +578,12 @@ export async function createTestCoreCells({
                     );
                     return;
                 case "changeRadius":
-                    request([
-                        [
-                            propCells(componentIdx, "radius")[0],
-                            Number(args.radius),
-                        ],
-                    ]);
-                    return;
+                    // No renderer requests a radius, so the core refuses a
+                    // request on it (ADR 0018); a document changes it
+                    // through an input bound to it.
+                    throw new CellsCoreGap(
+                        `action \`${componentType}.changeRadius\`: the radius is no input's prop`,
+                    );
                 case "moveLine": {
                     // As the JavaScript core's action: a line based on a slope
                     // or direction translates with its first point only.

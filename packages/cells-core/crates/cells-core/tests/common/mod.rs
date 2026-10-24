@@ -26,6 +26,26 @@ pub fn set(doc: &mut Document, name: &str, prop: &str, value: f64) -> TickOutcom
     doc.request(&[Request { cell, value }])
 }
 
+/// Request `value` on `name.prop` whether or not it is an input's
+/// (`testing::request_unchecked`, ADR 0018): for a test of the core's
+/// machinery, not of a component.
+pub fn set_unchecked(doc: &mut Document, name: &str, prop: &str, value: f64) -> TickOutcome {
+    let r = req(doc, name, prop, value);
+    cells_core::testing::request_unchecked(doc, &[r])
+}
+
+/// `testing::request_unchecked` as a method, so a test of the machinery
+/// reads as one of requests: `doc.request_unchecked(&[req(&doc, ..)])`.
+pub trait RequestUnchecked {
+    fn request_unchecked(&mut self, requests: &[Request]) -> TickOutcome;
+}
+
+impl RequestUnchecked for Document {
+    fn request_unchecked(&mut self, requests: &[Request]) -> TickOutcome {
+        cells_core::testing::request_unchecked(self, requests)
+    }
+}
+
 /// Type math text into a mathInput: a request on its `expr` cell.
 pub fn type_into(doc: &mut Document, name: &str, s: &str) -> TickOutcome {
     let h = doc.parse_math(s).unwrap();

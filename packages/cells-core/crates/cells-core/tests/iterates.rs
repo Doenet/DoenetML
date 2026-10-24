@@ -94,6 +94,7 @@ fn tuple_math_and_clamp_number() {
 <clampNumber name="c" lowerValue="0" upperValue="Infinity">5</clampNumber>
 <math name="t">($c, 2, $c + 1)</math>
 <number name="second">$t[2]</number>
+<mathInput name="ci" bindValueTo="$c"/>
 "#,
     )
     .unwrap();
@@ -103,10 +104,10 @@ fn tuple_math_and_clamp_number() {
     assert_eq!(val(&doc, "t", "x3"), 6.0);
     assert_eq!(val(&doc, "second", "value"), 2.0);
     // Clamped below at 0, through the projection inverse.
-    set(&mut doc, "c", "value", -4.0);
+    set(&mut doc, "ci", "value", -4.0);
     assert_eq!(val(&doc, "c", "value"), 0.0);
     assert_eq!(val(&doc, "t", "x1"), 0.0);
-    set(&mut doc, "c", "value", 1e9);
+    set(&mut doc, "ci", "value", 1e9);
     assert_eq!(val(&doc, "t", "x3"), 1e9 + 1.0);
     assert_eq!(reference::check(&doc), None);
 }

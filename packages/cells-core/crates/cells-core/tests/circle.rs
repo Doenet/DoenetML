@@ -1,5 +1,7 @@
 //! `<circle>` in its nine specifications, dragged as the current
-//! core's tests drag it.
+//! core's tests drag it. No renderer requests a circle's radius, so a
+//! request on it goes through an input bound to it, as in a document
+//! (ADR 0018).
 
 mod common;
 use cells_core::Request;
@@ -9,7 +11,9 @@ use common::*;
 
 #[test]
 fn circle_defaults_to_unit_circle_with_essential_center_and_radius() {
-    let mut doc = load(r#"<graph><circle name="c"/></graph>"#).unwrap();
+    let mut doc =
+        load(r#"<graph><circle name="c"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#)
+            .unwrap();
     assert_eq!(
         (
             v(&doc, "c", "cx"),
@@ -21,7 +25,7 @@ fn circle_defaults_to_unit_circle_with_essential_center_and_radius() {
     doc.request(&[req(&doc, "c", "cx", 2.0), req(&doc, "c", "cy", 3.0)]);
     assert_eq!((v(&doc, "c", "cx"), v(&doc, "c", "cy")), (2.0, 3.0));
     // A negative radius clamps to zero (projection, ADR 0003).
-    doc.request(&[req(&doc, "c", "radius", -4.0)]);
+    doc.request(&[req(&doc, "ri", "value", -4.0)]);
     assert_eq!(v(&doc, "c", "radius"), 0.0);
     assert_eq!(v(&doc, "c", "diameter"), 0.0);
 }
@@ -31,7 +35,8 @@ fn circle_with_center_point_and_bound_radius() {
     let mut doc = load(
         r#"<mathInput name="r" prefill="3"/>
            <graph><point name="p">(-3,5)</point><circle name="c" center="$p" radius="$r"/></graph>
-           <point name="cc" extend="$c.center"/>"#,
+           <point name="cc" extend="$c.center"/>
+           <mathInput name="ri" bindValueTo="$c.radius"/>"#,
     )
     .unwrap();
     assert_eq!(
@@ -46,7 +51,7 @@ fn circle_with_center_point_and_bound_radius() {
     doc.request(&[req(&doc, "c", "cx", 2.0), req(&doc, "c", "cy", 3.0)]);
     assert_eq!((v(&doc, "p", "x"), v(&doc, "p", "y")), (2.0, 3.0));
     // The radius request reaches the input; negative becomes zero there too.
-    doc.request(&[req(&doc, "c", "radius", -4.0)]);
+    doc.request(&[req(&doc, "ri", "value", -4.0)]);
     assert_eq!(v(&doc, "r", "value"), 0.0);
     // A negative value typed into the input stays, the circle shows zero.
     doc.request(&[req(&doc, "r", "value", -3.0)]);
@@ -59,10 +64,10 @@ fn circle_with_center_point_and_bound_radius() {
 
 #[test]
 fn circle_center_and_through_point() {
-    let mut doc = load(r#"<graph><point name="c">(0,0)</point><point name="p">(3,4)</point><circle name="circ" center="$c" through="$p"/></graph>"#).unwrap();
+    let mut doc = load(r#"<graph><point name="c">(0,0)</point><point name="p">(3,4)</point><circle name="circ" center="$c" through="$p"/></graph><mathInput name="ri" bindValueTo="$circ.radius"/>"#).unwrap();
     assert_eq!(v(&doc, "circ", "radius"), 5.0);
     // Radius request moves the through point along its ray.
-    doc.request(&[req(&doc, "circ", "radius", 10.0)]);
+    doc.request(&[req(&doc, "ri", "value", 10.0)]);
     assert_close!(v(&doc, "p", "x"), 6.0);
     assert_close!(v(&doc, "p", "y"), 8.0);
     // Center request translates both.
@@ -80,7 +85,8 @@ fn circle_through_three_points_drags_rigidly_and_scales_about_center() {
         r#"<graph>
              <point name="p1">(2,-3)</point><point name="p2">(3,4)</point><point name="p3">(-3,4)</point>
              <circle name="c" through="$p1 $p2 $p3"/>
-           </graph>"#,
+           </graph>
+           <mathInput name="ri" bindValueTo="$c.radius"/>"#,
     )
     .unwrap();
     let (cx, cy, r) = (
@@ -100,7 +106,7 @@ fn circle_through_three_points_drags_rigidly_and_scales_about_center() {
     assert_close!(v(&doc, "p3", "x"), 0.0);
     assert_close!(v(&doc, "c", "radius"), r);
     // Scaling the radius keeps every point on its ray from the center.
-    doc.request(&[req(&doc, "c", "radius", 2.0 * r)]);
+    doc.request(&[req(&doc, "ri", "value", 2.0 * r)]);
     assert_close!(v(&doc, "c", "radius"), 2.0 * r);
     assert_close!(v(&doc, "c", "cx"), cx + 3.0);
     assert_close!(v(&doc, "c", "cy"), cy + 4.0);
@@ -148,7 +154,8 @@ fn circle_through_three_points_one_constrained() {
              <point name="p1">(0,0)<constraints><constrainToGrid dx="3" dy="2"/></constraints></point>
              <point name="p2">(4,0)</point><point name="p3">(0,4)</point>
              <circle name="c" through="$p1 $p2 $p3"/>
-           </graph>"#,
+           </graph>
+           <mathInput name="ri" bindValueTo="$c.radius"/>"#,
     )
     .unwrap();
     let (cx, cy) = (v(&doc, "c", "cx"), v(&doc, "c", "cy"));

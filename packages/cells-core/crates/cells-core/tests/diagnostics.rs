@@ -203,7 +203,8 @@ fn every_load_reports_within_the_exhaustive_list() {
                 if requests.is_empty() {
                     break;
                 }
-                let out = doc.request(&requests);
+                // A count is no input's prop: moving it is unchecked.
+                let out = cells_core::testing::request_unchecked(&mut doc, &requests);
                 assert!(
                     out.rebuild_error.is_none(),
                     "{name} seed {seed} count {count}: {out:?}"

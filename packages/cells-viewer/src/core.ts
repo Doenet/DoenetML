@@ -253,6 +253,14 @@ export class CellStore {
         this._tick(() => this.core.submit(answer));
     }
 
+    /** Press a `<triggerSet>` or a lone `<updateValue>`: each
+     * `<updateValue>` under it sets its target, as one tick
+     * (`Core::trigger`). An action, so its targets need not be
+     * interactive (ADR 0018). */
+    trigger(comp: number): void {
+        this._tick(() => this.core.trigger(comp));
+    }
+
     _send(pairs: [number, number][], points: boolean): void {
         if (CellStore.checkRequests) this._checkInteractive(pairs);
         const cells = new Uint32Array(pairs.map((p) => p[0]));

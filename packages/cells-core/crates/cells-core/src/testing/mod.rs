@@ -41,7 +41,10 @@ pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
 }
 
 /// One tick requesting `value` for the one-cell prop at `path`, for a unit
-/// test; panics as `prop_value` does.
+/// test of the language's rules over test-only components: a test of the
+/// machinery, so the request is unchecked (`request_unchecked`). Panics
+/// as `prop_value` does.
+#[cfg(any(test, feature = "testing"))]
 pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate::TickOutcome {
     let cell = match spec::cells(doc, path)
         .unwrap_or_else(|e| panic!("{e}"))
@@ -50,7 +53,30 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
         [c] => *c,
         cs => panic!("{path}: {} cells, not one", cs.len()),
     };
-    doc.request(&[crate::Request { cell, value }])
+    doc.tick_unchecked(&[crate::Request { cell, value }], &[])
+}
+
+/// Requests on any cells, inverted as `Document::request` inverts them,
+/// without the check that each is an input's (ADR 0018): for a test of
+/// the core's machinery (a forced count, an inversion through a
+/// `<number>`), not of a component, whose spec reaches a prop through an
+/// input. It still writes only essential cells, so it cannot change a
+/// fixed value.
+#[cfg(feature = "testing")]
+pub fn request_unchecked(
+    doc: &mut crate::Document,
+    requests: &[crate::Request],
+) -> crate::TickOutcome {
+    doc.tick_unchecked(requests, &[])
+}
+
+/// A point group on any cells (`request_unchecked`).
+#[cfg(feature = "testing")]
+pub fn request_points_unchecked(
+    doc: &mut crate::Document,
+    points: &[crate::PointRequest],
+) -> crate::TickOutcome {
+    doc.tick_unchecked(&[], &[points.to_vec()])
 }
 
 /// The essential cells saved state cannot name (ADR 0017): hidden slots
@@ -114,7 +140,7 @@ pub fn inputs(
             continue;
         };
         let names: Vec<(String, crate::CellIdx)> = (0..cells.len())
-            .filter(|&pi| ty.is_interactive_prop(cells.len(), pi))
+            .filter(|&pi| ty.is_input_prop(cells.len(), pi))
             .filter_map(|pi| Some((ty.prop_name(cells.len(), pi)?.into_owned(), cells[pi])))
             .collect();
         if names.is_empty() {

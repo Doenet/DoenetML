@@ -73,10 +73,11 @@ spec! {
     case "a request on index snaps too" {
         // The current core rejects a non-integer index; the projection that
         // snaps value snaps index. A recorded, benign deviation.
-        doenet r#"<slider name="s" from="0" to="10"/>"#;
-        request { "s.index" = 3.4 }
+        // No renderer requests the index: an input bound to it does.
+        doenet r#"<slider name="s" from="0" to="10"/><mathInput name="i" bindValueTo="$s.index"/>"#;
+        request { "i.value" = 3.4 }
         expect { "s.index" = 3, "s.value" = 3 }
-        request { "s.index" = 40 }
+        request { "i.value" = 40 }
         expect { "s.index" = 10, "s.value" = 10 }
     }
 

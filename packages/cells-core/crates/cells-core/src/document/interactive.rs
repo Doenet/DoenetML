@@ -1,38 +1,41 @@
 //! Which cells a renderer may request: the cells of the props each
 //! component's definition marks `interactive` (ADR 0017's inputs). The core
-//! accepts a request on any cell; this is what a renderer is checked
-//! against.
+//! accepts a request only on one of these (ADR 0018); a submit and a
+//! trigger are actions, which write the cells they write themselves.
 
 use super::*;
 
 impl Document {
-    /// Every interactive cell, ascending, each once. A cell several
-    /// components share (a copy and its original, an `<updateValue>`'s
-    /// target) is interactive when any of them marks it.
+    /// One bit per cell, set for an interactive one; made once per build,
+    /// so a tick checks a request without reading components. A cell
+    /// several components share (a copy and its original) is interactive
+    /// when any of them marks it.
+    pub(crate) fn interactive_bits(&self) -> Vec<u64> {
+        let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
+        for c in 0..self.components.len() as CompIdx {
+            let component_type = self.component_type(c);
+            let cells = self.comp_cells(c);
+            for (pi, &cell) in cells.iter().enumerate() {
+                if component_type.is_interactive_prop(cells.len(), pi) {
+                    bits[cell as usize / 64] |= 1 << (cell % 64);
+                }
+            }
+        }
+        bits
+    }
+
+    /// Every interactive cell, ascending, each once.
     pub fn interactive_cells(&self) -> Vec<CellIdx> {
-        let mut out: Vec<CellIdx> = (0..self.components.len() as CompIdx)
-            .flat_map(|c| {
-                let component_type = self.component_type(c);
-                let cells = self.comp_cells(c);
-                (0..cells.len())
-                    .filter(move |&pi| component_type.is_interactive_prop(cells.len(), pi))
-                    .map(move |pi| cells[pi])
-            })
-            .collect();
-        out.sort_unstable();
-        out.dedup();
-        out
+        (0..self.cells.len() as CellIdx)
+            .filter(|&c| self.is_interactive(c))
+            .collect()
     }
 
     /// Whether a renderer may request `cell`; see `interactive_cells`.
+    #[inline]
     pub fn is_interactive(&self, cell: CellIdx) -> bool {
-        (0..self.components.len() as CompIdx).any(|c| {
-            let component_type = self.component_type(c);
-            let cells = self.comp_cells(c);
-            cells
-                .iter()
-                .enumerate()
-                .any(|(pi, &x)| x == cell && component_type.is_interactive_prop(cells.len(), pi))
-        })
+        self.interactive
+            .get(cell as usize / 64)
+            .is_some_and(|w| w & (1 << (cell % 64)) != 0)
     }
 }

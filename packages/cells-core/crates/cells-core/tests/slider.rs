@@ -68,11 +68,14 @@ fn fractional_steps_count_items_like_the_current_core() {
 fn a_request_on_index_snaps_too() {
     // The current core rejects a non-integer index; here the same projection
     // rule that snaps value snaps index. Recorded as a benign deviation.
-    let mut doc = load(r#"<slider name="s" from="0" to="10"/>"#).unwrap();
-    doc.request(&[req(&doc, "s", "index", 3.4)]);
+    // No renderer requests the index: an input bound to it does (ADR 0018).
+    let mut doc =
+        load(r#"<slider name="s" from="0" to="10"/><mathInput name="i" bindValueTo="$s.index"/>"#)
+            .unwrap();
+    doc.request(&[req(&doc, "i", "value", 3.4)]);
     assert_eq!(v(&doc, "s", "index"), 3.0);
     assert_eq!(v(&doc, "s", "value"), 3.0);
-    doc.request(&[req(&doc, "s", "index", 40.0)]);
+    doc.request(&[req(&doc, "i", "value", 40.0)]);
     assert_eq!(v(&doc, "s", "index"), 10.0);
 }
 

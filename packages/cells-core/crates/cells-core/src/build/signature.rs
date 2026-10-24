@@ -185,7 +185,7 @@ impl<'a> Signer<'a> {
             let ty = t.component_type[c as usize];
             let cells = comp_cells(t, c);
             let interactive: Vec<usize> = (0..cells.len())
-                .filter(|&pi| ty.is_interactive_prop(cells.len(), pi))
+                .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                 .collect();
             if (interactive.is_empty() && ty != ComponentType::Select)
                 || out.comp_keys[c as usize] == NONE
@@ -273,7 +273,7 @@ impl<'a> Signer<'a> {
                 node: t.dast_node[c as usize],
                 tag: ty.tag(),
                 props: (0..cells.len())
-                    .filter(|&pi| ty.is_interactive_prop(cells.len(), pi))
+                    .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                     .map(|pi| {
                         (
                             prop_label(ty, cells.len(), pi),

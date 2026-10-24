@@ -287,7 +287,9 @@ impl Core {
 
     /// Apply cell-addressed requests. Returns the changed cell indices. When
     /// the tick rebuilt the document (`last_rebuilt`), the list is empty and
-    /// every pointer and length above must be re-read.
+    /// every pointer and length above must be re-read. A request on a cell
+    /// that is not interactive (`interactive_cells`) is refused and counted
+    /// in `last_dropped` (ADR 0018).
     pub fn request(&mut self, cells: &[u32], values: &[f64]) -> Vec<u32> {
         let reqs: Vec<Request> = cells
             .iter()
@@ -310,14 +312,24 @@ impl Core {
         self.apply(&[], &[pts])
     }
 
-    /// Submit an answer: copy its live responses into its submitted cells
-    /// and count the submission, as one tick. Returns the changed cells.
+    /// Submit an answer, an action: copy its live responses into its
+    /// submitted cells and count the submission, as one tick. Returns the
+    /// changed cells.
     pub fn submit(&mut self, answer: u32) -> Vec<u32> {
         if (answer as usize) >= self.doc.n_components() {
             return Vec::new();
         }
-        let reqs = self.doc.submit_requests(answer);
-        self.apply(&reqs, &[])
+        self.act(|doc| doc.submit(answer))
+    }
+
+    /// Press a `<triggerSet>` or a lone `<updateValue>`, an action: each
+    /// `<updateValue>` under it sets its target, as one tick. Returns the
+    /// changed cells.
+    pub fn trigger(&mut self, comp: u32) -> Vec<u32> {
+        if (comp as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        self.act(|doc| doc.trigger(comp))
     }
 
     /// The inputs an answer's responses read (`Document::answer_inputs`).
@@ -361,8 +373,14 @@ impl Core {
     }
 
     fn apply(&mut self, reqs: &[Request], groups: &[Vec<PointRequest>]) -> Vec<u32> {
+        self.act(|doc| doc.request_with_groups(reqs, groups))
+    }
+
+    /// One tick, its outcome recorded for `last_dropped` and the rebuild
+    /// getters.
+    fn act(&mut self, tick: impl FnOnce(&mut Document) -> cells_core::TickOutcome) -> Vec<u32> {
         let clock = web_time::Instant::now();
-        let tick = self.doc.request_with_groups(reqs, groups);
+        let tick = tick(&mut self.doc);
         self.last_dropped = tick.dropped.len() as u32;
         self.last_rebuilt = tick.rebuilt;
         self.last_rebuild_error = tick.rebuild_error;

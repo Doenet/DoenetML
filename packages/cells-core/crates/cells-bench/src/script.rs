@@ -1,7 +1,8 @@
 //! The golden script (`examples/golden.rs`): every document of the golden
 //! set and a fixed list of requests per document, addressed by tree path so
 //! they survive rebuilds. Shared with the tests that tick documents through
-//! it (`tests/evaluators.rs`).
+//! it (`tests/evaluators.rs`). Every request is one a renderer makes, on
+//! an input's cell (ADR 0018), and an answer's submit is an action.
 
 use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome};
 use std::collections::BTreeMap;
@@ -57,7 +58,6 @@ pub fn plan(doc: &Document) -> Vec<(String, Action)> {
                 "circle" => Action::Shift("center", 0.5, 1.0),
                 "numberInput" => Action::Add("value", 1.0),
                 "slider" => Action::Add("value", 0.7),
-                "number" => Action::Add("value", 2.0),
                 "booleanInput" => Action::Toggle,
                 "mathInput" => Action::Type("2x+1"),
                 "answer" => Action::Submit,

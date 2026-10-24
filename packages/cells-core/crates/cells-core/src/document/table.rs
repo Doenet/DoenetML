@@ -250,7 +250,7 @@ impl Document {
             program: self.program.instrs.capacity() * std::mem::size_of::<crate::program::Instr>()
                 + self.program.producer.capacity() * 4
                 + self.session.engine.borrow().heap_bytes(),
-            components: self.components.heap_bytes(),
+            components: self.components.heap_bytes() + self.interactive.capacity() * 8,
             strings: self.strings.heap_bytes(),
             structure: self.session.heap_bytes()
                 + self.structure.essential_slots.capacity() * 8

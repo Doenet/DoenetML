@@ -1,13 +1,16 @@
+//! Inversion through operators, the request engine's machinery: requests
+//! on `<number>`s no input reaches are unchecked (ADR 0018).
+
 mod common;
 
 use cells_core::Document;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::load;
-use common::req;
+use common::{RequestUnchecked, req};
 
 /// Request `value` on `name.prop` and assert the forward pass reproduces it.
 fn round_trip(doc: &mut Document, name: &str, prop: &str, value: f64) {
-    let tick = doc.request(&[req(doc, name, prop, value)]);
+    let tick = doc.request_unchecked(&[req(doc, name, prop, value)]);
     assert!(tick.dropped.is_empty(), "request dropped");
     assert_eq!(
         doc.value(name, prop),
@@ -21,7 +24,7 @@ fn round_trip(doc: &mut Document, name: &str, prop: &str, value: f64) {
 fn dragging_an_aliased_copy_moves_the_original() {
     let mut doc =
         load(r#"<point name="p1" x="1" y="2"/><point name="p2" extend="$p1" y="3"/>"#).unwrap();
-    let tick = doc.request(&[req(&doc, "p2", "x", 9.0), req(&doc, "p2", "y", 8.0)]);
+    let tick = doc.request_unchecked(&[req(&doc, "p2", "x", 9.0), req(&doc, "p2", "y", 8.0)]);
     assert_eq!(doc.value("p1", "x"), Some(9.0));
     assert_eq!(doc.value("p1", "y"), Some(2.0));
     assert_eq!(doc.value("p2", "y"), Some(8.0));
@@ -43,12 +46,12 @@ fn a_copy_with_its_own_children_keeps_them() {
         (doc.value("p2", "x"), doc.value("p2", "y")),
         (Some(3.0), Some(4.0))
     );
-    doc.request(&[req(&doc, "p2", "x", 5.0)]);
+    doc.request_unchecked(&[req(&doc, "p2", "x", 5.0)]);
     assert_eq!(
         (doc.value("p1", "x"), doc.value("p2", "x")),
         (Some(1.0), Some(5.0))
     );
-    doc.request(&[req(&doc, "p3", "x", 6.0)]);
+    doc.request_unchecked(&[req(&doc, "p3", "x", 6.0)]);
     assert_eq!(doc.value("p1", "x"), Some(6.0));
 }
 
@@ -79,7 +82,7 @@ fn clamp_inverts_by_projection() {
     let mut doc =
         load(r#"<numberInput name="n" value="0"/><number name="cl">clamp($n, -1, 1)</number>"#)
             .unwrap();
-    let tick = doc.request(&[req(&doc, "cl", "value", 5.0)]);
+    let tick = doc.request_unchecked(&[req(&doc, "cl", "value", 5.0)]);
     assert_eq!(doc.value("n", "value"), Some(1.0));
     assert_eq!(doc.value("cl", "value"), Some(1.0));
     assert_eq!(tick.changed.len(), 2);
@@ -96,22 +99,22 @@ fn round_floor_min_max_div_inverses() {
            <number name="d">$a / $b</number>"#,
     )
     .unwrap();
-    doc.request(&[req(&doc, "r", "value", 3.7)]);
+    doc.request_unchecked(&[req(&doc, "r", "value", 3.7)]);
     assert_eq!(doc.value("a", "value"), Some(4.0));
-    doc.request(&[req(&doc, "f", "value", 3.7)]);
+    doc.request_unchecked(&[req(&doc, "f", "value", 3.7)]);
     assert_eq!(doc.value("a", "value"), Some(3.0));
-    doc.request(&[req(&doc, "mn", "value", 9.0)]);
+    doc.request_unchecked(&[req(&doc, "mn", "value", 9.0)]);
     assert_eq!(doc.value("a", "value"), Some(5.0));
-    doc.request(&[req(&doc, "mx", "value", -9.0)]);
+    doc.request_unchecked(&[req(&doc, "mx", "value", -9.0)]);
     assert_eq!(doc.value("a", "value"), Some(5.0));
     round_trip(&mut doc, "d", "value", 2.0);
     assert_eq!(doc.value("a", "value"), Some(10.0));
     // A non-finite ask on Round is outside its domain and is dropped.
-    let tick = doc.request(&[req(&doc, "r", "value", f64::NAN)]);
+    let tick = doc.request_unchecked(&[req(&doc, "r", "value", f64::NAN)]);
     assert_eq!(tick.dropped.len(), 1);
     assert_eq!(doc.value("a", "value"), Some(10.0));
     // NaN propagates through min/max instead of being ignored.
-    doc.request(&[req(&doc, "b", "value", f64::NAN)]);
+    doc.request_unchecked(&[req(&doc, "b", "value", f64::NAN)]);
     assert!(doc.value("mn", "value").unwrap().is_nan());
     assert_eq!(reference::check(&doc), None);
 }
@@ -151,7 +154,7 @@ fn chained_inverse_reaches_the_essential_cell() {
     )
     .unwrap();
     // drag p to x = -11: c=-11 -> b=11 -> a=8 -> n=4
-    let tick = doc.request(&[req(&doc, "p", "x", -11.0), req(&doc, "p", "y", 4.0)]);
+    let tick = doc.request_unchecked(&[req(&doc, "p", "x", -11.0), req(&doc, "p", "y", 4.0)]);
     assert_eq!(doc.value("n", "value"), Some(4.0));
     assert_eq!(doc.value("p", "x"), Some(-11.0));
     // n, a, b, c all changed; y aliases n so there is no separate cell
@@ -164,7 +167,7 @@ fn undefined_inverse_drops_the_request() {
     let mut doc = load(r#"<numberInput name="a" value="2"/><numberInput name="z" value="0"/><number name="m">$a * $z</number>"#).unwrap();
     let before = doc.cells.clone();
     let r = req(&doc, "m", "value", 3.0);
-    let tick = doc.request(&[r]);
+    let tick = doc.request_unchecked(&[r]);
     assert_eq!(tick.dropped, vec![r]);
     assert!(tick.changed.is_empty());
     assert_eq!(doc.cells, before);
@@ -174,7 +177,8 @@ fn undefined_inverse_drops_the_request() {
 fn conflicting_requests_last_wins() {
     let mut doc =
         load(r#"<numberInput name="n" value="0"/><number name="neg">-$n</number>"#).unwrap();
-    let tick = doc.request(&[req(&doc, "n", "value", 1.0), req(&doc, "neg", "value", 5.0)]);
+    let tick =
+        doc.request_unchecked(&[req(&doc, "n", "value", 1.0), req(&doc, "neg", "value", 5.0)]);
     assert_eq!(doc.value("n", "value"), Some(-5.0));
     let n = doc.cell("n", "value").unwrap();
     assert_eq!(tick.changed.iter().filter(|&&c| c == n).count(), 1);
@@ -184,13 +188,13 @@ fn conflicting_requests_last_wins() {
 fn unchanged_values_are_not_reported() {
     let mut doc =
         load(r#"<numberInput name="n" value="3"/><number name="neg">-$n</number>"#).unwrap();
-    let tick = doc.request(&[req(&doc, "n", "value", 3.0)]);
+    let tick = doc.request_unchecked(&[req(&doc, "n", "value", 3.0)]);
     assert!(tick.changed.is_empty());
     // A change upstream that leaves a derived cell equal is also silent.
     let mut doc =
         load(r#"<numberInput name="n" value="3"/><number name="cl">clamp($n, 0, 1)</number>"#)
             .unwrap();
-    let tick = doc.request(&[req(&doc, "n", "value", 4.0)]);
+    let tick = doc.request_unchecked(&[req(&doc, "n", "value", 4.0)]);
     assert_eq!(tick.changed, vec![doc.cell("n", "value").unwrap()]);
 }
 
@@ -212,7 +216,7 @@ fn evaluators_agree() {
     for name in ["full", "dirty-closure"] {
         let mut doc = base.clone();
         assert!(doc.set_evaluator(name));
-        let tick = doc.request(&reqs);
+        let tick = doc.request_unchecked(&reqs);
         assert_eq!(reference::check(&doc), None, "{name}");
         let mut changed = tick.changed.clone();
         changed.sort();
@@ -235,7 +239,7 @@ fn a_number_requested_of_a_math_cell_is_dropped() {
     let cell = doc.cell("mi", "expr").unwrap();
     let before = doc.math_text(cell);
     for value in [2.7, 1e6, -1.0] {
-        let t = doc.request(&[req(&doc, "mi", "expr", value)]);
+        let t = doc.request_unchecked(&[req(&doc, "mi", "expr", value)]);
         assert_eq!(t.dropped.len(), 1, "{value}");
         assert!(t.changed.is_empty(), "{value}");
     }
@@ -247,7 +251,7 @@ fn a_number_requested_of_a_math_cell_is_dropped() {
 fn a_number_requested_of_a_text_cell_is_dropped() {
     let mut doc = load(r#"<textInput name="ti" prefill="hi"/>"#).unwrap();
     for value in [0.5, 1e6, -1.0] {
-        let t = doc.request(&[req(&doc, "ti", "value", value)]);
+        let t = doc.request_unchecked(&[req(&doc, "ti", "value", value)]);
         assert_eq!(t.dropped.len(), 1, "{value}");
     }
     let cell = doc.cell("ti", "value").unwrap();

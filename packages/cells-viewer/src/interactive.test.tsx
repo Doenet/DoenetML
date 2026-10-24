@@ -1,7 +1,7 @@
 // Every request a renderer sends is on a cell the core marks interactive
-// (ADR 0017): the saved-state check sees only declared inputs, and the core
-// accepts a request on any cell, so this is where an undeclared one is
-// caught. The document below is rendered in jsdom and every control is
+// (ADR 0017): the core refuses a request on any other (ADR 0018), and this
+// is where a renderer that sends one is caught before a student meets it.
+// A submit and a trigger are actions, not requests. The document below is rendered in jsdom and every control is
 // used: each input, button and hint, and each graph element's drag
 // handlers and the board's pan.
 import { readFileSync } from "node:fs";
@@ -41,8 +41,8 @@ const DOC = `
 <slider name="slBound" from="0" to="10" bindValueTo="$n"/>
 <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
 <hint name="h"><p>help</p></hint>
-<number name="k">3</number>
-<triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="5"/></triggerSet>
+<boolean name="k"/>
+<triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="true"/></triggerSet>
 <answer name="a">2x</answer>
 `;
 
@@ -69,7 +69,6 @@ const EXPECTED = [
     "slider.value",
     "choiceInput.selectedIndex",
     "hint.open",
-    "number.value",
 ];
 
 const wasm = resolve(__dirname, "../../cells-core/pkg/cells_wasm_bg.wasm");
@@ -193,5 +192,16 @@ describe("renderers request only interactive cells", () => {
         await useEveryControl(container!);
         expect(refused).toEqual([]);
         expect(EXPECTED.filter((name) => !requested.has(name))).toEqual([]);
+    });
+
+    it("a trigger is an action: its button sets its target", async () => {
+        const { store, refused } = await render(DOC);
+        const k = store.comps.cell(store.comps.byName("k")!, "value");
+        expect(store.get(k)).toBe(0);
+        const button =
+            container!.querySelector<HTMLButtonElement>("button.triggerSet")!;
+        await act(async () => button.click());
+        expect(refused).toEqual([]);
+        expect(store.get(k)).toBe(1);
     });
 });

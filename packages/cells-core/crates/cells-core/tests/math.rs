@@ -8,7 +8,7 @@ use cells_core::Document;
 use cells_core::program::Op;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error};
-use common::req;
+use common::{req, set_unchecked};
 
 fn has_symbolic(doc: &Document) -> bool {
     doc.program
@@ -30,7 +30,7 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
         "only the (NaN) expression handle and the document's two credit cells are fixed"
     );
     // Dragging the math's value inverts through the lowered chain.
-    doc.request(&[req(&doc, "m", "value", 14.0)]);
+    set_unchecked(&mut doc, "m", "value", 14.0);
     assert_eq!(doc.value("a", "value"), Some(4.0));
     assert_eq!(reference::check(&doc), None);
 }
@@ -124,7 +124,7 @@ fn function_calls_lower_to_their_operators() {
     assert_eq!(doc.value("k", "value"), Some(2.0), "constant calls fold");
     assert!(!has_symbolic(&doc));
     // A clamp inverts by projection: asking for 9 asks for 6, so a = 2.
-    doc.request(&[req(&doc, "c", "value", 9.0)]);
+    set_unchecked(&mut doc, "c", "value", 9.0);
     assert_eq!(doc.value("a", "value"), Some(2.0));
     assert_eq!(reference::check(&doc), None);
 }

@@ -4,16 +4,16 @@
 use super::*;
 
 impl Document {
-    /// Submit an answer: an ordinary request copying each live response
-    /// handle into its `submitted` cell and counting the submission.
+    /// Submit an answer, an action (ADR 0018): one tick copying each live
+    /// response handle into its `submitted` cell and counting the
+    /// submission. Those cells are not interactive: no renderer sets them.
     pub fn submit(&mut self, answer: CompIdx) -> TickOutcome {
         let requests = self.submit_requests(answer);
-        self.request(&requests)
+        self.tick_unchecked(&requests, &[])
     }
 
-    /// The requests a submit makes (`submit`), for a caller with its own
-    /// evaluator.
-    pub fn submit_requests(&self, answer: CompIdx) -> Vec<Request> {
+    /// The writes a submit makes (`submit`), as requests.
+    pub(crate) fn submit_requests(&self, answer: CompIdx) -> Vec<Request> {
         let mut requests: Vec<Request> = self
             .answer_responses(answer)
             .into_iter()
