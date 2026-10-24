@@ -10263,4 +10263,34 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             expect(submittedResponses[3].tree).eqls(["/", "pi", 3]);
         }
     });
+
+    it("a submitted angle response is read as that angle through a reference", async () => {
+        const doenetML = `
+    <angle name="A">pi/3</angle>
+    <answer name="ans">
+        <considerAsResponses>$A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <math name="m">$ans.submittedResponse</math>
+    <math name="m2" extend="$ans.submittedResponse" />
+    <angle name="A2" extend="$ans.submittedResponse" />
+    <boolean name="b">$ans.submittedResponse = pi/3</boolean>
+    <feedback name="fb" condition="$ans.submittedResponse = pi/3">matched</feedback>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs() {},
+        });
+
+        for (const sv of [before, after]) {
+            const stateValues = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await stateValues("m")).value.tree).eqls(["/", "pi", 3]);
+            expect((await stateValues("m2")).value.tree).eqls(["/", "pi", 3]);
+            expect((await stateValues("A2")).radians.tree).eqls(["/", "pi", 3]);
+            expect((await stateValues("b")).value).eq(true);
+            expect((await stateValues("fb")).hide).eq(false);
+        }
+    });
 });
