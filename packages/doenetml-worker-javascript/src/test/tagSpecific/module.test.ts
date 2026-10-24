@@ -1505,8 +1505,9 @@ describe("Module tag tests @group1", async () => {
     it("module attribute named like a camel-cased attribute of a module", async () => {
         // `asList` is a `<module>`'s own attribute, so it cannot name a
         // module attribute. Compared against the lowercased names in
-        // `ModuleAttributes`, it was missed, and set on the module, a copy or
-        // an extend, it threw instead of warning (#2326).
+        // `ModuleAttributes`, it was missed, and set on the module or a copy,
+        // it threw instead of warning (#2326). An extend takes `asList` for
+        // itself, so the module attribute keeps its default without a warning.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <module name="m">
