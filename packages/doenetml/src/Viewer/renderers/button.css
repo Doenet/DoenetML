@@ -17,3 +17,13 @@
 .doenet-viewer .doenet-button.doenet-inline-action-button {
     padding-block: 0;
 }
+
+/*
+ * Without vertical padding, the inset white focus ring of `.doenet-button`
+ * would cross the label, so draw the ring outside the button instead, as an
+ * inline check-work button does.
+ */
+.doenet-viewer .doenet-button.doenet-inline-action-button:focus {
+    outline: 2px solid var(--button-canvas-color);
+    outline-offset: 2px;
+}

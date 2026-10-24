@@ -118,5 +118,14 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
                 );
             });
         });
+
+        // With no vertical padding, a focus ring drawn inside the button
+        // would cross its label, so it must be drawn outside it
+        cy.get("#uv_button").focus();
+        cy.get("#uv_button").should((button) => {
+            const style = window.getComputedStyle(button[0]);
+            expect(style.outlineStyle).not.to.eq("none");
+            expect(parseFloat(style.outlineOffset)).to.be.at.least(0);
+        });
     });
 });
