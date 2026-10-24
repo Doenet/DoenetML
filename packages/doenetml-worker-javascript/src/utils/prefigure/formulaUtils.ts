@@ -376,6 +376,24 @@ function emitApply(
     throw new UnsupportedFormulaError(fn);
 }
 
+/**
+ * The function an `apply` node's function part names, as the translation
+ * resolves it: an alias such as `asec` becomes `arcsec`, and the inverse
+ * notation `sin^(-1)` becomes `arcsin`. Null for a part that names no single
+ * function, such as `sin^2` or `log_b`.
+ */
+export function resolveAppliedFunctionName(fn: unknown): string | null {
+    if (Array.isArray(fn) && fn[0] === "^" && typeof fn[1] === "string") {
+        return fn[2] === -1 && hasOwn(INVERSE_FUNCTIONS, fn[1])
+            ? INVERSE_FUNCTIONS[fn[1]]
+            : null;
+    }
+    if (typeof fn !== "string") {
+        return null;
+    }
+    return hasOwn(FUNCTION_ALIASES, fn) ? FUNCTION_ALIASES[fn] : fn;
+}
+
 /** Short label for an AST node, used in the unsupported-feature warning. */
 function describeAst(ast: unknown): string {
     if (Array.isArray(ast)) {

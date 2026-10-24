@@ -112,7 +112,7 @@ A few things are drawn differently:
 - Arrows are solid and fully opaque. A dashed or dotted `lineStyle` is ignored, with a warning. The
   style's line opacity is ignored too, without one.
 - The function must be given by a formula. A function defined in some other way draws nothing, with a
-  warning.
+  warning. So does a formula using something PreFigure cannot evaluate, as a curve's does.
 - PreFigure may draw no field at all when a function such as `sqrt` or `log` is undefined at a
   lattice point, when `exp` overflows, or when the field divides a constant by a function such as
   `sin(x)` where it is zero: `(1, 1/sin(x))` or `(1, csc(x))` at <m>x = 0</m>, for example. (Dividing

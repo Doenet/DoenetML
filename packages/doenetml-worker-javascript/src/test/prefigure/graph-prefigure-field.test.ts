@@ -143,16 +143,22 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         expect(await warningCodes(doenetML)).toEqual([]);
     });
 
-    it("draws nothing for a formula with a symbol that is not a variable", async () => {
+    it("warns about a formula with a symbol that is not a variable, as for a curve", async () => {
         // Undefined everywhere, so the JSXGraph renderer draws nothing; renaming
-        // `t` to `x` must not make PreFigure draw the field of `x + x`.
+        // `t` to `x` must not make PreFigure draw the field of `x + x`. The
+        // formula translation rejects the free `x`, as it does in a curve.
         const doenetML = prefigureGraph(
             '<slopeField><function variables="t s">x + t</function></slopeField>',
         );
         const prefigureXML = await getPrefigureXML(doenetML);
 
-        expect(prefigureXML).toContain('<group at="slopefield_0" />');
         expect(prefigureXML).not.toContain("<slope-field");
+        expect(prefigureXML).not.toContain("<definition>");
+        const diagnostics = await getWarnings(doenetML);
+        expect(diagnostics.warnings.map((w) => w.code)).toEqual([
+            "doenet-w0170",
+        ]);
+        expect(diagnostics.warnings[0].message).toContain("'x'");
     });
 
     it("draws nothing for a hidden field", async () => {
@@ -507,6 +513,53 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         expect(diagnostics.warnings[3].message).toContain("(9, -10)");
         expect(diagnostics.warnings[4].message).toContain("(0, -10)");
         expect(diagnostics.warnings[5].message).toContain("(0, -10)");
+    });
+
+    it("writes the formula as PreFigure's Python, as a curve's is", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(`
+  <slopeField>sin(pi x) + |y|</slopeField>
+  <vectorField>(1, arccoth(x))</vectorField>`),
+        );
+
+        expect(prefigureXML).toContain(
+            "<definition>slopefield_0_f_formula(x,y)=sin(pi*x) + abs(y)</definition>",
+        );
+        expect(prefigureXML).toContain(
+            "<definition>vectorfield_1_f_formula(x,y)=(1,atanh(1/(x)))</definition>",
+        );
+    });
+
+    it("warns where a function the translation makes reachable raises", async () => {
+        const doenetML = prefigureGraph(`
+  <slopeField>arcsin(x/5)</slopeField>
+  <slopeField><function domain="[-5,5]">arcsin(x/5)</function></slopeField>
+  <vectorField>(1, arccoth(x))</vectorField>
+  <vectorField>(1, csch(x))</vectorField>
+  <slopeField>csch(x)</slopeField>
+  <slopeField>x!</slopeField>
+  <slopeField>log(x, 2)</slopeField>
+  <slopeField>sinh(x^3)</slopeField>`);
+        const diagnostics = await getWarnings(doenetML);
+
+        // Python's asin raises outside [-1, 1], atanh(1/x) (arccoth) for
+        // |x| <= 1, gamma(x + 1) (x!) at negative integers, log(x, 2) for
+        // x <= 0, and sinh where it overflows. csch is 1/sinh in Python
+        // floats, which a slope field survives at 0 and a vector field
+        // does not.
+        expect(
+            diagnostics.warnings.map((w) => [
+                w.code,
+                w.message.match(/\(-?[0-9.]+, -?[0-9.]+\)/)?.[0],
+            ]),
+        ).toEqual([
+            ["doenet-w0172", "(-10, -10)"],
+            ["doenet-w0172", "(-1, -10)"],
+            ["doenet-w0172", "(0, -10)"],
+            ["doenet-w0172", "(-10, -10)"],
+            ["doenet-w0172", "(-10, -10)"],
+            ["doenet-w0172", "(-10, -10)"],
+        ]);
     });
 
     it("draws the component a one-output function selects from a tuple", async () => {
