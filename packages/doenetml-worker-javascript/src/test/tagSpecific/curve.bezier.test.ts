@@ -2961,3 +2961,153 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         }
     });
 });
+
+describe("Bezier controls through a reload @group3", async () => {
+    // The `<bezierControls>` is built before the `<curve>` it takes its number
+    // of controls and dimensions from, so the controls held only in its own
+    // state are restored while its arrays are still empty.
+    async function dragAndReload({
+        bezierControls,
+        drag,
+    }: {
+        bezierControls: string;
+        drag: (core: PublicDoenetMLCore, curveIdx: number) => Promise<void>;
+    }) {
+        const doenetML = `
+    <graph>
+        <curve name="c" through="(1,2) (3,4) (-5,6)">
+            ${bezierControls}
+        </curve>
+    </graph>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await drag(core, await resolvePathToNodeIdx("c"));
+
+        async function controlVectors() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const curve =
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues;
+            return {
+                directions: curve.vectorControlDirections,
+                controlVectors: curve.controlVectors.map((pair: any[]) =>
+                    pair.map((vector: any[]) => vector.map((x) => x.tree)),
+                ),
+            };
+        }
+
+        const before = await controlVectors();
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        const after = await controlVectors();
+
+        // the controls can still be dragged after the reload
+        const curveIdx = await resolvePathToNodeIdx("c");
+        return { before, after, core, curveIdx, controlVectors };
+    }
+
+    it("the second vector of a both-direction control given one vector", async () => {
+        const { before, after, core, curveIdx, controlVectors } =
+            await dragAndReload({
+                bezierControls: `<bezierControls><controlVectors direction="both">(-1,5)</controlVectors></bezierControls>`,
+                async drag(core, curveIdx) {
+                    await moveControlVector({
+                        componentIdx: curveIdx,
+                        controlVectorInds: [0, 1],
+                        controlVector: [7, 8],
+                        core,
+                    });
+                },
+            });
+
+        expect(before.controlVectors[0]).eqls([
+            [-1, 5],
+            [7, 8],
+        ]);
+        expect(after).eqls(before);
+
+        await moveControlVector({
+            componentIdx: curveIdx,
+            controlVectorInds: [0, 1],
+            controlVector: [-3, 2],
+            core,
+        });
+        expect((await controlVectors()).controlVectors[0]).eqls([
+            [-1, 5],
+            [-3, 2],
+        ]);
+    });
+
+    it("a symmetric control given no vector", async () => {
+        const { before, after, core, curveIdx, controlVectors } =
+            await dragAndReload({
+                bezierControls: `<bezierControls><controlVectors pointNumber="2" /></bezierControls>`,
+                async drag(core, curveIdx) {
+                    await moveControlVector({
+                        componentIdx: curveIdx,
+                        controlVectorInds: [1, 0],
+                        controlVector: [7, 8],
+                        core,
+                    });
+                },
+            });
+
+        expect(before.directions).eqls(["none", "symmetric", "none"]);
+        expect(before.controlVectors[1]).eqls([
+            [7, 8],
+            [-7, -8],
+        ]);
+        expect(after).eqls(before);
+
+        await moveControlVector({
+            componentIdx: curveIdx,
+            controlVectorInds: [1, 1],
+            controlVector: [-3, 2],
+            core,
+        });
+        expect((await controlVectors()).controlVectors[1]).eqls([
+            [3, -2],
+            [-3, 2],
+        ]);
+    });
+
+    it("a control whose direction was changed", async () => {
+        const { before, after } = await dragAndReload({
+            bezierControls: `<bezierControls />`,
+            async drag(core, curveIdx) {
+                await changeVectorControlDirection({
+                    core,
+                    componentIdx: curveIdx,
+                    throughPointInd: 2,
+                    direction: "both",
+                });
+                await moveControlVector({
+                    componentIdx: curveIdx,
+                    controlVectorInds: [2, 0],
+                    controlVector: [7, 8],
+                    core,
+                });
+                await moveControlVector({
+                    componentIdx: curveIdx,
+                    controlVectorInds: [2, 1],
+                    controlVector: [-3, 2],
+                    core,
+                });
+            },
+        });
+
+        expect(before.directions).eqls(["none", "none", "both"]);
+        expect(before.controlVectors[2]).eqls([
+            [7, 8],
+            [-3, 2],
+        ]);
+        expect(after).eqls(before);
+    });
+});
