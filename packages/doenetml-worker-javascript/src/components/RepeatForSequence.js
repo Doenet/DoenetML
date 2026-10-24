@@ -481,8 +481,11 @@ export default class RepeatForSequence extends CompositeComponent {
         // Nothing to change. Without this check, a sequence with excluded
         // elements would be made again on every call, and its new components
         // can call for another update, without end.
+        // (An exclude value that is not a number, such as a blank input,
+        // is NaN for a number sequence, so NaN must match NaN.)
         const sameValue = (a, b) =>
             a === b ||
+            (Number.isNaN(a) && Number.isNaN(b)) ||
             (typeof a?.equals === "function" && b != null && a.equals(b));
         if (
             lrp.type === type &&

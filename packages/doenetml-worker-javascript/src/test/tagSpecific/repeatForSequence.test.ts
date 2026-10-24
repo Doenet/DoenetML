@@ -2931,4 +2931,38 @@ describe("RepeatForSequence tag tests @group3", async () => {
         });
         expect(await values()).eqls([1, 2]);
     });
+
+    it("excluding a blank input, with inputs in the template", async () => {
+        // a blank input excludes NaN, which is not equal to itself
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ex" />
+    <repeatForSequence name="r" from="1" to="3" exclude="$ex" valueName="v">
+        <mathInput name="mi" prefill="$v" />
+    </repeatForSequence>
+    `,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const i of [1, 2, 3]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].mi`)]
+                        .stateValues.value.tree,
+                );
+            }
+            return result;
+        }
+        expect(await values()).eqls([1, 2, 3]);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls([1, 2, 3]);
+    });
 });
