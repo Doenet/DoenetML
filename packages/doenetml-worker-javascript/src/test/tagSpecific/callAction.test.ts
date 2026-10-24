@@ -2690,4 +2690,38 @@ describe("callAction tag tests @group4", async () => {
         await fireAll();
         await check([1, 1, 1, 1, 2, 1]);
     });
+
+    it("in read-only mode, a triggered callAction still calls an action read-only mode allows", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <hint name="h1"><p>One</p></hint>
+    <hint name="h2"><p>Two</p></hint>
+    <hint name="h3"><p>Three</p></hint>
+
+    <callAction target="$h2" actionName="revealHint" triggerWhen="$h1.open" />
+    <triggerSet triggerWhen="$h1.open">
+      <callAction target="$h3" actionName="revealHint" />
+    </triggerSet>
+    `,
+            flags: { readOnly: true },
+        });
+
+        // Read-only mode disables everything, but that does not stop these
+        // actions: it already blocks any update, and revealing a hint is one
+        // of the actions it allows.
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("h1"),
+            actionName: "revealHint",
+            args: {},
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["h1", "h2", "h3"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                name,
+            ).eq(true);
+        }
+    });
 });

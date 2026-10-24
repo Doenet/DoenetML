@@ -133,8 +133,11 @@ export default class triggerSet extends InlineComponent {
     }) {
         // A disabled trigger set runs none of its children, whether its button
         // was clicked or it was triggered, and triggers none of the actions
-        // chained to it.
-        if (await this.stateValues.disabled) {
+        // chained to it. In read-only mode, where everything is disabled, the
+        // actions still run as before: updates are blocked there anyway, and
+        // the actions read-only mode allows, such as revealing a hint or
+        // changing a page, still go through.
+        if (!this.flags.readOnly && (await this.stateValues.disabled)) {
             return;
         }
 
@@ -144,7 +147,7 @@ export default class triggerSet extends InlineComponent {
         // its siblings still run; the others are told not to check again.
         const childrenToRun = (
             await this.stateValues.updateValueAndActionsToTrigger
-        ).filter((child) => !child.stateValues.disabled);
+        ).filter((child) => this.flags.readOnly || !child.stateValues.disabled);
 
         for (let child of childrenToRun) {
             if (
