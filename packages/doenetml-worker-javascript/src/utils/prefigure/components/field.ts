@@ -655,11 +655,13 @@ export function convertVectorFieldToPrefigure({
     // loses the field to a division by zero if every vector is. So a field
     // of such short vectors is given to PreFigure divided by the length of
     // its longest vector, and `scale` makes up for it; so is a field of long
-    // ones, whose squared lengths would overflow. Without `normalize`, only a
-    // vector under a millionth of the longest one, too short to draw, is
-    // then lost. With it, every vector is drawn at full length, so each is
-    // made a unit vector in the function PreFigure calls.
+    // ones, whose squared lengths would overflow. Only a vector under a
+    // millionth of the longest one, too short to draw, is then lost. With
+    // `normalize`, every vector is drawn at full length, so instead each is
+    // made a unit vector in the function PreFigure calls, from its own
+    // length rather than the longest one's, which could underflow it.
     const divisor =
+        !sv.normalize &&
         maxNorm > 0 &&
         (maxNorm < MIN_UNSCALED_NORM || maxNorm > MAX_UNSCALED_NORM)
             ? maxNorm

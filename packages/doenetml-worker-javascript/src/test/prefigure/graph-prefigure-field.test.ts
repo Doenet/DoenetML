@@ -316,7 +316,8 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
   <vectorField>(10^(-309), 0)</vectorField>
   <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>
   <vectorField normalize>(1, 10^(-15) x)</vectorField>
-  <vectorField normalize>(x, 10^(-200))</vectorField>`);
+  <vectorField normalize>(x, 10^(-200))</vectorField>
+  <vectorField normalize>(10^200 x, 10^(-200))</vectorField>`);
         const prefigureXML = await getPrefigureXML(doenetML);
 
         // PreFigure draws a vector shorter than 1e-10 as zero, so the
@@ -339,7 +340,7 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
             "<definition>vectorfield_2_f_unit(v)=normalize(v/max(abs(v)))</definition>",
         );
         expect(prefigureXML).toMatch(
-            /<definition>vectorfield_2_f\(x,y\)=vectorfield_2_f_unit\(vectorfield_2_f_formula\([^<]*\)\/[0-9.e-]+\)<\/definition>/,
+            /<definition>vectorfield_2_f\(x,y\)=vectorfield_2_f_unit\(vectorfield_2_f_formula\([^<]*\)\)<\/definition>/,
         );
         expect(prefigureXML).toMatch(
             /<definition>vectorfield_3_f\(x,y\)=vectorfield_3_f_unit\(vectorfield_3_f_formula\([^<]*\)\)<\/definition>/,
@@ -350,7 +351,10 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         const scales = [...prefigureXML.matchAll(/ scale="([^"]*)"/g)].map(
             (m) => Number(m[1]),
         );
-        expect(scales).toHaveLength(5);
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_5_f\(x,y\)=vectorfield_5_f_unit\(vectorfield_5_f_formula\([^<]*\)\)<\/definition>/,
+        );
+        expect(scales).toHaveLength(6);
         for (const scale of scales) {
             expect(scale).toBeCloseTo(24 / UNIT, 10);
         }
