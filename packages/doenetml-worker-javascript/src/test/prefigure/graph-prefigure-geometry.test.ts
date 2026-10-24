@@ -1328,6 +1328,61 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`thickness="6"`);
     });
 
+    it("renderer=prefigure translates pi, absolute value, and inverse trig for PreFigure", async () => {
+        const doenetML = prefigureGraph(
+            "<function>sin(pi x)</function><function>|x|</function><function>arcsin(x/10)</function><function>arctan(x)</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=sin(pi*x)"`);
+        expect(prefigureXML).toContain(`function="curve_1_f(x)=abs(x)"`);
+        expect(prefigureXML).toContain(`function="curve_2_f(x)=asin(x/10)"`);
+        expect(prefigureXML).toContain(`function="curve_3_f(x)=atan(x)"`);
+        expect(prefigureXML).not.toContain("π");
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
+    it("renderer=prefigure keeps asin, erf, max, atan2, and two-argument log and round formulas", async () => {
+        const doenetML = prefigureGraph(
+            "<function>asin(x/10)</function><function>erf(x)</function><function>max(x, 0)</function><function>atan2(x, 2)</function><function>acot(x)</function><function>log(x, 2)</function><function>round(x, 1)</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=asin(x/10)"`);
+        expect(prefigureXML).toContain(`function="curve_1_f(x)=erf(x)"`);
+        expect(prefigureXML).toContain(`function="curve_2_f(x)=max(x, 0)"`);
+        expect(prefigureXML).toContain(`function="curve_3_f(x)=atan2(x, 2)"`);
+        expect(prefigureXML).toContain(
+            `function="curve_4_f(x)=atan2(copysign(1, x), abs(x))"`,
+        );
+        expect(prefigureXML).toContain(`function="curve_5_f(x)=log(x, 2)"`);
+        expect(prefigureXML).toContain(
+            `function="curve_6_f(x)=copysign(floor(abs(x)*10^1 + 0.5)/10^1, x)"`,
+        );
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
+    it("renderer=prefigure warns and skips a function whose formula PreFigure cannot evaluate", async () => {
+        const doenetML = prefigureGraph(
+            "<function>sign(x)</function><function>x^2</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain("sign");
+        expect(prefigureXML).toContain(`=x^2"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("cannot evaluate 'sign' in this formula"),
+            ),
+        ).eq(true);
+    });
+
     it("renderer=prefigure uses curve parameter bounds instead of child function domain", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
@@ -1789,6 +1844,60 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                     x.message.includes("only formula-typed child functions"),
             ),
         ).eq(true);
+    });
+
+    it("renderer=prefigure regionBetweenCurves translates pi and absolute value", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<regionBetweenCurves boundaryValues="-1 1"><function>|x|</function><function>cos(pi x)</function></regionBetweenCurves>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=abs(x)</definition>`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f2(x)=cos(pi*x)</definition>`,
+        );
+    });
+
+    it("renderer=prefigure renames a function variable that would shadow a function it calls", async () => {
+        const doenetML = prefigureGraph(
+            '<function variable="gamma">gamma!</function><regionBetweenCurves boundaryValues="0 2"><function variable="gamma">gamma!</function><function>x</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(
+            `function="curve_1_f(gamma_)=gamma(gamma_ + 1)"`,
+        );
+        expect(prefigureXML).toContain(
+            `<definition>regionbetweencurves_0_f1(x)=gamma(x + 1)</definition>`,
+        );
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
+    it("renderer=prefigure regionBetweenCurves warns about a formula PreFigure cannot evaluate", async () => {
+        const doenetML = prefigureGraph(
+            '<regionBetweenCurves boundaryValues="0 2"><function>sign(x)</function><function>x</function></regionBetweenCurves>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<area-between-curves`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        const messages = diagnosticsByType.warnings.map((x) => x.message);
+        expect(
+            messages.some(
+                (m) =>
+                    m.includes("<regionBetweenCurves>") &&
+                    m.includes("cannot evaluate 'sign' in this formula"),
+            ),
+        ).eq(true);
+        expect(messages.some((m) => m.includes("only formula-typed child"))).eq(
+            false,
+        );
     });
 
     it("renderer=prefigure regionBetweenCurves skips silently with only one child function", async () => {

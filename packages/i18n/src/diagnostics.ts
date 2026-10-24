@@ -258,6 +258,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0167": "cascade-title-not-shown",
     "doenet-w0168": "extend-attribute-ignored",
     "doenet-w0169": "extend-children-ignored",
+    "doenet-w0170": "prefigure-formula-unsupported",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
