@@ -75,7 +75,40 @@ const MAPPED_FUNCTIONS: Record<string, (arg: string) => string> = {
     round: (a) => `copysign(floor(abs(${a}) + 0.5), ${a})`,
 };
 
+/**
+ * Short spellings DoenetML also parses as functions (see
+ * `appliedFunctionSymbolsDefault`), and the name in `MAPPED_FUNCTIONS` each
+ * one means. `asin`, `acos`, `atan`, `asinh`, `acosh`, and `atanh` need no
+ * alias, since Python spells them the same way.
+ */
+const FUNCTION_ALIASES: Record<string, string> = {
+    asec: "arcsec",
+    acsc: "arccsc",
+    acot: "arccot",
+    asech: "arcsech",
+    acsch: "arccsch",
+    acoth: "arccoth",
+};
+
+/**
+ * Functions of several arguments, given as a tuple, that PreFigure's
+ * namespace has under the same name, with the number of arguments each
+ * accepts.
+ */
+const MULTI_ARGUMENT_FUNCTIONS: Record<string, { min: number; max: number }> = {
+    atan2: { min: 2, max: 2 },
+    max: { min: 2, max: Infinity },
+    min: { min: 2, max: Infinity },
+};
+
 const PASS_THROUGH_FUNCTIONS = new Set([
+    "asin",
+    "acos",
+    "atan",
+    "asinh",
+    "acosh",
+    "atanh",
+    "erf",
     "sin",
     "cos",
     "tan",
@@ -234,19 +267,28 @@ function emitApply(
     }
 
     if (Array.isArray(arg) && arg[0] === "tuple") {
-        throw new UnsupportedFormulaError(fn);
+        const args = arg.slice(1);
+        const arity = hasOwn(MULTI_ARGUMENT_FUNCTIONS, fn)
+            ? MULTI_ARGUMENT_FUNCTIONS[fn]
+            : null;
+        if (!arity || args.length < arity.min || args.length > arity.max) {
+            throw new UnsupportedFormulaError(fn);
+        }
+        const argTexts = args.map((a) => emit(a, allowedSymbols).text);
+        return { text: `${fn}(${argTexts.join(", ")})`, prec: PREC_ATOM };
     }
 
+    const name = hasOwn(FUNCTION_ALIASES, fn) ? FUNCTION_ALIASES[fn] : fn;
     const argText = emit(arg, allowedSymbols).text;
-    if (hasOwn(MAPPED_FUNCTIONS, fn)) {
-        const text = MAPPED_FUNCTIONS[fn](argText);
+    if (hasOwn(MAPPED_FUNCTIONS, name)) {
+        const text = MAPPED_FUNCTIONS[name](argText);
         return {
             text,
             prec: text.startsWith("1/") ? PREC_PRODUCT : PREC_ATOM,
         };
     }
-    if (PASS_THROUGH_FUNCTIONS.has(fn)) {
-        return { text: `${fn}(${argText})`, prec: PREC_ATOM };
+    if (PASS_THROUGH_FUNCTIONS.has(name)) {
+        return { text: `${name}(${argText})`, prec: PREC_ATOM };
     }
     throw new UnsupportedFormulaError(fn);
 }

@@ -5,12 +5,18 @@ import {
     astToVariableName,
     parseFormulaDefinition,
 } from "../../utils/prefigure/formulaUtils";
+import { textToAst } from "../../utils/math";
 
 function fromText(text: string, allowedSymbols?: string[]) {
     return astToPythonExpression(
         me.fromText(text).tree,
         allowedSymbols ? new Set(allowedSymbols) : undefined,
     );
+}
+
+/** Parse as a DoenetML `<function>` does, with its applied function names. */
+function fromDoenetText(text: string) {
+    return astToPythonExpression(textToAst.convert(text), new Set(["x"]));
 }
 
 function fromLatex(latex: string) {
@@ -61,6 +67,38 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromLatex("\\sqrt[3]{x}").expression).eq("cbrt(x)");
         expect(fromLatex("\\log_2 x").expression).eq("log(x, 2)");
         expect(fromText("log_10(x)").expression).eq("log10(x)");
+    });
+
+    it("accepts the short inverse names DoenetML parses", () => {
+        for (const name of [
+            "asin",
+            "acos",
+            "atan",
+            "asinh",
+            "acosh",
+            "atanh",
+        ]) {
+            expect(fromDoenetText(`${name}(x)`).expression).eq(`${name}(x)`);
+        }
+        expect(fromDoenetText("asec(x)").expression).eq("acos(1/(x))");
+        expect(fromDoenetText("acsc(x)").expression).eq("asin(1/(x))");
+        expect(fromDoenetText("acot(x)").expression).eq("atan(1/(x))");
+        expect(fromDoenetText("asech(x)").expression).eq("acosh(1/(x))");
+        expect(fromDoenetText("acsch(x)").expression).eq("asinh(1/(x))");
+        expect(fromDoenetText("acoth(x)").expression).eq("atanh(1/(x))");
+    });
+
+    it("passes through erf and the multi-argument max, min, and atan2", () => {
+        expect(fromDoenetText("erf(x)").expression).eq("erf(x)");
+        expect(fromDoenetText("max(x, 0)").expression).eq("max(x, 0)");
+        expect(fromDoenetText("min(|x|, pi, 2x)").expression).eq(
+            "min(abs(x), pi, 2*x)",
+        );
+        expect(fromDoenetText("atan2(x, -1)").expression).eq("atan2(x, -1)");
+        // Python's max and min need two arguments, and atan2 exactly two.
+        expect(fromDoenetText("max(x)").unsupportedFeature).eq("max");
+        expect(fromDoenetText("atan2(x, 1, 2)").unsupportedFeature).eq("atan2");
+        expect(fromDoenetText("mod(x, 2)").unsupportedFeature).eq("mod");
     });
 
     it("passes through functions whose names already match", () => {

@@ -1319,6 +1319,22 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(diagnosticsByType.warnings).toHaveLength(0);
     });
 
+    it("renderer=prefigure keeps asin, erf, max, and atan2 formulas", async () => {
+        const doenetML = prefigureGraph(
+            "<function>asin(x/10)</function><function>erf(x)</function><function>max(x, 0)</function><function>atan2(x, 2)</function><function>acot(x)</function>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=asin(x/10)"`);
+        expect(prefigureXML).toContain(`function="curve_1_f(x)=erf(x)"`);
+        expect(prefigureXML).toContain(`function="curve_2_f(x)=max(x, 0)"`);
+        expect(prefigureXML).toContain(`function="curve_3_f(x)=atan2(x, 2)"`);
+        expect(prefigureXML).toContain(`function="curve_4_f(x)=atan(1/(x))"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
     it("renderer=prefigure warns and skips a function whose formula PreFigure cannot evaluate", async () => {
         const doenetML = prefigureGraph(
             "<function>sign(x)</function><function>x^2</function>",
