@@ -192,6 +192,36 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         await check(1, true);
     });
 
+    it("applies nothing kept of one case of an extend to another case", async () => {
+        // The extend's answers are shadows of the cases' answers, made at the
+        // same position in each case. The else answer starts with no credit,
+        // and the case answer gets its credit back.
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b">
+            <answer name="ans"><mathInput name="mi" /><award>x</award></answer>
+        </case>
+        <else>
+            <answer name="ans"><mathInput name="mi" /><award>y</award></answer>
+        </else>
+    </conditionalContent>
+    <conditionalContent extend="$cc" name="e" />
+    `);
+        async function check(credit: number, justSubmitted: boolean) {
+            const ans = (await h.sv("e.ans")).stateValues;
+            expect(ans.creditAchieved).eq(credit);
+            expect(ans.justSubmitted).eq(justSubmitted);
+        }
+        await h.typeMath("e.mi", "x");
+        await h.submit("e.ans");
+        await check(1, true);
+        await h.setB(false);
+        await check(0, false);
+        await h.setB(true);
+        await check(1, true);
+    });
+
     it("references from outside a case follow the active case", async () => {
         // An `extend` of a component in a case is made again as a shadow of
         // the active case's component, and takes nothing kept of the other's.
