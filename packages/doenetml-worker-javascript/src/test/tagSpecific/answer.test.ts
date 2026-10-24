@@ -10100,3 +10100,124 @@ What is the derivative of <function name="f">x^2</function>?
         expect(sv[mi2Idx].stateValues.creditAchieved).closeTo(0.5, 1e-12);
     });
 });
+
+describe("An answer's submitted responses through a reload @group4", async () => {
+    async function submitAndReload({
+        doenetML,
+        inputs,
+    }: {
+        doenetML: string;
+        inputs: (
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) => Promise<void>;
+    }) {
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await inputs(core, resolvePathToNodeIdx);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        const before = await core.returnAllStateVariables(false, true);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        const after = await core.returnAllStateVariables(false, true);
+        return { before, after, resolvePathToNodeIdx };
+    }
+
+    it("a math response is read as a math, inside the answer and outside it", async () => {
+        const doenetML = `
+    <answer name="ans">
+        <mathInput name="mi" />
+        <award><when>$mi = x</when></award>
+        <feedback name="fbIn" condition="$ans.submittedResponse = z">You typed z</feedback>
+    </answer>
+    <feedback name="fbOut" condition="$ans.submittedResponse = z">You typed z</feedback>
+    <boolean name="b">$ans.submittedResponse = z</boolean>
+    <math name="m">$ans.submittedResponse + 1</math>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await updateMathInputValue({
+                    latex: "z",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+        });
+
+        for (const sv of [before, after]) {
+            const stateValues = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await stateValues("ans.fbIn")).hide).eq(false);
+            expect((await stateValues("fbOut")).hide).eq(false);
+            expect((await stateValues("b")).value).eq(true);
+            expect((await stateValues("m")).value.tree).eqls(["+", "z", 1]);
+            expect((await stateValues("ans")).submittedResponses[0].tree).eq(
+                "z",
+            );
+        }
+    });
+
+    it("responses of each type come back as they were submitted", async () => {
+        const doenetML = `
+    <answer name="ans">
+        <mathInput name="mi" />
+        <textInput name="ti" />
+        <booleanInput name="bi" />
+        <award><when>
+            $mi = x and $ti = hello and $bi
+            and <number isResponse>2$mi</number> = 6
+            and <point isResponse>($mi, 2)</point> = (3, 2)
+        </when></award>
+    </answer>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateTextInputValue({
+                    text: "hello",
+                    componentIdx: await resolvePathToNodeIdx("ti"),
+                    core,
+                });
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("bi"),
+                    core,
+                });
+            },
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const sv of [before, after]) {
+            const { submittedResponses, submittedResponsesComponentType } =
+                sv[ansIdx].stateValues;
+            expect(submittedResponsesComponentType).eqls([
+                "math",
+                "text",
+                "boolean",
+                "number",
+                "point",
+            ]);
+            expect(submittedResponses[0].tree).eq(3);
+            expect(submittedResponses[1]).eq("hello");
+            expect(submittedResponses[2]).eq(true);
+            expect(submittedResponses[3]).eq(6);
+            expect(submittedResponses[4].tree).eqls(["vector", 3, 2]);
+        }
+    });
+});
