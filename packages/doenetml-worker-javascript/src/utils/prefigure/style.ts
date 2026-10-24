@@ -1,5 +1,5 @@
 import { Position } from "../dast/types";
-import { escapeXml, formatNumber, pushWarning } from "./common";
+import { asFiniteNumber, escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
 
@@ -169,6 +169,38 @@ export function styleAttributes({
     }
 
     return attrs;
+}
+
+/**
+ * An arrow's line width, rounded to a whole pixel, at least 1, or null if
+ * there is none.
+ *
+ * PreFigure 0.7.6 reads an arrow's line width as an integer and divides by it
+ * when building the arrowhead, so a `thickness` of `2.5` or `0` makes it
+ * abandon the arrow and everything drawn after it in the diagram. A line
+ * width of 0 draws nothing in the JSXGraph renderer, so the callers draw
+ * nothing for it rather than round it up.
+ */
+export function wholePixelThickness(lineWidth: unknown): number | null {
+    const width = asFiniteNumber(lineWidth);
+    return width === null ? null : Math.max(1, Math.round(width));
+}
+
+/**
+ * `styleAttrs` with its `thickness` rounded as {@link wholePixelThickness}
+ * rounds it, for an element PreFigure draws with an arrowhead.
+ */
+export function wholePixelThicknessAttributes(
+    styleAttrs: string[],
+    lineWidth: unknown,
+): string[] {
+    const thickness = wholePixelThickness(lineWidth);
+    if (thickness === null) {
+        return styleAttrs;
+    }
+    return styleAttrs.map((attr) =>
+        attr.startsWith("thickness=") ? `thickness="${thickness}"` : attr,
+    );
 }
 
 /**

@@ -1082,9 +1082,25 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             [...prefigureXML.matchAll(new RegExp(`<${tag} [^>]*>`, "g"))].map(
                 (m) => m[0].match(/ thickness="([^"]*)"/)?.[1],
             );
-        expect(thicknesses("vector")).toEqual(["3", "1", "1", "1", "4"]);
+        expect(thicknesses("vector")).toEqual(["3", "1", "1", "4"]);
+        // A line width of 0 draws nothing, as in the JSXGraph renderer.
+        expect(prefigureXML).toContain('<group at="vector_1" />');
         // A line has no arrowhead, so its width is passed through.
         expect(thicknesses("line")).toEqual(["2.5"]);
+    });
+
+    it("renderer=prefigure draws only the label of a vector with a line width of 0", async () => {
+        // The JSXGraph renderer sizes the shaft and arrowhead by the line
+        // width, so at 0 it draws neither, but it still draws the label.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<vector tail="(0,0)" head="(4,0)" lineWidth="0"><label>v</label></vector>',
+            ),
+        );
+
+        expect(prefigureXML).toContain('<group at="vector_0" />');
+        expect(prefigureXML).not.toContain("<vector ");
+        expect(prefigureXML).toMatch(/<label p="\(2,0\)"[^>]*>v<\/label>/);
     });
 
     it("renderer=prefigure maps vector label and labelPosition", async () => {

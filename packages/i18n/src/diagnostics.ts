@@ -254,6 +254,11 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0163": "reference-index-not-a-number",
     "doenet-w0164": "index-operator-values-not-sorted",
     "doenet-w0170": "prefigure-formula-unsupported",
+    "doenet-w0171": "prefigure-field-non-formula-function",
+    "doenet-w0172": "prefigure-field-function-undefined",
+    "doenet-w0173": "prefigure-slope-field-mark-length-ignored",
+    "doenet-w0174": "prefigure-vector-field-normalize-unequal-scales",
+    "doenet-w0175": "prefigure-field-line-style-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

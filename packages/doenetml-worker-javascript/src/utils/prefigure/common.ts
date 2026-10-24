@@ -338,3 +338,11 @@ const PREFIGURE_DARK_AXIS_COLOR = "#ffffff";
 export function darkModeAxisStrokeAttr(darkMode: boolean): string {
     return darkMode ? ` stroke="${PREFIGURE_DARK_AXIS_COLOR}"` : "";
 }
+
+/**
+ * An empty group standing in for an element with nothing to draw, so that it
+ * still has its handle for an annotation to name.
+ */
+export function emptyGroup(handle: string): string {
+    return `<group at="${escapeXml(handle)}" />`;
+}

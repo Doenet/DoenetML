@@ -11,6 +11,7 @@ export * from "./components/domain";
 export * from "./components/compositeLists";
 export * from "./components/enumeration";
 export * from "./components/function";
+export * from "./components/fieldLattice";
 export * from "./components/mathInputFunctionNames";
 export * from "./components/mediaLicense";
 export * from "./components/sequence";

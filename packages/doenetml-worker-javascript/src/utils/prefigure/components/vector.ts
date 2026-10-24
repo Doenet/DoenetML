@@ -1,5 +1,6 @@
 import {
     asFiniteNumber,
+    emptyGroup,
     escapeXml,
     extractFinitePointPair,
     formatNumber,
@@ -11,25 +12,8 @@ import {
     orientEndpointsForLineLabel,
     THEME_AWARE_LABEL_COLOR_ATTR,
 } from "../label";
+import { wholePixelThicknessAttributes } from "../style";
 import type { ConverterArgs, Point } from "../types";
-
-/**
- * `styleAttrs` with the line width rounded to a whole pixel, at least 1.
- *
- * PreFigure 0.7.6 reads an arrow's line width as an integer and divides by it
- * when building the arrowhead, so a `thickness` of `2.5` or `0` makes it
- * abandon the vector and everything drawn after it in the diagram.
- */
-function wholePixelThickness(styleAttrs: string[], lineWidth: unknown) {
-    const width = asFiniteNumber(lineWidth);
-    if (width === null) {
-        return styleAttrs;
-    }
-    const thickness = Math.max(1, Math.round(width));
-    return styleAttrs.map((attr) =>
-        attr.startsWith("thickness=") ? `thickness="${thickness}"` : attr,
-    );
-}
 
 /**
  * Converts a vector (tail/head endpoints) to a PreFigure `<vector>` element.
@@ -81,10 +65,22 @@ export function convertVectorToPrefigure({
         `at="${escapeXml(handle)}"`,
         `tail="${escapeXml(tailText)}"`,
         `v="${escapeXml(`(${dx},${dy})`)}"`,
-        ...wholePixelThickness(styleAttrs, sv.selectedStyle?.lineWidth),
+        ...wholePixelThicknessAttributes(
+            styleAttrs,
+            sv.selectedStyle?.lineWidth,
+        ),
     ];
 
-    const vectorXml = `<vector ${attrs.join(" ")} />`;
+    // At a line width of 0 the JSXGraph renderer draws neither shaft nor
+    // arrowhead, which it sizes by the line width, but still draws the label.
+    // PreFigure divides by an arrow's line width, losing the vector and all
+    // drawn after it, so the vector is an empty group, keeping its handle for
+    // an annotation, and the label is drawn as usual.
+    const lineWidth = asFiniteNumber(sv.selectedStyle?.lineWidth);
+    const vectorXml =
+        lineWidth !== null && lineWidth <= 0
+            ? emptyGroup(handle)
+            : `<vector ${attrs.join(" ")} />`;
 
     if (!label) {
         return vectorXml;
