@@ -2630,7 +2630,7 @@ describe("Unlinked Copying Tests @group4", async () => {
         expect(
             getDiagnosticsByType(core).errors.map((error) => error.message),
         ).eqls([
-            'Invalid attribute "_link". Attribute names must start with a letter.',
+            'Invalid attribute "_link". Attribute names cannot start with an underscore.',
         ]);
 
         await movePoint({

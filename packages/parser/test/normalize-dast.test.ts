@@ -735,6 +735,19 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("Errors about an element's attributes come in the order the attributes are written", () => {
+        // An invalid `name` between two attributes starting with `_`
+        const source = `<p _a="1" name="1st" _b="2">hi</p>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+        expect(toXml(normalized)).toEqual(`<document><p>hi</p></document>`);
+        expect(extractDastErrors(normalized)).toMatchObject([
+            { code: "doenet-e0054", args: { attribute: "_a" } },
+            { code: "doenet-e0025", args: { name: "1st", reason: "start" } },
+            { code: "doenet-e0054", args: { attribute: "_b" } },
+        ]);
+    });
+
     it("Adds error when answer type=videoWatched is missing video attribute", () => {
         const source = `<answer type="videoWatched" />`;
         const dast = lezerToDast(source);

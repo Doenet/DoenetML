@@ -8,7 +8,7 @@
 
 `link`, `createComponentOfType`, `numComponents`, `uri`, `createComponentIdx`, `createComponentName` and `copyInChildren` are no longer treated specially when written on a component with `copy` or `extend`. They were settings of the internal copy DoenetML makes for `copy` and `extend`, left over from v0.6, and an author's attribute of the same name was taken for one of them. Whether a component is linked to what it names is said by `extend` or `copy` alone. Each is now an attribute like any other name the component does not have. For example, `<module copy="$m" link="x"/>` now passes `link` on to a module attribute named `link`, where it used to be taken by the copy, and `LINK="false"` on a copy no longer reports `Cannot repeat attribute link.`
 
-- An attribute whose name starts with `_` is now an error, `Invalid attribute "_x". Attribute names must start with a letter.`, and is removed, as a component or `name` starting with `_` already is. Such names are kept for the settings DoenetML sets itself.
+- An attribute whose name starts with `_` is now an error, `Invalid attribute "_x". Attribute names cannot start with an underscore.`, and is removed, as a component or `name` starting with `_` already is. Such names are kept for the settings DoenetML sets itself.
 - `<group>` and `<module>` no longer take `createComponentOfType` or `numComponents`. On a `<group>`, each is now an invalid attribute. On a `<module>`, each can now name a module attribute.
 - `removeEmptyArrayEntries` on an extend of a list now applies in any letter case. Written as `RemoveEmptyArrayEntries`, it used to be reported as an attribute the list does not take.
 
