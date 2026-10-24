@@ -562,6 +562,38 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         ]);
     });
 
+    it("warns on a numpy infinity given to a trigonometric function, and types min and max per point", async () => {
+        const doenetML = prefigureGraph(`
+  <slopeField>sin(1/x)</slopeField>
+  <vectorField>(1, csc(1/x))</vectorField>
+  <slopeField>floor(1/x)</slopeField>
+  <slopeField>sin(1/sin(x))</slopeField>
+  <vectorField>(1, 1/max(0,x))</vectorField>
+  <vectorField>(1, 1/min(x,0))</vectorField>
+  <vectorField>(1, x/max(0,y))</vectorField>
+  <vectorField>(1, 1/max(1,x))</vectorField>`);
+        const diagnostics = await getWarnings(doenetML);
+
+        // 1/x at x = 0 is a numpy infinity, on which math.sin and math.floor
+        // raise. In sin(1/sin(x)) the inner division is in Python numbers,
+        // which a slope field catches before sin is reached. max and min
+        // return the argument they select, the first of any tied: max(0, x)
+        // is the Python 0 where x < 0, and min(x, 0) where x > 0, but at
+        // x = 0 they are the numpy x, as is any dividend x.
+        expect(
+            diagnostics.warnings.map((w) => [
+                w.code,
+                w.message.match(/\(-?[0-9.]+, -?[0-9.]+\)/)?.[0],
+            ]),
+        ).toEqual([
+            ["doenet-w0172", "(0, -10)"],
+            ["doenet-w0172", "(0, -10)"],
+            ["doenet-w0172", "(0, -10)"],
+            ["doenet-w0172", "(-10, -10)"],
+            ["doenet-w0172", "(1, -10)"],
+        ]);
+    });
+
     it("draws the component a one-output function selects from a tuple", async () => {
         // The numerical function takes the first entry of `(x, y)` as the
         // slope, so PreFigure must be given `x`, not the tuple.

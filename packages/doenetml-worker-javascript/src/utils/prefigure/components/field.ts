@@ -49,6 +49,16 @@ import type {
  */
 type Raise = "error" | "division" | null;
 
+/**
+ * Whether `a` is an infinity a `math` function receives from numpy arithmetic,
+ * such as `1/x` at x = 0: `math.sin(inf)` raises, as does `math.floor(inf)`.
+ * A Python number is never infinite here, since a Python division by zero or
+ * an overflow raises before it can be passed on.
+ */
+function numpyInfinity(a: number, argumentIsPython: boolean): boolean {
+    return !argumentIsPython && (a === Infinity || a === -Infinity);
+}
+
 /** The largest `n` whose `math.gamma(n)` does not overflow a float. */
 const GAMMA_OVERFLOW = 171.62437695630272;
 
@@ -76,7 +86,7 @@ function reciprocalOfZero(argumentIsPython: boolean, infinityRaises: boolean) {
  * the JSXGraph renderer's merely give `NaN`, and PreFigure's `csc`, `sec` and
  * `cot` (`prefig/core/math_utilities.py`), like the translation's own `1/`
  * rewrites, divide in Python numbers. `argumentIsPython` says whether `a` is a
- * Python number rather than a numpy float (see {@link isPythonNumber}).
+ * Python number rather than a numpy float at that point.
  */
 const RAISING_ARGUMENTS: Record<
     string,
@@ -104,9 +114,19 @@ const RAISING_ARGUMENTS: Record<
         (Number.isInteger(a + 1) && a + 1 <= 0) || a + 1 > GAMMA_OVERFLOW
             ? "error"
             : null,
-    csc: (a) => (Math.sin(a) === 0 ? "division" : null),
-    sec: (a) => (Math.cos(a) === 0 ? "division" : null),
-    cot: (a) => (Math.tan(a) === 0 ? "division" : null),
+    sin: (a, py) => (numpyInfinity(a, py) ? "error" : null),
+    cos: (a, py) => (numpyInfinity(a, py) ? "error" : null),
+    tan: (a, py) => (numpyInfinity(a, py) ? "error" : null),
+    csc: (a, py) =>
+        numpyInfinity(a, py) ? "error" : Math.sin(a) === 0 ? "division" : null,
+    sec: (a, py) =>
+        numpyInfinity(a, py) ? "error" : Math.cos(a) === 0 ? "division" : null,
+    cot: (a, py) =>
+        numpyInfinity(a, py) ? "error" : Math.tan(a) === 0 ? "division" : null,
+    // `round` is translated to `floor`.
+    floor: (a, py) => (numpyInfinity(a, py) ? "error" : null),
+    ceil: (a, py) => (numpyInfinity(a, py) ? "error" : null),
+    round: (a, py) => (numpyInfinity(a, py) ? "error" : null),
     // 1/cosh(a), 1/sinh(a), 1/tanh(a)
     sech: (a) => (hyperbolicOverflows(a) ? "error" : null),
     csch: (a) =>
@@ -255,37 +275,6 @@ function variableNamesOf(definition: CurveFunctionDefinition): string[] {
 }
 
 /**
- * Whether PreFigure evaluates `ast` to a plain Python number rather than a
- * numpy float. PreFigure calls the function on numpy floats, and numpy
- * arithmetic stays numpy, but a `math` function returns a Python float
- * whatever its argument, and so does arithmetic on constants alone.
- */
-function isPythonNumber(ast: unknown, variableNames: string[]): boolean {
-    if (typeof ast === "string") {
-        return !variableNames.includes(ast);
-    }
-    if (!Array.isArray(ast)) {
-        return true;
-    }
-    if (ast[0] === "_") {
-        return !variableNames.includes(
-            String(me.fromAst(ast as any).subscripts_to_strings().tree),
-        );
-    }
-    if (ast[0] === "apply") {
-        // Python's `abs` of a numpy float is a numpy float, and `min` and
-        // `max` return one of their arguments; a `math` function returns a
-        // Python float whatever its argument.
-        const name = resolveAppliedFunctionName(ast[1]);
-        if (name === "abs" || name === "min" || name === "max") {
-            return isPythonNumber(ast[2], variableNames);
-        }
-        return true;
-    }
-    return ast.slice(1).every((child) => isPythonNumber(child, variableNames));
-}
-
-/**
  * The first lattice point at which PreFigure raises while evaluating the
  * field's function, losing the whole field, or null if there is none.
  *
@@ -348,6 +337,66 @@ function firstRaisingLatticePoint({
         };
     }
 
+    /**
+     * Whether PreFigure evaluates `ast` at a point to a plain Python number
+     * rather than a numpy float. PreFigure calls the function on numpy
+     * floats, and numpy arithmetic stays numpy, but a `math` function returns
+     * a Python float whatever its argument, and so does arithmetic on
+     * constants alone. `abs` keeps its argument's type, and `min` and `max`
+     * return the argument they select, the first of any tied, so the answer
+     * can differ from point to point: `max(0, x)` is the Python `0` where x is
+     * negative.
+     */
+    function pythonAt(ast: unknown): (x: number, y: number) => boolean {
+        if (typeof ast === "string" || (Array.isArray(ast) && ast[0] === "_")) {
+            const name =
+                typeof ast === "string"
+                    ? ast
+                    : String(
+                          me.fromAst(ast as any).subscripts_to_strings().tree,
+                      );
+            const isPython = !variableNames.includes(name);
+            return () => isPython;
+        }
+        if (!Array.isArray(ast)) {
+            return () => true;
+        }
+        if (ast[0] === "apply") {
+            const name = resolveAppliedFunctionName(ast[1]);
+            if (name === "abs") {
+                return pythonAt(ast[2]);
+            }
+            const args = ast[2];
+            if (
+                (name === "min" || name === "max") &&
+                Array.isArray(args) &&
+                args[0] === "tuple"
+            ) {
+                const values = args.slice(1).map(compile);
+                const kinds = args.slice(1).map(pythonAt);
+                return (x, y) => {
+                    let selected = 0;
+                    let selectedValue = values[0](x, y);
+                    for (let i = 1; i < values.length; i++) {
+                        const value = values[i](x, y);
+                        if (
+                            name === "max"
+                                ? value > selectedValue
+                                : value < selectedValue
+                        ) {
+                            selected = i;
+                            selectedValue = value;
+                        }
+                    }
+                    return kinds[selected](x, y);
+                };
+            }
+            return () => true;
+        }
+        const children = ast.slice(1).map(pythonAt);
+        return (x, y) => children.every((isPython) => isPython(x, y));
+    }
+
     // Each check says whether PreFigure raises at a point. A comparison with
     // NaN is false, so a part that has no real value does not count.
     const checks: ((x: number, y: number) => boolean)[] = [];
@@ -382,8 +431,10 @@ function firstRaisingLatticePoint({
         }
         const raises = RAISING_ARGUMENTS[name];
         const argument = compile(argumentAst);
-        const argumentIsPython = isPythonNumber(argumentAst, variableNames);
-        checks.push((x, y) => counts(raises(argument(x, y), argumentIsPython)));
+        const argumentIsPython = pythonAt(argumentAst);
+        checks.push((x, y) =>
+            counts(raises(argument(x, y), argumentIsPython(x, y))),
+        );
     }
     function collect(ast: unknown) {
         if (!Array.isArray(ast)) {
@@ -392,24 +443,19 @@ function firstRaisingLatticePoint({
         if (ast[0] === "apply") {
             pushFunctionCheck(ast[1], ast[2]);
         }
-        if (
-            divisionRaises &&
-            ast[0] === "/" &&
-            isPythonNumber(ast[1], variableNames) &&
-            isPythonNumber(ast[2], variableNames)
-        ) {
-            const divisor = compile(ast[2]);
-            checks.push((x, y) => divisor(x, y) === 0);
-        }
-        if (
-            divisionRaises &&
-            ast[0] === "^" &&
-            isPythonNumber(ast[1], variableNames) &&
-            isPythonNumber(ast[2], variableNames)
-        ) {
-            const base = compile(ast[1]);
-            const exponent = compile(ast[2]);
-            checks.push((x, y) => base(x, y) === 0 && exponent(x, y) < 0);
+        if (divisionRaises && (ast[0] === "/" || ast[0] === "^")) {
+            const left = compile(ast[1]);
+            const right = compile(ast[2]);
+            const leftIsPython = pythonAt(ast[1]);
+            const rightIsPython = pythonAt(ast[2]);
+            checks.push(
+                (x, y) =>
+                    leftIsPython(x, y) &&
+                    rightIsPython(x, y) &&
+                    (ast[0] === "/"
+                        ? right(x, y) === 0
+                        : left(x, y) === 0 && right(x, y) < 0),
+            );
         }
         ast.slice(1).forEach(collect);
     }
