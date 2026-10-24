@@ -448,6 +448,7 @@ export type MessageKey =
     | "prefigure-curve-unsupported-definition-type"
     | "prefigure-region-flip-functions-unsupported"
     | "prefigure-region-non-formula-child"
+    | "prefigure-formula-unsupported"
     | "prefigure-label-position-unsupported"
     | "prefigure-fill-style-unsupported"
     | "prefigure-line-style-unknown"
@@ -1080,6 +1081,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "prefigure-curve-unsupported-definition-type",
     "prefigure-region-flip-functions-unsupported",
     "prefigure-region-non-formula-child",
+    "prefigure-formula-unsupported",
     "prefigure-label-position-unsupported",
     "prefigure-fill-style-unsupported",
     "prefigure-line-style-unknown",

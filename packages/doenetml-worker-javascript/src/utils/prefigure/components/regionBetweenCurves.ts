@@ -3,7 +3,14 @@ import {
     parseFormulaDefinition,
     rewriteExpressionVariable,
 } from "../formulaUtils";
-import type { ConverterArgs } from "../types";
+import type { ConverterArgs, CurveFunctionDefinition } from "../types";
+
+function isFormulaDefinition(definition: unknown): boolean {
+    return (
+        (definition as CurveFunctionDefinition | null)?.functionType ===
+        "formula"
+    );
+}
 
 /**
  * Converts a `<regionBetweenCurves>` to a pair of PreFigure `<definition>`
@@ -50,16 +57,29 @@ export function convertRegionBetweenCurvesToPrefigure({
         return null;
     }
 
-    const f1 = parseFormulaDefinition(fDefinitions[0], "x");
-    const f2 = parseFormulaDefinition(fDefinitions[1], "x");
-
-    if (!f1 || !f2) {
+    if (
+        !isFormulaDefinition(fDefinitions[0]) ||
+        !isFormulaDefinition(fDefinitions[1])
+    ) {
         pushWarning({
             diagnostics,
             code: "doenet-w0089",
             args: { subject: warningPrefix },
             position: warningPosition,
         });
+        return null;
+    }
+
+    // A formula PreFigure cannot evaluate warns from inside
+    // parseFormulaDefinition.
+    const formulaWarning = {
+        diagnostics,
+        subject: warningPrefix,
+        position: warningPosition,
+    };
+    const f1 = parseFormulaDefinition(fDefinitions[0], "x", formulaWarning);
+    const f2 = parseFormulaDefinition(fDefinitions[1], "x", formulaWarning);
+    if (!f1 || !f2) {
         return null;
     }
 

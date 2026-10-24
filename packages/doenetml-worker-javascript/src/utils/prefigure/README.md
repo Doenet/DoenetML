@@ -12,6 +12,8 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
   - Style translation from Doenet selected styles to PreFigure attributes.
 - `grid.ts`
   - The `grid` attribute translated to PreFigure's `<grid>`, including a port of PreFigure's own automatic-spacing algorithm (`find_gridspacing()` in `prefig/core/grid_axes.py`) so `grid="dense"` subdivides the spacing PreFigure would have chosen. Keep it in step with that function.
+- `formulaUtils.ts`
+  - Formulas translated from the math-expressions AST to the Python expression PreFigure evaluates (`astToPythonExpression`). PreFigure evaluates a formula in a restricted namespace, Python's `math` module plus a few helpers (`user_namespace.py` in `prefig/core`), so its function tables must name only what that namespace defines. Anything else is reported with warning `doenet-w0170` and the formula is not drawn.
 - `components/`
   - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline, angle).
   - `text.ts`: the text-like graph children (`text`, `number`, `math`, `m`, `md`, `label`, and components that inherit from them and have a text-like renderer), drawn as PreFigure `<label>` elements at their `anchor`, with `positionFromAnchor` as the `alignment`.
