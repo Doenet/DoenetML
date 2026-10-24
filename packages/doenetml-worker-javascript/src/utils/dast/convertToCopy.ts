@@ -13,6 +13,8 @@ import {
 } from "./intermediateTypes";
 import { addSource, unwrapSource } from "./convertNormalizedDast";
 import { setUnflattenedReferenceOrigins } from "../componentIndices";
+import { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "../diagnostics";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -20,6 +22,7 @@ export function convertRefsToCopies({
     componentInfoObjects,
     allNodes,
     addNodesToResolver,
+    diagnostics = [],
 }: {
     serializedComponents: (UnflattenedComponent | string)[];
     nComponents: number;
@@ -29,6 +32,8 @@ export function convertRefsToCopies({
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void;
+    /** Collects the warnings of every recursive call. */
+    diagnostics?: DiagnosticRecord[];
 }) {
     const newComponents: (UnflattenedComponent | string)[] = [];
 
@@ -48,6 +53,7 @@ export function convertRefsToCopies({
             componentInfoObjects,
             allNodes,
             addNodesToResolver,
+            diagnostics,
         });
         newComponent.children = res.components;
         nComponents = res.nComponents;
@@ -61,6 +67,7 @@ export function convertRefsToCopies({
                 componentInfoObjects,
                 allNodes,
                 addNodesToResolver,
+                diagnostics,
             });
             attribute.children = res.components;
             nComponents = res.nComponents;
@@ -91,6 +98,7 @@ export function convertRefsToCopies({
                 componentInfoObjects,
                 allNodes,
                 addNodesToResolver,
+                diagnostics,
             });
 
             nComponents = evalResult.nComponents;
@@ -157,6 +165,11 @@ export function convertRefsToCopies({
                 }
 
                 if ("CopyAttribute" in extending) {
+                    dropAuthoredLinkOfCopy({
+                        attributes: wrappingComponent.attributes,
+                        component: wrappingComponent,
+                        diagnostics,
+                    });
                     newComponent.attributes.link = {
                         name: "link",
                         children: ["false"],
@@ -165,6 +178,15 @@ export function convertRefsToCopies({
                     wrappingComponent.doenetAttributes.copyListViaComposite =
                         newComponent.componentIdx;
                 } else {
+                    // `link` is the copy's to read, not the list's
+                    const link = takeAuthoredLink(wrappingComponent.attributes);
+                    if (link) {
+                        newComponent.attributes.link = {
+                            ...link,
+                            name: "link",
+                        };
+                    }
+
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;
 
@@ -249,6 +271,11 @@ export function convertRefsToCopies({
                 };
 
                 if ("CopyAttribute" in extending) {
+                    dropAuthoredLinkOfCopy({
+                        attributes: outerAttributes,
+                        component,
+                        diagnostics,
+                    });
                     outerAttributes.link = {
                         name: "link",
                         children: ["false"],
@@ -268,6 +295,7 @@ export function convertRefsToCopies({
                         componentInfoObjects,
                         allNodes,
                         addNodesToResolver,
+                        diagnostics,
                     });
                     nComponents = res.nComponents;
 
@@ -386,7 +414,58 @@ export function convertRefsToCopies({
         }
     }
 
-    return { components: newComponents, nComponents };
+    return { components: newComponents, nComponents, diagnostics };
+}
+
+/**
+ * Take the `link` the author wrote, in any case, off `attributes` and return
+ * it (the last, if written more than once).
+ *
+ * A copy sets `link` itself, under that exact name, so an author's `LINK`
+ * left beside it would be a second `link` attribute.
+ */
+function takeAuthoredLink(
+    attributes: Record<string, UnflattenedAttribute>,
+): UnflattenedAttribute | undefined {
+    let link: UnflattenedAttribute | undefined;
+    for (const attrName of Object.keys(attributes)) {
+        if (attrName.toLowerCase() === "link") {
+            link = attributes[attrName];
+            delete attributes[attrName];
+        }
+    }
+    return link;
+}
+
+/**
+ * Drop the `link` the author wrote on a `copy`, which is never linked, with a
+ * warning unless they wrote `link="false"`, which says so already.
+ */
+function dropAuthoredLinkOfCopy({
+    attributes,
+    component,
+    diagnostics,
+}: {
+    attributes: Record<string, UnflattenedAttribute>;
+    component: UnflattenedComponent;
+    diagnostics: DiagnosticRecord[];
+}) {
+    const link = takeAuthoredLink(attributes);
+    if (!link) {
+        return;
+    }
+    const child = link.children.length === 1 ? link.children[0] : null;
+    if (typeof child === "string" && child.trim().toLowerCase() === "false") {
+        return;
+    }
+    diagnostics.push(
+        codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0176",
+            position: link.position ?? component.position,
+            sourceDoc: link.sourceDoc ?? component.sourceDoc,
+        }),
+    );
 }
 
 /**
@@ -413,6 +492,7 @@ function convertEvaluate({
     componentInfoObjects,
     allNodes,
     addNodesToResolver,
+    diagnostics,
 }: {
     evaluateComponent: UnflattenedComponent;
     refResolution: UnflattenedRefResolution;
@@ -423,6 +503,7 @@ function convertEvaluate({
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void;
+    diagnostics: DiagnosticRecord[];
 }) {
     // The function to evaluate is an attribute
 
@@ -451,6 +532,7 @@ function convertEvaluate({
         componentInfoObjects,
         allNodes,
         addNodesToResolver,
+        diagnostics,
     });
     nComponents = res.nComponents;
 

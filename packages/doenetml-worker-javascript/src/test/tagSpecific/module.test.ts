@@ -1502,6 +1502,43 @@ describe("Module tag tests @group1", async () => {
         ).eq("c0 t0");
     });
 
+    it("module attribute named like a camel-cased attribute of a module", async () => {
+        // `asList` is a `<module>`'s own attribute, so it cannot name a
+        // module attribute. Compared against the lowercased names in
+        // `ModuleAttributes`, it was missed, and set on the module, a copy or
+        // an extend, it threw instead of warning (#2326).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m">
+            <moduleAttributes><text name="asList">d</text></moduleAttributes>
+            <p name="p">$asList</p>
+        </module>
+        <module name="n" asList="x">
+            <moduleAttributes><text name="asList">d</text></moduleAttributes>
+            <p name="p">$asList</p>
+        </module>
+        <module name="c" copy="$m" asList="x" />
+        <module name="e" extend="$m" asList="x" />
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        const message =
+            'The component `<text name="asList">` cannot be used as an attribute for a module because the `<module>` component type already has a "asList" attribute defined.';
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([message, message]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["m.p", "n.p", "c.p", "e.p"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("d");
+        }
+    });
+
     it("copy of a module with a module attribute named like a copy attribute", async () => {
         // `link` is the copy's own attribute, so the copy takes it and the
         // module keeps its default. The module used to be handed the copy's

@@ -684,6 +684,11 @@ extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $com
 
 extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
 
+# A `link` attribute written on a component with `copy`, which is never
+# linked to what it copies. `link`, `copy` and `extend` are DoenetML attribute
+# names, so they stay in English.
+copy-link-ignored = The `link` attribute is ignored on a component with `copy`: a copy is never linked to what it copies. Use `extend` for a linked one.
+
 ## Children that do not match
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.

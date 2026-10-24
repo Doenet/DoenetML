@@ -10,6 +10,7 @@ import {
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2557,5 +2558,119 @@ describe("Unlinked Copying Tests @group4", async () => {
         for (const name of ["me", "mc", "xe", "xc", "xu", "le", "lc", "lu"]) {
             expect((await stateValues(name)).text, name).eq("1.2");
         }
+    });
+
+    it("a link written on a copy or an extend, in any case and on a list too", async () => {
+        // A copy sets `link` itself; an author's `LINK` beside it used to be
+        // a repeated attribute, and a list's copy or extend left `link` on
+        // the list, which does not take it (#2326).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="x" />
+<point name="P">(1,2)</point>
+<mathList name="ml">$mi y</mathList>
+<point name="c1" copy="$P" link="false" />
+<point name="c2" copy="$P" LINK="false" />
+<point name="c3" copy="$P" link="true" />
+<point name="c4" copy="$P" Link="true" />
+<point name="e1" extend="$P" />
+<point name="e2" extend="$P" link="false" />
+<point name="e3" extend="$P" LINK="false" />
+<mathList name="lc1" copy="$ml" LINK="false" />
+<mathList name="lc2" copy="$ml" link="true" />
+<mathList name="le1" extend="$ml" />
+<mathList name="le2" extend="$ml" link="false" />
+<mathList name="le3" extend="$ml" LINK="false" />
+`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        const message =
+            "The `link` attribute is ignored on a component with `copy`: a copy is never linked to what it copies. Use `extend` for a linked one.";
+        expect(
+            diagnosticsByType.warnings.map((warning) => [
+                warning.message,
+                warning.position?.start.line,
+            ]),
+        ).eqls([
+            [message, 7],
+            [message, 8],
+            [message, 13],
+        ]);
+
+        const pointNames = ["P", "c1", "c2", "c3", "c4", "e1", "e2", "e3"];
+        const listNames = ["ml", "lc1", "lc2", "le1", "le2", "le3"];
+
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of pointNames) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.coords.toString();
+            }
+            for (const name of listNames) {
+                result[name] = stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.maths
+                    .map((m) => m.toString())
+                    .join(",");
+            }
+            return result;
+        }
+
+        expect(await values()).eqls({
+            P: "(1, 2)",
+            c1: "(1, 2)",
+            c2: "(1, 2)",
+            c3: "(1, 2)",
+            c4: "(1, 2)",
+            e1: "(1, 2)",
+            e2: "(1, 2)",
+            e3: "(1, 2)",
+            ml: "x,y",
+            lc1: "x,y",
+            lc2: "x,y",
+            le1: "x,y",
+            le2: "x,y",
+            le3: "x,y",
+        });
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 3,
+            y: 4,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        // Only the plain extends follow; every copy, and every extend
+        // written with `link="false"` in whatever case, keeps what it started
+        // with.
+        expect(await values()).eqls({
+            P: "(3, 4)",
+            c1: "(1, 2)",
+            c2: "(1, 2)",
+            c3: "(1, 2)",
+            c4: "(1, 2)",
+            e1: "(3, 4)",
+            e2: "(1, 2)",
+            e3: "(1, 2)",
+            ml: "z,y",
+            lc1: "x,y",
+            lc2: "x,y",
+            le1: "z,y",
+            le2: "x,y",
+            le3: "x,y",
+        });
     });
 });
