@@ -132,6 +132,9 @@ export default class CobwebPolyline extends Polyline {
             entryPrefixes: ["initialPointX"],
             defaultValueByArrayKey: () => me.fromAst(0),
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({}),
             returnArraySize: () => [2],
             returnArrayDependenciesByKey({ arrayKeys }) {

@@ -565,10 +565,12 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
     });
 
     it("moved vertices are kept through a reload", async () => {
+        // no `initialPoint`, so moving the first vertex writes the initial
+        // point's own saved value rather than the attribute's
         const doenetML = `
   <function name="f">x/2</function>
   <graph>
-    <cobwebPolyline name="cw" function="$f" numPoints="3" initialPoint="(1,0)" />
+    <cobwebPolyline name="cw" function="$f" numPoints="3" />
   </graph>
   `;
 

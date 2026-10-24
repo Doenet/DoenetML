@@ -12,6 +12,6 @@ The same fix covers three related cases:
 
 - A `<matrix>` given only `numRows` and `numColumns`, whose entries were set through a `<matrixInput>` or `<mathInput>`, also stopped the document from loading after a reload.
 - A `<rectangle>` with no vertices specified, after it was moved, also stopped the document from loading after a reload.
-- A `<cobwebPolyline>` whose vertices were moved lost them after a reload: every vertex past the initial point went back to `(0,0)`.
+- A `<cobwebPolyline>` whose vertices were moved lost them after a reload: every vertex past the initial point went back to its default position. If the `<cobwebPolyline>` had no `initialPoint` and its first vertex was moved, the document stopped loading instead.
 
 Closes #2236.
