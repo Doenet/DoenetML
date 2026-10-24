@@ -2608,4 +2608,86 @@ describe("callAction tag tests @group4", async () => {
                 .selectedStyle.fillColor,
         ).eq("yellow");
     });
+
+    it("a disabled callAction does not call its action, whether clicked or triggered", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="P">(1,2)</point>
+    </graph>
+    <booleanInput name="dis" prefill="true" />
+    <booleanInput name="b" />
+    <number name="n1">0</number>
+    <number name="n2">0</number>
+    <number name="n3">0</number>
+    <number name="n4">0</number>
+    <number name="n5">0</number>
+    <number name="n6">0</number>
+
+    <updateValue name="uv1" target="$n1" newValue="$n1+1" />
+    <updateValue name="uv2" target="$n2" newValue="$n2+1" />
+    <updateValue name="uv3" target="$n3" newValue="$n3+1" />
+    <updateValue name="uv4" target="$n4" newValue="$n4+1" />
+    <updateValue name="uv5" target="$n5" newValue="$n5+1" />
+
+    <callAction name="ca1" target="$uv1" actionName="updateValue" disabled="$dis" />
+    <callAction target="$uv2" actionName="updateValue" triggerWhen="$b" disabled="$dis" />
+    <callAction target="$uv3" actionName="updateValue" triggerWhenObjectsClicked="$P" disabled="$dis" />
+    <callAction target="$uv4" actionName="updateValue" triggerWhenObjectsFocused="$P" disabled="$dis" />
+    <callAction target="$uv5" actionName="updateValue" triggerWith="$b" disabled="$dis" />
+    <updateValue target="$n6" newValue="$n6+1" triggerWith="$ca1" />
+    `,
+        });
+
+        const PIdx = await resolvePathToNodeIdx("P");
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        async function check(expected: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [ind, value] of expected.entries()) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`n${ind + 1}`)]
+                        .stateValues.value,
+                    `n${ind + 1}`,
+                ).eq(value);
+            }
+        }
+
+        async function fireAll() {
+            await callAction({
+                componentIdx: await resolvePathToNodeIdx("ca1"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: bIdx,
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: bIdx,
+                core,
+            });
+            await clickPoint({ componentIdx: PIdx, core });
+            await focusPoint({ componentIdx: PIdx, core });
+        }
+
+        // Disabled: neither the button nor any trigger calls the action, and
+        // the updateValue chained to the disabled button does not run either.
+        await fireAll();
+        await check([0, 0, 0, 0, 0, 0]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("dis"),
+            core,
+        });
+
+        // `triggerWith="$b"` fires on both changes of `b`
+        await fireAll();
+        await check([1, 1, 1, 1, 2, 1]);
+    });
 });

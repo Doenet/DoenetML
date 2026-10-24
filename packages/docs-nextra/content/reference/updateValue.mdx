@@ -205,7 +205,7 @@ The `newValue` attribute specifies the new value for the target or target proper
 
 
 
-The `disabled` attribute takes a boolean condition. When the condition evaluates to `true`, the button becomes disabled.
+The `disabled` attribute takes a boolean condition. When the condition evaluates to `true`, the button becomes disabled and the value is not updated. A disabled `<updateValue>{:dn}` does not update even when it is triggered by `triggerWhen`, `triggerWith`, `triggerWhenObjectsClicked` or `triggerWhenObjectsFocused`, and any action triggered with it does not run either.
 
 
 ---

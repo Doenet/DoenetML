@@ -547,6 +547,11 @@ export default class UpdateValue extends InlineComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        // A disabled action does nothing, whether its button was clicked or
+        // it was triggered, and so triggers none of the actions chained to it.
+        if (await this.stateValues.disabled) {
+            return;
+        }
         let targets = await this.stateValues.targets;
         let newValue = await this.stateValues.newValue;
         if (targets === null || newValue === null) {

@@ -130,6 +130,15 @@ export default class triggerSet extends InlineComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        // A disabled trigger set runs none of its children, whether its button
+        // was clicked or it was triggered, and triggers none of the actions
+        // chained to it.
+        if (await this.stateValues.disabled) {
+            return;
+        }
+
+        // A disabled child is skipped, as its own action returns without
+        // acting, while its siblings still run.
         for (let child of await this.stateValues
             .updateValueAndActionsToTrigger) {
             if (
