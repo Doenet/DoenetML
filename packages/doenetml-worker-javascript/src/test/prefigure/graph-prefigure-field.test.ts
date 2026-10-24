@@ -310,26 +310,41 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         expect(await warningCodes(doenetML)).toEqual([]);
     });
 
-    it("magnifies a field of vectors too short for PreFigure, and scales it back", async () => {
+    it("rescales a field of vectors too short for PreFigure, and normalizes each vector", async () => {
         const doenetML = prefigureGraph(`
   <vectorField>(10^(-12), 0)</vectorField>
-  <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>`);
+  <vectorField>(10^(-309), 0)</vectorField>
+  <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>
+  <vectorField normalize>(1, 10^(-15) x)</vectorField>`);
         const prefigureXML = await getPrefigureXML(doenetML);
 
         // PreFigure draws a vector shorter than 1e-10 as zero, so the
-        // function it calls multiplies by the reciprocal of the longest
-        // vector's length, and the scale divides by it.
+        // function it calls divides by the longest vector's length, a
+        // subnormal one included, and the scale makes up for it.
         expect(prefigureXML).toContain(
-            "<definition>vectorfield_0_f(x,y)=1000000000000.0*vectorfield_0_f_formula(",
+            "<definition>vectorfield_0_f(x,y)=vectorfield_0_f_formula(",
+        );
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_0_f\(x,y\)=vectorfield_0_f_formula\([^<]*\)\/1e-12<\/definition>/,
+        );
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_1_f\(x,y\)=vectorfield_1_f_formula\([^<]*\)\/1e-309<\/definition>/,
+        );
+        // With normalize, each vector is made a unit vector, so that the
+        // short (0, 1e-15 x) part of the last field is not lost.
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_2_f\(x,y\)=normalize\(vectorfield_2_f_formula\([^<]*\)\/[0-9.e-]+\)<\/definition>/,
+        );
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_3_f\(x,y\)=normalize\(vectorfield_3_f_formula\([^<]*\)\)<\/definition>/,
         );
         const scales = [...prefigureXML.matchAll(/ scale="([^"]*)"/g)].map(
             (m) => Number(m[1]),
         );
-        expect(scales[0]).toBeCloseTo(24 / UNIT, 10);
-        expect(prefigureXML).toMatch(
-            /<definition>vectorfield_1_f\(x,y\)=[0-9.e]+\*vectorfield_1_f_formula\(/,
-        );
-        expect(scales[1]).toBeCloseTo(24 / UNIT, 10);
+        expect(scales).toHaveLength(4);
+        for (const scale of scales) {
+            expect(scale).toBeCloseTo(24 / UNIT, 10);
+        }
         expect(await warningCodes(doenetML)).toEqual([]);
     });
 

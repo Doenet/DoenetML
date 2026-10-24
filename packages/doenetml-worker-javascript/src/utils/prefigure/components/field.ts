@@ -255,7 +255,8 @@ function fieldFunctionDefinitions({
     name,
     definitions,
     grid,
-    factor = 1,
+    divisor = 1,
+    normalize = false,
     diagnostics,
     warningPrefix,
     warningPosition,
@@ -263,8 +264,10 @@ function fieldFunctionDefinitions({
     name: string;
     definitions: CurveFunctionDefinition[];
     grid: FieldLattice["grid"];
-    /** A factor PreFigure's function multiplies the field's values by. */
-    factor?: number;
+    /** A number PreFigure's function divides the field's values by. */
+    divisor?: number;
+    /** Whether PreFigure's function makes each value a unit vector. */
+    normalize?: boolean;
 }): string | null {
     const warnNotFormula = (definition: CurveFunctionDefinition) => {
         pushWarning({
@@ -331,10 +334,15 @@ function fieldFunctionDefinitions({
     const snap = (variable: string, step: number, offset: number) =>
         `0*${variable}+round((${variable}-${pythonFloat(offset)})/${pythonFloat(step * grid.stride)})*${grid.stride}*${pythonFloat(step)}+${pythonFloat(offset)}`;
     const formulaName = `${name}_formula`;
+    const wrap = (call: string) => {
+        const divided =
+            divisor === 1 ? call : `${call}/${pythonFloat(divisor)}`;
+        return normalize ? `normalize(${divided})` : divided;
+    };
 
     return [
         `${formulaName}(x,y)=${body}`,
-        `${name}(x,y)=${factor === 1 ? "" : `${pythonFloat(factor)}*`}${formulaName}(${snap("x", grid.dx, grid.xoffset)},${snap("y", grid.dy, grid.yoffset)})`,
+        `${name}(x,y)=${wrap(`${formulaName}(${snap("x", grid.dx, grid.xoffset)},${snap("y", grid.dy, grid.yoffset)})`)}`,
     ]
         .map((text) => `<definition>${escapeXml(text)}</definition>`)
         .join("");
@@ -516,13 +524,16 @@ export function convertSlopeFieldToPrefigure({
  * The JSXGraph renderer's arrowhead: each barb is this fraction of its arrow's
  * length, at this angle, in radians, from the shaft (`buildVectorFieldData`).
  */
-const BARB_FRACTION = 0.3;
-
 /**
- * The length, in graph units, below which a vector field's longest vector is
- * magnified before PreFigure draws it: 1e6 times PreFigure's cutoff of 1e-10.
+ * The range of lengths, in graph units, outside which a vector field's
+ * longest vector is rescaled to 1 before PreFigure draws it: from 1e6 times
+ * PreFigure's cutoff of 1e-10, at which it draws a vector as zero, to 1e4,
+ * whose reciprocal is as far on the other side of 1.
  */
 const MIN_UNSCALED_NORM = 1e-4;
+const MAX_UNSCALED_NORM = 1e4;
+
+const BARB_FRACTION = 0.3;
 const BARB_ANGLE = 0.44;
 
 /**
@@ -636,17 +647,25 @@ export function convertVectorFieldToPrefigure({
     }
     // PreFigure draws a vector shorter than 1e-10 in graph units as zero, and
     // loses the field to a division by zero if every vector is. So a field
-    // of such short vectors is given to PreFigure magnified to a longest
-    // vector of 1, and `scale` shrinks it back. Either way, only a vector
-    // under a millionth of the longest one, too short to draw, is lost.
-    const factor = maxNorm > 0 && maxNorm < MIN_UNSCALED_NORM ? 1 / maxNorm : 1;
+    // of such short vectors is given to PreFigure divided by the length of
+    // its longest vector, and `scale` makes up for it; so is a field of long
+    // ones, whose squared lengths would overflow. Without `normalize`, only a
+    // vector under a millionth of the longest one, too short to draw, is
+    // then lost. With it, every vector is drawn at full length, so each is
+    // made a unit vector in the function PreFigure calls.
+    const divisor =
+        maxNorm > 0 &&
+        (maxNorm < MIN_UNSCALED_NORM || maxNorm > MAX_UNSCALED_NORM)
+            ? maxNorm
+            : 1;
 
     const functionName = `${handle}_f`;
     const definitionXml = fieldFunctionDefinitions({
         name: functionName,
         definitions,
         grid: lattice.grid,
-        factor,
+        divisor,
+        normalize: Boolean(sv.normalize),
         ...warningContext,
     });
     if (definitionXml === null) {
@@ -709,7 +728,7 @@ export function convertVectorFieldToPrefigure({
         const unit = equalScales ? unitX : Math.sqrt(unitX * unitY);
         fieldAttrs.push(`scale="${markLength / unit}"`);
     } else {
-        fieldAttrs.push(`scale="${markLength / (factor * maxMagnitude)}"`);
+        fieldAttrs.push(`scale="${markLength / (maxMagnitude / divisor)}"`);
     }
 
     fieldAttrs.push(
