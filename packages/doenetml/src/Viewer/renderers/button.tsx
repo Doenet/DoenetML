@@ -459,9 +459,10 @@ export default React.memo(function ButtonComponent(
     }
 
     return (
-        <div id={id} style={{ margin: "12px 0", display: "inline-block" }}>
+        <div id={id} style={{ display: "inline-block" }}>
             <Button
                 id={id + "_button"}
+                className="doenet-inline-action-button"
                 onClick={() => callAction({ action: actions[SVs.clickAction] })}
                 disabled={SVs.disabled}
                 value={renderedLabel ? undefined : label}

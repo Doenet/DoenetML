@@ -76,4 +76,56 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#m").should("have.text", "2");
         cy.get("#n").should("have.text", "30");
     });
+    it("action buttons are no taller than an inline check-work button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <number name="m">1</number>
+    <p name="pButtons">District 1
+      <updateValue name="uv" target="$m" newValue="$m+1"><label>Set district 1</label></updateValue>
+      <callAction name="ca" target="$m" actionName="resample"><label>Call</label></callAction>
+      <triggerSet name="ts"><label>Trigger</label><updateValue target="$m" newValue="$m+1" /></triggerSet>
+    </p>
+    <p>x: <answer inline><mathInput name="mi" />x</answer></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#m").should("have.text", "1");
+
+        cy.get("#mi_button").then((checkWork) => {
+            const checkWorkHeight = checkWork[0].getBoundingClientRect().height;
+
+            for (const id of ["uv", "ca", "ts"]) {
+                cy.get(`#${id}`)
+                    .should("have.css", "margin-top", "0px")
+                    .and("have.css", "margin-bottom", "0px");
+                cy.get(`#${id}_button`).should((button) => {
+                    expect(
+                        button[0].getBoundingClientRect().height,
+                    ).to.be.at.most(checkWorkHeight);
+                });
+            }
+
+            // The buttons leave the line they sit in no taller than a
+            // check-work button would
+            cy.get("#pButtons").should((p) => {
+                expect(p[0].getBoundingClientRect().height).to.be.at.most(
+                    checkWorkHeight,
+                );
+            });
+        });
+
+        // With no vertical padding, a focus ring drawn inside the button
+        // would cross its label, so it must be drawn outside it
+        cy.get("#uv_button").focus();
+        cy.get("#uv_button").should((button) => {
+            const style = window.getComputedStyle(button[0]);
+            expect(style.outlineStyle).not.to.eq("none");
+            expect(parseFloat(style.outlineOffset)).to.be.at.least(0);
+        });
+    });
 });
