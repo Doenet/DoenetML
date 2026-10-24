@@ -519,3 +519,19 @@ text. Three rules then cover what the category was used to explain:
 
 What remains genuinely composite-specific, such as an `extend` of a repeat ignoring `for` (REF-7)
 or children on a copy of a repeat (D4), should be stated on the tag's own reference page.
+
+## D25. A table's title and a figure's caption take the first child, not the last
+
+**Today.** Wherever a component uses one `<label>`, `<title>` or `<shortDescription>`, the last
+one written wins (REF-4a). That holds for 22 label-taking components, for sections, hints and
+charts, and for `shortDescription`. So a label or title written inside an `extend` or `copy`
+replaces the source's.
+
+`<table>` (`Table.js:140`, `:165`) and `<figure>` (`Figure.js:155`, `:181`) instead take the
+**first** title or caption. As a result, `<table extend="$t"><title>New</title></table>` keeps
+the old title (**[probe]**). `Document.js:199` also takes the first.
+
+**Recommendation.** Make all three take the last child, so that one rule covers every
+single-use child. No test pins the current behavior. Add a sweep: for every component with a
+single-use child group, writing two of them uses the second, and adding one in an `extend` or
+`copy` replaces the source's.
