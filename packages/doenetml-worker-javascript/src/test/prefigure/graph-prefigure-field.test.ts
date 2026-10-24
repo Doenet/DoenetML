@@ -617,6 +617,39 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         ]);
     });
 
+    it("follows infinities, NaNs and complex numbers through Python's math functions", async () => {
+        const doenetML = prefigureGraph(`
+  <slopeField>sin((1/x^2)!)</slopeField>
+  <slopeField>floor(exp(1/x^2))</slopeField>
+  <slopeField>floor(sin(x y/(x^2+y^2)))</slopeField>
+  <slopeField>floor(max(x, y/y))</slopeField>
+  <slopeField>(csc(x)^2)!</slopeField>
+  <slopeField>sin(sin(x)^(1/3))</slopeField>
+  <slopeField>abs(sin(x)^(1/3))</slopeField>
+  <slopeField>10^400</slopeField>`);
+        const diagnostics = await getWarnings(doenetML);
+
+        // A math function passes an infinity or a NaN on as a Python float,
+        // on which the next function raises as on a numpy one: gamma(inf)
+        // and exp(inf) are inf, and sin(nan) is nan. But max(x, nan) is x,
+        // since a NaN never compares greater, and in (csc(x)^2)! the
+        // division by sin(0) raises first, which a slope field catches. A
+        // Python power of a negative number is complex, on which sin raises
+        // but abs does not, and one that overflows raises.
+        expect(
+            diagnostics.warnings.map((w) => [
+                w.code,
+                w.message.match(/\(-?[0-9.]+, -?[0-9.]+\)/)?.[0],
+            ]),
+        ).toEqual([
+            ["doenet-w0172", "(0, -10)"],
+            ["doenet-w0172", "(0, -10)"],
+            ["doenet-w0172", "(0, 0)"],
+            ["doenet-w0172", "(-9, -10)"],
+            ["doenet-w0172", "(-10, -10)"],
+        ]);
+    });
+
     it("draws the component a one-output function selects from a tuple", async () => {
         // The numerical function takes the first entry of `(x, y)` as the
         // slope, so PreFigure must be given `x`, not the tuple.

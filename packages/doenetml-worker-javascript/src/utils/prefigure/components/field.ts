@@ -11,9 +11,9 @@ import { wholePixelThickness, wholePixelThicknessAttributes } from "../style";
 import {
     astToPythonExpression,
     astToVariableName,
-    resolveAppliedFunctionName,
     rewriteExpressionVariables,
 } from "../formulaUtils";
+import { firstRaisingLatticePoint } from "../pythonRaise";
 import { SLOPE_FIELD_DEFAULT_MARK_LENGTH } from "../../field";
 import type {
     ConverterArgs,
@@ -40,139 +40,6 @@ import type {
  * normalizes in graph units, not pixels), and a dashed or dotted `lineStyle`
  * (PreFigure passes only `stroke` and `thickness` on to the marks).
  */
-
-/**
- * How evaluating a function makes PreFigure raise: `"error"`, a `ValueError`
- * or `OverflowError`, which loses either kind of field; or `"division"`, a
- * `ZeroDivisionError`, which a slope field catches and draws as a vertical
- * mark but a vector field does not.
- */
-type Raise = "error" | "division" | null;
-
-/**
- * Whether `a` is an infinity a `math` function receives from numpy arithmetic,
- * such as `1/x` at x = 0, on which `math.sin` raises. A Python number reaching
- * a `math` function is not taken to be infinite: a Python division by zero
- * raises before it can be passed on. (A Python product that overflows to an
- * infinity, such as `exp(400)*exp(400)`, is not modelled.)
- */
-function numpyInfinity(a: number, argumentIsPython: boolean): boolean {
-    return !argumentIsPython && (a === Infinity || a === -Infinity);
-}
-
-/**
- * Whether `a` is an infinity or a NaN from numpy arithmetic, as `1/x` and
- * `x*y/(x^2+y^2)` give at the origin: `math.floor` raises on either, since it
- * cannot convert them to an integer.
- */
-function numpyNonFinite(a: number, argumentIsPython: boolean): boolean {
-    return !argumentIsPython && !Number.isFinite(a);
-}
-
-/** The largest `n` whose `math.gamma(n)` does not overflow a float. */
-const GAMMA_OVERFLOW = 171.62437695630272;
-
-/** Whether `cosh` or `sinh` of a finite value overflows a float. */
-function hyperbolicOverflows(a: number): boolean {
-    return Number.isFinite(a) && !Number.isFinite(Math.cosh(a));
-}
-
-/**
- * `1/(a)` inside one of the inverse reciprocal functions: at 0, a Python
- * number raises `ZeroDivisionError`, while a numpy float gives an infinity,
- * which is an error only if `infinityRaises`.
- */
-function reciprocalOfZero(argumentIsPython: boolean, infinityRaises: boolean) {
-    if (argumentIsPython) {
-        return "division";
-    }
-    return infinityRaises ? "error" : null;
-}
-
-/**
- * For each function the translation (`astToPythonExpression`) can emit, by
- * the name `resolveAppliedFunctionName` gives it, when its argument `a` makes
- * PreFigure raise. Python's `math` functions raise outside their domain where
- * the JSXGraph renderer's merely give `NaN`, and PreFigure's `csc`, `sec` and
- * `cot` (`prefig/core/math_utilities.py`), like the translation's own `1/`
- * rewrites, divide in Python numbers. `argumentIsPython` says whether `a` is a
- * Python number rather than a numpy float at that point.
- */
-const RAISING_ARGUMENTS: Record<
-    string,
-    (a: number, argumentIsPython: boolean) => Raise
-> = {
-    sqrt: (a) => (a < 0 ? "error" : null),
-    log: (a) => (a <= 0 ? "error" : null),
-    ln: (a) => (a <= 0 ? "error" : null),
-    log10: (a) => (a <= 0 ? "error" : null),
-    log2: (a) => (a <= 0 ? "error" : null),
-    exp: (a) =>
-        Number.isFinite(a) && Math.exp(a) === Infinity ? "error" : null,
-    sinh: (a) => (hyperbolicOverflows(a) ? "error" : null),
-    cosh: (a) => (hyperbolicOverflows(a) ? "error" : null),
-    asin: (a) => (Math.abs(a) > 1 ? "error" : null),
-    arcsin: (a) => (Math.abs(a) > 1 ? "error" : null),
-    acos: (a) => (Math.abs(a) > 1 ? "error" : null),
-    arccos: (a) => (Math.abs(a) > 1 ? "error" : null),
-    acosh: (a) => (a < 1 ? "error" : null),
-    arccosh: (a) => (a < 1 ? "error" : null),
-    atanh: (a) => (Math.abs(a) >= 1 ? "error" : null),
-    arctanh: (a) => (Math.abs(a) >= 1 ? "error" : null),
-    // gamma(a + 1)
-    // gamma(a + 1), which is infinite at an infinity but raises at minus one.
-    factorial: (a) =>
-        (Number.isInteger(a + 1) && a + 1 <= 0) ||
-        a === -Infinity ||
-        (Number.isFinite(a) && a + 1 > GAMMA_OVERFLOW)
-            ? "error"
-            : null,
-    sin: (a, py) => (numpyInfinity(a, py) ? "error" : null),
-    cos: (a, py) => (numpyInfinity(a, py) ? "error" : null),
-    tan: (a, py) => (numpyInfinity(a, py) ? "error" : null),
-    csc: (a, py) =>
-        numpyInfinity(a, py) ? "error" : Math.sin(a) === 0 ? "division" : null,
-    sec: (a, py) =>
-        numpyInfinity(a, py) ? "error" : Math.cos(a) === 0 ? "division" : null,
-    cot: (a, py) =>
-        numpyInfinity(a, py) ? "error" : Math.tan(a) === 0 ? "division" : null,
-    // `round` is translated to `floor`, as is `round(x, n)`, which
-    // `pushFunctionCheck` gives its first argument.
-    floor: (a, py) => (numpyNonFinite(a, py) ? "error" : null),
-    ceil: (a, py) => (numpyNonFinite(a, py) ? "error" : null),
-    round: (a, py) => (numpyNonFinite(a, py) ? "error" : null),
-    // 1/cosh(a), 1/sinh(a), 1/tanh(a)
-    sech: (a) => (hyperbolicOverflows(a) ? "error" : null),
-    csch: (a) =>
-        hyperbolicOverflows(a)
-            ? "error"
-            : Math.sinh(a) === 0
-              ? "division"
-              : null,
-    coth: (a) => (Math.tanh(a) === 0 ? "division" : null),
-    // acos(1/(a)), asin(1/(a)), acosh(1/(a)), asinh(1/(a)), atanh(1/(a))
-    arcsec: (a, py) =>
-        a === 0 ? reciprocalOfZero(py, true) : Math.abs(a) < 1 ? "error" : null,
-    arccsc: (a, py) =>
-        a === 0 ? reciprocalOfZero(py, true) : Math.abs(a) < 1 ? "error" : null,
-    arcsech: (a, py) =>
-        a === 0 ? reciprocalOfZero(py, false) : a < 0 || a > 1 ? "error" : null,
-    arccsch: (a, py) => (a === 0 ? reciprocalOfZero(py, false) : null),
-    arccoth: (a, py) =>
-        a === 0
-            ? reciprocalOfZero(py, true)
-            : Math.abs(a) <= 1
-              ? "error"
-              : null,
-};
-
-/** `math.log(value, base)`, which raises for a base of 1 by dividing by 0. */
-function twoArgumentLogRaise(value: number, base: number): Raise {
-    if (value <= 0 || base <= 0) {
-        return "error";
-    }
-    return base === 1 ? "division" : null;
-}
 
 /** The style attributes PreFigure copies onto each mark of a field. */
 const FIELD_STYLE_ATTRIBUTE_NAMES = new Set(["stroke", "thickness"]);
@@ -286,216 +153,6 @@ function variableNamesOf(definition: CurveFunctionDefinition): string[] {
     return variables.map((variable) =>
         String(me.fromAst(variable).subscripts_to_strings().tree),
     );
-}
-
-/**
- * The first lattice point at which PreFigure raises while evaluating the
- * field's function, losing the whole field, or null if there is none.
- *
- * PreFigure calls the function on numpy floats, on which division by zero
- * gives an infinity and loses at most one mark. These raise instead:
- * - a function given an argument {@link RAISING_ARGUMENTS} says raises: a
- *   negative to `sqrt`, zero or a negative to a logarithm, more than 1 in
- *   size to `arcsin`, more than about 709.8 to `exp`, and so on;
- * - with `divisionRaises`, a division by zero in which both sides are Python
- *   numbers, or a Python zero raised to a negative power: `1/sin(x)` at x = 0,
- *   since `sin` returns a Python float. (`x/sin(y)` divides a numpy float,
- *   which gives an infinity.) A slope field catches a `ZeroDivisionError` and
- *   draws a vertical mark; a vector field does not.
- *
- * Not every failure is caught: a Python power that overflows, or a complex
- * result handed to `sqrt`, also raises. These are rare enough that the check
- * does not try to model them.
- *
- * Each argument and divisor is evaluated at each lattice point in the
- * author's variables, so that the warning names a point where PreFigure fails
- * rather than one where the function merely has no finite value: `sqrt(y)/x`
- * on y > 0 is infinite at x = 0, which PreFigure draws.
- */
-function firstRaisingLatticePoint({
-    definitions,
-    xs,
-    ys,
-    divisionRaises,
-}: {
-    definitions: CurveFunctionDefinition[];
-    xs: number[];
-    ys: number[];
-    divisionRaises: boolean;
-}): [number, number] | null {
-    const variableNames = variableNamesOf(definitions[0]);
-
-    function compile(ast: unknown): (x: number, y: number) => number {
-        let f: (bindings: Record<string, number>) => unknown;
-        try {
-            f = me
-                .fromAst(ast as any)
-                .subscripts_to_strings()
-                .f();
-        } catch (_e) {
-            return () => NaN;
-        }
-        return (x, y) => {
-            const bindings: Record<string, number> = {};
-            [x, y].forEach((value, index) => {
-                if (variableNames[index] !== undefined) {
-                    bindings[variableNames[index]] = value;
-                }
-            });
-            try {
-                const value = f(bindings);
-                return typeof value === "number" ? value : NaN;
-            } catch (_e) {
-                return NaN;
-            }
-        };
-    }
-
-    /**
-     * Whether PreFigure evaluates `ast` at a point to a plain Python number
-     * rather than a numpy float. PreFigure calls the function on numpy
-     * floats, and numpy arithmetic stays numpy, but a `math` function returns
-     * a Python float whatever its argument, and so does arithmetic on
-     * constants alone. `abs` keeps its argument's type, and `min` and `max`
-     * return the argument they select, the first of any tied, so the answer
-     * can differ from point to point: `max(0, x)` is the Python `0` where x is
-     * negative.
-     */
-    function pythonAt(ast: unknown): (x: number, y: number) => boolean {
-        if (typeof ast === "string" || (Array.isArray(ast) && ast[0] === "_")) {
-            const name =
-                typeof ast === "string"
-                    ? ast
-                    : String(
-                          me.fromAst(ast as any).subscripts_to_strings().tree,
-                      );
-            const isPython = !variableNames.includes(name);
-            return () => isPython;
-        }
-        if (!Array.isArray(ast)) {
-            return () => true;
-        }
-        if (ast[0] === "apply") {
-            const name = resolveAppliedFunctionName(ast[1]);
-            if (name === "abs") {
-                return pythonAt(ast[2]);
-            }
-            const args = ast[2];
-            if (
-                (name === "min" || name === "max") &&
-                Array.isArray(args) &&
-                args[0] === "tuple"
-            ) {
-                const values = args.slice(1).map(compile);
-                const kinds = args.slice(1).map(pythonAt);
-                return (x, y) => {
-                    let selected = 0;
-                    let selectedValue = values[0](x, y);
-                    for (let i = 1; i < values.length; i++) {
-                        const value = values[i](x, y);
-                        if (
-                            name === "max"
-                                ? value > selectedValue
-                                : value < selectedValue
-                        ) {
-                            selected = i;
-                            selectedValue = value;
-                        }
-                    }
-                    return kinds[selected](x, y);
-                };
-            }
-            return () => true;
-        }
-        const children = ast.slice(1).map(pythonAt);
-        return (x, y) => children.every((isPython) => isPython(x, y));
-    }
-
-    // Each check says whether PreFigure raises at a point. A comparison with
-    // NaN is false, so a part that has no real value does not count.
-    const checks: ((x: number, y: number) => boolean)[] = [];
-    const counts = (raise: Raise) =>
-        raise === "error" || (raise === "division" && divisionRaises);
-
-    function pushFunctionCheck(fn: unknown, argumentAst: unknown) {
-        // round(x, n), written as floor(abs(x)*10^n + 0.5), raises as
-        // round(x) does.
-        if (
-            resolveAppliedFunctionName(fn) === "round" &&
-            Array.isArray(argumentAst) &&
-            argumentAst[0] === "tuple"
-        ) {
-            pushFunctionCheck(fn, argumentAst[1]);
-            return;
-        }
-        // log(x, b), and log_b(x)
-        const isLog = resolveAppliedFunctionName(fn) === "log";
-        if (isLog && Array.isArray(argumentAst) && argumentAst[0] === "tuple") {
-            const value = compile(argumentAst[1]);
-            const base = compile(argumentAst[2]);
-            checks.push((x, y) =>
-                counts(twoArgumentLogRaise(value(x, y), base(x, y))),
-            );
-            return;
-        }
-        if (Array.isArray(fn) && fn[0] === "_" && fn[1] === "log") {
-            const value = compile(argumentAst);
-            const base = compile(fn[2]);
-            checks.push((x, y) =>
-                counts(twoArgumentLogRaise(value(x, y), base(x, y))),
-            );
-            return;
-        }
-        const name = resolveAppliedFunctionName(fn);
-        if (
-            name === null ||
-            !Object.prototype.hasOwnProperty.call(RAISING_ARGUMENTS, name)
-        ) {
-            return;
-        }
-        const raises = RAISING_ARGUMENTS[name];
-        const argument = compile(argumentAst);
-        const argumentIsPython = pythonAt(argumentAst);
-        checks.push((x, y) =>
-            counts(raises(argument(x, y), argumentIsPython(x, y))),
-        );
-    }
-    function collect(ast: unknown) {
-        if (!Array.isArray(ast)) {
-            return;
-        }
-        if (ast[0] === "apply") {
-            pushFunctionCheck(ast[1], ast[2]);
-        }
-        if (divisionRaises && (ast[0] === "/" || ast[0] === "^")) {
-            const left = compile(ast[1]);
-            const right = compile(ast[2]);
-            const leftIsPython = pythonAt(ast[1]);
-            const rightIsPython = pythonAt(ast[2]);
-            checks.push(
-                (x, y) =>
-                    leftIsPython(x, y) &&
-                    rightIsPython(x, y) &&
-                    (ast[0] === "/"
-                        ? right(x, y) === 0
-                        : left(x, y) === 0 && right(x, y) < 0),
-            );
-        }
-        ast.slice(1).forEach(collect);
-    }
-    definitions.forEach((definition) => collect(selectedOutputAst(definition)));
-
-    if (checks.length === 0) {
-        return null;
-    }
-    for (const x of xs) {
-        for (const y of ys) {
-            if (checks.some((raises) => raises(x, y))) {
-                return [x, y];
-            }
-        }
-    }
-    return null;
 }
 
 /**
@@ -833,7 +490,8 @@ export function convertSlopeFieldToPrefigure({
 
     warnIfUndefinedAtLatticePoint({
         undefinedAt: firstRaisingLatticePoint({
-            definitions,
+            asts: definitions.map(selectedOutputAst),
+            variableNames: variableNamesOf(definitions[0]),
             xs: lattice.xs,
             ys: lattice.ys,
             divisionRaises: false,
@@ -996,7 +654,8 @@ export function convertVectorFieldToPrefigure({
 
     warnIfUndefinedAtLatticePoint({
         undefinedAt: firstRaisingLatticePoint({
-            definitions,
+            asts: definitions.map(selectedOutputAst),
+            variableNames: variableNamesOf(definitions[0]),
             xs: lattice.xs,
             ys: lattice.ys,
             divisionRaises: true,
