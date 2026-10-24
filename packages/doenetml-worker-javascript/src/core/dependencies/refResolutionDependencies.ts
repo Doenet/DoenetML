@@ -358,7 +358,7 @@ export class RefResolutionDependency extends Dependency {
         let nodeIdx = this.refResolutionOf(composite).nodeIdx;
 
         // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
-        // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
+        // then it was (or will be) created from a copy that has a `_createComponentIdx` attribute
         // set to `nodeIdx`. In this case, we find that copy using the `createComponentIdxMapping`
         // and create blockers/triggers to potentially postpone creating this dependency
         // and update it when `nodeIdx` is created or updated.

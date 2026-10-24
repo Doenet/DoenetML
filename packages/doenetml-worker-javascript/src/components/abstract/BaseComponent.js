@@ -1534,7 +1534,7 @@ export default class BaseComponent {
                 }
 
                 if (this.serializedChildren !== undefined) {
-                    // if this component has `copyInChildren` set,
+                    // if this component has `_copyInChildren` set,
                     // then its serialized children will have actual components made from them,
                     // so they should be shadowed.
                     let shadowComponents =

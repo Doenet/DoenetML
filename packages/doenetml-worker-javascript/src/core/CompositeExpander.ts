@@ -765,9 +765,9 @@ export async function shadowReplacementsStateIdPrefix(
 }
 
 /**
- * If `composite` has `createComponentIdx` specified,
+ * If `composite` has `_createComponentIdx` specified,
  * then its one replacement should have the componentIdx.
- * Similarly, if it has `createComponentName` specified,
+ * Similarly, if it has `_createComponentName` specified,
  * then its one replacement should receive that name.
  */
 export function adjustForCreateComponentIdxName({

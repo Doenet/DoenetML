@@ -2603,7 +2603,7 @@ export async function replacementFromProp({
     // component with shadow attribute components (Doenet/DoenetML#2128).
     // Not when the reference was
     // given a type: an `extend` or `copy` (`<number extend="$P.x" />`) and an
-    // index both set `createComponentOfType`, and the component they ask for
+    // index both set `_createComponentOfType`, and the component they ask for
     // is made as it always was.
     const parentClass = component.ancestors[0]?.componentClass;
     const mayBeValueReference =
@@ -4304,7 +4304,7 @@ export async function replacementFromProp({
 
 /**
  * Warnings for what an `extend` of a composite or a list cannot apply
- * (#2041). `copyInChildren` marks a `_copy` an author wrote as `extend=` or
+ * (#2041). `_copyInChildren` marks a `_copy` an author wrote as `extend=` or
  * `copy=`, and a linked one is an `extend`.
  *
  * Such an extend is a shadow of what it extends: a composite copies the

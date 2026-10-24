@@ -37,7 +37,7 @@ export type ComponentInfoObjects = {
     /** A record of information about the public state variables of a component, keyed by component type */
     publicStateVariableInfo: Record<string, StateVariableInfo>;
     /** A generalization of `isInheritedComponentType` that checks if either a component's componentType
-     * or its `createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
+     * or its `_createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
      */
     componentIsSpecifiedType: (
         comp: {
@@ -282,7 +282,7 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         });
 
     /** A generalization of `isInheritedComponentType` that checks if either a component's componentType
-     * or its `createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
+     * or its `_createComponentOfType` attribute represent a component that is inherited from `specifiedCType`.
      */
     const componentIsSpecifiedType = (
         comp: {

@@ -669,7 +669,7 @@ export function calculateReplacementTypesFromChanges(
 }
 
 /**
- * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
+ * If there is a single replacement and the copy has `_createComponentName` or `_createComponentIdx`,
  * then add the name or component index to the replacement
  */
 export function addAttributesToSingleReplacement(
@@ -679,7 +679,7 @@ export function addAttributesToSingleReplacement(
 ) {
     if (replacements.length === 1 && typeof replacements[0] === "object") {
         // If the replacement is a group or copy that was created by verify replacements
-        // where it received the `createComponentIdx` attribute from the copy already,
+        // where it received the `_createComponentIdx` attribute from the copy already,
         // then don't also give it the name and index
         if (
             replacements[0].componentType === "group" ||
@@ -804,7 +804,7 @@ export function addAttributesToSingleReplacementChange(
                 replacementChanges[0].serializedReplacements[0];
 
             // If the replacement is a group/_copy that was created by verify replacements
-            // where it received the `createComponentIdx` attribute from the copy already,
+            // where it received the `_createComponentIdx` attribute from the copy already,
             // then don't also give it the name and index
             if (
                 theNewReplacement.componentType === "group" ||

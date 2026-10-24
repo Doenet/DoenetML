@@ -253,6 +253,30 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
+    it("the copy that makes a property's list for a repeat says the list's type", async () => {
+        // The reference in `for` becomes a `_copy` that makes the list, given
+        // the list's type as an `extend` would be. Without it, the copy is
+        // read as one of no known type.
+        const { core } = await load(
+            `
+<function name="f" variables="u v">(u+1, 2v)</function>
+<functionIterates name="it" function="$f" initialValue="(0,1)" numIterates="2" />
+<p name="p"><repeat name="r" for="$it.allIteratesWithInitial" valueName="x"><math>$x[2]</math></repeat></p>
+`,
+            true,
+        );
+        const copies = Object.values(core.core!._components).filter(
+            (component: any) =>
+                component?.componentType === "_copy" &&
+                component.attributes._createComponentIdx,
+        );
+        expect(copies.length).toBe(1);
+        expect(
+            (copies[0] as any).attributes._createComponentOfType?.primitive
+                .value,
+        ).eq("mathList");
+    });
+
     it("a repeat over a property, in each iteration of another repeat", async () => {
         // the list the `for` makes resolves `$it` from each iteration, as
         // the reference it replaces did

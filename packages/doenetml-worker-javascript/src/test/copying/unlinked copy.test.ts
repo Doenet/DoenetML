@@ -14,7 +14,6 @@ import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
-vi.mock("hyperformula");
 
 function isUndefinedOrInactive(comp) {
     expect(
@@ -2529,8 +2528,8 @@ describe("Unlinked Copying Tests @group4", async () => {
     <mathList name="ml" displayDigits="5">1.23456789 2</mathList>
     <math name="le" extend="$ml[1]" displayDecimals="1" />
     <math name="lc" copy="$ml[1]" displayDecimals="1" />
-    <math name="xu" copy="$P.x" link="false" displayDecimals="1" />
-    <math name="lu" copy="$ml[1]" link="false" displayDecimals="1" />
+    <math name="xu" copy="$P.x" displayDecimals="1" />
+    <math name="lu" copy="$ml[1]" displayDecimals="1" />
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -2655,24 +2654,30 @@ describe("Unlinked Copying Tests @group4", async () => {
         // whatever case it is written in; it used to be moved only as
         // `removeEmptyArrayEntries`, and left on the list otherwise, which
         // does not take it.
+        // The cells without a point are empty entries of `pointsInCells`.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<mathList name="ml">x y</mathList>
-<mathList name="e1" extend="$ml" removeEmptyArrayEntries />
-<mathList name="e2" extend="$ml" RemoveEmptyArrayEntries />
+<spreadsheet name="s" minNumRows="2" minNumColumns="2">
+  <row><cell>(1,2)</cell><cell>hello</cell></row>
+  <row><cell>5</cell><cell>(3,4)</cell></row>
+</spreadsheet>
+<pointList name="e0" extend="$s.pointsInCells" />
+<pointList name="e1" extend="$s.pointsInCells" removeEmptyArrayEntries />
+<pointList name="e2" extend="$s.pointsInCells" RemoveEmptyArrayEntries />
 `,
         });
 
         expect(getDiagnosticsByType(core).errors).eqls([]);
         const stateVariables = await core.returnAllStateVariables(false, true);
+        const points = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.points;
+        // one entry per cell, empty or not
+        expect((await points("e0")).length).eq(4);
         for (const name of ["e1", "e2"]) {
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx(name)
-                ].stateValues.maths
-                    .map((m) => m.toString())
-                    .join(","),
-            ).eq("x,y");
+                (await points(name)).map((point) => point.toString()),
+                name,
+            ).eqls(["1,2", "3,4"]);
         }
     });
 });

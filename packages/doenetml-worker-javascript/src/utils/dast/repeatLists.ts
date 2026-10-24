@@ -601,7 +601,7 @@ export function convertRepeatsToLists({
                 forListIdx = forList.copy.componentIdx;
                 forList.copy.componentIdx = nComponents++;
                 forList.copy.attributes = {
-                    createComponentOfType: {
+                    _createComponentOfType: {
                         type: "primitive",
                         name: "_createComponentOfType",
                         primitive: {

@@ -196,7 +196,7 @@ export function addNodesToFlatFragment({
 
 /**
  * Return the effective component index of `component`,
- * which means the component index is overridden by the `createComponentIdx` attribute, if it exists.
+ * which means the component index is overridden by the `_createComponentIdx` attribute, if it exists.
  */
 export function getEffectiveComponentIdx(
     component: SerializedComponent | UnflattenedComponent,
@@ -230,8 +230,8 @@ export function getEffectiveComponentIdx(
 
 /**
  * Return the effective component name of `component`,
- * which means the component name is overridden by the `createComponentName` attribute, if it exists.
- * Return `null` if neither `name` nor `createComponentName` attribute exists.
+ * which means the component name is overridden by the `_createComponentName` attribute, if it exists.
+ * Return `null` if neither `name` nor `_createComponentName` attribute exists.
  */
 function getEffectiveComponentName(
     component: SerializedComponent | UnflattenedComponent,

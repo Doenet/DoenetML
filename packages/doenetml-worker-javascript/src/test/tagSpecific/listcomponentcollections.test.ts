@@ -1915,16 +1915,16 @@ describe("Collect, sort and shuffle of values @group4", async () => {
       $c[1]
       <vector name="W1" extend="$cv[1]" />
       <point name="L2" extend="$pl[2]" />
-      <point name="U1" copy="$c[1]" link="false" />
+      <point name="U1" copy="$c[1]" />
     </graph>
     <graph name="g2">
       <point name="E2" extend="$c[2]" />
       <point name="E3" extend="$c[1]" />
-      <point name="U2" copy="$c[2]" link="false" />
+      <point name="U2" copy="$c[2]" />
       <point name="L1" extend="$pl[1]" />
       <vector name="W2" extend="$cv[2]" />
-      <point name="UF1" copy="$plF[1]" link="false" />
-      <point name="UF2" copy="$plF[2]" link="false" />
+      <point name="UF1" copy="$plF[1]" />
+      <point name="UF2" copy="$plF[2]" />
     </graph>
     `,
         });

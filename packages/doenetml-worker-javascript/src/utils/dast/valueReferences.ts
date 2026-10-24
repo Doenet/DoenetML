@@ -55,7 +55,7 @@ import { sequenceEntryComponentType } from "../sequence";
  *
  * The referent's type is read from the document: the component under the
  * resolution's `nodeIdx`, the type an `extend` or `copy` will make for the
- * component it names (`createComponentIdx`), or, for the placeholder a
+ * component it names (`_createComponentIdx`), or, for the placeholder a
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  *
  * A repeat's value and index (`$v` and `$i` in its template) are planned
@@ -640,7 +640,7 @@ function forEachReference(
  *
  * The referent's type is read from the document: the component under
  * `nodeIdx`, the type an `extend` or `copy` will make for the component it
- * names (`createComponentIdx`), or, for the placeholder a
+ * names (`_createComponentIdx`), or, for the placeholder a
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  */
 export function documentReferents({
@@ -770,7 +770,7 @@ function hasOnlyResponseMarks(component: SerializedComponent) {
 /**
  * The type an `extend` with nothing written on it but the reference names
  * (`<math extend="$m"/>`), which `convertRefsToCopies` made a `_copy` with
- * only `createComponentOfType`, `createComponentIdx`, `copyInChildren` and
+ * only `_createComponentOfType`, `_createComponentIdx`, `_copyInChildren` and
  * the name the document generated for it, and no children; `undefined` for
  * anything else (a name the author wrote, another attribute, a child, a
  * `copy`). The `isPotentialResponse="true"` an `<answer>` with no input
@@ -828,7 +828,7 @@ function unadornedExtendType(component: SerializedComponent) {
 
 /**
  * Whether the one attribute of `component` is the
- * `createComponentOfType="integer"` that `convertRefsToCopies` gives a bare
+ * `_createComponentOfType="integer"` that `convertRefsToCopies` gives a bare
  * reference written between the brackets of another reference's path.
  */
 function asksOnlyForAnInteger(component: SerializedComponent) {

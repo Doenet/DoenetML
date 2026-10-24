@@ -67,7 +67,7 @@ export async function addReplacementsToResolver({
             blankStringReplacements,
         });
 
-    // If `createComponentIdx` was specified, the composite is expected to produce
+    // If `_createComponentIdx` was specified, the composite is expected to produce
     // a single replacement, which took that component index and so is already in
     // the resolver: it is the parent of the fragment, and we add its children and
     // attribute components/references.
@@ -75,7 +75,7 @@ export async function addReplacementsToResolver({
     // A composite can produce a different number of replacements than that, in
     // which case none of them took the index -- `adjustForCreateComponentIdxName`
     // and `addAttributesToSingleReplacement` both only act on a lone replacement.
-    // The node at `createComponentIdx` is then a parent with no component of its
+    // The node at `_createComponentIdx` is then a parent with no component of its
     // own, and the replacements are its children, as in the case below.
     const fragmentParent = replacementActingAsFragmentParent(
         serializedReplacements,
@@ -161,9 +161,9 @@ export async function addReplacementsToResolver({
 
 /**
  * Return the replacement that the resolver already holds as the composite's
- * `createComponentIdx` node, or `null` if there is none.
+ * `_createComponentIdx` node, or `null` if there is none.
  *
- * A composite with `createComponentIdx` set is expected to produce exactly one
+ * A composite with `_createComponentIdx` set is expected to produce exactly one
  * replacement, which is given that index (by `adjustForCreateComponentIdxName`,
  * `addAttributesToSingleReplacement`, or `verifyReplacementsMatchSpecifiedType`,
  * each of which acts only on a lone replacement). When the composite produces a
@@ -210,7 +210,7 @@ export async function determineParentAndIndexResolutionForResolver({
 }): Promise<{ parentIdx: number; indexResolution: any }> {
     // If the composite was created as a child for a list,
     // then the parent for resolving names is that list (the parent of the resolver).
-    // If `createComponentIdx` was specified, then that should be the parent for resolving names.
+    // If `_createComponentIdx` was specified, then that should be the parent for resolving names.
     // Else, the composite should be the parent for resolving names.
 
     let update_start = updateOldReplacementsStart;
@@ -246,11 +246,11 @@ export async function determineParentAndIndexResolutionForResolver({
         // we're just adding to the children of the list, not the replacements of the list
         parentIdx = component.parentIdx;
     } else if (component.attributes._createComponentIdx?.primitive) {
-        // If `createComponentIdx` is set, then we have a copy component created from an `extend` attribute.
+        // If `_createComponentIdx` is set, then we have a copy component created from an `extend` attribute.
         // That component is already in the resolver so will be the parent of the fragment added to the browser.
         parentIdx = component.attributes._createComponentIdx?.primitive.value;
 
-        // If the component type of that parent, specified by `createComponentOfType`, is a composite,
+        // If the component type of that parent, specified by `_createComponentOfType`, is a composite,
         // then it could have an index specified, so we add an index resolution
         if (
             component.attributes._createComponentOfType?.primitive &&

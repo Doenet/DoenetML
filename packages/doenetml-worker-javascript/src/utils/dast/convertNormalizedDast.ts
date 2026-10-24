@@ -1491,7 +1491,7 @@ export function convertUnresolvedAttributesForComponentType({
 
         // Look the attribute up by the composite's own name for it, not the
         // new class's: a class that accepts any attribute (`<module>`) does
-        // not declare the composite's `createComponentIdx`, and would
+        // not declare the composite's `_createComponentIdx`, and would
         // otherwise be handed it, along with the rest of a `_copy`'s own
         // attributes (#2227).
         const compositeAttrName =

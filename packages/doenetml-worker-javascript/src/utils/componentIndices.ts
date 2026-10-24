@@ -641,7 +641,7 @@ export function setUnflattenedReferenceOrigins(
  * Recurse through all serialized components and update their component indices.
  * For components and their descendants use the `componentIdx` of the corresponding component in `componentIdxSources`.
  * (An error will be thrown if `serializedComponents` and `componentIdxSources` don't have the exact same structure.)
- * Similarly, uses the `createComponentIdx` attribute of the corresponding component in `componentIdxSources`.
+ * Similarly, uses the `_createComponentIdx` attribute of the corresponding component in `componentIdxSources`.
  * For all other components, such as those in attributes and `extending`,
  * update their component indices to new values, starting with `nComponents`.
  *
@@ -867,7 +867,7 @@ function newComponentIndicesForAttributesFromSerialized(
 
 /**
  * Create a map from a component's index to the index of the copy
- * with a `createComponentIdx` attribute that created the component.
+ * with a `_createComponentIdx` attribute that created the component.
  *
  * Currently, we use copies to create components that have
  * an `extend` or `copy` attribute. If another component depends

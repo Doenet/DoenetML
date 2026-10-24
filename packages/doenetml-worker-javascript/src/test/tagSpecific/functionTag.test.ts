@@ -3761,7 +3761,7 @@ describe("Function tag tests @group4", async () => {
 
     it("extrema at domain endpoints, function from formula, unlinked copy", async () => {
         // Note: checking to see if rounding attributes are properly copied
-        // for wrapped array state variables when link="false"
+        // for wrapped array state variables of an unlinked copy
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <function name="f1" domain="(-pi,2pi)" displayDecimals="5" displaySmallAsZero="10^(-6)">cos(x)</function>
