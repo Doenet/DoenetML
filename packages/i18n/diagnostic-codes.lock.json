@@ -272,5 +272,6 @@
     "doenet-w0172": "prefigure-field-function-undefined",
     "doenet-w0173": "prefigure-slope-field-mark-length-ignored",
     "doenet-w0174": "prefigure-vector-field-normalize-unequal-scales",
-    "doenet-w0175": "prefigure-field-line-style-ignored"
+    "doenet-w0175": "prefigure-field-line-style-ignored",
+    "doenet-w0176": "copy-link-ignored"
 }

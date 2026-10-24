@@ -293,6 +293,7 @@ export async function normalizedDastToSerializedComponents(
         addNodesToResolver,
     });
     nComponents = convertToCopyResult.nComponents;
+    diagnostics.push(...convertToCopyResult.diagnostics);
 
     // console.log(
     //     "after create copies",
