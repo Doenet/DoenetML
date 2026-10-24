@@ -26,10 +26,11 @@ import {
 const CREDIT_ROUNDOFF_TOLERANCE = 1e-12;
 
 /**
- * The types of response whose values are not math-expressions: a response of
- * any other type (`math`, `point`, `vector`, …) holds one.
+ * The types of response whose values are math-expressions, with the types
+ * that inherit from them. A response of any other type (a `text`, a `label`,
+ * …) is kept as it was submitted.
  */
-const NON_MATH_RESPONSE_TYPES = ["text", "number", "boolean"];
+const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix"];
 
 /**
  * The `set` of `submittedResponses`: an entry written to it, as the value of
@@ -41,23 +42,30 @@ const NON_MATH_RESPONSE_TYPES = ["text", "number", "boolean"];
  * the entry directly — `$ans.submittedResponse` in an expression such as
  * `<feedback condition="$ans.submittedResponse = z">` — needs one. The type is
  * read from the same write when it carries it, as a restore does, and an
- * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`.
+ * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`. An
+ * entry of a type not in `MATH_RESPONSE_TYPES` is returned unchanged.
  */
 function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
-    if (value instanceof me.class) {
+    // only a bare tree is made a math-expression: a `subsetOfReals`, which
+    // inherits from `math`, holds a subset, and a save restores it as one
+    if (
+        typeof value !== "string" &&
+        typeof value !== "number" &&
+        !Array.isArray(value)
+    ) {
         return value;
     }
     const componentTypes =
         newValues.submittedResponsesComponentType ??
         component.essentialState.submittedResponsesComponentType;
     const componentType = componentTypes?.[arrayKey] ?? "math";
-    const isNonMath = NON_MATH_RESPONSE_TYPES.some((baseComponentType) =>
+    const holdsMath = MATH_RESPONSE_TYPES.some((baseComponentType) =>
         component.componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: componentType,
             baseComponentType,
         }),
     );
-    return isNonMath ? value : convertValueToMathExpression(value);
+    return holdsMath ? convertValueToMathExpression(value) : value;
 }
 
 export default class Answer extends InlineComponent {

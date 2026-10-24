@@ -14,7 +14,7 @@ import {
 } from "../utils/actions";
 import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import { Expression } from "math-expressions";
+import me, { Expression } from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
@@ -10218,6 +10218,48 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             expect(submittedResponses[2]).eq(true);
             expect(submittedResponses[3]).eq(6);
             expect(submittedResponses[4].tree).eqls(["vector", 3, 2]);
+        }
+    });
+
+    it("a label, a subset and a matrix response keep their kinds of value", async () => {
+        const doenetML = `
+    <label name="L">hello</label>
+    <subsetOfRealsInput name="S" />
+    <matrix name="M"><row>1 2</row></matrix>
+    <answer name="ans">
+        <considerAsResponses>$L $S $M</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    `;
+
+        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
+            doenetML,
+            async inputs(core, resolvePathToNodeIdx) {
+                await core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx("S"),
+                    actionName: "setToR",
+                    args: {},
+                });
+            },
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const sv of [before, after]) {
+            const { submittedResponses, submittedResponsesComponentType } =
+                sv[ansIdx].stateValues;
+            expect(submittedResponsesComponentType).eqls([
+                "label",
+                "subsetOfReals",
+                "matrix",
+            ]);
+            expect(submittedResponses[0]).eq("hello");
+            expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
+            expect(submittedResponses[1].toString()).eq("ℝ");
+            expect(submittedResponses[2].tree).eqls([
+                "matrix",
+                ["tuple", 1, 2],
+                ["tuple", ["tuple", 1, 2]],
+            ]);
         }
     });
 });
