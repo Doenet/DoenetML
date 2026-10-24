@@ -10219,13 +10219,14 @@ describe("An answer's submitted responses through a reload @group4", async () =>
         }
     });
 
-    it("a label, a subset and a matrix response keep their kinds of value", async () => {
+    it("a label, a subset, a matrix and an angle response keep their kinds of value", async () => {
         const doenetML = `
     <label name="L">hello</label>
     <subsetOfRealsInput name="S" />
     <matrix name="M"><row>1 2</row></matrix>
+    <angle name="A">pi/3</angle>
     <answer name="ans">
-        <considerAsResponses>$L $S $M</considerAsResponses>
+        <considerAsResponses>$L $S $M $A</considerAsResponses>
         <award><when>true</when></award>
     </answer>
     `;
@@ -10249,6 +10250,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
                 "label",
                 "subsetOfReals",
                 "matrix",
+                "angle",
             ]);
             expect(submittedResponses[0]).eq("hello");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
@@ -10258,6 +10260,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
                 ["tuple", 1, 2],
                 ["tuple", ["tuple", 1, 2]],
             ]);
+            expect(submittedResponses[3].tree).eqls(["/", "pi", 3]);
         }
     });
 });

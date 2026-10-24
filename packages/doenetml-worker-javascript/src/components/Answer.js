@@ -27,10 +27,11 @@ const CREDIT_ROUNDOFF_TOLERANCE = 1e-12;
 
 /**
  * The types of response whose values are math-expressions, with the types
- * that inherit from them. A response of any other type (a `text`, a `label`,
- * …) is kept as it was submitted.
+ * that inherit from them (other than a `subsetOfReals`, which inherits from
+ * `math` but holds a subset). A response of any other type (a `text`, a
+ * `label`, …) is kept as it was submitted.
  */
-const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix"];
+const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
 
 /**
  * The `set` of `submittedResponses`: an entry written to it, as the value of
@@ -43,7 +44,8 @@ const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix"];
  * `<feedback condition="$ans.submittedResponse = z">` — needs one. The type is
  * read from the same write when it carries it, as a restore does, and an
  * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`. An
- * entry of a type not in `MATH_RESPONSE_TYPES` is returned unchanged.
+ * entry that is not a bare tree, or whose type neither is in
+ * `MATH_RESPONSE_TYPES` nor inherits from one of them, is returned unchanged.
  */
 function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
     // only a bare tree is made a math-expression: a `subsetOfReals`, which
