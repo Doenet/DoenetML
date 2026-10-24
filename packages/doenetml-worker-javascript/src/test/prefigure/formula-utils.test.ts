@@ -101,6 +101,20 @@ describe("PreFigure formula translation @group4", () => {
         expect(fromDoenetText("mod(x, 2)").unsupportedFeature).eq("mod");
     });
 
+    it("keeps two-argument log and round", () => {
+        // log(x, b) is the base-b logarithm in math-expressions and Python.
+        expect(fromDoenetText("log(x, 2)").expression).eq("log(x, 2)");
+        expect(fromDoenetText("log(x, 2, 3)").unsupportedFeature).eq("log");
+        // Rounds to n places half away from zero, as math-expressions does.
+        expect(fromDoenetText("round(x + 1, 2)").expression).eq(
+            "copysign(floor(abs(x + 1)*10^2 + 0.5)/10^2, x + 1)",
+        );
+        // math-expressions takes only 0 to 15 whole places.
+        for (const text of ["round(x, -1)", "round(x, 1.5)", "round(x, x)"]) {
+            expect(fromDoenetText(text).unsupportedFeature).eq("round");
+        }
+    });
+
     it("passes through functions whose names already match", () => {
         for (const name of ["sin", "cos", "tan", "sec", "exp", "ln", "log"]) {
             expect(fromText(`${name}(x)`).expression).eq(`${name}(x)`);
