@@ -315,7 +315,8 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
   <vectorField>(10^(-12), 0)</vectorField>
   <vectorField>(10^(-309), 0)</vectorField>
   <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>
-  <vectorField normalize>(1, 10^(-15) x)</vectorField>`);
+  <vectorField normalize>(1, 10^(-15) x)</vectorField>
+  <vectorField normalize>(x, 10^(-200))</vectorField>`);
         const prefigureXML = await getPrefigureXML(doenetML);
 
         // PreFigure draws a vector shorter than 1e-10 as zero, so the
@@ -330,18 +331,26 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         expect(prefigureXML).toMatch(
             /<definition>vectorfield_1_f\(x,y\)=vectorfield_1_f_formula\([^<]*\)\/1e-309<\/definition>/,
         );
-        // With normalize, each vector is made a unit vector, so that the
-        // short (0, 1e-15 x) part of the last field is not lost.
-        expect(prefigureXML).toMatch(
-            /<definition>vectorfield_2_f\(x,y\)=normalize\(vectorfield_2_f_formula\([^<]*\)\/[0-9.e-]+\)<\/definition>/,
+        // With normalize, each vector is made a unit vector, scaled first
+        // by its largest component, so that neither the short
+        // (0, 1e-15 x) part of one field nor the vector (0, 1e-200), whose
+        // squared length underflows, is lost.
+        expect(prefigureXML).toContain(
+            "<definition>vectorfield_2_f_unit(v)=normalize(v/max(abs(v)))</definition>",
         );
         expect(prefigureXML).toMatch(
-            /<definition>vectorfield_3_f\(x,y\)=normalize\(vectorfield_3_f_formula\([^<]*\)\)<\/definition>/,
+            /<definition>vectorfield_2_f\(x,y\)=vectorfield_2_f_unit\(vectorfield_2_f_formula\([^<]*\)\/[0-9.e-]+\)<\/definition>/,
+        );
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_3_f\(x,y\)=vectorfield_3_f_unit\(vectorfield_3_f_formula\([^<]*\)\)<\/definition>/,
+        );
+        expect(prefigureXML).toMatch(
+            /<definition>vectorfield_4_f\(x,y\)=vectorfield_4_f_unit\(vectorfield_4_f_formula\([^<]*\)\)<\/definition>/,
         );
         const scales = [...prefigureXML.matchAll(/ scale="([^"]*)"/g)].map(
             (m) => Number(m[1]),
         );
-        expect(scales).toHaveLength(4);
+        expect(scales).toHaveLength(5);
         for (const scale of scales) {
             expect(scale).toBeCloseTo(24 / UNIT, 10);
         }

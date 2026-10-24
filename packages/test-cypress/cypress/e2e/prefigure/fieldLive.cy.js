@@ -170,6 +170,7 @@ liveDescribe(
   <vectorField normalize>(10^(-12) y, -10^(-12) x)</vectorField>
   <vectorField>(10^(-309), 0)</vectorField>
   <vectorField normalize>(1, 10^(-15) x)</vectorField>
+  <vectorField normalize>(x, 10^(-200))</vectorField>
 </graph>
 `,
                     },
@@ -185,11 +186,13 @@ liveDescribe(
                 // Rescaled, every lattice point has an arrow, but the origin
                 // of the second, where the vector is zero; a subnormal length
                 // too. With normalize, each vector is a unit vector, so the
-                // short (0, 1e-15 x) part of the last does not lose it.
+                // short (0, 1e-15 x) part of one does not lose it, nor does
+                // (0, 1e-200), whose squared length underflows to 0.
                 expect(fieldLines(svg, "vectorfield_0").length).to.eq(441);
                 expect(fieldLines(svg, "vectorfield_1").length).to.eq(440);
                 expect(fieldLines(svg, "vectorfield_2").length).to.eq(441);
                 expect(fieldLines(svg, "vectorfield_3").length).to.eq(441);
+                expect(fieldLines(svg, "vectorfield_4").length).to.eq(441);
             });
         });
     },

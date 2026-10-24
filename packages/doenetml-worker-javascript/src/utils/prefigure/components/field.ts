@@ -334,14 +334,20 @@ function fieldFunctionDefinitions({
     const snap = (variable: string, step: number, offset: number) =>
         `0*${variable}+round((${variable}-${pythonFloat(offset)})/${pythonFloat(step * grid.stride)})*${grid.stride}*${pythonFloat(step)}+${pythonFloat(offset)}`;
     const formulaName = `${name}_formula`;
+    // PreFigure's `normalize` squares the components, which underflows to 0
+    // for a vector shorter than about 1e-160, so each vector is first
+    // divided by its largest component. A zero or infinite vector becomes
+    // NaN, which PreFigure skips, as the JSXGraph renderer does.
+    const unitName = `${name}_unit`;
     const wrap = (call: string) => {
         const divided =
             divisor === 1 ? call : `${call}/${pythonFloat(divisor)}`;
-        return normalize ? `normalize(${divided})` : divided;
+        return normalize ? `${unitName}(${divided})` : divided;
     };
 
     return [
         `${formulaName}(x,y)=${body}`,
+        ...(normalize ? [`${unitName}(v)=normalize(v/max(abs(v)))`] : []),
         `${name}(x,y)=${wrap(`${formulaName}(${snap("x", grid.dx, grid.xoffset)},${snap("y", grid.dy, grid.yoffset)})`)}`,
     ]
         .map((text) => `<definition>${escapeXml(text)}</definition>`)
