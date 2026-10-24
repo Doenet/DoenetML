@@ -10293,4 +10293,87 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             expect((await stateValues("fb")).hide).eq(false);
         }
     });
+
+    it("an angle extending a submitted angle response draws it unless its attributes, points or lines give the angle", async () => {
+        const doenetML = `
+    <mathInput name="mi" />
+    <angle name="A" radians="$mi" />
+    <answer name="ans">
+        <considerAsResponses>$A</considerAsResponses>
+        <award><when>true</when></award>
+    </answer>
+    <graph>
+        <line name="l1" through="(0,0) (1,0)" />
+        <line name="l2" through="(0,0) (1,1)" />
+        <angle name="A2" extend="$ans.submittedResponse" />
+        <angle name="A3" extend="$ans.submittedResponse" through="(1,1) (0,0)" />
+        <angle name="A4" extend="$ans.submittedResponse" degrees="30" />
+        <angle name="A5" extend="$ans.submittedResponse" through="(1,0) (0,0) (-1,1)" />
+        <angle name="A6" extend="$ans.submittedResponse" betweenLines="$l1 $l2" />
+    </graph>
+    `;
+
+        // A2's third point for each response. A3's first point is (1,1),
+        // so its third point is A2's rotated by π/4. A blank or symbolic
+        // response gives no third point.
+        for (const { latex, radians, third } of [
+            {
+                latex: "\\pi/3",
+                radians: ["/", "pi", 3],
+                third: [Math.cos(Math.PI / 3), Math.sin(Math.PI / 3)],
+            },
+            { latex: "", radians: "\uff3f", third: null },
+            { latex: "x", radians: "x", third: null },
+        ]) {
+            const { before, after, resolvePathToNodeIdx } =
+                await submitAndReload({
+                    doenetML,
+                    async inputs(core, resolvePathToNodeIdx) {
+                        await updateMathInputValue({
+                            latex,
+                            componentIdx: await resolvePathToNodeIdx("mi"),
+                            core,
+                        });
+                    },
+                });
+
+            for (const sv of [before, after]) {
+                const stateValues = async (name: string) =>
+                    sv[await resolvePathToNodeIdx(name)].stateValues;
+
+                for (const [name, offset] of [
+                    ["A2", 0],
+                    ["A3", Math.PI / 4],
+                ] as const) {
+                    const { radians: r, points } = await stateValues(name);
+                    expect(r.tree).eqls(radians);
+                    if (third) {
+                        const [x, y] = points[2].map((c: any) =>
+                            c.evaluate_to_constant(),
+                        );
+                        const [c, s] = [Math.cos(offset), Math.sin(offset)];
+                        expect(x).closeTo(c * third[0] - s * third[1], 1e-12);
+                        expect(y).closeTo(s * third[0] + c * third[1], 1e-12);
+                    } else {
+                        expect(points[2].map((c: any) => c.tree)).eqls([
+                            "\uff3f",
+                            "\uff3f",
+                        ]);
+                    }
+                }
+
+                expect((await stateValues("A4")).radians.tree).eqls([
+                    "/",
+                    "pi",
+                    6,
+                ]);
+                expect(
+                    (await stateValues("A5")).radians.evaluate_to_constant(),
+                ).closeTo((3 * Math.PI) / 4, 1e-12);
+                expect(
+                    (await stateValues("A6")).radians.evaluate_to_constant(),
+                ).closeTo(Math.PI / 4, 1e-12);
+            }
+        }
+    });
 });

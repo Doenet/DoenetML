@@ -703,8 +703,8 @@ export default class Angle extends GraphicalComponent {
                     dependencyValues.betweenLinesName === null
                 ) {
                     // Three points or two lines determine the angle from
-                    // `points`, as they do in a `<repeat copy>`, whose angles
-                    // are given their source's radians as `radiansShadow`
+                    // `points`, even with a `radiansShadow`, as in
+                    // `<angle extend="$ans.submittedResponse" betweenLines="$l1 $l2" />`
                     return {
                         setValue: {
                             radians: dependencyValues.radiansShadow.simplify(),
