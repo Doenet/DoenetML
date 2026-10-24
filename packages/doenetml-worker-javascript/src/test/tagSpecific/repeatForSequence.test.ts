@@ -2897,4 +2897,38 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // https://github.com/Doenet/DoenetML/issues/1822. Add a warning
         // assertion here once that is fixed.
     }, 60000);
+
+    it("excluding a value an input gives, with inputs in the template", async () => {
+        // made again on every update, it used to never finish loading
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ex" prefill="2" />
+    <repeatForSequence name="r" from="1" to="3" exclude="$ex" valueName="v">
+        <mathInput name="mi" prefill="$v" />
+    </repeatForSequence>
+    `,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const i of [1, 2]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].mi`)]
+                        .stateValues.value.tree,
+                );
+            }
+            return result;
+        }
+        expect(await values()).eqls([1, 3]);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("ex"),
+            core,
+        });
+        expect(await values()).eqls([1, 2]);
+    });
 });

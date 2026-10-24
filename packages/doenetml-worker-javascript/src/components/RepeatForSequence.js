@@ -478,6 +478,23 @@ export default class RepeatForSequence extends CompositeComponent {
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
 
+        // Nothing to change. Without this check, a sequence with excluded
+        // elements would be made again on every call, and its new components
+        // can call for another update, without end.
+        const sameValue = (a, b) =>
+            a === b ||
+            (typeof a?.equals === "function" && b != null && a.equals(b));
+        if (
+            lrp.type === type &&
+            sameValue(lrp.from, from) &&
+            lrp.length === length &&
+            sameValue(lrp.step, step) &&
+            lrp.exclude?.length === exclude.length &&
+            exclude.every((x, i) => sameValue(lrp.exclude[i], x))
+        ) {
+            return { replacementChanges, diagnostics, nComponents };
+        }
+
         // check if changed type
         // or have excluded elements
         // TODO: don't completely recreate if have excluded elements
