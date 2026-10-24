@@ -77,6 +77,49 @@ level curves. Here the field is defined as a separate `<function>{:dn}` and refe
 component, which is the alternative to writing the expression out.
 
 
+---
+
+### Example: Drawn with PreFigure
+
+```doenet-editor-horiz
+<graph size="small" renderer="prefigure" xmin="-5" xmax="5" ymin="-5" ymax="5">
+  <shortDescription>The vector field (y, -x), drawn by PreFigure</shortDescription>
+  <vectorField name="vf">(y, -x)</vectorField>
+  <annotations>
+    <annotation text="The vector field (y, -x)">
+      <annotation ref="$vf" text="Arrows circle the origin clockwise, longer farther out." />
+    </annotation>
+  </annotations>
+</graph>
+```
+
+In a graph with `renderer="prefigure"`, the field is drawn as PreFigure's own vector field, so an
+[`<annotation>{:dn}`](annotation) can describe it as a single object. PreFigure draws the field once,
+at the graph's axis limits, on the same lattice: `dx`, `dy`, `xoffset`, `yoffset` and `maxMarks`
+mean what they mean above, and a lattice point outside the function's `domain` gets no arrow. The
+longest arrow is `markLength` pixels long, and with `normalize` every arrow is.
+
+A few things are drawn differently:
+
+- With `normalize`, every arrow has the same length only when the axes are equally scaled. On
+  unequally scaled axes the arrows' lengths vary with their direction, and a warning says so.
+- Every arrowhead is the same size, about that of the head on an arrow `markLength` long, but never
+  narrower than twice the line width. Without `normalize`, shorter arrows therefore have larger heads
+  than in the interactive graph, and an arrow shorter than 2 pixels is left out. On a thick line a
+  head can fill most of an arrow; a longer `markLength` leaves room for the shaft.
+- The line width is rounded to a whole pixel, at least 1, and a field with a line width of 0 draws
+  nothing.
+- Arrows are solid and fully opaque. A dashed or dotted `lineStyle` is ignored, with a warning. The
+  style's line opacity is ignored too, without one.
+- The function must be given by a formula. A function defined in some other way draws nothing, with a
+  warning.
+- PreFigure may draw no field at all when a function such as `sqrt` or `log` is undefined at a
+  lattice point, when `exp` overflows, or when the field divides a constant by a function such as
+  `sin(x)` where it is zero: `(1, 1/sin(x))` or `(1, csc(x))` at <m>x = 0</m>, for example. (Dividing
+  by `x` itself, or dividing `x` by `sin(y)`, where the divisor is 0 loses only that arrow.) Give the
+  `<function>{:dn}` a `domain` that avoids those points, and they are left out. A warning names the
+  first such lattice point.
+
 ## Attribute Examples
 
 ### Attribute Example: variables

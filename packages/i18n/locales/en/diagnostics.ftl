@@ -620,6 +620,19 @@ prefigure-label-position-unsupported =
        *[point] point label
     }; default PreFigure alignment used.
 
+# Translators: PreFigure, `markLength`, `normalize` and `lineStyle` stay in
+# English. A field's lattice is the grid of points its marks are drawn at.
+prefigure-field-non-formula-function = { $subject }: PreFigure can draw a field only from a function given by a formula, not one of type '{ $definitionType }'; descendant skipped.
+
+# $point is the lattice point, already written as "(x, y)".
+prefigure-field-function-undefined = { $subject }: the function is undefined at { $point }, a point of the field's lattice, or too large to compute there, and PreFigure may then draw none of the field. Restrict the function's domain to avoid such points.
+
+prefigure-slope-field-mark-length-ignored = { $subject }: PreFigure sizes each slope mark from the lattice spacing, so `markLength` is ignored.
+
+prefigure-vector-field-normalize-unequal-scales = { $subject }: the graph's axes are scaled unequally, so PreFigure draws `normalize`d arrows at lengths that vary with their direction.
+
+prefigure-field-line-style-ignored = { $subject }: PreFigure draws a field's marks as solid lines; `lineStyle` '{ $lineStyle }' is ignored.
+
 prefigure-fill-style-unsupported = { $subject }: fill style '{ $fillStyle }' is unsupported by PreFigure; falling back to a solid fill.
 
 prefigure-line-style-unknown = { $subject }: unknown line style '{ $lineStyle }' omitted from PreFigure output.

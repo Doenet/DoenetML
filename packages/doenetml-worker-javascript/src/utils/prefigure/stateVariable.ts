@@ -167,6 +167,39 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "hidden",
         ],
     },
+    {
+        key: "slopeFieldDescendants",
+        componentType: "slopeField",
+        variableNames: [
+            "haveFunction",
+            "fDefinitions",
+            "dx",
+            "dy",
+            "xoffset",
+            "yoffset",
+            "markLength",
+            "maxMarks",
+            "selectedStyle",
+            "hidden",
+        ],
+    },
+    {
+        key: "vectorFieldDescendants",
+        componentType: "vectorField",
+        variableNames: [
+            "haveFunction",
+            "fDefinitions",
+            "dx",
+            "dy",
+            "xoffset",
+            "yoffset",
+            "markLength",
+            "maxMarks",
+            "normalize",
+            "selectedStyle",
+            "hidden",
+        ],
+    },
 ];
 
 /**

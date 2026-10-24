@@ -576,6 +576,41 @@ export interface FormulaWarningContext {
 }
 
 /**
+ * Rename several variable symbols at once, as `rewriteExpressionVariable`
+ * renames one.
+ *
+ * The renames are applied together rather than one after another, so a swap
+ * such as `{ y: "x", x: "y" }` (a function authored with `variables="y x"`)
+ * does not rename a symbol twice.
+ */
+export function rewriteExpressionVariables({
+    expression,
+    renames,
+}: {
+    expression: string;
+    renames: Record<string, string>;
+}): string {
+    const fromVariables = Object.keys(renames)
+        .filter((from) => from && renames[from] !== from)
+        // Longest first, so a name is not matched by a prefix of itself.
+        .sort((a, b) => b.length - a.length);
+    if (fromVariables.length === 0) {
+        return expression;
+    }
+
+    const symbolPattern = new RegExp(
+        `(^|[^A-Za-z0-9_])(${fromVariables.map(escapeRegex).join("|")})(?=$|[^A-Za-z0-9_])`,
+        "g",
+    );
+
+    return expression.replace(
+        symbolPattern,
+        (_match, before: string, symbol: string) =>
+            `${before}${renames[symbol]}`,
+    );
+}
+
+/**
  * Parse a simple formula-based curve function definition.
  * Extracts the expression and variable name; returns null if the value is
  * not an object, not a formula-typed definition, or its formula uses

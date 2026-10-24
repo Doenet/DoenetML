@@ -16,6 +16,7 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
   - Formulas translated from the math-expressions AST to the Python expression PreFigure evaluates (`astToPythonExpression`). PreFigure evaluates a formula in a restricted namespace, Python's `math` module plus a few helpers (`user_namespace.py` in `prefig/core`), so its function tables must name only what that namespace defines. Anything else is reported with warning `doenet-w0170` and the formula is not drawn.
 - `components/`
   - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline, angle).
+  - `field.ts`: `slopeField` and `vectorField`, drawn as PreFigure's own `<slope-field>` and `<vector-field>` from a `<definition>` of the field's function. The `spacings` come from the lattice the JSXGraph renderer draws at the graph's bounds (`thinnedLatticeLines` in `@doenet/utils`), narrowed to the function's domain.
   - `text.ts`: the text-like graph children (`text`, `number`, `math`, `m`, `md`, `label`, and components that inherit from them and have a text-like renderer), drawn as PreFigure `<label>` elements at their `anchor`, with `positionFromAnchor` as the `alignment`.
 - `descendant.ts`
   - Dispatcher that routes each graphical descendant to the correct component converter and normalizes warning behavior.

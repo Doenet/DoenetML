@@ -267,5 +267,10 @@
     "doenet-w0167": "cascade-title-not-shown",
     "doenet-w0168": "extend-attribute-ignored",
     "doenet-w0169": "extend-children-ignored",
-    "doenet-w0170": "prefigure-formula-unsupported"
+    "doenet-w0170": "prefigure-formula-unsupported",
+    "doenet-w0171": "prefigure-field-non-formula-function",
+    "doenet-w0172": "prefigure-field-function-undefined",
+    "doenet-w0173": "prefigure-slope-field-mark-length-ignored",
+    "doenet-w0174": "prefigure-vector-field-normalize-unequal-scales",
+    "doenet-w0175": "prefigure-field-line-style-ignored"
 }
