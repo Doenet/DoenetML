@@ -503,4 +503,5 @@ Settled while planning:
   pick one option more than once, the pick's position among the picks of
   that option.
 - The core does not refuse a request on a prop that is not interactive;
-  the viewer's test is the check, as step 3 says.
+  the viewer's test is the check, as step 3 says. (ADR 0018 proposes to
+  reverse this: the core accepts a request only on an input's cell.)
