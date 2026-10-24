@@ -169,7 +169,11 @@ including components added later:
    public property equals what it was before. ADR 0016 and 0017 already propose declaring
    interactive props per component. Putting that flag in the schema makes this sweep exact.
 5. **Every component: diagnostics depend only on the source** (if ADR 0013 is adopted).
-6. **Every inherited attribute: one grid.** Run `context_attributes.test.ts`'s 23-form grid for
+6. **Every single-use child (REF-4a, D25).** For each component with a `<label>`, `<title>`,
+   `<caption>` or `<shortDescription>` child group:
+   - writing two of them uses the last;
+   - adding one inside an `extend` or `copy` replaces the source's.
+7. **Every inherited attribute: one grid.** Run `context_attributes.test.ts`'s 23-form grid for
    `hide`, `disabled` and `styleNumber` too. That makes CTX-7 and CTX-8 explicit.
 
 Each sweep starts out failing for many components. That is intended: each failure is a fixture to
