@@ -13,6 +13,7 @@ import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import {
     RESERVED_MODULE_ATTRIBUTE_NAMES,
+    RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA,
     type DeclaredModuleAttribute,
     describeDeclaredModuleAttribute,
     getModuleDeclaredAttributes,
@@ -61,7 +62,7 @@ describe("RESERVED_MODULE_ATTRIBUTE_NAMES", () => {
     // runtime will fail this test loudly and force a matching update to the
     // reserved set (otherwise the LSP would synthesize a phantom
     // "Author-declared" completion entry for a name the runtime ignores).
-    it("matches the schema's canonical <module> attribute names (lowercased)", () => {
+    it("matches the schema's canonical <module> attribute names (lowercased), plus those excluded from the schema", () => {
         const schemaModule = (
             doenetSchema as unknown as {
                 elements: Array<{
@@ -77,10 +78,22 @@ describe("RESERVED_MODULE_ATTRIBUTE_NAMES", () => {
         );
         const fromConstant = new Set(RESERVED_MODULE_ATTRIBUTE_NAMES);
 
+        // The ones excluded from the schema are listed on their own, and
+        // must really be absent from it, so that an attribute leaving the
+        // schema's exclusion is not counted twice.
+        for (const name of RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA) {
+            expect(fromSchema.has(name), name).toBe(false);
+        }
+
         // `name` is included in the schema and also explicitly pushed onto
-        // `existingModuleAttrNames` at ModuleAttributes.js:114 — both
-        // sources agree, so the union and intersection are identical.
-        expect([...fromConstant].sort()).toEqual([...fromSchema].sort());
+        // `existingModuleAttrNames` in `ModuleAttributes.js` — both
+        // sources agree.
+        expect([...fromConstant].sort()).toEqual(
+            [
+                ...fromSchema,
+                ...RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA,
+            ].sort(),
+        );
     });
 
     it("is stored lowercase (case-insensitive lookup contract)", () => {
@@ -175,6 +188,9 @@ describe("getModuleDeclaredAttributes", () => {
                 <text name="hide">x</text>
                 <text name="COPY">x</text>
                 <text name="Name">x</text>
+                <text name="isPotentialResponse">x</text>
+                <text name="permid">x</text>
+                <text name="modifyIndirectly">x</text>
                 <text name="kept">x</text>
             </moduleAttributes></module>`,
             "module",
