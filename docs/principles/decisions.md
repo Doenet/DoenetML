@@ -640,3 +640,37 @@ to be counted. It is also fragile under edits, and it would make (3) ambiguous a
 
 The list examples keep working, since entries are instances. Before any cut-over, add a warning
 on main for child indexing, so that documents can migrate.
+
+## D28. Can "start from a passed-in value" work without `.value`?
+
+**Today** (CPY-7) `<number name="x" copy="$x0"/>` inside a module pastes x0's definition. When
+a caller passes `x0="$initial"`, that definition contains a live `$initial`. The copy then
+either cannot be dragged, or writes back to the caller's variables. The fix,
+`copy="$x0.value"`, works, but is not obvious.
+
+**Options.**
+- **(a) Document the idiom.** Teach CPY-7 on the module and copy pages. Add an info diagnostic
+  when a drag or typed value on a copy is refused because the pasted definition cannot be
+  inverted, or lands on a component outside the copy. Cheapest. Changes no behavior.
+- **(b) Treat module attributes as values.** A module attribute receives the value of what the
+  caller passes, as `$initial.value` would. A copy of it then starts from that value.
+  - **Cost:** module attributes become a special case. An author who wants the module to
+    *follow* `initial` live has to reference it some other way.
+  - This could be confusing, as noted in review.
+- **(c) A copy freezes references to things outside the copied part.** References inside the
+  copied part stay live, and point to the copy's own parts, as today. References to anything
+  outside become the value they had when the copy was made.
+  - The copy is then truly independent, and the module case works without `.value`.
+  - It reverses #559, "a copy keeps following an outside `$n`"
+    (`T/copying/unlinked copy.test.ts:1118`), which is currently Tier 1.
+  - It is the opposite of D1's lexical option, which keeps outside references live.
+- **(d) A dedicated way to say "initial value".** For example, `<number name="x"
+  start="$x0"/>`, analogous to an input's `prefill`, which already means "start here, then
+  change on your own".
+  - It is explicit, and needs no change to `copy`.
+  - It would have to be added to every value component, and authors must learn a new
+    attribute.
+
+**Recommendation.** Do (a) now. Decide between (c) and (d) together with D1, since both are
+about what a copy does with references to things outside it. (b) solves only the module case,
+and adds a special case that users of modules would have to know about.
