@@ -120,8 +120,8 @@ Each decision gives:
   full recompute 5 to 36% slower (8 to 30% on most shapes), and the
   dirty closure, whose own cost dilutes it, at most 8%. The tag alone,
   checked on every read with the cells still 8 bytes, costs more: full
-  recompute 12 to 50% slower (27 to 50% on all but depth), and the
-  dirty closure up to 34% on the fans. The enum not yet. See
+  recompute 12 to 50% slower (27 to 50% on all but depth at 10,000),
+  and the dirty closure up to 34% on the fans. The enum not yet. See
   [Decision 6: 16-byte cells](#decision-6-16-byte-cells) and
   [Decision 6: a tag array](#decision-6-a-tag-array) below.
 
@@ -1088,19 +1088,19 @@ identical, and every shape's fingerprint matches.
 
 What it shows:
 
-- A check on every read costs full recompute 27 to 50% on every shape
-  but depth at 10,000, and 12 and 32% on depth: more than doubling the
-  cell (5 to 36%). Each operand read becomes a second load, from a
+- A check on every read costs full recompute 31 to 50% on every shape
+  but depth at 10,000, 27 to 37% at 100,000, and 12 and 32% on depth:
+  more than doubling the cell (5 to 36%). Each operand read becomes a second load, from a
   second array, a compare and a branch, and the step's change test
   reads the old value through the same check.
-- Unlike the size, the tag's cost does not shrink at 100,000 (27 to
-  37%): it is work per read, not memory, and the processor does it for
-  every operand whatever is cached.
+- Unlike the size, the tag's cost hardly shrinks at 100,000: it is
+  work per read more than memory (the tags add a byte per cell).
 - Under the dirty closure it shows on the fans (breadth and refs, 22 to
   34%), where every reader of the dragged cell is checked as it runs,
   and hardly on the chains (depth and coords, within 3%), where each
-  step waits on the one before and the check hides in that wait.
+  step waits on the one before; likely the check hides in that wait,
+  not profiled.
 - So untagged values (decision 6) save more for the tag than for the
-  size: 1.3 to 1.5 times against 1.1 to 1.36 on full recompute. A
+  size: on full recompute 1.12 to 1.50 times against 1.05 to 1.36. A
   tagged enum pays both, which is the next step.
 
