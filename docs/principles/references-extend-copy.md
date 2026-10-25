@@ -301,26 +301,57 @@ No test pins the "last one wins" rule, for any component, either written directl
 (`extend_references.test.ts:86`). This rule should be one schema-driven sweep over every
 component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
-### REF-5: a different tag converts, and stays linked (Tier 1)
-`<T extend="$x"/>` with T different from x's type behaves like `<T>$x</T>`.
+### REF-5: a different tag is supported only for a few related types (Tier 2 for those pairs; otherwise unspecified)
+`<T extend="$x"/>` with T different from x's type asks for a T that behaves like x. That makes
+sense only for related types, and nothing promises a reasonable result for unrelated ones.
 
-| Example | Result |
-|---|---|
-| `<number extend="$m"/>` | a number |
-| `<math extend="$t"/>` | parses the text |
-| `<point extend="$v"/>` of a vector | a draggable point, and dragging it moves `v` (**[probe]**) |
+**What the code does.** It does not convert. When the replacement is not a T,
+`verifyReplacementsMatchSpecifiedType` (`W/utils/copy.js:192`, wrap branch `:398-470`) makes a
+new, empty T and puts the replacement in as its only child. That is a reference to x, or to x's
+value when x reads as a value (REF-1a). What happens next is whatever T does with that child:
+- **T has a way to read the child,** directly or through an adapter: the result is a
+  reasonable T. It is linked only where that reading can be run backward.
+- **T does not accept the child:** the child is dropped with an "Invalid children" warning, and
+  T takes its default value.
+- **T accepts the child but has no sensible reading of it:** the result is a default or
+  meaningless value, with **no** warning.
 
-Evidence:
-- `T/copying/extend_references.test.ts`:
-  - `:3200` "extend wraps to match specified type";
-  - `:6366` "correctly wrap replacement changes when verifying to force component type";
-  - `:6495`, an invalid component type.
+**[probe]**, with `n` a number, `m` the math `x+1`, `t` the text `y+2`, `v` a vector and `P` a
+point:
 
-Code: `W/utils/copy.js:192` `verifyReplacementsMatchSpecifiedType`. The wrap branch is at
-`:398-470`.
+| Written | Result | Diagnostic |
+|---|---|---|
+| `<math extend="$n"/>` | 3 | — |
+| `<math extend="$t"/>` | `y + 2` | — |
+| `<text extend="$m"/>` | `x + 1` | — |
+| `<point extend="$v"/>` | (1, 2); dragging it moves `v` | — |
+| `<math extend="$P"/>` | `(3, 4)` | — |
+| `<number extend="$m"/>` | NaN | none |
+| `<boolean extend="$m"/>` | false | **none** |
+| `<number extend="$P"/>` | NaN | none |
+| `<textInput extend="$m"/>` | an input whose value is `x + 1` | — |
+| `<p extend="$m"/>`, `<section extend="$m"/>`, `<graph extend="$P"/>` | a container holding the referent | — |
+| `<circle extend="$P"/>`, `<polygon extend="$P"/>`, `<point extend="$t"/>`, `<point extend="$sec"/>`, `<math extend="$sec"/>`, `<vector extend="$ln"/>` | a default T | "Invalid children" |
+| `<line extend="$P"/>` | the line `0 = -y` | "Invalid children" |
 
-Inconsistency: across a type change, a list extend takes the source's same-named attributes
-(`hide`, `fixed`, display settings, #2231), but a scalar extend does not (D19).
+So the honest statement is narrower than "converts and stays linked":
+- **Supported (Tier 2):** extending between related value types: math, number, text and
+  boolean among each other; point, vector and coords. An input extended from a value, or a
+  value extended from an input, also belongs here. These are the pairs tested:
+  `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
+  number and coords from a mathInput and a point), `:6366`, and #2231 for lists.
+- **Unspecified:** every other pair. The result follows from how T happens to process a child,
+  which is not a principle, and should not be locked in by tests. The only test of this kind is
+  `:6495` "handle extending or copying with invalid component type".
+
+A container extended from a value (`<p extend="$m"/>`) works only because a `<p>` accepts any
+child. It is not a meaningful "p that behaves like m".
+
+D26 proposes a declared table of supported pairs, and an error for the rest.
+
+Inconsistency within the supported pairs: across a type change, a list extend takes the source's
+same-named attributes (`hide`, `fixed`, display settings, #2231), but a scalar extend does not
+(D19).
 
 ### REF-6: an extend keeps the source's bindings, however deep (Tier 1)
 An extend is the same component. Every reference inside the extended subtree means what it

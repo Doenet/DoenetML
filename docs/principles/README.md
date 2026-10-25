@@ -82,7 +82,9 @@ removed.
    - an attribute you write replaces x's;
    - an attribute you don't write comes from x;
    - children you write are added after x's;
-   - a different tag `T` converts x's value, and the two stay linked.
+   - a different tag `T` is supported only between related types (math, number, text and
+     boolean among each other; point and vector); for unrelated types the result is
+     unspecified.
 
    (REF-3 to REF-5)
 
