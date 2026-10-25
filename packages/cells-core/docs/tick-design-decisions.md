@@ -138,9 +138,18 @@ Each decision gives:
 - **Alternative.** An identity instruction per reference that copies the
   value forward.
 - **Depends on.** 1.
-- **Exercised by.** refs: n references and copies of one point, each
-  read by a number. Today it has as many instructions as readers.
-- **Result.** Not measured.
+- **Exercised by.** every shape, since each `$x` in a number's math is
+  a reference; refs most: n references and copies of one point, each
+  read by a number. And the program of every golden document.
+- **Result.** Identity instructions double the instructions of every
+  shape and of the golden documents (2.1 times over the set), and
+  multiply `fixtures/sir.doenet`'s by 5.1 (2,829 to 14,538). The tick
+  grows with them, at the same cost per instruction: 2 to 2.9 times on
+  the shapes, 4.5 to 6.3 on refs. Aliasing also carries meaning outside
+  the tick: three places used "the same cell" for "equal by
+  construction", which the alternative had to replace. See
+  [Decision 8: identity instructions](#decision-8-identity-instructions)
+  below.
 
 ### 9. A fixed push schedule, computed eagerly
 
@@ -351,7 +360,7 @@ is measured later.
 | 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | done; see below. Version counters are a larger build, not planned yet |
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | done; see below |
 | 5 | 2 → operators as code, the cheap form | small | done; see below. Measured in two forms, a closure per instruction and a function pointer per operator |
-| 6 | 8 → identity instructions | medium, in `build/emit.rs` | the tick is unchanged; on refs |
+| 6 | 8 → identity instructions | medium, in `build/emit.rs` | done; see below |
 | 7 | 6 → 16-byte cells, no tag | medium | the first change to what a cell is: size alone |
 | 8 | 6 → 8-byte cells and a tag array | medium | the tag alone, on step 7's plumbing |
 | 9 | 6 → tagged enum | medium to large | both; 7 and 8 should account for it |
@@ -383,7 +392,8 @@ base.
 | 6 | untagged `f64` | tag array | | | | | |
 | 6 | untagged `f64` | tagged enum | | | | | |
 | 7 | one cell per scalar | compound values | | | | | |
-| 8 | aliases | identity instructions | | | | | |
+| 8 | aliases | identity instructions (base: dirty closure) | 2.17 | 2.68 | 1.95 | 2.44 | refs-100000: 4.78; mixed-100000: 2.13 |
+| 8 | aliases | identity instructions (base: full recompute) | 2.30 | 2.89 | 1.93 | 2.09 | refs-100000: 4.52; mixed-100000: 2.07 |
 | 9 | fixed push schedule | readiness checking, every cell (base: full recompute) | 2.64 | 2.75 | 2.74 | 3.00 | mixed-100000: 3.35 |
 | 9 | fixed push schedule | readiness checking, invalidated (base: dirty closure) | 1.92 | 2.34 | 1.84 | 2.60 | mixed-100000: 2.13; cutoff-100000: 488 |
 | 9 | fixed push schedule | lazy pull, 100% read (base: dirty closure) | 1.95 | 2.38 | 1.86 | 2.66 | mixed-100000: 2.09; cutoff-100000: 495 |
@@ -870,4 +880,104 @@ What it shows:
   adds what the full form (Plan, step 14) would measure: a function per
   state variable rather than per primitive, its dependencies looked up
   rather than bound, and values held in its objects.
+
+### Decision 8: identity instructions
+
+Measured 2026-10-25 with `scripts/tick-diff.sh` against `1064555`, the
+alternative being `docs/tick-alternatives/8-identity-instructions.patch`.
+At the start of emit, in a real build, every alias slot becomes an
+instruction of a new scalar operator, `Id(a)`, whose inverse writes the
+requested value to `a`; the union-find then has nothing to merge, and
+every slot has a cell of its own. (The cycle check's probe keeps
+aliases: a recurrence it folds onto itself is a loop of aliases, which
+it turns into a constant.) An identity's cell takes its referent's
+value type, as the shared cell did, and the tape compiler follows
+identities as it followed aliases.
+
+Three places outside the tick took "the same cell" to mean "equal by
+construction", and the alternative has to say that another way: each
+now follows a cell back through identities to its source
+(`Document::source_cell`, new in the patch).
+
+- `Document::answer_responses` and `answer_inputs`, which find which
+  input an answer reads by its cell. Without the change, an input was
+  listed twice, or not at all.
+- `Document::interactive_cells` and `is_interactive`: a copy of an
+  input is interactive, as their one shared cell was.
+- The sticky tables. A member's points are deduplicated by source; a
+  request on a member's own copy of a point names that point, and takes
+  its snapped value; and a group that copies an earlier one, left out
+  as before, adds its members' cells to the earlier group's index.
+  Without these, a shape stuck to its own vertices, and a drag of a
+  copied group was not snapped.
+
+With the patch, the golden diff is identical in every value (12
+documents; their programs differ, as they should), every shape's
+fingerprint matches the base's, and every value check of the component
+specs passes. 29 tests fail, every one on structure, not on a value:
+the number of cells or instructions a document builds (`build.rs`,
+`math.rs`, `repeat.rs`), two props sharing one cell (`boolean.rs`,
+`build.rs`, `slider.rs`, `symbolic.rs`, `text_input.rs`), the operators
+a math lowers to (`math.rs`), the number of cells a tick reports
+changed, which now counts each identity (`requests.rs`), and the
+specs' cost snapshots (circle, line, polygon, segment, slider). They
+check decision 8 itself.
+
+What it does to programs (`crates/cells-bench/examples/program_size.rs`,
+run on each side):
+
+| document | cells, base → identities | instructions, base → identities | instructions × |
+|---|---|---|---:|
+| choices | 82 → 105 | 38 → 61 | 1.61 |
+| circles | 113 → 165 | 58 → 110 | 1.90 |
+| fixed | 50 → 66 | 23 → 39 | 1.70 |
+| lines | 50 → 65 | 26 → 41 | 1.58 |
+| ops | 29 → 51 | 17 → 39 | 2.29 |
+| polygons | 52 → 104 | 5 → 57 | 11.4 |
+| repeats | 91 → 151 | 40 → 100 | 2.50 |
+| scoring | 109 → 120 | 28 → 39 | 1.39 |
+| slider | 42 → 46 | 26 → 30 | 1.15 |
+| sticky | 45 → 85 | 1 → 41 | 41.0 |
+| symbolic | 421 → 432 | 13 → 24 | 1.85 |
+| `fixtures/sir.doenet` | 5,488 → 17,197 | 2,829 → 14,538 | 5.14 |
+
+And to ticks:
+
+| shape | n | instructions | dirty, base → identities (µs) | identities / base | full, base → identities (µs) | identities / base |
+|---|---:|---|---|---:|---|---:|
+| depth | 10,000 | 10,000 → 20,000 | 108 → 234 | 2.17 | 27.1 → 62.4 | 2.30 |
+| depth | 100,000 | 100,000 → 200,000 | 1,370 → 2,673 | 1.95 | 372 → 718 | 1.93 |
+| breadth | 10,000 | 10,000 → 20,000 | 56.2 → 150 | 2.68 | 19.3 → 55.6 | 2.89 |
+| breadth | 100,000 | 100,000 → 200,000 | 690 → 1,688 | 2.44 | 330 → 688 | 2.09 |
+| isolated | 10,000 | 10,001 → 20,002 | 0.2 → 0.3 | 1.18 | 14.0 → 27.9 | 1.99 |
+| isolated | 100,000 | 100,001 → 200,002 | 2.0 → 3.4 | 1.67 | 276 → 568 | 2.06 |
+| mixed | 10,000 | 10,000 → 20,000 | 4.4 → 9.2 | 2.09 | 14.7 → 29.1 | 1.97 |
+| mixed | 100,000 | 100,000 → 200,000 | 52.5 → 112 | 2.13 | 273 → 565 | 2.07 |
+| cutoff | 10,000 | 10,002 → 20,003 | 0.2 → 0.2 | 1.07 | 14.0 → 27.8 | 1.99 |
+| cutoff | 100,000 | 100,002 → 200,003 | 2.1 → 3.6 | 1.67 | 260 → 547 | 2.10 |
+| refs | 10,000 | 10,000 → 40,000 | 57.2 → 302 | 5.28 | 20.5 → 130 | 6.32 |
+| refs | 100,000 | 100,000 → 400,000 | 690 → 3,297 | 4.78 | 331 → 1,496 | 4.52 |
+| coords | 10,000 | 20,000 → 40,000 | 119 → 256 | 2.16 | 50.3 → 116 | 2.30 |
+| coords | 100,000 | 200,000 → 400,000 | 1,385 → 2,713 | 1.96 | 640 → 1,328 | 2.08 |
+
+What it shows:
+
+- References are most of what a document says: every `$x` in a math,
+  every attribute given by reference, every prop of a copy. Without
+  aliasing, each is an instruction, and the program grows by that many:
+  twice over on the shapes and the golden set, five times on `sir`,
+  whose geometry is mostly copies and references.
+- The tick grows with the program, at about the same cost per
+  instruction: the identities are as cheap as any operator, so the
+  ratio of times follows the ratio of instructions (2 on the shapes, 4
+  on refs, where it is 5 to 6 times). Under the dirty closure the
+  identities also cost their bookkeeping, a step more on every path.
+- So aliasing pays in proportion to how much a document refers: on
+  `sir` a tick with identity instructions would do about five times the
+  work. Its other cost is the one the patch had to pay for: the core's
+  answers, interactive cells and sticky groups read meaning off shared
+  cells, and a core without aliasing must track where each copy comes
+  from instead.
+- Not measured: the tick on `sir` and the golden documents themselves,
+  which `tick_cost` does not load; their programs are what is measured.
 
