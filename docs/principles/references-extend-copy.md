@@ -69,8 +69,8 @@ Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
   down), `:6408` "recursive extends", `:5773` "dot and array notation, recurse to subnames of
   composite replacements".
-- `T/tagSpecific/repeatForSequence.test.ts:156`: nested repeats, `$a[2][1][3]` and
-  `$a[2].b[3].c`.
+- `T/tagSpecific/repeatForSequence.test.ts:156`: nested repeats, `$a[2].b[3].c` and the
+  positional `$a[2][1][3]`. Under D27 the positional form becomes `$a[2][3]`.
 - `T/copying/value_references.test.ts`: `:286` "an index into a list resolves itself and
   re-resolves as the index changes", and `:333`, rounding 2.6→3, 1.5→2, 4.4→4, −1 → nothing.
 
@@ -86,7 +86,8 @@ Limits:
   `T/copying/extend_references.test.ts:4703`. Whether they are a guarantee is an open question
   ([decisions.md](decisions.md), D19).
 - **An index into a composite of references** (`$g[1]` with `<group name="g">$x</group>`) can
-  panic the resolver (#1942).
+  panic the resolver (#1942). Under D27, indexing a group's children is an error, so this form
+  would give a diagnostic instead.
 
 ### NAME-3: names inside a copy or a repeat iteration are private (Tier 1)
 A copy brings its content's names into existence only beneath the copy's own name. A bare `$h`
@@ -391,10 +392,11 @@ follow.
   |---|---|
   | `$sec1.p`, `$sec1.t` | do not resolve: the bare `$p` brings neither p's name nor t's into `sec1` |
   | `$sec2.g.p`, `$sec2.g.t` | do not resolve, for the same reason |
-  | `$sec2.g[1].t` | "hi": reached by *position* in the group, not by a name the reference made. Whether an index should select a child of a group at all is open: it works only because a group is a composite, and fails on a section or `<p>` (D27) |
 
   Evidence: `T/copying/extend_references.test.ts:6549` "reference inside composite adds to index
-  resolution but not names".
+  resolution but not names". That test also asserts that `$sec2.g[1].t` reaches `t` by its
+  position in the group. That part changes under D27, which proposes that an index never selects
+  a child of a group.
 
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
