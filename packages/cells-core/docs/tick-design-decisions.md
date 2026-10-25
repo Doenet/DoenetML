@@ -1038,17 +1038,16 @@ identical, and every shape's fingerprint matches.
 What it shows:
 
 - Doubling a cell, with nothing else changed, costs full recompute 5 to
-  36%: what it reads and writes is spread over twice the memory, so
-  fewer values share a cache line and more lines are fetched.
+  36%. What a tick reads and writes is spread over twice the memory, so
+  fewer values share a cache line; that is the likely cause, not
+  profiled.
 - The cost is largest at 10,000 (21 to 36% on all but depth), where the
-  cells go from 80 KB to 160 KB, and smaller at 100,000 (8 to 19%),
-  where both sizes are well past the cache that holds them and other
-  costs of a tick weigh more. On depth, where each instruction waits on
-  the one before, it costs least (5 and 13%).
+  cells go from 80 KB to 160 KB, and smaller at 100,000 (8 to 19%). On
+  depth, where each instruction waits on the one before, it costs least
+  (5 and 13%).
 - Under the dirty closure, which reaches cells through its readers
   table and spends most of its time on its own bookkeeping (decision
   10), the size costs at most 8%.
-- So of a tagged 16-byte enum, the size alone accounts for up to about
-  a third on the evaluator where instructions' own cost shows. What the
-  tag adds, a check on every read, is the next step.
+- So a tagged 16-byte enum would pay this much for its size alone.
+  What the tag adds, a check on every read, is the next step.
 
