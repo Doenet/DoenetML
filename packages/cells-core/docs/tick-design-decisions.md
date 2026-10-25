@@ -190,7 +190,14 @@ Each decision gives:
 - **Exercised by.** cutoff: `round($p.x / 10)` feeds a chain of n
   numbers, and the timed drags both round to 0, so the change stops at
   the round.
-- **Result.** Not measured.
+- **Result.** Marking every reader measured; version counters not yet.
+  Where a change stops partway (cutoff), the decision makes the tick 420
+  to 650 times faster: without it the dirty closure runs the whole chain
+  after the round, and becomes slower than full recompute. Where every
+  value changes, it costs up to 10% (depth and coords, the chains): the
+  check whether an output changed, and the list of what did, are work
+  that marking every reader skips. See
+  [Decision 11](#decision-11-no-early-cutoff) below.
 
 ## How the decisions depend on each other
 
@@ -220,8 +227,11 @@ Two things follow for the measurements:
 
 ## Method
 
-- One base commit for every measurement; each alternative on a branch of
-  its own from it, or a commit of its own in a series.
+- One base commit for every measurement. An alternative that changes the
+  core is kept out of it, as a patch in `docs/tick-alternatives/`
+  (`git apply` it on the base, then `scripts/tick-diff.sh` compares it
+  with the base). An alternative that only adds an evaluator lives in
+  the bench crate and runs beside the core's in the same process.
 - Native release builds, timing ticks directly: the Node driver's adapter
   floor (23 µs on the cells core) is most of a tick at 1,000 elements, so
   smaller effects would not show through it. The Node driver
@@ -232,8 +242,10 @@ Two things follow for the measurements:
   runs do, which hides a difference per instruction (a tag, a dispatch)
   under the default evaluator; full recompute shows it.
 - Every alternative must give the same values as the base: the golden diff
-  (`scripts/golden-diff.sh`) and `cargo test` stay green, and the
-  harness compares a fingerprint of every prop's value.
+  (`scripts/golden-diff.sh`) and `cargo test --workspace` stay green, and
+  the harness compares a fingerprint of every prop's value. Both need the
+  parser: `npm ci --ignore-scripts` at the repository root, then
+  `npm run build -w packages/parser`.
 
 ### The harness
 
@@ -305,7 +317,7 @@ is measured later.
 | 0 | the shapes and the harness | done | mixed, cutoff, refs and coords, `tick_cost`, `tick-diff.sh` |
 | 1 | 10 → full recompute | exists | done; see below |
 | 2 | 9 → pull | small, in the bench crate | done; see below |
-| 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | pairs with 10, on cutoff; version counters after, a larger build |
+| 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | done; see below. Version counters are a larger build, not planned yet |
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | finishes 10 |
 | 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
 | 6 | 8 → identity instructions | medium, in `build/emit.rs` | the tick is unchanged; on refs |
@@ -341,12 +353,67 @@ base.
 | 9 | fixed push schedule | invalidate, then pull (base: dirty closure) | 1.81 | 2.35 | 1.97 | 2.40 | mixed-100000: 2.46; cutoff-100000: 637 |
 | 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | mixed-100000: 5.2; isolated-100000: 247; chain10-100000: 1.7 |
 | 10 | downstream only | priority queue | | | | | |
+| 11 | value comparison, cutoff | mark every reader (base: dirty closure) | 0.90 | 1.02 | 0.95 | 1.05 | cutoff-100000: 645; coords-100000: 0.92 |
 | 11 | value comparison, cutoff | version counters | | | | | |
 
 Each cell is the alternative's tick over the base's (above 1 means the
 decision makes the tick faster by that factor, below 1 that it makes it
 slower), the per-side median of interleaved runs; where a shape was run
 more than once, the median of the runs.
+
+### Decision 11: no early cutoff
+
+Measured 2026-10-25 with `scripts/tick-diff.sh` against `b789021`, the
+alternative being `docs/tick-alternatives/11-no-cutoff.patch`: in
+`DirtyClosure::recompute`, mark the readers of every output of every
+instruction run, rather than of the outputs whose value changed. Full
+recompute does not mark readers, so its column is a control: it should
+not move, and moved by at most 8%, about the noise floor.
+
+| shape | n | dirty, base → no cutoff (µs) | no cutoff / base | full, base → no cutoff (µs) | no cutoff / base |
+|---|---:|---|---:|---|---:|
+| depth | 10,000 | 108 → 97.0 | 0.90 | 27.0 → 27.3 | 1.01 |
+| depth | 100,000 | 1,370 → 1,295 | 0.95 | 358 → 376 | 1.05 |
+| breadth | 10,000 | 56.0 → 57.0 | 1.02 | 19.2 → 19.2 | 1.00 |
+| breadth | 100,000 | 668 → 704 | 1.05 | 314 → 324 | 1.03 |
+| isolated | 10,000 | 0.2 → 0.2 | 1.02 | 14.0 → 14.0 | 1.00 |
+| isolated | 100,000 | 1.9 → 2.0 | 1.02 | 266 → 260 | 0.98 |
+| mixed | 10,000 | 4.4 → 4.3 | 0.97 | 14.7 → 14.7 | 1.00 |
+| mixed | 100,000 | 50.3 → 49.6 | 0.99 | 256 → 262 | 1.02 |
+| cutoff | 10,000 | 0.2 → 94.2 | 423 | 14.0 → 14.1 | 1.01 |
+| cutoff | 100,000 | 1.9 → 1,216 | 645 | 256 → 265 | 1.04 |
+| refs | 10,000 | 56.2 → 57.1 | 1.02 | 19.4 → 19.5 | 1.01 |
+| refs | 100,000 | 695 → 716 | 1.03 | 322 → 339 | 1.05 |
+| coords | 10,000 | 111 → 102 | 0.92 | 35.2 → 38.0 | 1.08 |
+| coords | 100,000 | 1,403 → 1,285 | 0.92 | 647 → 649 | 1.00 |
+
+With the patch, `cargo test --workspace` passes, the golden diff is
+identical (12 documents, and their programs), and every shape's
+fingerprint matches the base's.
+
+What it shows:
+
+- On cutoff, early cutoff is the whole tick: with it, the dirty closure
+  runs one instruction, the round; without it, all 100,000, and at
+  1.2 ms it is 4.6 times slower than full recompute (265 µs), which runs
+  them in a tight loop. Decision 10 pays off on that document only
+  because of decision 11.
+- Where every value changes, there is nothing to cut off, and the
+  decision costs about 5 to 10% on the chains (depth, coords). The
+  patch marks from the instruction's outputs directly, instead of from
+  the part of the changed list the step just appended; not profiled
+  further.
+  Breadth, refs and mixed, whose changed cells mostly have no readers,
+  are within noise.
+- The step still compares each new value with the old, since the tick
+  reports which cells changed (`TickOutcome::changed`), so the patch
+  takes away the use of the comparison, not its cost. What the
+  comparison itself costs belongs to the version counter alternative.
+- With decision 9 (Decision 9 below), the cutoff rows show the same
+  thing from the other side: lazy evaluation with invalidation cannot
+  cut off before visiting, and is 380 to 640 times slower there. Either
+  way the cost of losing cutoff is the size of what lies downstream of
+  the point where the change stops.
 
 ### Decision 9: pull evaluation
 
