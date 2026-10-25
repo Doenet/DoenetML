@@ -139,20 +139,31 @@ Each decision gives:
 - **Choice.** A topological order fixed when the document is built
   (`Program::schedule`). A tick runs forward through it and never orders
   work at run time.
-- **Alternative.** Pull-based evaluation, which finds the order of work
-  at run time: to give a cell its value, first give its inputs theirs.
-  Two forms, one per evaluator of decision 10: every cell pulled every
-  tick, against full recompute; and lazy with push invalidation (a write
-  marks everything downstream stale, then the stale cells are pulled),
-  against the dirty closure.
+- **Alternatives.**
+  - Readiness checking: the same work, but the order found at run time,
+    an instruction running once its inputs' producers have. Two forms,
+    one per evaluator of decision 10: every cell every tick, against full
+    recompute; and invalidate what is downstream of a write, then bring
+    it up to date, against the dirty closure.
+  - Pull evaluation proper (lazy): a write invalidates what is
+    downstream, and only what a renderer reads is brought up to date;
+    the rest stays stale until something reads it.
 - **Depends on.** 1, 2.
-- **Exercised by.** every shape.
-- **Result.** The fixed schedule makes the tick 2.8 to 5 times faster
-  than pulling every cell, and 1.8 to 2.8 times faster than invalidating
-  and pulling, with all else equal. Where early cutoff stops a change
-  (cutoff), it is 380 to 640 times faster than invalidating and pulling,
-  since invalidation must visit everything downstream before any value
-  is known. See [Decision 9](#decision-9-pull-evaluation) below.
+- **Exercised by.** every shape, with the share of the document a tick
+  reads (a viewport over its first components) at 100%, 10% and 1%.
+- **Result.** Finding the order at run time costs 2.6 to 5 times more
+  than the fixed order against full recompute, and 1.8 to 2.6 times
+  more against the dirty closure wherever more than one instruction is
+  downstream; where early cutoff stops a change, 110
+  to 870 times more, since invalidation visits everything downstream
+  before any value is known. Lazy pull costs the same as readiness
+  checking when the whole document is read, and wins in proportion to
+  how little of the change is read: on a chain of 100,000 with 1% read,
+  it is 47 times faster than the dirty closure. So the fixed push
+  schedule is faster when everything downstream is shown, and the lazy
+  core when most of it is not. Whether a push core that skips what is
+  not shown would match that is not yet measured (Plan, step 2b). See
+  [Decision 9](#decision-9-pull-evaluation) below.
 
 ### 10. Recompute only what is downstream, tracked by schedule position
 
@@ -256,10 +267,13 @@ shape and size it loads the document, drags to a check value and asserts
 the values the shape names, asserts that every evaluator leaves the same
 cells, then alternates the dragged coordinate between 2 and 3 for 3
 warm-up and 41 timed ticks per evaluator, the evaluators interleaved
-tick by tick on the same document. The evaluators are the core's two
-(`dirty`, `full`) by default; `CELLS_EVALUATORS` adds the pull
-evaluators of `crates/cells-bench/src/pull.rs` (`pull`,
-`pull_invalidated`).
+tick by tick, each on its own copy of the document. The evaluators are
+the core's two (`dirty`, `full`) by default; `CELLS_EVALUATORS` adds the
+evaluators of `crates/cells-bench/src/pull.rs` (`ready_all`,
+`ready_closure`, `lazy`). `CELLS_WANTED=100,10,1` sets the share of the
+document a tick reads, as a viewport over the first components in
+document order (`shapes::wanted`); only `lazy` computes less than all of
+it, and values are compared on those cells.
 
 | shape | what the drag reaches | serves |
 |---|---|---|
@@ -316,7 +330,8 @@ is measured later.
 |---|---|---|---|
 | 0 | the shapes and the harness | done | mixed, cutoff, refs and coords, `tick_cost`, `tick-diff.sh` |
 | 1 | 10 → full recompute | exists | done; see below |
-| 2 | 9 → pull | small, in the bench crate | done; see below |
+| 2 | 9 → readiness checking, and lazy pull | small, in the bench crate | done; see below |
+| 2b | 9 → push over what is read: the dirty closure skipping instructions no read cell needs | small, in the bench crate | separates computing less from computing lazily: lazy's win on a small viewport could come from either |
 | 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | done; see below. Version counters are a larger build, not planned yet |
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | finishes 10 |
 | 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
@@ -349,8 +364,10 @@ base.
 | 6 | untagged `f64` | tagged enum | | | | | |
 | 7 | one cell per scalar | compound values | | | | | |
 | 8 | aliases | identity instructions | | | | | |
-| 9 | fixed push schedule | pull every cell (base: full recompute) | 2.78 | 3.63 | 2.92 | 3.02 | mixed-100000: 3.34 |
-| 9 | fixed push schedule | invalidate, then pull (base: dirty closure) | 1.81 | 2.35 | 1.97 | 2.40 | mixed-100000: 2.46; cutoff-100000: 637 |
+| 9 | fixed push schedule | readiness checking, every cell (base: full recompute) | 2.64 | 2.75 | 2.74 | 3.00 | mixed-100000: 3.35 |
+| 9 | fixed push schedule | readiness checking, invalidated (base: dirty closure) | 1.92 | 2.34 | 1.84 | 2.60 | mixed-100000: 2.13; cutoff-100000: 488 |
+| 9 | fixed push schedule | lazy pull, 100% read (base: dirty closure) | 1.95 | 2.38 | 1.86 | 2.66 | mixed-100000: 2.09; cutoff-100000: 495 |
+| 9 | fixed push schedule | lazy pull, 1% read (base: dirty closure) | 0.05 | 0.17 | 0.02 | 0.14 | mixed-100000: 0.58; cutoff-100000: 9.4 |
 | 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | mixed-100000: 5.2; isolated-100000: 247; chain10-100000: 1.7 |
 | 10 | downstream only | priority queue | | | | | |
 | 11 | value comparison, cutoff | mark every reader (base: dirty closure) | 0.90 | 1.02 | 0.95 | 1.05 | cutoff-100000: 645; coords-100000: 0.92 |
@@ -410,87 +427,141 @@ What it shows:
   takes away the use of the comparison, not its cost. What the
   comparison itself costs belongs to the version counter alternative.
 - With decision 9 (Decision 9 below), the cutoff rows show the same
-  thing from the other side: lazy evaluation with invalidation cannot
-  cut off before visiting, and is 380 to 640 times slower there. Either
+  thing from the other side: invalidating before evaluating cannot cut
+  off before visiting, and is 110 to 870 times slower there. Either
   way the cost of losing cutoff is the size of what lies downstream of
   the point where the change stops.
 
 ### Decision 9: pull evaluation
 
 Measured 2026-10-25 on `cells` at `f6677de` plus the harness, with
-`tick_cost` and `CELLS_EVALUATORS=dirty,full,pull,pull_invalidated`: the
-four evaluators interleaved on each document, seven processes, each
-evaluator's tick the median of the processes' medians (as
-`tick-diff.sh`). Every evaluator leaves the same cells, bit for bit,
-after each shape's check drag.
+`tick_cost`, `CELLS_EVALUATORS=dirty,full,ready_all,ready_closure,lazy`
+and `CELLS_WANTED=100,10,1`: the five evaluators interleaved, each on its
+own copy of each document, seven processes, each evaluator's tick the
+median of the processes' medians (as `tick-diff.sh`). Every evaluator
+holds the same values, bit for bit, in the cells read, after each
+shape's check drag and again after the timed ticks.
 
-`testing/reference.rs` was meant to be this alternative, but it cannot be
-timed as it is: it allocates a scratch array of every cell for every
-instruction it evaluates (quadratic in the document), keeps its memo in a
-hash map, and recurses once per link, which overflows the stack on a
-chain of 100,000. It would measure those, not pulling. So
-`crates/cells-bench/src/pull.rs` has two pull evaluators built as a pull
+`testing/reference.rs` was meant to be the first alternative, but it
+cannot be timed as it is: it allocates a scratch array of every cell for
+every instruction it evaluates (quadratic in the document), keeps its
+memo in a hash map, and recurses once per link, which overflows the
+stack on a chain of 100,000. It would measure those, not pulling. So
+`crates/cells-bench/src/pull.rs` has three evaluators built as such a
 core would be on this data: the core's cells, instructions and
-`Program::step`, an explicit stack for demand, and state in arrays stamped
-with the tick's epoch, so nothing is cleared between ticks. What differs
-from the core's evaluators is only how the next instruction is found.
+`Program::step`, and an explicit stack for demand.
 
-- **pull**: every tick, every derived cell is read, in cell order (the
-  document's), and each instruction runs once its inputs' producers have.
-  Its base is full recompute: neither is incremental.
-- **pull_invalidated**: a write marks every instruction downstream of it
-  stale (push), then each stale instruction is brought up to date by
-  demand (pull), running only if an input changed this tick, so early
-  cutoff (decision 11) is kept. Its base is the dirty closure: both do
-  work proportional to what is downstream.
+Two are readiness checking. They compute what the core's evaluators do,
+so they measure only finding the order at run time:
 
-| shape | n | dirty (µs) | full (µs) | pull (µs) | pull_invalidated (µs) | pull / full | pull_invalidated / dirty |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| depth | 10,000 | 121 | 31.4 | 87.1 | 219 | 2.78 | 1.81 |
-| depth | 100,000 | 1,386 | 349 | 1,019 | 2,734 | 2.92 | 1.97 |
-| breadth | 10,000 | 63.8 | 22.5 | 81.8 | 150 | 3.63 | 2.35 |
-| breadth | 100,000 | 727 | 336 | 1,016 | 1,746 | 3.02 | 2.40 |
-| mixed | 10,000 | 4.7 | 14.9 | 77.4 | 10.7 | 5.18 | 2.29 |
-| mixed | 100,000 | 43.0 | 273 | 911 | 106 | 3.34 | 2.46 |
-| isolated | 10,000 | 0.3 | 16.0 | 74.7 | 0.3 | 4.66 | 1.16 |
-| isolated | 100,000 | 1.0 | 272 | 878 | 2.8 | 3.23 | 2.75 |
-| cutoff | 10,000 | 0.4 | 14.2 | 71.7 | 170 | 5.04 | 382 |
-| cutoff | 100,000 | 3.9 | 275 | 921 | 2,453 | 3.34 | 637 |
-| refs | 10,000 | 63.2 | 22.6 | 81.8 | 150 | 3.62 | 2.38 |
-| refs | 100,000 | 700 | 322 | 969 | 1,728 | 3.01 | 2.47 |
-| coords | 10,000 | 127 | 40.6 | 172 | 243 | 4.22 | 1.91 |
-| coords | 100,000 | 1,362 | 628 | 1,974 | 2,653 | 3.14 | 1.95 |
+- **ready_all**: every tick, every derived cell is read, in cell order
+  (the document's), and each instruction runs once its inputs' producers
+  have. Its base is full recompute: neither is incremental.
+- **ready_closure**: a write marks every instruction downstream of it
+  stale, then each stale instruction is brought up to date by demand,
+  running only if an input changed this tick, so early cutoff (decision
+  11) is kept. Its base is the dirty closure: both do work in proportion
+  to what is downstream.
 
-The ratios held across the seven processes: each process's own ratio
-stayed within about 10% of the value shown, except on three rows where
-the dirty closure's tick is a few µs: mixed at 10,000 (pull over full
-4.5 to 5.3, pull_invalidated over dirty 1.8 to 2.4), isolated at 100,000
-(pull_invalidated over dirty 2.4 to 4.0) and cutoff (370 to 750).
+The third is pull evaluation proper:
+
+- **lazy**: a write marks every instruction downstream of it stale, and
+  a stale instruction stays stale until a read needs it. The cells a
+  renderer reads are observed: invalidation that reaches one queues it,
+  and the tick reads the queued ones, bringing up to date what they
+  need, as a reactive UI library's effects do. A version counter per
+  cell and per instruction decides whether a stale instruction must
+  run: only if an input changed since it last ran, which keeps early
+  cutoff across ticks. What no read needs stays stale, and invalidation
+  stops at what is already stale, so content out of view costs nothing
+  tick after tick.
+
+What a tick reads is a viewport: every prop of the first 100%, 10% or 1%
+of the components in document order. The dragged point is at the top of
+every shape, so the viewport holds the start of its change; in mixed, the
+dragged graph is the first 5% of the page, so a 10% viewport holds all of
+it. The core's evaluators and readiness checking compute everything
+whatever is read; their columns differ between the three shares only by
+noise, and the table gives them once, at 100%.
+
+| shape | n | dirty | full | ready_all | ready_closure | lazy, 100% | lazy, 10% | lazy, 1% |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| depth | 10,000 | 126 | 37.0 | 97.2 | 241 | 245 | 26.1 | 5.7 |
+| depth | 100,000 | 1,382 | 386 | 1,058 | 2,545 | 2,570 | 264 | 29.6 |
+| breadth | 10,000 | 69.3 | 31.9 | 87.9 | 162 | 165 | 25.2 | 11.4 |
+| breadth | 100,000 | 682 | 327 | 983 | 1,774 | 1,813 | 254 | 101 |
+| mixed | 10,000 | 4.9 | 15.9 | 79.1 | 10.6 | 9.8 | 9.9 | 2.9 |
+| mixed | 100,000 | 47.6 | 270 | 906 | 101 | 99.6 | 96.7 | 27.9 |
+| isolated | 10,000 | 0.5 | 15.6 | 79.0 | 0.4 | 0.3 | 0.3 | 0.3 |
+| isolated | 100,000 | 2.2 | 279 | 894 | 3.0 | 1.8 | 1.6 | 2.0 |
+| cutoff | 10,000 | 1.7 | 25.7 | 85.2 | 192 | 190 | 18.7 | 2.9 |
+| cutoff | 100,000 | 4.6 | 280 | 924 | 2,248 | 2,281 | 213 | 24.2 |
+| refs | 10,000 | 70.1 | 32.6 | 89.3 | 163 | 165 | 8.9 | 8.9 |
+| refs | 100,000 | 680 | 339 | 987 | 1,765 | 1,799 | 81.3 | 81.5 |
+| coords | 10,000 | 129 | 57.5 | 189 | 234 | 244 | 25.2 | 4.8 |
+| coords | 100,000 | 1,432 | 740 | 2,141 | 2,554 | 2,609 | 260 | 33.9 |
+
+Times in µs. The ratios, each evaluator over its base:
+
+| shape | n | ready_all / full | ready_closure / dirty | lazy / dirty, 100% | 10% | 1% |
+|---|---:|---:|---:|---:|---:|---:|
+| depth | 10,000 | 2.63 | 1.92 | 1.95 | 0.21 | 0.05 |
+| depth | 100,000 | 2.74 | 1.84 | 1.86 | 0.19 | 0.02 |
+| breadth | 10,000 | 2.75 | 2.34 | 2.38 | 0.37 | 0.17 |
+| breadth | 100,000 | 3.00 | 2.60 | 2.66 | 0.35 | 0.14 |
+| mixed | 10,000 | 4.98 | 2.17 | 1.99 | 2.07 | 0.61 |
+| mixed | 100,000 | 3.35 | 2.13 | 2.09 | 2.05 | 0.58 |
+| isolated | 10,000 | 5.08 | 0.77 | 0.67 | 0.74 | 0.80 |
+| isolated | 100,000 | 3.20 | 1.40 | 0.82 | 0.84 | 0.95 |
+| cutoff | 10,000 | 3.32 | 112 | 111 | 23.8 | 4.4 |
+| cutoff | 100,000 | 3.30 | 488 | 495 | 77.6 | 9.4 |
+| refs | 10,000 | 2.74 | 2.33 | 2.35 | 0.13 | 0.13 |
+| refs | 100,000 | 2.91 | 2.60 | 2.65 | 0.11 | 0.11 |
+| coords | 10,000 | 3.29 | 1.81 | 1.89 | 0.20 | 0.04 |
+| coords | 100,000 | 2.89 | 1.78 | 1.82 | 0.19 | 0.03 |
+
+Each process's own lazy over dirty stayed within about 10% of the value
+shown, except where the dirty closure's tick is a few µs: isolated (0.3
+to 1.2), cutoff at 100% (98 to 164 at 10,000, 440 to 575 at 100,000) and
+at 10% (21 to 29, 66 to 86).
 
 What it shows:
 
 - Finding the order at run time costs about 7 to 9 ns per instruction
-  (pull at 10,000 instructions: 72 to 87 µs), against 2 to 3 ns for
-  running a fixed order. Pull looks at each input's producer before
-  running an instruction, and keeps a stack; the fixed schedule only
-  runs the next instruction.
-- Lazy evaluation with invalidation pays twice: once to mark what is
-  downstream stale, once to pull it. It does the same amount of work as
-  the dirty closure, so its ratio to it (about 2) is the cost of the
-  extra pass and of demand.
-- The cutoff rows are the largest difference in this report so far.
-  The fixed schedule computes in order, so the dirty closure learns that
-  `round` did not change before it marks anything after it, and stops
-  there. Invalidation has to mark the whole chain stale before any value
-  is known; the pull then skips running each instruction, but must still
-  visit it. So decision 9 is what lets early cutoff (decision 11) save
-  visits, and not only runs.
-- Not measured: what laziness is for. A lazy core computes only what is
-  read, and every shape shows every value, so here pulling never skips
-  anything. A shape with content that is hidden or off screen would
-  measure that. Nor the order of reads: pull reads cells in document
-  order, where most inputs are already up to date; reading in reverse
-  would make each demand walk the chain.
+  (ready_all at 10,000 instructions: 79 to 97 µs), against 2 to 4 ns for
+  running a fixed order. Readiness checking looks at each input's
+  producer before running an instruction and keeps a stack; the fixed
+  schedule only runs the next instruction.
+- Invalidating, then evaluating, pays twice: once to mark what is
+  downstream stale, once to bring it up to date. It does the same amount
+  of work as the dirty closure, so its ratio to it (about 2) is the cost
+  of the extra pass and of demand. Lazy pull with everything read is the
+  same thing, and costs the same.
+- Where early cutoff stops a change, the fixed schedule computes in
+  order, so the dirty closure learns that `round` did not change before
+  it marks anything after it, and stops there. Invalidation has to mark
+  the whole chain stale before any value is known; evaluation then skips
+  running each instruction, but must still visit it. So decision 9 is
+  what lets early cutoff (decision 11) save visits, and not only runs.
+- Lazy pull computes only the read part of the change, and leaves the
+  rest stale, so its tick shrinks with the viewport, about in proportion
+  to the share of the change in view: on the chains (depth, coords) a
+  10% viewport costs a fifth of the dirty closure and 1% a twentieth to
+  a fiftieth. It breaks even with the dirty closure at about half of the
+  change in view. Where the viewport holds all of the change (mixed at
+  10%) or none of it beyond one cell (isolated), it gains nothing.
+- So which is faster depends on what a renderer shows. A drag whose
+  effects are all on screen favors the fixed push schedule by about two
+  times; a drag whose effects are mostly off screen or hidden favors
+  the lazy core, by as much as what is not shown is large.
+- Open: whether the push core would win that back by not computing what
+  no read needs. The dirty closure could skip, from a mask fixed when
+  the viewport changes, every instruction no read cell depends on (Plan,
+  step 2b). If that matches lazy, the win is from computing less, which
+  a push core can also do, and not from laziness.
+- Not measured: scrolling. The lazy core pays for what it skipped when
+  stale content comes into view, and this harness never moves the
+  viewport. Nor reads in another order than the document's.
 
 ### Decision 10: full recompute
 
