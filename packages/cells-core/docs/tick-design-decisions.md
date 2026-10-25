@@ -118,9 +118,12 @@ Each decision gives:
 - **Exercised by.** every shape.
 - **Result.** The size alone measured: 16-byte cells without a tag make
   full recompute 5 to 36% slower (8 to 30% on most shapes), and the
-  dirty closure, whose own cost dilutes it, at most 8%. The tag alone
-  and the enum not yet. See
-  [Decision 6: 16-byte cells](#decision-6-16-byte-cells) below.
+  dirty closure, whose own cost dilutes it, at most 8%. The tag alone,
+  checked on every read with the cells still 8 bytes, costs more: full
+  recompute 12 to 50% slower (27 to 50% on all but depth), and the
+  dirty closure up to 34% on the fans. The enum not yet. See
+  [Decision 6: 16-byte cells](#decision-6-16-byte-cells) and
+  [Decision 6: a tag array](#decision-6-a-tag-array) below.
 
 ### 7. One cell per scalar
 
@@ -372,7 +375,7 @@ is measured later.
 | 5 | 2 → operators as code, the cheap form | small | done; see below. Measured in two forms, a closure per instruction and a function pointer per operator |
 | 6 | 8 → identity instructions | medium, in `build/emit.rs` | done; see below |
 | 7 | 6 → 16-byte cells, no tag | medium | done; see below. Built on the plumbing (`4-6-cells-type.patch`) the next steps reuse |
-| 8 | 6 → 8-byte cells and a tag array | medium | the tag alone, on step 7's plumbing |
+| 8 | 6 → 8-byte cells and a tag array | medium | done; see below |
 | 9 | 6 → tagged enum | medium to large | both; 7 and 8 should account for it |
 | 10 | 4 → an allocation per value | medium | the same plumbing as 7 to 9 |
 | 11 | 3 → coarse operators | large | new operators and lowering |
@@ -400,7 +403,8 @@ base.
 | 5 | uniform size | varying size | | | | | |
 | 6 | untagged `f64` | 16 bytes, no tag (base: full recompute) | 1.05 | 1.24 | 1.13 | 1.08 | refs-10000: 1.36; mixed-10000: 1.30 |
 | 6 | untagged `f64` | 16 bytes, no tag (base: dirty closure) | 1.01 | 1.04 | 1.03 | 1.07 | refs-100000: 1.08 |
-| 6 | untagged `f64` | tag array | | | | | |
+| 6 | untagged `f64` | tag array (base: full recompute) | 1.12 | 1.50 | 1.32 | 1.32 | isolated-10000: 1.45; mixed-100000: 1.33 |
+| 6 | untagged `f64` | tag array (base: dirty closure) | 0.99 | 1.22 | 1.02 | 1.32 | refs-100000: 1.34; mixed-100000: 1.11 |
 | 6 | untagged `f64` | tagged enum | | | | | |
 | 7 | one cell per scalar | compound values | | | | | |
 | 8 | aliases | identity instructions (base: dirty closure) | 2.17 | 2.68 | 1.95 | 2.44 | refs-100000: 4.78; mixed-100000: 2.13 |
@@ -1050,4 +1054,53 @@ What it shows:
   10), the size costs at most 8%.
 - So a tagged 16-byte enum would pay this much for its size alone.
   What the tag adds, a check on every read, is the next step.
+
+### Decision 6: a tag array
+
+Measured 2026-10-25 with `scripts/tick-diff.sh`, the alternative being
+`docs/tick-alternatives/6-tag-array.patch` on top of the plumbing
+(`4-6-cells-type.patch`) and measured against it, committed locally as
+the base, as for 16-byte cells. The cells stay 8-byte `f64`s; beside them
+`Cells` keeps a byte per cell, its tag, set from `Program::value_types`
+(number, text or math) when the document is made. Every read checks the
+tag: a tag past the last value type would read as NaN. None ever is,
+but the compiler cannot know it, so each read loads the tag, compares
+it and branches. Writes leave the tag alone, since a cell's type is
+fixed per build. `cargo test --workspace` passes, the golden diff is
+identical, and every shape's fingerprint matches.
+
+| shape | n | dirty, untagged → tag array (µs) | tagged / untagged | full, untagged → tag array (µs) | tagged / untagged |
+|---|---:|---|---:|---|---:|
+| depth | 10,000 | 106 → 104 | 0.99 | 27.5 → 30.9 | 1.12 |
+| depth | 100,000 | 1,307 → 1,331 | 1.02 | 363 → 480 | 1.32 |
+| breadth | 10,000 | 56.3 → 68.7 | 1.22 | 19.3 → 28.9 | 1.50 |
+| breadth | 100,000 | 670 → 886 | 1.32 | 349 → 462 | 1.32 |
+| isolated | 10,000 | 0.2 → 0.2 | 1.01 | 14.0 → 20.4 | 1.45 |
+| isolated | 100,000 | 1.9 → 2.3 | 1.23 | 253 → 346 | 1.37 |
+| mixed | 10,000 | 4.5 → 4.7 | 1.04 | 14.8 → 21.1 | 1.43 |
+| mixed | 100,000 | 50.2 → 55.5 | 1.11 | 259 → 345 | 1.33 |
+| cutoff | 10,000 | 0.2 → 0.2 | 1.04 | 14.0 → 20.4 | 1.46 |
+| cutoff | 100,000 | 2.1 → 2.3 | 1.10 | 257 → 343 | 1.33 |
+| refs | 10,000 | 56.2 → 68.6 | 1.22 | 19.4 → 27.8 | 1.43 |
+| refs | 100,000 | 683 → 917 | 1.34 | 354 → 451 | 1.27 |
+| coords | 10,000 | 115 → 118 | 1.03 | 48.6 → 63.6 | 1.31 |
+| coords | 100,000 | 1,355 → 1,340 | 0.99 | 648 → 867 | 1.34 |
+
+What it shows:
+
+- A check on every read costs full recompute 27 to 50% on every shape
+  but depth at 10,000, and 12 and 32% on depth: more than doubling the
+  cell (5 to 36%). Each operand read becomes a second load, from a
+  second array, a compare and a branch, and the step's change test
+  reads the old value through the same check.
+- Unlike the size, the tag's cost does not shrink at 100,000 (27 to
+  37%): it is work per read, not memory, and the processor does it for
+  every operand whatever is cached.
+- Under the dirty closure it shows on the fans (breadth and refs, 22 to
+  34%), where every reader of the dragged cell is checked as it runs,
+  and hardly on the chains (depth and coords, within 3%), where each
+  step waits on the one before and the check hides in that wait.
+- So untagged values (decision 6) save more for the tag than for the
+  size: 1.3 to 1.5 times against 1.1 to 1.36 on full recompute. A
+  tagged enum pays both, which is the next step.
 

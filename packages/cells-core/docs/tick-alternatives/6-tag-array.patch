@@ -1,0 +1,144 @@
+diff --git a/packages/cells-core/crates/cells-core/src/cells.rs b/packages/cells-core/crates/cells-core/src/cells.rs
+index e5c441e..6b82139 100644
+--- a/packages/cells-core/crates/cells-core/src/cells.rs
++++ b/packages/cells-core/crates/cells-core/src/cells.rs
+@@ -30,33 +30,56 @@ impl SlotValue for f64 {
+     }
+ }
+ 
+-/// Every cell of a document, in cell order.
++/// A cell's tag: what its value is, as `ValueType` says. Anything else
++/// would read as NaN; nothing writes one, but every read checks.
++const MAX_TAG: u8 = crate::program::ValueType::Math as u8;
++
++/// Every cell of a document, in cell order, with a tag per cell beside
++/// the values (decision 6's alternative, the tag alone): every read
++/// checks the tag.
+ #[derive(Clone, Debug, Default, PartialEq)]
+-pub struct Cells(Vec<Slot>);
++pub struct Cells {
++    values: Vec<Slot>,
++    tags: Vec<u8>,
++}
+ 
+ impl Cells {
+     pub fn from_values(values: Vec<f64>) -> Self {
+-        Cells(values.into_iter().map(Slot::new).collect())
++        let n = values.len();
++        Cells {
++            values: values.into_iter().map(Slot::new).collect(),
++            tags: vec![0; n],
++        }
+     }
+ 
+     pub fn filled(value: f64, n: usize) -> Self {
+-        Cells(vec![Slot::new(value); n])
++        Cells {
++            values: vec![Slot::new(value); n],
++            tags: vec![0; n],
++        }
++    }
++
++    /// Tag each cell with what it holds.
++    pub fn set_tags(&mut self, types: &[crate::program::ValueType]) {
++        for (t, &ty) in self.tags.iter_mut().zip(types) {
++            *t = ty as u8;
++        }
+     }
+ 
+     pub fn get(&self, i: usize) -> Option<&f64> {
+-        self.0.get(i).map(SlotValue::get)
++        (i < self.values.len()).then(|| &self[i])
+     }
+ 
+     pub fn len(&self) -> usize {
+-        self.0.len()
++        self.values.len()
+     }
+ 
+     pub fn is_empty(&self) -> bool {
+-        self.0.is_empty()
++        self.values.is_empty()
+     }
+ 
+     pub fn iter(&self) -> impl Iterator<Item = f64> + '_ {
+-        self.0.iter().map(|s| *s.get())
++        (0..self.values.len()).map(|i| self[i])
+     }
+ 
+     pub fn to_vec(&self) -> Vec<f64> {
+@@ -65,42 +88,51 @@ impl Cells {
+ 
+     /// The cells `start..start + n`, as values.
+     pub fn values(&self, start: usize, n: usize) -> Vec<f64> {
+-        self.0[start..start + n].iter().map(|s| *s.get()).collect()
++        (start..start + n).map(|i| self[i]).collect()
+     }
+ 
+     /// Write `values` to the cells from `start`.
+     #[inline(always)]
+     pub fn write(&mut self, start: usize, values: &[f64]) {
+-        for (s, &v) in self.0[start..start + values.len()].iter_mut().zip(values) {
++        for (s, &v) in self.values[start..start + values.len()]
++            .iter_mut()
++            .zip(values)
++        {
+             *s.get_mut() = v;
+         }
+     }
+ 
+     /// Where the slots begin, for the wasm binding's view of them.
+     pub fn as_ptr(&self) -> *const Slot {
+-        self.0.as_ptr()
++        self.values.as_ptr()
+     }
+ }
+ 
++static NAN: f64 = f64::NAN;
++
+ impl Index<usize> for Cells {
+     type Output = f64;
+     #[inline(always)]
+     fn index(&self, i: usize) -> &f64 {
+-        self.0[i].get()
++        if self.tags[i] > MAX_TAG {
++            &NAN
++        } else {
++            self.values[i].get()
++        }
+     }
+ }
+ 
+ impl IndexMut<usize> for Cells {
+     #[inline(always)]
+     fn index_mut(&mut self, i: usize) -> &mut f64 {
+-        self.0[i].get_mut()
++        self.values[i].get_mut()
+     }
+ }
+ 
+ impl<'a> IntoIterator for &'a Cells {
+     type Item = f64;
+-    type IntoIter = std::iter::Map<std::slice::Iter<'a, Slot>, fn(&Slot) -> f64>;
++    type IntoIter = std::iter::Map<std::ops::Range<usize>, Box<dyn Fn(usize) -> f64 + 'a>>;
+     fn into_iter(self) -> Self::IntoIter {
+-        self.0.iter().map(|s| *s.get())
++        (0..self.len()).map(Box::new(move |i| self[i]))
+     }
+ }
+diff --git a/packages/cells-core/crates/cells-core/src/document/mod.rs b/packages/cells-core/crates/cells-core/src/document/mod.rs
+index 88e264c..b82a636 100644
+--- a/packages/cells-core/crates/cells-core/src/document/mod.rs
++++ b/packages/cells-core/crates/cells-core/src/document/mod.rs
+@@ -109,8 +109,10 @@ impl Document {
+         for s in &session.runtime_strings {
+             strings.push(s);
+         }
++        let mut cells = crate::cells::Cells::from_values(cells);
++        cells.set_tags(&program.value_types);
+         let mut doc = Document {
+-            cells: crate::cells::Cells::from_values(cells),
++            cells,
+             n_essential,
+             n_fixed,
+             program,
