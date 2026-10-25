@@ -56,15 +56,11 @@ export default class Group extends CompositeComponent {
             excludeFromSchema: true,
         };
         // Set by core, not by authors, on a group made to stand for the
-        // components a copy or another composite was to make: the type and
-        // number of components to make of its children. The leading `_`
-        // keeps them out of reach of an author's attributes.
+        // component a copy or another composite was to make: the type of the
+        // one component to make of its children. The leading `_` keeps it
+        // out of reach of an author's attributes.
         attributes._createComponentOfType = {
             createPrimitiveOfType: "string",
-            excludeFromSchema: true,
-        };
-        attributes._numComponents = {
-            createPrimitiveOfType: "number",
             excludeFromSchema: true,
         };
 
@@ -178,12 +174,9 @@ export default class Group extends CompositeComponent {
             },
         };
 
+        // A group given a type makes exactly one component of that type.
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
-                numComponentsAttr: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "_numComponents",
-                },
                 typeAttr: {
                     dependencyType: "attributePrimitive",
                     attributeName: "_createComponentOfType",
@@ -208,16 +201,7 @@ export default class Group extends CompositeComponent {
                             `Invalid componentType ${dependencyValues.typeAttr} of a ${componentClass.componentType}.`,
                         );
                     }
-                    if (dependencyValues.numComponentsAttr !== null) {
-                        numComponentsSpecified =
-                            dependencyValues.numComponentsAttr;
-                    } else {
-                        numComponentsSpecified = 1;
-                    }
-                } else if (dependencyValues.numComponentsAttr !== null) {
-                    throw Error(
-                        `You must specify createComponentOfType when specifying numComponents for a ${componentClass.componentType}.`,
-                    );
+                    numComponentsSpecified = 1;
                 } else {
                     numComponentsSpecified = null;
                 }
@@ -239,7 +223,7 @@ export default class Group extends CompositeComponent {
     }) {
         let diagnostics = [];
 
-        // evaluate numComponentsSpecified so get error if specify numComponents without createComponentOfType
+        // evaluate numComponentsSpecified so get error if createComponentOfType is invalid
         await component.stateValues.numComponentsSpecified;
 
         if (!(await component.stateValues.rendered)) {

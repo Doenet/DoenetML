@@ -1705,20 +1705,8 @@ export default class Choiceinput extends Input {
                     child.attributes._createComponentOfType?.primitive.value ===
                         "choice"
                 ) {
-                    if (
-                        child.attributes._numComponents?.primitive !== undefined
-                    ) {
-                        let newChoices = Number(
-                            child.attributes._numComponents?.primitive.value,
-                        );
-                        if (Number.isInteger(newChoices) && newChoices >= 0) {
-                            numChoices += newChoices;
-                        } else {
-                            return { success: false };
-                        }
-                    } else {
-                        numChoices++;
-                    }
+                    // A composite given a type makes exactly one component.
+                    numChoices++;
                 } else {
                     return { success: false };
                 }

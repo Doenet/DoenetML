@@ -54,9 +54,9 @@ import { findAttributeKey } from "./dast-attribute-utils";
  * future addition there will fail that pin-test).
  *
  * Stored lowercased for case-insensitive comparison; runtime matches names
- * case-insensitively.  Attributes starting with `_` (`_createComponentOfType`,
- * `_numComponents`) are left out: a `<moduleAttributes>` child's name must
- * start with a letter, so none can collide with them.
+ * case-insensitively.  Attributes starting with `_` (such as
+ * `_createComponentOfType`) are left out: a `<moduleAttributes>` child's name
+ * must start with a letter, so none can collide with them.
  */
 export const RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA: ReadonlySet<string> =
     new Set([

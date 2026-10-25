@@ -661,18 +661,8 @@ export default class PretzelArranger extends CompositeComponent {
                 child.attributes._createComponentOfType?.primitive.value ===
                     "problem"
             ) {
-                if (child.attributes.numProblems?.primitive !== undefined) {
-                    let newProblems = Number(
-                        child.attributes.numProblems?.primitive.value,
-                    );
-                    if (Number.isInteger(newProblems) && newProblems >= 0) {
-                        numProblems += newProblems;
-                    } else {
-                        return { success: false };
-                    }
-                } else {
-                    numProblems++;
-                }
+                // A composite given a type makes exactly one component.
+                numProblems++;
             } else {
                 return { success: false };
             }
