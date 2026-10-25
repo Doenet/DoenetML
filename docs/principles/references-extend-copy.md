@@ -566,6 +566,47 @@ copy of a copy resolves where that copy is written". A related silent failure:
 `extend` form works (**[probe]**). This is the most important open decision in this area. See
 D1.
 
+### CPY-7: to start from another component's current value, copy its value, not the component (Tier 1)
+A copy is independent of the component it copied, but **not of what that component refers
+to**. It pastes the component's definition, and references in that definition stay live
+(CPY-3). An author who wants "a new component that starts at x's value and then changes on
+its own" must copy the value: `copy="$x.value"`. A value has no definition to paste (CPY-5).
+
+This comes up most with module attributes that set an initial value:
+
+```xml
+<module name="m">
+  <moduleAttributes><number name="x0">5</number></moduleAttributes>
+  <number name="x" copy="$x0"/>          <!-- intended: starts at x0, then changes on its own -->
+  <graph><point name="P">($x, 0)</point></graph>
+</module>
+<module copy="$m" x0="$initial"/>
+```
+
+A module attribute supplied as `x0="$initial"` behaves like `<number name="x0">$initial</number>`.
+So `copy="$x0"` pastes a live `$initial` into `x`. **[probe]** Dragging `P` gives:
+
+| `initial` is | `x` defined by | Result of the drag |
+|---|---|---|
+| `<number>3</number>` | `copy="$x0"` | P moves, **and the caller's `initial` becomes 9** |
+| `<number><number>1</number>+<number>2</number></number>` | `copy="$x0"` | P does not move: the pasted `1+2` has two changeable parts and cannot be inverted |
+| `<number>$a+$b</number>` | `copy="$x0"` | P does not move, for the same reason |
+| `<number>$a+1</number>` | `copy="$x0"` | P moves, **and the caller's `a` becomes 8** |
+| any of these | `copy="$x0.value"` | P moves; `initial` and `a` are untouched |
+| omitted (the default `5`), or a literal `x0="3"` | `copy="$x0"` | P moves; nothing outside changes |
+
+So the same module works when tested with a literal, and fails or reaches outside itself once
+a caller passes a reference. Copying the value avoids every one of these failures.
+
+How to say it to authors:
+
+> `copy` copies a definition. To start a new value from where something is now, copy its
+> value: `copy="$x.value"`.
+
+This belongs on the `<module>` and `<moduleAttributes>` reference pages, next to the existing
+advice to use `copy` so that each instance is independent. No test pins any row of the table
+above. D28 asks whether the model can make the natural spelling work.
+
 ---
 
 ## 4. Nesting: the rules compose
