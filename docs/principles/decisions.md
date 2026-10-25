@@ -538,27 +538,25 @@ single-use child group, writing two of them uses the second, and adding one in a
 
 ## D26. Which type changes may an `extend` make?
 
-**Today** (REF-5) `<T extend="$x"/>` with an unrelated T makes an empty T with the referent as
-its only child. The outcome depends on how T processes children:
-- often an "Invalid children" warning and a default T;
-- sometimes a default value with no warning: `<boolean extend="$m"/>` of a math is `false`;
-- sometimes a container that just holds the referent: `<p extend="$m"/>`.
+**Agreed direction:** related types are allowed, and any other pair is an error.
 
-None of these is a "T that behaves like x", which is what the syntax suggests.
+**Today** (REF-5) an unrelated pair gives a default component of the written type. It comes
+sometimes with an "Invalid children" warning that confuses authors, and sometimes silently: for
+example `<boolean extend="$m"/>` of a math is `false`. None of these is "a T that behaves like
+x", which is what the syntax suggests. This behavior does not need to be reproduced.
 
-**Recommendation.**
-- Declare the supported conversions in one table, the way adapters are declared:
+**Rule.**
+- Declare the allowed conversions in one table, the way adapters are declared:
   - math, number, text and boolean among each other;
   - point, vector and coords;
   - an input from its value type, and a value type from an input;
   - a list from the matching scalar or list (#2231).
-- Report any other pair as a load-time error on the extend: "cannot extend a `<section>` as a
-  `<math>`". Do not render it.
-- Decide whether a container tag (`<p extend="$m"/>`) is an allowed pair. It is simpler to say
-  no. Authors can write `<p>$m</p>`.
+- Report any other pair as a load-time error on the extend, such as "cannot extend a
+  `<section>` as a `<math>`". Do not render it.
+- Container tags (`<p extend="$m"/>`) are not an allowed pair. Authors write `<p>$m</p>`.
 
-A new core then needs only the table, not a wrapping mechanism that depends on how every class
-processes its children.
+A new core then needs only the table.
 
 **Tests.** `extend_references.test.ts:6495` "handle extending or copying with invalid component
-type" changes to expect the error. The supported-pair tests keep passing.
+type" changes to expect the error. The related-pair tests keep passing. Add a test that each
+allowed pair works, and one that an unrelated pair gives the error.
