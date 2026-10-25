@@ -85,8 +85,16 @@ Each decision gives:
 - **Alternative, keeping 5.** A separate heap allocation per value
   (`Vec<Box<f64>>`), so every read follows a pointer.
 - **Depends on.** 1.
-- **Exercised by.** depth, breadth, mixed at 10,000 and 100,000.
-- **Result.** Not measured.
+- **Exercised by.** every shape at 10,000 and 100,000.
+- **Result.** It depends on where the allocations land. Allocated in
+  cell order, the values lie nearly side by side and a pointer per read
+  costs full recompute 1.04 to 1.8 times (one row 2.8) and the dirty
+  closure up to 1.7. Allocated in a shuffled order, as objects made over
+  a session would be, they cost full recompute 2.2 to 3 times at
+  100,000 and the dirty closure up to 2.2: the largest cost of any
+  storage alternative. See
+  [Decision 4: an allocation per value](#decision-4-an-allocation-per-value)
+  below.
 
 ### 5. Every cell is the same size
 
@@ -121,9 +129,12 @@ Each decision gives:
   dirty closure, whose own cost dilutes it, at most 8%. The tag alone,
   checked on every read with the cells still 8 bytes, costs more: full
   recompute 12 to 50% slower (27 to 50% on all but depth at 10,000),
-  and the dirty closure up to 34% on the fans. The enum not yet. See
-  [Decision 6: 16-byte cells](#decision-6-16-byte-cells) and
-  [Decision 6: a tag array](#decision-6-a-tag-array) below.
+  and the dirty closure up to 34% on the fans. The tagged enum, both
+  at once, costs about what the tag alone does (full recompute 1.13 to
+  1.55 times), not the sum of the two. See
+  [Decision 6: 16-byte cells](#decision-6-16-byte-cells),
+  [Decision 6: a tag array](#decision-6-a-tag-array) and
+  [Decision 6: a tagged enum](#decision-6-a-tagged-enum) below.
 
 ### 7. One cell per scalar
 
@@ -376,8 +387,8 @@ is measured later.
 | 6 | 8 → identity instructions | medium, in `build/emit.rs` | done; see below |
 | 7 | 6 → 16-byte cells, no tag | medium | done; see below. Built on the plumbing (`4-6-cells-type.patch`) the next steps reuse |
 | 8 | 6 → 8-byte cells and a tag array | medium | done; see below |
-| 9 | 6 → tagged enum | medium to large | both; 7 and 8 should account for it |
-| 10 | 4 → an allocation per value | medium | the same plumbing as 7 to 9 |
+| 9 | 6 → tagged enum | medium | done; see below |
+| 10 | 4 → an allocation per value | medium | done; see below. Two forms: values allocated in cell order, and in a shuffled order |
 | 11 | 3 → coarse operators | large | new operators and lowering |
 | 12 | 7 → compound values | large | vector operators, components rewired; on coords |
 | 13 | 5 → values of varying size | large | the most invasive change to storage; means most after 6 and 7 |
@@ -399,13 +410,16 @@ base.
 | 2 | operators are data | a function pointer per operator (base: dirty closure) | 0.99 | 1.18 | 1.00 | 1.16 | mixed-100000: 0.85; refs-100000: 1.15 |
 | 2 | operators are data | state variable functions per component | | | | | |
 | 3 | fine-grained primitives | coarse operators | | | | | |
-| 4 | contiguous | allocation per value | | | | | |
+| 4 | contiguous | an allocation per value, in cell order (base: full recompute) | 1.18 | 1.61 | 1.15 | 1.53 | refs-10000: 2.84; mixed-100000: 1.64 |
+| 4 | contiguous | an allocation per value, shuffled (base: full recompute) | 1.32 | 2.21 | 2.38 | 2.79 | coords-100000: 3.00; mixed-100000: 2.93 |
+| 4 | contiguous | an allocation per value, shuffled (base: dirty closure) | 1.03 | 1.30 | 1.31 | 2.24 | refs-100000: 2.17; mixed-100000: 1.97 |
 | 5 | uniform size | varying size | | | | | |
 | 6 | untagged `f64` | 16 bytes, no tag (base: full recompute) | 1.05 | 1.24 | 1.13 | 1.08 | refs-10000: 1.36; mixed-10000: 1.30 |
 | 6 | untagged `f64` | 16 bytes, no tag (base: dirty closure) | 1.01 | 1.04 | 1.03 | 1.07 | refs-100000: 1.08 |
 | 6 | untagged `f64` | tag array (base: full recompute) | 1.12 | 1.50 | 1.32 | 1.32 | isolated-10000: 1.45; mixed-100000: 1.33 |
 | 6 | untagged `f64` | tag array (base: dirty closure) | 0.99 | 1.22 | 1.02 | 1.32 | refs-100000: 1.34; mixed-100000: 1.11 |
-| 6 | untagged `f64` | tagged enum | | | | | |
+| 6 | untagged `f64` | tagged enum (base: full recompute) | 1.25 | 1.54 | 1.23 | 1.28 | refs-10000: 1.55; mixed-100000: 1.23 |
+| 6 | untagged `f64` | tagged enum (base: dirty closure) | 1.04 | 1.25 | 0.98 | 1.32 | refs-100000: 1.28; mixed-100000: 1.13 |
 | 7 | one cell per scalar | compound values | | | | | |
 | 8 | aliases | identity instructions (base: dirty closure) | 2.17 | 2.68 | 1.95 | 2.44 | refs-100000: 4.78; mixed-100000: 2.13 |
 | 8 | aliases | identity instructions (base: full recompute) | 2.30 | 2.89 | 1.93 | 2.09 | refs-100000: 4.52; mixed-100000: 2.07 |
@@ -1103,4 +1117,134 @@ What it shows:
 - So untagged values (decision 6) save more for the tag than for the
   size: on full recompute 1.12 to 1.50 times against 1.05 to 1.36. A
   tagged enum pays both, which is the next step.
+
+### Decision 6: a tagged enum
+
+Measured 2026-10-25 with `scripts/tick-diff.sh`, the alternative being
+`docs/tick-alternatives/6-tagged-enum.patch` on top of the plumbing and
+against it, as for the steps before. A slot becomes
+`enum Value { Number(f64), Text(f64), Math(f64), Missing }`, 16 bytes:
+a discriminant and the value. Each cell's variant is set from
+`Program::value_types` when the document is made. Every read matches
+on the variant; a missing value stays a NaN `Number`, as in the core,
+so values match bit for bit, and `Missing` is never made, but the match
+has to allow for it. `cargo test --workspace` passes, the golden diff
+is identical, and every shape's fingerprint matches.
+
+| shape | n | dirty, untagged → enum (µs) | enum / untagged | full, untagged → enum (µs) | enum / untagged |
+|---|---:|---|---:|---|---:|
+| depth | 10,000 | 106 → 110 | 1.04 | 27.7 → 34.7 | 1.25 |
+| depth | 100,000 | 1,347 → 1,356 | 1.01 | 375 → 459 | 1.22 |
+| breadth | 10,000 | 56.7 → 70.6 | 1.25 | 19.9 → 30.7 | 1.54 |
+| breadth | 100,000 | 689 → 906 | 1.32 | 331 → 424 | 1.28 |
+| isolated | 10,000 | 0.2 → 0.2 | 1.06 | 14.0 → 21.4 | 1.53 |
+| isolated | 100,000 | 2.1 → 2.0 | 0.93 | 271 → 313 | 1.15 |
+| mixed | 10,000 | 4.5 → 4.8 | 1.09 | 14.8 → 22.3 | 1.51 |
+| mixed | 100,000 | 50.3 → 56.8 | 1.13 | 262 → 323 | 1.23 |
+| cutoff | 10,000 | 0.2 → 0.2 | 1.06 | 14.0 → 21.3 | 1.52 |
+| cutoff | 100,000 | 2.1 → 2.3 | 1.08 | 268 → 304 | 1.14 |
+| refs | 10,000 | 56.5 → 71.4 | 1.26 | 19.8 → 30.6 | 1.55 |
+| refs | 100,000 | 679 → 868 | 1.28 | 348 → 402 | 1.16 |
+| coords | 10,000 | 115 → 123 | 1.07 | 50.4 → 66.6 | 1.32 |
+| coords | 100,000 | 1,361 → 1,387 | 1.02 | 657 → 744 | 1.13 |
+
+The first run gave coords at 100,000 as 0.80 and 0.92, faster than the
+base; a second run of that row, shown, gave 1.02 and 1.13, with depth
+at 100,000 again within 1% of its first run, so the first was noise.
+
+The three alternatives to decision 6 side by side, full recompute, each
+over the untagged 8-byte cells:
+
+| shape | n | 16 bytes, no tag | tag array | tagged enum |
+|---|---:|---:|---:|---:|
+| depth | 10,000 | 1.05 | 1.12 | 1.25 |
+| depth | 100,000 | 1.13 | 1.32 | 1.22 |
+| breadth | 10,000 | 1.24 | 1.50 | 1.54 |
+| breadth | 100,000 | 1.08 | 1.32 | 1.28 |
+| mixed | 10,000 | 1.30 | 1.43 | 1.51 |
+| mixed | 100,000 | 1.08 | 1.33 | 1.23 |
+| refs | 10,000 | 1.36 | 1.43 | 1.55 |
+| refs | 100,000 | 1.19 | 1.27 | 1.16 |
+| coords | 10,000 | 1.21 | 1.31 | 1.32 |
+| coords | 100,000 | 1.13 | 1.34 | 1.13 |
+
+What it shows:
+
+- The enum costs about what the tag alone does, not size and tag added
+  together: at 10,000 a little more than the tag array (1.25 to 1.55),
+  at 100,000 a little less (1.13 to 1.28). The enum's tag sits beside
+  its value, in the same cache line, where the tag array's is a second
+  load from a second array; that is the likely reason, not profiled.
+- So what decision 6 buys over a tagged enum is mostly the check on
+  every read: 13 to 55% of full recompute, and under the dirty closure
+  up to 32% on the fans.
+
+### Decision 4: an allocation per value
+
+Measured 2026-10-25 with `scripts/tick-diff.sh`, the alternative being
+`docs/tick-alternatives/4-allocation-per-value.patch` on top of the
+plumbing and against it. A slot becomes a `Box<f64>`: every value is an
+allocation of its own, and the cells are a vector of pointers to them,
+so every read and write follows a pointer. Where the allocations land
+decides most of the cost, so two forms, switched by a constant
+(`SHUFFLE`) in the patch:
+
+- **In cell order**: the values are allocated one after another, as a
+  core that builds them in one pass would, and the allocator lays them
+  nearly side by side.
+- **Shuffled** (the patch as saved): the values are allocated in a
+  fixed shuffled order, so neighbouring cells sit far apart on the
+  heap, as objects made over a session among everything else would.
+
+A clone of the cells (each evaluator's copy of the document, a
+lookahead's scratch) allocates in the same order. With the shuffled
+form, `cargo test --workspace` passes and the golden diff is identical;
+in cell order the core's tests pass; every shape's fingerprint matches
+in both forms.
+
+| shape | n | full: in order / contiguous | full: shuffled / contiguous | dirty: in order / contiguous | dirty: shuffled / contiguous |
+|---|---:|---:|---:|---:|---:|
+| depth | 10,000 | 1.18 | 1.32 | 1.03 | 1.03 |
+| depth | 100,000 | 1.15 | 2.38 | 1.00 | 1.31 |
+| breadth | 10,000 | 1.61 | 2.21 | 1.14 | 1.30 |
+| breadth | 100,000 | 1.53 | 2.79 | 1.15 | 2.24 |
+| isolated | 10,000 | 1.05 | 1.08 | 1.04 | 1.07 |
+| isolated | 100,000 | 1.69 | 2.92 | 1.67 | 1.93 |
+| mixed | 10,000 | 1.06 | 1.11 | 1.04 | 1.02 |
+| mixed | 100,000 | 1.64 | 2.93 | 1.08 | 1.97 |
+| cutoff | 10,000 | 1.04 | 1.12 | 1.03 | 1.04 |
+| cutoff | 100,000 | 1.35 | 2.78 | 1.31 | 1.77 |
+| refs | 10,000 | 2.84 | 2.48 | 1.42 | 1.40 |
+| refs | 100,000 | 1.83 | 2.70 | 1.34 | 2.17 |
+| coords | 10,000 | 1.38 | 2.51 | 1.08 | 1.46 |
+| coords | 100,000 | 1.20 | 3.00 | 1.00 | 1.58 |
+
+Times at 100,000, contiguous → in order and contiguous → shuffled, in
+µs (each form against its own run of the base):
+
+| shape | full, in order | full, shuffled | dirty, in order | dirty, shuffled |
+|---|---|---|---|---|
+| depth | 375 → 431 | 360 → 855 | 1,337 → 1,342 | 1,307 → 1,709 |
+| breadth | 329 → 503 | 334 → 931 | 683 → 789 | 690 → 1,545 |
+| mixed | 263 → 431 | 260 → 764 | 49.9 → 53.8 | 49.5 → 97.4 |
+| refs | 332 → 607 | 343 → 927 | 684 → 919 | 690 → 1,499 |
+| coords | 662 → 794 | 641 → 1,925 | 1,353 → 1,357 | 1,317 → 2,082 |
+
+What it shows:
+
+- A pointer per value costs full recompute 1.04 to 1.8 times when the
+  values lie in order (refs at 10,000, 2.84, is a row the noise floor
+  marks as unsteady), and 2.4 to 3 times at 100,000 when they are
+  scattered: the largest cost of any change to storage measured here.
+  Scattered, each read is likely a cache miss of its own, where
+  contiguous cells share lines; not profiled.
+- At 10,000 the shuffle adds little on half the shapes (isolated,
+  mixed, cutoff: within 12%), and up to 2.5 times on the others; at
+  100,000 it is most of the cost everywhere.
+- The dirty closure, which pays its own bookkeeping per instruction,
+  shows it less in order (up to 1.7) but up to 2.2 times shuffled, on
+  the fans and the page.
+- So decision 4 buys up to 3 times over values allocated one by one;
+  how much in the alternative core depends on how scattered its values
+  would be, which this measurement bounds but cannot settle.
 
