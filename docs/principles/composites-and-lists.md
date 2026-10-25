@@ -142,8 +142,9 @@ The index can be dynamic (`$r[$n]`), and repeats can nest (`$a[2].b[3].c`).
 Evidence: `repeatForSequence.test.ts:156`, `:2800`; `repeatValueLists.test.ts:395`.
 
 Positional double indexing, `$a[2][1][3]`, reaches the j-th component of an iteration. That
-exposes the internal iteration group. It is Tier 3. ADR 0009 bans the equivalent for selects
-(D13).
+exposes the internal iteration group. It is Tier 3. It is why `$r[1][2]` does not reach into a
+nested repeat today. D27 proposes that an index selects only instances (entries, iterations,
+picks), and that an iteration holding one repeat passes the next index through to it.
 
 ### COMP-7: a shorter repeat hides iterations; a longer one brings them back as they were (Tier 1)
 When a repeat shrinks, the extra iterations are withheld, not destroyed. When it grows again they
