@@ -611,28 +611,58 @@ above. D28 asks whether the model can make the natural spelling work.
 
 ## 4. Nesting: the rules compose
 
-The forms combine by applying the rules above at each step, in order:
-- **An extend step** keeps the bindings it was given.
-- **A copy step** pastes the DoenetML its referent stands for, with every attribute written
-  along the way, and looks names up again where it lands.
+When references are chained, each link follows its own rule:
+- **an `extend`** keeps the meaning its source's references already have (REF-6);
+- **a `copy`** pastes the source's DoenetML, and looks names up again where the copy is
+  written (CPY-6).
 
-**[probe]** A six-step chain, where each section has its own `n` set to the value shown:
+The example below chains extends and copies of one group. The group holds a paragraph that
+shows `$n`, and every section except F has its own number named `n`.
 
-| Step | Written in | Its `n` | Form | `p` shows | Why |
-|---|---|---|---|---|---|
-| `g` (in A) | A | 1 | original | 1 | |
-| `b` | S1 | 2 | `extend="$A.g"` | 1 | extend keeps A's binding |
-| `c` | S2 | 3 | `extend="$S1.b"` | 1 | still A's binding |
-| `d` | S3 | 4 | `copy="$S2.c"` | 4 | a copy of an extend chain pastes `g`'s DoenetML at S3 |
-| `e` | S4 | 5 | `copy="$S3.d"` | 5 | pasted again at S4 |
-| `f` | S5 | none | `copy="$S4.e"` | ＿ (ambiguous) | no nearer `n`, and several are visible |
-| `h` | S6 | 6 | `extend="$S4.e"` | 5 | an extend of a copy keeps that copy's binding |
+```xml
+<section name="A">
+  <number name="n">1</number>
+  <group name="g"><p name="p">n is $n</p></group>
+</section>
 
-The same holds for attributes inherited through copies:
-- **[probe]** A `<graph copy="$A.G" xMin="$n">` written in T (n=−3) gives −3.
-- An extend of it written in U (n=−5) gives −3.
-- A copy of it written in U gives −5.
-- Test: `extend_references.test.ts:7807`.
+<section name="B"><number name="n">2</number> <group name="gB" extend="$A.g"/></section>
+<section name="C"><number name="n">3</number> <group name="gC" extend="$B.gB"/></section>
+<section name="D"><number name="n">4</number> <group name="gD" copy="$C.gC"/></section>
+<section name="E"><number name="n">5</number> <group name="gE" copy="$D.gD"/></section>
+<section name="F">                            <group name="gF" copy="$E.gE"/></section>
+<section name="G"><number name="n">6</number> <group name="gG" extend="$E.gE"/></section>
+```
+
+Each group's paragraph shows (**[probe]**):
+
+| Paragraph | Shows | Why |
+|---|---|---|
+| `A.g.p` | n is 1 | the original; its `$n` is A's `n` |
+| `B.gB.p` | n is 1 | `gB` extends `g`, so its `$n` still means A's `n`, though B has its own `n` |
+| `C.gC.p` | n is 1 | an extend of an extend: still A's `n` |
+| `D.gD.p` | n is 4 | `gD` is a copy, so `g`'s DoenetML is pasted into D, where `$n` finds D's `n`. That `gC` reached `g` through two extends does not matter: a copy of an extend pastes what the extend stands for (CPY-4) |
+| `E.gE.p` | n is 5 | pasted again into E, where `$n` finds E's `n` |
+| `F.gF.p` | n is (empty) | pasted into F, which has no `n` of its own. From F, the `n`s in A to E and G are equally near, so `$n` is ambiguous |
+| `G.gG.p` | n is 5 | `gG` extends the copy `gE`, so it keeps what `$n` means in `gE`: E's `n` |
+
+The same holds for a reference in an attribute written on a copy (NAME-4):
+
+```xml
+<section name="T">
+  <number name="m">-3</number>
+  <graph name="G1"/>
+  <graph name="G2" copy="$G1" xMin="$m"/>     <!-- xMin -3: T's m -->
+</section>
+<section name="U">
+  <number name="m">-5</number>
+  <graph name="G3" extend="$T.G2"/>            <!-- xMin -3: keeps G2's meaning of $m -->
+  <graph name="G4" copy="$T.G2"/>              <!-- xMin -5: G2's xMin="$m" is pasted into U -->
+</section>
+```
+
+**[probe]** confirms the three values. The test is `extend_references.test.ts:7807`. Whether a
+copy should look names up again where it lands, as in D, E, F and G4, or keep their original
+meaning, as an extend does, is decision D1.
 
 Coverage of nesting is thin. These cases have no tests:
 - three-level chains are tested for `modifyIndirectly`, labels, groups and modules, but not for
