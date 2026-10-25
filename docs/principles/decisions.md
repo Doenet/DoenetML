@@ -560,3 +560,83 @@ A new core then needs only the table.
 **Tests.** `extend_references.test.ts:6495` "handle extending or copying with invalid component
 type" changes to expect the error. The related-pair tests keep passing. Add a test that each
 allowed pair works, and one that an unrelated pair gives the error.
+
+## D27. What may an index select?
+
+**Today** an index can select several different things, and which one depends on what the
+current core makes a composite (**[probe]**):
+
+| Written | Means today |
+|---|---|
+| `$l[2]` on a list, `$P.xs[2]` on an array prop | the second entry |
+| `$r[2]` on a repeat | the second iteration |
+| `$r[2][2]` on a repeat whose template has two children | the second child of iteration 2 |
+| `$s[1]` on a select | the first pick |
+| `$s[1][2]` on a select | the second child of the first pick's option |
+| `$g[2]` on a `<group>` | its second child |
+| `$sec[2]` on a `<section>`, `$p[2]` on a `<p>` | nothing ("Could not find prop sec[2]") |
+| `$o[1]` on a named `<option>` | nothing, though `$s[1][1]` reaches into an option |
+| `$r[1][2]` on `<repeat name="r"><repeat>…</repeat></repeat>` | nothing; `$r[1][1][2]` is needed, because `[1][1]` steps over the iteration's wrapper to the inner repeat |
+
+For the select from the question,
+`<select name="s"><option><text>a</text><number>1</number></option><option><text>b</text><number>2</number></option></select>`:
+
+| | `numToSelect="1"` | `numToSelect="2"` |
+|---|---|---|
+| `$s[1]` | the picked option's content, e.g. `b2` | the first pick, e.g. `a1` |
+| `$s[2]` | nothing | the second pick, e.g. `b2` |
+| `$s[1][1]` | the picked option's text, e.g. `b` | the first pick's text, e.g. `a` |
+| `$s[1][2]` | the picked option's number, e.g. `2` | the first pick's number, e.g. `1` |
+
+Adding `numToSelect` does not change what an index means; it only makes more picks exist. The
+diagnostics for a missing index are confusing. They name internal types and props:
+- "Could not find prop s[2] on a component of type text";
+- "… on a component of type _repeatValueList".
+
+**Why it is unsatisfying.** Indexing by child position works on a group, a repeat iteration and
+a picked option. Those are exactly the tags the current core makes composites. It does not work
+on a section, a `<p>` or a named option. Authors cannot predict this without the composite
+concept (D24). Positional child indices are also fragile: adding a child to an option or a
+template shifts every index after it.
+
+The docs for `<select>` (`reference/select.mdx:104-108`) currently recommend either style:
+- reach a child of a picked option by index;
+- or name the child, "the same names for that particular child over the range of all possible
+  options", and write `$s[1].num`.
+
+**Proposed rule.** An index selects among the *instances* a tag produces. It never selects among
+a container's children:
+- entries of a list or an array prop;
+- iterations of a repeat;
+- picks of a select (and of `selectFromSequence`, `shuffle`, `sort`, `collect`).
+
+To reach inside an instance, name what is inside: `$r[2].x`, `$s[1].x`. Consequences:
+1. **No child indexing on group, option, section or `<p>`.** `$g[2]` and `$s[1][2]` become
+   errors, with a diagnostic that says to name the child.
+2. **Names across the options of a select follow the same rule as across the cases of a
+   conditionalContent** (D22). A name reached as `$s[1].x` must be declared in every option,
+   with the same type. That is the docs' existing advice, made a rule, and matches ADR 0009.
+3. **An instance whose whole content is one indexable thing passes the next index through to
+   it.** Only one meaning is left for `[2]` after an iteration, so nested repeats become
+   unambiguous: in `<repeat name="r"><repeat>…</repeat></repeat>`, `$r[1][2]` is iteration 2 of
+   the inner repeat in iteration 1 of the outer. The same holds for an option holding one list,
+   and for an option holding one component, as `$f[1].formula` in `select.mdx` already does.
+4. **Diagnostics name what the author wrote** ("`$s[2]`: the select made only 1 pick"), never an
+   internal type.
+
+**Alternative.** Make positional indexing uniform the other way, so that every container takes
+child indices (`$sec[2]`). This is harder to define: text and whitespace children would need
+to be counted. It is also fragile under edits, and it would make (3) ambiguous again.
+
+**Tests and docs that change under the proposal:**
+- `repeatForSequence.test.ts:156` (`$a[2][1][3]` becomes `$a[2][3]`);
+- the positional option tests (`select.test.ts:2897`, `conditionalcontent.test.ts:1306`), already
+  rewritten in PR #2281;
+- `extend_references.test.ts:6549`'s `$sec2.g[1].t`;
+- `repeat.test.ts` / `repeatForSequence.test.ts` tests that index children of an iteration;
+- `compositeCommas.test.tsx:318`;
+- the select docs examples: the dice example `$roll[1][1]` and `$groupSelect[2][2]` in
+  `reference/select.mdx`, plus `option.mdx`, `vectorList.mdx` and `tupleList.mdx`.
+
+The list examples keep working, since entries are instances. Before any cut-over, add a warning
+on main for child indexing, so that documents can migrate.
