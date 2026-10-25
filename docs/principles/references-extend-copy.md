@@ -77,6 +77,9 @@ Evidence:
 Code: `RS/resolve.rs:310-330` (`unresolvedPath`); `W/core/dependencies/refResolutionDependencies.ts`
 finishes the path after composites expand.
 
+What an index may select is itself open. Today it can be an entry, an iteration, a pick, or a
+child of a group, iteration or picked option. D27 proposes instances only.
+
 Limits:
 - **Deep property chains** (`$l.points[1].coords`, `$l.points[1].xs[1]`) are not supported
   today. About 20 assertions are commented out with `XXX: restore` at
@@ -388,13 +391,12 @@ follow.
   |---|---|
   | `$sec1.p`, `$sec1.t` | do not resolve: the bare `$p` brings neither p's name nor t's into `sec1` |
   | `$sec2.g.p`, `$sec2.g.t` | do not resolve, for the same reason |
-  | `$sec2.g[1].t` | "hi": reached by *position* in the group, not by a name the reference made |
+  | `$sec2.g[1].t` | "hi": reached by *position* in the group, not by a name the reference made. Whether an index should select a child of a group at all is open: it works only because a group is a composite, and fails on a section or `<p>` (D27) |
 
   Evidence: `T/copying/extend_references.test.ts:6549` "reference inside composite adds to index
   resolution but not names".
 
-To reach into a reference, name it (`<p extend="$p" name="e"/>`, then `$e.t`) or, where it sits
-in a group or repeat, use its position.
+To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
 Other tests: `:1626`, `:1837`, `:6408`, `:5773`.
 
