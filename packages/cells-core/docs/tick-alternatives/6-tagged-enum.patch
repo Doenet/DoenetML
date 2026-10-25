@@ -1,0 +1,89 @@
+diff --git a/packages/cells-core/crates/cells-core/src/cells.rs b/packages/cells-core/crates/cells-core/src/cells.rs
+index e5c441e..64a370a 100644
+--- a/packages/cells-core/crates/cells-core/src/cells.rs
++++ b/packages/cells-core/crates/cells-core/src/cells.rs
+@@ -5,8 +5,46 @@
+ 
+ use std::ops::{Index, IndexMut};
+ 
+-/// What one cell is stored as.
+-pub type Slot = f64;
++/// What one cell is stored as: a tagged value (decision 6's alternative,
++/// size and tag together).
++pub type Slot = Value;
++
++/// A cell's value with what it is. A missing value stays a NaN number, as
++/// in the core, so values match bit for bit; `Missing` is never made, but
++/// every read matches on the variant.
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub enum Value {
++    Number(f64),
++    Text(f64),
++    Math(f64),
++    Missing,
++}
++
++static NAN: f64 = f64::NAN;
++
++impl SlotValue for Value {
++    #[inline(always)]
++    fn new(v: f64) -> Self {
++        Value::Number(v)
++    }
++    #[inline(always)]
++    fn get(&self) -> &f64 {
++        match self {
++            Value::Number(v) | Value::Text(v) | Value::Math(v) => v,
++            Value::Missing => &NAN,
++        }
++    }
++    #[inline(always)]
++    fn get_mut(&mut self) -> &mut f64 {
++        if let Value::Missing = self {
++            *self = Value::Number(f64::NAN);
++        }
++        match self {
++            Value::Number(v) | Value::Text(v) | Value::Math(v) => v,
++            Value::Missing => unreachable!(),
++        }
++    }
++}
+ 
+ /// How a slot holds its value.
+ pub trait SlotValue: Copy {
+@@ -47,6 +85,19 @@ impl Cells {
+         self.0.get(i).map(SlotValue::get)
+     }
+ 
++    /// Give each cell the variant of what it holds.
++    pub fn set_tags(&mut self, types: &[crate::program::ValueType]) {
++        use crate::program::ValueType;
++        for (s, &ty) in self.0.iter_mut().zip(types) {
++            let v = *s.get();
++            *s = match ty {
++                ValueType::Number => Value::Number(v),
++                ValueType::Text => Value::Text(v),
++                ValueType::Math => Value::Math(v),
++            };
++        }
++    }
++
+     pub fn len(&self) -> usize {
+         self.0.len()
+     }
+diff --git a/packages/cells-core/crates/cells-core/src/document/mod.rs b/packages/cells-core/crates/cells-core/src/document/mod.rs
+index 88e264c..b82a636 100644
+--- a/packages/cells-core/crates/cells-core/src/document/mod.rs
++++ b/packages/cells-core/crates/cells-core/src/document/mod.rs
+@@ -109,8 +109,10 @@ impl Document {
+         for s in &session.runtime_strings {
+             strings.push(s);
+         }
++        let mut cells = crate::cells::Cells::from_values(cells);
++        cells.set_tags(&program.value_types);
+         let mut doc = Document {
+-            cells: crate::cells::Cells::from_values(cells),
++            cells,
+             n_essential,
+             n_fixed,
+             program,
