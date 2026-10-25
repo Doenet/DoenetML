@@ -54,8 +54,16 @@ Each decision gives:
   tick calls through a trait object or closure. This is the JavaScript
   core's model.
 - **Depends on.** 1.
-- **Exercised by.** depth, breadth, mixed.
-- **Result.** Not measured.
+- **Exercised by.** every shape.
+- **Result.** In its cheap form, every scalar instruction made code at
+  schedule time and called through a pointer, measured; the full form
+  (state variable functions per component) not yet. Where the
+  instructions' own cost shows (full recompute), the decision makes the
+  tick 1.2 to 2.5 times faster than a function pointer per operator,
+  and 1.5 to 5 times faster than a closure per instruction, most where
+  instructions are independent of each other. Under the dirty closure,
+  whose own bookkeeping dilutes it, up to 1.2 and 2.3 times. See
+  [Decision 2: operators as code](#decision-2-operators-as-code) below.
 
 ### 3. Operators are fine-grained primitives
 
@@ -342,7 +350,7 @@ is measured later.
 | 2b | 9 → push over what is read: the dirty closure skipping instructions no read cell needs | small, in the bench crate | done; see below. It separates computing less from computing lazily |
 | 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | done; see below. Version counters are a larger build, not planned yet |
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | done; see below |
-| 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
+| 5 | 2 → operators as code, the cheap form | small | done; see below. Measured in two forms, a closure per instruction and a function pointer per operator |
 | 6 | 8 → identity instructions | medium, in `build/emit.rs` | the tick is unchanged; on refs |
 | 7 | 6 → 16-byte cells, no tag | medium | the first change to what a cell is: size alone |
 | 8 | 6 → 8-byte cells and a tag array | medium | the tag alone, on step 7's plumbing |
@@ -363,7 +371,11 @@ base.
 | # | Decision | Alternative | depth-10000 | breadth-10000 | depth-100000 | breadth-100000 | Other |
 |---|---|---|---|---|---|---|---|
 | 1 | one store, apart from the graph | value per node | | | | | |
-| 2 | operators are data | operators are code | | | | | |
+| 2 | operators are data | a closure per instruction (base: full recompute) | 1.54 | 4.87 | 1.69 | 4.32 | isolated-100000: 4.72; mixed-100000: 3.32 |
+| 2 | operators are data | a closure per instruction (base: dirty closure) | 0.93 | 1.87 | 0.91 | 2.32 | mixed-100000: 1.77; refs-100000: 2.12 |
+| 2 | operators are data | a function pointer per operator (base: full recompute) | 1.61 | 2.03 | 1.46 | 1.41 | isolated-100000: 1.43; mixed-100000: 1.22 |
+| 2 | operators are data | a function pointer per operator (base: dirty closure) | 0.99 | 1.18 | 1.00 | 1.16 | mixed-100000: 0.85; refs-100000: 1.15 |
+| 2 | operators are data | state variable functions per component | | | | | |
 | 3 | fine-grained primitives | coarse operators | | | | | |
 | 4 | contiguous | allocation per value | | | | | |
 | 5 | uniform size | varying size | | | | | |
@@ -771,4 +783,89 @@ What it shows:
   bitset for a queue saves only 10% of that, so most of the gap is in
   what both keep: the readers lookup, the change test and the list of
   changed cells. Not profiled.
+
+### Decision 2: operators as code
+
+Measured 2026-10-25 with `scripts/tick-diff.sh` against `bbc4c88`, in
+the cheap form of the plan's step 5: no component is rewritten; when the
+program is scheduled, every scalar instruction is also made code, kept
+in `Program::code` beside the instructions, and `Program::step` calls
+that code instead of matching on the operator. Vector and symbolic
+instructions keep their path. The code is generated from each operator's
+entry in `scalar_ops!`, the same formula the match runs, so it is code
+specialized to its operator, not a wrapper around the match. Two forms:
+
+- **A closure per instruction**
+  (`docs/tick-alternatives/2-operators-as-closures.patch`): an
+  `Rc<dyn Fn(&[f64]) -> f64>` that captures its input cells and
+  parameters, as a state variable's function closes over what it reads.
+  Each is a heap allocation of its own.
+- **A function pointer per operator**
+  (`docs/tick-alternatives/2-operators-as-fn-pointers.patch`): an
+  `fn(&Op, &[f64]) -> f64` per kind of operator, which reads its inputs
+  from the instruction, in one contiguous array. The call through a
+  pointer, without the allocations.
+
+Both find an instruction's code by its position in the program, a
+subtraction, a division and a comparison per step that the match does
+not pay. With each, `cargo test --workspace` passes, the golden diff is
+identical (12 documents and their programs), and every shape's
+fingerprint matches the base's.
+
+| shape | n | full: closures / base | full: pointers / base | dirty: closures / base | dirty: pointers / base |
+|---|---:|---:|---:|---:|---:|
+| depth | 10,000 | 1.54 | 1.61 | 0.93 | 0.99 |
+| depth | 100,000 | 1.69 | 1.46 | 0.91 | 1.00 |
+| breadth | 10,000 | 4.87 | 2.03 | 1.87 | 1.18 |
+| breadth | 100,000 | 4.32 | 1.41 | 2.32 | 1.16 |
+| isolated | 10,000 | 4.27 | 2.18 | 1.98 | 1.14 |
+| isolated | 100,000 | 4.72 | 1.43 | 1.35 | 0.92 |
+| mixed | 10,000 | 2.40 | 2.52 | 1.10 | 1.06 |
+| mixed | 100,000 | 3.32 | 1.22 | 1.77 | 0.85 |
+| cutoff | 10,000 | 1.97 | 1.72 | 1.10 | 0.90 |
+| cutoff | 100,000 | 2.02 | 1.49 | 1.53 | 1.16 |
+| refs | 10,000 | 5.12 | 2.12 | 2.08 | 1.19 |
+| refs | 100,000 | 3.35 | 1.34 | 2.12 | 1.15 |
+| coords | 10,000 | 2.08 | 1.78 | 1.09 | 0.99 |
+| coords | 100,000 | 1.78 | 1.53 | 1.06 | 0.97 |
+
+Times, base → closures → pointers, in µs:
+
+| shape | n | full | dirty |
+|---|---:|---|---|
+| depth | 100,000 | 356 → 603 → 545 | 1,344 → 1,221 → 1,359 |
+| breadth | 100,000 | 356 → 1,536 → 480 | 696 → 1,618 → 797 |
+| isolated | 100,000 | 257 → 1,214 → 371 | 1.9 → 2.6 → 1.9 |
+| mixed | 100,000 | 263 → 874 → 326 | 51.1 → 90.5 → 43.8 |
+| refs | 100,000 | 261 → 875 → 470 | 551 → 1,171 → 796 |
+
+The two forms were measured in separate runs, each against its own run
+of the base, so the base's times differ between them by the noise
+floor; each ratio is against its own run's base.
+
+What it shows:
+
+- Operators as data are faster on every shape where the instructions'
+  own cost shows: full recompute runs 1.2 to 2.5 times slower with a
+  function pointer per operator, and 1.5 to 5 times with a closure per
+  instruction.
+- The closures cost about twice what the pointers do on most shapes,
+  so about half of their cost is the call through a pointer and half is
+  the allocation per instruction: the tick reads each closure's captures
+  from its own place on the heap, where the match reads the instruction
+  from one contiguous array.
+- The cost is largest where the instructions are independent of each
+  other (breadth, refs, isolated): with data, the processor overlaps
+  many instructions at once; through a call it cannot see into, much
+  less so. On a chain (depth, coords) each instruction waits on the one
+  before anyway, and the call adds less (1.5 to 1.7 times).
+- Under the dirty closure, whose own cost per instruction is several
+  times an instruction's (decision 10), the pointers cost at most 19%
+  and the closures up to 2.3 times, again on the fans. On the chains
+  the closures came out 7 to 9% faster than the base under the dirty
+  closure, beyond the noise floor; not explained.
+- This is the cheap form: dispatch alone. The JavaScript core's model
+  adds what the full form (Plan, step 14) would measure: a function per
+  state variable rather than per primitive, its dependencies looked up
+  rather than bound, and values held in its objects.
 
