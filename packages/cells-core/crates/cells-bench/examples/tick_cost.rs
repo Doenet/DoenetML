@@ -1,26 +1,39 @@
-//! Tick times on the synthetic shapes of `cells_bench::shapes`, under both
-//! evaluators, the two interleaved tick by tick on the same document: what
+//! Tick times on the synthetic shapes of `cells_bench::shapes`, under
+//! several evaluators interleaved tick by tick on the same document: what
 //! `docs/tick-design-decisions.md` measures each decision with.
 //!
 //! For each shape and size: the document is loaded; a drag to the shape's
 //! check value must give the values it names, and the same cells under
-//! both evaluators; then the dragged coordinate alternates between 2 and 3,
+//! every evaluator; then the dragged coordinate alternates between 2 and 3,
 //! 3 warm-up ticks and `CELLS_TICKS` (default 41) timed ticks per
-//! evaluator. The table gives the median ticks. `CELLS_OUT=file` also
-//! appends one JSON record per row, with every sample and a fingerprint of
-//! the values after the check drag, which `scripts/tick-diff.sh` compares
-//! across commits.
+//! evaluator. The table gives the median ticks, and each evaluator's over
+//! the first's. `CELLS_OUT=file` also appends one JSON record per row, with
+//! every sample (`<evaluator>_ns`) and a fingerprint of the values after
+//! the check drag, which `scripts/tick-diff.sh` compares across commits.
 //!
 //! `CELLS_SHAPES=depth,chain10` picks shapes (default `shapes::SHAPES`),
-//! `CELLS_SIZES=1000,10000` sizes (default 1,000, 10,000 and 100,000).
+//! `CELLS_SIZES=1000,10000` sizes (default 1,000, 10,000 and 100,000),
+//! `CELLS_EVALUATORS` evaluators from `dirty`, `full`, `pull` and
+//! `pull_invalidated` (`cells_bench::pull`; default `dirty,full`).
 //!
 //!   cargo run --release -p cells-bench --example tick_cost
 
 use std::io::Write as _;
 use std::time::{Duration, Instant};
 
+use cells_bench::pull::{Pull, PullInvalidated};
 use cells_bench::shapes::{SHAPES, cell, fingerprint, load, shape};
 use cells_core::{DirtyClosure, Document, Evaluator, FullRecompute, Request};
+
+fn evaluator(name: &str, doc: &Document) -> Box<dyn Evaluator> {
+    match name {
+        "dirty" => Box::new(DirtyClosure::new(&doc.program, doc.cells.len())),
+        "full" => Box::new(FullRecompute),
+        "pull" => Box::new(Pull::default()),
+        "pull_invalidated" => Box::new(PullInvalidated::default()),
+        _ => panic!("no evaluator {name}"),
+    }
+}
 
 fn median(xs: &[Duration]) -> Duration {
     let mut xs = xs.to_vec();
@@ -58,75 +71,84 @@ fn main() {
             .open(p)
             .unwrap()
     });
-    println!(
-        "| shape | n | instructions | dirty closure (µs) | full recompute (µs) | full / dirty |"
-    );
-    println!("|---|---:|---:|---:|---:|---:|");
+    let names: Vec<String> = list("CELLS_EVALUATORS", vec!["dirty".into(), "full".into()]);
+    let mut head = "| shape | n | instructions |".to_string();
+    let mut rule = "|---|---:|---:|".to_string();
+    for e in &names {
+        head += &format!(" {e} (µs) |");
+        rule += "---:|";
+    }
+    for e in &names[1..] {
+        head += &format!(" {e} / {} |", names[0]);
+        rule += "---:|";
+    }
+    println!("{head}\n{rule}");
     for name in &shapes {
         for &n in &sizes {
             let s = shape(name, n).unwrap_or_else(|| panic!("no shape {name}"));
             let mut doc = load(s.elements);
             let drag = cell(&doc, s.drag);
-            let mut dirty: Box<dyn Evaluator> =
-                Box::new(DirtyClosure::new(&doc.program, doc.cells.len()));
-            let mut full: Box<dyn Evaluator> = Box::new(FullRecompute);
+            let mut evs: Vec<Box<dyn Evaluator>> =
+                names.iter().map(|e| evaluator(e, &doc)).collect();
 
-            // The shape computes what it says, the same under both.
+            // The shape computes what it says, the same under every evaluator.
             let (check, values) = &s.check;
             let req = [Request {
                 cell: drag,
                 value: *check,
             }];
-            let mut a = doc.clone();
-            let mut b = doc.clone();
-            a.request_with(dirty.as_mut(), &req, &[]);
-            b.request_with(full.as_mut(), &req, &[]);
-            assert!(
-                a.cells
-                    .iter()
-                    .zip(&b.cells)
-                    .all(|(x, y)| x.to_bits() == y.to_bits()),
-                "{name}-{n}: the evaluators disagree"
-            );
+            let mut first = doc.clone();
+            first.request_with(evs[0].as_mut(), &req, &[]);
+            for (k, ev) in evs.iter_mut().enumerate().skip(1) {
+                let mut other = doc.clone();
+                other.request_with(ev.as_mut(), &req, &[]);
+                assert!(
+                    first
+                        .cells
+                        .iter()
+                        .zip(&other.cells)
+                        .all(|(x, y)| x.to_bits() == y.to_bits()),
+                    "{name}-{n}: {} and {} disagree",
+                    names[0],
+                    names[k]
+                );
+            }
             for (path, want) in values {
-                let got = a.cells[cell(&a, path) as usize];
+                let got = first.cells[cell(&first, path) as usize];
                 assert_eq!(got, *want, "{name}-{n}: {path}");
             }
-            let print = fingerprint(&a);
-            drop((a, b));
+            let print = fingerprint(&first);
+            drop(first);
 
-            let mut times = [Vec::new(), Vec::new()];
+            let m = evs.len();
+            let mut times = vec![Vec::new(); m];
             let mut x = 2.0;
-            for k in 0..2 * (ticks + 3) {
-                let which = k % 2;
-                let ev = if which == 0 {
-                    dirty.as_mut()
-                } else {
-                    full.as_mut()
-                };
+            for k in 0..m * (ticks + 3) {
+                let which = k % m;
                 let req = [Request {
                     cell: drag,
                     value: x,
                 }];
                 let t = Instant::now();
-                let tick = doc.request_with(ev, &req, &[]);
+                let tick = doc.request_with(evs[which].as_mut(), &req, &[]);
                 let dt = t.elapsed();
                 assert!(!tick.changed.is_empty() && !tick.rebuilt);
-                if k >= 6 {
+                if k >= 3 * m {
                     times[which].push(dt);
                 }
                 x = if x == 2.0 { 3.0 } else { 2.0 };
             }
-            let (d, f) = (median(&times[0]), median(&times[1]));
-            println!(
-                "| {name} | {n} | {} | {} | {} | {:.2} |",
-                doc.program.len(),
-                us(d),
-                us(f),
-                f.as_secs_f64() / d.as_secs_f64()
-            );
+            let meds: Vec<Duration> = times.iter().map(|t| median(t)).collect();
+            let mut row = format!("| {name} | {n} | {} |", doc.program.len());
+            for d in &meds {
+                row += &format!(" {} |", us(*d));
+            }
+            for d in &meds[1..] {
+                row += &format!(" {:.2} |", d.as_secs_f64() / meds[0].as_secs_f64());
+            }
+            println!("{row}");
             if let Some(out) = &mut out {
-                record(out, name, n, &doc, print, &times);
+                record(out, name, n, &doc, print, &names, &times);
             }
         }
     }
@@ -138,17 +160,18 @@ fn record(
     n: usize,
     doc: &Document,
     print: u64,
-    times: &[Vec<Duration>; 2],
+    names: &[String],
+    times: &[Vec<Duration>],
 ) {
-    let ns = |t: &Vec<Duration>| t.iter().map(|d| d.as_nanos() as u64).collect::<Vec<_>>();
-    let line = serde_json::json!({
+    let mut line = serde_json::json!({
         "shape": name,
         "n": n,
         "instructions": doc.program.len(),
         "cells": doc.cells.len(),
         "fingerprint": format!("{print:016x}"),
-        "dirty_ns": ns(&times[0]),
-        "full_ns": ns(&times[1]),
     });
+    for (e, t) in names.iter().zip(times) {
+        line[format!("{e}_ns")] = t.iter().map(|d| d.as_nanos() as u64).collect();
+    }
     writeln!(out, "{line}").unwrap();
 }

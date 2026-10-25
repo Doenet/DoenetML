@@ -139,12 +139,20 @@ Each decision gives:
 - **Choice.** A topological order fixed when the document is built
   (`Program::schedule`). A tick runs forward through it and never orders
   work at run time.
-- **Alternative.** Pull-based, lazy evaluation that recomputes a value
-  when it is read, with a memo per value. `testing/reference.rs` is a
-  naive version of it.
+- **Alternative.** Pull-based evaluation, which finds the order of work
+  at run time: to give a cell its value, first give its inputs theirs.
+  Two forms, one per evaluator of decision 10: every cell pulled every
+  tick, against full recompute; and lazy with push invalidation (a write
+  marks everything downstream stale, then the stale cells are pulled),
+  against the dirty closure.
 - **Depends on.** 1, 2.
-- **Exercised by.** depth, breadth, mixed.
-- **Result.** Not measured.
+- **Exercised by.** every shape.
+- **Result.** The fixed schedule makes the tick 2.8 to 5 times faster
+  than pulling every cell, and 1.8 to 2.8 times faster than invalidating
+  and pulling, with all else equal. Where early cutoff stops a change
+  (cutoff), it is 380 to 640 times faster than invalidating and pulling,
+  since invalidation must visit everything downstream before any value
+  is known. See [Decision 9](#decision-9-pull-evaluation) below.
 
 ### 10. Recompute only what is downstream, tracked by schedule position
 
@@ -233,10 +241,13 @@ Two things follow for the measurements:
 `crates/cells-bench/src/shapes.rs`, which are built in Rust
 (`testing::dast`), so neither the parser nor node is needed. For each
 shape and size it loads the document, drags to a check value and asserts
-the values the shape names, asserts that both evaluators leave the same
+the values the shape names, asserts that every evaluator leaves the same
 cells, then alternates the dragged coordinate between 2 and 3 for 3
-warm-up and 41 timed ticks per evaluator, the two evaluators interleaved
-tick by tick on the same document.
+warm-up and 41 timed ticks per evaluator, the evaluators interleaved
+tick by tick on the same document. The evaluators are the core's two
+(`dirty`, `full`) by default; `CELLS_EVALUATORS` adds the pull
+evaluators of `crates/cells-bench/src/pull.rs` (`pull`,
+`pull_invalidated`).
 
 | shape | what the drag reaches | serves |
 |---|---|---|
@@ -293,7 +304,7 @@ is measured later.
 |---|---|---|---|
 | 0 | the shapes and the harness | done | mixed, cutoff, refs and coords, `tick_cost`, `tick-diff.sh` |
 | 1 | 10 → full recompute | exists | done; see below |
-| 2 | 9 → pull, lazy | exists | `testing/reference.rs` as it is, then with a memo per value |
+| 2 | 9 → pull | small, in the bench crate | done; see below |
 | 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | pairs with 10, on cutoff; version counters after, a larger build |
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | finishes 10 |
 | 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
@@ -326,7 +337,8 @@ base.
 | 6 | untagged `f64` | tagged enum | | | | | |
 | 7 | one cell per scalar | compound values | | | | | |
 | 8 | aliases | identity instructions | | | | | |
-| 9 | fixed push schedule | pull, lazy | | | | | |
+| 9 | fixed push schedule | pull every cell (base: full recompute) | 2.78 | 3.63 | 2.92 | 3.02 | mixed-100000: 3.34 |
+| 9 | fixed push schedule | invalidate, then pull (base: dirty closure) | 1.81 | 2.35 | 1.97 | 2.40 | mixed-100000: 2.46; cutoff-100000: 637 |
 | 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | mixed-100000: 5.2; isolated-100000: 247; chain10-100000: 1.7 |
 | 10 | downstream only | priority queue | | | | | |
 | 11 | value comparison, cutoff | version counters | | | | | |
@@ -335,6 +347,83 @@ Each cell is the alternative's tick over the base's (above 1 means the
 decision makes the tick faster by that factor, below 1 that it makes it
 slower), the per-side median of interleaved runs; where a shape was run
 more than once, the median of the runs.
+
+### Decision 9: pull evaluation
+
+Measured 2026-10-25 on `cells` at `f6677de` plus the harness, with
+`tick_cost` and `CELLS_EVALUATORS=dirty,full,pull,pull_invalidated`: the
+four evaluators interleaved on each document, seven processes, each
+evaluator's tick the median of the processes' medians (as
+`tick-diff.sh`). Every evaluator leaves the same cells, bit for bit,
+after each shape's check drag.
+
+`testing/reference.rs` was meant to be this alternative, but it cannot be
+timed as it is: it allocates a scratch array of every cell for every
+instruction it evaluates (quadratic in the document), keeps its memo in a
+hash map, and recurses once per link, which overflows the stack on a
+chain of 100,000. It would measure those, not pulling. So
+`crates/cells-bench/src/pull.rs` has two pull evaluators built as a pull
+core would be on this data: the core's cells, instructions and
+`Program::step`, an explicit stack for demand, and state in arrays stamped
+with the tick's epoch, so nothing is cleared between ticks. What differs
+from the core's evaluators is only how the next instruction is found.
+
+- **pull**: every tick, every derived cell is read, in cell order (the
+  document's), and each instruction runs once its inputs' producers have.
+  Its base is full recompute: neither is incremental.
+- **pull_invalidated**: a write marks every instruction downstream of it
+  stale (push), then each stale instruction is brought up to date by
+  demand (pull), running only if an input changed this tick, so early
+  cutoff (decision 11) is kept. Its base is the dirty closure: both do
+  work proportional to what is downstream.
+
+| shape | n | dirty (µs) | full (µs) | pull (µs) | pull_invalidated (µs) | pull / full | pull_invalidated / dirty |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| depth | 10,000 | 121 | 31.4 | 87.1 | 219 | 2.78 | 1.81 |
+| depth | 100,000 | 1,386 | 349 | 1,019 | 2,734 | 2.92 | 1.97 |
+| breadth | 10,000 | 63.8 | 22.5 | 81.8 | 150 | 3.63 | 2.35 |
+| breadth | 100,000 | 727 | 336 | 1,016 | 1,746 | 3.02 | 2.40 |
+| mixed | 10,000 | 4.7 | 14.9 | 77.4 | 10.7 | 5.18 | 2.29 |
+| mixed | 100,000 | 43.0 | 273 | 911 | 106 | 3.34 | 2.46 |
+| isolated | 10,000 | 0.3 | 16.0 | 74.7 | 0.3 | 4.66 | 1.16 |
+| isolated | 100,000 | 1.0 | 272 | 878 | 2.8 | 3.23 | 2.75 |
+| cutoff | 10,000 | 0.4 | 14.2 | 71.7 | 170 | 5.04 | 382 |
+| cutoff | 100,000 | 3.9 | 275 | 921 | 2,453 | 3.34 | 637 |
+| refs | 10,000 | 63.2 | 22.6 | 81.8 | 150 | 3.62 | 2.38 |
+| refs | 100,000 | 700 | 322 | 969 | 1,728 | 3.01 | 2.47 |
+| coords | 10,000 | 127 | 40.6 | 172 | 243 | 4.22 | 1.91 |
+| coords | 100,000 | 1,362 | 628 | 1,974 | 2,653 | 3.14 | 1.95 |
+
+The ratios held across the seven processes: each process's own ratio
+stayed within about 10% of the value shown, except on three rows where
+the dirty closure's tick is a few µs: mixed at 10,000 (pull over full
+4.5 to 5.3, pull_invalidated over dirty 1.8 to 2.4), isolated at 100,000
+(pull_invalidated over dirty 2.4 to 4.0) and cutoff (370 to 750).
+
+What it shows:
+
+- Finding the order at run time costs about 7 to 9 ns per instruction
+  (pull at 10,000 instructions: 72 to 87 µs), against 2 to 3 ns for
+  running a fixed order. Pull looks at each input's producer before
+  running an instruction, and keeps a stack; the fixed schedule only
+  runs the next instruction.
+- Lazy evaluation with invalidation pays twice: once to mark what is
+  downstream stale, once to pull it. It does the same amount of work as
+  the dirty closure, so its ratio to it (about 2) is the cost of the
+  extra pass and of demand.
+- The cutoff rows are the largest difference in this report so far.
+  The fixed schedule computes in order, so the dirty closure learns that
+  `round` did not change before it marks anything after it, and stops
+  there. Invalidation has to mark the whole chain stale before any value
+  is known; the pull then skips running each instruction, but must still
+  visit it. So decision 9 is what lets early cutoff (decision 11) save
+  visits, and not only runs.
+- Not measured: what laziness is for. A lazy core computes only what is
+  read, and every shape shows every value, so here pulling never skips
+  anything. A shape with content that is hidden or off screen would
+  measure that. Nor the order of reads: pull reads cells in document
+  order, where most inputs are already up to date; reading in reverse
+  would make each demand walk the chain.
 
 ### Decision 10: full recompute
 
