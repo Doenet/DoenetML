@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 
+pub mod pruned;
 pub mod pull;
 pub mod script;
 pub mod shapes;

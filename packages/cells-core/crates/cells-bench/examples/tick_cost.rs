@@ -16,18 +16,20 @@
 //!
 //! - `CELLS_SHAPES=depth,chain10`: shapes (default `shapes::SHAPES`).
 //! - `CELLS_SIZES=1000,10000`: sizes (default 1,000, 10,000 and 100,000).
-//! - `CELLS_EVALUATORS`: from `dirty`, `full` (the core's) and `ready_all`,
-//!   `ready_closure`, `lazy` (`cells_bench::pull`); default `dirty,full`.
-//!   The first must compute every cell, so not `lazy`.
+//! - `CELLS_EVALUATORS`: from `dirty`, `full` (the core's), `ready_all`,
+//!   `ready_closure`, `lazy` (`cells_bench::pull`) and `pruned`
+//!   (`cells_bench::pruned`); default `dirty,full`. The first must compute
+//!   every cell, so not `lazy` or `pruned`.
 //! - `CELLS_WANTED=100,10,1`: the share of the document, in percent, that a
 //!   tick reads (`shapes::wanted`, a viewport over the first components);
-//!   only `lazy` computes less than all of it. Default 100.
+//!   only `lazy` and `pruned` compute less than all of it. Default 100.
 //!
 //!   cargo run --release -p cells-bench --example tick_cost
 
 use std::io::Write as _;
 use std::time::{Duration, Instant};
 
+use cells_bench::pruned::PrunedClosure;
 use cells_bench::pull::{Lazy, ReadyAll, ReadyClosure};
 use cells_bench::shapes::{SHAPES, cell, fingerprint, load, shape, wanted};
 use cells_core::{CellIdx, DirtyClosure, Document, Evaluator, FullRecompute, Request};
@@ -39,6 +41,7 @@ fn evaluator(name: &str, doc: &Document, wanted: &[CellIdx]) -> Box<dyn Evaluato
         "ready_all" => Box::new(ReadyAll::default()),
         "ready_closure" => Box::new(ReadyClosure::default()),
         "lazy" => Box::new(Lazy::new(wanted.to_vec())),
+        "pruned" => Box::new(PrunedClosure::new(&doc.program, doc.cells.len(), wanted)),
         _ => panic!("no evaluator {name}"),
     }
 }
@@ -86,7 +89,7 @@ fn main() {
     let names: Vec<String> = list("CELLS_EVALUATORS", vec!["dirty".into(), "full".into()]);
     let shares: Vec<usize> = list("CELLS_WANTED", vec![100]);
     assert!(
-        names[0] != "lazy",
+        names[0] != "lazy" && names[0] != "pruned",
         "the first evaluator must compute every cell"
     );
     let ticks: usize = std::env::var("CELLS_TICKS")

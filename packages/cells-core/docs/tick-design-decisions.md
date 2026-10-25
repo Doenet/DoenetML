@@ -159,10 +159,13 @@ Each decision gives:
   before any value is known. Lazy pull costs the same as readiness
   checking when the whole document is read, and wins in proportion to
   how little of the change is read: on a chain of 100,000 with 1% read,
-  it is 47 times faster than the dirty closure. So the fixed push
-  schedule is faster when everything downstream is shown, and the lazy
-  core when most of it is not. Whether a push core that skips what is
-  not shown would match that is not yet measured (Plan, step 2b). See
+  it is 47 times faster than the dirty closure. But that win is from
+  computing less, not from laziness: the dirty closure pruned to the
+  instructions some read cell needs, keeping the fixed schedule, is
+  faster than lazy pull at every share read, by about 2 times on chains
+  and up to 90 times where a fan of unread readers hangs off the drag.
+  So the fixed push schedule is the faster choice whatever is shown,
+  provided it skips what is not. See
   [Decision 9](#decision-9-pull-evaluation) below.
 
 ### 10. Recompute only what is downstream, tracked by schedule position
@@ -331,7 +334,7 @@ is measured later.
 | 0 | the shapes and the harness | done | mixed, cutoff, refs and coords, `tick_cost`, `tick-diff.sh` |
 | 1 | 10 → full recompute | exists | done; see below |
 | 2 | 9 → readiness checking, and lazy pull | small, in the bench crate | done; see below |
-| 2b | 9 → push over what is read: the dirty closure skipping instructions no read cell needs | small, in the bench crate | separates computing less from computing lazily: lazy's win on a small viewport could come from either |
+| 2b | 9 → push over what is read: the dirty closure skipping instructions no read cell needs | small, in the bench crate | done; see below. It separates computing less from computing lazily |
 | 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | done; see below. Version counters are a larger build, not planned yet |
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | finishes 10 |
 | 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
@@ -368,6 +371,7 @@ base.
 | 9 | fixed push schedule | readiness checking, invalidated (base: dirty closure) | 1.92 | 2.34 | 1.84 | 2.60 | mixed-100000: 2.13; cutoff-100000: 488 |
 | 9 | fixed push schedule | lazy pull, 100% read (base: dirty closure) | 1.95 | 2.38 | 1.86 | 2.66 | mixed-100000: 2.09; cutoff-100000: 495 |
 | 9 | fixed push schedule | lazy pull, 1% read (base: dirty closure) | 0.05 | 0.17 | 0.02 | 0.14 | mixed-100000: 0.58; cutoff-100000: 9.4 |
+| 9 | fixed push schedule | lazy pull, 1% read (base: dirty closure pruned to what is read) | 1.80 | 7.69 | 1.95 | 10.4 | mixed-100000: 1.97; cutoff-100000: 70; refs-100000: 83 |
 | 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | mixed-100000: 5.2; isolated-100000: 247; chain10-100000: 1.7 |
 | 10 | downstream only | priority queue | | | | | |
 | 11 | value comparison, cutoff | mark every reader (base: dirty closure) | 0.90 | 1.02 | 0.95 | 1.05 | cutoff-100000: 645; coords-100000: 0.92 |
@@ -554,14 +558,79 @@ What it shows:
   effects are all on screen favors the fixed push schedule by about two
   times; a drag whose effects are mostly off screen or hidden favors
   the lazy core, by as much as what is not shown is large.
-- Open: whether the push core would win that back by not computing what
-  no read needs. The dirty closure could skip, from a mask fixed when
-  the viewport changes, every instruction no read cell depends on (Plan,
-  step 2b). If that matches lazy, the win is from computing less, which
-  a push core can also do, and not from laziness.
+- Whether that win is laziness or only computing less is the next
+  section's question: a push core can also skip what no read needs.
 - Not measured: scrolling. The lazy core pays for what it skipped when
   stale content comes into view, and this harness never moves the
   viewport. Nor reads in another order than the document's.
+
+#### Push over what is read
+
+Measured 2026-10-25, the same way, with
+`CELLS_EVALUATORS=dirty,lazy,pruned`. `pruned`
+(`crates/cells-bench/src/pruned.rs`) is the core's `DirtyClosure`, copied
+since its fields are private, with one change: its table of each cell's
+readers lists only the instructions some read cell depends on, worked out
+once when it is made, as a push core would when the viewport changes.
+Its tick loop is the core's line for line, so pruning costs nothing per
+tick, and with everything read it is the core's dirty closure: at 100%
+it took 0.98 to 1.01 of the dirty closure's time on every shape (1.14
+and 1.61 on cutoff, ticks of 0.3 and 2 to 4 µs), so the copy is
+faithful. An instruction no read cell needs never runs and goes stale,
+as in lazy; values are compared on the read cells.
+
+| shape | n | read | dirty (µs) | lazy (µs) | pruned (µs) | pruned / dirty | lazy / pruned |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| depth | 10,000 | 10% | 108 | 20.5 | 11.2 | 0.10 | 1.82 |
+| depth | 10,000 | 1% | 108 | 2.6 | 1.5 | 0.01 | 1.80 |
+| depth | 100,000 | 10% | 1,340 | 237 | 119 | 0.09 | 1.99 |
+| depth | 100,000 | 1% | 1,352 | 27.9 | 14.3 | 0.01 | 1.95 |
+| breadth | 10,000 | 10% | 56.2 | 20.4 | 6.2 | 0.11 | 3.30 |
+| breadth | 10,000 | 1% | 55.8 | 8.1 | 1.0 | 0.02 | 7.69 |
+| breadth | 100,000 | 10% | 691 | 239 | 66.4 | 0.10 | 3.60 |
+| breadth | 100,000 | 1% | 706 | 93.4 | 9.0 | 0.01 | 10.4 |
+| mixed | 100,000 | 10% | 41.4 | 85.7 | 41.7 | 1.01 | 2.06 |
+| mixed | 100,000 | 1% | 41.0 | 21.8 | 11.0 | 0.27 | 1.97 |
+| isolated | 100,000 | 1% | 0.2 | 0.2 | 0.2 | 1.02 | 1.05 |
+| cutoff | 100,000 | 10% | 0.3 | 169 | 0.4 | 1.07 | 469 |
+| cutoff | 100,000 | 1% | 0.2 | 17.3 | 0.2 | 1.02 | 70 |
+| refs | 10,000 | 10% | 56.0 | 6.4 | 0.2 | 0.00 | 29.7 |
+| refs | 100,000 | 10% | 694 | 75.6 | 0.8 | 0.00 | 89.2 |
+| refs | 100,000 | 1% | 686 | 74.7 | 0.9 | 0.00 | 83.5 |
+| coords | 100,000 | 10% | 1,357 | 251 | 132 | 0.10 | 1.91 |
+| coords | 100,000 | 1% | 1,363 | 32.6 | 17.0 | 0.01 | 1.91 |
+
+At 100% read, lazy over pruned is lazy over the dirty closure above
+(1.8 to 2.5 times, 450 to 590 on cutoff). Each process's own lazy over
+pruned stayed within about 10% of the value shown, except on cutoff and
+refs, where pruned's tick is under 1 µs (cutoff at 1% and 100,000: 26 to
+75; refs at 100,000: 70 to 120).
+
+What it shows:
+
+- Pruned push is faster than lazy pull at every share read, on every
+  shape with work to skip. Lazy's win over the dirty closure was from
+  computing less, which the fixed schedule keeps when it skips what no
+  read needs; laziness itself costs about 2 times.
+- On the chains (depth, coords) and the page (mixed), lazy over pruned
+  stays about 2 at every share: the cost of invalidating before
+  evaluating, as with everything read.
+- On fans (breadth, refs) the gap grows as less is read, to 10 and 90
+  times: lazy's invalidation still walks every reader of the dragged
+  point each tick, read or not, to find it already stale, while pruned's
+  table no longer lists the unread ones. A lazy core that unsubscribes
+  what nothing observes, as MobX suspends an unobserved computed, would
+  drop that walk and come to about 2 times again, which is pruning by
+  another name.
+- On cutoff, pruning keeps early cutoff at the round, and lazy cannot.
+- So decision 9 holds: with the same work skipped, the fixed push
+  schedule is about 2 times faster than pull, and far more where a
+  change stops early. What a viewport saves belongs to computing less,
+  which either can do.
+- Not measured: changing what is read. Pruned remakes its table, a
+  pass over the program, when the viewport moves, and must then compute
+  what came into view, which went stale while out of it; lazy computes
+  that on the read. Scrolling is where they would differ next.
 
 ### Decision 10: full recompute
 
