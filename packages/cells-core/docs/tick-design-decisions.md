@@ -184,14 +184,19 @@ Each decision gives:
 - **Exercised by.** breadth and depth, where every instruction is
   downstream of the drag, and mixed, isolated and chainK, where only part
   of it is.
-- **Result.** Full recompute measured; the priority queue not yet. It
-  depends on how much of the program is downstream. Where all of it is,
+- **Result.** Against full recompute, it depends on how much of the
+  program is downstream. Where all of it is,
   full recompute is 2.5 to 4 times faster than the dirty closure; where
   little of it is, the dirty closure wins by as much as the program is
   large. They break even with roughly 15 to 20% of the program
   downstream. On both benchmark shapes the decision makes the tick
   slower; on mixed, where a drag reaches 5% of a page, it makes it 3 to
   5 times faster. See [Decision 10](#decision-10-full-recompute) below.
+  Against a priority queue, the bitset is 2.4 to 5.5 times faster where
+  a change fans out (breadth, refs, mixed), and 4 to 10% slower on the
+  chains (depth, coords), where the queue never holds more than one
+  instruction. See [Decision 10: priority queue](#decision-10-priority-queue)
+  below.
 
 ### 11. Changes are detected by comparing values, with early cutoff
 
@@ -336,7 +341,7 @@ is measured later.
 | 2 | 9 → readiness checking, and lazy pull | small, in the bench crate | done; see below |
 | 2b | 9 → push over what is read: the dirty closure skipping instructions no read cell needs | small, in the bench crate | done; see below. It separates computing less from computing lazily |
 | 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | done; see below. Version counters are a larger build, not planned yet |
-| 4 | 10 → priority queue | small, in `tick/eval.rs` | finishes 10 |
+| 4 | 10 → priority queue | small, in `tick/eval.rs` | done; see below |
 | 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
 | 6 | 8 → identity instructions | medium, in `build/emit.rs` | the tick is unchanged; on refs |
 | 7 | 6 → 16-byte cells, no tag | medium | the first change to what a cell is: size alone |
@@ -373,7 +378,7 @@ base.
 | 9 | fixed push schedule | lazy pull, 1% read (base: dirty closure) | 0.05 | 0.17 | 0.02 | 0.14 | mixed-100000: 0.58; cutoff-100000: 9.4 |
 | 9 | fixed push schedule | lazy pull, 1% read (base: dirty closure pruned to what is read) | 1.80 | 7.69 | 1.95 | 10.4 | mixed-100000: 1.97; cutoff-100000: 70; refs-100000: 83 |
 | 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | mixed-100000: 5.2; isolated-100000: 247; chain10-100000: 1.7 |
-| 10 | downstream only | priority queue | | | | | |
+| 10 | downstream only | priority queue | 0.91 | 3.49 | 0.90 | 4.83 | mixed-100000: 3.64; refs-100000: 4.72; coords-100000: 0.96 |
 | 11 | value comparison, cutoff | mark every reader (base: dirty closure) | 0.90 | 1.02 | 0.95 | 1.05 | cutoff-100000: 645; coords-100000: 0.92 |
 | 11 | value comparison, cutoff | version counters | | | | | |
 
@@ -706,3 +711,63 @@ What it shows:
 - Not measured here: wasm, where the per-instruction costs may differ,
   and the tick in the Node driver, whose floor would hide the small
   rows.
+
+### Decision 10: priority queue
+
+Measured 2026-10-25 with `scripts/tick-diff.sh` against `90cfe62`, the
+alternative being `docs/tick-alternatives/10-priority-queue.patch`: the
+dirty closure keeps the instructions waiting to run in a min-heap of
+schedule positions (`BinaryHeap<Reverse<u32>>`) with a flag per
+instruction for whether it is queued, both kept across ticks, instead
+of the bitset scanned forward a word at a time. The readers table and
+early cutoff are unchanged. Full recompute is untouched, so its column
+is a control.
+
+| shape | n | dirty, base → queue (µs) | queue / base | full, base → queue (µs) | queue / base |
+|---|---:|---|---:|---|---:|
+| depth | 10,000 | 109 → 99.5 | 0.91 | 27.8 → 27.8 | 1.00 |
+| depth | 100,000 | 1,343 → 1,210 | 0.90 | 361 → 354 | 0.98 |
+| breadth | 10,000 | 56.3 → 196 | 3.49 | 19.3 → 17.0 | 0.88 |
+| breadth | 100,000 | 678 → 3,276 | 4.83 | 333 → 326 | 0.98 |
+| isolated | 10,000 | 0.2 → 0.2 | 0.98 | 14.0 → 14.0 | 1.00 |
+| isolated | 100,000 | 1.9 → 1.8 | 0.98 | 260 → 250 | 0.96 |
+| mixed | 10,000 | 4.4 → 10.5 | 2.37 | 14.8 → 14.7 | 1.00 |
+| mixed | 100,000 | 50.9 → 186 | 3.64 | 260 → 271 | 1.04 |
+| cutoff | 10,000 | 0.2 → 0.2 | 0.97 | 14.0 → 14.0 | 1.00 |
+| cutoff | 100,000 | 1.9 → 2.0 | 1.08 | 243 → 260 | 1.07 |
+| refs | 10,000 | 44.3 → 241 | 5.45 | 15.2 → 21.4 | 1.41 |
+| refs | 100,000 | 690 → 3,256 | 4.72 | 312 → 337 | 1.08 |
+| coords | 10,000 | 119 → 107 | 0.90 | 49.5 → 49.8 | 1.01 |
+| coords | 100,000 | 1,354 → 1,297 | 0.96 | 637 → 648 | 1.02 |
+
+The control moved by more than the noise floor on refs at 10,000 (1.41):
+the base's process landed in that row's fast mode (15.2 µs, against the
+19.3 µs it usually takes), which also flatters the base's dirty closure
+there (44.3 against its usual 56 µs), so the 5.45 on that row is high,
+and about 4.3 at its usual times. With the patch, `cargo test
+--workspace` passes, the golden diff is identical (12 documents and
+their programs), and every shape's fingerprint matches the base's.
+
+What it shows:
+
+- Where a change fans out, the frontier is wide: breadth queues all n
+  readers of the dragged point at once, and a heap pays O(log n) for
+  each push and pop, about 20 to 30 ns per instruction at 100,000. The
+  bitset pays a bit set and a scan, the same at any width. So the bitset
+  is 2.4 to 5.5 times faster on breadth, refs and mixed, the shapes most
+  like a page.
+- On a chain the frontier is one instruction: each step queues the next.
+  The heap then holds one entry, and its push and pop are a few
+  instructions, while the bitset still sets a bit, scans for it and
+  keeps the bounds of what is marked. The queue is 4 to 10% faster
+  there.
+- So the bitset is the right choice for the closure, by a wide margin
+  where it matters. A hybrid that walks a chain directly (as the
+  inversion's `walk` does) could take the 10% on chains; that would be a
+  change to the core, not part of this plan.
+- Of the dirty closure's cost per instruction found in decision 10
+  (about 10 ns on a chain against 3 for full recompute), the bitset's
+  bookkeeping is at most the 10% the queue saves; the rest is the
+  readers lookup, the change test and the list of changed cells, which
+  the queue keeps.
+

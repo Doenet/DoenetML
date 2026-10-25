@@ -1,0 +1,100 @@
+diff --git a/packages/cells-core/crates/cells-core/src/tick/eval.rs b/packages/cells-core/crates/cells-core/src/tick/eval.rs
+index 474925b..7cd8b68 100644
+--- a/packages/cells-core/crates/cells-core/src/tick/eval.rs
++++ b/packages/cells-core/crates/cells-core/src/tick/eval.rs
+@@ -36,8 +36,10 @@ pub struct DirtyClosure {
+     /// compressed-sparse-row form.
+     dep_start: Vec<u32>,
+     dependents: Vec<u32>,
+-    /// One bit per schedule position; all clear between ticks.
+-    dirty: Vec<u64>,
++    /// Schedule positions waiting to run, lowest first; empty between ticks.
++    heap: std::collections::BinaryHeap<std::cmp::Reverse<u32>>,
++    /// Whether each schedule position is in `heap`; all false between ticks.
++    queued: Vec<bool>,
+ }
+ 
+ impl DirtyClosure {
+@@ -62,27 +64,22 @@ impl DirtyClosure {
+         DirtyClosure {
+             dep_start,
+             dependents,
+-            dirty: vec![0; program.len().div_ceil(64)],
++            heap: std::collections::BinaryHeap::new(),
++            queued: vec![false; program.len()],
+         }
+     }
+ 
+-    /// Mark the readers of `cell`. Readers in word `w` go into `bits`, the
+-    /// word being scanned, which the caller holds in a register; `hi` is
+-    /// raised to the highest word marked in `dirty`.
++    /// Queue the readers of `cell` not already queued.
+     #[inline(always)]
+-    fn mark_dependents(&mut self, cell: CellIdx, w: usize, bits: &mut u64, hi: &mut usize) {
++    fn mark_dependents(&mut self, cell: CellIdx) {
+         let (s, e) = (
+             self.dep_start[cell as usize] as usize,
+             self.dep_start[cell as usize + 1] as usize,
+         );
+         for &i in &self.dependents[s..e] {
+-            let dw = i as usize / 64;
+-            let bit = 1u64 << (i % 64);
+-            if dw == w {
+-                *bits |= bit;
+-            } else {
+-                self.dirty[dw] |= bit;
+-                *hi = (*hi).max(dw);
++            if !self.queued[i as usize] {
++                self.queued[i as usize] = true;
++                self.heap.push(std::cmp::Reverse(i));
+             }
+         }
+     }
+@@ -149,37 +146,19 @@ impl Evaluator for DirtyClosure {
+         "dirty-closure"
+     }
+     fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
+-        let mut lo = usize::MAX;
+-        let mut hi = 0;
+         for &c in changed.iter() {
+-            if let Some(&first) = self
+-                .dependents
+-                .get(self.dep_start[c as usize] as usize..self.dep_start[c as usize + 1] as usize)
+-                .and_then(|d| d.first())
+-            {
+-                lo = lo.min(first as usize / 64);
+-            }
+-            // No word is being scanned yet: every mark lands in `dirty`.
+-            self.mark_dependents(c, usize::MAX, &mut 0, &mut hi);
+-        }
+-        if lo == usize::MAX {
+-            return;
++            self.mark_dependents(c);
+         }
+-        let mut w = lo;
+-        while w <= hi {
+-            let mut bits = std::mem::take(&mut self.dirty[w]);
+-            while bits != 0 {
+-                let b = bits.trailing_zeros() as usize;
+-                bits &= bits - 1;
+-                let ins = &program.instrs[w * 64 + b];
+-                let before = changed.len();
+-                program.step(ins, cells, Some(changed));
+-                for &c in &changed[before..] {
+-                    // Readers come later in the schedule: above bit `b`, or in a later word.
+-                    self.mark_dependents(c, w, &mut bits, &mut hi);
+-                }
++        // Readers come later in the schedule, so the lowest position queued
++        // has every input up to date.
++        while let Some(std::cmp::Reverse(i)) = self.heap.pop() {
++            self.queued[i as usize] = false;
++            let ins = &program.instrs[i as usize];
++            let before = changed.len();
++            program.step(ins, cells, Some(changed));
++            for &c in &changed[before..] {
++                self.mark_dependents(c);
+             }
+-            w += 1;
+         }
+     }
+ }
