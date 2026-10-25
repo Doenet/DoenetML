@@ -849,20 +849,22 @@ What it shows:
   own cost shows: full recompute runs 1.2 to 2.5 times slower with a
   function pointer per operator, and 1.5 to 5 times with a closure per
   instruction.
-- The closures cost about twice what the pointers do on most shapes,
-  so about half of their cost is the call through a pointer and half is
-  the allocation per instruction: the tick reads each closure's captures
-  from its own place on the heap, where the match reads the instruction
-  from one contiguous array.
+- On the fans (breadth, refs, isolated), the closures cost far more
+  than the pointers: at 100,000, the pointers add 0.1 to 0.2 ms to full
+  recompute and the closures 0.6 to 1.2 ms. That difference is the
+  allocation per instruction: the tick reads each closure's captures
+  from its own place on the heap, where the match, and the pointers,
+  read the instruction from one contiguous array. On the chains the two
+  forms cost about the same.
 - The cost is largest where the instructions are independent of each
   other (breadth, refs, isolated): with data, the processor overlaps
   many instructions at once; through a call it cannot see into, much
   less so. On a chain (depth, coords) each instruction waits on the one
-  before anyway, and the call adds less (1.5 to 1.7 times).
+  before anyway, and the call adds less (1.5 to 2.1 times).
 - Under the dirty closure, whose own cost per instruction is several
   times an instruction's (decision 10), the pointers cost at most 19%
-  and the closures up to 2.3 times, again on the fans. On the chains
-  the closures came out 7 to 9% faster than the base under the dirty
+  and the closures up to 2.3 times, again on the fans. On depth the
+  closures came out 7 to 9% faster than the base under the dirty
   closure, beyond the noise floor; not explained.
 - This is the cheap form: dispatch alone. The JavaScript core's model
   adds what the full form (Plan, step 14) would measure: a function per
