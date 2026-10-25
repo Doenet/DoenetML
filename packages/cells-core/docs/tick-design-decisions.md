@@ -752,8 +752,9 @@ What it shows:
 
 - Where a change fans out, the frontier is wide: breadth queues all n
   readers of the dragged point at once, and a heap pays O(log n) for
-  each push and pop, about 20 to 30 ns per instruction at 100,000. The
-  bitset pays a bit set and a scan, the same at any width. So the bitset
+  each push and pop: about 33 ns per instruction on breadth at 100,000,
+  against about 7 for the bitset, which pays a bit set and a scan
+  whatever the width. So the bitset
   is 2.4 to 5.5 times faster on breadth, refs and mixed, the shapes most
   like a page.
 - On a chain the frontier is one instruction: each step queues the next.
@@ -765,9 +766,9 @@ What it shows:
   where it matters. A hybrid that walks a chain directly (as the
   inversion's `walk` does) could take the 10% on chains; that would be a
   change to the core, not part of this plan.
-- Of the dirty closure's cost per instruction found in decision 10
-  (about 10 ns on a chain against 3 for full recompute), the bitset's
-  bookkeeping is at most the 10% the queue saves; the rest is the
-  readers lookup, the change test and the list of changed cells, which
-  the queue keeps.
+- Decision 10 found the dirty closure costing about 10 ns per
+  instruction on a chain, against 3 for full recompute. Swapping its
+  bitset for a queue saves only 10% of that, so most of the gap is in
+  what both keep: the readers lookup, the change test and the list of
+  changed cells. Not profiled.
 
