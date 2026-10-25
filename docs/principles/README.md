@@ -96,14 +96,19 @@ removed.
    (CPY-1 to CPY-3)
 6. A copy of a reference pastes what the reference points to. A copy of a property
    (`copy="$P.x"`) has no DoenetML to paste, so it holds the value. (CPY-4, CPY-5)
+7. A copy is independent of what it copied, but not of what that refers to. To start
+   something new from another component's current value, copy its value:
+   `<number name="x" copy="$x0.value"/>`, not `copy="$x0"`. Without `.value`, a module
+   attribute passed as `x0="$initial"` pastes a live `$initial`. The copy then either cannot
+   be dragged, or writes back to the caller's `initial`. (CPY-7)
 
 **Values and attributes**
 
-7. `$x.prop` is a new value. It is not the component, so it has no label, no `hide` and no
+8. `$x.prop` is a new value. It is not the component, so it has no label, no `hide` and no
    style of its own. It is still two-way: typing into it changes x. (VAL-1, VAL-2)
-8. A reference written where a value is read (`<math>$n+1</math>`, `xMin="$n"`) acts like
+9. A reference written where a value is read (`<math>$n+1</math>`, `xMin="$n"`) acts like
    the referent's current value written there. (VAL-3)
-9. An attribute is read in one of three ways:
+10. An attribute is read in one of three ways:
    - plain text is parsed as the attribute's type;
    - exactly one reference *is* that reference, in both directions;
    - an expression is recomputed from its references.
@@ -115,18 +120,18 @@ removed.
 These rules are stated per tag, in terms of what the reader sees. "Composite" is an
 implementation term, and authors do not need it ([decisions.md](decisions.md), D24).
 
-10. What a `<repeat>`, `<select>`, `<conditionalContent>`, `<collect>` or `<group>` produces is
+11. What a `<repeat>`, `<select>`, `<conditionalContent>`, `<collect>` or `<group>` produces is
     shown where the tag is written, as if written there. Content it repeats, picks or gathers
     is separated by commas, as a list is. (COMP-1, COMP-2)
-11. Selections are made once, from the variant, and never change. The same variant gives the
+12. Selections are made once, from the variant, and never change. The same variant gives the
     same selections. (COMP-8, VAR-1)
 
 **Inherited attributes**
 
-12. `hide`, `fixed`, `fixLocation`, `disabled` and `styleNumber` written on a container apply to
+13. `hide`, `fixed`, `fixLocation`, `disabled` and `styleNumber` written on a container apply to
     what is inside it. Something inside can opt out with its own attribute, except that nothing
     inside a hidden container can unhide itself. (CTX-1 to CTX-6)
-13. What each one does:
+14. What each one does:
 
     | Attribute | Effect |
     |---|---|
@@ -140,9 +145,9 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
 
 **Interaction**
 
-14. An input shows the value it is bound to. Typing into it changes that value if a formula
+15. An input shows the value it is bound to. Typing into it changes that value if a formula
     can be run backward (`2$n+1`, `($a,$b)`). Otherwise it snaps back. (INT-1 to INT-3)
-15. A reader's work survives a reload, and survives content being hidden and shown again.
+16. A reader's work survives a reload, and survives content being hidden and shown again.
     (SAVE-1, SAVE-4)
 
 ## How to use these documents
