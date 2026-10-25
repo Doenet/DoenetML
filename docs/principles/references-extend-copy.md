@@ -301,55 +301,34 @@ No test pins the "last one wins" rule, for any component, either written directl
 (`extend_references.test.ts:86`). This rule should be one schema-driven sweep over every
 component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
-### REF-5: a different tag is supported only for a few related types (Tier 2 for those pairs; otherwise unspecified)
-`<T extend="$x"/>` with T different from x's type asks for a T that behaves like x. That makes
-sense only for related types, and nothing promises a reasonable result for unrelated ones.
+### REF-5: a different tag is allowed only between related types; any other pair is an error (Tier 2)
+`<T extend="$x"/>` with T different from x's type asks for a T that behaves like x. That has a
+meaning only for related types:
+- math, number, text and boolean, among each other;
+- point, vector and coords;
+- an input from its value type, and a value type from an input;
+- a list from the matching scalar or list (#2231).
 
-**What the code does.** It does not convert. When the replacement is not a T,
-`verifyReplacementsMatchSpecifiedType` (`W/utils/copy.js:192`, wrap branch `:398-470`) makes a
-new, empty T and puts the replacement in as its only child. That is a reference to x, or to x's
-value when x reads as a value (REF-1a). What happens next is whatever T does with that child:
-- **T has a way to read the child,** directly or through an adapter: the result is a
-  reasonable T. It is linked only where that reading can be run backward.
-- **T does not accept the child:** the child is dropped with an "Invalid children" warning, and
-  T takes its default value.
-- **T accepts the child but has no sensible reading of it:** the result is a default or
-  meaningless value, with **no** warning.
+For these pairs the result is x's value as a T. It is linked both ways where the conversion can
+be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
+moves `v`.
 
-**[probe]**, with `n` a number, `m` the math `x+1`, `t` the text `y+2`, `v` a vector and `P` a
-point:
+Any other pair should be a load-time error on the extend, such as "cannot extend a `<section>`
+as a `<math>`" (D26).
 
-| Written | Result | Diagnostic |
-|---|---|---|
-| `<math extend="$n"/>` | 3 | — |
-| `<math extend="$t"/>` | `y + 2` | — |
-| `<text extend="$m"/>` | `x + 1` | — |
-| `<point extend="$v"/>` | (1, 2); dragging it moves `v` | — |
-| `<math extend="$P"/>` | `(3, 4)` | — |
-| `<number extend="$m"/>` | NaN | none |
-| `<boolean extend="$m"/>` | false | **none** |
-| `<number extend="$P"/>` | NaN | none |
-| `<textInput extend="$m"/>` | an input whose value is `x + 1` | — |
-| `<p extend="$m"/>`, `<section extend="$m"/>`, `<graph extend="$P"/>` | a container holding the referent | — |
-| `<circle extend="$P"/>`, `<polygon extend="$P"/>`, `<point extend="$t"/>`, `<point extend="$sec"/>`, `<math extend="$sec"/>`, `<vector extend="$ln"/>` | a default T | "Invalid children" |
-| `<line extend="$P"/>` | the line `0 = -y` | "Invalid children" |
+Evidence for the related pairs:
+- `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
+  number and coords from a mathInput and a point), and `:6366`;
+- `T/copying/list_extend_attributes.test.ts` (#2231).
 
-So the honest statement is narrower than "converts and stays linked":
-- **Supported (Tier 2):** extending between related value types: math, number, text and
-  boolean among each other; point, vector and coords. An input extended from a value, or a
-  value extended from an input, also belongs here. These are the pairs tested:
-  `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
-  number and coords from a mathInput and a point), `:6366`, and #2231 for lists.
-- **Unspecified:** every other pair. The result follows from how T happens to process a child,
-  which is not a principle, and should not be locked in by tests. The only test of this kind is
-  `:6495` "handle extending or copying with invalid component type".
+**Current behavior for unrelated pairs does not need to be reproduced.** Today an unrelated pair
+gives a default T, sometimes with a confusing "Invalid children" warning and sometimes with no
+warning at all. For example, `<boolean extend="$m"/>` of a math is silently `false`. A
+container tag (`<p extend="$m"/>`) just holds the referent. A new core should give the error
+instead, and no test should pin today's results. The one existing test of an invalid pair,
+`extend_references.test.ts:6495`, should change to expect the error.
 
-A container extended from a value (`<p extend="$m"/>`) works only because a `<p>` accepts any
-child. It is not a meaningful "p that behaves like m".
-
-D26 proposes a declared table of supported pairs, and an error for the rest.
-
-Inconsistency within the supported pairs: across a type change, a list extend takes the source's
+Inconsistency within the related pairs: across a type change, a list extend takes the source's
 same-named attributes (`hide`, `fixed`, display settings, #2231), but a scalar extend does not
 (D19).
 
