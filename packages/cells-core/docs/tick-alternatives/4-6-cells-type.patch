@@ -1,0 +1,673 @@
+diff --git a/packages/cells-core/crates/cells-bench/src/pruned.rs b/packages/cells-core/crates/cells-bench/src/pruned.rs
+index a793c33..37fd03e 100644
+--- a/packages/cells-core/crates/cells-bench/src/pruned.rs
++++ b/packages/cells-core/crates/cells-bench/src/pruned.rs
+@@ -101,7 +101,12 @@ impl Evaluator for PrunedClosure {
+     }
+ 
+     /// As `DirtyClosure::recompute`.
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut cells_core::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         let mut lo = usize::MAX;
+         let mut hi = 0;
+         for &c in changed.iter() {
+diff --git a/packages/cells-core/crates/cells-bench/src/pull.rs b/packages/cells-core/crates/cells-bench/src/pull.rs
+index 89c9540..0a7a02b 100644
+--- a/packages/cells-core/crates/cells-bench/src/pull.rs
++++ b/packages/cells-core/crates/cells-bench/src/pull.rs
+@@ -104,7 +104,12 @@ impl Evaluator for ReadyAll {
+         "ready_all"
+     }
+ 
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut cells_core::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         self.d.size(program);
+         for c in 0..cells.len() {
+             let p = program.producer[c];
+@@ -177,7 +182,12 @@ impl Evaluator for ReadyClosure {
+         "ready_closure"
+     }
+ 
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut cells_core::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         self.tables(program, cells.len());
+         self.d.size(program);
+         let epoch = self.d.epoch;
+@@ -281,7 +291,12 @@ impl Evaluator for Lazy {
+         "lazy"
+     }
+ 
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut cells_core::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         if self.stale.len() != program.len() || self.changed_at.len() != cells.len() {
+             (self.dep_start, self.dependents) = readers(program, cells.len());
+             self.stale = vec![false; program.len()];
+diff --git a/packages/cells-core/crates/cells-core/src/cells.rs b/packages/cells-core/crates/cells-core/src/cells.rs
+new file mode 100644
+index 0000000..e5c441e
+--- /dev/null
++++ b/packages/cells-core/crates/cells-core/src/cells.rs
+@@ -0,0 +1,106 @@
++//! The document's cells as a type of their own, so what a cell is can be
++//! changed in one place: the alternatives to decisions 4 to 6 of
++//! `docs/tick-design-decisions.md`. Indexed by cell, it reads and writes an
++//! `f64` whatever a slot holds.
++
++use std::ops::{Index, IndexMut};
++
++/// What one cell is stored as.
++pub type Slot = f64;
++
++/// How a slot holds its value.
++pub trait SlotValue: Copy {
++    fn new(v: f64) -> Self;
++    fn get(&self) -> &f64;
++    fn get_mut(&mut self) -> &mut f64;
++}
++
++impl SlotValue for f64 {
++    #[inline(always)]
++    fn new(v: f64) -> Self {
++        v
++    }
++    #[inline(always)]
++    fn get(&self) -> &f64 {
++        self
++    }
++    #[inline(always)]
++    fn get_mut(&mut self) -> &mut f64 {
++        self
++    }
++}
++
++/// Every cell of a document, in cell order.
++#[derive(Clone, Debug, Default, PartialEq)]
++pub struct Cells(Vec<Slot>);
++
++impl Cells {
++    pub fn from_values(values: Vec<f64>) -> Self {
++        Cells(values.into_iter().map(Slot::new).collect())
++    }
++
++    pub fn filled(value: f64, n: usize) -> Self {
++        Cells(vec![Slot::new(value); n])
++    }
++
++    pub fn get(&self, i: usize) -> Option<&f64> {
++        self.0.get(i).map(SlotValue::get)
++    }
++
++    pub fn len(&self) -> usize {
++        self.0.len()
++    }
++
++    pub fn is_empty(&self) -> bool {
++        self.0.is_empty()
++    }
++
++    pub fn iter(&self) -> impl Iterator<Item = f64> + '_ {
++        self.0.iter().map(|s| *s.get())
++    }
++
++    pub fn to_vec(&self) -> Vec<f64> {
++        self.iter().collect()
++    }
++
++    /// The cells `start..start + n`, as values.
++    pub fn values(&self, start: usize, n: usize) -> Vec<f64> {
++        self.0[start..start + n].iter().map(|s| *s.get()).collect()
++    }
++
++    /// Write `values` to the cells from `start`.
++    #[inline(always)]
++    pub fn write(&mut self, start: usize, values: &[f64]) {
++        for (s, &v) in self.0[start..start + values.len()].iter_mut().zip(values) {
++            *s.get_mut() = v;
++        }
++    }
++
++    /// Where the slots begin, for the wasm binding's view of them.
++    pub fn as_ptr(&self) -> *const Slot {
++        self.0.as_ptr()
++    }
++}
++
++impl Index<usize> for Cells {
++    type Output = f64;
++    #[inline(always)]
++    fn index(&self, i: usize) -> &f64 {
++        self.0[i].get()
++    }
++}
++
++impl IndexMut<usize> for Cells {
++    #[inline(always)]
++    fn index_mut(&mut self, i: usize) -> &mut f64 {
++        self.0[i].get_mut()
++    }
++}
++
++impl<'a> IntoIterator for &'a Cells {
++    type Item = f64;
++    type IntoIter = std::iter::Map<std::slice::Iter<'a, Slot>, fn(&Slot) -> f64>;
++    fn into_iter(self) -> Self::IntoIter {
++        self.0.iter().map(|s| *s.get())
++    }
++}
+diff --git a/packages/cells-core/crates/cells-core/src/document/load.rs b/packages/cells-core/crates/cells-core/src/document/load.rs
+index d59ee1d..3d618d3 100644
+--- a/packages/cells-core/crates/cells-core/src/document/load.rs
++++ b/packages/cells-core/crates/cells-core/src/document/load.rs
+@@ -183,7 +183,7 @@ impl Document {
+         let mut session = std::mem::take(&mut self.session);
+         session.record(
+             &self.structure.essential_slots,
+-            &self.cells[..self.n_essential],
++            &self.cells.values(0, self.n_essential),
+         );
+         session
+     }
+@@ -246,7 +246,7 @@ impl Document {
+         // The values as they are now are what the build carries.
+         let n = self.n_essential;
+         self.session
+-            .record(&self.structure.essential_slots, &self.cells[..n]);
++            .record(&self.structure.essential_slots, &self.cells.values(0, n));
+         let mut counts = Counts::of(self);
+         // What every repeat asks for now, kept for an iteration this
+         // rebuild drops and a later one brings back.
+diff --git a/packages/cells-core/crates/cells-core/src/document/mod.rs b/packages/cells-core/crates/cells-core/src/document/mod.rs
+index 3384621..88e264c 100644
+--- a/packages/cells-core/crates/cells-core/src/document/mod.rs
++++ b/packages/cells-core/crates/cells-core/src/document/mod.rs
+@@ -44,7 +44,7 @@ pub const TEXT_BIT: u32 = 1 << 31;
+ #[derive(Debug, Clone)]
+ pub struct Document {
+     /// All cells. Essential cells come first, then fixed, then derived.
+-    pub cells: Vec<f64>,
++    pub cells: crate::cells::Cells,
+     /// Number of essential cells; `cells[..n_essential]` are essential.
+     pub n_essential: usize,
+     /// Fixed cells follow the essential ones: constants that are not state
+@@ -110,7 +110,7 @@ impl Document {
+             strings.push(s);
+         }
+         let mut doc = Document {
+-            cells,
++            cells: crate::cells::Cells::from_values(cells),
+             n_essential,
+             n_fixed,
+             program,
+diff --git a/packages/cells-core/crates/cells-core/src/document/table.rs b/packages/cells-core/crates/cells-core/src/document/table.rs
+index 5a70d79..6d45013 100644
+--- a/packages/cells-core/crates/cells-core/src/document/table.rs
++++ b/packages/cells-core/crates/cells-core/src/document/table.rs
+@@ -246,7 +246,7 @@ impl Document {
+ 
+     pub fn memory_estimate(&self) -> MemoryEstimate {
+         MemoryEstimate {
+-            cells: self.cells.capacity() * 8,
++            cells: self.cells.len() * std::mem::size_of::<crate::cells::Slot>(),
+             program: self.program.instrs.capacity() * std::mem::size_of::<crate::program::Instr>()
+                 + self.program.producer.capacity() * 4
+                 + self.session.engine.borrow().heap_bytes(),
+diff --git a/packages/cells-core/crates/cells-core/src/lib.rs b/packages/cells-core/crates/cells-core/src/lib.rs
+index 87f2170..094b1e4 100644
+--- a/packages/cells-core/crates/cells-core/src/lib.rs
++++ b/packages/cells-core/crates/cells-core/src/lib.rs
+@@ -28,6 +28,7 @@
+ //! - [`trace`]: named spans over a load, for the benchmark's trace layer.
+ 
+ pub mod build;
++pub mod cells;
+ mod compile;
+ pub mod components;
+ pub mod dast;
+@@ -44,6 +45,7 @@ pub mod tick;
+ pub mod trace;
+ 
+ // The API of a loaded document: load it, read it, send it requests.
++pub use cells::Cells;
+ pub use compile::compare::{
+     EditFailure, EditReport, compare_signatures, compare_versions, input_signature,
+ };
+diff --git a/packages/cells-core/crates/cells-core/src/program/instr.rs b/packages/cells-core/crates/cells-core/src/program/instr.rs
+index 8c6e5a3..299d87e 100644
+--- a/packages/cells-core/crates/cells-core/src/program/instr.rs
++++ b/packages/cells-core/crates/cells-core/src/program/instr.rs
+@@ -248,6 +248,7 @@ mod arity {
+                 // Evaluated through the engine (`tests/symbolic.rs`).
+                 OpSpec::Sym(_) => {}
+                 _ => {
++                    let cells = crate::cells::Cells::from_values(cells.clone());
+                     op.eval(&cells);
+                     op.invert(&cells, 1.5);
+                 }
+diff --git a/packages/cells-core/crates/cells-core/src/program/mod.rs b/packages/cells-core/crates/cells-core/src/program/mod.rs
+index c1d8a5b..8bad51d 100644
+--- a/packages/cells-core/crates/cells-core/src/program/mod.rs
++++ b/packages/cells-core/crates/cells-core/src/program/mod.rs
+@@ -220,7 +220,12 @@ impl Program {
+     /// Evaluate one instruction into `cells`. With `changed`, outputs whose
+     /// value changed are appended (NaN to NaN counts as unchanged).
+     #[inline(always)]
+-    pub fn step(&self, ins: &Instr, cells: &mut [f64], changed: Option<&mut Vec<CellIdx>>) {
++    pub fn step(
++        &self,
++        ins: &Instr,
++        cells: &mut crate::cells::Cells,
++        changed: Option<&mut Vec<CellIdx>>,
++    ) {
+         let out = ins.out as usize;
+         if let Op::Sym(kind, start, n) = ins.op {
+             self.step_sym(kind, start as usize, n as usize, out, cells, changed);
+@@ -237,7 +242,7 @@ impl Program {
+                         }
+                     }
+                 }
+-                None => cells[out..out + n].copy_from_slice(&buf[..n]),
++                None => cells.write(out, &buf[..n]),
+             }
+         } else {
+             let new = ins.op.eval(cells);
+@@ -267,7 +272,7 @@ impl Program {
+     /// Evaluate one instruction into a copy of the cells, within
+     /// `lookahead`: a symbolic instruction runs without its memo, which
+     /// keeps the inputs it last ran on in the document's cells.
+-    pub fn step_lookahead(&self, ins: &Instr, cells: &mut [f64]) {
++    pub fn step_lookahead(&self, ins: &Instr, cells: &mut crate::cells::Cells) {
+         let Op::Sym(kind, start, n) = ins.op else {
+             return self.step(ins, cells, None);
+         };
+@@ -280,7 +285,7 @@ impl Program {
+             let mut engine = self.sym.engine.borrow_mut();
+             run_sym(&mut engine, kind, cells, inputs, &mut outs);
+         }
+-        cells[out..out + outs.len()].copy_from_slice(&outs);
++        cells.write(out, &outs);
+     }
+ 
+     /// A symbolic instruction: rerun only if an input changed since its last
+@@ -294,7 +299,7 @@ impl Program {
+         start: usize,
+         n: usize,
+         out: usize,
+-        cells: &mut [f64],
++        cells: &mut crate::cells::Cells,
+         changed: Option<&mut Vec<CellIdx>>,
+     ) {
+         let n_out = kind.n_out();
+@@ -329,7 +334,7 @@ impl Program {
+                     }
+                 }
+             }
+-            None => cells[out..out + n_out].copy_from_slice(outs),
++            None => cells.write(out, outs),
+         }
+     }
+ 
+@@ -337,7 +342,7 @@ impl Program {
+     fn run_tape(
+         &self,
+         tape: &crate::sym::tape::Tape,
+-        cells: &[f64],
++        cells: &crate::cells::Cells,
+         inputs: &[CellIdx],
+         out: &mut [f64],
+     ) {
+@@ -357,17 +362,17 @@ impl Program {
+     }
+ 
+     /// Evaluate one instruction's outputs into `out` without writing cells.
+-    pub fn eval_into(&self, ins: &Instr, cells: &[f64], out: &mut [f64]) {
+-        let mut scratch = cells.to_vec();
++    pub fn eval_into(&self, ins: &Instr, cells: &crate::cells::Cells, out: &mut [f64]) {
++        let mut scratch = cells.clone();
+         self.step(ins, &mut scratch, None);
+-        out.copy_from_slice(&scratch[ins.out as usize..ins.out as usize + ins.op.n_out()]);
++        out.copy_from_slice(&scratch.values(ins.out as usize, ins.op.n_out()));
+     }
+ 
+     /// Recompute every derived cell, appending the indices whose value
+     /// changed to `changed`. NaN to NaN counts as unchanged. Never inlined:
+     /// the tick's hot loop then compiles the same whatever its caller does.
+     #[inline(never)]
+-    pub fn run_all_tracking(&self, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    pub fn run_all_tracking(&self, cells: &mut crate::cells::Cells, changed: &mut Vec<CellIdx>) {
+         for ins in &self.instrs {
+             self.step(ins, cells, Some(changed));
+         }
+@@ -375,7 +380,7 @@ impl Program {
+ 
+     /// Recompute every derived cell in schedule order.
+     #[inline]
+-    pub fn run_all(&self, cells: &mut [f64]) {
++    pub fn run_all(&self, cells: &mut crate::cells::Cells) {
+         for ins in &self.instrs {
+             self.step(ins, cells, None);
+         }
+@@ -383,7 +388,12 @@ impl Program {
+ 
+     /// Whether any input of `ins` differs between two cell arrays.
+     #[inline]
+-    pub fn any_input_differs(&self, ins: &Instr, a: &[f64], b: &[f64]) -> bool {
++    pub fn any_input_differs(
++        &self,
++        ins: &Instr,
++        a: &crate::cells::Cells,
++        b: &crate::cells::Cells,
++    ) -> bool {
+         ins.op
+             .inputs(&self.operands)
+             .any(|c| differs(a[c as usize], b[c as usize]))
+@@ -404,7 +414,13 @@ fn handle(v: f64) -> Option<Handle> {
+ 
+ /// One symbolic operation. A NaN handle is a blank expression: evaluating it
+ /// gives NaN, comparing it gives 0.
+-fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx], out: &mut [f64]) {
++fn run_sym(
++    engine: &mut Engine,
++    kind: SymKind,
++    cells: &crate::cells::Cells,
++    inputs: &[CellIdx],
++    out: &mut [f64],
++) {
+     let v = |k: usize| cells[inputs[k] as usize];
+     match kind {
+         SymKind::Instantiate { template, post } => {
+diff --git a/packages/cells-core/crates/cells-core/src/program/ops.rs b/packages/cells-core/crates/cells-core/src/program/ops.rs
+index e421e29..e9ecd1c 100644
+--- a/packages/cells-core/crates/cells-core/src/program/ops.rs
++++ b/packages/cells-core/crates/cells-core/src/program/ops.rs
+@@ -124,7 +124,7 @@ macro_rules! scalar_ops {
+         impl Op {
+             #[inline(always)]
+             #[allow(unused_variables)]
+-            pub fn eval(&self, cells: &[f64]) -> f64 {
++            pub fn eval(&self, cells: &crate::cells::Cells) -> f64 {
+                 match *self {
+                     $(Op::$name($($in,)+ $($p,)*) => {
+                         $(let $in = cells[$in as usize];)+
+@@ -141,7 +141,7 @@ macro_rules! scalar_ops {
+             /// zero) or the desired value is outside the operator's domain.
+             #[inline]
+             #[allow(unused_variables)]
+-            pub fn invert(&self, cells: &[f64], desired: f64) -> Option<(CellIdx, f64)> {
++            pub fn invert(&self, cells: &crate::cells::Cells, desired: f64) -> Option<(CellIdx, f64)> {
+                 match *self {
+                     $(Op::$name($($in,)+ $($p,)*) => {
+                         let written = [$($in),+];
+diff --git a/packages/cells-core/crates/cells-core/src/program/scalar.rs b/packages/cells-core/crates/cells-core/src/program/scalar.rs
+index 7cbd265..828b00f 100644
+--- a/packages/cells-core/crates/cells-core/src/program/scalar.rs
++++ b/packages/cells-core/crates/cells-core/src/program/scalar.rs
+@@ -182,7 +182,7 @@ impl Op {
+ 
+     /// Evaluate a vector operator into `out` (`n_out` values).
+     #[inline]
+-    pub fn eval_vec(&self, cells: &[f64], operands: &[CellIdx], out: &mut [f64]) {
++    pub fn eval_vec(&self, cells: &crate::cells::Cells, operands: &[CellIdx], out: &mut [f64]) {
+         let Op::Vec(v, start, n_in, _) = *self else {
+             unreachable!()
+         };
+@@ -266,6 +266,14 @@ mod inverses {
+         (got.is_nan() && want.is_nan()) || got == want || (got - want).abs() <= 1e-9 * scale
+     }
+ 
++    fn ev(op: &Op, cells: &[f64]) -> f64 {
++        op.eval(&crate::cells::Cells::from_values(cells.to_vec()))
++    }
++
++    fn inv(op: &Op, cells: &[f64], d: f64) -> Option<(CellIdx, f64)> {
++        op.invert(&crate::cells::Cells::from_values(cells.to_vec()), d)
++    }
++
+     #[test]
+     fn every_inverse_does_what_its_entry_declares() {
+         let mut failures = Vec::new();
+@@ -280,14 +288,14 @@ mod inverses {
+                 Inverse::Exact => {
+                     for cur in &all {
+                         for target in &all {
+-                            let d = op.eval(target);
++                            let d = ev(&op, target);
+                             if !d.is_finite() {
+                                 continue;
+                             }
+-                            if let Some((c, x)) = op.invert(cur, d) {
++                            if let Some((c, x)) = inv(&op, cur, d) {
+                                 let mut after = cur.clone();
+                                 after[c as usize] = x;
+-                                let got = op.eval(&after);
++                                let got = ev(&op, &after);
+                                 if !close(got, d, &[cur.as_slice(), target, &[x]].concat()) {
+                                     fail(format!(
+                                         "at {cur:?}, asked {d}, wrote {x} to input {c}, gives {got}"
+@@ -303,11 +311,11 @@ mod inverses {
+                 Inverse::Projection => {
+                     for cur in &all {
+                         for &d in VALUES.iter().filter(|v| v.is_finite()) {
+-                            if let Some((c, x)) = op.invert(cur, d) {
++                            if let Some((c, x)) = inv(&op, cur, d) {
+                                 let (mut after, mut asked) = (cur.clone(), cur.clone());
+                                 after[c as usize] = x;
+                                 asked[c as usize] = d;
+-                                let (got, want) = (op.eval(&after), op.eval(&asked));
++                                let (got, want) = (ev(&op, &after), ev(&op, &asked));
+                                 let around = [cur.as_slice(), &[d, x]].concat();
+                                 if !close(got, want, &around) || !close(x, got, &around) {
+                                     fail(format!(
+@@ -321,7 +329,7 @@ mod inverses {
+                 Inverse::Drops => {
+                     for cur in &all {
+                         for &d in &VALUES {
+-                            if let Some((c, x)) = op.invert(cur, d) {
++                            if let Some((c, x)) = inv(&op, cur, d) {
+                                 fail(format!("at {cur:?}, asked {d}, wrote {x} to input {c}"));
+                             }
+                         }
+diff --git a/packages/cells-core/crates/cells-core/src/sym/engine.rs b/packages/cells-core/crates/cells-core/src/sym/engine.rs
+index acdbc77..3776412 100644
+--- a/packages/cells-core/crates/cells-core/src/sym/engine.rs
++++ b/packages/cells-core/crates/cells-core/src/sym/engine.rs
+@@ -213,7 +213,7 @@ impl Engine {
+     /// the expression a math cell holds. A template without cell leaves
+     /// returns itself. Any expression can be a template: a derivative taken
+     /// at build time keeps its leaves, found here on first use.
+-    pub fn instantiate(&mut self, template: Handle, cells: &[f64]) -> Handle {
++    pub fn instantiate(&mut self, template: Handle, cells: &crate::cells::Cells) -> Handle {
+         self.note_leaves(template);
+         let leaves = self
+             .leaves
+@@ -478,7 +478,7 @@ mod tests {
+             Tree::Pow(Box::new(Tree::Sym("x".into())), Box::new(Tree::Num(2.0))),
+         ]));
+         let d = e.derivative(t, "x");
+-        let h = e.instantiate(d, &[3.0]);
++        let h = e.instantiate(d, &crate::cells::Cells::from_values(vec![3.0]));
+         assert_ne!(h, d);
+         assert_eq!(e.evaluate(h, Some(("x", 1.0))), 6.0);
+     }
+diff --git a/packages/cells-core/crates/cells-core/src/testing/reference.rs b/packages/cells-core/crates/cells-core/src/testing/reference.rs
+index 18b0519..b137c10 100644
+--- a/packages/cells-core/crates/cells-core/src/testing/reference.rs
++++ b/packages/cells-core/crates/cells-core/src/testing/reference.rs
+@@ -41,7 +41,7 @@ impl<'a> ReferenceEvaluator<'a> {
+         }
+         let ins = &self.doc.program.instrs[p];
+         // Build a scratch view where only this instruction's inputs are filled.
+-        let mut scratch = vec![f64::NAN; self.doc.cells.len()];
++        let mut scratch = crate::cells::Cells::filled(f64::NAN, self.doc.cells.len());
+         for input in ins.op.inputs(&self.doc.program.operands) {
+             scratch[input as usize] = self.value(input);
+         }
+@@ -57,7 +57,7 @@ impl<'a> ReferenceEvaluator<'a> {
+ /// Returns the first mismatching cell index, if any. NaN equals NaN here.
+ pub fn check(doc: &Document) -> Option<(CellIdx, f64, f64)> {
+     let r = ReferenceEvaluator::new(doc);
+-    for (i, &actual) in doc.cells.iter().enumerate() {
++    for (i, actual) in doc.cells.iter().enumerate() {
+         let expected = r.value(i as CellIdx);
+         if !(actual == expected || (actual.is_nan() && expected.is_nan())) {
+             return Some((i as CellIdx, actual, expected));
+diff --git a/packages/cells-core/crates/cells-core/src/tick/eval.rs b/packages/cells-core/crates/cells-core/src/tick/eval.rs
+index 474925b..107c936 100644
+--- a/packages/cells-core/crates/cells-core/src/tick/eval.rs
++++ b/packages/cells-core/crates/cells-core/src/tick/eval.rs
+@@ -8,7 +8,12 @@ use crate::program::Program;
+ pub trait Evaluator {
+     fn name(&self) -> &'static str;
+     /// `changed` holds the essential cells written this tick on entry.
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>);
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut crate::cells::Cells,
++        changed: &mut Vec<CellIdx>,
++    );
+ }
+ 
+ /// Run every instruction in schedule order, ignoring the seeds.
+@@ -19,7 +24,12 @@ impl Evaluator for FullRecompute {
+     fn name(&self) -> &'static str {
+         "full"
+     }
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut crate::cells::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         program.run_all_tracking(cells, changed);
+     }
+ }
+@@ -134,7 +144,12 @@ impl Evaluator for Recompute {
+             Recompute::DirtyClosure(_) => "dirty-closure",
+         }
+     }
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut crate::cells::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         match self {
+             Recompute::Full => FullRecompute.recompute(program, cells, changed),
+             Recompute::DirtyClosure(d) => d
+@@ -148,7 +163,12 @@ impl Evaluator for DirtyClosure {
+     fn name(&self) -> &'static str {
+         "dirty-closure"
+     }
+-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
++    fn recompute(
++        &mut self,
++        program: &Program,
++        cells: &mut crate::cells::Cells,
++        changed: &mut Vec<CellIdx>,
++    ) {
+         let mut lo = usize::MAX;
+         let mut hi = 0;
+         for &c in changed.iter() {
+diff --git a/packages/cells-core/crates/cells-core/src/tick/invert.rs b/packages/cells-core/crates/cells-core/src/tick/invert.rs
+index 083f61d..5dfe48d 100644
+--- a/packages/cells-core/crates/cells-core/src/tick/invert.rs
++++ b/packages/cells-core/crates/cells-core/src/tick/invert.rs
+@@ -70,7 +70,7 @@ pub struct Inversion {
+ /// groups an inverse produces.
+ pub fn invert_requests(
+     program: &Program,
+-    cells: &[f64],
++    cells: &crate::cells::Cells,
+     n_essential: usize,
+     requests: &[Request],
+     groups: &[Vec<PointRequest>],
+@@ -119,7 +119,7 @@ pub fn invert_requests(
+ /// returned is a handle the lookahead forgets.
+ pub fn realize(
+     program: &Program,
+-    cells: &[f64],
++    cells: &crate::cells::Cells,
+     n_essential: usize,
+     requests: &[(CellIdx, f64)],
+     out: &mut Vec<f64>,
+@@ -129,7 +129,7 @@ pub fn realize(
+         .map(|&(cell, value)| Request { cell, value })
+         .collect();
+     let inv = invert_requests(program, cells, n_essential, &reqs, &[]);
+-    let mut scratch = cells.to_vec();
++    let mut scratch = cells.clone();
+     for &(c, v) in &inv.writes {
+         scratch[c as usize] = v;
+     }
+@@ -153,7 +153,7 @@ pub fn realize(
+ /// One run of the inversion engine.
+ struct RequestEngine<'a> {
+     program: &'a Program,
+-    cells: &'a [f64],
++    cells: &'a crate::cells::Cells,
+     n_essential: usize,
+     /// Requested value per derived cell awaiting its producer's inverse.
+     pending: HashMap<CellIdx, f64>,
+diff --git a/packages/cells-core/crates/cells-core/tests/curve_tapes.rs b/packages/cells-core/crates/cells-core/tests/curve_tapes.rs
+index d20fd48..8dc613a 100644
+--- a/packages/cells-core/crates/cells-core/tests/curve_tapes.rs
++++ b/packages/cells-core/crates/cells-core/tests/curve_tapes.rs
+@@ -17,7 +17,7 @@ const SRC: &str = r#"<numberInput name="a" value="1.5"/><numberInput name="b" va
+ 
+ fn samples(doc: &Document, name: &str) -> Vec<f64> {
+     let c = doc.cell(name, "samples").unwrap() as usize;
+-    doc.cells[c..c + SAMPLES].to_vec()
++    doc.cells.values(c, SAMPLES)
+ }
+ 
+ fn tapes(doc: &Document) -> usize {
+diff --git a/packages/cells-core/crates/cells-core/tests/symbolic.rs b/packages/cells-core/crates/cells-core/tests/symbolic.rs
+index bc0449b..96cac30 100644
+--- a/packages/cells-core/crates/cells-core/tests/symbolic.rs
++++ b/packages/cells-core/crates/cells-core/tests/symbolic.rs
+@@ -104,7 +104,7 @@ fn function_and_derivative_curves_resample_on_a_drag() {
+     .unwrap();
+     let ys = |doc: &Document, name: &str| {
+         let c = doc.cell(name, "samples").unwrap() as usize;
+-        doc.cells[c..c + cells_core::program::SAMPLES].to_vec()
++        doc.cells.values(c, cells_core::program::SAMPLES)
+     };
+     let (f, df) = (ys(&doc, "f"), ys(&doc, "df"));
+     assert_eq!((f[0], *f.last().unwrap()), (12.0, 12.0));
+diff --git a/packages/cells-core/crates/cells-wasm/src/lib.rs b/packages/cells-core/crates/cells-wasm/src/lib.rs
+index e01728f..3af8948 100644
+--- a/packages/cells-core/crates/cells-wasm/src/lib.rs
++++ b/packages/cells-core/crates/cells-wasm/src/lib.rs
+@@ -142,8 +142,9 @@ impl Core {
+ 
+     /// Pointer to the cell array inside wasm memory. Valid until the next
+     /// call that may allocate; callers re-derive their view after each call.
++    #[allow(clippy::unnecessary_cast)] // not when a slot is not an f64
+     pub fn cells_ptr(&self) -> *const f64 {
+-        self.doc.cells.as_ptr()
++        self.doc.cells.as_ptr() as *const f64
+     }
+ 
+     pub fn cells_len(&self) -> usize {

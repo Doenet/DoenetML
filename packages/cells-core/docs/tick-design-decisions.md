@@ -115,8 +115,12 @@ Each decision gives:
   - 16-byte cells without a tag (an `f64` and padding);
   - 8-byte cells and a parallel array of tags, checked on every read.
 - **Depends on.** 5.
-- **Exercised by.** depth, breadth, mixed.
-- **Result.** Not measured.
+- **Exercised by.** every shape.
+- **Result.** The size alone measured: 16-byte cells without a tag make
+  full recompute 5 to 36% slower (8 to 30% on most shapes), and the
+  dirty closure, whose own cost dilutes it, at most 8%. The tag alone
+  and the enum not yet. See
+  [Decision 6: 16-byte cells](#decision-6-16-byte-cells) below.
 
 ### 7. One cell per scalar
 
@@ -269,7 +273,11 @@ Two things follow for the measurements:
   core is kept out of it, as a patch in `docs/tick-alternatives/`
   (`git apply` it on the base, then `scripts/tick-diff.sh` compares it
   with the base). An alternative that only adds an evaluator lives in
-  the bench crate and runs beside the core's in the same process.
+  the bench crate and runs beside the core's in the same process. The
+  alternatives that change what a cell is (decisions 4 to 6) apply on
+  top of `4-6-cells-type.patch`, which gives the cells a type of their
+  own and changes nothing else; each is measured against it, committed
+  locally as the base for `tick-diff.sh`.
 - Native release builds, timing ticks directly: the Node driver's adapter
   floor (23 µs on the cells core) is most of a tick at 1,000 elements, so
   smaller effects would not show through it. The Node driver
@@ -363,7 +371,7 @@ is measured later.
 | 4 | 10 → priority queue | small, in `tick/eval.rs` | done; see below |
 | 5 | 2 → operators as code, the cheap form | small | done; see below. Measured in two forms, a closure per instruction and a function pointer per operator |
 | 6 | 8 → identity instructions | medium, in `build/emit.rs` | done; see below |
-| 7 | 6 → 16-byte cells, no tag | medium | the first change to what a cell is: size alone |
+| 7 | 6 → 16-byte cells, no tag | medium | done; see below. Built on the plumbing (`4-6-cells-type.patch`) the next steps reuse |
 | 8 | 6 → 8-byte cells and a tag array | medium | the tag alone, on step 7's plumbing |
 | 9 | 6 → tagged enum | medium to large | both; 7 and 8 should account for it |
 | 10 | 4 → an allocation per value | medium | the same plumbing as 7 to 9 |
@@ -390,7 +398,8 @@ base.
 | 3 | fine-grained primitives | coarse operators | | | | | |
 | 4 | contiguous | allocation per value | | | | | |
 | 5 | uniform size | varying size | | | | | |
-| 6 | untagged `f64` | 16 bytes, no tag | | | | | |
+| 6 | untagged `f64` | 16 bytes, no tag (base: full recompute) | 1.05 | 1.24 | 1.13 | 1.08 | refs-10000: 1.36; mixed-10000: 1.30 |
+| 6 | untagged `f64` | 16 bytes, no tag (base: dirty closure) | 1.01 | 1.04 | 1.03 | 1.07 | refs-100000: 1.08 |
 | 6 | untagged `f64` | tag array | | | | | |
 | 6 | untagged `f64` | tagged enum | | | | | |
 | 7 | one cell per scalar | compound values | | | | | |
@@ -982,4 +991,64 @@ What it shows:
   from instead.
 - Not measured: the tick on `sir` and the golden documents themselves,
   which `tick_cost` does not load; their programs are what is measured.
+
+### Decision 6: 16-byte cells
+
+Measured 2026-10-25 in two steps, each with `scripts/tick-diff.sh`.
+
+First the plumbing, `docs/tick-alternatives/4-6-cells-type.patch`,
+against `8380ecf`. The cells get a type of their own, `Cells`
+(`src/cells.rs`, new): a vector of slots, indexed by cell, which reads
+and writes an `f64` whatever a slot is, so `cells[c]` keeps its meaning
+everywhere. Every function that took the cells as `&[f64]` or
+`&mut [f64]` takes `&Cells` or `&mut Cells` (the operators, the
+evaluators, inversion, the symbolic engine's instantiation, the bench
+crate's evaluators), and the few range reads and writes become
+`Cells::values` and `Cells::write`. The slot is still an `f64`, so this
+should change nothing: it is the control. It did not, beyond the noise
+floor: every row within 4% of the base, except two dirty closure ticks
+of about 2 µs (1.17). `cargo test --workspace` passes and the golden
+diff is identical.
+
+Then the alternative, `docs/tick-alternatives/5-16-byte-cells.patch`,
+on top of the plumbing and against it (committed locally as the base,
+not pushed): a slot becomes `#[repr(C)] struct Padded { v: f64, _pad:
+f64 }`, 16 bytes, with no tag. Reads and writes touch only `v`; the
+padding is never read. The cell array doubles: 0.8 MB to 1.6 MB at
+100,000 cells. `cargo test --workspace` passes, the golden diff is
+identical, and every shape's fingerprint matches.
+
+| shape | n | dirty, 8 → 16 bytes (µs) | 16 / 8 | full, 8 → 16 bytes (µs) | 16 / 8 |
+|---|---:|---|---:|---|---:|
+| depth | 10,000 | 108 → 109 | 1.01 | 28.4 → 30.0 | 1.05 |
+| depth | 100,000 | 1,333 → 1,368 | 1.03 | 369 → 417 | 1.13 |
+| breadth | 10,000 | 56.9 → 59.3 | 1.04 | 20.1 → 24.9 | 1.24 |
+| breadth | 100,000 | 692 → 741 | 1.07 | 344 → 373 | 1.08 |
+| isolated | 10,000 | 0.2 → 0.2 | 0.98 | 14.0 → 18.8 | 1.34 |
+| isolated | 100,000 | 2.0 → 1.9 | 0.96 | 263 → 290 | 1.10 |
+| mixed | 10,000 | 4.5 → 4.5 | 1.01 | 14.8 → 19.2 | 1.30 |
+| mixed | 100,000 | 51.2 → 51.3 | 1.00 | 268 → 288 | 1.08 |
+| cutoff | 10,000 | 0.2 → 0.2 | 1.00 | 14.0 → 18.3 | 1.31 |
+| cutoff | 100,000 | 2.1 → 2.0 | 0.97 | 260 → 287 | 1.11 |
+| refs | 10,000 | 55.9 → 60.6 | 1.08 | 19.3 → 26.3 | 1.36 |
+| refs | 100,000 | 692 → 744 | 1.08 | 328 → 389 | 1.19 |
+| coords | 10,000 | 120 → 124 | 1.04 | 50.1 → 60.8 | 1.21 |
+| coords | 100,000 | 1,349 → 1,376 | 1.02 | 640 → 720 | 1.13 |
+
+What it shows:
+
+- Doubling a cell, with nothing else changed, costs full recompute 5 to
+  36%: what it reads and writes is spread over twice the memory, so
+  fewer values share a cache line and more lines are fetched.
+- The cost is largest at 10,000 (21 to 36% on all but depth), where the
+  cells go from 80 KB to 160 KB, and smaller at 100,000 (8 to 19%),
+  where both sizes are well past the cache that holds them and other
+  costs of a tick weigh more. On depth, where each instruction waits on
+  the one before, it costs least (5 and 13%).
+- Under the dirty closure, which reaches cells through its readers
+  table and spends most of its time on its own bookkeeping (decision
+  10), the size costs at most 8%.
+- So of a tagged 16-byte enum, the size alone accounts for up to about
+  a third on the evaluator where instructions' own cost shows. What the
+  tag adds, a check on every read, is the next step.
 
