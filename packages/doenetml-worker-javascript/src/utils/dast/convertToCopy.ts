@@ -157,8 +157,8 @@ export function convertRefsToCopies({
                 }
 
                 if ("CopyAttribute" in extending) {
-                    newComponent.attributes.link = {
-                        name: "link",
+                    newComponent.attributes._link = {
+                        name: "_link",
                         children: ["false"],
                     };
 
@@ -181,21 +181,26 @@ export function convertRefsToCopies({
                     }
                 }
 
-                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component
-                if ("removeEmptyArrayEntries" in wrappingComponent.attributes) {
-                    newComponent.attributes.removeEmptyArrayEntries =
-                        wrappingComponent.attributes.removeEmptyArrayEntries;
-                    delete wrappingComponent.attributes.removeEmptyArrayEntries;
+                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component,
+                // in whatever case the author wrote it
+                for (const attrName of Object.keys(
+                    wrappingComponent.attributes,
+                )) {
+                    if (attrName.toLowerCase() === "removeemptyarrayentries") {
+                        newComponent.attributes[attrName] =
+                            wrappingComponent.attributes[attrName];
+                        delete wrappingComponent.attributes[attrName];
+                    }
                 }
 
                 delete wrappingComponent.extending;
             } else {
-                outerAttributes.createComponentOfType = {
-                    name: "createComponentOfType",
+                outerAttributes._createComponentOfType = {
+                    name: "_createComponentOfType",
                     children: [newComponent.componentType],
                 };
-                outerAttributes.createComponentIdx = {
-                    name: "createComponentIdx",
+                outerAttributes._createComponentIdx = {
+                    name: "_createComponentIdx",
                     children: [newComponent.componentIdx.toString()],
                 };
                 const originalIdx = newComponent.componentIdx;
@@ -237,20 +242,20 @@ export function convertRefsToCopies({
                 }
 
                 if (outerAttributes.name) {
-                    outerAttributes.createComponentName = {
-                        name: "createComponentName",
+                    outerAttributes._createComponentName = {
+                        name: "_createComponentName",
                         children: outerAttributes.name.children,
                     };
                     delete outerAttributes.name;
                 }
-                outerAttributes.copyInChildren = {
-                    name: "copyInChildren",
+                outerAttributes._copyInChildren = {
+                    name: "_copyInChildren",
                     children: ["true"],
                 };
 
                 if ("CopyAttribute" in extending) {
-                    outerAttributes.link = {
-                        name: "link",
+                    outerAttributes._link = {
+                        name: "_link",
                         children: ["false"],
                     };
                 }
@@ -302,10 +307,10 @@ export function convertRefsToCopies({
                             };
                         } else if (
                             comp.componentType === "_copy" &&
-                            !comp.attributes.createComponentOfType
+                            !comp.attributes._createComponentOfType
                         ) {
-                            comp.attributes.createComponentOfType = {
-                                name: "createComponentOfType",
+                            comp.attributes._createComponentOfType = {
+                                name: "_createComponentOfType",
                                 children: ["integer"],
                             };
                             return {

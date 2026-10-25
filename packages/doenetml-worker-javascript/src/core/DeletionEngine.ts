@@ -268,7 +268,7 @@ export async function deleteComponents({
             const compositeSource = component.replacementOf;
 
             if (
-                compositeSource.attributes.createComponentIdx?.primitive
+                compositeSource.attributes._createComponentIdx?.primitive
                     ?.value == component.componentIdx
             ) {
                 // If the component's index is being created from a composite,
@@ -290,7 +290,7 @@ export async function deleteComponents({
 
                     if (
                         compositeCreatingComponentIdx.replacementOf?.attributes
-                            .createComponentIdx?.primitive?.value ===
+                            ._createComponentIdx?.primitive?.value ===
                         component.componentIdx
                     ) {
                         compositeCreatingComponentIdx =

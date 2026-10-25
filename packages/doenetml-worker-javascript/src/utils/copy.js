@@ -91,9 +91,7 @@ export function postProcessCopy({
             const refResolution = unwrapSource(component.extending);
             const nodeIdx = refResolution.nodeIdx;
             if (nodeIdx == null) {
-                if (!component.attributes.uri) {
-                    throw Error("we need to create a nodeIdx here, then.");
-                }
+                throw Error("we need to create a nodeIdx here, then.");
             } else {
                 if (copiesByRefIdx[nodeIdx] === undefined) {
                     copiesByRefIdx[nodeIdx] = [];
@@ -177,7 +175,7 @@ export function postProcessCopy({
                     if (!copyComponent.attributes) {
                         copyComponent.attributes = {};
                     }
-                    copyComponent.attributes.link = {
+                    copyComponent.attributes._link = {
                         type: "primitive",
                         primitive: { type: "boolean", value: false },
                     };
@@ -204,7 +202,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     let diagnostics = [];
 
     if (
-        !component.attributes.createComponentOfType?.primitive &&
+        !component.attributes._createComponentOfType?.primitive &&
         !component.sharedParameters.compositesMustHaveAReplacement
     ) {
         return {
@@ -256,7 +254,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     if (
-        !component.attributes.createComponentOfType?.primitive &&
+        !component.attributes._createComponentOfType?.primitive &&
         component.sharedParameters.compositesMustHaveAReplacement &&
         replacementTypes.length > 0
     ) {
@@ -273,7 +271,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     }
 
     let requiredComponentType =
-        component.attributes.createComponentOfType?.primitive.value;
+        component.attributes._createComponentOfType?.primitive.value;
 
     let requiredLength = await component.stateValues.numComponentsSpecified;
 
@@ -313,24 +311,24 @@ export async function verifyReplacementsMatchSpecifiedType({
             if (!replacements[0].attributes) {
                 replacements[0].attributes = {};
             }
-            replacements[0].attributes.createComponentOfType = {
+            replacements[0].attributes._createComponentOfType = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredComponentType },
             };
-            replacements[0].attributes.numComponents = {
+            replacements[0].attributes._numComponents = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredLength },
             };
 
-            if (component.attributes.createComponentName?.primitive) {
-                replacements[0].attributes.createComponentName = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentName),
+            if (component.attributes._createComponentName?.primitive) {
+                replacements[0].attributes._createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentName),
                 );
                 delete replacements[0].attributes.name;
             }
-            if (component.attributes.createComponentIdx?.primitive) {
-                replacements[0].attributes.createComponentIdx = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentIdx),
+            if (component.attributes._createComponentIdx?.primitive) {
+                replacements[0].attributes._createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentIdx),
                 );
                 replacements[0].componentIdx = nComponents++;
                 replacements[0].stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
@@ -364,24 +362,24 @@ export async function verifyReplacementsMatchSpecifiedType({
             if (!theReplacement.attributes) {
                 theReplacement.attributes = {};
             }
-            theReplacement.attributes.createComponentOfType = {
+            theReplacement.attributes._createComponentOfType = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredComponentType },
             };
-            theReplacement.attributes.numComponents = {
+            theReplacement.attributes._numComponents = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredLength },
             };
 
-            if (component.attributes.createComponentName?.primitive) {
-                theReplacement.attributes.createComponentName = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentName),
+            if (component.attributes._createComponentName?.primitive) {
+                theReplacement.attributes._createComponentName = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentName),
                 );
                 delete theReplacement.attributes.name;
             }
-            if (component.attributes.createComponentIdx?.primitive) {
-                theReplacement.attributes.createComponentIdx = JSON.parse(
-                    JSON.stringify(component.attributes.createComponentIdx),
+            if (component.attributes._createComponentIdx?.primitive) {
+                theReplacement.attributes._createComponentIdx = JSON.parse(
+                    JSON.stringify(component.attributes._createComponentIdx),
                 );
                 theReplacement.componentIdx = nComponents++;
                 theReplacement.stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
@@ -671,7 +669,7 @@ export function calculateReplacementTypesFromChanges(
 }
 
 /**
- * If there is a single replacement and the copy has `createComponentName` or `createComponentIdx`,
+ * If there is a single replacement and the copy has `_createComponentName` or `_createComponentIdx`,
  * then add the name or component index to the replacement
  */
 export function addAttributesToSingleReplacement(
@@ -681,19 +679,19 @@ export function addAttributesToSingleReplacement(
 ) {
     if (replacements.length === 1 && typeof replacements[0] === "object") {
         // If the replacement is a group or copy that was created by verify replacements
-        // where it received the `createComponentIdx` attribute from the copy already,
+        // where it received the `_createComponentIdx` attribute from the copy already,
         // then don't also give it the name and index
         if (
             replacements[0].componentType === "group" ||
             replacements[0].componentType === "_copy"
         ) {
-            if (replacements[0].attributes?.createComponentIdx != null) {
+            if (replacements[0].attributes?._createComponentIdx != null) {
                 return;
             }
         }
 
         if (
-            component.attributes.createComponentName?.primitive.value !=
+            component.attributes._createComponentName?.primitive.value !=
             undefined
         ) {
             replacements[0].attributes.name = {
@@ -701,18 +699,18 @@ export function addAttributesToSingleReplacement(
                 name: "name",
                 primitive: {
                     type: "string",
-                    value: component.attributes.createComponentName.primitive
+                    value: component.attributes._createComponentName.primitive
                         .value,
                 },
             };
         }
         if (
-            component.attributes.createComponentIdx?.primitive.value !=
+            component.attributes._createComponentIdx?.primitive.value !=
             undefined
         ) {
             const prevComponentIdx = replacements[0].componentIdx;
             const newComponentIdx =
-                component.attributes.createComponentIdx.primitive.value;
+                component.attributes._createComponentIdx.primitive.value;
 
             substituteComponentIdx(
                 replacements,
@@ -806,19 +804,19 @@ export function addAttributesToSingleReplacementChange(
                 replacementChanges[0].serializedReplacements[0];
 
             // If the replacement is a group/_copy that was created by verify replacements
-            // where it received the `createComponentIdx` attribute from the copy already,
+            // where it received the `_createComponentIdx` attribute from the copy already,
             // then don't also give it the name and index
             if (
                 theNewReplacement.componentType === "group" ||
                 theNewReplacement.componentType === "_copy"
             ) {
-                if (theNewReplacement.attributes?.createComponentIdx != null) {
+                if (theNewReplacement.attributes?._createComponentIdx != null) {
                     return;
                 }
             }
 
             if (
-                component.attributes.createComponentName?.primitive.value !=
+                component.attributes._createComponentName?.primitive.value !=
                 undefined
             ) {
                 theNewReplacement.attributes.name = {
@@ -826,17 +824,17 @@ export function addAttributesToSingleReplacementChange(
                     name: "name",
                     primitive: {
                         type: "string",
-                        value: component.attributes.createComponentName
+                        value: component.attributes._createComponentName
                             .primitive.value,
                     },
                 };
             }
             if (
-                component.attributes.createComponentIdx?.primitive.value !=
+                component.attributes._createComponentIdx?.primitive.value !=
                 undefined
             ) {
                 theNewReplacement.componentIdx =
-                    component.attributes.createComponentIdx.primitive.value;
+                    component.attributes._createComponentIdx.primitive.value;
             }
         }
     }

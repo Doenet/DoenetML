@@ -591,12 +591,12 @@ export default class Shuffle extends CompositeComponent {
                     baseComponentType: "_composite",
                 })
             ) {
-                if (child.attributes.createComponentOfType?.primitive) {
+                if (child.attributes._createComponentOfType?.primitive) {
                     if (
-                        child.attributes.numComponents?.primitive !== undefined
+                        child.attributes._numComponents?.primitive !== undefined
                     ) {
                         let newComponents = Number(
-                            child.attributes.numComponents?.primitive.value,
+                            child.attributes._numComponents?.primitive.value,
                         );
                         if (
                             Number.isInteger(newComponents) &&

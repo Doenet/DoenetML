@@ -318,6 +318,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0051": "select-prime-numbers-excluded-too-many-combinations",
     "doenet-e0052": "select-random-combination-fluke",
     "doenet-e0053": "select-random-value-fluke",
+    "doenet-e0054": "attribute-name-invalid-start",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

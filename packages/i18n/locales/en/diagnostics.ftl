@@ -836,6 +836,10 @@ name-attribute-invalid =
 
 component-name-invalid-start = Invalid component name "{ $name }". Names must start with a letter.
 
+# $attribute is an attribute name an author wrote, beginning with `_`, which
+# is kept for the attributes DoenetML sets itself.
+attribute-name-invalid-start = Invalid attribute "{ $attribute }". Attribute names cannot start with an underscore.
+
 ## `<answer>` sugar
 
 answer-video-watched-missing-video = Answer with type videoWatched must have a video attribute

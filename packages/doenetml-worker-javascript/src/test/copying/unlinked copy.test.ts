@@ -10,10 +10,10 @@ import {
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
-vi.mock("hyperformula");
 
 function isUndefinedOrInactive(comp) {
     expect(
@@ -2528,8 +2528,8 @@ describe("Unlinked Copying Tests @group4", async () => {
     <mathList name="ml" displayDigits="5">1.23456789 2</mathList>
     <math name="le" extend="$ml[1]" displayDecimals="1" />
     <math name="lc" copy="$ml[1]" displayDecimals="1" />
-    <math name="xu" copy="$P.x" link="false" displayDecimals="1" />
-    <math name="lu" copy="$ml[1]" link="false" displayDecimals="1" />
+    <math name="xu" copy="$P.x" displayDecimals="1" />
+    <math name="lu" copy="$ml[1]" displayDecimals="1" />
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -2556,6 +2556,128 @@ describe("Unlinked Copying Tests @group4", async () => {
         // source's display settings
         for (const name of ["me", "mc", "xe", "xc", "xu", "le", "lc", "lu"]) {
             expect((await stateValues(name)).text, name).eq("1.2");
+        }
+    });
+
+    it("link is not an attribute: it is treated as any unknown attribute, such as blink", async () => {
+        // Whether a component is linked to what it names is said by `extend`
+        // or `copy`. The copy's own settings, such as `_link`, start with `_`,
+        // which an author cannot write, so `link` is just a name, like `blink`
+        // (#2326).
+        async function outcome(attribute: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<point name="P">(1,2)</point>
+<point name="plain" ${attribute}="false">(1,2)</point>
+<point name="c" copy="$P" ${attribute}="true" />
+<point name="e" extend="$P" ${attribute}="false" />
+<module name="m"><moduleAttributes><text name="${attribute}">default</text></moduleAttributes><text name="t">$${attribute}</text></module>
+<module name="mc" copy="$m" ${attribute}="custom" />
+`,
+            });
+
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("P"),
+                x: 3,
+                y: 4,
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values: Record<string, string> = {};
+            for (const name of ["c", "e"]) {
+                values[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.coords.toString();
+            }
+            values.mc =
+                stateVariables[
+                    await resolvePathToNodeIdx("mc.t")
+                ].stateValues.text;
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            return {
+                values,
+                errors: diagnosticsByType.errors.map((error) =>
+                    error.message.replaceAll(attribute, "ATTR"),
+                ),
+                warnings: diagnosticsByType.warnings.map((warning) =>
+                    warning.message.replaceAll(attribute, "ATTR"),
+                ),
+            };
+        }
+
+        const link = await outcome("link");
+        expect(link).eqls(await outcome("blink"));
+        expect(link.values).eqls({ c: "(1, 2)", e: "(3, 4)", mc: "custom" });
+        expect(link.errors).eqls([
+            'Invalid attribute "ATTR" for a component of type `<point>`.',
+        ]);
+    });
+
+    it("an attribute starting with _ is rejected, so cannot set a copy's own settings", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P">(1,2)</point>
+<point name="c" copy="$P" _link="true" />
+`,
+        });
+
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls([
+            'Invalid attribute "_link". Attribute names cannot start with an underscore.',
+        ]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 3,
+            y: 4,
+            core,
+        });
+
+        // still a copy, not linked
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("c")
+            ].stateValues.coords.toString(),
+        ).eq("(1, 2)");
+    });
+
+    it("removeEmptyArrayEntries on an extend of a list, in any case", async () => {
+        // It is the copy's to read, so it is moved off the list onto the copy
+        // whatever case it is written in; it used to be moved only as
+        // `removeEmptyArrayEntries`, and left on the list otherwise, which
+        // does not take it.
+        // The cells without a point are empty entries of `pointsInCells`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<spreadsheet name="s" minNumRows="2" minNumColumns="2">
+  <row><cell>(1,2)</cell><cell>hello</cell></row>
+  <row><cell>5</cell><cell>(3,4)</cell></row>
+</spreadsheet>
+<pointList name="e0" extend="$s.pointsInCells" />
+<pointList name="e1" extend="$s.pointsInCells" removeEmptyArrayEntries />
+<pointList name="e2" extend="$s.pointsInCells" RemoveEmptyArrayEntries />
+`,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const points = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.points;
+        // one entry per cell, empty or not
+        expect((await points("e0")).length).eq(4);
+        for (const name of ["e1", "e2"]) {
+            expect(
+                (await points(name)).map((point) => point.toString()),
+                name,
+            ).eqls(["1,2", "3,4"]);
         }
     });
 });

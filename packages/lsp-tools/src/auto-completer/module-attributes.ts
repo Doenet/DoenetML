@@ -48,13 +48,25 @@ import { findAttributeKey } from "./dast-attribute-utils";
  *
  * `Module` extends `Group` and removes `styleNumber`, so the canonical set is
  * Group's attributes minus `styleNumber`, plus `name`.  This snapshot is
- * pinned to the schema's `<module>` attribute list in `module-attributes.test.ts`
- * (the schema generator runs `createAttributesObject()` against the real class,
- * so any future addition there will fail that pin-test).
+ * pinned in `module-attributes.test.ts` to the schema's `<module>` attribute
+ * list plus `RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA` (the schema
+ * generator runs `createAttributesObject()` against the real class, so any
+ * future addition there will fail that pin-test).
  *
  * Stored lowercased for case-insensitive comparison; runtime matches names
- * case-insensitively at `ModuleAttributes.js:108`.
+ * case-insensitively.  Attributes starting with `_` (`_createComponentOfType`,
+ * `_numComponents`) are left out: a `<moduleAttributes>` child's name must
+ * start with a letter, so none can collide with them.
  */
+export const RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA: ReadonlySet<string> =
+    new Set([
+        // `<module>` attributes marked `excludeFromSchema`, which the schema
+        // therefore leaves out but the runtime reserves all the same
+        "modifyindirectly",
+        "ispotentialresponse",
+        "permid",
+    ]);
+
 export const RESERVED_MODULE_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
     "name",
     "hide",
@@ -65,9 +77,8 @@ export const RESERVED_MODULE_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
     "extend",
     "copy",
     "rendered",
-    "createcomponentoftype",
-    "numcomponents",
     "aslist",
+    ...RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA,
 ]);
 
 /**

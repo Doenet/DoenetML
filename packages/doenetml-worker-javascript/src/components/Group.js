@@ -55,15 +55,17 @@ export default class Group extends CompositeComponent {
             leaveRaw: true,
             excludeFromSchema: true,
         };
-        attributes.createComponentOfType = {
+        // Set by core, not by authors, on a group made to stand for the
+        // components a copy or another composite was to make: the type and
+        // number of components to make of its children. The leading `_`
+        // keeps them out of reach of an author's attributes.
+        attributes._createComponentOfType = {
             createPrimitiveOfType: "string",
-            description:
-                "Component type to wrap each child as when expanding the group.",
+            excludeFromSchema: true,
         };
-        attributes.numComponents = {
+        attributes._numComponents = {
             createPrimitiveOfType: "number",
-            description:
-                "Number of components to create when expanding (used with createComponentOfType).",
+            excludeFromSchema: true,
         };
 
         attributes.asList = {
@@ -180,11 +182,11 @@ export default class Group extends CompositeComponent {
             returnDependencies: () => ({
                 numComponentsAttr: {
                     dependencyType: "attributePrimitive",
-                    attributeName: "numComponents",
+                    attributeName: "_numComponents",
                 },
                 typeAttr: {
                     dependencyType: "attributePrimitive",
-                    attributeName: "createComponentOfType",
+                    attributeName: "_createComponentOfType",
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {

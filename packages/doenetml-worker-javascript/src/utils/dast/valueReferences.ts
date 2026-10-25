@@ -55,7 +55,7 @@ import { sequenceEntryComponentType } from "../sequence";
  *
  * The referent's type is read from the document: the component under the
  * resolution's `nodeIdx`, the type an `extend` or `copy` will make for the
- * component it names (`createComponentIdx`), or, for the placeholder a
+ * component it names (`_createComponentIdx`), or, for the placeholder a
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  *
  * A repeat's value and index (`$v` and `$i` in its template) are planned
@@ -274,7 +274,7 @@ export function convertCopiesToValueReferences({
                 // (the one its replacement would have had), keeping only the
                 // response marks an answer gave it.
                 component.componentIdx = Number(
-                    (component.attributes.createComponentIdx as any).primitive
+                    (component.attributes._createComponentIdx as any).primitive
                         .value,
                 );
                 component.attributes = separateResponseMarks(
@@ -640,7 +640,7 @@ function forEachReference(
  *
  * The referent's type is read from the document: the component under
  * `nodeIdx`, the type an `extend` or `copy` will make for the component it
- * names (`createComponentIdx`), or, for the placeholder a
+ * names (`_createComponentIdx`), or, for the placeholder a
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  */
 export function documentReferents({
@@ -657,7 +657,7 @@ export function documentReferents({
     walk(serializedComponents, undefined, [], (component, parent) => {
         componentsByIdx.set(component.componentIdx, component);
         parentByIdx.set(component.componentIdx, parent);
-        const createdIdx = component.attributes.createComponentIdx;
+        const createdIdx = component.attributes._createComponentIdx;
         if (
             component.componentType === "_copy" &&
             createdIdx?.type === "primitive"
@@ -727,7 +727,7 @@ export function documentReferents({
     }
 
     function typeMadeByCopy(copy: SerializedComponent | undefined) {
-        const typeAttribute = copy?.attributes.createComponentOfType;
+        const typeAttribute = copy?.attributes._createComponentOfType;
         if (typeAttribute?.type !== "primitive") {
             return undefined;
         }
@@ -770,7 +770,7 @@ function hasOnlyResponseMarks(component: SerializedComponent) {
 /**
  * The type an `extend` with nothing written on it but the reference names
  * (`<math extend="$m"/>`), which `convertRefsToCopies` made a `_copy` with
- * only `createComponentOfType`, `createComponentIdx`, `copyInChildren` and
+ * only `_createComponentOfType`, `_createComponentIdx`, `_copyInChildren` and
  * the name the document generated for it, and no children; `undefined` for
  * anything else (a name the author wrote, another attribute, a child, a
  * `copy`). The `isPotentialResponse="true"` an `<answer>` with no input
@@ -789,10 +789,10 @@ function unadornedExtendType(component: SerializedComponent) {
         !Object.entries(component.attributes).every(
             ([name, attribute]) =>
                 [
-                    "createComponentOfType",
-                    "createComponentIdx",
-                    "createComponentName",
-                    "copyInChildren",
+                    "_createComponentOfType",
+                    "_createComponentIdx",
+                    "_createComponentName",
+                    "_copyInChildren",
                 ].includes(name) ||
                 (name === "isPotentialResponse" &&
                     attribute.type === "unresolved" &&
@@ -804,7 +804,7 @@ function unadornedExtendType(component: SerializedComponent) {
         return undefined;
     }
     // a name the document generated (`_math2`), not one the author wrote
-    const nameAttribute = component.attributes.createComponentName;
+    const nameAttribute = component.attributes._createComponentName;
     if (
         nameAttribute !== undefined &&
         !(
@@ -814,8 +814,8 @@ function unadornedExtendType(component: SerializedComponent) {
     ) {
         return undefined;
     }
-    const typeAttribute = component.attributes.createComponentOfType;
-    const idxAttribute = component.attributes.createComponentIdx;
+    const typeAttribute = component.attributes._createComponentOfType;
+    const idxAttribute = component.attributes._createComponentIdx;
     if (
         typeAttribute?.type !== "primitive" ||
         idxAttribute?.type !== "primitive" ||
@@ -828,11 +828,11 @@ function unadornedExtendType(component: SerializedComponent) {
 
 /**
  * Whether the one attribute of `component` is the
- * `createComponentOfType="integer"` that `convertRefsToCopies` gives a bare
+ * `_createComponentOfType="integer"` that `convertRefsToCopies` gives a bare
  * reference written between the brackets of another reference's path.
  */
 function asksOnlyForAnInteger(component: SerializedComponent) {
-    const typeAttribute = component.attributes.createComponentOfType;
+    const typeAttribute = component.attributes._createComponentOfType;
     return (
         Object.keys(component.attributes).length === 1 &&
         typeAttribute?.type === "primitive" &&

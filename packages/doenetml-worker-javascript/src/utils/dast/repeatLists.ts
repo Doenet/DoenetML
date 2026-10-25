@@ -511,7 +511,7 @@ export function convertRepeatsToLists({
             if (refResolution.nodeIdx !== repeat.componentIdx) {
                 continue;
             }
-            if (component.attributes.createComponentOfType) {
+            if (component.attributes._createComponentOfType) {
                 return;
             }
             const path = refResolution.unresolvedPath ?? [];
@@ -601,17 +601,17 @@ export function convertRepeatsToLists({
                 forListIdx = forList.copy.componentIdx;
                 forList.copy.componentIdx = nComponents++;
                 forList.copy.attributes = {
-                    createComponentOfType: {
+                    _createComponentOfType: {
                         type: "primitive",
-                        name: "createComponentOfType",
+                        name: "_createComponentOfType",
                         primitive: {
                             type: "string",
                             value: forList.listClass.componentType,
                         },
                     },
-                    createComponentIdx: {
+                    _createComponentIdx: {
                         type: "primitive",
-                        name: "createComponentIdx",
+                        name: "_createComponentIdx",
                         primitive: { type: "number", value: forListIdx },
                     },
                 };
@@ -1370,7 +1370,7 @@ export function convertRepeatsToLists({
                     return true;
                 }
                 addWithAncestors(component.componentIdx);
-                const created = component.attributes.createComponentIdx;
+                const created = component.attributes._createComponentIdx;
                 if (created?.type === "primitive") {
                     addWithAncestors(Number(created.primitive.value));
                 }
@@ -1384,7 +1384,7 @@ export function convertRepeatsToLists({
      * (`<graph extend="$g"/>`), whose copies are drawn in it.
      */
     function makesGraph(component: SerializedComponent) {
-        const created = component.attributes.createComponentOfType;
+        const created = component.attributes._createComponentOfType;
         if (created?.type !== "primitive") {
             return false;
         }

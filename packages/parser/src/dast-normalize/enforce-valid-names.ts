@@ -21,7 +21,12 @@ function containsInvalidNameCharacters(str: unknown): boolean {
 }
 
 /**
- * Ensure that no component names start with `_` and that all `name` attributes start with a letter.
+ * Ensure that no component names start with `_`, that no attribute names
+ * start with `_`, and that all `name` attributes start with a letter.
+ *
+ * An attribute starting with `_` is reserved for the ones core sets itself
+ * (the `_copy`'s own settings, such as `_link`), so that an author's attribute
+ * can never be taken for one of them.
  */
 export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
@@ -93,51 +98,75 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                 }
             }
 
-            // Ensure the value of any `name` attribute
-            // - is non-empty,
-            // - does not start with a non-letter, and
-            // - does not contain characters other than letters, number, hyphens or underscores
-            if (node.attributes.name) {
-                const name = toXml(node.attributes.name.children);
-                const nonLetter = startsWithNonLetter(name);
-                const invalidChar = containsInvalidNameCharacters(name);
+            // Errors about this element's attributes, in the order the
+            // attributes are written. They are reported from right after the
+            // element, where it stays, or from the nearest element when they
+            // cannot be placed beside it.
+            const attributeErrors: DastError[] = [];
 
-                if (nonLetter || invalidChar) {
-                    // The reason travels as a key, not as the English half-
-                    // sentence it used to be pasted from: a translation has to
-                    // be free to reorder the whole sentence, which it cannot do
-                    // if half of it arrives as an argument.
-                    const reason = nonLetter ? "start" : "characters";
-                    const message = `Invalid attribute name='${name}'. ${nonLetter ? "Names must start with a letter." : "Names can contain only letters, numbers, underscores or hyphens."}`;
-                    const dastError: DastError = codedDastError({
-                        code: "doenet-e0025",
-                        message,
-                        args: { name, reason },
-                        position: node.attributes.name?.position,
-                    });
+            for (const attribute of Object.keys(node.attributes)) {
+                // Ensure no attribute name starts with `_`
+                if (attribute.startsWith("_")) {
+                    attributeErrors.push(
+                        codedDastError({
+                            code: "doenet-e0054",
+                            message: `Invalid attribute "${attribute}". Attribute names cannot start with an underscore.`,
+                            args: { attribute },
+                            position: node.attributes[attribute].position,
+                        }),
+                    );
+                    delete node.attributes[attribute];
+                    continue;
+                }
 
-                    // Remove the `name` attribute and insert an `_error` element right after this element
-                    delete node.attributes.name;
+                // Ensure the value of any `name` attribute
+                // - is non-empty,
+                // - does not start with a non-letter, and
+                // - does not contain characters other than letters, number, hyphens or underscores
+                if (attribute === "name") {
+                    const name = toXml(node.attributes.name.children);
+                    const nonLetter = startsWithNonLetter(name);
+                    const invalidChar = containsInvalidNameCharacters(name);
 
-                    if (replaceableInPlace) {
-                        info.containingArray!.splice(
-                            info.index! + 1,
-                            0,
-                            dastError,
+                    if (nonLetter || invalidChar) {
+                        // The reason travels as a key, not as the English half-
+                        // sentence it used to be pasted from: a translation has to
+                        // be free to reorder the whole sentence, which it cannot do
+                        // if half of it arrives as an argument.
+                        const reason = nonLetter ? "start" : "characters";
+                        const message = `Invalid attribute name='${name}'. ${nonLetter ? "Names must start with a letter." : "Names can contain only letters, numbers, underscores or hyphens."}`;
+                        attributeErrors.push(
+                            codedDastError({
+                                code: "doenet-e0025",
+                                message,
+                                args: { name, reason },
+                                position: node.attributes.name.position,
+                            }),
                         );
-                    } else if (siblings) {
-                        // The element itself stays where it was written — only
-                        // its `name` was invalid, and that has just been
-                        // removed — so the error is simply reported from the
-                        // nearest element.
-                        siblings.push(dastError);
-                    } else {
-                        // If for some reason we don't have an index, append the error to the root
-                        console.warn(
-                            "No index found for error element, appending to root.",
-                        );
-                        tree.children.push(dastError);
+
+                        // Remove the `name` attribute. The element itself
+                        // stays where it was written — only its `name` was
+                        // invalid, and that has just been removed.
+                        delete node.attributes.name;
                     }
+                }
+            }
+
+            if (attributeErrors.length > 0) {
+                if (replaceableInPlace) {
+                    info.containingArray!.splice(
+                        info.index! + 1,
+                        0,
+                        ...attributeErrors,
+                    );
+                } else if (siblings) {
+                    siblings.push(...attributeErrors);
+                } else {
+                    // If for some reason we don't have an index, append the errors to the root
+                    console.warn(
+                        "No index found for error element, appending to root.",
+                    );
+                    tree.children.push(...attributeErrors);
                 }
             }
         });

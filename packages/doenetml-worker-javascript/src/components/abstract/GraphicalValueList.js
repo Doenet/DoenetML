@@ -80,9 +80,9 @@ export default class GraphicalValueList extends AuthoredValueList {
      * each, an entry per entry, and the value the attribute has when the
      * source does not stop the entry being dragged by it. A linked component
      * reads `fixed` and `fixLocation` from the list instead
-     * (`listEntrySourceVariables`); an unlinked copy (`<point copy="$c[1]"
-     * link="false"/>`) takes them as written on the list or the entry's
-     * source (`writtenEntryAttributeComponent`).
+     * (`listEntrySourceVariables`); an unlinked copy
+     * (`<point copy="$c[1]"/>`) takes them as written on the list or the
+     * entry's source (`writtenEntryAttributeComponent`).
      */
     static entrySourceAttributeArrays = Object.freeze({
         draggable: { arrayName: "entrySourceDraggables", defaultValue: true },

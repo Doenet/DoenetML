@@ -143136,18 +143136,6 @@
                         "false"
                     ]
                 },
-                "createComponentOfType": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "numComponents": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "asList": {
                     "optional": true,
                     "type": [
@@ -155877,18 +155865,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "createComponentOfType": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "numComponents": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "asList": {

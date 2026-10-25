@@ -1502,10 +1502,77 @@ describe("Module tag tests @group1", async () => {
         ).eq("c0 t0");
     });
 
-    it("copy of a module with a module attribute named like a copy attribute", async () => {
-        // `link` is the copy's own attribute, so the copy takes it and the
-        // module keeps its default. The module used to be handed the copy's
-        // resolved `link` too, which stopped the document with an error.
+    it("module attribute named like a camel-cased attribute of a module", async () => {
+        // `asList` is a `<module>`'s own attribute, so it cannot name a
+        // module attribute. Compared against the lowercased names in
+        // `ModuleAttributes`, it was missed, and set on the module or a copy,
+        // it threw instead of warning (#2326). An extend takes `asList` for
+        // itself, so the module attribute keeps its default without a warning.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="m">
+            <moduleAttributes><text name="asList">d</text></moduleAttributes>
+            <p name="p">$asList</p>
+        </module>
+        <module name="n" asList="x">
+            <moduleAttributes><text name="asList">d</text></moduleAttributes>
+            <p name="p">$asList</p>
+        </module>
+        <module name="c" copy="$m" asList="x" />
+        <module name="e" extend="$m" asList="x" />
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        const message =
+            'The component `<text name="asList">` cannot be used as an attribute for a module because the `<module>` component type already has a "asList" attribute defined.';
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([message, message]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["m.p", "n.p", "c.p", "e.p"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("d");
+        }
+    });
+
+    it("module attribute named isResponse", async () => {
+        // `isResponse` is a `<module>`'s own attribute, kept raw, so it never
+        // threw. A module attribute with that name took the value set on the
+        // module. Like any other name a `<module>` already has, it now warns
+        // and keeps its own value.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name="n" isResponse="x">
+            <moduleAttributes><text name="isResponse">d</text></moduleAttributes>
+            <p name="p">$isResponse</p>
+        </module>
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            'The component `<text name="isResponse">` cannot be used as an attribute for a module because the `<module>` component type already has a "isResponse" attribute defined.',
+        ]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n.p")].stateValues.text,
+        ).eq("d");
+    });
+
+    it("module attribute named like an attribute the copy used to set", async () => {
+        // `link` is not an attribute of `copy` or `extend`, whose own settings
+        // start with `_`, so it is a module attribute like any other: a copy
+        // takes it, and an extend ignores it with a warning, as it would any
+        // module attribute. A copy used to take it for itself (#2326).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <module name="m"><moduleAttributes><text name="link">default</text></moduleAttributes><text name="t">$link</text></module>
@@ -1514,15 +1581,21 @@ describe("Module tag tests @group1", async () => {
     `,
         });
 
-        expect(getDiagnosticsByType(core).errors).eqls([]);
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `link` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        ]);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        for (const name of ["p1", "p2"]) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                    .text,
-            ).eq("default");
-        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("custom");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("default");
     });
 
     it("module state inside repeat loaded correctly", async () => {

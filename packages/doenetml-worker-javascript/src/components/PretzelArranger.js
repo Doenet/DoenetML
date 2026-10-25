@@ -658,7 +658,7 @@ export default class PretzelArranger extends CompositeComponent {
                     inheritedComponentType: child.componentType,
                     baseComponentType: "_composite",
                 }) &&
-                child.attributes.createComponentOfType?.primitive.value ===
+                child.attributes._createComponentOfType?.primitive.value ===
                     "problem"
             ) {
                 if (child.attributes.numProblems?.primitive !== undefined) {
