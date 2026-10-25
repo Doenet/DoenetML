@@ -371,10 +371,30 @@ Evidence:
 Known bugs, open: #2215, #2216, #2217, #2218, #2219, #2211. See D4 for the rule they should
 follow.
 
-### REF-8: named descendants are reachable through an extend's name (Tier 1)
-- `$e.t` reaches the extend's own counterpart of the source's `t`, which is linked to it.
-- An *unnamed* reference opens no name scope. `$sec1.t` does not resolve when `sec1` holds a
-  bare `$p` (`T/copying/extend_references.test.ts:6549`).
+### REF-8: an extend's descendants are reached through the extend's own name, and an unnamed reference creates no names (Tier 1)
+- **Through a name.** With `<p name="e" extend="$p"/>`, `$e.t` reaches e's own counterpart of
+  p's `t`, which is linked to it.
+- **Without a name.** A reference with no name of its own adds no names to the document, as a
+  reference never does. That stays true when the path goes through an ancestor, so the
+  ancestor's name does not help:
+
+  ```xml
+  <p name="p"><text name="t">hi</text></p>
+  <section name="sec1">$p</section>
+  <section name="sec2"><group name="g">$p</group></section>
+  ```
+
+  | Reference | Result |
+  |---|---|
+  | `$sec1.p`, `$sec1.t` | do not resolve: the bare `$p` brings neither p's name nor t's into `sec1` |
+  | `$sec2.g.p`, `$sec2.g.t` | do not resolve, for the same reason |
+  | `$sec2.g[1].t` | "hi": reached by *position* in the group, not by a name the reference made |
+
+  Evidence: `T/copying/extend_references.test.ts:6549` "reference inside composite adds to index
+  resolution but not names".
+
+To reach into a reference, name it (`<p extend="$p" name="e"/>`, then `$e.t`) or, where it sits
+in a group or repeat, use its position.
 
 Other tests: `:1626`, `:1837`, `:6408`, `:5773`.
 
