@@ -711,10 +711,12 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        // A copy given a type always makes exactly one component of that type
-        // (`verifyReplacementsMatchSpecifiedType` wraps the replacements if
-        // they don't already make one). Without a type, the number of
-        // components isn't specified.
+        // A copy given a valid type always makes exactly one component of
+        // that type. `verifyReplacementsMatchSpecifiedType` makes sure of it:
+        // it passes the type on to a lone `group`/`_copy` replacement, or else
+        // makes one new component of that type (wrapping a lone replacement
+        // in it when it can). Without a type, or with an invalid one, the
+        // number of components isn't specified.
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
                 typeAttr: {

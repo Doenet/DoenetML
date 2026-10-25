@@ -934,7 +934,7 @@ export async function replaceCompositeChildren({
             let replaceWithPlaceholders = false;
 
             // if an unexpanded composite has a createComponentOfType specified
-            // replace with placeholders
+            // replace with a placeholder
             // otherwise, leave composite as an activeChild
             if (!child.isExpanded) {
                 if (child.attributes._createComponentOfType?.primitive) {

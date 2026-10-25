@@ -567,8 +567,8 @@ export default class Shuffle extends CompositeComponent {
     /**
      * The number of children of `serializedComponent` that are shuffled, as
      * known from the document, or `undefined` when it is not known there (a
-     * list component among them, or a composite that does not say how many
-     * components it makes).
+     * list component among them, or a composite not given a type, which may
+     * make any number of components).
      */
     static numberOfShuffledChildren({
         serializedComponent,
