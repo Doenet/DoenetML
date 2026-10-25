@@ -23,8 +23,8 @@ Each decision gives:
 - **Alternative**: what to build in its place to measure it.
 - **Depends on**: decisions that this one exists for, or only makes sense
   with. Measure an alternative against a base that keeps those.
-- **Exercised by**: the benchmark shapes (`packages/benchmark/METHOD.md`)
-  where its effect should show.
+- **Exercised by**: the shapes (see [Method](#method)) where its effect
+  should show.
 - **Result**: filled in when measured.
 
 ## The decisions
@@ -39,7 +39,7 @@ Each decision gives:
   `Node { value, op, dependents }` per cell, or state variables held per
   component, as in the JavaScript core.
 - **Depends on.** Nothing; every other decision here depends on it.
-- **Exercised by.** depth, breadth, inversion.
+- **Exercised by.** depth, breadth, mixed.
 - **Result.** Not measured.
 
 ### 2. Operators are data, not code
@@ -54,7 +54,7 @@ Each decision gives:
   tick calls through a trait object or closure. This is the JavaScript
   core's model.
 - **Depends on.** 1.
-- **Exercised by.** depth, breadth, inversion.
+- **Exercised by.** depth, breadth, mixed.
 - **Result.** Not measured.
 
 ### 3. Operators are fine-grained primitives
@@ -67,7 +67,8 @@ Each decision gives:
   data ("fused" operators), so it is measurable apart from 2.
 - **Depends on.** 2. Data operators push towards small primitives, but do
   not require them.
-- **Exercised by.** depth, breadth; a fixture of lowered `<math>` chains.
+- **Exercised by.** depth, breadth, mixed: each number is a lowered
+  `$x + k`.
 - **Result.** Not measured.
 
 ### 4. Storage is contiguous
@@ -76,7 +77,7 @@ Each decision gives:
 - **Alternative, keeping 5.** A separate heap allocation per value
   (`Vec<Box<f64>>`), so every read follows a pointer.
 - **Depends on.** 1.
-- **Exercised by.** depth, breadth at 10,000 and 100,000.
+- **Exercised by.** depth, breadth, mixed at 10,000 and 100,000.
 - **Result.** Not measured.
 
 ### 5. Every cell is the same size
@@ -89,7 +90,8 @@ Each decision gives:
   with an `offsets[cell]` table; an expression or a string is stored
   inline.
 - **Depends on.** 4.
-- **Exercised by.** depth, breadth; symbolic, for the inline expressions.
+- **Exercised by.** depth, breadth, mixed; a symbolic shape, for the
+  inline expressions, is still to add.
 - **Result.** Not measured.
 
 ### 6. Values are untagged `f64`
@@ -105,7 +107,7 @@ Each decision gives:
   - 16-byte cells without a tag (an `f64` and padding);
   - 8-byte cells and a parallel array of tags, checked on every read.
 - **Depends on.** 5.
-- **Exercised by.** depth, breadth.
+- **Exercised by.** depth, breadth, mixed.
 - **Result.** Not measured.
 
 ### 7. One cell per scalar
@@ -116,8 +118,8 @@ Each decision gives:
   over vectors.
 - **Depends on.** 5, and in practice 6: with tagged values of varying
   size, compound values are the natural choice.
-- **Exercised by.** a fixture of points and shapes; a drag of one
-  coordinate.
+- **Exercised by.** coords: a chain of points dragged in x alone, so
+  the y chain does not change.
 - **Result.** Not measured.
 
 ### 8. References alias a cell instead of copying it
@@ -128,8 +130,8 @@ Each decision gives:
 - **Alternative.** An identity instruction per reference that copies the
   value forward.
 - **Depends on.** 1.
-- **Exercised by.** a fixture with many references and copies; no shape
-  has one today.
+- **Exercised by.** refs: n references and copies of one point, each
+  read by a number. Today it has as many instructions as readers.
 - **Result.** Not measured.
 
 ### 9. A fixed push schedule, computed eagerly
@@ -141,7 +143,7 @@ Each decision gives:
   when it is read, with a memo per value. `testing/reference.rs` is a
   naive version of it.
 - **Depends on.** 1, 2.
-- **Exercised by.** depth, breadth.
+- **Exercised by.** depth, breadth, mixed.
 - **Result.** Not measured.
 
 ### 10. Recompute only what is downstream, tracked by schedule position
@@ -158,15 +160,16 @@ Each decision gives:
 - **Depends on.** 9: the bitset works because every reader comes later in
   the schedule than what it reads.
 - **Exercised by.** breadth and depth, where every instruction is
-  downstream of the drag, and a document where only part of it is (the
-  `isolated` and `chainK` shapes of `evaluator_cost`, below).
+  downstream of the drag, and mixed, isolated and chainK, where only part
+  of it is.
 - **Result.** Full recompute measured; the priority queue not yet. It
   depends on how much of the program is downstream. Where all of it is,
   full recompute is 2.5 to 4 times faster than the dirty closure; where
   little of it is, the dirty closure wins by as much as the program is
   large. They break even with roughly 15 to 20% of the program
   downstream. On both benchmark shapes the decision makes the tick
-  slower. See [Decision 10](#decision-10-full-recompute) below.
+  slower; on mixed, where a drag reaches 5% of a page, it makes it 3 to
+  5 times faster. See [Decision 10](#decision-10-full-recompute) below.
 
 ### 11. Changes are detected by comparing values, with early cutoff
 
@@ -176,8 +179,9 @@ Each decision gives:
 - **Alternative.** A version counter per cell, or marking the readers of
   every instruction that ran, changed or not.
 - **Depends on.** 6, 10.
-- **Exercised by.** a fixture where a change stops partway, such as a
-  `Round` or `Clamp` early in a chain; no shape has one today.
+- **Exercised by.** cutoff: `round($p.x / 10)` feeds a chain of n
+  numbers, and the timed drags both round to 0, so the change stops at
+  the round.
 - **Result.** Not measured.
 
 ## How the decisions depend on each other
@@ -209,17 +213,104 @@ Two things follow for the measurements:
 ## Method
 
 - One base commit for every measurement; each alternative on a branch of
-  its own from it.
-- Native release builds, timing ticks directly, rather than the Node
-  driver alone: the driver's adapter floor (23 µs on the cells core) is
-  most of a tick at 1,000 elements, so smaller effects would not show.
-  The Node driver (`packages/benchmark/scripts/perf-diff.sh`) at 10,000
-  and 100,000 is the cross-check.
+  its own from it, or a commit of its own in a series.
+- Native release builds, timing ticks directly: the Node driver's adapter
+  floor (23 µs on the cells core) is most of a tick at 1,000 elements, so
+  smaller effects would not show through it. The Node driver
+  (`packages/benchmark/scripts/perf-diff.sh`) at 10,000 and 100,000 is a
+  cross-check, and the only measurement in wasm.
+- Every alternative is measured under both evaluators. Decision 10 showed
+  that the dirty closure costs several times what the instructions it
+  runs do, which hides a difference per instruction (a tag, a dispatch)
+  under the default evaluator; full recompute shows it.
 - Every alternative must give the same values as the base: the golden diff
-  (`scripts/golden-diff.sh`) and `cargo test` stay green.
-- Missing fixtures to add first: many references and copies (8), points
-  and shapes dragged one coordinate at a time (7), and a chain cut off
-  partway (11).
+  (`scripts/golden-diff.sh`) and `cargo test` stay green, and the
+  harness compares a fingerprint of every prop's value.
+
+### The harness
+
+`crates/cells-bench/examples/tick_cost.rs` times ticks on the shapes of
+`crates/cells-bench/src/shapes.rs`, which are built in Rust
+(`testing::dast`), so neither the parser nor node is needed. For each
+shape and size it loads the document, drags to a check value and asserts
+the values the shape names, asserts that both evaluators leave the same
+cells, then alternates the dragged coordinate between 2 and 3 for 3
+warm-up and 41 timed ticks per evaluator, the two evaluators interleaved
+tick by tick on the same document.
+
+| shape | what the drag reaches | serves |
+|---|---|---|
+| depth | a chain of n numbers: all of the program | the benchmark's own shape |
+| breadth | n numbers each reading the point: all of it | the benchmark's own shape |
+| mixed | 20 graphs, each with a point read by a chain and a fan of n / 40 numbers; one point dragged: 5% | a page, closer to real use |
+| isolated | one number; n others read another point | 10 |
+| chainK | a chain of K% of the n numbers; the rest read another point | 10 |
+| cutoff | `round($p.x / 10)`, then a chain of n numbers, which the timed drags leave unchanged | 11 |
+| refs | n / 2 references to `$p.x` and n / 2 copies of `p`, each read by a number | 8 |
+| coords | a chain of n points, each at (x + 1, y + 1) of the one before, dragged in x | 7 |
+
+`scripts/tick-diff.sh [base] [shapes] [sizes]` builds the harness at a
+base commit and in the working tree, runs the two alternately seven
+times, and prints the working tree over the base for each shape under
+each evaluator, with whether the two hold the same values. Each side's
+tick is the median of the seven runs' medians: on the shared 4-core
+machine these were measured on, a whole process now and then runs fast or
+slow, and the median of runs rejects it, where the minimum would pick a
+lucky one.
+
+The noise floor, from comparing the base with itself: most rows agree
+within 5%. Two (breadth at 100,000 and isolated at 10,000) settle per
+process at one of two speeds about 20% apart, so a difference smaller
+than that on those rows is noise. These are the base's times, under each
+evaluator (from that run):
+
+| shape | n | dirty closure (µs) | full recompute (µs) |
+|---|---:|---:|---:|
+| depth | 10,000 | 110 | 27.5 |
+| depth | 100,000 | 1,364 | 359 |
+| breadth | 10,000 | 56.1 | 19.2 |
+| breadth | 100,000 | 685 | 302 |
+| mixed | 10,000 | 4.5 | 14.8 |
+| mixed | 100,000 | 50.5 | 262 |
+| isolated | 10,000 | 0.2 | 14.0 |
+| isolated | 100,000 | 1.7 | 259 |
+| cutoff | 10,000 | 0.2 | 14.0 |
+| cutoff | 100,000 | 1.9 | 259 |
+| refs | 10,000 | 56.2 | 19.4 |
+| refs | 100,000 | 693 | 336 |
+| coords | 10,000 | 119 | 37.9 |
+| coords | 100,000 | 1,388 | 642 |
+
+## Plan
+
+The alternatives in the order to build them. Two rules set it: what
+already exists or is small comes first, and the leaves of the dependency
+tree come before the roots, since a root's alternative (1, 2, 4) makes
+the decisions below it moot, while a leaf's result stays valid whatever
+is measured later.
+
+| step | decision → alternative | to build | why here |
+|---|---|---|---|
+| 0 | the shapes and the harness | done | mixed, cutoff, refs and coords, `tick_cost`, `tick-diff.sh` |
+| 1 | 10 → full recompute | exists | done; see below |
+| 2 | 9 → pull, lazy | exists | `testing/reference.rs` as it is, then with a memo per value |
+| 3 | 11 → mark readers whether the value changed or not | one line in `tick/eval.rs` | pairs with 10, on cutoff; version counters after, a larger build |
+| 4 | 10 → priority queue | small, in `tick/eval.rs` | finishes 10 |
+| 5 | 2 → operators as code, the cheap form | small | a boxed closure per instruction, made when the program is scheduled: the dispatch alone, with no component rewritten |
+| 6 | 8 → identity instructions | medium, in `build/emit.rs` | the tick is unchanged; on refs |
+| 7 | 6 → 16-byte cells, no tag | medium | the first change to what a cell is: size alone |
+| 8 | 6 → 8-byte cells and a tag array | medium | the tag alone, on step 7's plumbing |
+| 9 | 6 → tagged enum | medium to large | both; 7 and 8 should account for it |
+| 10 | 4 → an allocation per value | medium | the same plumbing as 7 to 9 |
+| 11 | 3 → coarse operators | large | new operators and lowering |
+| 12 | 7 → compound values | large | vector operators, components rewired; on coords |
+| 13 | 5 → values of varying size | large | the most invasive change to storage; means most after 6 and 7 |
+| 14 | 2 → operators as code, in full | very large | state variable functions per component, as the JavaScript core; step 5 may answer most of it |
+| 15 | 1 → a value per node | very large | the root, which makes 4 to 6 moot: last |
+
+Steps 7 to 10 all change what a cell is, so they are best built as a
+series on one branch, a commit per alternative, each measured against the
+base.
 
 ## Results
 
@@ -236,7 +327,7 @@ Two things follow for the measurements:
 | 7 | one cell per scalar | compound values | | | | | |
 | 8 | aliases | identity instructions | | | | | |
 | 9 | fixed push schedule | pull, lazy | | | | | |
-| 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | isolated-100000: 247; chain10-100000: 1.7 |
+| 10 | downstream only | full recompute | 0.26 | 0.42 | 0.30 | 0.39 | mixed-100000: 5.2; isolated-100000: 247; chain10-100000: 1.7 |
 | 10 | downstream only | priority queue | | | | | |
 | 11 | value comparison, cutoff | version counters | | | | | |
 
@@ -248,7 +339,8 @@ more than once, the median of the runs.
 ### Decision 10: full recompute
 
 Measured 2026-10-25 on `cells` at `f6677de` (the core's code is unchanged since) with
-`crates/cells-bench/examples/evaluator_cost.rs`: a native release build
+`crates/cells-bench/examples/evaluator_cost.rs` (since renamed
+`tick_cost.rs`; see [The harness](#the-harness)): a native release build
 (x86-64, Intel Xeon @ 2.10 GHz, 4 cores, Linux), not wasm. One document
 per row; the two evaluators alternate tick by tick on it, each tick
 dragging `p` between x = 2 and x = 3, 3 warm-up ticks and 41 timed ticks
@@ -310,6 +402,11 @@ What it shows:
   would make them. A real document, where a drag reaches a small part
   of it, is where the decision pays; the shapes say nothing about how
   much.
+- The mixed shape, added after this measurement, is one such document:
+  20 graphs, one of them dragged, so the drag reaches 5% of the program.
+  There the closure is 3.3 times faster than full recompute at 10,000
+  and 5.2 times at 100,000 (the base's times under
+  [The harness](#the-harness)).
 - Not measured here: wasm, where the per-instruction costs may differ,
   and the tick in the Node driver, whose floor would hide the small
   rows.

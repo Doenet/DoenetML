@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Tick times of the cells core on a base commit (default HEAD) against the
 # working tree, natively: builds `examples/tick_cost.rs` at the base in a
-# worktree and in the working tree, runs the two alternately three times,
-# then prints new/base ratios of each shape's median tick under each
-# evaluator, and whether the two hold the same values (the fingerprint
-# after each shape's check drag). For the decisions of
+# worktree and in the working tree, runs the two alternately seven times,
+# then prints new/base ratios of each shape's tick under each evaluator
+# (per side, the median of the seven runs' median ticks: a run now and
+# then lands fast or slow as a whole, and the median of runs rejects it),
+# and whether the two hold the same values (the fingerprint after each
+# shape's check drag). For the decisions of
 # docs/tick-design-decisions.md; the base must have tick_cost.
 #   scripts/tick-diff.sh [base] [shape,shape,...] [size,size,...]
 set -euo pipefail
@@ -20,7 +22,7 @@ build() { (cd "$1/packages/cells-core" && CARGO_TARGET_DIR="$here/target/$2" car
 build "$wt" tick-diff-base
 build "$root" tick-diff-new
 rm -f "$S/base.jsonl" "$S/new.jsonl"
-for round in 1 2 3; do
+for round in 1 2 3 4 5 6 7; do
   CELLS_OUT="$S/base.jsonl" "$here/target/tick-diff-base/release/examples/tick_cost" >/dev/null
   CELLS_OUT="$S/new.jsonl" "$here/target/tick-diff-new/release/examples/tick_cost" >/dev/null
 done
@@ -36,7 +38,7 @@ const read = (f) => {
 };
 const b = read("base.jsonl"), n = read("new.jsonl");
 const med = (xs) => [...xs].sort((p, q) => p - q)[xs.length >> 1];
-// The median of each round's median, per side.
+// Per side, the median of the runs' medians.
 const tick = (rs, f) => med(rs.map((r) => med(r[f])));
 const us = (ns) => (ns / 1e3).toFixed(1);
 console.log("| shape | n | instructions (base → new) | dirty, base → new (µs) | new / base | full, base → new (µs) | new / base | same values |");
