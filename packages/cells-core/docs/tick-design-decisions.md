@@ -144,8 +144,10 @@ Each decision gives:
 - **Result.** Identity instructions double the instructions of every
   shape and of the golden documents (2.1 times over the set), and
   multiply `fixtures/sir.doenet`'s by 5.1 (2,829 to 14,538). The tick
-  grows with them, at the same cost per instruction: 2 to 2.9 times on
-  the shapes, 4.5 to 6.3 on refs. Aliasing also carries meaning outside
+  grows with them, at the same cost per instruction: under full
+  recompute 1.9 to 2.9 times on the shapes and 4.5 to 6.3 on refs, and
+  about the same under the dirty closure wherever its tick is more than
+  a few µs. Aliasing also carries meaning outside
   the tick: three places used "the same cell" for "equal by
   construction", which the alternative had to replace. See
   [Decision 8: identity instructions](#decision-8-identity-instructions)
@@ -969,8 +971,8 @@ What it shows:
   whose geometry is mostly copies and references.
 - The tick grows with the program, at about the same cost per
   instruction: the identities are as cheap as any operator, so the
-  ratio of times follows the ratio of instructions (2 on the shapes, 4
-  on refs, where it is 5 to 6 times). Under the dirty closure the
+  ratio of times follows the ratio of instructions (2 on the shapes,
+  where it is 1.9 to 2.9; 4 on refs, where it is 4.5 to 6.3). Under the dirty closure the
   identities also cost their bookkeeping, a step more on every path.
 - So aliasing pays in proportion to how much a document refers: on
   `sir` a tick with identity instructions would do about five times the
