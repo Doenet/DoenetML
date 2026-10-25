@@ -24,7 +24,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B3 | One-input math operators report `canBeModified` from the wrong variable. `<sign>$n</sign>` claims it can be changed, but a bound input snaps back | yes | `W/components/abstract/MathBaseOperatorOneInput.js:94-97` reads `mathOperator` rather than `inverseMathOperator` |
 | B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
 | B5 | Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
-| B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942) | — | `ref_expand.rs` |
+| B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
@@ -283,7 +283,7 @@ It bans, in order of how often documents use them:
 - `extend` of a select, conditionalContent or case;
 - names present in only some branches;
 - type-varying names;
-- positional references into options (`$s[2][1]`);
+- positional references into options (`$s[2][1]`), which D27 generalizes;
 - a non-literal `numToSelect`.
 
 **Recommendation.** Accept the rule. It is easy to state, and the alternative is visibly broken
@@ -293,8 +293,8 @@ Before the cut-over, add **warnings on main** for the banned forms so that exist
 migrate. Mark the affected tests "changed" (listed in
 [composites-and-lists.md](composites-and-lists.md) §6). PR #2281 already has rewritten versions.
 
-Decide separately whether positional double indexing into *repeats* (`$a[2][1][3]`) stays. It
-exposes the same hidden grouping.
+Positional double indexing into *repeats* (`$a[2][1][3]`) exposes the same hidden grouping. D27
+proposes removing child indexing everywhere, not only for choices.
 
 ## D14. Cycles are always a located diagnostic, and the rest of the document still renders
 
