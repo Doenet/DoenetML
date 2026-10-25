@@ -90,7 +90,7 @@ Each decision gives:
   cell order, the values lie nearly side by side and a pointer per read
   costs full recompute 1.04 to 1.8 times (one row 2.8) and the dirty
   closure up to 1.7. Allocated in a shuffled order, as objects made over
-  a session would be, they cost full recompute 2.2 to 3 times at
+  a session would be, they cost full recompute 2.4 to 3 times at
   100,000 and the dirty closure up to 2.2: the largest cost of any
   storage alternative. See
   [Decision 4: an allocation per value](#decision-4-an-allocation-per-value)
