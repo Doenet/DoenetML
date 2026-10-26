@@ -2,7 +2,6 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import {
-    gatherVariantComponents,
     setUpVariantSeedAndRng,
     variantDescendantComponentTypes,
 } from "../utils/variants";
@@ -23,44 +22,6 @@ function shuffledSource(key, components) {
         return list ? { list, listInd } : undefined;
     }
     return components[key];
-}
-
-/**
- * `subvariants`, the subvariants of a shuffle's items in the order its items
- * are shown (`componentOrder`), put in the order the items are written.
- *
- * `setUpVariant` hands a desired variant's subvariants to the random
- * components of the shuffle's children in the order they are written, as
- * `getUniqueVariant` lists them, but the shuffle finds them among its
- * replacements, which are its items in `componentOrder`. Reported in that
- * order, they would be handed to the wrong items when the variant is passed
- * back (as when a saved page is loaded again, or a container of the shuffle
- * is copied). `numVariantComponentsByChild` holds how many subvariants each
- * child, in written order, is handed. The subvariants are left in the order
- * shown unless each item is one child and the numbers account for every
- * subvariant.
- */
-function subvariantsInWrittenOrder({
-    subvariants,
-    componentOrder,
-    numVariantComponentsByChild,
-}) {
-    if (
-        numVariantComponentsByChild?.length !== componentOrder.length ||
-        numVariantComponentsByChild.reduce((a, b) => a + b, 0) !==
-            subvariants.length
-    ) {
-        return subvariants;
-    }
-
-    const subvariantsByChild = [];
-    let start = 0;
-    for (const ind of componentOrder) {
-        const num = numVariantComponentsByChild[ind - 1];
-        subvariantsByChild[ind - 1] = subvariants.slice(start, start + num);
-        start += num;
-    }
-    return subvariantsByChild.flat();
 }
 
 export default class Shuffle extends CompositeComponent {
@@ -309,9 +270,18 @@ export default class Shuffle extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "componentOrder",
                 },
-                variants: {
-                    dependencyType: "variants",
-                },
+                // The variant components among the shuffle's children, in
+                // the order they are written, which is the order
+                // `setUpVariant` hands a desired variant's subvariants back
+                // to them in (as `getUniqueVariant` lists them). The items
+                // shown are shadows of these children, in `componentOrder`,
+                // so they show the values recorded here. Read from the
+                // items, the subvariants would be in the shown order, so each
+                // item would be handed another item's values when the
+                // variant is passed back (as when a saved page is loaded
+                // again, or a container of the shuffle is copied), and would
+                // hold the items' own seeds, such as that of the copy of a
+                // `<repeat>`, which are not the ones the children drew.
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes:
@@ -320,7 +290,6 @@ export default class Shuffle extends CompositeComponent {
                         "isVariantComponent",
                         "generatedVariantInfo",
                     ],
-                    useReplacementsForComposites: true,
                     recurseToMatchedChildren: false,
                     variablesOptional: true,
                     includeNonActiveChildren: true,
@@ -334,7 +303,7 @@ export default class Shuffle extends CompositeComponent {
                     indices: dependencyValues.componentOrder,
                 };
 
-                let subvariants = [];
+                let subvariants = (generatedVariantInfo.subvariants = []);
 
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
@@ -348,14 +317,6 @@ export default class Shuffle extends CompositeComponent {
                         );
                     }
                 }
-
-                generatedVariantInfo.subvariants = subvariantsInWrittenOrder({
-                    subvariants,
-                    componentOrder: dependencyValues.componentOrder,
-                    numVariantComponentsByChild:
-                        dependencyValues.variants?.numVariantComponentsByChild,
-                });
-
                 return {
                     setValue: {
                         generatedVariantInfo,
@@ -372,29 +333,12 @@ export default class Shuffle extends CompositeComponent {
         serializedComponent,
         sharedParameters,
         descendantVariantComponents,
-        core,
     }) {
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
             descendantVariantComponents,
         });
-
-        // Record how many of the components given subvariants above are in
-        // each child, for `generatedVariantInfo` to report the subvariants in
-        // the order they are given out here. A string child (blank ones are
-        // already removed) is one of the items shuffled, with no variant
-        // components.
-        serializedComponent.variants ??= {};
-        serializedComponent.variants.numVariantComponentsByChild =
-            serializedComponent.children.map((child) =>
-                typeof child === "string"
-                    ? 0
-                    : gatherVariantComponents({
-                          serializedComponents: [child],
-                          componentInfoObjects: core.componentInfoObjects,
-                      }).length,
-            );
     }
 
     static async createSerializedReplacements({

@@ -2245,14 +2245,12 @@ describe("Specifying single variant tests @group1", async () => {
 
     it("a repeat inside an item of a shuffle keeps its values when loaded again with the variant it generated", async () => {
         // A host loads a saved page again by passing back, as
-        // `requestedVariant`, the variant the page generated. A repeat
-        // records one subvariant per iteration, which it must give to its
-        // iterations. A shuffle records the variant of its copy of the
-        // repeat, whose seed is not the one the repeat drew, so the
-        // iterations cannot rely on drawing their seeds from the repeat's
-        // (Doenet/DoenetML#2346). With a repeat in each item, the shuffle
-        // must also report its items' variants in the order it hands them
-        // back (Doenet/DoenetML#2352).
+        // `requestedVariant`, the variant the page generated. The shuffle
+        // must record the variant of the repeat it hands that variant back
+        // to, not that of its copy of the repeat it shows, whose seed is not
+        // the one the repeat drew (Doenet/DoenetML#2346). With a repeat in
+        // each item, it must also record its items' variants in the order it
+        // hands them back (Doenet/DoenetML#2352).
         const repeats = [
             `<repeatForSequence from="1" to="2"><selectFromSequence from="1" to="1000"/></repeatForSequence>`,
             `<repeat for="1 2"><selectFromSequence from="1" to="1000"/></repeat>`,
@@ -2306,51 +2304,64 @@ describe("Specifying single variant tests @group1", async () => {
     });
 
     it("an iteration added to a repeat after it is loaded again with the variant it generated draws the values it drew before", async () => {
-        // Iterations given a recorded variant still take their draws from the
-        // repeat's random number generator, so an iteration added later draws
-        // the seed it drew on the first load, not the first iteration's.
+        // The repeat gets back the seed it drew, so an iteration added later
+        // draws the seed it drew on the first load, also in an item of a
+        // shuffle (Doenet/DoenetML#2346).
         const repeats = [
             `<repeatForSequence from="1" to="$mi"><selectFromSequence from="1" to="1000"/></repeatForSequence>`,
             `<repeat for="$seq" valueName="v"><selectFromSequence from="1" to="1000"/></repeat>`,
         ];
 
         for (const repeat of repeats) {
-            const doenetML = `<mathInput name="mi" prefill="2"/><sequence name="seq" to="$mi" hide/><group><p>${repeat}</p></group>`;
-            for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
-                const { core: firstCore, resolvePathToNodeIdx: firstResolve } =
-                    await createTestCore({
+            for (const container of ["group", "shuffle"]) {
+                const doenetML = `<mathInput name="mi" prefill="2"/><sequence name="seq" to="$mi" hide/><${container}><p>${repeat}</p><p>x</p></${container}>`;
+                for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
+                    const {
+                        core: firstCore,
+                        resolvePathToNodeIdx: firstResolve,
+                    } = await createTestCore({
                         doenetML,
                         requestedVariantIndex: variantIndex,
                     });
-                const first = await selectedValues(firstCore);
-                await updateMathInputValue({
-                    latex: "3",
-                    componentIdx: await firstResolve("mi"),
-                    core: firstCore,
-                });
-                const firstGrown = (await selectedValues(firstCore)).values;
-                expect(firstGrown.length).eq(3);
+                    const first = await selectedValues(firstCore);
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await firstResolve("mi"),
+                        core: firstCore,
+                    });
+                    const firstGrown = (await selectedValues(firstCore)).values;
+                    // For a shuffle, its copies too.
+                    expect(firstGrown.length).eq(
+                        container === "shuffle" ? 6 : 3,
+                    );
 
-                const { core, resolvePathToNodeIdx } = await createTestCore({
-                    doenetML,
-                    requestedVariant: first.generatedVariantInfo,
-                });
-                expect((await selectedValues(core)).values).eqls(first.values);
-                await updateMathInputValue({
-                    latex: "3",
-                    componentIdx: await resolvePathToNodeIdx("mi"),
-                    core,
-                });
-                expect((await selectedValues(core)).values).eqls(firstGrown);
+                    const { core, resolvePathToNodeIdx } = await createTestCore(
+                        {
+                            doenetML,
+                            requestedVariant: first.generatedVariantInfo,
+                        },
+                    );
+                    expect((await selectedValues(core)).values).eqls(
+                        first.values,
+                    );
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    expect((await selectedValues(core)).values).eqls(
+                        firstGrown,
+                    );
+                }
             }
         }
     });
 
     it("a repeat that recreates its iterations after it is loaded again with the variant it generated draws the values it drew before", async () => {
-        // An iteration is given its recorded variant only when first created.
         // When the repeat recreates its iterations (here, because the
-        // components it iterates over are replaced), they draw new values, the
-        // same ones they drew when recreated on the first load.
+        // components it iterates over are replaced), they draw new values from
+        // the repeat's seed, the same ones they drew when recreated on the
+        // first load.
         const doenetML = `<booleanInput name="b"/>
         <conditionalContent name="cc"><case condition="$b"><number>3</number><number>4</number></case><else><number>1</number><number>2</number></else></conditionalContent>
         <group><p><repeat for="$cc"><selectFromSequence from="1" to="1000"/></repeat></p></group>`;
