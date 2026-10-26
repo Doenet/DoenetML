@@ -903,12 +903,9 @@ export default class Select extends CompositeComponent {
                 .every((x) => x === firstNumber);
 
             if (allSameNumber) {
-                let numberOfPermutations = numChildren;
-                for (
-                    let n = numChildren - 1;
-                    n > numChildren - numToSelect;
-                    n--
-                ) {
+                // An empty product when numToSelect is 0: one way to select nothing
+                let numberOfPermutations = 1;
+                for (let n = numChildren; n > numChildren - numToSelect; n--) {
                     numberOfPermutations *= n;
                 }
                 numVariants =
@@ -973,7 +970,7 @@ export default class Select extends CompositeComponent {
             serializedComponent.children;
         let numChildren = numVariantsByChild.length;
 
-        if (numVariantsByChild.length === 0) {
+        if (numVariantsByChild.length === 0 || numToSelect === 0) {
             return { success: true, desiredVariant: { indices: [] } };
         }
 
@@ -1109,7 +1106,8 @@ export default class Select extends CompositeComponent {
 // and each select gets multiplied by the total number of options of that selection
 let countOptions = function (numOptionsByItem, numItems) {
     if (numItems === 0) {
-        return 0;
+        // one way to select nothing
+        return 1;
     }
     if (numItems === 1) {
         // if select just one item, simply add up all the different options
