@@ -1264,5 +1264,124 @@ describe("Pretzel tag tests @group1", async () => {
                 );
             });
         }
+
+        // The problem order, and the text of each statement and answer, that
+        // each of the pretzels at `paths` shows
+        async function shownProblems({
+            core,
+            resolvePathToNodeIdx,
+            paths,
+        }: {
+            core: any;
+            resolvePathToNodeIdx: (name: string) => Promise<number>;
+            paths: string[];
+        }) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            function shownText(componentIdx: number): string {
+                const component = stateVariables[componentIdx];
+                return (
+                    component.stateValues.text ??
+                    component.activeChildren
+                        .map((child: any) =>
+                            typeof child === "string"
+                                ? child
+                                : shownText(child.componentIdx),
+                        )
+                        .join("")
+                );
+            }
+            const result: Record<string, any> = {};
+            for (const path of paths) {
+                const pretzel =
+                    stateVariables[await resolvePathToNodeIdx(path)];
+                result[path] = {
+                    problemOrder: pretzel.stateValues.problemOrder,
+                    texts: pretzel.activeChildren
+                        .filter(
+                            (_: any, i: number) =>
+                                i % PRETZEL_CHILD_STRIDE !== INPUT_CHILD_OFFSET,
+                        )
+                        .map((child: any) => shownText(child.componentIdx)),
+                    currentResponses: pretzel.stateValues.currentResponses,
+                };
+            }
+            return result;
+        }
+
+        it("copies of copies of a pretzel show the same problems", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${pretzelDoenetML}
+    <pretzel extend="$p" name="p2"/>
+    <pretzel extend="$p2" name="p3"/>
+    <pretzel copy="$p2" name="p4"/>
+    <pretzel extend="$p4" name="p5"/>
+    <pretzel copy="$p4" name="p6"/>`,
+                requestedVariantIndex: 2,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(0);
+
+            const paths = ["p", "p2", "p3", "p4", "p5", "p6"];
+            const shown = await shownProblems({
+                core,
+                resolvePathToNodeIdx,
+                paths,
+            });
+            expect(shown.p.problemOrder).not.eqls([1, 2, 3]);
+            expect(shown.p.texts.length).eq(6);
+            for (const path of paths) {
+                expect(shown[path], path).eqls(shown.p);
+            }
+        });
+
+        for (const kind of ["extend", "copy"]) {
+            it(`a <pretzel ${kind}> copy keeps its problems and responses when reloaded`, async () => {
+                const doenetML = `${pretzelDoenetML}\n    <pretzel ${kind}="$p" name="p2"/>`;
+                let { core, resolvePathToNodeIdx, scoreState } =
+                    await createTestCore({
+                        doenetML,
+                        requestedVariantIndex: 2,
+                    });
+
+                const copy = (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("p2")
+                ];
+                await updateTextInputValue({
+                    text: "2",
+                    componentIdx: getPretzelChild({
+                        pretzel: copy,
+                        problemOrder: copy.stateValues.problemOrder,
+                        problemNumber: 1,
+                        childOffset: INPUT_CHILD_OFFSET,
+                    }).componentIdx,
+                    core,
+                });
+                await submitAnswer({ componentIdx: copy.componentIdx, core });
+
+                const paths = ["p", "p2"];
+                const before = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths,
+                });
+                expect(before.p2.currentResponses).includes("2");
+
+                await core.saveImmediately();
+                ({ core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: 2,
+                    initialState: scoreState.state,
+                }));
+
+                expect(
+                    await shownProblems({ core, resolvePathToNodeIdx, paths }),
+                ).eqls(before);
+            });
+        }
     });
 });

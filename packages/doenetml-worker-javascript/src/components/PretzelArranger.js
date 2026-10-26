@@ -476,9 +476,8 @@ export default class PretzelArranger extends CompositeComponent {
                 // as a desired variant (as when a saved variant is reloaded),
                 // gives each subvariant to the component that generated it.
                 // Reorder only if that order lists exactly the components
-                // found here. It does not for a copy of the arranger, whose
-                // serialized children are its source's replacements rather
-                // than problems, so its `setUpVariant` finds none.
+                // found here. It does not before the arranger is expanded,
+                // when none are found.
                 const arrangedVariantComponentIdxs =
                     dependencyValues.variants?.arrangedVariantComponentIdxs;
                 const subvariantByIdx = new Map(
