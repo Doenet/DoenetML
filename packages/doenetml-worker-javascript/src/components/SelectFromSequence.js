@@ -743,8 +743,9 @@ export default class SelectFromSequence extends Sequence {
         if (withReplacement || numToSelect === 1) {
             numVariants = Math.pow(nOptions, numToSelect);
         } else {
-            numVariants = nOptions;
-            for (let n = nOptions - 1; n > nOptions - numToSelect; n--) {
+            // An empty product when numToSelect is 0: one way to select nothing
+            numVariants = 1;
+            for (let n = nOptions; n > nOptions - numToSelect; n--) {
                 numVariants *= n;
             }
         }

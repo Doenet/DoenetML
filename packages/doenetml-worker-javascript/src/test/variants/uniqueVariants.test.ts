@@ -2608,6 +2608,63 @@ describe("Unique variant tests @group1", async () => {
         expect(sampledValues[3]).eq(sampledValues[0]);
     });
 
+    // A literal `numToSelect="0"` used to recurse without end while the
+    // document's variants were counted (#2356). Selecting nothing is one
+    // outcome, so the component adds a single variant, and it selects
+    // nothing, the same as it does when `numToSelect` is a reference to 0.
+    it("literal numToSelect=0 selects nothing and adds one variant", async () => {
+        const zeroSelects = [
+            `<select name="z" numToSelect="0">a b</select>`,
+            `<select name="z" numToSelect="0" withReplacement>a b</select>`,
+            `<select name="z" numToSelect="0"><option><p>a</p></option><option><p>b</p></option></select>`,
+            `<select name="z" numToSelect="0"><option><selectFromSequence from="1" to="2" /></option><option>c</option></select>`,
+            `<selectFromSequence name="z" numToSelect="0" from="1" to="5" />`,
+            `<selectFromSequence name="z" numToSelect="0" withReplacement from="1" to="5" />`,
+            `<selectPrimeNumbers name="z" numToSelect="0" minValue="2" maxValue="20" />`,
+            `<selectPrimeNumbers name="z" numToSelect="0" withReplacement minValue="2" maxValue="20" />`,
+        ];
+
+        for (const zeroSelect of zeroSelects) {
+            const sampledValues: string[] = [];
+            for (let ind = 1; ind <= 3; ind++) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<p>${zeroSelect}</p><select name="x">u v w</select>`,
+                    requestedVariantIndex: ind,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("_document1")]
+                        .sharedParameters.allPossibleVariants,
+                    zeroSelect,
+                ).eqls(["a", "b", "c"]);
+
+                const z = stateVariables[await resolvePathToNodeIdx("z")];
+                expect(z.replacements ?? [], zeroSelect).eqls([]);
+                if (z.componentType === "select") {
+                    expect(z.stateValues.selectedIndices).eqls([]);
+                } else {
+                    expect(z.stateValues.selectedValues).eqls([]);
+                }
+                expect(z.stateValues.errorMessage, zeroSelect).eq("");
+
+                sampledValues.push(
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "x[1][1]",
+                        )
+                    ).stateValues.value.tree,
+                );
+            }
+            expect(sampledValues.sort(), zeroSelect).eqls(["u", "v", "w"]);
+        }
+    });
+
     it("no variant control, select and selectFromSequence", async () => {
         let doenetML = `
         <select name="x">u v w</select>

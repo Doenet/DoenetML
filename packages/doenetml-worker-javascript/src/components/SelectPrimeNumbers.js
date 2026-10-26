@@ -480,12 +480,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         if (withReplacement || numToSelect === 1) {
             numVariants = Math.pow(primes.length, numToSelect);
         } else {
-            numVariants = primes.length;
-            for (
-                let n = primes.length - 1;
-                n > primes.length - numToSelect;
-                n--
-            ) {
+            // An empty product when numToSelect is 0: one way to select nothing
+            numVariants = 1;
+            for (let n = primes.length; n > primes.length - numToSelect; n--) {
                 numVariants *= n;
             }
         }
