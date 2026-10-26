@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-The `modifyIndirectly` attribute has been removed. It was already left out of the schema, so the editor never suggested it, but a component still honored it. A component that has it now ignores it and warns: `Attribute modifyIndirectly on <mathInput> is deprecated and ignored. To keep the components that use this value from changing it, add fixed to them. To keep users from changing an input, use disabled.` The `modifyIndirectly` property is gone too.
+The `modifyIndirectly` attribute has been removed. It was already left out of the schema, so the editor never suggested it, but a component still honored it. A component that has it now ignores it and warns: `Attribute modifyIndirectly on <mathInput> is deprecated and ignored. To keep the components that use this value from changing it, add fixed to them. To keep users from changing an input, use disabled.` The `modifyIndirectly` property is gone too, so a reference such as `$P.modifyIndirectly` now behaves like a reference to any property a component does not have.
 
 `modifyIndirectly="false"` refused the changes that reached a component through the components that use its value, such as dragging a point that reads a `<mathInput>`, while still letting a user type into the input. `fixed` on the components that use the value refuses the same changes. For example, replace
 

@@ -898,7 +898,9 @@ deprecated-attribute-value-renamed = [deprecation] Value `{ $value }` of attribu
 
 # `modifyIndirectly`, which any component accepted, is dropped. $component is
 # the tag name it was written on and stays as written, as do `modifyIndirectly`,
-# `fixed` and `disabled`, which are attribute names.
+# `fixed` and `disabled`, which are attribute names. "This value" is the value
+# of that component, and "them" the other components that use it: `fixed` goes
+# on those, not on the component the warning names.
 
 deprecated-attribute-modify-indirectly = [deprecation] Attribute `modifyIndirectly` on `<{ $component }>` is deprecated and ignored. To keep the components that use this value from changing it, add `fixed` to them. To keep users from changing an input, use `disabled`.
 

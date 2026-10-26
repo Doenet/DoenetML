@@ -462,7 +462,9 @@ function findAttributeKey(
  * 2. Emits warning error nodes for all deprecation issues
  * 3. Automatically appends warnings to the document element for diagnostics
  *
- * Define new deprecations in DEPRECATION_REGISTRY. This plugin runs during
+ * Define new deprecations in DEPRECATION_REGISTRY. The one exception is
+ * `modifyIndirectly` (see applyModifyIndirectlyRemoval), which applies to
+ * every element rather than to a list of components. This plugin runs during
  * DAST normalization after all initial structure validation, allowing
  * deprecated syntax to be migrated while still alerting users.
  */
@@ -628,7 +630,13 @@ function applyAttributeValueRenames(node: DastElement, warnings: DastError[]) {
  * change it directly. `fixed` on those components refuses the same writes
  * where they start, so the warning points there; an author who set it on an
  * input to lock the input wanted `disabled`, so the warning names that too.
- * It is not scoped to a component, as every component accepted it.
+ *
+ * It lives outside DEPRECATION_REGISTRY because the registry is keyed by
+ * component, and every component accepted `modifyIndirectly` (it was declared
+ * on `BaseComponent`), so the rule matches any element, including one that is
+ * not a component, which is reported as invalid anyway. It also has a code of
+ * its own, rather than `doenet-w0110`, so that its message can say what to
+ * write instead.
  */
 function applyModifyIndirectlyRemoval(
     node: DastElement,
