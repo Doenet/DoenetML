@@ -4438,15 +4438,22 @@ export function addChildrenFromComposite({
         );
     }
 
-    // An unlinked copy given its source's seed (`copyVariants`) keeps its
-    // source's random choices through the subvariants of that seed's
-    // variant. A random child added to the copy has none, so it can draw
-    // from the source's seed and repeat a choice the source made with it.
-    // The copy draws from a seed of its own instead, made from the source's
-    // so that it is the same for a given variant.
+    // An unlinked `<group copy>` given its source's variant (`copyVariants`)
+    // hands the subvariants of that variant to its source's random
+    // descendants, which keeps their choices. A random child added to the
+    // copy gets no subvariant, so it draws from the source's seed and can
+    // repeat a choice the source made with it. The copy draws from a seed
+    // of its own instead, made from the source's so that it is the same for
+    // a given variant. Only a group is changed: other components, such as a
+    // `<conditionalContent>`, make their random choices from the seed
+    // itself, so a new seed would change the choices copied from the source.
     const desiredVariant = repl.variants?.desiredVariant;
     if (
         desiredVariant?.seed !== undefined &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: repl.componentType,
+            baseComponentType: "group",
+        }) &&
         gatherVariantComponents({
             // it marks what it gathers, which is left to the copy's setup
             serializedComponents: deepClone(newChildren),

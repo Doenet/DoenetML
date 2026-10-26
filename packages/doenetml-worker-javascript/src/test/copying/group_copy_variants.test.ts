@@ -111,6 +111,23 @@ describe("Unlinked group copies of random choices @group3", async () => {
         // and differs between variants
         expect(new Set(addedValues).size).eq(variantIndices.length);
     });
+    it("an unlinked conditionalContent copy keeps its source's random value", async () => {
+        // The copy is given an empty case as a child, which must not give it
+        // a seed of its own, as its case draws from its seed.
+        const doenetML = `
+<conditionalContent name="c" condition="true"><selectFromSequence name="n" from="1" to="1000"/></conditionalContent>
+<conditionalContent copy="$c" name="c2"/>
+`;
+        for (const requestedVariantIndex of variantIndices) {
+            const [n, n2] = await selectedValues({
+                doenetML,
+                requestedVariantIndex,
+                names: ["c.n", "c2.n"],
+            });
+            expect(n2, `variant ${requestedVariantIndex}`).eq(n);
+        }
+    });
+
     it("a random child added to a group copy keeps its value through a reload", async () => {
         const doenetML = `
 <p><group name="g"><selectFromSequence name="x" from="1" to="1000"/> <mathInput name="mi" prefill="1"/></group></p>
