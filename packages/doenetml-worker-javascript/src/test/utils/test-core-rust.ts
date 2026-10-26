@@ -69,6 +69,7 @@ export class StaleSnapshotRead extends Error {
  * Passing one is a gap, not something to silently ignore.
  */
 const UNSUPPORTED_OPTIONS = [
+    "requestedVariant",
     "theme",
     "documentLocale",
     "localeResources",

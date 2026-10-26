@@ -81,6 +81,7 @@ export async function createTestCore({
         return (await createTestCoreRust({
             doenetML,
             requestedVariantIndex,
+            requestedVariant,
             flags: specifiedFlags,
             theme,
             documentLocale,
