@@ -1129,11 +1129,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <mathInput name="sp" bindValueTo="$p" />
     `,
             });
+            const a0Idx = await resolvePathToNodeIdx("a0");
             const aIdx = await resolvePathToNodeIdx("a");
             const bIdx = await resolvePathToNodeIdx("b");
 
             // the reference to `a` answers `canBeModified` from `a`'s
-            // `fixed`, so the sum's inverse writes `b`
+            // `fixed`, so the sum's inverse writes `b`, and the input `a`
+            // reads keeps its value
             await updateMathInputValue({
                 latex: "10",
                 componentIdx: await resolvePathToNodeIdx("s"),
@@ -1143,6 +1145,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 false,
                 true,
             );
+            expect(stateVariables[a0Idx].stateValues.value.tree).eq(2);
             expect(stateVariables[aIdx].stateValues.value.tree).eq(2);
             expect(stateVariables[bIdx].stateValues.value.tree).eq(8);
 
@@ -1153,6 +1156,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[a0Idx].stateValues.value.tree).eq(2);
             expect(stateVariables[aIdx].stateValues.value.tree).eq(2);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
