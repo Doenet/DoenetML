@@ -25,7 +25,39 @@ Each decision gives:
   with. Measure an alternative against a base that keeps those.
 - **Exercised by**: the shapes (see [Method](#method)) where its effect
   should show.
-- **Result**: filled in when measured.
+- **Result**: what was measured; the sections under [Results](#results)
+  have the tables.
+
+## Summary
+
+Every decision was measured against at least one alternative; the plan
+is done ([Plan](#plan)). What each buys, as the alternative's tick over
+the core's (above 1, the decision makes the tick faster), on the shapes
+at 10,000 and 100,000, natively. Where a decision's worth depends on
+the evaluator, both are given.
+
+| # | Decision | Against | What it buys |
+|---|---|---|---|
+| 9 | a fixed push schedule | finding the order at run time | 2.6 to 5 times; 110 to 870 where early cutoff stops a change. Lazy pull wins only by computing less, which pruned push does faster still |
+| 8 | references alias a cell | an identity instruction per reference | 2 times on the shapes and the golden set, 4.5 to 6.3 on refs; `sir.doenet` has 5.1 times the instructions without it |
+| 2 | operators are data | operators as code | 1.2 to 5 times for dispatch alone (full recompute); state variable functions, as a lower bound, 2 to 12 times |
+| 4 | contiguous storage | an allocation per value | 1.04 to 1.8 times when allocated in order; 2.4 to 3 when scattered (full recompute, 100,000) |
+| 1 | one store, apart from the graph | a value per node | 1.4 to 3.1 times (dirty closure) |
+| 11 | early cutoff | marking every reader | 420 to 650 times where a change stops; costs up to 10% where none does |
+| 6 | untagged `f64` | a tag, an enum | 1.12 to 1.55 times for the check on every read; 16 bytes alone 1.05 to 1.36 (full recompute) |
+| 10 | the dirty closure, by bitset | full recompute; a priority queue | wins as much as the program is large when little is downstream, loses 2.5 to 4 times when all of it is (break-even near 15 to 20%); the bitset beats a queue 2.4 to 5.5 times on fans |
+| 5 | every cell 8 bytes, expressions by handle | expressions stored inline | at most 1.08 on symbolic ticks, which the engine dominates |
+| 7 | one cell per scalar | a point as one value | at most 1.07, on coords |
+| 3 | fine-grained operators | a unit per value's expression | costs: coarse units are 2 to 2.6 times faster under a dirty closure where a value is several instructions |
+
+So the tick is fast mostly because of five decisions that compound:
+the order is fixed when the document is built (9), references cost
+nothing (8), operators are data (2), and values sit in one contiguous
+array apart from the graph (1, 4). Early cutoff (11) is what makes the
+dirty closure (10) pay where a change stops; where it does not, the
+dirty closure is slower than running everything. The size, tag and
+granularity of a cell (5, 6, 7) matter by tens of percent, and the fine
+grain of operators (3) costs rather than buys in the tick.
 
 ## The decisions
 
