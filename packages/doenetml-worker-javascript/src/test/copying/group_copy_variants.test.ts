@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -109,5 +110,52 @@ describe("Unlinked group copies of random choices @group3", async () => {
 
         // and differs between variants
         expect(new Set(addedValues).size).eq(variantIndices.length);
+    });
+    it("a random child added to a group copy keeps its value through a reload", async () => {
+        const doenetML = `
+<p><group name="g"><selectFromSequence name="x" from="1" to="1000"/> <mathInput name="mi" prefill="1"/></group></p>
+<p><group copy="$g" name="g2"> <selectFromSequence name="z" from="1" to="1000"/></group></p>
+`;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            requestedVariantIndex: 2,
+        });
+        async function values() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return {
+                x: (await sv("g.x")).selectedValues[0],
+                x2: (await sv("g2.x")).selectedValues[0],
+                z: (await sv("z")).selectedValues[0],
+                mi2: (await sv("g2.mi")).value.tree,
+            };
+        }
+        const initial = await values();
+        expect(initial.x2).eq(initial.x);
+        expect(initial.z).not.eq(initial.x);
+
+        // a change to the source makes the save hold the copy's snapshot
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("g.mi"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("g2.mi"),
+            core,
+        });
+        await core.saveImmediately();
+
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            requestedVariantIndex: 2,
+            initialState: scoreState.state,
+        }));
+        expect(await values()).eqls({ ...initial, mi2: 7 });
     });
 });

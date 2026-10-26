@@ -4440,8 +4440,8 @@ export function addChildrenFromComposite({
 
     // An unlinked copy given its source's seed (`copyVariants`) keeps its
     // source's random choices through the subvariants of that seed's
-    // variant. A random child added to the copy has none, so it would draw
-    // from the source's seed, repeating a choice the source made with it.
+    // variant. A random child added to the copy has none, so it can draw
+    // from the source's seed and repeat a choice the source made with it.
     // The copy draws from a seed of its own instead, made from the source's
     // so that it is the same for a given variant.
     const desiredVariant = repl.variants?.desiredVariant;
