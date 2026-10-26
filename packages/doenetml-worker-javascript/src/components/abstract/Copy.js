@@ -906,7 +906,8 @@ export default class Copy extends CompositeComponent {
         };
 
         // The `<select>`s among the descendants of the target of an unlinked
-        // copy (see `unlinkedSelectsExpanded`).
+        // copy, including those in the replacements of composites (see
+        // `unlinkedSelectsExpanded`). Empty for a linked copy.
         stateVariableDefinitions.unlinkedSelectDescendants = {
             stateVariablesDeterminingDependencies: ["extendIdx", "link"],
             returnDependencies({ stateValues }) {
@@ -935,21 +936,24 @@ export default class Copy extends CompositeComponent {
         };
 
         // An unlinked copy gives each `<select>` in its target the variant
-        // the select generated (`copyVariants`). The variant holds the random
-        // choices in the selected options only once the select has made them
-        // from its options, which it does when it is expanded. A select that
-        // is not a replacement of the target (one in a `<div>` in a copied
-        // `<group>`) may not be expanded yet, so the copy waits for it, and
-        // for each select in the options it chose, to be expanded
-        // (`Select.expandedWithSelectsInReplacements`). Otherwise the copy's
-        // select would make those choices anew.
-        // This variable will be a dependency of `readyToExpandWhenResolved`
+        // the select generated (`copyVariants`). That variant holds the
+        // random choices in the content of the chosen options only once the
+        // select has created that content, which it does when it is
+        // expanded. `unlinkedTargetsExpanded` expands only the target's
+        // replacements, recursively, so a select that is not among them (one
+        // in a `<div>` in a copied `<group>`, or in the chosen option of
+        // another select) may not be expanded yet. The copy waits for each
+        // select, and each select in the content of the options it chose,
+        // to be expanded (`Select.expandedWithSelectsInReplacements`).
+        // Otherwise the copy's select would make those choices anew.
+        // For unlinked copies, this variable is a dependency of
+        // `readyToExpandWhenResolved`.
         stateVariableDefinitions.unlinkedSelectsExpanded = {
             stateVariablesDeterminingDependencies: [
                 "unlinkedSelectDescendants",
             ],
             returnDependencies({ stateValues }) {
-                let dependencies = {};
+                const dependencies = {};
                 for (const selectIdx of stateValues.unlinkedSelectDescendants) {
                     dependencies[`selectExpanded${selectIdx}`] = {
                         dependencyType: "stateVariable",
