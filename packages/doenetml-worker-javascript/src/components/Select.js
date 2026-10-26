@@ -564,6 +564,61 @@ export default class Select extends CompositeComponent {
             },
         };
 
+        // The `<select>`s in the content of the options this select chose.
+        // The `replacements` dependency is there only to expand this select,
+        // since the descendants found from it are those of its replacements.
+        stateVariableDefinitions.selectsInReplacements = {
+            returnDependencies: ({ componentIdx }) => ({
+                replacements: {
+                    dependencyType: "replacement",
+                    compositeIdx: componentIdx,
+                    recursive: true,
+                    recurseNonStandardComposites: true,
+                },
+                selectDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["select"],
+                    useReplacementsForComposites: true,
+                    includeNonActiveChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        selectsInReplacements:
+                            dependencyValues.selectDescendants.map(
+                                (select) => select.componentIdx,
+                            ),
+                    },
+                };
+            },
+        };
+
+        // Resolved once this select, and each select in the content of the
+        // options it chose, is expanded, so that its `generatedVariantInfo`
+        // holds the random choices in that content. An unlinked copy of a
+        // component holding this select waits for it
+        // (`Copy.unlinkedSelectsExpanded`).
+        stateVariableDefinitions.expandedWithSelectsInReplacements = {
+            stateVariablesDeterminingDependencies: ["selectsInReplacements"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {};
+                for (const selectIdx of stateValues.selectsInReplacements) {
+                    dependencies[`selectExpanded${selectIdx}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: selectIdx,
+                        variableName: "expandedWithSelectsInReplacements",
+                    };
+                }
+                return dependencies;
+            },
+            definition() {
+                return {
+                    setValue: { expandedWithSelectsInReplacements: true },
+                };
+            },
+        };
+
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
                 selectedIndices: {
