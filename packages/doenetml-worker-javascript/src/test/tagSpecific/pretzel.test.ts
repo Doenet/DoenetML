@@ -1043,9 +1043,59 @@ describe("Pretzel tag tests @group1", async () => {
                     indices: subvariant.indices,
                 })),
             ).eqls(expected);
+
+            // Passing the document's reported variant back, as a host does
+            // to reload a saved variant, reproduces the same document.
+            const reloaded = await createTestCore({
+                doenetML,
+                requestedVariant:
+                    stateVariables[await resolvePathToNodeIdx("_document1")]
+                        .stateValues.generatedVariantInfo,
+            });
+            const reloadedStateVariables =
+                await reloaded.core.returnAllStateVariables(false, true);
+            expect(
+                reloadedStateVariables[await reloaded.resolvePathToNodeIdx("p")]
+                    .stateValues.problemOrder,
+            ).eqls(pretzel.stateValues.problemOrder);
+            for (const { createdBy, indices } of expected) {
+                expect(
+                    reloadedStateVariables[createdBy].stateValues
+                        .selectedIndices,
+                ).eqls(indices);
+            }
         }
         // Both problem orders occur, so the check covers an order in which
         // the problems are shown out of their own order.
         expect(problemOrders.size).eq(2);
+    });
+
+    it("a copy of a pretzel reports the subvariants of its own random choices", async () => {
+        // A copy's arranger is not set up from problems, so it keeps its
+        // subvariants in display order rather than dropping them.
+        const { core } = await createTestCore({
+            doenetML: `
+    <pretzel name="p">
+        <problem><statement><p>P1 <selectFromSequence from="1" to="5"/></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2 <selectFromSequence from="21" to="23"/></p></statement><answer>A2</answer></problem>
+    </pretzel>
+    <section>$p</section>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const arrangers = Object.values(stateVariables).filter(
+            (component) => component.componentType === "_pretzelArranger",
+        );
+        expect(arrangers.length).eq(2);
+        for (const arranger of arrangers) {
+            const subvariants =
+                arranger.stateValues.generatedVariantInfo.subvariants;
+            expect(subvariants.length).eq(2);
+            for (const subvariant of subvariants) {
+                expect(
+                    stateVariables[subvariant.meta.createdBy].componentType,
+                ).eq("selectFromSequence");
+            }
+        }
     });
 });
