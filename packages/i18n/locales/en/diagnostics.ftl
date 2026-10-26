@@ -869,8 +869,8 @@ external-doenetml-type-mismatch = Invalid DoenetML retrieved from { $attribute }
 # as written. $component is `none` for a rename that applies to every component
 # accepting the attribute, where naming one would be wrong.
 #
-# The `[deprecation]` opening is a literal marker shared by all four messages,
-# not a word: leave it as it is.
+# The `[deprecation]` opening is a literal marker shared by all the messages
+# in this group, not a word: leave it as it is.
 
 deprecated-attribute-renamed =
     { $component ->
@@ -897,6 +897,14 @@ deprecated-attribute-to-child = [deprecation] Attribute `{ $attribute }` on `<{ 
 # $attribute and $component naming where. All four stay as written.
 
 deprecated-attribute-value-renamed = [deprecation] Value `{ $value }` of attribute `{ $attribute }` on `<{ $component }>` is deprecated; use `{ $to }` instead.
+
+# `modifyIndirectly`, which any component accepted, is dropped. $component is
+# the tag name it was written on and stays as written, as do `modifyIndirectly`,
+# `fixed` and `disabled`, which are attribute names. "This value" is the value
+# of that component, and "them" the other components that use it: `fixed` goes
+# on those, not on the component the warning names.
+
+deprecated-attribute-modify-indirectly = [deprecation] Attribute `modifyIndirectly` on `<{ $component }>` is deprecated and ignored. To keep the components that use this value from changing it, add `fixed` to them. To keep users from changing an input, use `disabled`.
 
 
 ## Language coverage

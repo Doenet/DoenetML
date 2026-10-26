@@ -1118,21 +1118,24 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq(5);
         });
 
-        it("a referent that may not be modified indirectly is left alone, and the write goes to the other operand", async () => {
+        it("a fixed referent is left alone, and the write goes to the other operand", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathInput name="a" modifyIndirectly="false">2</mathInput>
+    <mathInput name="a0">2</mathInput>
+    <math name="a" fixed>$a0</math>
     <mathInput name="b">3</mathInput>
     <mathInput name="s" bindValueTo="$a+$b" />
     <math name="p">2$a</math>
     <mathInput name="sp" bindValueTo="$p" />
     `,
             });
+            const a0Idx = await resolvePathToNodeIdx("a0");
             const aIdx = await resolvePathToNodeIdx("a");
             const bIdx = await resolvePathToNodeIdx("b");
 
             // the reference to `a` answers `canBeModified` from `a`'s
-            // `modifyIndirectly`, so the sum's inverse writes `b`
+            // `fixed`, so the sum's inverse writes `b`, and the input `a`
+            // reads keeps its value
             await updateMathInputValue({
                 latex: "10",
                 componentIdx: await resolvePathToNodeIdx("s"),
@@ -1142,6 +1145,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 false,
                 true,
             );
+            expect(stateVariables[a0Idx].stateValues.value.tree).eq(2);
             expect(stateVariables[aIdx].stateValues.value.tree).eq(2);
             expect(stateVariables[bIdx].stateValues.value.tree).eq(8);
 
@@ -1152,6 +1156,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[a0Idx].stateValues.value.tree).eq(2);
             expect(stateVariables[aIdx].stateValues.value.tree).eq(2);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
@@ -3487,12 +3492,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ).eqls([2, 3]);
             });
 
-            it("a math holding an entry of a list that is not modified indirectly solves for its other operands", async () => {
-                // The list's `modifyIndirectly` refuses the write to the
-                // entry, so the math must not try it.
+            it("a math holding an entry of a fixed list solves for its other operands", async () => {
+                // The list's `fixed` refuses the write to the entry, so the
+                // math must not try it.
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
-    <numberList name="l" modifyIndirectly="false">2 3</numberList>
+    <numberList name="l" fixed>2 3</numberList>
     <graph>
       <point name="P">($q$l[1], 1)</point>
     </graph>

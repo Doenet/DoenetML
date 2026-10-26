@@ -843,21 +843,6 @@ export class EssentialValueWriter {
             }
         }
 
-        if (!(
-            initialChange ||
-            // a write to a literal attribute (`literalAttribute.ts`): its
-            // attribute component took it whatever the owner's
-            // `modifyIndirectly`, since it had its own, true by default,
-            // which it did not take from the owner
-            stateVariable === "literalAttributeWrites" ||
-            (await component.stateValues.modifyIndirectly) !== false
-        )) {
-            reportInternalError(
-                `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
-            );
-            return;
-        }
-
         let inverseResult = await stateVarObj.inverseDefinition(
             inverseDefinitionArgs,
         );

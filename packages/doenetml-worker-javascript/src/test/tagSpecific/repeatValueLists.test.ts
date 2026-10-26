@@ -643,10 +643,10 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ p: "7, 7, 7", p2: "1, 4, 9" });
     });
 
-    it("a list read with modifyIndirectly false takes no write, so the other value does", async () => {
+    it("a fixed list takes no write, so the other value does", async () => {
         const texts = await compare({
             doenetML: `
-<numberList name="l" modifyIndirectly="false">1 2 3</numberList>
+<numberList name="l" fixed>1 2 3</numberList>
 <number name="c">5</number>
 <p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><number>$l[$i] + $c</number></repeatForSequence></p>
 <mathInput name="mi" bindValueTo="$r[2]" />

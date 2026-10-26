@@ -54,17 +54,6 @@ describe("excludeFromSchema on state variables (#1089)", () => {
             );
         });
 
-        it("hides modifyIndirectly globally (excluded on the base attribute)", () => {
-            // `modifyIndirectly` is defined on `BaseComponent` with
-            // `excludeFromSchema: true`. No element should expose it.
-            const schema = getSchema(infoObjects);
-            for (const el of schema.elements) {
-                expect(
-                    el.properties.find((p) => p.name === "modifyIndirectly"),
-                ).toBe(undefined);
-            }
-        });
-
         it("hides permid and isPotentialResponse globally (both excluded on BaseComponent)", () => {
             // Both attributes are declared on `BaseComponent` with
             // `excludeFromSchema: true` and a `createStateVariable`, so
@@ -195,12 +184,6 @@ describe("excludeFromSchema on state variables (#1089)", () => {
                         (p) => p.name === "isPotentialResponse",
                     ),
                     `${name}.isPotentialResponse property should be excluded`,
-                ).toBe(undefined);
-                expect(
-                    aliased.properties.find(
-                        (p) => p.name === "modifyIndirectly",
-                    ),
-                    `${name}.modifyIndirectly property should be excluded`,
                 ).toBe(undefined);
             }
         });

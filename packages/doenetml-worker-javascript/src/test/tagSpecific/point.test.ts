@@ -417,20 +417,6 @@ describe("Point tag tests @group4", async () => {
         }
     }
 
-    it("test invertible due to modifyIndirectly", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-  <graph>
-    <point name="P">
-        (0.5<math name="m1">2</math><math name="m2" modifyIndirectly="false">3</math>, <math name="y">1</math>)
-    </point>
-  </graph>
-  `,
-        });
-
-        await test_invertible(core, resolvePathToNodeIdx);
-    });
-
     it("test invertible due to fixed", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

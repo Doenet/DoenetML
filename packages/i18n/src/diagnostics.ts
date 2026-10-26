@@ -265,7 +265,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0174": "prefigure-vector-field-normalize-unequal-scales",
     "doenet-w0175": "prefigure-field-line-style-ignored",
     "doenet-w0176": "pretzel-problem-copy-not-supported",
-    "doenet-w0177": "pretzel-extend-changes-ignored",
+    "doenet-w0177": "deprecated-attribute-modify-indirectly",
+    "doenet-w0178": "pretzel-extend-changes-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

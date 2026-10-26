@@ -462,7 +462,9 @@ function findAttributeKey(
  * 2. Emits warning error nodes for all deprecation issues
  * 3. Automatically appends warnings to the document element for diagnostics
  *
- * Define new deprecations in DEPRECATION_REGISTRY. This plugin runs during
+ * Define new deprecations in DEPRECATION_REGISTRY. The one exception is
+ * `modifyIndirectly` (see applyModifyIndirectlyRemoval), which applies to
+ * every element rather than to a list of components. This plugin runs during
  * DAST normalization after all initial structure validation, allowing
  * deprecated syntax to be migrated while still alerting users.
  */
@@ -478,6 +480,7 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
             applyAttributeRenames(node, warnings);
             applyAttributeRemovals(node, warnings);
             applyAttributeValueRenames(node, warnings);
+            applyModifyIndirectlyRemoval(node, warnings);
         });
 
         if (warnings.length > 0) {
@@ -616,6 +619,54 @@ function applyAttributeValueRenames(node: DastElement, warnings: DastError[]) {
             }),
         );
     }
+}
+
+/**
+ * Drop `modifyIndirectly`, from any component, with a warning that says what
+ * to write instead (#2336).
+ *
+ * `modifyIndirectly="false"` refused the writes that reached a component
+ * through the components that use its value, while still letting a user
+ * change it directly. `fixed` on those components refuses the same writes
+ * where they start, so the warning points there; an author who set it on an
+ * input to lock the input wanted `disabled`, so the warning names that too.
+ *
+ * It lives outside DEPRECATION_REGISTRY because the registry is keyed by
+ * component, and every component accepted `modifyIndirectly` (it was declared
+ * on `BaseComponent`), so the rule matches any element, including one that is
+ * not a component, which is reported as invalid anyway. It also has a code of
+ * its own, rather than `doenet-w0110`, so that its message can say what to
+ * write instead.
+ *
+ * When this deprecation is removed, also remove `"modifyindirectly"` from
+ * `RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA` in
+ * `lsp-tools/src/auto-completer/module-attributes.ts` (and from its test).
+ * It is reserved there only because this rule drops the attribute from
+ * every element, a `<module>` included.
+ */
+function applyModifyIndirectlyRemoval(
+    node: DastElement,
+    warnings: DastError[],
+) {
+    const actualKey = findAttributeKey(node, "modifyindirectly");
+    if (!actualKey) {
+        return;
+    }
+
+    const attribute = node.attributes[actualKey];
+    const position = attribute.position ?? node.position;
+    const source_doc = attribute.source_doc ?? node.source_doc;
+
+    delete node.attributes[actualKey];
+    warnings.push(
+        deprecationWarning({
+            code: "doenet-w0177",
+            message: `[deprecation] Attribute \`modifyIndirectly\` on \`<${node.name}>\` is deprecated and ignored. To keep the components that use this value from changing it, add \`fixed\` to them. To keep users from changing an input, use \`disabled\`.`,
+            args: { component: node.name },
+            position,
+            source_doc,
+        }),
+    );
 }
 
 /**

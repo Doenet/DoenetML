@@ -897,10 +897,6 @@ export default class NumberComponent extends InlineComponent {
                     childGroups: ["numbers"],
                     variableNames: ["canBeModified"],
                 },
-                modifyIndirectly: {
-                    dependencyType: "stateVariable",
-                    variableName: "modifyIndirectly",
-                },
                 fixed: {
                     dependencyType: "stateVariable",
                     variableName: "fixed",
@@ -916,7 +912,6 @@ export default class NumberComponent extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 if (
-                    !dependencyValues.modifyIndirectly ||
                     dependencyValues.fixed ||
                     !(
                         dependencyValues.singleNumberOrStringChild ||

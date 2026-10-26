@@ -59,7 +59,6 @@ export default class Copy extends CompositeComponent {
         // delete off attributes from base component that should apply to replacements instead
         // (using acceptAnyAttribute)
         delete attributes.disabled;
-        delete attributes.modifyIndirectly;
         delete attributes.fixed;
         delete attributes.fixLocation;
         delete attributes.styleNumber;

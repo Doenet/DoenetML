@@ -11606,9 +11606,65 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(6);
     });
 
+    it("a fixed point follows the mathInputs it reads, but a drag does not change them", async () => {
+        // Typing into the inputs moves the point; dragging the point is
+        // refused, so it never rewrites what was typed.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="userX" prefill="1" />
+    <mathInput name="userY" prefill="2" />
+    <graph>
+    <point name="B" fixed>($userX, $userY)</point>
+    </graph>
+    `,
+        });
+
+        async function check_items(x: number, y: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("userX")].stateValues
+                    .value.tree,
+            ).eq(x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("userY")].stateValues
+                    .value.tree,
+            ).eq(y);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("B")
+                ].stateValues.xs.map((v) => v.tree),
+            ).eqls([x, y]);
+        }
+
+        await check_items(1, 2);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("userX"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "-4",
+            componentIdx: await resolvePathToNodeIdx("userY"),
+            core,
+        });
+        await check_items(3, -4);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("B"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        await check_items(3, -4);
+    });
+
     it("mathInput specifying point -- product, make invertible", async () => {
         // x-coordinate of a point is product of mathInputs
-        // Since one factor is marked with modifyIndirectly=false,
+        // Since one factor is fixed,
         // we leave that factor constant when changing the x-coordinate by dragging
         // and modify the other factor to match the new x-coordinate
 
@@ -11617,7 +11673,7 @@ describe("MathInput tag tests @group2", async () => {
     <mathInput name="a" prefill="-3"/>
     <mathInput name="b" prefill="2"/>
     <graph>
-    <point name="P">($a<math extend="$b" modifyIndirectly="false" />, -7)</point>
+    <point name="P">($a<math extend="$b" fixed />, -7)</point>
     </graph>
     `,
         });

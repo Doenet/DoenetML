@@ -111,7 +111,6 @@ describe("value functions", () => {
             expressionWithCodes,
             codePre,
             childCanBeModified: [true],
-            modifyIndirectly: true,
             fixed: false,
             fixLocation: false,
         });
@@ -161,7 +160,6 @@ describe("value functions", () => {
             expressionWithCodes,
             codePre,
             childCanBeModified,
-            modifyIndirectly: true,
             fixed: false,
             fixLocation: false,
         });
@@ -192,7 +190,6 @@ describe("value functions", () => {
                 expressionWithCodes,
                 codePre,
                 childCanBeModified: [true],
-                modifyIndirectly: true,
                 fixed: false,
                 fixLocation: false,
             }).canBeModified,
@@ -248,7 +245,6 @@ describe("value functions", () => {
                 expressionWithCodes: me.fromText("x+1"),
                 codePre: "math",
                 childCanBeModified: [],
-                modifyIndirectly: true,
                 fixed: false,
                 fixLocation: false,
             }).canBeModified,
@@ -258,7 +254,6 @@ describe("value functions", () => {
                 expressionWithCodes: me.fromText("x+1"),
                 codePre: "math",
                 childCanBeModified: [],
-                modifyIndirectly: true,
                 fixed: true,
                 fixLocation: false,
             }).canBeModified,
@@ -310,7 +305,6 @@ describe("value functions", () => {
             expressionWithCodes,
             codePre,
             childCanBeModified,
-            modifyIndirectly: true,
             fixed: false,
             fixLocation: false,
         });

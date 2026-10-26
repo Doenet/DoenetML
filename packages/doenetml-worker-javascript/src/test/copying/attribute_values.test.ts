@@ -772,25 +772,6 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ]);
         });
 
-        it("a write to a literal attribute is not refused by its owner's modifyIndirectly", async () => {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <point name="P" draggable="true" modifyIndirectly="false">(1,2)</point>
-    <updateValue name="u" target="$P.draggable" newValue="false" type="boolean" />
-    `,
-            });
-            await core.requestAction({
-                componentIdx: await resolvePathToNodeIdx("u"),
-                actionName: "updateValue",
-                args: {},
-            });
-            expect(
-                (await core.returnAllStateVariables(false, true))[
-                    await resolvePathToNodeIdx("P")
-                ].stateValues.draggable,
-            ).eq(false);
-        });
-
         it("a write to a text literal that is not text is ignored", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

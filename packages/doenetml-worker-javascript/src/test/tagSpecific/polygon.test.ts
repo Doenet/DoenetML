@@ -827,9 +827,9 @@ describe("Polygon tag tests @group2", async () => {
     <polygon vertices=" (0,0) (3,-4) (1,-6) (-5,-6) " />
     <repeat hide for="$_polygon1.vertices" valueName="x">
         <point>(<math extend="$x.x" fixed="false" />+
-          <math modifyIndirectly="false" extend="$transx" />,
+          <math fixed extend="$transx" />,
           <math extend="$x.y" fixed="false" />+
-          <math modifyIndirectly="false" extend="$transy" />)
+          <math fixed extend="$transy" />)
         </point>
     </repeat>
     <polygon vertices="$_repeat1" />

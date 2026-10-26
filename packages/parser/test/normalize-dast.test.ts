@@ -458,6 +458,37 @@ describe("Normalize dast", async () => {
         );
     });
 
+    it("drops modifyIndirectly from any component, suggesting fixed and disabled", () => {
+        const source = `<mathInput name="x" modifyIndirectly="false"/><point ModifyIndirectly>($x, 1)</point>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><mathInput name="x" /><point>($x, 1)</point></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                code: "doenet-w0177",
+                args: { component: "mathInput" },
+                message:
+                    "[deprecation] Attribute `modifyIndirectly` on `<mathInput>` is deprecated and ignored. To keep the components that use this value from changing it, add `fixed` to them. To keep users from changing an input, use `disabled`.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                code: "doenet-w0177",
+                args: { component: "point" },
+            },
+        ]);
+        expect(warnings[0].position).toBeDefined();
+    });
+
     it("drops the section attributes a cascade no longer has", () => {
         const source = `<cascade name="c" boxed weight="2" forceIndividualAnswerColoring hideFutureSections><p>x</p></cascade>`;
         const dast = lezerToDast(source);

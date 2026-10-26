@@ -1569,7 +1569,6 @@ function _copyPassthroughAttributes(
     const attributesToCopy = [
         "forRenderer",
         "defaultValue",
-        "propagateToProps",
         ...(includeTriggerActionOnChange ? ["triggerActionOnChange"] : []),
         "ignoreFixed",
         "isLocation",

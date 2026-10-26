@@ -408,7 +408,7 @@ export default class Pretzel extends BlockScoredComponent {
                     diagnostics.push(
                         codedDiagnostic({
                             type: "warning",
-                            code: "doenet-w0177",
+                            code: "doenet-w0178",
                         }),
                     );
                 }

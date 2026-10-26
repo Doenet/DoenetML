@@ -579,7 +579,6 @@ export function invertRepeatTemplate({
         expressionWithCodes: node.expressionWithCodes,
         codePre: node.codePre,
         childCanBeModified,
-        modifyIndirectly: true,
         fixed: false,
         fixLocation: false,
     });
@@ -694,7 +693,6 @@ function canBeModified(code, context) {
         childCanBeModified: node.codes.map((inner) =>
             canBeModified(inner, context),
         ),
-        modifyIndirectly: true,
         fixed: false,
         fixLocation: false,
     }).canBeModified;
