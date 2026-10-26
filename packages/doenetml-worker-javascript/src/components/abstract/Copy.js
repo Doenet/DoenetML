@@ -939,12 +939,14 @@ export default class Copy extends CompositeComponent {
         // the select generated (`copyVariants`). That variant holds the
         // random choices in the content of the chosen options only once the
         // select has created that content, which it does when it is
-        // expanded. `unlinkedTargetsExpanded` expands only the target's
-        // replacements, recursively, so a select that is not among them (one
-        // in a `<div>` in a copied `<group>`, or in the chosen option of
-        // another select) may not be expanded yet. The copy waits for each
-        // select, and each select in the content of the options it chose,
-        // to be expanded (`Select.expandedWithSelectsInReplacements`).
+        // expanded. `unlinkedTargetsExpanded` expands the target's
+        // replacements, recursively, and `unlinkedDescendants` the composites
+        // among the target's own descendants. Neither reaches a select inside
+        // a replacement (one in a `<div>` in a copied `<group>`) or in the
+        // chosen option of another select, so such a select may not be
+        // expanded yet. The copy waits for each select, and each select in
+        // the content of the options it chose, to be expanded
+        // (`Select.expandedWithSelectsInReplacements`).
         // Otherwise the copy's select would make those choices anew.
         // For unlinked copies, this variable is a dependency of
         // `readyToExpandWhenResolved`.
