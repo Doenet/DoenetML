@@ -2622,6 +2622,8 @@ describe("Unique variant tests @group1", async () => {
             `<selectFromSequence name="z" numToSelect="0" withReplacement from="1" to="5" />`,
             `<selectPrimeNumbers name="z" numToSelect="0" minValue="2" maxValue="20" />`,
             `<selectPrimeNumbers name="z" numToSelect="0" withReplacement minValue="2" maxValue="20" />`,
+            `<select name="z" numToSelect="0">a b</select><select extend="$z" name="z2" /> $z`,
+            `<group name="g"><select name="z" numToSelect="0">a b</select></group><group extend="$g" name="g2" />`,
         ];
 
         for (const zeroSelect of zeroSelects) {
@@ -2663,6 +2665,33 @@ describe("Unique variant tests @group1", async () => {
             }
             expect(sampledValues.sort(), zeroSelect).eqls(["u", "v", "w"]);
         }
+    });
+
+    it("selectPrimeNumbers without replacement counts ordered selections", async () => {
+        // Two of the four primes 2, 3, 5, 7 in order: 4 * 3 = 12 variants
+        const doenetML = `<selectPrimeNumbers name="z" numToSelect="2" minValue="2" maxValue="7" />`;
+
+        const selections: string[] = [];
+        for (let ind = 1; ind <= 12; ind++) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: ind,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
+            ).eq(12);
+            selections.push(
+                stateVariables[
+                    await resolvePathToNodeIdx("z")
+                ].stateValues.selectedValues.join(","),
+            );
+        }
+        expect(new Set(selections).size).eq(12);
     });
 
     it("no variant control, select and selectFromSequence", async () => {
