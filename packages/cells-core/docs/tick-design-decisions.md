@@ -70,8 +70,8 @@ Each decision gives:
   whose own bookkeeping dilutes it, up to 1.2 and 2.3 times. In its
   full form, as a lower bound (step 14): a state variable's function per
   value, with its dependencies looked up by key on every evaluation, is
-  4 to 9.5 times the same evaluator running the same groups as data,
-  and 2.7 to 12 times the core's dirty closure. See
+  3.9 to 9.5 times the same evaluator running the same groups as data,
+  and 2.1 to 12 times the core's dirty closure. See
   [Decision 2: operators as code](#decision-2-operators-as-code) and
   [Decision 2: state variable functions](#decision-2-state-variable-functions)
   below.
@@ -1372,7 +1372,7 @@ unit, and when either changes, the readers of both are marked, as
 readers of the point would be. Every other instruction is a unit of its
 own, as in `single`. A first version marked through a different loop
 from `single` and came out 15 to 25% faster even where the units were
-the same; with one loop for both, `compound` is within 1% of `single`
+the same; with one loop for both, `compound` is within 3% of `single`
 wherever the units are the same (depth, breadth, refs, poly), as it
 should be.
 
@@ -1417,13 +1417,15 @@ time, and values held in objects.
 | poly | 10,000 | 611 | 333 | 1,301 | 3.87 | 2.13 |
 | poly | 100,000 | 7,657 | 4,996 | 20,497 | 4.12 | 2.66 |
 
-(Ratios are the median of the processes' own; each stayed within about
-10% of it. isolated and cutoff, ticks of a µs, came to 1.2 to 1.6.)
+(Ratios are the median of the processes' own. Functions over expression
+stayed within about 10% of it; functions over dirty varied more, depth
+at 100,000 from 6.4 to 8.7. isolated and cutoff, ticks of a µs, came to
+1.2 to 1.6.)
 
 What it shows:
 
 - A function per value, with its dependencies looked up and gathered on
-  every run, costs 4 to 9.5 times the same units run as data: two hash
+  every run, costs 3.9 to 9.5 times the same units run as data: two hash
   maps and a vector per evaluation, and a lookup per dependency, against
   a few instructions.
 - With step 5's dispatch alone (1.2 to 5 times on full recompute), this
@@ -1467,7 +1469,7 @@ What it shows:
 
 - Values and edges in scattered nodes cost the dirty closure 1.4 to 3.1
   times on every shape with work in it, about what decision 4's
-  scattered allocation cost (1.3 to 2.2 under the dirty closure), plus
+  scattered allocation cost (up to 2.2 under the dirty closure), plus
   the readers lists, each its own allocation. Most on fans and the page,
   where each step's reads land on many nodes.
 - This keeps the core's fixed order and its bitset; a core built around
