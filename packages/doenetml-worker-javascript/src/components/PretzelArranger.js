@@ -201,10 +201,14 @@ export default class PretzelArranger extends CompositeComponent {
     };
     static createsVariants = true;
 
-    static serializeReplacementsForChildren = true;
     static replacementsAlreadyInResolver = true;
 
-    static useSerializedChildrenComponentIndices = true;
+    // A copy of the arranger is made from its `<problem>` children, not from
+    // the content it displays, which it could not arrange again. A linked
+    // copy shows its source's replacements, which reuse the statements and
+    // answers of the source's problems, so it gives them the indices of the
+    // corresponding statements and answers of its own problems.
+    static mapShadowedReplacementIndicesThroughSerializedChildren = true;
 
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
@@ -472,9 +476,8 @@ export default class PretzelArranger extends CompositeComponent {
                 // as a desired variant (as when a saved variant is reloaded),
                 // gives each subvariant to the component that generated it.
                 // Reorder only if that order lists exactly the components
-                // found here. It does not for a copy of the arranger, whose
-                // serialized children are its source's replacements rather
-                // than problems, so its `setUpVariant` finds none.
+                // found here. It does not before the arranger is expanded,
+                // when none are found.
                 const arrangedVariantComponentIdxs =
                     dependencyValues.variants?.arrangedVariantComponentIdxs;
                 const subvariantByIdx = new Map(

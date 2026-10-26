@@ -422,6 +422,7 @@ export type MessageKey =
     | "slider-markers-type-mismatch"
     | "pretzel-problem-needs-statement-and-answer"
     | "pretzel-problem-copy-not-supported"
+    | "pretzel-extend-changes-ignored"
     | "pretzel-circuit-first-problem-distractor"
     | "attribute-invalid-values"
     | "attribute-must-be-references"
@@ -1070,6 +1071,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "slider-markers-type-mismatch",
     "pretzel-problem-needs-statement-and-answer",
     "pretzel-problem-copy-not-supported",
+    "pretzel-extend-changes-ignored",
     "pretzel-circuit-first-problem-distractor",
     "attribute-invalid-values",
     "attribute-must-be-references",
