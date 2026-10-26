@@ -131,6 +131,20 @@ describe("Copies of containers holding copies with added random children @group3
         });
     });
 
+    it("a copied div keeps the random child added to a p copy inside it, and a random value after it", async () => {
+        await checkContainerCopyKeepsValues({
+            doenetML: `
+<div name="s">
+  <p name="g"><selectFromSequence name="x" from="1" to="1000"/></p>
+  <p copy="$g" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+  <selectFromSequence name="w" from="1" to="1000"/>
+</div>
+<div copy="$s" name="s2"/>
+`,
+            names: ["g.x", "g2.x", "g2.z", "w"],
+        });
+    });
+
     it("a copied section keeps the random child added to a p copy inside it, and a random value after it", async () => {
         await checkContainerCopyKeepsValues({
             doenetML: `

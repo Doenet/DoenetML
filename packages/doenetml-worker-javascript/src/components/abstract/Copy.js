@@ -107,6 +107,28 @@ export default class Copy extends CompositeComponent {
         return attributes;
     }
 
+    /**
+     * Hand the subvariants of a variant this copy generated
+     * (`generatedVariantInfo`, one per random child added to it) to those
+     * added children, by position. The copy is given that variant when it is
+     * serialized with `copyVariants`, as when a container holding it that
+     * hands out no subvariants of its own (a `<p>`) is copied. An added child
+     * already handed a variant, by a container that does hand them out (a
+     * `<section>`) or by the document, keeps it.
+     */
+    static setUpVariant({ serializedComponent, descendantVariantComponents }) {
+        const subvariants =
+            serializedComponent.variants?.desiredVariant?.subvariants;
+        if (!subvariants) {
+            return;
+        }
+        for (const [ind, variantComponent] of descendantVariantComponents
+            .slice(0, subvariants.length)
+            .entries()) {
+            variantComponent.variants.desiredVariant ??= subvariants[ind];
+        }
+    }
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
