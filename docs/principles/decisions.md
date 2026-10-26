@@ -320,7 +320,7 @@ This is also the direction of ADRs 0013 and 0014.
   `($a,$a)` but the *last* for a typed math `($a,$a)`.
 - Text and boolean barely invert: `<text>Hello $t</text>` and `not $b` snap back.
 - `<number>` accepts "x" as NaN, while `<integer>` refuses 2.6.
-- Failed inverses and dropped writes to expression attributes are silent.
+- Failed inverses, including writes dropped by a boolean expression attribute, are silent.
 
 **Recommendations:**
 1. Every idempotent operator projects, then writes the projected value (ADR 0003).
