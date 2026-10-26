@@ -763,11 +763,7 @@ export default class Copy extends CompositeComponent {
         // just to make sure any composite descendants are expanded.
         // This variable will be a dependency of `readyToExpandWhenResolved`
         stateVariableDefinitions.unlinkedDescendants = {
-            stateVariablesDeterminingDependencies: [
-                "extendIdx",
-                "link",
-                "unlinkedTargetReplacements",
-            ],
+            stateVariablesDeterminingDependencies: ["extendIdx", "link"],
             returnDependencies({ stateValues }) {
                 let dependencies = {};
                 if (!stateValues.link) {
@@ -776,22 +772,6 @@ export default class Copy extends CompositeComponent {
                         ancestorIdx: stateValues.extendIdx,
                         componentTypes: ["_composite"],
                     };
-                    // A composite target keeps its children serialized and
-                    // copies its replacements (`<group>`), so the composites
-                    // inside them are not its descendants. They are expanded
-                    // here so that they are copied with their random choices
-                    // (`generatedVariantInfo`) rather than from their
-                    // serialized children, which hold none.
-                    for (const [
-                        ind,
-                        replacement,
-                    ] of stateValues.unlinkedTargetReplacements.entries()) {
-                        dependencies[`replacementDescendants${ind}`] = {
-                            dependencyType: "descendant",
-                            ancestorIdx: replacement.componentIdx,
-                            componentTypes: ["_composite"],
-                        };
-                    }
                 } else {
                     dependencies.targetItself = {
                         dependencyType: "componentIdentity",
@@ -813,9 +793,7 @@ export default class Copy extends CompositeComponent {
         // For unlinked copies, we create a dependency on target replacements
         // just to make sure any composite target is expanded.
         // This variable will be a dependency of `readyToExpandWhenResolved`
-        // (through `unlinkedDescendants`, which expands the composites
-        // inside the replacements).
-        stateVariableDefinitions.unlinkedTargetReplacements = {
+        stateVariableDefinitions.unlinkedTargetsExpanded = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
                 "link",
@@ -841,14 +819,8 @@ export default class Copy extends CompositeComponent {
                 }
                 return dependencies;
             },
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        unlinkedTargetReplacements: (
-                            dependencyValues.targetReplacements ?? []
-                        ).filter((x) => typeof x === "object"),
-                    },
-                };
+            definition() {
+                return { setValue: { unlinkedTargetsExpanded: true } };
             },
         };
 
@@ -880,6 +852,10 @@ export default class Copy extends CompositeComponent {
                     //   dependencyType: "stateVariable",
                     //   variableName: "propName",
                     // },
+                    unlinkedTargetsExpanded: {
+                        dependencyType: "stateVariable",
+                        variableName: "unlinkedTargetsExpanded",
+                    },
                     unlinkedDescendants: {
                         dependencyType: "stateVariable",
                         variableName: "unlinkedDescendants",

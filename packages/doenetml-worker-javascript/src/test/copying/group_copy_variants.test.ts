@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    submitAnswer,
+    updateMathInputValue,
+    updateSelectedIndices,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -177,6 +181,68 @@ describe("Unlinked group copies of random choices @group3", async () => {
             initialState: scoreState.state,
         }));
         expect(await values()).eqls({ ...initial, mi2: 7 });
+    });
+
+    it("a group copy's components keep their indices through a reload", async () => {
+        // The viewer finds a component by its index (`_id_<index>`), so a
+        // copy must make its components with the same indices when the page
+        // is loaded again, though references in its source (`$ci`) then have
+        // a value they did not have on the first load.
+        const doenetML = `
+    <group name="g">
+      <choiceInput shuffleOrder name="ci"><choice>a</choice><choice>b</choice><choice>c</choice></choiceInput>
+      <p name="p1">Selected value: $ci</p>
+      <p name="p2">Enter <selectFromSequence name="n" />. <answer name="ans">$n</answer></p>
+    </group>
+    <group extend="$g" name="g2" />
+    <group copy="$g" name="g3" />
+`;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function inputIndices() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const indices: number[] = [];
+            for (const name of ["g.ans", "g2.ans", "g3.ans"]) {
+                indices.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .inputChildren[0].componentIdx,
+                );
+            }
+            return { indices, stateVariables };
+        }
+        const initial = await inputIndices();
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: initial.indices[2],
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g3.ans"),
+            core,
+        });
+        const generatedVariantInfo = (
+            await core.returnAllStateVariables(false, true)
+        )[await resolvePathToNodeIdx("_document1")].stateValues
+            .generatedVariantInfo;
+        await core.saveImmediately();
+
+        // loaded again as the viewer loads a saved page
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            requestedVariant: JSON.parse(JSON.stringify(generatedVariantInfo)),
+            initialState: scoreState.state,
+        }));
+        expect((await inputIndices()).indices).eqls(initial.indices);
     });
 });
 
