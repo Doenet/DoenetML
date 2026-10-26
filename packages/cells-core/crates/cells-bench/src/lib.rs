@@ -4,6 +4,7 @@
 use std::path::PathBuf;
 
 pub mod script;
+pub mod shapes;
 
 /// The repository root (this crate sits at `crates/cells-bench`).
 pub fn repo_root() -> PathBuf {
