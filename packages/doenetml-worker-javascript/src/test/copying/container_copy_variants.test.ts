@@ -174,6 +174,38 @@ describe("Copies of containers holding copies with added random children @group3
         });
     });
 
+    it("a copied div keeps the random child added to a copy in a repeatForSequence inside it, and a random value after the copy", async () => {
+        await checkContainerCopyKeepsValues({
+            doenetML: `
+<div name="s">
+  <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
+  <repeatForSequence name="r" from="1" to="2">
+    <p copy="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+    <selectFromSequence name="q" from="1" to="1000"/>
+  </repeatForSequence>
+</div>
+<div copy="$s" name="s2"/>
+`,
+            names: ["r[1].g2.z", "r[1].q", "r[2].g2.z", "r[2].q"],
+        });
+    });
+
+    it("a copied div keeps the random child added to a copy in a repeat inside it, and a random value after the copy", async () => {
+        await checkContainerCopyKeepsValues({
+            doenetML: `
+<div name="s">
+  <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
+  <repeat name="r" for="1 2" valueName="v">
+    <p copy="$a" name="g2"><selectFromSequence name="z" from="1" to="1000"/></p>
+    <selectFromSequence name="q" from="1" to="1000"/>
+  </repeat>
+</div>
+<div copy="$s" name="s2"/>
+`,
+            names: ["r[1].g2.z", "r[1].q", "r[2].g2.z", "r[2].q"],
+        });
+    });
+
     it("a page loaded again with its generated variant keeps the random child added to a copy, and a random value after it", async () => {
         await checkReloadKeepsValues({
             doenetML: `
