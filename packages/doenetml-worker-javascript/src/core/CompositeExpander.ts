@@ -934,7 +934,7 @@ export async function replaceCompositeChildren({
             let replaceWithPlaceholders = false;
 
             // if an unexpanded composite has a createComponentOfType specified
-            // replace with placeholders
+            // replace with a placeholder
             // otherwise, leave composite as an activeChild
             if (!child.isExpanded) {
                 if (child.attributes._createComponentOfType?.primitive) {
@@ -947,34 +947,23 @@ export async function replaceCompositeChildren({
             let replacements;
 
             if (replaceWithPlaceholders) {
-                let numComponents;
-
-                if (child.attributes._numComponents) {
-                    numComponents =
-                        child.attributes._numComponents.primitive.value;
-                } else {
-                    numComponents = 1;
-                }
-
+                // A composite given a type makes exactly one component,
+                // so it is replaced by a single placeholder.
                 let componentType =
                     core.componentInfoObjects.componentTypeLowerCaseMapping[
                         child.attributes._createComponentOfType.primitive.value.toLowerCase()
                     ];
-                replacements = [];
-
-                for (let i = 0; i < numComponents; i++) {
-                    replacements.push({
+                replacements = [
+                    {
                         componentType,
                         fromComposite: child.componentIdx,
                         placeholderInd: nPlaceholdersAdded,
-                    });
-                    nPlaceholdersAdded++;
-                }
+                    },
+                ];
+                nPlaceholdersAdded++;
 
                 parent.hasPlaceholderActiveChildren = true;
-                let placeholdInds = [...Array(numComponents).keys()].map(
-                    (x) => x + childInd,
-                );
+                let placeholdInds = [childInd];
 
                 if (!parent.placeholderActiveChildrenIndices) {
                     parent.placeholderActiveChildrenIndices = [];

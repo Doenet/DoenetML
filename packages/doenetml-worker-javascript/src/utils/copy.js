@@ -297,11 +297,11 @@ export async function verifyReplacementsMatchSpecifiedType({
         !replacementTypes.every((x) => x === requiredComponentType)
     ) {
         // console.warn(
-        //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType and numComponents`,
+        //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType`,
         // );
 
         // if only replacement is a group or a _copy
-        // then give the group/_copy the createComponentOfType and numComponentsSpecified
+        // then give the group/_copy the createComponentOfType
         if (
             replacements?.length === 1 &&
             requiredLength === 1 &&
@@ -314,10 +314,6 @@ export async function verifyReplacementsMatchSpecifiedType({
             replacements[0].attributes._createComponentOfType = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredComponentType },
-            };
-            replacements[0].attributes._numComponents = {
-                type: "primitive",
-                primitive: { type: "string", value: requiredLength },
             };
 
             if (component.attributes._createComponentName?.primitive) {
@@ -354,7 +350,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 component.replacements.length
         ) {
             // if we are changing replacements so that only replacement is a group/_copy
-            // then give the group/_copy the createComponentOfType and numComponentsSpecified
+            // then give the group/_copy the createComponentOfType
 
             const theReplacement =
                 replacementChanges[0].serializedReplacements[0];
@@ -365,10 +361,6 @@ export async function verifyReplacementsMatchSpecifiedType({
             theReplacement.attributes._createComponentOfType = {
                 type: "primitive",
                 primitive: { type: "string", value: requiredComponentType },
-            };
-            theReplacement.attributes._numComponents = {
-                type: "primitive",
-                primitive: { type: "string", value: requiredLength },
             };
 
             if (component.attributes._createComponentName?.primitive) {

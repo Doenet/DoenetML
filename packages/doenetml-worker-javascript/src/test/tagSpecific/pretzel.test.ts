@@ -742,4 +742,28 @@ describe("Pretzel tag tests @group1", async () => {
         expect(pretzel.stateValues.numProblems).eq(2);
         expect(pretzel.activeChildren.length).eq(6);
     });
+
+    it("pretzel counts each copied problem as one problem for unique variants", async () => {
+        // A `<problem copy>` is a composite that makes exactly one problem,
+        // so three problems give 3! = 6 unique orders.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+        <problem name="q2"><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem name="q3"><statement><p>P3</p></statement><answer>A3</answer></problem>
+    </setup>
+    <pretzel name="p">
+        <problem><statement><p>P1</p></statement><answer>A1</answer></problem>
+        <problem copy="$q2" />
+        <problem copy="$q3" />
+    </pretzel>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants,
+        ).eqls(["a", "b", "c", "d", "e", "f"]);
+    });
 });

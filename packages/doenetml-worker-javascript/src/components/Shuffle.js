@@ -567,8 +567,8 @@ export default class Shuffle extends CompositeComponent {
     /**
      * The number of children of `serializedComponent` that are shuffled, as
      * known from the document, or `undefined` when it is not known there (a
-     * list component among them, or a composite that does not say how many
-     * components it makes).
+     * list component among them, or a composite not given a type, which may
+     * make any number of components).
      */
     static numberOfShuffledChildren({
         serializedComponent,
@@ -591,24 +591,9 @@ export default class Shuffle extends CompositeComponent {
                     baseComponentType: "_composite",
                 })
             ) {
+                // A composite given a type makes exactly one component.
                 if (child.attributes._createComponentOfType?.primitive) {
-                    if (
-                        child.attributes._numComponents?.primitive !== undefined
-                    ) {
-                        let newComponents = Number(
-                            child.attributes._numComponents?.primitive.value,
-                        );
-                        if (
-                            Number.isInteger(newComponents) &&
-                            newComponents >= 0
-                        ) {
-                            numComponents += newComponents;
-                        } else {
-                            return undefined;
-                        }
-                    } else {
-                        numComponents++;
-                    }
+                    numComponents++;
                 } else {
                     return undefined;
                 }

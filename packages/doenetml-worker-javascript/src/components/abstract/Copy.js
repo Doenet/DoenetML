@@ -80,9 +80,6 @@ export default class Copy extends CompositeComponent {
         attributes._createComponentName = {
             createPrimitiveOfType: "string",
         };
-        attributes._numComponents = {
-            createPrimitiveOfType: "number",
-        };
         attributes._copyInChildren = {
             createPrimitiveOfType: "boolean",
         };
@@ -714,12 +711,14 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        // A copy given a valid type always makes exactly one component of
+        // that type. `verifyReplacementsMatchSpecifiedType` makes sure of it:
+        // it passes the type on to a lone `group`/`_copy` replacement, or else
+        // makes one new component of that type (wrapping a lone replacement
+        // in it when it can). Without a type, or with an invalid one, the
+        // number of components isn't specified.
         stateVariableDefinitions.numComponentsSpecified = {
             returnDependencies: () => ({
-                numComponentsAttr: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "_numComponents",
-                },
                 typeAttr: {
                     dependencyType: "attributePrimitive",
                     attributeName: "_createComponentOfType",
@@ -751,16 +750,7 @@ export default class Copy extends CompositeComponent {
                             ],
                         };
                     }
-                    if (dependencyValues.numComponentsAttr !== null) {
-                        numComponentsSpecified =
-                            dependencyValues.numComponentsAttr;
-                    } else {
-                        numComponentsSpecified = 1;
-                    }
-                } else if (dependencyValues.numComponentsAttr !== null) {
-                    throw Error(
-                        `You must specify createComponentOfType when specifying numComponents for a copy.`,
-                    );
+                    numComponentsSpecified = 1;
                 } else {
                     numComponentsSpecified = null;
                 }
@@ -1093,9 +1083,6 @@ export default class Copy extends CompositeComponent {
         }
 
         let diagnostics = [];
-
-        // evaluate numComponentsSpecified so get error if specify numComponents without createComponentOfType
-        await component.stateValues.numComponentsSpecified;
 
         workspace.numReplacementsBySource = [];
         workspace.numNonStringReplacementsBySource = [];
