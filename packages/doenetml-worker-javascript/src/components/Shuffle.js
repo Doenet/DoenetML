@@ -382,18 +382,19 @@ export default class Shuffle extends CompositeComponent {
 
         // Record how many of the components given subvariants above are in
         // each child, for `generatedVariantInfo` to report the subvariants in
-        // the order they are given out here.
+        // the order they are given out here. A string child (blank ones are
+        // already removed) is one of the items shuffled, with no variant
+        // components.
         serializedComponent.variants ??= {};
         serializedComponent.variants.numVariantComponentsByChild =
-            serializedComponent.children
-                .filter((child) => typeof child === "object")
-                .map(
-                    (child) =>
-                        gatherVariantComponents({
-                            serializedComponents: [child],
-                            componentInfoObjects: core.componentInfoObjects,
-                        }).length,
-                );
+            serializedComponent.children.map((child) =>
+                typeof child === "string"
+                    ? 0
+                    : gatherVariantComponents({
+                          serializedComponents: [child],
+                          componentInfoObjects: core.componentInfoObjects,
+                      }).length,
+            );
     }
 
     static async createSerializedReplacements({

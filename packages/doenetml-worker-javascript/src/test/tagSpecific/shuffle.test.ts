@@ -913,4 +913,69 @@ describe("Shuffle tag tests @group1", async () => {
         expect(orders.size).greaterThan(1);
         expect([...orders].some((order) => order !== "[1,2,3]")).eq(true);
     });
+
+    it("items keep their random values when loaded again, with a text child among the items", async () => {
+        // The text is one of the items shuffled, with no random values, so
+        // the items' values are still matched to the items written.
+        const doenetML = `<shuffle name="sh">
+            hello
+            <p><selectFromSequence name="x" from="1" to="1000"/></p>
+            <p><selectFromSequence name="y" from="1" to="1000"/></p>
+            <p><selectFromSequence name="w" from="1" to="1000"/></p>
+        </shuffle>`;
+
+        async function values(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const name of ["x", "y", "w"]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .selectedValues,
+                );
+            }
+            return {
+                values: result,
+                order: stateVariables[await resolvePathToNodeIdx("sh")]
+                    .stateValues.componentOrder,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const orders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 5; variantIndex++) {
+            const first = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const firstResult = await values(
+                first.core,
+                first.resolvePathToNodeIdx,
+            );
+            expect(firstResult.order.length).eq(4);
+            orders.add(JSON.stringify(firstResult.order));
+
+            const again = await createTestCore({
+                doenetML,
+                requestedVariant: firstResult.generatedVariantInfo,
+            });
+            const againResult = await values(
+                again.core,
+                again.resolvePathToNodeIdx,
+            );
+            expect(againResult.order).eqls(firstResult.order);
+            expect(againResult.values).eqls(firstResult.values);
+        }
+        expect(orders.size).greaterThan(1);
+    });
 });
