@@ -743,27 +743,47 @@ describe("Pretzel tag tests @group1", async () => {
         expect(pretzel.activeChildren.length).eq(6);
     });
 
-    it("pretzel counts each copied problem as one problem for unique variants", async () => {
-        // A `<problem copy>` is a composite that makes exactly one problem,
-        // so three problems give 3! = 6 unique orders.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+    for (const kind of ["copy", "extend"]) {
+        it(`pretzel ignores a <problem ${kind}> child, with a warning`, async () => {
+            // A `<problem copy>` or `<problem extend>` is a composite with no
+            // statement or answer for the pretzel to arrange, so it is
+            // neither arranged nor counted for unique variants.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
     <setup>
-        <problem name="q2"><statement><p>P2</p></statement><answer>A2</answer></problem>
         <problem name="q3"><statement><p>P3</p></statement><answer>A3</answer></problem>
+        <problem name="q4"><statement><p>P4</p></statement><answer>A4</answer></problem>
     </setup>
     <pretzel name="p">
         <problem><statement><p>P1</p></statement><answer>A1</answer></problem>
-        <problem copy="$q2" />
-        <problem copy="$q3" />
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem ${kind}="$q3" />
+        <problem ${kind}="$q4" />
     </pretzel>
     `,
-        });
+            });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_document1")]
-                .sharedParameters.allPossibleVariants,
-        ).eqls(["a", "b", "c", "d", "e", "f"]);
-    });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(1);
+            expect(diagnosticsByType.warnings[0].message).contain(
+                "A `<problem>` that copies or extends another problem is not supported in a `<pretzel>` and is ignored.",
+            );
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+            expect(pretzel.stateValues.numProblems).eq(2);
+            expect(pretzel.stateValues.problemOrder.length).eq(2);
+            expect(pretzel.activeChildren.length).eq(6);
+
+            // Two arranged problems give 2! = 2 unique orders.
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants,
+            ).eqls(["a", "b"]);
+        });
+    }
 });

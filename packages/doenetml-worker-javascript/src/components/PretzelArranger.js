@@ -4,6 +4,21 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { codedDiagnostic } from "../utils/diagnostics";
 
 /**
+ * Whether a serialized child of the arranger is a `<problem copy>` or
+ * `<problem extend>`: a composite made to stand for one problem.
+ */
+function isProblemCopy({ child, componentInfoObjects }) {
+    return (
+        typeof child === "object" &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: child.componentType,
+            baseComponentType: "_composite",
+        }) &&
+        child.attributes._createComponentOfType?.primitive.value === "problem"
+    );
+}
+
+/**
  * Determine which given answer should pair with a displayed problem.
  * Distractor problems pair with their own answers; non-distractors pair with
  * the previous non-distractor answer, wrapping around.
@@ -149,7 +164,26 @@ export default class PretzelArranger extends CompositeComponent {
                     doNotProxy: true,
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentInfoObjects }) {
+                const diagnostics = [];
+
+                // A `<problem copy>` or `<problem extend>` is a composite, not
+                // a problem, so it has no statement or answer for the arranger
+                // to take apart. It is not arranged, and not counted in
+                // `determineNumberOfUniqueVariants`.
+                if (
+                    dependencyValues.serializedChildren.some((child) =>
+                        isProblemCopy({ child, componentInfoObjects }),
+                    )
+                ) {
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0176",
+                        }),
+                    );
+                }
+
                 return {
                     setValue: {
                         serializedProblemChildren:
@@ -157,6 +191,7 @@ export default class PretzelArranger extends CompositeComponent {
                                 (child) => child.componentType === "problem",
                             ),
                     },
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -653,16 +688,9 @@ export default class PretzelArranger extends CompositeComponent {
         for (let child of serializedComponent.children) {
             if (child.componentType === "problem") {
                 numProblems++;
-            } else if (
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: child.componentType,
-                    baseComponentType: "_composite",
-                }) &&
-                child.attributes._createComponentOfType?.primitive.value ===
-                    "problem"
-            ) {
-                // A composite given a type makes exactly one component.
-                numProblems++;
+            } else if (isProblemCopy({ child, componentInfoObjects })) {
+                // Not arranged (see `serializedProblemChildren`), so not counted.
+                continue;
             } else {
                 return { success: false };
             }

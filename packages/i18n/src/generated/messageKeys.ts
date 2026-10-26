@@ -421,6 +421,7 @@ export type MessageKey =
     | "conditional-content-condition-ignored"
     | "slider-markers-type-mismatch"
     | "pretzel-problem-needs-statement-and-answer"
+    | "pretzel-problem-copy-not-supported"
     | "pretzel-circuit-first-problem-distractor"
     | "attribute-invalid-values"
     | "attribute-must-be-references"
@@ -1067,6 +1068,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "conditional-content-condition-ignored",
     "slider-markers-type-mismatch",
     "pretzel-problem-needs-statement-and-answer",
+    "pretzel-problem-copy-not-supported",
     "pretzel-circuit-first-problem-distractor",
     "attribute-invalid-values",
     "attribute-must-be-references",
