@@ -182,7 +182,8 @@ No test pins the loss, so adopting the rule breaks nothing.
 variant:
 - **Inputs do not re-choose.** A later change to `numToSelect` or another input does not cause a
   new choice.
-- **References agree.** Copies and extends show the same picks.
+- **References agree.** Copies and extends show the same picks, however deeply the choice is
+  nested in what was copied (CPY-8; #2342 is a known violation for nested groups).
 - **Content stays live.** The *content* of a chosen option still updates.
 
 Evidence:
