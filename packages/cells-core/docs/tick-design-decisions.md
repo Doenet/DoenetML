@@ -9,9 +9,6 @@ the alternative to each one, swaps it in with everything else unchanged,
 and measures the difference. It says which decisions earn the speed,
 which barely matter, and where the design costs time.
 
-If you are new to the core, the next paragraph is enough to read the
-findings; [How the tick works](#how-the-tick-works) has more.
-
 **The tick in one paragraph.** All of a document's state is one flat
 array of `f64` *cells*. A cell is *essential* (state a student can set,
 such as a point's position), *fixed* (a constant) or *derived* (computed
@@ -207,10 +204,21 @@ makes the tick faster by that factor; below 1, the alternative is faster.
 
 ## The decisions in detail
 
-In order of how much they buy. Each says what the core does, what was
-measured against it, and what the numbers show.
+In order of how much they buy. Each opens with a paragraph on the idea,
+the alternative and the result, then says in detail what the core does,
+what was measured against it, and what the numbers show.
 
 ### 9. A fixed schedule
+
+The core decides the order in which instructions run once, when the
+document is built, so a tick only walks a precomputed list. The
+alternative is to find the order while the tick runs, as pull-based
+reactive systems do: to compute a value, first make sure its inputs are
+up to date. Doing the same work, the fixed order is 2 to 5 times faster,
+and over a hundred times faster where a change stops early, because it
+learns that a value did not change before it touches anything after it.
+Pulling lazily can skip what is not on screen, but the fixed schedule,
+cut down to what is shown, skips the same work and stays faster.
 
 **The core.** The order of work is fixed when the document is built
 (`Program::schedule`). A tick runs forward through it and never works
@@ -310,6 +318,14 @@ recurses once per link, so it measures those, not pulling.
 
 ### 8. References share a cell
 
+When one value refers to another, such as `$p.x` or a prop of a copy,
+the core gives both the same cell instead of copying one into the
+other, so a reference costs a tick nothing. The alternative makes every
+reference an instruction that copies its source's value. References are
+most of what a document says, so that doubles the instructions on the
+synthetic shapes, and the tick's time with them, and gives a real
+document of geometry five times as many instructions.
+
 **The core.** `$p.x`, and every prop of a copy that is not overridden,
 share the referent's cell, merged by a union-find in `build/emit.rs`. A
 reference adds no instruction and no step to a tick.
@@ -359,6 +375,15 @@ on `sir.doenet`, whose geometry is mostly copies. Aliasing also carries
 meaning the core relies on elsewhere, as the three fixes show.
 
 ### 2. Operators are data
+
+Each operator in the core is a small piece of data, and one loop
+interprets them all; no component code runs during a tick. The
+alternative makes operators code: a function called through a pointer, a
+closure per instruction, or, as in the JavaScript core, a function per
+state variable that looks up its inputs by name. Calling code costs 1.2
+to 5 times as much as interpreting data, mostly because the processor
+can overlap independent steps written as data but cannot see through a
+call. The JavaScript core's model costs 2 to 12 times, even simplified.
 
 **The core.** An operator is a value of a closed enum (`Op`), and one
 function, `Program::step`, interprets it with a `match`. Components only
@@ -424,6 +449,15 @@ Against the same units run as data, the functions cost 3.9–9.5 times.
 
 ### 4 and 1. One contiguous array, apart from the graph
 
+The core keeps every value in one array, side by side in memory, and
+keeps the graph of which instruction reads which cell in separate arrays
+beside it. The alternatives give each value its own heap allocation, or
+put each value in a graph node together with its links. Either way,
+every read follows a pointer to wherever the value happens to live. When
+the values are scattered in memory, as objects created over a session
+would be, that costs 2.4 to 3 times on large documents; nodes cost 1.4
+to 3.1 times.
+
 Two related decisions, both about where values live.
 
 **The core.** All values are in one `Vec<f64>`, indexed by cell (#4).
@@ -471,6 +505,14 @@ about twice more.
 
 ### 11. Early cutoff
 
+When an instruction recomputes and gets the same value as before, the
+core does not recompute the instructions that read it. The alternative
+recomputes everything downstream of a change, whether or not values
+along the way changed. Where a change stops partway, as when a value is
+rounded, early cutoff makes the tick hundreds of times faster, and it is
+what lets the dirty closure (#10) beat full recompute there. Where every
+value changes it saves nothing, and its checks cost up to 10%.
+
 **The core.** An instruction's readers are marked only when its output
 actually changed (`differs` in `program/mod.rs`; NaN to NaN counts as
 unchanged).
@@ -500,6 +542,16 @@ stays in both versions, since a tick reports which cells changed;
 version counters, which would replace it, were not measured.
 
 ### 10. Recompute only what is downstream
+
+After a change, the core recomputes only the instructions downstream of
+it, tracking which ones in a bitset. The alternative is to recompute
+every instruction. The tracking makes each instruction several
+times as expensive, so it pays only when less than about 15–20% of the
+program is downstream of the change. On the benchmark's shapes, where
+everything is downstream, it is 2.5 to 4 times slower than recomputing
+everything; on a page where a drag reaches 5% of the document, it is 3
+to 5 times faster. Tracking with a priority queue instead of a bitset is
+several times slower where a change fans out.
 
 **The core.** The dirty closure (`DirtyClosure`, `tick/eval.rs`): the
 instructions to run are a bitset over schedule positions, scanned
@@ -562,6 +614,14 @@ Priority queue / bitset:
 
 ### 6. Values carry no type tag
 
+The core stores every value as a bare 64-bit float, with nothing beside
+it saying what kind of value it is; types live in a separate table,
+consulted when a request arrives and never while recomputing. The
+alternative stores a type tag with each value and checks it on every
+read, as a tagged enum would. The check costs 10 to 55% when every
+instruction runs; under the default dirty closure, whose bookkeeping
+dominates, it costs up to a third on fans and little on chains.
+
 **The core.** Nothing stored with a value says what type it is. A
 boolean is 0.0 or 1.0, a missing value is NaN, and a cell's type is in a
 side table read when a request arrives, never during recompute.
@@ -605,6 +665,14 @@ skipping the check.
 
 ### 5. Every cell is 8 bytes
 
+Every cell is the same 8 bytes. Values that do not fit, such as math
+expressions and strings, are stored elsewhere and the cell holds a
+handle to them. The alternatives are bigger cells, of 16 bytes, and
+expressions stored in their cells at their own length. Bigger cells cost
+5 to 36% when every instruction runs; storing expressions inline costs
+at most 8% on symbolic documents, whose time is the symbolic engine's
+work.
+
 **The core.** Every cell is one 8-byte slot. Large values (expressions,
 strings) live in stores outside the array, and a cell holds a handle; a
 value of several parts takes several cells.
@@ -628,6 +696,11 @@ breadth and refs, which have no math cells, unexplained.
 
 ### 7. One cell per scalar
 
+A point's x and y are two cells, so a change to x reaches only what
+reads x. The alternative makes a point one value, so a change to either
+coordinate recomputes both and reaches the readers of both. That costs
+at most 7%: this decision is about simpler operators, not speed.
+
 **The core.** A point is two cells; a change to its x reaches only the
 readers of x.
 
@@ -649,6 +722,13 @@ These numbers come from the group evaluator described under #3; they are
 measured against the same evaluator with every instruction its own unit.
 
 ### 3. Fine-grained operators
+
+Each derived cell is computed by one small operator, so a math
+expression becomes a chain of several instructions. The alternative runs
+each value's whole expression as one unit. The dirty closure pays its
+bookkeeping per instruction, so coarse units are 2 to 2.6 times faster
+wherever a value lowers to several instructions, and no different
+elsewhere. This is one place the design costs time.
 
 **The core.** One small instruction per derived cell (`Add`, `Scale`,
 `Clamp`, ...); a numeric `<math>` lowers to a chain of them (ADR 0005).
