@@ -1150,8 +1150,26 @@ describe("Pretzel tag tests @group1", async () => {
     </pretzel>`;
 
         // Each case is a document copying the pretzel `p`, with the path of
-        // the copied pretzel, and whether the copy is linked to `p`.
-        const cases = [
+        // the copied pretzel, and whether the copy is linked to `p`. A
+        // reference such as `$p` cannot be given a name, so for it `copyPath`
+        // is that of the section it is the only child of, and the names
+        // inside the copy cannot be resolved.
+        const cases: {
+            description: string;
+            doenetML: string;
+            sourcePath: string;
+            copyPath: string;
+            copyIsChildOfPath?: boolean;
+            linked: boolean;
+        }[] = [
+            {
+                description: "$p",
+                doenetML: `${pretzelDoenetML}\n    <section name="s2">$p</section>`,
+                sourcePath: "p",
+                copyPath: "s2",
+                copyIsChildOfPath: true,
+                linked: true,
+            },
             {
                 description: "<pretzel extend>",
                 doenetML: `${pretzelDoenetML}\n    <pretzel extend="$p" name="p2"/>`,
@@ -1187,6 +1205,7 @@ describe("Pretzel tag tests @group1", async () => {
             doenetML,
             sourcePath,
             copyPath,
+            copyIsChildOfPath,
             linked,
         } of cases) {
             it(`a ${description} copy shows and grades the same problems in the same order`, async () => {
@@ -1206,8 +1225,17 @@ describe("Pretzel tag tests @group1", async () => {
                 );
                 const source =
                     stateVariables[await resolvePathToNodeIdx(sourcePath)];
-                const copy =
+                const copyOrParent =
                     stateVariables[await resolvePathToNodeIdx(copyPath)];
+                if (copyIsChildOfPath) {
+                    expect(copyOrParent.activeChildren.length).eq(1);
+                }
+                const copy = copyIsChildOfPath
+                    ? stateVariables[
+                          copyOrParent.activeChildren[0].componentIdx
+                      ]
+                    : copyOrParent;
+                expect(copy.componentType).eq("pretzel");
 
                 function childTypesAndTexts(pretzel: any) {
                     return pretzel.activeChildren.map((child: any) => [
@@ -1229,35 +1257,38 @@ describe("Pretzel tag tests @group1", async () => {
                     childTypesAndTexts(source),
                 );
 
-                // The names in the copy resolve to its own statement and
-                // answer, which show the same random value as the source's.
-                const copyStatement =
-                    stateVariables[
-                        await resolvePathToNodeIdx(`${copyPath}.s1`)
-                    ];
-                const sourceStatement =
-                    stateVariables[
-                        await resolvePathToNodeIdx(`${sourcePath}.s1`)
-                    ];
-                expect(copyStatement.componentType).eq("statement");
-                expect(copyStatement.componentIdx).not.eq(
-                    sourceStatement.componentIdx,
-                );
-                expect(
-                    shownText({
-                        stateVariables,
-                        componentIdx: copyStatement.componentIdx,
-                    }),
-                ).eq(
-                    shownText({
-                        stateVariables,
-                        componentIdx: sourceStatement.componentIdx,
-                    }),
-                );
-                expect(
-                    stateVariables[await resolvePathToNodeIdx(`${copyPath}.a1`)]
-                        .activeChildren,
-                ).eqls(["A1"]);
+                if (!copyIsChildOfPath) {
+                    // The names in the copy resolve to its own statement and
+                    // answer, which show the same random value as the source's.
+                    const copyStatement =
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${copyPath}.s1`)
+                        ];
+                    const sourceStatement =
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${sourcePath}.s1`)
+                        ];
+                    expect(copyStatement.componentType).eq("statement");
+                    expect(copyStatement.componentIdx).not.eq(
+                        sourceStatement.componentIdx,
+                    );
+                    expect(
+                        shownText({
+                            stateVariables,
+                            componentIdx: copyStatement.componentIdx,
+                        }),
+                    ).eq(
+                        shownText({
+                            stateVariables,
+                            componentIdx: sourceStatement.componentIdx,
+                        }),
+                    );
+                    expect(
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${copyPath}.a1`)
+                        ].activeChildren,
+                    ).eqls(["A1"]);
+                }
 
                 // Answer the copy.
                 const problemOrder = copy.stateValues.problemOrder;
