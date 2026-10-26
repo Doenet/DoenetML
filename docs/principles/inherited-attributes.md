@@ -10,14 +10,31 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
 
 ## How each attribute is computed today
 
-| Attribute | Own attribute | From the container | Through a linked reference | Combination | Code |
-|---|---|---|---|---|---|
-| `hide` → `hidden` | yes | parent, source composite, adapter source | the source's own `hide`, not its container's | OR of all; a child's `hide="false"` **cannot** unhide | `BaseComponent.js:753-829` |
-| `disabled` | decides | parent, source composite, adapter source | the source's own `disabled`, not its container's | own, else OR; `readOnly` forces true | `BaseComponent.js:860-978` |
-| `fixed`, `fixLocation` | decides | parent, source composite (a `<group>` counts), adapter source, list-entry source | the source's **effective** value, including its container's | own, else OR; a `false` only stops that one input from fixing it | `W/utils/contextAttribute.js` |
-| `styleNumber` | decides | the nearest enclosing setting | the source's own attribute | nearest wins | `W/core/StateVariableDefinitionFactory.ts:1291-1305`, `:1640-1690` |
-| display settings (`displayDigits`, …) | decides | **none from a parent**: a sole *child* passes its settings *up* | yes, and along property references | first found | `W/utils/numberDisplay.js` |
-| `draggable` | plain | none | yes | plain attribute | per component, e.g. `Point.js:67-74` |
+Each attribute's value combines up to three inputs:
+- **the component's own attribute**, as written on it;
+- **its container**, the component it sits in;
+- **for a linked reference** (`$x`, `extend`), its source.
+
+The columns say how each input is used.
+
+| Attribute | If the component writes it itself | Taken from its container | Taken through a linked reference | Code |
+|---|---|---|---|---|
+| `hide` | **only adds to the others.** `hide="true"` hides it, but `hide="false"` cannot unhide it inside a hidden container | yes: hidden if the container is hidden | the source's own `hide` attribute, but not the hiding of the source's container | `BaseComponent.js:753-829` |
+| `disabled` | **overrides everything else**, `false` included | yes, unless the component writes its own | the source's own `disabled` attribute, but not the disabling of the source's container | `BaseComponent.js:860-978` |
+| `fixed`, `fixLocation` | **overrides everything else** for that component. On a linked reference it reports `false` while writes are still refused at the fixed source (D7) | yes, unless the component writes its own. A `<group>` counts as a container | the source's **effective** value, including what the source's container gives it | `W/utils/contextAttribute.js` |
+| `styleNumber` | **overrides everything else** | the nearest enclosing setting wins | the source's own attribute | `W/core/StateVariableDefinitionFactory.ts:1291-1305`, `:1640-1690` |
+| display settings (`displayDigits`, …) | **overrides everything else** | **never from a container.** Instead, a component whose whole content is one value takes that value's settings (VAL-4) | yes, also through property references | `W/utils/numberDisplay.js` |
+| `draggable` | **the only input**: the attribute is not inherited at all | no | yes | per component, e.g. `Point.js:67-74` |
+
+Some internal routes count as "the container" in the code:
+- a component produced by a `<repeat>`, `<select>` or `<group>` treats that tag as its
+  container (the code calls it the *source composite*);
+- a value converted for its parent, such as a number shown as a math, treats the original as
+  its container (the *adapter source*);
+- for `fixed` and `fixLocation`, a list entry treats the component it came from as its
+  container (the *list-entry source*).
+
+`readOnly` mode forces `disabled` to true everywhere.
 
 ---
 
