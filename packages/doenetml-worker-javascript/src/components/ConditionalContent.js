@@ -257,13 +257,26 @@ export default class ConditionalContent extends CompositeComponent {
                 {},
                 components[selectedChildComponentIdx].doenetAttributes,
             );
+            const seed =
+                component.sharedParameters.variantSeed +
+                "|" +
+                selectedIndex.toString();
+
+            // A `<conditionalContent>` given the variant it generated (an
+            // unlinked copy of a container holding it, or a page loaded with
+            // its generated variant) holds the variant of this group among
+            // its subvariants. Use it, so that the group hands its random
+            // descendants their variants rather than having them draw again
+            // from its seed, which gives the same values only if they draw in
+            // the same order (a random child added to a copy draws later in
+            // a copy of the container than in its source).
+            const generatedVariant =
+                component.variants?.desiredVariant?.subvariants?.find(
+                    (subvariant) => subvariant?.seed === seed,
+                );
+
             serializedChild.variants = {
-                desiredVariant: {
-                    seed:
-                        component.sharedParameters.variantSeed +
-                        "|" +
-                        selectedIndex.toString(),
-                },
+                desiredVariant: generatedVariant ?? { seed },
             };
 
             replacements.push(serializedChild);

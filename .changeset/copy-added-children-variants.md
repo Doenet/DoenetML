@@ -10,6 +10,6 @@ A random child added to a copy, such as the `<selectFromSequence>` in `<p copy="
 
 The added child also keeps its value when a page is loaded again with the variant it generated. Before, it could take the value of the next random component on the page, and a `<pretzel copy>` with added problems could change its problem order.
 
-The variant a page generates now includes the variants of children added to copies. A variant saved for such a page before this change can give its added children different values when loaded again.
+The variant a page generates now includes the variants of children added to copies. A variant saved for such a page before this change can give its added children different values when loaded again. On a page that copies a container holding such a copy, the same variant index can now give the added child and the random components after it in the container different values than before.
 
 Closes #2345.
