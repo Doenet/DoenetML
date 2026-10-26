@@ -368,7 +368,7 @@ exports[`component census of the micro-documents > shuffle literal x4 1`] = `
   },
   "components": 3,
   "copies": 0,
-  "dependencies": 313,
+  "dependencies": 314,
   "shadows": 0,
   "stateVariables": 210,
   "stateVariablesResolved": 145,
