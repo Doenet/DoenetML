@@ -637,6 +637,12 @@ function applyAttributeValueRenames(node: DastElement, warnings: DastError[]) {
  * not a component, which is reported as invalid anyway. It also has a code of
  * its own, rather than `doenet-w0110`, so that its message can say what to
  * write instead.
+ *
+ * When this deprecation is removed, also remove `"modifyindirectly"` from
+ * `RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA` in
+ * `lsp-tools/src/auto-completer/module-attributes.ts` (and from its test).
+ * It is reserved there only because this rule drops the attribute from
+ * every element, a `<module>` included.
  */
 function applyModifyIndirectlyRemoval(
     node: DastElement,

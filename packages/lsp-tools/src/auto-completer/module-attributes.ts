@@ -66,7 +66,11 @@ export const RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA: ReadonlySet<string> 
         "permid",
         // No longer an attribute of any component, but the parser drops it
         // from every element with a deprecation warning (#2336), so a
-        // `<module>` could never be given one of this name
+        // `<module>` could never be given one of this name. When that
+        // deprecation (`applyModifyIndirectlyRemoval` in
+        // `parser/src/dast-normalize/deprecations.ts`) is removed, remove
+        // this entry too, along with `modifyIndirectly` in the
+        // "skips reserved names" test in `module-attributes.test.ts`.
         "modifyindirectly",
     ]);
 
