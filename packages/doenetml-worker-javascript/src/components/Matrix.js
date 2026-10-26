@@ -567,10 +567,6 @@ export default class Matrix extends MathComponent {
 
         stateVariableDefinitions.canBeModified = {
             returnDependencies: () => ({
-                modifyIndirectly: {
-                    dependencyType: "stateVariable",
-                    variableName: "modifyIndirectly",
-                },
                 fixed: {
                     dependencyType: "stateVariable",
                     variableName: "fixed",
@@ -579,9 +575,7 @@ export default class Matrix extends MathComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        canBeModified:
-                            dependencyValues.modifyIndirectly &&
-                            !dependencyValues.fixed,
+                        canBeModified: !dependencyValues.fixed,
                     },
                 };
             },

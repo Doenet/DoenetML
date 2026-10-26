@@ -581,16 +581,6 @@ export default class BaseComponent {
                 description:
                     "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             },
-            modifyIndirectly: {
-                createComponentOfType: "boolean",
-                createStateVariable: "modifyIndirectly",
-                defaultValue: true,
-                public: true,
-                propagateToProps: true,
-                excludeFromSchema: true,
-                description:
-                    "Whether this component can be modified indirectly through a property reference.",
-            },
             styleNumber: {
                 createComponentOfType: "integer",
                 createStateVariable: "styleNumber",

@@ -1200,12 +1200,13 @@ describe("Ray Tag Tests @group1", function () {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="zeroFixed" fixed>(0,0)</point>
-    <mathInput name="a" prefill="2" modifyIndirectly="false" />
+    <mathInput name="a" prefill="2" />
+    <math name="aFixed" fixed hide>$a</math>
     <graph>
         <ray name="original" endpoint="$zeroFixed" through="(1,3)" />
     </graph>
     <graph>
-        <ray name="multiplied" endpoint="$zeroFixed" through="($a$(original.throughX1), $a$(original.throughX2))" />
+        <ray name="multiplied" endpoint="$zeroFixed" through="($aFixed$(original.throughX1), $aFixed$(original.throughX2))" />
     </graph>
     `,
         });

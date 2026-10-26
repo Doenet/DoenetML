@@ -478,6 +478,7 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
             applyAttributeRenames(node, warnings);
             applyAttributeRemovals(node, warnings);
             applyAttributeValueRenames(node, warnings);
+            applyModifyIndirectlyRemoval(node, warnings);
         });
 
         if (warnings.length > 0) {
@@ -616,6 +617,42 @@ function applyAttributeValueRenames(node: DastElement, warnings: DastError[]) {
             }),
         );
     }
+}
+
+/**
+ * Drop `modifyIndirectly`, from any component, with a warning that says what
+ * to write instead (#2336).
+ *
+ * `modifyIndirectly="false"` refused the writes that reached a component
+ * through the components that use its value, while still letting a user
+ * change it directly. `fixed` on those components refuses the same writes
+ * where they start, so the warning points there; an author who set it on an
+ * input to lock the input wanted `disabled`, so the warning names that too.
+ * It is not scoped to a component, as every component accepted it.
+ */
+function applyModifyIndirectlyRemoval(
+    node: DastElement,
+    warnings: DastError[],
+) {
+    const actualKey = findAttributeKey(node, "modifyindirectly");
+    if (!actualKey) {
+        return;
+    }
+
+    const attribute = node.attributes[actualKey];
+    const position = attribute.position ?? node.position;
+    const source_doc = attribute.source_doc ?? node.source_doc;
+
+    delete node.attributes[actualKey];
+    warnings.push(
+        deprecationWarning({
+            code: "doenet-w0177",
+            message: `[deprecation] Attribute \`modifyIndirectly\` on \`<${node.name}>\` is deprecated and ignored. To keep the components that use this value from changing it, add \`fixed\` to them. To keep users from changing an input, use \`disabled\`.`,
+            args: { component: node.name },
+            position,
+            source_doc,
+        }),
+    );
 }
 
 /**

@@ -34,8 +34,8 @@ describe("Extend and references tests @group2", async () => {
     it("extend copies properties", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="math1" modifyIndirectly="false">x</math>
-    <math name="math2" modifyIndirectly="true">x</math>
+    <math name="math1" displayBlanks="false">x</math>
+    <math name="math2" displayBlanks="true">x</math>
     <math name="a" extend="$math1"/>
     <math name="b" extend="$a"/>
     <math name="c" extend="$math2"/>
@@ -49,27 +49,27 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("math1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("a")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("b")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("math2")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("c")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("d")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("point1")].stateValues
@@ -86,14 +86,14 @@ describe("Extend and references tests @group2", async () => {
     it("extend overwrites properties", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="math1" modifyIndirectly="false">x</math>
+    <math name="math1" displayBlanks="false">x</math>
     <math name="r1" extend="$math1"/>
-    <math name="r2" modifyIndirectly="true" extend="$math1"/>
-    <math name="r3" modifyIndirectly="true" extend="$r1"/>
+    <math name="r2" displayBlanks="true" extend="$math1"/>
+    <math name="r3" displayBlanks="true" extend="$r1"/>
     <math name="r4" extend="$r2"/>
     <math name="r5" extend="$r3"/>
-    <math name="r6" extend="$r2" modifyIndirectly="false" />
-    <math name="r7" extend="$r3" modifyIndirectly="false" />
+    <math name="r6" extend="$r2" displayBlanks="false" />
+    <math name="r7" extend="$r3" displayBlanks="false" />
 
     <point labelIsName name="A">(1,2)</point>
     <point name="A2"><label>A</label>(1,2)</point>
@@ -129,35 +129,35 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("math1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r2")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r3")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r4")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r5")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r6")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r7")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
 
         expect(
@@ -249,14 +249,14 @@ describe("Extend and references tests @group2", async () => {
     it("extend overwrites properties, decode XML entities", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="math1" modifyIndirectly="3 &gt; 4">x</math>
+    <math name="math1" displayBlanks="3 &gt; 4">x</math>
     <math name="r1" extend="$math1"/>
-    <math name="r2" modifyIndirectly="3&lt;4" extend="$math1"/>
-    <math name="r3" modifyIndirectly="3&lt;4" extend="$r1"/>
+    <math name="r2" displayBlanks="3&lt;4" extend="$math1"/>
+    <math name="r3" displayBlanks="3&lt;4" extend="$r1"/>
     <math name="r4" extend="$r2"/>
     <math name="r5" extend="$r3"/>
-    <math name="r6" extend="$r2" modifyIndirectly="3&gt;4" />
-    <math name="r7" extend="$r3" modifyIndirectly="3&gt;4" />
+    <math name="r6" extend="$r2" displayBlanks="3&gt;4" />
+    <math name="r7" extend="$r3" displayBlanks="3&gt;4" />
 
     `,
         });
@@ -264,35 +264,35 @@ describe("Extend and references tests @group2", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("math1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r1")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r2")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r3")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r4")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r5")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("r6")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("r7")].stateValues
-                .modifyIndirectly,
+                .displayBlanks,
         ).eq(false);
     });
 
@@ -302,17 +302,8 @@ describe("Extend and references tests @group2", async () => {
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("x")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
-        expect(
             stateVariables[await resolvePathToNodeIdx("x")].stateValues.hidden,
         ).eq(true);
-        // modifyIndirectly attribute is copied (as it has propagateToProps=true)
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         // hide attribute is not copied (default behavior)
         expect(
             stateVariables[await resolvePathToNodeIdx("mr")].stateValues.hidden,
@@ -321,24 +312,6 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("mr")].stateValues.value,
         ).eq(false);
 
-        // modifyIndirectly is overwritten
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr2")].stateValues
-                .modifyIndirectly,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr2")].stateValues
-                .hidden,
-        ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("mr2")].stateValues.value,
-        ).eq(false);
-
-        // modifyIndirectly attribute is copied (as it has propagateToProps=true)
-        expect(
-            stateVariables[await resolvePathToNodeIdx("frmt")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         // hide attribute is not copied (default behavior)
         expect(
             stateVariables[await resolvePathToNodeIdx("frmt")].stateValues
@@ -349,10 +322,6 @@ describe("Extend and references tests @group2", async () => {
                 .value,
         ).eq("text");
 
-        expect(
-            stateVariables[await resolvePathToNodeIdx("frmt2")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("frmt2")].stateValues
                 .hidden,
@@ -363,10 +332,6 @@ describe("Extend and references tests @group2", async () => {
         ).eq("text");
 
         // all attributes copied when don't use prop
-        expect(
-            stateVariables[await resolvePathToNodeIdx("frmt3")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("frmt3")].stateValues
                 .value,
@@ -387,16 +352,8 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("l")].stateValues.value,
         ).eq("\\left( 1, 2 \\right)");
         expect(
-            stateVariables[await resolvePathToNodeIdx("l")].stateValues
-                .modifyIndirectly,
-        ).eq(true);
-        expect(
             stateVariables[await resolvePathToNodeIdx("lmr")].stateValues.value,
         ).eq("\\left( 1, 2 \\right)");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("lmr")].stateValues
-                .modifyIndirectly,
-        ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("A2")].stateValues.label,
         ).eq("A");
@@ -412,9 +369,8 @@ describe("Extend and references tests @group2", async () => {
     it("extend props, dot notation", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <math name="x" modifyIndirectly="false" hide>x</math>
-    <boolean name="mr" extend="$x.modifyIndirectly"/>
-    <boolean name="mr2" modifyIndirectly="true" extend="$x.modifyIndirectly"/>
+    <math name="x" displayBlanks="false" hide>x</math>
+    <boolean name="mr" extend="$x.displayBlanks"/>
 
     <text name="frmt" extend="$x.format"/>
     <text name="frmt2" extend="$x.format" hide />
@@ -423,7 +379,7 @@ describe("Extend and references tests @group2", async () => {
     <point name="A" labelIsName>(1,2)</point>
     <coords name="cA" extend="$A.coords"/>
     <text name="l" extend="$cA.latex"/>
-    <text name="lmr" modifyIndirectly="false" extend="$cA.latex"/>
+    <text name="lmr" extend="$cA.latex"/>
     <point name="A2" extend="$A"/>
     <coords name="cA2" extend="$A2.coords"/>
     <text name="l2" extend="$cA2.latex"/>

@@ -415,10 +415,6 @@ export default class MathOperator extends MathComponent {
         // and we have a inverseMathOperator/inverseNumberOperator
         stateVariableDefinitions.canBeModified = {
             returnDependencies: () => ({
-                modifyIndirectly: {
-                    dependencyType: "stateVariable",
-                    variableName: "modifyIndirectly",
-                },
                 fixed: {
                     dependencyType: "stateVariable",
                     variableName: "fixed",
@@ -444,7 +440,6 @@ export default class MathOperator extends MathComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let canBeModified =
-                    dependencyValues.modifyIndirectly &&
                     !dependencyValues.fixed &&
                     Boolean(
                         dependencyValues.isNumericOperator

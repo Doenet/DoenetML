@@ -62,9 +62,12 @@ export const RESERVED_MODULE_ATTRIBUTE_NAMES_NOT_IN_SCHEMA: ReadonlySet<string> 
     new Set([
         // `<module>` attributes marked `excludeFromSchema`, which the schema
         // therefore leaves out but the runtime reserves all the same
-        "modifyindirectly",
         "ispotentialresponse",
         "permid",
+        // No longer an attribute of any component, but the parser drops it
+        // from every element with a deprecation warning (#2336), so a
+        // `<module>` could never be given one of this name
+        "modifyindirectly",
     ]);
 
 export const RESERVED_MODULE_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([

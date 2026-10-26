@@ -294,9 +294,7 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
 
     // Whether the entries of each of those lists take a write, read only when
     // a value is written, apart from what the values depend on, as it may
-    // read the values (`<numberList fixed="$r[1]=1">`). As a reference to an
-    // entry (`ValueRef`), which reads its list's `modifyIndirectly` too, so
-    // that a write the template can take elsewhere goes there.
+    // read the values (`<numberList fixed="$r[1]=1">`).
     stateVariableDefinitions.entryListsCanBeModified = {
         stateVariablesDeterminingDependencies: ["templateAnalysis"],
         returnDependencies({ stateValues }) {
@@ -311,12 +309,6 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
                     variableName: "entriesCanBeModified",
                     variablesOptional: true,
                 };
-                dependencies[`modifyIndirectly${e}`] = {
-                    dependencyType: "stateVariable",
-                    componentIdx,
-                    variableName: "modifyIndirectly",
-                    variablesOptional: true,
-                };
             }
             return dependencies;
         },
@@ -324,8 +316,7 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
             const entryListsCanBeModified = [];
             for (let e = 0; `canBeModified${e}` in dependencyValues; e++) {
                 entryListsCanBeModified.push(
-                    (dependencyValues[`canBeModified${e}`] ?? false) &&
-                        dependencyValues[`modifyIndirectly${e}`] !== false,
+                    dependencyValues[`canBeModified${e}`] ?? false,
                 );
             }
             return { setValue: { entryListsCanBeModified } };

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    movePoint,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
@@ -47,6 +48,38 @@ describe("Warning Tests @group4", async () => {
                 ),
             ),
         ).eq(true);
+    });
+
+    it("Deprecated modifyIndirectly attribute is ignored, suggesting fixed", async () => {
+        // `modifyIndirectly="false"` refused the writes that reached the
+        // input through the point. It is dropped, so dragging the point now
+        // changes the input; `fixed` on the point is what refuses them.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="1" modifyIndirectly="false" />
+<graph><point name="P">($mi, 2)</point></graph>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).eq(
+            "[deprecation] Attribute `modifyIndirectly` on `<mathInput>` is deprecated and ignored. To keep the components that use this value from changing it, add `fixed` to them. To keep users from changing an input, use `disabled`.",
+        );
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 5,
+            y: 2,
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
+        ).eq(5);
     });
 
     it("Deprecated odeSystem renderMode attribute", async () => {

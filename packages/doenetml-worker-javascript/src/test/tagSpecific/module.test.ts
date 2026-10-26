@@ -309,7 +309,7 @@ describe("Module tag tests @group1", async () => {
       <graph>
         <point name="p" x="$u" y="$v" />
       </graph>
-      <math name="vfixed" modifyIndirectly="false" hide>$v</math>
+      <math name="vfixed" fixed hide>$v</math>
       <module copy="$m" x="$u+$vfixed" y="9" name="m2" />
       
     </module>

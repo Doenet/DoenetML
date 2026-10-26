@@ -367,9 +367,6 @@ export type AttributeDefinition<T> = {
     forRenderer?: boolean;
     /** If `true`, then variable from this attribute ignores the value of the `fixed` variable. */
     ignoreFixed?: boolean;
-    // `propagateToProps` is only on `modifyIndirectly`. It means this attribute
-    // is propagated to references of props. (Normally references of props don't copy attributes.)
-    propagateToProps?: boolean;
     /**
      * A reference does not take this attribute of its source as its own:
      * the attribute component is not looked up past the component a

@@ -827,9 +827,9 @@ describe("Polyline tag tests @group1", async () => {
     <polyline vertices=" (0,0) (3,-4) (1,-6) (-5,-6) " />
     <repeat hide for="$_polyline1.vertices" valueName="x">
         <point>(<math extend="$x.x" fixed="false" />+
-          <math modifyIndirectly="false" extend="$transx" />,
+          <math fixed extend="$transx" />,
           <math extend="$x.y" fixed="false" />+
-          <math modifyIndirectly="false" extend="$transy" />)
+          <math fixed extend="$transy" />)
         </point>
     </repeat>
     <polyline vertices="$_repeat1" />
