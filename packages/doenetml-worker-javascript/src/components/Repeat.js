@@ -429,6 +429,7 @@ export default class Repeat extends CompositeComponent {
                 component,
                 iterateNumber: iter,
                 replacement: replacements[0],
+                componentInfoObjects,
             });
         }
 
@@ -790,6 +791,7 @@ export async function copyStateFromUnlinkedSource({
     component,
     iterateNumber,
     replacement,
+    componentInfoObjects,
 }) {
     let sourceGroup =
         components[component.unlinkedCopySource].replacements[iterateNumber];
@@ -812,8 +814,35 @@ export async function copyStateFromUnlinkedSource({
         // variants (as the random children added to a copy in the template)
         // rather than having them draw again from its seed, which gives the
         // same values only if they draw in the same order.
-        const desiredVariant = serializedSourceGroup.variants?.desiredVariant;
+        let desiredVariant = serializedSourceGroup.variants?.desiredVariant;
         if (desiredVariant) {
+            // A random child added to the copy in its template
+            // (`<repeat copy="$r"><selectFromSequence/></repeat>`) follows
+            // the copied children and gets none of the variant's subvariants,
+            // so it would draw from the source iteration's seed and repeat
+            // the value the source's first random component drew from it.
+            // The iteration draws from a seed of its own instead, made from
+            // the source's so that it is the same for a given variant, as an
+            // unlinked `<group copy>` does (`addChildrenFromComposite`). The
+            // copied children keep their values, as each was given its
+            // source's variant, above.
+            if (
+                desiredVariant.seed !== undefined &&
+                gatherVariantComponents({
+                    // it marks what it gathers, which is left to the setup
+                    serializedComponents: deepClone(
+                        replacement.children.slice(
+                            serializedSourceGroup.children.length,
+                        ),
+                    ),
+                    componentInfoObjects,
+                }).length > 0
+            ) {
+                desiredVariant = {
+                    ...desiredVariant,
+                    seed: `${desiredVariant.seed}c`,
+                };
+            }
             replacement.variants = { ...replacement.variants, desiredVariant };
         }
     }

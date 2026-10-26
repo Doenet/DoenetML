@@ -419,6 +419,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 component,
                 iterateNumber: iter,
                 replacement: replacements[0],
+                componentInfoObjects,
             });
         }
 
