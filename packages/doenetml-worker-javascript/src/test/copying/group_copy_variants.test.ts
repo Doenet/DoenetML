@@ -69,6 +69,46 @@ describe("Unlinked group copies of random choices @group3", async () => {
         }
     });
 
+    it("a group copy keeps other random values in a hidden group, a shuffle, and with unique variants", async () => {
+        // the inner group's children are copied unexpanded, each with the
+        // variant it was given, whatever kind of random choice it makes
+        for (const [doenetML, name, stateVariable] of [
+            [
+                `<group name="g"><div><group hide><selectFromSequence name="n" from="1" to="1000"/></group></div></group>`,
+                "n",
+                "selectedValues",
+            ],
+            [
+                `<group name="g"><div><group><shuffle name="s"><p>1</p><p>2</p><p>3</p><p>4</p><p>5</p></shuffle></group></div></group>`,
+                "s",
+                "componentOrder",
+            ],
+            [
+                `<setup><variantControl uniqueVariants/></setup><group name="g"><div><group><select name="s">a b c d e f</select></group></div></group>`,
+                "s",
+                "selectedIndices",
+            ],
+        ]) {
+            for (const requestedVariantIndex of variantIndices) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${doenetML}<group copy="$g" name="g2"/>`,
+                    requestedVariantIndex,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const value = async (path: string) =>
+                    stateVariables[await resolvePathToNodeIdx(path)]
+                        .stateValues[stateVariable];
+                expect(
+                    await value(`g2.${name}`),
+                    `${doenetML}, variant ${requestedVariantIndex}`,
+                ).eqls(await value(`g.${name}`));
+            }
+        }
+    });
+
     it("a random child added to a group copy gets its own value", async () => {
         const doenetML = `
 <p name="a"><group name="g"><selectFromSequence name="x" from="1" to="1000"/> <selectFromSequence name="y" from="1" to="1000"/></group></p>
