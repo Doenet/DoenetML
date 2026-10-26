@@ -2,6 +2,7 @@ import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
 } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -433,9 +434,8 @@ export default class PretzelArranger extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -505,6 +505,45 @@ export default class PretzelArranger extends CompositeComponent {
                         isVariantComponent: true,
                     },
                 };
+            },
+        };
+
+        // The variant of each arranger of a `<pretzel copy>` merged into
+        // this one, by its index: this arranger's seed and order, with the
+        // subvariants of that arranger's problems. Its copy reports it in
+        // the place of that arranger among the children added to it, and,
+        // handed back, it gives the copy's arranger this arrangement again.
+        stateVariableDefinitions.variantsOfMergedComponents = {
+            returnDependencies: () => ({
+                generatedVariantInfo: {
+                    dependencyType: "stateVariable",
+                    variableName: "generatedVariantInfo",
+                },
+                variants: {
+                    dependencyType: "variants",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { seed, indices, subvariants } =
+                    dependencyValues.generatedVariantInfo;
+                const subvariantByIdx = new Map(
+                    subvariants.map((subvariant) => [
+                        subvariant.meta?.createdBy,
+                        subvariant,
+                    ]),
+                );
+                const variantsOfMergedComponents = {};
+                for (const arranger of dependencyValues.variants
+                    ?.mergedArrangers ?? []) {
+                    variantsOfMergedComponents[arranger.componentIdx] = {
+                        seed,
+                        indices,
+                        subvariants: (arranger.variantComponentIdxs ?? []).map(
+                            (idx) => subvariantByIdx.get(idx) ?? {},
+                        ),
+                    };
+                }
+                return { setValue: { variantsOfMergedComponents } };
             },
         };
 
@@ -762,6 +801,29 @@ export default class PretzelArranger extends CompositeComponent {
             descendantVariantComponents.map(
                 (component) => component.componentIdx,
             );
+
+        // and, for each arranger of a `<pretzel copy>` merged into this one
+        // (`Pretzel.preprocessSerializedChildren`), which of those components
+        // came from its problems
+        const mergedArrangers = serializedComponent.variants.mergedArrangers;
+        if (mergedArrangers) {
+            const children = serializedComponent.children ?? [];
+            serializedComponent.variants.mergedArrangers = mergedArrangers.map(
+                (arranger) => ({
+                    ...arranger,
+                    variantComponentIdxs: gatherVariantComponents({
+                        serializedComponents: arrangedContent(
+                            children.filter((child) =>
+                                arranger.childIdxs.includes(
+                                    child?.componentIdx,
+                                ),
+                            ),
+                        ),
+                        componentInfoObjects: core.componentInfoObjects,
+                    }).map((component) => component.componentIdx),
+                }),
+            );
+        }
     }
 
     static determineNumberOfUniqueVariants({

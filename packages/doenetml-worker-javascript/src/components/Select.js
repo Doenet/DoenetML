@@ -5,7 +5,11 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "@doenet/utils";
-import { gatherVariantComponents, pushVariantInfo } from "../utils/variants";
+import {
+    gatherVariantComponents,
+    pushVariantInfo,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import {
     NO_SELECT_ERROR,
@@ -503,9 +507,8 @@ export default class Select extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",

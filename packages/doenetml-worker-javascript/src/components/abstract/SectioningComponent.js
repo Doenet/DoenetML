@@ -3,6 +3,7 @@ import {
     determineVariantsForSection,
     getVariantsForDescendantsForUniqueVariants,
     setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
 } from "../../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../../utils/feedback";
@@ -1274,9 +1275,8 @@ export class SectioningComponent extends BlockComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",

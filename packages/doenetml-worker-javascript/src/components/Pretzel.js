@@ -278,6 +278,20 @@ export default class Pretzel extends BlockScoredComponent {
         if (!copiedArranger.variants?.desiredVariant) {
             return;
         }
+
+        // The copy's own arrangers are not made. Record which children each
+        // one held, so that the arranger can report the variant of each
+        // (`variantsOfMergedComponents`), in the place of that arranger
+        // among the children added to the copy.
+        copiedArranger.variants = {
+            ...copiedArranger.variants,
+            mergedArrangers: ownArrangers.map((arranger) => ({
+                componentIdx: arranger.componentIdx,
+                childIdxs: (arranger.children ?? [])
+                    .filter((child) => typeof child === "object")
+                    .map((child) => child.componentIdx),
+            })),
+        };
         // The desired variant is the source arranger's `generatedVariantInfo`
         // itself (`copyVariants`), shared with the source and its other
         // copies, so change a copy of it.
@@ -304,6 +318,21 @@ export default class Pretzel extends BlockScoredComponent {
             // choices that the document chose for them, which follow the
             // source's in the order the arranger hands out subvariants.
             delete desiredVariant.seed;
+            // An own arranger given a variant this copy's arranger generated
+            // (`variantsOfMergedComponents`), as when a container of the
+            // copy is copied or the page is loaded again with the variant it
+            // generated, carries that arranger's seed and order. The variant
+            // the document chooses for an own arranger has no seed.
+            const generated = ownArrangers.find(
+                (arranger) =>
+                    arranger.variants?.desiredVariant?.seed !== undefined,
+            )?.variants.desiredVariant;
+            if (generated) {
+                desiredVariant.seed = generated.seed;
+                if (generated.indices) {
+                    desiredVariant.indices = generated.indices;
+                }
+            }
             const ownSubvariants = ownArrangers.flatMap(
                 (arranger) =>
                     arranger.variants?.desiredVariant?.subvariants ?? [],
