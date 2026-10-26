@@ -209,19 +209,6 @@ impl Op {
         }
     }
 
-    /// The input cells its inverse may write (`writes`), each once per
-    /// position, in input order.
-    pub fn written_inputs<'a>(
-        &self,
-        operands: &'a [CellIdx],
-    ) -> impl Iterator<Item = CellIdx> + 'a {
-        let mask = self.writes();
-        self.inputs(operands)
-            .enumerate()
-            .filter(move |&(k, _)| k < 64 && mask & (1 << k) != 0)
-            .map(|(_, c)| c)
-    }
-
     /// All input cells, direct and in `operands`.
     pub fn inputs<'a>(&self, operands: &'a [CellIdx]) -> impl Iterator<Item = CellIdx> + 'a {
         let (a, b) = match self {
@@ -286,7 +273,6 @@ mod inverses {
         for spec in OpSpec::scalar_samples() {
             let n = spec.scalar_arity().unwrap();
             let op = spec.bind_scalar(&(0..n as CellIdx).collect::<Vec<_>>());
-            assert_eq!(op.writes(), spec.writes(), "{spec:?}");
             for cur in &assignments(n) {
                 for &d in &VALUES {
                     if let Some((c, _)) = op.invert(cur, d) {

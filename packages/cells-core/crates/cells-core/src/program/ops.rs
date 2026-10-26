@@ -177,17 +177,6 @@ macro_rules! scalar_ops {
                 }
             }
 
-            /// The input positions its inverse may write, as a mask
-            /// (`OpSpec::writes`).
-            #[allow(unused_variables)]
-            pub fn writes(&self) -> u64 {
-                match *self {
-                    $(Op::$name(..) => scalar_ops!(@writes $kind),)*
-                    Op::Sym(kind, ..) => kind.writes(),
-                    Op::Vec(op, ..) => op.writes(),
-                }
-            }
-
             /// Input cells, without allocating: `(first, Some(second))` for
             /// binary ops.
             #[inline(always)]

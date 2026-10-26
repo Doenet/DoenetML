@@ -23,8 +23,8 @@ impl EditReport {
 pub struct EditFailure {
     /// The input's key, in the new version's names.
     pub key: String,
-    /// Which condition: 1 (unchanged), 2 (the cells it writes), 3 (its
-    /// derivation) or 4 (a new input reading old state).
+    /// Which condition: 1 (unchanged), 2 (its derivation) or 3 (a new
+    /// input reading old state).
     pub condition: u8,
     /// Its element in the new version, if it has one.
     pub node: Option<NodeId>,
@@ -81,7 +81,7 @@ pub fn compare_versions(
     Ok(compare_signatures(&old, &new))
 }
 
-/// Step 4's four conditions, between the published version's signature and
+/// Step 4's three conditions, between the published version's signature and
 /// the draft's: `compare_versions` for a caller that keeps the published
 /// version's signature rather than computing it for every draft.
 pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
@@ -122,19 +122,9 @@ pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
             );
             continue;
         }
-        // 2. The essential cells it writes: same keys, types and sharing.
-        if o.cells != n.cells {
-            fail(
-                key,
-                2,
-                Some(o),
-                Some(n),
-                "the state it writes changed".into(),
-            );
-            continue;
-        }
-        // 3. Its derivation: what it shows, its defaults, whether it
-        // exists or can be acted on.
+        // 2. Its derivation: what it shows, its defaults, whether it
+        // exists or can be acted on. It names every essential cell it
+        // reads by key and type, so the state it writes is part of it.
         // A default may change only where it is the input's starting
         // value in both versions.
         let defaults_kept = o.defaults.iter().all(|(cell, &(d, own))| {
@@ -145,7 +135,7 @@ pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
         if o.derivation != n.derivation || !defaults_kept {
             fail(
                 key,
-                3,
+                2,
                 Some(o),
                 Some(n),
                 "what decides what it shows, or whether it exists or can be acted on, changed"
@@ -153,10 +143,14 @@ pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
             );
         }
     }
-    // 4. A new input reads no old essential cell, unless its domain holds
-    // every value.
-    let old_cells: HashSet<&(String, String)> =
-        old.inputs.values().flat_map(|i| i.cells.keys()).collect();
+    // 3. A new input reads no old essential cell, unless its domain holds
+    // every value. Every essential cell is one some input writes (ADR
+    // 0018), so it is in that input's closure.
+    let old_cells: HashSet<&(String, String)> = old
+        .inputs
+        .values()
+        .flat_map(|i| i.defaults.keys())
+        .collect();
     // What a new input reads: every essential cell of its closure.
     for (key, n) in &new.inputs {
         if old.inputs.contains_key(key) || n.domain == Domain::Any {
@@ -165,7 +159,7 @@ pub fn compare_signatures(old: &Signature, new: &Signature) -> EditReport {
         if let Some((k, p)) = n.defaults.keys().find(|c| old_cells.contains(c)) {
             fail(
                 key,
-                4,
+                3,
                 None,
                 Some(n),
                 format!("a new input that reads {k}.{p}, which students may have changed"),

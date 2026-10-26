@@ -416,16 +416,16 @@ its type, or inside a graph the bounds the author set, a choice input's
 choices in order, a select's options.
 
 **Input signature** — Per input of a document, from its source alone (ADR
-0017): its interactive props, its domain, the essential cells it writes, and
-its *derivation*, a hash over everything that decides what it shows and
-whether it exists or can be acted on, named by stable keys and literals,
-never by cell indices.
+0017): its interactive props, its domain, and its *derivation*, a hash over
+everything that decides what it shows and whether it exists or can be acted
+on, named by stable keys and literals, never by cell indices. Since the
+derivation names each essential cell it reads, it fixes the cells the input
+writes too.
 
 **Safe for every student** — Of an edit: every old input is unchanged, with
-a domain the same or larger, writes the same cells and has the same
-derivation, and no new input reads old state unless its domain holds every
-value. Saved state then carries over exactly, whatever a student did
-(`compare_versions`).
+a domain the same or larger and the same derivation, and no new input reads
+old state unless its domain holds every value. Saved state then carries over
+exactly, whatever a student did (`compare_versions`).
 
 **Document seed** — The one random seed a document is loaded with. Each
 load-time choice draws from its own stream derived from the seed and the

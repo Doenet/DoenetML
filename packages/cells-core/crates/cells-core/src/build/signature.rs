@@ -41,13 +41,12 @@ pub struct Input {
     pub props: Vec<(String, ValueType)>,
     /// The values a request on it can take.
     pub domain: Domain,
-    /// The essential cells a request on it may write, by the (element key,
-    /// prop) that defines each: their type, and so which elements share
-    /// them, since a copy sharing its original's state writes the
-    /// original's cell and one with its own writes its own.
-    pub cells: BTreeMap<(String, String), ValueType>,
     /// What decides what it shows and whether it exists or can be acted on,
-    /// but for the defaults of the essential cells it reads.
+    /// but for the defaults of the essential cells it reads. It names each
+    /// essential cell by the (element key, prop) that defines it and its
+    /// type, so it also fixes which cells a request on the input writes and
+    /// which elements share them: a copy sharing its original's state reads
+    /// the original's cell, one with its own reads its own.
     pub derivation: u64,
     /// The defaults of every essential cell its closure reads, by the
     /// cell's key: the default's hash, and whether it is the input's
@@ -243,7 +242,7 @@ impl<'a> Signer<'a> {
         // The essential cells each input's closure reads.
         let closures: Vec<BTreeSet<CellIdx>> = found
             .iter()
-            .map(|(_, seeds, _)| self.essential_leaves(seeds.iter().map(|s| s.1), false))
+            .map(|(_, seeds, _)| self.essential_leaves(seeds.iter().map(|s| s.1)))
             .collect();
         let mut reached: HashMap<CellIdx, u32> = HashMap::new();
         for leaves in &closures {
@@ -254,7 +253,6 @@ impl<'a> Signer<'a> {
         let mut sig = Signature::default();
         for ((c, seeds, n_interactive), leaves) in found.iter().zip(&closures) {
             let c = *c;
-            let written = self.essential_leaves(seeds[..*n_interactive].iter().map(|s| s.1), true);
             // A default is the input's starting value only when it is one
             // of the input's props itself, no operator around the input
             // mixes it into anything else, and no other input reaches it.
@@ -282,10 +280,6 @@ impl<'a> Signer<'a> {
                     })
                     .collect(),
                 domain: self.domain(c),
-                cells: written
-                    .iter()
-                    .map(|&l| (self.named[&l].clone(), out.value_types[l as usize]))
-                    .collect(),
                 derivation: h.finish(),
                 defaults: leaves
                     .iter()
@@ -314,14 +308,8 @@ impl<'a> Signer<'a> {
         (self.rename)(self.compiled.keys.key_text(key))
     }
 
-    /// The essential cells the closure of `seeds` reads; with `writes`,
-    /// only those a request on a seed may write: through the inputs each
-    /// inverse declares (`Op::writes`, ADR 0018), never a hold's flag.
-    fn essential_leaves(
-        &self,
-        seeds: impl Iterator<Item = CellIdx>,
-        writes: bool,
-    ) -> BTreeSet<CellIdx> {
+    /// The essential cells the closure of `seeds` reads.
+    fn essential_leaves(&self, seeds: impl Iterator<Item = CellIdx>) -> BTreeSet<CellIdx> {
         let mut leaves = BTreeSet::new();
         let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
         let mut stack: Vec<CellIdx> = seeds.collect();
@@ -332,11 +320,7 @@ impl<'a> Signer<'a> {
             if (cell as usize) < self.out.n_essential {
                 leaves.insert(cell);
             } else if let Some(instr) = self.instr_of(cell) {
-                if writes {
-                    stack.extend(instr.op.written_inputs(&self.out.operands));
-                } else {
-                    stack.extend(instr.op.inputs(&self.out.operands));
-                }
+                stack.extend(instr.op.inputs(&self.out.operands));
             }
         }
         leaves
@@ -526,7 +510,7 @@ impl<'a> Signer<'a> {
         for &b in &bounds {
             self.hash(b).hash(&mut h);
         }
-        for l in self.essential_leaves(bounds.into_iter(), false) {
+        for l in self.essential_leaves(bounds.into_iter()) {
             self.named[&l].hash(&mut h);
             self.default_hash(l).hash(&mut h);
         }

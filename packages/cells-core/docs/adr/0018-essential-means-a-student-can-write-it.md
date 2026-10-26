@@ -455,3 +455,18 @@ Settled while implementing:
 - Phase 6's rows are in `tests/compare.rs`, beside the other rows of ADR
   0017's table, with one for the narrower declaration: a point at `$a +
   $b` writes `a` alone.
+
+Settled after the migration (2026-10-26):
+
+- The signature's own write walk is gone. Once every essential cell is
+  one some input writes, the union of the cells each input writes was
+  the essential set on every golden document and fixture, and an input
+  whose derivation is unchanged wrote the same cells in every edit of
+  `tests/compare.rs` and of `tests/safe_edits.rs`'s long run: the
+  derivation names every essential cell it reads by key and type, and
+  every operator by kind, which fixes its declared writes. So ADR
+  0017's condition 2 (the cells it writes) folds into its derivation,
+  and condition 4 reads old state from the inputs' `defaults`.
+  `Input::cells`, `essential_leaves`'s `writes` and `Op::writes` go;
+  `OpSpec::writes` stays the one declaration, which the writable walk
+  reads. Phase 6's row for `$a + $b` went with the condition it tested.

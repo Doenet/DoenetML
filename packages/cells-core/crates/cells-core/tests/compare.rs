@@ -128,6 +128,7 @@ fn removing_an_input_fails_condition_1() {
     );
 }
 
+/// The copy reads a cell of its own, which its derivation names.
 #[test]
 fn a_copy_given_an_override_fails_condition_2() {
     let old = r#"<graph><point name="p" x="1" y="2"/><point name="c" extend="$p"/></graph>"#;
@@ -137,7 +138,7 @@ fn a_copy_given_an_override_fails_condition_2() {
 
 /// ADR 0018: an author's value is state only while an input reaches it.
 /// Unbinding the input leaves the boolean a student wrote a fixed cell,
-/// and the input writes a cell of its own: what it writes changed.
+/// and the input reads a cell of its own: its derivation changed.
 #[test]
 fn an_edit_that_leaves_a_written_value_fixed_fails_condition_2() {
     let old = r#"<boolean name="b"/><booleanInput name="bi" bindValueTo="$b"/>"#;
@@ -145,64 +146,46 @@ fn an_edit_that_leaves_a_written_value_fixed_fails_condition_2() {
     fails_with(old, new, "bi", 2);
 }
 
-/// What a point writes is what its inverses declare (ADR 0018): `Add`
-/// writes its first input, so a point at `$a + $b` writes `a` alone, and
-/// an edit to the input it only reads is no change to what it writes.
 #[test]
-fn an_input_read_but_not_written_is_not_among_what_a_point_writes() {
-    let old = r#"<numberInput name="a"/><numberInput name="b"/>
-<graph><point name="p" x="$a + $b" y="0"/></graph>"#;
-    let new = old.replace(
-        r#"<numberInput name="b"/>"#,
-        r#"<numberInput name="b" fixed="true"/>"#,
-    );
-    let f = fails(old, &new);
-    assert!(
-        !f.iter().any(|(k, c)| k == "p" && *c == 2),
-        "the point writes only a: {f:?}"
-    );
-}
-
-#[test]
-fn an_operator_changed_between_an_input_and_a_point_fails_condition_3() {
+fn an_operator_changed_between_an_input_and_a_point_fails_condition_2() {
     let old = r#"<numberInput name="n" value="1"/><graph><point name="q" x="2 $n" y="0"/></graph>"#;
-    fails_with(old, &old.replace("2 $n", "3 $n"), "q", 3);
+    fails_with(old, &old.replace("2 $n", "3 $n"), "q", 2);
 }
 
 #[test]
-fn a_default_changed_between_an_input_and_a_point_fails_condition_3() {
+fn a_default_changed_between_an_input_and_a_point_fails_condition_2() {
     let old = r#"<numberInput name="n" value="1"/><number name="k">2</number>
 <graph><point name="q" x="$k $n" y="0"/></graph>"#;
-    fails_with(old, &old.replace(">2<", ">3<"), "q", 3);
+    fails_with(old, &old.replace(">2<", ">3<"), "q", 2);
 }
 
 #[test]
-fn a_repeat_count_changed_fails_condition_3() {
+fn a_repeat_count_changed_fails_condition_2() {
     let old = r#"<numberInput name="n" value="4"/><number name="half">$n/2</number>
 <repeatForSequence name="r" length="$n"><numberInput name="x"/></repeatForSequence>"#;
     fails_with(
         old,
         &old.replace(r#"length="$n""#, r#"length="$half""#),
         "r[*].x",
-        3,
+        2,
     );
 }
 
 #[test]
-fn a_fixed_or_hide_or_condition_added_around_an_input_fails_condition_3() {
+fn a_fixed_or_hide_or_condition_added_around_an_input_fails_condition_2() {
     let old = r#"<booleanInput name="b"/><numberInput name="m"/>"#;
     fails_with(
         old,
         r#"<booleanInput name="b"/><numberInput name="m" fixed="$b"/>"#,
         "m",
-        3,
+        2,
     );
     let point = r#"<booleanInput name="b"/><graph name="g"><point name="p"/></graph>"#;
     fails_with(
         point,
         &point.replace("<point", r#"<point hide="$b""#),
         "g.p",
-        3,
+        2,
     );
     fails_with(
         old,
@@ -213,10 +196,10 @@ fn a_fixed_or_hide_or_condition_added_around_an_input_fails_condition_3() {
 }
 
 #[test]
-fn a_new_point_reading_an_old_input_fails_condition_4() {
+fn a_new_point_reading_an_old_input_fails_condition_3() {
     let old = r#"<numberInput name="n"/><graph name="g"/>"#;
     let new = r#"<numberInput name="n"/><graph name="g"><point name="p" x="$n" y="0"/></graph>"#;
-    fails_with(old, new, "g.p", 4);
+    fails_with(old, new, "g.p", 3);
 }
 
 // A select's options must be identical; content inside them may change.

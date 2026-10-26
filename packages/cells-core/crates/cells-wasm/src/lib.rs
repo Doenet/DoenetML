@@ -22,7 +22,7 @@ pub fn diagnose_json(dast: &[u8]) -> Result<String, JsError> {
 /// student (ADR 0017): their saved state then carries over exactly. Both
 /// are DAST bytes in either wire format; `renames` is a JSON array of
 /// `[oldKey, newKey]` pairs an editor recorded. The result is JSON: `safe`,
-/// and `failures`, each with the input's `key`, the `condition` (1 to 4)
+/// and `failures`, each with the input's `key`, the `condition` (1 to 3)
 /// it fails, its DAST `node` in `new` and `oldNode` in `old` where it has
 /// one, and a `reason`. An error when either version does not load under
 /// this release, which makes the edit not safe for attempts pinned to it.
