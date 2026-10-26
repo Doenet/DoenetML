@@ -1098,4 +1098,171 @@ describe("Pretzel tag tests @group1", async () => {
             }
         }
     });
+
+    describe("copies of a pretzel", () => {
+        const pretzelDoenetML = `
+    <pretzel name="p">
+        <problem><statement name="s1"><p>P1 <selectFromSequence name="n" from="1" to="100"/></p></statement><answer name="a1">A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem><statement><p>P3</p></statement><answer>A3</answer></problem>
+    </pretzel>`;
+
+        // Each case is a document copying the pretzel `p`, with the path of
+        // the copied pretzel, and whether the copy is linked to `p`.
+        const cases = [
+            {
+                description: "<pretzel extend>",
+                doenetML: `${pretzelDoenetML}\n    <pretzel extend="$p" name="p2"/>`,
+                sourcePath: "p",
+                copyPath: "p2",
+                linked: true,
+            },
+            {
+                description: "<pretzel copy>",
+                doenetML: `${pretzelDoenetML}\n    <pretzel copy="$p" name="p2"/>`,
+                sourcePath: "p",
+                copyPath: "p2",
+                linked: false,
+            },
+            {
+                description: "<section extend>",
+                doenetML: `<section name="s">${pretzelDoenetML}</section>\n    <section extend="$s" name="s2"/>`,
+                sourcePath: "s.p",
+                copyPath: "s2.p",
+                linked: true,
+            },
+            {
+                description: "<section copy>",
+                doenetML: `<section name="s">${pretzelDoenetML}</section>\n    <section copy="$s" name="s2"/>`,
+                sourcePath: "s.p",
+                copyPath: "s2.p",
+                linked: false,
+            },
+        ];
+
+        for (const {
+            description,
+            doenetML,
+            sourcePath,
+            copyPath,
+            linked,
+        } of cases) {
+            it(`a ${description} copy shows and grades the same problems in the same order`, async () => {
+                // Variant 2 shows the problems out of their written order.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: 2,
+                });
+
+                const diagnosticsByType = getDiagnosticsByType(core);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
+
+                let stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const source =
+                    stateVariables[await resolvePathToNodeIdx(sourcePath)];
+                const copy =
+                    stateVariables[await resolvePathToNodeIdx(copyPath)];
+
+                // The text a component shows, from its descendants where it
+                // has no `text` of its own (a statement or a span)
+                function shownText(componentIdx: number): string {
+                    const component = stateVariables[componentIdx];
+                    return (
+                        component.stateValues.text ??
+                        component.activeChildren
+                            .map((child: any) =>
+                                typeof child === "string"
+                                    ? child
+                                    : shownText(child.componentIdx),
+                            )
+                            .join("")
+                    );
+                }
+
+                function childTypesAndTexts(pretzel: any) {
+                    return pretzel.activeChildren.map((child: any) => [
+                        stateVariables[child.componentIdx].componentType,
+                        shownText(child.componentIdx),
+                    ]);
+                }
+
+                expect(source.stateValues.problemOrder).not.eqls([1, 2, 3]);
+                expect(copy.stateValues.problemOrder).eqls(
+                    source.stateValues.problemOrder,
+                );
+                expect(copy.stateValues.numProblems).eq(3);
+                expect(copy.activeChildren.length).eq(9);
+                expect(childTypesAndTexts(copy)).eqls(
+                    childTypesAndTexts(source),
+                );
+
+                // The names in the copy resolve to its own statement and
+                // answer, which show the same random value as the source's.
+                const copyStatement =
+                    stateVariables[
+                        await resolvePathToNodeIdx(`${copyPath}.s1`)
+                    ];
+                const sourceStatement =
+                    stateVariables[
+                        await resolvePathToNodeIdx(`${sourcePath}.s1`)
+                    ];
+                expect(copyStatement.componentType).eq("statement");
+                expect(copyStatement.componentIdx).not.eq(
+                    sourceStatement.componentIdx,
+                );
+                expect(shownText(copyStatement.componentIdx)).eq(
+                    shownText(sourceStatement.componentIdx),
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`${copyPath}.a1`)]
+                        .activeChildren,
+                ).eqls(["A1"]);
+
+                // Answer the copy.
+                const problemOrder = copy.stateValues.problemOrder;
+                for (let i = 1; i <= 3; i++) {
+                    const input = getPretzelChild({
+                        pretzel: copy,
+                        problemOrder,
+                        problemNumber: i,
+                        childOffset: INPUT_CHILD_OFFSET,
+                    });
+                    await updateTextInputValue({
+                        text: `${i}`,
+                        componentIdx: input.componentIdx,
+                        core,
+                    });
+                }
+                await submitAnswer({
+                    componentIdx: copy.componentIdx,
+                    core,
+                });
+
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[copy.componentIdx].stateValues
+                        .creditAchieved,
+                ).eq(1);
+
+                // A linked copy's responses are its source's; an unlinked
+                // copy's are its own.
+                expect(
+                    stateVariables[source.componentIdx].stateValues
+                        .currentResponses,
+                ).eqls(
+                    linked
+                        ? stateVariables[copy.componentIdx].stateValues
+                              .currentResponses
+                        : ["", "", ""],
+                );
+            });
+        }
+    });
 });

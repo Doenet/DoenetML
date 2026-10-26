@@ -491,10 +491,18 @@ async function expandShadowingComposite({
     // However, those replacements already exist in the replacements of `shadowedComposite` which we are copying.
     // As a workaround, we create a map from the indices of the children of `shadowedComposite`
     // to the indices of the children of `component` and override the component indices created on the new replacements.
+    // A composite whose replacements are made from parts of its serialized
+    // children, not one replacement per child, such as `<pretzel>`'s arranger
+    // (`mapShadowedReplacementIndicesThroughSerializedChildren`), is in the
+    // same situation.
     const idxMapOverride: Record<string, number> = {};
     const copyInChildren =
         shadowedComposite.attributes._copyInChildren?.primitive.value;
-    if (copyInChildren) {
+    if (
+        copyInChildren ||
+        component.constructor
+            .mapShadowedReplacementIndicesThroughSerializedChildren
+    ) {
         const componentChildren = JSON.parse(
             JSON.stringify(component.serializedChildren),
         );
