@@ -1034,11 +1034,13 @@ export default class Copy extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "unlinkedDescendants",
                     },
-                    unlinkedSelectsExpanded: {
+                };
+                if (!stateValues.link) {
+                    dependencies.unlinkedSelectsExpanded = {
                         dependencyType: "stateVariable",
                         variableName: "unlinkedSelectsExpanded",
-                    },
-                };
+                    };
+                }
                 // XXX: how do we deal here if we ended up grabbing a prop from a composite.
                 // Same question for `needsReplacementsUpdatedWhenStale`
                 if (
