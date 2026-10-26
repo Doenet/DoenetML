@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -14,17 +15,20 @@ async function randomValues({
     doenetML,
     requestedVariantIndex,
     requestedVariant,
+    initialState,
     names,
 }: {
     doenetML: string;
     requestedVariantIndex: number;
     requestedVariant?: Record<string, any>;
+    initialState?: string;
     names: string[];
 }) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML,
         requestedVariantIndex,
         requestedVariant,
+        initialState,
     });
     const stateVariables = await core.returnAllStateVariables(false, true);
     const values: Record<string, any> = {};
@@ -265,5 +269,70 @@ describe("Copies of containers holding copies with added random children @group3
 `,
             names: ["s.g2.z", "s.p2.m", "s.p2", "s2.g2.z", "s2.p2.m", "s2.p2"],
         });
+    });
+
+    it("a saved page loaded again keeps the random child added to a copy", async () => {
+        // As the viewer loads a saved page: with the saved state and the
+        // variant the page generated, passed back as `requestedVariant`
+        const documents = [
+            `
+<mathInput name="mi"/>
+<p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
+<p copy="$a" name="b"> <selectFromSequence name="z" from="1" to="1000"/></p>
+`,
+            `
+<mathInput name="mi"/>
+<section name="a"><p><selectFromSequence name="x" from="1" to="1000"/></p></section>
+<section copy="$a" name="b"><p><selectFromSequence name="z" from="1" to="1000"/></p></section>
+`,
+            `
+<mathInput name="mi"/>
+<group name="a"><p><selectFromSequence name="x" from="1" to="1000"/></p></group>
+<group copy="$a" name="b"><p><selectFromSequence name="z" from="1" to="1000"/></p></group>
+`,
+        ];
+        const names = ["a.x", "b.x", "z"];
+        for (const doenetML of documents) {
+            for (const requestedVariantIndex of variantIndices) {
+                const message = `variant ${requestedVariantIndex} of ${doenetML}`;
+                const { core, resolvePathToNodeIdx, scoreState } =
+                    await createTestCore({ doenetML, requestedVariantIndex });
+                await updateMathInputValue({
+                    latex: "y",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const values: number[] = [];
+                for (const name of names) {
+                    values.push(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.selectedValues[0],
+                    );
+                }
+                const document = Object.values(stateVariables).find(
+                    (component: any) => component.componentType === "document",
+                ) as any;
+                const requestedVariant = JSON.parse(
+                    JSON.stringify(document.stateValues.generatedVariantInfo),
+                );
+                await core.saveImmediately();
+
+                const { values: reloadedValues } = await randomValues({
+                    doenetML,
+                    requestedVariantIndex,
+                    requestedVariant,
+                    initialState: scoreState.state,
+                    names,
+                });
+                expect(
+                    names.map((name) => reloadedValues[name]),
+                    message,
+                ).eqls(values);
+            }
+        }
     });
 });
