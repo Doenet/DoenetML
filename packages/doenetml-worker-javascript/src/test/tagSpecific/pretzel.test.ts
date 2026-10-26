@@ -743,27 +743,114 @@ describe("Pretzel tag tests @group1", async () => {
         expect(pretzel.activeChildren.length).eq(6);
     });
 
-    it("pretzel counts each copied problem as one problem for unique variants", async () => {
-        // A `<problem copy>` is a composite that makes exactly one problem,
-        // so three problems give 3! = 6 unique orders.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+    for (const kind of ["copy", "extend"]) {
+        it(`pretzel ignores a <problem ${kind}> child, with a warning`, async () => {
+            // A `<problem copy>` or `<problem extend>` is a composite with no
+            // statement or answer for the pretzel to arrange, so it is
+            // neither arranged nor counted for unique variants.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
     <setup>
-        <problem name="q2"><statement><p>P2</p></statement><answer>A2</answer></problem>
         <problem name="q3"><statement><p>P3</p></statement><answer>A3</answer></problem>
+        <problem name="q4"><statement><p>P4</p></statement><answer>A4</answer></problem>
     </setup>
     <pretzel name="p">
         <problem><statement><p>P1</p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem ${kind}="$q3" />
+        <problem ${kind}="$q4" />
+    </pretzel>
+    `,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(1);
+            expect(diagnosticsByType.warnings[0].message).contain(
+                "A `<problem>` that copies or extends another problem is not supported in a `<pretzel>` and is ignored.",
+            );
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+            expect(pretzel.stateValues.numProblems).eq(2);
+            expect(pretzel.stateValues.problemOrder.length).eq(2);
+            expect(pretzel.activeChildren.length).eq(6);
+
+            // Two arranged problems give 2! = 2 unique orders.
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants,
+            ).eqls(["a", "b"]);
+        });
+    }
+
+    it("pretzel whose only problems are copies arranges nothing, with one warning", async () => {
+        // With no problem written out, the pretzel has no problems to arrange
+        // and contributes a single variant. (Counting the three copies would
+        // give 2! = 2 circuit orders.)
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+        <problem name="q1"><statement><p>P1</p></statement><answer>A1</answer></problem>
+        <problem name="q2"><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </setup>
+    <pretzel name="p" mode="circuit">
+        <problem copy="$q1" />
+        <problem extend="$q2" />
         <problem copy="$q2" />
-        <problem copy="$q3" />
     </pretzel>
     `,
         });
 
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "A `<problem>` that copies or extends another problem is not supported in a `<pretzel>` and is ignored.",
+        );
+
         const stateVariables = await core.returnAllStateVariables(false, true);
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        expect(pretzel.stateValues.numProblems).eq(0);
+        expect(pretzel.stateValues.problemOrder).eqls([]);
+        expect(pretzel.activeChildren.length).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("_document1")]
                 .sharedParameters.allPossibleVariants,
-        ).eqls(["a", "b", "c", "d", "e", "f"]);
+        ).eqls(["a"]);
+    });
+
+    it("pretzel does not count the variants of a <problem extend>'s own children", async () => {
+        // The `<selectFromSequence>` inside the ignored `<problem extend>` is
+        // never shown, so it does not multiply the variants: 3 values of `n`
+        // times 2! orders give 6 variants, not 30.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+        <problem name="q3"><statement><p>P3</p></statement><answer>A3</answer></problem>
+    </setup>
+    <pretzel name="p">
+        <problem extend="$q3"><statement><p><selectFromSequence from="1" to="5" /></p></statement></problem>
+        <problem><statement><p>P1 <selectFromSequence name="n" from="1" to="3" /></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .numProblems,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants.length,
+        ).eq(6);
     });
 });
