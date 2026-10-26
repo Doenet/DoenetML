@@ -1151,9 +1151,16 @@ export function DocViewer({
 
     useEffect(() => {
         const listener = async function (e: MessageEvent) {
+            // Messages from this window's own origin or from the parent
+            // window. Compare e.source with window.parent rather than reading
+            // window.parent.location.origin: that throws a DOMException when
+            // the parent is cross-origin (a viewer embedded in another site's
+            // page), so every message from anywhere else, such as a YouTube
+            // player's, raised an uncaught error. Same check as the virtual
+            // keyboard's listener.
             if (
                 e.origin !== window.location.origin &&
-                e.origin !== window.parent.location.origin
+                e.source !== window.parent
             ) {
                 return;
             }
