@@ -67,10 +67,19 @@ describe("Unlinked group copies of random choices @group3", async () => {
 <p name="b"><group copy="$g" name="g2"> <selectFromSequence name="z" from="1" to="1000"/></group></p>
 <p name="c"><group copy="$g2" name="g3"/></p>
 `;
-        const names = ["g.x", "g.y", "g2.x", "g2.y", "z", "g3.x", "g3.y"];
+        const names = [
+            "g.x",
+            "g.y",
+            "g2.x",
+            "g2.y",
+            "z",
+            "g3.x",
+            "g3.y",
+            "g3.z",
+        ];
         const addedValues: number[] = [];
         for (const requestedVariantIndex of variantIndices) {
-            const [x, y, x2, y2, z, x3, y3] = await selectedValues({
+            const [x, y, x2, y2, z, x3, y3, z3] = await selectedValues({
                 doenetML,
                 requestedVariantIndex,
                 names,
@@ -84,8 +93,8 @@ describe("Unlinked group copies of random choices @group3", async () => {
             expect(z, message).not.eq(x);
             expect(z, message).not.eq(y);
 
-            // a copy of the copy keeps the copy's values
-            expect([x3, y3], message).eqls([x, y]);
+            // a copy of the copy keeps the copy's values, the added one included
+            expect([x3, y3, z3], message).eqls([x, y, z]);
 
             // the added child's value is the same for a given variant
             const [zAgain] = await selectedValues({
