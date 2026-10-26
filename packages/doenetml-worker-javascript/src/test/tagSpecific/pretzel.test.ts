@@ -78,6 +78,31 @@ async function expectNamedSingleStringChildren({
     }
 }
 
+// The text a component shows: its `text`, or, for a component without one
+// (such as a statement or a span), the text of its children
+function shownText({
+    stateVariables,
+    componentIdx,
+}: {
+    stateVariables: Record<number, any>;
+    componentIdx: number;
+}): string {
+    const component = stateVariables[componentIdx];
+    return (
+        component.stateValues.text ??
+        component.activeChildren
+            .map((child: any) =>
+                typeof child === "string"
+                    ? child
+                    : shownText({
+                          stateVariables,
+                          componentIdx: child.componentIdx,
+                      }),
+            )
+            .join("")
+    );
+}
+
 function getPretzelChild({
     pretzel,
     problemOrder,
@@ -1071,9 +1096,10 @@ describe("Pretzel tag tests @group1", async () => {
     });
 
     it("a copy of a pretzel reports the subvariants of its own random choices", async () => {
-        // A copy's arranger is not set up from problems, so it keeps its
-        // subvariants in display order rather than dropping them.
-        const { core } = await createTestCore({
+        // A copy's arranger reports the subvariants of its own copies of the
+        // random choices, in the order its source reports them: problem
+        // order, though this variant shows the problems out of that order.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
         <problem><statement><p>P1 <selectFromSequence from="1" to="5"/></p></statement><answer>A1</answer></problem>
@@ -1081,22 +1107,38 @@ describe("Pretzel tag tests @group1", async () => {
     </pretzel>
     <section>$p</section>
     `,
+            requestedVariantIndex: 1,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .problemOrder,
+        ).eqls([2, 1]);
+
         const arrangers = Object.values(stateVariables).filter(
             (component) => component.componentType === "_pretzelArranger",
         );
         expect(arrangers.length).eq(2);
-        for (const arranger of arrangers) {
-            const subvariants =
-                arranger.stateValues.generatedVariantInfo.subvariants;
-            expect(subvariants.length).eq(2);
-            for (const subvariant of subvariants) {
-                expect(
-                    stateVariables[subvariant.meta.createdBy].componentType,
-                ).eq("selectFromSequence");
-            }
+        const [sourceSubvariants, copySubvariants] = arrangers.map(
+            (arranger) => arranger.stateValues.generatedVariantInfo.subvariants,
+        );
+        expect(copySubvariants.length).eq(2);
+        for (const [i, subvariant] of copySubvariants.entries()) {
+            const sourceCreatedBy = sourceSubvariants[i].meta.createdBy;
+            expect(subvariant.meta.createdBy).not.eq(sourceCreatedBy);
+            expect(stateVariables[subvariant.meta.createdBy].componentType).eq(
+                "selectFromSequence",
+            );
+            expect(
+                stateVariables[subvariant.meta.createdBy].stateValues
+                    .selectedValues,
+            ).eqls(stateVariables[sourceCreatedBy].stateValues.selectedValues);
         }
+        // The first is from the first problem's range.
+        expect(
+            stateVariables[copySubvariants[0].meta.createdBy].stateValues
+                .selectedValues[0],
+        ).lte(5);
     });
 
     describe("copies of a pretzel", () => {
@@ -1167,26 +1209,13 @@ describe("Pretzel tag tests @group1", async () => {
                 const copy =
                     stateVariables[await resolvePathToNodeIdx(copyPath)];
 
-                // The text a component shows, from its descendants where it
-                // has no `text` of its own (a statement or a span)
-                function shownText(componentIdx: number): string {
-                    const component = stateVariables[componentIdx];
-                    return (
-                        component.stateValues.text ??
-                        component.activeChildren
-                            .map((child: any) =>
-                                typeof child === "string"
-                                    ? child
-                                    : shownText(child.componentIdx),
-                            )
-                            .join("")
-                    );
-                }
-
                 function childTypesAndTexts(pretzel: any) {
                     return pretzel.activeChildren.map((child: any) => [
                         stateVariables[child.componentIdx].componentType,
-                        shownText(child.componentIdx),
+                        shownText({
+                            stateVariables,
+                            componentIdx: child.componentIdx,
+                        }),
                     ]);
                 }
 
@@ -1214,8 +1243,16 @@ describe("Pretzel tag tests @group1", async () => {
                 expect(copyStatement.componentIdx).not.eq(
                     sourceStatement.componentIdx,
                 );
-                expect(shownText(copyStatement.componentIdx)).eq(
-                    shownText(sourceStatement.componentIdx),
+                expect(
+                    shownText({
+                        stateVariables,
+                        componentIdx: copyStatement.componentIdx,
+                    }),
+                ).eq(
+                    shownText({
+                        stateVariables,
+                        componentIdx: sourceStatement.componentIdx,
+                    }),
                 );
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`${copyPath}.a1`)]
@@ -1280,19 +1317,6 @@ describe("Pretzel tag tests @group1", async () => {
                 false,
                 true,
             );
-            function shownText(componentIdx: number): string {
-                const component = stateVariables[componentIdx];
-                return (
-                    component.stateValues.text ??
-                    component.activeChildren
-                        .map((child: any) =>
-                            typeof child === "string"
-                                ? child
-                                : shownText(child.componentIdx),
-                        )
-                        .join("")
-                );
-            }
             const result: Record<string, any> = {};
             for (const path of paths) {
                 const pretzel =
@@ -1304,7 +1328,12 @@ describe("Pretzel tag tests @group1", async () => {
                             (_: any, i: number) =>
                                 i % PRETZEL_CHILD_STRIDE !== INPUT_CHILD_OFFSET,
                         )
-                        .map((child: any) => shownText(child.componentIdx)),
+                        .map((child: any) =>
+                            shownText({
+                                stateVariables,
+                                componentIdx: child.componentIdx,
+                            }),
+                        ),
                     currentResponses: pretzel.stateValues.currentResponses,
                 };
             }

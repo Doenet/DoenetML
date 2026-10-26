@@ -18,6 +18,8 @@ Each `<problem>{:dn}` in a pretzel should contain one `<statement>{:dn}` and one
 Write each problem out inside the pretzel: a `<problem>{:dn}` that copies or extends another problem, such as `<problem copy="$q"/>{:dn}`, is not supported in a pretzel and is ignored, with a warning.
 The pretzel shows only the statement and answer of each problem. Anything else in a problem, such as a `<hint>{:dn}` or a `<variantControl>{:dn}`, is ignored and does not affect the pretzel's variants.
 
+A whole pretzel can be copied. A copy such as `<pretzel extend="$p"/>{:dn}` or `<pretzel copy="$p"/>{:dn}` shows the same problems as `$p`, in the same order and with the same random values, and is graded the same way. As with other copies, a copy made with `extend` shares the responses of `$p`, while one made with `copy` has its own.
+
 
 <AttrPropDisplay name='pretzel'/>
 
