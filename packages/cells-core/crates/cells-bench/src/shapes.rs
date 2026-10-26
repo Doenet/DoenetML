@@ -365,15 +365,3 @@ pub fn fingerprint(doc: &Document) -> u64 {
     }
     h
 }
-
-/// What a renderer showing the first `pct`% of the document reads: every
-/// prop cell of the first `pct`% of its components in document order (at
-/// least one), as a viewport would. 100 is every component.
-pub fn wanted(doc: &Document, pct: usize) -> Vec<CellIdx> {
-    let comps = crate::script::tree(doc);
-    let k = (comps.len() * pct).div_ceil(100).clamp(1, comps.len());
-    comps[..k]
-        .iter()
-        .flat_map(|&(_, c)| doc.comp_cells(c).iter().copied())
-        .collect()
-}

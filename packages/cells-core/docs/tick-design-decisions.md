@@ -149,6 +149,15 @@ alternative had to leave every value the same as the core, bit for bit:
 the harness compares them, and for patches `cargo test --workspace` and
 the golden diff (`scripts/golden-diff.sh`) must also pass.
 
+**Where the alternatives are.** The patches and extra evaluators are not
+kept in the repository: they were written for this report and would
+fall out of date as the core changes. They are at commit
+`8daf609e24a728d03c4b4075640c0a80711552d3`, on the branch
+`claude/happy-lovelace-b3tee6`, together with the core they were
+measured against; every path to one in this report is a path at that
+commit. The shapes and the harness that times them are kept (see
+[Tools](#tools)).
+
 **Both evaluators.** Each alternative was timed under full recompute and
 the dirty closure. The dirty closure's own bookkeeping costs several
 times an instruction (#10), which hides differences per instruction,
@@ -172,13 +181,15 @@ elements, measured at 10,000 and 100,000.
 | poly | a chain of n numbers, each `($c + 3) / 2 + $c / 2 - 1` of the one before: five instructions per value | all of it | #3 |
 | symbolic | as the benchmark's: n simplified `<math>`s in x, evaluated at the end | all of it | #5 |
 
-**Tools.** In `crates/cells-bench/`:
+<a id="tools"></a>**Tools.** In `crates/cells-bench/`:
 
 - `examples/tick_cost.rs` times every shape under a list of evaluators
   (`CELLS_EVALUATORS`), interleaved tick by tick, each on its own copy of
   the document: 3 warm-up ticks and 41 timed, the median reported. It
-  checks each shape's values and that every evaluator agrees.
-  `CELLS_WANTED` sets the share of the document a tick reads, for #9.
+  checks each shape's values and that every evaluator agrees. As kept, it
+  knows the core's two evaluators; at the commit above it also knows the
+  alternatives', and `CELLS_WANTED` sets the share of the document a tick
+  reads, for #9.
 - `scripts/tick-diff.sh [base] [shapes] [sizes]` (in this package)
   builds `tick_cost` at a base commit and in the working tree, runs them
   alternately seven times, and prints the working tree's tick over the
@@ -871,6 +882,17 @@ The core's own ticks, in µs, from the run that measured the noise floor:
 
 ## Appendix: files
 
+Kept in the repository:
+
+| File | What it is |
+|---|---|
+| `crates/cells-bench/src/shapes.rs` | the synthetic documents |
+| `crates/cells-bench/examples/tick_cost.rs` | times shapes under the core's evaluators |
+| `crates/cells-bench/examples/program_size.rs` | golden documents' program sizes (#8) |
+| `scripts/tick-diff.sh` | a base commit against the working tree |
+
+Everything, at commit `8daf609e24a728d03c4b4075640c0a80711552d3`:
+
 | File | What it is |
 |---|---|
 | `crates/cells-bench/src/shapes.rs` | the synthetic documents |
@@ -890,8 +912,10 @@ The core's own ticks, in µs, from the run that measured the noise floor:
 | `docs/tick-alternatives/10-priority-queue.patch` | #10 |
 | `docs/tick-alternatives/11-no-cutoff.patch` | #11 |
 
-To measure a patch: `git apply` it (the cell-type patches on top of
-`4-6-cells-type.patch`), commit it locally, and run
+To measure a patch, at that commit: `git apply` it (the cell-type
+patches on top of `4-6-cells-type.patch`), commit it locally, and run
 `scripts/tick-diff.sh` with the commit before it as the base. To measure
-an evaluator: `CELLS_EVALUATORS=dirty,full,<name> cargo run --release -p
-cells-bench --example tick_cost`.
+an evaluator, at that commit: `CELLS_EVALUATORS=dirty,full,<name> cargo
+run --release -p cells-bench --example tick_cost`. To measure a change
+to the core now, make it in the working tree and run
+`scripts/tick-diff.sh`.
