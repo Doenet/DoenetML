@@ -10,8 +10,8 @@ An interaction is a request to change one value.
   how to achieve the change. The answer either passes a desired value on to a dependency
   (`setDependency`) or stores it (`setEssentialValue`). The chain stops at stored state, and
   everything downstream is recomputed forward.
-- **Refusing.** `fixed`, `fixLocation` (on location variables) and `modifyIndirectly="false"`
-  refuse requests before they are inverted.
+- **Refusing.** `fixed`, and `fixLocation` on location variables, refuse requests before they
+  are inverted.
 - **Committing an input.** An input commits in two steps: `value := immediateValue`, then
   `immediateValue := value` as it actually turned out. The second step is what makes an input
   "snap back".
@@ -56,7 +56,7 @@ Evidence:
 - `T/utils/statePersistenceContents.test.ts:61-129`.
 
 ### INT-3: a formula runs backward coordinate by coordinate, when each coordinate depends on one changeable value through `+ − × ÷` by constants (Tier 1 for the common cases, Tier 2 for the edges)
-Values that are `fixed` or have `modifyIndirectly="false"` count as constants. In a tuple, only
+Values that are `fixed` count as constants. In a tuple, only
 the coordinates that can be inverted are written.
 
 | Written | Action | Result (**[probe]**) |
@@ -109,7 +109,6 @@ children and attributes:
 |---|---|---|
 | `fixed` | every change pushed into the component | 1 |
 | `draggable="false"` | only the reader's direct drag | 1 |
-| `modifyIndirectly="false"` | only changes passed back from things that depend on the component | 2, a candidate to retire (D23) |
 
 See [inherited-attributes.md](inherited-attributes.md), CTX-1 to CTX-3.
 
@@ -291,4 +290,3 @@ contain a Tier 2 property worth restating as a black-box test, noted in the tabl
 - **Projection operators:** what the source receives under round, floor, ceil, clamp and wrap.
 - **Answers:** credit when what is correct changes after a submission.
 - **Variants:** VAR-2 with `uniqueVariants` off; inserting a random component.
-- **`modifyIndirectly="false"`** on number, text and boolean sources.
