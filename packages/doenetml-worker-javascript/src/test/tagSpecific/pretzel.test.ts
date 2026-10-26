@@ -997,4 +997,55 @@ describe("Pretzel tag tests @group1", async () => {
             numVariants: 6,
         });
     });
+
+    it("pretzel reports its subvariants in the order it assigns them", async () => {
+        // A desired variant gives the pretzel's subvariants to the random
+        // choices in its statements and answers in problem order (`a`, `b`,
+        // `c`), whatever order the problems are shown in. The variant it
+        // reports, which a host passes back to restore a saved variant, must
+        // list them in that same order.
+        const doenetML = `
+    <pretzel name="p">
+        <problem><statement><p>P1 <selectFromSequence name="a" from="1" to="5"/></p></statement><answer><selectFromSequence name="b" from="11" to="12"/></answer></problem>
+        <problem><statement><p>P2 <selectFromSequence name="c" from="21" to="23"/></p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `;
+        const problemOrders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 6; variantIndex++) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+            problemOrders.add(JSON.stringify(pretzel.stateValues.problemOrder));
+
+            const arranger = Object.values(stateVariables).find(
+                (component) => component.componentType === "_pretzelArranger",
+            )!;
+            const subvariants =
+                arranger.stateValues.generatedVariantInfo.subvariants;
+
+            const expected = [];
+            for (const name of ["a", "b", "c"]) {
+                const idx = await resolvePathToNodeIdx(name);
+                expected.push({
+                    createdBy: idx,
+                    indices: stateVariables[idx].stateValues.selectedIndices,
+                });
+            }
+            expect(
+                subvariants.map((subvariant) => ({
+                    createdBy: subvariant.meta.createdBy,
+                    indices: subvariant.indices,
+                })),
+            ).eqls(expected);
+        }
+        // Both problem orders occur, so the check covers an order in which
+        // the problems are shown out of their own order.
+        expect(problemOrders.size).eq(2);
+    });
 });

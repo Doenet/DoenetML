@@ -424,6 +424,9 @@ export default class PretzelArranger extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "problemOrder",
                 },
+                variants: {
+                    dependencyType: "variants",
+                },
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
@@ -447,7 +450,7 @@ export default class PretzelArranger extends CompositeComponent {
                     indices: dependencyValues.problemOrder,
                 };
 
-                let subvariants = (generatedVariantInfo.subvariants = []);
+                let subvariants = [];
 
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
@@ -461,6 +464,28 @@ export default class PretzelArranger extends CompositeComponent {
                         );
                     }
                 }
+
+                // The descendants come in display order, which follows
+                // `problemOrder`, but `setUpVariant` hands out subvariants in
+                // the order of the displayed content (see `arrangedContent`).
+                // Report them in that order, so that this info, passed back
+                // as a desired variant (as when a saved variant is reloaded),
+                // gives each subvariant to the component that generated it.
+                const arrangedVariantComponentIdxs =
+                    dependencyValues.variants?.arrangedVariantComponentIdxs;
+                if (arrangedVariantComponentIdxs) {
+                    const subvariantByIdx = new Map(
+                        subvariants.map((subvariant) => [
+                            subvariant.meta?.createdBy,
+                            subvariant,
+                        ]),
+                    );
+                    subvariants = arrangedVariantComponentIdxs.map(
+                        (idx) => subvariantByIdx.get(idx) ?? {},
+                    );
+                }
+                generatedVariantInfo.subvariants = subvariants;
+
                 return {
                     setValue: {
                         generatedVariantInfo,
@@ -707,16 +732,23 @@ export default class PretzelArranger extends CompositeComponent {
         // Gather the variant components of the displayed content only, as
         // `determineNumberOfUniqueVariants` counts them, so that each
         // subvariant goes to the component it was chosen for.
+        const descendantVariantComponents = gatherVariantComponents({
+            serializedComponents: arrangedContent(serializedComponent.children),
+            componentInfoObjects: core.componentInfoObjects,
+        });
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
-            descendantVariantComponents: gatherVariantComponents({
-                serializedComponents: arrangedContent(
-                    serializedComponent.children,
-                ),
-                componentInfoObjects: core.componentInfoObjects,
-            }),
+            descendantVariantComponents,
         });
+
+        // Record that order for `generatedVariantInfo`, which reports the
+        // subvariants in it.
+        serializedComponent.variants ??= {};
+        serializedComponent.variants.arrangedVariantComponentIdxs =
+            descendantVariantComponents.map(
+                (component) => component.componentIdx,
+            );
     }
 
     static determineNumberOfUniqueVariants({
