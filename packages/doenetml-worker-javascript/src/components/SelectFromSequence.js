@@ -340,13 +340,16 @@ export default class SelectFromSequence extends Sequence {
             ) {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
-                if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
+                if (!Number.isInteger(numToSelect)) {
                     info({
                         code: "doenet-i0022",
                         component: "selectFromSequence",
                     });
                     return { success: false };
                 }
+                // A negative number selects nothing at run time, the same as 0,
+                // so it adds the single variant of selecting nothing
+                numToSelect = Math.max(numToSelect, 0);
             } else {
                 info({ code: "doenet-i0023", component: "selectFromSequence" });
                 return { success: false };
@@ -725,7 +728,8 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        if (nOptions <= 0) {
+        // Selecting nothing from an empty sequence is still one outcome
+        if (nOptions <= 0 && numToSelect > 0) {
             return { success: false };
         }
 

@@ -778,7 +778,7 @@ export default class Select extends CompositeComponent {
             ) {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
-                if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
+                if (!Number.isInteger(numToSelect)) {
                     pushVariantInfo(
                         infoDiagnostics,
                         { code: "doenet-i0022", component: "select" },
@@ -786,6 +786,9 @@ export default class Select extends CompositeComponent {
                     );
                     return { success: false };
                 }
+                // A negative number selects nothing at run time, the same as 0,
+                // so it adds the single variant of selecting nothing
+                numToSelect = Math.max(numToSelect, 0);
             } else {
                 pushVariantInfo(
                     infoDiagnostics,
