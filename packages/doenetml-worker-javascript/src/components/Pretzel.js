@@ -203,7 +203,10 @@ export default class Pretzel extends BlockScoredComponent {
      *   only if it still fits: added problems change the correct answers, so
      *   they are arranged in a new order, as is a source's order that does
      *   not start with problem 1 when the copy is in circuit mode. The
-     *   source's random choices are kept either way.
+     *   source's random choices are kept either way. The added problems'
+     *   random choices are those the document chose for the copy's own
+     *   arranger, drawn from a new seed rather than the source's.
+     *   A `<problem copy>` is not arranged, so it does not count as added.
      * - A `<pretzel extend>` shows its source's arrangement, so it ignores
      *   any problems or `mode` written on it, with a warning, and takes its
      *   source's `mode`, which decides how it is graded.
@@ -228,8 +231,10 @@ export default class Pretzel extends BlockScoredComponent {
         const ownChildren = ownArrangers.flatMap(
             (arranger) => arranger.children ?? [],
         );
+        // Only a `<problem>` is arranged; a `<problem copy>` is ignored
+        // (`PretzelArranger`), so it adds no problem.
         const addedProblems = ownChildren.some(
-            (child) => typeof child === "object",
+            (child) => child?.componentType === "problem",
         );
         const ownMode = ownArrangers.findLast(
             (arranger) => arranger.attributes?.mode,
@@ -237,14 +242,23 @@ export default class Pretzel extends BlockScoredComponent {
 
         // A linked copy has downstream dependencies on its source
         // (`postProcessCopy`); it shows its source's replacements.
-        if (copiedArranger.downstreamDependencies) {
-            if (addedProblems || ownMode) {
-                attributes._ignoredChangesToExtendedPretzel = {
-                    type: "primitive",
-                    name: "_ignoredChangesToExtendedPretzel",
-                    primitive: { type: "boolean", value: true },
-                };
-            }
+        const linked = Boolean(copiedArranger.downstreamDependencies);
+
+        // Set even when false: a copy is given its source's attributes, and a
+        // copy of a `<pretzel extend>` that warned has nothing to warn about.
+        attributes._ignoredChangesToExtendedPretzel = {
+            type: "primitive",
+            name: "_ignoredChangesToExtendedPretzel",
+            primitive: {
+                type: "boolean",
+                value:
+                    linked &&
+                    (ownChildren.some((child) => typeof child === "object") ||
+                        Boolean(ownMode)),
+            },
+        };
+
+        if (linked) {
             if (copiedArranger.attributes.mode) {
                 attributes.mode = copiedArranger.attributes.mode;
             } else {
@@ -262,7 +276,10 @@ export default class Pretzel extends BlockScoredComponent {
         }
 
         const desiredVariant = copiedArranger.variants?.desiredVariant;
-        const sourceOrder = desiredVariant?.indices;
+        if (!desiredVariant) {
+            return;
+        }
+        const sourceOrder = desiredVariant.indices;
         if (
             sourceOrder &&
             (addedProblems ||
@@ -270,6 +287,26 @@ export default class Pretzel extends BlockScoredComponent {
                     Number(sourceOrder[0]) !== 1))
         ) {
             delete desiredVariant.indices;
+        }
+
+        if (addedProblems) {
+            // The source's seed would give the random choices of the added
+            // problems the seeds that the source's own random choices drew
+            // from it, so that they would repeat the source's values. Seed
+            // the arranger anew, and give the added problems the random
+            // choices that the document chose for them, which follow the
+            // source's in the order the arranger hands out subvariants.
+            delete desiredVariant.seed;
+            const ownSubvariants = ownArrangers.flatMap(
+                (arranger) =>
+                    arranger.variants?.desiredVariant?.subvariants ?? [],
+            );
+            if (desiredVariant.subvariants && ownSubvariants.length > 0) {
+                desiredVariant.subvariants = [
+                    ...desiredVariant.subvariants,
+                    ...ownSubvariants,
+                ];
+            }
         }
     }
 
