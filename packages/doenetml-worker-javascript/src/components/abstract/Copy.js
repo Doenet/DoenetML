@@ -33,6 +33,7 @@ import {
     writtenEntryAttributeComponent,
 } from "../../utils/contextAttribute";
 import { applyCopySnapshot, copySnapshotOf } from "../../utils/copySnapshot";
+import { gatherVariantComponents } from "../../utils/variants";
 import {
     copiesReferent,
     planValueReference,
@@ -762,7 +763,11 @@ export default class Copy extends CompositeComponent {
         // just to make sure any composite descendants are expanded.
         // This variable will be a dependency of `readyToExpandWhenResolved`
         stateVariableDefinitions.unlinkedDescendants = {
-            stateVariablesDeterminingDependencies: ["extendIdx", "link"],
+            stateVariablesDeterminingDependencies: [
+                "extendIdx",
+                "link",
+                "unlinkedTargetReplacements",
+            ],
             returnDependencies({ stateValues }) {
                 let dependencies = {};
                 if (!stateValues.link) {
@@ -771,6 +776,22 @@ export default class Copy extends CompositeComponent {
                         ancestorIdx: stateValues.extendIdx,
                         componentTypes: ["_composite"],
                     };
+                    // A composite target keeps its children serialized and
+                    // copies its replacements (`<group>`), so the composites
+                    // inside them are not its descendants. They are expanded
+                    // here so that they are copied with their random choices
+                    // (`generatedVariantInfo`) rather than from their
+                    // serialized children, which hold none.
+                    for (const [
+                        ind,
+                        replacement,
+                    ] of stateValues.unlinkedTargetReplacements.entries()) {
+                        dependencies[`replacementDescendants${ind}`] = {
+                            dependencyType: "descendant",
+                            ancestorIdx: replacement.componentIdx,
+                            componentTypes: ["_composite"],
+                        };
+                    }
                 } else {
                     dependencies.targetItself = {
                         dependencyType: "componentIdentity",
@@ -792,7 +813,9 @@ export default class Copy extends CompositeComponent {
         // For unlinked copies, we create a dependency on target replacements
         // just to make sure any composite target is expanded.
         // This variable will be a dependency of `readyToExpandWhenResolved`
-        stateVariableDefinitions.unlinkedTargetsExpanded = {
+        // (through `unlinkedDescendants`, which expands the composites
+        // inside the replacements).
+        stateVariableDefinitions.unlinkedTargetReplacements = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
                 "link",
@@ -818,8 +841,14 @@ export default class Copy extends CompositeComponent {
                 }
                 return dependencies;
             },
-            definition() {
-                return { setValue: { unlinkedTargetsExpanded: true } };
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        unlinkedTargetReplacements: (
+                            dependencyValues.targetReplacements ?? []
+                        ).filter((x) => typeof x === "object"),
+                    },
+                };
             },
         };
 
@@ -851,10 +880,6 @@ export default class Copy extends CompositeComponent {
                     //   dependencyType: "stateVariable",
                     //   variableName: "propName",
                     // },
-                    unlinkedTargetsExpanded: {
-                        dependencyType: "stateVariable",
-                        variableName: "unlinkedTargetsExpanded",
-                    },
                     unlinkedDescendants: {
                         dependencyType: "stateVariable",
                         variableName: "unlinkedDescendants",
@@ -4411,6 +4436,27 @@ export function addChildrenFromComposite({
         newChildren = newChildren.filter(
             (x) => typeof x !== "string" || x.trim() !== "",
         );
+    }
+
+    // An unlinked copy given its source's seed (`copyVariants`) keeps its
+    // source's random choices through the subvariants of that seed's
+    // variant. A random child added to the copy has none, so it would draw
+    // from the source's seed, repeating a choice the source made with it.
+    // The copy draws from a seed of its own instead, made from the source's
+    // so that it is the same for a given variant.
+    const desiredVariant = repl.variants?.desiredVariant;
+    if (
+        desiredVariant?.seed !== undefined &&
+        gatherVariantComponents({
+            // it marks what it gathers, which is left to the copy's setup
+            serializedComponents: deepClone(newChildren),
+            componentInfoObjects,
+        }).length > 0
+    ) {
+        repl.variants.desiredVariant = {
+            ...desiredVariant,
+            seed: `${desiredVariant.seed}c`,
+        };
     }
 
     repl.children.push(...newChildren);
