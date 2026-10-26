@@ -1,5 +1,8 @@
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    gatherVariantComponents,
+    setUpVariantSeedAndRng,
+} from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { codedDiagnostic } from "../utils/diagnostics";
 
@@ -15,6 +18,15 @@ function isProblemCopy({ child, componentInfoObjects }) {
             baseComponentType: "_composite",
         }) &&
         child.attributes._createComponentOfType?.primitive.value === "problem"
+    );
+}
+
+/**
+ * The serialized children of the arranger that it arranges: its `<problem>`s.
+ */
+function problemChildren(serializedComponent) {
+    return serializedComponent.children.filter(
+        (child) => child.componentType === "problem",
     );
 }
 
@@ -663,15 +675,17 @@ export default class PretzelArranger extends CompositeComponent {
         };
     }
 
-    static setUpVariant({
-        serializedComponent,
-        sharedParameters,
-        descendantVariantComponents,
-    }) {
+    static setUpVariant({ serializedComponent, sharedParameters, core }) {
+        // Gather the variant components of the arranged problems only, as
+        // `determineNumberOfUniqueVariants` counts them, so that each
+        // subvariant goes to the component it was chosen for.
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
-            descendantVariantComponents,
+            descendantVariantComponents: gatherVariantComponents({
+                serializedComponents: problemChildren(serializedComponent),
+                componentInfoObjects: core.componentInfoObjects,
+            }),
         });
     }
 
@@ -701,8 +715,16 @@ export default class PretzelArranger extends CompositeComponent {
             mode,
         });
 
+        // Count the variants of the arranged problems only: a `<problem extend>`
+        // can have children of its own, such as a `<selectFromSequence>`, that
+        // would otherwise multiply the variants of content that is ignored.
+        // `super` records its results on `variants`, which the two share.
+        serializedComponent.variants ??= {};
         let result = super.determineNumberOfUniqueVariants({
-            serializedComponent,
+            serializedComponent: {
+                ...serializedComponent,
+                children: problemChildren(serializedComponent),
+            },
             componentInfoObjects,
             infoDiagnostics,
         });

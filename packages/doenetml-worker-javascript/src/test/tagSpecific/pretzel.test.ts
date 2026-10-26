@@ -822,4 +822,35 @@ describe("Pretzel tag tests @group1", async () => {
                 .sharedParameters.allPossibleVariants,
         ).eqls(["a"]);
     });
+
+    it("pretzel does not count the variants of a <problem extend>'s own children", async () => {
+        // The `<selectFromSequence>` inside the ignored `<problem extend>` is
+        // never shown, so it does not multiply the variants: 3 values of `n`
+        // times 2! orders give 6 variants, not 30.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+        <problem name="q3"><statement><p>P3</p></statement><answer>A3</answer></problem>
+    </setup>
+    <pretzel name="p">
+        <problem extend="$q3"><statement><p><selectFromSequence from="1" to="5" /></p></statement></problem>
+        <problem><statement><p>P1 <selectFromSequence name="n" from="1" to="3" /></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .numProblems,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_document1")]
+                .sharedParameters.allPossibleVariants.length,
+        ).eq(6);
+    });
 });
