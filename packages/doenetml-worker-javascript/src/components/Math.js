@@ -1019,10 +1019,6 @@ export default class MathComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "expressionWithCodes",
                 },
-                modifyIndirectly: {
-                    dependencyType: "stateVariable",
-                    variableName: "modifyIndirectly",
-                },
                 fixed: {
                     dependencyType: "stateVariable",
                     variableName: "fixed",
@@ -1050,7 +1046,6 @@ export default class MathComponent extends InlineComponent {
                         dependencyValues.mathChildrenModifiable.map(
                             (child) => child.stateValues.canBeModified,
                         ),
-                    modifyIndirectly: dependencyValues.modifyIndirectly,
                     fixed: dependencyValues.fixed,
                     fixLocation: Boolean(dependencyValues.fixLocation),
                 }),

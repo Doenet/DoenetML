@@ -219,8 +219,11 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ...normalizedErrors(
                 `<textInput labelPosition="left"><label>x</label></textInput>`,
             ),
+            // An attribute dropped from every component, with a message of
+            // its own saying what to write instead.
+            ...normalizedErrors(`<mathInput modifyIndirectly="false" />`),
         ];
-        expect(codedErrors(errors).length).toBe(6);
+        expect(codedErrors(errors).length).toBe(7);
         expectRoundTrip(errors);
     });
 

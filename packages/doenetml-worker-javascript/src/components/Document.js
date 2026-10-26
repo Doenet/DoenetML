@@ -48,7 +48,6 @@ export default class Document extends BaseComponent {
 
         delete attributes.hide;
         delete attributes.disabled;
-        delete attributes.modifyIndirectly;
         delete attributes.fixed;
         delete attributes.styleNumber;
         delete attributes.isResponse;

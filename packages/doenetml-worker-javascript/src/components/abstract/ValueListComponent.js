@@ -266,7 +266,6 @@ export default class ValueListComponent extends BaseComponent {
     static listOwnProperties = [
         "styleNumber",
         "hide",
-        "modifyIndirectly",
         "isResponse",
         "permid",
         "doenetML",

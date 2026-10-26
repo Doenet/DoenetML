@@ -1822,12 +1822,13 @@ describe("Vector Tag Tests @group4", function () {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="zeroFixed" fixed>(0,0)</point>
-    <mathInput name="a" prefill="2" modifyIndirectly="false" />
+    <mathInput name="a" prefill="2" />
+    <math name="aFixed" fixed hide>$a</math>
     <graph>
         <vector name="original" tail="$zeroFixed" head="(1,3)" />
     </graph>
     <graph>
-        <vector name="multiplied" tail="$zeroFixed" head="($a$(original.headX1), $a$(original.headX2))" />
+        <vector name="multiplied" tail="$zeroFixed" head="($aFixed$(original.headX1), $aFixed$(original.headX2))" />
     </graph>
     `,
         });
