@@ -224,10 +224,23 @@ Gap: writes are tested only for `hide` and `xMin`.
 ### VAL-8: an attribute written as an expression is recomputed from its references (Tier 1 to read, Tier 2 to write)
 Examples: `hide="$a > 2"`, `condition="$x = 3"`, `<point>($a, 2$a)</point>`.
 
-- Dragging a point whose coordinates are an expression writes back through its references,
-  and through any constant text: in `($i, 0)`, the `0` becomes the new y.
-- A boolean or math expression attribute takes no write. `hide="$b or false"` under a bound
-  input silently does nothing (**[probe]**). It should say so (D15).
+- **A math expression takes a write by the same rule as a `<math>`** (INT-3): when it is
+  linear in exactly one changeable reference, the write lands on that reference.
+  - **[probe]** With `a` = 3, each of these takes a write from a `<mathInput>` bound to the
+    attribute, and changes `a`:
+    - `<graph xMin="$a+1"/>`: −10 sets `a` = −11;
+    - `<circle radius="2$a"/>`: 10 sets `a` = 5;
+    - `<point x="2$a+1"/>`: 11 sets `a` = 5.
+  - Dragging a point whose coordinates are an expression writes back through its references,
+    and through any constant text: in `($i, 0)`, the `0` becomes the new y.
+  - A write fails only where the component has no way to take it. A curve's `parMin` and
+    `parMax`, and a line's `slope`, have no inverse at all. Dragging a line written as
+    `equation="y=2x+$b"` does not change `b`. That holds whether or not the equation is held as
+    an expression slot, so it is a limitation of the line, not of math expressions.
+- **A boolean expression takes no write.** `hide="$b or false"` under a bound input silently
+  does nothing (**[probe]**). Today booleans invert only through identity, as a `<boolean>` with
+  several children does, and D15 proposes stating that as the rule. The silence should be
+  reported (D15).
 
 Evidence: `T/tagSpecific/expressionAttributes.test.ts`, `:126`, `:143`, `:424`, `:455`, `:490`,
 `:515`.
