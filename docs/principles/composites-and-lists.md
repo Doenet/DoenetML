@@ -88,12 +88,14 @@ Sub-rules (Tier 2), from `T/baseComponent/compositeCommas.test.tsx`, whose heade
 Code: `compositeLists.ts` in `@doenet/utils`, used by four consumers: the renderer, `text.ts`,
 `parseMath.ts`, and the prototype FlatDast.
 
-Small inconsistencies, for D19:
+Small inconsistencies:
 - `<group>` defaults to `asList="false"` while every other multi-item composite defaults to
-  true.
-- A hidden child counts as a `<mathList>` entry but is dropped from a `<group asList>`.
+  true (D19).
+- A hidden child is drawn by a `<mathList>` and the other authored value lists, drawn but
+  marked hidden by a `<pointList>`, and left out by a `<group asList>`, `<sort>` and `<collect>`
+  (#2265, D29).
 
-The rule worth stating is: "`hide` affects display, never the values a list holds".
+The rule worth stating is: "`hide` affects display, never the values a list holds" (D29).
 
 ### COMP-3: a list is read, shown and indexed as its entries (Tier 1)
 Any parent reads a `<mathList>`, `<numberList>` or `<sequence>`, or a collect, sort or shuffle of
@@ -270,7 +272,7 @@ ADR 0009 also bans several forms that main's tests use (D13):
 | Content | the same as the source (REF-7) | the source's DoenetML pasted (CPY-1) |
 | Content attributes (`for`, `to`, `numToSelect`, `condition`) | ignored, with warning w0168 | `to` on a repeat applies; **`condition` on a conditionalContent is ignored** (#2217, **[probe]**); `valueName` misreads (#2211) |
 | Children written inside | dropped, with warning w0169, except group and module, which append | **added to every iteration** of a repeat (#2212) |
-| `hide` on the source | hidden for lists and collect, **not** for select and conditionalContent (#246) | — |
+| `hide` on the source | an `extend` of a hidden list or collect is hidden | a bare `$x` of a hidden list, group, repeat, select or conditionalContent is **shown**; of a hidden collect, hidden (D9) |
 
 Each "but" in that table is an inconsistency. [decisions.md](decisions.md) D4 proposes a single
 rule:

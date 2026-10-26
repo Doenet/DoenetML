@@ -223,17 +223,49 @@ source's effective value. A reader's write to a reference's `fixed` stays on the
 
 ## D9. Is a reference to a hidden component hidden?
 
-**Today.** Yes for every non-composite, for lists and for collect. **No** for `select` and
-`conditionalContent`. `select.test.ts:2493` says it "encodes undesired behavior (see issue #246)",
-and `conditionalcontent.test.ts:1213` is the same case.
+**Today** the answer depends on what is hidden, and how it is referenced (**[probe]**, and #2265):
 
-**Recommendation.** "A reference to a hidden component is hidden, unless the reference sets `hide`
-itself", for every component.
+| Hidden source | Bare `$x` elsewhere | `<T extend="$x"/>` elsewhere |
+|---|---|---|
+| a plain component: `<text hide>`, `<number hide>`, `<point hide>`, … | hidden | hidden |
+| a list: `<mathList hide>`, `<sequence hide>`, `<sort hide>` | **shown** | hidden |
+| `<collect hide>` | hidden | hidden |
+| `<group hide>`, `<repeat hide>` | **shown** | — |
+| `<select hide>`, `<conditionalContent hide>` | **shown** | — |
 
-**Tests that change:**
+For lists the split is deliberate. `hideIsOwn` (`W/components/abstract/ValueListComponent.js:389`)
+treats a list's `hide` as hiding only the list where it is written. That mirrors how a hidden
+composite's replacements were never hidden by the composite's `hide`. It supports an old idiom:
+define a hidden `<select>`, `<sequence>` or list, and show it elsewhere with `$s`. Today
+`<setup>` serves that purpose. Two tests say the select case "encodes undesired behavior (see
+issue #246)", at `select.test.ts:2493` and `conditionalcontent.test.ts:1213`.
+
+`collect` differs from the other lists in a second way: its own `hide` also makes every entry's
+`.hide` true, while `sort`'s does not.
+
+**Options.**
+- **(a) A reference to a hidden component is hidden, unless the reference sets `hide` itself.**
+  This matches REF-1's "`$x` is x itself". Documents that hide a definition and show it
+  elsewhere must move the definition into `<setup>`. Give a migration warning first: "`$s`
+  refers to a hidden `<select>`; it will be hidden too — move the select into `<setup>`".
+- **(b) `hide` hides a component only where it is written; references are shown unless they set
+  `hide` themselves.** This is what lists and composites do today. It would reverse the rule for
+  plain components, including the recent `drawn_value_references.test.ts:183` ("hidden with
+  it").
+
+**Recommendation: (a).** One rule, and the one that follows from "a reference is the thing
+itself". `<setup>` is the stated way to define without showing. The cost is the migration
+above. Both options are simpler than today's split.
+
+**Tests that change under (a):**
 - `select.test.ts:2493`, `:2545`, `:2636`, `:2727`;
 - `conditionalcontent.test.ts:1213`;
-- check `repeat.test.ts:1459` and `sequence.test.ts:1210`.
+- the bare-reference-to-a-hidden-list tests in `listcomponents.test.ts` (about `:275`);
+- `repeat.test.ts:1459`, `sequence.test.ts:1210`, and the group tests that reference a hidden
+  group;
+- any tests that rely on `collect`'s `hide` reaching its entries' `.hide`.
+
+Whether hidden *entries* inside a list are drawn is a separate question, D29.
 
 ## D10. One way to show a missing value
 
@@ -393,7 +425,8 @@ carries.
 
 **Recommendation.** One default: a numeric property carries the five display settings. Declare an
 exception only where a property needs more, such as list entries carrying `fixed`, `hide`,
-`styleNumber`, `draggable` and `renderMode`. (#2339 already removed the third mechanism,
+`styleNumber`, `draggable` and `renderMode`. Keep `hide` on that list: an entry carrying its
+source's `hide` is what makes `$l[1].hide` true for a hidden source (#2265, D29). (#2339 already removed the third mechanism,
 `propagateToProps`, which only `modifyIndirectly` used.) This is
 mostly internal, but it makes VAL-1 true by construction.
 
@@ -671,3 +704,55 @@ either cannot be dragged, or writes back to the caller's variables. The fix,
 **Recommendation.** Do (a) now. Decide between (c) and (d) together with D1, since both are
 about what a copy does with references to things outside it. (b) solves only the module case,
 and adds a special case that users of modules would have to know about.
+
+## D29. Hidden entries in lists
+
+**Today** a list entry whose source is written with `hide` is handled by three different rules
+(#2265, survey at `34393fb`; **[probe]** confirms the main cases). Each list below was written
+with its first entry's source hidden:
+
+| Family | Lists | Hidden entry drawn? | `$l[1].hide` | `$l[1].hidden` | `$l[1]` placed elsewhere |
+|---|---|---|---|---|---|
+| A | `mathList`, `numberList`, `textList`, `booleanList`, `intervalList`, `tupleList` | **shown**, and included in text (`1, 2`) | false | false | shown |
+| B | `pointList`, `vectorList` | sent to the viewer marked hidden, so invisible in the graph | **false** | true | **shown** |
+| C | `sort`, `shuffle`, `collect`, `group asList` | left out of what is drawn, and out of text (`2`) | true | true | hidden |
+
+Only family C matches a plain hidden component.
+
+Family A also ignores `hide` on content nested inside it:
+`<numberList><sort><number hide>1</number><number>2</number></sort></numberList>` shows the 1, and
+so does the same with a `<group>`. That `<sort>` or `<group asList>` inside a `<p>` hides it. A
+`<sort>`, `<collect>` or `extend` of a mathList with a hidden child shows the child too.
+
+Family A's behavior is deliberate and pinned. Four tests are named "…ignore child hide":
+- `mathlist.test.ts:1133`;
+- `numberlist.test.ts:694`;
+- `textlist.test.ts:560`;
+- `booleanlist.test.ts:519`.
+
+Family B contradicts itself: `$pl[1].hidden` is true, yet `$pl[1]` placed in another graph is
+drawn. `listcomponentpointlists.test.ts:729` pins that a reference to the list is not hidden by an
+entry's own `hide`.
+
+**Proposed rule** (family C's, and the issue's candidate):
+1. An entry carries its source's own `hide`. `$l[k].hide` is the source's attribute, and false
+   for generated entries such as a sequence's (VAL-9, D20).
+2. `$l[k].hidden` is true when the entry's `hide` is true or the list is hidden.
+3. A hidden entry is not drawn and not included in text. It still counts for indices (`$l[k]`
+   keeps its meaning) and for values read in a value position (`<math>$l</math>`). This is
+   COMP-2's "`hide` affects display, never the values a list holds".
+4. A reference to an entry whose source is hidden (`$l[k]`) is hidden too, unless it sets
+   `hide` itself. This is D9's rule applied to entries.
+
+That makes `hide` on an entry mean what it means on any component, and makes every list one
+family.
+
+**Tests that change:**
+- the four "…ignore child hide" tests;
+- `listcomponentpointlists.test.ts:729`;
+- any test where a list holds a nested `<sort>` or `<group>` with a hidden item.
+
+Point 3 needs a decision on the remaining asymmetry: a hidden entry still counts as a value of
+`<math>$l</math>`, but not in the list's text. If that seems odd, the alternative is "a hidden
+entry is left out of the list's values too", but that would make `$l[k]` shift when an entry is
+hidden, which point 3 avoids.

@@ -276,7 +276,7 @@ This is principled, but hard to explain. The `fixed` case is a problem (D7).
 ### VAL-9: a list entry stands for the component it came from (Tier 1 for value and label, Tier 2 for targets)
 `$pl[2]` is an entry of a `<pointList>`, `<collect>`, `<sort>` or `<shuffle>`. It stands for the
 point it came from:
-- it has that point's label, `fixed`, `draggable` and display settings;
+- it has that point's label, `fixed`, `draggable`, display settings and `hide`;
 - it can be the target of a trigger, a legend label, a `<ref>` or a `<callAction>`;
 - clicking it also counts as clicking the list.
 
@@ -287,6 +287,17 @@ Evidence:
 - `T/tagSpecific/listentrytargets.test.ts:97`, `:176`, `:222`, `:275`, `:527`, `:572`, `:589`;
 - `listcomponentpointlists.test.ts` and `listcomponentcollections.test.ts` (#2187, #2193, #2195);
 - **[probe]** `<point extend="$pl[1]">` and `<point copy="$pl[1]">` both carry the authored label.
+
+`hide` holds only for `<sort>`, `<shuffle>`, `<collect>` and `<group asList>` today:
+- a hidden entry there is not drawn, `$l[k].hide` is true, and it still counts for indices and
+  values;
+- `<pointList>` and `<vectorList>` draw the entry marked hidden but report `.hide` false, and
+  `$pl[1]` placed elsewhere is shown;
+- the authored value lists (`mathList`, `numberList`, `textList`, `booleanList`, `intervalList`,
+  `tupleList`) ignore a child's `hide` entirely, including on content of a nested `<sort>` or
+  `<group>`.
+
+Four tests pin the last case, and one the point-list case (#2265, D29).
 
 Known rough edges:
 - an action naming both a child and its entry (`$A $pl[1]`) fires twice;
