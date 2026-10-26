@@ -22,12 +22,10 @@ function isProblemCopy({ child, componentInfoObjects }) {
 }
 
 /**
- * The serialized children of the arranger that it arranges: its `<problem>`s.
+ * The serialized children that the arranger arranges: its `<problem>`s.
  */
-function problemChildren(serializedComponent) {
-    return serializedComponent.children.filter(
-        (child) => child.componentType === "problem",
-    );
+function problemChildren(children) {
+    return children.filter((child) => child.componentType === "problem");
 }
 
 /**
@@ -198,10 +196,9 @@ export default class PretzelArranger extends CompositeComponent {
 
                 return {
                     setValue: {
-                        serializedProblemChildren:
-                            dependencyValues.serializedChildren.filter(
-                                (child) => child.componentType === "problem",
-                            ),
+                        serializedProblemChildren: problemChildren(
+                            dependencyValues.serializedChildren,
+                        ),
                     },
                     sendDiagnostics: diagnostics,
                 };
@@ -683,7 +680,9 @@ export default class PretzelArranger extends CompositeComponent {
             serializedComponent,
             sharedParameters,
             descendantVariantComponents: gatherVariantComponents({
-                serializedComponents: problemChildren(serializedComponent),
+                serializedComponents: problemChildren(
+                    serializedComponent.children,
+                ),
                 componentInfoObjects: core.componentInfoObjects,
             }),
         });
@@ -723,7 +722,7 @@ export default class PretzelArranger extends CompositeComponent {
         let result = super.determineNumberOfUniqueVariants({
             serializedComponent: {
                 ...serializedComponent,
-                children: problemChildren(serializedComponent),
+                children: problemChildren(serializedComponent.children),
             },
             componentInfoObjects,
             infoDiagnostics,
