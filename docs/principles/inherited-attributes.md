@@ -56,16 +56,12 @@ A write that would pass *through* a fixed component to its own sources stops the
 `<math fixed>$a</math>` with an input bound to it does not change `a`
 (`T/copying/value_references.test.ts:226`). `fixed` itself always stays writable.
 
-Two other attributes refuse part of what `fixed` refuses:
-- `modifyIndirectly="false"` refuses only changes passed back from things that depend on the
-  component, and still allows the reader's direct drag (`W/core/EssentialValueWriter.ts:846-860`
-  checks `initialChange`);
-- `draggable="false"` refuses only the reader's direct drag (CTX-3).
+`draggable="false"` refuses only part of what `fixed` refuses: the reader's direct drag (CTX-3).
+The word "fixed" suggests a constant value, which is not what it means. See D23.
 
-Authors are unlikely to understand or want the distinction between `fixed` and
-`modifyIndirectly="false"`. `modifyIndirectly` is already left out of the schema
-(`excludeFromSchema`, `BaseComponent.js:584-593`) and the docs, but 12 test files use it. The
-word "fixed" also suggests a constant value, which is not what it means. See D23.
+`modifyIndirectly="false"` used to refuse only changes passed back from things that depend on the
+component, while still allowing the reader's direct drag. #2339 removed it in favor of `fixed`. It
+is now ignored, with deprecation warning `doenet-w0177`.
 
 Enforcement is central, in `W/core/EssentialValueWriter.ts:800-809` and at `:1195-1210` for
 shadow sources.

@@ -481,6 +481,34 @@ Cost: the reload half is expensive in the current core.
 A core that records the copy's own state when it is made gets the same author-visible result
 for free. Keep the behavior and drop the mechanism.
 
+### CPY-8: a copy keeps its source's random choices, however deeply nested; a child added to a copy draws its own (Tier 1)
+Random choices are part of the state a copy carries (CPY-2), so a copy of anything holding a
+`<select>`, `<selectFromSequence>`, `<shuffle>` or sampler shows the same values as its source.
+That holds at any depth inside the copied content. A child written inside the copy is new
+content: it draws its own value, which is fixed for a given variant, and never repeats one of
+the source's.
+
+Evidence:
+- `T/tagSpecific/select.test.ts:432` (copies do not resample);
+- `selectfromsequence.test.ts:567`;
+- `shuffle.test.ts:47`.
+
+Code: `copyVariants` in `W/components/abstract/Copy.js`. It gives each serialized component its
+`generatedVariantInfo` as its desired variant.
+
+**Known violations (#2342, open; defect B8):**
+- **Nested content.** A `<group copy>` of a group holding `<div><group><p><selectFromSequence/>`
+  draws a new value. A `<section>` around the same content, or a shallower nesting, keeps it.
+  The likely cause is that the group is serialized before its inner content has been expanded,
+  so its `generatedVariantInfo` has no subvariants yet.
+- **An added child.** A random child added to a `<group copy>` repeats the source's first draw
+  (`429 966` becomes `429 966 429`). Under `<p copy>`, `<div copy>` and `<section copy>` it draws
+  its own value.
+
+Both look like isolated bugs in how a group copy passes on variants, not a gap in the principle.
+No test covers random content in copies beyond one level, or added random children, and the
+issue proposes such tests in `T/copying/`.
+
 ### CPY-3: references inside a copy stay live; ones that pointed into the source now point into the copy (Tier 1)
 ```xml
 <group name="g"><mathInput name="mi" prefill="1"/><p name="p">$mi</p></group>
@@ -665,8 +693,8 @@ copy should look names up again where it lands, as in D, E, F and G4, or keep th
 meaning, as an extend does, is decision D1.
 
 Coverage of nesting is thin. These cases have no tests:
-- three-level chains are tested for `modifyIndirectly`, labels, groups and modules, but not for
-  live references at depth 3;
+- three-level chains are tested for attribute propagation, labels, groups and modules, but not
+  for live references at depth 3;
 - capture inside copied *content*: only the attribute form is tested;
 - copies of repeat-iteration content;
 - privacy of names inside a copy (NAME-3);
