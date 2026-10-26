@@ -33,6 +33,7 @@ import {
     writtenEntryAttributeComponent,
 } from "../../utils/contextAttribute";
 import { applyCopySnapshot, copySnapshotOf } from "../../utils/copySnapshot";
+import { gatherVariantComponents } from "../../utils/variants";
 import {
     copiesReferent,
     planValueReference,
@@ -4411,6 +4412,34 @@ export function addChildrenFromComposite({
         newChildren = newChildren.filter(
             (x) => typeof x !== "string" || x.trim() !== "",
         );
+    }
+
+    // An unlinked `<group copy>` given its source's variant (`copyVariants`)
+    // hands the subvariants of that variant to its source's random
+    // descendants, which keeps their choices. A random child added to the
+    // copy gets no subvariant, so it draws from the source's seed and can
+    // repeat a choice the source made with it. The copy draws from a seed
+    // of its own instead, made from the source's so that it is the same for
+    // a given variant. Only a group is changed: other components, such as a
+    // `<conditionalContent>`, make their random choices from the seed
+    // itself, so a new seed would change the choices copied from the source.
+    const desiredVariant = repl.variants?.desiredVariant;
+    if (
+        desiredVariant?.seed !== undefined &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: repl.componentType,
+            baseComponentType: "group",
+        }) &&
+        gatherVariantComponents({
+            // it marks what it gathers, which is left to the copy's setup
+            serializedComponents: deepClone(newChildren),
+            componentInfoObjects,
+        }).length > 0
+    ) {
+        repl.variants.desiredVariant = {
+            ...desiredVariant,
+            seed: `${desiredVariant.seed}c`,
+        };
     }
 
     repl.children.push(...newChildren);

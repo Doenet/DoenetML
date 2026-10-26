@@ -686,15 +686,15 @@ export default class Repeat extends CompositeComponent {
         return { replacementChanges, diagnostics, nComponents };
     }
 
-    static setUpVariant({
-        serializedComponent,
-        sharedParameters,
-        descendantVariantComponents,
-    }) {
+    static setUpVariant({ serializedComponent, sharedParameters }) {
+        // The subvariants of a repeat's variant are those of its iteration
+        // groups, which its template does not hold, so they are not handed
+        // to the template's random components: its first one would be given
+        // the variant of the first iteration's group, in every iteration.
+        // The seed alone makes the iterations again, as it made them.
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
-            descendantVariantComponents,
             useSubpartVariantRng: true,
         });
     }
@@ -821,6 +821,17 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
             repl.componentType === src.componentType
         ) {
             repl.state = src.state;
+
+            // A random component makes its choices from its variant, not its
+            // state, so each takes the variant of its source. The copy's
+            // seed alone does not always make the same choices: a
+            // `<repeat for>` can draw from it differently than its copy.
+            if (src.variants?.desiredVariant) {
+                repl.variants = {
+                    ...repl.variants,
+                    desiredVariant: src.variants.desiredVariant,
+                };
+            }
 
             if (repl.children && src.children) {
                 copyStateFromUnlinkedSourceSub(repl.children, src.children);

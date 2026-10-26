@@ -1534,6 +1534,7 @@ export default class BaseComponent {
                             this.copySerializedComponent(
                                 child,
                                 shadowComponents,
+                                parameters.copyVariants,
                             ),
                         );
                     }
@@ -1868,7 +1869,20 @@ export default class BaseComponent {
         return newPath;
     }
 
-    copySerializedComponent(serializedComponent, shadowComponents = false) {
+    /**
+     * A copy of `serializedComponent`, one of this component's serialized
+     * children, made into a new component of its own. With `copyVariants`, it
+     * keeps the variant the component was given (`variants.desiredVariant`),
+     * as `serialize` gives a created component its `generatedVariantInfo`:
+     * the children of a composite not yet expanded (a `<group>`) hold the
+     * random choices that composite's own `generatedVariantInfo` does not yet
+     * report, so an unlinked copy of it makes the same choices.
+     */
+    copySerializedComponent(
+        serializedComponent,
+        shadowComponents = false,
+        copyVariants = false,
+    ) {
         if (typeof serializedComponent !== "object") {
             return serializedComponent;
         }
@@ -1877,7 +1891,9 @@ export default class BaseComponent {
         if (serializedComponent.children !== undefined) {
             // XXX: should we set `shadowComponents` recursively here?
             for (let child of serializedComponent.children) {
-                serializedChildren.push(this.copySerializedComponent(child));
+                serializedChildren.push(
+                    this.copySerializedComponent(child, false, copyVariants),
+                );
             }
         }
 
@@ -1935,6 +1951,17 @@ export default class BaseComponent {
         if (serializedComponent.state !== undefined) {
             // shallow copy of state
             Object.assign(serializedCopy.state, serializedComponent.state);
+        }
+
+        if (
+            copyVariants &&
+            serializedComponent.variants?.desiredVariant !== undefined
+        ) {
+            serializedCopy.variants = {
+                desiredVariant: deepClone(
+                    serializedComponent.variants.desiredVariant,
+                ),
+            };
         }
 
         return serializedCopy;
