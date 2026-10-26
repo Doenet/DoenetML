@@ -352,9 +352,6 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("l")].stateValues.value,
         ).eq("\\left( 1, 2 \\right)");
         expect(
-            stateVariables[await resolvePathToNodeIdx("lmr")].stateValues.value,
-        ).eq("\\left( 1, 2 \\right)");
-        expect(
             stateVariables[await resolvePathToNodeIdx("A2")].stateValues.label,
         ).eq("A");
         expect(
@@ -379,7 +376,6 @@ describe("Extend and references tests @group2", async () => {
     <point name="A" labelIsName>(1,2)</point>
     <coords name="cA" extend="$A.coords"/>
     <text name="l" extend="$cA.latex"/>
-    <text name="lmr" extend="$cA.latex"/>
     <point name="A2" extend="$A"/>
     <coords name="cA2" extend="$A2.coords"/>
     <text name="l2" extend="$cA2.latex"/>

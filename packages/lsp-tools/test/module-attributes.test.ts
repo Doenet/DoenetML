@@ -182,7 +182,9 @@ describe("getModuleDeclaredAttributes", () => {
         // The runtime silently rejects these at ModuleAttributes.js:151-159
         // because they collide with attributes the <module> class already
         // declares.  Synthesizing a "declared" entry for them would mislead
-        // the completion dropdown.
+        // the completion dropdown.  `modifyIndirectly` is the exception: no
+        // component declares it now, but the parser drops it from every
+        // element, so a `<module>` could never be given it either.
         const el = elementNamed(
             `<module name="m"><moduleAttributes>
                 <text name="hide">x</text>

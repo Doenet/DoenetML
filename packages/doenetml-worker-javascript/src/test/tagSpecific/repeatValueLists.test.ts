@@ -643,7 +643,7 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ p: "7, 7, 7", p2: "1, 4, 9" });
     });
 
-    it("a fixed list read takes no write, so the other value does", async () => {
+    it("a fixed list takes no write, so the other value does", async () => {
         const texts = await compare({
             doenetML: `
 <numberList name="l" fixed>1 2 3</numberList>
