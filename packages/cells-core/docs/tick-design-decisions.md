@@ -40,7 +40,12 @@ Each decision gives:
   component, as in the JavaScript core.
 - **Depends on.** Nothing; every other decision here depends on it.
 - **Exercised by.** depth, breadth, mixed.
-- **Result.** Not measured.
+- **Result.** Measured as an evaluator over the core's own instructions
+  (step 15): a node per cell, each its own allocation, scattered, with
+  its value and its readers. The tick is 1.4 to 3.1 times the dirty
+  closure's on every shape with work in it, most on fans and the page.
+  See [Decision 1: a value per node](#decision-1-a-value-per-node)
+  below.
 
 ### 2. Operators are data, not code
 
@@ -62,8 +67,14 @@ Each decision gives:
   tick 1.2 to 2.5 times faster than a function pointer per operator,
   and 1.5 to 5 times faster than a closure per instruction, most where
   instructions are independent of each other. Under the dirty closure,
-  whose own bookkeeping dilutes it, up to 1.2 and 2.3 times. See
-  [Decision 2: operators as code](#decision-2-operators-as-code) below.
+  whose own bookkeeping dilutes it, up to 1.2 and 2.3 times. In its
+  full form, as a lower bound (step 14): a state variable's function per
+  value, with its dependencies looked up by key on every evaluation, is
+  4 to 9.5 times the same evaluator running the same groups as data,
+  and 2.7 to 12 times the core's dirty closure. See
+  [Decision 2: operators as code](#decision-2-operators-as-code) and
+  [Decision 2: state variable functions](#decision-2-state-variable-functions)
+  below.
 
 ### 3. Operators are fine-grained primitives
 
@@ -77,7 +88,15 @@ Each decision gives:
   not require them.
 - **Exercised by.** depth, breadth, mixed: each number is a lowered
   `$x + k`.
-- **Result.** Not measured.
+- **Result.** Measured as an evaluator over the core's own instructions
+  (step 11): each value's lowered expression run as one unit, which is
+  what a coarse operator per value would do. Against the same evaluator
+  with every instruction a unit of its own, coarse operators are 2 to
+  2.6 times *faster* on poly, the shape whose values are several
+  instructions each, and the same elsewhere. Under a dirty closure,
+  bookkeeping is paid per unit, so fewer, larger units cost less: the
+  fine grain costs here rather than buys. See
+  [Decision 3: coarse operators](#decision-3-coarse-operators) below.
 
 ### 4. Storage is contiguous
 
@@ -108,7 +127,14 @@ Each decision gives:
 - **Depends on.** 4.
 - **Exercised by.** depth, breadth, mixed; a symbolic shape, for the
   inline expressions, is still to add.
-- **Result.** Not measured.
+- **Result.** Measured as an evaluator over the core's own instructions
+  (step 13), on a new symbolic shape: each math cell's expression also
+  kept as bytes of its own length, decoded before every symbolic
+  instruction reads it and encoded after every write. It adds 1 to 8%
+  to a symbolic tick, an upper bound, since the engine's work dwarfs
+  it. See
+  [Decision 5: values of varying size](#decision-5-values-of-varying-size)
+  below.
 
 ### 6. Values are untagged `f64`
 
@@ -146,7 +172,12 @@ Each decision gives:
   size, compound values are the natural choice.
 - **Exercised by.** coords: a chain of points dragged in x alone, so
   the y chain does not change.
-- **Result.** Not measured.
+- **Result.** Measured as an evaluator over the core's own instructions
+  (step 12): a point's two coordinates one value, recomputed together,
+  their readers marked together. On coords, the shape that drags a
+  point's x alone, it costs 5 to 7%, though it runs twice the
+  instructions; elsewhere nothing. See
+  [Decision 7: compound values](#decision-7-compound-values) below.
 
 ### 8. References alias a cell instead of copying it
 
@@ -319,7 +350,9 @@ warm-up and 41 timed ticks per evaluator, the evaluators interleaved
 tick by tick, each on its own copy of the document. The evaluators are
 the core's two (`dirty`, `full`) by default; `CELLS_EVALUATORS` adds the
 evaluators of `crates/cells-bench/src/pull.rs` (`ready_all`,
-`ready_closure`, `lazy`). `CELLS_WANTED=100,10,1` sets the share of the
+`ready_closure`, `lazy`), `pruned.rs` (`pruned`), `grouped.rs`
+(`single`, `expression`, `compound`, `functions`), `nodes.rs` (`nodes`)
+and `inline.rs` (`inline`). `CELLS_WANTED=100,10,1` sets the share of the
 document a tick reads, as a viewport over the first components in
 document order (`shapes::wanted`); only `lazy` computes less than all of
 it, and values are compared on those cells.
@@ -334,6 +367,8 @@ it, and values are compared on those cells.
 | cutoff | `round($p.x / 10)`, then a chain of n numbers, which the timed drags leave unchanged | 11 |
 | refs | n / 2 references to `$p.x` and n / 2 copies of `p`, each read by a number | 8 |
 | coords | a chain of n points, each at (x + 1, y + 1) of the one before, dragged in x | 7 |
+| poly | a chain of n numbers, each `($c + 3) / 2 + $c / 2 - 1` of the one before: five instructions per value | 3 |
+| symbolic | as the benchmark's: a chain of n simplified `<math>`s in x, evaluated at the end; not run by default, a tick at 1,000 takes 20 ms | 5 |
 
 `scripts/tick-diff.sh [base] [shapes] [sizes]` builds the harness at a
 base commit and in the working tree, runs the two alternately seven
@@ -389,11 +424,11 @@ is measured later.
 | 8 | 6 → 8-byte cells and a tag array | medium | done; see below |
 | 9 | 6 → tagged enum | medium | done; see below |
 | 10 | 4 → an allocation per value | medium | done; see below. Two forms: values allocated in cell order, and in a shuffled order |
-| 11 | 3 → coarse operators | large | new operators and lowering |
-| 12 | 7 → compound values | large | vector operators, components rewired; on coords |
-| 13 | 5 → values of varying size | large | the most invasive change to storage; means most after 6 and 7 |
-| 14 | 2 → operators as code, in full | very large | state variable functions per component, as the JavaScript core; step 5 may answer most of it |
-| 15 | 1 → a value per node | very large | the root, which makes 4 to 6 moot: last |
+| 11 | 3 → coarse operators | an evaluator, as you chose over a rewritten core | done; see below |
+| 12 | 7 → compound values | an evaluator | done; see below |
+| 13 | 5 → values of varying size | an evaluator, on a symbolic shape added for it | done; see below |
+| 14 | 2 → operators as code, in full | an evaluator, a lower bound | done; see below |
+| 15 | 1 → a value per node | an evaluator | done; see below |
 
 Steps 7 to 10 all change what a cell is, so they are best built as a
 series on one branch, a commit per alternative, each measured against the
@@ -403,24 +438,25 @@ base.
 
 | # | Decision | Alternative | depth-10000 | breadth-10000 | depth-100000 | breadth-100000 | Other |
 |---|---|---|---|---|---|---|---|
-| 1 | one store, apart from the graph | value per node | | | | | |
+| 1 | one store, apart from the graph | a value per node (base: dirty closure) | 1.84 | 2.57 | 1.41 | 2.58 | mixed-100000: 3.11; poly-100000: 2.77 |
 | 2 | operators are data | a closure per instruction (base: full recompute) | 1.54 | 4.87 | 1.69 | 4.32 | isolated-100000: 4.72; mixed-100000: 3.32 |
 | 2 | operators are data | a closure per instruction (base: dirty closure) | 0.93 | 1.87 | 0.91 | 2.32 | mixed-100000: 1.77; refs-100000: 2.12 |
 | 2 | operators are data | a function pointer per operator (base: full recompute) | 1.61 | 2.03 | 1.46 | 1.41 | isolated-100000: 1.43; mixed-100000: 1.22 |
 | 2 | operators are data | a function pointer per operator (base: dirty closure) | 0.99 | 1.18 | 1.00 | 1.16 | mixed-100000: 0.85; refs-100000: 1.15 |
-| 2 | operators are data | state variable functions per component | | | | | |
-| 3 | fine-grained primitives | coarse operators | | | | | |
+| 2 | operators are data | state variable functions, a lower bound (base: the same groups as data) | 6.76 | 7.83 | 7.32 | 6.64 | mixed-100000: 9.49; poly-100000: 4.12 |
+| 2 | operators are data | state variable functions, a lower bound (base: dirty closure) | 8.32 | 10.9 | 6.73 | 8.79 | mixed-100000: 12.1; poly-100000: 2.66 |
+| 3 | fine-grained primitives | coarse operators (base: a unit per instruction) | 1.00 | 1.00 | 1.00 | 0.99 | poly-10000: 0.39; poly-100000: 0.51 |
 | 4 | contiguous | an allocation per value, in cell order (base: full recompute) | 1.18 | 1.61 | 1.15 | 1.53 | refs-10000: 2.84; mixed-100000: 1.64 |
 | 4 | contiguous | an allocation per value, shuffled (base: full recompute) | 1.32 | 2.21 | 2.38 | 2.79 | coords-100000: 3.00; mixed-100000: 2.93 |
 | 4 | contiguous | an allocation per value, shuffled (base: dirty closure) | 1.03 | 1.30 | 1.31 | 2.24 | refs-100000: 2.17; mixed-100000: 1.97 |
-| 5 | uniform size | varying size | | | | | |
+| 5 | uniform size | expressions stored inline, an upper bound (base: dirty closure) | — | — | — | — | symbolic-100: 1.06; symbolic-1000: 1.06 |
 | 6 | untagged `f64` | 16 bytes, no tag (base: full recompute) | 1.05 | 1.24 | 1.13 | 1.08 | refs-10000: 1.36; mixed-10000: 1.30 |
 | 6 | untagged `f64` | 16 bytes, no tag (base: dirty closure) | 1.01 | 1.04 | 1.03 | 1.07 | refs-100000: 1.08 |
 | 6 | untagged `f64` | tag array (base: full recompute) | 1.12 | 1.50 | 1.32 | 1.32 | isolated-10000: 1.45; mixed-100000: 1.33 |
 | 6 | untagged `f64` | tag array (base: dirty closure) | 0.99 | 1.22 | 1.02 | 1.32 | refs-100000: 1.34; mixed-100000: 1.11 |
 | 6 | untagged `f64` | tagged enum (base: full recompute) | 1.25 | 1.54 | 1.23 | 1.28 | refs-10000: 1.55; mixed-100000: 1.23 |
 | 6 | untagged `f64` | tagged enum (base: dirty closure) | 1.04 | 1.25 | 0.98 | 1.32 | refs-100000: 1.28; mixed-100000: 1.13 |
-| 7 | one cell per scalar | compound values | | | | | |
+| 7 | one cell per scalar | compound values (base: a unit per instruction) | 1.00 | 0.99 | 1.00 | 0.99 | coords-10000: 1.07; coords-100000: 1.05 |
 | 8 | aliases | identity instructions (base: dirty closure) | 2.17 | 2.68 | 1.95 | 2.44 | refs-100000: 4.78; mixed-100000: 2.13 |
 | 8 | aliases | identity instructions (base: full recompute) | 2.30 | 2.89 | 1.93 | 2.09 | refs-100000: 4.52; mixed-100000: 2.07 |
 | 9 | fixed push schedule | readiness checking, every cell (base: full recompute) | 2.64 | 2.75 | 2.74 | 3.00 | mixed-100000: 3.35 |
@@ -1247,4 +1283,222 @@ What it shows:
 - So decision 4 buys up to 3 times over values allocated one by one;
   how much in the alternative core depends on how scattered its values
   would be, which this measurement bounds but cannot settle.
+
+### Steps 11 to 15: evaluators over the core's own instructions
+
+The last five alternatives would each rewrite much of the core: its
+lowering, its components, the layout of its values or its whole model of
+evaluation. They are built instead, as chosen, as evaluators in the
+bench crate that run the core's own instructions with `Program::step` on
+the core's cells and change only what the decision is about, as the pull
+evaluators did for decision 9. Each measures the decision's mechanism,
+not a core built around the alternative. Measured 2026-10-26 with
+`tick_cost`, every evaluator on its own copy of each document,
+interleaved, seven processes, each evaluator's tick the median of the
+processes' medians; every evaluator holds the dirty closure's values,
+bit for bit, in every cell, on every shape. Two shapes were added for
+them: poly (decision 3) and symbolic (decision 5); see
+[The harness](#the-harness).
+
+Times here are a little higher than in earlier sections at 100,000:
+with up to eight copies of a document in memory, each evaluator's copy
+sits in a busier cache. Each ratio is between evaluators of the same
+processes.
+
+### Decision 3: coarse operators
+
+`crates/cells-bench/src/grouped.rs`: a dirty closure over groups of
+instructions. A group runs as a unit: when anything it reads changes,
+all its instructions run, in schedule order, and only then are the
+readers of its changed outputs marked. Groups run in the order of their
+last instruction, through a bitset over that order, as the core's dirty
+closure runs instructions. Grouped as a coarse operator per value would
+be (`expression`), an instruction joins its reader's group when its one
+output is read by that one instruction and by no component: the
+intermediates of a lowered math, so each value's expression is a unit.
+
+This evaluator is not the core's dirty closure: with every instruction
+a unit of its own (`single`, the control) it is 1.15 to 1.45 times the
+core's on every shape with work in it. So coarse operators are measured
+against `single`, the same evaluator with the same bookkeeping per unit.
+
+| shape | n | dirty (µs) | full (µs) | single (µs) | expression (µs) | compound (µs) |
+|---|---:|---:|---:|---:|---:|---:|
+| depth | 10,000 | 120 | 33.4 | 152 | 153 | 153 |
+| depth | 100,000 | 1,341 | 386 | 1,662 | 1,661 | 1,666 |
+| breadth | 10,000 | 64.2 | 29.9 | 90.7 | 89.7 | 89.7 |
+| breadth | 100,000 | 687 | 348 | 970 | 965 | 957 |
+| mixed | 10,000 | 4.4 | 14.7 | 6.1 | 6.2 | 6.1 |
+| mixed | 100,000 | 48.2 | 274 | 67.2 | 62.2 | 62.0 |
+| refs | 10,000 | 64.3 | 30.6 | 91.4 | 89.7 | 89.2 |
+| refs | 100,000 | 552 | 281 | 783 | 775 | 760 |
+| coords | 10,000 | 106 | 48.5 | 143 | 145 | 147 |
+| coords | 100,000 | 1,344 | 648 | 1,855 | 1,819 | 1,955 |
+| poly | 10,000 | 618 | 164 | 822 | 319 | 815 |
+| poly | 100,000 | 7,740 | 3,371 | 9,727 | 4,922 | 9,807 |
+
+(isolated and cutoff, whose ticks are 0.2 to 2.5 µs, are left out: their
+ratios ranged from 0.3 to 1.1 between processes.)
+
+Expression over single, the median of the processes' own ratios: 0.39
+on poly at 10,000 and 0.51 at 100,000 (0.38 to 0.51 across processes);
+0.92 on mixed at 100,000; within 2% on every other shape.
+
+What it shows:
+
+- On poly, where a value is five instructions, running each value as
+  one unit makes the tick 2 to 2.6 times faster than running each
+  instruction as one: the closure's bookkeeping, which decision 10 found
+  costs several times an instruction, is paid once per value instead of
+  five times. Against the core's own dirty closure, which is faster than
+  this evaluator, the coarse units are still 1.6 to 1.9 times faster on
+  poly.
+- On every other shape a value is one instruction, so the groups are
+  the same and so is the time.
+- So under a dirty closure, decision 3's fine grain costs rather than
+  buys, wherever a value lowers to several instructions. What it does
+  buy is not measured here: inverting through primitives with inverses
+  of their own, and early cutoff inside an expression, which a unit
+  gives up. Under full recompute, which runs every instruction whatever
+  the units, the grouping changes nothing; a coarse operator that also
+  fused its arithmetic into one call would save dispatch there, which
+  this evaluator does not model.
+
+### Decision 7: compound values
+
+The same evaluator (`compound`), grouped so that a point's coordinates
+are one value: the instructions writing a point's `x` and `y` are one
+unit, and when either changes, the readers of both are marked, as
+readers of the point would be. Every other instruction is a unit of its
+own, as in `single`. A first version marked through a different loop
+from `single` and came out 15 to 25% faster even where the units were
+the same; with one loop for both, `compound` is within 1% of `single`
+wherever the units are the same (depth, breadth, refs, poly), as it
+should be.
+
+Compound over single (table above): 1.07 on coords at 10,000 (0.99 to
+1.10 across processes) and 1.05 at 100,000 (1.03 to 1.07); 1.00 on the
+shapes with no derived point.
+
+What it shows:
+
+- On coords, a drag of x makes each point's unit run both coordinates,
+  twice the instructions, and still costs only 5 to 7%: the bookkeeping
+  is per unit, and the units are as many as before.
+- So one cell per scalar buys little in a dirty closure, even where a
+  coordinate changes alone: decision 7's value is elsewhere, in operators
+  and inverses that need no vector forms, not in the tick's time.
+
+### Decision 2: state variable functions
+
+The same evaluator (`functions`), with the units of `expression`, each
+run as a state variable's function is in the JavaScript core: before
+each evaluation its dependencies are looked up by key, from a hash map
+of keys to cells (std's, SipHash), into a fresh hash map of values; a
+boxed function reads each dependency by key and returns its outputs in
+a fresh vector; then they are compared with the old values and written.
+The arithmetic is still the core's instructions, run inside the
+function, so this is a lower bound on such a core's cost: it leaves out
+interpreting the formulas, dependencies found by walking names at run
+time, and values held in objects.
+
+| shape | n | dirty (µs) | expression (µs) | functions (µs) | functions / expression | functions / dirty |
+|---|---:|---:|---:|---:|---:|---:|
+| depth | 10,000 | 125 | 159 | 1,060 | 6.76 | 8.32 |
+| depth | 100,000 | 2,123 | 2,018 | 14,333 | 7.32 | 6.73 |
+| breadth | 10,000 | 64.8 | 90.1 | 706 | 7.83 | 10.9 |
+| breadth | 100,000 | 806 | 1,049 | 7,097 | 6.64 | 8.79 |
+| mixed | 10,000 | 4.5 | 6.1 | 35.6 | 5.83 | 7.87 |
+| mixed | 100,000 | 47.1 | 61.6 | 584 | 9.49 | 12.1 |
+| refs | 10,000 | 64.9 | 89.1 | 710 | 7.94 | 10.9 |
+| refs | 100,000 | 799 | 1,047 | 6,983 | 6.70 | 8.75 |
+| coords | 10,000 | 128 | 182 | 1,304 | 7.44 | 10.2 |
+| coords | 100,000 | 2,139 | 2,547 | 17,999 | 6.98 | 8.40 |
+| poly | 10,000 | 611 | 333 | 1,301 | 3.87 | 2.13 |
+| poly | 100,000 | 7,657 | 4,996 | 20,497 | 4.12 | 2.66 |
+
+(Ratios are the median of the processes' own; each stayed within about
+10% of it. isolated and cutoff, ticks of a µs, came to 1.2 to 1.6.)
+
+What it shows:
+
+- A function per value, with its dependencies looked up and gathered on
+  every run, costs 4 to 9.5 times the same units run as data: two hash
+  maps and a vector per evaluation, and a lookup per dependency, against
+  a few instructions.
+- With step 5's dispatch alone (1.2 to 5 times on full recompute), this
+  puts the operators-as-code model at about an order of magnitude over
+  the core's, before anything this lower bound leaves out. On poly,
+  where a function does five instructions' work, the overhead is shared
+  out and the ratio is lower.
+
+### Decision 1: a value per node
+
+`crates/cells-bench/src/nodes.rs` (`nodes`): a node per cell, each its
+own heap allocation, made in a fixed shuffled order as in decision 4's
+shuffled form, holding its value, the position of the instruction that
+computes it, and its readers, a vector of its own. A tick reads every
+input from its node and marks readers from the node's own list. It keeps
+the core's order: instructions run by schedule position through the
+core's bitset, so what differs is where values and edges live. The
+operators read cells by index, so the document's cells stay as a mirror,
+filled from the nodes just before each instruction runs: a write per
+input the core does not pay.
+
+| shape | n | dirty (µs) | nodes (µs) | nodes / dirty |
+|---|---:|---:|---:|---:|
+| depth | 10,000 | 125 | 233 | 1.84 |
+| depth | 100,000 | 2,123 | 2,963 | 1.41 |
+| breadth | 10,000 | 64.8 | 167 | 2.57 |
+| breadth | 100,000 | 806 | 2,045 | 2.58 |
+| mixed | 10,000 | 4.5 | 6.5 | 1.47 |
+| mixed | 100,000 | 47.1 | 145 | 3.11 |
+| refs | 10,000 | 64.9 | 168 | 2.56 |
+| refs | 100,000 | 799 | 1,965 | 2.45 |
+| coords | 10,000 | 128 | 369 | 2.94 |
+| coords | 100,000 | 2,139 | 4,915 | 2.28 |
+| poly | 10,000 | 611 | 1,467 | 2.40 |
+| poly | 100,000 | 7,657 | 21,647 | 2.77 |
+
+(Ratios are the median of the processes' own; each stayed within about
+15% of it. isolated and cutoff came to 1.1 to 1.25.)
+
+What it shows:
+
+- Values and edges in scattered nodes cost the dirty closure 1.4 to 3.1
+  times on every shape with work in it, about what decision 4's
+  scattered allocation cost (1.3 to 2.2 under the dirty closure), plus
+  the readers lists, each its own allocation. Most on fans and the page,
+  where each step's reads land on many nodes.
+- This keeps the core's fixed order and its bitset; a core built around
+  nodes usually also finds its order by walking them, which decision 9
+  measured at about 2 times on its own.
+
+### Decision 5: values of varying size
+
+`crates/cells-bench/src/inline.rs` (`inline`): the core's dirty closure,
+copied, that also keeps each math cell's expression as bytes of its own
+length, as a cell holding its expression inline would: a symbolic
+instruction decodes its math inputs from their bytes before it runs, and
+every math output it changes is exported from the engine and encoded
+back. The engine still does the symbolic work through handles, so this
+measures what storing expressions inline would add, at most. Measured on
+the symbolic shape, 21 timed ticks per evaluator:
+
+| n | dirty (µs) | inline (µs) | inline / dirty, per process |
+|---:|---:|---:|---|
+| 100 | 1,881 | 1,966 | 1.01 to 1.08 |
+| 1,000 | 18,970 | 19,974 | 1.04 to 1.08 |
+
+What it shows:
+
+- Encoding and decoding expressions adds 1 to 8% to a symbolic tick: the
+  engine's simplification costs far more than moving an expression's
+  bytes. So decision 5, a handle in an 8-byte cell rather than the
+  expression, is not what keeps symbolic ticks fast; their time is the
+  engine's (ADR 0011).
+- `inline` also costs 1.3 times the dirty closure on breadth and refs,
+  which have no math cells, and 1.0 to 1.1 on the other numeric shapes;
+  not explained, and a reason to read the symbolic ratio as an upper
+  bound.
 

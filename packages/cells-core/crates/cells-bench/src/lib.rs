@@ -3,6 +3,9 @@
 
 use std::path::PathBuf;
 
+pub mod grouped;
+pub mod inline;
+pub mod nodes;
 pub mod pruned;
 pub mod pull;
 pub mod script;

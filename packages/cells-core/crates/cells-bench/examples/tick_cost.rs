@@ -17,8 +17,10 @@
 //! - `CELLS_SHAPES=depth,chain10`: shapes (default `shapes::SHAPES`).
 //! - `CELLS_SIZES=1000,10000`: sizes (default 1,000, 10,000 and 100,000).
 //! - `CELLS_EVALUATORS`: from `dirty`, `full` (the core's), `ready_all`,
-//!   `ready_closure`, `lazy` (`cells_bench::pull`) and `pruned`
-//!   (`cells_bench::pruned`); default `dirty,full`. The first must compute
+//!   `ready_closure`, `lazy` (`cells_bench::pull`), `pruned`
+//!   (`cells_bench::pruned`), `single`, `expression`, `compound`,
+//!   `functions` (`cells_bench::grouped`), `nodes` (`cells_bench::nodes`)
+//!   and `inline` (`cells_bench::inline`); default `dirty,full`. The first must compute
 //!   every cell, so not `lazy` or `pruned`.
 //! - `CELLS_WANTED=100,10,1`: the share of the document, in percent, that a
 //!   tick reads (`shapes::wanted`, a viewport over the first components);
@@ -29,6 +31,9 @@
 use std::io::Write as _;
 use std::time::{Duration, Instant};
 
+use cells_bench::grouped::{GroupedClosure, Grouping};
+use cells_bench::inline::InlineClosure;
+use cells_bench::nodes::NodeClosure;
 use cells_bench::pruned::PrunedClosure;
 use cells_bench::pull::{Lazy, ReadyAll, ReadyClosure};
 use cells_bench::shapes::{SHAPES, cell, fingerprint, load, shape, wanted};
@@ -42,6 +47,12 @@ fn evaluator(name: &str, doc: &Document, wanted: &[CellIdx]) -> Box<dyn Evaluato
         "ready_closure" => Box::new(ReadyClosure::default()),
         "lazy" => Box::new(Lazy::new(wanted.to_vec())),
         "pruned" => Box::new(PrunedClosure::new(&doc.program, doc.cells.len(), wanted)),
+        "single" => Box::new(GroupedClosure::new(doc, Grouping::Single)),
+        "expression" => Box::new(GroupedClosure::new(doc, Grouping::Expression)),
+        "compound" => Box::new(GroupedClosure::new(doc, Grouping::Compound)),
+        "functions" => Box::new(GroupedClosure::new(doc, Grouping::Functions)),
+        "nodes" => Box::new(NodeClosure::new(doc)),
+        "inline" => Box::new(InlineClosure::new(doc)),
         _ => panic!("no evaluator {name}"),
     }
 }

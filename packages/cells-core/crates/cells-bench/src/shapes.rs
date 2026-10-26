@@ -21,7 +21,7 @@ pub struct Shape {
 /// Every shape `shape` knows, in the order `tick_cost` runs them by
 /// default. `chainK` takes any K from 1 to 100.
 pub const SHAPES: &[&str] = &[
-    "depth", "breadth", "isolated", "mixed", "cutoff", "refs", "coords",
+    "depth", "breadth", "isolated", "mixed", "cutoff", "refs", "coords", "poly",
 ];
 
 fn point(name: &str, x: &str) -> Element {
@@ -221,6 +221,75 @@ pub fn shape(name: &str, n: usize) -> Option<Shape> {
                         (format!("q{}.y", n - 1), n as f64),
                     ],
                 ),
+            }
+        }
+        // A chain of n numbers, each `($c + 3) / 2 + $c / 2 - 1` of the one
+        // before: several instructions per value, which a coarse operator
+        // would run as one (decision 3). It is `c + 0.5`, so every value
+        // changes with every drag and stays exact.
+        "poly" => {
+            let step = |of: &str, name: &str| {
+                el("number")
+                    .name(name)
+                    .text("(")
+                    .child(mac(of))
+                    .text(" + 3) / 2 + ")
+                    .child(mac(of))
+                    .text(" / 2 - 1")
+            };
+            let mut v = vec![graph([point("p", "1")]), step("p.x", "c0")];
+            for i in 1..n {
+                v.push(step(&format!("c{}", i - 1), &format!("c{i}")));
+            }
+            let mut c = 5.0f64;
+            let mut last = 0.0;
+            for _ in 0..n {
+                c = (c + 3.0) / 2.0 + c / 2.0 - 1.0;
+                last = c;
+            }
+            Shape {
+                elements: v,
+                drag: "p.x",
+                check: (5.0, vec![(format!("c{}.value", n - 1), last)]),
+            }
+        }
+        // As `generate.mjs`: a chain of n simplified math expressions in x,
+        // fed by the dragged point and evaluated at its end (decision 5's
+        // values of varying size are expressions).
+        "symbolic" => {
+            const COEF: [i64; 7] = [1, 2, 4, 5, 2, 3, 5];
+            let mut v = vec![
+                graph([point("p", "1")]),
+                el("math")
+                    .name("m0")
+                    .flag("simplify")
+                    .child(mac("p.x"))
+                    .text(" x^2 + 1"),
+            ];
+            let mut k = 0i64;
+            for i in 1..n {
+                let c = COEF[i % COEF.len()];
+                let sign = if i % 2 == 0 { "+" } else { "-" };
+                k += if sign == "+" { c } else { -c };
+                v.push(
+                    el("math")
+                        .name(&format!("m{i}"))
+                        .flag("simplify")
+                        .child(mac(&format!("m{}", i - 1)))
+                        .text(&format!(" {sign} {c} x")),
+                );
+            }
+            v.push(
+                el("evaluate")
+                    .name("e")
+                    .attr("function", mac(&format!("m{}", n - 1)))
+                    .attr("input", "1"),
+            );
+            v.push(el("number").name("ev").child(mac("e")));
+            Shape {
+                elements: v,
+                drag: "p.x",
+                check: (5.0, vec![("ev.value".into(), (5 + 1 + k) as f64)]),
             }
         }
         _ => {
