@@ -521,6 +521,78 @@ describe("Random choices in repeats @group3", async () => {
         }
     });
 
+    it("an unlinked copy of a repeat keeps the random values in a nested repeat", async () => {
+        // The group of the nested repeat's `for` attribute used to be given
+        // its source's seed, so it drew nothing from the nested repeat's
+        // seed, and each iteration of the nested repeat drew the value the
+        // one before it drew in the source.
+        const sfs = `<selectFromSequence name="n" from="1" to="1000"/>`;
+        const names = [1, 2].flatMap((a) =>
+            [1, 2].map((b) => `[${a}].i[${b}].n`),
+        );
+        for (const doenetML of [
+            `<repeat name="r" for="1 2"><repeat name="i" for="a b">${sfs}</repeat></repeat>
+<repeat copy="$r" name="r2"/>`,
+            `<repeat name="r" for="1 2"><repeat name="i" for="a b"><group>${sfs}</group></repeat></repeat>
+<repeat copy="$r" name="r2"/>`,
+            `<repeat name="r" for="1 2"><group><repeat name="i" for="a b">${sfs}</repeat></group></repeat>
+<repeat copy="$r" name="r2"/>`,
+            `<repeatForSequence name="r" from="1" to="2"><repeatForSequence name="i" from="1" to="2">${sfs}</repeatForSequence></repeatForSequence>
+<repeatForSequence copy="$r" name="r2"/>`,
+        ]) {
+            const sourceValues: number[] = [];
+            for (const requestedVariantIndex of variantIndices) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const values = await selectedValues({
+                    doenetML,
+                    requestedVariantIndex,
+                    names: [
+                        ...names.map((name) => `r${name}`),
+                        ...names.map((name) => `r2${name}`),
+                    ],
+                });
+                const message = `${doenetML}, variant ${requestedVariantIndex}`;
+
+                // the copy keeps the source's values, in order
+                expect(values.slice(4), message).eqls(values.slice(0, 4));
+
+                // and keeps them when the page is loaded with the variant it
+                // generated
+                expect(
+                    await selectedValues({
+                        doenetML,
+                        requestedVariant: JSON.parse(
+                            JSON.stringify(
+                                stateVariables[
+                                    await resolvePathToNodeIdx("_document1")
+                                ].stateValues.generatedVariantInfo,
+                            ),
+                        ),
+                        names: [
+                            ...names.map((name) => `r${name}`),
+                            ...names.map((name) => `r2${name}`),
+                        ],
+                    }),
+                    message,
+                ).eqls(values);
+
+                sourceValues.push(values[0]);
+            }
+
+            // the values differ between variants
+            expect(new Set(sourceValues).size, doenetML).eq(
+                variantIndices.length,
+            );
+        }
+    });
+
     it("random values in groups in a repeat are kept when the variant is requested again", async () => {
         // as a host does to load a saved page with the variant it generated
         const doenetML = `
