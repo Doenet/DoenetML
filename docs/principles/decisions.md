@@ -26,6 +26,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B5 | Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
 | B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
+| B8 | A `<group copy>` draws new random values for nested content, and a random child added to it repeats the source's first draw (#2342). Both break CPY-8 | reported in the issue, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group is serialized before its inner content expands |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -390,9 +391,10 @@ The exact tables in `T/variants/uniqueVariants.test.ts` become Tier 3. Keep the 
 **Today** three per-variable mechanisms, in about 40 files, decide which attributes `$x.prop`
 carries.
 
-**Recommendation.** One default: a numeric property carries the five display settings, and every
-property carries `modifyIndirectly`. Declare an exception only where a property needs more, such
-as list entries carrying `fixed`, `hide`, `styleNumber`, `draggable` and `renderMode`. This is
+**Recommendation.** One default: a numeric property carries the five display settings. Declare an
+exception only where a property needs more, such as list entries carrying `fixed`, `hide`,
+`styleNumber`, `draggable` and `renderMode`. (#2339 already removed the third mechanism,
+`propagateToProps`, which only `modifyIndirectly` used.) This is
 mostly internal, but it makes VAL-1 true by construction.
 
 ## D21. Which components does a bare reference read as a value?
@@ -466,38 +468,33 @@ warn on main now for names that cases disagree about, so that documents can migr
 - the tests that assert `$x` from outside does not resolve;
 - the `conditionalcontent.test.ts` and `select.test.ts` tests listed under D13.
 
-## D23. What `fixed` means, and whether `modifyIndirectly` stays
+## D23. What `fixed` means
 
 **Today** (CTX-1, INT-6):
 - **`fixed`** refuses every change pushed into the component. It still follows its children and
   attributes.
-- **`modifyIndirectly="false"`** refuses only changes passed back from things that depend on the
-  component, and still allows the reader's direct drag (`initialChange`,
-  `W/core/EssentialValueWriter.ts:846-860`).
-- **`draggable="false"`** refuses only the direct drag.
+- **`draggable="false"`** refuses only the reader's direct drag.
 
-Problems for authors:
-- "Fixed" suggests a constant value. Authors may expect `<math fixed>$n+1</math>` not to follow
-  `n`.
-- The difference between `fixed` and `modifyIndirectly="false"` is one no author is likely to
-  want. `modifyIndirectly` is already left out of the schema and the docs. Twelve test files use
-  it, and it has plumbing in `Math.js`, `Matrix.js`, `MathBaseOperator.js`, `repeatList.js` and
-  `referenceSlotDefinitions.js`, plus `propagateToProps`.
+"Fixed" suggests a constant value. Authors may expect `<math fixed>$n+1</math>` not to follow
+`n`.
 
 **Recommendation.**
-- **Retire `modifyIndirectly` as an author attribute.** If no published document uses it,
-  remove it. If some do, keep accepting it, but treat `false` as `fixed`, with an info
-  diagnostic.
 - **Document `fixed` by what it refuses:** "A fixed component shows what its own definition
   gives, and nothing can change it from outside — not the reader, not an input bound to it, not
   an action". Keep the name, since many documents use it.
-- Keep `draggable="false"`. It answers a different author question ("can the reader grab
-  this?").
+- Keep `draggable="false"`. It answers a different author question: "can the reader grab this?".
 - Keep `fixLocation` as "`fixed`, for position only".
 
-**Tests that change:** those using `modifyIndirectly="false"` with a direct drag that is
-expected to succeed. Tests where it only blocks a dependent's write keep passing under
-"treat as fixed".
+**Done: `modifyIndirectly` is removed (#2339, closing #2336).** It refused only changes passed
+back from things that depend on a component, while still allowing the reader's direct drag. No
+author was likely to want that distinction from `fixed`.
+- The parser now drops the attribute from any element, with deprecation warning `doenet-w0177`.
+  The warning says to put `fixed` on the components that use the value, or `disabled` on an
+  input.
+- `$P.modifyIndirectly` is now a reference to a property that does not exist.
+- The core plumbing went with it: the refusal in `EssentialValueWriter.ts`, the `canBeModified`
+  dependencies, and `propagateToProps`.
+- Its tests were ported to `fixed` on the consumer.
 
 ## D24. How to present repeating, choosing and grouping to authors
 

@@ -34,11 +34,12 @@ Evidence:
 Exception, principled: the implicit prop of a same-type referent (`$n` for a number) is
 treated as the referent itself (`copiesReferent`, `W/utils/valueReference.ts:225`).
 
-Which attributes a property carries is declared per state variable by three separate
-mechanisms:
-- `propagateToProps` (only `modifyIndirectly`);
+Which attributes a property carries is declared per state variable by two separate mechanisms:
 - `attributesToShadow`;
 - `addAttributeComponentsShadowingStateVariables`, in about 40 component files.
+
+A third mechanism, `propagateToProps`, was used only by `modifyIndirectly`, and was removed with
+it in #2339.
 
 The author-visible rule, "a value keeps its number formatting and nothing else", should be the
 data-driven default. See D20.
@@ -51,7 +52,6 @@ through the prop's inverse.
 
 What stops the write:
 - x being `fixed`;
-- `modifyIndirectly="false"`;
 - `fixLocation`, for location props;
 - an index past the end;
 - a formula that cannot be run backward (see [interaction-and-state.md](interaction-and-state.md),
@@ -311,8 +311,6 @@ Known rough edges:
   covered by VAL-2 and INT-3.
 - **Exact diagnostic texts.** `value_references.test.ts:1379` (`Could not find prop xs[$i] …`), and
   `circularReferences.test.ts` asserting that a message names no `<_copy>`.
-- **`attribute_values.test.ts:775`:** a literal write is not refused by `modifyIndirectly`. It
-  preserves an old attribute component's default by accident.
 - **`value_references.test.ts:2723`, `:3061`:** a function's global extremum treated as missing.
   This is an artifact of how `Function.js` stores empty arrays.
 - **`value_references.test.ts:1724-1760`:** the exact `byType` counts of a point.
