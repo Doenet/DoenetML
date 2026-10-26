@@ -78,6 +78,31 @@ async function expectNamedSingleStringChildren({
     }
 }
 
+// The text a component shows: its `text`, or, for a component without one
+// (such as a statement or a span), the text of its children
+function shownText({
+    stateVariables,
+    componentIdx,
+}: {
+    stateVariables: Record<number, any>;
+    componentIdx: number;
+}): string {
+    const component = stateVariables[componentIdx];
+    return (
+        component.stateValues.text ??
+        component.activeChildren
+            .map((child: any) =>
+                typeof child === "string"
+                    ? child
+                    : shownText({
+                          stateVariables,
+                          componentIdx: child.componentIdx,
+                      }),
+            )
+            .join("")
+    );
+}
+
 function getPretzelChild({
     pretzel,
     problemOrder,
@@ -1071,9 +1096,10 @@ describe("Pretzel tag tests @group1", async () => {
     });
 
     it("a copy of a pretzel reports the subvariants of its own random choices", async () => {
-        // A copy's arranger is not set up from problems, so it keeps its
-        // subvariants in display order rather than dropping them.
-        const { core } = await createTestCore({
+        // A copy's arranger reports the subvariants of its own copies of the
+        // random choices, in the order its source reports them: problem
+        // order, though this variant shows the problems out of that order.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
         <problem><statement><p>P1 <selectFromSequence from="1" to="5"/></p></statement><answer>A1</answer></problem>
@@ -1081,21 +1107,736 @@ describe("Pretzel tag tests @group1", async () => {
     </pretzel>
     <section>$p</section>
     `,
+            requestedVariantIndex: 1,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .problemOrder,
+        ).eqls([2, 1]);
+
         const arrangers = Object.values(stateVariables).filter(
             (component) => component.componentType === "_pretzelArranger",
         );
         expect(arrangers.length).eq(2);
-        for (const arranger of arrangers) {
-            const subvariants =
-                arranger.stateValues.generatedVariantInfo.subvariants;
-            expect(subvariants.length).eq(2);
-            for (const subvariant of subvariants) {
-                expect(
-                    stateVariables[subvariant.meta.createdBy].componentType,
-                ).eq("selectFromSequence");
-            }
+        const [sourceSubvariants, copySubvariants] = arrangers.map(
+            (arranger) => arranger.stateValues.generatedVariantInfo.subvariants,
+        );
+        expect(copySubvariants.length).eq(2);
+        for (const [i, subvariant] of copySubvariants.entries()) {
+            const sourceCreatedBy = sourceSubvariants[i].meta.createdBy;
+            expect(subvariant.meta.createdBy).not.eq(sourceCreatedBy);
+            expect(stateVariables[subvariant.meta.createdBy].componentType).eq(
+                "selectFromSequence",
+            );
+            expect(
+                stateVariables[subvariant.meta.createdBy].stateValues
+                    .selectedValues,
+            ).eqls(stateVariables[sourceCreatedBy].stateValues.selectedValues);
         }
+        // The first is from the first problem's range.
+        expect(
+            stateVariables[copySubvariants[0].meta.createdBy].stateValues
+                .selectedValues[0],
+        ).lte(5);
+    });
+
+    describe("copies of a pretzel", () => {
+        const pretzelDoenetML = `
+    <pretzel name="p">
+        <problem><statement name="s1"><p>P1 <selectFromSequence name="n" from="1" to="100"/></p></statement><answer name="a1">A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem><statement><p>P3</p></statement><answer>A3</answer></problem>
+    </pretzel>`;
+
+        // Each case is a document copying the pretzel `p`, with the path of
+        // the copied pretzel, and whether the copy is linked to `p`. A
+        // reference such as `$p` cannot be given a name, so for it `copyPath`
+        // is that of the section it is the only child of, and the names
+        // inside the copy cannot be resolved.
+        const cases: {
+            description: string;
+            doenetML: string;
+            sourcePath: string;
+            copyPath: string;
+            copyIsChildOfPath?: boolean;
+            linked: boolean;
+        }[] = [
+            {
+                description: "$p",
+                doenetML: `${pretzelDoenetML}\n    <section name="s2">$p</section>`,
+                sourcePath: "p",
+                copyPath: "s2",
+                copyIsChildOfPath: true,
+                linked: true,
+            },
+            {
+                description: "<pretzel extend>",
+                doenetML: `${pretzelDoenetML}\n    <pretzel extend="$p" name="p2"/>`,
+                sourcePath: "p",
+                copyPath: "p2",
+                linked: true,
+            },
+            {
+                description: "<pretzel copy>",
+                doenetML: `${pretzelDoenetML}\n    <pretzel copy="$p" name="p2"/>`,
+                sourcePath: "p",
+                copyPath: "p2",
+                linked: false,
+            },
+            {
+                description: "<section extend>",
+                doenetML: `<section name="s">${pretzelDoenetML}</section>\n    <section extend="$s" name="s2"/>`,
+                sourcePath: "s.p",
+                copyPath: "s2.p",
+                linked: true,
+            },
+            {
+                description: "<section copy>",
+                doenetML: `<section name="s">${pretzelDoenetML}</section>\n    <section copy="$s" name="s2"/>`,
+                sourcePath: "s.p",
+                copyPath: "s2.p",
+                linked: false,
+            },
+        ];
+
+        for (const {
+            description,
+            doenetML,
+            sourcePath,
+            copyPath,
+            copyIsChildOfPath,
+            linked,
+        } of cases) {
+            it(`a ${description} copy shows and grades the same problems in the same order`, async () => {
+                // Variant 2 shows the problems out of their written order.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: 2,
+                });
+
+                const diagnosticsByType = getDiagnosticsByType(core);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
+
+                let stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const source =
+                    stateVariables[await resolvePathToNodeIdx(sourcePath)];
+                const copyOrParent =
+                    stateVariables[await resolvePathToNodeIdx(copyPath)];
+                if (copyIsChildOfPath) {
+                    expect(copyOrParent.activeChildren.length).eq(1);
+                }
+                const copy = copyIsChildOfPath
+                    ? stateVariables[
+                          copyOrParent.activeChildren[0].componentIdx
+                      ]
+                    : copyOrParent;
+                expect(copy.componentType).eq("pretzel");
+
+                function childTypesAndTexts(pretzel: any) {
+                    return pretzel.activeChildren.map((child: any) => [
+                        stateVariables[child.componentIdx].componentType,
+                        shownText({
+                            stateVariables,
+                            componentIdx: child.componentIdx,
+                        }),
+                    ]);
+                }
+
+                expect(source.stateValues.problemOrder).not.eqls([1, 2, 3]);
+                expect(copy.stateValues.problemOrder).eqls(
+                    source.stateValues.problemOrder,
+                );
+                expect(copy.stateValues.numProblems).eq(3);
+                expect(copy.activeChildren.length).eq(9);
+                expect(childTypesAndTexts(copy)).eqls(
+                    childTypesAndTexts(source),
+                );
+
+                if (!copyIsChildOfPath) {
+                    // The names in the copy resolve to its own statement and
+                    // answer, which show the same random value as the source's.
+                    const copyStatement =
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${copyPath}.s1`)
+                        ];
+                    const sourceStatement =
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${sourcePath}.s1`)
+                        ];
+                    expect(copyStatement.componentType).eq("statement");
+                    expect(copyStatement.componentIdx).not.eq(
+                        sourceStatement.componentIdx,
+                    );
+                    expect(
+                        shownText({
+                            stateVariables,
+                            componentIdx: copyStatement.componentIdx,
+                        }),
+                    ).eq(
+                        shownText({
+                            stateVariables,
+                            componentIdx: sourceStatement.componentIdx,
+                        }),
+                    );
+                    expect(
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${copyPath}.a1`)
+                        ].activeChildren,
+                    ).eqls(["A1"]);
+                }
+
+                // Answer the copy.
+                const problemOrder = copy.stateValues.problemOrder;
+                for (let i = 1; i <= 3; i++) {
+                    const input = getPretzelChild({
+                        pretzel: copy,
+                        problemOrder,
+                        problemNumber: i,
+                        childOffset: INPUT_CHILD_OFFSET,
+                    });
+                    await updateTextInputValue({
+                        text: `${i}`,
+                        componentIdx: input.componentIdx,
+                        core,
+                    });
+                }
+                await submitAnswer({
+                    componentIdx: copy.componentIdx,
+                    core,
+                });
+
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[copy.componentIdx].stateValues
+                        .creditAchieved,
+                ).eq(1);
+
+                // A linked copy's responses are its source's; an unlinked
+                // copy's are its own.
+                expect(
+                    stateVariables[source.componentIdx].stateValues
+                        .currentResponses,
+                ).eqls(
+                    linked
+                        ? stateVariables[copy.componentIdx].stateValues
+                              .currentResponses
+                        : ["", "", ""],
+                );
+            });
+        }
+
+        // The problem order, and the text of each statement and answer, that
+        // each of the pretzels at `paths` shows
+        async function shownProblems({
+            core,
+            resolvePathToNodeIdx,
+            paths,
+        }: {
+            core: any;
+            resolvePathToNodeIdx: (name: string) => Promise<number>;
+            paths: string[];
+        }) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, any> = {};
+            for (const path of paths) {
+                const pretzel =
+                    stateVariables[await resolvePathToNodeIdx(path)];
+                result[path] = {
+                    problemOrder: pretzel.stateValues.problemOrder,
+                    texts: pretzel.activeChildren
+                        .filter(
+                            (_: any, i: number) =>
+                                i % PRETZEL_CHILD_STRIDE !== INPUT_CHILD_OFFSET,
+                        )
+                        .map((child: any) =>
+                            shownText({
+                                stateVariables,
+                                componentIdx: child.componentIdx,
+                            }),
+                        ),
+                    currentResponses: pretzel.stateValues.currentResponses,
+                };
+            }
+            return result;
+        }
+
+        it("copies of copies of a pretzel show the same problems", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${pretzelDoenetML}
+    <pretzel extend="$p" name="p2"/>
+    <pretzel extend="$p2" name="p3"/>
+    <pretzel copy="$p2" name="p4"/>
+    <pretzel extend="$p4" name="p5"/>
+    <pretzel copy="$p4" name="p6"/>`,
+                requestedVariantIndex: 2,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(0);
+
+            const paths = ["p", "p2", "p3", "p4", "p5", "p6"];
+            const shown = await shownProblems({
+                core,
+                resolvePathToNodeIdx,
+                paths,
+            });
+            expect(shown.p.problemOrder).not.eqls([1, 2, 3]);
+            expect(shown.p.texts.length).eq(6);
+            for (const path of paths) {
+                expect(shown[path], path).eqls(shown.p);
+            }
+        });
+
+        for (const kind of ["extend", "copy"]) {
+            it(`a <pretzel ${kind}> copy keeps its problems and responses when reloaded`, async () => {
+                const doenetML = `${pretzelDoenetML}\n    <pretzel ${kind}="$p" name="p2"/>`;
+                let { core, resolvePathToNodeIdx, scoreState } =
+                    await createTestCore({
+                        doenetML,
+                        requestedVariantIndex: 2,
+                    });
+
+                const copy = (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("p2")
+                ];
+                await updateTextInputValue({
+                    text: "2",
+                    componentIdx: getPretzelChild({
+                        pretzel: copy,
+                        problemOrder: copy.stateValues.problemOrder,
+                        problemNumber: 1,
+                        childOffset: INPUT_CHILD_OFFSET,
+                    }).componentIdx,
+                    core,
+                });
+                await submitAnswer({ componentIdx: copy.componentIdx, core });
+
+                const paths = ["p", "p2"];
+                const before = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths,
+                });
+                expect(before.p2.currentResponses).includes("2");
+
+                await core.saveImmediately();
+                ({ core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: 2,
+                    initialState: scoreState.state,
+                }));
+
+                expect(
+                    await shownProblems({ core, resolvePathToNodeIdx, paths }),
+                ).eqls(before);
+            });
+        }
+
+        // Answer each problem of the pretzel at `path` with its number, as a
+        // student who solved it would, submit, and return the credit
+        async function answerInOrder({
+            core,
+            resolvePathToNodeIdx,
+            path,
+        }: {
+            core: any;
+            resolvePathToNodeIdx: (name: string) => Promise<number>;
+            path: string;
+        }) {
+            const pretzel = (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(path)
+            ];
+            const problemOrder = pretzel.stateValues.problemOrder;
+            for (const problemNumber of problemOrder) {
+                const input = getPretzelChild({
+                    pretzel,
+                    problemOrder,
+                    problemNumber,
+                    childOffset: INPUT_CHILD_OFFSET,
+                });
+                if (input.stateValues?.disabled) {
+                    continue;
+                }
+                await updateTextInputValue({
+                    text: `${problemNumber}`,
+                    componentIdx: input.componentIdx,
+                    core,
+                });
+            }
+            await submitAnswer({ componentIdx: pretzel.componentIdx, core });
+            return (await core.returnAllStateVariables(false, true))[
+                pretzel.componentIdx
+            ].stateValues.creditAchieved;
+        }
+
+        // The text of the statement of the first problem, with its random value
+        async function firstStatementText({
+            core,
+            resolvePathToNodeIdx,
+            path,
+        }: {
+            core: any;
+            resolvePathToNodeIdx: (name: string) => Promise<number>;
+            path: string;
+        }) {
+            const { texts } = (
+                await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths: [path],
+                })
+            )[path];
+            return texts.find((text: string) => text.startsWith("P1"));
+        }
+
+        it("a <pretzel copy> given more problems arranges all of them together", async () => {
+            // The added problem changes the correct answers, so the copy
+            // arranges all four problems in a new order. It keeps the
+            // source's random value.
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${pretzelDoenetML}
+    <pretzel copy="$p" name="p2">
+        <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
+    </pretzel>`,
+                    requestedVariantIndex,
+                });
+
+                const diagnosticsByType = getDiagnosticsByType(core);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
+
+                const shown = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths: ["p", "p2"],
+                });
+                expect(shown.p.problemOrder.length).eq(3);
+                expect([...shown.p2.problemOrder].sort()).eqls([1, 2, 3, 4]);
+                expect(shown.p2.texts.length).eq(8);
+                expect(
+                    await firstStatementText({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p2",
+                    }),
+                ).eq(
+                    await firstStatementText({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p",
+                    }),
+                );
+
+                expect(
+                    await answerInOrder({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p2",
+                    }),
+                ).eq(1);
+            }
+        });
+
+        it("a <pretzel copy> given problems or a mode leaves other copies of its source unchanged", async () => {
+            // Every copy starts from its source's order and random choices.
+            // Adapting them for one copy must not change them for the next.
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${pretzelDoenetML}
+    <pretzel copy="$p" name="p2">
+        <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
+    </pretzel>
+    <pretzel copy="$p" name="p3" mode="circuit"/>
+    <pretzel copy="$p" name="p4"/>`,
+                    requestedVariantIndex,
+                });
+
+                const shown = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths: ["p", "p4"],
+                });
+                expect(shown.p4.problemOrder).eqls(shown.p.problemOrder);
+                expect(shown.p4.texts).eqls(shown.p.texts);
+            }
+        });
+
+        it("a <pretzel copy> given more problems chooses their random values anew, and keeps them when reloaded", async () => {
+            // The added problems do not repeat the random values of the
+            // source's problems, which the copy keeps.
+            const doenetML = `
+    <pretzel name="p">
+        <problem><statement><p>P1 <selectFromSequence name="n1" from="1" to="1000"/></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2 <selectFromSequence name="n2" from="1" to="1000"/></p></statement><answer>A2</answer></problem>
+    </pretzel>
+    <pretzel copy="$p" name="p2">
+        <problem><statement><p>P3 <selectFromSequence name="m1" from="1" to="1000"/></p></statement><answer>A3</answer></problem>
+        <problem><statement><p>P4 <selectFromSequence name="m2" from="1" to="1000"/></p></statement><answer>A4</answer></problem>
+    </pretzel>`;
+
+            async function selectedValues({
+                core,
+                resolvePathToNodeIdx,
+            }: {
+                core: any;
+                resolvePathToNodeIdx: (name: string) => Promise<number>;
+            }) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const values: Record<string, number> = {};
+                for (const name of [
+                    "n1",
+                    "n2",
+                    "p2.n1",
+                    "p2.n2",
+                    "p2.m1",
+                    "p2.m2",
+                ]) {
+                    values[name] =
+                        stateVariables[
+                            await resolvePathToNodeIdx(name)
+                        ].stateValues.selectedValues[0];
+                }
+                return values;
+            }
+
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                let { core, resolvePathToNodeIdx, scoreState } =
+                    await createTestCore({
+                        doenetML,
+                        requestedVariantIndex,
+                    });
+                const values = await selectedValues({
+                    core,
+                    resolvePathToNodeIdx,
+                });
+                expect(values["p2.n1"]).eq(values.n1);
+                expect(values["p2.n2"]).eq(values.n2);
+                expect([values.n1, values.n2]).not.include(values["p2.m1"]);
+                expect([values.n1, values.n2]).not.include(values["p2.m2"]);
+
+                const before = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths: ["p", "p2"],
+                });
+                await core.saveImmediately();
+                ({ core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                    initialState: scoreState.state,
+                }));
+                expect(
+                    await selectedValues({ core, resolvePathToNodeIdx }),
+                ).eqls(values);
+                expect(
+                    await shownProblems({
+                        core,
+                        resolvePathToNodeIdx,
+                        paths: ["p", "p2"],
+                    }),
+                ).eqls(before);
+            }
+        });
+
+        it("a <pretzel copy> given only a <problem copy> keeps its source's order", async () => {
+            // The `<problem copy>` is ignored, with a warning, so no problem
+            // is added.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${pretzelDoenetML}
+    <problem name="q"><statement><p>Q</p></statement><answer>AQ</answer></problem>
+    <pretzel copy="$p" name="p2"><problem copy="$q"/></pretzel>`,
+                requestedVariantIndex: 2,
+            });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings.length).eq(1);
+            expect(diagnosticsByType.warnings[0].message).contain(
+                "A `<problem>` that copies or extends another problem is not supported",
+            );
+
+            const shown = await shownProblems({
+                core,
+                resolvePathToNodeIdx,
+                paths: ["p", "p2"],
+            });
+            expect(shown.p.problemOrder).not.eqls([1, 2, 3]);
+            expect(shown.p2.problemOrder).eqls(shown.p.problemOrder);
+            expect(shown.p2.texts).eqls(shown.p.texts);
+        });
+
+        it("a <pretzel copy> given a mode arranges the problems in that mode", async () => {
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                // From pretzel to circuit mode: the copy starts with problem
+                // 1, keeping the source's order only if it does.
+                let { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${pretzelDoenetML}
+    <pretzel copy="$p" name="p2" mode="circuit"/>`,
+                    requestedVariantIndex,
+                });
+                let diagnosticsByType = getDiagnosticsByType(core);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
+
+                let stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sourceOrder =
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .problemOrder;
+                let copy = stateVariables[await resolvePathToNodeIdx("p2")];
+                expect(copy.stateValues.mode).eq("circuit");
+                expect(copy.stateValues.problemOrder[0]).eq(1);
+                if (sourceOrder[0] === 1) {
+                    expect(copy.stateValues.problemOrder).eqls(sourceOrder);
+                }
+                expect(
+                    await firstStatementText({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p2",
+                    }),
+                ).eq(
+                    await firstStatementText({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p",
+                    }),
+                );
+                expect(
+                    await answerInOrder({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p2",
+                    }),
+                ).eq(1);
+
+                // From circuit to pretzel mode: any order is a pretzel order,
+                // so the copy keeps the source's.
+                ({ core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${pretzelDoenetML.replace(
+                        '<pretzel name="p">',
+                        '<pretzel name="p" mode="circuit">',
+                    )}
+    <pretzel copy="$p" name="p2" mode="pretzel"/>`,
+                    requestedVariantIndex,
+                }));
+                diagnosticsByType = getDiagnosticsByType(core);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
+
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                copy = stateVariables[await resolvePathToNodeIdx("p2")];
+                expect(copy.stateValues.mode).eq("pretzel");
+                expect(copy.stateValues.problemOrder).eqls(
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .problemOrder,
+                );
+                expect(
+                    await answerInOrder({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p2",
+                    }),
+                ).eq(1);
+            }
+        });
+
+        for (const { description, given } of [
+            {
+                description: "problems",
+                given: `>
+        <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
+    </pretzel>`,
+            },
+            { description: "a mode", given: ` mode="circuit"/>` },
+        ]) {
+            it(`a <pretzel extend> ignores ${description} given to it, with a warning`, async () => {
+                // A linked copy shows its source's arrangement, which is
+                // graded in its source's mode.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${pretzelDoenetML}
+    <pretzel extend="$p" name="p2"${given}`,
+                    requestedVariantIndex: 2,
+                });
+
+                const diagnosticsByType = getDiagnosticsByType(core);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(1);
+                expect(diagnosticsByType.warnings[0].message).contain(
+                    "A `<pretzel>` that extends another shows the same problems in the same mode, so the problems or `mode` given to it are ignored.",
+                );
+
+                const shown = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths: ["p", "p2"],
+                });
+                expect(shown.p2).eqls(shown.p);
+
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                        .mode,
+                ).eq("pretzel");
+                expect(
+                    await answerInOrder({
+                        core,
+                        resolvePathToNodeIdx,
+                        path: "p2",
+                    }),
+                ).eq(1);
+            });
+        }
+
+        it("only the <pretzel extend> given a mode warns, not copies of it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<section name="s">${pretzelDoenetML}
+    <pretzel extend="$p" name="p2" mode="circuit"/></section>
+    <pretzel extend="$s.p2" name="p3"/>
+    <pretzel copy="$s.p2" name="p4"/>
+    <section extend="$s" name="t"/>
+    <section copy="$s" name="u"/>`,
+                requestedVariantIndex: 2,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(0);
+            expect(diagnosticsByType.warnings.length).eq(1);
+            expect(diagnosticsByType.warnings[0].message).contain(
+                "A `<pretzel>` that extends another shows the same problems in the same mode",
+            );
+
+            const paths = ["s.p", "s.p2", "p3", "p4", "t.p2", "u.p2"];
+            const shown = await shownProblems({
+                core,
+                resolvePathToNodeIdx,
+                paths,
+            });
+            for (const path of paths) {
+                expect(shown[path], path).eqls(shown["s.p"]);
+            }
+        });
     });
 });
