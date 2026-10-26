@@ -180,7 +180,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
     });
 });
 
-describe("Random choices in groups in repeats @group3", async () => {
+describe("Random choices in repeats @group3", async () => {
     it("a group copy keeps random values in groups in a repeat inside a div", async () => {
         const doenetML = `
 <group name="g"><div><repeatForSequence name="r" from="1" to="2"><group><selectFromSequence name="n" from="1" to="1000"/></group></repeatForSequence></div></group>
@@ -239,6 +239,32 @@ describe("Random choices in groups in repeats @group3", async () => {
                 expect(n2, message).not.eq(n1);
                 expect([m1, m2], message).eqls([n1, n2]);
             }
+        }
+    });
+
+    it("an unlinked copy of a repeat for keeps random values in its template", async () => {
+        // with no group in the template, the copy used to draw its values
+        // from its seed differently than its source did
+        const doenetML = `
+<repeat name="r" for="a b c" valueName="v"><selectFromSequence name="n" from="1" to="1000"/></repeat>
+<repeat copy="$r" name="r2"/>
+`;
+        for (const requestedVariantIndex of variantIndices) {
+            const values = await selectedValues({
+                doenetML,
+                requestedVariantIndex,
+                names: [
+                    "r[1].n",
+                    "r[2].n",
+                    "r[3].n",
+                    "r2[1].n",
+                    "r2[2].n",
+                    "r2[3].n",
+                ],
+            });
+            expect(values.slice(3), `variant ${requestedVariantIndex}`).eqls(
+                values.slice(0, 3),
+            );
         }
     });
 
