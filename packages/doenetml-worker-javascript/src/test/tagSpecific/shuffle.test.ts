@@ -829,4 +829,420 @@ describe("Shuffle tag tests @group1", async () => {
         expect(new Set(stateIds).size, "two replacements share an id").eq(3);
         expect((await replacementStateIds()).stateIds).eqls(stateIds);
     });
+
+    it("items keep their random values when loaded again with the generated variant and in a copy of a container", async () => {
+        // The shuffle hands its items' variants back in the order the items
+        // are written, so it must report them in that order, not in the
+        // order they are shown (Doenet/DoenetML#2352).
+        const shuffle = `<shuffle name="sh">
+            <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
+            <p name="b"><selectFromSequence name="y" from="1" to="1000"/></p>
+            <p name="c"><selectFromSequence name="w" from="1" to="1000"/></p>
+        </shuffle>`;
+
+        async function valuesAndOrder(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            prefix = "",
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values = [];
+            for (const name of ["x", "y", "w"]) {
+                values.push(
+                    stateVariables[await resolvePathToNodeIdx(prefix + name)]
+                        .stateValues.selectedValues,
+                );
+            }
+            return {
+                values,
+                order: stateVariables[await resolvePathToNodeIdx(prefix + "sh")]
+                    .stateValues.componentOrder,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const orders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 5; variantIndex++) {
+            const first = await createTestCore({
+                doenetML: shuffle,
+                requestedVariantIndex: variantIndex,
+            });
+            const firstResult = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+            );
+            orders.add(JSON.stringify(firstResult.order));
+
+            const again = await createTestCore({
+                doenetML: shuffle,
+                requestedVariant: firstResult.generatedVariantInfo,
+            });
+            const againResult = await valuesAndOrder(
+                again.core,
+                again.resolvePathToNodeIdx,
+            );
+            expect(againResult.order).eqls(firstResult.order);
+            expect(againResult.values).eqls(firstResult.values);
+
+            const copied = await createTestCore({
+                doenetML: `<section name="s">${shuffle}</section><section copy="$s" name="s2"/>`,
+                requestedVariantIndex: variantIndex,
+            });
+            const source = await valuesAndOrder(
+                copied.core,
+                copied.resolvePathToNodeIdx,
+                "s.",
+            );
+            const copy = await valuesAndOrder(
+                copied.core,
+                copied.resolvePathToNodeIdx,
+                "s2.",
+            );
+            expect(copy.order).eqls(source.order);
+            expect(copy.values).eqls(source.values);
+        }
+        // Orders other than the order written are covered.
+        expect(orders.size).greaterThan(1);
+        expect([...orders].some((order) => order !== "[1,2,3]")).eq(true);
+    });
+
+    it("items keep their random values when loaded again, with a text child among the items", async () => {
+        // The text is one of the items shuffled, with no random values, so
+        // the items' values are still matched to the items written.
+        const doenetML = `<shuffle name="sh">
+            hello
+            <p><selectFromSequence name="x" from="1" to="1000"/></p>
+            <p><selectFromSequence name="y" from="1" to="1000"/></p>
+            <p><selectFromSequence name="w" from="1" to="1000"/></p>
+        </shuffle>`;
+
+        async function values(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const name of ["x", "y", "w"]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .selectedValues,
+                );
+            }
+            return {
+                values: result,
+                order: stateVariables[await resolvePathToNodeIdx("sh")]
+                    .stateValues.componentOrder,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const orders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 5; variantIndex++) {
+            const first = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const firstResult = await values(
+                first.core,
+                first.resolvePathToNodeIdx,
+            );
+            expect(firstResult.order.length).eq(4);
+            orders.add(JSON.stringify(firstResult.order));
+
+            const again = await createTestCore({
+                doenetML,
+                requestedVariant: firstResult.generatedVariantInfo,
+            });
+            const againResult = await values(
+                again.core,
+                again.resolvePathToNodeIdx,
+            );
+            expect(againResult.order).eqls(firstResult.order);
+            expect(againResult.values).eqls(firstResult.values);
+        }
+        expect(orders.size).greaterThan(1);
+    });
+
+    it("an unlinked copy of a shuffle gives its items the values of the shuffle's items, also when loaded again", async () => {
+        // The copy is given the shuffle's variant, whose subvariants are
+        // handed to the copy's items in the order they are written
+        // (Doenet/DoenetML#2352).
+        const doenetML = `<shuffle name="sh">
+            <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
+            <p name="b"><selectFromSequence name="y" from="1" to="1000"/></p>
+            <p name="c"><selectFromSequence name="w" from="1" to="1000"/></p>
+        </shuffle>
+        <shuffle copy="$sh" name="sh2"/>`;
+
+        async function valuesAndOrder(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            prefix: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values = [];
+            for (const name of ["x", "y", "w"]) {
+                values.push(
+                    stateVariables[await resolvePathToNodeIdx(prefix + name)]
+                        .stateValues.selectedValues,
+                );
+            }
+            return {
+                values,
+                order: stateVariables[
+                    await resolvePathToNodeIdx(prefix.slice(0, -1) || "sh")
+                ].stateValues.componentOrder,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const orders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 4; variantIndex++) {
+            const first = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const source = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+                "",
+            );
+            const copy = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+                "sh2.",
+            );
+            orders.add(JSON.stringify(source.order));
+            expect(copy.order).eqls(source.order);
+            expect(copy.values).eqls(source.values);
+
+            const again = await createTestCore({
+                doenetML,
+                requestedVariant: source.generatedVariantInfo,
+            });
+            for (const prefix of ["", "sh2."]) {
+                const againResult = await valuesAndOrder(
+                    again.core,
+                    again.resolvePathToNodeIdx,
+                    prefix,
+                );
+                expect(againResult.order).eqls(source.order);
+                expect(againResult.values).eqls(source.values);
+            }
+        }
+        expect([...orders].some((order) => order !== "[1,2,3]")).eq(true);
+    });
+
+    it("items of many kinds keep their random values when loaded again and in a copy of a container", async () => {
+        // The shuffle reports the variants of its children, in the order
+        // they are written, which is the order it hands them back in, so
+        // a child that makes several items or none, a reference, or a
+        // random component written directly as an item gets its own values
+        // back (Doenet/DoenetML#2352).
+        const sfs = `<selectFromSequence from="1" to="1000"/>`;
+        const cases: { shuffle: string; names: string[] }[] = [
+            {
+                // a child making two items
+                shuffle: `<shuffle name="sh"><group><p name="a">${sfs}</p><p name="b">${sfs}</p></group><p name="c">${sfs}</p></shuffle>`,
+                names: ["a", "b", "c"],
+            },
+            {
+                // a repeat as an item, with another random item
+                shuffle: `<shuffle name="sh"><repeatForSequence name="r" from="1" to="2"><p name="a">${sfs}</p></repeatForSequence><p name="c">${sfs}</p></shuffle>`,
+                names: ["r[1].a", "r[2].a", "c"],
+            },
+            {
+                // a child making no items
+                shuffle: `<shuffle name="sh"><conditionalContent condition="false"><p>${sfs}</p></conditionalContent><p name="a">${sfs}</p><p name="c">${sfs}</p></shuffle>`,
+                names: ["a", "c"],
+            },
+            {
+                // a random component written directly as an item
+                shuffle: `<shuffle name="sh"><p name="a">${sfs}</p><selectFromSequence name="z" from="1" to="1000"/><p name="c">${sfs}</p></shuffle>`,
+                names: ["a", "z", "c"],
+            },
+            {
+                // a reference to random content outside the shuffle
+                shuffle: `<p name="q">${sfs}</p><shuffle name="sh"><p name="a">${sfs}</p>$q<p name="c">${sfs}</p></shuffle>`,
+                names: ["q", "a", "c"],
+            },
+            {
+                // a shuffle in an item, with other random items
+                shuffle: `<shuffle name="sh"><p name="a">${sfs}</p><p><shuffle name="inner"><p name="i1">${sfs}</p><p name="i2">${sfs}</p><p name="i3">${sfs}</p></shuffle></p><p name="c">${sfs}</p></shuffle>`,
+                names: ["a", "inner", "i1", "i2", "i3", "c"],
+            },
+        ];
+
+        async function shown(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            names: string[],
+            prefix = "",
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: unknown[] = [];
+            for (const name of ["sh", ...names]) {
+                const { stateValues } =
+                    stateVariables[await resolvePathToNodeIdx(prefix + name)];
+                result.push(
+                    stateValues.componentOrder ??
+                        stateValues.selectedValues ??
+                        stateValues.text,
+                );
+            }
+            return {
+                result,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        for (const { shuffle, names } of cases) {
+            const orders = new Set<string>();
+            for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
+                const first = await createTestCore({
+                    doenetML: shuffle,
+                    requestedVariantIndex: variantIndex,
+                });
+                const firstResult = await shown(
+                    first.core,
+                    first.resolvePathToNodeIdx,
+                    names,
+                );
+                orders.add(JSON.stringify(firstResult.result[0]));
+
+                const again = await createTestCore({
+                    doenetML: shuffle,
+                    requestedVariant: firstResult.generatedVariantInfo,
+                });
+                expect(
+                    (await shown(again.core, again.resolvePathToNodeIdx, names))
+                        .result,
+                    shuffle,
+                ).eqls(firstResult.result);
+            }
+            expect(orders.size, shuffle).greaterThan(1);
+        }
+
+        // In a copy of a container, for a child making two items
+        const { shuffle, names } = cases[0];
+        for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
+            const copied = await createTestCore({
+                doenetML: `<section name="s">${shuffle}</section><section copy="$s" name="s2"/>`,
+                requestedVariantIndex: variantIndex,
+            });
+            const source = await shown(
+                copied.core,
+                copied.resolvePathToNodeIdx,
+                names,
+                "s.",
+            );
+            const copy = await shown(
+                copied.core,
+                copied.resolvePathToNodeIdx,
+                names,
+                "s2.",
+            );
+            expect(copy.result).eqls(source.result);
+        }
+    });
+
+    it("the list form keeps its entries' random values when loaded again", async () => {
+        // The list form (`_shuffleList`) records the variants of its
+        // children, so a random value in an entry is handed back to it. With
+        // few values to choose from, the page is one of a list of unique
+        // variants, whose entries' values are not drawn from the shuffle's
+        // seed, so they are kept only if recorded.
+        const doenetML = `<shuffle name="sh">
+            <number name="a"><selectFromSequence from="1" to="3"/></number>
+            <number name="b"><selectFromSequence from="1" to="3"/></number>
+            <number name="c">9</number>
+        </shuffle>`;
+
+        async function valuesAndOrder(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sh = stateVariables[await resolvePathToNodeIdx("sh")];
+            const values = [];
+            for (const name of ["a", "b", "c"]) {
+                values.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .value,
+                );
+            }
+            return {
+                componentType: sh.componentType,
+                order: sh.stateValues.componentOrder,
+                values,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const valuesSeen = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 8; variantIndex++) {
+            const first = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const firstResult = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+            );
+            expect(firstResult.componentType).eq("_shuffleList");
+            valuesSeen.add(JSON.stringify(firstResult.values));
+
+            const again = await createTestCore({
+                doenetML,
+                requestedVariant: firstResult.generatedVariantInfo,
+            });
+            const againResult = await valuesAndOrder(
+                again.core,
+                again.resolvePathToNodeIdx,
+            );
+            expect(againResult.order).eqls(firstResult.order);
+            expect(againResult.values).eqls(firstResult.values);
+        }
+        expect(valuesSeen.size).greaterThan(1);
+    });
 });

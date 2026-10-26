@@ -270,6 +270,21 @@ export default class Shuffle extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "componentOrder",
                 },
+                // The variant components among the shuffle's children, in
+                // the order they are written, which is the order
+                // `setUpVariant` hands a desired variant's subvariants back
+                // to them in (as `getUniqueVariant` lists them). The items
+                // shown are shadows of these children, in `componentOrder`,
+                // so they show the values recorded here. Read from the
+                // items, the subvariants would be in the shown order, so each
+                // item would be handed another item's values when the
+                // variant is passed back (as when a saved page is loaded
+                // again, or a container of the shuffle is copied), and would
+                // hold the items' own seeds, such as that of the copy of a
+                // `<repeat>`, which are not the ones the children drew.
+                // The list form (`_shuffleList`) shares this definition: its
+                // children are its entries, and read as a list's
+                // replacements, they would give no subvariants at all.
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes:
@@ -278,7 +293,6 @@ export default class Shuffle extends CompositeComponent {
                         "isVariantComponent",
                         "generatedVariantInfo",
                     ],
-                    useReplacementsForComposites: true,
                     recurseToMatchedChildren: false,
                     variablesOptional: true,
                     includeNonActiveChildren: true,
