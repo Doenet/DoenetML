@@ -678,15 +678,15 @@ export default class RepeatForSequence extends CompositeComponent {
         return { replacementChanges, diagnostics, nComponents };
     }
 
-    static setUpVariant({
-        serializedComponent,
-        sharedParameters,
-        descendantVariantComponents,
-    }) {
+    static setUpVariant({ serializedComponent, sharedParameters }) {
+        // The subvariants of a repeat's variant are those of its iteration
+        // groups, which its template does not hold, so they are not handed
+        // to the template's random components: its first one would be given
+        // the variant of the first iteration's group, in every iteration.
+        // The seed alone makes the iterations again, as it made them.
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,
-            descendantVariantComponents,
             useSubpartVariantRng: true,
         });
     }
