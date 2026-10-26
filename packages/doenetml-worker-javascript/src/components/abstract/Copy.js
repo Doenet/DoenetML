@@ -905,6 +905,71 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        // The `<select>`s among the descendants of the target of an unlinked
+        // copy, including those in the replacements of composites (see
+        // `unlinkedSelectsExpanded`). Empty for a linked copy.
+        stateVariableDefinitions.unlinkedSelectDescendants = {
+            stateVariablesDeterminingDependencies: ["extendIdx", "link"],
+            returnDependencies({ stateValues }) {
+                if (stateValues.link) {
+                    return {};
+                }
+                return {
+                    selectDescendants: {
+                        dependencyType: "descendant",
+                        ancestorIdx: stateValues.extendIdx,
+                        componentTypes: ["select"],
+                        useReplacementsForComposites: true,
+                        includeNonActiveChildren: true,
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        unlinkedSelectDescendants: (
+                            dependencyValues.selectDescendants ?? []
+                        ).map((select) => select.componentIdx),
+                    },
+                };
+            },
+        };
+
+        // An unlinked copy gives each `<select>` in its target the variant
+        // the select generated (`copyVariants`). That variant holds the
+        // random choices in the content of the chosen options only once the
+        // select has created that content, which it does when it is
+        // expanded. `unlinkedTargetsExpanded` expands the target's
+        // replacements, recursively, and `unlinkedDescendants` the composites
+        // among the target's own descendants. Neither reaches a select inside
+        // a replacement (one in a `<div>` in a copied `<group>`) or in the
+        // chosen option of another select, so such a select may not be
+        // expanded yet. The copy waits for each select, and each select in
+        // the content of the options it chose, to be expanded
+        // (`Select.expandedWithSelectsInReplacements`).
+        // Otherwise the copy's select would make those choices anew.
+        // For unlinked copies, this variable is a dependency of
+        // `readyToExpandWhenResolved`.
+        stateVariableDefinitions.unlinkedSelectsExpanded = {
+            stateVariablesDeterminingDependencies: [
+                "unlinkedSelectDescendants",
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {};
+                for (const selectIdx of stateValues.unlinkedSelectDescendants) {
+                    dependencies[`selectExpanded${selectIdx}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: selectIdx,
+                        variableName: "expandedWithSelectsInReplacements",
+                    };
+                }
+                return dependencies;
+            },
+            definition() {
+                return { setValue: { unlinkedSelectsExpanded: true } };
+            },
+        };
+
         // For unlinked copies, we create a dependency on target replacements
         // just to make sure any composite target is expanded.
         // This variable will be a dependency of `readyToExpandWhenResolved`
@@ -976,6 +1041,12 @@ export default class Copy extends CompositeComponent {
                         variableName: "unlinkedDescendants",
                     },
                 };
+                if (!stateValues.link) {
+                    dependencies.unlinkedSelectsExpanded = {
+                        dependencyType: "stateVariable",
+                        variableName: "unlinkedSelectsExpanded",
+                    };
+                }
                 // XXX: how do we deal here if we ended up grabbing a prop from a composite.
                 // Same question for `needsReplacementsUpdatedWhenStale`
                 if (
