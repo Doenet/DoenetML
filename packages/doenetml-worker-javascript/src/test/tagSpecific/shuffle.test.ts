@@ -1177,4 +1177,72 @@ describe("Shuffle tag tests @group1", async () => {
             expect(copy.result).eqls(source.result);
         }
     });
+
+    it("the list form keeps its entries' random values when loaded again", async () => {
+        // The list form (`_shuffleList`) records the variants of its
+        // children, so a random value in an entry is handed back to it. With
+        // few values to choose from, the page is one of a list of unique
+        // variants, whose entries' values are not drawn from the shuffle's
+        // seed, so they are kept only if recorded.
+        const doenetML = `<shuffle name="sh">
+            <number name="a"><selectFromSequence from="1" to="3"/></number>
+            <number name="b"><selectFromSequence from="1" to="3"/></number>
+            <number name="c">9</number>
+        </shuffle>`;
+
+        async function valuesAndOrder(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sh = stateVariables[await resolvePathToNodeIdx("sh")];
+            const values = [];
+            for (const name of ["a", "b", "c"]) {
+                values.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .value,
+                );
+            }
+            return {
+                componentType: sh.componentType,
+                order: sh.stateValues.componentOrder,
+                values,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const valuesSeen = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 8; variantIndex++) {
+            const first = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const firstResult = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+            );
+            expect(firstResult.componentType).eq("_shuffleList");
+            valuesSeen.add(JSON.stringify(firstResult.values));
+
+            const again = await createTestCore({
+                doenetML,
+                requestedVariant: firstResult.generatedVariantInfo,
+            });
+            const againResult = await valuesAndOrder(
+                again.core,
+                again.resolvePathToNodeIdx,
+            );
+            expect(againResult.order).eqls(firstResult.order);
+            expect(againResult.values).eqls(firstResult.values);
+        }
+        expect(valuesSeen.size).greaterThan(1);
+    });
 });

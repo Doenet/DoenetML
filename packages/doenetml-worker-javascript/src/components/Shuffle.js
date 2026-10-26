@@ -282,6 +282,9 @@ export default class Shuffle extends CompositeComponent {
                 // again, or a container of the shuffle is copied), and would
                 // hold the items' own seeds, such as that of the copy of a
                 // `<repeat>`, which are not the ones the children drew.
+                // The list form (`_shuffleList`) shares this definition: its
+                // children are its entries, and read as a list's
+                // replacements, they would give no subvariants at all.
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes:
