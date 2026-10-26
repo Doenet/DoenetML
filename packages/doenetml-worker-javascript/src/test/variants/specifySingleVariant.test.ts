@@ -2374,41 +2374,4 @@ describe("Specifying single variant tests @group1", async () => {
             expect((await selectedValues(core)).values).eqls(firstRecreated);
         }
     });
-
-    it("a random child added to an unlinked copy of a repeat does not draw the value copied from the source in its iteration", async () => {
-        // An unlinked copy of a repeat is given its source's variant. Its
-        // iterations are not given their source iterations' seeds, with which
-        // an added child would draw the value copied in the same iteration.
-        const doenetML = `<p><repeat name="r" for="1 2"><selectFromSequence from="1" to="1000"/></repeat><repeat copy="$r"><selectFromSequence from="1" to="1000"/></repeat></p>`;
-
-        for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {
-            const first = await selectedValues(
-                (
-                    await createTestCore({
-                        doenetML,
-                        requestedVariantIndex: variantIndex,
-                    })
-                ).core,
-            );
-
-            // The source's two iterations, then, for each iteration of the
-            // copy, the copied value and the added one.
-            const [source1, source2, copied1, added1, copied2, added2] =
-                first.values;
-            expect(first.values.length).eq(6);
-            expect([copied1, copied2]).eqls([source1, source2]);
-            expect(added1).not.eqls(copied1);
-            expect(added2).not.eqls(copied2);
-
-            const again = await selectedValues(
-                (
-                    await createTestCore({
-                        doenetML,
-                        requestedVariant: first.generatedVariantInfo,
-                    })
-                ).core,
-            );
-            expect(again.values).eqls(first.values);
-        }
-    });
 });

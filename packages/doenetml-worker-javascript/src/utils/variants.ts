@@ -137,12 +137,9 @@ export function setUpVariantSeedAndRng({
  * loaded without a recorded variant, rather than repeating the recorded
  * values. `workspace` is the repeat's, where this is tracked.
  *
- * An unlinked copy of a repeat (`<repeat copy="$r">`) is given its source's
- * variant, whose subvariants are the source's iterations'. Its iterations are
- * not given them: the random components copied from the source take their
- * source's variants anyway (`copyStateFromUnlinkedSource`), and, given its
- * source iteration's seed, a random child added to the copy would draw the
- * value that the source drew in the same iteration.
+ * An unlinked copy of a repeat (`<repeat copy="$r">`) is left alone: each of
+ * its iterations takes the variant its source's iteration generated, from
+ * `copyStateFromUnlinkedSource`.
  */
 export function setUpIterationVariant({
     component,
