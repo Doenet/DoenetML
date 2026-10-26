@@ -16,6 +16,7 @@ If the pretzel contains any distractor, neither the statement nor the answer of 
 
 Each `<problem>{:dn}` in a pretzel should contain one `<statement>{:dn}` and one `<answer>{:dn}`.
 Write each problem out inside the pretzel: a `<problem>{:dn}` that copies or extends another problem, such as `<problem copy="$q"/>{:dn}`, is not supported in a pretzel and is ignored, with a warning.
+The pretzel shows only the statement and answer of each problem. Anything else in a problem, such as a `<hint>{:dn}` or a `<variantControl>{:dn}`, is ignored and does not affect the pretzel's variants.
 
 
 <AttrPropDisplay name='pretzel'/>
