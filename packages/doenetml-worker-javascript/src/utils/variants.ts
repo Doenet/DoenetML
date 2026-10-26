@@ -199,6 +199,23 @@ export function gatherVariantComponents({
     return variantComponents;
 }
 
+/**
+ * The component types a component reads `generatedVariantInfo` from among its
+ * descendants, to make its `subvariants`: those that create variants and the
+ * copies (`_copy`). A copy reports the variants of the random children added
+ * to it (`<p copy="$a"><selectFromSequence/></p>`), which
+ * `gatherVariantComponents` finds among its serialized children, so that the
+ * subvariants line up with the components they are handed to when the
+ * component is made again from them (an unlinked copy of a container, or a
+ * page loaded with the variant it generated).
+ */
+export function variantDescendantComponentTypes(componentInfoObjects: any) {
+    return [
+        ...Object.keys(componentInfoObjects.componentTypesCreatingVariants),
+        "_copy",
+    ];
+}
+
 // getNumVariants: needed in returnAllPossibleVariants
 // needed from componentInfoObjects:
 // - isInheritedComponentType

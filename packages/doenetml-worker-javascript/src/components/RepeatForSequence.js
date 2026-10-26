@@ -3,6 +3,7 @@ import { deepClone } from "@doenet/utils";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
 } from "../utils/variants";
 import {
     returnSequenceValues,
@@ -230,9 +231,8 @@ export default class RepeatForSequence extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",

@@ -2,6 +2,7 @@ import BaseComponent from "./abstract/BaseComponent";
 import {
     determineVariantsForSection,
     getVariantsForDescendantsForUniqueVariants,
+    variantDescendantComponentTypes,
 } from "../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { SUPPORTED_LOCALES, resolveDocumentLocale } from "@doenet/i18n";
@@ -671,9 +672,8 @@ export default class Document extends BaseComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",

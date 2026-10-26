@@ -1,7 +1,10 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import {
     buildInputResponseEvent,
@@ -349,9 +352,8 @@ export default class Choiceinput extends Input {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",

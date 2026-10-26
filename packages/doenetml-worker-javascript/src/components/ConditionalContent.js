@@ -1,6 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
-import { setUpVariantSeedAndRng } from "../utils/variants";
+import {
+    setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
+} from "../utils/variants";
 import { codedDiagnostic } from "../utils/diagnostics";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
@@ -160,9 +163,8 @@ export default class ConditionalContent extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -255,13 +257,26 @@ export default class ConditionalContent extends CompositeComponent {
                 {},
                 components[selectedChildComponentIdx].doenetAttributes,
             );
+            const seed =
+                component.sharedParameters.variantSeed +
+                "|" +
+                selectedIndex.toString();
+
+            // A `<conditionalContent>` given the variant it generated (an
+            // unlinked copy of a container holding it, or a page loaded with
+            // its generated variant) holds the variant of this group among
+            // its subvariants. Use it, so that the group hands its random
+            // descendants their variants rather than having them draw again
+            // from its seed, which gives the same values only if they draw in
+            // the same order (a random child added to a copy draws later in
+            // a copy of the container than in its source).
+            const generatedVariant =
+                component.variants?.desiredVariant?.subvariants?.find(
+                    (subvariant) => subvariant?.seed === seed,
+                );
+
             serializedChild.variants = {
-                desiredVariant: {
-                    seed:
-                        component.sharedParameters.variantSeed +
-                        "|" +
-                        selectedIndex.toString(),
-                },
+                desiredVariant: generatedVariant ?? { seed },
             };
 
             replacements.push(serializedChild);

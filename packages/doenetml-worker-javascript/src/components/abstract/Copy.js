@@ -107,6 +107,28 @@ export default class Copy extends CompositeComponent {
         return attributes;
     }
 
+    /**
+     * Hand the subvariants of a variant this copy generated
+     * (`generatedVariantInfo`, one per random child added to it) to those
+     * added children, by position. The copy is given that variant when it is
+     * serialized with `copyVariants`, as when a container holding it that
+     * hands out no subvariants of its own (a `<p>`) is copied. An added child
+     * already handed a variant, by a container that does hand them out (a
+     * `<section>`) or by the document, keeps it.
+     */
+    static setUpVariant({ serializedComponent, descendantVariantComponents }) {
+        const subvariants =
+            serializedComponent.variants?.desiredVariant?.subvariants;
+        if (!subvariants) {
+            return;
+        }
+        for (const [ind, variantComponent] of descendantVariantComponents
+            .slice(0, subvariants.length)
+            .entries()) {
+            variantComponent.variants.desiredVariant ??= subvariants[ind];
+        }
+    }
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
@@ -756,6 +778,99 @@ export default class Copy extends CompositeComponent {
                 }
 
                 return { setValue: { numComponentsSpecified } };
+            },
+        };
+
+        // The random components among the children added to the copy
+        // (`<p copy="$a"><selectFromSequence/></p>`), found as
+        // `gatherVariantComponents` finds them among its serialized
+        // children. They keep their indices in the replacement.
+        stateVariableDefinitions.addedVariantComponentIndices = {
+            returnDependencies: () => ({
+                serializedChildren: {
+                    dependencyType: "serializedChildren",
+                    doNotProxy: true,
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                const serializedChildren =
+                    dependencyValues.serializedChildren ?? [];
+                const addedVariantComponentIndices =
+                    serializedChildren.length === 0
+                        ? []
+                        : gatherVariantComponents({
+                              serializedComponents:
+                                  deepClone(serializedChildren),
+                              componentInfoObjects,
+                          }).map((comp) => comp.componentIdx);
+                return { setValue: { addedVariantComponentIndices } };
+            },
+        };
+
+        stateVariableDefinitions.isVariantComponent = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { isVariantComponent: false } }),
+        };
+
+        // A copy is not a variant component. What it copies takes its
+        // variant from its source, so a component containing the copy reads
+        // from it (`variantDescendantComponentTypes`) only the variants of
+        // the random children added to it, one per
+        // `addedVariantComponentIndices`, which line up with those its
+        // serialized children are handed when it is made again.
+        stateVariableDefinitions.generatedVariantInfo = {
+            stateVariablesDeterminingDependencies: [
+                "addedVariantComponentIndices",
+            ],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                if (stateValues.addedVariantComponentIndices.length === 0) {
+                    return {};
+                }
+                return {
+                    addedVariantComponentIndices: {
+                        dependencyType: "stateVariable",
+                        variableName: "addedVariantComponentIndices",
+                    },
+                    variantDescendants: {
+                        dependencyType: "descendant",
+                        componentTypes: Object.keys(
+                            componentInfoObjects.componentTypesCreatingVariants,
+                        ),
+                        variableNames: [
+                            "generatedVariantInfo",
+                            "variantsOfMergedComponents",
+                        ],
+                        useReplacementsForComposites: true,
+                        recurseToMatchedChildren: true,
+                        variablesOptional: true,
+                        includeNonActiveChildren: true,
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                const variantInfoByIdx = {};
+                for (const descendant of dependencyValues.variantDescendants ??
+                    []) {
+                    variantInfoByIdx[descendant.componentIdx] =
+                        descendant.stateValues.generatedVariantInfo;
+                    // an added child merged into a descendant, as the
+                    // arranger of the problems added to a `<pretzel copy>`
+                    Object.assign(
+                        variantInfoByIdx,
+                        descendant.stateValues.variantsOfMergedComponents,
+                    );
+                }
+
+                // An added child not found, as when it was not made (the
+                // copy has no single replacement to add it to), holds its
+                // place with no variant
+                const subvariants = (
+                    dependencyValues.addedVariantComponentIndices ?? []
+                ).map((idx) => variantInfoByIdx[idx] ?? {});
+
+                return {
+                    setValue: { generatedVariantInfo: { subvariants } },
+                };
             },
         };
 

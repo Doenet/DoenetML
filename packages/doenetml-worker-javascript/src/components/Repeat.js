@@ -3,6 +3,7 @@ import { deepClone } from "@doenet/utils";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
+    variantDescendantComponentTypes,
 } from "../utils/variants";
 import {
     addSource,
@@ -260,9 +261,8 @@ export default class Repeat extends CompositeComponent {
                 },
                 variantDescendants: {
                     dependencyType: "descendant",
-                    componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants,
-                    ),
+                    componentTypes:
+                        variantDescendantComponentTypes(componentInfoObjects),
                     variableNames: [
                         "isVariantComponent",
                         "generatedVariantInfo",
@@ -806,6 +806,16 @@ export async function copyStateFromUnlinkedSource({
             replacement.children,
             serializedSourceGroup.children,
         );
+
+        // The iteration also takes the variant the source's iteration
+        // generated, so that it hands its random descendants their
+        // variants (as the random children added to a copy in the template)
+        // rather than having them draw again from its seed, which gives the
+        // same values only if they draw in the same order.
+        const desiredVariant = serializedSourceGroup.variants?.desiredVariant;
+        if (desiredVariant) {
+            replacement.variants = { ...replacement.variants, desiredVariant };
+        }
     }
 }
 
