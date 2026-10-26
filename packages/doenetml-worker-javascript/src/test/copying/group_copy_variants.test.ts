@@ -109,6 +109,40 @@ describe("Unlinked group copies of random choices @group3", async () => {
         }
     });
 
+    it("a group copy keeps the random values in the option a select inside a div chose", async () => {
+        const option = `<option><p><selectFromSequence from="1" to="1000"/></p></option>`;
+        const select = `<select>${option}${option}</select>`;
+        const nestedOption = `<option><p>${select}</p></option>`;
+        for (const doenetML of [
+            `<group name="g"><div>${select}</div></group>`,
+            `<group name="g"><div><div>${select}</div></div></group>`,
+            // a select in the chosen option of another one
+            `<group name="g"><div><select>${nestedOption}${nestedOption}</select></div></group>`,
+        ]) {
+            for (const requestedVariantIndex of variantIndices) {
+                const { core } = await createTestCore({
+                    doenetML: `${doenetML}<group copy="$g" name="g2"/>`,
+                    requestedVariantIndex,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                // the selectFromSequence in the chosen option of the source,
+                // and the one in the copy's
+                const values = Object.values(stateVariables)
+                    .filter(
+                        (component) =>
+                            component.componentType === "selectFromSequence",
+                    )
+                    .map((component) => component.stateValues.selectedValues);
+                const message = `${doenetML}, variant ${requestedVariantIndex}`;
+                expect(values, message).toHaveLength(2);
+                expect(values[1], message).eqls(values[0]);
+            }
+        }
+    });
+
     it("a random child added to a group copy gets its own value", async () => {
         const doenetML = `
 <p name="a"><group name="g"><selectFromSequence name="x" from="1" to="1000"/> <selectFromSequence name="y" from="1" to="1000"/></group></p>
