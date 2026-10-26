@@ -1,4 +1,5 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 /**
  * Parse a text response as a finite integer.
@@ -175,7 +176,101 @@ export default class Pretzel extends BlockScoredComponent {
             ],
         };
 
+        // Set by `preprocessSerializedChildren` when a `<pretzel extend>` is
+        // given problems or a `mode`, which it ignores
+        attributes._ignoredChangesToExtendedPretzel = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "ignoredChangesToExtendedPretzel",
+            defaultValue: false,
+            excludeFromSchema: true,
+        };
+
         return attributes;
+    }
+
+    /**
+     * Combine the arrangers of a pretzel that copies or extends another.
+     *
+     * The pretzel sugar wraps a pretzel's problems in a `_pretzelArranger`,
+     * and forwards its `mode` to it. A `<pretzel copy>` or `<pretzel extend>`
+     * therefore has two arrangers: first the one it copies, holding the
+     * source's problems, then its own, holding the problems and `mode`
+     * written on the copy (none, if nothing was written).
+     *
+     * - A `<pretzel copy>` arranges all of the problems together, in the
+     *   `mode` written on it, if any. Its arranger was given the source's
+     *   order and random choices as its desired variant. The order is kept
+     *   only if it still fits: added problems change the correct answers, so
+     *   they are arranged in a new order, as is a source's order that does
+     *   not start with problem 1 when the copy is in circuit mode. The
+     *   source's random choices are kept either way.
+     * - A `<pretzel extend>` shows its source's arrangement, so it ignores
+     *   any problems or `mode` written on it, with a warning, and takes its
+     *   source's `mode`, which decides how it is graded.
+     */
+    static preprocessSerializedChildren({ serializedChildren, attributes }) {
+        const arrangerInds = [...serializedChildren.keys()].filter(
+            (ind) =>
+                serializedChildren[ind]?.componentType === "_pretzelArranger",
+        );
+        if (arrangerInds.length < 2) {
+            return;
+        }
+
+        const copiedArranger = serializedChildren[arrangerInds[0]];
+        const ownArrangers = arrangerInds
+            .slice(1)
+            .map((ind) => serializedChildren[ind]);
+        for (const ind of arrangerInds.slice(1).reverse()) {
+            serializedChildren.splice(ind, 1);
+        }
+
+        const ownChildren = ownArrangers.flatMap(
+            (arranger) => arranger.children ?? [],
+        );
+        const addedProblems = ownChildren.some(
+            (child) => typeof child === "object",
+        );
+        const ownMode = ownArrangers.findLast(
+            (arranger) => arranger.attributes?.mode,
+        )?.attributes.mode;
+
+        // A linked copy has downstream dependencies on its source
+        // (`postProcessCopy`); it shows its source's replacements.
+        if (copiedArranger.downstreamDependencies) {
+            if (addedProblems || ownMode) {
+                attributes._ignoredChangesToExtendedPretzel = {
+                    type: "primitive",
+                    name: "_ignoredChangesToExtendedPretzel",
+                    primitive: { type: "boolean", value: true },
+                };
+            }
+            if (copiedArranger.attributes.mode) {
+                attributes.mode = copiedArranger.attributes.mode;
+            } else {
+                delete attributes.mode;
+            }
+            return;
+        }
+
+        copiedArranger.children = [
+            ...(copiedArranger.children ?? []),
+            ...ownChildren,
+        ];
+        if (ownMode) {
+            copiedArranger.attributes.mode = ownMode;
+        }
+
+        const desiredVariant = copiedArranger.variants?.desiredVariant;
+        const sourceOrder = desiredVariant?.indices;
+        if (
+            sourceOrder &&
+            (addedProblems ||
+                (ownMode?.primitive.value.toLowerCase() === "circuit" &&
+                    Number(sourceOrder[0]) !== 1))
+        ) {
+            delete desiredVariant.indices;
+        }
     }
 
     static returnChildGroups() {
@@ -265,12 +360,26 @@ export default class Pretzel extends BlockScoredComponent {
                     dependencyType: "child",
                     childGroups: ["problems"],
                 },
+                ignoredChangesToExtendedPretzel: {
+                    dependencyType: "stateVariable",
+                    variableName: "ignoredChangesToExtendedPretzel",
+                },
             }),
             definition({ dependencyValues }) {
+                const diagnostics = [];
+                if (dependencyValues.ignoredChangesToExtendedPretzel) {
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0177",
+                        }),
+                    );
+                }
                 return {
                     setValue: {
                         numProblems: dependencyValues.problemChildren.length,
                     },
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
