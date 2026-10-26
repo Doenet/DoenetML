@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateTextInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { componentOrListEntry } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -852,5 +853,249 @@ describe("Pretzel tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("_document1")]
                 .sharedParameters.allPossibleVariants.length,
         ).eq(6);
+    });
+
+    async function getProblemOrderAndValues({
+        doenetML,
+        variantIndex,
+        names,
+    }: {
+        doenetML: string;
+        variantIndex: number;
+        names: string[];
+    }) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            requestedVariantIndex: variantIndex,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const values = [];
+        for (const name of names) {
+            values.push(
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `${name}[1]`,
+                    )
+                ).stateValues.value,
+            );
+        }
+        return {
+            problemOrder: stateVariables[await resolvePathToNodeIdx("p")]
+                .stateValues.problemOrder as number[],
+            values,
+            numVariants:
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants.length,
+        };
+    }
+
+    async function expectDistinctVariants({
+        doenetML,
+        names,
+        numVariants,
+    }: {
+        doenetML: string;
+        names: string[];
+        numVariants: number;
+    }) {
+        const seen = new Set<string>();
+        for (
+            let variantIndex = 1;
+            variantIndex <= numVariants;
+            variantIndex++
+        ) {
+            const result = await getProblemOrderAndValues({
+                doenetML,
+                variantIndex,
+                names,
+            });
+            expect(result.numVariants).eq(numVariants);
+            seen.add(JSON.stringify([result.problemOrder, result.values]));
+
+            // Requesting the same variant again reproduces it.
+            const again = await getProblemOrderAndValues({
+                doenetML,
+                variantIndex,
+                names,
+            });
+            expect(again.problemOrder).eqls(result.problemOrder);
+            expect(again.values).eqls(result.values);
+        }
+        expect(seen.size).eq(numVariants);
+    }
+
+    it("each pretzel variant gives a different problem order or random value", async () => {
+        // 3 values of `n` times 2! orders give 6 variants, all different.
+        await expectDistinctVariants({
+            doenetML: `
+    <pretzel name="p">
+        <problem><statement><p>P1 <selectFromSequence name="n" from="1" to="3"/></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `,
+            names: ["n"],
+            numVariants: 6,
+        });
+    });
+
+    it("each pretzel variant is different with random values in several statements and answers", async () => {
+        // 2 values of `m` times 3 values of `k` times 2 values of `j`
+        // times 2! circuit orders of the last two problems give 24 variants.
+        await expectDistinctVariants({
+            doenetML: `
+    <pretzel name="p" mode="circuit">
+        <problem><statement><p>P1 <selectFromSequence name="m" from="1" to="2"/></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer><selectFromSequence name="k" from="4" to="6"/></answer></problem>
+        <problem isDistractor><statement><p>P3 <selectFromSequence name="j" from="7" to="8"/></p></statement><answer>A3</answer></problem>
+    </pretzel>
+    `,
+            names: ["m", "k", "j"],
+            numVariants: 24,
+        });
+    });
+
+    it("pretzel does not count random content outside a problem's statement and answer", async () => {
+        // The `<selectFromSequence>`s in the hint and directly in the problem
+        // are not displayed, so they do not multiply the variants:
+        // 3 values of `n` times 2! orders give 6 variants, all different.
+        await expectDistinctVariants({
+            doenetML: `
+    <pretzel name="p">
+        <problem>
+            <selectFromSequence from="1" to="5"/>
+            <hint><p><selectFromSequence from="1" to="7"/></p></hint>
+            <statement><p>P1 <selectFromSequence name="n" from="1" to="3"/></p></statement>
+            <answer>A1</answer>
+        </problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `,
+            names: ["n"],
+            numVariants: 6,
+        });
+    });
+
+    it("pretzel ignores a problem's <variantControl>", async () => {
+        // The `<variantControl>` is dropped with the rest of the problem
+        // outside its statement and answer, so it does not set the number of
+        // variants: 3 values of `n` times 2! orders give 6 variants.
+        await expectDistinctVariants({
+            doenetML: `
+    <pretzel name="p">
+        <problem>
+            <variantControl numVariants="10"/>
+            <statement><p>P1 <selectFromSequence name="n" from="1" to="3"/></p></statement>
+            <answer>A1</answer>
+        </problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `,
+            names: ["n"],
+            numVariants: 6,
+        });
+    });
+
+    it("pretzel reports its subvariants in the order it assigns them", async () => {
+        // A desired variant gives the pretzel's subvariants to the random
+        // choices in its statements and answers in problem order (`a`, `b`,
+        // `c`), whatever order the problems are shown in. The variant it
+        // reports, which a host passes back to restore a saved variant, must
+        // list them in that same order.
+        const doenetML = `
+    <pretzel name="p">
+        <problem><statement><p>P1 <selectFromSequence name="a" from="1" to="5"/></p></statement><answer><selectFromSequence name="b" from="11" to="12"/></answer></problem>
+        <problem><statement><p>P2 <selectFromSequence name="c" from="21" to="23"/></p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `;
+        const problemOrders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 6; variantIndex++) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+            problemOrders.add(JSON.stringify(pretzel.stateValues.problemOrder));
+
+            const arranger = Object.values(stateVariables).find(
+                (component) => component.componentType === "_pretzelArranger",
+            )!;
+            const subvariants =
+                arranger.stateValues.generatedVariantInfo.subvariants;
+
+            const expected = [];
+            for (const name of ["a", "b", "c"]) {
+                const idx = await resolvePathToNodeIdx(name);
+                expected.push({
+                    createdBy: idx,
+                    indices: stateVariables[idx].stateValues.selectedIndices,
+                });
+            }
+            expect(
+                subvariants.map((subvariant) => ({
+                    createdBy: subvariant.meta.createdBy,
+                    indices: subvariant.indices,
+                })),
+            ).eqls(expected);
+
+            // Passing the document's reported variant back, as a host does
+            // to reload a saved variant, reproduces the same document.
+            const reloaded = await createTestCore({
+                doenetML,
+                requestedVariant:
+                    stateVariables[await resolvePathToNodeIdx("_document1")]
+                        .stateValues.generatedVariantInfo,
+            });
+            const reloadedStateVariables =
+                await reloaded.core.returnAllStateVariables(false, true);
+            expect(
+                reloadedStateVariables[await reloaded.resolvePathToNodeIdx("p")]
+                    .stateValues.problemOrder,
+            ).eqls(pretzel.stateValues.problemOrder);
+            for (const { createdBy, indices } of expected) {
+                expect(
+                    reloadedStateVariables[createdBy].stateValues
+                        .selectedIndices,
+                ).eqls(indices);
+            }
+        }
+        // Both problem orders occur, so the check covers an order in which
+        // the problems are shown out of their own order.
+        expect(problemOrders.size).eq(2);
+    });
+
+    it("a copy of a pretzel reports the subvariants of its own random choices", async () => {
+        // A copy's arranger is not set up from problems, so it keeps its
+        // subvariants in display order rather than dropping them.
+        const { core } = await createTestCore({
+            doenetML: `
+    <pretzel name="p">
+        <problem><statement><p>P1 <selectFromSequence from="1" to="5"/></p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2 <selectFromSequence from="21" to="23"/></p></statement><answer>A2</answer></problem>
+    </pretzel>
+    <section>$p</section>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const arrangers = Object.values(stateVariables).filter(
+            (component) => component.componentType === "_pretzelArranger",
+        );
+        expect(arrangers.length).eq(2);
+        for (const arranger of arrangers) {
+            const subvariants =
+                arranger.stateValues.generatedVariantInfo.subvariants;
+            expect(subvariants.length).eq(2);
+            for (const subvariant of subvariants) {
+                expect(
+                    stateVariables[subvariant.meta.createdBy].componentType,
+                ).eq("selectFromSequence");
+            }
+        }
     });
 });

@@ -43,6 +43,7 @@ export type ResolvePathToNodeIdx = Awaited<
 type CreateTestCoreOptions = {
     doenetML: string;
     requestedVariantIndex?: number;
+    requestedVariant?: Record<string, any>;
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
     /** BCP-47 tag the hosting page asks for; `<document lang>` overrides it. */
@@ -61,6 +62,7 @@ type CreateTestCoreOptions = {
 export async function createTestCore({
     doenetML,
     requestedVariantIndex = 1,
+    requestedVariant,
     flags: specifiedFlags = {},
     theme,
     documentLocale,
@@ -79,6 +81,7 @@ export async function createTestCore({
         return (await createTestCoreRust({
             doenetML,
             requestedVariantIndex,
+            requestedVariant,
             flags: specifiedFlags,
             theme,
             documentLocale,
@@ -92,6 +95,7 @@ export async function createTestCore({
     return createTestCoreJavascript({
         doenetML,
         requestedVariantIndex,
+        requestedVariant,
         flags: specifiedFlags,
         theme,
         documentLocale,
@@ -107,6 +111,7 @@ export async function createTestCore({
 async function createTestCoreJavascript({
     doenetML,
     requestedVariantIndex = 1,
+    requestedVariant,
     flags: specifiedFlags = {},
     theme,
     documentLocale,
@@ -280,6 +285,7 @@ async function createTestCoreJavascript({
             theme,
             styleOverrides,
             stateVariableChanges: initialState,
+            requestedVariant,
         },
         () => null,
         reportScoreAndStateCallback,
