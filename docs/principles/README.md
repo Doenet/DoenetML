@@ -91,9 +91,9 @@ removed.
 **`copy`**
 
 5. `copy="$x"` behaves as if x's DoenetML were pasted there, with the reader's current state
-   carried over. After that the copy is on its own: changing x no longer changes it.
+   and its random choices carried over. After that the copy is on its own: changing x no longer changes it.
    References inside it stay live. Ones that pointed into x now point into the copy.
-   (CPY-1 to CPY-3)
+   A child you add inside a copy draws its own random values. (CPY-1 to CPY-3, CPY-8)
 6. A copy of a reference pastes what the reference points to. A copy of a property
    (`copy="$P.x"`) has no DoenetML to paste, so it holds the value. (CPY-4, CPY-5)
 7. A copy is independent of what it copied, but not of what that refers to. To start
@@ -140,8 +140,8 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
     | `draggable="false"` | the reader cannot drag it; other changes still reach it |
     | `disabled` | an input or button takes no input and does not act |
 
-    `fixed` is confusing to authors as it stands, and `modifyIndirectly` overlaps with it. See
-    [decisions.md](decisions.md), D23. (CTX-1 to CTX-4)
+    The word "fixed" suggests a constant value, which is not what it means
+    ([decisions.md](decisions.md), D23). (CTX-1 to CTX-4)
 
 **Interaction**
 
