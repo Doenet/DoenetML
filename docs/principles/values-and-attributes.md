@@ -170,15 +170,28 @@ These are hidden with their referent:
 - `<number extend="$n"/>`;
 - named extends.
 
-A reference used *inside* `<math>` or `<text>` is not hidden, even when its referent is: hiding
-part of an expression is meaningless. A `fixed` parent does not fix the referent it reads. The
+Every value position ignores `hide`. This covers a reference used *inside* `<math>`, `<text>`
+or an operator, and a hidden child written there directly: hiding part of an expression is
+meaningless. Only drawn content, such as a `<p>`, leaves hidden items out. A `fixed` parent does not fix the referent it reads. The
 statement to give is: "`hide` applies to what is drawn; a value inside an expression is not
 drawn on its own".
 
 Evidence:
 - `T/copying/value_references.test.ts:268` "a hidden referent does not hide the reference", and
   `:226`;
-- **[probe]** `<text>[$n]</text>` with `n` hidden shows `[5]`.
+- **[probe]**, with `n` a hidden number 5:
+
+  | Written | Shows |
+  |---|---|
+  | `<text>[$n]</text>` | `[5]` |
+  | `<math>$n+1</math>` | `5 + 1` |
+  | `<math><number hide>5</number>+1</math>` | `5 + 1` |
+  | `<math><group><number hide>5</number><number>2</number></group></math>` | `5 * 2` |
+  | `<sum><number hide>5</number><number>2</number></sum>` | `7` |
+  | `<text><text hide>a</text>b</text>` | `ab` |
+  | `<p><text hide>a</text>b</p>` | `b`: drawn content leaves the hidden item out |
+
+- For a list with a hidden entry, `<math>$l</math>` and `<text>$l</text>` include it (D29).
 
 ---
 
