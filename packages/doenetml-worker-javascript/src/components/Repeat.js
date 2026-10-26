@@ -3,6 +3,7 @@ import { deepClone } from "@doenet/utils";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
+    setUpIterationVariant,
     variantDescendantComponentTypes,
 } from "../utils/variants";
 import {
@@ -423,6 +424,13 @@ export default class Repeat extends CompositeComponent {
         replacements[0] = aliasResult.replacement;
         nComponents = aliasResult.nComponents;
 
+        setUpIterationVariant({
+            component,
+            iter,
+            replacement: replacements[0],
+            workspace,
+        });
+
         if (component.unlinkedCopySource && !isUpdate) {
             await copyStateFromUnlinkedSource({
                 components,
@@ -691,7 +699,8 @@ export default class Repeat extends CompositeComponent {
         // groups, which its template does not hold, so they are not handed
         // to the template's random components: its first one would be given
         // the variant of the first iteration's group, in every iteration.
-        // The seed alone makes the iterations again, as it made them.
+        // They are given to the iterations as they are created
+        // (`setUpIterationVariant`).
         setUpVariantSeedAndRng({
             serializedComponent,
             sharedParameters,

@@ -116,6 +116,69 @@ export function setUpVariantSeedAndRng({
     }
 }
 
+/**
+ * Give the iteration `iter` of a `<repeat>` or `<repeatForSequence>`,
+ * `replacement`, the variant the repeat records for it.
+ *
+ * A repeat records one subvariant per iteration, so, when the repeat is given
+ * the variant it recorded (as when a saved page is loaded again), each
+ * iteration gets its own seed and the choices made in it, rather than drawing
+ * a new seed from the repeat's.
+ *
+ * An iteration given a recorded seed still takes its draw from the repeat's
+ * `subpartVariantRng`, so that an iteration with no recorded variant (one
+ * added after the variant was recorded) draws the seed it would have drawn
+ * had every iteration drawn its own, rather than the seed of the first
+ * iteration.
+ *
+ * Each iteration is given its recorded variant only the first time it is
+ * created. When the repeat recreates its iterations (as when the components
+ * it iterates over are replaced), they draw new seeds, as they do on a page
+ * loaded without a recorded variant, rather than repeating the recorded
+ * values. `workspace` is the repeat's, where this is tracked.
+ *
+ * An unlinked copy of a repeat (`<repeat copy="$r">`) is given its source's
+ * variant, whose subvariants are the source's iterations'. Its iterations are
+ * not given them: the random components copied from the source take their
+ * source's variants anyway (`copyStateFromUnlinkedSource`), and, given its
+ * source iteration's seed, a random child added to the copy would draw the
+ * value that the source drew in the same iteration.
+ */
+export function setUpIterationVariant({
+    component,
+    iter,
+    replacement,
+    workspace,
+}: {
+    component: any;
+    iter: number;
+    replacement: any;
+    workspace: any;
+}) {
+    if (component.unlinkedCopySource) {
+        return;
+    }
+    const subvariant = component.variants?.desiredVariant?.subvariants?.[iter];
+    if (!subvariant) {
+        return;
+    }
+    if (!workspace.iterationsGivenRecordedVariant) {
+        workspace.iterationsGivenRecordedVariant = [];
+    }
+    if (workspace.iterationsGivenRecordedVariant[iter]) {
+        return;
+    }
+    workspace.iterationsGivenRecordedVariant[iter] = true;
+
+    replacement.variants = {
+        ...replacement.variants,
+        desiredVariant: subvariant,
+    };
+    if (subvariant.seed !== undefined) {
+        component.sharedParameters.subpartVariantRng();
+    }
+}
+
 // gatherVariantComponents: needed in getNumVariants, which is needed in returnAllPossibleVariants
 // needed from componentInfoObjects:
 // - componentTypesCreatingVariants
