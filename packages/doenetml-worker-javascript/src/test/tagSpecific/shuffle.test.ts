@@ -978,4 +978,82 @@ describe("Shuffle tag tests @group1", async () => {
         }
         expect(orders.size).greaterThan(1);
     });
+
+    it("an unlinked copy of a shuffle gives its items the values of the shuffle's items, also when loaded again", async () => {
+        // The copy is given the shuffle's variant, whose subvariants are
+        // handed to the copy's items in the order they are written
+        // (Doenet/DoenetML#2352).
+        const doenetML = `<shuffle name="sh">
+            <p name="a"><selectFromSequence name="x" from="1" to="1000"/></p>
+            <p name="b"><selectFromSequence name="y" from="1" to="1000"/></p>
+            <p name="c"><selectFromSequence name="w" from="1" to="1000"/></p>
+        </shuffle>
+        <shuffle copy="$sh" name="sh2"/>`;
+
+        async function valuesAndOrder(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            prefix: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values = [];
+            for (const name of ["x", "y", "w"]) {
+                values.push(
+                    stateVariables[await resolvePathToNodeIdx(prefix + name)]
+                        .stateValues.selectedValues,
+                );
+            }
+            return {
+                values,
+                order: stateVariables[
+                    await resolvePathToNodeIdx(prefix.slice(0, -1) || "sh")
+                ].stateValues.componentOrder,
+                generatedVariantInfo: JSON.parse(
+                    JSON.stringify(
+                        stateVariables[await resolvePathToNodeIdx("_document1")]
+                            .stateValues.generatedVariantInfo,
+                    ),
+                ),
+            };
+        }
+
+        const orders = new Set<string>();
+        for (let variantIndex = 1; variantIndex <= 4; variantIndex++) {
+            const first = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            const source = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+                "",
+            );
+            const copy = await valuesAndOrder(
+                first.core,
+                first.resolvePathToNodeIdx,
+                "sh2.",
+            );
+            orders.add(JSON.stringify(source.order));
+            expect(copy.order).eqls(source.order);
+            expect(copy.values).eqls(source.values);
+
+            const again = await createTestCore({
+                doenetML,
+                requestedVariant: source.generatedVariantInfo,
+            });
+            for (const prefix of ["", "sh2."]) {
+                const againResult = await valuesAndOrder(
+                    again.core,
+                    again.resolvePathToNodeIdx,
+                    prefix,
+                );
+                expect(againResult.order).eqls(source.order);
+                expect(againResult.values).eqls(source.values);
+            }
+        }
+        expect([...orders].some((order) => order !== "[1,2,3]")).eq(true);
+    });
 });
