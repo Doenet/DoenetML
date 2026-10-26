@@ -238,9 +238,11 @@ Examples: `hide="$a > 2"`, `condition="$x = 3"`, `<point>($a, 2$a)</point>`.
     `equation="y=2x+$b"` does not change `b`. That holds whether or not the equation is held as
     an expression slot, so it is a limitation of the line, not of math expressions.
 - **A boolean expression takes no write.** `hide="$b or false"` under a bound input silently
-  does nothing (**[probe]**). Today booleans invert only through identity, as a `<boolean>` with
-  several children does, and D15 proposes stating that as the rule. The silence should be
-  reported (D15).
+  does nothing (**[probe]**). It follows the same rule as a `<boolean>`, which takes a write
+  only when it has no children, a single text child, or a single boolean child such as `$b`
+  (`W/components/Boolean.js`, the `value` inverse). Anything else refuses the write: several
+  children, `not $b`, `$b or false`, or a comparison. D15 proposes stating this as the rule. The
+  silence should be reported (D15).
 
 Evidence: `T/tagSpecific/expressionAttributes.test.ts`, `:126`, `:143`, `:424`, `:455`, `:490`,
 `:515`.
