@@ -738,9 +738,11 @@ entry's own `hide`.
 1. An entry carries its source's own `hide`. `$l[k].hide` is the source's attribute, and false
    for generated entries such as a sequence's (VAL-9, D20).
 2. `$l[k].hidden` is true when the entry's `hide` is true or the list is hidden.
-3. A hidden entry is not drawn and not included in text. It still counts for indices (`$l[k]`
-   keeps its meaning) and for values read in a value position (`<math>$l</math>`). This is
-   COMP-2's "`hide` affects display, never the values a list holds".
+3. A hidden entry is not drawn, and so is not in the displayed text of what holds it, such as a
+   `<p>`. It still counts for indices (`$l[k]` keeps its meaning). It also counts wherever the
+   list is read as a value: `<math>$l</math>` and `<text>$l</text>` include it. That is VAL-10
+   applied to lists, since every value position ignores `hide`. It is also COMP-2's "`hide`
+   affects display, never the values a list holds".
 4. A reference to an entry whose source is hidden (`$l[k]`) is hidden too, unless it sets
    `hide` itself. This is D9's rule applied to entries.
 
@@ -752,7 +754,3 @@ family.
 - `listcomponentpointlists.test.ts:729`;
 - any test where a list holds a nested `<sort>` or `<group>` with a hidden item.
 
-Point 3 needs a decision on the remaining asymmetry: a hidden entry still counts as a value of
-`<math>$l</math>`, but not in the list's text. If that seems odd, the alternative is "a hidden
-entry is left out of the list's values too", but that would make `$l[k]` shift when an entry is
-hidden, which point 3 avoids.
