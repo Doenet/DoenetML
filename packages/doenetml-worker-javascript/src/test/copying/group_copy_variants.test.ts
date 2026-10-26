@@ -376,31 +376,25 @@ describe("Random choices in repeats @group3", async () => {
 
     it("a random child added to an unlinked copy of a repeat gets its own value", async () => {
         // The added child used to draw from the seed of the source's
-        // iteration, repeating the value its first random component drew.
+        // iteration, getting the value that a random component directly in
+        // the source's template draws first from that seed. With no group
+        // around the source's random component, that is the value copied
+        // into the iteration. With a group, it is the value the source
+        // would have without the group.
         const sfs = `<selectFromSequence name="n" from="1" to="1000"/>`;
+        const added = `<selectFromSequence name="m" from="1" to="1000"/>`;
         for (const [source, copy] of [
             [
-                `<repeat name="r" for="1 2">${sfs}</repeat>`,
-                `<repeat copy="$r" name="r2"><selectFromSequence name="m" from="1" to="1000"/></repeat>`,
+                (template: string) =>
+                    `<repeat name="r" for="1 2">${template}</repeat>`,
+                `<repeat copy="$r" name="r2">${added}</repeat>`,
             ],
             [
-                `<repeatForSequence name="r" from="1" to="2">${sfs}</repeatForSequence>`,
-                `<repeatForSequence copy="$r" name="r2"><selectFromSequence name="m" from="1" to="1000"/></repeatForSequence>`,
+                (template: string) =>
+                    `<repeatForSequence name="r" from="1" to="2">${template}</repeatForSequence>`,
+                `<repeatForSequence copy="$r" name="r2">${added}</repeatForSequence>`,
             ],
-            [
-                `<repeat name="r" for="1 2"><group>${sfs}</group></repeat>`,
-                `<repeat copy="$r" name="r2"><selectFromSequence name="m" from="1" to="1000"/></repeat>`,
-            ],
-            [
-                `<repeatForSequence name="r" from="1" to="2"><group>${sfs}</group></repeatForSequence>`,
-                `<repeatForSequence copy="$r" name="r2"><selectFromSequence name="m" from="1" to="1000"/></repeatForSequence>`,
-            ],
-        ]) {
-            // a plain random component in a repeat of its own draws the
-            // iteration seed's first value, which the added child repeated
-            const doenetML = `<p>${source}
-${copy}
-<repeat name="q" for="1 2">${sfs}</repeat></p>`;
+        ] as const) {
             const names = [
                 "r[1].n",
                 "r[2].n",
@@ -409,64 +403,82 @@ ${copy}
                 "r2[1].m",
                 "r2[2].m",
             ];
-            const addedValues: number[] = [];
-            for (const requestedVariantIndex of variantIndices) {
-                const { core, resolvePathToNodeIdx } = await createTestCore({
-                    doenetML,
-                    requestedVariantIndex,
-                });
-                const stateVariables = await core.returnAllStateVariables(
-                    false,
-                    true,
-                );
-                const values = await selectedValues({
-                    doenetML,
-                    requestedVariantIndex,
-                    names,
-                });
-                const [n1, n2, c1, c2, m1, m2] = values;
-                const message = `${copy}, variant ${requestedVariantIndex}`;
-
-                // the copied children keep their source's values
-                expect([c1, c2], message).eqls([n1, n2]);
-
-                // the added children repeat no value of the source
-                for (const m of [m1, m2]) {
-                    expect([n1, n2], message).not.contain(m);
-                }
-                expect(m1, message).not.eq(m2);
-
-                // the added children's values are the same for a given
-                // variant, and when the page is loaded with the variant it
-                // generated
-                expect(
-                    await selectedValues({
+            const plainDoenetML = `<p>${source(sfs)}\n${copy}</p>`;
+            for (const doenetML of [
+                plainDoenetML,
+                `<p>${source(`<group>${sfs}</group>`)}\n${copy}</p>`,
+            ]) {
+                const addedValues: number[] = [];
+                for (const requestedVariantIndex of variantIndices) {
+                    const { core, resolvePathToNodeIdx } = await createTestCore(
+                        {
+                            doenetML,
+                            requestedVariantIndex,
+                        },
+                    );
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const values = await selectedValues({
                         doenetML,
                         requestedVariantIndex,
                         names,
-                    }),
-                    message,
-                ).eqls(values);
-                expect(
-                    await selectedValues({
-                        doenetML,
-                        requestedVariant: JSON.parse(
-                            JSON.stringify(
-                                stateVariables[
-                                    await resolvePathToNodeIdx("_document1")
-                                ].stateValues.generatedVariantInfo,
+                    });
+                    const [n1, n2, c1, c2, m1, m2] = values;
+                    // the values drawn first from the source iterations' seeds
+                    const firstDraws = await selectedValues({
+                        doenetML: plainDoenetML,
+                        requestedVariantIndex,
+                        names: ["r[1].n", "r[2].n"],
+                    });
+                    const message = `${doenetML}, variant ${requestedVariantIndex}`;
+
+                    // the copied children keep their source's values
+                    expect([c1, c2], message).eqls([n1, n2]);
+
+                    // the added children repeat no value of the source and
+                    // don't draw first from the source iterations' seeds
+                    for (const m of [m1, m2]) {
+                        expect([n1, n2], message).not.contain(m);
+                        expect(firstDraws, message).not.contain(m);
+                    }
+                    expect(m1, message).not.eq(m2);
+
+                    // the added children's values are the same for a given
+                    // variant, and when the page is loaded with the variant
+                    // it generated
+                    expect(
+                        await selectedValues({
+                            doenetML,
+                            requestedVariantIndex,
+                            names,
+                        }),
+                        message,
+                    ).eqls(values);
+                    expect(
+                        await selectedValues({
+                            doenetML,
+                            requestedVariant: JSON.parse(
+                                JSON.stringify(
+                                    stateVariables[
+                                        await resolvePathToNodeIdx("_document1")
+                                    ].stateValues.generatedVariantInfo,
+                                ),
                             ),
-                        ),
-                        names,
-                    }),
-                    message,
-                ).eqls(values);
+                            names,
+                        }),
+                        message,
+                    ).eqls(values);
 
-                addedValues.push(m1);
+                    addedValues.push(m1);
+                }
+
+                // and differ between variants
+                expect(new Set(addedValues).size, doenetML).eq(
+                    variantIndices.length,
+                );
             }
-
-            // and differ between variants
-            expect(new Set(addedValues).size, copy).eq(variantIndices.length);
         }
     });
 

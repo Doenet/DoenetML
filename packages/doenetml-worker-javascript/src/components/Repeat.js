@@ -819,8 +819,11 @@ export async function copyStateFromUnlinkedSource({
             // A random child added to the copy in its template
             // (`<repeat copy="$r"><selectFromSequence/></repeat>`) follows
             // the copied children and gets none of the variant's subvariants,
-            // so it would draw from the source iteration's seed and repeat
-            // the value the source's first random component drew from it.
+            // so it would draw first from the source iteration's seed and get
+            // the value a random component directly in the source's template
+            // draws: the value copied into the iteration, unless the source's
+            // random components are inside, say, a `<group>`, which draws
+            // from that seed instead.
             // The iteration draws from a seed of its own instead, made from
             // the source's so that it is the same for a given variant, as an
             // unlinked `<group copy>` does (`addChildrenFromComposite`). The
