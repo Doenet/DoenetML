@@ -1550,6 +1550,30 @@ describe("Pretzel tag tests @group1", async () => {
             }
         });
 
+        it("a <pretzel copy> given problems or a mode leaves other copies of its source unchanged", async () => {
+            // Every copy starts from its source's order and random choices.
+            // Adapting them for one copy must not change them for the next.
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${pretzelDoenetML}
+    <pretzel copy="$p" name="p2">
+        <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
+    </pretzel>
+    <pretzel copy="$p" name="p3" mode="circuit"/>
+    <pretzel copy="$p" name="p4"/>`,
+                    requestedVariantIndex,
+                });
+
+                const shown = await shownProblems({
+                    core,
+                    resolvePathToNodeIdx,
+                    paths: ["p", "p4"],
+                });
+                expect(shown.p4.problemOrder).eqls(shown.p.problemOrder);
+                expect(shown.p4.texts).eqls(shown.p.texts);
+            }
+        });
+
         it("a <pretzel copy> given more problems chooses their random values anew, and keeps them when reloaded", async () => {
             // The added problems do not repeat the random values of the
             // source's problems, which the copy keeps.

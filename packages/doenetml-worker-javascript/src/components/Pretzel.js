@@ -275,10 +275,17 @@ export default class Pretzel extends BlockScoredComponent {
             copiedArranger.attributes.mode = ownMode;
         }
 
-        const desiredVariant = copiedArranger.variants?.desiredVariant;
-        if (!desiredVariant) {
+        if (!copiedArranger.variants?.desiredVariant) {
             return;
         }
+        // The desired variant is the source arranger's `generatedVariantInfo`
+        // itself (`copyVariants`), shared with the source and its other
+        // copies, so change a copy of it.
+        const desiredVariant = { ...copiedArranger.variants.desiredVariant };
+        copiedArranger.variants = {
+            ...copiedArranger.variants,
+            desiredVariant,
+        };
         const sourceOrder = desiredVariant.indices;
         if (
             sourceOrder &&
