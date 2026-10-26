@@ -151,11 +151,14 @@ the golden diff (`scripts/golden-diff.sh`) must also pass.
 
 **Where the alternatives are.** The patches and extra evaluators are not
 kept in the repository: they were written for this report and would
-fall out of date as the core changes. They are at commit
-`8daf609e24a728d03c4b4075640c0a80711552d3`, on the branch
-`claude/happy-lovelace-b3tee6`, together with the core they were
-measured against; every path to one in this report is a path at that
-commit. The shapes and the harness that times them are kept (see
+fall out of date as the core changes. They are at the tag
+`cells-tick-alternatives` in `cqnykamp/DoenetML` (commit `8daf609`),
+together with the core they were measured against; every path to one in
+this report is a path at that tag. To get it:
+
+    git fetch https://github.com/cqnykamp/DoenetML tag cells-tick-alternatives
+
+The shapes and the harness that times them are kept (see
 [Tools](#tools)).
 
 **Both evaluators.** Each alternative was timed under full recompute and
@@ -187,7 +190,7 @@ elements, measured at 10,000 and 100,000.
   (`CELLS_EVALUATORS`), interleaved tick by tick, each on its own copy of
   the document: 3 warm-up ticks and 41 timed, the median reported. It
   checks each shape's values and that every evaluator agrees. As kept, it
-  knows the core's two evaluators; at the commit above it also knows the
+  knows the core's two evaluators; at the tag above it also knows the
   alternatives', and `CELLS_WANTED` sets the share of the document a tick
   reads, for #9.
 - `scripts/tick-diff.sh [base] [shapes] [sizes]` (in this package)
@@ -891,7 +894,7 @@ Kept in the repository:
 | `crates/cells-bench/examples/program_size.rs` | golden documents' program sizes (#8) |
 | `scripts/tick-diff.sh` | a base commit against the working tree |
 
-Everything, at commit `8daf609e24a728d03c4b4075640c0a80711552d3`:
+Everything, at the tag `cells-tick-alternatives`:
 
 | File | What it is |
 |---|---|
@@ -912,10 +915,10 @@ Everything, at commit `8daf609e24a728d03c4b4075640c0a80711552d3`:
 | `docs/tick-alternatives/10-priority-queue.patch` | #10 |
 | `docs/tick-alternatives/11-no-cutoff.patch` | #11 |
 
-To measure a patch, at that commit: `git apply` it (the cell-type
+To measure a patch, at that tag: `git apply` it (the cell-type
 patches on top of `4-6-cells-type.patch`), commit it locally, and run
 `scripts/tick-diff.sh` with the commit before it as the base. To measure
-an evaluator, at that commit: `CELLS_EVALUATORS=dirty,full,<name> cargo
+an evaluator, at that tag: `CELLS_EVALUATORS=dirty,full,<name> cargo
 run --release -p cells-bench --example tick_cost`. To measure a change
 to the core now, make it in the working tree and run
 `scripts/tick-diff.sh`.
