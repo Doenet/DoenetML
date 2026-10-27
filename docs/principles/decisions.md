@@ -754,3 +754,34 @@ family.
 - `listcomponentpointlists.test.ts:729`;
 - any test where a list holds a nested `<sort>` or `<group>` with a hidden item.
 
+
+## D30. Should identity that leaves the core be stable across a reload?
+
+**Today** a component's index is not stable (SAVE-5), but it is still the identity handed to the
+outside in two places:
+- **Recorded events.**
+  - Most components' events name their object only as `{ componentIdx, componentType }`, such
+    as a point's drag event (`W/components/Point.js:1440`).
+  - An answer's submission event (`W/components/Answer.js:2829`) also carries `answerNumber` and
+    `rootName`. `answerNumber` counts answers in document order, so it survives a reload, but
+    shifts when an edit adds or removes an answer.
+  - Analytics that group events by component would split one component's data, or merge two
+    components' data, after an index shift. In the cells core that could happen within one
+    session.
+- **DOM ids `_id_<index>`.** Nothing in the packages relies on them across loads, apart from tests
+  (SAVE-5). Hosts or authored links that target them would break.
+
+**Possible principle (Tier 2):**
+
+> Whatever the core hands to the outside to name a component is the same on every load of the
+> same document with the same saved state. It comes from the name path or the `stateId`, not
+> from the allocation index.
+
+**Recommendation.**
+- Before deciding, check what the hosts do with recorded events: which key they group by, and
+  whether any of them read `componentIdx`.
+- If any host does group by component, add a stable key to every event's `object`: the name path
+  where the component has one, else its `stateId`. ADR 0017 keys saved state the same way.
+- The fix belongs in the event payload and in how DOM ids are built, not in the core's creation
+  order. #2349 closed that route as not planned.
+- Keep the index in the payload for debugging, documented as unstable.

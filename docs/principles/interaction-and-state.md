@@ -137,6 +137,10 @@ Recent fixes show where the current representation is fragile:
 
 A rewrite should save only true sources, and recompute everything else.
 
+The guarantee covers what the reader sees and the values that were stored. It does not cover
+the core's internal identity for components: a component can come back with a different index
+(SAVE-5, #2349).
+
 ### SAVE-2: a shadow's state is its source's, and is saved once; only the reader's work is saved (Tier 2)
 - `<mathInput extend="$mi"/>` is the same input shown twice. Whichever half the reader types
   into, one entry is saved.
@@ -162,6 +166,35 @@ This covers a repeat that shrinks and grows, a case switched away and back, and 
 `rendered="false"`. It is in tension with the wording in #2149, "content that a
 conditionalContent does not select should behave as though deleted". One statement should be
 retired; the one the code now follows is this rule (D18).
+
+### SAVE-5: a component's index is allocation order, and is not guaranteed to stay the same (not a guarantee)
+A component's index, and the DOM id `_id_<index>` the viewer builds from it, follow the order in
+which the core happens to make components. Nothing promises that order. It can differ:
+- **after an edit**, for every component after the change;
+- **between two loads of the same document, with only the reader's work changed.** #2349
+  (closed as not planned) has an unlinked copy holding `$ci`, a reference to a choiceInput's
+  value. On the first load `ci` has no selection when the copy is made, so the copy's list is
+  made later. Loaded again with a saved selection, the list is made first, and the components
+  after it move (13 → 15, 14 → 16, 15 → 12). Larger documents moved up to 18 of 56
+  components;
+- **within one session, in a different core.** The cells core reassigns indices whenever a
+  structural change, such as a repeat's count changing, rebuilds the document (its ADR 0004).
+
+The reader sees no difference. Values are restored by `stateId` (SAVE-3), so SAVE-1 holds.
+
+**Rule:** anything that must identify a component across a reload, an edit or a rebuild uses
+the component's name path or its `stateId`, never its index. Tests look components up again,
+by name, after every load.
+- `packages/test-cypress/cypress/e2e/variants/specifysinglevariant.cy.js` "replacements of
+  composites are not included in generated variant info, reload" carried four input indices
+  across `cy.reload()`. PR #2364 changes it to look the inputs up by name after each load.
+- The paginator tests that do the same are all `it.skip`.
+
+The index is still exposed outside the core, in two places:
+- recorded events name their component by index;
+- the viewer's DOM ids are built from it.
+
+Whether those should use a stable key is decision D30.
 
 ---
 
