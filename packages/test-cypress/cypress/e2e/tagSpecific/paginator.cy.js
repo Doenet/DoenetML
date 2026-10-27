@@ -2029,6 +2029,20 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
   
     `;
 
+        // Component indices follow the order in which components are made,
+        // which can differ when a saved page is loaded again (#2349). Look
+        // the inputs up by name after each load.
+        async function getInputSelectors(win, path) {
+            let stateVariables = await win.returnAllStateVariables1();
+            let inputIdx =
+                stateVariables[await win.resolvePath1(path)].stateValues
+                    .inputChildren[0].componentIdx;
+            return {
+                displayAnchor: cesc("#_id_" + inputIdx) + " .mq-editable-field",
+                button: cesc("#_id_" + inputIdx + "_button"),
+            };
+        }
+
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_allowLocalState").click();
         cy.wait(100);
@@ -2203,29 +2217,51 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get("#problem2_title").should("have.text", "Problem 2");
                 cy.get("#ca").should("have.text", "1");
 
-                cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
-                cy.get(answer3Button).should("contain.text", "Correct");
+                cy.window().then(async (win) => {
+                    let input3 = await getInputSelectors(
+                        win,
+                        "problem2.cc1.answer",
+                    );
+                    let input4 = await getInputSelectors(
+                        win,
+                        "problem2.cc2.answer",
+                    );
 
-                cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
-                cy.get(answer4Button).should("contain.text", "Correct");
+                    cy.get(input3.displayAnchor).should("contain.text", "1");
+                    cy.get(input3.button).should("contain.text", "Correct");
 
-                cy.get("#ca").should("have.text", "1");
+                    cy.get(input4.displayAnchor).should("contain.text", "2");
+                    cy.get(input4.button).should("contain.text", "Correct");
+
+                    cy.get("#ca").should("have.text", "1");
+                });
 
                 cy.get("#pcontrols_previous").click();
                 cy.get("#problem1_title").should("have.text", "Problem 1");
                 cy.get("#ca").should("have.text", "1");
 
-                cy.get(mathInput1DisplayAnchor).should(
-                    "contain.text",
-                    correctAnswer,
-                );
-                cy.get(answer1Button).should("contain.text", "Correct");
+                cy.window().then(async (win) => {
+                    let input1 = await getInputSelectors(
+                        win,
+                        "problem1.cc.answer",
+                    );
+                    let input2 = await getInputSelectors(
+                        win,
+                        `problem1.cc${n}.a`,
+                    );
 
-                cy.get(mathInput2DisplayAnchor).should(
-                    "contain.text",
-                    `2${correctAnswer}`,
-                );
-                cy.get(answer2Button).should("contain.text", "Correct");
+                    cy.get(input1.displayAnchor).should(
+                        "contain.text",
+                        correctAnswer,
+                    );
+                    cy.get(input1.button).should("contain.text", "Correct");
+
+                    cy.get(input2.displayAnchor).should(
+                        "contain.text",
+                        `2${correctAnswer}`,
+                    );
+                    cy.get(input2.button).should("contain.text", "Correct");
+                });
             });
         });
     });
