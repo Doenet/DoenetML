@@ -2681,6 +2681,8 @@ describe("Unique variant tests @group1", async () => {
             `<selectPrimeNumbers name="z" numToSelect="0" withReplacement minValue="24" maxValue="28" />`,
             `<select name="z" numToSelect="-1">a b</select>`,
             `<select name="z" numToSelect="-2" withReplacement>a b</select>`,
+            // options with different numbers of variants
+            `<select name="z" numToSelect="-1"><option><select>c d</select></option><option>e</option></select>`,
             `<selectFromSequence name="z" numToSelect="-1" from="1" to="5" />`,
             `<selectFromSequence name="z" numToSelect="-1" from="5" to="1" />`,
             `<selectPrimeNumbers name="z" numToSelect="-1" minValue="2" maxValue="20" />`,
@@ -2707,9 +2709,9 @@ describe("Unique variant tests @group1", async () => {
                 const z = stateVariables[await resolvePathToNodeIdx("z")];
                 expect(z.replacements ?? [], emptySelect).eqls([]);
                 if (z.componentType === "select") {
-                    expect(z.stateValues.selectedIndices).eqls([]);
+                    expect(z.stateValues.selectedIndices, emptySelect).eqls([]);
                 } else {
-                    expect(z.stateValues.selectedValues).eqls([]);
+                    expect(z.stateValues.selectedValues, emptySelect).eqls([]);
                 }
                 expect(z.stateValues.errorMessage, emptySelect).eq("");
 
