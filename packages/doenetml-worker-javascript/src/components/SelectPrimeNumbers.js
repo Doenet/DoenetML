@@ -316,17 +316,33 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             ) {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
-                if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
+                if (!Number.isInteger(numToSelect)) {
                     info({
                         code: "doenet-i0022",
                         component: "selectPrimeNumbers",
                     });
                     return { success: false };
                 }
+                // A negative number selects nothing at run time, the same as 0,
+                // so it adds the single variant of selecting nothing
+                numToSelect = Math.max(numToSelect, 0);
             } else {
                 info({ code: "doenet-i0023", component: "selectPrimeNumbers" });
                 return { success: false };
             }
+        }
+
+        // Selecting nothing has exactly one outcome, whatever withReplacement,
+        // the options or the range, so return before reading anything that
+        // might not be countable
+        if (numToSelect === 0) {
+            serializedComponent.variants.numVariants = 1;
+            serializedComponent.variants.uniqueVariantData = {
+                primes: [],
+                numToSelect: 0,
+                withReplacement: false,
+            };
+            return { success: true, numVariants: 1 };
         }
 
         let withReplacementComponent = serializedAttributeComponent(
@@ -480,7 +496,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         if (withReplacement || numToSelect === 1) {
             numVariants = Math.pow(primes.length, numToSelect);
         } else {
-            // An empty product when numToSelect is 0: one way to select nothing
             numVariants = 1;
             for (let n = primes.length; n > primes.length - numToSelect; n--) {
                 numVariants *= n;

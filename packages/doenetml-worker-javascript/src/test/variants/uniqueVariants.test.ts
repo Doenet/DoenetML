@@ -2667,6 +2667,117 @@ describe("Unique variant tests @group1", async () => {
         }
     });
 
+    // A select of nothing (a literal `numToSelect` of 0 or a negative literal,
+    // which selects nothing at run time) has one outcome. Each case below used
+    // to switch off unique variants for the whole document, so a sibling
+    // select no longer cycled through its options (#2360).
+    it("selecting nothing adds one variant even when the options, range or withReplacement are empty or uncountable", async () => {
+        const emptySelects = [
+            // an empty range
+            `<selectFromSequence name="z" numToSelect="0" from="1" to="3" exclude="1 2 3" />`,
+            `<selectFromSequence name="z" numToSelect="0" from="5" to="1" />`,
+            `<selectFromSequence name="z" numToSelect="0" withReplacement from="5" to="1" />`,
+            `<selectPrimeNumbers name="z" numToSelect="0" minValue="24" maxValue="28" />`,
+            `<selectPrimeNumbers name="z" numToSelect="0" withReplacement minValue="24" maxValue="28" />`,
+            // a negative numToSelect
+            `<select name="z" numToSelect="-1">a b</select>`,
+            `<select name="z" numToSelect="-2" withReplacement>a b</select>`,
+            `<select name="z" numToSelect="-1"><option><select>c d</select></option><option>e</option></select>`,
+            `<selectFromSequence name="z" numToSelect="-1" from="1" to="5" />`,
+            `<selectFromSequence name="z" numToSelect="-1" from="5" to="1" />`,
+            `<selectPrimeNumbers name="z" numToSelect="-1" minValue="2" maxValue="20" />`,
+            `<selectPrimeNumbers name="z" numToSelect="-1" minValue="24" maxValue="28" />`,
+            // options or a range whose variants cannot be counted
+            `<number name="n">2</number><select name="z" numToSelect="0"><option><selectFromSequence from="$n" to="5" /></option><option>c</option></select>`,
+            `<number name="n">2</number><select name="z" numToSelect="-1"><option><selectFromSequence from="$n" to="5" /></option><option>c</option></select>`,
+            `<select name="z" numToSelect="0"><option selectWeight="2">a</option><option>b</option></select>`,
+            `<number name="n">2</number><selectFromSequence name="z" numToSelect="0" from="$n" to="5" />`,
+            `<number name="n">30</number><selectPrimeNumbers name="z" numToSelect="0" maxValue="$n" />`,
+            // a withReplacement that references another value
+            `<boolean name="b">true</boolean><select name="z" numToSelect="0" withReplacement="$b">a b</select>`,
+            `<boolean name="b">true</boolean><selectFromSequence name="z" numToSelect="0" withReplacement="$b" from="1" to="5" />`,
+            `<boolean name="b">true</boolean><selectPrimeNumbers name="z" numToSelect="0" withReplacement="$b" maxValue="20" />`,
+        ];
+
+        for (const emptySelect of emptySelects) {
+            const sampledValues: string[] = [];
+            for (let ind = 1; ind <= 3; ind++) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<p>${emptySelect}</p><select name="x">u v w</select>`,
+                    requestedVariantIndex: ind,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("_document1")]
+                        .sharedParameters.allPossibleVariants,
+                    emptySelect,
+                ).eqls(["a", "b", "c"]);
+
+                const z = stateVariables[await resolvePathToNodeIdx("z")];
+                expect(z.replacements ?? [], emptySelect).eqls([]);
+                if (z.componentType === "select") {
+                    expect(z.stateValues.selectedIndices, emptySelect).eqls([]);
+                } else {
+                    expect(z.stateValues.selectedValues, emptySelect).eqls([]);
+                }
+                expect(z.stateValues.errorMessage, emptySelect).eq("");
+
+                sampledValues.push(
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            "x[1][1]",
+                        )
+                    ).stateValues.value.tree,
+                );
+            }
+            expect(sampledValues.sort(), emptySelect).eqls(["u", "v", "w"]);
+        }
+    });
+
+    // `selectForVariants` used to switch off unique variants. Selecting nothing
+    // now adds one variant, and the select still reports its error.
+    it("selecting nothing from options with selectForVariants adds one variant", async () => {
+        const sampledValues: string[] = [];
+        for (let ind = 1; ind <= 3; ind++) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p><select name="z" numToSelect="0"><option selectForVariants="a">p</option><option selectForVariants="b c">q</option></select></p><select name="x">u v w</select>`,
+                requestedVariantIndex: ind,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants,
+            ).eqls(["a", "b", "c"]);
+
+            const z = stateVariables[await resolvePathToNodeIdx("z")];
+            expect(z.stateValues.selectedIndices).eqls([]);
+            expect(z.stateValues.errorMessage).contains(
+                "appears in 1 options but number to select is 0",
+            );
+
+            sampledValues.push(
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "x[1][1]",
+                    )
+                ).stateValues.value.tree,
+            );
+        }
+        expect(sampledValues.sort()).eqls(["u", "v", "w"]);
+    });
+
     it("selectPrimeNumbers without replacement counts ordered selections", async () => {
         // Two of the four primes 2, 3, 5, 7 in order: 4 * 3 = 12 variants
         const doenetML = `<selectPrimeNumbers name="z" numToSelect="2" minValue="2" maxValue="7" />`;
