@@ -582,6 +582,26 @@ describe(
     <p name="p3">Enter <selectFromSequence name="m" />. <answer name="ans">$m</answer></p>
     `;
 
+            // Component indices follow the order in which components are
+            // made, which can differ when a saved page is loaded again
+            // (#2349). Look the inputs up by name after each load.
+            async function getInputSelectors(win) {
+                let stateVariables = await win.returnAllStateVariables1();
+                let selectors = {};
+                let paths = ["g.ans", "g2.ans", "g3.ans", "p3.ans"];
+                for (let [i, path] of paths.entries()) {
+                    let inputIdx =
+                        stateVariables[await win.resolvePath1(path)].stateValues
+                            .inputChildren[0].componentIdx;
+                    selectors[`mathInput${i + 1}Anchor`] =
+                        cesc("#_id_" + inputIdx) + " textarea";
+                    selectors[`answer${i + 1}Button`] = cesc(
+                        "#_id_" + inputIdx + "_button",
+                    );
+                }
+                return selectors;
+            }
+
             cy.window().then(async (win) => {
                 win.postMessage(
                     {
@@ -607,34 +627,16 @@ describe(
                 let n = valueOf(stateVariables[await win.resolvePath1("n")]);
                 let m = valueOf(stateVariables[await win.resolvePath1("m")]);
 
-                let mathInput1Idx =
-                    stateVariables[await win.resolvePath1(`g.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathInput2Idx =
-                    stateVariables[await win.resolvePath1(`g2.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathInput3Idx =
-                    stateVariables[await win.resolvePath1(`g3.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathInput4Idx =
-                    stateVariables[await win.resolvePath1(`p3.ans`)].stateValues
-                        .inputChildren[0].componentIdx;
-
-                let mathInput1Anchor =
-                    cesc("#_id_" + mathInput1Idx) + " textarea";
-                let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
-
-                let mathInput2Anchor =
-                    cesc("#_id_" + mathInput2Idx) + " textarea";
-                let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
-
-                let mathInput3Anchor =
-                    cesc("#_id_" + mathInput3Idx) + " textarea";
-                let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
-
-                let mathInput4Anchor =
-                    cesc("#_id_" + mathInput4Idx) + " textarea";
-                let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
+                let {
+                    mathInput1Anchor,
+                    answer1Button,
+                    mathInput2Anchor,
+                    answer2Button,
+                    mathInput3Anchor,
+                    answer3Button,
+                    mathInput4Anchor,
+                    answer4Button,
+                } = await getInputSelectors(win);
 
                 cy.get("#ci_choice1_input")
                     .parent()
@@ -866,64 +868,77 @@ describe(
                     `Selected value: ${choices[choiceOrder[0] - 1]}`,
                 );
 
-                cy.get(answer1Button).should("contain.text", "Correct");
-                cy.get(answer2Button).should("contain.text", "Correct");
-                cy.get(answer3Button).should("contain.text", "Correct");
-                cy.get(answer4Button).should("contain.text", "Correct");
+                cy.window().then(async (win) => {
+                    let {
+                        mathInput1Anchor,
+                        answer1Button,
+                        mathInput2Anchor,
+                        answer2Button,
+                        mathInput3Anchor,
+                        answer3Button,
+                        mathInput4Anchor,
+                        answer4Button,
+                    } = await getInputSelectors(win);
 
-                cy.get(mathInput1Anchor).type(
-                    `{end}{backspace}{backspace}${n + 1}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer2Button).click();
-                cy.get(answer1Button).should("contain.text", "Incorrect");
-                cy.get(answer2Button).should("contain.text", "Incorrect");
+                    cy.get(answer1Button).should("contain.text", "Correct");
+                    cy.get(answer2Button).should("contain.text", "Correct");
+                    cy.get(answer3Button).should("contain.text", "Correct");
+                    cy.get(answer4Button).should("contain.text", "Correct");
 
-                cy.get(mathInput2Anchor).type(
-                    `{end}{backspace}{backspace}${n}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer1Button).click();
-                cy.get(answer1Button).should("contain.text", "Correct");
-                cy.get(answer2Button).should("contain.text", "Correct");
+                    cy.get(mathInput1Anchor).type(
+                        `{end}{backspace}{backspace}${n + 1}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer2Button).click();
+                    cy.get(answer1Button).should("contain.text", "Incorrect");
+                    cy.get(answer2Button).should("contain.text", "Incorrect");
 
-                cy.get(mathInput3Anchor).type(
-                    `{end}{backspace}{backspace}${n + 1}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer3Button).click();
-                cy.get(answer3Button).should("contain.text", "Incorrect");
-                cy.get(mathInput3Anchor).type(
-                    `{end}{backspace}{backspace}${n}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer3Button).click();
-                cy.get(answer3Button).should("contain.text", "Correct");
+                    cy.get(mathInput2Anchor).type(
+                        `{end}{backspace}{backspace}${n}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer1Button).click();
+                    cy.get(answer1Button).should("contain.text", "Correct");
+                    cy.get(answer2Button).should("contain.text", "Correct");
 
-                cy.get(mathInput4Anchor).type(
-                    `{end}{backspace}{backspace}${m + 1}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer4Button).click();
-                cy.get(answer4Button).should("contain.text", "Incorrect");
-                cy.get(mathInput4Anchor).type(
-                    `{end}{backspace}{backspace}${m}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(answer4Button).click();
-                cy.get(answer4Button).should("contain.text", "Correct");
+                    cy.get(mathInput3Anchor).type(
+                        `{end}{backspace}{backspace}${n + 1}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer3Button).click();
+                    cy.get(answer3Button).should("contain.text", "Incorrect");
+                    cy.get(mathInput3Anchor).type(
+                        `{end}{backspace}{backspace}${n}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer3Button).click();
+                    cy.get(answer3Button).should("contain.text", "Correct");
+
+                    cy.get(mathInput4Anchor).type(
+                        `{end}{backspace}{backspace}${m + 1}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer4Button).click();
+                    cy.get(answer4Button).should("contain.text", "Incorrect");
+                    cy.get(mathInput4Anchor).type(
+                        `{end}{backspace}{backspace}${m}`,
+                        {
+                            force: true,
+                        },
+                    );
+                    cy.get(answer4Button).click();
+                    cy.get(answer4Button).should("contain.text", "Correct");
+                });
             });
         });
     },
