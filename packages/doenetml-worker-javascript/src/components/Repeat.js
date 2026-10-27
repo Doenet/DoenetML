@@ -894,14 +894,14 @@ function copyStateFromUnlinkedSourceSub(
                     repl.attributes[attrName].component &&
                     src.attributes[attrName]?.component
                 ) {
-                    // An attribute's component, such as the group of a nested
-                    // `<repeat for>`, is set up before the component's
-                    // children and draws its seed first from the component's
-                    // seed, which the component took from its source. Given
-                    // its source's seed, it would draw nothing, and each
-                    // iteration of the nested repeat would draw the seed the
-                    // one before it drew in the source. Left to draw, it
-                    // draws its source's seed.
+                    // An attribute's component, such as the group a nested
+                    // `<repeat for>` makes of its `for`, is set up before the
+                    // component's children and draws the first seed from the
+                    // component's seed, which the component took from its
+                    // source. Given its source's seed, it would draw nothing,
+                    // and each iteration of the nested repeat would draw the
+                    // seed the one before it drew in the source. Left to
+                    // draw, it draws its source's seed.
                     copyStateFromUnlinkedSourceSub(
                         [repl.attributes[attrName].component],
                         [src.attributes[attrName].component],

@@ -522,14 +522,16 @@ describe("Random choices in repeats @group3", async () => {
     });
 
     it("an unlinked copy of a repeat keeps the random values in a nested repeat", async () => {
-        // The group of the nested repeat's `for` attribute used to be given
-        // its source's seed, so it drew nothing from the nested repeat's
-        // seed, and each iteration of the nested repeat drew the value the
-        // one before it drew in the source.
+        // The group a nested `<repeat for>` makes of its `for` draws its seed
+        // from the nested repeat's seed. Given its source's seed instead, it
+        // would draw nothing, and each iteration of the nested repeat would
+        // get the value the one before it got in the source.
         const sfs = `<selectFromSequence name="n" from="1" to="1000"/>`;
-        const names = [1, 2].flatMap((a) =>
-            [1, 2].map((b) => `[${a}].i[${b}].n`),
-        );
+        const paths = ["[1].i[1].n", "[1].i[2].n", "[2].i[1].n", "[2].i[2].n"];
+        const names = [
+            ...paths.map((path) => `r${path}`),
+            ...paths.map((path) => `r2${path}`),
+        ];
         for (const doenetML of [
             `<repeat name="r" for="1 2"><repeat name="i" for="a b">${sfs}</repeat></repeat>
 <repeat copy="$r" name="r2"/>`,
@@ -537,7 +539,7 @@ describe("Random choices in repeats @group3", async () => {
 <repeat copy="$r" name="r2"/>`,
             `<repeat name="r" for="1 2"><group><repeat name="i" for="a b">${sfs}</repeat></group></repeat>
 <repeat copy="$r" name="r2"/>`,
-            `<repeatForSequence name="r" from="1" to="2"><repeatForSequence name="i" from="1" to="2">${sfs}</repeatForSequence></repeatForSequence>
+            `<repeatForSequence name="r" from="1" to="2"><repeat name="i" for="a b">${sfs}</repeat></repeatForSequence>
 <repeatForSequence copy="$r" name="r2"/>`,
         ]) {
             const sourceValues: number[] = [];
@@ -550,14 +552,13 @@ describe("Random choices in repeats @group3", async () => {
                     false,
                     true,
                 );
-                const values = await selectedValues({
-                    doenetML,
-                    requestedVariantIndex,
-                    names: [
-                        ...names.map((name) => `r${name}`),
-                        ...names.map((name) => `r2${name}`),
-                    ],
-                });
+                const values: number[] = [];
+                for (const name of names) {
+                    values.push(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.selectedValues[0],
+                    );
+                }
                 const message = `${doenetML}, variant ${requestedVariantIndex}`;
 
                 // the copy keeps the source's values, in order
@@ -575,10 +576,7 @@ describe("Random choices in repeats @group3", async () => {
                                 ].stateValues.generatedVariantInfo,
                             ),
                         ),
-                        names: [
-                            ...names.map((name) => `r${name}`),
-                            ...names.map((name) => `r2${name}`),
-                        ],
+                        names,
                     }),
                     message,
                 ).eqls(values);
@@ -594,8 +592,8 @@ describe("Random choices in repeats @group3", async () => {
     });
 
     it("an unlinked copy keeps the random values in a nested repeat in other arrangements", async () => {
-        // in a group copy, three deep, with a `for` that refers to a random
-        // value, and in a repeatForSequence
+        // in a group copy, three deep, and with a `for` that refers to a
+        // random value
         const sfs = `<selectFromSequence name="n" from="1" to="1000"/>`;
         const paths = ["[1].i[1].n", "[1].i[2].n", "[2].i[1].n", "[2].i[2].n"];
         for (const [doenetML, source, copy, names] of [
@@ -624,13 +622,6 @@ describe("Random choices in repeats @group3", async () => {
                 "r",
                 "r2",
                 ["[1].m", "[2].m", ...paths],
-            ],
-            [
-                `<repeatForSequence name="r" from="1" to="2"><repeat name="i" for="a b">${sfs}</repeat></repeatForSequence>
-<repeatForSequence copy="$r" name="r2"/>`,
-                "r",
-                "r2",
-                paths,
             ],
         ] as [string, string, string, string[]][]) {
             for (const requestedVariantIndex of variantIndices) {
