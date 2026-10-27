@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-A `<shuffle>` made with `extend`, as in `<shuffle extend="$sh"/>`, now holds the order of the shuffle it extends in its `componentOrder` state variable, which is the order it shows. Before, it held an order drawn from a seed of its own, which no variant records, so that order also changed when a saved page was loaded again; a shuffle of list values, such as `<number>`s, held an empty order instead. What the shuffle shows is unchanged.
+A `<shuffle>` made with `extend`, as in `<shuffle extend="$sh"/>`, now holds the order of the shuffle it extends in its `componentOrder` state variable, which is the order it shows. Before, it held an order drawn from a seed of its own, which no variant records, so that order also changed when a saved page was loaded again; most shuffles whose items are all values of one type, such as all `<number>`s or all `<math>`s, held an empty order instead. What the shuffle shows is unchanged.
