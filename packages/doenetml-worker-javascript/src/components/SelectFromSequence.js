@@ -356,15 +356,16 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        // Selecting nothing has exactly one outcome, whatever the options or
-        // range, so return before anything that might not be countable
+        // Selecting nothing has exactly one outcome, whatever withReplacement,
+        // the options or the range, so return before reading anything that
+        // might not be countable
         if (numToSelect === 0) {
             serializedComponent.variants.numVariants = 1;
             serializedComponent.variants.uniqueVariantData = {
                 excludeIndices: [],
                 nOptions: 0,
-                numToSelect,
-                withReplacement,
+                numToSelect: 0,
+                withReplacement: false,
             };
             return { success: true, numVariants: 1 };
         }
@@ -759,7 +760,6 @@ export default class SelectFromSequence extends Sequence {
         if (withReplacement || numToSelect === 1) {
             numVariants = Math.pow(nOptions, numToSelect);
         } else {
-            // An empty product when numToSelect is 0: one way to select nothing
             numVariants = 1;
             for (let n = nOptions; n > nOptions - numToSelect; n--) {
                 numVariants *= n;

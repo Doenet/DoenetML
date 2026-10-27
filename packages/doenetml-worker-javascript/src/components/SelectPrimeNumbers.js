@@ -332,14 +332,15 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             }
         }
 
-        // Selecting nothing has exactly one outcome, whatever the options or
-        // range, so return before anything that might not be countable
+        // Selecting nothing has exactly one outcome, whatever withReplacement,
+        // the options or the range, so return before reading anything that
+        // might not be countable
         if (numToSelect === 0) {
             serializedComponent.variants.numVariants = 1;
             serializedComponent.variants.uniqueVariantData = {
                 primes: [],
-                numToSelect,
-                withReplacement,
+                numToSelect: 0,
+                withReplacement: false,
             };
             return { success: true, numVariants: 1 };
         }
@@ -495,7 +496,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         if (withReplacement || numToSelect === 1) {
             numVariants = Math.pow(primes.length, numToSelect);
         } else {
-            // An empty product when numToSelect is 0: one way to select nothing
             numVariants = 1;
             for (let n = primes.length; n > primes.length - numToSelect; n--) {
                 numVariants *= n;

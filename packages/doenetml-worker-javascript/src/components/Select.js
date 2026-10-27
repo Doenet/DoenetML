@@ -799,8 +799,9 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        // Selecting nothing has exactly one outcome, whatever the options or
-        // range, so return before anything that might not be countable
+        // Selecting nothing has exactly one outcome, whatever withReplacement,
+        // the options or the range, so return before reading anything that
+        // might not be countable
         if (numToSelect === 0) {
             if (serializedComponent.variants === undefined) {
                 serializedComponent.variants = {};
@@ -809,8 +810,8 @@ export default class Select extends CompositeComponent {
             serializedComponent.variants.uniqueVariants = true;
             serializedComponent.variants.uniqueVariantData = {
                 numVariantsByChild: [],
-                numToSelect,
-                withReplacement,
+                numToSelect: 0,
+                withReplacement: false,
             };
             return { success: true, numVariants: 1 };
         }
@@ -922,7 +923,6 @@ export default class Select extends CompositeComponent {
                 .every((x) => x === firstNumber);
 
             if (allSameNumber) {
-                // An empty product when numToSelect is 0: one way to select nothing
                 let numberOfPermutations = 1;
                 for (let n = numChildren; n > numChildren - numToSelect; n--) {
                     numberOfPermutations *= n;
