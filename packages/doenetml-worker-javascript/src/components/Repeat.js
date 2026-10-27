@@ -853,7 +853,13 @@ export async function copyStateFromUnlinkedSource({
 
 // A copy can have more children than its source: children written inside
 // `<repeat copy="$r">` follow the copied template and have no source.
-function copyStateFromUnlinkedSourceSub(replacements, sources) {
+// With `copyVariants` false, as for the components in an attribute and their
+// descendants, no component takes its source's variant: see below.
+function copyStateFromUnlinkedSourceSub(
+    replacements,
+    sources,
+    copyVariants = true,
+) {
     for (let [i, repl] of replacements.entries()) {
         let src = sources[i];
 
@@ -868,7 +874,7 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
             // state, so each takes the variant of its source. The copy's
             // seed alone does not always make the same choices: a
             // `<repeat for>` can draw from it differently than its copy.
-            if (src.variants?.desiredVariant) {
+            if (copyVariants && src.variants?.desiredVariant) {
                 repl.variants = {
                     ...repl.variants,
                     desiredVariant: src.variants.desiredVariant,
@@ -876,7 +882,11 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
             }
 
             if (repl.children && src.children) {
-                copyStateFromUnlinkedSourceSub(repl.children, src.children);
+                copyStateFromUnlinkedSourceSub(
+                    repl.children,
+                    src.children,
+                    copyVariants,
+                );
             }
 
             for (let attrName in repl.attributes) {
@@ -884,9 +894,18 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
                     repl.attributes[attrName].component &&
                     src.attributes[attrName]?.component
                 ) {
+                    // An attribute's component, such as the group a nested
+                    // `<repeat for>` makes of its `for`, is set up before the
+                    // component's children and draws the first seed from the
+                    // component's seed, which the component took from its
+                    // source. Given its source's seed, it would draw nothing,
+                    // and each iteration of the nested repeat would draw the
+                    // seed the one before it drew in the source. Left to
+                    // draw, it draws its source's seed.
                     copyStateFromUnlinkedSourceSub(
                         [repl.attributes[attrName].component],
                         [src.attributes[attrName].component],
+                        false,
                     );
                 } else if (
                     repl.attributes[attrName].type === "literal" &&
