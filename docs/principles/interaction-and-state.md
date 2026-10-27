@@ -194,7 +194,9 @@ The index is still exposed outside the core, in two places:
 - recorded events name their component by index;
 - the viewer's DOM ids are built from it.
 
-Whether those should use a stable key is decision D30.
+Whether those should use a stable key is decision D30. On doenet.org, an unnamed answer made by a
+copy is recorded under its index-based `rootName`, so its submissions can split across a reload
+(#2365).
 
 ---
 

@@ -757,31 +757,54 @@ family.
 
 ## D30. Should identity that leaves the core be stable across a reload?
 
-**Today** a component's index is not stable (SAVE-5), but it is still the identity handed to the
-outside in two places:
-- **Recorded events.**
-  - Most components' events name their object only as `{ componentIdx, componentType }`, such
-    as a point's drag event (`W/components/Point.js:1440`).
-  - An answer's submission event (`W/components/Answer.js:2829`) also carries `answerNumber` and
-    `rootName`. `answerNumber` counts answers in document order, so it survives a reload, but
-    shifts when an edit adds or removes an answer.
-  - Analytics that group events by component would split one component's data, or merge two
-    components' data, after an index shift. In the cells core that could happen within one
-    session.
-- **DOM ids `_id_<index>`.** Nothing in the packages relies on them across loads, apart from tests
-  (SAVE-5). Hosts or authored links that target them would break.
+**Today** a component's index is not stable (SAVE-5), but it still leaks into the identity
+handed to the outside, in three places:
+- **`componentIdx` on recorded events.** Most components' events name their object only as
+  `{ componentIdx, componentType }`, such as a point's drag event
+  (`W/components/Point.js:1440`).
+- **`rootName` on an answer's submission event** (`W/components/Answer.js:2829`).
+  - `rootName` is the component's shortest unique path from the document root, such as `ans` or
+    `sec.ans`.
+  - A component with no such path has `"_id_" + componentIdx` instead
+    (`W/core/ComponentBuilder.ts:712`). That includes an unnamed answer, and an answer inside
+    an unnamed copy.
+  - The event also carries `answerNumber`, which counts answers in document order.
+- **DOM ids.** The viewer builds them from the same `rootName`, so unnamed components get
+  `_id_<index>`.
 
-**Possible principle (Tier 2):**
+**What doenet.org does with them** (DoenetApps, checked at `8954212`):
+- **Only submissions are recorded.** The assignment viewer records only `submitted` events, and
+  ignores the rest (`apps/app/src/paths/AssignmentViewer.tsx:459-471`).
+- **They are keyed by `rootName`.** Each submission is stored with `answerId = object.rootName`
+  (`:842`). Responses are counted grouped by `answerId` and the problem's position
+  (`apps/api/src/query/assign.ts:1304`), and the instructor's response drawer fetches by
+  `answerId`.
+- **Nothing else is used.** `answerNumber` is stored but never used, and nothing in DoenetApps
+  reads `componentIdx`.
+- **Edits are not a risk.** Once content is assigned, its source and DoenetML version cannot
+  change (`apps/api/src/query/activity.ts:450`). Only a reload with the reader's work can shift
+  an id.
+
+**The live problem is #2365.** An unnamed answer written directly in the document keeps its
+`_id_<n>` across a reload, because written components are numbered by their position in the
+source. One made by a copy, repeat or select at load is numbered in creation order, and can
+shift: `_id_27` became `_id_29` (**[probe]**, #2349's document with answers added). On
+doenet.org, that answer's submissions are then split between two ids.
+
+**Principle (Tier 2):**
 
 > Whatever the core hands to the outside to name a component is the same on every load of the
-> same document with the same saved state. It comes from the name path or the `stateId`, not
+> same document with the same saved state. It comes from the name path or the `stateId`, never
 > from the allocation index.
 
 **Recommendation.**
-- Before deciding, check what the hosts do with recorded events: which key they group by, and
-  whether any of them read `componentIdx`.
-- If any host does group by component, add a stable key to every event's `object`: the name path
-  where the component has one, else its `stateId`. ADR 0017 keys saved state the same way.
-- The fix belongs in the event payload and in how DOM ids are built, not in the core's creation
-  order. #2349 closed that route as not planned.
-- Keep the index in the payload for debugging, documented as unstable.
+- For a component without a root name, report a key that does not depend on allocation order,
+  most simply its `stateId`, which saved state already uses. Do this in `rootName` itself, so
+  that DoenetApps needs no change, at least for answers.
+- Account for existing data: ids already recorded as `_id_<n>` stay as they are, so the change
+  causes a one-time split for any answer whose id changes (see #2365).
+- Keep `componentIdx` in event payloads for debugging, documented as unstable. No host reads it.
+- Keep root names that use child indices (`g:1`) in mind when deciding D27. Components reached
+  only through such an index would lose their root name and fall back.
+- The fix belongs in what events report, not in the core's creation order. #2349 closed that
+  route as not planned.
