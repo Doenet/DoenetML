@@ -2667,22 +2667,21 @@ describe("Unique variant tests @group1", async () => {
         }
     });
 
-    // Selecting nothing has one outcome even when there is nothing to select
-    // from, when the options or range could not be counted, or when
-    // `withReplacement` is not a literal, and a negative
-    // literal `numToSelect` selects nothing at run time, the same as 0. These
-    // used to switch off unique variants for the whole document, so a sibling
+    // A select of nothing (a literal `numToSelect` of 0 or a negative literal,
+    // which selects nothing at run time) has one outcome. Each case below used
+    // to switch off unique variants for the whole document, so a sibling
     // select no longer cycled through its options (#2360).
-    it("selecting nothing from an empty or uncountable range or with negative numToSelect adds one variant", async () => {
+    it("selecting nothing adds one variant even when the options, range or withReplacement are empty or uncountable", async () => {
         const emptySelects = [
+            // an empty range
             `<selectFromSequence name="z" numToSelect="0" from="1" to="3" exclude="1 2 3" />`,
             `<selectFromSequence name="z" numToSelect="0" from="5" to="1" />`,
             `<selectFromSequence name="z" numToSelect="0" withReplacement from="5" to="1" />`,
             `<selectPrimeNumbers name="z" numToSelect="0" minValue="24" maxValue="28" />`,
             `<selectPrimeNumbers name="z" numToSelect="0" withReplacement minValue="24" maxValue="28" />`,
+            // a negative numToSelect
             `<select name="z" numToSelect="-1">a b</select>`,
             `<select name="z" numToSelect="-2" withReplacement>a b</select>`,
-            // options with different numbers of variants
             `<select name="z" numToSelect="-1"><option><select>c d</select></option><option>e</option></select>`,
             `<selectFromSequence name="z" numToSelect="-1" from="1" to="5" />`,
             `<selectFromSequence name="z" numToSelect="-1" from="5" to="1" />`,
@@ -2741,10 +2740,8 @@ describe("Unique variant tests @group1", async () => {
         }
     });
 
-    // `selectForVariants` used to switch off unique variants before
-    // `numToSelect` was considered. Selecting nothing now adds one variant,
-    // and the select still reports that a variant name appears in more
-    // options than the number to select.
+    // `selectForVariants` used to switch off unique variants. Selecting nothing
+    // now adds one variant, and the select still reports its error.
     it("selecting nothing from options with selectForVariants adds one variant", async () => {
         const sampledValues: string[] = [];
         for (let ind = 1; ind <= 3; ind++) {
