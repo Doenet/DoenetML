@@ -2668,7 +2668,8 @@ describe("Unique variant tests @group1", async () => {
     });
 
     // Selecting nothing has one outcome even when there is nothing to select
-    // from, or when the options or range could not be counted, and a negative
+    // from, when the options or range could not be counted, or when
+    // `withReplacement` is not a literal, and a negative
     // literal `numToSelect` selects nothing at run time, the same as 0. These
     // used to switch off unique variants for the whole document, so a sibling
     // select no longer cycled through its options (#2360).
@@ -2693,6 +2694,10 @@ describe("Unique variant tests @group1", async () => {
             `<select name="z" numToSelect="0"><option selectWeight="2">a</option><option>b</option></select>`,
             `<number name="n">2</number><selectFromSequence name="z" numToSelect="0" from="$n" to="5" />`,
             `<number name="n">30</number><selectPrimeNumbers name="z" numToSelect="0" maxValue="$n" />`,
+            // a withReplacement that references another value
+            `<boolean name="b">true</boolean><select name="z" numToSelect="0" withReplacement="$b">a b</select>`,
+            `<boolean name="b">true</boolean><selectFromSequence name="z" numToSelect="0" withReplacement="$b" from="1" to="5" />`,
+            `<boolean name="b">true</boolean><selectPrimeNumbers name="z" numToSelect="0" withReplacement="$b" maxValue="20" />`,
         ];
 
         for (const emptySelect of emptySelects) {
