@@ -2668,11 +2668,11 @@ describe("Unique variant tests @group1", async () => {
     });
 
     // Selecting nothing has one outcome even when there is nothing to select
-    // from, and a negative literal `numToSelect` selects nothing at run time,
-    // the same as 0. These used to switch off unique variants for the whole
-    // document, so a sibling select no longer cycled through its options
-    // (#2360).
-    it("selecting nothing from an empty range or with negative numToSelect adds one variant", async () => {
+    // from, or when the options or range could not be counted, and a negative
+    // literal `numToSelect` selects nothing at run time, the same as 0. These
+    // used to switch off unique variants for the whole document, so a sibling
+    // select no longer cycled through its options (#2360).
+    it("selecting nothing from an empty or uncountable range or with negative numToSelect adds one variant", async () => {
         const emptySelects = [
             `<selectFromSequence name="z" numToSelect="0" from="1" to="3" exclude="1 2 3" />`,
             `<selectFromSequence name="z" numToSelect="0" from="5" to="1" />`,
@@ -2687,6 +2687,12 @@ describe("Unique variant tests @group1", async () => {
             `<selectFromSequence name="z" numToSelect="-1" from="5" to="1" />`,
             `<selectPrimeNumbers name="z" numToSelect="-1" minValue="2" maxValue="20" />`,
             `<selectPrimeNumbers name="z" numToSelect="-1" minValue="24" maxValue="28" />`,
+            // options or a range whose variants cannot be counted
+            `<number name="n">2</number><select name="z" numToSelect="0"><option><selectFromSequence from="$n" to="5" /></option><option>c</option></select>`,
+            `<number name="n">2</number><select name="z" numToSelect="-1"><option><selectFromSequence from="$n" to="5" /></option><option>c</option></select>`,
+            `<select name="z" numToSelect="0"><option selectWeight="2">a</option><option>b</option></select>`,
+            `<number name="n">2</number><selectFromSequence name="z" numToSelect="0" from="$n" to="5" />`,
+            `<number name="n">30</number><selectPrimeNumbers name="z" numToSelect="0" maxValue="$n" />`,
         ];
 
         for (const emptySelect of emptySelects) {

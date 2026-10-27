@@ -799,6 +799,22 @@ export default class Select extends CompositeComponent {
             }
         }
 
+        // Selecting nothing has exactly one outcome, whatever the options or
+        // range, so return before anything that might not be countable
+        if (numToSelect === 0) {
+            if (serializedComponent.variants === undefined) {
+                serializedComponent.variants = {};
+            }
+            serializedComponent.variants.numVariants = 1;
+            serializedComponent.variants.uniqueVariants = true;
+            serializedComponent.variants.uniqueVariantData = {
+                numVariantsByChild: [],
+                numToSelect,
+                withReplacement,
+            };
+            return { success: true, numVariants: 1 };
+        }
+
         let withReplacementComponent = serializedAttributeComponent(
             serializedComponent.attributes.withReplacement,
         );

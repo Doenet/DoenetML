@@ -332,6 +332,18 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             }
         }
 
+        // Selecting nothing has exactly one outcome, whatever the options or
+        // range, so return before anything that might not be countable
+        if (numToSelect === 0) {
+            serializedComponent.variants.numVariants = 1;
+            serializedComponent.variants.uniqueVariantData = {
+                primes: [],
+                numToSelect,
+                withReplacement,
+            };
+            return { success: true, numVariants: 1 };
+        }
+
         let withReplacementComponent = serializedAttributeComponent(
             serializedComponent.attributes.withReplacement,
         );
@@ -466,8 +478,7 @@ export default class SelectPrimeNumbers extends ValueListComponent {
 
         let primes = createPrimesList(primePars);
 
-        // Selecting nothing from an empty list of primes is still one outcome
-        if (primes.length <= 0 && numToSelect > 0) {
+        if (primes.length <= 0) {
             return { success: false };
         }
 

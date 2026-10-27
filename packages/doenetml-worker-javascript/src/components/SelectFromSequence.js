@@ -356,6 +356,19 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
+        // Selecting nothing has exactly one outcome, whatever the options or
+        // range, so return before anything that might not be countable
+        if (numToSelect === 0) {
+            serializedComponent.variants.numVariants = 1;
+            serializedComponent.variants.uniqueVariantData = {
+                excludeIndices: [],
+                nOptions: 0,
+                numToSelect,
+                withReplacement,
+            };
+            return { success: true, numVariants: 1 };
+        }
+
         let coprimeCombinationsComponent = serializedAttributeComponent(
             serializedComponent.attributes.coprime,
         );
@@ -728,8 +741,7 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        // Selecting nothing from an empty sequence is still one outcome
-        if (nOptions <= 0 && numToSelect > 0) {
+        if (nOptions <= 0) {
             return { success: false };
         }
 
