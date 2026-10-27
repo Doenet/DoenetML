@@ -1245,4 +1245,84 @@ describe("Shuffle tag tests @group1", async () => {
         }
         expect(valuesSeen.size).greaterThan(1);
     });
+
+    it("a shuffle made with extend reports the order it shows, which is kept when loaded again", async () => {
+        // `<shuffle extend="$sh">` shows the items of `sh` in its order, so it
+        // reports that order, rather than one drawn from a seed of its own,
+        // which the variant does not record. Both the composite and the list
+        // form (`_shuffleList`) are checked.
+        for (const items of [
+            `<p>A</p><p>B</p><p>C</p><p>D</p>`,
+            `<number>1</number><number>2</number><number>3</number><number>4</number>`,
+        ]) {
+            const doenetML = `<shuffle name="sh">${items}</shuffle>
+            <shuffle extend="$sh" name="sh2"/>`;
+
+            async function orders(
+                core: PublicDoenetMLCore,
+                resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            ) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                // the texts of the items the shuffle shows, in order
+                function shownTexts(shuffle: any) {
+                    return (
+                        shuffle.stateValues.entryTexts ??
+                        shuffle.replacements.map(
+                            (replacement: { componentIdx: number }) =>
+                                stateVariables[replacement.componentIdx]
+                                    .stateValues.text,
+                        )
+                    );
+                }
+                const sh = stateVariables[await resolvePathToNodeIdx("sh")];
+                const sh2 = stateVariables[await resolvePathToNodeIdx("sh2")];
+                return {
+                    order: sh.stateValues.componentOrder,
+                    order2: sh2.stateValues.componentOrder,
+                    shown: shownTexts(sh),
+                    shown2: shownTexts(sh2),
+                    generatedVariantInfo: JSON.parse(
+                        JSON.stringify(
+                            stateVariables[
+                                await resolvePathToNodeIdx("_document1")
+                            ].stateValues.generatedVariantInfo,
+                        ),
+                    ),
+                };
+            }
+
+            const ordersSeen = new Set<string>();
+            for (let variantIndex = 1; variantIndex <= 4; variantIndex++) {
+                const first = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: variantIndex,
+                });
+                const firstResult = await orders(
+                    first.core,
+                    first.resolvePathToNodeIdx,
+                );
+                ordersSeen.add(JSON.stringify(firstResult.order));
+                expect(firstResult.shown.length).eq(4);
+                expect(firstResult.shown.every(Boolean)).eq(true);
+                expect(firstResult.order2).eqls(firstResult.order);
+                expect(firstResult.shown2).eqls(firstResult.shown);
+
+                const again = await createTestCore({
+                    doenetML,
+                    requestedVariant: firstResult.generatedVariantInfo,
+                });
+                const againResult = await orders(
+                    again.core,
+                    again.resolvePathToNodeIdx,
+                );
+                expect(againResult.order).eqls(firstResult.order);
+                expect(againResult.order2).eqls(firstResult.order);
+                expect(againResult.shown2).eqls(firstResult.shown);
+            }
+            expect(ordersSeen.size).greaterThan(1);
+        }
+    });
 });
