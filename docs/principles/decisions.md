@@ -108,6 +108,10 @@ Cause: `serializeUnlinkedAsValues` (`W/components/abstract/AuthoredValueList.js:
 **Tests that change:**
 - `T/tagSpecific/listcomponentvaluelists.test.ts:562`, `:578`, possibly `:591`;
 - `T/copying/list_extend_attributes.test.ts:140`.
+- any test where a copy of an authored list shows a child that is hidden in the source. Under D3
+  the copy pastes the list, so it hides that child too (D29, rule 6).
+
+Implement D3 before D29, or together with it: D29's rule for copies depends on it.
 
 ## D4. Children and attributes on an `extend` or `copy` of a composite
 
@@ -734,26 +738,64 @@ Family B contradicts itself: `$pl[1].hidden` is true, yet `$pl[1]` placed in ano
 drawn. `listcomponentpointlists.test.ts:729` pins that a reference to the list is not hidden by an
 entry's own `hide`.
 
-**Proposed rule** (family C's, and the issue's candidate):
-1. An entry carries its source's own `hide`. `$l[k].hide` is the source's attribute, and false
-   for generated entries such as a sequence's (VAL-9, D20).
-2. `$l[k].hidden` is true when the entry's `hide` is true or the list is hidden.
-3. A hidden entry is not drawn, and so is not in the displayed text of what holds it, such as a
-   `<p>`. It still counts for indices (`$l[k]` keeps its meaning). It also counts wherever the
-   list is read as a value: `<math>$l</math>` and `<text>$l</text>` include it. That is VAL-10
-   applied to lists, since every value position ignores `hide`. It is also COMP-2's "`hide`
-   affects display, never the values a list holds".
-4. A reference to an entry whose source is hidden (`$l[k]`) is hidden too, unless it sets
-   `hide` itself. This is D9's rule applied to entries.
+`<collect hide>` is an exception within family C. It pushes its own `hide` into each entry:
+`$c[1].hide` reads true for a visible source, and `$c[1]` placed elsewhere is hidden
+(**[probe]**). `<sort hide>` does not: `$s[1].hide` is false, `$s[1].hidden` is true, and `$s[1]`
+placed elsewhere is shown.
+
+**Rule** (family C's, refined in planning the fix for #2265):
+1. **An entry carries its source's own `hide`.** `$l[k].hide` is the source's attribute, and false
+   for generated entries such as a sequence's (VAL-9, D20). A list's own `hide` does not become
+   its entries' `hide`. That includes `<collect hide>`.
+2. **`$l[k].hidden` is true when the entry's `hide` is true, or when the list is hidden.**
+3. **A hidden entry is not drawn.** So it is not in the displayed text of what holds it, such as
+   a `<p>`.
+   - It still counts for indices: `$l[k]` keeps its meaning.
+   - It also counts wherever the list is read as a value: `<math>$l</math>` and
+     `<text>$l</text>` include it. That is VAL-10 applied to lists, since every value position
+     ignores `hide`. It is also COMP-2's "`hide` affects display, never the values a list holds".
+4. **A reference follows the entry's own `hide`, not `.hidden`.**
+   - A reference to an entry (`$l[k]`) is hidden when the entry's `.hide` is true, that is, when
+     its source has a `hide` of its own, unless the reference sets `hide` itself.
+   - It is not hidden merely because the list is hidden (`.hidden` true, `.hide` false), just as
+     `$n` of a number inside a hidden section is shown (CTX-8).
+   - A reference to the whole list (`$l` placed elsewhere) keeps an entry hidden when that
+     entry's source is hidden, as `<sort>` does today. Whether `$l` of a *hidden list* is hidden
+     is D9, a separate question.
+5. **Derived properties: displayed text follows what is drawn; values follow the values.**
+   - `$l.text`, and probably `$l.latex`, leave out hidden entries, as `$p.text` leaves out a
+     `<p>`'s hidden items (**[probe]**: `<p><text hide>a</text>b</p>` has text `b`).
+   - `.maths`, `.numbers`, `.math`, the number of entries and indices include them.
+   - So `$l.text` and `<text>$l</text>` differ, in the same way `$p.text` and a `<text>` holding
+     the same content differ: one is what is displayed, the other a value position.
+6. **A copy hides the same entries as its source**, because a copy is the source's DoenetML
+   pasted (CPY-1). This needs no rule of its own, but it depends on D3. Today
+   `<mathList copy="$ml">` freezes the entries as values and shows the hidden child, while
+   `<sort copy>` already keeps it hidden. **Implement D3 before D29, or together with it.**
 
 That makes `hide` on an entry mean what it means on any component, and makes every list one
 family.
 
+**Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
+(**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
+`<pointList>` (#2265's follow-up). Display settings such as `displayDigits` do carry through.
+- **Recommendation:** rule 1 covers both. An entry carries its source's own `hide` and
+  `styleNumber`, the two presentation attributes D20 already lists for entries.
+- They share one mechanism, so it is simplest to fix them together. Fixing #2265 needs only
+  `hide`, so `styleNumber` may follow in a separate change if that keeps the first one small.
+
+**Out of scope: writes through `$l[k].hide`.** `<booleanInput bindValueTo="$l[k].hide"/>` does
+nothing in any family, while `$n.hide` is writable (**[probe]**). VAL-9 notes it as a follow-up.
+
 **Tests that change:**
 - the four "…ignore child hide" tests;
 - `listcomponentpointlists.test.ts:729`;
-- any test where a list holds a nested `<sort>` or `<group>` with a hidden item.
-
+- any test where a list holds a nested `<sort>` or `<group>` with a hidden item;
+- `<collect hide>` tests that expect `$c[k].hide` true, or `$c[k]` hidden elsewhere
+  (`listcomponentcollections.test.ts`, around `:816`);
+- tests of `.text` on a `<sort>`, `<shuffle>` or `<collect>` with a hidden entry, which today give
+  the hidden entry's text too (`$s.text` is `1, 2` where `2` is drawn);
+- with rule 6, the D3 tests.
 
 ## D30. Should identity that leaves the core be stable across a reload?
 
