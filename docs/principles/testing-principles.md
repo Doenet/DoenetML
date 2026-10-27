@@ -59,6 +59,14 @@ how constructions behave.
   normalized rendered-tree query.
 - **The parity report is grouped by gap** (missing prop, missing action, …), not by principle. It
   cannot answer "does the new core satisfy every Tier 1 principle?".
+- **Cypress tests select by component index.** Most build `#_id_<index>` from an index they
+  look up during the test. That is fine within one load, but not across a reload (SAVE-5); PR
+  #2364 fixes the one active test that carried indices across `cy.reload()`. Nine selectors
+  are hard-coded instead, in `tagSpecific/repeat.cy.js` and `baseComponent/renderCommas.cy.js`.
+  All nine are `#_id_0`, the document itself, so they only assume that the document gets index
+  0. That is low risk, but it is still an allocation assumption. A core that numbers components
+  differently would break them, and looking the document up like any other component would
+  remove it.
 
 ### Tests that already state a principle
 These are the seed of the principles layer. Each has a header comment stating a rule, a table
@@ -265,7 +273,8 @@ does not count them. The common shapes are:
 ## 4. Suggested order of work
 
 1. Fix B1 and B2 in [decisions.md](decisions.md). They break a Tier 1 guarantee today.
-2. Settle D1, D2, D7, D8, D9, D13, D22, D23 and D29. These decide what the Tier 1 author model says.
+2. Settle D1, D2, D7, D8, D9, D13, D22, D23 and D29. D30 (identity in events) needs a check of
+   what hosts do first. These decide what the Tier 1 author model says.
 3. Add `registry.ts`, the tags and the `principle()` helper. Tag the principle-stating files.
    Change the parity scripts to report by principle.
 4. Add `diagnostics()` and a rendered-tree query to the public core. Rebase the three coupled
