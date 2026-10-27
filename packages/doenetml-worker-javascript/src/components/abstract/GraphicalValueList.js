@@ -144,12 +144,6 @@ export default class GraphicalValueList extends AuthoredValueList {
         ]) {
             variables[name] = entryVariableName(name);
         }
-        // A list shown as its sources (a `<collect>` or `<sort>` made a
-        // list) hides an entry as the copy of its source was hidden
-        // (`AuthoredValueList`'s `entryHiddens`).
-        variables.hidden = this.listEntriesShownAsSources
-            ? "entryHiddens"
-            : "entryHidden";
         variables.fixed = "entryFixed";
         return variables;
     }
@@ -198,7 +192,6 @@ export default class GraphicalValueList extends AuthoredValueList {
             ...Object.keys(this.returnEntryStyleDescriptionDefinitions()).map(
                 entryVariableName,
             ),
-            "entryHidden",
             "entryFixed",
         ];
     }
@@ -700,37 +693,6 @@ export default class GraphicalValueList extends AuthoredValueList {
                 }),
             };
         }
-
-        // An entry is hidden with the list, and an entry from a child that
-        // is hidden by its own `hide` is hidden too, except in a reference
-        // to the list, which the list's own `hide` does not hide either
-        // (`hideIsOwn`).
-        stateVariableDefinitions.entryHidden = {
-            returnDependencies: () => ({
-                entryChildren: {
-                    dependencyType: "stateVariable",
-                    variableName: "entryChildren",
-                },
-                hidden: {
-                    dependencyType: "stateVariable",
-                    variableName: "hidden",
-                },
-                hideIsOwn: {
-                    dependencyType: "stateVariable",
-                    variableName: "hideIsOwn",
-                },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    entryHidden: dependencyValues.entryChildren.map(
-                        (child) =>
-                            dependencyValues.hidden ||
-                            (!dependencyValues.hideIsOwn &&
-                                Boolean(child?.stateValues.hide)),
-                    ),
-                },
-            }),
-        };
 
         // An entry is fixed with the list, and an entry from a child that is
         // fixed is fixed too.

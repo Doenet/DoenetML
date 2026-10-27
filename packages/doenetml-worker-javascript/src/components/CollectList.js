@@ -71,6 +71,12 @@ function collectListClass(Base) {
 
         static listEntriesShownAsSources = true;
 
+        // A reference to a hidden `<collect>` (`$c`) is hidden with it, as
+        // it was when the collect gave its `hide` to each component it
+        // collected. Whether that holds for every list is decision D9; an
+        // entry's `hide` stays its source's either way (D29).
+        static listHiddenWithReferences = true;
+
         // The type collected, which the document pass records.
         static listEntryTypeAttribute = "componentType";
 

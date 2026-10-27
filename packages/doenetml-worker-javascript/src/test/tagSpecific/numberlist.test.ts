@@ -691,7 +691,7 @@ describe("NumberList tag tests @group4", async () => {
         await check_items(maxN);
     });
 
-    it("numberList within numberLists, ignore child hide", async () => {
+    it("numberList within numberLists, a hidden child keeps its value but is not shown", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList hide="true" name="nl1">1 2 3</numberList></p>
@@ -714,7 +714,8 @@ describe("NumberList tag tests @group4", async () => {
             name: "nl2",
             numbers: [4, 1, 2, 3, 5, 1, 2, 3],
             pName: "p2",
-            text: "4, 1, 2, 3, 5, 1, 2, 3",
+            // the hidden child is not drawn, but keeps its place (D29)
+            text: "4, 1, 2, 3, 1, 2, 3",
         });
 
         await test_numberList({
@@ -723,7 +724,7 @@ describe("NumberList tag tests @group4", async () => {
             name: "nl3",
             numbers: [4, 1, 2, 3, 5, 1],
             pName: "p3",
-            text: "4, 1, 2, 3, 5, 1",
+            text: "4, 1, 2, 3, 1",
         });
     });
 

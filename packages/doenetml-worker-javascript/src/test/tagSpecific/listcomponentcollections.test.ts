@@ -726,10 +726,11 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     `,
         });
 
+        // `$ct.hide` is the list's own; each entry's is its source's (D29)
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "2 (1, 2) 2 x",
             p2: "[b]",
-            p3: "[] [b] true, false true",
+            p3: "[] [b] false true",
             p4: "[a, b] [a]",
         });
     });

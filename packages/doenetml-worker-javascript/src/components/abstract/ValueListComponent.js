@@ -192,6 +192,10 @@ export default class ValueListComponent extends BaseComponent {
 
     static listEntryCountVariable = "numEntries";
 
+    // Whether a reference to the whole list (`$l`) is hidden when the list
+    // is (`hideIsOwn`), as a reference to a hidden component is.
+    static listHiddenWithReferences = false;
+
     static get variableForIndexAsProp() {
         return this.listValuesArrayName;
     }
@@ -400,6 +404,7 @@ export default class ValueListComponent extends BaseComponent {
         // `<group name="g"><cumulativeSum hide>…</cumulativeSum></group>`),
         // is hidden with the list.
         const listComponentType = this.componentType;
+        const hiddenWithReferences = this.listHiddenWithReferences;
         stateVariableDefinitions.hideIsOwn = {
             returnDependencies: () => ({
                 shadowSource: {
@@ -427,7 +432,10 @@ export default class ValueListComponent extends BaseComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 let hideIsOwn = false;
-                if (dependencyValues.shadowSource !== null) {
+                if (
+                    dependencyValues.shadowSource !== null &&
+                    !hiddenWithReferences
+                ) {
                     const sourceType =
                         dependencyValues.sourceComposite?.componentType;
                     const shadowsShownList = Boolean(

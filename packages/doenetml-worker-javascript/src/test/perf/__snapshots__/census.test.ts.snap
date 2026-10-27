@@ -37,7 +37,7 @@ exports[`component census of the micro-documents > boolean $P=(1,2) 1`] = `
   "copies": 0,
   "dependencies": 538,
   "shadows": 0,
-  "stateVariables": 527,
+  "stateVariables": 530,
   "stateVariablesResolved": 255,
 }
 `;
@@ -166,7 +166,7 @@ exports[`component census of the micro-documents > math extend=$P.x simplify 1`]
   "copies": 1,
   "dependencies": 477,
   "shadows": 1,
-  "stateVariables": 474,
+  "stateVariables": 477,
   "stateVariablesResolved": 206,
 }
 `;
@@ -252,10 +252,10 @@ exports[`component census of the micro-documents > numberList $l[1] 1`] = `
   },
   "components": 4,
   "copies": 0,
-  "dependencies": 347,
+  "dependencies": 352,
   "shadows": 0,
-  "stateVariables": 221,
-  "stateVariablesResolved": 148,
+  "stateVariables": 224,
+  "stateVariablesResolved": 150,
 }
 `;
 
@@ -275,7 +275,7 @@ exports[`component census of the micro-documents > point $P 1`] = `
   "copies": 1,
   "dependencies": 779,
   "shadows": 1,
-  "stateVariables": 699,
+  "stateVariables": 702,
   "stateVariablesResolved": 370,
 }
 `;
@@ -297,7 +297,7 @@ exports[`component census of the micro-documents > point $P.x 1`] = `
   "copies": 0,
   "dependencies": 580,
   "shadows": 0,
-  "stateVariables": 550,
+  "stateVariables": 553,
   "stateVariablesResolved": 274,
 }
 `;
@@ -314,10 +314,10 @@ exports[`component census of the micro-documents > repeat for mathList $x[1] x2 
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 414,
+  "dependencies": 419,
   "shadows": 1,
-  "stateVariables": 384,
-  "stateVariablesResolved": 171,
+  "stateVariables": 390,
+  "stateVariablesResolved": 173,
 }
 `;
 
@@ -387,10 +387,10 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 535,
+  "dependencies": 547,
   "shadows": 1,
-  "stateVariables": 411,
-  "stateVariablesResolved": 239,
+  "stateVariables": 418,
+  "stateVariablesResolved": 245,
 }
 `;
 
@@ -428,9 +428,9 @@ exports[`component census of the micro-documents > textList $mi a 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 453,
+  "dependencies": 466,
   "shadows": 1,
-  "stateVariables": 378,
-  "stateVariablesResolved": 215,
+  "stateVariables": 381,
+  "stateVariablesResolved": 222,
 }
 `;
