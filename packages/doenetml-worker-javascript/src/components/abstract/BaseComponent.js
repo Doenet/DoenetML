@@ -219,15 +219,6 @@ export default class BaseComponent {
     static serializeChildrenOnlyIfUnlinked = false;
 
     /**
-     * For a list component, whether an unlinked copy of it (`copy=`) is made
-     * holding the list's values as they are, in the state variable that
-     * takes the values of a shadowed array (`primaryStateVariableForDefinition`),
-     * without its children, as the copies of a composite's replacements
-     * were.
-     */
-    static serializeUnlinkedAsValues = false;
-
-    /**
      * The class a component serialized as `serializedComponent` is created
      * as: this one, unless a subclass decides it from the component's
      * primitive attributes, which the document fixes for the component's
@@ -1450,16 +1441,9 @@ export default class BaseComponent {
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
         // without its children unless the copy is unlinked (`copyAll`).
-        // Only the list that is copied; a list inside a copied component
-        // (the coordinates of a `<point>`) is copied with its children.
-        const unlinkedAsValues =
-            this.constructor.serializeUnlinkedAsValues &&
-            Boolean(parameters.copyAll) &&
-            !parameters.serializingDescendant;
         let includeDefiningChildren =
-            (!this.constructor.serializeChildrenOnlyIfUnlinked ||
-                Boolean(parameters.copyAll)) &&
-            !unlinkedAsValues;
+            !this.constructor.serializeChildrenOnlyIfUnlinked ||
+            Boolean(parameters.copyAll);
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {
@@ -1673,16 +1657,6 @@ export default class BaseComponent {
             // those literals: a linked copy reads them from this component,
             // and an unlinked one takes them with the literals (above)
             delete serializedComponent.state.literalAttributeWrites;
-        }
-
-        if (unlinkedAsValues) {
-            serializedComponent.state[
-                this.constructor.primaryStateVariableForDefinition
-            ] = [
-                ...(await this.stateValues[
-                    this.constructor.listValuesArrayName
-                ]),
-            ];
         }
 
         // An unlinked copy of a reference (`copyPrimaryEssentialIfShadow`)

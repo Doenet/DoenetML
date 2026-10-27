@@ -559,33 +559,158 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
-    it("a copy of a list holds its values as they are", async () => {
+    it("a copy of a list is its DoenetML pasted, whose references stay live", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="x" />
     <mathList name="l">$mi <math displayDigits="5" name="h">3.14159265</math></mathList>
     <mathList name="c" copy="$l" />
+    <numberList name="nl">1 <number name="n">$mi+1</number></numberList>
+    <numberList name="nc" copy="$nl" />
+    <textList name="tl">a <text name="t">$mi</text></textList>
+    <textList name="tc" copy="$tl" />
     <p name="pl">$l</p>
     <p name="pc">$c</p>
+    <p name="pch">$c.h</p>
+    <p name="pnc">$nc $nc.n</p>
+    <p name="ptc">$tc $tc.t</p>
     `,
         });
 
-        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pc"])).eqls({
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pl",
+                "pc",
+                "pch",
+                "pnc",
+                "ptc",
+            ]),
+        ).eqls({
             pl: "x, 3.1416",
             pc: "x, 3.1416",
+            pch: "3.1416",
+            pnc: "1, NaN NaN",
+            ptc: "a, x x",
         });
-        // the copy holds the values, not the children
-        expect(await resolvePathToNodeIdx("c.h")).eq(-1);
+        // the copy has the named children of the list
+        expect(await resolvePathToNodeIdx("c.h")).not.eq(-1);
 
+        // a reference in the list stays live in the copy (CPY-3)
         await updateMathInputValue({
-            latex: "y",
+            latex: "2",
             componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pc"])).eqls({
-            pl: "y, 3.1416",
-            pc: "x, 3.1416",
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pl",
+                "pc",
+                "pnc",
+                "ptc",
+            ]),
+        ).eqls({
+            pl: "2, 3.1416",
+            pc: "2, 3.1416",
+            pnc: "1, 3 3",
+            ptc: "a, 2 2",
         });
+    });
+
+    it("a copy of each kind of authored list follows the references in it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="1" />
+    <booleanInput name="bi" />
+    <booleanList name="bl">$bi true</booleanList>
+    <intervalList name="il">($mi, 5) [2,3]</intervalList>
+    <pointList name="pl">($mi, 2) (3,4)</pointList>
+    <vectorList name="vl">($mi, 2)</vectorList>
+    <tupleList name="tl">($mi, 9)</tupleList>
+    <p name="p"><booleanList copy="$bl" /> | <intervalList copy="$il" /> | <pointList copy="$pl" /> | <vectorList copy="$vl" /> | <tupleList copy="$tl" /></p>
+    `,
+        });
+
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "false, true | (1, 5), [2, 3] | (1, 2), (3, 4) | (1, 2) | (1, 9)",
+        });
+
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "true, true | (7, 5), [2, 3] | (7, 2), (3, 4) | (7, 2) | (7, 9)",
+        });
+    });
+
+    it("a copy of a list made after the reader changed it starts from its current values, through a reload", async () => {
+        const doenetML = `
+    <mathList name="ml">x <math>y</math></mathList>
+    <mathInput name="mi1" bindValueTo="$ml[1]" />
+    <mathInput name="mi2" bindValueTo="$ml[2]" />
+    <textList name="tl">a <text>b</text></textList>
+    <textInput name="ti" bindValueTo="$tl[2]" />
+    <pointList name="pl">(1,2) <point>(3,4)</point></pointList>
+    <mathInput name="mp" bindValueTo="$pl[2]" />
+    <booleanInput name="b" />
+    <conditionalContent name="cc" condition="$b">
+      <p name="p"><mathList copy="$ml" /> | <textList copy="$tl" /> | <pointList copy="$pl" /></p>
+    </conditionalContent>
+    <p name="atLoad"><mathList copy="$ml" /></p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "r",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "z",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolvePathToNodeIdx("mp"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+
+        // a copy made at load keeps what the list was then (CPY-2)
+        const expected = {
+            "cc.p": "q, r | a, z | (1, 2), (7, 8)",
+            atLoad: "x, y",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
     });
 
     it("a value written to an entry of a copy is kept by the copy, before and after a reload", async () => {

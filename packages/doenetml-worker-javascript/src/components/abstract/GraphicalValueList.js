@@ -251,8 +251,7 @@ export default class GraphicalValueList extends AuthoredValueList {
         const childRendererVariables = this.listEntryChildRendererVariables;
 
         // The values of a shadowed array of entries, each the array of its
-        // coordinates (a polygon's `vertices`), or the values a `copy=` of
-        // the list holds, each a math (`serializeUnlinkedAsValues`).
+        // coordinates (a polygon's `vertices`).
         stateVariableDefinitions[shadowName] = {
             defaultValue: null,
             hasEssential: true,

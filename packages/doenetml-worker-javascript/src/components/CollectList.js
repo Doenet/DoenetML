@@ -71,10 +71,6 @@ function collectListClass(Base) {
 
         static listEntriesShownAsSources = true;
 
-        // A `copy=` of the list is made from the same children and
-        // attributes, so it reads the same sources.
-        static serializeUnlinkedAsValues = false;
-
         // The type collected, which the document pass records.
         static listEntryTypeAttribute = "componentType";
 
