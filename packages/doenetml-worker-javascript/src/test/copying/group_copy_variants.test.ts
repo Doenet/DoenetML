@@ -122,7 +122,7 @@ describe("Unlinked group copies of random choices @group3", async () => {
             `<group name="g"><div>${nestedSelect}</div></group><group copy="$g"/>`,
             `<group name="g">${nestedSelect}</group><group copy="$g"/>`,
             nestedSelect.replace("<select>", `<select name="s">`) +
-                `<select copy="$s" link="false"/>`,
+                `<select copy="$s"/>`,
         ]) {
             for (const requestedVariantIndex of variantIndices) {
                 const { core } = await createTestCore({
