@@ -312,6 +312,11 @@ Evidence:
 
 Four tests pin the last case, and one the point-list case (#2265, D29).
 
+Follow-up, not part of D29: a write through `$l[k].hide` does nothing in any family today
+(`<booleanInput bindValueTo="$l[k].hide"/>`), while `$n.hide` is writable (**[probe]**). An entry
+stands for its source, so the write should go to the source's `hide`, as a write to its value
+does.
+
 Known rough edges:
 - an action naming both a child and its entry (`$A $pl[1]`) fires twice;
 - lists that are not authored (`<sequence>`, samplers, operators) take no entry click actions
