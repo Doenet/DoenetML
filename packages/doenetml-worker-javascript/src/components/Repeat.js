@@ -853,7 +853,8 @@ export async function copyStateFromUnlinkedSource({
 
 // A copy can have more children than its source: children written inside
 // `<repeat copy="$r">` follow the copied template and have no source.
-// Components in an attribute keep the variants they draw: see below.
+// With `copyVariants` false, as for the components in an attribute and their
+// descendants, no component takes its source's variant: see below.
 function copyStateFromUnlinkedSourceSub(
     replacements,
     sources,
