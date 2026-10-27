@@ -147,6 +147,11 @@ export default class Shuffle extends CompositeComponent {
         };
 
         stateVariableDefinitions.componentOrder = {
+            // A shuffle that extends another (`<shuffle extend="$sh">`) shows
+            // the replacements of its source, so it takes its source's order
+            // rather than drawing one from a seed of its own, which no
+            // variant records (Doenet/DoenetML#2359).
+            shadowVariable: true,
             returnDependencies({ sharedParameters }) {
                 let dependencies = {
                     variantSeed: {
