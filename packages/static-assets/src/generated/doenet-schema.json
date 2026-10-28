@@ -102020,7 +102020,7 @@
                 {
                     "name": "symbolic",
                     "description": "Whether the function should be evaluated symbolically rather than numerically.",
-                    "defaultValue": true,
+                    "defaultValue": false,
                     "values": [
                         "true",
                         "false"

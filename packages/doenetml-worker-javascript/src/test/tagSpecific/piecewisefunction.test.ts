@@ -1950,4 +1950,66 @@ describe("Piecewise Function Tag Tests @group2", async () => {
             expect(fState.maxima[i][0]).closeTo(loc, 1e-12);
         }
     });
+
+    it("evaluates numerically by default", async () => {
+        // A piecewise function has no symbolic form (its `symbolicfs` return
+        // a blank), so it must not be symbolic unless the author asks.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <piecewiseFunction name="f">
+      <function domain="[0,34.9]">0</function>
+      <function domain="[0,36.7]">1</function>
+      <function domain="[0,100]">5</function>
+    </piecewiseFunction>
+
+    <!-- Same function, with domain endpoints computed from a sort -->
+    <sort name="sorted">
+      <number>36.7</number><number>34.9</number><number>100</number>
+    </sort>
+    <piecewiseFunction name="fc">
+      <function domain="[0,$sorted[1]]">0</function>
+      <function domain="[0,$sorted[2]]">1</function>
+      <function domain="[0,$sorted[3]]">5</function>
+    </piecewiseFunction>
+
+    <piecewiseFunction name="fs" symbolic="true">
+      <function domain="[0,34.9]">0</function>
+      <function domain="[0,100]">5</function>
+    </piecewiseFunction>
+
+    <p name="p1">$$f(50)</p>
+    <p name="p2"><evaluate function="$f" input="50"/></p>
+    <number name="n">$$f(50)</number>
+    <function name="g">5-$$f(100-x)</function>
+    <p name="pg">$$g(50)</p>
+
+    <p name="pc1">$$fc(35)</p>
+    <p name="pc2"><evaluate function="$fc" input="50"/></p>
+    <number name="nc">$$fc(10)</number>
+
+    <p name="ps">$$fs(50)</p>
+    <boolean name="fSymbolic">$f.symbolic</boolean>
+    <boolean name="fsSymbolic">$fs.symbolic</boolean>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        expect((await sv("p1")).text).eq("5");
+        expect((await sv("p2")).text).eq("5");
+        expect((await sv("n")).value).eq(5);
+        expect((await sv("pg")).text).eq("0");
+
+        expect((await sv("pc1")).text).eq("1");
+        expect((await sv("pc2")).text).eq("5");
+        expect((await sv("nc")).value).eq(0);
+
+        // An explicit `symbolic="true"` keeps the blank symbolic evaluation.
+        expect((await sv("ps")).text).eq("＿");
+        expect((await sv("fSymbolic")).value).eq(false);
+        expect((await sv("fsSymbolic")).value).eq(true);
+    });
 });
