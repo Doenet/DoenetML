@@ -20,11 +20,12 @@ component! {
     /// through points are its list, after these props.
     tags: ["circle"],
     flags: [copyable],
+    renders: InGraph,
     props {
         // A whole-circle drag requests the center.
-        cx: by_planner { interactive },
-        cy: by_planner { interactive },
-        radius: by_planner,
+        cx: by_planner { interactive, rendered },
+        cy: by_planner { interactive, rendered },
+        radius: by_planner { rendered },
         diameter: computed(OpSpec::Scale { k: 2.0 }, [radius]),
         circumference: computed(OpSpec::Scale { k: TAU }, [radius]),
         area: by_planner,

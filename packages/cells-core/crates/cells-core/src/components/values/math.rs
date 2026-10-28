@@ -18,8 +18,8 @@ component! {
     default_prop: value,
     props {
         // Both of a math's props are set by the builder from its children.
-        expr: children,
-        value: children,
+        expr: children { rendered },
+        value: children { rendered },
     }
     planner: Whole(plan),
 }

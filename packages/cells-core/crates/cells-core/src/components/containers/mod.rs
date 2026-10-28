@@ -18,7 +18,7 @@ pub mod document {
         /// `build/expand/scoring.rs`).
         tags: ["document"],
         props {
-            creditAchieved: by_planner,
+            creditAchieved: by_planner { score },
             percentCreditAchieved: by_planner,
         }
         planner: Props,
@@ -37,10 +37,10 @@ pub mod graph {
         flags: [container],
         props {
             // Pan and zoom request all four.
-            xmin: attr(-10.0) { interactive },
-            xmax: attr(10.0) { interactive },
-            ymin: attr(-10.0) { interactive },
-            ymax: attr(10.0) { interactive },
+            xmin: attr(-10.0) { interactive, rendered },
+            xmax: attr(10.0) { interactive, rendered },
+            ymin: attr(-10.0) { interactive, rendered },
+            ymax: attr(10.0) { interactive, rendered },
         }
         planner: Props,
     }
@@ -70,6 +70,7 @@ pub mod short_description {
         /// graph, an input); text, not rendered in place.
         tags: ["shortDescription"],
         flags: [container],
+        renders: Never,
         planner: Props,
     }
 }
@@ -101,7 +102,7 @@ pub mod hint {
         tags: ["hint"],
         flags: [container],
         props {
-            open: attr(0.0) { interactive },
+            open: attr(0.0) { interactive, rendered },
         }
         planner: Props,
     }
@@ -114,6 +115,7 @@ pub mod setup {
         /// `<setup>`: an unrendered container.
         tags: ["setup"],
         flags: [container],
+        renders: Never,
         planner: Props,
     }
 }
@@ -318,6 +320,7 @@ pub mod legend {
         /// graph's curves appear.
         tags: ["legend"],
         flags: [container],
+        renders: InGraph,
         planner: Props,
     }
 }

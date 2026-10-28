@@ -15,7 +15,7 @@ component! {
     props {
         // `hide` hides what the choice shows, not copies of its names.
         choice: by_planner,
-        hide: by_planner,
+        hide: by_planner { rendered },
     }
     planner: Whole(plan),
 }

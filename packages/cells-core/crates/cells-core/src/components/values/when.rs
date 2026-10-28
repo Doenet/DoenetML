@@ -8,6 +8,7 @@ component! {
     /// `<when>` inside an `<award>`: `value` is 1 while its condition holds,
     /// read against the answer's submitted responses. Planned with its answer.
     tags: ["when"],
+    renders: Never,
     default_prop: value,
     props {
         value: by_planner,

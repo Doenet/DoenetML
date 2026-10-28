@@ -15,21 +15,22 @@ component! {
     /// intercepts and coefficients follow from them or from the equation.
     tags: ["line"],
     flags: [copyable],
+    renders: InGraph,
     props {
         // The first four props are the line's own points (ADR 0006).
         // `basedOnDirection` is 1 when the second point is derived from a slope or
         // direction, so a renderer drags only the first.
-        x1: by_planner,
-        y1: by_planner,
-        x2: by_planner,
-        y2: by_planner,
+        x1: by_planner { rendered },
+        y1: by_planner { rendered },
+        x2: by_planner { rendered },
+        y2: by_planner { rendered },
         slope: by_planner,
         xintercept: by_planner,
         yintercept: by_planner,
         coeffvar1: by_planner,
         coeffvar2: by_planner,
         coeff0: by_planner,
-        basedOnDirection: by_planner,
+        basedOnDirection: by_planner { rendered },
     }
     list {
         names: [points, endpoints],

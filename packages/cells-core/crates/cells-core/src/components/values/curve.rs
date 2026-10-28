@@ -15,6 +15,7 @@ component! {
     /// the enclosing graph's x-range.
     tags: ["function"],
     flags: [copyable, symbolic],
+    renders: Never,
     default_prop: expr,
     props {
         expr: children,

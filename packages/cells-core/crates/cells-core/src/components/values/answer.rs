@@ -16,13 +16,13 @@ component! {
     flags: [copyable, symbolic],
     default_prop: credit,
     props {
-        response: attr(NO_VALUE) { ref_prop: expr },
+        response: attr(NO_VALUE) { ref_prop: expr, read_by_action },
         correct: children,
         // A submit writes these (`Document::submit`).
         submitted: attr(NO_VALUE) { written_by_action },
-        credit: by_planner,
+        credit: by_planner { rendered, score },
         weight: attr(1.0),
-        numSubmissions: attr(0.0) { written_by_action },
+        numSubmissions: attr(0.0) { written_by_action, rendered },
     }
     alternate_names {
         // The current core's name for `credit`, so `$ans.creditAchieved`

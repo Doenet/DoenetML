@@ -452,6 +452,12 @@ impl Core {
         self.doc.interactive_cells()
     }
 
+    /// Every cell a renderer may read or a grader reads, ascending (ADR
+    /// 0019); new indices after a rebuild.
+    pub fn output_cells(&self) -> Vec<u32> {
+        self.doc.output_cells()
+    }
+
     pub fn last_dropped(&self) -> u32 {
         self.last_dropped
     }

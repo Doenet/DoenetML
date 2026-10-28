@@ -10,6 +10,7 @@ component! {
     /// literals; `numToSelect` other than 1 is not supported.
     tags: ["selectFromSequence"],
     flags: [copyable],
+    renders: Never,
     default_prop: value,
     props {
         value: by_planner,

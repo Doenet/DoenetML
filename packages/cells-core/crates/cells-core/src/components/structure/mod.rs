@@ -75,7 +75,7 @@ pub mod sequence_value {
             k: attr(1.0),
             km1: computed(OpSpec::Offset { k: -1.0 }, [k]),
             scaled: computed(OpSpec::Mul, [km1, step]),
-            value: computed(OpSpec::Add, [scaled, from]),
+            value: computed(OpSpec::Add, [scaled, from]) { rendered },
         }
         planner: Props,
     }
@@ -94,7 +94,7 @@ pub mod case {
         /// the children of an active case only.
         tags: ["case"],
         props {
-            active: by_planner,
+            active: by_planner { rendered },
         }
         planner: Props,
     }

@@ -10,7 +10,7 @@ component! {
     /// options it picked, flattened like a repeat's iterations.
     tags: ["select"],
     props {
-        hide: by_planner,
+        hide: by_planner { rendered },
     }
     planner: Whole(plan),
 }

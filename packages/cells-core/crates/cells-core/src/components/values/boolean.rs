@@ -22,7 +22,7 @@ component! {
     flags: [copyable],
     default_prop: value,
     props {
-        value: children,
+        value: children { rendered },
     }
     shared_state {
         // The value, when it is the boolean's own state.

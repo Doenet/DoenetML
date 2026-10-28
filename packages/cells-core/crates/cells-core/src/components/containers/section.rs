@@ -26,13 +26,13 @@ component! {
         // `creditAchieved`, `percentCreditAchieved` and `number` are planned
         // deferred and wired after expansion (`Deferred`); the flags are literals
         // the builder reads, since they decide the wiring.
-        creditAchieved: by_planner,
+        creditAchieved: by_planner { score },
         percentCreditAchieved: by_planner,
         weight: attr(1.0),
         aggregateScores: by_planner,
-        number: by_planner,
-        includeParentNumber: by_planner,
-        label: by_planner,
+        number: by_planner { rendered },
+        includeParentNumber: by_planner { rendered },
+        label: by_planner { rendered },
     }
     planner: PropsThen(plan),
 }

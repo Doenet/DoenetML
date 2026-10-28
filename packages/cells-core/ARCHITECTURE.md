@@ -344,7 +344,13 @@ other (ADR 0018), which the viewer's test (`src/interactive.test.tsx`)
 catches first. A prop an action writes instead is `written_by_action`. A
 spec reaches a prop no renderer requests (a circle's `radius`) through an
 input bound to it, `<mathInput bindValueTo="$c.radius"/>`, as a document
-does; never mark a prop interactive for its spec.
+does; never mark a prop interactive for its spec. Mark every prop the
+renderer reads `rendered` (a list whose points it draws, `rendered:
+true`), a score a grader reads `score`, and a prop an action reads
+`read_by_action`; a type drawn only in a graph, or nowhere, says so with
+`renders: InGraph` or `renders: Never`. These are the document's outputs
+(ADR 0019), and the viewer's test fails on a renderer's read of any
+other cell.
 
 ### Add an operator
 

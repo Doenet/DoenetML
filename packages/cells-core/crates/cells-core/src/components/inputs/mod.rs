@@ -16,7 +16,7 @@ pub mod number_input {
         flags: [copyable],
         default_prop: value,
         props {
-            value: attr(NO_VALUE) { interactive },
+            value: attr(NO_VALUE) { interactive, rendered },
         }
         planner: Props,
     }
@@ -32,7 +32,7 @@ pub mod boolean_input {
         flags: [copyable],
         default_prop: value,
         props {
-            value: attr(0.0) { bind: bindValueTo, interactive },
+            value: attr(0.0) { bind: bindValueTo, interactive, rendered },
         }
         planner: Props,
     }
@@ -78,9 +78,9 @@ pub mod slider {
         flags: [copyable],
         default_prop: value,
         props {
-            from: attr(0.0),
-            to: attr(10.0),
-            step: attr(1.0),
+            from: attr(0.0) { rendered },
+            to: attr(10.0) { rendered },
+            step: attr(1.0) { rendered },
             // Without an initialValue nothing is stored, and the slider shows
             // `from` (index 0), as in the current core.
             preliminaryValue: attr(NO_VALUE) { attribute: initialValue, bind: bindValueTo },
@@ -98,7 +98,7 @@ pub mod slider {
             index: computed(OpSpec::NanTo { k: 0.0 }, [clampedIndex]),
             scaled: computed(OpSpec::Mul, [index, step]),
             // A request on the value inverts onto `preliminaryValue`.
-            value: computed(OpSpec::Add, [scaled, from]) { interactive },
+            value: computed(OpSpec::Add, [scaled, from]) { interactive, rendered },
         }
         planner: Props,
     }

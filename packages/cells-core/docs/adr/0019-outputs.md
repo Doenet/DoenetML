@@ -1,6 +1,6 @@
 # Compute only what leaves the core: outputs, decided once per load
 
-Status: draft 2026-10-28.
+Status: draft 2026-10-28. Phase 1 is done; see Migration.
 
 An **output** is a cell whose value leaves the core: a prop a renderer
 draws, or a score a grader reads. The compile finds, once per load and per
@@ -116,22 +116,25 @@ Beside `interactive` and `written_by_action`, a prop may be marked:
 Whether a component is rendered is decided by the type and its chain of
 parents, declared in the type's block:
 
-- `renders: always` (the default), `never` (an `<award>`, a `<when>`, a
-  `<response>`, a `<choice>`, which its `<choiceInput>` draws, a
-  `<selectFromSequence>`, an `<updateValue>`, a `<functionIterates>`), or
-  `in_graph` (a line, a segment, a circle, a polygon, a polyline);
-- a type whose children are not rendered: `<setup>`. A component is
-  rendered when it renders and every component above it renders its
-  children.
+- `Renders::Always`, the default; `Never` (a `<setup>`, an `<award>`, a
+  `<when>`, a `<response>`, a `<selectFromSequence>`, an `<updateValue>`,
+  a `<functionIterates>`, a `<shortDescription>`, a `<function>`); or
+  `InGraph`, drawn only with a `<graph>` above it (a line, a segment, a
+  circle, a polygon, a polyline, a legend), written `renders: InGraph`
+  after the block's `flags`;
+- a component is rendered when its type's rule allows it where it is and
+  its parent is rendered; the document is. So nothing inside a `<setup>`
+  or an `<award>` is.
 
 A dynamic `hide`, or a case that is not active, does not make a component
 unrendered: either can change on any tick. Content under a literal
 `hide` could be cut, as a later refinement.
 
 The marks are the contract with the renderer, as `interactive` is. The
-viewer's test fails when a renderer reads, through `comps.cell` or
-`useCell`, a cell the core does not report as an output, as it fails today
-on a request to a cell that is not interactive. A renderer added for a
+viewer's test fails when a renderer reads, through the store's `get` or
+`subscribe` (which `useCell` and the board's elements read through), a
+cell the core does not report as an output, as it fails on a request to
+a cell that is not interactive. A renderer added for a
 type marks what it reads in the same change: the viewer draws no
 `<function>` today, so a function's samples are dead until one does.
 
@@ -268,9 +271,36 @@ Each phase leaves the tree green.
    `ARCHITECTURE.md`: emit, "A document loads", and "Add a component type"
    (mark what the renderer reads). This ADR's status.
 
-Open while drafting:
+Settled while implementing phase 1:
 
-- Whether `renders` and the setup rule cover every type, checked by
-  phase 1's test over the viewer's renderers.
+- `Document::output_cells` (`document/outputs.rs`) and
+  `rendered_components` compute the outputs from the component table on
+  each call; phase 2's record replaces the table walk, and phase 3 keeps
+  a bit per cell if a tick needs one.
+- A `<choice>` is drawn: its `<choiceInput>` draws its children beside
+  each radio button, so it renders as its parent does. The draft listed it
+  as never rendered.
+- `InGraph` asks for a `<graph>` anywhere above. The viewer passes "in a
+  graph" through only some containers (a `<p>`, a `<group>`, a case), so
+  the core's rule counts a few components rendered that the viewer does
+  not draw, never the other way: a wider rule computes more, not less.
+  For the same reason a `<triggerSet>`, which the viewer does not draw in
+  a graph, renders always.
+- A polyline's `numVertices` is not rendered: its renderer reads its
+  children, points that are rendered in a graph.
+- The check sits in `CellStore.get` and `subscribe`, on with
+  `CellStore.checkReads`, in development and in tests like
+  `checkRequests`. The viewer's test renders a document with every
+  renderer, then every golden document and `sir.doenet`, uses every
+  control, and finds no read of a cell that is not an output; it also
+  lists one read per renderer that must happen, as it does for requests.
+  Unmarking a point's `hide` fails it on that document and on the
+  golden documents that draw points.
+- The core's own test, `tests/outputs.rs`, checks the marks, which
+  components are rendered, that every score is an output, and that every
+  cell `submit` and `trigger` read is marked `read_by_action`.
+
+Open:
+
 - Whether a fixed `hide` (a literal, ADR 0018) should make its content
   unrendered, and so dead unless something live reads it.

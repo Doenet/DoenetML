@@ -13,11 +13,12 @@ component! {
     /// `<lineSegment endpoints="$a $b">`.
     tags: ["lineSegment"],
     flags: [copyable],
+    renders: InGraph,
     props {
-        x1: by_planner,
-        y1: by_planner,
-        x2: by_planner,
-        y2: by_planner,
+        x1: by_planner { rendered },
+        y1: by_planner { rendered },
+        x2: by_planner { rendered },
+        y2: by_planner { rendered },
     }
     list {
         names: [points, endpoints],

@@ -9,6 +9,7 @@ component! {
     /// its `<when>` holds (or its content equals the submitted response), else
     /// 0. Planned with its answer (`plan_answer`).
     tags: ["award"],
+    renders: Never,
     default_prop: awarded,
     props {
         credit: attr(1.0),

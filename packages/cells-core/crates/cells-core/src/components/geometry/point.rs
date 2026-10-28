@@ -16,10 +16,10 @@ component! {
     flags: [copyable],
     default_prop: coords,
     props {
-        x: by_planner { interactive },
-        y: by_planner { interactive },
+        x: by_planner { interactive, rendered },
+        y: by_planner { interactive, rendered },
         // A boolean in the current core; here a 0/1 cell.
-        hide: by_planner,
+        hide: by_planner { rendered },
     }
     combined_props {
         coords: [x, y],

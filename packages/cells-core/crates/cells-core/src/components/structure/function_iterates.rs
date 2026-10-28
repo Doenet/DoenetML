@@ -14,6 +14,7 @@ component! {
     /// `count` (the structural cell) is `n + 1`; `allIteratesWithInitial` and
     /// `iterates`, as numbers, are the lengths of those lists.
     tags: ["functionIterates"],
+    renders: Never,
     props {
         numIterates: attr(0.0),
         numIteratesFloor: computed(OpSpec::Floor, [numIterates]),

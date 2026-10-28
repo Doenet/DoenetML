@@ -28,7 +28,7 @@ pub mod number {
         flags: [copyable],
         default_prop: value,
         props {
-            value: children,
+            value: children { rendered },
         }
         planner: Props,
     }
@@ -48,7 +48,7 @@ pub mod evaluate {
         props {
             function: attr(NO_VALUE) { ref_prop: expr },
             input: attr(NO_VALUE),
-            value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]),
+            value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]) { rendered },
         }
         planner: Props,
     }
@@ -65,9 +65,10 @@ pub mod response {
         /// Made by the builder.
         tags: ["response"],
         flags: [internal],
+        renders: Never,
         default_prop: value,
         props {
-            response: by_planner,
+            response: by_planner { read_by_action },
             // A submit writes it (`Document::submit`).
             submitted: by_planner { written_by_action },
             value: by_planner,
@@ -100,7 +101,7 @@ pub mod clamp_number {
             lowerValue: attr(0.0),
             upperValue: attr(1.0),
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
-            value: computed(OpSpec::Min, [atLeastLower, upperValue]),
+            value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
         }
         planner: Props,
     }
@@ -124,15 +125,15 @@ pub mod tuple {
         flags: [copyable, internal],
         default_prop: coords,
         props {
-            n: by_planner,
-            x1: by_planner,
-            x2: by_planner,
-            x3: by_planner,
-            x4: by_planner,
-            x5: by_planner,
-            x6: by_planner,
-            x7: by_planner,
-            x8: by_planner,
+            n: by_planner { rendered },
+            x1: by_planner { rendered },
+            x2: by_planner { rendered },
+            x3: by_planner { rendered },
+            x4: by_planner { rendered },
+            x5: by_planner { rendered },
+            x6: by_planner { rendered },
+            x7: by_planner { rendered },
+            x8: by_planner { rendered },
         }
         combined_props {
             coords: [x1, x2, x3, x4, x5, x6, x7, x8],
@@ -189,10 +190,11 @@ pub mod update_value {
         /// target's value cell, so performing it (`Document::trigger`) is a
         /// request on that cell for `newValue`'s current value.
         tags: ["updateValue"],
+        renders: Never,
         props {
             // Pressing its `<triggerSet>` requests it (`Document::trigger`).
             target: attr(NO_VALUE) { written_by_action },
-            newValue: attr(NO_VALUE),
+            newValue: attr(NO_VALUE) { read_by_action },
         }
         planner: Props,
     }

@@ -176,6 +176,8 @@ pub struct ComponentDef {
     /// so its documents resolve unchanged.
     pub alternate_names: &'static [(&'static str, &'static str)],
     pub flags: Flags,
+    /// Where a component of the type is drawn (ADR 0019).
+    pub renders: Renders,
     /// How an element of the type is planned.
     pub(crate) planner: crate::compile::api::Planner,
     /// How a member of a sticky group attracts and snaps: its shape, and
@@ -196,6 +198,24 @@ pub struct ListProp {
     /// whole shape moves them (a line's, a circle's through points, a
     /// polygon's vertices).
     pub interactive: bool,
+    /// A renderer reads every point (a polygon's vertices; ADR 0019).
+    pub rendered: bool,
+}
+
+/// Where a component of a type is drawn, and so whether the props a
+/// renderer reads are outputs (ADR 0019). A component is rendered when its
+/// type's rule allows it where it is and its parent is rendered; the
+/// document is. A dynamic `hide`, or a case that is not active, leaves it
+/// rendered: either can change on any tick.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Renders {
+    /// Wherever it is; its children are rendered as their own rules say.
+    Always,
+    /// Nowhere, nor anything inside it: an `<award>`, a `<setup>`'s content,
+    /// a `<function>` no renderer draws yet.
+    Never,
+    /// Only with a `<graph>` above it: a line, a circle.
+    InGraph,
 }
 
 /// Where a list's points are.
@@ -431,16 +451,60 @@ impl ComponentType {
     /// interactive: marked so in the table, or a point of a list marked
     /// so (ADR 0017).
     pub fn is_interactive_prop(self, n_props: usize, pi: usize) -> bool {
-        let defs = self.prop_defs();
-        if let Some(def) = defs.get(pi) {
-            return def.interactive
-                || self.list().is_some_and(|list| {
-                    list.interactive
-                        && matches!(list.points, ListPoints::Table(points)
+        self.is_marked(n_props, pi, |d| d.interactive, |l| l.interactive)
+    }
+
+    /// Whether prop `pi` of an element with `n_props` public props is one
+    /// a renderer reads: marked so in the table, or a point of a list
+    /// marked so (ADR 0019). An output when the component is rendered.
+    pub fn is_rendered_prop(self, n_props: usize, pi: usize) -> bool {
+        self.is_marked(n_props, pi, |d| d.rendered, |l| l.rendered)
+    }
+
+    /// Whether prop `pi` is a score a grader reads (ADR 0019).
+    pub fn is_score_prop(self, pi: usize) -> bool {
+        self.prop_defs().get(pi).is_some_and(|d| d.score)
+    }
+
+    /// Whether prop `pi` is one an action reads (ADR 0019).
+    pub fn is_read_by_action_prop(self, pi: usize) -> bool {
+        self.prop_defs().get(pi).is_some_and(|d| d.read_by_action)
+    }
+
+    /// Whether prop `pi` is one the core reads itself whether or not the
+    /// component is rendered (ADR 0019): a score, an input, what an action
+    /// reads, or a repeat's count. With the rendered props of rendered
+    /// components, the roots of what a document computes.
+    pub fn is_root_prop(self, n_props: usize, pi: usize) -> bool {
+        self.is_score_prop(pi)
+            || self.is_input_prop(n_props, pi)
+            || self.is_read_by_action_prop(pi)
+            || self.count_prop() == Some(pi)
+    }
+
+    /// Whether prop `pi` is marked: its table entry by `prop`, or a point
+    /// of the type's list by `list`, a table point by either.
+    fn is_marked(
+        self,
+        n_props: usize,
+        pi: usize,
+        prop: impl Fn(&PropDef) -> bool,
+        list: impl Fn(&ListProp) -> bool,
+    ) -> bool {
+        if let Some(def) = self.prop_defs().get(pi) {
+            return prop(def)
+                || self.list().is_some_and(|l| {
+                    list(l)
+                        && matches!(l.points, ListPoints::Table(points)
                             if points.iter().flatten().any(|&p| p == def.name))
                 });
         }
-        pi < n_props && self.list().is_some_and(|list| list.interactive)
+        pi < n_props && self.list().is_some_and(list)
+    }
+
+    /// Where a component of the type is drawn (ADR 0019).
+    pub fn renders(self) -> Renders {
+        self.def().renders
     }
 
     /// Whether prop `pi` is one an action writes (ADR 0018).
@@ -551,6 +615,12 @@ pub struct PropDef {
     /// An action writes this prop (a submit, a trigger): student state,
     /// though no renderer requests it (ADR 0018).
     pub written_by_action: bool,
+    /// A renderer reads this prop (ADR 0019).
+    pub rendered: bool,
+    /// A grader reads this prop (ADR 0019).
+    pub score: bool,
+    /// An action reads this prop (ADR 0019).
+    pub read_by_action: bool,
 }
 
 impl PropDef {

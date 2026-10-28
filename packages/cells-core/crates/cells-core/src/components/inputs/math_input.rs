@@ -20,8 +20,8 @@ component! {
         // from what `value` turned out to be.
         // Typing requests `expr`, or `value` when the input is bound to a
         // number.
-        value: children { attribute: prefill, bind: bindValueTo, interactive },
-        expr: by_planner { interactive },
+        value: children { attribute: prefill, bind: bindValueTo, interactive, rendered },
+        expr: by_planner { interactive, rendered },
     }
     planner: PropsThen(plan),
 }

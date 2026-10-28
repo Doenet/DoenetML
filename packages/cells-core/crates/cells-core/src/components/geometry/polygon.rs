@@ -15,9 +15,10 @@ component! {
     /// (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
     tags: ["polygon", "triangle"],
     flags: [copyable],
+    renders: InGraph,
     props {
         // The vertices follow, as the list.
-        numVertices: by_planner,
+        numVertices: by_planner { rendered },
     }
     list {
         names: [vertices],
@@ -25,8 +26,10 @@ component! {
         coords: [x, y],
         alternate_name: vertexX,
         attribute: vertices,
-        // A vertex drag requests one, a whole-polygon drag all.
+        // A vertex drag requests one, a whole-polygon drag all; the
+        // renderer draws every one.
         interactive: true,
+        rendered: true,
     }
     sticky_list: Shape::Closed,
     attributes {

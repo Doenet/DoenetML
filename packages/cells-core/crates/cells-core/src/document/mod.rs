@@ -19,6 +19,7 @@ use crate::tick::{Request, TickOutcome};
 
 mod interactive;
 mod load;
+mod outputs;
 mod paths;
 mod request;
 mod sections;

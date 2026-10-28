@@ -12,6 +12,7 @@ component! {
     /// dragging a polyline is not supported.
     tags: ["polyline"],
     flags: [copyable],
+    renders: InGraph,
     props {
         numVertices: by_planner,
     }

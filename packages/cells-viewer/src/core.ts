@@ -115,6 +115,13 @@ export class CellStore {
      * so a renderer that requests a prop its definition does not mark is
      * an input the saved-state check would not see. */
     static checkRequests: boolean = import.meta.env?.DEV ?? false;
+    /** Check each cell a renderer reads (`get`, `subscribe`) against the
+     * core's outputs (ADR 0019) and throw on any other: on in development
+     * and in tests, off in a production build. The core computes only
+     * what an output reads, so a renderer that reads a prop its definition
+     * does not mark `rendered`, or a component the core does not count as
+     * rendered, reads a value nothing keeps up to date. */
+    static checkReads: boolean = import.meta.env?.DEV ?? false;
 
     comps: ComponentTable;
     /** The wasm core; the benchmark's harness calls it directly
@@ -123,6 +130,8 @@ export class CellStore {
     _view: Float64Array;
     /** The interactive cells, read once per build when checked. */
     _interactive: Set<number> | null = null;
+    /** The output cells, read once per build when checked. */
+    _outputs: Set<number> | null = null;
     _listeners: (Set<Listener> | undefined)[];
     _anyListeners = new Set<Listener>();
     _structureListeners = new Set<Listener>();
@@ -173,10 +182,12 @@ export class CellStore {
     }
 
     get(cell: number): number {
+        if (CellStore.checkReads) this._checkOutput(cell);
         return this.cells()[cell];
     }
 
     subscribe(cell: number, fn: Listener): () => void {
+        if (CellStore.checkReads) this._checkOutput(cell);
         (this._listeners[cell] ??= new Set()).add(fn);
         return () => this._listeners[cell]?.delete(fn);
     }
@@ -283,6 +294,16 @@ export class CellStore {
         }
     }
 
+    _checkOutput(cell: number): void {
+        this._outputs ??= new Set(this.core.output_cells());
+        if (this._outputs.has(cell)) return;
+        throw new Error(
+            `read of cell ${cell} (${this._describeCell(cell)}), which no ` +
+                "component definition marks rendered, or of a component " +
+                "the core does not count as rendered",
+        );
+    }
+
     /** The props a cell is, as `type.prop`, for an error message. */
     _describeCell(cell: number): string {
         const names: string[] = [];
@@ -341,6 +362,7 @@ export class CellStore {
             );
             this._listeners = new Array(this.comps.nCells);
             this._interactive = null;
+            this._outputs = null;
             this.structureVersion++;
             for (const fn of this._structureListeners) fn();
         } else {

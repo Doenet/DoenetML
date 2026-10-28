@@ -19,6 +19,9 @@ pub(super) struct Prop {
     ref_prop: Option<&'static str>,
     interactive: bool,
     written_by_action: bool,
+    rendered: bool,
+    score: bool,
+    read_by_action: bool,
 }
 
 /// [`PropFrom`] with props named rather than numbered.
@@ -41,6 +44,9 @@ const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> 
         ref_prop: None,
         interactive: false,
         written_by_action: false,
+        rendered: false,
+        score: false,
+        read_by_action: false,
     }
 }
 
@@ -110,6 +116,24 @@ impl Prop {
         self.written_by_action = true;
         self
     }
+    /// A renderer reads this prop: an output when its component is
+    /// rendered (ADR 0019).
+    pub(super) const fn rendered(mut self) -> Self {
+        self.rendered = true;
+        self
+    }
+    /// A grader reads this prop: an output wherever its component is
+    /// (ADR 0019).
+    pub(super) const fn score(mut self) -> Self {
+        self.score = true;
+        self
+    }
+    /// An action reads this prop (`Document::submit`, `trigger`), so the
+    /// core needs its value though no renderer may read it (ADR 0019).
+    pub(super) const fn read_by_action(mut self) -> Self {
+        self.read_by_action = true;
+        self
+    }
 }
 
 /// A table's [`PropDef`]s, with each prop name a computed prop reads
@@ -124,6 +148,9 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
         ref_prop: None,
         interactive: false,
         written_by_action: false,
+        rendered: false,
+        score: false,
+        read_by_action: false,
     };
     let mut out = [blank; N];
     let mut i = 0;
@@ -162,6 +189,9 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             ref_prop: p.ref_prop,
             interactive: p.interactive,
             written_by_action: p.written_by_action,
+            rendered: p.rendered,
+            score: p.score,
+            read_by_action: p.read_by_action,
         };
         i += 1;
     }
@@ -198,6 +228,7 @@ pub(super) const fn definition(
             symbolic: false,
             internal: false,
         },
+        renders: super::Renders::Always,
         sticky: None,
         planner: crate::compile::api::Planner::Props,
     }
@@ -222,6 +253,11 @@ impl ComponentDef {
     /// Made by the builder, never by a tag in the source.
     pub(super) const fn internal(mut self) -> Self {
         self.flags.internal = true;
+        self
+    }
+    /// Where a component of the type is drawn (ADR 0019).
+    pub(super) const fn renders(mut self, renders: super::Renders) -> Self {
+        self.renders = renders;
         self
     }
     /// The same definition under other tags (`<derivative>` is a
@@ -431,11 +467,19 @@ pub(crate) use typed_props;
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
 /// optionally followed by `{ attribute: a, bind: b, ref_prop: p,
-/// interactive, written_by_action }`. `interactive` marks a prop a
-/// renderer may request (ADR 0017's inputs); a list ending `interactive:
-/// true` has every point interactive, for a shape a drag of one point or
-/// of the whole shape moves. `written_by_action` marks a prop an action
-/// writes instead (a submit, a trigger; ADR 0018).
+/// interactive, written_by_action, rendered, score, read_by_action }`.
+/// `interactive` marks a prop a renderer may request (ADR 0017's inputs);
+/// a list ending `interactive: true` has every point interactive, for a
+/// shape a drag of one point or of the whole shape moves.
+/// `written_by_action` marks a prop an action writes instead (a submit, a
+/// trigger; ADR 0018). `rendered` marks a prop a renderer reads, `score`
+/// one a grader reads and `read_by_action` one an action reads: what the
+/// core must compute (ADR 0019). A list ending `rendered: true` has every
+/// point rendered.
+///
+/// `renders: Never` or `renders: InGraph`, after `flags`, says where a
+/// component of the type is drawn ([`super::Renders`]); by default it is
+/// drawn wherever it is.
 ///
 /// ```ignore
 /// component! {
@@ -459,18 +503,21 @@ macro_rules! component {
         $(#[$doc:meta])*
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
+        $(renders: $renders:ident,)?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
         pub(crate) const DEFINITION: $crate::components::ComponentDef =
             $crate::components::define::definition(&[$($tag),+], &[])
                 $($(.$flag())*)?
+                $(.renders($crate::components::Renders::$renders))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
     };
     (
         $(#[$doc:meta])*
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
+        $(renders: $renders:ident,)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -480,10 +527,12 @@ macro_rules! component {
             names: [$($lname:ident),+ $(,)?],
             item: $litem:ident,
             $(points: [$([$px:ident, $py:ident]),+ $(,)?]
-                $(, interactive: $lpinteractive:literal)? $(,)?)?
+                $(, interactive: $lpinteractive:literal)?
+                $(, rendered: $lprendered:literal)? $(,)?)?
             $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
                 attribute: $lattr:ident $(, max: $lmax:expr)?
-                $(, interactive: $lcinteractive:literal)? $(,)?)?
+                $(, interactive: $lcinteractive:literal)?
+                $(, rendered: $lcrendered:literal)? $(,)?)?
         })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(sticky_points: ($($sp:expr),+ $(,)?),)?
@@ -496,6 +545,7 @@ macro_rules! component {
         pub(crate) const DEFINITION: $crate::components::ComponentDef =
             $crate::components::define::definition(&[$($tag),+], PROPS)
                 $($(.$flag())*)?
+                $(.renders($crate::components::Renders::$renders))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -506,6 +556,7 @@ macro_rules! component {
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
                     ),
                     interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)?),
+                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.sticky($($sp),+))?
@@ -576,7 +627,7 @@ macro_rules! component {
     };
     (@list_points) => {
         compile_error!(
-            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`), either optionally ending `interactive: true`"
+            "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`), either optionally ending `interactive: true` and then `rendered: true`"
         )
     };
     (@flag) => { false };
