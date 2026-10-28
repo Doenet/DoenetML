@@ -245,6 +245,21 @@ export async function determineParentAndIndexResolutionForResolver({
         // Don't add index resolutions in this case,
         // we're just adding to the children of the list, not the replacements of the list
         parentIdx = component.parentIdx;
+        // The list this `_copy` fills may itself be the unnamed list another
+        // list's `_copy` made, as in a copy of a copy of a list
+        // (`<mathList name="c2" copy="$c1"/>` of `<mathList name="c1"
+        // copy="$l"/>`). Its names then belong to the list that `_copy`
+        // fills, which has the copy's name, so `$c2.h` reaches the copy of
+        // `l.h` as `$c1.h` does (NAME-2, NAME-3).
+        let filledList = core._components[parentIdx];
+        while (
+            filledList?.replacementOf?.doenetAttributes?.forList !==
+                undefined &&
+            filledList.attributes?.name === undefined
+        ) {
+            parentIdx = filledList.replacementOf.parentIdx;
+            filledList = core._components[parentIdx];
+        }
     } else if (component.attributes._createComponentIdx?.primitive) {
         // If `_createComponentIdx` is set, then we have a copy component created from an `extend` attribute.
         // That component is already in the resolver so will be the parent of the fragment added to the browser.

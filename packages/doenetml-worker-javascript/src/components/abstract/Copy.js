@@ -1517,7 +1517,29 @@ export default class Copy extends CompositeComponent {
         };
     }
 
-    static async createReplacementForSource({
+    /**
+     * The replacements made from source `sourceNum`
+     * (`replacementForSource`). The `_copy` of an `extend` or `copy` of a
+     * list (`forList`, `convertToCopy.ts`) fills the list written in the
+     * document, which has the author's name, so what it makes has no name of
+     * its own. Otherwise the name of the list it copies would be a name
+     * inside the copy (`$c.l` of a copy `c` of `l`), and a reference written
+     * in the list by that name (`$l.h`) would find the copy's own child
+     * rather than `l`'s, as it does not in a copy of a `<p>`.
+     */
+    static async createReplacementForSource(args) {
+        const results = await this.replacementForSource(args);
+        if (args.component.doenetAttributes.forList !== undefined) {
+            for (const replacement of results.serializedReplacements ?? []) {
+                if (typeof replacement === "object") {
+                    delete replacement.attributes?.name;
+                }
+            }
+        }
+        return results;
+    }
+
+    static async replacementForSource({
         component,
         sourceNum,
         components,

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    movePoint,
+    movePolygon,
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
@@ -559,33 +562,306 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
-    it("a copy of a list holds its values as they are", async () => {
+    it("a copy of a list is its DoenetML pasted, whose references stay live", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="x" />
     <mathList name="l">$mi <math displayDigits="5" name="h">3.14159265</math></mathList>
     <mathList name="c" copy="$l" />
+    <numberList name="nl">1 <number name="n">$mi+1</number></numberList>
+    <numberList name="nc" copy="$nl" />
+    <textList name="tl">a <text name="t">$mi</text></textList>
+    <textList name="tc" copy="$tl" />
     <p name="pl">$l</p>
+    <p name="pc">$c</p>
+    <p name="pch">$c.h</p>
+    <p name="pnc">$nc $nc.n</p>
+    <p name="ptc">$tc $tc.t</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pl",
+                "pc",
+                "pch",
+                "pnc",
+                "ptc",
+            ]),
+        ).eqls({
+            pl: "x, 3.1416",
+            pc: "x, 3.1416",
+            pch: "3.1416",
+            pnc: "1, NaN NaN",
+            ptc: "a, x x",
+        });
+        // the copy has the named children of the list
+        expect(await resolvePathToNodeIdx("c.h")).not.eq(-1);
+
+        // a reference in the list stays live in the copy (CPY-3)
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pl",
+                "pc",
+                "pnc",
+                "ptc",
+            ]),
+        ).eqls({
+            pl: "2, 3.1416",
+            pc: "2, 3.1416",
+            pnc: "1, 3 3",
+            ptc: "a, 2 2",
+        });
+    });
+
+    it("a copy or extend of a list has the name written on it, and none of the list it copies", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l"><math name="h">x</math> 2</mathList>
+    <mathList name="c1" copy="$l" />
+    <mathList name="c2" copy="$c1" />
+    <mathList name="e" extend="$l" />
+    <mathList name="ce" copy="$e" />
+    <repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>
+    <mathList name="er" extend="$r" />
+    <mathList name="cer" copy="$er" />
+    <pointList name="pl"><point name="A">(1,2)</point></pointList>
+    <pointList name="pc" copy="$pl" />
+    <p name="p">$c1.h | $ce.h | $pc.A | $c2 | $cer</p>
+    `,
+        });
+
+        // the children the list names are reached through the copy
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "x | x | (1, 2) | x, 2 | 1, 2",
+        });
+        // but the name of the list it copies or extends is not in it
+        for (const path of [
+            "c1.l",
+            "c2.c1",
+            "c2.l",
+            "e.l",
+            "ce.e",
+            "ce.l",
+            "cer.er",
+            "cer.r",
+            "pc.pl",
+        ]) {
+            expect(await resolvePathToNodeIdx(path), path).eq(-1);
+        }
+    });
+
+    it("a reference in a list by the list's own name refers to that list in a copy too, as in a copy of a <p>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l"><math name="h">1</math><math>$l.h+1</math></mathList>
+    <mathList name="c" copy="$l" />
+    <p name="P"><math name="h">1</math> <math>$P.h+1</math></p>
+    <p name="Q" copy="$P" />
+    <mathInput name="mc" bindValueTo="$c.h" />
+    <mathInput name="mq" bindValueTo="$Q.h" />
+    <mathInput name="ml" bindValueTo="$l.h" />
+    <mathInput name="mp" bindValueTo="$P.h" />
     <p name="pc">$c</p>
     `,
         });
 
-        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pc"])).eqls({
-            pl: "x, 3.1416",
-            pc: "x, 3.1416",
+        // `$l.h` in the copy is `l`'s `h`, not the copy's own, as `$P.h` in
+        // a copy of `P` is `P`'s
+        for (const [input, latex] of [
+            ["mc", "7"],
+            ["mq", "7"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pc", "Q"])).eqls({
+            pc: "7, 1 + 1",
+            Q: "7 1 + 1",
         });
-        // the copy holds the values, not the children
-        expect(await resolvePathToNodeIdx("c.h")).eq(-1);
+        for (const [input, latex] of [
+            ["ml", "3"],
+            ["mp", "3"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pc", "Q"])).eqls({
+            pc: "7, 3 + 1",
+            Q: "7 3 + 1",
+        });
+    });
+
+    it("the children of a copy of a copy of a list are reached through its name, before or after the copy", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <p name="before">$c1.h $c2.h $c3.h $cce.h $pcc.A</p>
+    <mathList name="l"><math name="h">$mi</math> 2</mathList>
+    <mathList name="c1" copy="$l" />
+    <mathList name="c2" copy="$c1" />
+    <mathList name="c3" copy="$c2" />
+    <mathList name="e" extend="$l" />
+    <mathList name="ce" copy="$e" />
+    <mathList name="cce" copy="$ce" />
+    <pointList name="pl"><point name="A">(1,2)</point></pointList>
+    <pointList name="pc" copy="$pl" />
+    <pointList name="pcc" copy="$pc" />
+    <p name="after">$c1.h $c2.h $c3.h $cce.h $pcc.A</p>
+    <repeatForSequence name="r" length="2"><mathList name="d" copy="$c1" /><math name="m">$d.h</math></repeatForSequence>
+    <p name="inRepeat">$r[1].m $r[2].m</p>
+    `,
+        });
+
+        const expected = {
+            before: "x x x x (1, 2)",
+            after: "x x x x (1, 2)",
+            inRepeat: "x x",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+        for (const path of ["c2.c1", "c2.l", "c3.c2", "cce.ce", "pcc.pc"]) {
+            expect(await resolvePathToNodeIdx(path), path).eq(-1);
+        }
 
         await updateMathInputValue({
             latex: "y",
             componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pc"])).eqls({
-            pl: "y, 3.1416",
-            pc: "x, 3.1416",
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls({
+            before: "y y y y (1, 2)",
+            after: "y y y y (1, 2)",
+            inRepeat: "y y",
         });
+    });
+
+    it("a list that copies itself loads and reports the cycle", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l">1 2</mathList>
+    <mathList name="c" copy="$c" />
+    <p name="p">$l</p>
+    `,
+        });
+
+        expect(
+            getDiagnosticsByType(core).errors.map((e: any) => e.message),
+        ).eqls(["Circular dependency detected."]);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "1, 2",
+        });
+    });
+
+    it("a copy of each kind of authored list follows the references in it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="1" />
+    <booleanInput name="bi" />
+    <booleanList name="bl">$bi true</booleanList>
+    <intervalList name="il">($mi, 5) [2,3]</intervalList>
+    <pointList name="pl">($mi, 2) (3,4)</pointList>
+    <vectorList name="vl">($mi, 2)</vectorList>
+    <tupleList name="tl">($mi, 9)</tupleList>
+    <p name="p"><booleanList copy="$bl" /> | <intervalList copy="$il" /> | <pointList copy="$pl" /> | <vectorList copy="$vl" /> | <tupleList copy="$tl" /></p>
+    `,
+        });
+
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "false, true | (1, 5), [2, 3] | (1, 2), (3, 4) | (1, 2) | (1, 9)",
+        });
+
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "true, true | (7, 5), [2, 3] | (7, 2), (3, 4) | (7, 2) | (7, 9)",
+        });
+    });
+
+    it("a copy of a list made after the reader changed it starts from its current values, through a reload", async () => {
+        const doenetML = `
+    <mathList name="ml">x <math>y</math></mathList>
+    <mathInput name="mi1" bindValueTo="$ml[1]" />
+    <mathInput name="mi2" bindValueTo="$ml[2]" />
+    <textList name="tl">a <text>b</text></textList>
+    <textInput name="ti" bindValueTo="$tl[2]" />
+    <pointList name="pl">(1,2) <point>(3,4)</point></pointList>
+    <mathInput name="mp" bindValueTo="$pl[2]" />
+    <booleanInput name="b" />
+    <conditionalContent name="cc" condition="$b">
+      <p name="p"><mathList copy="$ml" /> | <textList copy="$tl" /> | <pointList copy="$pl" /></p>
+    </conditionalContent>
+    <p name="atLoad"><mathList copy="$ml" /></p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "r",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "z",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolvePathToNodeIdx("mp"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+
+        // a copy made at load keeps what the list was then (CPY-2)
+        const expected = {
+            "cc.p": "q, r | a, z | (1, 2), (7, 8)",
+            atLoad: "x, y",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
     });
 
     it("a value written to an entry of a copy is kept by the copy, before and after a reload", async () => {
@@ -1053,5 +1329,212 @@ describe("Value lists as list components @group4", async () => {
             // the point's own settings, when the copy sets none
             copyNone: "1.2, 2.3",
         });
+    });
+    it("a copy of an extend of a list pastes the list it extends, and a copy of an extend of a property holds its values, neither linked to its source", async () => {
+        const doenetML = `
+    <mathInput name="m" prefill="a" />
+    <mathList name="l">$m <math>y</math></mathList>
+    <mathInput name="ml2" bindValueTo="$l[2]" />
+    <mathList name="e" extend="$l" />
+    <mathList name="e2" extend="$e" />
+    <mathList name="ce" copy="$e2" />
+    <mathInput name="mce2" bindValueTo="$ce[2]" />
+    <graph><point name="P">(1,2)</point></graph>
+    <mathList name="ex" extend="$P.xs" />
+    <mathList name="cex" copy="$ex" />
+    <mathInput name="mcex1" bindValueTo="$cex[1]" />
+    <p name="pl"><mathList extend="$l" /></p>
+    <p name="pce"><mathList extend="$ce" /></p>
+    <p name="pP"><mathList extend="$P.xs" /></p>
+    <p name="pcex"><mathList extend="$cex" /></p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        const names = ["pl", "pce", "pP", "pcex"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pl: "a, y",
+            pce: "a, y",
+            pP: "1, 2",
+            pcex: "1, 2",
+        });
+
+        // the copy follows what the list it pastes refers to
+        await updateMathInputValue({
+            latex: "b",
+            componentIdx: await resolvePathToNodeIdx("m"),
+            core,
+        });
+        // a write to the list does not reach the copy, nor one to the
+        // copy the list or the point
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("ml2"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "w",
+            componentIdx: await resolvePathToNodeIdx("mce2"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("mcex1"),
+            core,
+        });
+        const changed = {
+            pl: "b, q",
+            pce: "b, w",
+            pP: "1, 2",
+            pcex: "9, 2",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+    });
+
+    it("a copy of an extend made after the reader changed its source starts from the source's current values, through a reload", async () => {
+        const doenetML = `
+    <mathInput name="m" prefill="a" />
+    <mathList name="l">$m <math>y</math> z</mathList>
+    <mathInput name="ml2" bindValueTo="$l[2]" />
+    <mathInput name="ml3" bindValueTo="$l[3]" />
+    <mathList name="e" extend="$l" />
+    <mathList name="ee" extend="$e" />
+    <graph>
+      <point name="P">(1,2)</point>
+      <polygon name="poly" vertices="(0,0) (3,0) (0,4)" />
+    </graph>
+    <mathList name="ex" extend="$P.xs" />
+    <pointList name="ev" extend="$poly.vertices" />
+    <booleanInput name="b" />
+    <conditionalContent name="cc" condition="$b">
+      <p name="pe"><mathList name="ce" copy="$e" /></p>
+      <p name="pee"><mathList copy="$ee" /></p>
+      <p name="pcce"><mathList copy="$ce" /></p>
+      <p name="pex"><mathList copy="$ex" /></p>
+      <p name="pev"><pointList copy="$ev" /></p>
+    </conditionalContent>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("ml2"),
+            core,
+        });
+        // a write to a piece of text of the list
+        await updateMathInputValue({
+            latex: "s",
+            componentIdx: await resolvePathToNodeIdx("ml3"),
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("poly"),
+            pointCoords: { 0: [1, 1] },
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        const names = ["cc.pe", "cc.pee", "cc.pcce", "cc.pex", "cc.pev"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            "cc.pe": "a, q, s",
+            "cc.pee": "a, q, s",
+            "cc.pcce": "a, q, s",
+            "cc.pex": "5, 6",
+            "cc.pev": "(1, 1), (3, 0), (0, 4)",
+        });
+
+        // the copies of an extend of a list follow the references in it;
+        // those of an extend of a property hold their values
+        await updateMathInputValue({
+            latex: "b",
+            componentIdx: await resolvePathToNodeIdx("m"),
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("poly"),
+            pointCoords: { 1: [2, 2] },
+            core,
+        });
+        const changed = {
+            "cc.pe": "b, q, s",
+            "cc.pee": "b, q, s",
+            "cc.pcce": "b, q, s",
+            "cc.pex": "5, 6",
+            "cc.pev": "(1, 1), (3, 0), (0, 4)",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+    });
+    it("a copy of an extend of a repeat pastes the repeat, not linked to the repeat's own values", async () => {
+        const doenetML = `
+    <setup><repeat name="r" for="1 2" valueName="v"><math>2$v</math></repeat></setup>
+    <p name="pe"><mathList name="e" extend="$r" /></p>
+    <p name="pc"><mathList name="c" copy="$e" /></p>
+    <mathInput name="ic" bindValueTo="$c[1]" />
+    <mathInput name="ie" bindValueTo="$e[2]" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        const names = ["pe", "pc"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pe: "2 * 1, 2 * 2",
+            pc: "2 * 1, 2 * 2",
+        });
+
+        // a write to the copy changes the copy's own repeat, not `r`
+        await updateMathInputValue({
+            latex: "50",
+            componentIdx: await resolvePathToNodeIdx("ic"),
+            core,
+        });
+        // and a write to the extend changes `r`, not the copy
+        await updateMathInputValue({
+            latex: "60",
+            componentIdx: await resolvePathToNodeIdx("ie"),
+            core,
+        });
+        const changed = {
+            pe: "2 * 1, 2 * 30",
+            pc: "2 * 25, 2 * 2",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
     });
 });

@@ -88,8 +88,6 @@ export default class AuthoredValueList extends ValueListComponent {
         return entryOwnDisplayArrays(this.listEntryComponentType);
     }
 
-    // A `copy=` of the list holds its values, as they are.
-    static serializeUnlinkedAsValues = true;
     static listEntryDisplaySettingsVariable = "entryDisplaySettings";
 
     static includeBlankStringChildren = true;
@@ -328,31 +326,40 @@ export default class AuthoredValueList extends ValueListComponent {
 
     async serialize(parameters = {}) {
         const serialized = await super.serialize(parameters);
-        if (!this.constructor.serializeUnlinkedAsValues) {
-            // A copy reads its values from the children and attributes it
-            // is made with, also as part of an unlinked copy of a
-            // `<repeat>` (`copyPrimaryEssential`).
-            delete serialized.state.listValuesShadow;
-            // A linked copy of the list (in an `extend` of its parent) has
-            // no children of its own (`serializeChildrenOnlyIfUnlinked`).
-            // An unlinked copy of it is made from the children of the list
-            // it copies.
-            const source =
-                parameters.copyAll &&
-                this.shadows &&
-                parameters.components?.[this.shadows.componentIdx];
-            if (source) {
-                const serializedSource = await source.serialize(parameters);
-                serialized.children = serializedSource.children;
-                serialized.state = {
-                    ...serializedSource.state,
-                    ...serialized.state,
-                };
+        // A copy, as the list's DoenetML pasted (`copy=`), reads its values
+        // from the children and attributes it is made with, also as part of
+        // an unlinked copy of a `<repeat>` (`copyPrimaryEssential`).
+        delete serialized.state.listValuesShadow;
+        // The list a `copy=` is made of, or one pasted in its place
+        // (`pasteWhatListExtends`), not a list inside the component copied.
+        const copied = parameters.copyAll && !parameters.serializingDescendant;
+        // A linked copy of the list (in an `extend` of its parent) has
+        // no children of its own (`serializeChildrenOnlyIfUnlinked`).
+        // An unlinked copy of it is made from the children of the list
+        // it copies.
+        const source =
+            parameters.copyAll &&
+            this.shadows &&
+            parameters.components?.[this.shadows.componentIdx];
+        if (source) {
+            const serializedSource = await source.serialize(parameters);
+            serialized.children = serializedSource.children;
+            // A pasted list takes what was written to its source's
+            // entries, which a shadow of it does not hold.
+            serialized.state = copied
+                ? { ...serialized.state, ...serializedSource.state }
+                : { ...serializedSource.state, ...serialized.state };
+            // its children are its source's, with what they extend
+            for (const name of ["extendListViaComposite", "extendsList"]) {
+                if (serializedSource.doenetAttributes?.[name] === undefined) {
+                    delete serialized.doenetAttributes[name];
+                } else {
+                    serialized.doenetAttributes[name] =
+                        serializedSource.doenetAttributes[name];
+                }
             }
-        } else if (parameters.copyAll && !parameters.serializingDescendant) {
-            serialized.state.entryDisplaySettingsShadow = [
-                ...(await this.stateValues.entryDisplaySettings),
-            ];
+        } else if (copied) {
+            await pasteWhatListExtends(this, serialized, parameters);
         }
         return serialized;
     }
@@ -395,9 +402,8 @@ export default class AuthoredValueList extends ValueListComponent {
                     listValuesShadow: true,
                 },
             }),
-            // A `copy=` of the list holds its values here
-            // (`serializeUnlinkedAsValues`), and a value written to one of
-            // its entries is kept here.
+            // A value written to an entry of the shadowed array is kept
+            // here.
             inverseDefinition: ({ desiredStateVariableValues }) => ({
                 success: true,
                 instructions: [
@@ -1021,19 +1027,6 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         };
 
-        // The display settings of the entries of the list a `copy=` holds
-        // the values of (`serializeUnlinkedAsValues`), as they were there.
-        stateVariableDefinitions.entryDisplaySettingsShadow = {
-            defaultValue: null,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    entryDisplaySettingsShadow: true,
-                },
-            }),
-        };
-
         addEntryOwnDisplayArrays({
             stateVariableDefinitions,
             arrayName,
@@ -1059,10 +1052,6 @@ export default class AuthoredValueList extends ValueListComponent {
                             "entryOfReference",
                         ],
                         variablesOptional: true,
-                    },
-                    shadow: {
-                        dependencyType: "stateVariable",
-                        variableName: "entryDisplaySettingsShadow",
                     },
                     copyListViaComposite: {
                         dependencyType: "stateVariable",
@@ -1112,24 +1101,6 @@ export default class AuthoredValueList extends ValueListComponent {
                         !usedDefault[name] &&
                         (!(`written_${name}` in dependencyValues) ||
                             dependencyValues[`written_${name}`] !== null);
-                }
-                if (dependencyValues.shadow !== null) {
-                    // The entries' settings as they were in the list a
-                    // `copy=` holds the values of. Settings the copy's
-                    // author gives are on the list holding this one, which
-                    // shows these entries as a reference's
-                    // (`entriesOfReference`).
-                    return {
-                        setValue: {
-                            entryDisplaySettings:
-                                dependencyValues.entryStructure.map(
-                                    (source) =>
-                                        dependencyValues.shadow[
-                                            source.shadowInd
-                                        ] ?? null,
-                                ),
-                        },
-                    };
                 }
                 // The children a `copy=` or `extend=` of the list makes
                 // (`<mathList copy="$P.xs" displayDigits="3" />`) are what
@@ -1955,8 +1926,9 @@ export function valueForChild(value, child) {
 }
 
 /**
- * A value written to a piece of text, or to an entry of the values a copy
- * holds, as the entry holds it. A saved state keeps a math as its tree.
+ * A value a list reads for an entry (one written to a piece of text, one of
+ * a shadowed array, or a collected source's), as the entry holds it. A saved
+ * state keeps a math as its tree.
  */
 export function restoredValue(value, kind) {
     if (kind === "math" && !(value instanceof me.class)) {
@@ -2302,4 +2274,53 @@ export function sourceComponentOf(source) {
         return referentInfo.componentIdx;
     }
     return source.componentIdx;
+}
+
+/**
+ * For a `copy=` of `list`, an `extend` of a list, a property or a composite
+ * (`<mathList extend="$l"/>`), paste in place of the composite that extend
+ * makes (`extendListViaComposite`) what it stands for, as an unlinked copy
+ * makes it, so that the copy is not linked to what `list` extends (CPY-4).
+ * A component it names whole (`extendsList`), a list or a `<repeat>`, is
+ * pasted (its DoenetML); a property's values are held (CPY-5).
+ */
+async function pasteWhatListExtends(list, serialized, parameters) {
+    const compositeIdx = list.doenetAttributes?.extendListViaComposite;
+    const composite = parameters.components?.[compositeIdx];
+    const ind = serialized.children.findIndex(
+        (child) => child?.componentIdx === compositeIdx,
+    );
+    if (!composite?.isExpanded || ind === -1) {
+        return;
+    }
+    // A component the extend names whole is pasted itself, not what it
+    // expands to: a `<repeat>`'s groups refer to its own `for`, which a
+    // paste of the groups alone would stay linked to.
+    const named = parameters.components?.[list.doenetAttributes.extendsList];
+    const replacements = named
+        ? [named]
+        : composite.replacements.slice(
+              0,
+              composite.replacements.length -
+                  (composite.replacementsToWithhold ?? 0),
+          );
+    const pasted = [];
+    for (const replacement of replacements) {
+        if (typeof replacement !== "object") {
+            pasted.push(replacement);
+            continue;
+        }
+        const serializedReplacement = await replacement.serialize({
+            ...parameters,
+            serializingDescendant: false,
+        });
+        // The copy has the name the author gave it; the name of what it
+        // pastes would be a name inside the copy (`$c.l`), as for the
+        // `_copy` of any copy of a list (`Copy.createReplacementForSource`).
+        delete serializedReplacement.attributes?.name;
+        pasted.push(serializedReplacement);
+    }
+    serialized.children.splice(ind, 1, ...pasted);
+    delete serialized.doenetAttributes.extendListViaComposite;
+    delete serialized.doenetAttributes.extendsList;
 }

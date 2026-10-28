@@ -193,6 +193,16 @@ export function convertRefsToCopies({
                     }
                 }
 
+                // As for any other copy (below), references in the
+                // attributes the author wrote on the list resolve as they
+                // would outside it, not to the list's copied children.
+                for (const attrName in wrappingComponent.attributes) {
+                    setUnflattenedReferenceOrigins(
+                        wrappingComponent.attributes[attrName].children,
+                        wrappingComponent.componentIdx,
+                    );
+                }
+
                 delete wrappingComponent.extending;
             } else {
                 outerAttributes._createComponentOfType = {
