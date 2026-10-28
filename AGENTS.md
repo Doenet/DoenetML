@@ -13,7 +13,7 @@ The **parser** (`packages/parser`) converts DoenetML XML into a **DAST** (Docume
 The **worker** (`packages/doenetml-worker`) runs in a Web Worker and manages document state and computation. It combines:
 - **JavaScript logic** (`packages/doenetml-worker-javascript`) for component evaluation, dependency tracking, and state updates
 - **Rust/WASM logic** (`packages/doenetml-worker-rust/lib-js-wasm-binding`). Reference-resolution paths run in Rust today; the rest of the worker is slowly being transitioned over.
-- **Cells core** (`packages/cells-core`, with its viewer in `packages/cells-viewer`): a candidate replacement core organized around a flat array of cells, Rust compiled to wasm. Its own `ARCHITECTURE.md`, `CONTEXT.md` and `docs/adr/` describe it; `CELLS_CORE_PARITY.md` in the JavaScript worker is how far it is from this core.
+- **Cells core** (`packages/cells-core`, with its viewer in `packages/cells-viewer`, and behind the prototype's renderers as the worker's `"cells"` core type, through the bridge in `packages/doenetml-worker/src/cells`): a candidate replacement core organized around a flat array of cells, Rust compiled to wasm. Its own `ARCHITECTURE.md`, `CONTEXT.md` and `docs/adr/` describe it; `CELLS_CORE_PARITY.md` in the JavaScript worker is how far it is from this core.
 
 Communication between main thread and worker uses structured messages. The worker is responsible for evaluating components, tracking dependencies (DAG), and managing variants.
 

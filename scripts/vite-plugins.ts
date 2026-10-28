@@ -142,6 +142,29 @@ export function suppressLogPlugin(): PluginOption {
 }
 
 /**
+ * Keep the cells core's WASM out of a bundle that includes its glue (the
+ * worker, ADR 0020 in `packages/cells-core`). wasm-bindgen's glue names its
+ * WASM with `new URL("cells_wasm_bg.wasm", import.meta.url)` for a caller that
+ * passes none, and a library build inlines what such a URL names as base64.
+ * The worker always passes the WASM it fetched itself, so the default goes.
+ */
+export function cellsWasmNotInlinedPlugin(): PluginOption {
+    const DEFAULT_URL = "new URL('cells_wasm_bg.wasm', import.meta.url)";
+    return {
+        name: "cells-wasm-not-inlined",
+        transform(code, id) {
+            if (!id.endsWith("cells_wasm.js")) return null;
+            if (!code.includes(DEFAULT_URL)) {
+                this.error(
+                    "cells_wasm.js no longer names its WASM as expected; update cellsWasmNotInlinedPlugin",
+                );
+            }
+            return code.replace(DEFAULT_URL, "undefined");
+        },
+    };
+}
+
+/**
  * Vite's import-analysis warns on runtime-resolved dynamic imports in the
  * generated local `@doenet/prefigure` assets (notably Pyodide loader files).
  * This is needed even when the top-level prefigure module import uses

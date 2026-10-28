@@ -102,11 +102,20 @@ cells, report changed cells. What a tick
 reports is its **tick outcome** (`TickOutcome`): the changed cells, dropped
 requests, and whether the document was rebuilt.
 
-**Renderer** — The view layer as a whole: it reads cells, draws the
-document, and turns user actions into requests. The viewer in
-`packages/cells-viewer` is one; it draws graphs with JSXGraph (ADR 0010).
-The code that draws one component type is a **component renderer**.
+**Renderer** — The view layer as a whole: it draws the document from
+components' props and turns user actions into renderer actions. It is
+DoenetML's prototype renderer, shared with the other cores, and sees the
+document in their vocabulary, never cells, through the bridge. The viewer in
+`packages/cells-viewer` is a second renderer that reads cells and the
+component table directly (ADR 0001), kept to compare the two. The code that draws one
+component type is a **component renderer**.
 _Avoid_: renderer for a single component type's view (say component renderer)
+
+**Renderer action** — What a renderer sends when a student acts: a
+component, an action name and its arguments (`point.move {x, y}`), as the
+other cores take it. The core never sees one: the bridge resolves each
+into requests (a move) or an action (a submit).
+_Avoid_: action (an action is what the core carries out itself)
 
 **Output** — A cell whose value leaves the core (ADR 0019): a prop a
 component renderer reads, of a component that is *rendered*, or a score a
@@ -329,8 +338,15 @@ instruction in schedule order, or only the downstream closure of the cells
 that changed. Both give the same values.
 
 **Component table** — The columnar description of components (component
-type, name, parent, children, prop cell indices) that the renderer reads
+type, name, parent, children, prop cell indices) that the bridge reads
 directly, the same way it reads cells. It replaces an earlier serialized render manifest.
+
+**Bridge** — What stands between the core and the renderer: it turns the
+component table and the changed cells of each tick into the components'
+props as the renderer reads them, and each renderer action into requests
+or an action. Its element ids follow stable component identity, so a
+rebuild reaches the renderer as updates, not a new document.
+_Avoid_: adapter, translation layer
 
 **Wire format** — The encoding in which a parsed document reaches the core:
 either the DAST JSON of the current DoenetML worker or the compact binary

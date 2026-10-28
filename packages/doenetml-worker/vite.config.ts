@@ -1,6 +1,9 @@
 import { Plugin, defineConfig } from "vite";
 import dts from "vite-plugin-dts";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    cellsWasmNotInlinedPlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { version as standaloneVersion } from "../standalone/package.json";
 
@@ -29,6 +32,7 @@ export default defineConfig({
     plugins: [
         dts(),
         suppressLogPlugin(),
+        cellsWasmNotInlinedPlugin(),
         viteStaticCopy({
             targets: [
                 {
@@ -39,6 +43,13 @@ export default defineConfig({
                     // one compilation across workers, iframes, and page
                     // views. See the loading ladder in `src/wasmLoading.ts`.
                     src: "../doenetml-worker-rust/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm*",
+                    dest: "./",
+                },
+                {
+                    // The cells core's WASM, fetched the same way, and only
+                    // by a worker that loads a cells core (ADR 0020 in
+                    // packages/cells-core).
+                    src: "../cells-core/pkg/cells_wasm_bg.wasm",
                     dest: "./",
                 },
             ],

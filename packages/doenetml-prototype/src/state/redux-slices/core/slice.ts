@@ -6,9 +6,11 @@ import { DoenetMLFlags } from "../../../DoenetML";
 /**
  * Which DoenetML core backs the worker. `"rust"` is the default; `"javascript"`
  * routes `dispatchAction` through `dispatchActionJavascriptFlat` so the prototype
- * renderers are driven by the JavaScript core via the FlatDast update path.
+ * renderers are driven by the JavaScript core via the FlatDast update path;
+ * `"cells"` is the cells core behind its bridge in the worker
+ * (`packages/doenetml-worker/src/cells`).
  */
-export type CoreType = "rust" | "javascript";
+export type CoreType = "rust" | "javascript" | "cells";
 
 export interface CoreState {
     /**

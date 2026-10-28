@@ -38,6 +38,7 @@
                 "tsconfig.json",
                 "vite.config.ts",
                 "vite.esm.config.ts",
+                "../../scripts/vite-plugins.ts",
                 "../standalone/package.json"
             ],
             "output": [
@@ -50,7 +51,8 @@
             "dependencies": [
                 "../utils:build",
                 "../doenetml-worker-javascript:build",
-                "../doenetml-worker-rust:build"
+                "../doenetml-worker-rust:build",
+                "../cells-core:build"
             ]
         }
     },

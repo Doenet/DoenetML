@@ -74,14 +74,18 @@ export function decodeWasmDataUrl(dataUrl: string): ArrayBuffer | null {
  * The URLs to try fetching the WASM from, in order — the ladder above, minus
  * the decoded-bytes case handled in `resolveWasmInput`.
  */
-export function wasmUrlCandidates(): string[] {
+export function wasmUrlCandidates(fileName = WASM_FILE_NAME): string[] {
     const candidates: string[] = [];
     function push(url: string) {
         if (!candidates.includes(url)) {
             candidates.push(url);
         }
     }
-    const provided = injectedGlobal("__doenetWorkerWasmUrl");
+    // The injected URL is the Rust core's alone.
+    const provided =
+        fileName === WASM_FILE_NAME
+            ? injectedGlobal("__doenetWorkerWasmUrl")
+            : undefined;
     if (provided !== undefined) {
         push(provided);
     }
@@ -94,14 +98,17 @@ export function wasmUrlCandidates(): string[] {
             continue;
         }
         try {
-            push(new URL(WASM_FILE_NAME, base).href);
+            push(new URL(fileName, base).href);
         } catch {
             // An opaque base (`blob:`, `data:`) has no "beside it".
         }
     }
-    push(
-        `https://cdn.jsdelivr.net/npm/@doenet/standalone@${__DOENET_STANDALONE_VERSION__}/doenetml-worker/${WASM_FILE_NAME}`,
-    );
+    // The published worker directory carries only the Rust core's WASM.
+    if (fileName === WASM_FILE_NAME) {
+        push(
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@${__DOENET_STANDALONE_VERSION__}/doenetml-worker/${WASM_FILE_NAME}`,
+        );
+    }
     return candidates;
 }
 
@@ -110,8 +117,13 @@ export function wasmUrlCandidates(): string[] {
  * inlined `data:` URL was supplied, otherwise the response of the first
  * candidate URL that fetches successfully.
  */
-export async function resolveWasmInput(): Promise<ArrayBuffer | Response> {
-    const provided = injectedGlobal("__doenetWorkerWasmUrl");
+export async function resolveWasmInput(
+    fileName = WASM_FILE_NAME,
+): Promise<ArrayBuffer | Response> {
+    const provided =
+        fileName === WASM_FILE_NAME
+            ? injectedGlobal("__doenetWorkerWasmUrl")
+            : undefined;
     if (provided !== undefined && /^data:.*;base64,/.test(provided)) {
         const bytes = decodeWasmDataUrl(provided);
         if (bytes) {
@@ -121,7 +133,7 @@ export async function resolveWasmInput(): Promise<ArrayBuffer | Response> {
         // try the URL-based candidates.
     }
     let lastError: unknown = undefined;
-    for (const url of wasmUrlCandidates()) {
+    for (const url of wasmUrlCandidates(fileName)) {
         if (url.startsWith("data:")) {
             continue;
         }

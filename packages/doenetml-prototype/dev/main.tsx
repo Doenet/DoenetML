@@ -39,7 +39,7 @@ function resetSource() {
  */
 function getInitialCoreType(): CoreType {
     const param = new URLSearchParams(window.location.search).get("core");
-    return param === "javascript" ? "javascript" : "rust";
+    return param === "javascript" || param === "cells" ? param : "rust";
 }
 
 const root = createRoot(document.getElementById("root")!);
@@ -71,7 +71,7 @@ function App() {
         <div className="dev-app">
             <div className="dev-core-toolbar">
                 <span className="dev-core-toolbar-label">Core:</span>
-                {(["rust", "javascript"] as CoreType[]).map((ct) => (
+                {(["rust", "javascript", "cells"] as CoreType[]).map((ct) => (
                     <label key={ct} className="dev-core-option">
                         <input
                             type="radio"

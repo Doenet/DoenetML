@@ -1,5 +1,8 @@
 import { defineConfig } from "vite";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    cellsWasmNotInlinedPlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 import { version as standaloneVersion } from "../standalone/package.json";
 
 // Build a single-file ES-module version of the worker (index.esm.js).
@@ -12,7 +15,7 @@ import { version as standaloneVersion } from "../standalone/package.json";
 // The entry is src/CoreWorker.ts rather than src/index.ts so that Rollup
 // does not see a barrel re-export and split the output into multiple chunks.
 export default defineConfig({
-    plugins: [suppressLogPlugin()],
+    plugins: [suppressLogPlugin(), cellsWasmNotInlinedPlugin()],
     base: "./",
     define: {
         // As in the IIFE build: the worker's last-resort WASM URL names the

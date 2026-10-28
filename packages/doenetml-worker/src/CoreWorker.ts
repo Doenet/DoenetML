@@ -49,6 +49,8 @@ import { translateJsCoreActionName } from "./jsCoreActionNames";
 // The WASM is not inlined into this bundle: it is located and fetched at run
 // time. See the loading ladder documented in `./wasmLoading.ts`.
 import { resolveWasmInput } from "./wasmLoading";
+import type { CellsBridge, RendererAction } from "./cells/bridge";
+import { loadCellsDocument } from "./cells/loadCellsCore";
 
 /**
  * The correct type of `FlatDastRoot`. **This should be used instead of
@@ -65,6 +67,10 @@ export interface FlatDastRootWithErrors extends Omit<FlatDastRoot, "elements"> {
 export type Action = ActionsEnum & { componentIdx: number };
 
 type Flags = Record<string, unknown>;
+
+/** Which core runs the document. `"cells"` is the cells core
+ * (`packages/cells-core`), reached through its bridge (`./cells`). */
+export type CoreType = "rust" | "javascript" | "cells";
 
 // Due to vite issue https://github.com/vitejs/vite/issues/17570 (related: https://github.com/vitejs/vite/issues/12611 )
 // vite assumes that globalThis.document is defined and relies on it when creating a WebWorker URL. Since it is not defined
@@ -214,7 +220,15 @@ export class CoreWorker {
      */
     _initializationDataReleased = false;
     flags_set = false;
-    core_type: "rust" | "javascript" = "rust";
+    core_type: CoreType = "rust";
+
+    /**
+     * The cells core (ADR 0020 in `packages/cells-core`): the document's
+     * DAST, kept from `setSource` until `returnDast` loads it, and the bridge
+     * the renderer reaches the loaded core through.
+     */
+    _cellsDast: DastRoot | undefined = undefined;
+    _cellsBridge: CellsBridge | undefined = undefined;
 
     /**
      * Buffer of update batches pushed by the JS core's persistent
@@ -311,8 +325,21 @@ export class CoreWorker {
         }
     }
 
-    setCoreType(core_type: "rust" | "javascript") {
+    setCoreType(core_type: CoreType) {
         this.core_type = core_type;
+    }
+
+    /** Throw for a call the cells core does not support yet. */
+    _notForCells(call: string) {
+        if (this.core_type === "cells") {
+            throw Error(`${call} is not supported by the cells core`);
+        }
+    }
+
+    /** Free the loaded cells core, if any. */
+    _freeCellsCore() {
+        this._cellsBridge?.core.free();
+        this._cellsBridge = undefined;
     }
 
     async setSource(args: { source: string; dast: DastRoot }) {
@@ -323,6 +350,14 @@ export class CoreWorker {
         await isProcessingPromise;
 
         try {
+            if (this.core_type === "cells") {
+                // Loaded by `returnDast`; the Rust core is not used.
+                this._freeCellsCore();
+                this._cellsDast = args.dast;
+                this.source_set = true;
+                return;
+            }
+
             if (!this.wasm_initialized) {
                 await ensureWasmInitialized();
                 this.wasm_initialized = true;
@@ -368,6 +403,12 @@ export class CoreWorker {
         await isProcessingPromise;
 
         try {
+            if (this.core_type === "cells") {
+                // The cells core takes no flags yet.
+                this.flags_set = true;
+                return;
+            }
+
             if (!this.wasm_initialized) {
                 await ensureWasmInitialized();
                 this.wasm_initialized = true;
@@ -668,6 +709,21 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
+        if (this.core_type === "cells") {
+            try {
+                if (!this.source_set || !this.flags_set || !this._cellsDast) {
+                    throw Error(
+                        "Cannot return dast before setting source and flags",
+                    );
+                }
+                this._freeCellsCore();
+                this._cellsBridge = await loadCellsDocument(this._cellsDast);
+                return this._cellsBridge.flatDast() as FlatDastRootWithErrors;
+            } finally {
+                resolve();
+            }
+        }
+
         if (!this.source_set || !this.flags_set || !this.doenetCore) {
             throw Error("Cannot return dast before setting source and flags");
         }
@@ -694,6 +750,7 @@ export class CoreWorker {
      * entries in the post-expansion `returnDast` output (#1154).
      */
     async returnNormalizedDastRoot() {
+        this._notForCells("returnNormalizedDastRoot");
         if (!this.source_set || !this.doenetCore) {
             throw Error(
                 "Cannot return normalized dast root before setting source",
@@ -1024,6 +1081,7 @@ export class CoreWorker {
         origin: number;
         skipParentSearch: boolean;
     }): Promise<RefResolution> {
+        this._notForCells("resolvePath");
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -1053,6 +1111,19 @@ export class CoreWorker {
         this.isProcessingPromise = promise;
 
         await isProcessingPromise;
+
+        if (this.core_type === "cells") {
+            try {
+                if (!this._cellsBridge) {
+                    throw Error("Cannot handle action before returning dast");
+                }
+                // The prototype's renderers send actions the Rust core's
+                // `Action` type does not list (`updateBoolean`).
+                return this._cellsBridge.dispatch(action as RendererAction);
+            } finally {
+                resolve();
+            }
+        }
 
         if (!this.source_set || !this.flags_set || !this.doenetCore) {
             throw Error("Cannot handle action before setting source and flags");
@@ -1131,6 +1202,8 @@ export class CoreWorker {
 
         this.doenetCore?.free();
         this.doenetCore = undefined;
+        this._freeCellsCore();
+        this._cellsDast = undefined;
 
         // Since we store source and flags in doenetCore,
         // we lose source and flags when terminating it.
@@ -1162,6 +1235,7 @@ export class CoreWorker {
     }
 
     async returnAllStateVariables(consoleLogComponents = false) {
+        this._notForCells("returnAllStateVariables");
         if (this.javascriptCore) {
             return this.javascriptCore.returnAllStateVariables(
                 consoleLogComponents,
@@ -1183,6 +1257,9 @@ export class CoreWorker {
      * Call submitAnswer on all answers in the document
      */
     async submitAllAnswers() {
+        if (this.core_type === "cells") {
+            return this._cellsBridge?.submitAllAnswers();
+        }
         if (this.javascriptCore) {
             // Awaited, so that a rejection (such as a document stopped by a
             // circular dependency) reaches the caller rather than going
@@ -1196,6 +1273,7 @@ export class CoreWorker {
      * ignoring any timeouts
      */
     async saveImmediately() {
+        this._notForCells("saveImmediately");
         if (this.javascriptCore) {
             this.javascriptCore.saveImmediately();
         }
@@ -1210,6 +1288,7 @@ export class CoreWorker {
      * nothing to lose on teardown).
      */
     async flushState(): Promise<boolean> {
+        this._notForCells("flushState");
         if (this.javascriptCore) {
             return await this.javascriptCore.flushState();
         }
