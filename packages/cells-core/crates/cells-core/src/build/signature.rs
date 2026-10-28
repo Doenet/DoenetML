@@ -187,7 +187,7 @@ impl<'a> Signer<'a> {
                 .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                 .collect();
             if (interactive.is_empty() && ty != ComponentType::Select)
-                || out.comp_keys[c.index()] == NONE
+                || out.comp_keys[c.index()] == ElemKey::NONE
             {
                 continue;
             }
@@ -296,7 +296,7 @@ impl<'a> Signer<'a> {
     /// element makes.
     fn ancestor_label(&self, a: CompIdx) -> String {
         match self.out.comp_keys[a.index()] {
-            NONE => self.out.components.component_type[a.index()]
+            ElemKey::NONE => self.out.components.component_type[a.index()]
                 .tag()
                 .to_string(),
             key => self.key(key),
@@ -457,7 +457,7 @@ impl<'a> Signer<'a> {
                     kids.into_iter()
                         .map(|k| {
                             let key = match out.comp_keys[k.index()] {
-                                NONE => String::new(),
+                                ElemKey::NONE => String::new(),
                                 key => self.key(key),
                             };
                             let node = t.dast_node[k.index()];

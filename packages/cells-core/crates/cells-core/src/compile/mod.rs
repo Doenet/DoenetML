@@ -388,7 +388,7 @@ impl<'a> Compiler<'a> {
         tpl.elems.push(Elem {
             node,
             // Set once every element is planned (`assign_keys`).
-            key: 0,
+            key: ElemKey::new(0),
             component_type,
             name,
             name_scope,

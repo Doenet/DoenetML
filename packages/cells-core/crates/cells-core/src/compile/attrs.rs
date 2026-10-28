@@ -510,10 +510,7 @@ impl<'a> Compiler<'a> {
             Expr::Cell(p) => {
                 let plan = &self.compiled.refs[p.index()];
                 let is_value = plan.prop.as_deref().is_none_or(|pr| pr == "value");
-                let Some(target) = (is_value)
-                    .then(|| self.plan_elem_target(t, p))
-                    .flatten()
-                else {
+                let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
                 };
                 // The math may come later in the document and not be planned yet.

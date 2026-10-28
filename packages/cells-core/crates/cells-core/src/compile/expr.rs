@@ -6,7 +6,10 @@
 
 use super::plan::RefId;
 
-pub type ExprId = u32;
+crate::index::index_type! {
+    /// An expression: a position in an [`Arena`].
+    pub struct ExprId;
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr<L> {
@@ -107,13 +110,13 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             Expr::Mul(a, b) => self.fold2(*a, *b, |x, y| x * y),
             Expr::Div(a, b) => self.fold2(*a, *b, |x, y| x / y),
             Expr::Pow(a, b) => self.fold2(*a, *b, f64::powf),
-            Expr::Neg(a) => match self.nodes[*a as usize] {
+            Expr::Neg(a) => match self.nodes[a.index()] {
                 Expr::Num(x) => Some(Expr::Num(-x)),
                 _ => None,
             },
             Expr::Call(f, args) => args
                 .iter()
-                .map(|&a| match self.nodes[a as usize] {
+                .map(|&a| match self.nodes[a.index()] {
                     Expr::Num(x) => Some(x),
                     _ => None,
                 })
@@ -122,18 +125,18 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             _ => None,
         };
         self.nodes.push(folded.unwrap_or(e));
-        (self.nodes.len() - 1) as ExprId
+        ExprId::from_index(self.nodes.len() - 1)
     }
 
     fn fold2(&self, a: ExprId, b: ExprId, f: impl Fn(f64, f64) -> f64) -> Option<Expr<L>> {
-        match (&self.nodes[a as usize], &self.nodes[b as usize]) {
+        match (&self.nodes[a.index()], &self.nodes[b.index()]) {
             (Expr::Num(x), Expr::Num(y)) => Some(Expr::Num(f(*x, *y))),
             _ => None,
         }
     }
 
     pub fn get(&self, id: ExprId) -> &Expr<L> {
-        &self.nodes[id as usize]
+        &self.nodes[id.index()]
     }
 
     /// Whether the expression has no free symbols, so it can be lowered to

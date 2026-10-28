@@ -433,7 +433,7 @@ impl<'c> Builder<'c> {
             .iter()
             .map(|&i| {
                 if i == NONE {
-                    return NONE;
+                    return ElemKey::NONE;
                 }
                 let inst = self.instances[i as usize];
                 self.compiled.templates[inst.template.index()].elems[inst.elem.index()].key

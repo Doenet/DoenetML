@@ -204,7 +204,7 @@ impl Compiler<'_> {
         debug_assert!(
             {
                 let mut seen = HashSet::new();
-                (0..keys.ends.len()).all(|k| seen.insert(keys.text_of(k as ElemKey)))
+                ElemKey::below(keys.ends.len()).all(|k| seen.insert(keys.text_of(k)))
             },
             "two elements share a key"
         );
@@ -258,11 +258,11 @@ impl Keys {
         self.text.push_str(text);
         self.ends.push(self.text.len() as u32);
         self.types.push(component_type);
-        (self.ends.len() - 1) as ElemKey
+        ElemKey::from_index(self.ends.len() - 1)
     }
 
     fn text_of(&self, key: ElemKey) -> &str {
-        let k = key as usize;
+        let k = key.index();
         let start = if k == 0 { 0 } else { self.ends[k - 1] as usize };
         &self.text[start..self.ends[k] as usize]
     }
@@ -274,12 +274,12 @@ impl Keys {
 
     /// The type of the element `key` names.
     pub(crate) fn key_type(&self, key: ElemKey) -> ComponentType {
-        self.types[key as usize]
+        self.types[key.index()]
     }
 
     /// Every key by its text, for looking many up.
     pub(crate) fn by_text(&self) -> HashMap<&str, ElemKey> {
-        (0..self.ends.len() as ElemKey)
+        ElemKey::below(self.ends.len())
             .map(|k| (self.text_of(k), k))
             .collect()
     }
@@ -294,7 +294,7 @@ impl Keys {
                 .get(&(key, prop & !HIDDEN))
                 .map(|s| s.to_string());
         }
-        self.types[key as usize]
+        self.types[key.index()]
             .prop_name(usize::MAX, prop as usize)
             .map(|n| n.into_owned())
     }
@@ -302,14 +302,14 @@ impl Keys {
     /// Whether the slot of `key` saved as `prop` is view state (ADR 0017,
     /// step 2): a graph's own bounds, which only pan and zoom write.
     pub(crate) fn is_view(&self, key: ElemKey, prop: &str) -> bool {
-        self.types[key as usize] == ComponentType::Graph
+        self.types[key.index()] == ComponentType::Graph
             && matches!(prop, "xmin" | "xmax" | "ymin" | "ymax")
     }
 
     /// The slot of `key` that saved state names `name`, as `prop_key` names
     /// it.
     pub(crate) fn prop_named(&self, key: ElemKey, name: &str) -> Option<u32> {
-        let component_type = self.types[key as usize];
+        let component_type = self.types[key.index()];
         let fixed = component_type.prop_defs().len();
         let public = match component_type.prop_at(name) {
             Some(PropAt::Fixed(i)) => Some(i as u32),
@@ -400,7 +400,7 @@ mod tests {
 
     fn keys(src: &str) -> Vec<String> {
         let doc = load(src).unwrap();
-        (0..doc.loaded.keys.ends.len() as u32)
+        super::ElemKey::below(doc.loaded.keys.ends.len())
             .map(|k| doc.loaded.keys.key_text(k).to_string())
             .collect()
     }

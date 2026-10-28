@@ -4,11 +4,13 @@
 
 use super::*;
 
-/// An element's stable key (ADR 0017), as an index into the compile's
-/// [`Keys`]: what saved state names it by, the same across versions of the
-/// document that an ordinary edit makes. Every instance of a template
-/// element shares its key; the scope tells them apart.
-pub type ElemKey = u32;
+crate::index::index_type! {
+    /// An element's stable key (ADR 0017), as an index into the compile's
+    /// [`Keys`]: what saved state names it by, the same across versions of
+    /// the document that an ordinary edit makes. Every instance of a
+    /// template element shares its key; the scope tells them apart.
+    pub struct ElemKey;
+}
 
 /// A slot's position among its element's, as an essential key holds it:
 /// a public prop's position, or a hidden slot's with `HIDDEN` set.
