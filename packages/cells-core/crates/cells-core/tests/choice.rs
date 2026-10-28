@@ -227,7 +227,7 @@ fn texts_choose_like_numbers() {
     let mut doc = load(src).unwrap();
     let s = |doc: &Document| {
         doc.strings
-            .get(v(doc, "copy", "value") as u32)
+            .get(cells_core::dast::StrId::from_value(v(doc, "copy", "value")))
             .trim()
             .to_string()
     };

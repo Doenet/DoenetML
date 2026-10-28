@@ -397,7 +397,7 @@ impl<'c> Builder<'c> {
         for (r, (&d, &cross)) in self.repeats.iter().zip(depths.iter().zip(&cross_reads)) {
             if cross {
                 let name = self.components.name[r.comp.index()];
-                let name = if name == NONE {
+                let name = if name == StrId::NONE {
                     format!("<{}>", self.components.component_type[r.comp.index()].tag())
                 } else {
                     self.compiled.dast.strings.get(name).trim().to_string()
@@ -460,7 +460,7 @@ impl<'c> Builder<'c> {
             }
             let pi = (slot - slot_base[comp.index()]) as usize;
             let owner = match names[comp.index()] {
-                NONE => format!("<{}>#{}", component_types[comp.index()].tag(), comp),
+                StrId::NONE => format!("<{}>#{}", component_types[comp.index()].tag(), comp),
                 s => dast.strings.get(s).trim().to_string(),
             };
             match component_types[comp.index()].prop_name(n_public[comp.index()], pi) {
@@ -591,7 +591,7 @@ impl<'c> Builder<'c> {
             if computed && !stand_in() {
                 // The seeded element is boxed (ADR 0013).
                 let node = self.components.dast_node[self.slot_comp[s as usize].index()];
-                self.failed_node = (node != NONE).then_some(node);
+                self.failed_node = (node != NodeId::NONE).then_some(node);
                 return Err(Error::Unsupported(format!(
                     "prefill=\"${}\": a prefill reference must name a value that is not computed",
                     self.slot_label(from)
@@ -711,17 +711,17 @@ impl<'c> Builder<'c> {
         let mut owner: Vec<usize> = vec![usize::MAX; self.scopes.len()];
         for (ri, r) in self.repeats.iter().enumerate() {
             for &s in &r.iter_scopes {
-                owner[s as usize] = ri;
+                owner[s.index()] = ri;
             }
         }
-        let owner = |s: ScopeId| Some(owner[s as usize]).filter(|&o| o != usize::MAX);
+        let owner = |s: ScopeId| Some(owner[s.index()]).filter(|&o| o != usize::MAX);
         let is_ancestor_or_self = |s: ScopeId, of: ScopeId| -> bool {
             let mut cur = of;
             loop {
                 if cur == s {
                     return true;
                 }
-                if cur == 0 {
+                if cur == ScopeId::DOCUMENT {
                     return false;
                 }
                 cur = self.scopes[cur].0;
@@ -751,7 +751,7 @@ impl<'c> Builder<'c> {
                 let comp = self.slot_comp[sl as usize];
                 if comp != CompIdx::NONE {
                     let scope = self.components.scope[comp.index()];
-                    if scope != 0
+                    if scope != ScopeId::DOCUMENT
                         && !is_ancestor_or_self(scope, r.scope)
                         && let Some(o) = owner(scope)
                         && o != ri

@@ -22,7 +22,7 @@ pub struct ComponentTable {
     /// DAST element each component came from (NONE if synthesized) and the
     /// scope it was created in. Together they identify a component across
     /// rebuilds, which lets a renderer keep its tree keyed by identity.
-    pub dast_node: Vec<u32>,
+    pub dast_node: Vec<NodeId>,
     pub scope: Vec<ScopeId>,
 }
 
@@ -131,7 +131,7 @@ impl ChildEntry {
     }
 
     pub fn text(s: StrId) -> ChildEntry {
-        ChildEntry(TEXT_BIT | s)
+        ChildEntry(TEXT_BIT | s.get())
     }
 
     pub fn as_comp(self) -> Option<CompIdx> {
@@ -139,7 +139,7 @@ impl ChildEntry {
     }
 
     pub fn as_text(self) -> Option<StrId> {
-        (self.0 & TEXT_BIT != 0).then_some(self.0 & !TEXT_BIT)
+        (self.0 & TEXT_BIT != 0).then_some(StrId::new(self.0 & !TEXT_BIT))
     }
 }
 
@@ -160,7 +160,7 @@ impl Document {
 
     pub fn name(&self, c: CompIdx) -> Option<&str> {
         let s = self.components.name[c.index()];
-        (s != NONE).then(|| self.strings.get(s).trim())
+        (s != StrId::NONE).then(|| self.strings.get(s).trim())
     }
 
     pub fn parent(&self, c: CompIdx) -> Option<CompIdx> {
@@ -250,7 +250,7 @@ impl Document {
         if v.is_nan() || v < 0.0 || v as usize >= self.strings.len() {
             String::new()
         } else {
-            self.strings.get(v as u32).to_string()
+            self.strings.get(StrId::from_value(v)).to_string()
         }
     }
 

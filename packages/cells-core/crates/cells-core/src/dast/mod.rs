@@ -16,13 +16,35 @@ mod attrs;
 mod binary;
 mod json;
 
-pub use attrs::LiteralAttrs;
+pub use attrs::{AttrValue, LiteralAttrs};
 
 use std::collections::HashMap;
 
-pub type NodeId = u32;
+crate::index::index_type! {
+    /// A node of the DAST: a position in its columns.
+    pub struct NodeId;
+}
+
 pub type AttrId = u32;
-pub type StrId = u32;
+
+crate::index::index_type! {
+    /// A string: a position in a `StringTable`. A text cell holds one as
+    /// its `f64` value.
+    pub struct StrId;
+}
+
+impl StrId {
+    /// As a text cell's value.
+    pub fn to_value(self) -> f64 {
+        self.get() as f64
+    }
+
+    /// A text cell's value as the string id it holds. The caller has
+    /// checked that it is one (not NaN, in the table).
+    pub fn from_value(v: f64) -> StrId {
+        StrId::new(v as u32)
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -70,8 +92,8 @@ impl StringTable {
     #[inline]
     pub fn get(&self, i: StrId) -> &str {
         let (a, b) = (
-            self.offsets[i as usize] as usize,
-            self.offsets[i as usize + 1] as usize,
+            self.offsets[i.index()] as usize,
+            self.offsets[i.index() + 1] as usize,
         );
         // Validated once at load (binary) or produced from `str` (JSON).
         unsafe { std::str::from_utf8_unchecked(&self.bytes[a..b]) }
@@ -81,7 +103,7 @@ impl StringTable {
     pub fn push(&mut self, s: &str) -> StrId {
         self.bytes.extend_from_slice(s.as_bytes());
         self.offsets.push(self.bytes.len() as u32);
-        (self.offsets.len() - 2) as StrId
+        StrId::from_index(self.offsets.len() - 2)
     }
 
     pub fn heap_bytes(&self) -> usize {
@@ -117,7 +139,7 @@ pub struct Dast {
 pub type PathPart = u32;
 
 impl Dast {
-    pub const ROOT: NodeId = 0;
+    pub const ROOT: NodeId = NodeId::new(0);
 
     /// A hash of the whole tree, equal for equal trees: what saved state
     /// names the document version it was made in by (ADR 0017). Not a
@@ -147,16 +169,16 @@ impl Dast {
         for xs in [
             &self.strings.offsets,
             &kinds,
-            &self.str_,
+            StrId::as_u32s(&self.str_),
             &self.a_start,
             &self.a_count,
             &self.c_start,
             &self.c_count,
-            &self.attr_name,
+            StrId::as_u32s(&self.attr_name),
             &self.attr_c_start,
             &self.attr_c_count,
-            &self.children,
-            &self.path,
+            NodeId::as_u32s(&self.children),
+            StrId::as_u32s(&self.path),
             &self.path_i_start,
             &self.path_i_count,
             &self.idx_c_start,
@@ -177,32 +199,32 @@ impl Dast {
 
     #[inline]
     pub fn kind(&self, n: NodeId) -> NodeKind {
-        NodeKind::from_u8(self.kind[n as usize])
+        NodeKind::from_u8(self.kind[n.index()])
     }
 
     /// Tag of an element or value of a text node.
     #[inline]
     pub fn str(&self, n: NodeId) -> &str {
-        self.strings.get(self.str_[n as usize])
+        self.strings.get(self.str_[n.index()])
     }
 
     #[inline]
     pub fn str_id(&self, n: NodeId) -> StrId {
-        self.str_[n as usize]
+        self.str_[n.index()]
     }
 
     #[inline]
     pub fn children(&self, n: NodeId) -> &[NodeId] {
         let (s, c) = (
-            self.c_start[n as usize] as usize,
-            self.c_count[n as usize] as usize,
+            self.c_start[n.index()] as usize,
+            self.c_count[n.index()] as usize,
         );
         &self.children[s..s + c]
     }
 
     pub fn attrs(&self, n: NodeId) -> std::ops::Range<AttrId> {
-        let s = self.a_start[n as usize];
-        s..s + self.a_count[n as usize]
+        let s = self.a_start[n.index()];
+        s..s + self.a_count[n.index()]
     }
 
     #[inline]
@@ -234,8 +256,8 @@ impl Dast {
     #[inline]
     pub fn macro_path(&self, n: NodeId) -> &[StrId] {
         let (s, c) = (
-            self.a_start[n as usize] as usize,
-            self.a_count[n as usize] as usize,
+            self.a_start[n.index()] as usize,
+            self.a_count[n.index()] as usize,
         );
         &self.path[s..s + c]
     }
@@ -243,8 +265,8 @@ impl Dast {
     /// Positions of a macro's path parts, for `part_indices`.
     #[inline]
     pub fn macro_parts(&self, n: NodeId) -> std::ops::Range<PathPart> {
-        let s = self.a_start[n as usize];
-        s..s + self.a_count[n as usize]
+        let s = self.a_start[n.index()];
+        s..s + self.a_count[n.index()]
     }
 
     /// The `[index]` expressions of one path part, each as its value nodes
@@ -348,8 +370,8 @@ impl DastWriter {
     ) -> NodeId {
         let id = self.push_node(NodeKind::Element, tag);
         let d = &mut self.dast;
-        d.a_start[id as usize] = d.attr_name.len() as u32;
-        d.a_count[id as usize] = attrs.len() as u32;
+        d.a_start[id.index()] = d.attr_name.len() as u32;
+        d.a_count[id.index()] = attrs.len() as u32;
         for (n, c) in attrs {
             d.attr_name.push(n);
             d.attr_c_start.push(d.children.len() as u32);
@@ -363,10 +385,10 @@ impl DastWriter {
     /// A macro of the path `path`: each part's name and its `[index]`
     /// expressions, each as its value nodes, written before the macro.
     pub(crate) fn macro_(&mut self, path: Vec<(StrId, Vec<Vec<NodeId>>)>) -> NodeId {
-        let id = self.push_node(NodeKind::Macro, 0);
+        let id = self.push_node(NodeKind::Macro, StrId::new(0));
         let d = &mut self.dast;
-        d.a_start[id as usize] = d.path.len() as u32;
-        d.a_count[id as usize] = path.len() as u32;
+        d.a_start[id.index()] = d.path.len() as u32;
+        d.a_count[id.index()] = path.len() as u32;
         for (name, indices) in path {
             d.path.push(name);
             d.path_i_start.push(d.idx_c_start.len() as u32);
@@ -394,13 +416,13 @@ impl DastWriter {
         d.a_count.push(0);
         d.c_start.push(0);
         d.c_count.push(0);
-        (d.kind.len() - 1) as NodeId
+        NodeId::from_index(d.kind.len() - 1)
     }
 
     fn set_children(&mut self, n: NodeId, kids: &[NodeId]) {
         let d = &mut self.dast;
-        d.c_start[n as usize] = d.children.len() as u32;
-        d.c_count[n as usize] = kids.len() as u32;
+        d.c_start[n.index()] = d.children.len() as u32;
+        d.c_count[n.index()] = kids.len() as u32;
         d.children.extend_from_slice(kids);
     }
 }

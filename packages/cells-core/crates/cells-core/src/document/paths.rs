@@ -164,7 +164,7 @@ impl Document {
             if Some(x) == scope {
                 return false;
             }
-            if self.components.dast_node[x.index()] == NONE
+            if self.components.dast_node[x.index()] == NodeId::NONE
                 && self.component_type(x) != ComponentType::Document
             {
                 return true;

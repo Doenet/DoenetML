@@ -81,15 +81,21 @@ impl<'a> Compiler<'a> {
                             component_type.tag()
                         )));
                     }
-                    let ne =
-                        self.push_elem_visible_to(t, NONE, component_type, name, scope, root)?;
+                    let ne = self.push_elem_visible_to(
+                        t,
+                        NodeId::NONE,
+                        component_type,
+                        name,
+                        scope,
+                        root,
+                    )?;
                     let label = format!("(copy of {})", self.elem_label(t, c));
                     self.compiled.refs.push(RefPlan {
                         hops: 0,
                         steps: vec![Step::Elem(c)],
                         prop: None,
                         display: label,
-                        node: NONE,
+                        node: NodeId::NONE,
                     });
                     let ep = self.compiled.refs.len() - 1;
                     {
@@ -97,7 +103,7 @@ impl<'a> Compiler<'a> {
                         el.extend = Some(ep);
                         el.cloned = true;
                     }
-                    let child_scope = if name != NONE { ne } else { scope };
+                    let child_scope = if name != StrId::NONE { ne } else { scope };
                     let sub = self.clone_children(t, c, child_scope, root)?;
                     self.compiled.templates[t].elems[ne].children = sub;
                     self.pending_elems.push((t, ne));
@@ -146,7 +152,7 @@ impl<'a> Compiler<'a> {
         // Merged attributes: the referent's node supplies what the copy omits.
         let base_elem = extend
             .and_then(|p| self.plan_elem_target(t, p))
-            .filter(|&r| self.compiled.templates[t].elems[r].node != NONE);
+            .filter(|&r| self.compiled.templates[t].elems[r].node != NodeId::NONE);
         let base = base_elem.map(|r| self.compiled.templates[t].elems[r].node);
         let mut wiring = plan(&mut PlanCtx::new(self, t, e, base))?;
         // Essential state the copy did not override is the original's: the

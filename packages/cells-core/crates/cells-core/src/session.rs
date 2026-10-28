@@ -78,7 +78,7 @@ impl Session {
             values.resize(self.scopes.len(), Vec::new());
         }
         for (&(scope, slot), &v) in slots.iter().zip(cells) {
-            let row = &mut values[scope as usize];
+            let row = &mut values[scope.index()];
             if row.len() <= slot as usize {
                 row.resize(slot as usize + 1, None);
             }
@@ -89,7 +89,7 @@ impl Session {
     /// The value carried for `(scope, slot)`, if any.
     pub(crate) fn carried(&self, scope: ScopeId, slot: u32) -> Option<f64> {
         self.values
-            .get(scope as usize)
+            .get(scope.index())
             .and_then(|row| row.get(slot as usize).copied().flatten())
     }
 

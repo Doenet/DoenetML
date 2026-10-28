@@ -229,7 +229,7 @@ impl Document {
     /// element, and for an attribute holding a reference.
     pub fn attr_text(&self, comp: crate::document::CompIdx, name: &str) -> Option<String> {
         let node = self.components.dast_node[comp.index()];
-        if node == crate::document::NONE {
+        if node == crate::dast::NodeId::NONE {
             return None;
         }
         let attrs = &self.loaded.literal_attrs;

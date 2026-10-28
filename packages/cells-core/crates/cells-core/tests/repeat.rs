@@ -335,7 +335,7 @@ fn a_returning_iteration_stamps_its_nested_repeat_in_one_pass() {
             .structure
             .repeats
             .iter()
-            .filter(|r| r.scope != 0)
+            .filter(|r| r.scope != cells_core::build::ScopeId::DOCUMENT)
             .map(|r| (r.scope, r.iterations))
             .collect();
         r.sort();

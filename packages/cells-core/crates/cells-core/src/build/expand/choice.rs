@@ -60,7 +60,14 @@ impl<'c> Builder<'c> {
             for k in 1..=def.branches.len() {
                 let s = self.scope_for(scope, node, k as u32);
                 let n = ComponentType::Case.prop_defs().len();
-                let case = self.new_component(ComponentType::Case, NONE, comp, NONE, scope, n);
+                let case = self.new_component(
+                    ComponentType::Case,
+                    StrId::NONE,
+                    comp,
+                    NodeId::NONE,
+                    scope,
+                    n,
+                );
                 let pos = self.anon_slot(BuiltSource::Fixed(k as f64), scope);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
                 self.sources[active_slot as usize] = self.op_source(OpSpec::Eq, &[choice, pos]);
@@ -95,7 +102,7 @@ impl<'c> Builder<'c> {
         inst.scopes
             .iter()
             .zip(&inst.branch_of)
-            .map(|(&s, &b)| self.scope_comps[s as usize][elems[b]])
+            .map(|(&s, &b)| self.scope_comps[s.index()][elems[b]])
             .filter(|&m| m != CompIdx::NONE)
             .collect()
     }
@@ -115,7 +122,7 @@ impl<'c> Builder<'c> {
             .map(|&m| self.n_public(m))
             .max()
             .unwrap_or(component_type.prop_defs().len());
-        let w = self.new_component(component_type, NONE, parent, NONE, scope, n);
+        let w = self.new_component(component_type, StrId::NONE, parent, NodeId::NONE, scope, n);
         if n != component_type.prop_defs().len() {
             self.n_public[w.index()] = n as u32;
         }
@@ -277,7 +284,7 @@ impl<'c> Builder<'c> {
         let in_branch = |inst: &ChoiceInst, j: usize| {
             let s = inst.scopes[j];
             (
-                Resolved::Comp(self.scope_comps[s as usize][elems[inst.branch_of[j]]]),
+                Resolved::Comp(self.scope_comps[s.index()][elems[inst.branch_of[j]]]),
                 s,
             )
         };
@@ -298,7 +305,7 @@ impl<'c> Builder<'c> {
                     self.components.scope[c.index()],
                 )
             }
-            Resolved::Missing => (Resolved::Missing, 0),
+            Resolved::Missing => (Resolved::Missing, ScopeId::DOCUMENT),
         }
     }
 }
@@ -312,7 +319,7 @@ impl<'c> Builder<'c> {
         let mut h = splitmix(self.view.seed() ^ 0x5eed_5e1e_c7ed_0001);
         h = splitmix(h ^ stable_hash(self.compiled.keys.key_text(key).as_bytes()));
         let mut s = scope;
-        while s != 0 {
+        while s != ScopeId::DOCUMENT {
             let (parent, n, k) = self.scopes[s];
             let level = self.compiled.keys.scope_level(n, k).to_string();
             h = splitmix(h ^ stable_hash(level.as_bytes()));

@@ -350,14 +350,14 @@ impl<'c> Builder<'c> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Fixed(f64::NAN), 0);
+        let s = self.anon_slot(BuiltSource::Fixed(f64::NAN), ScopeId::DOCUMENT);
         self.missing = Some(s);
         s
     }
 
     pub(in crate::build) fn comp_label(&self, comp: CompIdx) -> String {
         let name = self.components.name[comp.index()];
-        if name != NONE {
+        if name != StrId::NONE {
             self.compiled.dast.strings.get(name).trim().to_string()
         } else {
             format!(
@@ -392,7 +392,7 @@ impl<'c> Builder<'c> {
     /// Nesting depth of a scope: 0 for the document.
     pub(in crate::build) fn scope_depth(&self, mut s: ScopeId) -> u32 {
         let mut d = 0;
-        while s != 0 {
+        while s != ScopeId::DOCUMENT {
             s = self.scopes[s].0;
             d += 1;
         }
@@ -402,8 +402,8 @@ impl<'c> Builder<'c> {
     /// The repeats whose iterations enclose `scope`, innermost first.
     pub(in crate::build) fn enclosing_repeats(&self, mut scope: ScopeId) -> Vec<CompIdx> {
         let mut out = Vec::new();
-        while scope != 0 {
-            match self.scope_repeat.get(scope as usize) {
+        while scope != ScopeId::DOCUMENT {
+            match self.scope_repeat.get(scope.index()) {
                 Some(&r) if r != CompIdx::NONE => out.push(r),
                 _ => {}
             }
@@ -414,10 +414,10 @@ impl<'c> Builder<'c> {
 
     /// Whether `scope` lies inside some repeat's iteration.
     pub(in crate::build) fn in_iteration(&self, mut scope: ScopeId) -> bool {
-        while scope != 0 {
+        while scope != ScopeId::DOCUMENT {
             if self
                 .scope_repeat
-                .get(scope as usize)
+                .get(scope.index())
                 .is_some_and(|&r| r != CompIdx::NONE)
             {
                 return true;
@@ -430,7 +430,7 @@ impl<'c> Builder<'c> {
     /// Record `node` as the element to box if the build fails; the first
     /// recorded wins, which is the innermost since a failure unwinds.
     pub(in crate::build) fn fail_at(&mut self, node: NodeId) {
-        if node != NONE {
+        if node != NodeId::NONE {
             self.failed_node.get_or_insert(node);
         }
     }
@@ -442,7 +442,7 @@ impl<'c> Builder<'c> {
     }
 
     pub(in crate::build) fn enter_scope(&mut self, scope: ScopeId, template: TemplateId) {
-        let s = scope as usize;
+        let s = scope.index();
         if self.scope_comps.len() <= s {
             self.scope_comps.resize(s + 1, Vec::new());
         }
@@ -452,8 +452,8 @@ impl<'c> Builder<'c> {
     // ---- expansion -----------------------------------------------------------
 
     pub(in crate::build) fn expand_all(&mut self) -> Result<()> {
-        self.enter_scope(0, 0);
-        let kids = self.expand(0, 0, CompIdx::NONE)?;
+        self.enter_scope(ScopeId::DOCUMENT, 0);
+        let kids = self.expand(0, ScopeId::DOCUMENT, CompIdx::NONE)?;
         self.root = kids
             .iter()
             .find_map(|k| k.as_comp())
@@ -485,7 +485,7 @@ impl<'c> Builder<'c> {
             if let NPublic::Planned(n) = n_public {
                 self.n_public[comp.index()] = n;
             }
-            self.scope_comps[scope as usize][e] = comp;
+            self.scope_comps[scope.index()][e] = comp;
             self.comp_instance[comp.index()] = self.instances.len() as u32;
             self.instances.push(Instance {
                 scope,
@@ -496,7 +496,7 @@ impl<'c> Builder<'c> {
         }
         // Then child lists, expanding repeats as they come.
         for e in 0..n_elems {
-            let comp = self.scope_comps[scope as usize][e];
+            let comp = self.scope_comps[scope.index()][e];
             let kids = match self.compiled.templates[t].elems[e].body {
                 Body::Repeat { template } => {
                     let node = self.compiled.templates[t].elems[e].node;
@@ -506,10 +506,10 @@ impl<'c> Builder<'c> {
                     for k in 1..=n {
                         let s = self.scope_for(scope, node, k);
                         iter_scopes.push(s);
-                        if self.scope_repeat.len() <= s as usize {
-                            self.scope_repeat.resize(s as usize + 1, CompIdx::NONE);
+                        if self.scope_repeat.len() <= s.index() {
+                            self.scope_repeat.resize(s.index() + 1, CompIdx::NONE);
                         }
-                        self.scope_repeat[s as usize] = comp;
+                        self.scope_repeat[s.index()] = comp;
                         self.enter_scope(s, template);
                         let mut these = self.expand(template, s, comp)?;
                         kids.append(&mut these);
@@ -589,11 +589,18 @@ impl<'c> Builder<'c> {
         parent: CompIdx,
     ) -> ChildEntry {
         match *ch {
-            Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope as usize][e]),
+            Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope.index()][e]),
             Child::Text(s) => ChildEntry::text(s),
             Child::Macro(plan, has_index) => {
                 // Type is unknown until the reference resolves; Document stands in.
-                let idx = self.new_component(ComponentType::Document, NONE, parent, NONE, scope, 0);
+                let idx = self.new_component(
+                    ComponentType::Document,
+                    StrId::NONE,
+                    parent,
+                    NodeId::NONE,
+                    scope,
+                    0,
+                );
                 self.pending.push((idx, plan, scope, has_index));
                 ChildEntry::comp(idx)
             }
@@ -777,8 +784,14 @@ impl<'c> Builder<'c> {
                 let items = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
                     let n = ComponentType::Point.prop_defs().len();
-                    let pt =
-                        self.new_component(ComponentType::Point, NONE, comp, NONE, inst.scope, n);
+                    let pt = self.new_component(
+                        ComponentType::Point,
+                        StrId::NONE,
+                        comp,
+                        NodeId::NONE,
+                        inst.scope,
+                        n,
+                    );
                     let (sx, sy, sh) = (
                         self.slot(pt, prop::point::X),
                         self.slot(pt, prop::point::Y),
@@ -815,9 +828,9 @@ impl<'c> Builder<'c> {
                 for orig in originals {
                     let copy = self.new_component(
                         ComponentType::Document,
-                        NONE,
+                        StrId::NONE,
                         comp,
-                        NONE,
+                        NodeId::NONE,
                         inst.scope,
                         0,
                     );
@@ -858,7 +871,14 @@ impl<'c> Builder<'c> {
         let mut copies = Vec::with_capacity(found.len());
         for &c in &found {
             // Created without a type so `copy_into` allocates the slots once.
-            let copy = self.new_component(ComponentType::Document, NONE, comp, NONE, inst.scope, 0);
+            let copy = self.new_component(
+                ComponentType::Document,
+                StrId::NONE,
+                comp,
+                NodeId::NONE,
+                inst.scope,
+                0,
+            );
             self.copy_into(copy, c);
             copies.push(copy);
         }

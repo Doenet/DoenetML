@@ -48,6 +48,18 @@ macro_rules! index_type {
                 $name(self.0 + k as u32)
             }
 
+            /// A slice of these as the `u32`s they are, for the wire and for
+            /// hashing.
+            pub fn as_u32s(v: &[$name]) -> &[u32] {
+                // SAFETY: `$name` is `repr(transparent)` over `u32`.
+                unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<u32>(), v.len()) }
+            }
+
+            /// `u32`s read from the wire, as these.
+            pub fn from_u32s(v: Vec<u32>) -> Vec<$name> {
+                v.into_iter().map($name).collect()
+            }
+
             /// Every index below `n`, in order.
             pub fn below(n: usize) -> impl DoubleEndedIterator<Item = $name> + ExactSizeIterator {
                 (0..u32::try_from(n).expect(concat!(stringify!($name), " out of range"))).map($name)
@@ -57,6 +69,12 @@ macro_rules! index_type {
         impl std::fmt::Debug for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 std::fmt::Debug::fmt(&self.0, f)
+            }
+        }
+
+        impl serde::Serialize for $name {
+            fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+                s.serialize_u32(self.0)
             }
         }
 

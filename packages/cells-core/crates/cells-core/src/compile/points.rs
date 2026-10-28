@@ -124,7 +124,7 @@ impl<'a> Compiler<'a> {
     /// Points in a point-list attribute, counted from its text alone.
     pub(in crate::compile) fn count_points_in_attr(&self, el: NodeId, name: &str) -> Result<usize> {
         let d = self.dast;
-        let Some(a) = (el != NONE).then(|| d.attr(el, name)).flatten() else {
+        let Some(a) = (el != NodeId::NONE).then(|| d.attr(el, name)).flatten() else {
             return Ok(0);
         };
         let mut n = 0;

@@ -82,7 +82,7 @@ impl Document {
                         found
                             .iter()
                             .copied()
-                            .find(|&c| self.components.dast_node[c.index()] != NONE)
+                            .find(|&c| self.components.dast_node[c.index()] != NodeId::NONE)
                     })
                     .or_else(|| found.first().copied())
             })

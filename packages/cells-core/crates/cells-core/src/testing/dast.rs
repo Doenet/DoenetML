@@ -16,7 +16,7 @@
 //!         .text(" + ")
 //!         .child([part("r").index("2"), part("y")]),
 //! ]);
-//! assert_eq!(dast.str(dast.children(0)[0]), "document");
+//! assert_eq!(dast.str(dast.children(cells_core::dast::Dast::ROOT)[0]), "document");
 //! ```
 //!
 //! What is built is the DAST the core reads, which is the parser's after

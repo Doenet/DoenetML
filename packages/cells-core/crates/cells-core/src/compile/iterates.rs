@@ -89,7 +89,7 @@ impl<'a> Compiler<'a> {
                     ],
                     prop: Some(tuple_prop(crate::components::prop::tuple::X1 + j).to_string()),
                     display: format!("(previous iterate).{}", vars[j]),
-                    node: NONE,
+                    node: NodeId::NONE,
                 });
                 self.compiled.refs.len() - 1
             })
@@ -248,7 +248,7 @@ impl<'a> Compiler<'a> {
         let has_item = self.compiled.templates[sub]
             .elems
             .first()
-            .is_some_and(|x| x.node == NONE && x.component_type == ComponentType::Tuple);
+            .is_some_and(|x| x.node == NodeId::NONE && x.component_type == ComponentType::Tuple);
         if has_item {
             let mut steps = base.steps.clone();
             steps.push(Step::Index(IndexPlan {
@@ -263,7 +263,7 @@ impl<'a> Compiler<'a> {
                         steps: steps.clone(),
                         prop: Some(prop.to_string()),
                         display: format!("({}[i]).{prop}", base.display),
-                        node: NONE,
+                        node: NodeId::NONE,
                     });
                     Source::reference(self.compiled.refs.len() - 1)
                 })

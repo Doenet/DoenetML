@@ -414,7 +414,7 @@ impl<'a> Signer<'a> {
         }
         match self.out.value_types[cell.index()] {
             ValueType::Number => hash_of(bits(v)),
-            ValueType::Text => hash_of(("t", self.out.strings.get(v as u32))),
+            ValueType::Text => hash_of(("t", self.out.strings.get(StrId::from_value(v)))),
             ValueType::Math => hash_of(("m", self.out.session.engine.borrow().text(v as Handle))),
         }
     }
@@ -458,7 +458,7 @@ impl<'a> Signer<'a> {
                                 key => self.key(key),
                             };
                             let node = t.dast_node[k.index()];
-                            let content = if node == NONE {
+                            let content = if node == NodeId::NONE {
                                 0
                             } else {
                                 hash_of(dast_text(d, node))

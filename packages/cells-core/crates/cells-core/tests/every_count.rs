@@ -179,7 +179,7 @@ fn doenet_files(dir: &Path) -> Vec<std::path::PathBuf> {
 
 /// (node, component type) of every element of a known type.
 fn element_types(dast: &Dast) -> Vec<(NodeId, ComponentType)> {
-    (0..dast.len() as NodeId)
+    NodeId::below(dast.len())
         .filter(|&n| dast.kind(n) == NodeKind::Element)
         .filter_map(|n| ComponentType::from_tag(dast.str(n)).map(|t| (n, t)))
         .collect()

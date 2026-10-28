@@ -13,7 +13,7 @@ use crate::dast::{Dast, NodeId, NodeKind};
 use crate::diagnostics::Diagnostic;
 
 pub fn lint(dast: &Dast) -> Vec<Diagnostic> {
-    (0..dast.len() as NodeId)
+    NodeId::below(dast.len())
         .filter(|&n| dast.kind(n) == NodeKind::Element)
         .filter_map(|n| ComponentType::from_tag(dast.str(n)).map(|t| (n, t)))
         .filter_map(|(n, t)| accessibility(dast, n, t))

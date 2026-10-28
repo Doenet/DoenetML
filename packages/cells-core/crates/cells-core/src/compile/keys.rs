@@ -137,10 +137,10 @@ impl Compiler<'_> {
                 } else {
                     keys.text_of(ids[anchor])
                 };
-                let text = if el.node == NONE {
+                let text = if el.node == NodeId::NONE {
                     // Made for the nearest element that has a node.
                     let mut a = el.name_scope;
-                    while a != ROOT_SCOPE && tpl.elems[a].node == NONE {
+                    while a != ROOT_SCOPE && tpl.elems[a].node == NodeId::NONE {
                         a = tpl.elems[a].name_scope;
                     }
                     let owner = if a == ROOT_SCOPE {
@@ -159,7 +159,7 @@ impl Compiler<'_> {
                 } else {
                     // Named only when no other element under the anchor
                     // carries the name.
-                    let name = (el.name != NONE)
+                    let name = (el.name != StrId::NONE)
                         .then(|| self.dast.strings.get(el.name).trim())
                         .filter(|s| {
                             self.name_ids.get(*s).is_some_and(|&id| {
@@ -180,7 +180,7 @@ impl Compiler<'_> {
                     }
                 };
                 let id = keys.push(&text, el.component_type);
-                if el.node != NONE {
+                if el.node != NodeId::NONE {
                     match el.body {
                         Body::Repeat { .. } => {
                             keys.owners.insert(el.node, (id, None));

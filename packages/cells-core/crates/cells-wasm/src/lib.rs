@@ -2,6 +2,8 @@
 //! over wasm memory (see `cells_ptr`/`cells_len`), reads the component
 //! tables the same way, and writes with cell-addressed requests. See ADR 0001.
 
+use cells_core::build::ScopeId;
+use cells_core::dast::{NodeId, StrId};
 use cells_core::{CellIdx, CompIdx, Document, LoadOptions, PointRequest, Request};
 use wasm_bindgen::prelude::*;
 
@@ -237,18 +239,16 @@ impl Core {
     }
 
     pub fn comp_name_ptr(&self) -> *const u32 {
-        self.doc.components.name.as_ptr()
+        StrId::as_u32s(&self.doc.components.name).as_ptr()
     }
     pub fn comp_parent_ptr(&self) -> *const u32 {
-        // `CompIdx` is a `u32` (`repr(transparent)`).
-        self.doc.components.parent.as_ptr() as *const u32
+        CompIdx::as_u32s(&self.doc.components.parent).as_ptr()
     }
     pub fn comp_prop_base_ptr(&self) -> *const u32 {
         self.doc.components.prop_base.as_ptr()
     }
     pub fn prop_cells_ptr(&self) -> *const u32 {
-        // `CellIdx` is a `u32` (`repr(transparent)`).
-        self.doc.components.prop_cells.as_ptr() as *const u32
+        CellIdx::as_u32s(&self.doc.components.prop_cells).as_ptr()
     }
     pub fn prop_cells_len(&self) -> usize {
         self.doc.components.prop_cells.len()
@@ -269,10 +269,10 @@ impl Core {
     }
     /// Stable identity across rebuilds: DAST node (NONE if synthesized) and scope.
     pub fn comp_node_ptr(&self) -> *const u32 {
-        self.doc.components.dast_node.as_ptr()
+        NodeId::as_u32s(&self.doc.components.dast_node).as_ptr()
     }
     pub fn comp_scope_ptr(&self) -> *const u32 {
-        self.doc.components.scope.as_ptr()
+        ScopeId::as_u32s(&self.doc.components.scope).as_ptr()
     }
     /// String table: `n_strings + 1` offsets into the UTF-8 byte blob.
     pub fn string_offsets_ptr(&self) -> *const u32 {

@@ -299,7 +299,7 @@ impl<'a> Compiler<'a> {
                 }
                 text.push_str(d.str(n));
             }
-            let id = self.intern_literal(text.trim()) as f64;
+            let id = self.intern_literal(text.trim()).to_value();
             let mut award_wiring = ElemWiring::of(ComponentType::Award);
             let credit = match d.attr(form.el, "credit") {
                 Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
@@ -593,7 +593,7 @@ impl<'a> Compiler<'a> {
         input_type: ComponentType,
     ) -> ElemId {
         let r = self
-            .push_elem(t, NONE, ComponentType::Response, NONE, e)
+            .push_elem(t, NodeId::NONE, ComponentType::Response, StrId::NONE, e)
             .expect("unnamed");
         let mut live = self.compiled.refs[p].clone();
         let math = input_type == ComponentType::MathInput;
@@ -624,7 +624,7 @@ impl<'a> Compiler<'a> {
     /// input: an unbound input, first among the answer's children.
     fn add_implicit_input(&mut self, t: TemplateId, e: ElemId) -> ElemId {
         let mi = self
-            .push_elem(t, NONE, ComponentType::MathInput, NONE, e)
+            .push_elem(t, NodeId::NONE, ComponentType::MathInput, StrId::NONE, e)
             .expect("unnamed");
         self.compiled.templates[t].elems[mi].props = math_input::Props {
             value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]),

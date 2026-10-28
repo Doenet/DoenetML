@@ -175,7 +175,7 @@ impl<'c> Builder<'c> {
             if s == of {
                 return true;
             }
-            if s == 0 {
+            if s == ScopeId::DOCUMENT {
                 return false;
             }
             s = self.scopes[s].0;
@@ -265,18 +265,18 @@ impl<'c> Builder<'c> {
             return l.clone();
         }
         let (mut a, mut b) = (self.slot_scope[u as usize], self.slot_scope[v as usize]);
-        let dv = depth[b as usize];
-        while depth[a as usize] > depth[b as usize] {
+        let dv = depth[b.index()];
+        while depth[a.index()] > depth[b.index()] {
             a = self.scopes[a].0;
         }
-        while depth[b as usize] > depth[a as usize] {
+        while depth[b.index()] > depth[a.index()] {
             b = self.scopes[b].0;
         }
         while a != b {
             a = self.scopes[a].0;
             b = self.scopes[b].0;
         }
-        let shared = depth[a as usize] as usize;
+        let shared = depth[a.index()] as usize;
         let mut label = vec![Coord::Keep(0); shared];
         label.resize(dv as usize, Coord::Reset);
         label
@@ -299,7 +299,7 @@ impl<'c> Builder<'c> {
         adj_start.push(adj.len() as u32);
         let mut depth = vec![0u32; self.scopes.len()];
         for s in 1..self.scopes.len() {
-            depth[s] = depth[self.scopes[s as ScopeId].0 as usize] + 1;
+            depth[s] = depth[self.scopes[ScopeId::from_index(s)].0.index()] + 1;
         }
 
         // Tarjan, iterative.
@@ -388,7 +388,7 @@ impl<'c> Builder<'c> {
         }
         let min_depth = members
             .iter()
-            .map(|&m| depth[self.slot_scope[m as usize] as usize] as usize)
+            .map(|&m| depth[self.slot_scope[m as usize].index()] as usize)
             .min()
             .unwrap_or(0);
         let mut edges: Vec<(u32, u32)> = Vec::new();
@@ -425,7 +425,7 @@ impl<'c> Builder<'c> {
         }
         let named = |s: SlotId| {
             let c = self.slot_comp[s as usize];
-            c != CompIdx::NONE && self.components.name[c.index()] != NONE
+            c != CompIdx::NONE && self.components.name[c.index()] != StrId::NONE
         };
         let owned = |s: SlotId| self.slot_comp[s as usize] != CompIdx::NONE;
         let at = members

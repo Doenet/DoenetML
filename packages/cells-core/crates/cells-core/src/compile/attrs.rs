@@ -144,7 +144,7 @@ impl<'a> Compiler<'a> {
         let d = self.dast;
         let ids = self.string_ids.get_or_insert_with(|| {
             let mut ids = HashMap::new();
-            for i in (0..d.strings.len() as StrId).rev() {
+            for i in StrId::below(d.strings.len()).rev() {
                 ids.insert(d.strings.get(i).to_string(), i);
             }
             ids
@@ -152,7 +152,7 @@ impl<'a> Compiler<'a> {
         if let Some(&id) = ids.get(text) {
             return id;
         }
-        let id = (d.strings.len() + self.compiled.extra_strings.len()) as StrId;
+        let id = StrId::from_index(d.strings.len() + self.compiled.extra_strings.len());
         self.compiled.extra_strings.push(text.to_string());
         ids.insert(text.to_string(), id);
         id

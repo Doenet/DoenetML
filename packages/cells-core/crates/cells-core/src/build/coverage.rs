@@ -132,7 +132,7 @@ impl Builder<'_> {
     fn scope_depths(&self) -> Vec<u32> {
         let mut depth = vec![0u32; self.scopes.len()];
         for s in 1..self.scopes.len() {
-            depth[s] = depth[self.scopes[s as ScopeId].0 as usize] + 1;
+            depth[s] = depth[self.scopes[ScopeId::from_index(s)].0.index()] + 1;
         }
         depth
     }
@@ -140,7 +140,7 @@ impl Builder<'_> {
     /// A scope's (element, position) per level, from the document down.
     fn positions(&self, mut s: ScopeId) -> Vec<(NodeId, u32)> {
         let mut out = Vec::new();
-        while s != 0 {
+        while s != ScopeId::DOCUMENT {
             let (parent, node, k) = self.scopes[s];
             out.push((node, k));
             s = parent;

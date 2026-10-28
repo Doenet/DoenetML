@@ -1,7 +1,7 @@
 //! The binary wire format (`CDST`, little-endian; see
 //! `docs/adr/0002-binary-wire-format.md` and `scripts/cdast-encode.mjs`).
 
-use super::{Dast, NodeKind, StringTable};
+use super::{Dast, NodeId, NodeKind, StrId, StringTable};
 
 impl Dast {
     /// Load from the binary wire format (little-endian, see module docs).
@@ -59,16 +59,16 @@ impl Dast {
                 bytes: string_bytes,
             },
             kind,
-            str_: r.u32s(n_nodes),
+            str_: StrId::from_u32s(r.u32s(n_nodes)),
             a_start: r.u32s(n_nodes),
             a_count: r.u32s(n_nodes),
             c_start: r.u32s(n_nodes),
             c_count: r.u32s(n_nodes),
-            attr_name: r.u32s(n_attrs),
+            attr_name: StrId::from_u32s(r.u32s(n_attrs)),
             attr_c_start: r.u32s(n_attrs),
             attr_c_count: r.u32s(n_attrs),
-            children: r.u32s(n_children),
-            path: r.u32s(n_path),
+            children: NodeId::from_u32s(r.u32s(n_children)),
+            path: StrId::from_u32s(r.u32s(n_path)),
             path_i_start: if version >= 2 {
                 r.u32s(n_path)
             } else {
@@ -91,14 +91,14 @@ impl Dast {
             },
         };
         // Bounds checks so accessors can index without panicking on bad input.
-        let ns = dast.strings.len() as u32;
+        let ns = StrId::from_index(dast.strings.len());
         if dast.str_.iter().any(|&s| s >= ns)
             || dast.attr_name.iter().any(|&s| s >= ns)
             || dast.path.iter().any(|&s| s >= ns)
         {
             return Err(bad("string index out of range"));
         }
-        if dast.children.iter().any(|&c| c as usize >= n_nodes) {
+        if dast.children.iter().any(|&c| c.index() >= n_nodes) {
             return Err(bad("child index out of range"));
         }
         for n in 0..n_nodes {
@@ -165,16 +165,16 @@ impl Dast {
             out.push(0);
         }
         for v in [
-            &self.str_,
+            StrId::as_u32s(&self.str_),
             &self.a_start,
             &self.a_count,
             &self.c_start,
             &self.c_count,
-            &self.attr_name,
+            StrId::as_u32s(&self.attr_name),
             &self.attr_c_start,
             &self.attr_c_count,
-            &self.children,
-            &self.path,
+            NodeId::as_u32s(&self.children),
+            StrId::as_u32s(&self.path),
             &self.path_i_start,
             &self.path_i_count,
             &self.idx_c_start,

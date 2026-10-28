@@ -7,11 +7,19 @@ use std::collections::HashMap;
 
 use crate::compile::plan::ElemKey;
 use crate::dast::NodeId;
-use crate::document::{CompIdx, NONE};
+use crate::document::CompIdx;
 
-/// A name scope: 0 is the document, every other scope is one iteration of a
-/// repeat (see `build/mod.rs`).
-pub type ScopeId = u32;
+crate::index::index_type! {
+    /// A name scope: 0 is the document, every other scope is one iteration
+    /// of a repeat (see `build/mod.rs`); a position in the session's
+    /// `ScopeTable`.
+    pub struct ScopeId;
+}
+
+impl ScopeId {
+    /// The document's own scope.
+    pub const DOCUMENT: ScopeId = ScopeId::new(0);
+}
 
 /// One expanded `<repeatForSequence>`.
 #[derive(Debug, Clone)]
@@ -38,7 +46,7 @@ pub struct ScopeTable {
 impl Default for ScopeTable {
     fn default() -> Self {
         ScopeTable {
-            entries: vec![(NONE, NONE, 0)],
+            entries: vec![(ScopeId::NONE, NodeId::NONE, 0)],
             index: HashMap::new(),
         }
     }
@@ -52,7 +60,7 @@ impl ScopeTable {
             return s;
         }
         self.entries.push((parent, node, k));
-        let s = (self.entries.len() - 1) as ScopeId;
+        let s = ScopeId::from_index(self.entries.len() - 1);
         self.index.insert((parent, node, k), s);
         s
     }
@@ -73,7 +81,7 @@ impl ScopeTable {
 impl std::ops::Index<ScopeId> for ScopeTable {
     type Output = (ScopeId, NodeId, u32);
     fn index(&self, s: ScopeId) -> &Self::Output {
-        &self.entries[s as usize]
+        &self.entries[s.index()]
     }
 }
 

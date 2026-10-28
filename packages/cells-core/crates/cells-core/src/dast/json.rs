@@ -192,7 +192,7 @@ impl Item for Node {
                         b.leaf(NodeKind::Text, v)
                     }
                     NodeKind::Macro => b.macro_(path),
-                    NodeKind::Other => b.leaf(NodeKind::Other, 0),
+                    NodeKind::Other => b.leaf(NodeKind::Other, StrId::new(0)),
                 };
                 Ok(id)
             }

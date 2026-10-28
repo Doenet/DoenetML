@@ -253,7 +253,7 @@ impl<'c> Builder<'c> {
                 self.slot(referent, k)
             }
             Some(Source::Alias(Arg::Elem(e, k))) => {
-                let other = self.scope_comps[i.scope as usize][*e];
+                let other = self.scope_comps[i.scope.index()][*e];
                 if other == CompIdx::NONE {
                     return ValueType::Number;
                 }

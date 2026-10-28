@@ -209,7 +209,7 @@ impl Document {
     /// iteration or choice branch (`Keys::scope_level`).
     fn scope_path(&self, mut scope: ScopeId) -> Value {
         let mut path = Vec::new();
-        while scope != 0 {
+        while scope != ScopeId::DOCUMENT {
             let (parent, node, k) = self.session.scopes[scope];
             path.push(self.loaded.keys.scope_level(node, k));
             scope = parent;
@@ -222,7 +222,7 @@ impl Document {
     /// has stamped it yet (its values wait for the iteration); None when
     /// this version has no such repeat, choice or branch.
     fn scope_at(&mut self, path: &[Value]) -> Option<ScopeId> {
-        let mut scope = 0;
+        let mut scope = ScopeId::DOCUMENT;
         for level in path {
             let (node, k) = self.loaded.keys.level_at(level)?;
             scope = self.session.scopes.get_or_insert(scope, node, k);

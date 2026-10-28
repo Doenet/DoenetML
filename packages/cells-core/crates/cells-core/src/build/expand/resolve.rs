@@ -17,7 +17,7 @@ impl<'c> Builder<'c> {
         Ok(match arg {
             Arg::Own(a) => self.slot(comp, a as usize),
             Arg::Elem(el, slot) => {
-                let other = self.scope_comps[scope as usize][el];
+                let other = self.scope_comps[scope.index()][el];
                 self.slot(other, slot as usize)
             }
             Arg::Ref(p, Sel::Whole) => {
@@ -89,11 +89,11 @@ impl<'c> Builder<'c> {
                     cur = match cur {
                         Resolved::Iter(_, s) => {
                             sc = s;
-                            Resolved::Comp(self.scope_comps[s as usize][*e])
+                            Resolved::Comp(self.scope_comps[s.index()][*e])
                         }
                         Resolved::Missing => Resolved::Missing,
                         // A name inside a named component: same scope.
-                        Resolved::Comp(_) => Resolved::Comp(self.scope_comps[sc as usize][*e]),
+                        Resolved::Comp(_) => Resolved::Comp(self.scope_comps[sc.index()][*e]),
                     };
                 }
                 Step::Iface(cid, u) => {

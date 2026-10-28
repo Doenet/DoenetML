@@ -12,7 +12,7 @@ use crate::build::{Repeat, ScopeId, Structure};
 use crate::session::{Counts, Session};
 
 use crate::components::{ComponentType, prop};
-use crate::dast::{Dast, StrId, StringTable};
+use crate::dast::{Dast, NodeId, StrId, StringTable};
 use crate::program::{Program, SymRun, SymState, ValueType};
 use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
@@ -191,7 +191,7 @@ impl Document {
         let strings = &mut self.strings;
         let ids = self.interned.get_or_insert_with(|| {
             let mut ids = HashMap::new();
-            for i in (0..strings.len() as StrId).rev() {
+            for i in StrId::below(strings.len()).rev() {
                 ids.insert(strings.get(i).to_string(), i);
             }
             ids
@@ -205,7 +205,7 @@ impl Document {
                 id
             }
         };
-        id as f64
+        id.to_value()
     }
 
     /// The expression a math cell holds, as text; empty when blank.

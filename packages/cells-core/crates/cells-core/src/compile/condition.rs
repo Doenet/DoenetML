@@ -105,7 +105,7 @@ impl<'a> Compiler<'a> {
                 }
                 None => {
                     let id = cp.intern_literal(s);
-                    Ok(wiring.hidden(Source::Fixed(id as f64)))
+                    Ok(wiring.hidden(Source::Fixed(id.to_value())))
                 }
             }
         };

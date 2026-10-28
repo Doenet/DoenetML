@@ -256,7 +256,7 @@ impl<'a> Compiler<'a> {
                 // The names visible from the first branch's root that name
                 // one element each.
                 for (e0, el) in first.elems.iter().enumerate() {
-                    if el.name == NONE {
+                    if el.name == StrId::NONE {
                         continue;
                     }
                     let name = self.dast.strings.get(el.name).trim();

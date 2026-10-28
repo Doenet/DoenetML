@@ -50,7 +50,7 @@ impl<'a> Compiler<'a> {
             let mut a = from;
             loop {
                 if a != ROOT_SCOPE
-                    && tpl.elems[a].name != NONE
+                    && tpl.elems[a].name != StrId::NONE
                     && self.dast.strings.get(tpl.elems[a].name).trim() == name
                 {
                     return Ok(Some((hops, a)));

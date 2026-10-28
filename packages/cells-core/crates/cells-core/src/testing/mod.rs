@@ -144,11 +144,11 @@ pub fn inputs(
 ) -> std::collections::BTreeMap<String, InputState> {
     use crate::ValueType;
     use crate::components::ComponentType;
-    use crate::document::NONE;
+
     let mut key_of = std::collections::HashMap::new();
     for t in &compiled.templates {
         for el in &t.elems {
-            if el.node != NONE {
+            if el.node != crate::dast::NodeId::NONE {
                 key_of.insert(el.node, compiled.keys.key_text(el.key).to_string());
             }
         }

@@ -28,7 +28,6 @@ use std::sync::{Arc, OnceLock};
 
 use crate::components::{ComponentType, PropAt, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
-use crate::document::NONE;
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
@@ -252,7 +251,7 @@ impl<'a> Compiler<'a> {
             Some(el) => vec![Child::Elem(cp.add_elem(0, el, ROOT_SCOPE)?)],
             None => {
                 // Synthesize a root when the DAST was not normalized.
-                let e = cp.add_synthetic(0, ComponentType::Document, NONE);
+                let e = cp.add_synthetic(0, ComponentType::Document, StrId::NONE);
                 cp.compiled.templates[0].elems[e].props = prop::document::Props {
                     creditAchieved: Source::Deferred(Deferred::Credit),
                     percentCreditAchieved: Source::Deferred(Deferred::PercentCredit),
@@ -322,7 +321,7 @@ impl<'a> Compiler<'a> {
     /// Record `node` as the element to box if the compile fails: the
     /// innermost one wins, so a failure inside a child boxes the child.
     pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
-        if node != NONE {
+        if node != NodeId::NONE {
             self.failed_node.get_or_insert(node);
         }
     }
@@ -330,7 +329,7 @@ impl<'a> Compiler<'a> {
     /// The `_error` element standing for boxed node `node`: no name, no
     /// children, no props.
     fn push_error_elem(&mut self, t: TemplateId, node: NodeId) -> ElemId {
-        self.push_elem(t, node, ComponentType::Error, NONE, ROOT_SCOPE)
+        self.push_elem(t, node, ComponentType::Error, StrId::NONE, ROOT_SCOPE)
             .expect("an unnamed element never collides")
     }
 
@@ -362,7 +361,7 @@ impl<'a> Compiler<'a> {
         name_scope: ElemId,
         stop: ElemId,
     ) -> Result<ElemId> {
-        let name_id = (name != NONE).then(|| {
+        let name_id = (name != StrId::NONE).then(|| {
             let s = self.dast.strings.get(name).trim();
             match self.name_ids.get(s) {
                 Some(&id) => id,
@@ -431,7 +430,7 @@ impl<'a> Compiler<'a> {
         component_type: ComponentType,
         name: StrId,
     ) -> ElemId {
-        self.push_elem(t, NONE, component_type, name, ROOT_SCOPE)
+        self.push_elem(t, NodeId::NONE, component_type, name, ROOT_SCOPE)
             .expect("synthetic names are unique")
     }
 
@@ -480,7 +479,7 @@ impl<'a> Compiler<'a> {
                 "<case> outside a <conditionalContent>".into(),
             ));
         }
-        let name = self.attr_name_str(el, "name").unwrap_or(NONE);
+        let name = self.attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.pending_elems.push((t, e));
         let child_scope = e;
@@ -493,7 +492,7 @@ impl<'a> Compiler<'a> {
                     parent: Some((t, e)),
                     ..Default::default()
                 });
-                let it = self.add_synthetic(sub, ComponentType::Tuple, NONE);
+                let it = self.add_synthetic(sub, ComponentType::Tuple, StrId::NONE);
                 self.compiled.templates[sub].children = vec![Child::Elem(it)];
                 self.compiled.templates[t].elems[e].body = Body::Repeat { template: sub };
             }
@@ -583,7 +582,7 @@ impl<'a> Compiler<'a> {
             steps: vec![Step::Elem(e)],
             prop: Some(prop.to_string()),
             display: format!("(repeat).{prop}"),
-            node: NONE,
+            node: NodeId::NONE,
         });
         self.compiled.refs.len() - 1
     }
@@ -680,7 +679,7 @@ impl<'a> Compiler<'a> {
         if cloned {
             return Ok(ElemShape::Cloned);
         }
-        if el == NONE {
+        if el == NodeId::NONE {
             return Ok(ElemShape::Synthetic);
         }
         let extend = match d.attr(el, "extend") {
@@ -709,7 +708,7 @@ impl<'a> Compiler<'a> {
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
         let el = &self.compiled.templates[t].elems[e];
-        if el.name != NONE {
+        if el.name != StrId::NONE {
             self.dast.strings.get(el.name).trim().to_string()
         } else {
             format!("<{}>", el.component_type.tag())

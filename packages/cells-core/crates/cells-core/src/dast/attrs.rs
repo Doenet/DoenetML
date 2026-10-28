@@ -6,10 +6,18 @@
 
 use super::{Dast, NodeId, NodeKind, StrId};
 
-/// A value that is no string: an attribute with no children.
-const EMPTY: StrId = StrId::MAX;
 /// A value id with this bit is an index into `LiteralAttrs::texts`.
-const OWN: StrId = 1 << 31;
+const OWN: u32 = 1 << 31;
+
+/// An attribute's value: a string in the document's table, text of several
+/// nodes the attributes keep themselves (`OWN` set), or none (`EMPTY`, an
+/// attribute with no children). Read with `LiteralAttrs::text`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AttrValue(u32);
+
+impl AttrValue {
+    const EMPTY: AttrValue = AttrValue(u32::MAX);
+}
 
 /// Every attribute of every element whose value is text alone (no
 /// reference), by node.
@@ -19,7 +27,7 @@ pub struct LiteralAttrs {
     /// where its attributes start in `attrs`.
     nodes: Vec<(NodeId, u32)>,
     /// (name, value) per attribute, grouped by node.
-    attrs: Vec<(StrId, StrId)>,
+    attrs: Vec<(StrId, AttrValue)>,
     /// Values of several text nodes, which have no id of their own.
     texts: Vec<Box<str>>,
 }
@@ -33,7 +41,7 @@ impl LiteralAttrs {
                 .iter()
                 .any(|&c| dast.kind(c) == NodeKind::Macro)
         };
-        let elements = || (0..dast.len() as NodeId).filter(|&n| dast.kind(n) == NodeKind::Element);
+        let elements = || NodeId::below(dast.len()).filter(|&n| dast.kind(n) == NodeKind::Element);
         // Counted first, so the table is reserved at the size it keeps: it
         // is made while the load is at its peak.
         let (mut n_nodes, mut n_attrs) = (0, 0);
@@ -56,13 +64,13 @@ impl LiteralAttrs {
                     .copied()
                     .filter(|&c| dast.kind(c) == NodeKind::Text);
                 let value = match (texts.next(), texts.next()) {
-                    (None, _) => EMPTY,
-                    (Some(t), None) => dast.str_id(t),
+                    (None, _) => AttrValue::EMPTY,
+                    (Some(t), None) => AttrValue(dast.str_id(t).get()),
                     (Some(t), Some(u)) => {
                         let mut s = format!("{}{}", dast.str(t), dast.str(u));
                         texts.for_each(|t| s.push_str(dast.str(t)));
                         out.texts.push(s.into());
-                        OWN | (out.texts.len() - 1) as StrId
+                        AttrValue(OWN | (out.texts.len() - 1) as u32)
                     }
                 };
                 out.attrs.push((dast.attr_name_id(a), value));
@@ -75,7 +83,7 @@ impl LiteralAttrs {
     }
 
     /// The (name, value) ids of `node`'s literal attributes.
-    pub fn of(&self, node: NodeId) -> &[(StrId, StrId)] {
+    pub fn of(&self, node: NodeId) -> &[(StrId, AttrValue)] {
         match self.nodes.binary_search_by_key(&node, |&(n, _)| n) {
             Ok(i) => &self.attrs[self.range(i)],
             Err(_) => &[],
@@ -83,7 +91,7 @@ impl LiteralAttrs {
     }
 
     /// Every node with a literal attribute, with its attributes.
-    pub fn iter(&self) -> impl Iterator<Item = (NodeId, &[(StrId, StrId)])> {
+    pub fn iter(&self) -> impl Iterator<Item = (NodeId, &[(StrId, AttrValue)])> {
         (0..self.nodes.len()).map(|i| (self.nodes[i].0, &self.attrs[self.range(i)]))
     }
 
@@ -98,13 +106,13 @@ impl LiteralAttrs {
 
     /// The text of a value id from `of` or `iter`; `strings` is the
     /// document's string table.
-    pub fn text<'a>(&'a self, strings: &'a super::StringTable, value: StrId) -> &'a str {
-        if value == EMPTY {
+    pub fn text<'a>(&'a self, strings: &'a super::StringTable, value: AttrValue) -> &'a str {
+        if value == AttrValue::EMPTY {
             ""
-        } else if value & OWN != 0 {
-            &self.texts[(value & !OWN) as usize]
+        } else if value.0 & OWN != 0 {
+            &self.texts[(value.0 & !OWN) as usize]
         } else {
-            strings.get(value)
+            strings.get(StrId::new(value.0))
         }
     }
 

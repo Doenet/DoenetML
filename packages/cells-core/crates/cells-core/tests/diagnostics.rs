@@ -10,6 +10,7 @@ use std::path::Path;
 
 use cells_core::build::Repeat;
 use cells_core::components::ComponentType;
+use cells_core::dast::NodeId;
 use cells_core::testing::test_utils::{dast_json, load, load_with_seed, repo_root};
 use cells_core::{Diagnostic, DiagnosticKind, Document, LoadOptions, Request, diagnose};
 
@@ -25,7 +26,7 @@ fn errors(list: &[Diagnostic]) -> Vec<&Diagnostic> {
 }
 
 /// (kind, code, node) of each entry: what two lists are compared on.
-fn keys(list: &[Diagnostic]) -> BTreeSet<(DiagnosticKind, &'static str, Option<u32>)> {
+fn keys(list: &[Diagnostic]) -> BTreeSet<(DiagnosticKind, &'static str, Option<NodeId>)> {
     list.iter().map(|d| (d.kind, d.code, d.node)).collect()
 }
 
