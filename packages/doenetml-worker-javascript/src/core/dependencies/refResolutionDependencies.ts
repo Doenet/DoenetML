@@ -406,8 +406,18 @@ export class RefResolutionDependency extends Dependency {
         // `_copy` inside what that one made, too. Wait for them, as for a copy
         // made with `_createComponentIdx` above, so that `$c.h` finds the
         // copy's `h` wherever it is written (NAME-2).
+        // Not the `_copy` this reference belongs to, or one holding it: a
+        // list that copies itself (`<mathList name="c" copy="$c"/>`) would
+        // wait on itself, where it should report the cycle.
         const listCopies = listCopiesOf(
             this.dependencyHandler._components[nodeIdx],
+        ).filter(
+            (copy) =>
+                copy.componentIdx !== composite.componentIdx &&
+                !composite.ancestors?.some(
+                    (ancestor: any) =>
+                        ancestor.componentIdx === copy.componentIdx,
+                ),
         );
         const unexpandedListCopy = listCopies.find((copy) => !copy.isExpanded);
         if (unexpandedListCopy) {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     movePoint,
     movePolygon,
@@ -702,7 +703,7 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
-    it("the children of a copy of a copy of a list are reached through its name, wherever the reference is written", async () => {
+    it("the children of a copy of a copy of a list are reached through its name, before or after the copy", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="x" />
@@ -746,6 +747,23 @@ describe("Value lists as list components @group4", async () => {
             before: "y y y y (1, 2)",
             after: "y y y y (1, 2)",
             inRepeat: "y y",
+        });
+    });
+
+    it("a list that copies itself loads and reports the cycle", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l">1 2</mathList>
+    <mathList name="c" copy="$c" />
+    <p name="p">$l</p>
+    `,
+        });
+
+        expect(
+            getDiagnosticsByType(core).errors.map((e: any) => e.message),
+        ).eqls(["Circular dependency detected."]);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "1, 2",
         });
     });
 
