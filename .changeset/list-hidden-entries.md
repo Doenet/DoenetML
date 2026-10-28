@@ -15,6 +15,6 @@ Every list now treats an entry whose source is written with `hide` the same way.
 
 This also holds for an entry inside a `<sort>` or `<group>` written in a list.
 
-`$l.hide` of a `<collect>`, `<sort>` or `<shuffle>` is now the list's own `hide`, not each entry's. The `hide` of a `<collect>` no longer becomes the `hide` of each entry: `<collect hide>` hides the collect, but `$c[1]` placed elsewhere is shown, as `$l[1]` of any hidden list is. A `<collect>`, `<sort>` or `<shuffle>` written with `hide="false"` still shows the entries whose sources are hidden.
+`$l.hide` of a `<collect>`, `<sort>` or `<shuffle>` is now the list's own `hide`, not each entry's. The `hide` of a `<collect>` no longer becomes the `hide` of each entry: `<collect hide>` hides the collect, but `$c[1]` placed elsewhere is shown, as `$l[1]` of any hidden list is. A `<collect>` written with `hide="false"` still shows the entries whose sources are hidden.
 
 Closes #2265.

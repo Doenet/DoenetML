@@ -2092,11 +2092,12 @@ const LIST_SETTING_OF_PRESENTATION = {
 };
 
 /**
- * Whether a list shown as its sources (`<collect>`, `<sort>`, `<shuffle>`)
- * shows every entry whatever its source's `hide`, as a reference that sets
- * `hide` itself shows its referent: when `hide="false"` is written on it
- * (`<collect hide="false">`), from the list's `hide` and whether that is
- * its default.
+ * Whether a list shown as its sources shows every entry whatever its
+ * source's `hide`, as a reference that sets `hide` itself shows its
+ * referent: when `hide="false"` is written on it (`<collect hide="false">`),
+ * from the list's `hide` and whether that is its default. Only a
+ * `<collect>` can be written so: a `<sort>` or `<shuffle>` with `hide` stays
+ * a composite (`listForms.ts`), whose `hide` does not reach its entries.
  */
 function entriesRevealed(listClass, listHide, listHideIsDefault) {
     return (
