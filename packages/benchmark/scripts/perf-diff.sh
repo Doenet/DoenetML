@@ -15,8 +15,6 @@ trap 'git -C "$root" worktree remove --force "$wt"' EXIT
 (cd "$wt/packages/cells-core" && CARGO_TARGET_DIR="$root/packages/cells-core/target/perf-base" npx wasm-pack build crates/cells-wasm --target web --release --out-dir "$S/base-pkg" --out-name cells_wasm >/dev/null 2>&1)
 (cd "$root" && npm run build -w packages/cells-core >/dev/null 2>&1)
 rm -f "$S/base.json" "$S/new.json"
-# Time what a browser loads: pruned (ADR 0019), where the core has it.
-export CELLS_PRUNE=1
 for round in 1 2 3; do
   CELLS_WASM_DIR="$S/base-pkg" node "$here/src/run.mjs" --cores=cells --fixtures="$fixtures" --out="$S/base.json" >/dev/null
   node "$here/src/run.mjs" --cores=cells --fixtures="$fixtures" --out="$S/new.json" >/dev/null

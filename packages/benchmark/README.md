@@ -35,7 +35,10 @@ fixture across the cores in turn, each in its own process running
 `packages/doenetml-worker-javascript/.bench/` (rebuilt when a source is
 newer) over that package's test utilities (`DOENET_TEST_CORE` selects the
 core; the Rust and cells adapters are `test-core-rust.ts` and
-`test-core-cells.ts` there). A record in `node.json`:
+`test-core-cells.ts` there). The cells core loads pruned, as a browser
+loads it (`CELLS_PRUNE=1`, ADR 0019): it computes only what a renderer or
+a grader reads, where the worker's tests, through the same adapter, load
+every prop. A record in `node.json`:
 
 | Field                             | Meaning                                                                                                                                                                                                                                                                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -159,7 +162,4 @@ focused. Nothing is timed or recorded; a failure is a bug in the viewer.
 
 `scripts/perf-diff.sh [base] [fixtures]` compares the cells core on a base
 commit with the working tree through the Node driver, interleaved, and
-prints new/base ratios. Nothing it measures is committed. It loads the
-cells core pruned, as a browser does (`CELLS_PRUNE=1`, ADR 0019); the
-driver's other runs go through the parity harness, which loads every prop
-so the worker's tests can read any of them.
+prints new/base ratios. Nothing it measures is committed.

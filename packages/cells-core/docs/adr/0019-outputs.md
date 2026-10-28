@@ -431,14 +431,16 @@ it says phase 2's (`6d3f777`):
   tests. Loaded pruned, 12 more fail, all in `circle.test.ts`, which read
   circle props no renderer reads: the harness stays unpruned.
 
-Open:
+Settled after the migration (2026-10-28):
 
-- Whether `packages/benchmark`'s cross-core runs should load the cells
-  core pruned, as a browser does; only `perf-diff.sh` does now.
-- Making the record cheaper for a document with repeats: every build
-  looks each slot up in it, and the probe walks once more.
-- Whether a fixed `hide` (a literal, ADR 0018) should make its content
-  unrendered, and so dead unless something live reads it.
-- Whether a polyline should count only its vertices' coordinates as
-  rendered, which would make about 600 more of `sir.doenet`'s fixed cells
-  dead.
+- The cross-core benchmark loads the cells core pruned, as a browser
+  does: `packages/benchmark`'s driver sets `CELLS_PRUNE=1` for it, so
+  `perf-diff.sh` needs no setting of its own. Over its 19 fixtures, every
+  status and every value check is the same as loaded unpruned (the one
+  check that fails, on `rebuild-100000`, fails both ways: the driver
+  cannot resolve its path), and memory is within 1%.
+- Left as they are, for now: the record's cost for a document with
+  repeats (every build looks each slot up in it, and the probe walks once
+  more); content under a literal `hide`, which stays rendered; and a
+  polyline's vertices, whose `hide` counts as rendered with their
+  coordinates.

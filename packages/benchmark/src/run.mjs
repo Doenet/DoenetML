@@ -76,7 +76,14 @@ function measure(core, fixture) {
         ];
         const child = spawn(process.execPath, [...nodeFlags, bundle, fixture], {
             cwd: jsWorker,
-            env: { ...process.env, DOENET_TEST_CORE: core },
+            env: {
+                ...process.env,
+                DOENET_TEST_CORE: core,
+                // The cells core loads pruned, as a browser loads it (ADR
+                // 0019): the parity harness the driver goes through loads
+                // every prop otherwise, for tests that read any of them.
+                ...(core === "cells" ? { CELLS_PRUNE: "1" } : {}),
+            },
             stdio: ["ignore", "pipe", "pipe"],
         });
         const record = { core, fixture, status: "ok" };
