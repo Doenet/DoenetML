@@ -147,6 +147,13 @@ export class CellsBridge {
         return { payload: this._afterTick(changed) };
     }
 
+    /** The element id of the component a name path (`p.q`, `r[2].x`)
+     * names, or -1. */
+    resolveName(name: string): number {
+        const c = this.core.resolve_path(name);
+        return this._idByComponent.get(c) ?? -1;
+    }
+
     /** Submit every answer, one tick each. */
     submitAllAnswers(): ActionResponse {
         const payload: Record<number, ElementUpdate> = {};
@@ -425,17 +432,21 @@ export class CellsBridge {
         }
     }
 
-    /** The props a cell is, as `type.prop`, for an error message. */
+    /** The props a cell is, as `type.prop` (a list prop's as
+     * `type.list[i]`), for an error message. */
     _describe(cell: number): string {
         const names: string[] = [];
         const typeProps: string[][] = JSON.parse(this.core.type_props());
         for (let c = 0; c < this.table.length; c++) {
-            const props = typeProps[this.table.cols.componentType[c]];
-            for (const prop of props) {
+            const type = this.table.componentType(c);
+            for (const prop of typeProps[this.table.cols.componentType[c]]) {
                 if (this.table.cell(c, prop) === cell) {
-                    names.push(`${this.table.componentType(c)}.${prop}`);
+                    names.push(`${type}.${prop}`);
                 }
             }
+            this.table.listCells(c).forEach((k, i) => {
+                if (k === cell) names.push(`${type}.list[${i}]`);
+            });
         }
         return names.join(", ") || "no prop";
     }

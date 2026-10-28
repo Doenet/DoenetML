@@ -67,9 +67,11 @@ headless Chromium, into the same day's run for the machine and commit
 (`browser.json`): the JS core through the standalone bundle on
 `browser/js.html`; the Rust core through the prototype viewer on
 `browser/rust-viewer/`, with `browser/rust-adapter.js`; the cells core
-through its viewer with `browser/cells-adapter.js`. All three implement one
-`window.__bench` protocol (`load`, `locate`, `position`, `act`), served by
-`browser/serve.mjs`.
+through its viewer with `browser/cells-adapter.js`, and, as the core
+`cells-prototype`, through the same prototype viewer as the Rust core
+(`rust-viewer/?core=cells`, ADR 0020 in `packages/cells-core`). All of them
+implement one `window.__bench` protocol (`load`, `locate`, `position`,
+`act`), served by `browser/serve.mjs`.
 
 | Field     | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

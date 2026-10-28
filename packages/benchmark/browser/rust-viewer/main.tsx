@@ -1,7 +1,9 @@
 // The prototype viewer, which renders the flat DAST the Rust core produces,
-// mounted with the Rust core and driven from `window.__rust`: load a source,
-// say when it has rendered, resolve a name, dispatch an action as a renderer
-// would. Imports the prototype's sources so the store is the viewer's own.
+// mounted with the Rust core (or, with `?core=cells`, the cells core behind
+// its bridge, ADR 0020 in packages/cells-core) and driven from
+// `window.__rust`: load a source, say when it has rendered, resolve a name,
+// dispatch an action as a renderer would. Imports the prototype's sources so
+// the store is the viewer's own.
 // The prototype's entry first: its modules import one another in a cycle
 // that only resolves in the order the entry sets.
 import "../../../doenetml-prototype/src/index";
@@ -19,6 +21,11 @@ import {
 import { numberFromSerializedAst } from "../../../doenetml-prototype/src/utils/math/math-expression-utils";
 
 const root = createRoot(document.getElementById("root")!);
+/** The core behind the viewer: the Rust core, or the cells core. */
+const coreType =
+    new URLSearchParams(location.search).get("core") === "cells"
+        ? "cells"
+        : "rust";
 const flags = {
     ...defaultFlags,
     allowSaveState: false,
@@ -40,6 +47,7 @@ class Boundary extends React.Component<{ children: React.ReactNode }> {
 }
 
 const rust = {
+    coreType,
     ready: false,
     renderError: null as string | null,
     /** Render `source`; resolves once the core has returned its first flat DAST. */
@@ -54,7 +62,7 @@ const rust = {
                             source={source}
                             flags={flags}
                             darkMode="light"
-                            coreType="rust"
+                            coreType={coreType}
                         />
                     </MathJaxContext>
                 </Provider>

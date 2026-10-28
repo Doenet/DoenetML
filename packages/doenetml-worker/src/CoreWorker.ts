@@ -1081,12 +1081,39 @@ export class CoreWorker {
         origin: number;
         skipParentSearch: boolean;
     }): Promise<RefResolution> {
-        this._notForCells("resolvePath");
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
 
         await isProcessingPromise;
+
+        if (this.core_type === "cells") {
+            try {
+                if (!this._cellsBridge) {
+                    throw Error("Cannot resolve a path before returning dast");
+                }
+                // The cells core resolves a name path from the document,
+                // whatever the origin.
+                const name = args.path.path
+                    .map(
+                        (part) =>
+                            part.name +
+                            part.index
+                                .map((i) => `[${i.value.join("")}]`)
+                                .join(""),
+                    )
+                    .join(".");
+                const nodeIdx = this._cellsBridge.resolveName(name);
+                return {
+                    nodeIdx,
+                    nodesInResolvedPath: [],
+                    unresolvedPath: nodeIdx === -1 ? args.path.path : null,
+                    originalPath: args.path.path,
+                };
+            } finally {
+                resolve();
+            }
+        }
 
         if (!this.source_set || !this.flags_set || !this.doenetCore) {
             throw Error(

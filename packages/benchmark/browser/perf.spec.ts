@@ -9,7 +9,11 @@
 // the dragged point on screen, which is not timed, has 120 s. This layer
 // answers the budgets (METHOD.md), not the comparison between cores.
 //
-//   BENCH_MACHINE=<id> BENCH_CORES=javascript,rust,cells BENCH_FIXTURES=depth npm run browser
+//   BENCH_MACHINE=<id> BENCH_CORES=javascript,rust,cells,cells-prototype BENCH_FIXTURES=depth npm run browser
+//
+// `cells` is the cells core in its own viewer (packages/cells-viewer);
+// `cells-prototype` is the cells core behind the prototype's renderers,
+// through its bridge in the worker (ADR 0020 in packages/cells-core).
 import { test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -35,13 +39,19 @@ const ROUNDS = 10;
 const PAGE: Record<string, string> = {
     javascript: "http://localhost:4174/js.html",
     rust: "http://localhost:4175/rust/",
+    "cells-prototype": "http://localhost:4175/rust/?core=cells",
     cells: "http://localhost:4173/?blank=1",
 };
+/** Each core's adapter; the prototype's page has one for both its cores. */
 const adapters: Record<string, string> = Object.fromEntries(
-    ["rust", "cells"].map((core) => [
+    [
+        ["rust", "rust"],
+        ["cells-prototype", "rust"],
+        ["cells", "cells"],
+    ].map(([core, adapter]) => [
         core,
         readFileSync(
-            resolve(packageRoot, `browser/${core}-adapter.js`),
+            resolve(packageRoot, `browser/${adapter}-adapter.js`),
             "utf8",
         ),
     ]),

@@ -1,9 +1,11 @@
-// Installed into the Rust core's page (rust-viewer/, the prototype viewer on
-// the Rust core) after it loads: the same `window.__bench` protocol as
+// Installed into the prototype viewer's page (rust-viewer/) after it loads,
+// on the Rust core or, as the bench's `cells-prototype` core, the cells core
+// behind its bridge (`?core=cells`): the same `window.__bench` protocol as
 // js.html, over the page's `window.__rust` hook. Actions go through the
-// viewer's store, as its renderers send them, under the Rust core's action
-// names (a point's `move`, a text input's `updateImmediateValue`); it has
-// no math input, so typing into one is a gap.
+// viewer's store, as its renderers send them, under the prototype's action
+// names (a point's `move`, a text input's `updateImmediateValue`, a math
+// input's `updateValue`); the Rust core has no math input and no answer, so
+// typing into one or submitting one is a gap there.
 (() => {
     function nextPaint() {
         return new Promise((ok) =>
@@ -18,9 +20,16 @@
     function board() {
         return Object.values(window.JXG?.boards ?? {})[0] ?? null;
     }
+    /** Whether the page runs the cells core; read once the page's hook is
+     * there, which may be after this adapter is installed. */
+    function cells() {
+        return window.__rust?.coreType === "cells";
+    }
     window.__bench = {
         ready: false,
-        core: "rust",
+        get core() {
+            return cells() ? "cells-prototype" : "rust";
+        },
         /** Text to first render: the core's first flat DAST, then the board or the document on the page. */
         async load(text, waitFor = {}) {
             while (!window.__rust)
@@ -89,15 +98,23 @@
                 case "movePoint":
                     return call("move", { x: step.x, y: step.y });
                 case "updateValue":
-                    if (component !== "textInput")
-                        throw new Error(
-                            `unsupported: typing into a ${component} (the Rust core has no mathInput)`,
-                        );
-                    await call("updateImmediateValue", { text: step.value });
-                    return call("updateValue");
+                    if (component === "textInput") {
+                        await call("updateImmediateValue", {
+                            text: step.value,
+                        });
+                        return call("updateValue");
+                    }
+                    if (cells() && component === "mathInput")
+                        return call("updateValue", { text: step.value });
+                    throw new Error(
+                        `unsupported: typing into a ${component} (the Rust core has no mathInput)`,
+                    );
+                case "submitAnswer":
+                    if (cells()) return call("submitAnswer");
+                    throw new Error("unsupported: the Rust core has no answer");
                 default:
                     throw new Error(
-                        `unsupported action ${step.action} in the Rust core`,
+                        `unsupported action ${step.action} in the ${this.core} core`,
                     );
             }
         },

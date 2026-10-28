@@ -1,6 +1,6 @@
 # Cells behind the shared renderer interface
 
-Status: proposed 2026-10-28. Steps 1 to 3 of 5 are done; see Migration.
+Status: proposed 2026-10-28. Steps 1 to 4 of 5 are done; see Migration.
 The Measured section is filled in by step 5.
 
 The cells core reaches DoenetML's renderers the way the other two cores
@@ -63,9 +63,10 @@ compares the two paths, and whether it is retired is decided then.
   warnings. Accessibility findings are not sent: the renderer has nowhere
   to show them yet.
 - **Worker calls.** `setSource`, `setFlags`, `returnDast`,
-  `dispatchAction`, `terminate` and `submitAllAnswers`. Flags and locale
-  are accepted and ignored; every other call throws "not supported by the
-  cells core" until saved state is wired up.
+  `dispatchAction`, `resolvePath` (a name path from the document,
+  whatever the origin), `terminate` and `submitAllAnswers`. Flags and
+  locale are accepted and ignored; every other call throws "not supported
+  by the cells core" until saved state is wired up.
 - **The wasm.** The worker is one IIFE file, so the cells core's glue is
   bundled into it, but its `.wasm` is fetched only when a cells core is
   first loaded, from beside the worker script, as the Rust core's is.
@@ -104,7 +105,13 @@ compares the two paths, and whether it is retired is decided then.
    nothing, as for an element with no renderer. Doenet's styles are not
    ported: every graph element is drawn in one style.
 4. Move the viewer's interactive and output checks, its prerender tests
-   and the benchmark's hook onto the prototype path.
+   and the benchmark's hook onto the prototype path. The checks are the
+   bridge's (`cells/interactive.test.ts` in the worker): every renderer
+   action it knows, on every element of the viewer's interactive document
+   and of every golden document. The prerender test is the prototype's
+   (`test/cells-prerender.test.tsx`), and it also fails when the bridge
+   sends an element no renderer draws. The benchmark's prototype page runs
+   the cells core with `?core=cells`, as the core `cells-prototype`.
 5. Compare the two paths on the same fixtures and specs; record it below.
 
 ## Measured
