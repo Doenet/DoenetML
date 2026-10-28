@@ -566,9 +566,9 @@ function collectListClass(Base) {
                                 return sourcePresentation(stateValues);
                             }
                             // A list shown as its sources shows the entry
-                            // as its arrays say (`ENTRY_PRESENTATION_ARRAYS`),
-                            // with its own `hide` and style where it sets
-                            // them (`<collect hide="false">`).
+                            // as its arrays say (`ENTRY_PRESENTATION_ARRAYS`):
+                            // the `hide` of the entry's source (D29), and
+                            // the list's style where it sets one.
                             const ofEntry =
                                 stateValues.entryPresentation?.[listInd] ?? {};
                             const ofList = (name) =>
