@@ -7744,6 +7744,117 @@ describe("Function tag tests @group4", async () => {
         expect(fsqrt(-9)).to.be.NaN;
     });
 
+    it("global extremum entries have no keys when there is no such extremum", async () => {
+        // A global extremum array has size [2] (location, value) when the
+        // extremum exists and [0] when it doesn't, and its location and
+        // value entries must not ask for keys outside that size
+        // (Doenet/DoenetML#2266).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="ai" prefill="1" />
+<function name="f">$ai x^2</function>
+<p name="p">$f.globalMinimumLocation, $f.globalMinimumValue, $f.globalMaximumLocation, $f.globalMaximumValue</p>
+<p name="p2">$f.globalInfimumLocation, $f.globalInfimumValue, $f.globalSupremumLocation, $f.globalSupremumValue</p>
+`,
+        });
+        const components = core.core!.components!;
+        const p = components[await resolvePathToNodeIdx("p")];
+        const p2 = components[await resolvePathToNodeIdx("p2")];
+        const f = components[await resolvePathToNodeIdx("f")];
+
+        async function check(text: string) {
+            expect(await p.stateValues.text).toBe(text);
+            await p2.stateValues.text;
+            for (const extremum of [
+                "Minimum",
+                "Maximum",
+                "Infimum",
+                "Supremum",
+            ]) {
+                const exists =
+                    (await f.state[`global${extremum}`].arraySize)[0] > 0;
+                expect(
+                    await f.state[`global${extremum}Location`].arrayKeys,
+                ).toEqual(exists ? ["0"] : []);
+                expect(
+                    await f.state[`global${extremum}Value`].arrayKeys,
+                ).toEqual(exists ? ["1"] : []);
+            }
+        }
+
+        await check("0, 0, , ");
+        const aiIdx = await resolvePathToNodeIdx("ai");
+        await updateMathInputValue({ latex: "-1", componentIdx: aiIdx, core });
+        await check(", , 0, 0");
+        await updateMathInputValue({ latex: "2", componentIdx: aiIdx, core });
+        await check("0, 0, , ");
+    });
+
+    it("domain from a function child has one interval per input", async () => {
+        // A function's domain from its function child is taken at its own
+        // inputs, not copied whole, as the child can have more or fewer
+        // inputs (Doenet/DoenetML#2266).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f" variables="x y z" domain="(0,1) (0,2) (0,3)">x+y+z</function>
+<function name="g" numInputs="2">$f</function>
+<function name="h" variables="x y z w">$f</function>
+<piecewiseFunction name="pw"><function domain="(s,t)">x^2</function></piecewiseFunction>
+<function name="k">$pw</function>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function domainOf(name: string) {
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.domain.map((interval: any) => interval.tree);
+        }
+        const interval = (a: number, b: number) => [
+            "interval",
+            ["tuple", a, b],
+            ["tuple", false, false],
+        ];
+
+        expect(await domainOf("f")).eqls([
+            interval(0, 1),
+            interval(0, 2),
+            interval(0, 3),
+        ]);
+        expect(await domainOf("g")).eqls([interval(0, 1), interval(0, 2)]);
+        expect(await domainOf("h")).eqls([
+            interval(0, 1),
+            interval(0, 2),
+            interval(0, 3),
+            interval(-Infinity, Infinity),
+        ]);
+        // A piecewise function whose pieces have symbolic bounds has a null
+        // domain, so its input gets the unrestricted domain.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pw")].stateValues.domain,
+        ).eq(null);
+        expect(await domainOf("k")).eqls([interval(-Infinity, Infinity)]);
+    });
+
+    it("graph a function whose child is a piecewise function with symbolic bounds", async () => {
+        // The function's domain used to be undefined, and a curve graphing
+        // it read the endpoints of that undefined interval, so the document
+        // failed to load. Its domain is now unrestricted, so it is graphed
+        // across the graph, as a function with no domain is.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<piecewiseFunction name="pw"><function domain="(s,t)">x^2</function></piecewiseFunction>
+<graph>
+  <function name="k">$pw</function>
+  <curve name="c"><function>$pw</function></curve>
+</graph>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const c = stateVariables[await resolvePathToNodeIdx("c")].stateValues;
+        expect(c.parMin).eq(-12);
+        expect(c.parMax).eq(12);
+    });
+
     describe("a formula with no symbolic derivative", () => {
         // #1876. `<function>`'s sugar wraps every non-label child into one
         // `<math>`, so a math child beside a child that expands to several

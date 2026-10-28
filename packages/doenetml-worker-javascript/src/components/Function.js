@@ -59,6 +59,36 @@ const attributesDefiningFunction = [
 ];
 
 /**
+ * The array keys of an entry of a global extremum array (`globalMinimum`,
+ * `globalMaximum`, `globalInfimum` or `globalSupremum`), whose size is `[2]`
+ * (location, value) when the extremum exists and `[0]` when it doesn't.
+ * The location entry is key `"0"` and the value entry key `"1"`, but neither
+ * has a key when the array has size `[0]`.
+ *
+ * Without `arraySize`, return the keys assuming the array is large enough,
+ * as they are used to determine the potential array entries.
+ */
+function globalExtremumArrayKeys({
+    arrayEntryPrefix,
+    arraySize,
+    locationPrefix,
+    valuePrefix,
+}) {
+    let arrayKey;
+    if (arrayEntryPrefix === locationPrefix) {
+        arrayKey = 0;
+    } else if (arrayEntryPrefix === valuePrefix) {
+        arrayKey = 1;
+    } else {
+        return [];
+    }
+    if (arraySize && arrayKey >= arraySize[0]) {
+        return [];
+    }
+    return [String(arrayKey)];
+}
+
+/**
  * Make the state variable `varName` take the value of the same variable of the
  * function this component copies whenever the boolean state variable
  * `conditionName` is true, and be computed by its own definition otherwise.
@@ -593,7 +623,7 @@ export default class Function extends InlineComponent {
                     },
                 },
             }),
-            arrayDefinitionByKey({ globalDependencyValues }) {
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
                     // Function domains are stored as one interval per input
@@ -661,12 +691,28 @@ export default class Function extends InlineComponent {
 
                     return { setValue: { domain: specifiedDomain } };
                 } else if (globalDependencyValues.functionChild.length > 0) {
-                    return {
-                        setValue: {
-                            domain: globalDependencyValues.functionChild[0]
-                                .stateValues.domain,
-                        },
-                    };
+                    // Take the child's domain only at the keys asked for.
+                    // This function's numInputs can differ from the child's
+                    // (e.g., when set by a numInputs or variables attribute),
+                    // so the child's domain can have more entries than this
+                    // array's size, or fewer. The child's domain is null
+                    // when it isn't numeric (e.g., a piecewise function whose
+                    // pieces have symbolic bounds). An input missing from the
+                    // child's domain gets an unrestricted domain.
+                    let childDomain =
+                        globalDependencyValues.functionChild[0].stateValues
+                            .domain;
+                    let domain = {};
+                    for (let arrayKey of arrayKeys) {
+                        domain[arrayKey] =
+                            childDomain?.[arrayKey] ??
+                            me.fromAst([
+                                "interval",
+                                ["tuple", -Infinity, Infinity],
+                                ["tuple", false, false],
+                            ]);
+                    }
+                    return { setValue: { domain } };
                 } else {
                     let infDomain = me.fromAst([
                         "interval",
@@ -3591,14 +3637,13 @@ export default class Function extends InlineComponent {
             },
             isArray: true,
             entryPrefixes: ["globalMinimumLocation", "globalMinimumValue"],
-            getArrayKeysFromVarName({ arrayEntryPrefix }) {
-                if (arrayEntryPrefix === "globalMinimumLocation") {
-                    return ["0"];
-                } else if (arrayEntryPrefix === "globalMinimumValue") {
-                    return ["1"];
-                } else {
-                    return [];
-                }
+            getArrayKeysFromVarName({ arrayEntryPrefix, arraySize }) {
+                return globalExtremumArrayKeys({
+                    arrayEntryPrefix,
+                    arraySize,
+                    locationPrefix: "globalMinimumLocation",
+                    valuePrefix: "globalMinimumValue",
+                });
             },
             arrayVarNameFromArrayKey(arrayKey) {
                 if (arrayKey === "0") {
@@ -3683,14 +3728,13 @@ export default class Function extends InlineComponent {
             },
             isArray: true,
             entryPrefixes: ["globalInfimumLocation", "globalInfimumValue"],
-            getArrayKeysFromVarName({ arrayEntryPrefix }) {
-                if (arrayEntryPrefix === "globalInfimumLocation") {
-                    return ["0"];
-                } else if (arrayEntryPrefix === "globalInfimumValue") {
-                    return ["1"];
-                } else {
-                    return [];
-                }
+            getArrayKeysFromVarName({ arrayEntryPrefix, arraySize }) {
+                return globalExtremumArrayKeys({
+                    arrayEntryPrefix,
+                    arraySize,
+                    locationPrefix: "globalInfimumLocation",
+                    valuePrefix: "globalInfimumValue",
+                });
             },
             arrayVarNameFromArrayKey(arrayKey) {
                 if (arrayKey === "0") {
@@ -4102,14 +4146,13 @@ export default class Function extends InlineComponent {
             },
             isArray: true,
             entryPrefixes: ["globalMaximumLocation", "globalMaximumValue"],
-            getArrayKeysFromVarName({ arrayEntryPrefix }) {
-                if (arrayEntryPrefix === "globalMaximumLocation") {
-                    return ["0"];
-                } else if (arrayEntryPrefix === "globalMaximumValue") {
-                    return ["1"];
-                } else {
-                    return [];
-                }
+            getArrayKeysFromVarName({ arrayEntryPrefix, arraySize }) {
+                return globalExtremumArrayKeys({
+                    arrayEntryPrefix,
+                    arraySize,
+                    locationPrefix: "globalMaximumLocation",
+                    valuePrefix: "globalMaximumValue",
+                });
             },
             arrayVarNameFromArrayKey(arrayKey) {
                 if (arrayKey === "0") {
@@ -4194,14 +4237,13 @@ export default class Function extends InlineComponent {
             },
             isArray: true,
             entryPrefixes: ["globalSupremumLocation", "globalSupremumValue"],
-            getArrayKeysFromVarName({ arrayEntryPrefix }) {
-                if (arrayEntryPrefix === "globalSupremumLocation") {
-                    return ["0"];
-                } else if (arrayEntryPrefix === "globalSupremumValue") {
-                    return ["1"];
-                } else {
-                    return [];
-                }
+            getArrayKeysFromVarName({ arrayEntryPrefix, arraySize }) {
+                return globalExtremumArrayKeys({
+                    arrayEntryPrefix,
+                    arraySize,
+                    locationPrefix: "globalSupremumLocation",
+                    valuePrefix: "globalSupremumValue",
+                });
             },
             arrayVarNameFromArrayKey(arrayKey) {
                 if (arrayKey === "0") {
