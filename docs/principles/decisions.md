@@ -27,6 +27,8 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
 | B8 | A `<group copy>` draws new random values for nested content, and a random child added to it repeats the source's first draw (#2342). Both break CPY-8 | reported in the issue, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group is serialized before its inner content expands |
+| B9 | A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
+| B10 | `$e.h` names nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It breaks REF-8. Predates #2367 | reported in #2367's review | a linked list extend has no children of its own |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -244,8 +246,10 @@ define a hidden `<select>`, `<sequence>` or list, and show it elsewhere with `$s
 `<setup>` serves that purpose. Two tests say the select case "encodes undesired behavior (see
 issue #246)", at `select.test.ts:2493` and `conditionalcontent.test.ts:1213`.
 
-`collect` differs from the other lists in a second way: its own `hide` also makes every entry's
-`.hide` true, while `sort`'s does not.
+`collect` is now the only list special-cased here. A bare `$c` of `<collect hide>` used to be
+hidden only because the collect pushed its `hide` into every entry. D29 rule 1 removes that, so
+#2368 keeps this row with a flag of its own (`listHiddenWithReferences`). Either option below
+removes the flag: under (a) every hidden list hides its references, and under (b) none does.
 
 **Options.**
 - **(a) A reference to a hidden component is hidden, unless the reference sets `hide` itself.**
@@ -762,12 +766,14 @@ placed elsewhere is shown.
    - A reference to the whole list (`$l` placed elsewhere) keeps an entry hidden when that
      entry's source is hidden, as `<sort>` does today. Whether `$l` of a *hidden list* is hidden
      is D9, a separate question.
-5. **Derived properties: displayed text follows what is drawn; values follow the values.**
-   - `$l.text`, and probably `$l.latex`, leave out hidden entries, as `$p.text` leaves out a
-     `<p>`'s hidden items (**[probe]**: `<p><text hide>a</text>b</p>` has text `b`).
-   - `.maths`, `.numbers`, `.math`, the number of entries and indices include them.
-   - So `$l.text` and `<text>$l</text>` differ, in the same way `$p.text` and a `<text>` holding
-     the same content differ: one is what is displayed, the other a value position.
+5. **What is drawn leaves a hidden entry out; properties are values and include it.**
+   - What is drawn, including the text of a `<p>` that holds the list, leaves the entry out
+     (rule 3).
+   - The list's properties include it: `$l.text`, `$l.maths`, `$l.numbers`, the number of
+     entries, and indices. A list's `.text` is read entry by entry, so `$l.text[k]` is
+     `$l[k].text`. A property has no `hide` (VAL-1): `$n.text` of a hidden `<number>` is `5`.
+   - Leaving hidden entries out of `$l.text` would either shift `$l.text[k]` away from
+     `$l[k].text`, or make a property hidden. So `$l.text` is unchanged (#2368).
 6. **A copy hides the same entries as its source**, because a copy is the source's DoenetML
    pasted (CPY-1). This needs no rule of its own, but it depends on D3. Today
    `<mathList copy="$ml">` freezes the entries as values and shows the hidden child, while
@@ -776,6 +782,51 @@ placed elsewhere is shown.
 That makes `hide` on an entry mean what it means on any component, and makes every list one
 family.
 
+**Open: what a list's own attributes do to its entries.** Two behaviors that #2368 keeps point
+the opposite way from rule 1:
+- **`hide="false"` on a `<collect>` reveals entries whose sources are hidden.** It is pinned by
+  `collect.test.ts` "collect does not ignore hide" and by `listcomponentcollections.test.ts`.
+  #2368 keeps it as an instance of rule 4's "unless it sets `hide` itself", because a collect's
+  entries stand for their sources as references do (`entriesRevealed`). A `<sort>` or
+  `<shuffle>` does not reveal: `<sort hide="false"><number hide>3</number><number>1</number></sort>`
+  shows only `1`. So `hide="false"` on a collect reaches its entries, while `<collect hide>`
+  does not.
+- **`styleNumber` on a `<collect>` or `<sort>` overrides each entry's source**
+  (`LIST_SETTING_OF_PRESENTATION`), as the collect composite gave its style to each copy. CTX-5
+  says a component's own `styleNumber` beats its container's. For an authored
+  `<mathList styleNumber="2"><math styleNumber="3">`, the two rules disagree; today family A
+  ignores the child's.
+
+Both questions ask whether a list's own attributes act on its entries as a **container's** do,
+or as attributes **written on each reference** do.
+
+**Recommendation: as a container's, for every list.**
+- This is the model rule 1 already chose for `hide`.
+- `hide` on the list hides the list. It never sets, or clears, an entry's `hide`, so `hide="false"`
+  on a collect stops revealing, as on a sort and as `hide="false"` inside a hidden container
+  (CTX-5).
+- `styleNumber`: the entry's source's own `styleNumber` wins, and the list's applies to entries
+  whose source sets none. That is CTX-5's "nearest wins", since the source's own attribute is
+  nearer.
+- For the common case, `<collect styleNumber="2">` of points that set no style, the result is the
+  same as today.
+- **Tests that change:** the collect reveal tests above, and any collect or sort test where a
+  source with its own `styleNumber` is restyled by the list.
+
+The alternative, attributes acting as if written on each reference, is coherent too. But it would
+bring back `<collect hide>` setting every entry's `.hide`, which rule 1 removed.
+
+**Known violation, not caused by D29: a list's own `hide` in a parent that reads its entries.** A
+component's `hiddenIgnoreParent` includes its source composite's, so `<group hide>` takes its
+replacements out of a `<choice>`'s text and out of what an `<li>` leads with. A list's entries
+stand in their parent's children the same way, but their `hiddenIgnoreParent` leaves out the
+list's own `hide`:
+- `<choice><textList hide>q</textList> r</choice>` has text `q r`; with `<text hide>` it is ` r`;
+- `<li><textList hide>q</textList><p>x</p></li>` leads with the undrawn entry.
+
+#2368 lists this under "Not done". The fix is to include the list's `hiddenIgnoreParent` in each
+entry's (CTX-5).
+
 **Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
 (**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
 `<pointList>` (#2265's follow-up). Display settings such as `displayDigits` do carry through.
@@ -783,6 +834,7 @@ family.
   `styleNumber`, the two presentation attributes D20 already lists for entries.
 - They share one mechanism, so it is simplest to fix them together. Fixing #2265 needs only
   `hide`, so `styleNumber` may follow in a separate change if that keeps the first one small.
+- **Blocked on the open question above:** whether the list's or the source's `styleNumber` wins.
 
 **Out of scope: writes through `$l[k].hide`.** `<booleanInput bindValueTo="$l[k].hide"/>` does
 nothing in any family, while `$n.hide` is writable (**[probe]**). VAL-9 notes it as a follow-up.
@@ -793,8 +845,6 @@ nothing in any family, while `$n.hide` is writable (**[probe]**). VAL-9 notes it
 - any test where a list holds a nested `<sort>` or `<group>` with a hidden item;
 - `<collect hide>` tests that expect `$c[k].hide` true, or `$c[k]` hidden elsewhere
   (`listcomponentcollections.test.ts`, around `:816`);
-- tests of `.text` on a `<sort>`, `<shuffle>` or `<collect>` with a hidden entry, which today give
-  the hidden entry's text too (`$s.text` is `1, 2` where `2` is drawn);
 - with rule 6, the D3 tests.
 
 ## D30. Should identity that leaves the core be stable across a reload?

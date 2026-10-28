@@ -98,8 +98,15 @@ ambiguous. Reach the copy's `h` as `$S2.h`.
   warning. Typing into `S2.h` does not change it.
 - **Evidence:** the Rust test `add_nodes_does_not_make_previous_resolution_ambiguous`
   (`RS/build_resolver.test.rs:89`), and the docs example "References in a copy's attributes".
-- **Gap:** no JavaScript test pins this. It is the reason a copy can sit beside its source at
-  all, so it deserves one.
+- **JavaScript test:** `T/copying/unlinked copy.test.ts` "names inside a copy are reached only
+  through the copy's own name (NAME-3)", added by #2367. It checks that:
+  - `$R.h` of an unnamed `<p copy>` inside `<section name="R">` names nothing;
+  - `$R2.P2.h` and `$Q2.h` (a copy of a copy) resolve;
+  - a bare `$h` beside the copies stays the original's.
+- **Lists.** #2367 also brings copies of lists into line with this rule:
+  - the source list's name no longer leaks into the copy (`$c.l` and `$c2.c1` name nothing);
+  - `$c2.h` works for a copy of a copy;
+  - `$c.h` works when written before the copy.
 
 ### NAME-4: references in the attributes written on a `copy`, `extend` or `<module>` resolve outside it (Tier 1)
 `<section copy="$orig" hide="$h"/>` finds the `h` beside the copy, not one inside the copied
@@ -114,6 +121,10 @@ content. Use `$copyName.h` to reach inside.
 - **Code:** `W/utils/dast/convertToCopy.ts:204-215` and `W/components/ModuleAttributes.js:178-183`
   (#2039, #2038).
 - **Why:** without it, `xmin="$xmin"` on a module copy would refer to itself.
+- **Lists.** A copy of a list is built as a wrapping list holding a `_copy`. References in
+  attributes written on such a copy were not given the copy as their origin, unlike any other
+  copy. That mattered only once the pasted list had children, as in `<mathList copy="$L"
+  hide="$h"/>` with a `<math name="h">` in `L`. #2367 fixes it.
 
 ### NAME-5: everything else resolves from where it sits in the tree (Tier 2)
 - An ordinary element's attribute sees that element's own descendants. In
@@ -400,6 +411,10 @@ follow.
 
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
+**Known violation: list extends.** `$e.h` names nothing for `<mathList name="e" extend="$l"/>`,
+while `$E.h` resolves for `<p name="E" extend="$P"/>`. A linked list extend has no children of
+its own to name. This predates #2367 (defect B10). A copy of a list does reach them (NAME-3).
+
 Other tests: `:1626`, `:1837`, `:6408`, `:5773`.
 
 ### REF-9: an extend shares state, not identity (Tier 2)
@@ -525,6 +540,12 @@ Evidence:
 - `T/copying/value_references.test.ts:843`.
 
 Code: `remapRefResolutions` (`W/utils/componentIndices.ts:413-503`).
+
+A reference into the source that goes **through the source's own name** keeps pointing at the
+original. In a copy of `<p name="P"><math name="h"/>$P.h</p>`, `$P.h` still names P's `h`, because
+`P` is not the copy's name. Only references by inner names, such as `$h`, move to the copy. Since
+#2367 the same holds for lists: `$l.h` written inside `<mathList name="l">` refers to the original
+`l` in a copy.
 
 ### CPY-4: a copy of a reference pastes what the reference points to (Tier 2)
 `copy="$r"`, where `r` is `<T extend="$m" …/>`, pastes m's DoenetML with r's own attributes on
