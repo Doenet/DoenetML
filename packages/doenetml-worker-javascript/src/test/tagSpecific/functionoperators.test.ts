@@ -2358,6 +2358,29 @@ describe("Function Operator tag tests @group1", async () => {
         }
     });
 
+    it("derivative with more variables than its function keeps the function's domain", async () => {
+        // The derivative's domain takes the function's interval for each
+        // input the function has and the unrestricted interval for the
+        // others. When those others were left undefined, the whole domain
+        // was ignored and `$$d(5,3)` was 10 (Doenet/DoenetML#2266).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <function name="f" domain="(0,1)">x^2</function>
+      <derivative name="d" variables="x y">$f</derivative>
+      <p name="p">$d.domain</p>
+      <p name="p2">$$d(5,3), $$d(0.5,3)</p>
+      `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("(0, 1), (-∞, ∞)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("＿, 1");
+    });
+
     it("derivatives of vector-valued functions", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

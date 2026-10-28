@@ -338,7 +338,7 @@ export default class BestFitLine extends Line {
                 let data = {};
                 for (let pointInd in points) {
                     let point = points[pointInd];
-                    for (let dim in points) {
+                    for (let dim in point) {
                         data[`${pointInd},${dim}`] = point[dim];
                     }
                 }
