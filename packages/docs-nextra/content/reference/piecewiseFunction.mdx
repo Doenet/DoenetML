@@ -12,9 +12,9 @@ component that renders a piecewise defined function that can be evaluated and gr
 as a `<function>{:dn}` component.
 
 
-A `<piecewiseFunction>{:dn}` is evaluated numerically: its `symbolic` attribute defaults to `false`.
-Setting `symbolic="true"` is not useful, since a piecewise function has no symbolic formula,
-so evaluating it then gives a blank.
+A `<piecewiseFunction>{:dn}` is evaluated numerically, so its `symbolic` attribute defaults to `false`.
+A piecewise function has no symbolic formula, so setting `symbolic="true"` makes every
+evaluation give a blank.
 
 
 *Disclaimer*: currently, piecewise functions cannot be used with the `<derivative>{:dn}` component. 

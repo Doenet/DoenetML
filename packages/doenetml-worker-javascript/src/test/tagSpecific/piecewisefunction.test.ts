@@ -1962,6 +1962,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
       <function domain="[0,100]">5</function>
     </piecewiseFunction>
 
+    <!-- Same function, with domain endpoints computed from a sort -->
     <sort name="sorted">
       <number>36.7</number><number>34.9</number><number>100</number>
     </sort>

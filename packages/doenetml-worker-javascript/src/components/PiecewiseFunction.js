@@ -339,11 +339,11 @@ export default class PiecewiseFunction extends Function {
             },
         };
 
-        // Since the symbolicfs above return a blank, a piecewise function
-        // is not symbolic unless the author asks for it.
+        // Since every entry of `symbolicfs` above returns a blank, a piecewise
+        // function evaluates numerically unless the author sets `symbolic`.
         // Unlike `Function`, we do not inherit `symbolic` from the first
         // function child: a `<function>` piece is symbolic by default,
-        // which would send evaluation back to the blank symbolicfs.
+        // which would send evaluation back to the blank `symbolicfs`.
         stateVariableDefinitions.symbolic = {
             description: "Whether the function is treated symbolically.",
             public: true,
@@ -368,7 +368,7 @@ export default class PiecewiseFunction extends Function {
                         },
                     };
                 } else {
-                    return { useEssentialOrDefaultValue: { symbolic: false } };
+                    return { useEssentialOrDefaultValue: { symbolic: true } };
                 }
             },
         };
