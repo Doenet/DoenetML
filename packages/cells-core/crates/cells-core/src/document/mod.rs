@@ -87,6 +87,8 @@ pub struct Document {
     sticky: Vec<sticky::StickyTable>,
     /// One bit per cell a renderer may request (`interactive.rs`).
     interactive: Vec<u64>,
+    /// Which cells the document computes (ADR 0019, `outputs.rs`).
+    live: crate::build::Live,
     /// How a tick recomputes (`request`): a dirty closure unless set
     /// otherwise (`set_evaluator`), kept across rebuilds.
     evaluator: Recompute,
@@ -105,6 +107,7 @@ impl Document {
         structure: Structure,
         session: crate::session::Session,
         compiled: Arc<crate::compile::Compiled>,
+        live: crate::build::Live,
     ) -> Self {
         let mut strings = strings;
         let n_static_strings = strings.len();
@@ -130,6 +133,7 @@ impl Document {
             compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
             interactive: Vec::new(),
+            live,
             evaluator: Recompute::default(),
         };
         doc.sticky = doc.sticky_tables();

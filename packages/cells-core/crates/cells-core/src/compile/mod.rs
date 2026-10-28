@@ -159,6 +159,7 @@ impl<'a> Compiler<'a> {
                 rebuilds: false,
                 structural_depth: None,
                 classes: Classes::default(),
+                live: Classes::default(),
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),

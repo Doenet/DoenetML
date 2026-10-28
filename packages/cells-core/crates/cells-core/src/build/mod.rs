@@ -56,6 +56,7 @@ use crate::session::{Counts, Session};
 pub mod coverage;
 mod emit;
 mod expand;
+mod live;
 mod probe;
 pub mod signature;
 mod structure;
@@ -212,6 +213,23 @@ pub struct BuildOutput {
     /// The probe's writable template slots (`Classes::Record`); None for
     /// any other build.
     record: Option<Vec<Vec<u64>>>,
+    /// Which cells the document computes (ADR 0019).
+    live: Live,
+    /// The probe's live template slots (`Classes::Record`); None for any
+    /// other build.
+    live_record: Option<Vec<Vec<u64>>>,
+}
+
+/// Which cells a build computes (ADR 0019): a bit per cell, set for one
+/// some output or the core itself reads, by the compile's record or the
+/// build's own walk (`build/live.rs`).
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Live {
+    pub(crate) cells: Vec<u64>,
+    /// The same by this build's own walk, whatever the record says: what
+    /// the record is checked against (`tests/live.rs`).
+    #[cfg(feature = "testing")]
+    pub(crate) walked: Vec<u64>,
 }
 
 impl BuildOutput {
@@ -228,6 +246,12 @@ impl BuildOutput {
     /// build classes its value slots by (ADR 0018).
     pub(crate) fn writable_record(&self) -> Option<Vec<Vec<u64>>> {
         self.record.clone()
+    }
+
+    /// The live template slots the probe found, which every later build
+    /// reads which cells it computes by (ADR 0019).
+    pub(crate) fn live_record(&self) -> Option<Vec<Vec<u64>>> {
+        self.live_record.clone()
     }
 
     /// The structural depth this build found (`Structure`).
@@ -266,6 +290,7 @@ impl BuildOutput {
             self.structure,
             self.session,
             compiled,
+            self.live,
         ))
     }
 }

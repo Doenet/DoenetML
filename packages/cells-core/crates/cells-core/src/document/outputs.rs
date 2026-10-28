@@ -2,33 +2,17 @@
 //! the components that are rendered, and the scores a grader reads. Each
 //! component type marks its props `rendered` or `score` and says where it
 //! is drawn (`Renders`); the viewer's test fails on a renderer's read of
-//! any other cell.
+//! any other cell. And which cells the document computes: the live ones,
+//! which those outputs and the core itself read (`build/live.rs`).
 
 use super::*;
-use crate::components::Renders;
 
 impl Document {
     /// Per component, whether it is rendered: the document is, and a
     /// component is when its parent is and its type's rule allows it
     /// where it is, `InGraph` only with a `<graph>` above it.
     pub fn rendered_components(&self) -> Vec<bool> {
-        let mut rendered = vec![false; self.components.len()];
-        let mut stack = vec![(self.root, false)];
-        while let Some((c, in_graph)) = stack.pop() {
-            match self.component_type(c).renders() {
-                Renders::Never => continue,
-                Renders::InGraph if !in_graph => continue,
-                _ => {}
-            }
-            rendered[c as usize] = true;
-            let in_graph = in_graph || self.component_type(c) == ComponentType::Graph;
-            for child in self.children(c) {
-                if let Child::Component(k) = child {
-                    stack.push((k, in_graph));
-                }
-            }
-        }
-        rendered
+        self.components.placement(self.root).0
     }
 
     /// One bit per cell, set for an output: a rendered prop of a rendered
@@ -59,4 +43,33 @@ impl Document {
             .filter(|&c| bits[c as usize / 64] & (1 << (c % 64)) != 0)
             .collect()
     }
+
+    /// Whether the document computes `cell`: some output, or the core
+    /// itself, reads it (`build/live.rs`). Measured only: every cell is
+    /// still computed.
+    #[inline]
+    pub fn is_live(&self, cell: CellIdx) -> bool {
+        bit(&self.live.cells, cell)
+    }
+
+    /// Every live cell, ascending; see `is_live`.
+    pub fn live_cells(&self) -> Vec<CellIdx> {
+        (0..self.cells.len() as CellIdx)
+            .filter(|&c| self.is_live(c))
+            .collect()
+    }
+
+    /// Every cell this build's own walk finds live, whatever the compile's
+    /// record says: what the record is checked against.
+    #[cfg(feature = "testing")]
+    pub fn live_cells_walked(&self) -> Vec<CellIdx> {
+        (0..self.cells.len() as CellIdx)
+            .filter(|&c| bit(&self.live.walked, c))
+            .collect()
+    }
+}
+
+fn bit(bits: &[u64], cell: CellIdx) -> bool {
+    bits.get(cell as usize / 64)
+        .is_some_and(|w| w & (1 << (cell % 64)) != 0)
 }

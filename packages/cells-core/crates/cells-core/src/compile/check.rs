@@ -69,6 +69,11 @@ pub(crate) fn compile(
             if !classify || (varies && !check_cycles) {
                 compiled.classes = Classes::Off;
             }
+            // Without the probe, a document that varies has no record of
+            // what is live: every build computes everything (ADR 0019).
+            if varies && !check_cycles {
+                compiled.live = Classes::Off;
+            }
             if check_cycles && varies {
                 let clock = web_time::Instant::now();
                 let _s = crate::trace::span("probe");
@@ -76,6 +81,9 @@ pub(crate) fn compile(
                 compiled.structural_depth = Some(probed.structural_depth());
                 if let Some(record) = probed.writable_record() {
                     compiled.classes = Classes::Record(Arc::new(record));
+                }
+                if let Some(record) = probed.live_record() {
+                    compiled.live = Classes::Record(Arc::new(record));
                 }
                 let checked = clock.elapsed();
                 if profile {

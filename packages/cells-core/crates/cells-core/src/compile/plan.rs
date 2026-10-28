@@ -772,6 +772,10 @@ pub struct Compiled {
     pub(crate) structural_depth: Option<u32>,
     /// How a build classes its value slots, essential or fixed (ADR 0018).
     pub(crate) classes: Classes,
+    /// How a build finds which slots it computes, by the same three ways
+    /// (ADR 0019): the probe's record of the live template slots, its own
+    /// walk, or every slot, where a document that varies has no probe.
+    pub(crate) live: Classes,
 }
 
 /// How a build classes its value slots (ADR 0018): essential when a

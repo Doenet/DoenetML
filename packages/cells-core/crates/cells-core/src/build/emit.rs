@@ -78,6 +78,24 @@ impl<'c> Builder<'c> {
                 writable
             }
         };
+        // Which classes the document computes (ADR 0019): by the probe's
+        // record of the template slots it found live, by this build's own
+        // walk, or, with no record to read, all of them. Measured only:
+        // nothing is pruned yet.
+        let mut live_record = None;
+        let live_slot: Vec<bool> = match &self.compiled.live {
+            Classes::Off => vec![true; n],
+            Classes::Record(r) if !self.view.folds_iterations() => self.live_by_record(r, &roots),
+            Classes::Walk | Classes::Record(_) => {
+                let live = self.live_slots(&roots, &class_def);
+                if self.view.folds_iterations() {
+                    live_record = Some(self.record_of(&live));
+                }
+                live
+            }
+        };
+        #[cfg(feature = "testing")]
+        let walked_slot = self.live_slots(&roots, &class_def);
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         // Count each kind of defining slot first: the essential tables are
         // kept, and none of these should reserve more than it fills.
@@ -176,6 +194,20 @@ impl<'c> Builder<'c> {
             cell_def_slot[(head_cell + k as CellIdx) as usize] = s as SlotId;
         }
         debug_assert_eq!(cells.len(), n_cells);
+        let live_bits = |live: &[bool]| {
+            let mut bits = vec![0u64; cells.len().div_ceil(64)];
+            for (cell, &s) in cell_def_slot.iter().enumerate() {
+                if live[s as usize] {
+                    bits[cell / 64] |= 1 << (cell % 64);
+                }
+            }
+            bits
+        };
+        let live = crate::build::Live {
+            cells: live_bits(&live_slot),
+            #[cfg(feature = "testing")]
+            walked: live_bits(&walked_slot),
+        };
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r as usize]).collect();
         self.seed_cells(
             &mut cells,
@@ -408,6 +440,8 @@ impl<'c> Builder<'c> {
             comp_keys,
             cell_label,
             record,
+            live,
+            live_record,
         })
     }
 
@@ -519,7 +553,10 @@ impl<'c> Builder<'c> {
 
     /// A component slot's template and template slot (the element's slot
     /// offset plus the prop's position), what `Classes::Record` is indexed
-    /// by; None for a slot of no element.
+    /// by; None for a slot of no element, or past the slots its element
+    /// reserves: a copy that takes its referent's list has as many points
+    /// as the referent (`place_list_copies`), and no template slot names
+    /// them.
     pub(in crate::build) fn template_slot(&self, slot: SlotId) -> Option<(usize, u32)> {
         let comp = self.slot_comp[slot as usize];
         if comp == NONE {
@@ -531,27 +568,50 @@ impl<'c> Builder<'c> {
         }
         let inst = self.instances[i as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
-        Some((
-            inst.template,
-            el.slot_off + slot - self.slot_base[comp as usize],
-        ))
+        let pi = slot - self.slot_base[comp as usize];
+        if pi as usize >= el.props.len().max(el.component_type.prop_defs().len()) {
+            return None;
+        }
+        Some((inst.template, el.slot_off + pi))
     }
 
-    /// The template slots of the writable slots, per template: the record
-    /// every later build classes by (`Classes::Record`).
-    fn record_of(&self, writable: &[bool]) -> Vec<Vec<u64>> {
+    /// The template slots of the slots `marked`, per template: the record
+    /// every later build classes by (`Classes::Record`), of the writable
+    /// slots (ADR 0018) or the live ones (ADR 0019).
+    fn record_of(&self, marked: &[bool]) -> Vec<Vec<u64>> {
         let mut record: Vec<Vec<u64>> = self
             .compiled
             .templates
             .iter()
             .map(|t| vec![0; (t.n_slots as usize).div_ceil(64)])
             .collect();
-        for (s, _) in writable.iter().enumerate().filter(|(_, w)| **w) {
+        for (s, _) in marked.iter().enumerate().filter(|(_, w)| **w) {
             if let Some((t, ts)) = self.template_slot(s as SlotId) {
                 record[t][ts as usize / 64] |= 1 << (ts % 64);
             }
         }
         record
+    }
+
+    /// Per slot, whether the probe's record makes its class live: when a
+    /// slot of it has a template slot the record marks, or when none of
+    /// its slots has a template slot to name it by, so the record cannot
+    /// say, and the class is kept.
+    fn live_by_record(&self, record: &[Vec<u64>], roots: &[u32]) -> Vec<bool> {
+        let n = roots.len();
+        let (mut live, mut named) = (vec![false; n], vec![false; n]);
+        for (s, &root) in roots.iter().enumerate() {
+            if let Some((t, ts)) = self.template_slot(s as SlotId) {
+                named[root as usize] = true;
+                if Classes::recorded(record, t, ts) {
+                    live[root as usize] = true;
+                }
+            }
+        }
+        roots
+            .iter()
+            .map(|&r| live[r as usize] || !named[r as usize])
+            .collect()
     }
 
     /// An essential slot's key: its scope, its template slot (the element's

@@ -72,6 +72,38 @@ impl ComponentTable {
         out
     }
 
+    /// Per component, whether it is rendered, and whether a sticky group
+    /// is above it (ADR 0019), walking children down from `root`, as a
+    /// renderer does: the root is rendered, and a child is when its parent
+    /// is and its type's rule (`Renders`) allows it where it is, `InGraph`
+    /// only with a `<graph>` above it. A component no children list
+    /// reaches (an iterate's tuple) is not rendered.
+    pub fn placement(&self, root: CompIdx) -> (Vec<bool>, Vec<bool>) {
+        use crate::components::Renders;
+        let n = self.component_type.len();
+        let (mut rendered, mut in_sticky) = (vec![false; n], vec![false; n]);
+        let mut stack = vec![(root, false, false)];
+        while let Some((c, in_graph, sticky)) = stack.pop() {
+            let ty = self.component_type[c as usize];
+            match ty.renders() {
+                Renders::Never => continue,
+                Renders::InGraph if !in_graph => continue,
+                _ => {}
+            }
+            rendered[c as usize] = true;
+            in_sticky[c as usize] = sticky;
+            let in_graph = in_graph || ty == ComponentType::Graph;
+            let sticky = sticky || ty == ComponentType::StickyGroup;
+            let start = self.child_start[c as usize] as usize;
+            for &k in &self.child_list[start..start + self.child_count[c as usize] as usize] {
+                if k & TEXT_BIT == 0 {
+                    stack.push((k, in_graph, sticky));
+                }
+            }
+        }
+        (rendered, in_sticky)
+    }
+
     pub fn heap_bytes(&self) -> usize {
         self.component_type.capacity() * std::mem::size_of::<ComponentType>()
             + 4 * (self.name.capacity()

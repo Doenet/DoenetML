@@ -1,6 +1,6 @@
 # Compute only what leaves the core: outputs, decided once per load
 
-Status: draft 2026-10-28. Phase 1 is done; see Migration.
+Status: draft 2026-10-28. Phases 1 and 2 are done; see Migration.
 
 An **output** is a cell whose value leaves the core: a prop a renderer
 draws, or a score a grader reads. The compile finds, once per load and per
@@ -86,8 +86,9 @@ the outputs they are the **roots**:
   which a trigger requests;
 - every **structural** cell: a repeat's and a function iterate's `count`,
   which the rebuild check compares;
-- every sticky group member's cells, which snapping reads. They are
-  rendered today; naming them keeps snapping right if one is not.
+- what snapping reads: every prop of a sticky group and of each of its
+  members. The members are rendered today; naming them keeps snapping
+  right if one is not.
 
 A slot is **live** when a root reads it, through aliases and through every
 input of the instruction that defines it, its hold's flag included. A
@@ -254,9 +255,9 @@ Each phase leaves the tree green.
    live and what the record finds, at counts 0 to 4, and asserts every
    essential cell is live. Settle which template slot a synthesized
    component's slot (a point list's points, a collect's copies) records
-   under.
+   under: none, and a class no slot names is kept.
 3. **Prune** (step 5). Emit skips dead slots; the dead cell;
-   `LoadOptions::prune`; `Document::is_live`. In `tests/every_count.rs`,
+   `LoadOptions::prune`. In `tests/every_count.rs`,
    for every golden document and fixture at counts 0 to 4 and four seeds:
    each build's own walk finds nothing live the record leaves out, and
    after load and after the golden script every live cell holds the same
@@ -302,5 +303,53 @@ Settled while implementing phase 1:
 
 Open:
 
+Settled while implementing phase 2:
+
+- The walk is `build/live.rs`. Emit runs it in the probe, which records
+  every template slot whose class is live in `Compiled::live` (a
+  `Classes`, as the writable record is), and in the one build of a
+  document without repeats or selects. Every other build reads the
+  record: a class is live when one of its slots has a template slot the
+  record marks, or when none has a template slot to be named by. Each
+  build keeps a bit per cell, `Document::is_live` and `live_cells`, which
+  phase 3 prunes by; nothing reads them yet. With the `testing` feature
+  each build also runs its own walk (`live_cells_walked`), which
+  `tests/live.rs` checks the record against.
+- A component is rendered when the children lists reach it from the
+  document (`ComponentTable::placement`, which `rendered_components` and
+  the walk share), as a renderer finds it, not when its chain of parents
+  does: a function iterate's tuples name a repeat as their parent but are
+  no one's children. Walking parents kept 1206 more cells of `sir.doenet`
+  live.
+- An input is a root wherever it is, drawn or not: a line outside a graph
+  is not drawn, but its points are live. The writable walk starts from
+  every input too (ADR 0018), and so every essential cell is live.
+- A copy that takes its referent's list (`place_list_copies`) has more
+  slots than its element reserves in the template; `Builder::template_slot`
+  now names none past that, rather than running into the next element's.
+  The writable record never marked those slots, which are aliases; the
+  live record does.
+- Measured by `tests/live.rs`, at load: the record finds what the build's
+  own walk finds on every golden document and `sir.doenet`, and the
+  numbers of Context's table but for two documents' fixed cells.
+  `sticky.doenet` has 1 dead, not 5: snapping reads every prop of a sticky
+  group and of its members. `sir.doenet` has 1220 of 2649 dead, not 1823;
+  the rest are its points' `hide`: a polyline's vertices are copies of
+  points, which count as rendered in a graph, `hide` with them, though its
+  renderer reads only their coordinates.
+- At four seeds and every repeat at 0 to 4 iterations, nothing a build's
+  own walk finds live is missing from the record, every output and every
+  essential cell is live, and the record keeps 8 cells more than the
+  builds' walks, all in `repeats.doenet`, over all those builds together.
+- A load costs 3% to 12% more, natively (release, best of 15, the commit
+  before this phase in a worktree; `sir.doenet` 3.46 ms to 3.89 ms): the
+  probe's walk, and every build's lookup of each slot in the record.
+  Nothing is pruned yet to pay for it.
+
+Open:
+
 - Whether a fixed `hide` (a literal, ADR 0018) should make its content
   unrendered, and so dead unless something live reads it.
+- Whether a polyline should count only its vertices' coordinates as
+  rendered, which would make about 600 more of `sir.doenet`'s fixed cells
+  dead.
