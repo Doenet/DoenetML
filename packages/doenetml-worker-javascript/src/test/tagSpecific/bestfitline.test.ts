@@ -174,6 +174,31 @@ describe("BestFitLine tag tests @group3", async () => {
         ).eqls(["=", "y", -8]);
     });
 
+    it("data holds the coordinates of each point", async () => {
+        // `data` has size [numPoints, numDimensions] and is set by looping
+        // over the coordinates of each point (Doenet/DoenetML#2266)
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <graph>
+        <bestFitLine data="(3,4)" name="l1" />
+        <bestFitLine data="(1,2) (3,5) (4,7)" name="l3" />
+      </graph>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let data1 =
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.data;
+        expect(data1.map((pt: any[]) => pt.map((x) => x.tree))).eqls([[3, 4]]);
+        let data3 =
+            stateVariables[await resolvePathToNodeIdx("l3")].stateValues.data;
+        expect(data3.map((pt: any[]) => pt.map((x) => x.tree))).eqls([
+            [1, 2],
+            [3, 5],
+            [4, 7],
+        ]);
+    });
+
     it("fit line to 2 points, change variables", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

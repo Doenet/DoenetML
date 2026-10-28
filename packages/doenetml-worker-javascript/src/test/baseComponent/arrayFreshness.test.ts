@@ -133,8 +133,10 @@ describe("Array freshness tests @group4", async () => {
 
     it("a key an array entry asks for outside the array's size is not counted", async () => {
         // A function with no global minimum (or maximum) has that array at
-        // size 0, while its location and value entries still ask for keys
-        // "0" and "1".
+        // size 0. Its location and value entries ask for no keys then
+        // (Doenet/DoenetML#2266), so here they are made to ask for keys "0"
+        // and "1" at any size, as they once did. The keys are recomputed
+        // when the size changes.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="ai" prefill="1" />
@@ -145,6 +147,16 @@ describe("Array freshness tests @group4", async () => {
         const components = core.core!.components!;
         const p = components[await resolvePathToNodeIdx("p")];
         const f = components[await resolvePathToNodeIdx("f")];
+        for (const varName of ["globalMinimum", "globalMaximum"]) {
+            const getArrayKeysFromVarName =
+                f.state[varName].getArrayKeysFromVarName;
+            f.state[varName].getArrayKeysFromVarName = function (args: any) {
+                return getArrayKeysFromVarName.call(this, {
+                    ...args,
+                    arraySize: undefined,
+                });
+            };
+        }
 
         /** The extrema, and the keys marked fresh in each extremum array. */
         async function check(text: string) {
