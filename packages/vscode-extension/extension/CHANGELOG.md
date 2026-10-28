@@ -1,5 +1,12 @@
 ## v0.7.10
 
+## 0.7.29
+
+### Patch Changes
+
+- c09d8da: An inline `<choiceInput>` whose choices contain math no longer opens its menu past the bottom of the page or embedding frame. Once the math in the choices is drawn, a menu that no longer fits below the control opens above it, or scrolls within the room below.
+- 87d2716: Viewer: on iPhone and iPad, dragging on a document scrolls the page again. Some documents used to snap back to where they were whenever the reader let go, so the reader couldn't scroll them.
+
 ## 0.7.28
 
 ### Patch Changes
