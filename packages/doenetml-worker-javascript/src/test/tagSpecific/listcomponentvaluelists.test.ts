@@ -655,6 +655,53 @@ describe("Value lists as list components @group4", async () => {
         }
     });
 
+    it("a reference in a list by the list's own name refers to that list in a copy too, as in a copy of a <p>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l"><math name="h">1</math><math>$l.h+1</math></mathList>
+    <mathList name="c" copy="$l" />
+    <p name="P"><math name="h">1</math> <math>$P.h+1</math></p>
+    <p name="Q" copy="$P" />
+    <mathInput name="mc" bindValueTo="$c.h" />
+    <mathInput name="mq" bindValueTo="$Q.h" />
+    <mathInput name="ml" bindValueTo="$l.h" />
+    <mathInput name="mp" bindValueTo="$P.h" />
+    <p name="pc">$c</p>
+    `,
+        });
+
+        // `$l.h` in the copy is `l`'s `h`, not the copy's own, as `$P.h` in
+        // a copy of `P` is `P`'s
+        for (const [input, latex] of [
+            ["mc", "7"],
+            ["mq", "7"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pc", "Q"])).eqls({
+            pc: "7, 1 + 1",
+            Q: "7 1 + 1",
+        });
+        for (const [input, latex] of [
+            ["ml", "3"],
+            ["mp", "3"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pc", "Q"])).eqls({
+            pc: "7, 3 + 1",
+            Q: "7 3 + 1",
+        });
+    });
+
     it("a copy of each kind of authored list follows the references in it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
