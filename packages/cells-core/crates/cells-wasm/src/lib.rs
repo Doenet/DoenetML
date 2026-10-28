@@ -78,12 +78,20 @@ impl Core {
 
     /// Load with the document seed load-time choices draw from (ADR 0009).
     pub fn with_seed(dast: Vec<u8>, seed: f64) -> Result<Core, JsError> {
+        Core::with_options(dast, seed, true)
+    }
+
+    /// Load with a seed, and with `prune` false every prop of every
+    /// component computed (ADR 0019): for a reader of props no renderer
+    /// reads, as the JavaScript worker's parity harness is.
+    pub fn with_options(dast: Vec<u8>, seed: f64, prune: bool) -> Result<Core, JsError> {
         console_error_panic_hook::set_once();
         cells_core::trace::start();
         let loaded = Document::load_owned(
             dast,
             LoadOptions {
                 seed: seed as u64,
+                prune,
                 ..Default::default()
             },
         );
@@ -103,7 +111,17 @@ impl Core {
     /// Load with a seed and saved state (`save_state`'s JSON): the document
     /// comes back where the session left it.
     pub fn with_seed_and_state(dast: Vec<u8>, seed: f64, state: &str) -> Result<Core, JsError> {
-        let mut core = Core::with_seed(dast, seed)?;
+        Core::with_options_and_state(dast, seed, true, state)
+    }
+
+    /// `with_options`, then saved state, as `with_seed_and_state`.
+    pub fn with_options_and_state(
+        dast: Vec<u8>,
+        seed: f64,
+        prune: bool,
+        state: &str,
+    ) -> Result<Core, JsError> {
+        let mut core = Core::with_options(dast, seed, prune)?;
         core.doc
             .restore_state(state)
             .map_err(|e| JsError::new(&e.to_string()))?;

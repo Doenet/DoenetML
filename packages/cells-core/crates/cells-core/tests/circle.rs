@@ -6,13 +6,14 @@
 mod common;
 use cells_core::Request;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_unpruned};
 use common::*;
 
 #[test]
 fn circle_defaults_to_unit_circle_with_essential_center_and_radius() {
     let mut doc =
-        load(r#"<graph><circle name="c"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#)
+        // Reads the diameter, which no renderer reads (ADR 0019).
+        load_unpruned(r#"<graph><circle name="c"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#)
             .unwrap();
     assert_eq!(
         (

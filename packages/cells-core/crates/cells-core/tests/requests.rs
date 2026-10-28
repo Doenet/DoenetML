@@ -165,12 +165,14 @@ fn chained_inverse_reaches_the_essential_cell() {
 #[test]
 fn undefined_inverse_drops_the_request() {
     let mut doc = load(r#"<numberInput name="a" value="2"/><numberInput name="z" value="0"/><number name="m">$a * $z</number>"#).unwrap();
-    let before = doc.cells.clone();
+    // By bits: the dead cell (ADR 0019) is NaN.
+    let bits = |doc: &Document| doc.cells.iter().map(|v| v.to_bits()).collect::<Vec<_>>();
+    let before = bits(&doc);
     let r = req(&doc, "m", "value", 3.0);
     let tick = doc.request_unchecked(&[r]);
     assert_eq!(tick.dropped, vec![r]);
     assert!(tick.changed.is_empty());
-    assert_eq!(doc.cells, before);
+    assert_eq!(bits(&doc), before);
 }
 
 #[test]
@@ -220,7 +222,9 @@ fn evaluators_agree() {
         assert_eq!(reference::check(&doc), None, "{name}");
         let mut changed = tick.changed.clone();
         changed.sort();
-        results.push((doc.cells.clone(), changed));
+        // By bits: the dead cell (ADR 0019) is NaN.
+        let cells: Vec<u64> = doc.cells.iter().map(|v| v.to_bits()).collect();
+        results.push((cells, changed));
     }
     assert_eq!(results[0], results[1]);
     // x depends only on c, which did not change: it must not be reported.

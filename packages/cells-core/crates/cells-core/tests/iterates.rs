@@ -4,7 +4,7 @@
 
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{load, repo_root};
+use cells_core::testing::test_utils::{load, load_unpruned, repo_root};
 use cells_core::{Document, Request};
 
 fn cell(doc: &Document, path: &str, prop: &str) -> u32 {
@@ -136,7 +136,9 @@ fn prefill_reference_seeds_without_binding() {
 
 fn sir_doc() -> Document {
     let src = std::fs::read_to_string(repo_root().join("fixtures/sir.doenet")).unwrap();
-    load(&src).unwrap()
+    // The tests read props no renderer reads, a polyline's `numVertices`
+    // among them (ADR 0019).
+    load_unpruned(&src).unwrap()
 }
 
 fn check_sir(doc: &Document, s0: f64, i0: f64, r0: f64, a: f64, b: f64, n: usize) {

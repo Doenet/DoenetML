@@ -26,6 +26,11 @@ pub struct LoadOptions {
     /// classing against the inverses (`tests/every_count.rs`).
     #[cfg(feature = "testing")]
     pub classify: bool,
+    /// Give a slot no output reads no cell (ADR 0019): on by default. Off,
+    /// every prop of every component is computed, for a reader that reads
+    /// any of them, as the JavaScript worker's parity harness and the
+    /// golden diff do; `Document::is_live` still says which are needed.
+    pub prune: bool,
 }
 
 impl LoadOptions {
@@ -57,6 +62,7 @@ impl Default for LoadOptions {
             check_cycles: true,
             #[cfg(feature = "testing")]
             classify: true,
+            prune: true,
         }
     }
 }
@@ -144,7 +150,13 @@ impl Document {
             compiled,
             mut first_build,
             check_time,
-        } = crate::compile::compile(&dast, &session, options.checks(), options.classifies())?;
+        } = crate::compile::compile(
+            &dast,
+            &session,
+            options.checks(),
+            options.classifies(),
+            options.prune,
+        )?;
         drop(compile_span);
         t.build += clock.elapsed();
         t.cycle_check += check_time;

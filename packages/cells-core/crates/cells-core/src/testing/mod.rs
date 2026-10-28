@@ -19,7 +19,7 @@ pub fn compile(
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
     let session = crate::session::Session::new(seed, false);
-    Ok(crate::compile::compile(&dast, &session, true, true)?.compiled)
+    Ok(crate::compile::compile(&dast, &session, true, true, true)?.compiled)
 }
 
 /// `compile`, with every value slot essential, as before ADR 0018
@@ -31,7 +31,7 @@ pub fn compile_unclassified(
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
     let session = crate::session::Session::new(seed, false);
-    Ok(crate::compile::compile(&dast, &session, true, false)?.compiled)
+    Ok(crate::compile::compile(&dast, &session, true, false, true)?.compiled)
 }
 
 /// `compiled`, but each of its builds classes its value slots by its own
@@ -225,4 +225,48 @@ pub fn inputs(
         );
     }
     out
+}
+
+/// Whether `pruned` (`LoadOptions::prune` on) and `full` (off), the same
+/// document after the same ticks, agree on every live cell (ADR 0019):
+/// prop by prop, every prop whose cell is live in `pruned` holds the same
+/// value in both, a math cell the same expression and a text cell the
+/// same string. Pruning gives cells, never components, so the component
+/// tables match. The first disagreement, as `type.prop of component`.
+pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Result<(), String> {
+    use crate::program::ValueType;
+    if full.n_components() != pruned.n_components() {
+        return Err(format!(
+            "{} components unpruned, {} pruned",
+            full.n_components(),
+            pruned.n_components()
+        ));
+    }
+    for c in 0..pruned.n_components() as crate::CompIdx {
+        let (fc, pc) = (full.comp_cells(c), pruned.comp_cells(c));
+        for (pi, (&f, &p)) in fc.iter().zip(pc).enumerate() {
+            if !pruned.is_live(p) {
+                continue;
+            }
+            let same = match pruned.program.value_types[p as usize] {
+                ValueType::Math => full.math_text(f) == pruned.math_text(p),
+                ValueType::Text => full.text_value(f) == pruned.text_value(p),
+                ValueType::Number => {
+                    let (a, b) = (full.cells[f as usize], pruned.cells[p as usize]);
+                    a == b || (a.is_nan() && b.is_nan())
+                }
+            };
+            if !same {
+                let ty = pruned.component_type(c);
+                return Err(format!(
+                    "{}.{} of component {c}: {} unpruned, {} pruned",
+                    ty.tag(),
+                    ty.prop_name(pc.len(), pi).unwrap_or_default(),
+                    full.cells[f as usize],
+                    pruned.cells[p as usize]
+                ));
+            }
+        }
+    }
+    Ok(())
 }

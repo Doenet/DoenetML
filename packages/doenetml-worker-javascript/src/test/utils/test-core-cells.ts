@@ -360,12 +360,15 @@ export async function createTestCoreCells({
     let cells: any;
     try {
         const bytes = new TextEncoder().encode(JSON.stringify(dast));
+        // Unpruned (ADR 0019): the tests read any state variable, not only
+        // what a renderer reads.
         cells =
             initialState === undefined
-                ? mod.Core.with_seed(bytes, requestedVariantIndex)
-                : mod.Core.with_seed_and_state(
+                ? mod.Core.with_options(bytes, requestedVariantIndex, false)
+                : mod.Core.with_options_and_state(
                       bytes,
                       requestedVariantIndex,
+                      false,
                       initialState,
                   );
     } catch (e) {

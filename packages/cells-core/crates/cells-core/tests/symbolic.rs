@@ -7,7 +7,7 @@ mod common;
 
 use cells_core::Document;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_unpruned};
 use common::{req, set, type_into};
 
 fn text(doc: &Document, name: &str) -> String {
@@ -97,7 +97,7 @@ fn answers_check_only_on_submit() {
 
 #[test]
 fn function_and_derivative_curves_resample_on_a_drag() {
-    let mut doc = load(
+    let mut doc = load_unpruned(
         r#"<numberInput name="a" value="3"/>
            <graph xmin="-2" xmax="2"><function name="f">$a x^2</function><derivative name="df">$f</derivative></graph>"#,
     )

@@ -776,6 +776,9 @@ pub struct Compiled {
     /// (ADR 0019): the probe's record of the live template slots, its own
     /// walk, or every slot, where a document that varies has no probe.
     pub(crate) live: Classes,
+    /// Whether a build gives a dead slot no cell (ADR 0019,
+    /// `LoadOptions::prune`); never in the probe.
+    pub(crate) prune: bool,
 }
 
 /// How a build classes its value slots (ADR 0018): essential when a

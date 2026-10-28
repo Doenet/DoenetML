@@ -32,14 +32,16 @@
 //!
 //! Every case is also checked by what its author does not write: after
 //! the load and after every tick, the scheduled program against the
-//! reference evaluator (`testing::reference`); and the load's cost (cells,
+//! reference evaluator (`testing::reference`); a pruned load of the case
+//! (ADR 0019), ticked beside the one the case reads, which computes every
+//! prop, against it on every live cell; and the pruned load's cost (cells,
 //! instructions, components) against the component's snapshot,
 //! `tests/specs/snapshots/<component>.cost`, reviewed with the change that
 //! changes it.
 //! `SPEC_UPDATE=1` rewrites a snapshot instead of comparing it.
 
 use crate::testing::reference;
-use crate::testing::test_utils::load;
+use crate::testing::test_utils::{load, load_unpruned};
 use crate::{Document, PointRequest, Request};
 use std::fmt::Write as _;
 use std::path::Path;
@@ -177,14 +179,19 @@ pub fn run(component: &str, cases: &[Case]) {
 }
 
 fn run_case(case: &Case) -> Result<String, String> {
-    let mut doc = load(case.source).map_err(|e| format!("does not load: {e}"))?;
+    // A spec reads any prop, as an author's reference may (ADR 0019): it
+    // reads a document with every prop computed, and ticks a pruned one
+    // beside it, which must agree on every live cell. The cost is the
+    // pruned one's, what a student's browser holds.
+    let mut doc = load_unpruned(case.source).map_err(|e| format!("does not load: {e}"))?;
+    let mut pruned = load(case.source).map_err(|e| format!("does not load pruned: {e}"))?;
     let cost = format!(
         "cells {} · essential {} · fixed {} · instrs {} · components {}",
-        doc.cells.len(),
-        doc.n_essential,
-        doc.n_fixed,
-        doc.program.len(),
-        doc.n_components()
+        pruned.cells.len(),
+        pruned.n_essential,
+        pruned.n_fixed,
+        pruned.program.len(),
+        pruned.n_components()
     );
     if !case.ops.iter().any(|op| matches!(op, Op::Diagnostics(_))) {
         let found: Vec<_> = diagnostics(&doc)
@@ -197,6 +204,8 @@ fn run_case(case: &Case) -> Result<String, String> {
         }
     }
     check_reference(&doc, "after the load")?;
+    check_reference(&pruned, "after the load, pruned")?;
+    agree(&doc, &pruned, "after the load")?;
     for (i, op) in case.ops.iter().enumerate() {
         let at = format!("step {}", i + 1);
         match op {
@@ -213,6 +222,20 @@ fn run_case(case: &Case) -> Result<String, String> {
                 if let Some(e) = &tick.rebuild_error {
                     return Err(format!("{at}: the rebuild failed: {e}"));
                 }
+                let pruned_tick =
+                    request(&mut pruned, values).map_err(|e| format!("{at}, pruned: {e}"))?;
+                if let Some(e) = &pruned_tick.rebuild_error {
+                    return Err(format!("{at}: the pruned rebuild failed: {e}"));
+                }
+                if pruned_tick.dropped.len() != tick.dropped.len() {
+                    return Err(format!(
+                        "{at}: dropped {} requests pruned, {} unpruned",
+                        pruned_tick.dropped.len(),
+                        tick.dropped.len()
+                    ));
+                }
+                check_reference(&pruned, &format!("{at}, pruned"))?;
+                agree(&doc, &pruned, &at)?;
                 // The next step may say how many requests the tick drops;
                 // otherwise it must drop none.
                 if let Some(Op::Dropped(n)) = case.ops.get(i + 1) {
@@ -254,6 +277,11 @@ fn diagnostics(doc: &Document) -> impl Iterator<Item = &crate::Diagnostic> {
     doc.diagnostics()
         .iter()
         .filter(|d| d.kind != crate::DiagnosticKind::Accessibility)
+}
+
+fn agree(full: &Document, pruned: &Document, at: &str) -> Result<(), String> {
+    crate::testing::live_cells_agree(full, pruned)
+        .map_err(|e| format!("{at}: pruning changed a live cell: {e}"))
 }
 
 fn check_reference(doc: &Document, at: &str) -> Result<(), String> {

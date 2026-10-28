@@ -7,8 +7,9 @@ mod common;
 
 use std::path::Path;
 
-use cells_core::testing::request_unchecked;
+use cells_core::components::ComponentType;
 use cells_core::testing::test_utils::{dast_json, load, repo_root};
+use cells_core::testing::{live_cells_agree, request_unchecked};
 use cells_core::{Document, LoadOptions, Request};
 
 /// (name, source) of the golden set and `sir.doenet`.
@@ -31,9 +32,10 @@ fn documents() -> Vec<(String, String)> {
         .collect()
 }
 
-fn load_seeded(src: &str, seed: u64) -> Document {
+fn load_seeded(src: &str, seed: u64, prune: bool) -> Document {
     let options = LoadOptions {
         seed,
+        prune,
         ..Default::default()
     };
     Document::load(dast_json(src).as_bytes(), options)
@@ -81,7 +83,8 @@ fn count_cells(doc: &Document) -> Vec<u32> {
 fn census() {
     let mut golden = [0usize; 4];
     for (name, src) in documents() {
-        let doc = load_seeded(&src, 0);
+        // Unpruned, so every instruction is there to count.
+        let doc = load_seeded(&src, 0, false);
         check(&doc, &name);
         let walked = doc.live_cells_walked();
         let is_walked = |c: u32| walked.binary_search(&c).is_ok();
@@ -124,7 +127,7 @@ fn the_record_holds_every_build() {
     for (name, src) in documents() {
         let mut extra = 0;
         for seed in [0, 1, 2, 3] {
-            let mut doc = load_seeded(&src, seed);
+            let mut doc = load_seeded(&src, seed, true);
             extra += check(&doc, &format!("{name}, seed {seed}"));
             for k in 0..=4 {
                 let requests: Vec<Request> = count_cells(&doc)
@@ -193,5 +196,101 @@ fn what_is_live() {
         .unwrap();
     for cell in cells(&doc, "alone", "value") {
         assert!(!doc.is_live(cell), "alone.value");
+    }
+}
+
+/// One request on each interactive prop, one prop at a time, then a submit
+/// of every answer and a press of every trigger, each on `full` and on
+/// `pruned` alike, which must then agree on every live cell. A number is
+/// requested one more than it is, a math `x + 1`, a text "pruned".
+fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
+    use cells_core::program::ValueType;
+    let agree = |full: &Document, pruned: &Document, what: &str| {
+        if let Err(e) = live_cells_agree(full, pruned) {
+            panic!("{at}, {what}: {e}");
+        }
+    };
+    let n = pruned.n_components() as u32;
+    for c in 0..n {
+        for pi in 0..pruned.comp_cells(c).len() {
+            let (f, p) = (full.comp_cells(c)[pi], pruned.comp_cells(c)[pi]);
+            if !pruned.is_interactive(p) {
+                continue;
+            }
+            let value = |doc: &mut Document, cell: u32| match doc.program.value_types[cell as usize]
+            {
+                ValueType::Number => {
+                    let v = doc.cells[cell as usize];
+                    if v.is_nan() { 1.0 } else { v + 1.0 }
+                }
+                ValueType::Math => doc.parse_math("x + 1").unwrap(),
+                ValueType::Text => doc.intern("pruned"),
+            };
+            let (vf, vp) = (value(full, f), value(pruned, p));
+            full.request(&[Request { cell: f, value: vf }]);
+            pruned.request(&[Request { cell: p, value: vp }]);
+            if pruned.n_components() as u32 != n {
+                // A request moved a count: the tables are new.
+                agree(full, pruned, &format!("requesting cell {p}"));
+                return;
+            }
+            agree(full, pruned, &format!("requesting cell {p}"));
+        }
+    }
+    for c in 0..n {
+        match pruned.component_type(c) {
+            ComponentType::Answer => {
+                full.submit(c);
+                pruned.submit(c);
+            }
+            ComponentType::TriggerSet => {
+                full.trigger(c);
+                pruned.trigger(c);
+            }
+            _ => continue,
+        }
+        agree(full, pruned, &format!("acting on component {c}"));
+        if pruned.n_components() as u32 != n {
+            return;
+        }
+    }
+}
+
+/// Pruning changes no value anything reads: at four seeds and every
+/// repeat at 0 to 4 iterations, a pruned load and an unpruned one, given
+/// the same requests and actions, hold the same value in every live cell.
+#[test]
+fn pruning_keeps_every_live_value() {
+    for (name, src) in documents() {
+        for seed in [0, 1, 2, 3] {
+            let mut full = load_seeded(&src, seed, false);
+            let mut pruned = load_seeded(&src, seed, true);
+            if let Err(e) = live_cells_agree(&full, &pruned) {
+                panic!("{name}, seed {seed}, after the load: {e}");
+            }
+            act_on_both(&mut full, &mut pruned, &format!("{name}, seed {seed}"));
+            for k in 0..=4 {
+                let requests = |doc: &Document| -> Vec<Request> {
+                    count_cells(doc)
+                        .into_iter()
+                        .map(|cell| Request {
+                            cell,
+                            value: k as f64,
+                        })
+                        .collect()
+                };
+                let (rf, rp) = (requests(&full), requests(&pruned));
+                if rp.is_empty() {
+                    break;
+                }
+                request_unchecked(&mut full, &rf);
+                request_unchecked(&mut pruned, &rp);
+                let at = format!("{name}, seed {seed}, count {k}");
+                if let Err(e) = live_cells_agree(&full, &pruned) {
+                    panic!("{at}: {e}");
+                }
+                act_on_both(&mut full, &mut pruned, &at);
+            }
+        }
     }
 }

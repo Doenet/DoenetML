@@ -96,13 +96,31 @@ impl<'c> Builder<'c> {
         };
         #[cfg(feature = "testing")]
         let walked_slot = self.live_slots(&roots, &class_def);
+        // A dead class gets no cell (ADR 0019): its slots name the one dead
+        // cell. Not in the probe, whose build is not kept, nor where the
+        // load asked for every cell (`LoadOptions::prune`). An essential
+        // slot is always live; were one not, it would be kept. A vector
+        // output goes with its head, whose instruction writes it.
+        let prune = self.compiled.prune && !self.view.folds_iterations();
+        let pruned = |s: usize| {
+            let s = match self.sources[s] {
+                BuiltSource::VecOut(head, _) => head as usize,
+                _ => s,
+            };
+            prune
+                && !live_slot[s]
+                && !(matches!(
+                    self.sources[s],
+                    BuiltSource::Literal(_) | BuiltSource::Default(_)
+                ) && essential[s])
+        };
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         // Count each kind of defining slot first: the essential tables are
         // kept, and none of these should reserve more than it fills.
         let mut counts = [0usize; 4];
         let mut n_cells = 0;
         for (s, &root) in roots.iter().enumerate() {
-            if class_def[root as usize] as usize == s {
+            if class_def[root as usize] as usize == s && !pruned(s) {
                 let (kind, n_out) = match &self.sources[s] {
                     BuiltSource::Literal(_) | BuiltSource::Default(_) if essential[s] => (0, 1),
                     BuiltSource::Literal(_) | BuiltSource::Default(_) => (1, 1),
@@ -126,10 +144,15 @@ impl<'c> Builder<'c> {
         let mut fixed_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
         let mut outputs = Vec::with_capacity(counts[3]);
+        let mut dead_defs = Vec::new();
         for (s, &root) in roots.iter().enumerate() {
             let root = root as usize;
             if class_def[root] as usize != s {
                 continue; // not the defining slot of its class
+            }
+            if pruned(s) {
+                dead_defs.push(s);
+                continue;
             }
             match &self.sources[s] {
                 BuiltSource::Literal(_) | BuiltSource::Default(_) if !essential[s] => {
@@ -158,6 +181,18 @@ impl<'c> Builder<'c> {
             }
         }
         let n_essential = cells.len();
+        // The dead cell, first of the fixed cells: NaN, never computed,
+        // and what every dead slot names.
+        let dead_cell = (!dead_defs.is_empty()).then(|| {
+            let dead = cells.len() as CellIdx;
+            cells.push(f64::NAN);
+            cell_def_slot.push(dead_defs[0] as SlotId);
+            for &s in &dead_defs {
+                slot_cell[roots[s] as usize] = dead;
+            }
+            n_cells += 1;
+            dead
+        });
         for &s in &fixed_defs {
             // A constant, or an author's value no student can change.
             let (BuiltSource::Fixed(v) | BuiltSource::Literal(v) | BuiltSource::Default(v)) =
@@ -170,7 +205,7 @@ impl<'c> Builder<'c> {
             cells.push(v);
             cell_def_slot.push(s as SlotId);
         }
-        let n_fixed = fixed_defs.len();
+        let n_fixed = fixed_defs.len() + dead_cell.is_some() as usize;
         // A vector instruction's outputs are consecutive cells after its head.
         for &s in &derived_defs {
             let root = roots[s] as usize;
@@ -213,7 +248,8 @@ impl<'c> Builder<'c> {
             &mut cells,
             &mut essential_defaults,
             &slot_to_cell,
-            n_essential + n_fixed,
+            |s| class_def[roots[s as usize] as usize],
+            dead_cell,
         )
         .map_err(|error| Failure {
             error,
@@ -226,7 +262,9 @@ impl<'c> Builder<'c> {
         let mut bound: Vec<CellIdx> = Vec::with_capacity(8);
         let mut value_types = vec![ValueType::Number; cells.len()];
         for &(s, ty) in &self.typed_slots {
-            value_types[slot_to_cell[s as usize] as usize] = ty;
+            if Some(slot_to_cell[s as usize]) != dead_cell {
+                value_types[slot_to_cell[s as usize] as usize] = ty;
+            }
         }
         // A restored value stays only in a cell of the type it was saved
         // as, and view state only while its default is the one it had
@@ -258,6 +296,23 @@ impl<'c> Builder<'c> {
                     .iter()
                     .map(|&i| slot_to_cell[i as usize]),
             );
+            // The walk follows every input, so a live instruction reads no
+            // dead cell; the record, made from the probe's walk, keeps one
+            // in every build (`tests/live.rs`). A build that breaks that
+            // would compute from NaN, so it fails instead.
+            if let Some(dead) = dead_cell
+                && let Some(k) = bound.iter().position(|&c| c == dead)
+            {
+                let input = self.op_inputs[start as usize + k];
+                return Err(Failure {
+                    error: Error::Unchecked(format!(
+                        "{} reads {}, which has no cell: the live slots are not closed under what reads them (ADR 0019)",
+                        self.slot_label(s as SlotId),
+                        self.slot_label(input)
+                    )),
+                    node: None,
+                });
+            }
             if let OpSpec::Sym(kind) = spec {
                 if kind.makes_math() {
                     value_types[slot_to_cell[s] as usize] = ValueType::Math;
@@ -486,13 +541,17 @@ impl<'c> Builder<'c> {
     /// Give each seeded essential math cell (`Source::MathEssentialFrom`)
     /// its first expression: the source cell's value, unless the cell
     /// carried a value over from an earlier build. The source must be
-    /// essential or fixed, so its value is known before anything computes.
+    /// essential or fixed, so its value is known before anything computes;
+    /// that is checked by the source's kind (`def` gives a slot's class's
+    /// defining slot), so a seed no output reads, which has no cell
+    /// (`dead_cell`, ADR 0019), is checked all the same.
     fn seed_cells(
         &mut self,
         cells: &mut [f64],
         defaults: &mut [f64],
         slot_to_cell: &[CellIdx],
-        n_known: usize,
+        def: impl Fn(SlotId) -> u32,
+        dead_cell: Option<CellIdx>,
     ) -> Result<()> {
         if self.seeds.is_empty() {
             return Ok(());
@@ -521,7 +580,11 @@ impl<'c> Builder<'c> {
                     .iter()
                     .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT) as usize] == src)
             };
-            if src as usize >= n_known && !stand_in() {
+            let computed = matches!(
+                self.sources[def(from) as usize],
+                BuiltSource::Op(..) | BuiltSource::VecOut(..)
+            );
+            if computed && !stand_in() {
                 // The seeded element is boxed (ADR 0013).
                 let node = self.components.dast_node[self.slot_comp[s as usize] as usize];
                 self.failed_node = (node != NONE).then_some(node);
@@ -529,6 +592,9 @@ impl<'c> Builder<'c> {
                     "prefill=\"${}\": a prefill reference must name a value that is not computed",
                     self.slot_label(from)
                 )));
+            }
+            if dead_cell == Some(slot_to_cell[s as usize]) {
+                continue;
             }
             let v = cells[src as usize];
             let seed = if math_cells.contains(&src) || v.is_nan() {

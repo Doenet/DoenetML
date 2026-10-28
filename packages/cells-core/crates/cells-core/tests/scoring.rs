@@ -6,7 +6,7 @@ mod common;
 
 use cells_core::Document;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{load, load_error};
+use cells_core::testing::test_utils::{load, load_error, load_unpruned};
 use common::{close, set, type_into};
 
 /// Type into `input` and submit `answer`.
@@ -38,7 +38,7 @@ macro_rules! assert_credit {
 #[test]
 fn a_document_with_nothing_scored_has_full_credit() {
     // document.test.ts:10
-    let doc = load("<p>Hello</p>").unwrap();
+    let doc = load_unpruned("<p>Hello</p>").unwrap();
     assert_eq!(doc_credit(&doc), 1.0);
     let pct = doc.comp_cells(doc.root)[1];
     assert_eq!(doc.cells[pct as usize], 100.0);
@@ -58,7 +58,7 @@ fn an_empty_problem_counts_as_one_full_credit_item() {
 #[test]
 fn weights_of_answers_and_problems() {
     // document.test.ts:106: weight-0 items count for nothing.
-    let mut doc = load(
+    let mut doc = load_unpruned(
         r#"
 <mathInput name="m1"/><answer name="x" response="$m1">x</answer>
 <mathInput name="m2"/><answer name="a" response="$m2" weight="0">a</answer>

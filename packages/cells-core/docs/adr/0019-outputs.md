@@ -1,6 +1,6 @@
 # Compute only what leaves the core: outputs, decided once per load
 
-Status: draft 2026-10-28. Phases 1 and 2 are done; see Migration.
+Status: draft 2026-10-28. Phases 1 to 3 are done; see Migration.
 
 An **output** is a cell whose value leaves the core: a prop a renderer
 draws, or a score a grader reads. The compile finds, once per load and per
@@ -190,8 +190,9 @@ one: an alias makes one class, live or not.
 `Document::value`, `Document::rendered_text` and the JavaScript
 worker's parity harness read any prop of any component, as the current
 core's state variables allow. `LoadOptions::prune`, on by default and
-exposed by `cells-wasm`, turns the record off: every slot live, as before
-this ADR. The viewer loads with it on; the harness and the golden diff with
+exposed by `cells-wasm`, turned off computes every slot, as before this
+ADR; the record is still made, so `Document::is_live` still says which
+cells are needed. The viewer loads with it on; the harness and the golden diff with
 it off, and the golden diff again with it on, comparing live cells only.
 
 ## Considered options
@@ -257,11 +258,12 @@ Each phase leaves the tree green.
    component's slot (a point list's points, a collect's copies) records
    under: none, and a class no slot names is kept.
 3. **Prune** (step 5). Emit skips dead slots; the dead cell;
-   `LoadOptions::prune`. In `tests/every_count.rs`,
-   for every golden document and fixture at counts 0 to 4 and four seeds:
-   each build's own walk finds nothing live the record leaves out, and
-   after load and after the golden script every live cell holds the same
-   value with pruning on and off. Spec cost snapshots move and are
+   `LoadOptions::prune`. In `tests/live.rs`,
+   for every golden document and `sir.doenet` at counts 0 to 4 and four
+   seeds: each build's own walk finds nothing live the record leaves out,
+   and after load and after a request on every interactive prop, a submit
+   of every answer and a press of every trigger, every live cell holds the
+   same value with pruning on and off. Spec cost snapshots move and are
    rewritten with `SPEC_UPDATE=1`, reviewed against the census.
 4. **Measured** against the commit before phase 3: `golden-diff.sh` with
    pruning off identical; load, tick, rebuild and memory with
@@ -300,8 +302,6 @@ Settled while implementing phase 1:
 - The core's own test, `tests/outputs.rs`, checks the marks, which
   components are rendered, that every score is an output, and that every
   cell `submit` and `trigger` read is marked `read_by_action`.
-
-Open:
 
 Settled while implementing phase 2:
 
@@ -345,6 +345,47 @@ Settled while implementing phase 2:
   before this phase in a worktree; `sir.doenet` 3.46 ms to 3.89 ms): the
   probe's walk, and every build's lookup of each slot in the record.
   Nothing is pruned yet to pay for it.
+
+Settled while implementing phase 3:
+
+- Emit prunes only outside the probe, whose build is not kept, and only
+  when the load asked (`Compiled::prune`, apart from the record, so an
+  unpruned load still reports what is live). A dead class's defining slot
+  goes nowhere; the dead cell is the first fixed cell, made only when
+  some class is dead. A vector output is pruned with its head, whose
+  instruction writes it. An essential slot is never pruned; none is dead.
+- The walk follows every input, so no live instruction reads a dead cell,
+  and the record keeps that in every build (phase 2). Emit checks it as
+  it binds each instruction: one that would read the dead cell fails the
+  build with `Error::Unchecked`, the load's or a rebuild's, rather than
+  compute from NaN. A walk mutated to follow only each operator's first
+  input fails `tests/live.rs` that way at load and at rebuild.
+- A seed's source must not be computed (ADR 0013's boxed `prefill`). The
+  check read the source's cell index; it reads the source's kind now, so
+  a seed nothing reads, which has no cell, is checked all the same, and
+  the load's errors do not depend on pruning.
+- `cells-wasm` loads pruned by `with_seed`, and either way by
+  `with_options` and `with_options_and_state`; the JavaScript worker's
+  parity harness (`test-core-cells.ts`) loads unpruned. Phase 4 runs it.
+- The golden dump (`cells-bench/examples/golden.rs`) loads unpruned, and
+  `golden-diff.sh` against phase 2 is identical, values and programs
+  (`GOLDEN_OWN=1`: phase 2's harness has no `prune` to set).
+- A spec reads a document with every prop computed and ticks a pruned
+  one beside it, which must agree on every live cell
+  (`testing::live_cells_agree`) and drop the same requests; its cost
+  snapshot is the pruned load's. Only the line's and the circle's moved:
+  a line given no attributes, 23 cells and 12 instructions before, is 11
+  and 0.
+- A test that reads a prop no renderer reads loads unpruned
+  (`test_utils::load_unpruned`): a circle's diameter, a line's slope and
+  coefficients, a document's `percentCreditAchieved`, a function's
+  samples and their tapes, `sir.doenet`'s polylines' `numVertices`, and
+  `testing::dast::load`'s test-only components. Two tests that compare
+  whole cell arrays compare bits, the dead cell being NaN.
+- A pruned load against the commit before phase 2, natively as there:
+  about 10% faster on `symbolic.doenet`, whose function's samples are
+  dead, and within 5% either way elsewhere, `sir.doenet` included. The
+  pruning pays back most of what phase 2 added.
 
 Open:
 

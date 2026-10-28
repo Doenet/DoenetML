@@ -51,6 +51,21 @@ pub fn load(source: &str) -> crate::Result<crate::Document> {
     crate::Document::from_bytes(dast_json(source).as_bytes())
 }
 
+/// `load`, with every prop computed (`LoadOptions::prune` off, ADR 0019):
+/// for a test that reads a prop no renderer reads (a circle's area, a
+/// line's slope), as the current core's state variables let a reader.
+pub fn load_unpruned(source: &str) -> crate::Result<crate::Document> {
+    let json = dast_json(source);
+    let (doc, _) = crate::Document::load(
+        json.as_bytes(),
+        crate::LoadOptions {
+            prune: false,
+            ..Default::default()
+        },
+    )?;
+    Ok(doc)
+}
+
 /// The first error the load reported (ADR 0013): its code and message.
 /// An element that cannot be built does not fail the load; it becomes
 /// an `_error` component with this diagnostic. Panics when the document

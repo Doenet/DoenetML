@@ -3,13 +3,13 @@
 
 mod common;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_unpruned};
 use cells_core::{PointRequest, Request};
 use common::*;
 
 #[test]
 fn line_through_two_points_and_its_point_list() {
-    let mut doc = load(r#"<graph name="g"><point name="a">(1,2)</point><point name="b">(4,7)</point><line name="l" through="$a $b"/><pointList extend="$l.points" name="Ps"/></graph>"#).unwrap();
+    let mut doc = load_unpruned(r#"<graph name="g"><point name="a">(1,2)</point><point name="b">(4,7)</point><line name="l" through="$a $b"/><pointList extend="$l.points" name="Ps"/></graph>"#).unwrap();
     assert_close!(v(&doc, "l", "slope"), 5.0 / 3.0);
     assert_close!(v(&doc, "l", "yintercept"), 2.0 - 5.0 / 3.0);
     assert_close!(v(&doc, "l", "xintercept"), 1.0 - 2.0 * 3.0 / 5.0);
@@ -68,7 +68,7 @@ fn line_through_point_with_slope() {
 
 #[test]
 fn line_from_equation_lowers_to_coefficient_cells() {
-    let mut doc = load(r#"<graph><line name="l">5x-2y=3</line></graph>"#).unwrap();
+    let mut doc = load_unpruned(r#"<graph><line name="l">5x-2y=3</line></graph>"#).unwrap();
     assert_eq!(
         (
             v(&doc, "l", "coeffvar1"),
@@ -104,7 +104,7 @@ fn line_from_equation_lowers_to_coefficient_cells() {
 
 #[test]
 fn line_from_dynamic_equation_inverts_into_the_inputs() {
-    let mut doc = load(r#"<mathInput name="m" prefill="2"/><mathInput name="b" prefill="1"/><graph><line name="l">y = $m x + $b</line></graph>"#).unwrap();
+    let mut doc = load_unpruned(r#"<mathInput name="m" prefill="2"/><mathInput name="b" prefill="1"/><graph><line name="l">y = $m x + $b</line></graph>"#).unwrap();
     assert_close!(v(&doc, "l", "slope"), 2.0);
     assert_close!(v(&doc, "l", "yintercept"), 1.0);
     let (x1, y1, x2, y2) = (

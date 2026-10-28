@@ -4,7 +4,7 @@
 
 use cells_core::dast::Dast;
 use cells_core::testing::dast::{self, Node, document, el, mac, part, text};
-use cells_core::testing::test_utils::{dast_json, load};
+use cells_core::testing::test_utils::{dast_json, load_unpruned};
 
 fn same_as_parsed(source: &str, built: Dast) {
     let parsed = Dast::from_json(&dast_json(source)).unwrap();
@@ -86,8 +86,9 @@ fn without_what_the_core_skips_the_values_are_the_same() {
                     .attr("radius", "5"),
             ),
     )]);
+    // `dast::load` computes every prop (ADR 0019); so must the other.
     let built = dast::load(built).unwrap();
-    let parsed = load(source).unwrap();
+    let parsed = load_unpruned(source).unwrap();
     assert_eq!(built.cells.len(), parsed.cells.len());
     for (name, prop) in [("c", "radius"), ("d", "radius"), ("d", "center")] {
         let read = |doc: &cells_core::Document| -> Vec<f64> {

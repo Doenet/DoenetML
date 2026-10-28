@@ -35,12 +35,23 @@ fn tapes_sample_what_the_engine_samples() {
         json.as_bytes(),
         LoadOptions {
             sample_with_engine: true,
+            prune: false,
             ..Default::default()
         },
     )
     .unwrap()
     .0;
-    let mut fast = Document::from_bytes(json.as_bytes()).unwrap();
+    // Both compute every curve's samples, which no renderer reads yet
+    // (ADR 0019).
+    let mut fast = Document::load(
+        json.as_bytes(),
+        LoadOptions {
+            prune: false,
+            ..Default::default()
+        },
+    )
+    .unwrap()
+    .0;
     assert_eq!(tapes(&slow), 0);
     // f, df, g, dg, h compile; k and dk depend on a mathInput's expression.
     assert_eq!(tapes(&fast), 5);

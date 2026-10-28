@@ -43,6 +43,7 @@ pub(crate) fn compile(
     session: &Session,
     check_cycles: bool,
     classify: bool,
+    prune: bool,
 ) -> Result<CompileOutput> {
     let profile = crate::profile::enabled();
     let mut list = Vec::new();
@@ -69,6 +70,7 @@ pub(crate) fn compile(
             if !classify || (varies && !check_cycles) {
                 compiled.classes = Classes::Off;
             }
+            compiled.prune = prune;
             // Without the probe, a document that varies has no record of
             // what is live: every build computes everything (ADR 0019).
             if varies && !check_cycles {

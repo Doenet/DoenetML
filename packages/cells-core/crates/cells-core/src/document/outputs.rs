@@ -45,8 +45,10 @@ impl Document {
     }
 
     /// Whether the document computes `cell`: some output, or the core
-    /// itself, reads it (`build/live.rs`). Measured only: every cell is
-    /// still computed.
+    /// itself, reads it (`build/live.rs`). With `LoadOptions::prune`, the
+    /// default, every cell is but the dead cell, which every slot nothing
+    /// reads names; without it, every cell is computed and this says
+    /// which are needed.
     #[inline]
     pub fn is_live(&self, cell: CellIdx) -> bool {
         bit(&self.live.cells, cell)
