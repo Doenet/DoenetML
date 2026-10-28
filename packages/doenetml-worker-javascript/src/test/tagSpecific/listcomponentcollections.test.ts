@@ -726,11 +726,14 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     `,
         });
 
+        // `$ct.hide` is the list's own; each entry's is its source's (D29)
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "2 (1, 2) 2 x",
             p2: "[b]",
-            p3: "[] [b] true, false true",
-            p4: "[a, b] [a]",
+            p3: "[] [b] false true",
+            // the collect's `hide="false"` does not show an entry whose
+            // source is hidden (D29)
+            p4: "[b] []",
         });
     });
 
@@ -789,7 +792,8 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             p2: "[2, 1]",
             p3: "[5, 6]",
             p4: "[4, 8]",
-            p5: "[1, 2, 3]",
+            // `hide="false"` on the collect does not show the hidden entry
+            p5: "[1, 2]",
             p6: "[1, 2]",
         });
         expect(await drawn(core, resolvePathToNodeIdx, "p1")).eqls([
@@ -843,7 +847,9 @@ describe("Collect, sort and shuffle of values @group4", async () => {
 
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "[]",
-            p2: "[3, 1, 5]",
+            // a collect's `hide="false"` does not show an entry whose source
+            // is hidden, nor does a reference to that entry (D29)
+            p2: "[1, 5]",
             p3: "[1, 5]",
             p4: "[]",
             p5: "[]",
@@ -851,7 +857,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             p7: "[1]",
             p8: "[0]",
             p9: "[1]",
-            p10: "[3]",
+            p10: "[]",
             p11: "[]",
         });
 
@@ -862,12 +868,14 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "[]",
+            p2: "[3, 1, 5]",
             p3: "[3, 1, 5]",
             p4: "[3]",
             p6: "[3 1]",
             p7: "[1, 3]",
             p8: "[0, 3]",
             p9: "[3, 1]",
+            p10: "[3]",
             p11: "[7]",
         });
     });
@@ -927,10 +935,10 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             ),
         ).eqls([{ shown: "x", textColor: "green" }]);
         expect(await drawn(core, resolvePathToNodeIdx, "p5")).eqls([displayX]);
+        // the inner collect's `hide="false"` does not show the hidden 9 (D29)
         expect(await drawn(core, resolvePathToNodeIdx, "p6")).eqls([
             black1,
             green4,
-            { rendererType: "number", shown: "9", textColor: "black" },
         ]);
     });
 

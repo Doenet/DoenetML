@@ -1130,7 +1130,7 @@ describe("MathList tag tests @group3", async () => {
         await check_items(maxN);
     });
 
-    it("mathList within mathLists, ignore child hide", async () => {
+    it("mathList within mathLists, a hidden child keeps its value but is not shown", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><mathList hide="true" name="ml1">a b c</mathList></p>
@@ -1153,7 +1153,8 @@ describe("MathList tag tests @group3", async () => {
             name: "ml2",
             maths: ["x", "a", "b", "c", "y", "a", "b", "c"],
             pName: "p2",
-            text: "x, a, b, c, y, a, b, c",
+            // the hidden child is not drawn, but keeps its place (D29)
+            text: "x, a, b, c, a, b, c",
         });
 
         await test_mathList({
@@ -1162,7 +1163,7 @@ describe("MathList tag tests @group3", async () => {
             name: "ml3",
             maths: ["x", "a", "b", "c", "y", "a"],
             pName: "p3",
-            text: "x, a, b, c, y, a",
+            text: "x, a, b, c, a",
         });
     });
 

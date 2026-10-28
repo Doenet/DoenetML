@@ -713,7 +713,7 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
-    it("an authored point that is not draggable, or hidden, is drawn so", async () => {
+    it("an authored point that is not draggable is drawn so, and one that is hidden is not drawn", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
@@ -726,32 +726,21 @@ describe("Point and vector lists as list components @group4", async () => {
 
         const rendererState = (core as any).core.rendererInstructionBuilder
             .rendererState;
-        // a reference to the list is not hidden by an entry's own `hide`,
-        // as it is not by the list's
-        const drawnByReference = await drawnIn(
-            core,
-            resolvePathToNodeIdx,
-            "g2",
-        );
-        expect(
-            drawnByReference.map(
-                (child: any) =>
-                    rendererState[child.componentIdx].stateValues.hidden,
-            ),
-        ).eqls([false, false, false]);
-        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
-        expect(
-            drawn.map(
-                (child: any) =>
-                    rendererState[child.componentIdx].stateValues.draggable,
-            ),
-        ).eqls([false, true, true]);
-        expect(
-            drawn.map(
-                (child: any) =>
-                    rendererState[child.componentIdx].stateValues.hidden,
-            ),
-        ).eqls([false, true, false]);
+        // The hidden entry is drawn neither by the list nor by a reference
+        // to it, which keeps an entry's own `hide` (D29).
+        for (const graph of ["g", "g2"]) {
+            const drawn = await drawnIn(core, resolvePathToNodeIdx, graph);
+            expect(drawn.map((child: any) => child.coords)).eqls([
+                [1, 2],
+                [5, 6],
+            ]);
+            expect(
+                drawn.map(
+                    (child: any) =>
+                        rendererState[child.componentIdx].stateValues.draggable,
+                ),
+            ).eqls([false, true]);
+        }
 
         await dragEntry({
             core,
@@ -761,7 +750,7 @@ describe("Point and vector lists as list components @group4", async () => {
             args: { x: -1, y: -2 },
         });
         expect(await textsOf(core, resolvePathToNodeIdx, ["ppl"])).eqls({
-            ppl: "(1, 2), (3, 4), (5, 6)",
+            ppl: "(1, 2), (5, 6)",
         });
     });
 
