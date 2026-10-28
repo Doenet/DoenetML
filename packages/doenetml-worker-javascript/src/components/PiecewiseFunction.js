@@ -339,6 +339,40 @@ export default class PiecewiseFunction extends Function {
             },
         };
 
+        // Since every entry of `symbolicfs` above returns a blank, a piecewise
+        // function evaluates numerically unless the author sets `symbolic`.
+        // Unlike `Function`, we do not inherit `symbolic` from the first
+        // function child: a `<function>` piece is symbolic by default,
+        // which would send evaluation back to the blank `symbolicfs`.
+        stateVariableDefinitions.symbolic = {
+            description: "Whether the function is treated symbolically.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            defaultValue: false,
+            hasEssential: true,
+            returnDependencies: () => ({
+                symbolicAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "symbolic",
+                    variableNames: ["value"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.symbolicAttr !== null) {
+                    return {
+                        setValue: {
+                            symbolic:
+                                dependencyValues.symbolicAttr.stateValues.value,
+                        },
+                    };
+                } else {
+                    return { useEssentialOrDefaultValue: { symbolic: true } };
+                }
+            },
+        };
+
         stateVariableDefinitions.numericalfs = {
             isArray: true,
             entryPrefixes: ["numericalf"],
