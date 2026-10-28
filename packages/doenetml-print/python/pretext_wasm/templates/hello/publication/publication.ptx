@@ -13,8 +13,8 @@
 	     so a table between problems 3 and 4 makes the next problem 5. DoenetML numbers
 	     figures and tables in a sequence of their own; match it. Level 0 numbers both
 	     sequences straight through the document (Problem 1, 2, ...) rather than prefixing
-	     the number of the enclosing division, which for the handouts a worksheet's sections
-	     become is a "0." or a handout number the printout never shows. -->
+	     the number of the enclosing division: a "0." where content comes before the first
+	     division, or the number of the handout a section becomes (Problem 1.1). -->
 	<numbering>
 		<blocks level="0" />
 		<figures distinct="yes" level="0" />
