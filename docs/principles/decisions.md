@@ -782,39 +782,25 @@ placed elsewhere is shown.
 That makes `hide` on an entry mean what it means on any component, and makes every list one
 family.
 
-**Open: what a list's own attributes do to its entries.** Two behaviors that #2368 keeps point
-the opposite way from rule 1:
-- **`hide="false"` on a `<collect>` reveals entries whose sources are hidden.** It is pinned by
-  `collect.test.ts` "collect does not ignore hide" and by `listcomponentcollections.test.ts`.
-  #2368 keeps it as an instance of rule 4's "unless it sets `hide` itself", because a collect's
-  entries stand for their sources as references do (`entriesRevealed`). A `<sort>` or
-  `<shuffle>` does not reveal: `<sort hide="false"><number hide>3</number><number>1</number></sort>`
-  shows only `1`. So `hide="false"` on a collect reaches its entries, while `<collect hide>`
-  does not.
-- **`styleNumber` on a `<collect>` or `<sort>` overrides each entry's source**
-  (`LIST_SETTING_OF_PRESENTATION`), as the collect composite gave its style to each copy. CTX-5
-  says a component's own `styleNumber` beats its container's. For an authored
-  `<mathList styleNumber="2"><math styleNumber="3">`, the two rules disagree; today family A
-  ignores the child's.
-
-Both questions ask whether a list's own attributes act on its entries as a **container's** do,
-or as attributes **written on each reference** do.
-
-**Recommendation: as a container's, for every list.**
-- This is the model rule 1 already chose for `hide`.
-- `hide` on the list hides the list. It never sets, or clears, an entry's `hide`, so `hide="false"`
-  on a collect stops revealing, as on a sort and as `hide="false"` inside a hidden container
-  (CTX-5).
-- `styleNumber`: the entry's source's own `styleNumber` wins, and the list's applies to entries
-  whose source sets none. That is CTX-5's "nearest wins", since the source's own attribute is
-  nearer.
-- For the common case, `<collect styleNumber="2">` of points that set no style, the result is the
-  same as today.
-- **Tests that change:** the collect reveal tests above, and any collect or sort test where a
-  source with its own `styleNumber` is restyled by the list.
-
-The alternative, attributes acting as if written on each reference, is coherent too. But it would
-bring back `<collect hide>` setting every entry's `.hide`, which rule 1 removed.
+**Decided: a list's own attributes act on its entries as a container's do, for every list.**
+This is the model rule 1 already chose for `hide`. A list's attributes fill in for its entries,
+and never override or clear what an entry's source sets:
+- **`hide`.** `hide` on a list hides the list. It never sets, or clears, an entry's `hide`.
+  - So `hide="false"` on a `<collect>` no longer reveals entries whose sources are hidden. That
+    matches `<sort hide="false">`, and `hide="false"` inside a hidden container (CTX-5).
+  - Today the reveal is pinned by `collect.test.ts` "collect does not ignore hide" and
+    `listcomponentcollections.test.ts`, and #2368 keeps it (`entriesRevealed`). Those tests
+    change.
+- **`styleNumber`, and display settings such as `displayDigits`.** The entry's source's own
+  setting wins. The list's applies to entries whose source sets none, which is CTX-5's "nearest
+  wins": the source's own attribute is nearer.
+  - Today collect and sort let the list's `styleNumber` override each source's
+    (`LIST_SETTING_OF_PRESENTATION`).
+  - For the common case, `<collect styleNumber="2">` of points that set no style, the result
+    does not change. Tests where a source with its own `styleNumber` is restyled by the list
+    change.
+  - For an authored `<mathList styleNumber="2"><math styleNumber="3">`, the entry is style 3.
+- Authors who want a list to override its entries opt in explicitly: D31.
 
 **Known violation, not caused by D29: a list's own `hide` in a parent that reads its entries.** A
 component's `hiddenIgnoreParent` includes its source composite's, so `<group hide>` takes its
@@ -834,7 +820,7 @@ entry's (CTX-5).
   `styleNumber`, the two presentation attributes D20 already lists for entries.
 - They share one mechanism, so it is simplest to fix them together. Fixing #2265 needs only
   `hide`, so `styleNumber` may follow in a separate change if that keeps the first one small.
-- **Blocked on the open question above:** whether the list's or the source's `styleNumber` wins.
+- **Settled above:** the source's own `styleNumber` wins, and the list's fills in.
 
 **Out of scope: writes through `$l[k].hide`.** `<booleanInput bindValueTo="$l[k].hide"/>` does
 nothing in any family, while `$n.hide` is writable (**[probe]**). VAL-9 notes it as a follow-up.
@@ -900,3 +886,60 @@ doenet.org, that answer's submissions are then split between two ids.
   only through such an index would lose their root name and fall back.
 - The fix belongs in what events report, not in the core's creation order. #2349 closed that
   route as not planned.
+
+## D31. An explicit way to set attributes on many components at once (deferred until authors ask)
+
+**Today** a list's, collect's or group's attributes act as a container's (CTX-5, D29): they fill
+in what a component does not set, and never override it. So there is no single attribute that
+takes a set of points and changes their `styleNumber`, `displayDigits` or `hide`.
+
+**What already works.** Write a reference for each one. Attributes written on a reference
+replace its source's (REF-3):
+
+```xml
+<collect name="c" componentType="point" from="$g"/>
+<graph>
+  <repeat for="$c" valueName="P">
+    <point extend="$P" styleNumber="2" hide="false"/>
+  </repeat>
+</graph>
+```
+
+**[probe]** Every collected point is style 2, including one whose source sets `styleNumber="3"`,
+and the point whose source is written with `hide` is shown. A repeat over a `<pointList>` does
+the same.
+
+**If authors ask for something shorter**, add one opt-in mechanism, defined as an abbreviation
+of the form above, rather than per-attribute exceptions. For example, a child element of any
+list or collection:
+
+```xml
+<collect componentType="point" from="$g">
+  <entryAttributes styleNumber="2" displayDigits="3"/>
+</collect>
+```
+
+The meaning would be: each entry behaves as `<T extend="$entry" styleNumber="2" displayDigits="3"/>`
+would.
+- **It inherits REF-3 and REF-3a.** It needs no new principle: writing either of an alternative
+  pair replaces both on the source.
+- **It inherits the reference rules for context attributes.** `fixed="false"` cannot unfix a
+  fixed source (D7), and `hide="false"` shows an entry whose source is hidden, as on an extend.
+- **It works on every list in the same way:** `collect`, `sort`, `shuffle`, the authored value
+  lists, `pointList`.
+- **It is checked against the entries' type.** An attribute the entry type does not have is an
+  error, as on an extend.
+- **It does not apply to `<group>`.** A group's children are written in place, so the author can
+  set them directly. An override from outside would contradict "a component's own attribute
+  wins".
+
+Rejected shapes:
+- **Per-attribute list attributes** (`entryStyleNumber`, `entryDisplayDigits`, …). They multiply
+  with every attribute.
+- **Letting a list's own attributes override,** as collect and sort did. That makes the same
+  attribute mean different things on different lists.
+- **Prefixed attribute names** such as `entry:styleNumber`. A colon is an XML namespace
+  separator.
+
+**Until then:** document the repeat-of-extends form as the way to restyle a set of components, on
+the `<collect>` and list reference pages.
