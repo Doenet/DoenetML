@@ -15,6 +15,38 @@ mod scoring;
 // Expansion state
 // ---------------------------------------------------------------------------
 
+crate::index::index_type! {
+    /// A symbolic template a build has planned: a position in the
+    /// builder's `sym_templates`, whose leaves are slots.
+    pub(in crate::build) struct SymTemplateId;
+}
+
+/// An operator as a build plans it: one the program runs, or a symbolic
+/// template still over slots, which emit makes an `Instantiate` once its
+/// leaves have cells.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(in crate::build) enum PlannedOp {
+    Spec(OpSpec),
+    Template { template: SymTemplateId, post: Post },
+}
+
+impl PlannedOp {
+    pub(in crate::build) fn n_out(&self) -> usize {
+        match self {
+            PlannedOp::Spec(spec) => spec.n_out(),
+            PlannedOp::Template { .. } => 1,
+        }
+    }
+
+    /// The inputs a request's inverse may write (`OpSpec::writes`).
+    pub(in crate::build) fn writes(&self) -> u64 {
+        match self {
+            PlannedOp::Spec(spec) => spec.writes(),
+            PlannedOp::Template { .. } => 0,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(in crate::build) enum BuiltSource {
     Unset,
@@ -26,7 +58,7 @@ pub(in crate::build) enum BuiltSource {
     Alias(SlotId),
     /// Operator over `op_inputs[start..start + n]`; for a vector operator,
     /// the head (output 0).
-    Op(OpSpec, u32, u8),
+    Op(PlannedOp, u32, u8),
     /// Output `k` of the vector instruction headed at `head`.
     VecOut(SlotId, u8),
 }
@@ -1167,7 +1199,7 @@ impl<'c> Builder<'c> {
                     }
                     self.op_inputs.push(slot);
                 }
-                BuiltSource::Op(*spec, start, byte(args.len()))
+                BuiltSource::Op(PlannedOp::Spec(*spec), start, byte(args.len()))
             }
             Source::IterIndex => BuiltSource::Fixed(self.scopes[inst.scope].2 as f64),
             Source::SequencePick { from, step, count } => {
@@ -1212,7 +1244,7 @@ impl<'c> Builder<'c> {
             Source::MathEssential(tree) => {
                 self.typed_slots.push((s, ValueType::Math));
                 match tree {
-                    Some(tree) => BuiltSource::Literal(self.engine.import(tree) as f64),
+                    Some(tree) => BuiltSource::Literal(self.engine.import(tree).to_value()),
                     None => BuiltSource::Literal(f64::NAN),
                 }
             }
@@ -1261,9 +1293,17 @@ impl<'c> Builder<'c> {
 
     /// An operator source over `inputs` (at most 255).
     pub(in crate::build) fn op_source(&mut self, spec: OpSpec, inputs: &[SlotId]) -> BuiltSource {
+        self.planned_source(PlannedOp::Spec(spec), inputs)
+    }
+
+    pub(in crate::build) fn planned_source(
+        &mut self,
+        op: PlannedOp,
+        inputs: &[SlotId],
+    ) -> BuiltSource {
         let start = self.op_inputs.len() as u32;
         self.op_inputs.extend_from_slice(inputs);
-        BuiltSource::Op(spec, start, byte(inputs.len()))
+        BuiltSource::Op(op, start, byte(inputs.len()))
     }
 
     pub(in crate::build) fn op_slot(

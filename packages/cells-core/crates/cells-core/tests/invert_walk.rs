@@ -57,7 +57,7 @@ fn the_walk_matches_the_queue() {
                                 && v.fract() == 0.0
                                 && (0.0..engine.len() as f64).contains(&v)
                             {
-                                (c, engine.text(v as u32))
+                                (c, engine.text(cells_core::sym::Handle::from_value(v)))
                             } else {
                                 (c, v.to_string())
                             }

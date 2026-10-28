@@ -15,4 +15,21 @@ pub mod tree;
 pub use engine::Engine;
 pub use tree::{FUNCTIONS, Leaf, Tree};
 
-pub type Handle = u32;
+crate::index::index_type! {
+    /// An expression in the [`Engine`]: a position in its store. A math
+    /// cell holds one as its `f64` value.
+    pub struct Handle;
+}
+
+impl Handle {
+    /// As a math cell's value.
+    pub fn to_value(self) -> f64 {
+        self.get() as f64
+    }
+
+    /// A math cell's value as the handle it holds. The caller has checked
+    /// that it is one (not NaN, in the engine).
+    pub fn from_value(v: f64) -> Handle {
+        Handle::new(v as u32)
+    }
+}

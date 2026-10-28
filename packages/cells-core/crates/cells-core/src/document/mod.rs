@@ -181,7 +181,7 @@ impl Document {
     /// Parse math text (what a student typed) into the engine: the value to
     /// request on a mathInput's `expr` cell.
     pub fn parse_math(&self, text: &str) -> std::result::Result<f64, String> {
-        Ok(self.session.engine.borrow_mut().parse(text)? as f64)
+        Ok(self.session.engine.borrow_mut().parse(text)?.to_value())
     }
 
     /// The id of `text` in the string table, as a cell value: the value to
@@ -214,7 +214,7 @@ impl Document {
         if h.is_nan() {
             String::new()
         } else {
-            self.session.engine.borrow().text(h as Handle)
+            self.session.engine.borrow().text(Handle::from_value(h))
         }
     }
 

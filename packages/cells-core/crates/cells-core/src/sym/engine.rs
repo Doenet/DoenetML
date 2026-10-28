@@ -108,14 +108,14 @@ impl Engine {
     /// Note that `h` was given leaves, if a lookahead stored it.
     fn note_leaves(&mut self, h: Handle) {
         if let Some(s) = &mut self.scratch
-            && h as usize >= s.from
+            && h.index() >= s.from
         {
             s.leaves.push(h);
         }
     }
 
     pub fn expr(&self, h: Handle) -> &Expr {
-        &self.exprs[h as usize]
+        &self.exprs[h.index()]
     }
 
     /// Store `e`, or find it: the handle of an equal expression already
@@ -123,14 +123,14 @@ impl Engine {
     fn push(&mut self, e: Expr) -> Handle {
         let key = self.hasher.hash_one(&e);
         if let Some(&h) = self.index.get(&key) {
-            if self.exprs[h as usize] == e {
+            if self.exprs[h.index()] == e {
                 return h;
             }
             self.exprs.push(e);
-            return (self.exprs.len() - 1) as Handle;
+            return Handle::from_index(self.exprs.len() - 1);
         }
         self.exprs.push(e);
-        let h = (self.exprs.len() - 1) as Handle;
+        let h = Handle::from_index(self.exprs.len() - 1);
         self.index.insert(key, h);
         if let Some(s) = &mut self.scratch {
             s.keys.push(key);
@@ -221,7 +221,7 @@ impl Engine {
         let leaves = self
             .leaves
             .entry(template)
-            .or_insert_with(|| cell_leaves(&self.exprs[template as usize]));
+            .or_insert_with(|| cell_leaves(&self.exprs[template.index()]));
         if leaves.is_empty() {
             return template;
         }
@@ -229,13 +229,13 @@ impl Engine {
         for &(cell, math) in leaves.iter() {
             let v = cells[cell as usize];
             let e = if math && !v.is_nan() {
-                self.exprs[v as usize].clone()
+                self.exprs[Handle::from_value(v).index()].clone()
             } else {
                 number(v)
             };
             subs.insert(leaf_name(cell, math), e);
         }
-        let e = me::substitute(&self.exprs[template as usize], &subs);
+        let e = me::substitute(&self.exprs[template.index()], &subs);
         self.push(e)
     }
 
@@ -254,24 +254,24 @@ impl Engine {
     }
 
     pub fn simplify(&mut self, h: Handle) -> Handle {
-        let e = me::simplify(&self.exprs[h as usize]);
+        let e = me::simplify(&self.exprs[h.index()]);
         self.push(e)
     }
 
     pub fn expand(&mut self, h: Handle) -> Handle {
-        let e = me::expand(&self.exprs[h as usize]);
+        let e = me::expand(&self.exprs[h.index()]);
         self.push(e)
     }
 
     pub fn derivative(&mut self, h: Handle, var: &str) -> Handle {
-        let e = me::derivative(&self.exprs[h as usize], var);
+        let e = me::derivative(&self.exprs[h.index()], var);
         self.push(e)
     }
 
     /// Evaluate to a real number with `var` bound; any other free symbol
     /// gives NaN.
     pub fn evaluate(&mut self, h: Handle, var: Option<(&str, f64)>) -> f64 {
-        let e = &self.exprs[h as usize];
+        let e = &self.exprs[h.index()];
         match var {
             Some((name, x)) => {
                 let mut b = HashMap::with_capacity(1);
@@ -284,22 +284,22 @@ impl Engine {
 
     /// Evaluate at many values of one variable (a curve's samples).
     pub fn evaluate_many(&mut self, h: Handle, var: &str, xs: &[f64], out: &mut [f64]) {
-        let ys = me::evaluate_many(&self.exprs[h as usize], var, xs);
+        let ys = me::evaluate_many(&self.exprs[h.index()], var, xs);
         out.copy_from_slice(&ys[..out.len()]);
     }
 
     /// Mathematical equality, by numeric sampling.
     pub fn equals(&mut self, a: Handle, b: Handle) -> bool {
-        me::equals(&self.exprs[a as usize], &self.exprs[b as usize], &self.eq)
+        me::equals(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
     }
 
     /// Structural equality after reordering (`symbolicEquality`).
     pub fn equals_syntax(&mut self, a: Handle, b: Handle) -> bool {
-        me::equals_syntactic(&self.exprs[a as usize], &self.exprs[b as usize], &self.eq)
+        me::equals_syntactic(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
     }
 
     pub fn has_symbols(&mut self, h: Handle) -> bool {
-        !me::variables(&self.exprs[h as usize]).is_empty()
+        !me::variables(&self.exprs[h.index()]).is_empty()
     }
 
     /// The expression as a builder tree, cell leaves included as the `L`
@@ -307,15 +307,15 @@ impl Engine {
     /// when it uses something a tree cannot say (sets, relations, a
     /// function of several arguments).
     pub fn export<L: Leaf>(&self, h: Handle) -> Option<Tree<L>> {
-        to_tree(&self.exprs[h as usize])
+        to_tree(&self.exprs[h.index()])
     }
 
     pub fn text(&self, h: Handle) -> String {
-        me::to_text(&self.exprs[h as usize], &TextOpts::default())
+        me::to_text(&self.exprs[h.index()], &TextOpts::default())
     }
 
     pub fn latex(&self, h: Handle) -> String {
-        me::to_latex(&self.exprs[h as usize], &LatexOpts::default())
+        me::to_latex(&self.exprs[h.index()], &LatexOpts::default())
     }
 
     /// Number of stored expressions.

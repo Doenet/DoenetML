@@ -38,7 +38,7 @@ impl<'c> Builder<'c> {
             // leaves is a fixed expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
             Err(reason) => match self.engine.parse_fixed(text) {
-                Ok(h) => return Ok(BuiltSource::Fixed(self.post(h, post) as f64)),
+                Ok(h) => return Ok(BuiltSource::Fixed(self.post(h, post).to_value())),
                 Err(_) => {
                     return Err(Error::BadMath {
                         text: text.clone(),
@@ -51,12 +51,12 @@ impl<'c> Builder<'c> {
         let tree = self.bind_leaves(tree, scope, &mut leaves)?;
         if leaves.is_empty() {
             let h = self.engine.import(&tree);
-            return Ok(BuiltSource::Fixed(self.post(h, post) as f64));
+            return Ok(BuiltSource::Fixed(self.post(h, post).to_value()));
         }
         if let (Tree::Cell { cell, math: true }, Post::None) = (&tree, post) {
             return Ok(BuiltSource::Alias(*cell));
         }
-        let template = self.sym_templates.len() as u32;
+        let template = SymTemplateId::from_index(self.sym_templates.len());
         self.sym_templates.push(tree);
         if leaves.len() > crate::limits::MAX_REFERENCES {
             return Err(Error::BadMath {
@@ -64,10 +64,7 @@ impl<'c> Builder<'c> {
                 reason: format!("more than {} references", crate::limits::MAX_REFERENCES),
             });
         }
-        Ok(self.op_source(
-            OpSpec::Sym(SymKind::Instantiate { template, post }),
-            &leaves,
-        ))
+        Ok(self.planned_source(PlannedOp::Template { template, post }, &leaves))
     }
 
     /// `post` applied to a fixed expression at build time.

@@ -314,7 +314,7 @@ impl RequestEngine<'_> {
                     let h = if d.is_nan() {
                         f64::NAN
                     } else {
-                        self.sym.engine.num(d) as f64
+                        self.sym.engine.num(d).to_value()
                     };
                     produced.write(expr, h);
                     true

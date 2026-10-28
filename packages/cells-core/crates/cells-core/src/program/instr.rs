@@ -4,6 +4,7 @@
 
 use crate::document::CellIdx;
 use crate::program::{Op, OpSpec};
+use crate::sym::Handle;
 
 /// Samples a function curve owns: `Sample` writes this many y-values over
 /// evenly spaced x-values from the graph's `xmin` to `xmax`.
@@ -17,9 +18,10 @@ pub const SAMPLES: usize = 200;
 pub enum SymKind {
     /// The template with each cell leaf replaced by its cell's value (a
     /// number, or the expression a math cell holds), then `post`. Inputs
-    /// are the template's leaf cells. Before emit, `template` indexes the
-    /// builder's template list; after, it is an engine handle.
-    Instantiate { template: u32, post: Post },
+    /// are the template's leaf cells; `template` is an engine expression
+    /// whose leaves are those cells (a build plans one as a
+    /// `PlannedOp::Template` until emit gives its leaves cells).
+    Instantiate { template: Handle, post: Post },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
     /// Input 0 with `x` set to input 1.
@@ -201,7 +203,7 @@ mod arity {
             OpSpec::Vec(VecOp::Choose { n: 3 }),
             OpSpec::Vec(VecOp::WeightedMean { n: 3 }),
             OpSpec::Sym(SymKind::Instantiate {
-                template: 0,
+                template: Handle::new(0),
                 post: Post::None,
             }),
             OpSpec::Sym(SymKind::Evaluate),

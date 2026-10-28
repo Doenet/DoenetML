@@ -291,8 +291,8 @@ impl<'c> Builder<'c> {
         let compile = !self.session.sample_with_engine;
         let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
-            let (mut spec, start, count) = match &self.sources[s] {
-                BuiltSource::Op(spec, start, count) => (*spec, *start, *count),
+            let (planned, start, count) = match &self.sources[s] {
+                BuiltSource::Op(op, start, count) => (*op, *start, *count),
                 _ => unreachable!(),
             };
             bound.clear();
@@ -318,17 +318,20 @@ impl<'c> Builder<'c> {
                     node: None,
                 });
             }
+            // A planned template's leaves were slots; they are cells now.
+            let mut spec = match planned {
+                PlannedOp::Spec(spec) => spec,
+                PlannedOp::Template { template, post } => {
+                    let tree = rebind(&self.sym_templates[template.index()], &slot_to_cell);
+                    OpSpec::Sym(SymKind::Instantiate {
+                        template: self.engine.import(&tree),
+                        post,
+                    })
+                }
+            };
             if let OpSpec::Sym(kind) = spec {
                 if kind.makes_math() {
                     value_types[slot_to_cell[s].index()] = ValueType::Math;
-                }
-                // The template's leaves were slots; they are cells now.
-                if let SymKind::Instantiate { template, post } = kind {
-                    let tree = rebind(&self.sym_templates[template as usize], &slot_to_cell);
-                    spec = OpSpec::Sym(SymKind::Instantiate {
-                        template: self.engine.import(&tree),
-                        post,
-                    });
                 }
                 let input = self.op_inputs[start as usize];
                 // A derivative of a fixed shape is taken once, here; the tick
@@ -523,16 +526,16 @@ impl<'c> Builder<'c> {
             return h;
         }
         let h = match self.sources[root.index()] {
-            BuiltSource::Fixed(h) if !h.is_nan() => Some(h as Handle),
-            BuiltSource::Op(OpSpec::Sym(SymKind::Instantiate { template, .. }), _, _) => {
-                let tree = rebind(&self.sym_templates[template as usize], slot_to_cell);
+            BuiltSource::Fixed(h) if !h.is_nan() => Some(Handle::from_value(h)),
+            BuiltSource::Op(PlannedOp::Template { template, .. }, _, _) => {
+                let tree = rebind(&self.sym_templates[template.index()], slot_to_cell);
                 if has_math_leaf(&tree) {
                     None
                 } else {
                     Some(self.engine.import(&tree))
                 }
             }
-            BuiltSource::Op(OpSpec::Sym(SymKind::Derivative), start, _) => {
+            BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Derivative)), start, _) => {
                 let input = self.op_inputs[start as usize];
                 self.fixed_shape(input, slot_to_cell, memo)
                     .map(|h| self.engine.derivative(h, "x"))
@@ -605,7 +608,7 @@ impl<'c> Builder<'c> {
             let seed = if math_cells.contains(&src) || v.is_nan() {
                 v
             } else {
-                self.engine.import(&Tree::<CellIdx>::Num(v)) as f64
+                self.engine.import(&Tree::<CellIdx>::Num(v)).to_value()
             };
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);

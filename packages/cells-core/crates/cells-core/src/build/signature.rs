@@ -396,7 +396,7 @@ impl<'a> Signer<'a> {
     fn op_hash(&self, instr: &Instr, inputs: &[CellIdx]) -> u64 {
         match instr.op {
             Op::Sym(SymKind::Instantiate { template, post }, ..) => {
-                let text = self.out.session.engine.borrow().text(template as Handle);
+                let text = self.out.session.engine.borrow().text(template);
                 hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
             }
             Op::Sym(SymKind::SampleTape { tape }, ..) => {
@@ -415,7 +415,10 @@ impl<'a> Signer<'a> {
         match self.out.value_types[cell.index()] {
             ValueType::Number => hash_of(bits(v)),
             ValueType::Text => hash_of(("t", self.out.strings.get(StrId::from_value(v)))),
-            ValueType::Math => hash_of(("m", self.out.session.engine.borrow().text(v as Handle))),
+            ValueType::Math => hash_of((
+                "m",
+                self.out.session.engine.borrow().text(Handle::from_value(v)),
+            )),
         }
     }
 

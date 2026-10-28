@@ -417,7 +417,7 @@ fn run_tape(
 }
 
 fn handle(v: f64) -> Option<Handle> {
-    (!v.is_nan()).then_some(v as Handle)
+    (!v.is_nan()).then_some(Handle::from_value(v))
 }
 
 /// One symbolic operation. A NaN handle is a blank expression: evaluating it
@@ -436,14 +436,14 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                     engine.expand(h)
                 }
             };
-            out[0] = h as f64;
+            out[0] = h.to_value();
         }
         SymKind::Evaluate => out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.evaluate(h, None)),
         SymKind::EvalAt => {
             out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.evaluate(h, Some(("x", v(1)))))
         }
         SymKind::Derivative => {
-            out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.derivative(h, "x") as f64)
+            out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.derivative(h, "x").to_value())
         }
         SymKind::Equals | SymKind::EqualsSyntax => {
             out[0] = match (handle(v(0)), handle(v(1))) {
