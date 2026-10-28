@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 // Body level styling
 $max-width: 1200px !default;  // 0 == no max width
 $standalone-max-width: 1600px !default;  // used for iframe standalones
@@ -51,16 +70,18 @@ body {
 
 // Base width/padding
 // ptx-main ensures iframe pages don't get these
-.ptx-main .ptx-content {
+.ptx-main > .ptx-content {
   max-width: $content-with-padding-width;   // bad for worksheets
   padding: 24px $content-side-padding 60px;
+  line-height: var(--ptx-content-line-height, normal);
+  font-size: var(--ptx-content-font-size, inherit);
 
   @if $centered-content {
     margin-left: auto;
     margin-right: auto;
   }
 }
-.worksheet .ptx-main .ptx-content {
+.worksheet .ptx-main > .ptx-content {
     max-width: 960px;
 }
 
@@ -76,7 +97,7 @@ body.pretext,
 body.standalone {
   margin: 0;
   padding: 0;
-  font-size: 16px;
+  font-size: 1rem;
   background: var(--page-color, white);
 }
 

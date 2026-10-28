@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ********************************************************************
-# Copyright 2010-2020 Robert A. Beezer
+# Copyright (C) 2010-2026  Robert A. Beezer
 #
 # This file is part of PreTeXt.
 #
@@ -18,12 +18,15 @@
 # along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 # *********************************************************************
 
+# 2026-07-06: this script expects Python 3.10 or newer
 # 2023-10-13: this script expects Python 3.8 or newer
 # 2021-05-21: this script expects Python 3.6 or newer
 #     argparse is backported to 3.1 (?)
 # 2020-05-20: this script expects Python 3.4 or newer
 
 from lib import pretext as ptx
+
+import sys
 
 # Set up logging (replacing _verbose/_debug).
 # Use log.info(<string>) or log.debug(<string>).
@@ -138,30 +141,27 @@ def get_destination_directory(directory, xml_source, pub_file, component):
         "latex-package": "latex-packages",
         "references" : "references",
         "webwork": "webwork",
+        "gdscript" : "gdscript"
     }
-    # if specified, check, sanitize, return absolute path
+    # if specified, sanitize, create when missing (an output
+    # destination is machine-owned), return absolute path
     if directory:
-        return ptx.verify_input_directory(directory)
-    # explore a default provided by the  managed directories
-    # scheme, as specified in the publication file.  "generated"
-    # will be sanitized as an absolute path, so we run with it
+        os.makedirs(directory, exist_ok=True)
+        return os.path.abspath(directory)
+    # explore the default provided by the managed directories
+    # scheme: "generated" is always an absolute path, declared in
+    # the publication file or the default beside the source
     generated, _ = ptx.get_managed_directories(xml_source, pub_file)
-    # generated is "None" means publisher has not
-    #   opted-in for managed directories
     # "missing" key means we are not creating a component
     #   with pieces distributed to directories
-    if generated and (component in component_dirs):
-        # generally the component directory already exists (so the
-        # error does not concern us), but we create the directory the
-        # first time it is filled as part of a *managed* scheme
+    if component in component_dirs:
+        # the generated directory is machine-owned, so it (and the
+        # component subdirectory) are created the first time filled
         subdirectory = os.path.join(generated, component_dirs[component])
-        try:
-            os.mkdir(subdirectory)
-        except FileExistsError:
-            pass
+        os.makedirs(subdirectory, exist_ok=True)
         # good - we've formed it and ensured it exists - ship it and finish
         return subdirectory
-    # else, absent managed directories, default to current working directory
+    # else, no component destination applies: current working directory
     return os.getcwd()
 
 
@@ -181,9 +181,20 @@ def string_parameters_as_dict(pairs):
     return params
 
 
-def sanitize_method(method, component, format):
+def sanitize_method(method, component, format, validate):
     """Returns a string appropriate for the component and format, else None"""
-    if component == "asy":
+    if validate:
+        # unset by command-line, use default
+        if not (method):
+            return "local"
+        # set, but illegal: halt, naming the allowed possibilities
+        elif not (method in ["local", "server"]):
+            msg = 'the method given for validation ("{}") must be "local" or "server"'
+            log.fatal(msg.format(method))
+        # set correctly
+        else:
+            return method
+    elif component == "asy":
         # unset by command-line, use default
         if not (method):
             return "server"
@@ -200,7 +211,7 @@ def sanitize_method(method, component, format):
         # set correctly
         else:
             return method
-    elif (((component == "doc") or (component == "all")) and ((format == "pdf") or format == "pdf-plus")) or (component == "latex-image"):
+    elif (((component == "doc") or (component == "all")) and ((format == "pdf") or (format == "pdf-plus") or (format == "beamer"))) or (component == "latex-image"):
         # "all" component is deprecated for "doc"
         # we will arbitrarily set xelatex as the default
         if not (method):
@@ -311,7 +322,7 @@ def get_cli_arguments():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="PreTeXt utility script (requires Python 3.8)",
+        description="PreTeXt utility script (requires Python 3.10)",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -352,6 +363,7 @@ def get_cli_arguments():
         ("references", "References and citations via Citation Stylesheet Language"),
         ("pg-macros", "Server-side macros for WeBWorK problem generation"),
         ("dynamic", "Expression subsitutions for dynamically generated exercises"),
+        ("gdscript", "use godot to package zip files for GDScript interactives"),
         ("youtube", "Thumbnails for YouTube videos (JPEG only)"),
         ("play-button", "generate generic static video image"),
         ("qrcode", "QR codes for static versions of interactive content"),
@@ -377,6 +389,7 @@ def get_cli_arguments():
         ("svg", "Scalable Vector Graphics file(s)"),
         ("pdf", "Portable Document Format file(s)"),
         ("pdf-plus", "PDF and LaTeX, asset, and log files used/generated when building PDF"),
+        ("pdf-fo", "PDF file(s), LaTeX-free, via XSL-FO and Apache FOP (experimental)"),
         ("png", "Portable Network Graphics file(s)"),
         ("eps", "Encapsulated Post Script file(s)"),
         ("mml", "MathML (math elements)"),
@@ -386,12 +399,17 @@ def get_cli_arguments():
         ("tactile", "Tactile PreFigure diagrams with braille labels"),
         ("speech", "Speech (math elements)"),
         ("source", "Standalone source files"),
+        ("text", "plain text rendering (experimental)"),
+        ("markdown", "markdown rendering (CommonMark, experimental)"),
+        ("markdown-zip", "markdown rendering and image directories, bundled as a zip file"),
         ("latex", "LaTeX source file (only, an intermediate format for developers)"),
         ("latex-plus", "LaTeX source file and all necessary build files"),
+        ("fo", "XSL-FO source file (only, an intermediate format for developers, experimental)"),
         ("html", "HyperText Markup Language (online/web pages)"),
         ("html-zip", "HyperText Markup Language (single zip file)"),
         ("html-scorm", "HyperText Markup Language (single zip file including SCORM manifest)"),
         ("revealjs", "PreTeXt slideshow to reveal.js HTML format"),
+        ("beamer", "PreTeXt slideshow to LaTeX/Beamer PDF"),
         ("epub-svg", "EPUB container, math as SVG"),
         ("epub-mml", "EPUB container, math as MathML"),
         ("epub-speech", "EPUB container, math as speech"),
@@ -400,6 +418,8 @@ def get_cli_arguments():
         ("epub-mml-nozip", "EPUB build files, math as MathML"),
         ("epub-speech-nozip", "EPUB build files, math as speech"),
         ("epub-kindle-nozip", "EPUB build files, math as MathML, PNG images"),
+        ("jupyter", "Jupyter notebooks, cells of text and code"),
+        ("jupyter-zip", "Jupyter notebooks, cells of text and code (single zip file)"),
         (
             "assembly-static",
             "PreTeXt source, after pre-processor, static exercises (for developers)",
@@ -514,9 +534,26 @@ def get_cli_arguments():
         action="store_true",
         dest="tgz",
     )
-    # Needs help-file, once public
-    # Will default to False
-    parser.add_argument("-V", "--validate", action="store_true", dest="validate")
+    validate_info = [
+        ("full", "a readable report: locations, excerpts, explanations"),
+        ("terse", "machine-readable, one tab-separated message per line"),
+    ]
+    validate_help = "\n".join(
+        [
+            "validate source, and survey experimental constructs in use;",
+            "report forms are:",
+        ]
+        + ["  {} - {}".format(info[0], info[1]) for info in validate_info]
+        + ['(where the "jing" runs happen is chosen by "-M local|server")']
+    )
+    parser.add_argument(
+        "-V",
+        "--validate",
+        help=validate_help,
+        choices=["full", "terse"],
+        default=None,
+        dest="validate",
+    )
     parser.add_argument(
         "xml_file", help="PreTeXt source file with content", action="store"
     )
@@ -566,7 +603,12 @@ def main():
 
     # Report Python version in debugging output
     log.debug(
-        "Python version: {} (expecting 3.8 or newer)".format(ptx.python_version())
+        "Python version: {} (expecting 3.10 or newer)".format(ptx.python_version())
+    )
+
+    # Report versions of the Python packages we depend upon
+    log.debug(
+        "Python module versions: {}".format(ptx.python_module_versions())
     )
 
     # Check discovering directory locations as
@@ -613,7 +655,7 @@ def main():
     # method may not be required, but when it may apply we use a
     # routine to error-check and sanitize possible values and defaults
     # varies by component and format
-    method = sanitize_method(args.method, args.component, args.format)
+    method = sanitize_method(args.method, args.component, args.format, args.validate)
     # convert list of string parameters into a dictionary
     # routines in module expect a dictionary, so convert here and now
     stringparams = string_parameters_as_dict(args.stringparams)
@@ -637,7 +679,7 @@ def main():
     # The big switch
     # Validation trumps everything, since it is an easy switch
     if args.validate:
-        ptx.validate(xml_source, out_file, dest_dir)
+        validation_report = ptx.validate(xml_source, publication_file, stringparams, out_file, dest_dir, method, args.validate)
     elif args.component == "prefigure":
         if args.format in ["source", "svg", "pdf", "png", "tactile", "all"]:
             ptx.prefigure_conversion(xml_source, publication_file, stringparams, args.xmlid, dest_dir, args.format, None)
@@ -660,7 +702,7 @@ def main():
                 'cannot make Asymptote diagrams in "{}" format'.format(args.format)
             )
     elif args.component == "sageplot":
-        if args.format in ["pdf", "svg", "png", "html", "all"]:
+        if args.format in ["pdf", "svg", "png", "eps", "html", "all"]:
             ptx.sage_conversion(
                 xml_source,
                 publication_file,
@@ -734,6 +776,10 @@ def main():
         ptx.youtube_thumbnail(
             xml_source, publication_file, stringparams, args.xmlid, dest_dir
         )
+    elif args.component == "gdscript":
+        ptx.gdscript_pck(
+            xml_source, publication_file, stringparams, args.xmlid, dest_dir
+        )
     elif args.component == "play-button":
         ptx.play_button(dest_dir)
     elif args.component == "qrcode":
@@ -751,7 +797,7 @@ def main():
     elif args.component == "math":
         if args.format in ["svg", "mml", "nemeth", "speech"]:
             ptx.mathjax_latex(
-                xml_source, publication_file, out_file, dest_dir, args.format
+                xml_source, publication_file, out_file, dest_dir, args.format, False
             )
         else:
             raise NotImplementedError(
@@ -830,6 +876,7 @@ def main():
                 dest_dir,
                 method,
                 "pdf-only",
+                "latex",
             )
         elif args.format == "pdf-plus":
             ptx.pdf(
@@ -841,6 +888,36 @@ def main():
                 dest_dir,
                 method,
                 "all",
+                "latex",
+            )
+        elif args.format == "beamer":
+            ptx.pdf(
+                xml_source,
+                publication_file,
+                stringparams,
+                extra_stylesheet,
+                out_file,
+                dest_dir,
+                method,
+                "pdf-only",
+                "beamer",
+            )
+        elif args.format == "pdf-fo":
+            ptx.pdf_fo(
+                xml_source,
+                publication_file,
+                stringparams,
+                out_file,
+                dest_dir,
+            )
+        elif args.format in ["text", "markdown", "markdown-zip"]:
+            ptx.text(
+                xml_source,
+                publication_file,
+                stringparams,
+                out_file,
+                dest_dir,
+                args.format,
             )
         elif args.format == "latex":
             ptx.latex(
@@ -848,6 +925,15 @@ def main():
                 publication_file,
                 stringparams,
                 extra_stylesheet,
+                out_file,
+                dest_dir,
+                "latex",
+            )
+        elif args.format == "fo":
+            ptx.fo(
+                xml_source,
+                publication_file,
+                stringparams,
                 out_file,
                 dest_dir,
             )
@@ -861,11 +947,16 @@ def main():
                 dest_dir,
                 method,
                 "prebuild",
+                "latex",
             )
         elif args.format == "braille-emboss":
             ptx.braille(xml_source, publication_file, stringparams, out_file, dest_dir, "emboss")
         elif args.format == "braille-electronic":
             ptx.braille(xml_source, publication_file, stringparams, out_file, dest_dir, "electronic")
+        elif args.format == "jupyter":
+            ptx.jupyter(xml_source, publication_file, stringparams, "collection", out_file, dest_dir)
+        elif args.format == "jupyter-zip":
+            ptx.jupyter(xml_source, publication_file, stringparams, "zip", out_file, dest_dir)
         elif args.format == "epub-svg":
             ptx.epub(xml_source, publication_file, out_file, dest_dir, "epub", "svg", stringparams)
         elif args.format == "epub-mml":
@@ -930,8 +1021,27 @@ def main():
         )
 
     # Cleanup, if execution does not raise errors
-    ptx.release_temporary_directories()
+    # "any_log_level" is False, since we want to keep temporary directories if the log level is set to debug
+    ptx.release_temporary_directories(any_log_level=False)
+
+    # A validation report is always a file, never console output, and at
+    # the default verbosity nothing else is printed.  So, whatever the
+    # verbosity, the very last output of a run says where the report is.
+    if args.validate:
+        if validation_report:
+            print("Validation report written to a file (not shown on this console):")
+            print("    {}".format(validation_report))
+        elif args.verbose:
+            print("No validation report was produced (the reason is given above)")
+        else:
+            print('No validation report was produced (run again with "-v" to see why)')
 
 
-# Do it - lone top-level command
-main()
+# Do it - lone top-level command.  A fatal message halts the build by
+# raising PreTeXtFatal; it has already been logged, so we exit with an
+# error status but without a Python traceback (a traceback is for an
+# unexpected internal failure, not a deliberate, reported halt).
+try:
+    main()
+except ptx.PreTeXtFatal:
+    sys.exit(1)

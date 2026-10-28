@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 // TODO - refactor
 $opacity: 0.0 !default;
 
@@ -53,28 +72,20 @@ li > .autopermalink {
   top: 1.5ex;
 }
 
-// In some styles, the autopermalink for paras land right on the border line.
-// This is an attempt to fix that.  TODO: find a more robust solution, maybe
-// using a variable for the left offset of paras inside blocks.
-.assemblage-like > .para > .autopermalink,
-.example-like > .para > .autopermalink,
-.example-like > .exercise-like > .autopermalink,
-.project-like > .para > .autopermalink,
-.project-like > .exercise-like > .autopermalink,
-.project-like > .exercise-like > .introduction > .para > .autopermalink,
-.project-like > .exercise-like > .conclusion > .para > .autopermalink,
-.remark-like > .para > .autopermalink {
-  left: -2.9em;
-}
 
-
-.axiom-like, .example-like, .exercise-like, .solution-like, .assemblage-like, .definition-like, .remark-like, .project-like, .openproblem-like, .computation-like, .theorem-like, .proof, .case, li, dd {
+// Hide the autopermalink for the first para of a list item or definition term
+li, dd {
   > .para:first-of-type > .autopermalink {
     display:none;
   }
+}
 
+// An unheaded solution-like or assemblage-like block and its first paragraph
+// occupy the same starting position.  Show only the block permalink there.
+:is(.solution-like, .assemblage-like):not(:has(> .heading)) {
+  > .para:first-of-type > .autopermalink,
   > .introduction > .para:first-of-type > .autopermalink {
-    display:none;
+    display: none;
   }
 }
 

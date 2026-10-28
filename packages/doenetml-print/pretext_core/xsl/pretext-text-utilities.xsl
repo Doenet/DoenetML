@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 
 <!--********************************************************************
-Copyright 2022 Robert A. Beezer
+Copyright (C) 2022-2026  Robert A. Beezer
 
 This file is part of PreTeXt.
 
@@ -932,6 +932,31 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:choose>
 </xsl:template>
 
+<!-- Collapse each newline, and the horizontal space around -->
+<!-- it, to a single space: hard-wrapped, indented source   -->
+<!-- becomes one long line                                  -->
+<xsl:template name="flatten-line-breaks">
+    <xsl:param name="text"/>
+    <xsl:choose>
+        <xsl:when test="contains($text, '&#xa;')">
+            <xsl:call-template name="strip-trailing-whitespace">
+                <xsl:with-param name="text" select="substring-before($text, '&#xa;')"/>
+            </xsl:call-template>
+            <xsl:text> </xsl:text>
+            <xsl:call-template name="flatten-line-breaks">
+                <xsl:with-param name="text">
+                    <xsl:call-template name="strip-leading-whitespace">
+                        <xsl:with-param name="text" select="substring-after($text, '&#xa;')"/>
+                    </xsl:call-template>
+                </xsl:with-param>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="$text"/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
 <!-- spurious newlines introduce whitespace on either side -->
 <!-- we split at newlines, strip consecutive whitesapce on either side, -->
 <!-- and replace newlines by spaces (could restore a single newline) -->
@@ -987,6 +1012,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- First define the replacements. These must be in     -->
 <!-- order as search + replace pairs                     -->
+<!-- Other control character replacements are not        -->
+<!-- included because they would not be valid at an      -->
+<!-- earlier stage.                                      -->
 <xsl:variable name="json-replacements">
     <search>\</search>
     <replace>\\</replace>
@@ -1000,6 +1028,10 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <replace>\r</replace>
     <search><xsl:value-of select="string('&#x22;')"/></search>
     <replace>\&#x22;</replace>
+    <search><xsl:value-of select="string('&#x2028;')"/></search>
+    <replace>\u2028</replace>
+    <search><xsl:value-of select="string('&#x2029;')"/></search>
+    <replace>\u2029</replace>
 </xsl:variable>
 <xsl:variable name="json-replacements-search-set" select="exsl:node-set($json-replacements)/search" />
 <xsl:variable name="json-replacements-replace-set" select="exsl:node-set($json-replacements)/replace" />
@@ -1008,6 +1040,49 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:param name="text"/>
 
     <xsl:value-of select="str:replace($text, $json-replacements-search-set, $json-replacements-replace-set)" />
+</xsl:template>
+
+<!-- REGEX Escaped Strings -->
+<!-- When a string will be passed for comparison using regexp   -->
+<!-- but we want a literal match, we need to escape all of the  -->
+<!-- special characters by putting a slash in front.            -->
+<xsl:variable name="regexp-replacements">
+    <search>\</search>
+    <replace>\\</replace>
+    <search>.</search>
+    <replace>\.</replace>
+    <search>^</search>
+    <replace>\^</replace>
+    <search>$</search>
+    <replace>\$</replace>
+    <search>*</search>
+    <replace>\*</replace>
+    <search>+</search>
+    <replace>\+</replace>
+    <search>?</search>
+    <replace>\?</replace>
+    <search>{</search>
+    <replace>\{</replace>
+    <search>}</search>
+    <replace>\}</replace>
+    <search>[</search>
+    <replace>\[</replace>
+    <search>]</search>
+    <replace>\]</replace>
+    <search>(</search>
+    <replace>\(</replace>
+    <search>)</search>
+    <replace>\)</replace>
+    <search>|</search>
+    <replace>\|</replace>
+</xsl:variable>
+<xsl:variable name="regexp-replacements-search-set" select="exsl:node-set($regexp-replacements)/search" />
+<xsl:variable name="regexp-replacements-replace-set" select="exsl:node-set($regexp-replacements)/replace" />
+
+<xsl:template name="escape-regexp-literal">
+    <xsl:param name="text"/>
+
+    <xsl:value-of select="str:replace($text, $regexp-replacements-search-set, $regexp-replacements-replace-set)" />
 </xsl:template>
 
 <xsl:template name="quote-string">
@@ -1056,11 +1131,21 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <!-- Add a question mark, then grab leading substring -->
     <!-- This will fail if "?" is encoded                 -->
     <xsl:variable name="no-query-string" select="substring-before(concat($filename, '?'), '?')" />
+    <!-- Reduce to the last path segment first, else a period in a host -->
+    <!-- name or a directory ("media.w3.org", "v1.2") would be read as  -->
+    <!-- the start of an extension.  The leading slash is what makes    -->
+    <!-- "substring-after-last" return a bare filename unchanged.       -->
+    <xsl:variable name="final-segment">
+        <xsl:call-template name="substring-after-last">
+            <xsl:with-param name="input" select="concat('/', $no-query-string)" />
+            <xsl:with-param name="substr" select="'/'" />
+        </xsl:call-template>
+    </xsl:variable>
     <!-- get extension after last period   -->
     <!-- will return empty if no extension -->
     <xsl:variable name="extension">
         <xsl:call-template name="substring-after-last">
-            <xsl:with-param name="input" select="$no-query-string" />
+            <xsl:with-param name="input" select="$final-segment" />
             <xsl:with-param name="substr" select="'.'" />
         </xsl:call-template>
     </xsl:variable>
@@ -1093,7 +1178,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:when test="$characters = ''">
             <xsl:message>PTX:FATAL:   Unable to find an unused character in:&#xa;<xsl:value-of select="$string" />&#xa;using characters from: <xsl:value-of select="$charset" /></xsl:message>
             <xsl:apply-templates select="." mode="location-report" />
-            <xsl:message terminate="yes">             That's fatal.  Sorry.  Quitting...</xsl:message>
+            <xsl:message terminate="yes">PTX:FATAL:   Quitting...</xsl:message>
         </xsl:when>
         <xsl:otherwise>
             <xsl:value-of select="substring($characters, 1, 1)"/>
@@ -1212,6 +1297,36 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
             </xsl:call-template>
         </xsl:otherwise>
     </xsl:choose>
+</xsl:template>
+
+<!-- Escape arbitrary text for a single-quoted CSS string:          -->
+<!-- backslash and apostrophe by a backslash, and a less-than by    -->
+<!-- its code point (with delimiting space).  The last means the    -->
+<!-- text can never terminate an enclosing HTML "style" element     -->
+<!-- prematurely, since an HTML parser ends such an element at a    -->
+<!-- literal "</style" no matter the surrounding CSS syntax.        -->
+<xsl:template name="css-string-escape">
+    <xsl:param name="text"/>
+    <xsl:if test="not($text = '')">
+        <xsl:variable name="first" select="substring($text, 1, 1)"/>
+        <xsl:choose>
+            <xsl:when test="$first = '\'">
+                <xsl:text>\\</xsl:text>
+            </xsl:when>
+            <xsl:when test='$first = "&apos;"'>
+                <xsl:text>\&apos;</xsl:text>
+            </xsl:when>
+            <xsl:when test="$first = '&lt;'">
+                <xsl:text>\3c </xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$first"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        <xsl:call-template name="css-string-escape">
+            <xsl:with-param name="text" select="substring($text, 2)"/>
+        </xsl:call-template>
+    </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>

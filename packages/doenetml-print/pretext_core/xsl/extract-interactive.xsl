@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 
 <!--********************************************************************
-Copyright 2014-2016 Robert A. Beezer
+Copyright (C) 2014-2026  Robert A. Beezer
 
 This file is part of PreTeXt.
 
@@ -50,8 +50,16 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- available for extraction.                                           -->
 <xsl:variable name="exercise-style" select="'dynamic'"/>
 
+<!-- A second Catch-22, of the same shape.  A publisher may hold GeoGebra   -->
+<!-- applets behind a play button, but then this pass would photograph the  -->
+<!-- button rather than the applet, and the resulting image is what stands  -->
+<!-- in for the applet in static output.  Worse, that image is exactly what -->
+<!-- would be wanted to fill the empty preview a play button leaves for an  -->
+<!-- applet GeoGebra does not host.  So the election is overridden here.    -->
+<xsl:variable name="b-geogebra-play-button" select="false()"/>
+
 <!-- @preview indicates custom image is present    -->
-<!-- Stylesheet output is text, with "visible-id"  -->
+<!-- Stylesheet output is text, with "unique-id"   -->
 <!-- of each interactive, one per line, to be      -->
 <!-- captured in a text file to guide snapshotting -->
 <!-- Make the iframe and standalone page for each  -->
@@ -60,7 +68,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- in pretext-html.xsl.  Results are HTML files  -->
 <!-- (despite this stylesheet having text output). -->
 <xsl:template match="interactive[not(@preview)]" mode="extraction">
-    <xsl:apply-templates select="." mode="visible-id" />
+    <xsl:apply-templates select="." mode="unique-id" />
     <xsl:text>&#xa;</xsl:text>
     <!-- (2) Identical content, but now isolated on a reader-friendly page -->
     <!-- The standalone page has its own masthead h1, so headings inside   -->

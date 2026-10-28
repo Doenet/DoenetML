@@ -2,20 +2,20 @@
 <!-- Copyright 2016                                                        -->
 <!-- Robert A. Beezer                                                      -->
 <!--                                                                       -->
-<!-- This file is part of MathBook XML.                                    -->
+<!-- This file is part of PreTeXt.                                    -->
 <!--                                                                       -->
-<!-- MathBook XML is free software: you can redistribute it and/or modify  -->
+<!-- PreTeXt is free software: you can redistribute it and/or modify  -->
 <!-- it under the terms of the GNU General Public License as published by  -->
 <!-- the Free Software Foundation, either version 2 or version 3 of the    -->
 <!-- License (at your option).                                             -->
 <!--                                                                       -->
-<!-- MathBook XML is distributed in the hope that it will be useful,       -->
+<!-- PreTeXt is distributed in the hope that it will be useful,       -->
 <!-- but WITHOUT ANY WARRANTY; without even the implied warranty of        -->
 <!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         -->
 <!-- GNU General Public License for more details.                          -->
 <!--                                                                       -->
 <!-- You should have received a copy of the GNU General Public License     -->
-<!-- along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>. -->
+<!-- along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>. -->
 <!-- ********************************************************************* -->
 
 <!-- XSLT Cookbook, 2nd Edition                                     -->
@@ -37,12 +37,29 @@
 
 <!ENTITY SPECIALIZED-DIVISION "exercises|worksheet|handout|reading-questions|references|glossary|solutions">
 
+<!-- A "printout" is a specialized division whose content is laid out  -->
+<!-- for printing, with workspace for a reader to write.  A collection -->
+<!-- of nothing but printouts is a "workbook".                         -->
+<!ENTITY PRINTOUT "worksheet|handout">
+
+<!-- "Division companions" are the non-structural companions of a      -->
+<!-- structured traditional division: they may earn their own page    -->
+<!-- (and links) when their parent is realized as a summary page in   -->
+<!-- a chunked conversion (HTML and derivatives).  The schema only    -->
+<!-- allows these four elements, division-flavored, in the parents    -->
+<!-- listed.  The filter form presumes context has qualified parents. -->
+<!ENTITY DIVISION-COMPANION "introduction[parent::article or parent::chapter or parent::appendix or parent::section or parent::subsection]|conclusion[parent::article or parent::chapter or parent::appendix or parent::section or parent::subsection]|objectives[parent::article or parent::chapter or parent::appendix or parent::section or parent::subsection]|outcomes[parent::article or parent::chapter or parent::appendix or parent::section or parent::subsection]">
+
 <!-- for filtering nodes, eg *[&STRUCTURAL-FILTER;], *[not(&STRUCTURAL-FILTER;)] -->
 <!ENTITY STRUCTURAL-FILTER "self::book or self::article or self::slideshow or self::letter or self::memo or self::frontmatter or self::part or self::chapter or self::appendix or self::index or self::preface or self::acknowledgement or self::biography or self::foreword or self::dedication or self::colophon or self::section or self::subsection or self::subsubsection or self::slide or self::exercises or self::worksheet or self::handout or self::reading-questions or self::solutions or self::references or self::glossary or self::backmatter">
 
 <!ENTITY TRADITIONAL-DIVISION-FILTER "self::book or self::article or self::part or self::chapter or self::section or self::subsection or self::subsubsection or self::appendix">
 
 <!ENTITY SPECIALIZED-DIVISION-FILTER "self::exercises or self::worksheet or self::handout or self::reading-questions or self::references or self::glossary or self::solutions">
+
+<!ENTITY PRINTOUT-FILTER "self::worksheet or self::handout">
+
+<!ENTITY DIVISION-COMPANION-FILTER "self::introduction or self::conclusion or self::objectives or self::outcomes">
 
 <!-- NB: (2019-06-12)  Only the two metadata "filters" seem to          -->
 <!-- be in use, so only those are being maintained.  grep'ing on        -->
@@ -132,16 +149,59 @@
 <!ENTITY FIGURE-LIKE "figure|table|listing|list">
 <!ENTITY FIGURE-FILTER "self::figure or self::table or self::listing or self::list">
 
+<!-- Composite filters for the numbering "serial-stamp" pass.  The      -->
+<!-- "fundamental" blocks always share the overall blocks counter; a    -->
+<!-- "top" figure-like is a captioned display that earns a number (a    -->
+<!-- panel inside a captioned side-by-side earns a letter instead).     -->
+<!ENTITY FUNDAMENTAL-BLOCK-FILTER "(&DEFINITION-FILTER;) or (&THEOREM-FILTER;) or (&AXIOM-FILTER;) or (&REMARK-FILTER;) or (&COMPUTATION-FILTER;) or (&EXAMPLE-FILTER;)">
+<!ENTITY TOP-FIGURE-FILTER "(&FIGURE-FILTER;) and not(parent::sidebyside/parent::figure or parent::sidebyside/parent::sbsgroup/parent::figure or self::figure[parent::stack/parent::figure])">
+
+<!-- Panels of a "sidebyside", and content of a "stack" panel.  The   -->
+<!-- lists mirror the schema, plus grandfathered items the code still -->
+<!-- tolerates: "audio", "video", "interactive" (precluded            -->
+<!-- 2026-07-22, may someday be removed).  An "exercise" panel        -->
+<!-- (worksheet or handout only) and a "slate" panel (within an       -->
+<!-- "interactive" only) are policed by the validation-plus           -->
+<!-- stylesheet.                                                      -->
+<!ENTITY SBSPANEL "p|pre|ol|ul|dl|program|console|poem|audio|video|interactive|slate|exercise|image|figure|table|listing|list|tabular|stack">
+<!ENTITY STACKABLE "tabular|image|p|pre|ol|ul|dl|audio|video|interactive|slate|program|console">
+
+<!-- A panel of a "sidebyside" is a child of the "sidebyside", or a     -->
+<!-- child of a "stack" in the "sidebyside".  The layout of the         -->
+<!-- "sidebyside" sizes its panels (and the content of a "figure"       -->
+<!-- panel).  An object nested more deeply, such as an "image" in an    -->
+<!-- "exercise" panel or in a list item, is sized by its own attributes -->
+<!-- relative to the available width where it sits.                     -->
+<!ENTITY SBS-PANEL-FILTER "parent::sidebyside or parent::stack/parent::sidebyside">
+
+<!-- An object sized by the layout of the "sidebyside": a panel, or the -->
+<!-- content of a "figure" panel.  Anything nested more deeply is sized -->
+<!-- by its own attributes.                                             -->
+<!ENTITY SBS-LAYOUT-FILTER "(&SBS-PANEL-FILTER;) or parent::figure[&SBS-PANEL-FILTER;]">
+
 <!-- appendages of examples, exercises, tasks -->
 <!ENTITY SOLUTION-LIKE "hint|answer|solution">
 <!ENTITY SOLUTION-FILTER "self::hint or self::answer or self::solution">
 
-<!-- appendages of OPENPROBLEM-LIKE -->
-<!ENTITY DISCUSSION-LIKE "context|discussion|opinion|status|suggestion">
-<!ENTITY DISCUSSION-FILTER "self::context or self::discussion or self::opinion or self::status or self::suggestion">
+<!-- appendages of OPENPROBLEM-LIKE                                    -->
+<!-- A "status" is also a field of a bibliographic entry, so this one  -->
+<!-- is recognized by its parent: an OPENPROBLEM-LIKE, or one's "task" -->
+<!ENTITY DISCUSSION-LIKE "context|discussion|opinion|status[parent::*[&OPENPROBLEM-FILTER;] or parent::task]|suggestion">
+<!ENTITY DISCUSSION-FILTER "self::context or self::discussion or self::opinion or (self::status and (parent::*[&OPENPROBLEM-FILTER;] or parent::task)) or self::suggestion">
+
+<!-- Elements the schema gives text-only content: no PreTeXt markup is   -->
+<!-- permitted inside them, whether because they are verbatim (code, a   -->
+<!-- graphics language, a LaTeX fragment) or because the element is a    -->
+<!-- plain string (a "shortdescription", a bibliography field).  Advice  -->
+<!-- to replace a stray character with an element cannot be followed in  -->
+<!-- these, so the validation-plus stylesheet withholds it there.        -->
+<!-- Every name below is text-only in EVERY declaration in the schema.   -->
+<!-- Deliberately absent: "author", "editor", "page" and "year", each of -->
+<!-- which is text in one context and markup in another.                 -->
+<!ENTITY TEXT-ONLY-FILTER "self::DOI or self::ISBN or self::ISSN or self::URL or self::asymptote or self::asymptote-preamble or self::attr or self::blurb or self::c or self::cd or self::cline or self::code or self::document-id or self::dropping-particle or self::edition or self::email or self::family or self::genre or self::genus or self::given or self::holder or self::initialism or self::input or self::issue or self::kbd or self::latex-image or self::latex-image-preamble or self::literal or self::macro-file or self::macros or self::mag or self::mermaid or self::non-dropping-particle or self::number or self::number-of-pages or self::output or self::page-first or self::pages or self::pf or self::pg-code or self::plaintitle or self::postamble or self::pre or self::preamble or self::publisher or self::rename or self::sageplot or self::series or self::shortdescription or self::species or self::static-ordering or self::stdin or self::suffix or self::tag or self::tage or self::volume">
 
 <!-- When context is an inline "exercise", then this condition is      -->
 <!-- true. We are positive, so as new locations of "exercise"          -->
 <!-- are added, then this need not change                              -->
 <!-- Typical use: self::exercise and boolean(&INLINE-EXERCISE-FILTER;) -->
-<!ENTITY INLINE-EXERCISE-FILTER "parent::article|parent::paragraphs|parent::chapter|parent::section|parent::subsection|parent::subsubsection|parent::handout">
+<!ENTITY INLINE-EXERCISE-FILTER "parent::article|parent::paragraphs|parent::chapter|parent::appendix|parent::section|parent::subsection|parent::subsubsection|parent::handout">
