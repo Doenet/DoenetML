@@ -1,0 +1,15 @@
+<graph name="g1">
+  <stickyGroup name="sg">
+    <polygon name="pg1" vertices="(1,2) (4,5) (-2,5)" rigid filled />
+    <polygon name="pg2" vertices="(7,8) (5,4) (9,1) (7,3)" filled />
+    <point name="A">(-6,2)</point>
+  </stickyGroup>
+</graph>
+<graph name="g2">
+  <stickyGroup name="sg">
+    <polygon name="pg1" extend="$g1.sg.pg1" />
+    <polygon name="pg2" extend="$g1.sg.pg2" />
+    <point name="A" extend="$g1.sg.A" />
+  </stickyGroup>
+</graph>
+<graph name="g3"><stickyGroup name="sg" extend="$g2.sg" /></graph>

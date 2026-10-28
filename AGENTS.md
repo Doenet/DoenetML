@@ -13,6 +13,7 @@ The **parser** (`packages/parser`) converts DoenetML XML into a **DAST** (Docume
 The **worker** (`packages/doenetml-worker`) runs in a Web Worker and manages document state and computation. It combines:
 - **JavaScript logic** (`packages/doenetml-worker-javascript`) for component evaluation, dependency tracking, and state updates
 - **Rust/WASM logic** (`packages/doenetml-worker-rust/lib-js-wasm-binding`). Reference-resolution paths run in Rust today; the rest of the worker is slowly being transitioned over.
+- **Cells core** (`packages/cells-core`, with its viewer in `packages/cells-viewer`): a candidate replacement core organized around a flat array of cells, Rust compiled to wasm. Its own `ARCHITECTURE.md`, `CONTEXT.md` and `docs/adr/` describe it; `CELLS_CORE_PARITY.md` in the JavaScript worker is how far it is from this core.
 
 Communication between main thread and worker uses structured messages. The worker is responsible for evaluating components, tracking dependencies (DAG), and managing variants.
 
@@ -74,7 +75,7 @@ Builds prerequisites and serves docs (Nextra-based) at `http://localhost:3000`.
 
 **After editing a package's `src/`, build that package before running tests in any other package:** `npm run build -w @doenet/<edited-package>`.
 
-Every `@doenet/*` package's `exports` point at `dist/`, and no vitest config aliases them back to `src/`. So a test in package B that imports `@doenet/A` gets A's last build. Almost no `test` script rebuilds anything — most are a bare `vitest` — so neither `npm run test -w B` nor `npx vitest` rebuilds A, and an edit-then-test loop across a package boundary reads stale code. Five `test` scripts run a Wireit build first: `doenetml-prototype` and `doenetml-to-pretext` rebuild `parser` and `doenetml-worker`, `doenetml-worker-rust` rebuilds `parser`, `doenetml-worker-javascript` rebuilds its own dependencies plus the Rust WASM (see below), and `math` rebuilds only itself.
+Every `@doenet/*` package's `exports` point at `dist/`, and no vitest config aliases them back to `src/`. So a test in package B that imports `@doenet/A` gets A's last build. Almost no `test` script rebuilds anything — most are a bare `vitest` — so neither `npm run test -w B` nor `npx vitest` rebuilds A, and an edit-then-test loop across a package boundary reads stale code. Six `test` scripts run a Wireit build first: `cells-viewer` rebuilds `parser` and the cells core's WASM, `doenetml-prototype` and `doenetml-to-pretext` rebuild `parser` and `doenetml-worker`, `doenetml-worker-rust` rebuilds `parser`, `doenetml-worker-javascript` rebuilds its own dependencies plus the Rust WASM (see below), and `math` rebuilds only itself.
 
 A *relative* path is the exception, because it bypasses `exports` and resolves to whatever it points at. Where that is a sibling's `src/`, an edit is picked up with no rebuild: `packages/static-assets/scripts/get-schema.ts` and `check-docs-coverage.ts` read `doenetml-worker-javascript/src`, which is why the schema is generated from component source, and `doenetml-worker-javascript/src/test/utils/test-core.ts` — the harness under every worker test — reads `doenetml/src/flags`. It is not only tests and scripts; `packages/standalone/src/coordinator.ts` imports `doenetml-iframe/src` the same way. Where a relative path points at a `dist/` instead, the build is still needed: `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reads `parser/dist`.
 
@@ -108,8 +109,10 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 
 - **Vitest** for unit tests, component logic, and utility functions (files: `*.test.ts`, `*.test.tsx`)
 - **Cypress** for e2e tests, user interactions, and full rendering (files: `cypress/e2e/*.cy.js`)
+- **Cargo** for the cells core in `packages/cells-core` (`npm test -w @doenet/cells-core` builds the parser first, since the tests shell out to it; `npm run lint` there is the fmt and clippy gate CI runs)
 - **Cargo** for the Rust core in `packages/doenetml-worker-rust` — reference resolution, the flattener, the resolver and the name maps (files: `lib-doenetml-core/src/**/*.test.rs`, `lib-doenetml-core/tests/`)
 - **Rust-core parity**: `npm run parity -w @doenet/rust-parity` runs the worker's Vitest suite on the Rust core (`DOENET_TEST_CORE=rust`) and writes a dashboard of what the Rust core is missing to `packages/rust-parity/out/`. See that package's README.
+- **Cells-core parity**: `npm run parity:cells -w @doenet/doenetml-worker-javascript` runs the same suite on the cells core (`DOENET_TEST_CORE=cells`, after `npm run build:rust -w @doenet/cells-core`) and writes the gap list to `packages/doenetml-worker-javascript/CELLS_CORE_PARITY.md`. One file: `npm run test:cells-core -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/answer.test.ts`.
 - **Performance harness** (`packages/doenetml-worker-javascript/src/test/perf/`): a component census of twelve one-construct documents, snapshotted in the ordinary test groups, and an opt-in bench (`PERFBENCH_RESULT=<path>`) over the slow-document fixtures, with drag timing on a 50-point dot plot, that CI writes to the `Perf Bench` job summary. A change to what a reference, attribute or repeat creates shows up as a snapshot change: update it deliberately and paste the before/after bench rows in the PR. See the README there.
 - Tests are grouped; run by group number to parallelize CI
 

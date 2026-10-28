@@ -1,0 +1,16 @@
+<mathInput name="r" prefill="3"/>
+<graph><point name="p">(-3,5)</point><circle name="c" center="$p" radius="$r"/>
+<circle name="e"/>
+<point name="a">(1,2)</point><point name="b">(4,7)</point><point name="d">(0,6)</point>
+<circle name="t" through="$a $b $d"/>
+<circle name="u" center="$a" through="$b"/>
+<point name="on" x="5" y="5" constrainTo="$u"/>
+<circle name="rv" radius="2"/>
+<circle name="rc" center="(1,1)" radius="-3"/>
+<circle name="t1" through="$a"/>
+<circle name="t1r" through="$a" radius="$r"/>
+<circle name="t2" through="$a $b"/>
+<circle name="t2r" through="$a $b" radius="4"/>
+<circle name="over" center="$p" radius="1" through="$a"/>
+</graph>
+<point name="cc" extend="$c.center"/>

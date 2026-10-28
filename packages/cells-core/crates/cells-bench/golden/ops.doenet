@@ -1,0 +1,6 @@
+<numberInput name="n" value="1"/><number name="a">$n + 1</number><number name="b">2 * $a</number><number name="c">-$b</number><number name="d">clamp($c, -9, 9)</number><number name="e">round($d)</number><number name="f">$e + $n</number><number name="g">$f / $b</number><number name="h">max($g, $n)</number><number name="i">$h + $a</number>
+<numberInput name="numValues" value="5"/><numberInput name="stored" value="2"/>
+<number name="zeroBased">$stored - 1</number><number name="quotient">$zeroBased / $numValues</number><number name="laps">floor($quotient)</number><number name="multiple">$laps * $numValues</number><number name="index">$stored - $multiple</number>
+<number name="upper">min($stored, $numValues)</number><number name="w">$numValues - $n</number>
+<numberInput name="fixAxes" value="0"/><number name="xMin" fixed="$fixAxes">$n</number>
+<graph><point name="p" x="$i" y="$e"/><point name="q" x="$index" y="$xMin"/></graph>

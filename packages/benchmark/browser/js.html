@@ -1,0 +1,122 @@
+<!doctype html>
+<!-- The JS core's page for the browser harness: the standalone bundle, one
+     viewer, and the `window.__bench` protocol the spec drives (see
+     perf.spec.ts). -->
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="/standalone/style.css" />
+<script>
+    window.doenetGlobalConfig = { doenetWorkerUrl: "/standalone/doenetml-worker/index.js" };
+</script>
+<script type="module" src="/standalone/doenet-standalone.js"></script>
+</head>
+<body>
+<div id="viewer"></div>
+<script>
+(() => {
+    function nextPaint() {
+        return new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 0)));
+    }
+    function nextFrame() {
+        return new Promise((ok) => requestAnimationFrame(() => ok(performance.now())));
+    }
+    function board() {
+        const boards = Object.values(window.JXG?.boards ?? {});
+        return boards[0] ?? null;
+    }
+    window.__bench = {
+        ready: false,
+        core: "javascript",
+        /**
+         * Render `text`; resolves at the first frame after the core is
+         * initialized and `waitFor` is on the page: `{board: true}` a
+         * JSXGraph board with its elements, or `{id}` a rendered element
+         * (renderer classes load asynchronously after the core exists).
+         */
+        async load(text, waitFor = {}) {
+            while (!window.renderDoenetViewerToContainer || window.renderDoenetViewerToContainer.__doenetPendingRenderStub) {
+                await new Promise((ok) => setTimeout(ok, 20));
+            }
+            const t0 = performance.now();
+            await new Promise((ok, fail) => {
+                window.renderDoenetViewerToContainer(document.getElementById("viewer"), text, {
+                    addVirtualKeyboard: false,
+                    flags: { allowSaveState: false, allowLocalState: false },
+                    initializedCallback: ok,
+                    coreStartFailedCallback: (e) => fail(new Error("core start failed: " + JSON.stringify(e))),
+                });
+            });
+            // A target drawn in a graph (`inGraph`) is a JSXGraph element
+            // with an id of JSXGraph's own, so its board stands for it.
+            const present = () =>
+                waitFor.board || waitFor.inGraph
+                    ? (board()?.objectsList?.length ?? 0) > 0
+                    : waitFor.id
+                      ? document.getElementById(waitFor.id) !== null
+                      : document.querySelector("#viewer .doenet-viewer [id]") !== null;
+            while (!present()) await nextPaint();
+            await nextPaint();
+            this.ready = true;
+            return performance.now() - t0;
+        },
+        /**
+         * Client coordinates of a named point on the (first) JSXGraph board.
+         * A point has no DOM element and its JSXGraph name is its label, so
+         * the core gives its coordinates and the nearest visible JSXGraph
+         * point at them is kept for `position`. A synthetic shape says where
+         * its point starts (`start`), and then the core is not asked: the
+         * JS core can only give every state variable at once, which takes
+         * over a minute at 10,000 and overflows the stack on `inversion`.
+         */
+        async locate(name, start) {
+            const b = board();
+            if (!b) return null;
+            let xs = start;
+            if (!xs) {
+                const idx = await window.resolvePath1(name);
+                if (idx === -1 || idx == null) return null;
+                const sv = await window.returnAllStateVariables1();
+                xs = sv[idx]?.stateValues?.numericalXs ?? sv[idx]?.stateValues?.xs;
+            }
+            if (!xs) return null;
+            const c = new window.JXG.Coords(window.JXG.COORDS_BY_USER, [Number(xs[0]), Number(xs[1])], b).scrCoords;
+            let best = null, bestD = Infinity;
+            for (const o of b.objectsList) {
+                if (o.elType !== "point" || o.visProp.fillopacity === 0 || !o.visProp.visible) continue;
+                const d = Math.hypot(o.coords.scrCoords[1] - c[1], o.coords.scrCoords[2] - c[2]);
+                if (d < bestD) { best = o; bestD = d; }
+            }
+            this._pt = { board: b, el: best };
+            return this.position();
+        },
+        /** Screen position of the located point right now, synchronously, for the frame poller. */
+        position() {
+            const p = this._pt;
+            if (!p?.el) return null;
+            p.board.containerObj.scrollIntoView({ block: "center" });
+            const r = p.board.containerObj.getBoundingClientRect();
+            return [r.left + p.el.coords.scrCoords[1], r.top + p.el.coords.scrCoords[2]];
+        },
+        /** Perform a manifest step through the core and resolve when its state has reached the renderers. */
+        async act(step) {
+            const componentIdx = await window.resolvePath1(step.target);
+            if (componentIdx === -1 || componentIdx == null) throw new Error(`target ${step.target} did not resolve`);
+            const call = (actionName, args) => window.callAction1({ actionName, componentIdx, args });
+            switch (step.action) {
+                case "movePoint": return call("movePoint", { x: step.x, y: step.y });
+                case "updateValue":
+                    await call("updateRawValue", { rawRendererValue: step.value });
+                    return call("updateValue", {});
+                case "submitAnswer": return call("submitAnswer", {});
+                case "triggerActions": return call("triggerActions", {});
+                default: throw new Error(`unknown action ${step.action}`);
+            }
+        },
+        nextFrame,
+        nextPaint,
+    };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<mathInput name="m1"/><answer name="a1" response="$m1">1</answer>
+<mathInput name="m2"/><answer name="a2" response="$m2" weight="0">a</answer>
+<section name="sec1" aggregateScores>
+  <mathInput name="m3"/><answer name="a3" response="$m3">2</answer>
+  <subsection name="sub"><mathInput name="m4"/><answer name="a4" response="$m4">y</answer></subsection>
+</section>
+<problem name="pr"><mathInput name="m5"/><answer name="a5" response="$m5">x</answer></problem>
+<exercise name="ex"/><example name="eg"/>
+<booleanInput name="h" value="true"/>
+<conditionalContent name="cc" hide="$h"><case condition="true"><mathInput name="m6"/><answer name="a6" response="$m6">2</answer></case></conditionalContent>
+<section name="s2"><subsubsection name="s21"/></section>

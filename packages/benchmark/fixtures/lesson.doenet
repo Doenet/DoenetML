@@ -1,0 +1,86 @@
+<title>Linear approximation</title>
+
+<section name="idea"><title>The idea</title>
+<p>Near a point where a function is differentiable, the function looks like its
+tangent line. Zoom in far enough on the graph of <m>f(x) = \sqrt{x}</m> at
+<m>x = 4</m> and the curve and the line <m>y = 2 + \frac{1}{4}(x - 4)</m> become
+indistinguishable. This observation is the basis of <em>linear approximation</em>:
+replacing a function, over a short interval, by a line that is easy to evaluate.</p>
+
+<p>Formally, if <m>f</m> is differentiable at <m>a</m>, the <term>linearization</term> of
+<m>f</m> at <m>a</m> is the function</p>
+<me>L(x) = f(a) + f'(a)(x - a).</me>
+<p>Its graph is the tangent line to <m>f</m> at <m>a</m>. The approximation
+<m>f(x) \approx L(x)</m> is good when <m>x</m> is close to <m>a</m>, and the error
+grows roughly like <m>(x - a)^2</m>, as we will see in the next section.</p>
+</section>
+
+<section name="example"><title>A worked example</title>
+<p>Estimate <m>\sqrt{4.1}</m> without a calculator. Take <m>f(x) = \sqrt{x}</m> and
+<m>a = 4</m>, where the value and derivative are easy:</p>
+<md>
+  <mrow>f(4) \amp = 2,</mrow>
+  <mrow>f'(x) \amp = \frac{1}{2\sqrt{x}}, \quad f'(4) = \frac{1}{4}.</mrow>
+</md>
+<p>So <m>L(x) = 2 + \frac{1}{4}(x - 4)</m> and <m>\sqrt{4.1} \approx L(4.1) = 2.025</m>.
+The true value is <m>2.02485\ldots</m>; the approximation is off by about
+<m>1.5 \times 10^{-4}</m>, which is roughly <m>\frac{1}{8}(0.1)^2</m>, in line with the
+error estimate.</p>
+
+<p>Try it yourself. Drag the point <m>P</m> along the curve to move the point of
+tangency, and move the point <m>x</m> on the axis to choose where to approximate.</p>
+
+<graph name="g" xmin="-0.5" xmax="9" ymin="-0.5" ymax="3.5" size="medium">
+  <function name="f">sqrt(x)</function>
+  <point name="P" x="4" y="2" styleNumber="2"><constrainTo>$f</constrainTo></point>
+  <point name="X" x="4.1" y="0"><constrainTo><line>y=0</line></constrainTo></point>
+  <setup>
+    <derivative name="fp">$f</derivative>
+    <math name="slope">$$fp($P.x)</math>
+    <math name="Lx" simplify>$P.y + $slope ($X.x - $P.x)</math>
+  </setup>
+  <line name="tangent" through="$P" slope="$slope" styleNumber="3" />
+  <point name="approx" x="$X.x" y="$Lx" styleNumber="3" fixed />
+  <point name="exact" x="$X.x" y="$$f($X.x)" styleNumber="2" fixed />
+</graph>
+
+<p>At <m>a = <number displayDecimals="2">$P.x</number></m>, the linearization gives
+<m>L(<number displayDecimals="2">$X.x</number>) = <number displayDecimals="4">$Lx</number></m>,
+while the true value is
+<m>f(<number displayDecimals="2">$X.x</number>) = <number displayDecimals="4">$$f($X.x)</number></m>.
+The error is <m><number displayDecimals="5">abs($Lx - $$f($X.x))</number></m>.</p>
+</section>
+
+<section name="error"><title>How big is the error?</title>
+<p>Write <m>E(x) = f(x) - L(x)</m> for the error. Both <m>E</m> and <m>E'</m> vanish at
+<m>a</m>, because <m>L</m> matches the value and the slope of <m>f</m> there. Applying
+the mean value theorem twice shows that</p>
+<me>E(x) = \frac{f''(c)}{2}(x - a)^2</me>
+<p>for some <m>c</m> between <m>a</m> and <m>x</m>. If <m>|f''|</m> is bounded by <m>M</m>
+on the interval, then <m>|E(x)| \le \frac{M}{2}(x - a)^2</m>. For the square root,
+<m>f''(x) = -\frac{1}{4}x^{-3/2}</m>, so on <m>[4, 4.1]</m> we may take
+<m>M = \frac{1}{32}</m> and the error is at most <m>\frac{1}{64}(0.1)^2 \approx 1.6 \times 10^{-4}</m>,
+which is what we observed.</p>
+
+<p>Two consequences follow. First, halving the distance from <m>a</m> quarters the
+error, so the approximation improves quickly as <m>x \to a</m>. Second, the sign of
+<m>f''</m> tells us the direction of the error: where <m>f</m> is concave down, as the
+square root is, the tangent line lies above the curve and the approximation
+overestimates.</p>
+</section>
+
+<section name="check"><title>Check your understanding</title>
+<p>Use the linearization of <m>f(x) = x^3</m> at <m>a = 2</m> to estimate <m>2.05^3</m>.</p>
+<p><answer name="ans1"><mathInput name="mi1" /><award>8.6</award></answer></p>
+<p>Is this estimate too large or too small?</p>
+<p><answer name="ans2">
+  <choiceInput name="ci" inline>
+    <choice credit="1">too small</choice>
+    <choice>too large</choice>
+    <choice>exact</choice>
+  </choiceInput>
+</answer></p>
+<feedback condition="$ans2.creditAchieved = 1">
+  <p>Right: <m>x^3</m> is concave up for <m>x > 0</m>, so the tangent line lies below the curve.</p>
+</feedback>
+</section>

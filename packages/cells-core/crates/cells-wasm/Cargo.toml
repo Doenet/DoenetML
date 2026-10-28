@@ -1,0 +1,29 @@
+[package]
+name = "cells-wasm"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "wasm-bindgen binding exposing the cells core to a browser renderer"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+web-time = "1"
+cells-core = { path = "../cells-core" }
+wasm-bindgen = "0.2"
+serde_json.workspace = true
+console_error_panic_hook = "0.1"
+
+# wasm-pack runs wasm-opt `-O` on the release build, its default, which
+# shrinks the wasm by a fifth after link-time optimization (2.44 MB to
+# 1.92 MB). It uses the first `wasm-opt` on its PATH, else the binaryen it
+# downloads once (117 for wasm-pack 0.15).
+#
+# A binaryen older than 110 must not be on the PATH: it points the
+# `__wbindgen_externrefs` export at the function table instead of the
+# externref table, so the load fails with "WebAssembly.Table.grow():
+# failed to grow table by 4" and then "unreachable". Debian 12 and Ubuntu
+# 22.04 ship such versions (108 and 105), which is how it was once taken
+# for a corruption of the function table by wasm-opt itself. Every version
+# from 110 to 132 was checked on this output in October 2026.

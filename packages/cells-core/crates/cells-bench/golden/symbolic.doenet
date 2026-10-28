@@ -1,0 +1,7 @@
+<numberInput name="n" value="2"/><math name="m" simplify>$n x + 2x</math>
+<math name="ex" expand>(x + $n)^2</math>
+<mathInput name="mi" prefill="x+1"/><numberInput name="t" value="2"/>
+<evaluate name="e" function="$mi" input="$t"/><math name="s" simplify>$e x + $mi</math>
+<graph xmin="-5" xmax="5"><function name="f">$n x^2 + 1</function><derivative name="df">$f</derivative>
+<point name="p" x="$t" y="$e"/></graph>
+<evaluate name="ef" function="$f" input="$t"/>

@@ -1,0 +1,21 @@
+[workspace]
+resolver = "3"
+members = ["crates/cells-core", "crates/cells-docgen", "crates/cells-bench", "crates/cells-wasm"]
+
+[workspace.package]
+edition = "2024"
+license = "AGPL-3.0-or-later"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[profile.release]
+debug = 1
+# The wasm is what a page downloads, validates and compiles on its first
+# load, so its size is load time: optimizing across the crates at link time
+# in one codegen unit shrinks it, and wasm-opt shrinks it further
+# (crates/cells-wasm/Cargo.toml).
+lto = "fat"
+codegen-units = 1

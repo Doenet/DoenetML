@@ -1,0 +1,23 @@
+{
+    "name": "lesson",
+    "tier": "real",
+    "mechanism": "prose: sections and paragraphs of text and math with a few inline interactives, what PreTeXt embeds",
+    "source": {
+        "file": "lesson.doenet"
+    },
+    "steps": [
+        {
+            "action": "movePoint",
+            "target": "P",
+            "x": 1,
+            "y": 1
+        },
+        {
+            "action": "movePoint",
+            "target": "P",
+            "x": 2,
+            "y": 4
+        }
+    ],
+    "notes": "Written for the suite. Stands in for the PreTeXt sample article, which is PreTeXt XML, not DoenetML."
+}

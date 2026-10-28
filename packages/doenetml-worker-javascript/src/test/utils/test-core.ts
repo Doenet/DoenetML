@@ -28,6 +28,7 @@ import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
 
 import util from "util";
 import { createTestCoreRust } from "./test-core-rust";
+import { createTestCoreCells } from "./test-core-cells";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -75,6 +76,21 @@ export async function createTestCore({
 }: CreateTestCoreOptions): Promise<
     Awaited<ReturnType<typeof createTestCoreJavascript>>
 > {
+    if (process.env.DOENET_TEST_CORE === "cells") {
+        // Measures the cells core's parity; see `test-core-cells.ts`.
+        return (await createTestCoreCells({
+            doenetML,
+            requestedVariantIndex,
+            flags: specifiedFlags,
+            theme,
+            documentLocale,
+            localeResources,
+            styleOverrides,
+            initializeCounters,
+            externalDoenetMLs,
+            initialState,
+        })) as unknown as Awaited<ReturnType<typeof createTestCoreJavascript>>;
+    }
     if (process.env.DOENET_TEST_CORE === "rust") {
         // Measures Rust-core parity; see `test-core-rust.ts`. The Rust stand-in
         // returns only the part of this interface that most tests use.

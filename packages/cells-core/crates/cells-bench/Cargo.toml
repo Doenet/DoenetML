@@ -1,0 +1,10 @@
+[package]
+name = "cells-bench"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Fixture helpers, the golden oracle and stats for the cells core; timings live in packages/benchmark"
+
+[dependencies]
+cells-core = { path = "../cells-core", features = ["testing"] }
+serde_json.workspace = true

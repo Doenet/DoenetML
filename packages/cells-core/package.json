@@ -1,0 +1,80 @@
+{
+    "name": "@doenet/cells-core",
+    "version": "0.1.0",
+    "private": true,
+    "description": "A DoenetML core organized around a flat list of f64 cells: Rust, compiled to wasm.",
+    "license": "AGPL-3.0-or-later",
+    "type": "module",
+    "exports": {
+        "./pkg/*": "./pkg/*",
+        "./cdast-encode": {
+            "types": "./scripts/cdast-encode.d.mts",
+            "import": "./scripts/cdast-encode.mjs"
+        }
+    },
+    "scripts": {
+        "build": "npm run build:rust",
+        "build:rust": "wireit",
+        "test": "wireit",
+        "lint": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
+        "fixtures": "wireit",
+        "stats": "cargo run --release -p cells-bench --bin stats",
+        "golden-diff": "wireit",
+        "parse": "node scripts/parse-dast.mjs"
+    },
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "repository": "github:Doenet/DoenetML",
+    "wireit": {
+        "build:rust": {
+            "command": "npx wasm-pack build crates/cells-wasm --target web --release --out-dir ../../pkg --out-name cells_wasm",
+            "files": [
+                "crates/**/*.rs",
+                "crates/**/Cargo.toml",
+                "Cargo.toml",
+                "Cargo.lock"
+            ],
+            "output": [
+                "pkg/**"
+            ]
+        },
+        "test": {
+            "command": "cargo test --workspace",
+            "dependencies": [
+                "../parser:build"
+            ],
+            "files": [
+                "crates/**",
+                "scripts/**",
+                "fixtures/sir.doenet",
+                "Cargo.toml",
+                "Cargo.lock"
+            ],
+            "output": []
+        },
+        "fixtures": {
+            "command": "scripts/gen-fixtures.sh",
+            "dependencies": [
+                "../parser:build"
+            ],
+            "files": [
+                "crates/cells-docgen/**",
+                "scripts/**",
+                "fixtures/sir.doenet"
+            ],
+            "output": [
+                "fixtures/*.json",
+                "fixtures/*.cdast",
+                "fixtures/*.doenet",
+                "!fixtures/sir.doenet"
+            ]
+        },
+        "golden-diff": {
+            "command": "scripts/golden-diff.sh",
+            "dependencies": [
+                "../parser:build"
+            ],
+            "files": [],
+            "output": []
+        }
+    }
+}

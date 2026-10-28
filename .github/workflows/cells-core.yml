@@ -1,0 +1,52 @@
+name: Cells core
+
+# The cells core's Cargo test suite. It is not in ci.yml's Rust lint job
+# because the tests shell out to the DoenetML parser (scripts/parse-dast.mjs),
+# so the job needs Node and a built @doenet/parser as well as a Rust
+# toolchain; `npm test` in the package builds the parser first through wireit.
+
+on:
+    push:
+        branches: ["main"]
+        paths:
+            - "packages/cells-core/**"
+            - "packages/parser/**"
+            - ".github/workflows/cells-core.yml"
+    pull_request:
+        branches: ["*"]
+        paths:
+            - "packages/cells-core/**"
+            - "packages/parser/**"
+            - ".github/workflows/cells-core.yml"
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
+
+jobs:
+    test:
+        name: Cargo test (cells core)
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js 24.x
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Install Rust toolchain
+              run: |
+                  rustup set profile minimal
+                  rustup toolchain install stable
+                  rustup default stable
+            - name: Cache Cargo
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: packages/cells-core
+
+            - name: Build the parser and run the tests
+              run: npm test -w @doenet/cells-core

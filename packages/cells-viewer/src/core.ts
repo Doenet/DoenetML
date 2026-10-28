@@ -1,0 +1,435 @@
+// The renderer-side counterpart of the cell-addressed interface (ADR 0001):
+// a Float64Array view over the core's cells (wasm memory on this thread,
+// zero-copy), per-cell-index subscriptions, and cell-addressed requests.
+import init, { Core } from "@doenet/cells-core/pkg/cells_wasm.js";
+import { ComponentTable, columnsFromCore } from "./components";
+import { measure, measureCoreSpans } from "./trace";
+
+export interface LoadTimings {
+    fetch: number;
+    wasmInit: number;
+    core: {
+        deserialize: number;
+        build: number;
+        schedule: number;
+        initial_compute: number;
+        cycle_check: number;
+        passes: number;
+        structural_depth: number;
+    };
+    coreTotal: number;
+    /** building the component table (views over wasm memory) */
+    componentTable: number;
+    firstRender: number;
+}
+
+export interface TickSample {
+    /** ms inside Core.request (inversion + recompute) */
+    core: number;
+    /** the tick changed a repeat's count and rebuilt the document */
+    rebuilt: boolean;
+    /** ms from request start until the changed cells are available to the renderer */
+    roundTrip: number;
+    /** ms from request start until the tick's synchronous work is done: the
+     * per-cell listeners and the tick-end listeners, where the JSXGraph
+     * boards redraw. `sync - roundTrip` is the boards' share. */
+    sync: number;
+    /** ms from request start until the React commit for that request */
+    commit: number;
+    /** ms from request start until the next animation frame */
+    frame: number;
+    /** ms from request start until a task after that frame's callbacks, which
+     * runs once the browser has painted it: unlike `frame`, this includes the
+     * style, layout and paint cost of the tick's own DOM changes */
+    paint: number;
+    changed: number;
+}
+
+type Listener = () => void;
+
+let wasmMemory: WebAssembly.Memory | null = null;
+let wasmReady: Promise<WebAssembly.Memory> | null = null;
+
+declare global {
+    interface Window {
+        /** The core's wasm, compiled by the built page's head before its
+         * scripts arrived (`vite.config.ts`); absent on the dev server, or
+         * when that compile failed, and the wasm is fetched here instead. */
+        __cellsWasm?: Promise<WebAssembly.Module | undefined>;
+    }
+}
+
+/** What the core's wasm is instantiated from: a compiled module, its
+ * bytes, or nothing, for the glue to fetch it beside itself. */
+type WasmSource = WebAssembly.Module | BufferSource | undefined;
+
+/** Instantiate the core's wasm from what `source` gives, once per page or
+ * process: the step `wasm init`. */
+function startCore(
+    source: () => Promise<WasmSource>,
+): Promise<WebAssembly.Memory> {
+    return (wasmReady ??= (async () => {
+        const t = performance.now();
+        const wasm = await source();
+        const out = await init(wasm ? { module_or_path: wasm } : undefined);
+        wasmMemory = out.memory;
+        measure("wasm init", t, {
+            precompiled: wasm instanceof WebAssembly.Module ? 1 : 0,
+        });
+        return out.memory;
+    })());
+}
+
+/** Fetch (or take from the head's compile), compile and instantiate the
+ * core's wasm, once per page: the step `wasm init`. Called at boot
+ * (`dev/main.tsx`) so it runs alongside the page's render and the
+ * document's fetch and parse; `loadDocument` waits for it. */
+export function preloadCore(): Promise<WebAssembly.Memory> {
+    return startCore(async () => window.__cellsWasm);
+}
+
+/** Instantiate the core's wasm from its bytes (or a compiled module),
+ * where there is no page to fetch it from: in Node, rendering a document
+ * to HTML on a server. Call it before `loadDocument`; a later call, or
+ * `preloadCore`, returns the same instance. */
+export function initCore(wasm: WebAssembly.Module | BufferSource) {
+    return startCore(async () => wasm);
+}
+
+/** One entry of the core's diagnostics list (`diagnostics_json`,
+ * `diagnose_json`): see ADR 0013. */
+export type Diagnostic = {
+    kind: "error" | "warning" | "info" | "accessibility";
+    level?: 1 | 2;
+    code: string;
+    message: string;
+    /** The DAST node the finding is about; absent for the whole document. */
+    node?: number;
+    args?: Record<string, string>;
+};
+
+export class CellStore {
+    /** Check each request against the cells the core marks interactive
+     * (ADR 0017) and throw on any other: on in development and in tests,
+     * off in a production build. The core accepts a request on any cell,
+     * so a renderer that requests a prop its definition does not mark is
+     * an input the saved-state check would not see. */
+    static checkRequests: boolean = import.meta.env?.DEV ?? false;
+    /** Check each cell a renderer reads (`get`, `subscribe`) against the
+     * core's outputs (ADR 0019) and throw on any other: on in development
+     * and in tests, off in a production build. The core computes only
+     * what an output reads, so a renderer that reads a prop its definition
+     * does not mark `rendered`, or a component the core does not count as
+     * rendered, reads a value nothing keeps up to date. */
+    static checkReads: boolean = import.meta.env?.DEV ?? false;
+
+    comps: ComponentTable;
+    /** The wasm core; the benchmark's harness calls it directly
+     * (`packages/benchmark/browser/cells-adapter.js`). */
+    core: Core;
+    _view: Float64Array;
+    /** The interactive cells, read once per build when checked. */
+    _interactive: Set<number> | null = null;
+    /** The output cells, read once per build when checked. */
+    _outputs: Set<number> | null = null;
+    _listeners: (Set<Listener> | undefined)[];
+    _anyListeners = new Set<Listener>();
+    _structureListeners = new Set<Listener>();
+    _tickEndListeners = new Set<Listener>();
+    /** Incremented when a tick rebuilt the document; the renderer re-reads the table. */
+    structureVersion = 0;
+    samples: TickSample[] = [];
+    /** Incremented on every applied tick; lets a component re-render per tick. */
+    version = 0;
+    /** performance.now() of the first React commit after construction. */
+    firstCommitAt: number | null = null;
+    _pendingCommit: { start: number; sample: TickSample } | null = null;
+
+    /** What the load reported about the elements it stamped (ADR 0013);
+     * an `_error` component's DAST node names its entry. */
+    diagnostics: Diagnostic[];
+
+    constructor(
+        core: Core,
+        comps: ComponentTable,
+        diagnostics: Diagnostic[] = [],
+    ) {
+        this.core = core;
+        this.comps = comps;
+        this.diagnostics = diagnostics;
+        this._view = this._makeView();
+        this._listeners = new Array(comps.nCells);
+    }
+
+    _makeView() {
+        return new Float64Array(
+            wasmMemory!.buffer,
+            this.core.cells_ptr(),
+            this.core.cells_len(),
+        );
+    }
+
+    /** The cell array may be reallocated (wasm memory growth, a rebuild),
+     * so the view is checked per read. */
+    cells(): Float64Array {
+        if (
+            this._view.buffer !== wasmMemory!.buffer ||
+            this._view.byteOffset !== this.core.cells_ptr() ||
+            this._view.length !== this.core.cells_len()
+        )
+            this._view = this._makeView();
+        return this._view;
+    }
+
+    get(cell: number): number {
+        if (CellStore.checkReads) this._checkOutput(cell);
+        return this.cells()[cell];
+    }
+
+    subscribe(cell: number, fn: Listener): () => void {
+        if (CellStore.checkReads) this._checkOutput(cell);
+        (this._listeners[cell] ??= new Set()).add(fn);
+        return () => this._listeners[cell]?.delete(fn);
+    }
+
+    subscribeAny(fn: Listener): () => void {
+        this._anyListeners.add(fn);
+        return () => this._anyListeners.delete(fn);
+    }
+
+    subscribeStructure(fn: Listener): () => void {
+        this._structureListeners.add(fn);
+        return () => this._structureListeners.delete(fn);
+    }
+
+    /** Called once per applied tick, after every per-cell listener: a
+     * renderer that batches its drawing redraws here, once per tick. */
+    subscribeTickEnd(fn: Listener): () => void {
+        this._tickEndListeners.add(fn);
+        return () => this._tickEndListeners.delete(fn);
+    }
+
+    setEvaluator(name: string) {
+        this.core.set_evaluator(name);
+    }
+
+    /** Infix text of an expression handle. */
+    exprText(cell: number): string {
+        return this.core.expr_text(cell);
+    }
+
+    /** Whether a cell is state the core keeps (`essential`), a constant
+     * (`fixed`), or computed (`derived`). */
+    cellClass(cell: number): "essential" | "fixed" | "derived" {
+        return this.core.cell_class(cell) as "essential" | "fixed" | "derived";
+    }
+
+    /** Parse what a student typed into the core's math engine: the value
+     * to request on a mathInput's `expr`. Throws on text that does not
+     * parse. */
+    parseMath(text: string): number {
+        return this.core.parse_math(text);
+    }
+
+    /** Cell-addressed write. Listeners fire before this returns. */
+    request(pairs: [number, number][]): void {
+        this._send(pairs, false);
+    }
+
+    /** Write text to a text cell (a textInput's `value`): the text is
+     * interned in the core's string table and its id requested. */
+    requestText(cell: number, text: string): void {
+        const id = this.core.intern(text);
+        this.request([[cell, id]]);
+    }
+
+    /** Points dragged together: `[xCell, yCell, x, y]` per point. The core
+     * keeps them a translation apart if one of them is constrained. */
+    requestPoints(points: [number, number, number, number][]): void {
+        this._send(
+            points.flatMap(
+                ([cx, cy, x, y]) =>
+                    [
+                        [cx, x],
+                        [cy, y],
+                    ] as [number, number][],
+            ),
+            true,
+        );
+    }
+
+    /** Submit an answer: its live responses become its submitted ones and
+     * credit recomputes, as one tick (`Core::submit`). */
+    submit(answer: number): void {
+        this._tick(() => this.core.submit(answer));
+    }
+
+    /** Press a `<triggerSet>` or a lone `<updateValue>`: each
+     * `<updateValue>` under it sets its target, as one tick
+     * (`Core::trigger`). An action, so its targets need not be
+     * interactive (ADR 0018). */
+    trigger(comp: number): void {
+        this._tick(() => this.core.trigger(comp));
+    }
+
+    _send(pairs: [number, number][], points: boolean): void {
+        if (CellStore.checkRequests) this._checkInteractive(pairs);
+        const cells = new Uint32Array(pairs.map((p) => p[0]));
+        const values = new Float64Array(pairs.map((p) => p[1]));
+        this._tick(() =>
+            points
+                ? this.core.request_points(cells, values)
+                : this.core.request(cells, values),
+        );
+    }
+
+    _checkInteractive(pairs: [number, number][]): void {
+        this._interactive ??= new Set(this.core.interactive_cells());
+        for (const [cell] of pairs) {
+            if (this._interactive.has(cell)) continue;
+            throw new Error(
+                `request on cell ${cell} (${this._describeCell(cell)}), ` +
+                    "which no component definition marks interactive",
+            );
+        }
+    }
+
+    _checkOutput(cell: number): void {
+        this._outputs ??= new Set(this.core.output_cells());
+        if (this._outputs.has(cell)) return;
+        throw new Error(
+            `read of cell ${cell} (${this._describeCell(cell)}), which no ` +
+                "component definition marks rendered, or of a component " +
+                "the core does not count as rendered",
+        );
+    }
+
+    /** The props a cell is, as `type.prop`, for an error message. */
+    _describeCell(cell: number): string {
+        const names: string[] = [];
+        for (let c = 0; c < this.comps.length; c++) {
+            const props = this.comps.props(c);
+            const tableProps =
+                this.comps.cols.typeProps[this.comps.cols.componentType[c]];
+            props.forEach((p, i) => {
+                if (p === cell)
+                    names.push(
+                        `${this.comps.componentType(c)}.${tableProps[i] ?? `list[${i - tableProps.length}]`}`,
+                    );
+            });
+        }
+        return names.join(", ") || "no prop";
+    }
+
+    /** One tick: `run` asks the core and returns the changed cells. */
+    _tick(run: () => Uint32Array): void {
+        const start = performance.now();
+        const sample: TickSample = {
+            core: NaN,
+            rebuilt: false,
+            roundTrip: NaN,
+            sync: NaN,
+            commit: NaN,
+            frame: NaN,
+            paint: NaN,
+            changed: 0,
+        };
+        this.samples.push(sample);
+        const changed = run();
+        sample.core = performance.now() - start;
+        const rebuilt = this.core.last_rebuilt();
+        const err = this.core.last_rebuild_error();
+        if (err) console.error("rebuild failed:", err);
+        sample.roundTrip = performance.now() - start;
+        sample.changed = changed.length;
+        sample.rebuilt = rebuilt;
+        this._pendingCommit = { start, sample };
+        this.version++;
+        requestAnimationFrame(() => {
+            sample.frame = performance.now() - start;
+            const ch = new MessageChannel();
+            ch.port1.onmessage = () =>
+                (sample.paint = performance.now() - start);
+            ch.port2.postMessage(null);
+        });
+        if (rebuilt) {
+            // Every cell index and component index is new: replace the table,
+            // drop per-cell subscriptions (their components re-subscribe) and
+            // tell the renderer to update from the root.
+            this.comps = new ComponentTable(
+                columnsFromCore(this.core, wasmMemory!),
+                () => columnsFromCore(this.core, wasmMemory!),
+            );
+            this._listeners = new Array(this.comps.nCells);
+            this._interactive = null;
+            this._outputs = null;
+            this.structureVersion++;
+            for (const fn of this._structureListeners) fn();
+        } else {
+            // A tick that interned text grew the string table.
+            this.comps.syncStrings(this.core, wasmMemory!);
+            for (let i = 0; i < changed.length; i++) {
+                const set = this._listeners[changed[i]];
+                if (set) for (const fn of set) fn();
+            }
+        }
+        for (const fn of this._tickEndListeners) fn();
+        sample.sync = performance.now() - start;
+        for (const fn of this._anyListeners) fn();
+    }
+
+    /** Called by the renderer after React commits a tick's updates. */
+    markCommit() {
+        this.firstCommitAt ??= performance.now();
+        if (this._pendingCommit) {
+            this._pendingCommit.sample.commit =
+                performance.now() - this._pendingCommit.start;
+            this._pendingCommit = null;
+        }
+    }
+}
+
+/** What a load is seeded with: the document seed that load-time choices
+ * draw from (ADR 0009), and saved state (`Core.save_state`'s JSON) to
+ * resume from. A prerendered page and the browser that replaces it load
+ * with the same ones, so both show the same document. */
+export type LoadOptions = { seed?: number; state?: string };
+
+/** `bytes` is either DAST JSON (UTF-8) or the binary CDST wire format. */
+export async function loadDocument(
+    bytes: Uint8Array,
+    evaluator: string,
+    timings: Partial<LoadTimings>,
+    { seed = 0, state }: LoadOptions = {},
+): Promise<CellStore> {
+    let t = performance.now();
+    const firstInit = wasmMemory === null;
+    const memory = await preloadCore();
+    timings.wasmInit = performance.now() - t;
+    // Only the first load on a page waits for the wasm: what its fetch and
+    // compile, started at boot, had left to do.
+    if (firstInit) measure("core/wasm init", t);
+    t = performance.now();
+    const core =
+        state === undefined
+            ? Core.with_seed(bytes, seed)
+            : Core.with_seed_and_state(bytes, seed, state);
+    measure("core/new Core", t, { bytes: bytes.length });
+    measureCoreSpans("core/new Core", t, core.load_trace_json());
+    core.set_evaluator(evaluator);
+    timings.coreTotal = performance.now() - t;
+    const diagnostics = JSON.parse(core.diagnostics_json()) as Diagnostic[];
+    for (const d of diagnostics)
+        if (d.kind !== "error")
+            console.warn(`${d.kind} ${d.code}: ${d.message}`);
+    timings.core = JSON.parse(core.load_timings_json());
+    t = performance.now();
+    // Views over wasm memory: the component layer never grows after load,
+    // but the cell array may be reallocated, so cells are re-viewed per read.
+    const comps = new ComponentTable(columnsFromCore(core, memory), () =>
+        columnsFromCore(core, memory),
+    );
+    timings.componentTable = performance.now() - t;
+    measure("core/component table", t, { components: comps.length });
+    return new CellStore(core, comps, diagnostics);
+}

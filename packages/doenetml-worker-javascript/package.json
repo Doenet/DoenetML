@@ -24,6 +24,8 @@
         "test:before": "wireit",
         "test": "npm run test:before && vitest",
         "test:rust-core": "npm run test:before && DOENET_TEST_CORE=rust vitest",
+        "test:cells-core": "npm run test:before && DOENET_TEST_CORE=cells vitest",
+        "parity:cells": "npm run test:before && (DOENET_TEST_CORE=cells npx vitest run --exclude '**/*-bench.test.ts' --reporter=json --outputFile=out/cells-test-results.json || true) && node scripts/cells-parity.mjs out/cells-test-results.json > CELLS_CORE_PARITY.md",
         "test:group1": "npm run test:before && vitest -t '@group1'",
         "test:group2": "npm run test:before && vitest -t '@group2'",
         "test:group3": "npm run test:before && vitest -t '@group3'",

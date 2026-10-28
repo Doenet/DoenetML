@@ -102,3 +102,14 @@ tmp/
 # (browser.screenshotFailures, on by default). They are failure artifacts,
 # not intentional snapshots, and are trivially re-created by re-running.
 **/test/__screenshots__/
+
+# Cells core and viewer: generated outputs
+packages/cells-core/pkg/
+# scripts/golden-diff.sh output
+packages/cells-core/results/
+packages/cells-core/fixtures/*
+!packages/cells-core/fixtures/sir.doenet
+packages/cells-viewer/test-results/
+# The cells core has a `build/` module and a committed Cargo.lock.
+!packages/cells-core/crates/cells-core/src/build/
+!packages/cells-core/Cargo.lock
