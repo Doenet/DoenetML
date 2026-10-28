@@ -2680,4 +2680,35 @@ describe("Unlinked Copying Tests @group4", async () => {
             ).eqls(["1,2", "3,4"]);
         }
     });
+
+    it("names inside a copy are reached only through the copy's own name (NAME-3)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="P"><math name="h">x</math></p>
+    <section name="R"><p copy="$P" /></section>
+    <section name="R2"><p copy="$P" name="P2" /></section>
+    <p name="Q1" copy="$P" />
+    <p name="Q2" copy="$Q1" />
+    <math name="bare">$h</math>
+    `,
+        });
+
+        // the copy's `h` has no name of its own outside the copy
+        expect(await resolvePathToNodeIdx("R.h")).eq(-1);
+        expect(await resolvePathToNodeIdx("R2.h")).eq(-1);
+        // through the copy's name, including a copy of a copy
+        for (const path of ["R2.P2.h", "Q1.h", "Q2.h"]) {
+            expect(await resolvePathToNodeIdx(path), path).not.eq(-1);
+            expect(await resolvePathToNodeIdx(path), path).not.eq(
+                await resolvePathToNodeIdx("P.h"),
+            );
+        }
+        // a bare `$h` beside the copies is still the original's, unambiguous
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bare")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
 });

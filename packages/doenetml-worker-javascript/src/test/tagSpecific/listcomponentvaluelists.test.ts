@@ -702,6 +702,53 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("the children of a copy of a copy of a list are reached through its name, wherever the reference is written", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <p name="before">$c1.h $c2.h $c3.h $cce.h $pcc.A</p>
+    <mathList name="l"><math name="h">$mi</math> 2</mathList>
+    <mathList name="c1" copy="$l" />
+    <mathList name="c2" copy="$c1" />
+    <mathList name="c3" copy="$c2" />
+    <mathList name="e" extend="$l" />
+    <mathList name="ce" copy="$e" />
+    <mathList name="cce" copy="$ce" />
+    <pointList name="pl"><point name="A">(1,2)</point></pointList>
+    <pointList name="pc" copy="$pl" />
+    <pointList name="pcc" copy="$pc" />
+    <p name="after">$c1.h $c2.h $c3.h $cce.h $pcc.A</p>
+    <repeatForSequence name="r" length="2"><mathList name="d" copy="$c1" /><math name="m">$d.h</math></repeatForSequence>
+    <p name="inRepeat">$r[1].m $r[2].m</p>
+    `,
+        });
+
+        const expected = {
+            before: "x x x x (1, 2)",
+            after: "x x x x (1, 2)",
+            inRepeat: "x x",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+        for (const path of ["c2.c1", "c2.l", "c3.c2", "cce.ce", "pcc.pc"]) {
+            expect(await resolvePathToNodeIdx(path), path).eq(-1);
+        }
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls({
+            before: "y y y y (1, 2)",
+            after: "y y y y (1, 2)",
+            inRepeat: "y y",
+        });
+    });
+
     it("a copy of each kind of authored list follows the references in it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
