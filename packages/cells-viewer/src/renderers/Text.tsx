@@ -105,10 +105,13 @@ function MathValue({ idx }: { idx: number }) {
     return <Children idx={idx} inGraph={false} />;
 }
 
+/** A value as text; a NaN math or math input shows its expression, any
+ * other NaN (an evaluate, a clamp number) shows as a number does. */
 function ValueText({ idx }: { idx: number }) {
     const store = useStore();
     const v = useCell(store.comps.cell(idx, "value"));
-    if (Number.isNaN(v) && store.comps.componentType(idx) !== "number") {
+    const type = store.comps.componentType(idx);
+    if (Number.isNaN(v) && (type === "math" || type === "mathInput")) {
         const expr = store.comps.cell(idx, "expr");
         return <span data-comp={idx}>{store.exprText(expr) ?? ""}</span>;
     }

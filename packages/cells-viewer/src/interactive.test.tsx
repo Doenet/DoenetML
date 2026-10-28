@@ -57,6 +57,9 @@ const DOC = `
 <p><m>x = $num</m></p>
 <md><mrow>y = $mm</mrow></md>
 <evaluate name="e" function="$f" input="2"/>
+<function name="fa">x^2 + a</function>
+<evaluate name="eNaN" function="$fa" input="2"/>
+<p><m>$eNaN</m></p>
 <section name="sec"><p>inside</p></section>
 <conditionalContent name="cc"><case condition="$n > 2"><p>big</p></case><else><p>small</p></else></conditionalContent>
 <select name="sel"><option><p>one</p></option><option><p>two</p></option></select>
