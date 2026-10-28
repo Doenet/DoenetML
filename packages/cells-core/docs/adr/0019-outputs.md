@@ -1,6 +1,6 @@
 # Compute only what leaves the core: outputs, decided once per load
 
-Status: draft 2026-10-28. Phases 1 to 3 are done; see Migration.
+Status: draft 2026-10-28. Phases 1 to 4 are done; see Migration.
 
 An **output** is a cell whose value leaves the core: a prop a renderer
 draws, or a score a grader reads. The compile finds, once per load and per
@@ -229,8 +229,9 @@ it off, and the golden diff again with it on, comparing live cells only.
 - A component definition says what a renderer reads, as it says what one
   writes. A renderer reading an unmarked prop fails the viewer's test.
 - On the golden set, about a third of the instructions go, and with a
-  function's samples most of the derived cells; on `sir.doenet` no instruction goes, but about
-  seven in ten fixed cells do.
+  function's samples most of the derived cells; on `sir.doenet` no
+  instruction goes, but almost half its fixed cells do (phase 2 counted
+  1220 of 2649, not Context's estimate of seven in ten).
 - Cell numbers change wherever a slot is dead, so the golden diff's
   programs change; its values, read with pruning off, do not.
 - `Document::value` on a dead prop reads NaN with pruning on. The parity
@@ -387,8 +388,55 @@ Settled while implementing phase 3:
   dead, and within 5% either way elsewhere, `sir.doenet` included. The
   pruning pays back most of what phase 2 added.
 
+Measured in phase 4, against the commit before phase 2 (`42db61a`), unless
+it says phase 2's (`6d3f777`):
+
+- **Structure**, natively (`cells-bench`'s `stats`, every generated
+  fixture and `sir.doenet`, 49 documents): 0.918 of the cells, 0.980 of
+  the instructions and 0.978 of the estimated bytes, and no document
+  larger. Where something is dead the gain is large: `curves-100` keeps
+  107 of 40,307 cells and none of 400 instructions (0.043 of the bytes),
+  `circles3-1000` 1,000 of 5,000 instructions (0.750), `recur-1000` 3,012
+  of 10,024 cells (0.807), `sir.doenet` 4,269 of 5,488 cells (0.967);
+  elsewhere almost nothing is.
+- **A bug it found**: emit sized the cells for the classes it keeps, not
+  for the dead cell, whose push then doubled the cell array and its
+  defining slots (`repeat-10000`: 1.6 MB of cells for 0.8 MB of values,
+  estimated bytes 1.13 of the base). The dead cell is counted with the
+  rest now, and `tests/live.rs` checks every build's cells are what emit
+  counted.
+- **Load**, natively (release, best of 15, three interleaved rounds):
+  `curves-100` 0.38, `circles3-1000` and `answers-100` 1.00, `sir.doenet`
+  about 1.08, `repeat-10000` 1.04 to 1.17, `recur-1000` about 1.12; the
+  golden set as phase 3 measured. A document with repeats pays for the
+  probe's walk and every build's lookup of each slot in the record, which
+  pruning repays only where much is dead.
+- **Tick**, natively (`tick-diff.sh` against phase 2's, seven rounds): the
+  same instructions on every shape, which render all they compute, and
+  medians within the harness's noise, 0.94 to 1.18 on sub-microsecond
+  ticks and 0.94 to 1.15 elsewhere, both ways. Every shape's values
+  differed, but only in props pruning leaves dead: loaded unpruned, every
+  fingerprint matched the base's, and the fingerprint now hashes live
+  props only (`cells_bench::shapes::fingerprint`).
+- **Wasm** (`perf-diff.sh`, both sides built without `wasm-opt`): memory
+  0.99 to 1.01 on its fixtures once the bug above was fixed, which render
+  nearly everything they compute; load and tick varied by 15% to 25%
+  between runs against the same base, more than any effect here. The
+  benchmark measures the cells core through the parity harness, which
+  loads unpruned, so the harness loads pruned when `CELLS_PRUNE=1`, which
+  `perf-diff.sh` sets; a core without `LoadOptions::prune` loads as
+  before.
+- **Parity** (`DOENET_TEST_CORE=cells`, the same harness against phase
+  2's core and this one): 566 passed and 4,689 failed on both, the same
+  tests. Loaded pruned, 12 more fail, all in `circle.test.ts`, which read
+  circle props no renderer reads: the harness stays unpruned.
+
 Open:
 
+- Whether `packages/benchmark`'s cross-core runs should load the cells
+  core pruned, as a browser does; only `perf-diff.sh` does now.
+- Making the record cheaper for a document with repeats: every build
+  looks each slot up in it, and the probe walks once more.
 - Whether a fixed `hide` (a literal, ADR 0018) should make its content
   unrendered, and so dead unless something live reads it.
 - Whether a polyline should count only its vertices' coordinates as
