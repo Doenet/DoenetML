@@ -400,6 +400,41 @@ export class RefResolutionDependency extends Dependency {
             ]);
         }
 
+        // A list made by a `copy` or `extend` (`convertToCopy.ts`) has its
+        // children made by a `_copy` child (`forList`), and the resolver
+        // learns their names only once it expands -- in a copy of a copy, a
+        // `_copy` inside what that one made, too. Wait for them, as for a copy
+        // made with `_createComponentIdx` above, so that `$c.h` finds the
+        // copy's `h` wherever it is written (NAME-2).
+        // Not the `_copy` this reference belongs to, or one holding it: a
+        // list that copies itself (`<mathList name="c" copy="$c"/>`) would
+        // wait on itself, where it should report the cycle.
+        const listCopies = listCopiesOf(
+            this.dependencyHandler._components[nodeIdx],
+        ).filter(
+            (copy) =>
+                copy.componentIdx !== composite.componentIdx &&
+                !composite.ancestors?.some(
+                    (ancestor: any) =>
+                        ancestor.componentIdx === copy.componentIdx,
+                ),
+        );
+        const unexpandedListCopy = listCopies.find((copy) => !copy.isExpanded);
+        if (unexpandedListCopy) {
+            await this.addBlockerForUnexpandedComposite(unexpandedListCopy);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+        if (listCopies.length > 0) {
+            const indices = listCopies.map((copy) => copy.componentIdx);
+            this.compositeReplacementDependencies.push(...indices);
+            this.addUpdateTriggersForCompositeReplacements(indices);
+        }
+
         // Resolve all components in the path indices to integer values
         const resolveComponentResult =
             await this.resolveComponentsInPathIndices(
@@ -1345,4 +1380,31 @@ export class RendererId extends Dependency {
             this.deleteUpdateTriggerForMissingComponent(componentIdx);
         }
     }
+}
+
+/**
+ * The `_copy` components (`forList`) that make the children of `list`, a list
+ * written with `copy` or `extend`, and, once one has expanded, those that
+ * make the children of the lists it made, as in a copy of a copy of a list.
+ * Empty for any other component.
+ */
+function listCopiesOf(list: any): any[] {
+    const copies: any[] = [];
+    const visit = (component: any) => {
+        for (const child of component?.definingChildren ?? []) {
+            if (
+                child?.componentType === "_copy" &&
+                child.doenetAttributes?.forList !== undefined
+            ) {
+                copies.push(child);
+                if (child.isExpanded) {
+                    for (const replacement of child.replacements ?? []) {
+                        visit(replacement);
+                    }
+                }
+            }
+        }
+    };
+    visit(list);
+    return copies;
 }

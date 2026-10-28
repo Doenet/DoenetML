@@ -162,16 +162,6 @@ export default class VectorList extends GraphicalValueList {
         return undefined;
     }
 
-    async serialize(parameters = {}) {
-        const serialized = await super.serialize(parameters);
-        if (parameters.copyAll && !parameters.serializingDescendant) {
-            serialized.state.tailsShadow = [
-                ...(await this.stateValues.entryTails),
-            ];
-        }
-        return serialized;
-    }
-
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -215,8 +205,8 @@ export default class VectorList extends GraphicalValueList {
             }),
         };
 
-        // The tails of the vectors a `copy=` of the list holds the
-        // displacements of (`serializeUnlinkedAsValues`).
+        // The tails written to the entries of a shadowed array of vectors,
+        // whose displacements are the shadowed values.
         stateVariableDefinitions.tailsShadow = {
             hasEssential: true,
             defaultValue: null,
@@ -353,8 +343,8 @@ export default class VectorList extends GraphicalValueList {
             arrayName,
         );
 
-        // The tail of each entry: the child's, the one written to it, the
-        // one a `copy=` holds, or the origin. It travels with the entry, so
+        // The tail of each entry: the child's, the one written to it or to
+        // its shadowed value, or the origin. It travels with the entry, so
         // a copy of one (`<vector extend="$vl[2]"/>`) has its tail.
         stateVariableDefinitions.entryTails = {
             isArray: true,
@@ -871,7 +861,7 @@ export default class VectorList extends GraphicalValueList {
 
 /**
  * The tail of entry `ind`, from `entryTails`'s dependencies: the child's,
- * the one written to it, the one a `copy=` holds, or the origin, with the
+ * the one written to it or to its shadowed value, or the origin, with the
  * list's number of dimensions.
  */
 function entryTail(
