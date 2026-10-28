@@ -6,11 +6,10 @@
 "doenet-vscode-extension": patch
 ---
 
-Fix list values that set entries outside their own size or left entries undefined:
+Fix missing entries in a `<bestFitLine>`'s `data` and a `<function>`'s `domain`:
 
-- A `<bestFitLine>`'s `data` now holds both coordinates of every point. With a single data point its second coordinate was missing.
-- A `<function>` with a function child and more inputs than that child (set by its own `numInputs` or `variables`) now gives each input the child lacks the unrestricted domain. Its `domain` used to leave those entries undefined, shown as `＿`. A `<derivative>` with more `variables` than its function, which used to ignore the function's domain because of those undefined entries, now keeps it: for `<function domain="(0,1)">x^2</function>`, the derivative with `variables="x y"` is now undefined at `(5,3)` rather than `10`.
-- A `<function>` whose function child has no numeric domain (a `<piecewiseFunction>` whose pieces have symbolic bounds) now has the unrestricted domain, as a function with no domain information does, rather than an undefined one shown as `＿`. Placing such a function in a `<graph>`, or in a `<curve>`, used to stop the document from loading; it is now graphed across the graph.
-- A function's `globalMinimumLocation`, `globalMinimumValue` and the matching `globalMaximum`, `globalInfimum` and `globalSupremum` entries no longer refer to an entry of an empty list when there is no such extremum. What they display is unchanged.
+- A `<bestFitLine>` with a single data point now has both of its coordinates in `data`; the second was missing.
+- A `<function>` given more inputs than its function child (with `numInputs` or `variables`) now gives each extra input the unrestricted domain `(-∞, ∞)` instead of an undefined one, shown as `＿`. A `<derivative>` with more `variables` than its function now keeps the function's domain: for `<function domain="(0,1)">x^2</function>`, the derivative with `variables="x y"` is now undefined at `(5,3)` rather than `10`.
+- A `<function>` whose child is a `<piecewiseFunction>` with symbolic piece bounds now has domain `(-∞, ∞)` instead of `＿`. Placing such a function in a `<graph>` or a `<curve>` no longer stops the document from loading.
 
 Closes #2266.
