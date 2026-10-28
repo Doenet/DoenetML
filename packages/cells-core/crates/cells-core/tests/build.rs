@@ -30,7 +30,10 @@ fn three_cells_for_three_coordinates_plus_one_hide_per_point() {
     // `percentCreditAchieved`: two fixed cells when nothing is scored.
     let doc = load_ok(r#"<point name="p1" x="1" y="2"/><point name="p2" x="5" y="$p1.y"/>"#);
     assert_eq!(doc.cells.len(), 7);
-    assert_eq!(doc.n_essential, 5);
+    // The coordinates a drag writes; each point's `hide` is fixed, since
+    // nothing a student does writes it (ADR 0018).
+    assert_eq!(doc.n_essential, 3);
+    assert!(doc.is_fixed(doc.cell("p1", "hide").unwrap()));
     assert_eq!(doc.cell("p1", "y"), doc.cell("p2", "y"));
     assert_ne!(doc.cell("p1", "x"), doc.cell("p2", "x"));
     assert_eq!(doc.value("p2", "y"), Some(2.0));
@@ -130,7 +133,8 @@ fn operators_compute_and_propagate() {
            <number name="n">-$a</number><number name="o">$a + 1</number>
            <point name="p" x="$t" y="$u"/>"#,
     );
-    assert_eq!(doc.n_essential, 3);
+    // The two inputs; the point's `hide` is fixed (ADR 0018).
+    assert_eq!(doc.n_essential, 2);
     assert_eq!(doc.cells.len(), 13);
     assert_eq!(doc.value("s", "value"), Some(7.0));
     assert_eq!(doc.value("t", "value"), Some(70.0));

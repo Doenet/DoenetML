@@ -16,7 +16,9 @@
 //! `OpSpec::scalar_arity`, `OpSpec::bind_scalar`, `OpSpec::inverse` and
 //! `OpSpec::scalar_samples`, which
 //! the `inverses` tests in `scalar.rs` check every inverse against over a
-//! fixed table of values. An
+//! fixed table of values, and `Op::writes` and `OpSpec::writes`, the
+//! inputs an inverse may write (ADR 0018): an `exact` or `projection`
+//! inverse its first, a `drops` one none. An
 //! operator with parameters gives `samples`, the parameters it is checked
 //! with.
 //!
@@ -84,6 +86,11 @@ macro_rules! scalar_ops {
     (@kind exact) => { Inverse::Exact };
     (@kind projection) => { Inverse::Projection };
     (@kind drops) => { Inverse::Drops };
+    // The inputs an inverse may write: an inverse that passes a request
+    // writes its first input.
+    (@writes exact) => { 1 };
+    (@writes projection) => { 1 };
+    (@writes drops) => { 0 };
     // `input_pair` and `bind` by the number of inputs.
     (@pair $a:ident) => { ($a, None) };
     (@pair $a:ident, $b:ident) => { ($a, Some($b)) };
@@ -215,6 +222,19 @@ macro_rules! scalar_ops {
                 match self {
                     $(OpSpec::$name { .. } => Some(scalar_ops!(@kind $kind)),)*
                     OpSpec::Vec(_) | OpSpec::Sym(_) => None,
+                }
+            }
+
+            /// The input positions its inverse may write, as a mask: bit
+            /// `k` for input `k` (ADR 0018). It may name an input the
+            /// inverse writes only for some values, and never leaves one
+            /// out; the `inverses` tests in `scalar.rs` and the `writes`
+            /// tests in `vector.rs` check it.
+            pub fn writes(&self) -> u64 {
+                match self {
+                    $(OpSpec::$name { .. } => scalar_ops!(@writes $kind),)*
+                    OpSpec::Vec(op) => op.writes(),
+                    OpSpec::Sym(kind) => kind.writes(),
                 }
             }
 

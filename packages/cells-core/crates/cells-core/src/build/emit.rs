@@ -57,6 +57,27 @@ impl<'c> Builder<'c> {
                 class_def[root] = s as u32;
             }
         }
+        // A value slot is essential when a student's action can write it,
+        // and fixed otherwise (ADR 0018): by this build's own walk, by the
+        // probe's record of the template slots it found writable, or, with
+        // the classing off, always essential.
+        let mut record = None;
+        let essential: Vec<bool> = match &self.compiled.classes {
+            Classes::Off => vec![true; n],
+            Classes::Record(r) if !self.view.folds_iterations() => (0..n as SlotId)
+                .map(|s| {
+                    self.template_slot(s)
+                        .is_none_or(|(t, ts)| Classes::recorded(r, t, ts))
+                })
+                .collect(),
+            Classes::Walk | Classes::Record(_) => {
+                let writable = self.writable_slots(&roots, &class_def);
+                if self.view.folds_iterations() {
+                    record = Some(self.record_of(&writable));
+                }
+                writable
+            }
+        };
         let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
         // Count each kind of defining slot first: the essential tables are
         // kept, and none of these should reserve more than it fills.
@@ -65,7 +86,8 @@ impl<'c> Builder<'c> {
         for (s, &root) in roots.iter().enumerate() {
             if class_def[root as usize] as usize == s {
                 let (kind, n_out) = match &self.sources[s] {
-                    BuiltSource::Literal(_) | BuiltSource::Default(_) => (0, 1),
+                    BuiltSource::Literal(_) | BuiltSource::Default(_) if essential[s] => (0, 1),
+                    BuiltSource::Literal(_) | BuiltSource::Default(_) => (1, 1),
                     BuiltSource::Fixed(_) => (1, 1),
                     BuiltSource::Op(spec, ..) => (2, spec.n_out()),
                     _ => (3, 0),
@@ -92,6 +114,9 @@ impl<'c> Builder<'c> {
                 continue; // not the defining slot of its class
             }
             match &self.sources[s] {
+                BuiltSource::Literal(_) | BuiltSource::Default(_) if !essential[s] => {
+                    fixed_defs.push(s)
+                }
                 BuiltSource::Literal(v) | BuiltSource::Default(v) => {
                     let (scope, tslot, key) = self.essential_key(s as SlotId);
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
@@ -116,7 +141,10 @@ impl<'c> Builder<'c> {
         }
         let n_essential = cells.len();
         for &s in &fixed_defs {
-            let BuiltSource::Fixed(v) = self.sources[s] else {
+            // A constant, or an author's value no student can change.
+            let (BuiltSource::Fixed(v) | BuiltSource::Literal(v) | BuiltSource::Default(v)) =
+                self.sources[s]
+            else {
                 unreachable!()
             };
             let root = roots[s] as usize;
@@ -379,6 +407,7 @@ impl<'c> Builder<'c> {
             tapes,
             comp_keys,
             cell_label,
+            record,
         })
     }
 
@@ -473,14 +502,56 @@ impl<'c> Builder<'c> {
             } else {
                 self.engine.import(&Tree::Num(v)) as f64
             };
-            // The seed is the cell's default whether or not a carried value
-            // replaces it (`Structure::essential_defaults`).
-            defaults[slot_to_cell[s as usize] as usize] = seed;
-            if !carried {
-                cells[slot_to_cell[s as usize] as usize] = seed;
+            // The seed is an essential cell's default whether or not a
+            // carried value replaces it (`Structure::essential_defaults`);
+            // a seeded cell no student can write (ADR 0018) is fixed at it.
+            let cell = slot_to_cell[s as usize] as usize;
+            let essential = cell < defaults.len();
+            if essential {
+                defaults[cell] = seed;
+            }
+            if !carried || !essential {
+                cells[cell] = seed;
             }
         }
         Ok(())
+    }
+
+    /// A component slot's template and template slot (the element's slot
+    /// offset plus the prop's position), what `Classes::Record` is indexed
+    /// by; None for a slot of no element.
+    pub(in crate::build) fn template_slot(&self, slot: SlotId) -> Option<(usize, u32)> {
+        let comp = self.slot_comp[slot as usize];
+        if comp == NONE {
+            return None;
+        }
+        let i = self.comp_instance[comp as usize];
+        if i == NONE {
+            return None;
+        }
+        let inst = self.instances[i as usize];
+        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        Some((
+            inst.template,
+            el.slot_off + slot - self.slot_base[comp as usize],
+        ))
+    }
+
+    /// The template slots of the writable slots, per template: the record
+    /// every later build classes by (`Classes::Record`).
+    fn record_of(&self, writable: &[bool]) -> Vec<Vec<u64>> {
+        let mut record: Vec<Vec<u64>> = self
+            .compiled
+            .templates
+            .iter()
+            .map(|t| vec![0; (t.n_slots as usize).div_ceil(64)])
+            .collect();
+        for (s, _) in writable.iter().enumerate().filter(|(_, w)| **w) {
+            if let Some((t, ts)) = self.template_slot(s as SlotId) {
+                record[t][ts as usize / 64] |= 1 << (ts % 64);
+            }
+        }
+        record
     }
 
     /// An essential slot's key: its scope, its template slot (the element's

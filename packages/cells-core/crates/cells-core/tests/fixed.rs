@@ -2,7 +2,9 @@
 //! cells sit behind `Hold` instructions on the flag, so requests through the
 //! element are dropped while the flag is set, and the element follows its
 //! sources either way. A literal `fixed` makes fixed cells and holds the
-//! rest (references, a copy's referent) by a constant flag.
+//! rest (references, a copy's referent) by a constant flag. A prop no
+//! renderer requests, a circle's radius, is requested through an input
+//! bound to it, as in a document (ADR 0018).
 
 mod common;
 use common::*;
@@ -71,7 +73,8 @@ fn a_circle_with_dynamic_fixed() {
     let mut doc = load(
         r#"<booleanInput name="b" value="true"/>
            <point name="C" x="0" y="0"/>
-           <circle name="c" center="$C" through="(3, 4)" fixed="$b"/>"#,
+           <circle name="c" center="$C" through="(3, 4)" fixed="$b"/>
+           <mathInput name="r" bindValueTo="$c.radius"/>"#,
     )
     .unwrap();
     assert_eq!(v(&doc, "c", "radius"), 5.0);
@@ -79,14 +82,14 @@ fn a_circle_with_dynamic_fixed() {
     assert!(!t.dropped.is_empty());
     assert_eq!(v(&doc, "C", "x"), 0.0);
     // The radius fans out to both coordinates of the through point.
-    assert_eq!(set(&mut doc, "c", "radius", 10.0), 2);
+    assert_eq!(set(&mut doc, "r", "value", 10.0), 2);
     assert_eq!(v(&doc, "c", "radius"), 5.0);
     // The referenced center still moves the circle.
     set(&mut doc, "C", "x", 1.0);
     assert_eq!(v(&doc, "c", "cx"), 1.0);
 
     set(&mut doc, "b", "value", 0.0);
-    assert_eq!(set(&mut doc, "c", "radius", 10.0), 0);
+    assert_eq!(set(&mut doc, "r", "value", 10.0), 0);
     assert_close!(v(&doc, "c", "radius"), 10.0);
 }
 
@@ -95,14 +98,15 @@ fn an_input_with_dynamic_fixed() {
     let mut doc = load(
         r#"<booleanInput name="b" value="true"/>
            <numberInput name="n" value="3" fixed="$b"/>
-           <number name="twice">2 * $n</number>"#,
+           <number name="twice">2 * $n</number>
+           <mathInput name="t" bindValueTo="$twice"/>"#,
     )
     .unwrap();
     assert_eq!(set(&mut doc, "n", "value", 4.0), 1);
-    assert_eq!(set(&mut doc, "twice", "value", 10.0), 1);
+    assert_eq!(set(&mut doc, "t", "value", 10.0), 1);
     assert_eq!(v(&doc, "n", "value"), 3.0);
     set(&mut doc, "b", "value", 0.0);
-    assert_eq!(set(&mut doc, "twice", "value", 10.0), 0);
+    assert_eq!(set(&mut doc, "t", "value", 10.0), 0);
     assert_eq!(v(&doc, "n", "value"), 5.0);
 }
 
@@ -155,13 +159,20 @@ fn graph_with_literal_fix_axes() {
 /// A copy with a literal `fixed` refuses requests, like `fixed="$b"` while
 /// `$b` is true, and still follows its referent.
 fn literal_fixed_copy(source: &str, prop: &str, from: f64) {
+    literal_fixed_copy_through(source, prop, from, [("P", prop), ("Q", prop)]);
+}
+
+/// `literal_fixed_copy`, requesting `P`'s and `Q`'s prop on the cells
+/// `through` names: the props themselves, or inputs bound to them.
+fn literal_fixed_copy_through(source: &str, prop: &str, from: f64, through: [(&str, &str); 2]) {
+    let [(p, p_prop), (q, q_prop)] = through;
     let mut doc = load(source).unwrap();
-    assert_eq!(set(&mut doc, "Q", prop, 9.0), 1, "{source}");
+    assert_eq!(set(&mut doc, q, q_prop, 9.0), 1, "{source}");
     assert_eq!(v(&doc, "P", prop), from, "{source}");
     assert_eq!(v(&doc, "Q", prop), from, "{source}");
-    assert_eq!(set(&mut doc, "P", prop, 5.0), 0, "{source}");
+    assert_eq!(set(&mut doc, p, p_prop, 5.0), 0, "{source}");
     assert_eq!(v(&doc, "Q", prop), 5.0, "{source}");
-    assert_eq!(set(&mut doc, "Q", prop, 9.0), 1, "{source}");
+    assert_eq!(set(&mut doc, q, q_prop, 9.0), 1, "{source}");
     assert_eq!(v(&doc, "P", prop), 5.0, "{source}");
 }
 
@@ -180,10 +191,12 @@ fn a_point_copy_with_literal_fixed() {
 
 #[test]
 fn a_circle_copy_with_literal_fixed() {
-    literal_fixed_copy(
-        r#"<graph><circle name="P" radius="2"/><circle name="Q" extend="$P" fixed="true"/></graph>"#,
+    literal_fixed_copy_through(
+        r#"<graph><circle name="P" radius="2"/><circle name="Q" extend="$P" fixed="true"/></graph>
+           <mathInput name="iP" bindValueTo="$P.radius"/><mathInput name="iQ" bindValueTo="$Q.radius"/>"#,
         "radius",
         2.0,
+        [("iP", "value"), ("iQ", "value")],
     );
 }
 

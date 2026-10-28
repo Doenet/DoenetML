@@ -1,11 +1,12 @@
 //! Which cells a renderer may request (`Document::interactive_cells`, ADR
 //! 0017): the props each definition marks `interactive`, and the points of
-//! a list marked so. The viewer's test checks its renderers against these.
+//! a list marked so. The core refuses a request on any other cell (ADR
+//! 0018); the viewer's test checks its renderers against these.
 
 mod common;
 
-use cells_core::Document;
 use cells_core::testing::test_utils::load;
+use cells_core::{Document, PointRequest, Request};
 
 const DOC: &str = r#"
 <graph name="g">
@@ -55,8 +56,6 @@ fn what_a_renderer_requests_is_interactive() {
         ("sl", &["value"]),
         ("ci", &["selectedIndex"]),
         ("h", &["open"]),
-        ("k", &["value"]),
-        ("a", &["submitted", "numSubmissions"]),
     ] {
         for prop in props {
             let cs = cells(&doc, name, prop);
@@ -84,6 +83,10 @@ fn derived_props_are_not_interactive() {
         ("sl", "from"),
         ("a", "credit"),
         ("a", "weight"),
+        // An action writes these, not a renderer.
+        ("a", "submitted"),
+        ("a", "numSubmissions"),
+        ("k", "value"),
     ] {
         for cell in cells(&doc, name, prop) {
             assert!(
@@ -105,24 +108,63 @@ fn interactive_cells_is_is_interactive() {
     assert_eq!(listed, every);
 }
 
-/// A submit and a trigger, which the core makes on a student's behalf,
-/// write only interactive cells: every answer is an input (ADR 0017).
+/// A submit and a trigger are actions (ADR 0018): each writes what a
+/// renderer's request on the same cells is refused.
 #[test]
-fn a_submit_and_a_trigger_write_interactive_cells() {
-    let doc = load(
+fn a_submit_and_a_trigger_write_what_a_request_cannot() {
+    let mut doc = load(
         r#"<mathInput name="mi"/><answer name="a" response="$mi">x+1</answer>
-           <answer name="b"><award><when>$mi = 2</when></award></answer>
-           <answer name="c">2x</answer>
-           <number name="k">3</number>
-           <triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="5"/></triggerSet>"#,
+           <boolean name="k"/>
+           <triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="true"/></triggerSet>"#,
     )
     .unwrap();
-    for answer in ["a", "b", "c"] {
-        let a = doc.resolve_path(answer).unwrap();
-        for r in doc.submit_requests(a) {
-            assert!(doc.is_interactive(r.cell), "{answer}'s submit");
-        }
-    }
+    let count = cells(&doc, "a", "numSubmissions")[0];
     let k = cells(&doc, "k", "value")[0];
-    assert!(doc.is_interactive(k), "the trigger's target");
+    let tick = doc.request(&[Request {
+        cell: count,
+        value: 7.0,
+    }]);
+    assert_eq!(tick.dropped.len(), 1, "a request on the count is refused");
+    let tick = doc.request(&[Request {
+        cell: k,
+        value: 1.0,
+    }]);
+    assert_eq!(tick.dropped.len(), 1, "a request on the target is refused");
+    assert_eq!(
+        (doc.cells[count as usize], doc.cells[k as usize]),
+        (0.0, 0.0)
+    );
+
+    let a = doc.resolve_path("a").unwrap();
+    assert!(doc.submit(a).dropped.is_empty());
+    assert_eq!(doc.cells[count as usize], 1.0);
+    let t = doc.resolve_path("t").unwrap();
+    assert!(doc.trigger(t).dropped.is_empty());
+    assert_eq!(doc.cells[k as usize], 1.0);
+}
+
+/// A point group with a point that is not an input's is refused whole.
+#[test]
+fn a_point_group_on_a_cell_that_is_not_an_inputs_is_refused() {
+    let mut doc = load(
+        r#"<graph><point name="p">(1,2)</point></graph>
+           <numberInput name="n" value="3"/><number name="m">2 $n</number>"#,
+    )
+    .unwrap();
+    let (px, py) = (cells(&doc, "p", "x")[0], cells(&doc, "p", "y")[0]);
+    let m = cells(&doc, "m", "value")[0];
+    assert!(!doc.is_interactive(m));
+    let tick = doc.request_points(&[
+        PointRequest {
+            cells: [px, py],
+            values: [5.0, 5.0],
+        },
+        PointRequest {
+            cells: [m, m],
+            values: [8.0, 8.0],
+        },
+    ]);
+    assert_eq!(tick.dropped.len(), 2);
+    assert_eq!(doc.cells[px as usize], 1.0);
+    assert_eq!(doc.value("n", "value"), Some(3.0));
 }

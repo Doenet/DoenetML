@@ -12,13 +12,14 @@ fn b(doc: &cells_core::Document, name: &str) -> f64 {
     v(doc, name, "value")
 }
 
+/// An empty boolean is false; an input bound to it makes it state.
 #[test]
-fn empty_boolean_is_essential_and_false() {
-    let mut doc = load(r#"<boolean name="b"/>"#).unwrap();
+fn empty_boolean_is_false_and_state_an_input_writes() {
+    let mut doc = load(r#"<boolean name="b"/><booleanInput name="bi" bindValueTo="$b"/>"#).unwrap();
     assert_eq!(b(&doc, "b"), 0.0);
     assert!(doc.is_essential(doc.cell("b", "value").unwrap()));
     assert_eq!(doc.rendered_text(doc.component("b").unwrap()), "false");
-    let t = set(&mut doc, "b", "value", 1.0);
+    let t = set(&mut doc, "bi", "value", 1.0);
     assert!(t.dropped.is_empty());
     assert_eq!(b(&doc, "b"), 1.0);
     assert_eq!(doc.rendered_text(doc.component("b").unwrap()), "true");
@@ -42,7 +43,8 @@ fn literal_content_is_state_with_that_initial_value() {
     let mut doc = load(
         r#"<boolean name="t">true</boolean><boolean name="f">false</boolean>
         <boolean name="mixed">trUe</boolean>
-        <boolean name="one">1</boolean><boolean name="ten">10</boolean>"#,
+        <boolean name="one">1</boolean><boolean name="ten">10</boolean>
+        <booleanInput name="fi" bindValueTo="$f"/>"#,
     )
     .unwrap();
     assert_eq!(b(&doc, "t"), 1.0);
@@ -51,7 +53,7 @@ fn literal_content_is_state_with_that_initial_value() {
     assert_eq!(b(&doc, "one"), 1.0);
     assert_eq!(b(&doc, "ten"), 0.0);
     assert!(doc.is_essential(doc.cell("f", "value").unwrap()));
-    set(&mut doc, "f", "value", 1.0);
+    set(&mut doc, "fi", "value", 1.0);
     assert_eq!(b(&doc, "f"), 1.0);
 }
 

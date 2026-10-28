@@ -102,13 +102,14 @@ spec! {
     }
 
     case "an equation attribute: coefficients are the state" {
-        doenet r#"<graph><line name="l" equation="y = 2x + 1"/></graph>"#;
+        doenet r#"<graph><line name="l" equation="y = 2x + 1"/></graph>
+                  <mathInput name="c0" bindValueTo="$l.coeff0"/>"#;
         expect {
             "l.slope" = 2, "l.yintercept" = 1, "l.xintercept" = -0.5,
             "l.coeffvar1" = -2, "l.coeffvar2" = 1, "l.coeff0" = -1,
             "l.basedOnDirection" = 0,
         }
-        request { "l.coeff0" = -3 }
+        request { "c0.value" = -3 }
         expect { "l.yintercept" = 3, "l.slope" = 2 }
     }
 

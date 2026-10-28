@@ -346,30 +346,15 @@ export function Cell({ idx }: { idx: number }) {
     );
 }
 
-/** The `<updateValue>`s under a component, in document order. */
-function updates(store: CellStore, idx: number, out: number[] = []): number[] {
-    if (store.comps.componentType(idx) === "updateValue") out.push(idx);
-    for (const ch of store.comps.children(idx))
-        if ("c" in ch) updates(store, ch.c, out);
-    return out;
-}
-
-/** `<triggerSet>`: a button whose `<label>` is its text. Pressing it is one
- * request per `<updateValue>` (its target's cell gets its new value's
- * current value), all in one tick: the same as `Document::trigger`. */
+/** `<triggerSet>`: a button whose `<label>` is its text. Pressing it is
+ * the core's action (`CellStore.trigger`): each `<updateValue>` under it
+ * sets its target to its new value's current value, all in one tick. */
 export function TriggerSet({ idx }: { idx: number }) {
     const store = useStore();
     // `<label>` is a group in the core.
     const label = childrenOfType(store, idx, "group")[0];
     function press() {
-        const pairs = updates(store, idx).map(
-            (u) =>
-                [
-                    store.comps.cell(u, "target"),
-                    store.get(store.comps.cell(u, "newValue")),
-                ] as [number, number],
-        );
-        store.request(pairs);
+        store.trigger(idx);
     }
     return (
         <button

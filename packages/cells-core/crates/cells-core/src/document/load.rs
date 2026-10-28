@@ -19,6 +19,13 @@ pub struct LoadOptions {
     /// (ADR 0014).
     #[cfg(feature = "testing")]
     pub check_cycles: bool,
+    /// Class every value slot by whether a student's action can write it,
+    /// essential or fixed (ADR 0018); off, every one is essential, as
+    /// before. Only with the `testing` feature: for a test of the
+    /// machinery whose document no input reaches, and to check the
+    /// classing against the inverses (`tests/every_count.rs`).
+    #[cfg(feature = "testing")]
+    pub classify: bool,
 }
 
 impl LoadOptions {
@@ -26,6 +33,14 @@ impl LoadOptions {
     fn checks(&self) -> bool {
         #[cfg(feature = "testing")]
         return self.check_cycles;
+        #[cfg(not(feature = "testing"))]
+        return true;
+    }
+
+    /// Whether builds class value slots by the walk: always, outside tests.
+    fn classifies(&self) -> bool {
+        #[cfg(feature = "testing")]
+        return self.classify;
         #[cfg(not(feature = "testing"))]
         return true;
     }
@@ -40,6 +55,8 @@ impl Default for LoadOptions {
             sample_with_engine: false,
             #[cfg(feature = "testing")]
             check_cycles: true,
+            #[cfg(feature = "testing")]
+            classify: true,
         }
     }
 }
@@ -127,7 +144,7 @@ impl Document {
             compiled,
             mut first_build,
             check_time,
-        } = crate::compile::compile(&dast, &session, options.checks())?;
+        } = crate::compile::compile(&dast, &session, options.checks(), options.classifies())?;
         drop(compile_span);
         t.build += clock.elapsed();
         t.cycle_check += check_time;

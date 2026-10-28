@@ -3,6 +3,10 @@
 Status: proposed 2026-10-23. Every migration step is done; see Migration.
 Amended 2026-10-24: step 3 defines an input's *starting value*, which
 `tests/safe_edits.rs` found the first wording too loose about.
+Amended 2026-10-26: the essential cells an input writes are no longer a
+condition of their own. The derivation names every essential cell it
+reads, so an unchanged derivation already keeps them; step 4 has three
+conditions, and the old 3 and 4 are now 2 and 3.
 
 When an author publishes a new version of a document, a student's saved
 state carries over to it only if the edit is *safe for every student*:
@@ -123,9 +127,6 @@ input the signature records:
 
 - its stable key, value type and *domain*, the values a live request on
   it can take;
-- the essential cells it writes (for `updateValue` and `triggerSet`, the
-  cells they set): stable key, value type, and which other elements share
-  them (a copy and its original);
 - its *derivation*: everything that decides what the input shows and
   whether a student can act on it. That is the operators and literal
   parameters on every path from an essential cell to the input; the
@@ -156,6 +157,12 @@ did not sees the new start, and nothing else moves with it.
 An earlier wording exempted every default that only one input reaches,
 which allowed the circle's and the polygon's edits.
 
+The derivation names each essential cell on those paths by its stable key
+and value type, so it also fixes the essential cells the input writes
+(for `updateValue` and `triggerSet`, the cells they set) and which other
+elements share them: a copy that shares its original's state reads the
+original's cell, and one given an override reads its own.
+
 The derivation is recorded as a hash of the plans involved, which name no
 iteration (ADR 0015). The hash is taken over stable keys and literals
 only, never over the compile's internal ids (`ElemId`, slot offsets,
@@ -178,7 +185,7 @@ The domains so far:
 A domain given by cells (`xmin="$n"`) is compared by derivation, as
 above, and not by value.
 
-### 4. An edit is safe for every student when four conditions hold
+### 4. An edit is safe for every student when three conditions hold
 
 Between the published version's signature and the draft's:
 
@@ -186,15 +193,15 @@ Between the published version's signature and the draft's:
    with the same value type, and its domain is the same or larger: bounds
    that only widen, choices only appended. A select's options are
    identical.
-2. **The essential cells it writes are unchanged.** Same stable keys, same
+2. **Its derivation is unchanged,** defaults and existence included, and
+   with it the essential cells it reads and writes: same stable keys, same
    value types, shared with exactly the same elements.
-3. **Its derivation is unchanged,** defaults and existence included.
-4. **Every new input reads no old essential cell,** unless its domain
+3. **Every new input reads no old essential cell,** unless its domain
    holds every value its derivation can produce. A new `<point x="$n"/>`
    would otherwise start wherever each student's `n` puts it, outside the
    graph for some.
 
-New inputs that meet condition 4, new answers and new selects are
+New inputs that meet condition 3, new answers and new selects are
 allowed. Everything else may change freely: text, layout, hints,
 feedback, formulas that feed only what is displayed or credited, correct
 answers, awards, weights, the conditions of content that holds no input,
@@ -202,8 +209,8 @@ and an input's starting values (step 3).
 
 **Why this is enough.** Every essential cell an old input reads holds,
 after the restore, a value the student actually had (step 2), a default
-that is unchanged (condition 3), or a starting value the student never
-changed, in a cell with the same key, type and sharing (condition 2).
+that is unchanged, or a starting value the student never changed, in a
+cell with the same key, type and sharing (condition 2).
 Through an unchanged derivation, the input then shows exactly what it
 showed before, but for a prop the student never changed, which shows its
 new start; nothing is calculated from a starting value, so nothing else
@@ -211,7 +218,7 @@ moves with it. It exists exactly when it did before, and can be acted on
 exactly when it could before. That value was in the
 old domain, which the new one contains (condition 1), so everything the
 student could see and reach, they still can. A new input starts from new
-cells or inside its domain (condition 4). Nothing here depends on any
+cells or inside its domain (condition 3). Nothing here depends on any
 student's values, so it holds for every student.
 
 Each condition rules out a failure found in drafting:
@@ -219,14 +226,15 @@ Each condition rules out a failure found in drafting:
 | Failure | Caught by |
 |---|---|
 | A raised `xmin`; a reordered `choiceInput` | condition 1 |
-| A type change; a copy given an override | condition 2 |
-| `q.x = 2*$n` changed to `3*$n`: `q` moves though `n` restores exactly | condition 3, operators |
-| `q.x = $k*$n`, `<number name="k">` changed from 2 to 3 | condition 3, defaults |
-| A circle's `radius` changed: the circle through the student's points moves | condition 3, defaults |
-| A polygon's first vertex moved, which its fourth is calculated from | condition 3, defaults |
-| `length="$n"` changed to `$n/2`: iterations with the student's work vanish | condition 3, existence |
-| A `fixed`, `hide` or condition added around an input | condition 3, acting on it |
-| A new point at `x="$n"` | condition 4 |
+| A type change | condition 1 |
+| A copy given an override | condition 2, the cells it reads |
+| `q.x = 2*$n` changed to `3*$n`: `q` moves though `n` restores exactly | condition 2, operators |
+| `q.x = $k*$n`, `<number name="k">` changed from 2 to 3 | condition 2, defaults |
+| A circle's `radius` changed: the circle through the student's points moves | condition 2, defaults |
+| A polygon's first vertex moved, which its fourth is calculated from | condition 2, defaults |
+| `length="$n"` changed to `$n/2`: iterations with the student's work vanish | condition 2, existence |
+| A `fixed`, `hide` or condition added around an input | condition 2, acting on it |
+| A new point at `x="$n"` | condition 3 |
 
 `compare_versions` (beside `diagnose` in `compile/check.rs`) takes the two
 sources and returns whether the edit is safe and, if not, which inputs
@@ -286,7 +294,8 @@ asks:
 
 When a student moves to the new version, it runs under the release their
 attempt is pinned to, and the restore is today's, by stable keys: every
-saved key exists in the new version (condition 2), so nothing is parked,
+saved key exists in the new version (condition 2, through the
+derivation), so nothing is parked,
 remapped or replayed. An answer whose correct answer changed regrades;
 what that does to a score already recorded is the platform's policy,
 chosen in the same dialog.
@@ -454,10 +463,12 @@ session generator can start after 3.
    expression with its leaves numbered by input. The defaults are kept
    beside the derivation, each with whether any other input's closure
    reaches its cell; a default may change only where it is the input's
-   starting value in both versions. The cells an input writes are its
-   closure's essential leaves but a hold's flag; which elements share a
-   cell needs no list of its own, since a cell is named by the element
-   that defines it, so a copy given an override writes another cell.
+   starting value in both versions. The cells an input writes were its
+   closure's essential leaves but a hold's flag, until the 2026-10-26
+   amendment folded them into the derivation; which elements share a
+   cell never needed a list of its own, since a cell is named by the
+   element that defines it, so a copy given an override writes another
+   cell.
    Format 3's `doc` names the version by a hash of its source instead
    (`Dast::version_hash`), since a signature at every load would cost a
    probe; what a platform needs it for is which version a save was made
@@ -472,7 +483,7 @@ session generator can start after 3.
    `compare_versions_json`. A rename applies to the old version's keys
    before its signature is hashed, and to every key under the renamed
    one. Wrapping an input in a new conditional moves its key, so it
-   fails condition 1 rather than 3.
+   fails condition 1 rather than the derivation's.
 6. **`tests/safe_edits.rs`** (step 5): generated edits and sessions over
    the golden set and the fixtures, seeded, a short run in CI and a long
    one on request.
@@ -503,5 +514,5 @@ Settled while planning:
   pick one option more than once, the pick's position among the picks of
   that option.
 - The core does not refuse a request on a prop that is not interactive;
-  the viewer's test is the check, as step 3 says. (ADR 0018 proposes to
-  reverse this: the core accepts a request only on an input's cell.)
+  the viewer's test is the check, as step 3 says. (Reversed by ADR 0018:
+  the core accepts a request only on an input's cell.)

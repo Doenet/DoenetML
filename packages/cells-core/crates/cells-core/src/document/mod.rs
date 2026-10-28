@@ -84,6 +84,8 @@ pub struct Document {
     pub(crate) version: u64,
     /// Sticky groups as cells, for the request pre-pass (ADR 0007).
     sticky: Vec<sticky::StickyTable>,
+    /// One bit per cell a renderer may request (`interactive.rs`).
+    interactive: Vec<u64>,
     /// How a tick recomputes (`request`): a dirty closure unless set
     /// otherwise (`set_evaluator`), kept across rebuilds.
     evaluator: Recompute,
@@ -126,9 +128,11 @@ impl Document {
             version: compiled.version,
             compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
+            interactive: Vec::new(),
             evaluator: Recompute::default(),
         };
         doc.sticky = doc.sticky_tables();
+        doc.interactive = doc.interactive_bits();
         doc
     }
 

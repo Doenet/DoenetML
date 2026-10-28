@@ -266,6 +266,26 @@ mod inverses {
         (got.is_nan() && want.is_nan()) || got == want || (got - want).abs() <= 1e-9 * scale
     }
 
+    /// Every input an inverse writes is one its entry declares
+    /// (`OpSpec::writes`, ADR 0018).
+    #[test]
+    fn every_inverse_writes_a_declared_input() {
+        for spec in OpSpec::scalar_samples() {
+            let n = spec.scalar_arity().unwrap();
+            let op = spec.bind_scalar(&(0..n as CellIdx).collect::<Vec<_>>());
+            for cur in &assignments(n) {
+                for &d in &VALUES {
+                    if let Some((c, _)) = op.invert(cur, d) {
+                        assert!(
+                            spec.writes() & (1 << c) != 0,
+                            "{spec:?} at {cur:?}, asked {d}, wrote input {c}, which it does not declare"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn every_inverse_does_what_its_entry_declares() {
         let mut failures = Vec::new();

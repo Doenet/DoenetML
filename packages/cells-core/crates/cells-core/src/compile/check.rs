@@ -33,10 +33,16 @@ pub(crate) struct CompileOutput {
 /// stamped build reads. The compile holds the source's diagnostics: the
 /// lint findings and the boxed errors. Only a cycle, which has no element
 /// to box, fails it.
+///
+/// It also decides how every build classes its value slots (ADR 0018,
+/// `Classes`): by the probe's record when the probe runs, by the one build's
+/// own walk otherwise, and all essential when `classify` is off or a test
+/// load skips the probe of a document that has repeats or selects.
 pub(crate) fn compile(
     dast: &Arc<Dast>,
     session: &Session,
     check_cycles: bool,
+    classify: bool,
 ) -> Result<CompileOutput> {
     let profile = crate::profile::enabled();
     let mut list = Vec::new();
@@ -59,11 +65,18 @@ pub(crate) fn compile(
             if profile {
                 eprintln!("  compile/plan: {:.2?}", clock.elapsed());
             }
-            if check_cycles && (compiled.has_repeats() || compiled.has_selects()) {
+            let varies = compiled.has_repeats() || compiled.has_selects();
+            if !classify || (varies && !check_cycles) {
+                compiled.classes = Classes::Off;
+            }
+            if check_cycles && varies {
                 let clock = web_time::Instant::now();
                 let _s = crate::trace::span("probe");
                 let probed = build::probe(&compiled)?;
                 compiled.structural_depth = Some(probed.structural_depth());
+                if let Some(record) = probed.writable_record() {
+                    compiled.classes = Classes::Record(Arc::new(record));
+                }
                 let checked = clock.elapsed();
                 if profile {
                     eprintln!("  compile/check: {checked:.2?}");

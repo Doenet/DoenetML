@@ -18,6 +18,7 @@ pub(super) struct Prop {
     bind: Option<&'static str>,
     ref_prop: Option<&'static str>,
     interactive: bool,
+    written_by_action: bool,
 }
 
 /// [`PropFrom`] with props named rather than numbered.
@@ -39,6 +40,7 @@ const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> 
         bind: None,
         ref_prop: None,
         interactive: false,
+        written_by_action: false,
     }
 }
 
@@ -102,6 +104,12 @@ impl Prop {
         self.interactive = true;
         self
     }
+    /// An action writes this prop (`Document::submit`, `trigger`), so it
+    /// is student state though no renderer requests it (ADR 0018).
+    pub(super) const fn written_by_action(mut self) -> Self {
+        self.written_by_action = true;
+        self
+    }
 }
 
 /// A table's [`PropDef`]s, with each prop name a computed prop reads
@@ -115,6 +123,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
         bind: None,
         ref_prop: None,
         interactive: false,
+        written_by_action: false,
     };
     let mut out = [blank; N];
     let mut i = 0;
@@ -152,6 +161,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             bind: p.bind,
             ref_prop: p.ref_prop,
             interactive: p.interactive,
+            written_by_action: p.written_by_action,
         };
         i += 1;
     }
@@ -421,10 +431,11 @@ pub(crate) use typed_props;
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
 /// optionally followed by `{ attribute: a, bind: b, ref_prop: p,
-/// interactive }`. `interactive` marks a prop a renderer may request (ADR
-/// 0017's inputs); a list ending `interactive: true` has every point
-/// interactive, for a shape a drag of one point or of the whole shape
-/// moves.
+/// interactive, written_by_action }`. `interactive` marks a prop a
+/// renderer may request (ADR 0017's inputs); a list ending `interactive:
+/// true` has every point interactive, for a shape a drag of one point or
+/// of the whole shape moves. `written_by_action` marks a prop an action
+/// writes instead (a submit, a trigger; ADR 0018).
 ///
 /// ```ignore
 /// component! {

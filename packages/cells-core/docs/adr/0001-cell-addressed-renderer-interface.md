@@ -8,7 +8,10 @@ view over the core's cell array, reads the component table (the columnar
 map from each component and prop to its cells) through views of the same
 kind, and is told after each tick which cell indices changed. Writes are requests of the form
 `(cell_index, value)`; the core inverts from whatever cell is named, derived or
-essential, to the essential cells beneath it.
+essential, to the essential cells beneath it. (Narrowed by ADR 0018: the core
+accepts a request only on an interactive cell, an input's, and a submit and
+a trigger are actions the core carries out; the interface is still
+addressed by cell.)
 
 We chose this because the point of the experiment is to see what performance a
 data-organized graph allows, and the per-prop message path is one of the costs

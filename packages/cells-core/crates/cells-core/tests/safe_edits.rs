@@ -279,8 +279,9 @@ fn inside((x, y): (f64, f64), [x0, x1, y0, y1]: [f64; 4]) -> bool {
     x0 <= x && x <= x1 && y0 <= y && y <= y1
 }
 
-/// Requests on interactive cells, with values of their types, and a
-/// submit of every answer.
+/// Requests on interactive cells, with values of their types, a submit
+/// of every answer and a press of every trigger: the actions, whose cells
+/// are not interactive (ADR 0018).
 fn session(doc: &mut Document, rng: &mut Rng) {
     let n = if long() { 24 } else { 8 };
     for _ in 0..n {
@@ -306,6 +307,21 @@ fn session(doc: &mut Document, rng: &mut Rng) {
         .collect();
     for a in answers {
         doc.submit(a);
+    }
+    let triggers: Vec<_> = (0..doc.n_components() as u32)
+        .filter(|&c| match doc.component_type(c) {
+            ComponentType::TriggerSet => true,
+            ComponentType::UpdateValue => doc
+                .parent(c)
+                .is_none_or(|p| doc.component_type(p) != ComponentType::TriggerSet),
+            _ => false,
+        })
+        .collect();
+    for t in triggers {
+        // A press may rebuild, which numbers the components anew.
+        if (t as usize) < doc.n_components() {
+            doc.trigger(t);
+        }
     }
 }
 

@@ -1,12 +1,14 @@
 //! Inverses in the current core that read state outside their dependencies
 //! through `stateValues`, expressed as operator chains whose extra values are
 //! forward inputs. Each test names the current-core inverse it stands for.
+//! These test the core's inversion, so a request on a `<number>` no input
+//! reaches is unchecked (ADR 0018).
 
 mod common;
 
 use cells_core::Document;
 use cells_core::testing::test_utils::load;
-use common::req;
+use common::{req, set_unchecked};
 
 fn v(doc: &Document, name: &str) -> f64 {
     doc.value(name, "value").unwrap()
@@ -25,12 +27,12 @@ fn bound_read_from_a_sibling_is_a_forward_min() {
            <number name="page">clamp($upper, 1, 1e300)</number>"#,
     )
     .unwrap();
-    doc.request(&[req(&doc, "page", "value", 9.0)]);
+    set_unchecked(&mut doc, "page", "value", 9.0);
     assert_eq!(v(&doc, "stored"), 5.0);
     assert_eq!(v(&doc, "page"), 5.0);
-    doc.request(&[req(&doc, "page", "value", -3.0)]);
+    set_unchecked(&mut doc, "page", "value", -3.0);
     assert_eq!(v(&doc, "stored"), 1.0);
-    doc.request(&[req(&doc, "page", "value", 4.0)]);
+    set_unchecked(&mut doc, "page", "value", 4.0);
     assert_eq!(v(&doc, "page"), 4.0);
     // Deviation: the forward clamps too, so fewer pages shows the last page
     // where the current core keeps showing the stale stored page.
@@ -57,11 +59,11 @@ fn wrap_read_from_a_sibling_is_a_forward_modulus() {
     )
     .unwrap();
     // The current core: ((7 - 1) % 5) + 1 = 2.
-    doc.request(&[req(&doc, "index", "value", 7.0)]);
+    set_unchecked(&mut doc, "index", "value", 7.0);
     assert_eq!(v(&doc, "index"), 2.0);
-    doc.request(&[req(&doc, "index", "value", 4.0)]);
+    set_unchecked(&mut doc, "index", "value", 4.0);
     assert_eq!(v(&doc, "index"), 4.0);
-    doc.request(&[req(&doc, "index", "value", 11.0)]);
+    set_unchecked(&mut doc, "index", "value", 11.0);
     assert_eq!(v(&doc, "index"), 1.0);
 }
 
@@ -78,17 +80,17 @@ fn a_gate_drops_requests_while_its_flag_is_set() {
            <number name="doubled">2 * $xMin</number>"#,
     )
     .unwrap();
-    let tick = doc.request(&[req(&doc, "xMin", "value", 3.0)]);
+    let tick = set_unchecked(&mut doc, "xMin", "value", 3.0);
     assert!(tick.dropped.is_empty());
     assert_eq!(v(&doc, "x"), 3.0);
 
     doc.request(&[req(&doc, "fixAxes", "value", 1.0)]);
     assert_eq!(v(&doc, "xMin"), 3.0, "the forward ignores the flag");
-    let tick = doc.request(&[req(&doc, "xMin", "value", 8.0)]);
+    let tick = set_unchecked(&mut doc, "xMin", "value", 8.0);
     assert_eq!(tick.dropped.len(), 1);
     assert_eq!(v(&doc, "x"), 3.0);
     // A request from further down the chain stops at the gate too.
-    let tick = doc.request(&[req(&doc, "doubled", "value", 10.0)]);
+    let tick = set_unchecked(&mut doc, "doubled", "value", 10.0);
     assert_eq!(tick.dropped.len(), 1);
     assert_eq!(v(&doc, "doubled"), 6.0);
     // The gate holds only what passes through it.
@@ -96,7 +98,7 @@ fn a_gate_drops_requests_while_its_flag_is_set() {
     assert_eq!(v(&doc, "xMin"), 4.0);
 
     doc.request(&[req(&doc, "fixAxes", "value", 0.0)]);
-    doc.request(&[req(&doc, "doubled", "value", 10.0)]);
+    set_unchecked(&mut doc, "doubled", "value", 10.0);
     assert_eq!(v(&doc, "x"), 5.0);
 }
 
@@ -111,7 +113,7 @@ fn a_gate_with_a_nan_flag_holds() {
     )
     .unwrap();
     doc.request(&[req(&doc, "flag", "value", f64::NAN)]);
-    let tick = doc.request(&[req(&doc, "g", "value", 7.0)]);
+    let tick = set_unchecked(&mut doc, "g", "value", 7.0);
     assert_eq!(tick.dropped.len(), 1);
     assert_eq!(v(&doc, "x"), 2.0);
 }

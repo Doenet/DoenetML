@@ -1,6 +1,7 @@
 //! `<circle>`, from every combination of `center`, `radius` and
 //! `through`: what it shows, and where a drag of its center or a change of
-//! its radius lands.
+//! its radius lands. No renderer requests a radius: a change of it comes
+//! through an input bound to it, as in a document (ADR 0018).
 
 use cells_core::spec;
 use std::f64::consts::{PI, TAU};
@@ -9,7 +10,7 @@ spec! {
     circle;
 
     case "no attributes: the unit circle, its center and radius free" {
-        doenet r#"<graph><circle name="c"/></graph>"#;
+        doenet r#"<graph><circle name="c"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#;
         expect {
             "c.cx" = 0, "c.cy" = 0, "c.radius" = 1,
             "c.diameter" = 2, "c.circumference" = TAU, "c.area" = PI,
@@ -17,14 +18,14 @@ spec! {
         request { "c.cx" = 2, "c.cy" = 3 }
         expect { "c.cx" = 2, "c.cy" = 3, "c.radius" = 1 }
         // A negative radius is clamped to zero (projection, ADR 0003).
-        request { "c.radius" = -4 }
+        request { "ri.value" = -4 }
         expect { "c.radius" = 0, "c.diameter" = 0, "c.area" = 0 }
     }
 
     case "center only: radius 1" {
-        doenet r#"<graph><circle name="c" center="(1,2)"/></graph>"#;
+        doenet r#"<graph><circle name="c" center="(1,2)"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#;
         expect { "c.center" = (1, 2), "c.numericalCenter" = (1, 2), "c.radius" = 1 }
-        request { "c.radius" = 3 }
+        request { "ri.value" = 3 }
         expect { "c.radius" = 3, "c.center" = (1, 2) }
     }
 
@@ -36,11 +37,11 @@ spec! {
     }
 
     case "center and radius" {
-        doenet r#"<graph><circle name="c" center="(1,2)" radius="3"/></graph>"#;
+        doenet r#"<graph><circle name="c" center="(1,2)" radius="3"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#;
         expect { "c.center" = (1, 2), "c.radius" = 3, "c.diameter" = 6 }
         request { "c.cx" = 4, "c.cy" = 5 }
         expect { "c.center" = (4, 5), "c.radius" = 3 }
-        request { "c.radius" = 0.5 }
+        request { "ri.value" = 0.5 }
         expect { "c.radius" = 0.5, "c.center" = (4, 5) }
     }
 
@@ -50,13 +51,13 @@ spec! {
                     <point name="p">(-3,5)</point>
                     <circle name="c" center="$p" radius="$r"/>
                   </graph>
-                  <point name="cc" extend="$c.center"/>"#;
+                  <point name="cc" extend="$c.center"/><mathInput name="ri" bindValueTo="$c.radius"/>"#;
         expect { "c.cx" = -3, "c.cy" = 5, "c.radius" = 3 }
         // Dragging the circle moves the point that defines its center.
         request { "c.cx" = 2, "c.cy" = 3 }
         expect { "p.x" = 2, "p.y" = 3 }
         // A negative radius reaches the input as zero.
-        request { "c.radius" = -4 }
+        request { "ri.value" = -4 }
         expect { "r.value" = 0 }
         // A negative value typed into the input stays; the circle shows zero.
         request { "r.value" = -3 }
@@ -70,10 +71,10 @@ spec! {
         doenet r#"<graph>
                     <point name="c">(0,0)</point><point name="p">(3,4)</point>
                     <circle name="circ" center="$c" through="$p"/>
-                  </graph>"#;
+                  </graph><mathInput name="ri" bindValueTo="$circ.radius"/>"#;
         expect { "circ.radius" = 5 }
         // A radius moves the through point along its ray from the center.
-        request { "circ.radius" = 10 }
+        request { "ri.value" = 10 }
         expect { "p.x" = 6, "p.y" = 8 }
         // Moving the center translates both points.
         request { "circ.cx" = 1, "circ.cy" = 1 }
@@ -81,9 +82,9 @@ spec! {
     }
 
     case "one through point: the circle sits on it" {
-        doenet r#"<graph><circle name="c" through="(2,3)"/></graph>"#;
+        doenet r#"<graph><circle name="c" through="(2,3)"/></graph><mathInput name="ri" bindValueTo="$c.radius"/>"#;
         expect { "c.numericalCenter" = (2, 2), "c.radius" = 1 }
-        request { "c.radius" = 2 }
+        request { "ri.value" = 2 }
         expect { "c.numericalCenter" = (2, 1), "c.radius" = 2 }
     }
 
@@ -118,7 +119,7 @@ spec! {
                     <point name="p1">(2,-3)</point><point name="p2">(3,4)</point>
                     <point name="p3">(-3,4)</point>
                     <circle name="c" through="$p1 $p2 $p3"/>
-                  </graph>"#;
+                  </graph><mathInput name="ri" bindValueTo="$c.radius"/>"#;
         expect {
             "c.numericalCenter" = (0.0, 6.0 / 7.0),
             "c.radius" = 925f64.sqrt() / 7.0,
@@ -126,7 +127,7 @@ spec! {
         request { "c.cx" = 3, "c.cy" = 6.0 / 7.0 + 4.0 }
         expect { "p1.coords" = (5, 1), "p2.coords" = (6, 8), "p3.coords" = (0, 8) }
         // Doubling the radius keeps each point on its ray from the center.
-        request { "c.radius" = 2.0 * 925f64.sqrt() / 7.0 }
+        request { "ri.value" = 2.0 * 925f64.sqrt() / 7.0 }
         expect {
             "c.numericalCenter" = (3.0, 6.0 / 7.0 + 4.0),
             "p1.coords" = (7.0, 2.0 * (1.0 - 34.0 / 7.0) + 34.0 / 7.0),

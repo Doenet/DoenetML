@@ -38,13 +38,17 @@ fn empty_input_holds_the_empty_string() {
 }
 
 #[test]
-fn literal_text_is_essential_and_empty_text_is_blank() {
-    let mut doc = load(r#"<text name="t">hello there</text><text name="e"/>"#).unwrap();
+fn literal_text_is_its_value_and_empty_text_is_blank() {
+    let mut doc = load(
+        r#"<text name="t">hello there</text><text name="e"/>
+        <textInput name="ei" bindValueTo="$e"/>"#,
+    )
+    .unwrap();
     assert_eq!(text(&doc, "t"), "hello there");
     assert_eq!(text(&doc, "e"), "");
-    assert!(doc.is_essential(doc.cell("t", "value").unwrap()));
+    // An input bound to the text makes it state (ADR 0018).
     assert!(doc.is_essential(doc.cell("e", "value").unwrap()));
-    type_text(&mut doc, "e", "filled");
+    type_text(&mut doc, "ei", "filled");
     assert_eq!(text(&doc, "e"), "filled");
 }
 
@@ -134,12 +138,12 @@ fn interned_ids_survive_a_rebuild() {
     let mut doc = load(
         r#"<numberInput name="n">2</numberInput>
         <textInput name="ti"/>
-        <text name="t"/>
+        <text name="t"/><textInput name="tb" bindValueTo="$t"/>
         <repeatForSequence name="r" length="$n" valueName="v"><number name="m">$v</number></repeatForSequence>"#,
     )
     .unwrap();
     type_text(&mut doc, "ti", "kept");
-    type_text(&mut doc, "t", "also kept");
+    type_text(&mut doc, "tb", "also kept");
     let before = doc.strings.len();
     let t = set(&mut doc, "n", "value", 4.0);
     assert!(t.rebuilt);
