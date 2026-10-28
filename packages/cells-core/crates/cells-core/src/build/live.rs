@@ -22,19 +22,19 @@ impl<'c> Builder<'c> {
         let mut seen = vec![false; n];
         let mut stack: Vec<u32> = Vec::new();
         let (rendered, in_sticky) = self.components.placement(self.root);
-        for c in 0..self.components.component_type.len() as CompIdx {
-            let ty = self.components.component_type[c as usize];
+        for c in CompIdx::below(self.components.component_type.len()) {
+            let ty = self.components.component_type[c.index()];
             let np = self.n_public(c);
-            let base = self.slot_base[c as usize] as usize;
+            let base = self.slot_base[c.index()] as usize;
             // Snapping reads a sticky group's settings and every point of
             // its members (`document/sticky.rs`); a member is rendered, so
             // in a sticky group is in a rendered one.
             let sticky = ty == ComponentType::StickyGroup
-                || (in_sticky[c as usize] && ty.sticky_layout().is_some());
+                || (in_sticky[c.index()] && ty.sticky_layout().is_some());
             for pi in 0..np {
                 if sticky
                     || ty.is_root_prop(np, pi)
-                    || (rendered[c as usize] && ty.is_rendered_prop(np, pi))
+                    || (rendered[c.index()] && ty.is_rendered_prop(np, pi))
                 {
                     stack.push(roots[base + pi]);
                 }

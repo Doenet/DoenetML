@@ -227,7 +227,7 @@ impl<'c> Builder<'c> {
             missing: None,
             seeds: Vec::new(),
             arena: Arena::default(),
-            root: 0,
+            root: CompIdx::new(0),
             view,
             slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
@@ -253,7 +253,7 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         n_slots: usize,
     ) -> CompIdx {
-        let idx = self.components.len() as CompIdx;
+        let idx = CompIdx::from_index(self.components.len());
         self.components.component_type.push(component_type);
         self.components.name.push(name);
         self.components.parent.push(parent);
@@ -273,8 +273,8 @@ impl<'c> Builder<'c> {
     /// two per point of its list.
     #[inline]
     pub(in crate::build) fn n_public(&self, comp: CompIdx) -> usize {
-        match self.n_public[comp as usize] {
-            NONE => self.components.component_type[comp as usize]
+        match self.n_public[comp.index()] {
+            NONE => self.components.component_type[comp.index()]
                 .prop_defs()
                 .len(),
             n => n as usize,
@@ -289,7 +289,7 @@ impl<'c> Builder<'c> {
         comp: CompIdx,
         name: &str,
     ) -> Option<Vec<SlotId>> {
-        let component_type = self.components.component_type[comp as usize];
+        let component_type = self.components.component_type[comp.index()];
         if let Some(parts) = component_type.combined_prop(name) {
             return Some(
                 parts
@@ -316,22 +316,22 @@ impl<'c> Builder<'c> {
     }
 
     pub(in crate::build) fn allocate_slots(&mut self, comp: CompIdx, n: usize) {
-        self.slot_base[comp as usize] = self.sources.len() as u32;
+        self.slot_base[comp.index()] = self.sources.len() as u32;
         self.sources
             .extend(std::iter::repeat_n(BuiltSource::Unset, n));
         self.slot_comp.extend(std::iter::repeat_n(comp, n));
         self.slot_scope
-            .extend(std::iter::repeat_n(self.components.scope[comp as usize], n));
+            .extend(std::iter::repeat_n(self.components.scope[comp.index()], n));
     }
 
     #[inline]
     pub(in crate::build) fn slot(&self, comp: CompIdx, prop_index: usize) -> SlotId {
-        self.slot_base[comp as usize] + prop_index as u32
+        self.slot_base[comp.index()] + prop_index as u32
     }
 
-    pub(in crate::build) fn set_children(&mut self, comp: CompIdx, kids: &[u32]) {
-        self.components.child_start[comp as usize] = self.components.child_list.len() as u32;
-        self.components.child_count[comp as usize] = kids.len() as u32;
+    pub(in crate::build) fn set_children(&mut self, comp: CompIdx, kids: &[ChildEntry]) {
+        self.components.child_start[comp.index()] = self.components.child_list.len() as u32;
+        self.components.child_count[comp.index()] = kids.len() as u32;
         self.components.child_list.extend_from_slice(kids);
     }
 
@@ -341,7 +341,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn anon_slot(&mut self, source: BuiltSource, scope: ScopeId) -> SlotId {
         let s = self.sources.len() as SlotId;
         self.sources.push(source);
-        self.slot_comp.push(NONE);
+        self.slot_comp.push(CompIdx::NONE);
         self.slot_scope.push(scope);
         s
     }
@@ -356,13 +356,13 @@ impl<'c> Builder<'c> {
     }
 
     pub(in crate::build) fn comp_label(&self, comp: CompIdx) -> String {
-        let name = self.components.name[comp as usize];
+        let name = self.components.name[comp.index()];
         if name != NONE {
             self.compiled.dast.strings.get(name).trim().to_string()
         } else {
             format!(
                 "<{}>#{}",
-                self.components.component_type[comp as usize].tag(),
+                self.components.component_type[comp.index()].tag(),
                 comp
             )
         }
@@ -370,11 +370,11 @@ impl<'c> Builder<'c> {
 
     pub(in crate::build) fn slot_label(&self, slot: SlotId) -> String {
         let comp = self.slot_comp[slot as usize];
-        if comp == NONE {
+        if comp == CompIdx::NONE {
             return format!("(anonymous slot {slot})");
         }
-        let pi = (slot - self.slot_base[comp as usize]) as usize;
-        let component_type = self.components.component_type[comp as usize];
+        let pi = (slot - self.slot_base[comp.index()]) as usize;
+        let component_type = self.components.component_type[comp.index()];
         match component_type.prop_name(self.n_public(comp), pi) {
             Some(name) => format!("{}.{name}", self.comp_label(comp)),
             None => format!("{}.(hidden slot {pi})", self.comp_label(comp)),
@@ -404,7 +404,7 @@ impl<'c> Builder<'c> {
         let mut out = Vec::new();
         while scope != 0 {
             match self.scope_repeat.get(scope as usize) {
-                Some(&r) if r != NONE => out.push(r),
+                Some(&r) if r != CompIdx::NONE => out.push(r),
                 _ => {}
             }
             scope = self.scopes[scope].0;
@@ -418,7 +418,7 @@ impl<'c> Builder<'c> {
             if self
                 .scope_repeat
                 .get(scope as usize)
-                .is_some_and(|&r| r != NONE)
+                .is_some_and(|&r| r != CompIdx::NONE)
             {
                 return true;
             }
@@ -437,7 +437,7 @@ impl<'c> Builder<'c> {
 
     /// `fail_at` the element component `comp` came from.
     fn fail_at_comp(&mut self, comp: CompIdx) {
-        let node = self.components.dast_node[comp as usize];
+        let node = self.components.dast_node[comp.index()];
         self.fail_at(node);
     }
 
@@ -446,18 +446,17 @@ impl<'c> Builder<'c> {
         if self.scope_comps.len() <= s {
             self.scope_comps.resize(s + 1, Vec::new());
         }
-        self.scope_comps[s] = vec![NONE; self.compiled.templates[template].elems.len()];
+        self.scope_comps[s] = vec![CompIdx::NONE; self.compiled.templates[template].elems.len()];
     }
 
     // ---- expansion -----------------------------------------------------------
 
     pub(in crate::build) fn expand_all(&mut self) -> Result<()> {
         self.enter_scope(0, 0);
-        let kids = self.expand(0, 0, NONE)?;
+        let kids = self.expand(0, 0, CompIdx::NONE)?;
         self.root = kids
             .iter()
-            .copied()
-            .find(|&k| k & TEXT_BIT == 0)
+            .find_map(|k| k.as_comp())
             .expect("document root");
         Ok(())
     }
@@ -469,7 +468,7 @@ impl<'c> Builder<'c> {
         t: TemplateId,
         scope: ScopeId,
         parent: CompIdx,
-    ) -> Result<Vec<u32>> {
+    ) -> Result<Vec<ChildEntry>> {
         let n_elems = self.compiled.templates[t].elems.len();
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
@@ -484,10 +483,10 @@ impl<'c> Builder<'c> {
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
             if let NPublic::Planned(n) = n_public {
-                self.n_public[comp as usize] = n;
+                self.n_public[comp.index()] = n;
             }
             self.scope_comps[scope as usize][e] = comp;
-            self.comp_instance[comp as usize] = self.instances.len() as u32;
+            self.comp_instance[comp.index()] = self.instances.len() as u32;
             self.instances.push(Instance {
                 scope,
                 template: t,
@@ -508,14 +507,14 @@ impl<'c> Builder<'c> {
                         let s = self.scope_for(scope, node, k);
                         iter_scopes.push(s);
                         if self.scope_repeat.len() <= s as usize {
-                            self.scope_repeat.resize(s as usize + 1, NONE);
+                            self.scope_repeat.resize(s as usize + 1, CompIdx::NONE);
                         }
                         self.scope_repeat[s as usize] = comp;
                         self.enter_scope(s, template);
                         let mut these = self.expand(template, s, comp)?;
                         kids.append(&mut these);
                     }
-                    self.comp_repeat[comp as usize] = self.repeats.len() as u32;
+                    self.comp_repeat[comp.index()] = self.repeats.len() as u32;
                     self.repeats.push(Repeat {
                         comp,
                         node,
@@ -554,10 +553,8 @@ impl<'c> Builder<'c> {
                 _ => self.child_entries(t, e, scope, comp),
             };
             self.set_children(comp, &kids);
-            for &k in &kids {
-                if k & TEXT_BIT == 0 {
-                    self.components.parent[k as usize] = comp;
-                }
+            for k in kids.iter().filter_map(|k| k.as_comp()) {
+                self.components.parent[k.index()] = comp;
             }
         }
         // The template's own children (the repeat body); their parent is the repeat.
@@ -575,7 +572,7 @@ impl<'c> Builder<'c> {
         e: ElemId,
         scope: ScopeId,
         parent: CompIdx,
-    ) -> Vec<u32> {
+    ) -> Vec<ChildEntry> {
         let n = self.compiled.templates[t].elems[e].children.len();
         let mut kids = Vec::with_capacity(n);
         for i in 0..n {
@@ -590,15 +587,15 @@ impl<'c> Builder<'c> {
         ch: &Child,
         scope: ScopeId,
         parent: CompIdx,
-    ) -> u32 {
+    ) -> ChildEntry {
         match *ch {
-            Child::Elem(e) => self.scope_comps[scope as usize][e],
-            Child::Text(s) => TEXT_BIT | s,
+            Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope as usize][e]),
+            Child::Text(s) => ChildEntry::text(s),
             Child::Macro(plan, has_index) => {
                 // Type is unknown until the reference resolves; Document stands in.
                 let idx = self.new_component(ComponentType::Document, NONE, parent, NONE, scope, 0);
                 self.pending.push((idx, plan, scope, has_index));
-                idx
+                ChildEntry::comp(idx)
             }
         }
     }
@@ -668,7 +665,7 @@ impl<'c> Builder<'c> {
         let (target, prop) = self.resolve(plan, scope)?;
         match (target, prop) {
             (Resolved::Missing, _) => {
-                self.components.component_type[idx as usize] = ComponentType::Number;
+                self.components.component_type[idx.index()] = ComponentType::Number;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, prop::number::VALUE);
                 self.sources[s as usize] = BuiltSource::Alias(self.missing_slot());
@@ -682,7 +679,7 @@ impl<'c> Builder<'c> {
                 } else {
                     (ComponentType::Number, prop::number::VALUE)
                 };
-                self.components.component_type[idx as usize] = component_type;
+                self.components.component_type[idx.index()] = component_type;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
                 self.sources[s as usize] = BuiltSource::Alias(targets[0]);
@@ -690,7 +687,7 @@ impl<'c> Builder<'c> {
             }
             (target, None) => {
                 let referent = self.single_component(target, plan)?;
-                let component_type = self.components.component_type[referent as usize];
+                let component_type = self.components.component_type[referent.index()];
                 if matches!(
                     component_type,
                     ComponentType::ConditionalContent | ComponentType::Select | ComponentType::Case
@@ -714,10 +711,10 @@ impl<'c> Builder<'c> {
 
     /// Make `idx` a copy of `referent`: same type, every slot aliased.
     pub(in crate::build) fn copy_into(&mut self, idx: CompIdx, referent: CompIdx) {
-        let component_type = self.components.component_type[referent as usize];
-        self.components.component_type[idx as usize] = component_type;
+        let component_type = self.components.component_type[referent.index()];
+        self.components.component_type[idx.index()] = component_type;
         let n = self.n_public(referent);
-        self.n_public[idx as usize] = self.n_public[referent as usize];
+        self.n_public[idx.index()] = self.n_public[referent.index()];
         self.allocate_slots(idx, n);
         for pi in 0..n {
             let s = self.slot(idx, pi);
@@ -738,7 +735,7 @@ impl<'c> Builder<'c> {
             return Ok(Vec::new());
         }
         let comp = self.single_component(target, plan)?;
-        let component_type = self.components.component_type[comp as usize];
+        let component_type = self.components.component_type[comp.index()];
         let prop =
             prop.ok_or_else(|| Error::PathTooDeep(self.compiled.refs[plan].display.clone()))?;
         // A list: the points the element holds.
@@ -772,7 +769,7 @@ impl<'c> Builder<'c> {
     /// the list prop it extends, or copies of the children of the point
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
-        let inst = self.instances[self.comp_instance[comp as usize] as usize];
+        let inst = self.instances[self.comp_instance[comp.index()] as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
         let mut kids = Vec::new();
         match (el.body.clone(), el.extend) {
@@ -793,25 +790,28 @@ impl<'c> Builder<'c> {
                     self.record_label(sy, y);
                     // Not state: a synthesized point has no essential key.
                     self.sources[sh as usize] = BuiltSource::Fixed(0.0);
-                    kids.push(pt);
+                    kids.push(ChildEntry::comp(pt));
                 }
             }
             (_, Some(p)) => {
                 let (target, _) = self.resolve(p, inst.scope)?;
                 // An index past the count copies nothing.
                 let referent = match target {
-                    Resolved::Missing => NONE,
+                    Resolved::Missing => CompIdx::NONE,
                     target => self.single_component(target, p)?,
                 };
-                let (s, n) = if referent == NONE {
+                let (s, n) = if referent == CompIdx::NONE {
                     (0, 0)
                 } else {
                     (
-                        self.components.child_start[referent as usize] as usize,
-                        self.components.child_count[referent as usize] as usize,
+                        self.components.child_start[referent.index()] as usize,
+                        self.components.child_count[referent.index()] as usize,
                     )
                 };
-                let originals: Vec<CompIdx> = self.components.child_list[s..s + n].to_vec();
+                let originals: Vec<CompIdx> = self.components.child_list[s..s + n]
+                    .iter()
+                    .filter_map(|e| e.as_comp())
+                    .collect();
                 for orig in originals {
                     let copy = self.new_component(
                         ComponentType::Document,
@@ -822,7 +822,7 @@ impl<'c> Builder<'c> {
                         0,
                     );
                     self.copy_into(copy, orig);
-                    kids.push(copy);
+                    kids.push(ChildEntry::comp(copy));
                 }
             }
             _ => {}
@@ -832,7 +832,7 @@ impl<'c> Builder<'c> {
     }
 
     pub(in crate::build) fn expand_collect(&mut self, comp: CompIdx) -> Result<()> {
-        let inst = self.instances[self.comp_instance[comp as usize] as usize];
+        let inst = self.instances[self.comp_instance[comp.index()] as usize];
         let Body::Collect {
             from,
             component_type,
@@ -846,7 +846,7 @@ impl<'c> Builder<'c> {
             Resolved::Comp(c) => self.collect_descendants(c, component_type, &mut found),
             Resolved::Iter(repeat, s) => {
                 for c in self.iteration_components(repeat, s) {
-                    if self.components.component_type[c as usize] == component_type {
+                    if self.components.component_type[c.index()] == component_type {
                         found.push(c);
                     } else {
                         self.collect_descendants(c, component_type, &mut found);
@@ -862,7 +862,8 @@ impl<'c> Builder<'c> {
             self.copy_into(copy, c);
             copies.push(copy);
         }
-        self.set_children(comp, &copies);
+        let entries: Vec<ChildEntry> = copies.iter().map(|&c| ChildEntry::comp(c)).collect();
+        self.set_children(comp, &entries);
         let s0 = self.slot(comp, prop::collect::COUNT);
         let counts = match self.view.collect_count() {
             CollectCount::Gathered => Vec::new(),
@@ -885,8 +886,8 @@ impl<'c> Builder<'c> {
     fn gathered_counts(&self, found: &[CompIdx]) -> Vec<SlotId> {
         let mut counts: Vec<SlotId> = Vec::new();
         for &c in found {
-            for r in self.enclosing_repeats(self.components.scope[c as usize]) {
-                let pi = self.components.component_type[r as usize]
+            for r in self.enclosing_repeats(self.components.scope[c.index()]) {
+                let pi = self.components.component_type[r.index()]
                     .count_prop()
                     .expect("a repeat has a count");
                 let s = self.slot(r, pi);
@@ -924,15 +925,14 @@ impl<'c> Builder<'c> {
         out: &mut Vec<CompIdx>,
     ) {
         let (s, n) = (
-            self.components.child_start[c as usize] as usize,
-            self.components.child_count[c as usize] as usize,
+            self.components.child_start[c.index()] as usize,
+            self.components.child_count[c.index()] as usize,
         );
         for i in s..s + n {
-            let e = self.components.child_list[i];
-            if e & TEXT_BIT != 0 {
+            let Some(e) = self.components.child_list[i].as_comp() else {
                 continue;
-            }
-            if self.components.component_type[e as usize] == component_type {
+            };
+            if self.components.component_type[e.index()] == component_type {
                 out.push(e);
             } else {
                 self.collect_descendants(e, component_type, out);
@@ -948,13 +948,13 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
     ) -> Vec<CompIdx> {
         let (s, n) = (
-            self.components.child_start[repeat as usize] as usize,
-            self.components.child_count[repeat as usize] as usize,
+            self.components.child_start[repeat.index()] as usize,
+            self.components.child_count[repeat.index()] as usize,
         );
         self.components.child_list[s..s + n]
             .iter()
-            .copied()
-            .filter(|&e| e & TEXT_BIT == 0 && self.components.scope[e as usize] == scope)
+            .filter_map(|e| e.as_comp())
+            .filter(|&e| self.components.scope[e.index()] == scope)
             .collect()
     }
 
@@ -968,7 +968,7 @@ impl<'c> Builder<'c> {
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
         let (component_type, extend_plan, n_props) = (el.component_type, el.extend, el.props.len());
         // Not such a copy, or placed already.
-        if el.n_public != NPublic::AsReferent || self.n_public[inst.comp as usize] != NONE {
+        if el.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
             return Ok(());
         }
         if visiting.contains(&inst.comp) {
@@ -983,11 +983,11 @@ impl<'c> Builder<'c> {
         };
         let label = self.label.clone();
         let Some((p, referent)) = referent else {
-            self.n_public[inst.comp as usize] = component_type.prop_defs().len() as u32;
+            self.n_public[inst.comp.index()] = component_type.prop_defs().len() as u32;
             self.allocate_slots(inst.comp, n_props);
             return Ok(());
         };
-        let rk = self.components.component_type[referent as usize];
+        let rk = self.components.component_type[referent.index()];
         if rk != component_type {
             return Err(Error::ExtendTypeMismatch {
                 referent: self.compiled.refs[p].display.clone(),
@@ -995,7 +995,7 @@ impl<'c> Builder<'c> {
                 component_type: component_type.tag().into(),
             });
         }
-        let ri = self.comp_instance[referent as usize];
+        let ri = self.comp_instance[referent.index()];
         if ri != NONE {
             visiting.push(inst.comp);
             let r = self.instances[ri as usize];
@@ -1004,7 +1004,7 @@ impl<'c> Builder<'c> {
         }
         self.copy_into(inst.comp, referent);
         let n = self.n_public(referent);
-        self.n_public[inst.comp as usize] = n as u32;
+        self.n_public[inst.comp.index()] = n as u32;
         for pi in 0..n {
             let (s, t) = (self.slot(inst.comp, pi), self.slot(referent, pi));
             self.record_label_as(s, t, &label);
@@ -1026,7 +1026,7 @@ impl<'c> Builder<'c> {
             Some(p) => {
                 let (target, _) = self.resolve(p, inst.scope)?;
                 let referent = self.single_component(target, p)?;
-                let rk = self.components.component_type[referent as usize];
+                let rk = self.components.component_type[referent.index()];
                 if rk != component_type {
                     return Err(Error::ExtendTypeMismatch {
                         referent: self.compiled.refs[p].display.clone(),
@@ -1103,7 +1103,7 @@ impl<'c> Builder<'c> {
     ) -> Result<BuiltSource> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
-        let component_type = self.components.component_type[comp as usize];
+        let component_type = self.components.component_type[comp.index()];
         let c: &'c Compiled = self.compiled;
         Ok(match plan {
             // Left unset: wired from the tree by `fill_deferred`.
@@ -1218,11 +1218,11 @@ impl<'c> Builder<'c> {
         source: BuiltSource,
     ) {
         let comp = self.slot_comp[s as usize];
-        let deferred = comp != NONE && {
-            let i = self.comp_instance[comp as usize];
+        let deferred = comp != CompIdx::NONE && {
+            let i = self.comp_instance[comp.index()];
             i != NONE && {
                 let inst = self.instances[i as usize];
-                let pi = (s - self.slot_base[comp as usize]) as usize;
+                let pi = (s - self.slot_base[comp.index()]) as usize;
                 matches!(
                     self.compiled.templates[inst.template].elems[inst.elem]
                         .props
@@ -1288,7 +1288,7 @@ mod tests {
         doc.prop_cells(comp, prop)
             .unwrap_or_else(|| panic!("{name} has no {prop}"))
             .iter()
-            .map(|&c| doc.cells[c as usize])
+            .map(|&c| doc.cells[c.index()])
             .collect()
     }
 

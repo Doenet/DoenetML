@@ -44,7 +44,7 @@ use crate::compile::plan::*;
 use crate::components::{ComponentType, prop};
 use crate::dast::{NodeId, StrId, StringTable};
 use crate::diagnostics::Diagnostic;
-use crate::document::{CellIdx, CompIdx, ComponentTable, Document, NONE, TEXT_BIT};
+use crate::document::{CellIdx, ChildEntry, CompIdx, ComponentTable, Document, NONE};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::VecOp;

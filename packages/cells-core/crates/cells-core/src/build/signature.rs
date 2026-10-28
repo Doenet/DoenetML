@@ -154,7 +154,7 @@ impl<'a> Signer<'a> {
                 _ => 1,
             };
             for k in 0..n_out {
-                producer[instr.out as usize + k] = (i as u32, k as u8);
+                producer[instr.out.index() + k] = (i as u32, k as u8);
             }
         }
         let keys = &compiled.keys;
@@ -163,7 +163,7 @@ impl<'a> Signer<'a> {
             let prop = keys
                 .prop_key(key, prop)
                 .unwrap_or_else(|| format!("(hidden {})", prop & !HIDDEN));
-            named.insert(i as CellIdx, (rename(keys.key_text(key)), prop));
+            named.insert(CellIdx::from_index(i), (rename(keys.key_text(key)), prop));
         }
         Signer {
             out,
@@ -180,14 +180,14 @@ impl<'a> Signer<'a> {
         let t = &out.components;
         // Each input with the cells its derivation starts from, labelled.
         let mut found: Vec<Found> = Vec::new();
-        for c in 0..t.component_type.len() as CompIdx {
-            let ty = t.component_type[c as usize];
+        for c in CompIdx::below(t.component_type.len()) {
+            let ty = t.component_type[c.index()];
             let cells = comp_cells(t, c);
             let interactive: Vec<usize> = (0..cells.len())
                 .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                 .collect();
             if (interactive.is_empty() && ty != ComponentType::Select)
-                || out.comp_keys[c as usize] == NONE
+                || out.comp_keys[c.index()] == NONE
             {
                 continue;
             }
@@ -211,7 +211,7 @@ impl<'a> Signer<'a> {
             // its ancestors, the cases, conditionals and repeats around it.
             let mut a = c;
             loop {
-                let aty = t.component_type[a as usize];
+                let aty = t.component_type[a.index()];
                 let acells = comp_cells(t, a);
                 let label = |p: &str| format!("{p}@{}", self.ancestor_label(a));
                 if let Some(h) = aty.prop_index("hide") {
@@ -231,8 +231,8 @@ impl<'a> Signer<'a> {
                     }
                     _ => {}
                 }
-                let p = t.parent[a as usize];
-                if p == NONE {
+                let p = t.parent[a.index()];
+                if p == CompIdx::NONE {
                     break;
                 }
                 a = p;
@@ -259,7 +259,7 @@ impl<'a> Signer<'a> {
             let own: BTreeSet<CellIdx> = seeds[..*n_interactive].iter().map(|s| s.1).collect();
             let mixed = self.read_by_ops(seeds.iter().map(|s| s.1));
             let starting = |l: CellIdx| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
-            let ty = t.component_type[c as usize];
+            let ty = t.component_type[c.index()];
             let cells = comp_cells(t, c);
             let mut h = DefaultHasher::new();
             for (label, cell) in seeds {
@@ -268,14 +268,14 @@ impl<'a> Signer<'a> {
             }
 
             let input = Input {
-                node: t.dast_node[c as usize],
+                node: t.dast_node[c.index()],
                 tag: ty.tag(),
                 props: (0..cells.len())
                     .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                     .map(|pi| {
                         (
                             prop_label(ty, cells.len(), pi),
-                            out.value_types[cells[pi] as usize],
+                            out.value_types[cells[pi].index()],
                         )
                     })
                     .collect(),
@@ -286,7 +286,7 @@ impl<'a> Signer<'a> {
                     .map(|&l| (self.named[&l].clone(), (self.default_hash(l), starting(l))))
                     .collect(),
             };
-            let key = self.key(out.comp_keys[c as usize]);
+            let key = self.key(out.comp_keys[c.index()]);
             sig.inputs.entry(key).or_insert(input);
         }
         sig
@@ -295,8 +295,8 @@ impl<'a> Signer<'a> {
     /// How a seed names ancestor `a`: its key, or its type for one no
     /// element makes.
     fn ancestor_label(&self, a: CompIdx) -> String {
-        match self.out.comp_keys[a as usize] {
-            NONE => self.out.components.component_type[a as usize]
+        match self.out.comp_keys[a.index()] {
+            NONE => self.out.components.component_type[a.index()]
                 .tag()
                 .to_string(),
             key => self.key(key),
@@ -317,7 +317,7 @@ impl<'a> Signer<'a> {
             if !seen.insert(cell) {
                 continue;
             }
-            if (cell as usize) < self.out.n_essential {
+            if cell.index() < self.out.n_essential {
                 leaves.insert(cell);
             } else if let Some(instr) = self.instr_of(cell) {
                 stack.extend(instr.op.inputs(&self.out.operands.cells));
@@ -333,12 +333,12 @@ impl<'a> Signer<'a> {
         let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
         let mut stack: Vec<CellIdx> = seeds.collect();
         while let Some(cell) = stack.pop() {
-            if !seen.insert(cell) || (cell as usize) < self.out.n_essential {
+            if !seen.insert(cell) || cell.index() < self.out.n_essential {
                 continue;
             }
             if let Some(instr) = self.instr_of(cell) {
                 for i in instr.op.inputs(&self.out.operands.cells) {
-                    if (i as usize) < self.out.n_essential {
+                    if i.index() < self.out.n_essential {
                         read.insert(i);
                     }
                     stack.push(i);
@@ -349,7 +349,7 @@ impl<'a> Signer<'a> {
     }
 
     fn instr_of(&self, cell: CellIdx) -> Option<&Instr> {
-        let (i, _) = self.producer[cell as usize];
+        let (i, _) = self.producer[cell.index()];
         (i != u32::MAX).then(|| &self.out.instrs[i as usize])
     }
 
@@ -358,10 +358,10 @@ impl<'a> Signer<'a> {
         // Post-order without recursion: a chain of cells may be long.
         let mut stack = vec![(cell, false)];
         while let Some((c, ready)) = stack.pop() {
-            if self.hashes[c as usize].is_some() {
+            if self.hashes[c.index()].is_some() {
                 continue;
             }
-            let ci = c as usize;
+            let ci = c.index();
             let out = self.out;
             let h = if ci < out.n_essential {
                 hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
@@ -382,13 +382,13 @@ impl<'a> Signer<'a> {
                 let op = self.op_hash(instr, &inputs);
                 let ins: Vec<u64> = inputs
                     .iter()
-                    .map(|&i| self.hashes[i as usize].unwrap())
+                    .map(|&i| self.hashes[i.index()].unwrap())
                     .collect();
                 hash_of(("d", op, k, ins))
             };
             self.hashes[ci] = Some(h);
         }
-        self.hashes[cell as usize].unwrap()
+        self.hashes[cell.index()].unwrap()
     }
 
     /// An operator as what it computes: its kind and literal parameters,
@@ -412,7 +412,7 @@ impl<'a> Signer<'a> {
         if v.is_nan() {
             return hash_of(bits(v));
         }
-        match self.out.value_types[cell as usize] {
+        match self.out.value_types[cell.index()] {
             ValueType::Number => hash_of(bits(v)),
             ValueType::Text => hash_of(("t", self.out.strings.get(v as u32))),
             ValueType::Math => hash_of(("m", self.out.session.engine.borrow().text(v as Handle))),
@@ -420,17 +420,17 @@ impl<'a> Signer<'a> {
     }
 
     fn default_hash(&self, cell: CellIdx) -> u64 {
-        self.value_hash(cell, self.out.structure.essential_defaults[cell as usize])
+        self.value_hash(cell, self.out.structure.essential_defaults[cell.index()])
     }
 
     /// The values a request on input `c` can take.
     fn domain(&mut self, c: CompIdx) -> Domain {
         let out = self.out;
         let t = &out.components;
-        let ty = t.component_type[c as usize];
+        let ty = t.component_type[c.index()];
         match ty {
             ComponentType::Select => {
-                let key = out.comp_keys[c as usize];
+                let key = out.comp_keys[c.index()];
                 let templates = &self.compiled.templates;
                 let def = self
                     .compiled
@@ -453,11 +453,11 @@ impl<'a> Signer<'a> {
                 return Domain::Choices(
                     kids.into_iter()
                         .map(|k| {
-                            let key = match out.comp_keys[k as usize] {
+                            let key = match out.comp_keys[k.index()] {
                                 NONE => String::new(),
                                 key => self.key(key),
                             };
-                            let node = t.dast_node[k as usize];
+                            let node = t.dast_node[k.index()];
                             let content = if node == NONE {
                                 0
                             } else {
@@ -472,11 +472,11 @@ impl<'a> Signer<'a> {
             _ => {}
         }
         // Inside a graph: its bounds as the author set them.
-        let mut a = t.parent[c as usize];
-        while a != NONE && t.component_type[a as usize] != ComponentType::Graph {
-            a = t.parent[a as usize];
+        let mut a = t.parent[c.index()];
+        while a != CompIdx::NONE && t.component_type[a.index()] != ComponentType::Graph {
+            a = t.parent[a.index()];
         }
-        if a == NONE {
+        if a == CompIdx::NONE {
             return Domain::Any;
         }
         let gcells = comp_cells(t, a);
@@ -493,8 +493,8 @@ impl<'a> Signer<'a> {
         let literal: Option<Vec<f64>> = bounds
             .iter()
             .map(|&b| {
-                let bi = b as usize;
-                if bi < out.n_essential && self.named[&b].0 == self.key(out.comp_keys[a as usize]) {
+                let bi = b.index();
+                if bi < out.n_essential && self.named[&b].0 == self.key(out.comp_keys[a.index()]) {
                     Some(out.structure.essential_defaults[bi])
                 } else if bi >= out.n_essential && bi < out.n_essential + out.n_fixed {
                     Some(out.cells[bi])
@@ -520,10 +520,10 @@ impl<'a> Signer<'a> {
 
 /// The cells of component `c`'s props.
 fn comp_cells(t: &ComponentTable, c: CompIdx) -> &[CellIdx] {
-    let base = t.prop_base[c as usize] as usize;
+    let base = t.prop_base[c.index()] as usize;
     let end = t
         .prop_base
-        .get(c as usize + 1)
+        .get(c.index() + 1)
         .map_or(t.prop_cells.len(), |&e| e as usize);
     &t.prop_cells[base..end]
 }
@@ -531,13 +531,12 @@ fn comp_cells(t: &ComponentTable, c: CompIdx) -> &[CellIdx] {
 /// Component `c`'s component children.
 fn children(t: &ComponentTable, c: CompIdx) -> Vec<CompIdx> {
     let (s, n) = (
-        t.child_start[c as usize] as usize,
-        t.child_count[c as usize] as usize,
+        t.child_start[c.index()] as usize,
+        t.child_count[c.index()] as usize,
     );
     t.child_list[s..s + n]
         .iter()
-        .copied()
-        .filter(|&k| k & TEXT_BIT == 0)
+        .filter_map(|k| k.as_comp())
         .collect()
 }
 
@@ -561,7 +560,7 @@ fn canonical_leaves(text: &str, inputs: &[CellIdx]) -> String {
             .map_or(0, |s| s.bytes().take_while(u8::is_ascii_digit).count());
         match (kind, digits) {
             (Some(k @ ('N' | 'M')), n) if n > 0 => {
-                let cell: CellIdx = after[1..1 + n].parse().unwrap_or(NONE);
+                let cell = after[1..1 + n].parse().map_or(CellIdx::NONE, CellIdx::new);
                 match inputs.iter().position(|&x| x == cell) {
                     Some(p) => out.push_str(&format!("{k}#{p}")),
                     None => out.push_str(&rest[i..i + 5 + n]),

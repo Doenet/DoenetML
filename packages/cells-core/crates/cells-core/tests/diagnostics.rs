@@ -4,6 +4,7 @@
 //! counts, and a load whose check ran reports the same errors (ADR 0014).
 //! A tick never adds one.
 
+use cells_core::CompIdx;
 use std::collections::BTreeSet;
 use std::path::Path;
 
@@ -37,17 +38,17 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
     assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
     assert_eq!(errs[0].code, "doenet-w0104");
     // The box stands where the point was, carrying its diagnostic's index.
-    let boxes: Vec<_> = (0..doc.n_components() as u32)
+    let boxes: Vec<_> = CompIdx::below(doc.n_components())
         .filter(|&c| doc.component_type(c) == ComponentType::Error)
         .collect();
     assert_eq!(boxes.len(), 1);
     let b = boxes[0];
     assert_eq!(
-        doc.components.parent[b as usize],
+        doc.components.parent[b.index()],
         doc.component("p").unwrap()
     );
     // Its node names its diagnostic; it has no cells of its own.
-    assert_eq!(doc.components.dast_node[b as usize], errs[0].node.unwrap());
+    assert_eq!(doc.components.dast_node[b.index()], errs[0].node.unwrap());
     assert!(doc.comp_cells(b).is_empty());
     assert!(doc.component("q").is_none(), "a boxed element has no name");
 }

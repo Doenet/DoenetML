@@ -22,14 +22,14 @@ impl Document {
     fn output_bits(&self) -> Vec<u64> {
         let rendered = self.rendered_components();
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
-        for c in 0..self.components.len() as CompIdx {
+        for c in CompIdx::below(self.components.len()) {
             let component_type = self.component_type(c);
             let cells = self.comp_cells(c);
             for (pi, &cell) in cells.iter().enumerate() {
                 if component_type.is_score_prop(pi)
-                    || (rendered[c as usize] && component_type.is_rendered_prop(cells.len(), pi))
+                    || (rendered[c.index()] && component_type.is_rendered_prop(cells.len(), pi))
                 {
-                    bits[cell as usize / 64] |= 1 << (cell % 64);
+                    bits[cell.index() / 64] |= 1 << (cell.index() % 64);
                 }
             }
         }
@@ -39,8 +39,8 @@ impl Document {
     /// Every output cell, ascending, each once; see `output_bits`.
     pub fn output_cells(&self) -> Vec<CellIdx> {
         let bits = self.output_bits();
-        (0..self.cells.len() as CellIdx)
-            .filter(|&c| bits[c as usize / 64] & (1 << (c % 64)) != 0)
+        (CellIdx::below(self.cells.len()))
+            .filter(|&c| bits[c.index() / 64] & (1 << (c.index() % 64)) != 0)
             .collect()
     }
 
@@ -56,7 +56,7 @@ impl Document {
 
     /// Every live cell, ascending; see `is_live`.
     pub fn live_cells(&self) -> Vec<CellIdx> {
-        (0..self.cells.len() as CellIdx)
+        (CellIdx::below(self.cells.len()))
             .filter(|&c| self.is_live(c))
             .collect()
     }
@@ -65,13 +65,13 @@ impl Document {
     /// record says: what the record is checked against.
     #[cfg(feature = "testing")]
     pub fn live_cells_walked(&self) -> Vec<CellIdx> {
-        (0..self.cells.len() as CellIdx)
+        CellIdx::below(self.cells.len())
             .filter(|&c| bit(&self.live.walked, c))
             .collect()
     }
 }
 
 fn bit(bits: &[u64], cell: CellIdx) -> bool {
-    bits.get(cell as usize / 64)
-        .is_some_and(|w| w & (1 << (cell % 64)) != 0)
+    bits.get(cell.index() / 64)
+        .is_some_and(|w| w & (1 << (cell.index() % 64)) != 0)
 }

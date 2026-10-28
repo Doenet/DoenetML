@@ -16,7 +16,7 @@ const SRC: &str = r#"<numberInput name="a" value="1.5"/><numberInput name="b" va
 </graph>"#;
 
 fn samples(doc: &Document, name: &str) -> Vec<f64> {
-    let c = doc.cell(name, "samples").unwrap() as usize;
+    let c = doc.cell(name, "samples").unwrap().index();
     doc.cells[c..c + SAMPLES].to_vec()
 }
 

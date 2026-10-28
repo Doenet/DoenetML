@@ -96,7 +96,7 @@ fn without_what_the_core_skips_the_values_are_the_same() {
             doc.prop_cells(comp, prop)
                 .unwrap()
                 .iter()
-                .map(|&c| doc.cells[c as usize])
+                .map(|&c| doc.cells[c.index()])
                 .collect()
         };
         assert_eq!(read(&built), read(&parsed), "{name}.{prop}");

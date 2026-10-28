@@ -5,6 +5,7 @@
 
 mod common;
 
+use cells_core::CellIdx;
 use cells_core::testing::test_utils::load;
 use cells_core::{Document, PointRequest, Request};
 
@@ -29,7 +30,7 @@ const DOC: &str = r#"
 <answer name="a">2x</answer>
 "#;
 
-fn cells(doc: &Document, name: &str, prop: &str) -> Vec<u32> {
+fn cells(doc: &Document, name: &str, prop: &str) -> Vec<CellIdx> {
     let c = doc
         .resolve_path(name)
         .unwrap_or_else(|| panic!("no {name}"));
@@ -102,7 +103,7 @@ fn derived_props_are_not_interactive() {
 fn interactive_cells_is_is_interactive() {
     let doc = load(DOC).unwrap();
     let listed = doc.interactive_cells();
-    let every: Vec<u32> = (0..doc.cells.len() as u32)
+    let every: Vec<CellIdx> = CellIdx::below(doc.cells.len())
         .filter(|&c| doc.is_interactive(c))
         .collect();
     assert_eq!(listed, every);
@@ -130,17 +131,14 @@ fn a_submit_and_a_trigger_write_what_a_request_cannot() {
         value: 1.0,
     }]);
     assert_eq!(tick.dropped.len(), 1, "a request on the target is refused");
-    assert_eq!(
-        (doc.cells[count as usize], doc.cells[k as usize]),
-        (0.0, 0.0)
-    );
+    assert_eq!((doc.cells[count.index()], doc.cells[k.index()]), (0.0, 0.0));
 
     let a = doc.resolve_path("a").unwrap();
     assert!(doc.submit(a).dropped.is_empty());
-    assert_eq!(doc.cells[count as usize], 1.0);
+    assert_eq!(doc.cells[count.index()], 1.0);
     let t = doc.resolve_path("t").unwrap();
     assert!(doc.trigger(t).dropped.is_empty());
-    assert_eq!(doc.cells[k as usize], 1.0);
+    assert_eq!(doc.cells[k.index()], 1.0);
 }
 
 /// A point group with a point that is not an input's is refused whole.
@@ -165,6 +163,6 @@ fn a_point_group_on_a_cell_that_is_not_an_inputs_is_refused() {
         },
     ]);
     assert_eq!(tick.dropped.len(), 2);
-    assert_eq!(doc.cells[px as usize], 1.0);
+    assert_eq!(doc.cells[px.index()], 1.0);
     assert_eq!(doc.value("n", "value"), Some(3.0));
 }

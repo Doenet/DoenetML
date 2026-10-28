@@ -340,7 +340,7 @@ impl<'a> Compiler<'a> {
                         " {} ",
                         crate::sym::engine::leaf_name(p as u32, false)
                     ));
-                    toks.push(Token::Cell(p as CellIdx));
+                    toks.push(Token::Cell(p as u32));
                 }
                 _ => {}
             }

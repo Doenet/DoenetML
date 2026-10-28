@@ -98,7 +98,7 @@ impl<'a> Compiler<'a> {
             if let Token::Ident(s) = tok
                 && let Some(j) = vars.iter().position(|v| v == s)
             {
-                *tok = Token::Cell(prev[j] as CellIdx);
+                *tok = Token::Cell(prev[j] as u32);
             }
         }
         let parts = match expr::unwrap_parens(&toks) {

@@ -103,7 +103,7 @@ pub fn invert_requests(
                 value: p.values[0],
             })
             .unwrap_or(Request {
-                cell: 0,
+                cell: CellIdx::new(0),
                 value: f64::NAN,
             });
         engine.push_group(g.clone(), origin);
@@ -134,11 +134,11 @@ pub fn realize(
     let inv = invert_requests(program, sym, cells, n_essential, &reqs, &[]);
     let mut scratch = cells.to_vec();
     for &(c, v) in &inv.writes {
-        scratch[c as usize] = v;
+        scratch[c.index()] = v;
     }
     let hi = requests
         .iter()
-        .map(|&(c, _)| program.producer[c as usize])
+        .map(|&(c, _)| program.producer[c.index()])
         .filter(|&p| p != u32::MAX)
         .max();
     if let Some(hi) = hi {
@@ -150,7 +150,7 @@ pub fn realize(
             }
         });
     }
-    out.extend(requests.iter().map(|&(c, _)| scratch[c as usize]));
+    out.extend(requests.iter().map(|&(c, _)| scratch[c.index()]));
 }
 
 /// One run of the inversion engine.
@@ -174,9 +174,9 @@ struct RequestEngine<'a> {
 
 impl RequestEngine<'_> {
     fn push(&mut self, cell: CellIdx, value: f64, origin: Request) {
-        let p = self.program.producer[cell as usize];
+        let p = self.program.producer[cell.index()];
         if p == u32::MAX {
-            if (cell as usize) < self.n_essential {
+            if cell.index() < self.n_essential {
                 match self.write_index.get(&cell) {
                     Some(&i) => self.inversion.writes[i].1 = value,
                     None => {
@@ -203,7 +203,7 @@ impl RequestEngine<'_> {
     /// hand back to the queue at a vector or symbolic operator.
     fn walk(&mut self, mut cell: CellIdx, mut value: f64, origin: Request) {
         loop {
-            let p = self.program.producer[cell as usize];
+            let p = self.program.producer[cell.index()];
             if p == u32::MAX {
                 self.push(cell, value, origin);
                 return;
@@ -286,7 +286,7 @@ impl RequestEngine<'_> {
             desired.clear();
             let mut origin = None;
             for k in 0..n_out {
-                let c = ins.out + k as CellIdx;
+                let c = ins.out.offset(k);
                 let d = self.pending.remove(&c);
                 if d.is_some() {
                     origin = origin.or_else(|| self.origin.remove(&c));
@@ -301,9 +301,9 @@ impl RequestEngine<'_> {
             let ok = match ins.op {
                 Op::Vec(v, start, n_in, _) => {
                     let inputs = self.program.operands_at(start, n_in as usize);
-                    let inp: Vec<f64> = inputs.iter().map(|&c| self.cells[c as usize]).collect();
+                    let inp: Vec<f64> = inputs.iter().map(|&c| self.cells[c.index()]).collect();
                     let cur: Vec<f64> = (0..n_out)
-                        .map(|k| self.cells[ins.out as usize + k])
+                        .map(|k| self.cells[ins.out.index() + k])
                         .collect();
                     v.invert(inputs, &inp, &cur, &desired, &mut produced)
                 }

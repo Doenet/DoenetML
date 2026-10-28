@@ -43,10 +43,10 @@ fn rigid_polygon_rotates_about_its_centroid_when_one_vertex_is_dragged() {
     // The copies see the same vertices through their aliases.
     let g3 = doc.resolve_path("g3.pg").unwrap();
     let cells = doc.prop_cells(g3, "x1").unwrap();
-    assert_close!(doc.cells[cells[0] as usize], verts[0][0]);
+    assert_close!(doc.cells[cells[0].index()], verts[0][0]);
     let vs2 = doc.resolve_path("g3.vs[2]").unwrap();
     let cells = doc.prop_cells(vs2, "coords").unwrap();
-    assert_close!(doc.cells[cells[1] as usize], verts[1][1]);
+    assert_close!(doc.cells[cells[1].index()], verts[1][1]);
     // Dragging every vertex of the copy translates by the smallest shift.
     let moved: Vec<Request> = verts
         .iter()

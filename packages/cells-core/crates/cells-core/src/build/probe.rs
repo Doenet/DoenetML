@@ -196,7 +196,7 @@ impl<'c> Builder<'c> {
             if r.iter_scopes.is_empty() {
                 continue;
             }
-            let count_pi = self.components.component_type[r.comp as usize]
+            let count_pi = self.components.component_type[r.comp.index()]
                 .count_prop()
                 .expect("a repeat has a count");
             let count = self.slot(r.comp, count_pi);
@@ -215,7 +215,7 @@ impl<'c> Builder<'c> {
                 seen[sl as usize] = true;
                 touched.push(sl);
                 for rc in self.enclosing_repeats(self.slot_scope[sl as usize]) {
-                    let si = self.comp_repeat[rc as usize] as usize;
+                    let si = self.comp_repeat[rc.index()] as usize;
                     let nested =
                         si != ri && self.scope_within(r.scope, self.repeats[si].iter_scopes[0]);
                     if !nested && !adj[ri].contains(&si) {
@@ -425,9 +425,9 @@ impl<'c> Builder<'c> {
         }
         let named = |s: SlotId| {
             let c = self.slot_comp[s as usize];
-            c != NONE && self.components.name[c as usize] != NONE
+            c != CompIdx::NONE && self.components.name[c.index()] != NONE
         };
-        let owned = |s: SlotId| self.slot_comp[s as usize] != NONE;
+        let owned = |s: SlotId| self.slot_comp[s as usize] != CompIdx::NONE;
         let at = members
             .iter()
             .find(|&&s| named(s))

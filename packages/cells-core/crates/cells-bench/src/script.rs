@@ -4,6 +4,7 @@
 //! it (`tests/evaluators.rs`). Every request is one a renderer makes, on
 //! an input's cell (ADR 0018), and an answer's submit is an action.
 
+use cells_core::CellIdx;
 use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -84,7 +85,7 @@ pub fn plan(doc: &Document) -> Vec<(String, Action)> {
 
 pub fn apply(doc: &mut Document, path: &str, action: &Action) -> Option<TickOutcome> {
     let c = tree(doc).into_iter().find(|(p, _)| p == path)?.1;
-    let v = |doc: &Document, cell: u32| doc.cells[cell as usize];
+    let v = |doc: &Document, cell: CellIdx| doc.cells[cell.index()];
     Some(match *action {
         Action::Shift(prop, dx, dy) => {
             let cells = doc.prop_cells(c, prop)?;

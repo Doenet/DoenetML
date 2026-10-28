@@ -118,7 +118,7 @@ fn rendered_text_shows_the_input_and_its_references() {
 #[test]
 fn interning_dedups_and_the_same_text_gets_the_same_id() {
     let mut doc = load(r#"<text name="t">hello</text><textInput name="ti"/>"#).unwrap();
-    let literal = doc.cells[doc.cell("t", "value").unwrap() as usize];
+    let literal = doc.cells[doc.cell("t", "value").unwrap().index()];
     assert_eq!(doc.intern("hello"), literal);
     let n = doc.strings.len();
     let a = doc.intern("new words");

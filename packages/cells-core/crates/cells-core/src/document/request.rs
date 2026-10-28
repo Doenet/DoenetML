@@ -133,17 +133,17 @@ impl Document {
         // started put it there.
         let mut newly_touched = Vec::new();
         for &(cell, _) in &inv.writes {
-            if (cell as usize) < self.n_essential {
-                let at = self.structure.essential_slots[cell as usize];
+            if cell.index() < self.n_essential {
+                let at = self.structure.essential_slots[cell.index()];
                 if Arc::make_mut(&mut self.session.touched).insert(at) {
                     newly_touched.push(at);
                 }
             }
         }
         for (cell, value) in inv.writes {
-            let old = self.cells[cell as usize];
+            let old = self.cells[cell.index()];
             if value != old && !(value.is_nan() && old.is_nan()) {
-                self.cells[cell as usize] = value;
+                self.cells[cell.index()] = value;
                 before.push((cell, old));
                 tick.changed.push(cell);
             }
@@ -171,7 +171,7 @@ impl Document {
                         // shows a count its iterations do not match, and
                         // report every request of the tick as dropped.
                         for &(cell, old) in &before {
-                            self.cells[cell as usize] = old;
+                            self.cells[cell.index()] = old;
                         }
                         let touched = Arc::make_mut(&mut self.session.touched);
                         for at in &newly_touched {
@@ -208,7 +208,7 @@ impl Document {
                 let cells = self.comp_cells(c);
                 requests.push(Request {
                     cell: cells[update_value::TARGET],
-                    value: self.cells[cells[update_value::NEW_VALUE] as usize],
+                    value: self.cells[cells[update_value::NEW_VALUE].index()],
                 });
             }
             let kids: Vec<_> = self
@@ -228,7 +228,7 @@ impl Document {
     /// decimals to display, a width). None for a copy, which has no
     /// element, and for an attribute holding a reference.
     pub fn attr_text(&self, comp: crate::document::CompIdx, name: &str) -> Option<String> {
-        let node = self.components.dast_node[comp as usize];
+        let node = self.components.dast_node[comp.index()];
         if node == crate::document::NONE {
             return None;
         }

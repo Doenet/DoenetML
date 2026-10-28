@@ -12,12 +12,12 @@ impl Document {
     /// when any of them marks it.
     pub(crate) fn interactive_bits(&self) -> Vec<u64> {
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
-        for c in 0..self.components.len() as CompIdx {
+        for c in CompIdx::below(self.components.len()) {
             let component_type = self.component_type(c);
             let cells = self.comp_cells(c);
             for (pi, &cell) in cells.iter().enumerate() {
                 if component_type.is_interactive_prop(cells.len(), pi) {
-                    bits[cell as usize / 64] |= 1 << (cell % 64);
+                    bits[cell.index() / 64] |= 1 << (cell.index() % 64);
                 }
             }
         }
@@ -26,7 +26,7 @@ impl Document {
 
     /// Every interactive cell, ascending, each once.
     pub fn interactive_cells(&self) -> Vec<CellIdx> {
-        (0..self.cells.len() as CellIdx)
+        (CellIdx::below(self.cells.len()))
             .filter(|&c| self.is_interactive(c))
             .collect()
     }
@@ -35,7 +35,7 @@ impl Document {
     #[inline]
     pub fn is_interactive(&self, cell: CellIdx) -> bool {
         self.interactive
-            .get(cell as usize / 64)
-            .is_some_and(|w| w & (1 << (cell % 64)) != 0)
+            .get(cell.index() / 64)
+            .is_some_and(|w| w & (1 << (cell.index() % 64)) != 0)
     }
 }

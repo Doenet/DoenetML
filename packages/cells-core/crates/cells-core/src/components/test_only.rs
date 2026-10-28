@@ -148,7 +148,7 @@ mod tests {
         let comp = doc.component(name).unwrap();
         let cells = doc.prop_cells(comp, prop).unwrap();
         assert_eq!(cells.len(), 1, "{name}.{prop}");
-        doc.cells[cells[0] as usize]
+        doc.cells[cells[0].index()]
     }
 
     #[test]

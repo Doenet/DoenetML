@@ -4,8 +4,6 @@
 //! coefficients. It is not used at tick time: a symbolic math becomes a math
 //! cell in the document's symbolic engine (`cells-sym`, ADR 0008).
 
-use crate::document::CellIdx;
-
 pub type ExprId = u32;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -13,8 +11,9 @@ pub enum Expr {
     Num(f64),
     /// A free symbol such as `x`.
     Sym(String),
-    /// A numeric leaf bound to a cell: `$a` inside a math.
-    Cell(CellIdx),
+    /// A numeric leaf, `$a` inside a math: a reference plan id in the
+    /// compile's arena, a slot in a build's. Never a cell index.
+    Cell(u32),
     Add(ExprId, ExprId),
     Sub(ExprId, ExprId),
     Mul(ExprId, ExprId),
@@ -166,7 +165,7 @@ impl Arena {
     }
 
     /// Distinct cell leaves, in first-appearance order.
-    pub fn cell_leaves(&self, id: ExprId, out: &mut Vec<CellIdx>) {
+    pub fn cell_leaves(&self, id: ExprId, out: &mut Vec<u32>) {
         match self.get(id) {
             Expr::Cell(c) => {
                 if !out.contains(c) {
@@ -208,7 +207,8 @@ impl Arena {
 pub enum Token {
     Num(f64),
     Ident(String),
-    Cell(CellIdx),
+    /// A reference plan id.
+    Cell(u32),
     Op(char),
     LParen,
     RParen,

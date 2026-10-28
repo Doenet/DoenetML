@@ -3,6 +3,7 @@
 
 mod common;
 
+use cells_core::CompIdx;
 use cells_core::Document;
 use cells_core::components::{ComponentType, prop};
 use cells_core::testing::reference;
@@ -19,7 +20,7 @@ fn credit(doc: &Document, answer: &str) -> f64 {
 }
 
 /// The inputs an answer reads, by component index.
-fn inputs(doc: &Document, answer: &str) -> Vec<u32> {
+fn inputs(doc: &Document, answer: &str) -> Vec<CompIdx> {
     doc.answer_inputs(doc.resolve_path(answer).unwrap())
 }
 
@@ -224,7 +225,7 @@ fn answers_with_awards_count_in_the_document_credit() {
            <answer name="b">2</answer>"#,
     )
     .unwrap();
-    let total = |doc: &Document| doc.cells[doc.comp_cells(doc.root)[0] as usize];
+    let total = |doc: &Document| doc.cells[doc.comp_cells(doc.root)[0].index()];
     assert_eq!(total(&doc), 0.0);
     type_into(&mut doc, "mi", "1");
     submit(&mut doc, "a");

@@ -1,3 +1,4 @@
+use cells_core::CompIdx;
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error, load_via_binary};
@@ -299,7 +300,10 @@ fn names_resolve_through_containers_and_copies() {
     // `p` exists in g and in its copy h; the original wins a bare lookup.
     let gp = doc.resolve_path("g.p").unwrap();
     assert_eq!(doc.resolve_path("p"), Some(gp));
-    assert_eq!(doc.cells[doc.prop_cells(gp, "x").unwrap()[0] as usize], 3.0);
+    assert_eq!(
+        doc.cells[(doc.prop_cells(gp, "x").unwrap()[0]).index()],
+        3.0
+    );
     let hp = doc.resolve_path("h.p").unwrap();
     assert_eq!(doc.prop_cells(hp, "x"), doc.prop_cells(gp, "x"));
 }
@@ -339,7 +343,7 @@ fn literal_attributes_outlive_the_dast() {
     let a = doc.component("a").unwrap();
     assert_eq!(doc.attr_text(a, "displayDecimals").as_deref(), Some("3"));
     let attrs = doc.literal_attrs();
-    let node = |c| doc.components.dast_node[c as usize];
+    let node = |c: CompIdx| doc.components.dast_node[c.index()];
     let of = |c| {
         attrs
             .iter()
@@ -366,7 +370,7 @@ fn literal_attributes_survive_a_rebuild() {
     let cell = doc.cell("n", "value").unwrap();
     let t = doc.request(&[cells_core::Request { cell, value: 3.0 }]);
     assert!(t.rebuilt);
-    let styled = (0..doc.n_components() as u32)
+    let styled = CompIdx::below(doc.n_components())
         .filter(|&c| doc.attr_text(c, "styleNumber").as_deref() == Some("4"))
         .count();
     assert_eq!(styled, 3);

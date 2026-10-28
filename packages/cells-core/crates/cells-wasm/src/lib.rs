@@ -2,7 +2,7 @@
 //! over wasm memory (see `cells_ptr`/`cells_len`), reads the component
 //! tables the same way, and writes with cell-addressed requests. See ADR 0001.
 
-use cells_core::{Document, LoadOptions, PointRequest, Request};
+use cells_core::{CellIdx, CompIdx, Document, LoadOptions, PointRequest, Request};
 use wasm_bindgen::prelude::*;
 
 /// Every diagnostic of a document (ADR 0013), as a JSON array, from one
@@ -201,7 +201,7 @@ impl Core {
     // serialized manifest. Pointers are valid until the next allocating call.
 
     pub fn root(&self) -> u32 {
-        self.doc.root
+        self.doc.root.get()
     }
 
     pub fn n_components(&self) -> usize {
@@ -240,13 +240,15 @@ impl Core {
         self.doc.components.name.as_ptr()
     }
     pub fn comp_parent_ptr(&self) -> *const u32 {
-        self.doc.components.parent.as_ptr()
+        // `CompIdx` is a `u32` (`repr(transparent)`).
+        self.doc.components.parent.as_ptr() as *const u32
     }
     pub fn comp_prop_base_ptr(&self) -> *const u32 {
         self.doc.components.prop_base.as_ptr()
     }
     pub fn prop_cells_ptr(&self) -> *const u32 {
-        self.doc.components.prop_cells.as_ptr()
+        // `CellIdx` is a `u32` (`repr(transparent)`).
+        self.doc.components.prop_cells.as_ptr() as *const u32
     }
     pub fn prop_cells_len(&self) -> usize {
         self.doc.components.prop_cells.len()
@@ -258,7 +260,9 @@ impl Core {
         self.doc.components.child_count.as_ptr()
     }
     pub fn child_list_ptr(&self) -> *const u32 {
-        self.doc.components.child_list.as_ptr()
+        // `ChildEntry` is a `u32` (`repr(transparent)`): a component, or a
+        // string id with `TEXT_BIT` set.
+        self.doc.components.child_list.as_ptr() as *const u32
     }
     pub fn child_list_len(&self) -> usize {
         self.doc.components.child_list.len()
@@ -312,7 +316,10 @@ impl Core {
         let reqs: Vec<Request> = cells
             .iter()
             .zip(values)
-            .map(|(&cell, &value)| Request { cell, value })
+            .map(|(&cell, &value)| Request {
+                cell: CellIdx::new(cell),
+                value,
+            })
             .collect();
         self.apply(&reqs, &[])
     }
@@ -325,7 +332,10 @@ impl Core {
             .0
             .iter()
             .zip(values.as_chunks::<2>().0)
-            .map(|(&cells, &values)| PointRequest { cells, values })
+            .map(|(&[x, y], &values)| PointRequest {
+                cells: [CellIdx::new(x), CellIdx::new(y)],
+                values,
+            })
             .collect();
         self.apply(&[], &[pts])
     }
@@ -337,7 +347,7 @@ impl Core {
         if (answer as usize) >= self.doc.n_components() {
             return Vec::new();
         }
-        self.act(|doc| doc.submit(answer))
+        self.act(|doc| doc.submit(CompIdx::new(answer)))
     }
 
     /// Press a `<triggerSet>` or a lone `<updateValue>`, an action: each
@@ -347,7 +357,7 @@ impl Core {
         if (comp as usize) >= self.doc.n_components() {
             return Vec::new();
         }
-        self.act(|doc| doc.trigger(comp))
+        self.act(|doc| doc.trigger(CompIdx::new(comp)))
     }
 
     /// The inputs an answer's responses read (`Document::answer_inputs`).
@@ -355,7 +365,7 @@ impl Core {
         if (answer as usize) >= self.doc.n_components() {
             return Vec::new();
         }
-        self.doc.answer_inputs(answer)
+        raw_comps(self.doc.answer_inputs(CompIdx::new(answer)))
     }
 
     /// An answer's submitted cells, one per response
@@ -365,16 +375,18 @@ impl Core {
             return Vec::new();
         }
         self.doc
-            .answer_responses(answer)
+            .answer_responses(CompIdx::new(answer))
             .into_iter()
-            .map(|(_, submitted)| submitted)
+            .map(|(_, submitted)| submitted.get())
             .collect()
     }
 
     /// A component's parent, or `u32::MAX` at the root.
     pub fn component_parent(&self, idx: u32) -> u32 {
         if (idx as usize) < self.doc.n_components() {
-            self.doc.parent(idx).unwrap_or(u32::MAX)
+            self.doc
+                .parent(CompIdx::new(idx))
+                .map_or(u32::MAX, CompIdx::get)
         } else {
             u32::MAX
         }
@@ -384,7 +396,7 @@ impl Core {
     /// (`Document::attr_text`).
     pub fn attr_text(&self, idx: u32, name: &str) -> Option<String> {
         if (idx as usize) < self.doc.n_components() {
-            self.doc.attr_text(idx, name)
+            self.doc.attr_text(CompIdx::new(idx), name)
         } else {
             None
         }
@@ -407,7 +419,7 @@ impl Core {
             // The whole tick is the rebuild when the program changed shape.
             self.last_rebuild_ms = clock.elapsed().as_secs_f64() * 1e3;
         }
-        tick.changed
+        raw_cells(tick.changed)
     }
 
     // ---- test adapter -----------------------------------------------------
@@ -419,12 +431,12 @@ impl Core {
     /// Component index of a dotted path as the tests write it
     /// (`"g.Ps[2]"`), or `u32::MAX`.
     pub fn resolve_path(&self, path: &str) -> u32 {
-        self.doc.resolve_path(path).unwrap_or(u32::MAX)
+        self.doc.resolve_path(path).map_or(u32::MAX, CompIdx::get)
     }
 
     pub fn component_tag(&self, idx: u32) -> Option<String> {
         if (idx as usize) < self.doc.n_components() {
-            Some(self.doc.component_type(idx).tag().to_string())
+            Some(self.doc.component_type(CompIdx::new(idx)).tag().to_string())
         } else {
             None
         }
@@ -436,7 +448,11 @@ impl Core {
         if (idx as usize) >= self.doc.n_components() {
             return Vec::new();
         }
-        self.doc.prop_cells(idx, prop).unwrap_or_default()
+        raw_cells(
+            self.doc
+                .prop_cells(CompIdx::new(idx), prop)
+                .unwrap_or_default(),
+        )
     }
 
     pub fn cell_value(&self, cell: u32) -> f64 {
@@ -449,6 +465,7 @@ impl Core {
 
     /// Whether a cell is essential (state), fixed (a constant), or derived.
     pub fn cell_class(&self, cell: u32) -> String {
+        let cell = CellIdx::new(cell);
         if self.doc.is_essential(cell) {
             "essential".into()
         } else if self.doc.is_fixed(cell) {
@@ -461,19 +478,19 @@ impl Core {
     /// Whether a renderer may request a cell: one of a prop its component's
     /// definition marks interactive (ADR 0017).
     pub fn is_interactive(&self, cell: u32) -> bool {
-        self.doc.is_interactive(cell)
+        self.doc.is_interactive(CellIdx::new(cell))
     }
 
     /// Every cell a renderer may request, ascending; new indices after a
     /// rebuild.
     pub fn interactive_cells(&self) -> Vec<u32> {
-        self.doc.interactive_cells()
+        raw_cells(self.doc.interactive_cells())
     }
 
     /// Every cell a renderer may read or a grader reads, ascending (ADR
     /// 0019); new indices after a rebuild.
     pub fn output_cells(&self) -> Vec<u32> {
-        self.doc.output_cells()
+        raw_cells(self.doc.output_cells())
     }
 
     pub fn last_dropped(&self) -> u32 {
@@ -496,7 +513,7 @@ impl Core {
     /// active case of a reactive choice only.
     pub fn component_text(&self, idx: u32) -> String {
         if (idx as usize) < self.doc.n_components() {
-            self.doc.rendered_text(idx)
+            self.doc.rendered_text(CompIdx::new(idx))
         } else {
             String::new()
         }
@@ -505,7 +522,7 @@ impl Core {
     /// The string a `<text>` value cell holds.
     pub fn text_value(&self, cell: u32) -> String {
         if (cell as usize) < self.doc.cells.len() {
-            self.doc.text_value(cell)
+            self.doc.text_value(CellIdx::new(cell))
         } else {
             String::new()
         }
@@ -513,7 +530,7 @@ impl Core {
 
     /// Text of the expression a math cell holds, for display.
     pub fn expr_text(&self, cell: u32) -> String {
-        self.doc.math_text(cell)
+        self.doc.math_text(CellIdx::new(cell))
     }
 
     /// Build passes the load took to settle repeat counts.
@@ -539,6 +556,16 @@ impl Core {
             Err(JsError::new(&format!("unknown evaluator {name}")))
         }
     }
+}
+
+/// Cell indices as the renderer reads them.
+fn raw_cells(cells: Vec<CellIdx>) -> Vec<u32> {
+    cells.into_iter().map(CellIdx::get).collect()
+}
+
+/// Component indices as the renderer reads them.
+fn raw_comps(comps: Vec<CompIdx>) -> Vec<u32> {
+    comps.into_iter().map(CompIdx::get).collect()
 }
 
 #[cfg(test)]

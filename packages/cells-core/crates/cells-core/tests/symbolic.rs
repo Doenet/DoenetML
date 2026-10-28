@@ -103,7 +103,7 @@ fn function_and_derivative_curves_resample_on_a_drag() {
     )
     .unwrap();
     let ys = |doc: &Document, name: &str| {
-        let c = doc.cell(name, "samples").unwrap() as usize;
+        let c = doc.cell(name, "samples").unwrap().index();
         doc.cells[c..c + cells_core::program::SAMPLES].to_vec()
     };
     let (f, df) = (ys(&doc, "f"), ys(&doc, "df"));
@@ -223,7 +223,7 @@ fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
            </graph>"#;
     let mut doc = load(src).unwrap();
     let cell = |doc: &Document, n: &str, p: &str| doc.cell(n, p).unwrap();
-    assert_eq!(doc.cells[cell(&doc, "q", "x") as usize], 4.0);
+    assert_eq!(doc.cells[cell(&doc, "q", "x").index()], 4.0);
     let ran = runs(&doc);
     let asked = [
         (cell(&doc, "p", "x"), 5.0),
@@ -252,7 +252,7 @@ fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
     assert_eq!(bits(&doc), cells);
     // The tick computes what the lookahead saw, through the memo it left.
     doc.request(&[req(&doc, "p", "x", 5.0)]);
-    assert_eq!(doc.cells[cell(&doc, "q", "x") as usize], 16.0);
+    assert_eq!(doc.cells[cell(&doc, "q", "x").index()], 16.0);
     assert!(engine_len(&doc) > len, "the tick stores what it computes");
     // As many runs as a tick no lookahead preceded: no memo the lookahead
     // wrote spared one.

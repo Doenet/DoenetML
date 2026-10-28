@@ -5,6 +5,7 @@
 
 mod common;
 
+use cells_core::{CellIdx, CompIdx};
 use std::path::Path;
 
 use cells_core::components::ComponentType;
@@ -49,7 +50,7 @@ fn load_seeded(src: &str, seed: u64, prune: bool) -> Document {
 /// that the walk does not: what deciding per template slot costs.
 fn check(doc: &Document, at: &str) -> usize {
     let walked = doc.live_cells_walked();
-    let missed: Vec<u32> = walked
+    let missed: Vec<CellIdx> = walked
         .iter()
         .copied()
         .filter(|&c| !doc.is_live(c))
@@ -61,7 +62,7 @@ fn check(doc: &Document, at: &str) -> usize {
     for c in doc.output_cells() {
         assert!(doc.is_live(c), "{at}: output cell {c} is not live");
     }
-    for c in 0..doc.n_essential as u32 {
+    for c in CellIdx::below(doc.n_essential) {
         assert!(doc.is_live(c), "{at}: essential cell {c} is not live");
     }
     // Emit sizes the cells for what it keeps, the dead cell included: an
@@ -75,8 +76,8 @@ fn check(doc: &Document, at: &str) -> usize {
 }
 
 /// The repeats' count cells, one per repeat or function iterate.
-fn count_cells(doc: &Document) -> Vec<u32> {
-    (0..doc.components.len() as u32)
+fn count_cells(doc: &Document) -> Vec<CellIdx> {
+    CompIdx::below(doc.components.len())
         .filter_map(|c| {
             let i = doc.component_type(c).count_prop()?;
             Some(doc.comp_cells(c)[i])
@@ -94,15 +95,23 @@ fn census() {
         let doc = load_seeded(&src, 0, false);
         check(&doc, &name);
         let walked = doc.live_cells_walked();
-        let is_walked = |c: u32| walked.binary_search(&c).is_ok();
+        let is_walked = |c: CellIdx| walked.binary_search(&c).is_ok();
         let instrs = &doc.program.instrs;
         let live_instrs = instrs.iter().filter(|i| doc.is_live(i.out)).count();
         let walked_instrs = instrs.iter().filter(|i| is_walked(i.out)).count();
         let derived = doc.n_essential + doc.n_fixed..doc.cells.len();
-        let live_derived = derived.clone().filter(|&c| doc.is_live(c as u32)).count();
-        let walked_derived = derived.clone().filter(|&c| is_walked(c as u32)).count();
+        let live_derived = derived
+            .clone()
+            .filter(|&c| doc.is_live(CellIdx::from_index(c)))
+            .count();
+        let walked_derived = derived
+            .clone()
+            .filter(|&c| is_walked(CellIdx::from_index(c)))
+            .count();
         let fixed = doc.n_essential..doc.n_essential + doc.n_fixed;
-        let dead_fixed = fixed.filter(|&c| !doc.is_live(c as u32)).count();
+        let dead_fixed = fixed
+            .filter(|&c| !doc.is_live(CellIdx::from_index(c)))
+            .count();
         eprintln!(
             "{name:>10}: instructions {live_instrs:>5} live ({walked_instrs:>5} by the walk) of {:<5} \
              derived {live_derived:>5} ({walked_derived:>5}) of {:<5} fixed {dead_fixed:>5} dead of {}",
@@ -155,7 +164,7 @@ fn the_record_holds_every_build() {
     }
 }
 
-fn cells(doc: &Document, name: &str, prop: &str) -> Vec<u32> {
+fn cells(doc: &Document, name: &str, prop: &str) -> Vec<CellIdx> {
     let c = doc
         .resolve_path(name)
         .unwrap_or_else(|| panic!("no {name}"));
@@ -217,16 +226,16 @@ fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
             panic!("{at}, {what}: {e}");
         }
     };
-    let n = pruned.n_components() as u32;
-    for c in 0..n {
+    let n = pruned.n_components();
+    for c in CompIdx::below(n) {
         for pi in 0..pruned.comp_cells(c).len() {
             let (f, p) = (full.comp_cells(c)[pi], pruned.comp_cells(c)[pi]);
             if !pruned.is_interactive(p) {
                 continue;
             }
-            let value = |doc: &mut Document, cell: u32| match doc.value_types[cell as usize] {
+            let value = |doc: &mut Document, cell: CellIdx| match doc.value_types[cell.index()] {
                 ValueType::Number => {
-                    let v = doc.cells[cell as usize];
+                    let v = doc.cells[cell.index()];
                     if v.is_nan() { 1.0 } else { v + 1.0 }
                 }
                 ValueType::Math => doc.parse_math("x + 1").unwrap(),
@@ -235,7 +244,7 @@ fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
             let (vf, vp) = (value(full, f), value(pruned, p));
             full.request(&[Request { cell: f, value: vf }]);
             pruned.request(&[Request { cell: p, value: vp }]);
-            if pruned.n_components() as u32 != n {
+            if pruned.n_components() != n {
                 // A request moved a count: the tables are new.
                 agree(full, pruned, &format!("requesting cell {p}"));
                 return;
@@ -243,7 +252,7 @@ fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
             agree(full, pruned, &format!("requesting cell {p}"));
         }
     }
-    for c in 0..n {
+    for c in CompIdx::below(n) {
         match pruned.component_type(c) {
             ComponentType::Answer => {
                 full.submit(c);
@@ -256,7 +265,7 @@ fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
             _ => continue,
         }
         agree(full, pruned, &format!("acting on component {c}"));
-        if pruned.n_components() as u32 != n {
+        if pruned.n_components() != n {
             return;
         }
     }

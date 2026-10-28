@@ -75,7 +75,7 @@ macro_rules! scalar_ops {
         }] $($rest)*);
     };
     (@cell $x:ident) => { CellIdx };
-    (@zero $x:ident) => { 0 };
+    (@zero $x:ident) => { CellIdx::new(0) };
     (@param $x:ident) => { f64 };
     // The inverse's body, and its kind.
     (@inverse drops $desired:ident) => { None };
@@ -134,7 +134,7 @@ macro_rules! scalar_ops {
             pub fn eval(&self, cells: &[f64]) -> f64 {
                 match *self {
                     $(Op::$name($($in,)+ $($p,)*) => {
-                        $(let $in = cells[$in as usize];)+
+                        $(let $in = cells[$in.index()];)+
                         $eval
                     })*
                     Op::Vec(..) => unreachable!("vector operators are evaluated with eval_vec"),
@@ -152,7 +152,7 @@ macro_rules! scalar_ops {
                 match *self {
                     $(Op::$name($($in,)+ $($p,)*) => {
                         let written = [$($in),+];
-                        $(let $in = cells[$in as usize];)+
+                        $(let $in = cells[$in.index()];)+
                         let r: Option<(usize, f64)> =
                             scalar_ops!(@inverse $kind desired $(|$d| $inv)?);
                         r.map(|(i, x)| (written[i], x))

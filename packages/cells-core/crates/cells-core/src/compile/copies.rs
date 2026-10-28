@@ -22,7 +22,7 @@ impl<'a> Compiler<'a> {
                 vec![Source::reference(p)]
             }
             ComponentType::Math => {
-                let id = self.compiled.arena.push(Expr::Cell(p as CellIdx));
+                let id = self.compiled.arena.push(Expr::Cell(p as u32));
                 self.compiled
                     .sym_text
                     .insert(id, crate::sym::engine::leaf_name(p as u32, false));

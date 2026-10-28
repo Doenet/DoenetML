@@ -251,7 +251,7 @@ impl Document {
             .component_type(r.comp)
             .count_prop()
             .expect("a repeat has a count");
-        let v = self.cells[self.comp_cells(r.comp)[pi] as usize];
+        let v = self.cells[self.comp_cells(r.comp)[pi].index()];
         if v.is_nan() || v < 0.0 {
             0
         } else {

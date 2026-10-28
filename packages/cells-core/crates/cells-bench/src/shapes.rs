@@ -362,7 +362,7 @@ pub fn fingerprint(doc: &Document) -> u64 {
                 continue;
             }
             eat(def.name.as_bytes());
-            let v = doc.cells[doc.comp_cells(c)[i] as usize];
+            let v = doc.cells[doc.comp_cells(c)[i].index()];
             // All NaNs alike, so a NaN's payload is not a difference.
             let v = if v.is_nan() { f64::NAN } else { v };
             eat(&v.to_bits().to_le_bytes());

@@ -28,7 +28,7 @@ use std::sync::{Arc, OnceLock};
 
 use crate::components::{ComponentType, PropAt, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
-use crate::document::{CellIdx, NONE};
+use crate::document::NONE;
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};

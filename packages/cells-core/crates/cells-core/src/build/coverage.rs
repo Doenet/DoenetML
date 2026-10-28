@@ -117,15 +117,15 @@ impl Builder<'_> {
     /// The key of an element's slot; None for any other slot.
     fn slot_key(&self, s: SlotId) -> Option<Key> {
         let comp = self.slot_comp[s as usize];
-        if comp == NONE {
+        if comp == CompIdx::NONE {
             return None;
         }
-        let i = self.comp_instance[comp as usize];
+        let i = self.comp_instance[comp.index()];
         if i == NONE {
             return None;
         }
         let inst = self.instances[i as usize];
-        Some((inst.template, inst.elem, s - self.slot_base[comp as usize]))
+        Some((inst.template, inst.elem, s - self.slot_base[comp.index()]))
     }
 
     /// The depth of every scope: 0 for the document.

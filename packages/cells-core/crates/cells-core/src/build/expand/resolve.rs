@@ -82,7 +82,7 @@ impl<'c> Builder<'c> {
         if labelling {
             label.resize(self.scope_depth(sc) as usize, Coord::Keep(0));
         }
-        let mut cur = Resolved::Iter(NONE, sc);
+        let mut cur = Resolved::Iter(CompIdx::NONE, sc);
         for (si, step) in p.steps.iter().enumerate() {
             match step {
                 Step::Elem(e) => {
@@ -106,9 +106,9 @@ impl<'c> Builder<'c> {
                     cur = match cur {
                         Resolved::Missing => Resolved::Missing,
                         Resolved::Iter(..) => return Err(Error::NotIndexable(p.display.clone())),
-                        Resolved::Comp(c) => match self.components.component_type[c as usize] {
-                            _ if self.comp_repeat[c as usize] != NONE => {
-                                let r = &self.repeats[self.comp_repeat[c as usize] as usize];
+                        Resolved::Comp(c) => match self.components.component_type[c.index()] {
+                            _ if self.comp_repeat[c.index()] != NONE => {
+                                let r = &self.repeats[self.comp_repeat[c.index()] as usize];
                                 if labelling {
                                     // A folded iteration stands for every
                                     // index; the label says which.
@@ -132,11 +132,14 @@ impl<'c> Builder<'c> {
                             }
                             ComponentType::PointList => {
                                 let (s, n) = (
-                                    self.components.child_start[c as usize] as usize,
-                                    self.components.child_count[c as usize] as usize,
+                                    self.components.child_start[c.index()] as usize,
+                                    self.components.child_count[c.index()] as usize,
                                 );
                                 if k >= 1 && (k as usize) <= n {
-                                    Resolved::Comp(self.components.child_list[s + k as usize - 1])
+                                    match self.components.child_list[s + k as usize - 1].as_comp() {
+                                        Some(c) => Resolved::Comp(c),
+                                        None => Resolved::Missing,
+                                    }
                                 } else {
                                     Resolved::Missing
                                 }
@@ -191,7 +194,7 @@ impl<'c> Builder<'c> {
             inst.scopes
                 .iter()
                 .map(|&s| match self.iteration_components(c, s).as_slice() {
-                    [one] => Some(self.components.component_type[*one as usize]),
+                    [one] => Some(self.components.component_type[(*one).index()]),
                     _ => None,
                 });
         let first = types.next().flatten();
@@ -280,7 +283,7 @@ impl<'c> Builder<'c> {
             }
             other => self.single_component(other, plan)?,
         };
-        let component_type = self.components.component_type[comp as usize];
+        let component_type = self.components.component_type[comp.index()];
         let prop = match prop {
             Some(p) => p,
             None => component_type
@@ -313,7 +316,7 @@ impl<'c> Builder<'c> {
             Resolved::Missing => return Ok(self.missing_slot()),
             other => self.single_component(other, plan)?,
         };
-        let component_type = self.components.component_type[comp as usize];
+        let component_type = self.components.component_type[comp.index()];
         let prop = match prop {
             Some(p) => p,
             None => component_type

@@ -58,7 +58,7 @@ pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
         .unwrap_or_else(|e| panic!("{e}"))
         .as_slice()
     {
-        [c] => doc.cells[*c as usize],
+        [c] => doc.cells[(*c).index()],
         cs => panic!("{path}: {} cells, not one", cs.len()),
     }
 }
@@ -155,10 +155,10 @@ pub fn inputs(
     }
     let t = &doc.components;
     let mut out = std::collections::BTreeMap::new();
-    for c in 0..doc.n_components() as crate::CompIdx {
+    for c in crate::CompIdx::below(doc.n_components()) {
         let ty = doc.component_type(c);
         let cells = doc.comp_cells(c);
-        let node = t.dast_node[c as usize];
+        let node = t.dast_node[c.index()];
         let Some(key) = key_of.get(&node) else {
             continue;
         };
@@ -169,8 +169,8 @@ pub fn inputs(
         if names.is_empty() {
             continue;
         }
-        let text = |cell: crate::CellIdx| match doc.value_types[cell as usize] {
-            ValueType::Number => format!("{:?}", doc.cells[cell as usize]),
+        let text = |cell: crate::CellIdx| match doc.value_types[cell.index()] {
+            ValueType::Number => format!("{:?}", doc.cells[cell.index()]),
             ValueType::Text => doc.text_value(cell),
             ValueType::Math => doc.math_text(cell),
         };
@@ -179,7 +179,7 @@ pub fn inputs(
             names
                 .iter()
                 .find(|(n, _)| n == name)
-                .map(|&(_, c)| doc.cells[c as usize])
+                .map(|&(_, c)| doc.cells[c.index()])
         };
         let mut points = Vec::new();
         for (n, _) in &names {
@@ -193,14 +193,14 @@ pub fn inputs(
                 points.push((x, y));
             }
         }
-        let mut a = t.parent[c as usize];
-        while a != NONE && doc.component_type(a) != ComponentType::Graph {
-            a = t.parent[a as usize];
+        let mut a = t.parent[c.index()];
+        while a != crate::CompIdx::NONE && doc.component_type(a) != ComponentType::Graph {
+            a = t.parent[a.index()];
         }
-        let bounds = (a != NONE && ty != ComponentType::Graph).then(|| {
+        let bounds = (a != crate::CompIdx::NONE && ty != ComponentType::Graph).then(|| {
             let g = doc.comp_cells(a);
             let author = |p: &str| {
-                let cell = g[ComponentType::Graph.prop_index(p).unwrap()] as usize;
+                let cell = g[ComponentType::Graph.prop_index(p).unwrap()].index();
                 if cell < doc.n_essential {
                     doc.structure.essential_defaults[cell]
                 } else {
@@ -214,7 +214,7 @@ pub fn inputs(
                 author("ymax"),
             ]
         });
-        let scope = doc.scope_path_text(t.scope[c as usize]);
+        let scope = doc.scope_path_text(t.scope[c.index()]);
         out.insert(
             format!("{scope}{key}"),
             InputState {
@@ -242,17 +242,17 @@ pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Res
             pruned.n_components()
         ));
     }
-    for c in 0..pruned.n_components() as crate::CompIdx {
+    for c in crate::CompIdx::below(pruned.n_components()) {
         let (fc, pc) = (full.comp_cells(c), pruned.comp_cells(c));
         for (pi, (&f, &p)) in fc.iter().zip(pc).enumerate() {
             if !pruned.is_live(p) {
                 continue;
             }
-            let same = match pruned.value_types[p as usize] {
+            let same = match pruned.value_types[p.index()] {
                 ValueType::Math => full.math_text(f) == pruned.math_text(p),
                 ValueType::Text => full.text_value(f) == pruned.text_value(p),
                 ValueType::Number => {
-                    let (a, b) = (full.cells[f as usize], pruned.cells[p as usize]);
+                    let (a, b) = (full.cells[f.index()], pruned.cells[p.index()]);
                     a == b || (a.is_nan() && b.is_nan())
                 }
             };
@@ -262,8 +262,8 @@ pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Res
                     "{}.{} of component {c}: {} unpruned, {} pruned",
                     ty.tag(),
                     ty.prop_name(pc.len(), pi).unwrap_or_default(),
-                    full.cells[f as usize],
-                    pruned.cells[p as usize]
+                    full.cells[f.index()],
+                    pruned.cells[p.index()]
                 ));
             }
         }

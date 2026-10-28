@@ -130,14 +130,14 @@ impl Program {
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in instrs.iter().enumerate() {
             for k in 0..ins.op.n_out() {
-                let out = ins.out as usize + k;
+                let out = ins.out.index() + k;
                 debug_assert_eq!(producer[out], u32::MAX, "two instructions write one cell");
                 producer[out] = i as u32;
             }
         }
         let in_order = instrs.iter().enumerate().all(|(i, ins)| {
             ins.op.inputs(&operands).all(|input| {
-                let p = producer[input as usize];
+                let p = producer[input.index()];
                 p == u32::MAX || (p as usize) < i
             })
         });
@@ -160,7 +160,7 @@ impl Program {
         let mut dep_count = vec![0u32; n + 1];
         for ins in instrs.iter() {
             for input in ins.op.inputs(&operands) {
-                let p = producer[input as usize];
+                let p = producer[input.index()];
                 if p != u32::MAX {
                     dep_count[p as usize + 1] += 1;
                 }
@@ -173,7 +173,7 @@ impl Program {
         let mut dependents = vec![0u32; dep_count[n] as usize];
         for (i, ins) in instrs.iter().enumerate() {
             for input in ins.op.inputs(&operands) {
-                let p = producer[input as usize];
+                let p = producer[input.index()];
                 if p != u32::MAX {
                     indegree[i] += 1;
                     dependents[fill[p as usize] as usize] = i as u32;
@@ -204,7 +204,7 @@ impl Program {
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in order.iter().enumerate() {
             for k in 0..ins.op.n_out() {
-                producer[ins.out as usize + k] = i as u32;
+                producer[ins.out.index() + k] = i as u32;
             }
         }
         Ok(Program {
@@ -227,9 +227,9 @@ impl Program {
         cells: &mut [f64],
         changed: Option<&mut Vec<CellIdx>>,
     ) {
-        let out = ins.out as usize;
+        let out = ins.out.index();
         if let Op::Sym(kind, start, n, memo) = ins.op {
-            self.step_sym(kind, start, n as usize, memo, sym, out, cells, changed);
+            self.step_sym(kind, start, n as usize, memo, sym, ins.out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
             let mut buf = [0.0f64; 16];
             let n = ins.op.n_out();
@@ -239,7 +239,7 @@ impl Program {
                     for k in 0..n {
                         if differs(buf[k], cells[out + k]) {
                             cells[out + k] = buf[k];
-                            changed.push((out + k) as CellIdx);
+                            changed.push(ins.out.offset(k));
                         }
                     }
                 }
@@ -277,7 +277,7 @@ impl Program {
         let Op::Sym(kind, start, n, _) = ins.op else {
             return self.step(ins, sym, cells, None);
         };
-        let out = ins.out as usize;
+        let out = ins.out.index();
         let inputs = self.operands_at(start, n as usize);
         let mut outs = vec![0.0; kind.n_out()];
         if let SymKind::SampleTape { tape } = kind {
@@ -302,10 +302,11 @@ impl Program {
         n: usize,
         memo: MemoIdx,
         sym: &mut SymRun,
-        out: usize,
+        out_cell: CellIdx,
         cells: &mut [f64],
         changed: Option<&mut Vec<CellIdx>>,
     ) {
+        let out = out_cell.index();
         let n_out = kind.n_out();
         let inputs = self.operands_at(start, n);
         let state = &mut *sym.state;
@@ -314,11 +315,11 @@ impl Program {
         if !inputs
             .iter()
             .zip(last.iter())
-            .all(|(&c, m)| cells[c as usize].to_bits() == m.to_bits())
+            .all(|(&c, m)| cells[c.index()].to_bits() == m.to_bits())
         {
             state.stats.runs += 1;
             for (m, &c) in last.iter_mut().zip(inputs) {
-                *m = cells[c as usize];
+                *m = cells[c.index()];
             }
             if let SymKind::SampleTape { tape } = kind {
                 let stack = &mut state.tape_stack;
@@ -332,7 +333,7 @@ impl Program {
                 for (k, &v) in outs.iter().enumerate() {
                     if differs(v, cells[out + k]) {
                         cells[out + k] = v;
-                        changed.push((out + k) as CellIdx);
+                        changed.push(out_cell.offset(k));
                     }
                 }
             }
@@ -350,7 +351,7 @@ impl Program {
     pub fn eval_into(&self, ins: &Instr, sym: &mut SymRun, cells: &[f64], out: &mut [f64]) {
         let mut scratch = cells.to_vec();
         self.step(ins, sym, &mut scratch, None);
-        out.copy_from_slice(&scratch[ins.out as usize..ins.out as usize + ins.op.n_out()]);
+        out.copy_from_slice(&scratch[ins.out.index()..ins.out.index() + ins.op.n_out()]);
     }
 
     /// Recompute every derived cell, appending the indices whose value
@@ -381,7 +382,7 @@ impl Program {
     pub fn any_input_differs(&self, ins: &Instr, a: &[f64], b: &[f64]) -> bool {
         ins.op
             .inputs(&self.operands)
-            .any(|c| differs(a[c as usize], b[c as usize]))
+            .any(|c| differs(a[c.index()], b[c.index()]))
     }
 
     pub fn len(&self) -> usize {
@@ -401,7 +402,7 @@ fn run_tape(
     out: &mut [f64],
     stack: &mut Vec<f64>,
 ) {
-    let (lo, hi) = (cells[inputs[0] as usize], cells[inputs[1] as usize]);
+    let (lo, hi) = (cells[inputs[0].index()], cells[inputs[1].index()]);
     if !lo.is_finite() || !hi.is_finite() {
         out.fill(f64::NAN);
         return;
@@ -411,7 +412,7 @@ fn run_tape(
     for (i, x) in xs.iter_mut().enumerate() {
         *x = lo + step * i as f64;
     }
-    let params: Vec<f64> = inputs[2..].iter().map(|&c| cells[c as usize]).collect();
+    let params: Vec<f64> = inputs[2..].iter().map(|&c| cells[c.index()]).collect();
     tape.eval_many(&params, &xs, out, stack);
 }
 
@@ -422,7 +423,7 @@ fn handle(v: f64) -> Option<Handle> {
 /// One symbolic operation. A NaN handle is a blank expression: evaluating it
 /// gives NaN, comparing it gives 0.
 fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx], out: &mut [f64]) {
-    let v = |k: usize| cells[inputs[k] as usize];
+    let v = |k: usize| cells[inputs[k].index()];
     match kind {
         SymKind::Instantiate { template, post } => {
             let h = engine.instantiate(template, cells);

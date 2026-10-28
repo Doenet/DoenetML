@@ -5,9 +5,10 @@
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_unpruned, repo_root};
+use cells_core::{CellIdx, CompIdx};
 use cells_core::{Document, Request};
 
-fn cell(doc: &Document, path: &str, prop: &str) -> u32 {
+fn cell(doc: &Document, path: &str, prop: &str) -> CellIdx {
     let c = doc
         .resolve_path(path)
         .unwrap_or_else(|| panic!("no component at {path}"));
@@ -16,7 +17,7 @@ fn cell(doc: &Document, path: &str, prop: &str) -> u32 {
 }
 
 fn val(doc: &Document, path: &str, prop: &str) -> f64 {
-    doc.cells[cell(doc, path, prop) as usize]
+    doc.cells[cell(doc, path, prop).index()]
 }
 
 fn set(doc: &mut Document, path: &str, prop: &str, value: f64) -> cells_core::TickOutcome {
@@ -171,13 +172,13 @@ fn sir_loads_and_iterates() {
     assert_eq!(val(&doc, "plot", "xmax"), 50.0);
     assert_eq!(val(&doc, "plot", "ymin"), -2000.0);
     // Each polyline gathers its repeat's points.
-    let polylines: Vec<_> = (0..doc.n_components() as u32)
+    let polylines: Vec<_> = CompIdx::below(doc.n_components())
         .filter(|&c| doc.component_type(c) == ComponentType::Polyline)
         .collect();
     assert_eq!(polylines.len(), 3);
     for &p in &polylines {
         let count = doc.comp_cells(p)[cells_core::components::prop::polyline::NUM_VERTICES];
-        assert_eq!(doc.cells[count as usize], 201.0);
+        assert_eq!(doc.cells[count.index()], 201.0);
     }
     // Presentation attributes are read from the element.
     assert_eq!(
@@ -211,8 +212,8 @@ fn sir_drag_type_and_reset() {
         values: [3.2, 99.6],
     }]);
     assert!(!t.rebuilt);
-    assert_eq!(doc.cells[cells[0] as usize], 0.0);
-    assert_eq!(doc.cells[cells[1] as usize], 100.0);
+    assert_eq!(doc.cells[cells[0].index()], 0.0);
+    assert_eq!(doc.cells[cells[1].index()], 100.0);
     assert_eq!(val(&doc, "I0", "value"), 100.0);
     check_sir(&doc, 9990.0, 100.0, 0.0, 0.1, 0.0001, 200);
     // A negative initial count is clamped to zero.
@@ -230,7 +231,7 @@ fn sir_drag_type_and_reset() {
     assert_eq!(reference::check(&doc), None);
 
     // Reset parameters: back to the defaults, and back to 200 iterates.
-    let reset = (0..doc.n_components() as u32)
+    let reset = CompIdx::below(doc.n_components())
         .find(|&c| doc.component_type(c) == ComponentType::TriggerSet)
         .unwrap();
     let t = doc.trigger(reset);

@@ -60,7 +60,7 @@ impl Document {
             let Some(prop) = self.loaded.keys.prop_key(key, prop) else {
                 continue;
             };
-            let cell = i as CellIdx;
+            let cell = CellIdx::from_index(i);
             let v = self.cells[i];
             let (kind, value) = match self.value_types[i] {
                 _ if v.is_nan() => (kind_of(self.value_types[i]), Value::Null),
@@ -116,7 +116,7 @@ impl Document {
             .iter()
             .zip(&st.essential_keys)
             .enumerate()
-            .map(|(i, (&(scope, _), &(key, prop)))| ((scope, key, prop), i as CellIdx))
+            .map(|(i, (&(scope, _), &(key, prop)))| ((scope, key, prop), CellIdx::from_index(i)))
             .collect();
         let keys = self.loaded.keys.clone();
         let by_text = keys.by_text();
@@ -159,7 +159,7 @@ impl Document {
             // A value goes only into a cell of the type it was saved as, and
             // view state only while its default is the one it had.
             if let Some(cell) = live {
-                let c = cell as usize;
+                let c = cell.index();
                 let default = self.structure.essential_defaults[c];
                 if !parked_kind.fits(self.value_types[c], default) {
                     continue;
@@ -176,9 +176,9 @@ impl Document {
             };
             match live {
                 Some(cell) => {
-                    self.cells[cell as usize] = value;
+                    self.cells[cell.index()] = value;
                     // What was saved was touched, and stays so.
-                    let at = self.structure.essential_slots[cell as usize];
+                    let at = self.structure.essential_slots[cell.index()];
                     Arc::make_mut(&mut self.session.touched).insert(at);
                 }
                 None => {

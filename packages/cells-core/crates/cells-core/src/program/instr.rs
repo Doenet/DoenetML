@@ -74,39 +74,18 @@ impl SymKind {
     }
 }
 
-/// A position in `Program::operands`, where a vector or symbolic
-/// instruction's input cells are parked: an index into that list, never
-/// into the cells. Its own type so that one is not taken for the other.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[repr(transparent)]
-pub struct OperandIdx(u32);
-
-impl OperandIdx {
-    pub(crate) const fn new(i: u32) -> OperandIdx {
-        OperandIdx(i)
-    }
-
-    #[inline(always)]
-    pub const fn index(self) -> usize {
-        self.0 as usize
-    }
+crate::index::index_type! {
+    /// A position in `Program::operands`, where a vector or symbolic
+    /// instruction's input cells are parked: an index into that list, never
+    /// into the cells.
+    pub struct OperandIdx;
 }
 
-/// A position in a program's symbolic memo (`Sym`), where a symbolic
-/// instruction keeps the input values it last ran on and its outputs.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[repr(transparent)]
-pub struct MemoIdx(u32);
-
-impl MemoIdx {
-    pub(crate) const fn new(i: u32) -> MemoIdx {
-        MemoIdx(i)
-    }
-
-    #[inline(always)]
-    pub const fn index(self) -> usize {
-        self.0 as usize
-    }
+crate::index::index_type! {
+    /// A position in a program's symbolic memo (`SymState`), where a
+    /// symbolic instruction keeps the input values it last ran on and its
+    /// outputs.
+    pub struct MemoIdx;
 }
 
 /// Where a build parks the inputs of the operators it binds
@@ -291,7 +270,7 @@ mod arity {
                 spec.arity()
             };
             assert!(spec.accepts(n));
-            let inputs: Vec<CellIdx> = (0..n as CellIdx).collect();
+            let inputs: Vec<CellIdx> = CellIdx::below(n).collect();
             let mut operands = Operands::default();
             let op = spec.bind(&inputs, &mut operands);
             let cells: Vec<f64> = (0..n).map(|i| 1.0 + i as f64).collect();

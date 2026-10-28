@@ -56,8 +56,8 @@ fn dump(doc: &Document, out: &mut String) {
                 continue;
             }
             let cell = doc.comp_cells(c)[i];
-            let v = doc.cells[cell as usize];
-            if doc.value_types.get(cell as usize) == Some(&ValueType::Math) {
+            let v = doc.cells[cell.index()];
+            if doc.value_types.get(cell.index()) == Some(&ValueType::Math) {
                 let _ = write!(out, " {}={:?}", def.name, doc.math_text(cell));
             } else if component_type == ComponentType::Text && i == 0 {
                 let _ = write!(out, " {}={:?}", def.name, doc.text_value(cell));
@@ -70,11 +70,11 @@ fn dump(doc: &Document, out: &mut String) {
                 let cells = doc.prop_cells(c, list).unwrap_or_default();
                 let live = doc
                     .prop_cells(c, count)
-                    .map_or(0.0, |n| doc.cells[n[0] as usize]);
+                    .map_or(0.0, |n| doc.cells[n[0].index()]);
                 let n = (live as usize).min(cells.len() / 2);
                 let values: Vec<f64> = cells[..2 * n]
                     .iter()
-                    .map(|&x| doc.cells[x as usize])
+                    .map(|&x| doc.cells[x.index()])
                     .collect();
                 let _ = write!(out, " {list}={values:?}");
             }

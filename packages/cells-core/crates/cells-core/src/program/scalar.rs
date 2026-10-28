@@ -192,7 +192,7 @@ impl Op {
             .iter()
             .enumerate()
         {
-            inp[k] = cells[c as usize];
+            inp[k] = cells[c.index()];
         }
         v.eval(&inp[..n_in], out);
     }
@@ -272,12 +272,12 @@ mod inverses {
     fn every_inverse_writes_a_declared_input() {
         for spec in OpSpec::scalar_samples() {
             let n = spec.scalar_arity().unwrap();
-            let op = spec.bind_scalar(&(0..n as CellIdx).collect::<Vec<_>>());
+            let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
             for cur in &assignments(n) {
                 for &d in &VALUES {
                     if let Some((c, _)) = op.invert(cur, d) {
                         assert!(
-                            spec.writes() & (1 << c) != 0,
+                            spec.writes() & (1 << c.index()) != 0,
                             "{spec:?} at {cur:?}, asked {d}, wrote input {c}, which it does not declare"
                         );
                     }
@@ -291,7 +291,7 @@ mod inverses {
         let mut failures = Vec::new();
         for spec in OpSpec::scalar_samples() {
             let n = spec.scalar_arity().unwrap();
-            let op = spec.bind_scalar(&(0..n as CellIdx).collect::<Vec<_>>());
+            let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
             let all = assignments(n);
             let mut fail = |what: String| failures.push(format!("{spec:?}: {what}"));
             match spec.inverse().unwrap() {
@@ -306,7 +306,7 @@ mod inverses {
                             }
                             if let Some((c, x)) = op.invert(cur, d) {
                                 let mut after = cur.clone();
-                                after[c as usize] = x;
+                                after[c.index()] = x;
                                 let got = op.eval(&after);
                                 if !close(got, d, &[cur.as_slice(), target, &[x]].concat()) {
                                     fail(format!(
@@ -325,8 +325,8 @@ mod inverses {
                         for &d in VALUES.iter().filter(|v| v.is_finite()) {
                             if let Some((c, x)) = op.invert(cur, d) {
                                 let (mut after, mut asked) = (cur.clone(), cur.clone());
-                                after[c as usize] = x;
-                                asked[c as usize] = d;
+                                after[c.index()] = x;
+                                asked[c.index()] = d;
                                 let (got, want) = (op.eval(&after), op.eval(&asked));
                                 let around = [cur.as_slice(), &[d, x]].concat();
                                 if !close(got, want, &around) || !close(x, got, &around) {

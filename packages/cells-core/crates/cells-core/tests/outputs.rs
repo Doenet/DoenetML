@@ -9,8 +9,9 @@ mod common;
 use cells_core::Document;
 use cells_core::components::ComponentType;
 use cells_core::testing::test_utils::load;
+use cells_core::{CellIdx, CompIdx};
 
-fn cells(doc: &Document, name: &str, prop: &str) -> Vec<u32> {
+fn cells(doc: &Document, name: &str, prop: &str) -> Vec<CellIdx> {
     let c = doc
         .resolve_path(name)
         .unwrap_or_else(|| panic!("no {name}"));
@@ -18,7 +19,7 @@ fn cells(doc: &Document, name: &str, prop: &str) -> Vec<u32> {
         .unwrap_or_else(|| panic!("no {name}.{prop}"))
 }
 
-fn is_output(doc: &Document, cell: u32) -> bool {
+fn is_output(doc: &Document, cell: CellIdx) -> bool {
     doc.output_cells().binary_search(&cell).is_ok()
 }
 
@@ -126,7 +127,7 @@ fn what_nothing_reads_is_not_an_output() {
         ("f", false),
     ] {
         let c = doc.resolve_path(name).unwrap();
-        assert_eq!(rendered[c as usize], is, "{name} rendered");
+        assert_eq!(rendered[c.index()], is, "{name} rendered");
     }
 }
 
@@ -155,8 +156,8 @@ fn scores_are_outputs() {
 }
 
 /// Whether some component's prop marked `read_by_action` is `cell`.
-fn read_by_action(doc: &Document, cell: u32) -> bool {
-    (0..doc.components.len() as u32).any(|c| {
+fn read_by_action(doc: &Document, cell: CellIdx) -> bool {
+    CompIdx::below(doc.components.len()).any(|c| {
         let ty = doc.component_type(c);
         doc.comp_cells(c)
             .iter()
@@ -178,7 +179,7 @@ fn what_an_action_reads_is_marked() {
     )
     .unwrap();
     let mut read = 0;
-    for c in 0..doc.components.len() as u32 {
+    for c in CompIdx::below(doc.components.len()) {
         match doc.component_type(c) {
             ComponentType::Answer => {
                 for (response, _) in doc.answer_responses(c) {

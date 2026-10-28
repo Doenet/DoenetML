@@ -119,7 +119,7 @@ fn main() {
                 d.request_with(ev.as_mut(), &req, &[]);
             }
             for (path, v) in values {
-                let got = docs[0].cells[cell(&docs[0], path) as usize];
+                let got = docs[0].cells[cell(&docs[0], path).index()];
                 assert_eq!(got, *v, "{what}: {path}");
             }
             agree(&docs, &names, &what);

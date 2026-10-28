@@ -16,6 +16,7 @@
 //! `SAFE_EDITS_LONG=1` runs many more edits and sessions per document, and
 //! `fixtures/sir.doenet` too.
 
+use cells_core::CompIdx;
 use std::path::Path;
 
 use cells_core::build::signature::Signature;
@@ -292,7 +293,7 @@ fn session(doc: &mut Document, rng: &mut Rng) {
         }
         let cell = cells[rng.below(cells.len())];
         let k = rng.below(17) as f64 / 2.0 - 4.0;
-        let value = match doc.value_types[cell as usize] {
+        let value = match doc.value_types[cell.index()] {
             ValueType::Number => k,
             ValueType::Text => doc.intern(&format!("t{k}")),
             ValueType::Math => match doc.parse_math(&format!("x+{k}")) {
@@ -302,13 +303,13 @@ fn session(doc: &mut Document, rng: &mut Rng) {
         };
         doc.request(&[Request { cell, value }]);
     }
-    let answers: Vec<_> = (0..doc.n_components() as u32)
+    let answers: Vec<_> = CompIdx::below(doc.n_components())
         .filter(|&c| doc.component_type(c) == ComponentType::Answer)
         .collect();
     for a in answers {
         doc.submit(a);
     }
-    let triggers: Vec<_> = (0..doc.n_components() as u32)
+    let triggers: Vec<_> = CompIdx::below(doc.n_components())
         .filter(|&c| match doc.component_type(c) {
             ComponentType::TriggerSet => true,
             ComponentType::UpdateValue => doc
@@ -319,7 +320,7 @@ fn session(doc: &mut Document, rng: &mut Rng) {
         .collect();
     for t in triggers {
         // A press may rebuild, which numbers the components anew.
-        if (t as usize) < doc.n_components() {
+        if t.index() < doc.n_components() {
             doc.trigger(t);
         }
     }

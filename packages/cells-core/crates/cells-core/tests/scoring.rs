@@ -17,7 +17,7 @@ fn answer(doc: &mut Document, input: &str, answer: &str, s: &str) {
 }
 
 fn doc_credit(doc: &Document) -> f64 {
-    doc.cells[doc.comp_cells(doc.root)[0] as usize]
+    doc.cells[doc.comp_cells(doc.root)[0].index()]
 }
 
 fn credit(doc: &Document, name: &str) -> f64 {
@@ -41,7 +41,7 @@ fn a_document_with_nothing_scored_has_full_credit() {
     let doc = load_unpruned("<p>Hello</p>").unwrap();
     assert_eq!(doc_credit(&doc), 1.0);
     let pct = doc.comp_cells(doc.root)[1];
-    assert_eq!(doc.cells[pct as usize], 100.0);
+    assert_eq!(doc.cells[pct.index()], 100.0);
 }
 
 #[test]

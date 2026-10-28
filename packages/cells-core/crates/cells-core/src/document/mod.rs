@@ -28,10 +28,18 @@ mod sticky;
 mod table;
 
 pub use load::{LoadOptions, LoadTimings};
-pub use table::{Child, ComponentTable};
+pub use table::{Child, ChildEntry, ComponentTable};
 
-pub type CellIdx = u32;
-pub type CompIdx = u32;
+crate::index::index_type! {
+    /// A position in `Document::cells`, and in every list kept per cell.
+    pub struct CellIdx;
+}
+
+crate::index::index_type! {
+    /// A component: a position in the `ComponentTable`'s columns.
+    pub struct CompIdx;
+}
+
 /// Build passes allowed before the structure must have settled, at least:
 /// a checked document is allowed its structural depth plus one too
 /// (`Compiled::passes`), and only a test load without the check is held
@@ -202,7 +210,7 @@ impl Document {
 
     /// The expression a math cell holds, as text; empty when blank.
     pub fn math_text(&self, cell: CellIdx) -> String {
-        let h = self.cells[cell as usize];
+        let h = self.cells[cell.index()];
         if h.is_nan() {
             String::new()
         } else {
@@ -213,7 +221,7 @@ impl Document {
     /// A `<mathInput>` holds any math value, infinity included; every other
     /// request site rejects an infinite ask as the current core does.
     fn accepts_infinity(&self, cell: CellIdx) -> bool {
-        (0..self.components.len() as CompIdx).any(|c| {
+        (CompIdx::below(self.components.len())).any(|c| {
             self.component_type(c) == ComponentType::MathInput
                 && self.comp_cells(c)[prop::math_input::VALUE] == cell
         })
@@ -224,7 +232,7 @@ impl Document {
     /// engine for a math cell. Checked once per request, never in the tick.
     pub(super) fn can_hold(&self, cell: CellIdx, value: f64) -> bool {
         let index_below = |n: usize| value >= 0.0 && value.fract() == 0.0 && value < n as f64;
-        match self.value_types[cell as usize] {
+        match self.value_types[cell.index()] {
             ValueType::Number => true,
             ValueType::Text => value.is_nan() || index_below(self.strings.len()),
             ValueType::Math => value.is_nan() || index_below(self.session.engine.borrow().len()),
@@ -232,13 +240,13 @@ impl Document {
     }
 
     pub fn is_essential(&self, cell: CellIdx) -> bool {
-        (cell as usize) < self.n_essential
+        cell.index() < self.n_essential
     }
 
     /// A constant that is not state (an iteration index, a math handle, a
     /// `fixed` value): fixed cells follow the essential ones.
     pub fn is_fixed(&self, cell: CellIdx) -> bool {
-        (self.n_essential..self.n_essential + self.n_fixed).contains(&(cell as usize))
+        (self.n_essential..self.n_essential + self.n_fixed).contains(&cell.index())
     }
 
     /// Recompute all derived cells from the essential cells.
@@ -254,7 +262,7 @@ impl Document {
     /// Write an essential cell and recompute. Panics if `cell` is derived.
     pub fn set_essential(&mut self, cell: CellIdx, value: f64) {
         assert!(self.is_essential(cell), "cell {cell} is derived");
-        self.cells[cell as usize] = value;
+        self.cells[cell.index()] = value;
         self.recompute();
     }
 }

@@ -40,8 +40,8 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn scoring_sources(&mut self) {
         let root = self.root;
         self.set_credit(root);
-        for c in 0..self.components.len() as CompIdx {
-            if self.components.component_type[c as usize] == ComponentType::Section {
+        for c in CompIdx::below(self.components.len()) {
+            if self.components.component_type[c.index()] == ComponentType::Section {
                 if self.aggregates(c) {
                     self.set_credit(c);
                 } else {
@@ -84,20 +84,19 @@ impl<'c> Builder<'c> {
 
     fn component_children(&self, c: CompIdx) -> Vec<CompIdx> {
         let (s, n) = (
-            self.components.child_start[c as usize] as usize,
-            self.components.child_count[c as usize] as usize,
+            self.components.child_start[c.index()] as usize,
+            self.components.child_count[c.index()] as usize,
         );
         self.components.child_list[s..s + n]
             .iter()
-            .copied()
-            .filter(|&e| e & TEXT_BIT == 0)
+            .filter_map(|e| e.as_comp())
             .collect()
     }
 
     /// `gate` times a case's `active` cell.
     fn gate_through(&mut self, gate: Option<SlotId>, case: CompIdx) -> Option<SlotId> {
         let active = self.slot(case, crate::components::prop::case::ACTIVE);
-        Some(self.gated(gate, active, self.components.scope[case as usize]))
+        Some(self.gated(gate, active, self.components.scope[case.index()]))
     }
 
     /// The weighted mean of the scored items inside `c`; None when there
@@ -108,7 +107,7 @@ impl<'c> Builder<'c> {
         if items.is_empty() {
             return None;
         }
-        let scope = self.components.scope[c as usize];
+        let scope = self.components.scope[c.index()];
         // Chunks of at most `CHUNK`; each level's means and totals are the
         // next level's credits and weights.
         loop {
@@ -141,8 +140,8 @@ impl<'c> Builder<'c> {
     /// containers are looked through, `<setup>` is not.
     fn scored_items(&mut self, c: CompIdx, gate: Option<SlotId>, out: &mut Vec<(SlotId, SlotId)>) {
         for k in self.component_children(c) {
-            let scope = self.components.scope[k as usize];
-            let (weight, credit) = match self.components.component_type[k as usize] {
+            let scope = self.components.scope[k.index()];
+            let (weight, credit) = match self.components.component_type[k.index()] {
                 ComponentType::Setup => continue,
                 ComponentType::Case => {
                     let g = self.gate_through(gate, k);
@@ -174,7 +173,7 @@ impl<'c> Builder<'c> {
     /// counted.
     fn number_sections(&mut self, c: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
         for k in self.component_children(c) {
-            match self.components.component_type[k as usize] {
+            match self.components.component_type[k.index()] {
                 ComponentType::Case => {
                     let g = self.gate_through(gate, k);
                     self.number_sections(k, g, counter);
@@ -205,7 +204,7 @@ impl<'c> Builder<'c> {
                                 Some(b) => self.op_slot(
                                     OpSpec::Add,
                                     &[b, g],
-                                    self.components.scope[k as usize],
+                                    self.components.scope[k.index()],
                                 ),
                             })
                         }

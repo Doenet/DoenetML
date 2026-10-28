@@ -12,7 +12,7 @@ impl<'c> Builder<'c> {
         node: NodeId,
         scope: ScopeId,
         comp: CompIdx,
-    ) -> Result<Vec<u32>> {
+    ) -> Result<Vec<ChildEntry>> {
         let c: &'c Compiled = self.compiled;
         let def = &c.choices[cid];
         let every_option =
@@ -67,12 +67,10 @@ impl<'c> Builder<'c> {
                 self.enter_scope(s, def.branches[k - 1]);
                 let these = self.expand(def.branches[k - 1], s, case)?;
                 self.set_children(case, &these);
-                for &x in &these {
-                    if x & TEXT_BIT == 0 {
-                        self.components.parent[x as usize] = case;
-                    }
+                for x in these.iter().filter_map(|x| x.as_comp()) {
+                    self.components.parent[x.index()] = case;
                 }
-                kids.push(case);
+                kids.push(ChildEntry::comp(case));
                 inst.scopes.push(s);
                 inst.branch_of.push(k - 1);
             }
@@ -98,7 +96,7 @@ impl<'c> Builder<'c> {
             .iter()
             .zip(&inst.branch_of)
             .map(|(&s, &b)| self.scope_comps[s as usize][elems[b]])
-            .filter(|&m| m != NONE)
+            .filter(|&m| m != CompIdx::NONE)
             .collect()
     }
 
@@ -119,7 +117,7 @@ impl<'c> Builder<'c> {
             .unwrap_or(component_type.prop_defs().len());
         let w = self.new_component(component_type, NONE, parent, NONE, scope, n);
         if n != component_type.prop_defs().len() {
-            self.n_public[w as usize] = n as u32;
+            self.n_public[w.index()] = n as u32;
         }
         w
     }
@@ -137,8 +135,8 @@ impl<'c> Builder<'c> {
             .iter()
             .map(|&s| self.iteration_components(c, s)[0])
             .collect();
-        let component_type = self.components.component_type[members[0] as usize];
-        let scope = self.components.scope[c as usize];
+        let component_type = self.components.component_type[members[0].index()];
+        let scope = self.components.scope[c.index()];
         let w = self.stand_in(component_type, &members, c, scope);
         self.stand_ins.insert(w, members.clone());
         let what = format!("<{}>", component_type.tag());
@@ -158,11 +156,11 @@ impl<'c> Builder<'c> {
         choice: Option<SlotId>,
         what: &str,
     ) -> Result<()> {
-        let component_type = self.components.component_type[w as usize];
+        let component_type = self.components.component_type[w.index()];
         let symbolic = members.iter().any(|&m| self.is_symbolic(m));
         self.math_mode
             .resize(self.components.len(), MathMode::Unknown);
-        self.math_mode[w as usize] = if symbolic {
+        self.math_mode[w.index()] = if symbolic {
             MathMode::Symbolic
         } else {
             MathMode::Numeric
@@ -192,7 +190,7 @@ impl<'c> Builder<'c> {
             self.sources[s as usize] = match choice {
                 None => {
                     // An edge to the prop in every option.
-                    let scope = self.components.scope[w as usize];
+                    let scope = self.components.scope[w.index()];
                     self.reads(&branch_slots, scope)
                 }
                 Some(choice) => {
@@ -297,7 +295,7 @@ impl<'c> Builder<'c> {
                 let inst = &self.choice_insts[self.comp_choice[&c]];
                 (
                     Resolved::Comp(inst.iface_comps[u as usize]),
-                    self.components.scope[c as usize],
+                    self.components.scope[c.index()],
                 )
             }
             Resolved::Missing => (Resolved::Missing, 0),

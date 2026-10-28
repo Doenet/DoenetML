@@ -308,7 +308,7 @@ pub(crate) fn cells(doc: &Document, path: &str) -> Result<Vec<crate::CellIdx>, S
 
 fn read(doc: &Document, path: &str) -> Result<Value, String> {
     let cs = cells(doc, path)?;
-    let vs: Vec<f64> = cs.iter().map(|&c| doc.cells[c as usize]).collect();
+    let vs: Vec<f64> = cs.iter().map(|&c| doc.cells[c.index()]).collect();
     Ok(match vs.as_slice() {
         [v] => Value::Num(*v),
         _ => Value::Tuple(vs),

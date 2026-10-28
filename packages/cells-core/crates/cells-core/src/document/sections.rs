@@ -19,13 +19,13 @@ impl Document {
             .into_iter()
             .map(|(response, submitted)| Request {
                 cell: submitted,
-                value: self.cells[response as usize],
+                value: self.cells[response.index()],
             })
             .collect();
         let n = self.comp_cells(answer)[prop::answer::NUM_SUBMISSIONS];
         requests.push(Request {
             cell: n,
-            value: self.cells[n as usize] + 1.0,
+            value: self.cells[n.index()] + 1.0,
         });
         requests
     }
@@ -69,7 +69,7 @@ impl Document {
         self.answer_responses(answer)
             .into_iter()
             .filter_map(|(response, _)| {
-                let found: Vec<CompIdx> = (0..self.components.len() as CompIdx)
+                let found: Vec<CompIdx> = (CompIdx::below(self.components.len()))
                     .filter(|&c| reads(c, response))
                     .collect();
                 // The input itself over its copies: the answer's own child,
@@ -82,7 +82,7 @@ impl Document {
                         found
                             .iter()
                             .copied()
-                            .find(|&c| self.components.dast_node[c as usize] != NONE)
+                            .find(|&c| self.components.dast_node[c.index()] != NONE)
                     })
                     .or_else(|| found.first().copied())
             })
@@ -97,8 +97,8 @@ impl Document {
             return None;
         }
         let cells = self.comp_cells(c);
-        let own = self.cells[cells[prop::section::NUMBER] as usize].to_string();
-        if self.cells[cells[prop::section::INCLUDE_PARENT_NUMBER] as usize] == 0.0 {
+        let own = self.cells[cells[prop::section::NUMBER].index()].to_string();
+        if self.cells[cells[prop::section::INCLUDE_PARENT_NUMBER].index()] == 0.0 {
             return Some(own);
         }
         let mut p = self.parent(c);
@@ -114,7 +114,7 @@ impl Document {
     /// A section's automatic title, such as "Section 2.1" or "Problem 3".
     pub fn section_title(&self, c: CompIdx) -> Option<String> {
         let number = self.section_number(c)?;
-        let label = self.cells[self.comp_cells(c)[prop::section::LABEL] as usize] as usize;
+        let label = self.cells[self.comp_cells(c)[prop::section::LABEL].index()] as usize;
         Some(format!(
             "{} {number}",
             crate::components::SECTION_TAGS[label].title

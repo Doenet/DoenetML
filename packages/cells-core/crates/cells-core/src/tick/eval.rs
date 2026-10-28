@@ -57,7 +57,7 @@ impl DirtyClosure {
         let mut dep_start = vec![0u32; n_cells + 1];
         for ins in &program.instrs {
             for input in ins.op.inputs(&program.operands) {
-                dep_start[input as usize + 1] += 1;
+                dep_start[input.index() + 1] += 1;
             }
         }
         for c in 0..n_cells {
@@ -67,8 +67,8 @@ impl DirtyClosure {
         let mut dependents = vec![0u32; dep_start[n_cells] as usize];
         for (i, ins) in program.instrs.iter().enumerate() {
             for input in ins.op.inputs(&program.operands) {
-                dependents[fill[input as usize] as usize] = i as u32;
-                fill[input as usize] += 1;
+                dependents[fill[input.index()] as usize] = i as u32;
+                fill[input.index()] += 1;
             }
         }
         DirtyClosure {
@@ -84,8 +84,8 @@ impl DirtyClosure {
     #[inline(always)]
     fn mark_dependents(&mut self, cell: CellIdx, w: usize, bits: &mut u64, hi: &mut usize) {
         let (s, e) = (
-            self.dep_start[cell as usize] as usize,
-            self.dep_start[cell as usize + 1] as usize,
+            self.dep_start[cell.index()] as usize,
+            self.dep_start[cell.index() + 1] as usize,
         );
         for &i in &self.dependents[s..e] {
             let dw = i as usize / 64;
@@ -146,7 +146,7 @@ impl Evaluator for DirtyClosure {
         for &c in changed.iter() {
             if let Some(&first) = self
                 .dependents
-                .get(self.dep_start[c as usize] as usize..self.dep_start[c as usize + 1] as usize)
+                .get(self.dep_start[c.index()] as usize..self.dep_start[c.index() + 1] as usize)
                 .and_then(|d| d.first())
             {
                 lo = lo.min(first as usize / 64);

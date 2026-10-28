@@ -738,7 +738,7 @@ mod writes {
     fn every_vector_inverse_writes_a_declared_input() {
         for op in ops() {
             let (n_in, n_out) = (op.n_in(), op.n_out());
-            let cells: Vec<CellIdx> = (0..n_in as CellIdx).collect();
+            let cells: Vec<CellIdx> = CellIdx::below(n_in).collect();
             for inp in inputs(n_in) {
                 let mut cur = vec![0.0; n_out];
                 op.eval(&inp, &mut cur);
@@ -761,7 +761,7 @@ mod writes {
                         .chain(out.groups.iter().flatten().flat_map(|p| p.cells));
                     for c in written {
                         assert!(
-                            op.writes() & (1 << c) != 0,
+                            op.writes() & (1 << c.index()) != 0,
                             "{op:?} at {inp:?}, asked {desired:?}, wrote input {c}, which it does not declare"
                         );
                     }

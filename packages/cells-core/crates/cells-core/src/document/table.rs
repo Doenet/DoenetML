@@ -18,8 +18,7 @@ pub struct ComponentTable {
     pub prop_cells: Vec<CellIdx>,
     pub child_start: Vec<u32>,
     pub child_count: Vec<u32>,
-    /// Component indices, or `TEXT_BIT | string id` for text children.
-    pub child_list: Vec<u32>,
+    pub child_list: Vec<ChildEntry>,
     /// DAST element each component came from (NONE if synthesized) and the
     /// scope it was created in. Together they identify a component across
     /// rebuilds, which lets a renderer keep its tree keyed by identity.
@@ -44,13 +43,10 @@ impl ComponentTable {
         let mut out = Vec::new();
         let mut stack = vec![(group, Vec::new())];
         while let Some((c, gates)) = stack.pop() {
-            let start = self.child_start[c as usize] as usize;
-            let kids = &self.child_list[start..start + self.child_count[c as usize] as usize];
-            for &k in kids.iter().rev() {
-                if k & TEXT_BIT != 0 {
-                    continue;
-                }
-                match self.component_type[k as usize] {
+            let start = self.child_start[c.index()] as usize;
+            let kids = &self.child_list[start..start + self.child_count[c.index()] as usize];
+            for k in kids.iter().rev().filter_map(|e| e.as_comp()) {
+                match self.component_type[k.index()] {
                     ComponentType::RepeatForSequence
                     | ComponentType::RepeatFor
                     | ComponentType::Collect
@@ -59,7 +55,7 @@ impl ComponentTable {
                     | ComponentType::ConditionalContent => stack.push((k, gates.clone())),
                     ComponentType::Case => {
                         let active = self.prop_cells
-                            [self.prop_base[k as usize] as usize + prop::case::ACTIVE];
+                            [self.prop_base[k.index()] as usize + prop::case::ACTIVE];
                         stack.push((k, [gates.as_slice(), &[active]].concat()));
                     }
                     component_type if component_type.sticky_layout().is_some() => {
@@ -84,19 +80,19 @@ impl ComponentTable {
         let (mut rendered, mut in_sticky) = (vec![false; n], vec![false; n]);
         let mut stack = vec![(root, false, false)];
         while let Some((c, in_graph, sticky)) = stack.pop() {
-            let ty = self.component_type[c as usize];
+            let ty = self.component_type[c.index()];
             match ty.renders() {
                 Renders::Never => continue,
                 Renders::InGraph if !in_graph => continue,
                 _ => {}
             }
-            rendered[c as usize] = true;
-            in_sticky[c as usize] = sticky;
+            rendered[c.index()] = true;
+            in_sticky[c.index()] = sticky;
             let in_graph = in_graph || ty == ComponentType::Graph;
             let sticky = sticky || ty == ComponentType::StickyGroup;
-            let start = self.child_start[c as usize] as usize;
-            for &k in &self.child_list[start..start + self.child_count[c as usize] as usize] {
-                if k & TEXT_BIT == 0 {
+            let start = self.child_start[c.index()] as usize;
+            for e in &self.child_list[start..start + self.child_count[c.index()] as usize] {
+                if let Some(k) = e.as_comp() {
                     stack.push((k, in_graph, sticky));
                 }
             }
@@ -118,6 +114,35 @@ impl ComponentTable {
     }
 }
 
+/// A `child_list` entry: a component, or a text child's string id, stored
+/// with `TEXT_BIT` set. A renderer reads the list as `u32`s.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(transparent)]
+pub struct ChildEntry(u32);
+
+impl ChildEntry {
+    pub fn comp(c: CompIdx) -> ChildEntry {
+        debug_assert_eq!(
+            c.get() & TEXT_BIT,
+            0,
+            "component {c} collides with TEXT_BIT"
+        );
+        ChildEntry(c.get())
+    }
+
+    pub fn text(s: StrId) -> ChildEntry {
+        ChildEntry(TEXT_BIT | s)
+    }
+
+    pub fn as_comp(self) -> Option<CompIdx> {
+        (self.0 & TEXT_BIT == 0).then_some(CompIdx::new(self.0))
+    }
+
+    pub fn as_text(self) -> Option<StrId> {
+        (self.0 & TEXT_BIT != 0).then_some(self.0 & !TEXT_BIT)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Child<'a> {
     Component(CompIdx),
@@ -130,41 +155,40 @@ impl Document {
     }
 
     pub fn component_type(&self, c: CompIdx) -> ComponentType {
-        self.components.component_type[c as usize]
+        self.components.component_type[c.index()]
     }
 
     pub fn name(&self, c: CompIdx) -> Option<&str> {
-        let s = self.components.name[c as usize];
+        let s = self.components.name[c.index()];
         (s != NONE).then(|| self.strings.get(s).trim())
     }
 
     pub fn parent(&self, c: CompIdx) -> Option<CompIdx> {
-        let p = self.components.parent[c as usize];
-        (p != NONE).then_some(p)
+        let p = self.components.parent[c.index()];
+        (p != CompIdx::NONE).then_some(p)
     }
 
     pub fn children(&self, c: CompIdx) -> impl Iterator<Item = Child<'_>> + '_ {
         let (s, n) = (
-            self.components.child_start[c as usize] as usize,
-            self.components.child_count[c as usize] as usize,
+            self.components.child_start[c.index()] as usize,
+            self.components.child_count[c.index()] as usize,
         );
-        self.components.child_list[s..s + n].iter().map(move |&e| {
-            if e & TEXT_BIT != 0 {
-                Child::Text(self.strings.get(e & !TEXT_BIT))
-            } else {
-                Child::Component(e)
-            }
-        })
+        self.components.child_list[s..s + n]
+            .iter()
+            .map(move |&e| match e.as_comp() {
+                Some(k) => Child::Component(k),
+                None => Child::Text(self.strings.get(e.as_text().unwrap())),
+            })
     }
 
     /// Cells of the single-cell props of `c`: its type table's, in
     /// `component_type.prop_defs()` order, then two per point of its list.
     pub fn comp_cells(&self, c: CompIdx) -> &[CellIdx] {
         let t = &self.components;
-        let base = t.prop_base[c as usize] as usize;
+        let base = t.prop_base[c.index()] as usize;
         let end = t
             .prop_base
-            .get(c as usize + 1)
+            .get(c.index() + 1)
             .map_or(t.prop_cells.len(), |&e| e as usize);
         &t.prop_cells[base..end]
     }
@@ -181,7 +205,7 @@ impl Document {
     fn push_text(&self, c: CompIdx, out: &mut String) {
         let value = |prop: &str| {
             self.prop_cells(c, prop)
-                .map(|cells| self.cells[cells[0] as usize])
+                .map(|cells| self.cells[cells[0].index()])
         };
         match self.component_type(c) {
             ComponentType::Text => {
@@ -201,12 +225,12 @@ impl Document {
             ComponentType::Math | ComponentType::MathInput => {
                 let expr = self.prop_cells(c, "expr").map(|cells| cells[0]);
                 match expr {
-                    Some(e) if !self.cells[e as usize].is_nan() => out.push_str(&self.math_text(e)),
+                    Some(e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
                     _ => out.push_str(&format_number(value("value").unwrap_or(f64::NAN))),
                 }
             }
             ComponentType::Case
-                if self.cells[self.comp_cells(c)[prop::case::ACTIVE] as usize] != 1.0 => {}
+                if self.cells[self.comp_cells(c)[prop::case::ACTIVE].index()] != 1.0 => {}
             ComponentType::ConditionalContent | ComponentType::Select
                 if value("hide").is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
             _ => {
@@ -222,7 +246,7 @@ impl Document {
 
     /// The string a `<text>` value cell holds (its string id), or "".
     pub fn text_value(&self, cell: CellIdx) -> String {
-        let v = self.cells[cell as usize];
+        let v = self.cells[cell.index()];
         if v.is_nan() || v < 0.0 || v as usize >= self.strings.len() {
             String::new()
         } else {
@@ -273,7 +297,7 @@ impl Document {
     }
 
     pub fn value(&self, name: &str, prop: &str) -> Option<f64> {
-        self.cell(name, prop).map(|c| self.cells[c as usize])
+        self.cell(name, prop).map(|c| self.cells[c.index()])
     }
 
     pub fn memory_estimate(&self) -> MemoryEstimate {

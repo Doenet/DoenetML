@@ -5,6 +5,7 @@
 //! hold the same bits in every cell and report the same changed cells.
 
 use cells_bench::script::{apply, describe, plan, sources};
+use cells_core::CellIdx;
 use cells_core::Document;
 
 #[test]
@@ -36,7 +37,7 @@ fn full_and_dirty_closure_recompute_agree() {
             steps += 1;
             assert_eq!(a.rebuilt, b.rebuilt, "{at}");
             assert_eq!(a.dropped.len(), b.dropped.len(), "{at}");
-            let sorted = |mut c: Vec<u32>| {
+            let sorted = |mut c: Vec<CellIdx>| {
                 c.sort_unstable();
                 c
             };

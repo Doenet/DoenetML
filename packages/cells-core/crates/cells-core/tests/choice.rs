@@ -77,7 +77,7 @@ fn built_cases_report_which_is_active() {
         .filter_map(|ch| match ch {
             cells_core::Child::Component(c) => {
                 let active = doc.comp_cells(c)[cells_core::components::prop::case::ACTIVE];
-                Some(doc.cells[active as usize])
+                Some(doc.cells[active.index()])
             }
             _ => None,
         })
@@ -86,7 +86,7 @@ fn built_cases_report_which_is_active() {
     // A test path finds the active case's component.
     let x = doc.resolve_path("cc.x").unwrap();
     assert_eq!(
-        doc.cells[doc.prop_cells(x, "value").unwrap()[0] as usize],
+        doc.cells[(doc.prop_cells(x, "value").unwrap()[0]).index()],
         1.0
     );
 }
@@ -312,9 +312,10 @@ fn a_select_inside_a_repeat_draws_per_iteration_and_keeps_its_draw_across_rebuil
     let draws = |doc: &Document, k: usize| -> Vec<f64> {
         (1..=k)
             .map(|i| {
-                doc.cells[doc
+                doc.cells[(doc
                     .prop_cells(doc.resolve_path(&format!("r[{i}].c")).unwrap(), "value")
-                    .unwrap()[0] as usize]
+                    .unwrap()[0])
+                    .index()]
             })
             .collect()
     };

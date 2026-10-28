@@ -157,11 +157,11 @@ impl<'c> Builder<'c> {
     /// slot of that expression.
     fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
         let comp = self.slot_comp[slot as usize];
-        if comp == NONE {
+        if comp == CompIdx::NONE {
             return None;
         }
-        let component_type = self.components.component_type[comp as usize];
-        let pi = (slot - self.slot_base[comp as usize]) as usize;
+        let component_type = self.components.component_type[comp.index()];
+        let pi = (slot - self.slot_base[comp.index()]) as usize;
         let name = component_type.prop_defs().get(pi)?.name;
         match (component_type, name) {
             // An answer's response and correct value are expressions when
@@ -199,14 +199,14 @@ impl<'c> Builder<'c> {
 
     fn value_type_within(&mut self, slot: SlotId, depth: u32) -> ValueType {
         let comp = self.slot_comp[slot as usize];
-        if depth == 0 || comp == NONE {
+        if depth == 0 || comp == CompIdx::NONE {
             return ValueType::Number;
         }
-        let inst = self.comp_instance[comp as usize];
+        let inst = self.comp_instance[comp.index()];
         if inst == NONE {
             // A copy or a placed reference aliases what it copies; an
             // interface name holds what its branches' components hold.
-            let pi = slot - self.slot_base[comp as usize];
+            let pi = slot - self.slot_base[comp.index()];
             if let BuiltSource::Alias(t) = self.sources[slot as usize] {
                 return self.value_type_within(t, depth - 1);
             }
@@ -217,7 +217,7 @@ impl<'c> Builder<'c> {
             };
             let mut kind = ValueType::Number;
             for m in members {
-                let t = self.slot_base[m as usize] + pi;
+                let t = self.slot_base[m.index()] + pi;
                 match self.value_type_within(t, depth - 1) {
                     ValueType::Number => {}
                     k => kind = k,
@@ -226,7 +226,7 @@ impl<'c> Builder<'c> {
             return kind;
         }
         let i = self.instances[inst as usize];
-        let pi = (slot - self.slot_base[comp as usize]) as usize;
+        let pi = (slot - self.slot_base[comp.index()]) as usize;
         let c: &'c Compiled = self.compiled;
         let next = match c.templates[i.template].elems[i.elem].props.get(pi) {
             Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
@@ -254,7 +254,7 @@ impl<'c> Builder<'c> {
             }
             Some(Source::Alias(Arg::Elem(e, k))) => {
                 let other = self.scope_comps[i.scope as usize][*e];
-                if other == NONE {
+                if other == CompIdx::NONE {
                     return ValueType::Number;
                 }
                 self.slot(other, *k as usize)
@@ -282,14 +282,14 @@ impl<'c> Builder<'c> {
             self.math_mode
                 .resize(self.components.len(), MathMode::Unknown);
         }
-        match self.math_mode[comp as usize] {
+        match self.math_mode[comp.index()] {
             MathMode::Numeric | MathMode::Deciding => return false,
             MathMode::Symbolic => return true,
             MathMode::Unknown => {}
         }
-        self.math_mode[comp as usize] = MathMode::Deciding;
-        let component_type = self.components.component_type[comp as usize];
-        let inst = self.comp_instance[comp as usize];
+        self.math_mode[comp.index()] = MathMode::Deciding;
+        let component_type = self.components.component_type[comp.index()];
+        let inst = self.comp_instance[comp.index()];
         let yes = match component_type {
             ComponentType::Function | ComponentType::Derivative => true,
             // A copy of a math (its `expr`) or a bound mathInput (its `value`).
@@ -305,7 +305,7 @@ impl<'c> Builder<'c> {
                 {
                     Some(BuiltSource::Alias(t)) => {
                         let referent = self.slot_comp[*t as usize];
-                        referent != NONE && self.is_symbolic(referent)
+                        referent != CompIdx::NONE && self.is_symbolic(referent)
                     }
                     _ => false,
                 }
@@ -342,7 +342,7 @@ impl<'c> Builder<'c> {
             }
             _ => false,
         };
-        self.math_mode[comp as usize] = if yes {
+        self.math_mode[comp.index()] = if yes {
             MathMode::Symbolic
         } else {
             MathMode::Numeric

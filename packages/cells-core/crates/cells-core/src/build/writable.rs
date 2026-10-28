@@ -24,10 +24,10 @@ impl<'c> Builder<'c> {
         let mut writable = vec![false; n];
         let mut seen = vec![false; n];
         let mut stack: Vec<u32> = Vec::new();
-        for c in 0..self.components.component_type.len() as CompIdx {
-            let ty = self.components.component_type[c as usize];
+        for c in CompIdx::below(self.components.component_type.len()) {
+            let ty = self.components.component_type[c.index()];
             let np = self.n_public(c);
-            let base = self.slot_base[c as usize] as usize;
+            let base = self.slot_base[c.index()] as usize;
             for pi in 0..np {
                 if ty.is_input_prop(np, pi) {
                     stack.push(roots[base + pi]);

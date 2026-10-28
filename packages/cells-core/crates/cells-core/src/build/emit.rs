@@ -114,7 +114,7 @@ impl<'c> Builder<'c> {
                     BuiltSource::Literal(_) | BuiltSource::Default(_)
                 ) && essential[s])
         };
-        let mut slot_cell: Vec<CellIdx> = vec![NONE; n];
+        let mut slot_cell: Vec<CellIdx> = vec![CellIdx::NONE; n];
         // Count each kind of defining slot first: the essential tables are
         // kept, and none of these should reserve more than it fills.
         let mut counts = [0usize; 4];
@@ -171,9 +171,9 @@ impl<'c> Builder<'c> {
                         && let Some(p) = parked.remove(&(scope, key.0, key.1))
                     {
                         value = p.value;
-                        unparked.push((cells.len() as CellIdx, p, (scope, tslot)));
+                        unparked.push((CellIdx::from_index(cells.len()), p, (scope, tslot)));
                     }
-                    slot_cell[root] = cells.len() as CellIdx;
+                    slot_cell[root] = CellIdx::from_index(cells.len());
                     cells.push(value);
                     cell_def_slot.push(s as SlotId);
                     essential_slots.push((scope, tslot));
@@ -190,7 +190,7 @@ impl<'c> Builder<'c> {
         // The dead cell, first of the fixed cells: NaN, never computed,
         // and what every dead slot names.
         let dead_cell = (!dead_defs.is_empty()).then(|| {
-            let dead = cells.len() as CellIdx;
+            let dead = CellIdx::from_index(cells.len());
             cells.push(f64::NAN);
             cell_def_slot.push(dead_defs[0] as SlotId);
             for &s in &dead_defs {
@@ -206,7 +206,7 @@ impl<'c> Builder<'c> {
                 unreachable!()
             };
             let root = roots[s] as usize;
-            slot_cell[root] = cells.len() as CellIdx;
+            slot_cell[root] = CellIdx::from_index(cells.len());
             cells.push(v);
             cell_def_slot.push(s as SlotId);
         }
@@ -214,7 +214,7 @@ impl<'c> Builder<'c> {
         // A vector instruction's outputs are consecutive cells after its head.
         for &s in &derived_defs {
             let root = roots[s] as usize;
-            slot_cell[root] = cells.len() as CellIdx;
+            slot_cell[root] = CellIdx::from_index(cells.len());
             let n_out = match self.sources[s] {
                 BuiltSource::Op(spec, ..) => spec.n_out(),
                 _ => 1,
@@ -229,9 +229,9 @@ impl<'c> Builder<'c> {
                 unreachable!()
             };
             let head_cell = slot_cell[roots[head as usize] as usize];
-            debug_assert!(head_cell != NONE, "vector output before its head");
-            slot_cell[roots[s] as usize] = head_cell + k as CellIdx;
-            cell_def_slot[(head_cell + k as CellIdx) as usize] = s as SlotId;
+            debug_assert!(head_cell != CellIdx::NONE, "vector output before its head");
+            slot_cell[roots[s] as usize] = head_cell.offset(k as usize);
+            cell_def_slot[(head_cell.offset(k as usize)).index()] = s as SlotId;
         }
         debug_assert_eq!(cells.len(), n_cells);
         let live_bits = |live: &[bool]| {
@@ -268,7 +268,7 @@ impl<'c> Builder<'c> {
         let mut value_types = vec![ValueType::Number; cells.len()];
         for &(s, ty) in &self.typed_slots {
             if Some(slot_to_cell[s as usize]) != dead_cell {
-                value_types[slot_to_cell[s as usize] as usize] = ty;
+                value_types[slot_to_cell[s as usize].index()] = ty;
             }
         }
         // A restored value stays only in a cell of the type it was saved
@@ -277,7 +277,7 @@ impl<'c> Builder<'c> {
         // counts as touched.
         let mut touched = self.session.touched.clone();
         for &(cell, p, at) in &unparked {
-            let c = cell as usize;
+            let c = cell.index();
             cells[c] = if p.fits(value_types[c], essential_defaults[c]) {
                 std::sync::Arc::make_mut(&mut touched).insert(at);
                 p.value
@@ -320,7 +320,7 @@ impl<'c> Builder<'c> {
             }
             if let OpSpec::Sym(kind) = spec {
                 if kind.makes_math() {
-                    value_types[slot_to_cell[s] as usize] = ValueType::Math;
+                    value_types[slot_to_cell[s].index()] = ValueType::Math;
                 }
                 // The template's leaves were slots; they are cells now.
                 if let SymKind::Instantiate { template, post } = kind {
@@ -357,7 +357,7 @@ impl<'c> Builder<'c> {
                     let (lo, hi) = (bound[1], bound[2]);
                     bound.clear();
                     bound.extend([lo, hi]);
-                    bound.extend_from_slice(&tape.params);
+                    bound.extend(tape.params.iter().map(|&c| CellIdx::new(c)));
                     spec = OpSpec::Sym(SymKind::SampleTape {
                         tape: tapes.len() as u32,
                     });
@@ -377,7 +377,7 @@ impl<'c> Builder<'c> {
         self.components.prop_base = Vec::with_capacity(n_comps);
         self.components.prop_cells = Vec::with_capacity(n);
         for c in 0..n_comps {
-            let np = self.n_public(c as CompIdx);
+            let np = self.n_public(CompIdx::from_index(c));
             self.components
                 .prop_base
                 .push(self.components.prop_cells.len() as u32);
@@ -388,18 +388,17 @@ impl<'c> Builder<'c> {
         }
         lap("prop cells");
         // Each component's public prop count, for the cycle labels below.
-        let n_public: Vec<usize> = (0..n_comps as CompIdx).map(|c| self.n_public(c)).collect();
+        let n_public: Vec<usize> = (CompIdx::below(n_comps))
+            .map(|c| self.n_public(c))
+            .collect();
 
         let (depths, cross_reads) = self.structural_depths();
         lap("structural depth");
         for (r, (&d, &cross)) in self.repeats.iter().zip(depths.iter().zip(&cross_reads)) {
             if cross {
-                let name = self.components.name[r.comp as usize];
+                let name = self.components.name[r.comp.index()];
                 let name = if name == NONE {
-                    format!(
-                        "<{}>",
-                        self.components.component_type[r.comp as usize].tag()
-                    )
+                    format!("<{}>", self.components.component_type[r.comp.index()].tag())
                 } else {
                     self.compiled.dast.strings.get(name).trim().to_string()
                 };
@@ -454,17 +453,17 @@ impl<'c> Builder<'c> {
         let names = self.components.name.clone();
         let dast = self.compiled.dast.clone();
         let cell_label = Box::new(move |cell: CellIdx| {
-            let slot = cell_def_slot[cell as usize];
+            let slot = cell_def_slot[cell.index()];
             let comp = slot_comp[slot as usize];
-            if comp == NONE {
+            if comp == CompIdx::NONE {
                 return "(anonymous cell)".to_string();
             }
-            let pi = (slot - slot_base[comp as usize]) as usize;
-            let owner = match names[comp as usize] {
-                NONE => format!("<{}>#{}", component_types[comp as usize].tag(), comp),
+            let pi = (slot - slot_base[comp.index()]) as usize;
+            let owner = match names[comp.index()] {
+                NONE => format!("<{}>#{}", component_types[comp.index()].tag(), comp),
                 s => dast.strings.get(s).trim().to_string(),
             };
-            match component_types[comp as usize].prop_name(n_public[comp as usize], pi) {
+            match component_types[comp.index()].prop_name(n_public[comp.index()], pi) {
                 Some(name) => format!("{owner}.{name}"),
                 None => format!("{owner}.(hidden slot {pi})"),
             }
@@ -591,7 +590,7 @@ impl<'c> Builder<'c> {
             );
             if computed && !stand_in() {
                 // The seeded element is boxed (ADR 0013).
-                let node = self.components.dast_node[self.slot_comp[s as usize] as usize];
+                let node = self.components.dast_node[self.slot_comp[s as usize].index()];
                 self.failed_node = (node != NONE).then_some(node);
                 return Err(Error::Unsupported(format!(
                     "prefill=\"${}\": a prefill reference must name a value that is not computed",
@@ -601,7 +600,7 @@ impl<'c> Builder<'c> {
             if dead_cell == Some(slot_to_cell[s as usize]) {
                 continue;
             }
-            let v = cells[src as usize];
+            let v = cells[src.index()];
             let seed = if math_cells.contains(&src) || v.is_nan() {
                 v
             } else {
@@ -610,7 +609,7 @@ impl<'c> Builder<'c> {
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);
             // a seeded cell no student can write (ADR 0018) is fixed at it.
-            let cell = slot_to_cell[s as usize] as usize;
+            let cell = slot_to_cell[s as usize].index();
             let essential = cell < defaults.len();
             if essential {
                 defaults[cell] = seed;
@@ -630,16 +629,16 @@ impl<'c> Builder<'c> {
     /// them.
     pub(in crate::build) fn template_slot(&self, slot: SlotId) -> Option<(usize, u32)> {
         let comp = self.slot_comp[slot as usize];
-        if comp == NONE {
+        if comp == CompIdx::NONE {
             return None;
         }
-        let i = self.comp_instance[comp as usize];
+        let i = self.comp_instance[comp.index()];
         if i == NONE {
             return None;
         }
         let inst = self.instances[i as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
-        let pi = slot - self.slot_base[comp as usize];
+        let pi = slot - self.slot_base[comp.index()];
         if pi as usize >= el.props.len().max(el.component_type.prop_defs().len()) {
             return None;
         }
@@ -692,8 +691,8 @@ impl<'c> Builder<'c> {
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
         let comp = self.slot_comp[slot as usize];
-        let inst = self.instances[self.comp_instance[comp as usize] as usize];
-        let pi = slot - self.slot_base[comp as usize];
+        let inst = self.instances[self.comp_instance[comp.index()] as usize];
+        let pi = slot - self.slot_base[comp.index()];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
         let prop = if (pi as usize) < self.n_public(comp) {
             pi
@@ -738,7 +737,7 @@ impl<'c> Builder<'c> {
                 reads[ri].push(o);
             }
             stack.clear();
-            let count_pi = self.components.component_type[r.comp as usize]
+            let count_pi = self.components.component_type[r.comp.index()]
                 .count_prop()
                 .expect("a repeat has a count");
             stack.push(self.slot(r.comp, count_pi));
@@ -750,8 +749,8 @@ impl<'c> Builder<'c> {
                 seen[sl as usize] = true;
                 touched.push(sl);
                 let comp = self.slot_comp[sl as usize];
-                if comp != NONE {
-                    let scope = self.components.scope[comp as usize];
+                if comp != CompIdx::NONE {
+                    let scope = self.components.scope[comp.index()];
                     if scope != 0
                         && !is_ancestor_or_self(scope, r.scope)
                         && let Some(o) = owner(scope)
@@ -808,7 +807,7 @@ fn rebind(t: &Tree, slot_to_cell: &[CellIdx]) -> Tree {
     let one = |k: &Tree| Box::new(rebind(k, slot_to_cell));
     match t {
         Tree::Cell { cell, math } => Tree::Cell {
-            cell: slot_to_cell[*cell as usize],
+            cell: slot_to_cell[*cell as usize].get(),
             math: *math,
         },
         Tree::Num(_) | Tree::Sym(_) => t.clone(),
@@ -832,12 +831,14 @@ fn has_math_leaf(t: &Tree) -> bool {
     }
 }
 
-/// Distinct cell leaves of a tree, in first-seen order.
+/// Distinct cell leaves of a tree, rebound to cells (`rebind`), in
+/// first-seen order.
 fn cell_leaves(t: &Tree, out: &mut Vec<CellIdx>) {
     match t {
         Tree::Cell { cell, .. } => {
-            if !out.contains(cell) {
-                out.push(*cell);
+            let cell = CellIdx::new(*cell);
+            if !out.contains(&cell) {
+                out.push(cell);
             }
         }
         Tree::Num(_) | Tree::Sym(_) => {}

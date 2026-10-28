@@ -120,7 +120,7 @@ fn a_referent_past_the_count_is_missing_not_an_error() {
     assert_eq!(v(&doc, "q", "x"), 1.0);
     let corner = doc.resolve_path("vs[2]").unwrap();
     let x = doc.prop_cells(corner, "x").unwrap()[0];
-    assert_eq!(doc.cells[x as usize], 1.0);
+    assert_eq!(doc.cells[x.index()], 1.0);
 }
 
 // A build after the load that finds an error the load did not report is a

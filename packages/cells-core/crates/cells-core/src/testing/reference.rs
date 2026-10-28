@@ -27,7 +27,7 @@ impl<'a> ReferenceEvaluator<'a> {
             .instrs
             .iter()
             .enumerate()
-            .flat_map(|(i, ins)| (0..ins.op.n_out() as CellIdx).map(move |k| (ins.out + k, i)))
+            .flat_map(|(i, ins)| (0..ins.op.n_out()).map(move |k| (ins.out.offset(k), i)))
             .collect();
         ReferenceEvaluator {
             doc,
@@ -40,7 +40,7 @@ impl<'a> ReferenceEvaluator<'a> {
     pub fn value(&self, cell: CellIdx) -> f64 {
         // Essential and fixed cells have no producer.
         let Some(&p) = self.producer.get(&cell) else {
-            return self.doc.cells[cell as usize];
+            return self.doc.cells[cell.index()];
         };
         if let Some(&v) = self.memo.borrow().get(&cell) {
             return v;
@@ -49,7 +49,7 @@ impl<'a> ReferenceEvaluator<'a> {
         // Build a scratch view where only this instruction's inputs are filled.
         let mut scratch = vec![f64::NAN; self.doc.cells.len()];
         for input in ins.op.inputs(&self.doc.program.operands) {
-            scratch[input as usize] = self.value(input);
+            scratch[input.index()] = self.value(input);
         }
         let mut out = vec![0.0; ins.op.n_out()];
         let mut engine = self.doc.session.engine.borrow_mut();
@@ -61,7 +61,7 @@ impl<'a> ReferenceEvaluator<'a> {
         self.doc
             .program
             .eval_into(ins, &mut sym, &scratch, &mut out);
-        let v = out[(cell - ins.out) as usize];
+        let v = out[cell.index() - ins.out.index()];
         self.memo.borrow_mut().insert(cell, v);
         v
     }
@@ -72,9 +72,9 @@ impl<'a> ReferenceEvaluator<'a> {
 pub fn check(doc: &Document) -> Option<(CellIdx, f64, f64)> {
     let r = ReferenceEvaluator::new(doc);
     for (i, &actual) in doc.cells.iter().enumerate() {
-        let expected = r.value(i as CellIdx);
+        let expected = r.value(CellIdx::from_index(i));
         if !(actual == expected || (actual.is_nan() && expected.is_nan())) {
-            return Some((i as CellIdx, actual, expected));
+            return Some((CellIdx::from_index(i), actual, expected));
         }
     }
     None

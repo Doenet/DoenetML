@@ -25,6 +25,7 @@
 //! documents in `HOLES` are rejected at load today and skipped; they are
 //! here for the day one is not.
 
+use cells_core::CompIdx;
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
@@ -499,8 +500,8 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
         }
     };
     for cell in doc.interactive_cells() {
-        let cur = doc.cells[cell as usize];
-        let value = match doc.value_types[cell as usize] {
+        let cur = doc.cells[cell.index()];
+        let value = match doc.value_types[cell.index()] {
             cells_core::ValueType::Number if cur.is_nan() => 1.0,
             cells_core::ValueType::Number => cur + 1.5,
             // Text and math ask for what they hold: the walk is the same.
@@ -510,7 +511,7 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
             d.request(&[Request { cell, value }]);
         });
     }
-    for c in 0..doc.n_components() as u32 {
+    for c in CompIdx::below(doc.n_components()) {
         match doc.component_type(c) {
             ComponentType::Answer => record(format!("a submit of {c}"), &|d| {
                 d.submit(c);

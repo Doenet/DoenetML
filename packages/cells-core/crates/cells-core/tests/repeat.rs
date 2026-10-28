@@ -1,16 +1,17 @@
 //! `<repeatForSequence>`, `<collect>`, indexed references and rebuilds.
 
+use cells_core::CellIdx;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error, load_via_binary};
 use cells_core::{Child, Document, Request};
 
-fn req(cell: u32, value: f64) -> Request {
+fn req(cell: CellIdx, value: f64) -> Request {
     Request { cell, value }
 }
 
 /// Cell of `$path.prop` where `path` alternates names and 1-based positions,
 /// e.g. `["r", "3", "p"]` for `r[3].p`.
-fn cell(doc: &Document, path: &[&str], prop: &str) -> u32 {
+fn cell(doc: &Document, path: &[&str], prop: &str) -> CellIdx {
     let mut text = String::new();
     for (i, part) in path.iter().enumerate() {
         if part.parse::<usize>().is_ok() {
@@ -29,7 +30,7 @@ fn cell(doc: &Document, path: &[&str], prop: &str) -> u32 {
 }
 
 fn val(doc: &Document, path: &[&str], prop: &str) -> f64 {
-    doc.cells[cell(doc, path, prop) as usize]
+    doc.cells[cell(doc, path, prop).index()]
 }
 
 const POINTS: &str = r#"

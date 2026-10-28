@@ -40,7 +40,7 @@ impl Document {
     pub(crate) fn sticky_tables(&self) -> Vec<StickyTable> {
         let mut seen: HashSet<Vec<CellIdx>> = HashSet::new();
         let mut out = Vec::new();
-        for g in 0..self.components.len() as CompIdx {
+        for g in CompIdx::below(self.components.len()) {
             if self.component_type(g) != ComponentType::StickyGroup {
                 continue;
             }
@@ -110,7 +110,7 @@ impl Document {
 
     /// A rigid polygon's vertices are outputs of its `Shape` instruction.
     fn is_shape_output(&self, cell: CellIdx) -> bool {
-        let p = self.program.producer[cell as usize];
+        let p = self.program.producer[cell.index()];
         p != u32::MAX
             && matches!(
                 self.program.instrs[p as usize].op,
@@ -126,7 +126,7 @@ impl Document {
         groups: &mut [Vec<PointRequest>],
     ) {
         for t in &self.sticky {
-            let cur = |c: CellIdx| self.cells[c as usize];
+            let cur = |c: CellIdx| self.cells[c.index()];
             let mut requested: Vec<Option<Pt>> = vec![None; t.points.len()];
             let mut ask = |cell: CellIdx, value: f64| {
                 if let Some(&(id, k)) = t.index.get(&cell) {

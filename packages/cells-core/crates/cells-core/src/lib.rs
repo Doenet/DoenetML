@@ -27,6 +27,8 @@
 //! - [`testing`]: the reference oracle and test helpers.
 //! - [`trace`]: named spans over a load, for the benchmark's trace layer.
 
+mod index;
+
 pub mod build;
 mod compile;
 pub mod components;
