@@ -32,29 +32,30 @@ const CHROME_CLASSES = [
 ];
 
 /**
- * Prepare `tree`, the HTML PreTeXt made of a document, to print one page per sheet. A
- * document with no page is left as it was. `tree` is mutated in place.
+ * Prepare `tree`, the HTML PreTeXt made of a document, to print one page per sheet. The
+ * empty heading of any printout is dropped, pages or not; otherwise a document with no
+ * page is left as it was. `tree` is mutated in place.
  */
 export function preparePrintoutPages(tree: HastRoot) {
-    let printout: HastElement | undefined;
+    const printouts: HastElement[] = [];
     let hasPage = false;
     visit(tree, "element", (node: HastElement) => {
         if (hasClass(node, "onepage")) {
             hasPage = true;
         }
         if (
-            !printout &&
             node.tagName === "section" &&
             (hasClass(node, "worksheet") || hasClass(node, "handout"))
         ) {
-            printout = node;
+            printouts.push(node);
         }
     });
+    printouts.forEach(dropEmptyHeading);
+
+    const printout = printouts[0];
     if (!hasPage || !printout) {
         return;
     }
-
-    dropEmptyHeading(printout);
 
     const margins = parseMargins(printout.properties?.dataMargins);
 
@@ -90,9 +91,9 @@ export function preparePrintoutPages(tree: HastRoot) {
 }
 
 /**
- * Drop the heading of a printout that has no title. PreTeXt heads a worksheet whose title
- * is empty, as the converter writes it, with its number alone: a bare "1" across the top
- * of the first sheet.
+ * Drop the heading of a printout that has no title. PreTeXt heads a worksheet or handout
+ * whose title is empty, as the converter writes it, with its number alone: a bare "1"
+ * across the top of the first sheet.
  */
 function dropEmptyHeading(printout: HastElement) {
     printout.children = printout.children.filter((child) => {
