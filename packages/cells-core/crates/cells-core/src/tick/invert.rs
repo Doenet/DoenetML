@@ -295,8 +295,7 @@ impl RequestEngine<'_> {
             produced.clear();
             let ok = match ins.op {
                 Op::Vec(v, start, n_in, _) => {
-                    let inputs =
-                        &self.program.operands[start as usize..start as usize + n_in as usize];
+                    let inputs = self.program.operands_at(start, n_in as usize);
                     let inp: Vec<f64> = inputs.iter().map(|&c| self.cells[c as usize]).collect();
                     let cur: Vec<f64> = (0..n_out)
                         .map(|k| self.cells[ins.out as usize + k])
@@ -304,8 +303,8 @@ impl RequestEngine<'_> {
                     v.invert(inputs, &inp, &cur, &desired, &mut produced)
                 }
                 // A math input's value: write the constant expression.
-                Op::Sym(SymKind::Evaluate, start, _) => {
-                    let expr = self.program.operands[start as usize];
+                Op::Sym(SymKind::Evaluate, start, ..) => {
+                    let expr = self.program.operands_at(start, 1)[0];
                     let d = desired[0].unwrap();
                     let h = if d.is_nan() {
                         f64::NAN

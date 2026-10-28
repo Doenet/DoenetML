@@ -150,7 +150,7 @@ impl<'a> Signer<'a> {
         for (i, instr) in out.instrs.iter().enumerate() {
             let n_out = match instr.op {
                 Op::Vec(_, _, _, n_out) => n_out as usize,
-                Op::Sym(kind, _, _) => kind.n_out(),
+                Op::Sym(kind, ..) => kind.n_out(),
                 _ => 1,
             };
             for k in 0..n_out {
@@ -320,7 +320,7 @@ impl<'a> Signer<'a> {
             if (cell as usize) < self.out.n_essential {
                 leaves.insert(cell);
             } else if let Some(instr) = self.instr_of(cell) {
-                stack.extend(instr.op.inputs(&self.out.operands));
+                stack.extend(instr.op.inputs(&self.out.operands.cells));
             }
         }
         leaves
@@ -337,7 +337,7 @@ impl<'a> Signer<'a> {
                 continue;
             }
             if let Some(instr) = self.instr_of(cell) {
-                for i in instr.op.inputs(&self.out.operands) {
+                for i in instr.op.inputs(&self.out.operands.cells) {
                     if (i as usize) < self.out.n_essential {
                         read.insert(i);
                     }
@@ -372,7 +372,7 @@ impl<'a> Signer<'a> {
                     self.hashes[ci] = Some(hash_of("unwritten"));
                     continue;
                 };
-                let inputs: Vec<CellIdx> = instr.op.inputs(&out.operands).collect();
+                let inputs: Vec<CellIdx> = instr.op.inputs(&out.operands.cells).collect();
                 if !ready {
                     stack.push((c, true));
                     stack.extend(inputs.iter().map(|&i| (i, false)));

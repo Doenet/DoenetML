@@ -263,7 +263,7 @@ impl<'c> Builder<'c> {
         lap("number cells");
 
         let mut instrs = Vec::with_capacity(derived_defs.len());
-        let mut operands = Vec::new();
+        let mut operands = Operands::default();
         let mut bound: Vec<CellIdx> = Vec::with_capacity(8);
         let mut value_types = vec![ValueType::Number; cells.len()];
         for &(s, ty) in &self.typed_slots {

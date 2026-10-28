@@ -111,12 +111,12 @@ macro_rules! scalar_ops {
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum Op {
             $($($attr)* $($op_def)*,)*
-            /// A symbolic instruction: inputs are `operands[start..start + n]`; the
-            /// `n_out` entries after them hold its memo (see `Program::step`).
-            Sym(SymKind, u32, u8),
+            /// A symbolic instruction: inputs are `operands[start..start + n]`;
+            /// its memo is the `n + n_out` entries from `memo` (see `Program::step`).
+            Sym(SymKind, OperandIdx, u8, MemoIdx),
             /// A vector operator (`vector.rs`): inputs are `operands[start..start + n_in]`,
             /// outputs are the `n_out` cells from the instruction's `out`.
-            Vec(VecOp, u32, u8, u8),
+            Vec(VecOp, OperandIdx, u8, u8),
         }
 
         /// Description of an operator before its inputs are bound to cells.
@@ -172,8 +172,8 @@ macro_rules! scalar_ops {
             pub fn unbound(&self) -> Op {
                 match *self {
                     $(Op::$name($($in,)+ $($p,)*) => Op::$name($(scalar_ops!(@zero $in),)+ $($p,)*),)*
-                    Op::Sym(kind, _, n) => Op::Sym(kind, 0, n),
-                    Op::Vec(op, _, n_in, n_out) => Op::Vec(op, 0, n_in, n_out),
+                    Op::Sym(kind, _, n, _) => Op::Sym(kind, OperandIdx::default(), n, MemoIdx::default()),
+                    Op::Vec(op, _, n_in, n_out) => Op::Vec(op, OperandIdx::default(), n_in, n_out),
                 }
             }
 

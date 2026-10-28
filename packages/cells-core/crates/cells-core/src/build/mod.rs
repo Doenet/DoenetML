@@ -49,7 +49,7 @@ use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::VecOp;
 use crate::program::{Instr, OpSpec, Post, SymKind};
-use crate::program::{Program, Sym, ValueType};
+use crate::program::{Operands, Program, Sym, ValueType};
 use crate::session::{Counts, Session};
 
 #[cfg(feature = "testing")]
@@ -201,7 +201,7 @@ pub struct BuildOutput {
     structure: Structure,
     /// The session after this build: its scopes, what is still parked.
     session: Session,
-    operands: Vec<CellIdx>,
+    operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
     /// Each component's element's stable key, `NONE` for one no element

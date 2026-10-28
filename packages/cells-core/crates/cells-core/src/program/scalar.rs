@@ -14,7 +14,7 @@
 
 use super::ops::scalar_ops;
 use crate::document::CellIdx;
-use crate::program::{SymKind, VecOp};
+use crate::program::{MemoIdx, OperandIdx, SymKind, VecOp};
 
 /// `Math.round`: halves round toward positive infinity, unlike Rust's
 /// `round`, which rounds them away from zero. The current core is JavaScript,
@@ -188,7 +188,7 @@ impl Op {
         };
         let mut inp = [0.0f64; crate::program::MAX_VEC_IN];
         let n_in = n_in as usize;
-        for (k, &c) in operands[start as usize..start as usize + n_in]
+        for (k, &c) in operands[start.index()..start.index() + n_in]
             .iter()
             .enumerate()
         {
@@ -202,8 +202,8 @@ impl Op {
     #[inline(always)]
     pub fn operand_range(&self) -> std::ops::Range<usize> {
         match *self {
-            Op::Vec(_, start, n, _) | Op::Sym(_, start, n) => {
-                start as usize..start as usize + n as usize
+            Op::Vec(_, start, n, _) | Op::Sym(_, start, n, _) => {
+                start.index()..start.index() + n as usize
             }
             _ => 0..0,
         }

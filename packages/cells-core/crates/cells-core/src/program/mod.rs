@@ -16,7 +16,7 @@ mod ops;
 mod scalar;
 mod vector;
 
-pub use instr::{Instr, Post, SAMPLES, SymKind};
+pub use instr::{Instr, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymKind};
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 
@@ -41,8 +41,8 @@ pub enum ValueType {
 pub struct Sym {
     /// The session's engine (`Session::engine`), which the program shares.
     pub engine: Rc<RefCell<Engine>>,
-    /// Parallel to `Program::operands`: for a symbolic instruction, the input
-    /// values it last ran on, then its outputs from that run.
+    /// For each symbolic instruction, from its `MemoIdx`: the input values
+    /// it last ran on, then its outputs from that run.
     memo: RefCell<Vec<f64>>,
     pub stats: Cell<SymStats>,
     /// Scratch columns for `SampleTape`.
@@ -90,8 +90,8 @@ pub struct Program {
     pub producer: Vec<u32>,
     /// The symbolic engine that math cells' handles index.
     pub sym: Sym,
-    /// Every input of a vector or symbolic instruction (and, after a
-    /// symbolic instruction's inputs, placeholders for its memo).
+    /// Every input of a vector or symbolic instruction, indexed by
+    /// `OperandIdx`.
     pub operands: Vec<CellIdx>,
     /// What each cell's value means.
     pub value_types: Vec<ValueType>,
@@ -121,10 +121,11 @@ impl Program {
         instrs: Vec<Instr>,
         n_cells: usize,
         sym: Sym,
-        operands: Vec<CellIdx>,
+        operands: Operands,
         value_types: Vec<ValueType>,
     ) -> std::result::Result<Program, CellIdx> {
-        sym.memo.replace(vec![NEVER; operands.len()]);
+        sym.memo.replace(vec![NEVER; operands.memo_len]);
+        let operands = operands.cells;
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in instrs.iter().enumerate() {
             for k in 0..ins.op.n_out() {
@@ -222,8 +223,8 @@ impl Program {
     #[inline(always)]
     pub fn step(&self, ins: &Instr, cells: &mut [f64], changed: Option<&mut Vec<CellIdx>>) {
         let out = ins.out as usize;
-        if let Op::Sym(kind, start, n) = ins.op {
-            self.step_sym(kind, start as usize, n as usize, out, cells, changed);
+        if let Op::Sym(kind, start, n, memo) = ins.op {
+            self.step_sym(kind, start, n as usize, memo, out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
             let mut buf = [0.0f64; 16];
             let n = ins.op.n_out();
@@ -268,11 +269,11 @@ impl Program {
     /// `lookahead`: a symbolic instruction runs without its memo, which
     /// keeps the inputs it last ran on in the document's cells.
     pub fn step_lookahead(&self, ins: &Instr, cells: &mut [f64]) {
-        let Op::Sym(kind, start, n) = ins.op else {
+        let Op::Sym(kind, start, n, _) = ins.op else {
             return self.step(ins, cells, None);
         };
-        let (start, n, out) = (start as usize, n as usize, ins.out as usize);
-        let inputs = &self.operands[start..start + n];
+        let out = ins.out as usize;
+        let inputs = self.operands_at(start, n as usize);
         let mut outs = vec![0.0; kind.n_out()];
         if let SymKind::SampleTape { tape } = kind {
             self.run_tape(&self.tapes[tape as usize], cells, inputs, &mut outs);
@@ -288,19 +289,21 @@ impl Program {
     /// than on a dirty flag, so stepping on a scratch copy (the reference
     /// evaluator) gives the same answer as stepping on the cells.
     #[inline(never)]
+    #[allow(clippy::too_many_arguments)]
     fn step_sym(
         &self,
         kind: SymKind,
-        start: usize,
+        start: OperandIdx,
         n: usize,
+        memo: MemoIdx,
         out: usize,
         cells: &mut [f64],
         changed: Option<&mut Vec<CellIdx>>,
     ) {
         let n_out = kind.n_out();
-        let inputs = &self.operands[start..start + n];
-        let mut memo = self.sym.memo.borrow_mut();
-        let (last, outs) = memo[start..start + n + n_out].split_at_mut(n);
+        let inputs = self.operands_at(start, n);
+        let mut memo_cells = self.sym.memo.borrow_mut();
+        let (last, outs) = memo_cells[memo.index()..memo.index() + n + n_out].split_at_mut(n);
         let mut stats = self.sym.stats.get();
         stats.steps += 1;
         if !inputs
@@ -354,6 +357,12 @@ impl Program {
         let params: Vec<f64> = inputs[2..].iter().map(|&c| cells[c as usize]).collect();
         let mut stack = self.sym.tape_stack.borrow_mut();
         tape.eval_many(&params, &xs, out, &mut stack);
+    }
+
+    /// The `n` input cells parked from `start`.
+    #[inline(always)]
+    pub fn operands_at(&self, start: OperandIdx, n: usize) -> &[CellIdx] {
+        &self.operands[start.index()..start.index() + n]
     }
 
     /// Evaluate one instruction's outputs into `out` without writing cells.

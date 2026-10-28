@@ -74,6 +74,50 @@ impl SymKind {
     }
 }
 
+/// A position in `Program::operands`, where a vector or symbolic
+/// instruction's input cells are parked: an index into that list, never
+/// into the cells. Its own type so that one is not taken for the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct OperandIdx(u32);
+
+impl OperandIdx {
+    pub(crate) const fn new(i: u32) -> OperandIdx {
+        OperandIdx(i)
+    }
+
+    #[inline(always)]
+    pub const fn index(self) -> usize {
+        self.0 as usize
+    }
+}
+
+/// A position in a program's symbolic memo (`Sym`), where a symbolic
+/// instruction keeps the input values it last ran on and its outputs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct MemoIdx(u32);
+
+impl MemoIdx {
+    pub(crate) const fn new(i: u32) -> MemoIdx {
+        MemoIdx(i)
+    }
+
+    #[inline(always)]
+    pub const fn index(self) -> usize {
+        self.0 as usize
+    }
+}
+
+/// Where a build parks the inputs of the operators it binds
+/// (`OpSpec::bind`): the operand list a program keeps, and how much of the
+/// symbolic memo its instructions take.
+#[derive(Debug, Clone, Default)]
+pub struct Operands {
+    pub cells: Vec<CellIdx>,
+    pub memo_len: usize,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Instr {
     pub out: CellIdx,
@@ -115,9 +159,9 @@ impl OpSpec {
     }
 
     /// Bind to input cells. Vector and symbolic operators park their inputs
-    /// in `operands`; a symbolic one also reserves `n_out` entries after them
-    /// for its memo.
-    pub fn bind(&self, inputs: &[CellIdx], operands: &mut Vec<CellIdx>) -> Op {
+    /// in `operands`; a symbolic one also reserves a memo entry for each
+    /// input and each output.
+    pub fn bind(&self, inputs: &[CellIdx], operands: &mut Operands) -> Op {
         // The compile checks every planned operator (`compile::check_arity`);
         // one the build makes with the wrong count is a core bug, stopped
         // here with its name rather than at an index out of bounds.
@@ -126,16 +170,17 @@ impl OpSpec {
             "{self:?} bound to {} inputs",
             inputs.len()
         );
-        let park = |operands: &mut Vec<CellIdx>, leaves: &[CellIdx]| {
-            let start = operands.len() as u32;
-            operands.extend_from_slice(leaves);
+        let park = |operands: &mut Operands, leaves: &[CellIdx]| {
+            let start = OperandIdx::new(operands.cells.len() as u32);
+            operands.cells.extend_from_slice(leaves);
             (start, leaves.len() as u8)
         };
         match *self {
             OpSpec::Sym(k) => {
                 let (start, n) = park(operands, inputs);
-                operands.extend(std::iter::repeat_n(crate::document::NONE, k.n_out()));
-                Op::Sym(k, start, n)
+                let memo = MemoIdx::new(operands.memo_len as u32);
+                operands.memo_len += n as usize + k.n_out();
+                Op::Sym(k, start, n, memo)
             }
             OpSpec::Vec(v) => {
                 let (start, n) = park(operands, inputs);
@@ -247,7 +292,7 @@ mod arity {
             };
             assert!(spec.accepts(n));
             let inputs: Vec<CellIdx> = (0..n as CellIdx).collect();
-            let mut operands = Vec::new();
+            let mut operands = Operands::default();
             let op = spec.bind(&inputs, &mut operands);
             let cells: Vec<f64> = (0..n).map(|i| 1.0 + i as f64).collect();
             match spec {
