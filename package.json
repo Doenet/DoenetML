@@ -73,6 +73,7 @@
     },
     "overrides": {
         "zod": "~4.3.6",
+        "yauzl": "^3.4.0",
         "@qualified/lsp-connection": {
             "vscode-jsonrpc": "$vscode-jsonrpc"
         },
