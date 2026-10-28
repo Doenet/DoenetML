@@ -12,8 +12,8 @@ component that renders a piecewise defined function that can be evaluated and gr
 as a `<function>{:dn}` component.
 
 
-In order to evaluate a piecewiseFunction, the function attribute `symbolic` must be 
-set to `false`, to force numerical evaluation.
+A `<piecewiseFunction>{:dn}` is evaluated numerically, as though `symbolic="false"` were set,
+unless the `symbolic` attribute is set explicitly.
 
 
 *Disclaimer*: currently, piecewise functions cannot be used with the `<derivative>{:dn}` component. 
@@ -30,7 +30,7 @@ endpoints must also be graphed as independent components (see [`<endpoint>{:dn}`
 ```doenet-editor-horiz
 <graph size="small">
   <shortDescription>A graph of a three-part piecewise function</shortDescription>
-  <piecewiseFunction name="f" symbolic="false">
+  <piecewiseFunction name="f">
     <function domain="(-infinity,-5)">
       x
     </function>
@@ -58,11 +58,6 @@ then be evaluated in the same manner as the `<function>{:dn}` component using
 the `$$functionName(input)` evaluation reference.
 
 
-*Note*: When using a `<piecewiseFunction>{:dn}` for evaluation, it is necessary to include 
-the function attribute `symbolic="false"` to force numerical evaluation.
-
-
-
 ---
 
 ### Example: Adding endpoints graphically to a `<piecewiseFunction>{:dn}`
@@ -75,7 +70,7 @@ the function attribute `symbolic="false"` to force numerical evaluation.
   <function name="Hplus">1</function>
   
   <!--Define piecewise function; restrict domains-->
-  <piecewiseFunction name="H" symbolic="false">
+  <piecewiseFunction name="H">
     <function extend="$Hminus" 
               domain="(-infinity,0)"/>
     <function name="Hzero" 
@@ -117,9 +112,6 @@ the single `<piecewiseFunction>{:dn}` to then be used for
 2. for correctly rendering the equation of the piecewise function outside the graph, and 
 3. for correct mathematical evaluation at all points in the domain.
 
-Note: When using a `<piecewiseFunction>{:dn}` for evaluation, it is necessary to include the 
-function attribute `symbolic="false"` to force numerical evaluation.
-
 ---
 
 ### Example: How domains are interpreted
@@ -128,7 +120,7 @@ function attribute `symbolic="false"` to force numerical evaluation.
 ```doenet-editor-horiz
 <graph size="small">
   <shortDescription>A graph of a piecewise function with overlapping domains</shortDescription>
-  <piecewiseFunction name="f" symbolic="false" domain="(-8,8)">
+  <piecewiseFunction name="f" domain="(-8,8)">
     <function domain="(-5,-2)">
       -2
     </function>
@@ -152,10 +144,6 @@ function attribute `symbolic="false"` to force numerical evaluation.
 
 
 Domains may be specified for the parent `<piecewiseFunction>{:dn}`, and also for all individual child functions. When two domains overlap, the previously defined `<function>{:dn}` governs. Finally, when no domain is specified for a given function, that function assumes the domain not occupied by all of the other defined functions.
-
-
-<em>Note</em>: When using a `<piecewiseFunction>{:dn}` for evaluation, it is necessary to include the function attribute `symbolic="false"` to force numerical evaluation.
-
 
 
 ## Attribute Examples
