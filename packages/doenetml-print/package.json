@@ -49,13 +49,14 @@
             ]
         },
         "build:python": {
-            "command": "cd python && python3 setup.py sdist bdist_wheel",
+            "command": "cd python && rm -rf build && python3 setup.py sdist bdist_wheel",
             "files": [
                 "python/**/*.py",
                 "python/MANIFEST.in",
                 "python/setup.py",
                 "python/README.md",
-                "python/pretext_wasm/core/**/*"
+                "python/pretext_wasm/core/**/*",
+                "python/pretext_wasm/templates/**/*"
             ],
             "output": [
                 "python/dist/**/*"
@@ -67,6 +68,7 @@
                 "src/**/*.ts",
                 "src/**/*.tsx",
                 "src/**/*.css",
+                "python/pretext_wasm/templates/**/*.ptx",
                 "tsconfig.json",
                 "vite.config.ts"
             ],

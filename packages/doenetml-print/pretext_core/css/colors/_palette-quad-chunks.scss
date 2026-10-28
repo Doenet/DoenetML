@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 // Defines colors for grouping elements based on four colors to identify 
 // block elements as either main, do, fact, or meta.
 
@@ -25,7 +44,7 @@ $schemes: (
   ),
   "ice-fire": (
     "color-main": hsl(210, 45%, 27%),
-    "color-do": hsl(208, 7%, 49%),
+    "color-do": hsl(208, 7%, 45%),
     "color-fact": #0f80b0,
     "color-meta": #a13838,
   ),
@@ -101,9 +120,10 @@ $color-meta: null !default;
 // text color for headings
 $heading-text-color: white !default;
 
-$body-light: 96%;
-$body-light-alt: 93%;
-$body-sat: -20%;
+$body-light: 96% !default;
+$body-light-alt: 93% !default;
+$body-sat: -20% !default;
+$body-sat-alt: 0% !default;
 
 //lighter version of color-main for knowl borders
 $color-main-alt: color.adjust(color.scale($color-main, $lightness: 25%), $saturation: $body-sat);
@@ -114,7 +134,7 @@ $color-do-light: color.adjust(color.change($color-do, $lightness: $body-light), 
 $color-fact-light: color.adjust(color.change($color-fact, $lightness: $body-light), $saturation: $body-sat);
 $color-meta-light: color.adjust(color.change($color-meta, $lightness: $body-light), $saturation: $body-sat);
 //and an alt of color-main for nested knowls
-$color-main-light-alt: color.change($color-main, $lightness: $body-light-alt);
+$color-main-light-alt: color.adjust(color.change($color-main, $lightness: $body-light-alt), $saturation: $body-sat-alt);
 
 $colors: (
   "color-main": $color-main,

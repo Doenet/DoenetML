@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 
 <!--********************************************************************
-Copyright 2020 Robert A. Beezer
+Copyright (C) 2020-2026  Robert A. Beezer
 
 This file is part of PreTeXt.
 
@@ -81,6 +81,17 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:param name="math.punctuation" select="'none'"/>
 <xsl:variable name="math.punctuation.include" select="$math.punctuation"/>
 
+<!-- A consumer that renders the math SVG into a single-file target  -->
+<!-- (such as the XSL-FO conversion to PDF) can make a               -->
+<!-- cross-reference inside math an active link by setting this to   -->
+<!-- 'yes': the "xref" then emits a \href{#id} that MathJax turns    -->
+<!-- into an SVG "a" element. The "#id" is the shared "unique-id" of -->
+<!-- the target, so it matches the anchor that conversion places on  -->
+<!-- the target. Off ('no') by default, since a chunked target       -->
+<!-- (HTML, EPUB) needs a filename, not a bare fragment, and not     -->
+<!-- every reader honors the SVG link.                               -->
+<xsl:param name="math.cross-references" select="'no'"/>
+
 <!-- We import the HTML stylesheet since we want HTML versions of -->
 <!-- the math bits, but we don't need all the chunking machinery  -->
 <!-- for extracting math, since we are building a single file,    -->
@@ -93,6 +104,23 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- by stray LaTeX/ASCIIMath/MathJax markup.  Here we just rip out    -->
 <!-- and package math for subsequent processing, so no such            -->
 <!-- contortions are necessary and a simpler wrapping is possible.     -->
+
+<!-- Accidentals inside music notation are the Unicode characters    -->
+<!-- the HTML conversion writes, which MathJax renders from its own  -->
+<!-- fonts, except the double sharp and double flat, for which it    -->
+<!-- has no glyph: it emits them as fallback text in a generic serif -->
+<!-- face, which a PDF or EPUB font may lack (FOP prints a "#"), and -->
+<!-- the Speech Rule Engine can neither speak nor braille them.  So  -->
+<!-- the extracted LaTeX doubles the single characters instead,      -->
+<!-- braced so that a superscript takes both.  Written as characters -->
+<!-- rather than \sharp and \flat, they are legal inside the \text{} -->
+<!-- that holds a chord's alterations.                               -->
+<xsl:template name="doublesharp">
+    <xsl:text>{&#x266F;&#x266F;}</xsl:text>
+</xsl:template>
+<xsl:template name="doubleflat">
+    <xsl:text>{&#x266D;&#x266D;}</xsl:text>
+</xsl:template>
 
 <!-- Inline math does not need a "span", just delimiters -->
 <xsl:template name="inline-math-wrapper">
@@ -156,10 +184,13 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Flag the context as "inline" v. "displaymath"     -->
 <!-- so that we can do things like place a CSS class   -->
 <!-- for MathJax to see when processing the math bits. -->
-<xsl:template match="m|md" mode="extraction">
+<!-- Music notation ("n", "scaledeg", "timesignature", "chord") is  -->
+<!-- LaTeX built by the -common templates and set as inline math, so -->
+<!-- it needs a representation exactly as an "m" does.               -->
+<xsl:template match="m|md|n|scaledeg|timesignature|chord" mode="extraction">
     <xsl:variable name="context">
         <xsl:choose>
-            <xsl:when test="self::m">
+            <xsl:when test="self::m or self::n or self::scaledeg or self::timesignature or self::chord">
                 <xsl:text>inline</xsl:text>
             </xsl:when>
             <xsl:when test="self::md">
@@ -197,15 +228,40 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!--       And the lxml parser complains when a global XSL variable is redefined      -->
 <!--       in an override/import.                                                     -->
 <!--                                                                                  -->
-<!-- We are going to punt right now and just drop in text, so (1) is  important,      -->
-<!-- but (2) and (3) are no longer issues. This override just plops in text, which    -->
-<!-- automatically comes wrapped in a LaTeX \text{}                                   -->
+<!-- We drop in text (1, the computed number, already wrapped in a LaTeX \text{}),    -->
+<!-- which is all a chunked target (3) can use, and is the default ('no') because not -->
+<!-- every reader honors an SVG link (2). But when "math.cross-references" is 'yes' a -->
+<!-- single-file target (such as the XSL-FO conversion to PDF) wants the live link of -->
+<!-- (2): wrap that same text in a \href to the target's "#id", which MathJax renders -->
+<!-- as an "a" element in the SVG.                                                    -->
 <xsl:template match="*" mode="xref-link-display-math">
     <xsl:param name="target"/>
     <xsl:param name="content"/>
-    <!-- <xsl:text>\text{</xsl:text> -->
-    <xsl:value-of select="$content"/>
-    <!-- <xsl:text>}</xsl:text> -->
+    <xsl:choose>
+        <xsl:when test="$math.cross-references = 'yes'">
+            <xsl:text>\href{#</xsl:text>
+            <xsl:apply-templates select="$target" mode="unique-id"/>
+            <xsl:text>}{</xsl:text>
+            <xsl:choose>
+                <!-- an electronic PDF colors the reference like every    -->
+                <!-- other link (the dark blue of "link-attributes" in    -->
+                <!-- pretext-fo.xsl), via MathJax's \color; print leaves   -->
+                <!-- it black, exactly as the other links do               -->
+                <xsl:when test="$b-latex-print">
+                    <xsl:value-of select="$content"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:text>\color{#000080}{</xsl:text>
+                    <xsl:value-of select="$content"/>
+                    <xsl:text>}</xsl:text>
+                </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>}</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="$content"/>
+        </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <!-- Knowls -->

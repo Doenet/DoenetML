@@ -1,5 +1,9 @@
 import { visit } from "unist-util-visit";
-import type { Element as HastElement, Root as HastRoot } from "hast";
+import type {
+    Element as HastElement,
+    Parents as HastParent,
+    Root as HastRoot,
+} from "hast";
 
 /**
  * A printout written in `<page>`s: PreTeXt renders each page as a `section.onepage` inside
@@ -32,29 +36,31 @@ const CHROME_CLASSES = [
 ];
 
 /**
- * Prepare `tree`, the HTML PreTeXt made of a document, to print one page per sheet. A
+ * Prepare `tree`, the HTML PreTeXt made of a document, to print one page per sheet. The
+ * empty heading of a printout that stands alone is dropped, pages or not; otherwise a
  * document with no page is left as it was. `tree` is mutated in place.
  */
 export function preparePrintoutPages(tree: HastRoot) {
-    let printout: HastElement | undefined;
+    const printouts: HastElement[] = [];
+    const alone: HastElement[] = [];
     let hasPage = false;
-    visit(tree, "element", (node: HastElement) => {
+    visit(tree, "element", (node: HastElement, _index, parent) => {
         if (hasClass(node, "onepage")) {
             hasPage = true;
         }
-        if (
-            !printout &&
-            node.tagName === "section" &&
-            (hasClass(node, "worksheet") || hasClass(node, "handout"))
-        ) {
-            printout = node;
+        if (isPrintout(node)) {
+            printouts.push(node);
+            if (standsAlone(node, parent)) {
+                alone.push(node);
+            }
         }
     });
+    alone.forEach(dropEmptyHeading);
+
+    const printout = printouts[0];
     if (!hasPage || !printout) {
         return;
     }
-
-    dropEmptyHeading(printout);
 
     const margins = parseMargins(printout.properties?.dataMargins);
 
@@ -89,10 +95,33 @@ export function preparePrintoutPages(tree: HastRoot) {
     });
 }
 
+function isPrintout(node: HastElement) {
+    return (
+        node.tagName === "section" &&
+        (hasClass(node, "worksheet") || hasClass(node, "handout"))
+    );
+}
+
 /**
- * Drop the heading of a printout that has no title. PreTeXt heads a worksheet whose title
- * is empty, as the converter writes it, with its number alone: a bare "1" across the top
- * of the first sheet.
+ * Whether `printout` is the only division beside it: the one the converter puts around the
+ * whole document, or a section of a document that has no other. Unless content comes
+ * before it, PreTeXt numbers it even so, as "1". A printout made of one of several
+ * sections is numbered among them, as the section was, and its number is the heading it
+ * keeps.
+ */
+function standsAlone(printout: HastElement, parent: HastParent | undefined) {
+    return (parent?.children ?? []).every(
+        (sibling) =>
+            sibling === printout ||
+            sibling.type !== "element" ||
+            sibling.tagName !== "section",
+    );
+}
+
+/**
+ * Drop the heading of a printout that has no title. PreTeXt heads a worksheet or handout
+ * whose title is empty, as the converter writes it, with its number alone: a bare "1"
+ * across the top of the first sheet.
  */
 function dropEmptyHeading(printout: HastElement) {
     printout.children = printout.children.filter((child) => {

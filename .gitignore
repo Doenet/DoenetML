@@ -82,6 +82,9 @@ packages/prefigure/src/worker/liblouis/generated/*.dis
 
 packages/doenetml-to-pretext-python/doenetml_to_pretext/js-assets/*
 packages/doenetml-print/python/pretext_wasm/core/*
+# PreTeXt's vendored stylesheets live in a `dist` directory, which the rule above would
+# ignore; update_pretext_core.sh must be able to add the new ones.
+!packages/doenetml-print/pretext_core/css/dist
 __pycache__
 .pytest_cache
 *.egg-info

@@ -1,5 +1,23 @@
 <?xml version='1.0'?> <!-- As XML file -->
 
+<!--********************************************************************
+Copyright (C) 2013-2026  Robert A. Beezer
+
+This file is part of PreTeXt.
+
+PreTeXt is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 or version 3 of the
+License (at your option).
+
+PreTeXt is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+*****************************************************************-->
 <!-- http://pimpmyxslt.com/articles/entity-tricks-part2/ -->
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY % entities SYSTEM "entities.ent">
@@ -124,7 +142,7 @@
                         <xsl:value-of select="@tolerance" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:message>PTX:WARNING: '<xsl:value-of select="@doctest" /> tolerance' Sage doctest needs 'tolerance=' attribute</xsl:message>
+                        <xsl:message>PTX:ERROR:   '<xsl:value-of select="@doctest" /> tolerance' Sage doctest needs 'tolerance=' attribute</xsl:message>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
@@ -137,7 +155,7 @@
                         <xsl:value-of select="@package" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:message>PTX:WARNING: 'optional' Sage doctest missing package, supply a 'package=' attribute</xsl:message>
+                        <xsl:message>PTX:ERROR:   'optional' Sage doctest missing package, supply a 'package=' attribute</xsl:message>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>

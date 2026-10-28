@@ -9,8 +9,18 @@
 		     the default a text fillin already uses. -->
 		<fillin mathstyle="underline" />
 	</common>
+	<!-- PreTeXt numbers figures and tables in the same sequence as problems and other blocks,
+	     so a table between problems 3 and 4 makes the next problem 5. DoenetML numbers
+	     figures and tables in a sequence of their own; match it. Level 0 numbers both
+	     sequences straight through the document (Problem 1, 2, ...) rather than prefixing
+	     the number of the enclosing division: a "0." where content comes before the first
+	     division, or the number of the handout a section becomes (Problem 1.1). -->
+	<numbering>
+		<blocks level="0" />
+		<figures distinct="yes" level="0" />
+	</numbering>
     <html platform="web">
-		<knowl theorem="no" proof="no" definition="no" example="no" example-solution="no" project="no" task="no" remark="no" objectives="no" outcomes="no" figure="no" table="no" listing="no" list="no" exercise-inline="yes" exercise-divisional="no" exercise-worksheet="no" exercise-readingquestion="no" />
+		<knowl theorem="no" proof="no" definition="no" example="no" example-solution="no" project="no" task="no" remark="no" objectives="no" outcomes="no" figure="no" table="no" listing="no" list="no" exercise-inline="yes" exercise-divisional="no" exercise-worksheet="no" exercise-reading="no" />
 		<css style="default" colors="blue_red" />
 		<search variant="none" />
 		<calculator model="none" activecode="none" />

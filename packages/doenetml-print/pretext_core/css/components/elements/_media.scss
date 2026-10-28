@@ -1,3 +1,22 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 // ---------------------------------------------
 // containers for images, audio, video, and asymptote
 .image-box,
@@ -27,13 +46,14 @@ img.contained {
 
 // ---------------------------------------------
 // images
-.ptx-content img, .ptx-content svg {
+.image-box img, .image-box svg {
   // for body images in dark mode, we want to be able to force a light colored background
   // as most transparent images will assume that the background is white
   background: var(--ptx-image-bg);
 }
 // but mermaid svg should always have a transparent background
-.mermaid > svg {
+.image-box .mermaid > svg,
+.image-box .ptx-mermaid-dialog > svg {
   background: none;
 }
 
@@ -51,25 +71,6 @@ img.contained {
   justify-content: center;
   display: flex;
   gap: 0.5em;
-}
-
-// TODO - refactor mag_popup JS and CSS
-// was .ptx-content .image-box > img:not(.draw_on_me):not(.mag_popup)
-.image-box > img:not(.mag_popup) {
-  cursor: zoom-in;
-}
-
-img.mag_popup {
-  border: 1px solid #666;
-  box-shadow: 4px 6px 4px #999;
-  cursor: zoom-out;
-}
-
-.mag_popup_container {
-  width:100%;
-  position:absolute;
-  z-index:1001;
-  overflow-x: visible;
 }
 
 // ---------------------------------------------

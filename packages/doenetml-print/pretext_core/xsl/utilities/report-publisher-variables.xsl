@@ -1,22 +1,22 @@
 <?xml version='1.0'?> <!-- As XML file -->
 
 <!--********************************************************************
-Copyright 2013 Robert A. Beezer
+Copyright (C) 2013-2026  Robert A. Beezer
 
-This file is part of MathBook XML.
+This file is part of PreTeXt.
 
-MathBook XML is free software: you can redistribute it and/or modify
+PreTeXt is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 or version 3 of the
 License (at your option).
 
-MathBook XML is distributed in the hope that it will be useful,
+PreTeXt is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
+along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************-->
 
 <!-- http://pimpmyxslt.com/articles/entity-tricks-part2/ -->
@@ -55,6 +55,10 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Intend output for a text file -->
 <xsl:output method="text" encoding="UTF-8"/>
 
+<!-- A report has no use for generated references and citations, -->
+<!-- so need not look for them, nor say when they are missing    -->
+<xsl:variable name="b-consulting-csl-file" select="false()"/>
+
 <!-- IMPORTANT: to report the value of a (computed) publisher variable,   -->
 <!-- two related routines are involved.  For a variable not previously    -->
 <!-- supported, a developer must take action to implement a report. The   -->
@@ -77,6 +81,21 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>mermaid-theme</xsl:text>
     <xsl:text> </xsl:text>
     <xsl:value-of select="$mermaid-theme"/>
+    <xsl:text>&#xa;</xsl:text>
+    <!-- 2026-07-22 Reveal.js mathematics: "online" or "embedded" -->
+    <xsl:text>reveal-math-source</xsl:text>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="$reveal-math-source"/>
+    <xsl:text>&#xa;</xsl:text>
+    <!-- 2026-07-22 Reveal.js effective resources host, and the resource -->
+    <!-- location prefix (the CDN root when the host is "embedded")      -->
+    <xsl:text>reveal-resources-host</xsl:text>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="$reveal-resources-host"/>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>reveal-root</xsl:text>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="$reveal-root"/>
     <xsl:text>&#xa;</xsl:text>
     <!-- 2024-07-07 QR code image -->
     <xsl:text>qrcode-image</xsl:text>
@@ -107,6 +126,11 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text> </xsl:text>
     <xsl:value-of select="$portable-html"/>
     <xsl:text>&#xa;</xsl:text>
+    <!-- 2026-06-30 local/cdn resources -->
+    <xsl:text>b-cdn-resources</xsl:text>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="$b-cdn-resources"/>
+    <xsl:text>&#xa;</xsl:text>
     <!-- 2025-05-10 CSL style indicator -->
     <xsl:text>b-using-csl-styles</xsl:text>
     <xsl:text> </xsl:text>
@@ -131,6 +155,19 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>baseurl</xsl:text>
     <xsl:text> </xsl:text>
     <xsl:value-of select="$baseurl"/>
+    <xsl:text>&#xa;</xsl:text>
+    <!-- -->
+    <!-- 2026-08-28 percent widths are relative to this, and an interactive  -->
+    <!-- is built at this width, so preview screenshots need to know it      -->
+    <xsl:text>html-design-width</xsl:text>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="$html-design-width"/>
+    <xsl:text>&#xa;</xsl:text>
+    <!-- -->
+    <!-- 2026-06-25 platform host for html -->
+    <xsl:text>host-platform</xsl:text>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="$host-platform"/>
     <xsl:text>&#xa;</xsl:text>
     <!-- -->
 

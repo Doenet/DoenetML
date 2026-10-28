@@ -1,20 +1,39 @@
+//********************************************************************
+// Copyright (C) 2024-2026  Robert A. Beezer
+//
+// This file is part of PreTeXt.
+//
+// PreTeXt is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 2 or version 3 of the
+// License (at your option).
+//
+// PreTeXt is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
+//********************************************************************
+
 $color-light: var(--primary-color-white-30) !default;
 $color-dark: var(--primary-color-black-30) !default;
 $thickness: 2px !default;
 $padding: 3px !default;
-$thickness-h2: 4px !default;
-$thickness-h3: 3px !default;
+$thickness-h1: 4px !default;
+$thickness-h2: 3px !default;
 
 
 section > .heading {
   padding-bottom: $padding;
   border-bottom: $thickness solid $color-light;
 }
+section > h1.heading {
+  border-bottom-width: $thickness-h1;
+}
 section > h2.heading {
   border-bottom-width: $thickness-h2;
-}
-section > h3.heading {
-  border-bottom-width: $thickness-h3;
 }
 
 :root.dark-mode {
