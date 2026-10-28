@@ -17,7 +17,7 @@ impl<'c> Builder<'c> {
         Ok(match arg {
             Arg::Own(a) => self.slot(comp, a as usize),
             Arg::Elem(el, slot) => {
-                let other = self.scope_comps[scope.index()][el];
+                let other = self.scope_comps[scope.index()][el.index()];
                 self.slot(other, slot as usize)
             }
             Arg::Ref(p, Sel::Whole) => {
@@ -66,7 +66,7 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
     ) -> Result<(Resolved, Option<&'c str>)> {
         let c: &'c Compiled = self.compiled;
-        let p = &c.refs[plan];
+        let p = &c.refs[plan.index()];
         let labelling = self.view.folds_iterations();
         let src_depth = if labelling {
             self.scope_depth(scope)
@@ -89,11 +89,13 @@ impl<'c> Builder<'c> {
                     cur = match cur {
                         Resolved::Iter(_, s) => {
                             sc = s;
-                            Resolved::Comp(self.scope_comps[s.index()][*e])
+                            Resolved::Comp(self.scope_comps[s.index()][e.index()])
                         }
                         Resolved::Missing => Resolved::Missing,
                         // A name inside a named component: same scope.
-                        Resolved::Comp(_) => Resolved::Comp(self.scope_comps[sc.index()][*e]),
+                        Resolved::Comp(_) => {
+                            Resolved::Comp(self.scope_comps[sc.index()][e.index()])
+                        }
                     };
                 }
                 Step::Iface(cid, u) => {
@@ -259,12 +261,14 @@ impl<'c> Builder<'c> {
                     Ok(comps[0])
                 } else {
                     Err(Error::AmbiguousIteration(
-                        self.compiled.refs[plan].display.clone(),
+                        self.compiled.refs[plan.index()].display.clone(),
                         comps.len(),
                     ))
                 }
             }
-            Resolved::Missing => Err(Error::UnknownName(self.compiled.refs[plan].display.clone())),
+            Resolved::Missing => Err(Error::UnknownName(
+                self.compiled.refs[plan.index()].display.clone(),
+            )),
         }
     }
 

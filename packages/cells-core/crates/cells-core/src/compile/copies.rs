@@ -14,27 +14,28 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
-        let component_type = self.compiled.templates[t].elems[e].component_type;
-        let display = self.compiled.refs[p].display.clone();
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let display = self.compiled.refs[p.index()].display.clone();
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
             ComponentType::Number | ComponentType::NumberInput | ComponentType::MathInput => {
                 vec![Source::reference(p)]
             }
             ComponentType::Math => {
-                let id = self.compiled.arena.push(Expr::Cell(p as u32));
+                let id = self.compiled.arena.push(Expr::Cell(p));
                 self.compiled
                     .sym_text
-                    .insert(id, crate::sym::engine::leaf_name(p as u32, false));
+                    .insert(id, crate::sym::engine::leaf_name(p.get(), false));
                 prop::math::props_of(id, Post::None)
             }
             ComponentType::PointList => {
-                self.compiled.templates[t].elems[e].body = Body::PointList { from: p };
+                self.compiled.templates[t.index()].elems[e.index()].body =
+                    Body::PointList { from: p };
                 Vec::new()
             }
             _ => return Err(Error::PathTooDeep(display)),
         };
-        self.compiled.templates[t].elems[e].props = props;
+        self.compiled.templates[t.index()].elems[e.index()].props = props;
         Ok(())
     }
 
@@ -52,7 +53,7 @@ impl<'a> Compiler<'a> {
         self.plan_attrs(t, e, Some(p))?;
         let scope = self.child_scope(t, e);
         let kids = self.clone_children(t, r, scope, e)?;
-        self.compiled.templates[t].elems[e].children = kids;
+        self.compiled.templates[t.index()].elems[e.index()].children = kids;
         Ok(())
     }
 
@@ -63,17 +64,19 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         root: ElemId,
     ) -> Result<Vec<Child>> {
-        let kids = self.compiled.templates[t].elems[from].children.clone();
+        let kids = self.compiled.templates[t.index()].elems[from.index()]
+            .children
+            .clone();
         let mut out = Vec::with_capacity(kids.len());
         for ch in kids {
             match ch {
                 Child::Elem(c) => {
                     let (component_type, name) = {
-                        let el = &self.compiled.templates[t].elems[c];
+                        let el = &self.compiled.templates[t.index()].elems[c.index()];
                         (el.component_type, el.name)
                     };
                     if matches!(
-                        self.compiled.templates[t].elems[c].body,
+                        self.compiled.templates[t.index()].elems[c.index()].body,
                         Body::Repeat { .. } | Body::Collect { .. }
                     ) {
                         return Err(Error::UncopyableType(format!(
@@ -99,13 +102,13 @@ impl<'a> Compiler<'a> {
                     });
                     let ep = self.compiled.refs.len() - 1;
                     {
-                        let el = &mut self.compiled.templates[t].elems[ne];
-                        el.extend = Some(ep);
+                        let el = &mut self.compiled.templates[t.index()].elems[ne.index()];
+                        el.extend = Some(RefId::from_index(ep));
                         el.cloned = true;
                     }
                     let child_scope = if name != StrId::NONE { ne } else { scope };
                     let sub = self.clone_children(t, c, child_scope, root)?;
-                    self.compiled.templates[t].elems[ne].children = sub;
+                    self.compiled.templates[t.index()].elems[ne.index()].children = sub;
                     self.pending_elems.push((t, ne));
                     out.push(Child::Elem(ne));
                 }
@@ -130,7 +133,7 @@ impl<'a> Compiler<'a> {
             node: el,
             component_type,
             ..
-        } = self.compiled.templates[t].elems[e];
+        } = self.compiled.templates[t.index()].elems[e.index()];
         // Own attributes other than name and extend, or children, override
         // the referent's; with none, the copy aliases every public prop.
         let own_attrs: Vec<String> = d
@@ -141,7 +144,7 @@ impl<'a> Compiler<'a> {
         let has_children = !d.children(el).iter().all(|&n| self.is_blank(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             let n = component_type.prop_defs().len();
-            let el = &mut self.compiled.templates[t].elems[e];
+            let el = &mut self.compiled.templates[t.index()].elems[e.index()];
             el.props = vec![Source::Inherit; n];
             // A list is as long as the referent's, which the build knows.
             if component_type.given_coords().is_some() {
@@ -152,15 +155,15 @@ impl<'a> Compiler<'a> {
         // Merged attributes: the referent's node supplies what the copy omits.
         let base_elem = extend
             .and_then(|p| self.plan_elem_target(t, p))
-            .filter(|&r| self.compiled.templates[t].elems[r].node != NodeId::NONE);
-        let base = base_elem.map(|r| self.compiled.templates[t].elems[r].node);
+            .filter(|&r| self.compiled.templates[t.index()].elems[r.index()].node != NodeId::NONE);
+        let base = base_elem.map(|r| self.compiled.templates[t.index()].elems[r.index()].node);
         let mut wiring = plan(&mut PlanCtx::new(self, t, e, base))?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables.
         if let Some(r) = base_elem {
             let base_shared_state = self
                 .shared_state
-                .get(&(t as u32, r as u32))
+                .get(&(t.get(), r.get()))
                 .cloned()
                 .unwrap_or_default();
             for (state, &slot) in &wiring.shared_state {
@@ -182,19 +185,20 @@ impl<'a> Compiler<'a> {
                 }
             }
         }
-        let scope = self.compiled.templates[t].elems[e].name_scope;
+        let scope = self.compiled.templates[t.index()].elems[e.index()].name_scope;
         let held = self
             .plan_fix(t, scope, el, &["fixed"])?
             .apply(&mut wiring.props);
         self.record_held(t, e, held);
         if !wiring.shared_state.is_empty() {
             self.shared_state
-                .insert((t as u32, e as u32), wiring.shared_state.clone());
+                .insert((t.get(), e.get()), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
-            self.compiled.templates[t].elems[e].n_public = NPublic::Planned(wiring.n_public as u32);
+            self.compiled.templates[t.index()].elems[e.index()].n_public =
+                NPublic::Planned(wiring.n_public as u32);
         }
-        self.compiled.templates[t].elems[e].props = wiring.finish();
+        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
     }
 

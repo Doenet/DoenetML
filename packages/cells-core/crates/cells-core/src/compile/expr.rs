@@ -4,6 +4,8 @@
 //! coefficients. It is not used at tick time: a symbolic math becomes a math
 //! cell in the document's symbolic engine (`cells-sym`, ADR 0008).
 
+use super::plan::RefId;
+
 pub type ExprId = u32;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -215,8 +217,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
 pub enum Token {
     Num(f64),
     Ident(String),
-    /// A reference plan id.
-    Cell(u32),
+    Cell(RefId),
     Op(char),
     LParen,
     RParen,
@@ -289,11 +290,11 @@ pub fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
 pub struct Parser<'a> {
     toks: &'a [Token],
     pos: usize,
-    arena: &'a mut Arena<u32>,
+    arena: &'a mut Arena<RefId>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn parse(toks: &'a [Token], arena: &'a mut Arena<u32>) -> Result<ExprId, String> {
+    pub fn parse(toks: &'a [Token], arena: &'a mut Arena<RefId>) -> Result<ExprId, String> {
         // No text at all (`<math/>`, an `<answer>` with only an input): the
         // blank expression, a symbol the engine spells `＿`.
         if toks.is_empty() {

@@ -18,10 +18,10 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Option<(TemplateId, ElemId)> {
-        let plan = &self.compiled.refs[p];
+        let plan = &self.compiled.refs[p.index()];
         let mut tt = t;
         for _ in 0..plan.hops {
-            tt = self.compiled.templates[tt].parent?.0;
+            tt = self.compiled.templates[tt.index()].parent?.0;
         }
         let mut last = None;
         for step in &plan.steps {
@@ -50,15 +50,17 @@ impl<'a> Compiler<'a> {
     pub(super) fn plan_function_iterates(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         self.plan_attrs(t, e, None)?;
         let at = function_iterates::Props::AT;
-        self.compiled.templates[t].elems[e].props[at.allIteratesWithInitial] =
+        self.compiled.templates[t.index()].elems[e.index()].props[at.allIteratesWithInitial] =
             Source::own(at.count);
         let d = self.dast;
         let Elem {
             node: el,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t].elems[e];
-        let Body::Repeat { template: sub } = self.compiled.templates[t].elems[e].body else {
+        } = self.compiled.templates[t.index()].elems[e.index()];
+        let Body::Repeat { template: sub } =
+            self.compiled.templates[t.index()].elems[e.index()].body
+        else {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
@@ -66,12 +68,13 @@ impl<'a> Compiler<'a> {
         let (ft, fe) = self
             .static_target(t, fp)
             .filter(|&(ft, fe)| {
-                self.compiled.templates[ft].elems[fe].component_type == ComponentType::Function
+                self.compiled.templates[ft.index()].elems[fe.index()].component_type
+                    == ComponentType::Function
             })
             .ok_or_else(|| {
                 Error::Unsupported("<functionIterates function> must name a <function>".into())
             })?;
-        let fnode = self.compiled.templates[ft].elems[fe].node;
+        let fnode = self.compiled.templates[ft.index()].elems[fe.index()].node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
         let (mut toks, text) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
@@ -85,20 +88,20 @@ impl<'a> Compiler<'a> {
                         Step::Index(IndexPlan {
                             terms: vec![IndexTerm::Iter(0), IndexTerm::Const(-1)],
                         }),
-                        Step::Elem(0),
+                        Step::Elem(ElemId::new(0)),
                     ],
                     prop: Some(tuple_prop(crate::components::prop::tuple::X1 + j).to_string()),
                     display: format!("(previous iterate).{}", vars[j]),
                     node: NodeId::NONE,
                 });
-                self.compiled.refs.len() - 1
+                RefId::from_index(self.compiled.refs.len() - 1)
             })
             .collect();
         for tok in &mut toks {
             if let Token::Ident(s) = tok
                 && let Some(j) = vars.iter().position(|v| v == s)
             {
-                *tok = Token::Cell(prev[j] as u32);
+                *tok = Token::Cell(prev[j]);
             }
         }
         let parts = match expr::unwrap_parens(&toks) {
@@ -139,7 +142,7 @@ impl<'a> Compiler<'a> {
                 Source::FirstIteration(Box::new(first), Box::new(Source::Math(exprs[j])))
             })
             .collect();
-        self.compiled.templates[sub].elems[0].props = prop::tuple::props_of(entries);
+        self.compiled.templates[sub.index()].elems[0].props = prop::tuple::props_of(entries);
         Ok(())
     }
 
@@ -214,8 +217,10 @@ impl<'a> Compiler<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t].elems[e];
-        let Body::Repeat { template: sub } = self.compiled.templates[t].elems[e].body else {
+        } = self.compiled.templates[t.index()].elems[e.index()];
+        let Body::Repeat { template: sub } =
+            self.compiled.templates[t.index()].elems[e.index()].body
+        else {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
@@ -226,26 +231,26 @@ impl<'a> Compiler<'a> {
                     .into(),
             )
         };
-        let offset = match self.compiled.refs[fp].prop.as_deref() {
+        let offset = match self.compiled.refs[fp.index()].prop.as_deref() {
             Some("allIteratesWithInitial") => 0,
             Some("iterates") => 1,
             _ => return Err(unsupported()),
         };
-        let mut base = self.compiled.refs[fp].clone();
+        let mut base = self.compiled.refs[fp.index()].clone();
         base.prop = None;
         self.compiled.refs.push(base.clone());
         let base_id = self.compiled.refs.len() - 1;
-        match self.static_target(t, base_id) {
+        match self.static_target(t, RefId::from_index(base_id)) {
             Some((ft, fe))
-                if self.compiled.templates[ft].elems[fe].component_type
+                if self.compiled.templates[ft.index()].elems[fe.index()].component_type
                     == ComponentType::FunctionIterates => {}
             _ => return Err(unsupported()),
         }
-        self.compiled.templates[t].elems[e].props = prop::repeat_for::Props {
+        self.compiled.templates[t.index()].elems[e.index()].props = prop::repeat_for::Props {
             count: Source::reference(fp),
         }
         .into_vec();
-        let has_item = self.compiled.templates[sub]
+        let has_item = self.compiled.templates[sub.index()]
             .elems
             .first()
             .is_some_and(|x| x.node == NodeId::NONE && x.component_type == ComponentType::Tuple);
@@ -254,7 +259,7 @@ impl<'a> Compiler<'a> {
             steps.push(Step::Index(IndexPlan {
                 terms: vec![IndexTerm::Iter(0), IndexTerm::Const(offset)],
             }));
-            steps.push(Step::Elem(0));
+            steps.push(Step::Elem(ElemId::new(0)));
             let props = (0..ComponentType::Tuple.prop_defs().len())
                 .map(tuple_prop)
                 .map(|prop| {
@@ -265,10 +270,10 @@ impl<'a> Compiler<'a> {
                         display: format!("({}[i]).{prop}", base.display),
                         node: NodeId::NONE,
                     });
-                    Source::reference(self.compiled.refs.len() - 1)
+                    Source::reference(RefId::from_index(self.compiled.refs.len() - 1))
                 })
                 .collect();
-            self.compiled.templates[sub].elems[0].props = props;
+            self.compiled.templates[sub.index()].elems[0].props = props;
         }
         Ok(())
     }

@@ -478,14 +478,15 @@ impl<'c> Builder<'c> {
         if self.scope_comps.len() <= s {
             self.scope_comps.resize(s + 1, Vec::new());
         }
-        self.scope_comps[s] = vec![CompIdx::NONE; self.compiled.templates[template].elems.len()];
+        self.scope_comps[s] =
+            vec![CompIdx::NONE; self.compiled.templates[template.index()].elems.len()];
     }
 
     // ---- expansion -----------------------------------------------------------
 
     pub(in crate::build) fn expand_all(&mut self) -> Result<()> {
-        self.enter_scope(ScopeId::DOCUMENT, 0);
-        let kids = self.expand(0, ScopeId::DOCUMENT, CompIdx::NONE)?;
+        self.enter_scope(ScopeId::DOCUMENT, TemplateId::new(0));
+        let kids = self.expand(TemplateId::new(0), ScopeId::DOCUMENT, CompIdx::NONE)?;
         self.root = kids
             .iter()
             .find_map(|k| k.as_comp())
@@ -501,10 +502,10 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
-        let n_elems = self.compiled.templates[t].elems.len();
+        let n_elems = self.compiled.templates[t.index()].elems.len();
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
-            let el = &self.compiled.templates[t].elems[e];
+            let el = &self.compiled.templates[t.index()].elems[e];
             // A copy of a type with a list takes its slots, as many as its
             // referent has, when its referent is known (`place_list_copies`).
             let n_slots = match el.n_public {
@@ -522,16 +523,16 @@ impl<'c> Builder<'c> {
             self.instances.push(Instance {
                 scope,
                 template: t,
-                elem: e,
+                elem: ElemId::from_index(e),
                 comp,
             });
         }
         // Then child lists, expanding repeats as they come.
         for e in 0..n_elems {
             let comp = self.scope_comps[scope.index()][e];
-            let kids = match self.compiled.templates[t].elems[e].body {
+            let kids = match self.compiled.templates[t.index()].elems[e].body {
                 Body::Repeat { template } => {
-                    let node = self.compiled.templates[t].elems[e].node;
+                    let node = self.compiled.templates[t.index()].elems[e].node;
                     let n = self.view.iterations(scope, node);
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
@@ -561,7 +562,7 @@ impl<'c> Builder<'c> {
                     Vec::new()
                 }
                 Body::Choice(cid) => {
-                    let node = self.compiled.templates[t].elems[e].node;
+                    let node = self.compiled.templates[t.index()].elems[e].node;
                     match self.expand_choice(cid, node, scope, comp) {
                         Ok(kids) => kids,
                         Err(err) => {
@@ -574,7 +575,7 @@ impl<'c> Builder<'c> {
                     self.pointlists.push(comp);
                     Vec::new()
                 }
-                _ if self.compiled.templates[t].elems[e].component_type
+                _ if self.compiled.templates[t.index()].elems[e].component_type
                     == ComponentType::PointList =>
                 {
                     // A copy of a point list: children copied once the
@@ -582,7 +583,7 @@ impl<'c> Builder<'c> {
                     self.pointlists.push(comp);
                     Vec::new()
                 }
-                _ => self.child_entries(t, e, scope, comp),
+                _ => self.child_entries(t, ElemId::from_index(e), scope, comp),
             };
             self.set_children(comp, &kids);
             for k in kids.iter().filter_map(|k| k.as_comp()) {
@@ -590,9 +591,9 @@ impl<'c> Builder<'c> {
             }
         }
         // The template's own children (the repeat body); their parent is the repeat.
-        let mut out = Vec::with_capacity(self.compiled.templates[t].children.len());
-        for i in 0..self.compiled.templates[t].children.len() {
-            let ch = &self.compiled.templates[t].children[i];
+        let mut out = Vec::with_capacity(self.compiled.templates[t.index()].children.len());
+        for i in 0..self.compiled.templates[t.index()].children.len() {
+            let ch = &self.compiled.templates[t.index()].children[i];
             out.push(self.child_entry(ch, scope, parent));
         }
         Ok(out)
@@ -605,10 +606,12 @@ impl<'c> Builder<'c> {
         scope: ScopeId,
         parent: CompIdx,
     ) -> Vec<ChildEntry> {
-        let n = self.compiled.templates[t].elems[e].children.len();
+        let n = self.compiled.templates[t.index()].elems[e.index()]
+            .children
+            .len();
         let mut kids = Vec::with_capacity(n);
         for i in 0..n {
-            let ch = &self.compiled.templates[t].elems[e].children[i];
+            let ch = &self.compiled.templates[t.index()].elems[e.index()].children[i];
             kids.push(self.child_entry(ch, scope, parent));
         }
         kids
@@ -621,7 +624,7 @@ impl<'c> Builder<'c> {
         parent: CompIdx,
     ) -> ChildEntry {
         match *ch {
-            Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope.index()][e]),
+            Child::Elem(e) => ChildEntry::comp(self.scope_comps[scope.index()][e.index()]),
             Child::Text(s) => ChildEntry::text(s),
             Child::Macro(plan, has_index) => {
                 // Type is unknown until the reference resolves; Document stands in.
@@ -657,7 +660,7 @@ impl<'c> Builder<'c> {
         let pending = std::mem::take(&mut self.pending);
         for &(idx, plan, scope, _) in pending.iter().filter(|p| !p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
-                self.fail_at(self.compiled.refs[plan].node);
+                self.fail_at(self.compiled.refs[plan.index()].node);
                 return Err(e);
             }
         }
@@ -677,7 +680,7 @@ impl<'c> Builder<'c> {
         }
         for &(idx, plan, scope, _) in pending.iter().filter(|p| p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
-                self.fail_at(self.compiled.refs[plan].node);
+                self.fail_at(self.compiled.refs[plan.index()].node);
                 return Err(e);
             }
         }
@@ -775,8 +778,8 @@ impl<'c> Builder<'c> {
         }
         let comp = self.single_component(target, plan)?;
         let component_type = self.components.component_type[comp.index()];
-        let prop =
-            prop.ok_or_else(|| Error::PathTooDeep(self.compiled.refs[plan].display.clone()))?;
+        let prop = prop
+            .ok_or_else(|| Error::PathTooDeep(self.compiled.refs[plan.index()].display.clone()))?;
         // A list: the points the element holds.
         if component_type.prop_at(prop) == Some(PropAt::List) {
             let n = self.n_public(comp);
@@ -809,7 +812,7 @@ impl<'c> Builder<'c> {
     /// list it is a copy of.
     pub(in crate::build) fn expand_pointlist(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
         let mut kids = Vec::new();
         match (el.body.clone(), el.extend) {
             (Body::PointList { from }, _) => {
@@ -881,7 +884,7 @@ impl<'c> Builder<'c> {
         let Body::Collect {
             from,
             component_type,
-        } = self.compiled.templates[inst.template].elems[inst.elem].body
+        } = self.compiled.templates[inst.template.index()].elems[inst.elem.index()].body
         else {
             unreachable!()
         };
@@ -1017,7 +1020,7 @@ impl<'c> Builder<'c> {
     /// missing value (`instance_sources`). `visiting` holds the copies being
     /// placed, so a loop of them is a cycle.
     fn place_list_copy(&mut self, inst: Instance, visiting: &mut Vec<CompIdx>) -> Result<()> {
-        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
         let (component_type, extend_plan, n_props) = (el.component_type, el.extend, el.props.len());
         // Not such a copy, or placed already.
         if el.n_public != NPublic::AsReferent || self.n_public[inst.comp.index()] != NONE {
@@ -1042,7 +1045,7 @@ impl<'c> Builder<'c> {
         let rk = self.components.component_type[referent.index()];
         if rk != component_type {
             return Err(Error::ExtendTypeMismatch {
-                referent: self.compiled.refs[p].display.clone(),
+                referent: self.compiled.refs[p.index()].display.clone(),
                 referent_type: rk.tag().into(),
                 component_type: component_type.tag().into(),
             });
@@ -1068,7 +1071,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
         let (component_type, extend_plan) = {
-            let el = &self.compiled.templates[inst.template].elems[inst.elem];
+            let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
             (el.component_type, el.extend)
         };
         let extend = match extend_plan {
@@ -1081,7 +1084,7 @@ impl<'c> Builder<'c> {
                 let rk = self.components.component_type[referent.index()];
                 if rk != component_type {
                     return Err(Error::ExtendTypeMismatch {
-                        referent: self.compiled.refs[p].display.clone(),
+                        referent: self.compiled.refs[p.index()].display.clone(),
                         referent_type: rk.tag().into(),
                         component_type: component_type.tag().into(),
                     });
@@ -1092,13 +1095,13 @@ impl<'c> Builder<'c> {
         };
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
-            && self.compiled.templates[inst.template].elems[inst.elem].n_public
+            && self.compiled.templates[inst.template.index()].elems[inst.elem.index()].n_public
                 == NPublic::AsReferent
         {
             return Ok(());
         }
         let extend_label = self.label.clone();
-        let n_props = self.compiled.templates[inst.template].elems[inst.elem]
+        let n_props = self.compiled.templates[inst.template.index()].elems[inst.elem.index()]
             .props
             .len();
         for pi in 0..n_props {
@@ -1106,7 +1109,7 @@ impl<'c> Builder<'c> {
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled = self.compiled;
-            let plan = &c.templates[inst.template].elems[inst.elem].props[pi];
+            let plan = &c.templates[inst.template.index()].elems[inst.elem.index()].props[pi];
             if matches!(plan, Source::Deferred(_)) {
                 continue; // wired from the tree (`fill_deferred`)
             }
@@ -1194,7 +1197,7 @@ impl<'c> Builder<'c> {
                     {
                         return Err(Error::Unsupported(format!(
                             "a text value (${}) used as a number",
-                            c.refs[p].display
+                            c.refs[p.index()].display
                         )));
                     }
                     self.op_inputs.push(slot);
@@ -1203,7 +1206,7 @@ impl<'c> Builder<'c> {
             }
             Source::IterIndex => BuiltSource::Fixed(self.scopes[inst.scope].2 as f64),
             Source::SequencePick { from, step, count } => {
-                let key = c.templates[inst.template].elems[inst.elem].key;
+                let key = c.templates[inst.template.index()].elems[inst.elem.index()].key;
                 let h = choice::splitmix(self.seeded_stream(inst.scope, key));
                 let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
                 BuiltSource::Fixed(from + step * k.min(count - 1) as f64)
@@ -1276,7 +1279,7 @@ impl<'c> Builder<'c> {
                 let inst = self.instances[i as usize];
                 let pi = s.index() - self.slot_base[comp.index()].index();
                 matches!(
-                    self.compiled.templates[inst.template].elems[inst.elem]
+                    self.compiled.templates[inst.template.index()].elems[inst.elem.index()]
                         .props
                         .get(pi),
                     Some(Source::Deferred(k)) if *k == kind

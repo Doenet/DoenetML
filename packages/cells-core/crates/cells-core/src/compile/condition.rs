@@ -214,7 +214,7 @@ impl<'a> Compiler<'a> {
                     let p = self.plan_ref(t, scope, n)?;
                     sym.push_str(&format!(
                         " {} ",
-                        crate::sym::engine::leaf_name(p as u32, false)
+                        crate::sym::engine::leaf_name(p.get(), false)
                     ));
                 }
                 _ => {}
@@ -522,7 +522,7 @@ fn render_tokens(toks: &[Token]) -> String {
             Token::Num(v) if *v == std::f64::consts::PI => "pi".to_string(),
             Token::Num(v) => format!("{v}"),
             Token::Ident(s) => s.clone(),
-            Token::Cell(p) => crate::sym::engine::leaf_name(*p, false),
+            Token::Cell(p) => crate::sym::engine::leaf_name(p.get(), false),
             Token::Op(c) => c.to_string(),
             Token::LParen => "(".into(),
             Token::RParen => ")".into(),

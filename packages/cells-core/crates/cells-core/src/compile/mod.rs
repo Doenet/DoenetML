@@ -248,17 +248,26 @@ impl<'a> Compiler<'a> {
             .copied()
             .find(|&n| dast.kind(n) == NodeKind::Element && dast.str(n) == "document");
         let children = match doc_el {
-            Some(el) => vec![Child::Elem(cp.add_elem(0, el, ROOT_SCOPE)?)],
+            Some(el) => vec![Child::Elem(cp.add_elem(
+                TemplateId::new(0),
+                el,
+                ROOT_SCOPE,
+            )?)],
             None => {
                 // Synthesize a root when the DAST was not normalized.
-                let e = cp.add_synthetic(0, ComponentType::Document, StrId::NONE);
-                cp.compiled.templates[0].elems[e].props = prop::document::Props {
+                let e = cp.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
+                cp.compiled.templates[0].elems[e.index()].props = prop::document::Props {
                     creditAchieved: Source::Deferred(Deferred::Credit),
                     percentCreditAchieved: Source::Deferred(Deferred::PercentCredit),
                 }
                 .into_vec();
-                let kids = cp.add_children(0, Some(e), ROOT_SCOPE, dast.children(Dast::ROOT))?;
-                cp.compiled.templates[0].elems[e].children = kids;
+                let kids = cp.add_children(
+                    TemplateId::new(0),
+                    Some(e),
+                    ROOT_SCOPE,
+                    dast.children(Dast::ROOT),
+                )?;
+                cp.compiled.templates[0].elems[e.index()].children = kids;
                 vec![Child::Elem(e)]
             }
         };
@@ -284,10 +293,12 @@ impl<'a> Compiler<'a> {
                 let has_index = dast.macro_has_index(m);
                 match owner {
                     Some(e) => {
-                        cp.compiled.templates[t].elems[e].children[i] =
+                        cp.compiled.templates[t.index()].elems[e.index()].children[i] =
                             Child::Macro(plan, has_index)
                     }
-                    None => cp.compiled.templates[t].children[i] = Child::Macro(plan, has_index),
+                    None => {
+                        cp.compiled.templates[t.index()].children[i] = Child::Macro(plan, has_index)
+                    }
                 }
             }
         }
@@ -314,7 +325,7 @@ impl<'a> Compiler<'a> {
         held: Vec<(u8, u8)>,
     ) {
         if !held.is_empty() {
-            self.held.insert((t as u32, e as u32), held);
+            self.held.insert((t.get(), e.get()), held);
         }
     }
 
@@ -372,7 +383,7 @@ impl<'a> Compiler<'a> {
                 }
             }
         });
-        let tpl = &mut self.compiled.templates[t];
+        let tpl = &mut self.compiled.templates[t.index()];
         let e = tpl.elems.len();
         tpl.elems.push(Elem {
             node,
@@ -391,7 +402,7 @@ impl<'a> Compiler<'a> {
         });
         if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
-            if !self.sibling_names.insert((t as u32, name_scope as u32, id)) {
+            if !self.sibling_names.insert((t.get(), name_scope.get(), id)) {
                 let s = self.dast.strings.get(name).trim().to_string();
                 return Err(Error::DuplicateName(s));
             }
@@ -399,16 +410,16 @@ impl<'a> Compiler<'a> {
             let mut a = name_scope;
             loop {
                 self.names
-                    .entry((t as u32, a as u32, id))
+                    .entry((t.get(), a.get(), id))
                     .and_modify(|o| *o = AMBIGUOUS)
                     .or_insert(e as u32);
                 if a == ROOT_SCOPE || a == stop {
                     break;
                 }
-                a = tpl.elems[a].name_scope;
+                a = tpl.elems[a.index()].name_scope;
             }
         }
-        Ok(e)
+        Ok(ElemId::from_index(e))
     }
 
     /// What `name` names from `scope` of template `t`: the one descendant
@@ -417,10 +428,10 @@ impl<'a> Compiler<'a> {
         let Some(&id) = self.name_ids.get(name.trim()) else {
             return NameHit::None;
         };
-        match self.names.get(&(t as u32, scope as u32, id)) {
+        match self.names.get(&(t.get(), scope.get(), id)) {
             None => NameHit::None,
             Some(&AMBIGUOUS) => NameHit::Ambiguous,
-            Some(&e) => NameHit::One(e as ElemId),
+            Some(&e) => NameHit::One(ElemId::new(e)),
         }
     }
 
@@ -487,17 +498,18 @@ impl<'a> Compiler<'a> {
             ComponentType::FunctionIterates => {
                 // One hidden tuple per iteration, planned with the element
                 // (`plan_function_iterates`); it is element 0 of the body.
-                let sub = self.compiled.templates.len();
+                let sub = TemplateId::from_index(self.compiled.templates.len());
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
                     ..Default::default()
                 });
                 let it = self.add_synthetic(sub, ComponentType::Tuple, StrId::NONE);
-                self.compiled.templates[sub].children = vec![Child::Elem(it)];
-                self.compiled.templates[t].elems[e].body = Body::Repeat { template: sub };
+                self.compiled.templates[sub.index()].children = vec![Child::Elem(it)];
+                self.compiled.templates[t.index()].elems[e.index()].body =
+                    Body::Repeat { template: sub };
             }
             ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
-                let sub = self.compiled.templates.len();
+                let sub = TemplateId::from_index(self.compiled.templates.len());
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
                     ..Default::default()
@@ -528,18 +540,20 @@ impl<'a> Compiler<'a> {
                         scaled: table(at.scaled),
                         value: table(at.value),
                     });
-                    self.compiled.templates[sub].elems[v].props = wiring.finish();
+                    self.compiled.templates[sub.index()].elems[v.index()].props = wiring.finish();
                 }
                 if let Some(iname) = self.attr_name_str(el, "indexName") {
                     let i = self.add_synthetic(sub, ComponentType::Number, iname);
-                    self.compiled.templates[sub].elems[i].props = prop::number::Props {
-                        value: Source::IterIndex,
-                    }
-                    .into_vec();
+                    self.compiled.templates[sub.index()].elems[i.index()].props =
+                        prop::number::Props {
+                            value: Source::IterIndex,
+                        }
+                        .into_vec();
                 }
                 let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el))?;
-                self.compiled.templates[sub].children = kids;
-                self.compiled.templates[t].elems[e].body = Body::Repeat { template: sub };
+                self.compiled.templates[sub.index()].children = kids;
+                self.compiled.templates[t.index()].elems[e.index()].body =
+                    Body::Repeat { template: sub };
             }
             ComponentType::Collect | ComponentType::PointList => {}
             ComponentType::ConditionalContent | ComponentType::Select => {
@@ -555,7 +569,7 @@ impl<'a> Compiler<'a> {
                         kids.push(Child::Elem(self.add_elem(t, n, child_scope)?));
                     }
                 }
-                self.compiled.templates[t].elems[e].children = kids;
+                self.compiled.templates[t.index()].elems[e.index()].children = kids;
             }
             ComponentType::When => {}
             // A number's children are its value, not rendered children; a
@@ -568,7 +582,7 @@ impl<'a> Compiler<'a> {
                     .any(|p| p.from == PropFrom::Children) => {}
             _ => {
                 let kids = self.add_children(t, Some(e), child_scope, d.children(el))?;
-                self.compiled.templates[t].elems[e].children = kids;
+                self.compiled.templates[t.index()].elems[e.index()].children = kids;
             }
         }
         Ok(e)
@@ -584,7 +598,7 @@ impl<'a> Compiler<'a> {
             display: format!("(repeat).{prop}"),
             node: NodeId::NONE,
         });
-        self.compiled.refs.len() - 1
+        RefId::from_index(self.compiled.refs.len() - 1)
     }
 
     pub(in crate::compile) fn add_children(
@@ -620,7 +634,7 @@ impl<'a> Compiler<'a> {
                         continue;
                     }
                     self.pending_macros.push((t, owner, kids.len(), n));
-                    kids.push(Child::Macro(usize::MAX, false));
+                    kids.push(Child::Macro(RefId::NONE, false));
                 }
                 NodeKind::Other => {}
             }
@@ -631,20 +645,20 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let r = self.plan_elem_inner(t, e);
         if r.is_err() {
-            self.fail_at(self.compiled.templates[t].elems[e].node);
+            self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node);
         }
         r
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let component_type = self.compiled.templates[t].elems[e].component_type;
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to plan.
             ElemShape::Cloned => {
                 let n = component_type.prop_defs().len();
                 let mut props = vec![Source::Inherit; n];
                 Deferred::mark(component_type, &mut props);
-                let el = &mut self.compiled.templates[t].elems[e];
+                let el = &mut self.compiled.templates[t.index()].elems[e.index()];
                 el.props = props;
                 // A list is as long as the original's.
                 if component_type.given_coords().is_some() {
@@ -675,7 +689,7 @@ impl<'a> Compiler<'a> {
             name_scope: scope,
             cloned,
             ..
-        } = self.compiled.templates[t].elems[e];
+        } = self.compiled.templates[t.index()].elems[e.index()];
         if cloned {
             return Ok(ElemShape::Cloned);
         }
@@ -692,14 +706,14 @@ impl<'a> Compiler<'a> {
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
                 // props alias the named prop.
-                if self.compiled.refs[p].prop.is_some() {
+                if self.compiled.refs[p.index()].prop.is_some() {
                     return Ok(ElemShape::ExtendProp(p));
                 }
                 Some(p)
             }
             None => None,
         };
-        self.compiled.templates[t].elems[e].extend = extend;
+        self.compiled.templates[t.index()].elems[e.index()].extend = extend;
         Ok(match extend {
             Some(p) if component_type.container() => ElemShape::ContainerCopy(p),
             _ => ElemShape::ByType(extend),
@@ -707,7 +721,7 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
-        let el = &self.compiled.templates[t].elems[e];
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
         if el.name != StrId::NONE {
             self.dast.strings.get(el.name).trim().to_string()
         } else {

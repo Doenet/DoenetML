@@ -439,7 +439,7 @@ impl<'a> Signer<'a> {
                     .compiled
                     .choices
                     .iter()
-                    .find(|d| templates[d.at.0].elems[d.at.1].key == key);
+                    .find(|d| templates[d.at.0.index()].elems[d.at.1.index()].key == key);
                 if let Some(def) = def {
                     return Domain::Options {
                         keys: def.branch_keys.iter().map(|k| k.to_string()).collect(),

@@ -96,7 +96,7 @@ impl Compiler<'_> {
         let mut branch_of: HashMap<TemplateId, (ChoiceId, usize)> = HashMap::new();
         for (ci, ch) in c.choices.iter().enumerate() {
             for (b, &tpl) in ch.branches.iter().enumerate() {
-                branch_of.insert(tpl, (ci, b));
+                branch_of.insert(tpl, (ChoiceId::from_index(ci), b));
             }
         }
         // Per base key: how many unnamed elements of each type, and how
@@ -108,18 +108,20 @@ impl Compiler<'_> {
         let mut elem_keys: Vec<Vec<ElemKey>> = Vec::with_capacity(c.templates.len());
         // Templates are made after the template of the element that owns
         // them, so the owner's key is known first.
-        for t in 0..c.templates.len() {
-            let prefix = match c.templates[t].parent {
+        for t in TemplateId::below(c.templates.len()) {
+            let prefix = match c.templates[t.index()].parent {
                 None => String::new(),
                 Some((pt, pe)) => {
-                    let owner = keys.text_of(elem_keys[pt][pe]);
+                    let owner = keys.text_of(elem_keys[pt.index()][pe.index()]);
                     match branch_of.get(&t) {
-                        Some(&(ci, b)) => format!("{owner}[{}]", c.choices[ci].branch_keys[b]),
+                        Some(&(ci, b)) => {
+                            format!("{owner}[{}]", c.choices[ci.index()].branch_keys[b])
+                        }
                         None => format!("{owner}[*]"),
                     }
                 }
             };
-            let tpl = &c.templates[t];
+            let tpl = &c.templates[t.index()];
             let mut ids: Vec<ElemKey> = Vec::with_capacity(tpl.elems.len());
             // Whether each element is keyed by its name.
             let mut named: Vec<bool> = Vec::with_capacity(tpl.elems.len());
@@ -127,26 +129,26 @@ impl Compiler<'_> {
                 // The nearest ancestor keyed by its name.
                 let mut a = el.name_scope;
                 let anchor = loop {
-                    if a == ROOT_SCOPE || named[a] {
+                    if a == ROOT_SCOPE || named[a.index()] {
                         break a;
                     }
-                    a = tpl.elems[a].name_scope;
+                    a = tpl.elems[a.index()].name_scope;
                 };
                 let base = if anchor == ROOT_SCOPE {
                     prefix.as_str()
                 } else {
-                    keys.text_of(ids[anchor])
+                    keys.text_of(ids[anchor.index()])
                 };
                 let text = if el.node == NodeId::NONE {
                     // Made for the nearest element that has a node.
                     let mut a = el.name_scope;
-                    while a != ROOT_SCOPE && tpl.elems[a].node == NodeId::NONE {
-                        a = tpl.elems[a].name_scope;
+                    while a != ROOT_SCOPE && tpl.elems[a.index()].node == NodeId::NONE {
+                        a = tpl.elems[a.index()].name_scope;
                     }
                     let owner = if a == ROOT_SCOPE {
                         prefix.as_str()
                     } else {
-                        keys.text_of(ids[a])
+                        keys.text_of(ids[a.index()])
                     };
                     let k = made.entry((t, a)).or_insert(0);
                     *k += 1;
@@ -163,7 +165,7 @@ impl Compiler<'_> {
                         .then(|| self.dast.strings.get(el.name).trim())
                         .filter(|s| {
                             self.name_ids.get(*s).is_some_and(|&id| {
-                                self.names.get(&(t as u32, anchor as u32, id)) == Some(&(e as u32))
+                                self.names.get(&(t.get(), anchor.get(), id)) == Some(&(e as u32))
                             })
                         });
                     named.push(name.is_some());
@@ -187,8 +189,8 @@ impl Compiler<'_> {
                         }
                         Body::Choice(ci) => {
                             let branches = Branches {
-                                reactive: c.choices[ci].reactive,
-                                keys: c.choices[ci].branch_keys.clone(),
+                                reactive: c.choices[ci.index()].reactive,
+                                keys: c.choices[ci.index()].branch_keys.clone(),
                             };
                             keys.owners.insert(el.node, (id, Some(branches)));
                         }

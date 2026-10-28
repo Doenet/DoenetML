@@ -14,10 +14,36 @@ pub type ElemKey = u32;
 /// a public prop's position, or a hidden slot's with `HIDDEN` set.
 pub const HIDDEN: u32 = 1 << 31;
 
-pub(crate) type TemplateId = usize;
-pub(crate) type ElemId = usize;
-pub(crate) type RefId = usize;
-pub(crate) type ChoiceId = usize;
+crate::index::index_type! {
+    /// A template: a position in `Compiled::templates`.
+    pub(crate) struct TemplateId;
+}
+
+crate::index::index_type! {
+    /// An element of a template: a position in its `Template::elems`.
+    pub(crate) struct ElemId;
+}
+
+crate::index::index_type! {
+    /// A reference plan: a position in `Compiled::refs`. A compiled math's
+    /// `$ref` leaves are these, until a build binds them to slots.
+    pub(crate) struct RefId;
+}
+
+impl crate::sym::Leaf for RefId {
+    fn raw(self) -> u32 {
+        self.get()
+    }
+    fn from_raw(raw: u32) -> Self {
+        Self::new(raw)
+    }
+}
+
+crate::index::index_type! {
+    /// A choice (a select or conditional content): a position in
+    /// `Compiled::choices`.
+    pub(crate) struct ChoiceId;
+}
 
 // ---------------------------------------------------------------------------
 // Compiled templates
@@ -107,7 +133,7 @@ pub(crate) enum Source {
     SymExpr(ExprId, Post),
     /// An essential math cell (an unbound mathInput's `expr`, an answer's
     /// `submitted`) holding this expression, or blank (NaN).
-    MathEssential(Option<Tree<u32>>),
+    MathEssential(Option<Tree<RefId>>),
     /// An essential math cell whose initial expression is the value the
     /// reference names when the cell is first built (a mathInput's
     /// `prefill="$n"`): a seed, not a binding.
@@ -232,7 +258,7 @@ pub(crate) enum NPublic {
 }
 
 /// The template itself, as the parent of its top-level elements.
-pub(crate) const ROOT_SCOPE: ElemId = usize::MAX;
+pub(crate) const ROOT_SCOPE: ElemId = ElemId::NONE;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Elem {
@@ -739,7 +765,7 @@ pub struct Compiled {
     pub(crate) templates: Vec<Template>,
     pub(crate) refs: Vec<RefPlan>,
     /// Expression templates: cell leaves hold plan ids.
-    pub(crate) arena: Arena<u32>,
+    pub(crate) arena: Arena<RefId>,
     /// The math text of templates that may be symbolic, with each `$ref`
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
     pub(crate) sym_text: HashMap<ExprId, String>,
@@ -748,7 +774,7 @@ pub struct Compiled {
     /// instances stamp it and however many builds run. Empty in a document
     /// without repeats, which builds each template once and would only raise
     /// its load's peak memory by keeping the trees.
-    pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<u32>, String>>>,
+    pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<RefId>, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
     /// The source's `Dast::version_hash`, once per load rather than per
     /// build.

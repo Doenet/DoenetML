@@ -23,7 +23,7 @@ impl<'a> Compiler<'a> {
         while i < toks.len() {
             match &toks[i] {
                 Token::Cell(p) => {
-                    let p = *p as RefId;
+                    let p = *p;
                     // A list prop expands to its items.
                     let items = self.array_items_of_plan(t, p)?;
                     match items {
@@ -89,14 +89,14 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<usize>> {
-        let plan = &self.compiled.refs[p];
+        let plan = &self.compiled.refs[p.index()];
         let Some(prop) = &plan.prop else {
             return Ok(None);
         };
         // Find the element the path ends at, if it is in this template chain.
         let mut cur_t = t;
         for _ in 0..plan.hops {
-            cur_t = self.compiled.templates[cur_t].parent.unwrap().0;
+            cur_t = self.compiled.templates[cur_t.index()].parent.unwrap().0;
         }
         let mut e = None;
         for step in &plan.steps {
@@ -106,7 +106,7 @@ impl<'a> Compiler<'a> {
             }
         }
         let Some(e) = e else { return Ok(None) };
-        let el = &self.compiled.templates[cur_t].elems[e];
+        let el = &self.compiled.templates[cur_t.index()].elems[e.index()];
         // A list holds the points its attribute gives, up to its type's
         // most: a circle's `through`, up to three.
         if el.component_type.prop_at(prop) == Some(PropAt::List)

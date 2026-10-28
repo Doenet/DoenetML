@@ -18,7 +18,7 @@ impl<'a> Compiler<'a> {
             component_type,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t].elems[e];
+        } = self.compiled.templates[t.index()].elems[e.index()];
         // Without an attribute a prop is the type's default, or under
         // `extend` the referent's prop.
         let default = |v: f64| {
@@ -132,7 +132,7 @@ impl<'a> Compiler<'a> {
         self.record_held(t, e, held);
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
-        self.compiled.templates[t].elems[e].props = props;
+        self.compiled.templates[t.index()].elems[e.index()].props = props;
         Ok(())
     }
 
@@ -178,10 +178,10 @@ impl<'a> Compiler<'a> {
         };
         let mut cur_t = t;
         for _ in 0..hops {
-            cur_t = self.compiled.templates[cur_t].parent.unwrap().0;
+            cur_t = self.compiled.templates[cur_t.index()].parent.unwrap().0;
         }
         matches!(
-            self.compiled.templates[cur_t].elems[e].component_type,
+            self.compiled.templates[cur_t.index()].elems[e.index()].component_type,
             ComponentType::Text | ComponentType::TextInput
         )
     }
@@ -222,8 +222,8 @@ impl<'a> Compiler<'a> {
         match (macros.len(), text.is_empty()) {
             (1, true) => {
                 let p = self.plan_ref(t, scope, macros[0])?;
-                if let (None, Some(rp)) = (&self.compiled.refs[p].prop, ref_prop) {
-                    self.compiled.refs[p].prop = Some(rp.to_string());
+                if let (None, Some(rp)) = (&self.compiled.refs[p.index()].prop, ref_prop) {
+                    self.compiled.refs[p.index()].prop = Some(rp.to_string());
                 }
                 Ok(Source::reference(p))
             }
@@ -338,9 +338,9 @@ impl<'a> Compiler<'a> {
                     // Spaces keep `2$a` from reading as one token.
                     sym.push_str(&format!(
                         " {} ",
-                        crate::sym::engine::leaf_name(p as u32, false)
+                        crate::sym::engine::leaf_name(p.get(), false)
                     ));
-                    toks.push(Token::Cell(p as u32));
+                    toks.push(Token::Cell(p));
                 }
                 _ => {}
             }
@@ -383,7 +383,7 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {
         match self.compiled.arena.get(id) {
             Expr::Num(v) => Source::Literal(*v),
-            Expr::Cell(p) => Source::reference(*p as RefId),
+            Expr::Cell(p) => Source::reference(*p),
             _ => Source::Math(id),
         }
     }
@@ -508,22 +508,25 @@ impl<'a> Compiler<'a> {
         let e = self.compiled.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
-                let plan = &self.compiled.refs[p as usize];
+                let plan = &self.compiled.refs[p.index()];
                 let is_value = plan.prop.as_deref().is_none_or(|pr| pr == "value");
                 let Some(target) = (is_value)
-                    .then(|| self.plan_elem_target(t, p as RefId))
+                    .then(|| self.plan_elem_target(t, p))
                     .flatten()
                 else {
                     return id;
                 };
                 // The math may come later in the document and not be planned yet.
-                if self.compiled.templates[t].elems[target].component_type == ComponentType::Math
-                    && self.compiled.templates[t].elems[target].props.is_empty()
+                if self.compiled.templates[t.index()].elems[target.index()].component_type
+                    == ComponentType::Math
+                    && self.compiled.templates[t.index()].elems[target.index()]
+                        .props
+                        .is_empty()
                     && self.plan_elem(t, target).is_err()
                 {
                     return id;
                 }
-                match self.compiled.templates[t].elems[target]
+                match self.compiled.templates[t.index()].elems[target.index()]
                     .props
                     .get(prop::math::EXPR)
                 {

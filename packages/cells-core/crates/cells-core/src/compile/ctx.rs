@@ -32,7 +32,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
 
 impl<'a> PlanCtx<'_, 'a> {
     fn elem(&self) -> &Elem {
-        &self.c.compiled.templates[self.t].elems[self.e]
+        &self.c.compiled.templates[self.t.index()].elems[self.e.index()]
     }
 
     fn scope(&self) -> ElemId {
@@ -78,7 +78,7 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn enclosing_graph_prop(&self, pos: usize) -> Option<Source> {
         let scope = self.scope();
         (scope != ROOT_SCOPE
-            && self.c.compiled.templates[self.t].elems[scope].component_type
+            && self.c.compiled.templates[self.t.index()].elems[scope.index()].component_type
                 == ComponentType::Graph)
             .then(|| Source::Alias(Arg::Elem(scope, own_slot(pos))))
     }
@@ -232,13 +232,13 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Whether a reference names a prop (`$p.x`) rather than an element.
     pub(crate) fn names_prop(&self, p: RefId) -> bool {
-        self.c.compiled.refs[p].prop.is_some()
+        self.c.compiled.refs[p.index()].prop.is_some()
     }
 
     /// Makes a reference that names no prop name `prop` (`$b` reads as
     /// `$b.value`).
     pub(crate) fn name_prop_if_none(&mut self, p: RefId, prop: &str) {
-        let reference = &mut self.c.compiled.refs[p];
+        let reference = &mut self.c.compiled.refs[p.index()];
         if reference.prop.is_none() {
             reference.prop = Some(prop.into());
         }
@@ -259,7 +259,7 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn reference_type(&self, p: RefId) -> Option<ComponentType> {
         self.c
             .plan_elem_target(self.t, p)
-            .map(|e| self.c.compiled.templates[self.t].elems[e].component_type)
+            .map(|e| self.c.compiled.templates[self.t.index()].elems[e.index()].component_type)
     }
 
     /// Math text as tokens, `$ref`s as cell leaves, and its text.
@@ -370,12 +370,13 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Sets the element's props.
     pub(crate) fn set_props(&mut self, props: Vec<Source>) {
-        self.c.compiled.templates[self.t].elems[self.e].props = props;
+        self.c.compiled.templates[self.t.index()].elems[self.e.index()].props = props;
     }
 
     /// Makes the element another type (a `<math>` that is a point).
     pub(crate) fn set_type(&mut self, component_type: ComponentType) {
-        self.c.compiled.templates[self.t].elems[self.e].component_type = component_type;
+        self.c.compiled.templates[self.t.index()].elems[self.e.index()].component_type =
+            component_type;
     }
 
     /// Makes the element an alias of the value its `extend` names, which
@@ -383,7 +384,7 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn alias_extended(&mut self, prop: &str) -> Result<()> {
         let p = self.extend().expect("the element extends another");
         self.name_prop_if_none(p, prop);
-        let el = &mut self.c.compiled.templates[self.t].elems[self.e];
+        let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
         el.extend = None;
         el.props = vec![Source::reference(p)];
         Ok(())
@@ -394,7 +395,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// its props are set then too.
     pub(crate) fn collect(&mut self, from: RefId, component_type: ComponentType) {
         let own_type = self.elem().component_type;
-        let el = &mut self.c.compiled.templates[self.t].elems[self.e];
+        let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
         el.body = Body::Collect {
             from,
             component_type,

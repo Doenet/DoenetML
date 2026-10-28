@@ -9,8 +9,7 @@ pub trait Leaf: Copy + PartialEq + std::fmt::Debug {
     fn from_raw(raw: u32) -> Self;
 }
 
-/// A leaf of no particular kind: the engine's own tests, and the compile's
-/// plan ids.
+/// A leaf of no particular kind: the engine's own tests.
 impl Leaf for u32 {
     fn raw(self) -> u32 {
         self

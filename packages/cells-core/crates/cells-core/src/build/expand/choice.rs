@@ -14,7 +14,7 @@ impl<'c> Builder<'c> {
         comp: CompIdx,
     ) -> Result<Vec<ChildEntry>> {
         let c: &'c Compiled = self.compiled;
-        let def = &c.choices[cid];
+        let def = &c.choices[cid.index()];
         let every_option =
             !def.reactive && self.view.options(self.in_iteration(scope)) == Options::Every;
         let mut inst = ChoiceInst {
@@ -31,7 +31,7 @@ impl<'c> Builder<'c> {
                 (0..def.branches.len()).collect()
             } else {
                 let (t, e) = def.at;
-                self.pick(def, scope, c.templates[t].elems[e].key)
+                self.pick(def, scope, c.templates[t.index()].elems[e.index()].key)
             };
             // A pick's scope is its option and which pick of it this is
             // (ADR 0017), so its state is the option's whatever order the
@@ -102,7 +102,7 @@ impl<'c> Builder<'c> {
         inst.scopes
             .iter()
             .zip(&inst.branch_of)
-            .map(|(&s, &b)| self.scope_comps[s.index()][elems[b]])
+            .map(|(&s, &b)| self.scope_comps[s.index()][elems[b].index()])
             .filter(|&m| m != CompIdx::NONE)
             .collect()
     }
@@ -259,7 +259,7 @@ impl<'c> Builder<'c> {
             let inst = self.choice_insts[i].clone();
             let choice = (!inst.every_option)
                 .then(|| self.slot(inst.comp, prop::conditional_content::CHOICE));
-            let def = &self.compiled.choices[inst.def];
+            let def = &self.compiled.choices[inst.def.index()];
             for (u, &ic) in inst.iface_comps.iter().enumerate() {
                 let members = self.stand_ins[&ic].clone();
                 let what = format!("'{}'", def.used[u]);
@@ -279,12 +279,12 @@ impl<'c> Builder<'c> {
         u: u32,
         cur: Resolved,
     ) -> (Resolved, ScopeId) {
-        let def = &self.compiled.choices[cid];
+        let def = &self.compiled.choices[cid.index()];
         let elems = &def.iface[&def.used[u as usize]].1;
         let in_branch = |inst: &ChoiceInst, j: usize| {
             let s = inst.scopes[j];
             (
-                Resolved::Comp(self.scope_comps[s.index()][elems[inst.branch_of[j]]]),
+                Resolved::Comp(self.scope_comps[s.index()][(elems[inst.branch_of[j]]).index()]),
                 s,
             )
         };

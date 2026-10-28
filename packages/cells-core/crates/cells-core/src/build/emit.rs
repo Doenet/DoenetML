@@ -436,7 +436,7 @@ impl<'c> Builder<'c> {
                     return NONE;
                 }
                 let inst = self.instances[i as usize];
-                self.compiled.templates[inst.template].elems[inst.elem].key
+                self.compiled.templates[inst.template.index()].elems[inst.elem.index()].key
             })
             .collect();
         let structure = Structure {
@@ -641,12 +641,12 @@ impl<'c> Builder<'c> {
             return None;
         }
         let inst = self.instances[i as usize];
-        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
         let pi = slot.get() - self.slot_base[comp.index()].get();
         if pi as usize >= el.props.len().max(el.component_type.prop_defs().len()) {
             return None;
         }
-        Some((inst.template, el.slot_off + pi))
+        Some((inst.template.index(), el.slot_off + pi))
     }
 
     /// The template slots of the slots `marked`, per template: the record
@@ -697,7 +697,7 @@ impl<'c> Builder<'c> {
         let comp = self.slot_comp[slot.index()];
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
         let pi = slot.get() - self.slot_base[comp.index()].get();
-        let el = &self.compiled.templates[inst.template].elems[inst.elem];
+        let el = &self.compiled.templates[inst.template.index()].elems[inst.elem.index()];
         let prop = if (pi as usize) < self.n_public(comp) {
             pi
         } else {

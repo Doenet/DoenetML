@@ -85,12 +85,12 @@ impl<'c> Builder<'c> {
     /// slots are appended to `leaves`.
     fn bind_leaves(
         &mut self,
-        t: &Tree<u32>,
+        t: &Tree<RefId>,
         scope: ScopeId,
         leaves: &mut Vec<SlotId>,
     ) -> Result<Tree<SlotId>> {
         t.try_map_leaves(&mut |plan, _| {
-            let (slot, math) = self.leaf_slot(plan as RefId, scope)?;
+            let (slot, math) = self.leaf_slot(plan, scope)?;
             if !leaves.contains(&slot) {
                 leaves.push(slot);
             }
@@ -111,7 +111,7 @@ impl<'c> Builder<'c> {
 
     /// The slot a `$ref` inside math names: one cell, and not a string id.
     fn math_ref(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
-        let display = &self.compiled.refs[plan].display;
+        let display = &self.compiled.refs[plan.index()].display;
         let slot = self.resolve_one(plan, scope).map_err(|e| match e {
             Error::ArityMismatch { .. } => Error::BadMath {
                 text: display.clone(),
@@ -120,7 +120,7 @@ impl<'c> Builder<'c> {
             other => other,
         })?;
         if self.value_type(slot) == ValueType::Text {
-            let display = &self.compiled.refs[plan].display;
+            let display = &self.compiled.refs[plan.index()].display;
             return Err(Error::Unsupported(format!(
                 "a text value (${display}) inside math"
             )));
@@ -204,7 +204,10 @@ impl<'c> Builder<'c> {
         let i = self.instances[inst as usize];
         let pi = slot.index() - self.slot_base[comp.index()].index();
         let c: &'c Compiled = self.compiled;
-        let next = match c.templates[i.template].elems[i.elem].props.get(pi) {
+        let next = match c.templates[i.template.index()].elems[i.elem.index()]
+            .props
+            .get(pi)
+        {
             Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
                 return ValueType::Math;
             }
@@ -212,7 +215,7 @@ impl<'c> Builder<'c> {
             Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
             Some(plan @ (Source::Inherit | Source::InheritFrom(_))) => {
-                let Some(p) = c.templates[i.template].elems[i.elem].extend else {
+                let Some(p) = c.templates[i.template.index()].elems[i.elem.index()].extend else {
                     return ValueType::Number;
                 };
                 let referent = match self.resolve(p, i.scope) {
@@ -229,7 +232,7 @@ impl<'c> Builder<'c> {
                 self.slot(referent, k)
             }
             Some(Source::Alias(Arg::Elem(e, k))) => {
-                let other = self.scope_comps[i.scope.index()][*e];
+                let other = self.scope_comps[i.scope.index()][e.index()];
                 if other == CompIdx::NONE {
                     return ValueType::Number;
                 }
@@ -291,7 +294,7 @@ impl<'c> Builder<'c> {
             ComponentType::MathInput => {
                 let i = self.instances[inst as usize];
                 matches!(
-                    self.compiled.templates[i.template].elems[i.elem]
+                    self.compiled.templates[i.template.index()].elems[i.elem.index()]
                         .props
                         .get(prop::math_input::EXPR),
                     Some(Source::MathEssential(_))
@@ -299,7 +302,7 @@ impl<'c> Builder<'c> {
             }
             ComponentType::Math => {
                 let i = self.instances[inst as usize];
-                match self.compiled.templates[i.template].elems[i.elem]
+                match self.compiled.templates[i.template.index()].elems[i.elem.index()]
                     .props
                     .get(prop::math::EXPR)
                 {
@@ -311,7 +314,7 @@ impl<'c> Builder<'c> {
                         self.compiled.arena.cell_leaves(id, &mut leaves);
                         !syms.is_empty()
                             || leaves.into_iter().any(|p| {
-                                self.resolve_one(p as RefId, i.scope)
+                                self.resolve_one(p, i.scope)
                                     .is_ok_and(|s| self.math_target(s).is_some())
                             })
                     }
@@ -340,7 +343,7 @@ impl<'c> Builder<'c> {
             Expr::Num(v) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => {
-                let slot = self.math_ref(plan as RefId, scope)?;
+                let slot = self.math_ref(plan, scope)?;
                 Expr::Cell(self.leaf(slot, scope))
             }
             Expr::Add(a, b)

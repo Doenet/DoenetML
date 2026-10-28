@@ -28,8 +28,8 @@ impl<'a> Compiler<'a> {
         el: NodeId,
     ) -> Result<()> {
         let d = self.dast;
-        let reactive =
-            self.compiled.templates[t].elems[e].component_type == ComponentType::ConditionalContent;
+        let reactive = self.compiled.templates[t.index()].elems[e.index()].component_type
+            == ComponentType::ConditionalContent;
         let tag = d.str(el).to_string();
         if d.attr(el, "extend").is_some() || d.attr(el, "copySource").is_some() {
             return Err(Error::Banned(format!(
@@ -129,13 +129,13 @@ impl<'a> Compiler<'a> {
         }
         let mut templates = Vec::with_capacity(branches.len());
         for (_, nodes, _) in &branches {
-            let sub = self.compiled.templates.len();
+            let sub = TemplateId::from_index(self.compiled.templates.len());
             self.compiled.templates.push(Template {
                 parent: Some((t, e)),
                 ..Default::default()
             });
             let kids = self.add_children(sub, None, ROOT_SCOPE, nodes)?;
-            self.compiled.templates[sub].children = kids;
+            self.compiled.templates[sub.index()].children = kids;
             templates.push(sub);
         }
         let id = self.compiled.choices.len();
@@ -151,7 +151,8 @@ impl<'a> Compiler<'a> {
             iface: HashMap::new(),
             used: Vec::new(),
         });
-        self.compiled.templates[t].elems[e].body = Body::Choice(id);
+        self.compiled.templates[t.index()].elems[e.index()].body =
+            Body::Choice(ChoiceId::from_index(id));
         Ok(())
     }
 
@@ -188,7 +189,7 @@ impl<'a> Compiler<'a> {
     /// hidden slot per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
     pub(in crate::compile) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let Body::Choice(cid) = self.compiled.templates[t].elems[e].body else {
+        let Body::Choice(cid) = self.compiled.templates[t.index()].elems[e.index()].body else {
             unreachable!()
         };
         let d = self.dast;
@@ -196,7 +197,7 @@ impl<'a> Compiler<'a> {
             node,
             name_scope: scope,
             ..
-        } = self.compiled.templates[t].elems[e];
+        } = self.compiled.templates[t.index()].elems[e.index()];
         let hide = match d.attr(node, "hide") {
             Some(a) if self.attr_text(a).is_some() => {
                 Source::Fixed(if self.attr_flag(node, "hide") {
@@ -208,13 +209,14 @@ impl<'a> Compiler<'a> {
             Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
             None => Source::Fixed(0.0),
         };
-        if !self.compiled.choices[cid].reactive {
-            self.compiled.templates[t].elems[e].props = prop::select::Props { hide }.into_vec();
+        if !self.compiled.choices[cid.index()].reactive {
+            self.compiled.templates[t.index()].elems[e.index()].props =
+                prop::select::Props { hide }.into_vec();
             return Ok(());
         }
         let mut wiring = ElemWiring::of(ComponentType::ConditionalContent);
         let mut conds = Vec::new();
-        for c in self.compiled.choices[cid].conditions.clone() {
+        for c in self.compiled.choices[cid.index()].conditions.clone() {
             conds.push(match c {
                 Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
                 None => wiring.hidden(Source::Fixed(1.0)),
@@ -236,7 +238,7 @@ impl<'a> Compiler<'a> {
             choice: Source::own(first),
             hide,
         });
-        self.compiled.templates[t].elems[e].props = wiring.finish();
+        self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
     }
 
@@ -252,7 +254,7 @@ impl<'a> Compiler<'a> {
             let mut iface = HashMap::new();
             if !empty_branch && !def.branches.is_empty() {
                 let b0 = def.branches[0];
-                let first = &self.compiled.templates[b0];
+                let first = &self.compiled.templates[b0.index()];
                 // The names visible from the first branch's root that name
                 // one element each.
                 for (e0, el) in first.elems.iter().enumerate() {
@@ -260,7 +262,8 @@ impl<'a> Compiler<'a> {
                         continue;
                     }
                     let name = self.dast.strings.get(el.name).trim();
-                    if !matches!(self.name_at(b0, ROOT_SCOPE, name), NameHit::One(e) if e == e0) {
+                    if !matches!(self.name_at(b0, ROOT_SCOPE, name), NameHit::One(e) if e == ElemId::from_index(e0))
+                    {
                         continue;
                     }
                     let component_type = el.component_type;
@@ -269,7 +272,8 @@ impl<'a> Compiler<'a> {
                         .iter()
                         .map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
                             NameHit::One(x)
-                                if self.compiled.templates[b].elems[x].component_type
+                                if self.compiled.templates[b.index()].elems[x.index()]
+                                    .component_type
                                     == component_type =>
                             {
                                 Some(x)
@@ -296,13 +300,17 @@ impl<'a> Compiler<'a> {
                     }
                     Some(_) => {}
                     None => {
-                        failure = Some(self.not_in_interface(cid, name, empty_branch));
+                        failure = Some(self.not_in_interface(
+                            ChoiceId::from_index(cid),
+                            name,
+                            empty_branch,
+                        ));
                         break;
                     }
                 }
             }
             if let Some(e) = failure {
-                self.fail_at_choice(cid);
+                self.fail_at_choice(ChoiceId::from_index(cid));
                 return Err(e);
             }
             self.compiled.choices[cid].iface = iface;
@@ -312,13 +320,13 @@ impl<'a> Compiler<'a> {
 
     /// A failure of the interface check is reported on the choice element.
     fn fail_at_choice(&mut self, cid: ChoiceId) {
-        let (t, e) = self.compiled.choices[cid].at;
-        self.fail_at(self.compiled.templates[t].elems[e].node);
+        let (t, e) = self.compiled.choices[cid.index()].at;
+        self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node);
     }
 
     /// Why `name` is not in a choice's branch interface.
     fn not_in_interface(&self, cid: ChoiceId, name: &str, empty_branch: bool) -> Error {
-        let def = &self.compiled.choices[cid];
+        let def = &self.compiled.choices[cid.index()];
         let choice = self.elem_label(def.at.0, def.at.1);
         let what = if def.reactive { "case" } else { "option" };
         let reason = if empty_branch {
@@ -329,7 +337,8 @@ impl<'a> Compiler<'a> {
             for (b, &tpl) in def.branches.iter().enumerate() {
                 match self.name_at(tpl, ROOT_SCOPE, name) {
                     NameHit::One(x) => {
-                        let component_type = self.compiled.templates[tpl].elems[x].component_type;
+                        let component_type =
+                            self.compiled.templates[tpl.index()].elems[x.index()].component_type;
                         match first {
                             None => first = Some((b, component_type)),
                             Some((b0, type0)) if type0 != component_type => {
@@ -375,7 +384,7 @@ impl<'a> Compiler<'a> {
         display: &str,
     ) -> Result<(Step, TemplateId, ElemId)> {
         let name = name.trim();
-        let def = &self.compiled.choices[cid];
+        let def = &self.compiled.choices[cid.index()];
         let found = def
             .branches
             .iter()
@@ -386,7 +395,7 @@ impl<'a> Compiler<'a> {
         let Some((tpl, elem)) = found else {
             return Err(Error::UnknownName(display.to_string()));
         };
-        let def = &mut self.compiled.choices[cid];
+        let def = &mut self.compiled.choices[cid.index()];
         let u = match def.used.iter().position(|n| n == name) {
             Some(u) => u,
             None => {
