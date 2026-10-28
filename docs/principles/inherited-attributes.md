@@ -153,6 +153,12 @@ Evidence:
 A reader's write to `fixed` on an item that has no `fixed` of its own becomes that item's own
 value, and from then on it beats the container.
 
+The same holds for lists. A list's own attributes act on its entries as a container's do: they
+fill in what an entry's source does not set, and never override or clear it (D29). To override a
+set of components, write a reference to each, for example `<repeat for="$c" valueName="P"><point
+extend="$P" styleNumber="2"/></repeat>`. A shorter opt-in form is deferred until authors ask for
+one (D31).
+
 ### CTX-6: generated values are fixed by default (Tier 2)
 These cannot be dragged or overwritten unless `fixed="false"` is set on the generator or an
 ancestor:
