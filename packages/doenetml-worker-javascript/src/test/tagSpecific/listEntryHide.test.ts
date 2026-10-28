@@ -294,4 +294,36 @@ describe("A hidden entry of a list @group4", async () => {
             props: "false false",
         });
     });
+    it("a hidden entry is left out of the text of a choice holding the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <textList name="tl"><text hide="$h">a</text><text>b</text></textList>
+    <collect name="cr" hide="false" from="$s" componentType="text" />
+    <section name="s"><text hide>x</text><text>y</text></section>
+    <textList name="hl" hide><text>u</text></textList>
+    <choiceInput name="ci" inline>
+        <choice>$tl</choice>
+        <choice>$cr</choice>
+        <choice>$hl[1]</choice>
+    </choiceInput>
+    `,
+        });
+
+        const choiceTexts = async () =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("ci")
+            ].stateValues.choiceTexts;
+
+        // a `<collect hide="false">` shows its entries, and an entry hidden
+        // only by its list is shown by `$hl[1]`
+        expect(await choiceTexts()).eqls(["a, b", "x, y", "u"]);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await choiceTexts()).eqls(["b", "x, y", "u"]);
+    });
 });

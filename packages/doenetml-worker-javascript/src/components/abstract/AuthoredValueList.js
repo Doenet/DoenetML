@@ -142,6 +142,10 @@ export default class AuthoredValueList extends ValueListComponent {
             variables.listEntryGraphSource = "entryGraphSources";
         }
         Object.assign(variables, this.listEntryPresentationVariables);
+        // An entry hidden by its own `hide` leaves the text of a `<choice>`
+        // holding the list, which reads `hiddenIgnoreParent` of its
+        // children, not `hidden`.
+        variables.hiddenIgnoreParent = ENTRY_PRESENTATION_ARRAYS.hide;
         if (this.listEntriesShownAsSources) {
             // the component an entry stands for, which a list reading the
             // entry stands it for in turn
