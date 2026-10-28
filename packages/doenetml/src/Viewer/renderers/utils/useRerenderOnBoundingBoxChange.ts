@@ -7,11 +7,11 @@ import { JXGBoard } from "../jsxgraph-distrib/types";
  *
  * A renderer that places itself relative to the graph's edges (an off-graph
  * indicator, a label moved away from an edge) reads the bounding box while it
- * renders. The graph applies a new bounding box from its own effect, which
- * runs after its children have rendered, and panning or zooming changes the
- * bounding box without the children's state variables changing at all. Either
- * way the child would keep the drawing it computed from the old bounding box,
- * so it listens for the change itself.
+ * renders. When the graph's limits change, its children are re-rendered in the
+ * same update as the graph, but the graph applies the new bounding box from its
+ * own effect, which runs after its children have rendered. So the child would
+ * keep the drawing it computed from the old bounding box, and it listens for
+ * the change itself. This also redraws it as soon as the user pans or zooms.
  *
  * `needsRerender` is read from the latest render, so it may close over the
  * current state variables.

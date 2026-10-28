@@ -117,9 +117,9 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
 
     // Where the point is drawn depends on the graph's bounding box: off the
     // graph it becomes an indicator pinned to the edge, and near an edge its
-    // label flips inward. Re-render whenever a new bounding box changes that,
-    // including when the graph's limits change in the same update as the
-    // point's coordinates (the graph applies them after this has rendered).
+    // label flips inward. Re-render whenever a new bounding box changes that:
+    // when the graph's limits change, the graph applies them only after this
+    // has rendered for the same update.
     useRerenderOnBoundingBoxChange(board, () => {
         if (!board) {
             return false;
@@ -635,9 +635,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
  *
  * Off the graph (unless `hideOffGraphIndicator`), the point is drawn at the
  * edge, and `offGraphIndicator` gives, for each coordinate, the side it went
- * off (-1 or 1, else 0). `nearEdgeOfGraph` gives, for each coordinate, the
- * side of the graph the drawn point is near, which is used to keep its label
- * on the graph.
+ * off, else 0. `nearEdgeOfGraph` gives, for each coordinate, the side of the
+ * graph the drawn point is near, else 0, which is used to keep its label on
+ * the graph. Both give sides as drawn: -1 for left or bottom and 1 for right
+ * or top, even when an axis is flipped.
  */
 function placePointOnBoard(
     numericalXs: [number, number],
