@@ -343,7 +343,7 @@ pub fn cell(doc: &Document, path: &str) -> CellIdx {
         .unwrap_or_else(|| panic!("no prop {path}"))[0]
 }
 
-/// A hash of every component's props by tree path, independent of how
+/// A hash of every component's live props by tree path, independent of how
 /// cells are laid out: two cores that hold the same values give the same
 /// hash, whatever their cell indices.
 pub fn fingerprint(doc: &Document) -> u64 {
@@ -356,6 +356,11 @@ pub fn fingerprint(doc: &Document) -> u64 {
     for (path, c) in crate::script::tree(doc) {
         eat(path.as_bytes());
         for (i, def) in doc.component_type(c).prop_defs().iter().enumerate() {
+            // A dead prop is not computed (ADR 0019): its value is no
+            // difference.
+            if !doc.is_live(doc.comp_cells(c)[i]) {
+                continue;
+            }
             eat(def.name.as_bytes());
             let v = doc.cells[doc.comp_cells(c)[i] as usize];
             // All NaNs alike, so a NaN's payload is not a difference.
