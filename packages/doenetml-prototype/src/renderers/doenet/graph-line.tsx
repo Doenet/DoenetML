@@ -1,128 +1,75 @@
 import React from "react";
-import { BasicComponent } from "../types";
-import { GraphContext, LAYER_OFFSETS } from "./graph";
 import * as JSG from "jsxgraph";
+import { BasicComponent } from "../types";
+import { GraphContext } from "./graph";
+import { Action } from "@doenet/doenetml-worker";
+import { useAppDispatch } from "../../state/hooks";
+import { coreActions } from "../../state/redux-slices/core";
 import {
-    attachStandardGraphListeners,
-    GraphListeners,
-    removeStandardGraphListeners,
-} from "./jsxgraph/listeners";
+    finite,
+    refresh,
+    setVisible,
+    useGraphObjects,
+} from "./jsxgraph/use-graph-objects";
+import { CURVE_ATTRIBUTES, HIDDEN_POINT_ATTRIBUTES } from "./jsxgraph/look";
 
-export const LineInGraph: BasicComponent = ({ node }) => {
-    const board = React.useContext(GraphContext);
-    const lineRef = React.useRef<JSG.Line | null>(null);
-    const lineListenersAttached = React.useRef<GraphListeners>({});
-
-    React.useEffect(() => {
-        if (!board) {
-            lineRef.current = null;
-            return;
-        }
-        if (lineRef.current) {
-            return;
-        }
-        const line = createLine(board, {
-            numericalPoints: [
-                [0, 0],
-                [1, 1],
-            ],
-            labelForGraph: "test",
-            lineColor: "var(--mainGreen)",
-            hidden: false,
-            fixed: false,
-            draggable: true,
-            fixLocation: false,
-            layer: 0,
-            selectedStyle: { lineStyle: "solid", lineOpacity: 1, lineWidth: 2 },
-            dashed: false,
-        });
-        lineRef.current = line;
-        if (!line) {
-            return;
-        }
-
-        // TODO: actually create the line listeners and actions
-        lineListenersAttached.current = attachStandardGraphListeners(line, {});
-
-        return () => {
-            removeStandardGraphListeners(line, lineListenersAttached.current);
-            board.removeObject(line);
-        };
-    }, [board, lineRef]);
-
-    if (!board) {
-        return null;
-    }
-
-    return null;
+type LineData = {
+    props: { numericalPoints: [[number, number], [number, number]] };
 };
 
-function createLine(
-    board: JSG.Board,
-    props: {
-        numericalPoints: [[number, number], [number, number]];
-        labelForGraph: string;
-        lineColor: string;
-        hidden: boolean;
-        fixed: boolean;
-        draggable: boolean;
-        fixLocation: boolean;
-        layer: number;
-        selectedStyle: {
-            lineStyle: string;
-            lineOpacity: number;
-            lineWidth: number;
-        };
-        dashed: boolean;
-    },
-) {
-    if (
-        props.numericalPoints?.length !== 2 ||
-        props.numericalPoints.some((x) => x.length !== 2)
-    ) {
-        return null;
-    }
-
-    const lineColor = props.lineColor;
-
-    // Things to be passed to JSXGraph as attributes
-    const jsxLineAttributes: JSG.GeometryElementAttributes &
-        JSG.LineAttributes = {
-        name: props.labelForGraph,
-        visible: !props.hidden,
-        fixed: props.fixed,
-        layer: 10 * props.layer + LAYER_OFFSETS.line,
-        strokeColor: lineColor,
-        strokeOpacity: props.selectedStyle.lineOpacity,
-        highlightStrokeColor: lineColor,
-        highlightStrokeOpacity: props.selectedStyle.lineOpacity * 0.5,
-        strokeWidth: props.selectedStyle.lineWidth,
-        highlightStrokeWidth: props.selectedStyle.lineWidth,
-        dash: styleToDash(props.selectedStyle.lineStyle, props.dashed),
-        highlight: !props.fixLocation,
-    };
-
-    const through = [
-        [...props.numericalPoints[0]],
-        [...props.numericalPoints[1]],
-    ];
-
-    const line: JSG.Line = board.create("line", through, jsxLineAttributes);
-
-    return line;
-}
-
-/**
- * Return the the dash length for a given style.
- */
-function styleToDash(style: string, dash: boolean) {
-    if (style === "dashed" || dash) {
-        return 2;
-    } else if (style === "solid") {
-        return 0;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
+/** A line through two points. Dragging it moves both. */
+export const LineInGraph: BasicComponent<LineData> = ({ node }) => {
+    const board = React.useContext(GraphContext);
+    const dispatch = useAppDispatch();
+    useGraphObjects(
+        board,
+        node.data.props,
+        (board, _props, resync) => {
+            const p1: JSG.Point = board.create(
+                "point",
+                [0, 0],
+                HIDDEN_POINT_ATTRIBUTES,
+            );
+            const p2: JSG.Point = board.create(
+                "point",
+                [1, 0],
+                HIDDEN_POINT_ATTRIBUTES,
+            );
+            const line: JSG.Line = board.create(
+                "line",
+                [p1, p2],
+                CURVE_ATTRIBUTES,
+            );
+            line.on("drag", () => {
+                const action: Action = {
+                    component: "line",
+                    actionName: "moveLine",
+                    componentIdx: node.data.id,
+                    args: {
+                        point1coords: [p1.X(), p1.Y()],
+                        point2coords: [p2.X(), p2.Y()],
+                    },
+                } as unknown as Action;
+                dispatch(coreActions.dispatchAction(action));
+            });
+            line.on("up", resync);
+            return { objects: [line, p1, p2], line, p1, p2 };
+        },
+        ({ line, p1, p2 }, { numericalPoints: [[x1, y1], [x2, y2]] }) => {
+            const ok = finite(x1, y1, x2, y2);
+            p1.coords.setCoordinates(
+                JSG.COORDS_BY_USER,
+                ok ? [1, x1, y1] : [1, 0, 0],
+            );
+            p2.coords.setCoordinates(
+                JSG.COORDS_BY_USER,
+                ok ? [1, x2, y2] : [1, 1, 0],
+            );
+            setVisible(line, ok);
+            refresh(p1);
+            refresh(p2);
+            refresh(line);
+        },
+    );
+    return null;
+};

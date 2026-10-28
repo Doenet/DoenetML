@@ -161,6 +161,16 @@ export class CellsTable {
         return i === undefined ? undefined : propCells[propBase[c] + i];
     }
 
+    /** The cells of `c`'s list prop (a polygon's vertices, ADR 0016): two
+     * per point, `x` then `y`, stored after its type table's props. */
+    listCells(c: number): number[] {
+        const { componentType, propBase, propCells } = this.cols;
+        const start = propBase[c] + this._propIndex[componentType[c]].size;
+        const end =
+            c + 1 < propBase.length ? propBase[c + 1] : propCells.length;
+        return Array.from(propCells.subarray(start, end));
+    }
+
     value(cell: number): number {
         return this.cols.cells[cell];
     }

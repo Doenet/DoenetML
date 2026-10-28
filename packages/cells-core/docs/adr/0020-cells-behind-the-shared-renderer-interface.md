@@ -1,7 +1,7 @@
 # Cells behind the shared renderer interface
 
-Status: proposed 2026-10-28. Step 1 of 5; see Migration. The Measured
-section is filled in by step 5.
+Status: proposed 2026-10-28. Steps 1 to 3 of 5 are done; see Migration.
+The Measured section is filled in by step 5.
 
 The cells core reaches DoenetML's renderers the way the other two cores
 do: as a third core type (`"cells"`) behind the prototype's `CoreWorker`.
@@ -90,11 +90,19 @@ compares the two paths, and whether it is retired is decided then.
 
 1. The bridge and `coreType: "cells"`, on the components both sides draw.
 2. The shared graph renderer redraws once per update batch, for all three
-   cores, the pattern ADR 0010 measured.
+   cores, the pattern ADR 0010 measured (`jsxgraph/redraw.ts` in the
+   prototype): a batch that creates or removes objects suspends the
+   board's updates and runs one full update; any other redraws only the
+   objects it changed.
 3. Port the renderers the prototype lacks (circle, polygon, polyline, line
    segment, legend, slider, numberInput, mathInput, tuple, sideBySide,
-   stack, spreadsheet, hint, ref) and give `line` and `answer`, which are
-   stubs, real contracts.
+   stack, spreadsheet, hint, ref) and give `line` and `answer`, which were
+   stubs, real contracts. Where the JavaScript core already sends a
+   component, its contract takes that core's prop names and shapes
+   (`numericalPoints`, `legendElements`), so its renderer draws either
+   core; a renderer whose element arrives without the props it needs draws
+   nothing, as for an element with no renderer. Doenet's styles are not
+   ported: every graph element is drawn in one style.
 4. Move the viewer's interactive and output checks, its prerender tests
    and the benchmark's hook onto the prototype path.
 5. Compare the two paths on the same fixtures and specs; record it below.

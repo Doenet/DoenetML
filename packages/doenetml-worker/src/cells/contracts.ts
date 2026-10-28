@@ -102,6 +102,9 @@ export type Contract = {
     excludeChild?: (table: CellsTable, c: number, child: number) => boolean;
     /** Only an element's children are in its graph (a graph's own). */
     graph?: boolean;
+    /** No children at all, text included: everything the element shows
+     * is in its props. */
+    noChildren?: boolean;
 };
 
 /** How a number shows as text: `displayDecimals` when the author gave it,
@@ -130,17 +133,17 @@ function latexOf(expr: any): string {
     }
 }
 
+/** The `<label>` children of `c`: the core makes each a group. */
+function labelChildren(table: CellsTable, c: number): number[] {
+    return childrenOfType(table, c, "group");
+}
+
 /** A label: the text of the `<label>` child, else the `label` attribute. */
 function label(table: CellsTable, c: number) {
-    for (const child of table.children(c)) {
-        if (
-            "component" in child &&
-            table.componentType(child.component) === "label"
-        ) {
-            return table.core.component_text(child.component);
-        }
-    }
-    return table.attr(c, "label") ?? "";
+    const [child] = labelChildren(table, c);
+    return child === undefined
+        ? (table.attr(c, "label") ?? "")
+        : table.core.component_text(child);
 }
 
 /** The fields every input renderer declares from its literal attributes:
@@ -214,6 +217,84 @@ function listDepth(table: CellsTable, c: number, kind: "Ol" | "Ul") {
     return kind === "Ol" ? { Ol: depth } : { Ul: depth };
 }
 
+/** A number in math notation: six significant digits, no trailing zeros. */
+function mathNumber(v: number): string {
+    return Number.isFinite(v) ? String(Number(v.toPrecision(6))) : String(v);
+}
+
+const NUMBER_TYPES = new Set([
+    "number",
+    "clampNumber",
+    "evaluate",
+    "sequenceValue",
+    "numberInput",
+    "slider",
+]);
+
+/** A component's value as LaTeX, where math notation refers to it. */
+function valueLatex(r: Reads, c: number): string {
+    const type = r.table.componentType(c);
+    if (type === "math" || type === "mathInput") return latexOf(r.math(c));
+    if (NUMBER_TYPES.has(type)) return mathNumber(r.num(c, "value"));
+    if (type === "text" || type === "textInput") {
+        return `\\text{${r.text(c, "value")}}`;
+    }
+    return childrenLatex(r, c);
+}
+
+/** The LaTeX of math notation's children (`<m>`, `<mrow>`): text as written,
+ * and a component it refers to as its value. */
+function childrenLatex(r: Reads, c: number): string {
+    return r.table
+        .children(c)
+        .map((child) =>
+            "text" in child ? child.text : valueLatex(r, child.component),
+        )
+        .join("");
+}
+
+/** The child components of `c` with this type, in order. */
+function childrenOfType(table: CellsTable, c: number, type: string): number[] {
+    return table
+        .children(c)
+        .flatMap((child) =>
+            "component" in child &&
+            table.componentType(child.component) === type
+                ? [child.component]
+                : [],
+        );
+}
+
+/** The points under `c`, through components that stand as their children
+ * (a polyline's vertices are copies of the points it gathered). */
+function pointsUnder(table: CellsTable, c: number): number[] {
+    return table.children(c).flatMap((child) => {
+        if (!("component" in child)) return [];
+        const type = table.componentType(child.component);
+        if (type === "point") return [child.component];
+        return TRANSPARENT.has(type) ? pointsUnder(table, child.component) : [];
+    });
+}
+
+/** Pairs of a list of cells (`x1, y1, x2, y2, ...`) as points. */
+function pairs(r: Reads, cells: number[]): [number, number][] {
+    const out: [number, number][] = [];
+    for (let i = 0; i + 1 < cells.length; i += 2) {
+        out.push([r.cell(cells[i]), r.cell(cells[i + 1])]);
+    }
+    return out;
+}
+
+/** Sizes given as `widths="40% 30%"`. */
+function sizes(table: CellsTable, c: number, name: string): string[] {
+    return (table.attr(c, name) ?? "").trim().split(/\s+/).filter(Boolean);
+}
+
+/** A number shown as math notation (the renderer draws it with `M`). */
+const MATH_VALUE: Contract = {
+    props: (r, c) => ({ latex: latexOf(r.math(c)), renderMode: "inline" }),
+};
+
 export const CONTRACTS: Record<string, Contract> = {
     document: {},
     p: {},
@@ -238,19 +319,51 @@ export const CONTRACTS: Record<string, Contract> = {
             renderMode: "inline",
         }),
     },
-    // `<m>` and `<md>` hold their LaTeX as text children; `md` is drawn
-    // from the prop alone.
+    // `<m>` and `<md>` are drawn from the `latex` prop alone: text as
+    // written, and a component referred to as its value.
     m: {
-        props: (r, c) => ({
-            latex: r.table.core.component_text(c),
-            renderMode: "inline",
-        }),
+        props: (r, c) => ({ latex: childrenLatex(r, c), renderMode: "inline" }),
+        noChildren: true,
     },
     md: {
+        props: (r, c) => {
+            const rows = childrenOfType(r.table, c, "mrow");
+            return {
+                latex: rows.length
+                    ? rows.map((row) => childrenLatex(r, row)).join("\\\\")
+                    : childrenLatex(r, c),
+                renderMode: rows.length > 1 ? "align" : "display",
+            };
+        },
+        noChildren: true,
+    },
+    clampNumber: MATH_VALUE,
+    evaluate: MATH_VALUE,
+    sequenceValue: {
+        name: () => "number",
         props: (r, c) => ({
-            latex: r.table.core.component_text(c),
-            renderMode: "display",
+            text: formatNumber(
+                r.num(c, "value"),
+                r.table.attr(c, "displayDecimals"),
+            ),
         }),
+    },
+    tuple: {
+        props: (r, c) => {
+            const n = r.num(c, "n");
+            const entries = Array.from(
+                {
+                    length: Number.isInteger(n)
+                        ? Math.max(0, Math.min(n, 8))
+                        : 0,
+                },
+                (_, i) => mathNumber(r.num(c, `x${i + 1}`)),
+            );
+            return {
+                latex: `\\left( ${entries.join(", ")} \\right)`,
+                renderMode: "inline",
+            };
+        },
     },
     point: {
         props: (r, c, inGraph) => {
@@ -272,9 +385,95 @@ export const CONTRACTS: Record<string, Contract> = {
             yMax: r.num(c, "ymax"),
         }),
     },
-    // A stub in the prototype until step 3 gives it a contract.
-    line: { props: () => ({}) },
-    answer: { props: () => ({}) },
+    line: {
+        props: (r, c) => ({
+            numericalPoints: [
+                [r.num(c, "x1"), r.num(c, "y1")],
+                [r.num(c, "x2"), r.num(c, "y2")],
+            ],
+        }),
+    },
+    lineSegment: {
+        props: (r, c) => ({
+            numericalEndpoints: [
+                [r.num(c, "x1"), r.num(c, "y1")],
+                [r.num(c, "x2"), r.num(c, "y2")],
+            ],
+        }),
+    },
+    circle: {
+        props: (r, c) => ({
+            numericalCenter: [r.num(c, "cx"), r.num(c, "cy")],
+            numericalRadius: r.num(c, "radius"),
+        }),
+    },
+    polygon: {
+        props: (r, c) => ({
+            numericalVertices: pairs(r, r.table.listCells(c)),
+        }),
+    },
+    // Its vertices are the points it gathered, which it draws itself.
+    polyline: {
+        props: (r, c) => ({
+            numericalVertices: pointsUnder(r.table, c).map((p) => [
+                r.num(p, "x"),
+                r.num(p, "y"),
+            ]),
+        }),
+        noChildren: true,
+    },
+    // Its labels, in order, beside the graph's curves in order. Their
+    // colors are the renderer's: Doenet's styles are not ported.
+    legend: {
+        props: (r, c) => ({
+            legendElements: labelChildren(r.table, c).map((l) => ({
+                swatchType: "line",
+                label: {
+                    value: r.table.core.component_text(l),
+                    hasLatex: false,
+                },
+            })),
+        }),
+        noChildren: true,
+    },
+    answer: {
+        props: (r, c) => ({
+            creditAchieved: r.num(c, "credit"),
+            numSubmissions: r.num(c, "numSubmissions"),
+        }),
+    },
+    slider: {
+        props: (r, c) => ({
+            from: r.num(c, "from"),
+            to: r.num(c, "to"),
+            step: r.num(c, "step"),
+            value: r.num(c, "value"),
+            ...inputPresentation(r.table, c),
+        }),
+    },
+    numberInput: {
+        props: (r, c) => ({
+            value: r.num(c, "value"),
+            ...inputPresentation(r.table, c),
+        }),
+    },
+    // What the student typed comes back as the expression the core parsed
+    // it to, as text (or the number, for a mathInput bound to one).
+    mathInput: {
+        props: (r, c) => {
+            const expr = r.table.cell(c, "expr");
+            const handle = expr === undefined ? NaN : r.cell(expr);
+            const value = r.num(c, "value");
+            return {
+                text: !Number.isNaN(handle)
+                    ? r.table.core.expr_text(expr!)
+                    : Number.isNaN(value)
+                      ? ""
+                      : String(value),
+                ...inputPresentation(r.table, c),
+            };
+        },
+    },
     textInput: {
         props: (r, c) => ({
             immediateValue: r.text(c, "value"),
@@ -325,7 +524,7 @@ export const CONTRACTS: Record<string, Contract> = {
             labelHasLatex: false,
             disabled: false,
         }),
-        excludeChild: () => true,
+        noChildren: true,
     },
     section: {
         name: () => "division",
@@ -352,6 +551,64 @@ export const CONTRACTS: Record<string, Contract> = {
         },
         excludeChild: (table, _c, child) =>
             table.componentType(child) === "title",
+    },
+    // An aside: a collapsed division.
+    aside: {
+        props: (r, c) => {
+            const title = titleChild(r.table, c);
+            return {
+                title: title === null ? null : r.idOf(title),
+                titlePrefix: "",
+                codeNumber: "",
+                divisionDepth: sectionDepth(r.table, c),
+                divisionType: "aside",
+                xrefLabel: {
+                    label: title === null ? "Aside" : "",
+                    global_ident: "",
+                    local_ident: "",
+                    preferred_form: "Global",
+                },
+                collapsible: true,
+                boxed: true,
+                open: flag(r.table, c, "startOpen"),
+            };
+        },
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) === "title",
+    },
+    hint: {
+        props: (r, c) => ({ open: r.num(c, "open") === 1 }),
+    },
+    ref: {
+        props: (r, c) => {
+            const to = r.table.attr(c, "to");
+            return { url: to && /^https?:/.test(to) ? to : null };
+        },
+    },
+    // Widths in percent of the row; a width given otherwise shares what is
+    // left.
+    sideBySide: {
+        props: (r, c) => ({
+            widths: sizes(r.table, c, "widths").map((w) =>
+                w.endsWith("%") ? Number(w.slice(0, -1)) : NaN,
+            ),
+        }),
+    },
+    stack: {},
+    tabular: {},
+    // A spreadsheet shows as a table.
+    spreadsheet: { name: () => "tabular" },
+    row: {
+        props: () => ({ startBorder: "none", valign: "top" }),
+    },
+    cell: {
+        props: () => ({
+            bottomBorder: "none",
+            endBorder: "none",
+            colspan: 1,
+            halign: "start",
+            header: false,
+        }),
     },
     ul: {
         props: (r, c) => ({ listDepth: listDepth(r.table, c, "Ul") }),
@@ -401,8 +658,8 @@ export const OMITTED = new Set([
     "functionIterates",
     "selectFromSequence",
     "setup",
-    "legend",
     "label",
     "shortDescription",
     "updateValue",
+    "mrow",
 ]);
