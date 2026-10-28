@@ -505,6 +505,9 @@ export default class Matrix extends MathComponent {
                 },
             }),
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             defaultValue: me.fromAst(["matrix", ["tuple", 0, 0], ["tuple"]]), // 0x0 matrix
             definition({ dependencyValues }) {
                 let matrixValues = ["tuple"];

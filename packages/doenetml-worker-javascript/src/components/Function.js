@@ -12,6 +12,7 @@ import {
     returnTextStyleDescriptionDefinitions,
     toNumberOrNaN,
     vectorOperators,
+    convertValueToMathExpression,
 } from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
@@ -1233,6 +1234,9 @@ export default class Function extends InlineComponent {
             },
             defaultValue: me.fromAst(0),
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnDependencies: () => ({
                 mathChild: {
                     dependencyType: "child",

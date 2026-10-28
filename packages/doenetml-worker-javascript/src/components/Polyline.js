@@ -457,6 +457,9 @@ export default class Polyline extends GraphicalComponent {
             numDimensions: 2,
             hasEssential: true,
             doNotShadowEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: (x) => (x === null ? null : convertValueToMathExpression(x)),
             entryPrefixes: [
                 "desiredUnconstrainedVertexX",
                 "desiredUnconstrainedVertex",

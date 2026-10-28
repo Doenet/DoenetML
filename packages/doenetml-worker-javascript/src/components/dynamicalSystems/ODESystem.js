@@ -1,6 +1,7 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me, { dopri } from "math-expressions";
 import {
+    convertValueToMathExpression,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
@@ -341,6 +342,9 @@ export default class ODESystem extends InlineComponent {
             },
             entryPrefixes: ["initialCondition"],
             defaultValueByArrayKey: () => me.fromAst(0),
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({
                 numDimensions: {
                     dependencyType: "stateVariable",
