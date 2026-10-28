@@ -330,6 +330,9 @@ export default class AuthoredValueList extends ValueListComponent {
         // from the children and attributes it is made with, also as part of
         // an unlinked copy of a `<repeat>` (`copyPrimaryEssential`).
         delete serialized.state.listValuesShadow;
+        // The list a `copy=` is made of, or one pasted in its place
+        // (`pasteWhatListExtends`), not a list inside the component copied.
+        const copied = parameters.copyAll && !parameters.serializingDescendant;
         // A linked copy of the list (in an `extend` of its parent) has
         // no children of its own (`serializeChildrenOnlyIfUnlinked`).
         // An unlinked copy of it is made from the children of the list
@@ -341,10 +344,22 @@ export default class AuthoredValueList extends ValueListComponent {
         if (source) {
             const serializedSource = await source.serialize(parameters);
             serialized.children = serializedSource.children;
-            serialized.state = {
-                ...serializedSource.state,
-                ...serialized.state,
-            };
+            // A pasted list takes what was written to its source's
+            // entries, which a shadow of it does not hold.
+            serialized.state = copied
+                ? { ...serialized.state, ...serializedSource.state }
+                : { ...serializedSource.state, ...serialized.state };
+            // its children are its source's, with what they extend
+            for (const name of ["extendListViaComposite", "extendsList"]) {
+                if (serializedSource.doenetAttributes?.[name] === undefined) {
+                    delete serialized.doenetAttributes[name];
+                } else {
+                    serialized.doenetAttributes[name] =
+                        serializedSource.doenetAttributes[name];
+                }
+            }
+        } else if (copied) {
+            await pasteWhatListExtends(this, serialized, parameters);
         }
         return serialized;
     }
@@ -2258,4 +2273,41 @@ export function sourceComponentOf(source) {
         return referentInfo.componentIdx;
     }
     return source.componentIdx;
+}
+
+/**
+ * For a `copy=` of `list`, an `extend` of a list, a property or a composite
+ * (`<mathList extend="$l"/>`), paste in place of the composite that extend
+ * makes (`extendListViaComposite`) what it stands for: its replacements as
+ * an unlinked copy makes them, so that the copy is not linked to what
+ * `list` extends (CPY-4). A list it extends is pasted (that list's
+ * DoenetML), a property's values are held (CPY-5).
+ */
+async function pasteWhatListExtends(list, serialized, parameters) {
+    const compositeIdx = list.doenetAttributes?.extendListViaComposite;
+    const composite = parameters.components?.[compositeIdx];
+    const ind = serialized.children.findIndex(
+        (child) => child?.componentIdx === compositeIdx,
+    );
+    if (!composite?.isExpanded || ind === -1) {
+        return;
+    }
+    const replacements = composite.replacements.slice(
+        0,
+        composite.replacements.length - (composite.replacementsToWithhold ?? 0),
+    );
+    const pasted = [];
+    for (const replacement of replacements) {
+        pasted.push(
+            typeof replacement === "object"
+                ? await replacement.serialize({
+                      ...parameters,
+                      serializingDescendant: false,
+                  })
+                : replacement,
+        );
+    }
+    serialized.children.splice(ind, 1, ...pasted);
+    delete serialized.doenetAttributes.extendListViaComposite;
+    delete serialized.doenetAttributes.extendsList;
 }
