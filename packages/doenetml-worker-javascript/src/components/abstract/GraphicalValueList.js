@@ -592,8 +592,8 @@ export default class GraphicalValueList extends AuthoredValueList {
         // children), the child, as `{ componentIdx, listEntryIndex }`, with
         // the values of the variables its renderer reads that the entry
         // takes from it (`listEntryChildRendererVariables`), and its own
-        // `hide` and `fixed`; `null` for another entry. A reference to the whole list
-        // reads the list's.
+        // `fixed`; `null` for another entry. An entry's `hide` is read from
+        // its source by `entryPresentation` instead.
         stateVariableDefinitions.entryChildren = {
             shadowVariable: true,
             returnDependencies: () => ({
@@ -604,7 +604,7 @@ export default class GraphicalValueList extends AuthoredValueList {
                 children: {
                     dependencyType: "child",
                     childGroups: componentGroups,
-                    variableNames: [...childRendererVariables, "hide", "fixed"],
+                    variableNames: [...childRendererVariables, "fixed"],
                     variablesOptional: true,
                 },
             }),
