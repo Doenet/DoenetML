@@ -26,6 +26,10 @@ variables. This one is organized around data:
 - **Components and props are only names.** A prop maps to one cell or a list
   of cells; two props that are equal by construction (a reference, a copy)
   share one cell. Components are not nodes in the graph.
+- **Only what leaves the core is computed.** An *output* is a prop a
+  renderer reads or a score a grader reads. A cell no output reads, and
+  the core does not read itself, is *dead*, and a build gives it no cell
+  (ADR 0019).
 
 The work splits by when it happens:
 
@@ -118,7 +122,16 @@ draw for every select.
   inputs each inverse may write. The probe records the writable template
   slots in `Compiled` (`Classes::Record`), and every build of a document
   with repeats or selects classes by that record; a document without
-  either classes its one build by its own walk.
+  either classes its one build by its own walk. A class is computed only
+  when it is live (ADR 0019): `build/live.rs` walks back from every root
+  (the rendered props of rendered components, scores, inputs, what an
+  action or snapping reads, repeat counts) through every input of every
+  instruction. The probe records the live template slots in
+  `Compiled::live` as it records the writable ones. A dead class gets no
+  cell: its props name the one dead cell, a fixed NaN, and its
+  instruction is never bound. A live instruction that would read the dead
+  cell fails the build (`Error::Unchecked`). `LoadOptions::prune` off
+  computes every class.
 
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
@@ -161,7 +174,9 @@ downstream, and report a `TickOutcome`. See
 `Document::load` (`document/load.rs`):
 
 1. The bytes become a `Dast`.
-2. The compile runs once: lint, plan, check.
+2. The compile runs once: lint, plan, check. The check's probe also
+   records which template slots are writable (ADR 0018) and which are
+   live (ADR 0019), which every later build reads.
 3. Builds run from the compile, each at the counts it is asked for, until
    the structure settles. After each build the document computes every
    derived cell once; if a repeat's `count` cell now disagrees with the
@@ -251,7 +266,8 @@ the other action: it sets each `<updateValue>`'s target.
 | `Session`, `Counts` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine; and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. A `Program` is read-only while a tick runs; what its symbolic instructions keep between runs is a `SymState` beside it in the document. |
-| `Document` | `document/mod.rs` | A loaded document and the API to it. |
+| `Document` | `document/mod.rs` | A loaded document and the API to it. `output_cells` and `is_live` (`document/outputs.rs`) say what leaves it and what it computes. |
+| `Renders`, `Live` | `components/mod.rs`, `build/mod.rs` | Where a component type is drawn (always, never, only in a graph), which decides whether its `rendered` props are outputs; and a build's bit per cell of what it computes (ADR 0019). |
 | `CellIdx`, `CompIdx`, `NodeId`, `StrId`, `ScopeId`, `OperandIdx`, `MemoIdx` | `index.rs` | Positions in the cells, the component table, the DAST, a string table, the session's scopes, a program's operands and its symbolic memo, each its own type over a `u32` made by `index_type!` (`index()` reads the position), so one cannot be passed for another. A text cell holds a `StrId` as its value (`StrId::to_value`). Two lists mix kinds of entry and say so in their types: a child list's `ChildEntry` (`document/table.rs`) is a component or a text child's string, and a literal attribute's `AttrValue` (`dast/attrs.rs`) is a string or text the attributes keep. |
 | `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
@@ -388,7 +404,10 @@ views of the cells and the component table (ADR 0001). The React side is
 `packages/cells-viewer/src/`, and the core runs on the main thread. Graphs
 are JSXGraph boards (`renderers/jsxgraph/`, ADR 0010) whose elements read
 cells directly and redraw once per tick; Doenet's styling is copied into
-`jsxgraph/doenet.ts`.
+`jsxgraph/doenet.ts`. A renderer reads only outputs: a prop it starts
+reading is marked `rendered` in its type's block in the same change, or
+the core does not compute it, and the viewer's test, which checks every
+`CellStore.get` and `subscribe`, fails first (ADR 0019).
 
 ## The other crates
 
@@ -435,6 +454,19 @@ cells directly and redraw once per tick; Doenet's styling is copied into
   input where none does. A test of the core's machinery (an inversion
   through a `<number>`, a forced count) uses `testing::request_unchecked`,
   and, where no input reaches its document, loads with the classing off.
+  A test that reads a prop no renderer reads (a circle's diameter, a
+  line's slope) loads unpruned (`test_utils::load_unpruned`), as the
+  JavaScript worker's parity harness does; a spec reads an unpruned
+  document and ticks a pruned one beside it, which must agree on every
+  live cell (`testing::live_cells_agree`), and its cost snapshot is the
+  pruned one's.
+- `tests/live.rs` checks the live record (ADR 0019) at every golden
+  document and `sir.doenet`, four seeds and counts 0 to 4: nothing a
+  build's own walk finds live is missing from it, every output and every
+  essential cell is live, and a pruned load and an unpruned one, given
+  the same requests, submits and triggers, hold the same value in every
+  live cell. `tests/outputs.rs` checks the marks and which components are
+  rendered.
 - `tests/safe_edits.rs` tests `compare_versions` (ADR 0017) the same way:
   every golden document and a few with inputs of every kind get generated
   edits, and for every edit it calls safe, a generated session's saved
@@ -443,7 +475,7 @@ cells directly and redraw once per tick; Doenet's styling is copied into
   start) and keep every point inside its graph. `SAFE_EDITS_LONG=1` runs
   many more edits and sessions, and `fixtures/sir.doenet`.
 - `scripts/golden-diff.sh [base]` compares every component's props, after
-  load and after a fixed script of requests, against a base commit. A
-  refactor should leave it identical.
+  load and after a fixed script of requests, against a base commit, loaded
+  unpruned. A refactor should leave it identical.
 - `packages/benchmark/scripts/perf-diff.sh [base]` compares speed against a
-  base commit.
+  base commit, loaded pruned as a browser loads (`CELLS_PRUNE=1`).

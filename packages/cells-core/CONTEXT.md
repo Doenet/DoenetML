@@ -24,7 +24,8 @@ decides which per template slot, once, from the source.
 
 **Derived cell** — A cell whose value is computed by an operator from other
 cells. Never written directly; a request naming a derived cell is inverted
-until it reaches essential cells.
+until it reaches essential cells. One nothing live reads is dead: a pruned
+load gives it no cell and no instruction (ADR 0019).
 
 **Operator** — The numeric function that computes one derived cell from its
 input cells. Every operator may carry an inverse. Identity references are not
@@ -106,6 +107,30 @@ document, and turns user actions into requests. The viewer in
 `packages/cells-viewer` is one; it draws graphs with JSXGraph (ADR 0010).
 The code that draws one component type is a **component renderer**.
 _Avoid_: renderer for a single component type's view (say component renderer)
+
+**Output** — A cell whose value leaves the core (ADR 0019): a prop a
+component renderer reads, of a component that is *rendered*, or a score a
+grader reads (the document's and an aggregating section's
+`creditAchieved`, an answer's `credit`). A definition marks the first
+`rendered`, the second `score`. A component is rendered when the children
+lists reach it from the document and its type's rule (`Renders`) allows it
+where it is: never for an `<award>` or anything in a `<setup>`, only in a
+graph for a line. A dynamic `hide` or an inactive case leaves it rendered.
+
+**Root** — A cell the document must compute: an output, or one the core
+reads itself whether anything shows it or not (ADR 0019): an input's, what
+an action reads (a response a submit copies, an `<updateValue>`'s
+`newValue`, marked `read_by_action`), a repeat's count, and what snapping
+a sticky group reads.
+
+**Live cell** — A root, or a cell some root reads, through aliases and
+every input of the instructions that compute it. The compile finds the live template
+slots once, through the probe (the *live record*), and every build reads
+it. Every essential cell is live. A cell that is not live is **dead**: a
+load with `LoadOptions::prune`, the default, gives it no cell, and every
+prop that would name it names the one **dead cell** instead, a fixed NaN
+that nothing computes. Unpruned, every cell is computed and
+`Document::is_live` says which are needed.
 
 **Request** — A renderer's ask to change a cell to a value. Requests are
 cell-addressed, and the core accepts one only on an *interactive* cell, one
@@ -240,7 +265,8 @@ expression written in the document (a math handle), the values of an element
 under a literal `fixed`, and every author's value, given or defaulted, that
 no student's action can write (ADR 0018), such as a point's default `hide`.
 Fixed cells have no producer and no essential key; a request that reaches
-one is dropped.
+one is dropped. A fixed value nothing live reads gets no cell when the load
+is pruned (ADR 0019); the dead cell is itself a fixed cell.
 
 **Hold** — The instruction that puts a dynamic `fixed` (or `fixAxes`) on a
 cell: forward it is the identity, and its inverse drops the request while the

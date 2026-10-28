@@ -159,4 +159,7 @@ focused. Nothing is timed or recorded; a failure is a bug in the viewer.
 
 `scripts/perf-diff.sh [base] [fixtures]` compares the cells core on a base
 commit with the working tree through the Node driver, interleaved, and
-prints new/base ratios. Nothing it measures is committed.
+prints new/base ratios. Nothing it measures is committed. It loads the
+cells core pruned, as a browser does (`CELLS_PRUNE=1`, ADR 0019); the
+driver's other runs go through the parity harness, which loads every prop
+so the worker's tests can read any of them.

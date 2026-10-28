@@ -1,6 +1,6 @@
 # Compute only what leaves the core: outputs, decided once per load
 
-Status: draft 2026-10-28. Phases 1 to 4 are done; see Migration.
+Status: proposed 2026-10-28. Every migration step is done; see Migration.
 
 An **output** is a cell whose value leaves the core: a prop a renderer
 draws, or a score a grader reads. The compile finds, once per load and per

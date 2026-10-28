@@ -50,8 +50,13 @@ the server snapshot it needs there.
 
 `src/interactive.test.tsx` drives every renderer in jsdom, JSXGraph
 included, and fails when one requests a cell no component definition
-marks interactive (ADR 0017): in development and in tests,
-`CellStore.checkRequests` throws on such a request.
+marks interactive (ADR 0017), or reads one the core does not count as an
+output (ADR 0019): a prop its definition does not mark `rendered`, or a
+component the core does not count as rendered, which a pruned document
+does not compute. In development and in tests, `CellStore.checkRequests`
+and `CellStore.checkReads` throw on such a request or read. The test
+renders a document with every renderer, then every golden document and
+`sir.doenet`.
 
 The toolbar, besides what the other test viewers have:
 
