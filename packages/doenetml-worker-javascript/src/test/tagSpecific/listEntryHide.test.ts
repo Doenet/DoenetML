@@ -326,4 +326,93 @@ describe("A hidden entry of a list @group4", async () => {
         });
         expect(await choiceTexts()).eqls(["b", "x, y", "u"]);
     });
+
+    it("an unlinked copy of an entry keeps the `hide` it was made with through a reload", async () => {
+        // The copies are made while their sources are shown (hidden, for
+        // the third entries); the reader then flips each source, by an
+        // attribute (`hide="$b"`) or by writing its `hide` (`bindValueTo`),
+        // saves and reloads. Made again from the flipped sources, each copy
+        // must still take the snapshot it was made with (CPY-2).
+        const doenetML = `
+    <booleanInput name="b" />
+    <booleanInput name="a" prefill="true" />
+    <booleanInput name="bP" bindValueTo="$P2.hide" />
+    <booleanInput name="bM" bindValueTo="$m2.hide" />
+    <booleanInput name="bN" bindValueTo="$n2.hide" />
+    <graph><pointList name="pl"><point hide="$b">(1,2)</point><point name="P2">(3,4)</point><point hide="$a">(5,6)</point></pointList></graph>
+    <p><mathList name="ml"><math hide="$b">x</math><math name="m2">y</math><math hide="$a">z</math></mathList></p>
+    <section name="s"><number hide="$b">1</number><number name="n2">2</number><number hide="$a">3</number></section>
+    <collect name="c" from="$s" componentType="number" />
+    <graph><point copy="$pl[1]" name="p1" /><point copy="$pl[2]" name="p2" /><point copy="$pl[3]" name="p3" /></graph>
+    <p><math copy="$ml[1]" name="m1c" /><math copy="$ml[2]" name="m2c" /><math copy="$ml[3]" name="m3c" /></p>
+    <p><number copy="$c[1]" name="c1" /><number copy="$c[2]" name="c2" /><number copy="$c[3]" name="c3" /></p>
+    `;
+        const copies = [
+            "p1",
+            "p2",
+            "p3",
+            "m1c",
+            "m2c",
+            "m3c",
+            "c1",
+            "c2",
+            "c3",
+        ];
+        const made = [
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+        ];
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        const hides = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const values: boolean[] = [];
+            for (const name of copies) {
+                values.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .hide,
+                );
+            }
+            return values;
+        };
+        const setAll = async (value: boolean) => {
+            for (const name of ["b", "bP", "bM", "bN"]) {
+                await updateBooleanInputValue({
+                    boolean: value,
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    core,
+                });
+            }
+            await updateBooleanInputValue({
+                boolean: !value,
+                componentIdx: await resolvePathToNodeIdx("a"),
+                core,
+            });
+        };
+
+        expect(await hides()).eqls(made);
+        await setAll(true);
+        expect(await hides()).eqls(made);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await hides()).eqls(made);
+
+        await setAll(false);
+        expect(await hides()).eqls(made);
+    });
 });

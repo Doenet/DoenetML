@@ -17,4 +17,6 @@ This also holds for an entry inside a `<sort>` or `<group>` written in a list.
 
 `$l.hide` of a `<collect>`, `<sort>` or `<shuffle>` is now the list's own `hide`, not each entry's. The `hide` of a `<collect>` no longer becomes the `hide` of each entry: `<collect hide>` hides the collect, but `$c[1]` placed elsewhere is shown, as `$l[1]` of any hidden list is. A `<collect>` written with `hide="false"` still shows the entries whose sources are hidden.
 
+An unlinked copy of one entry (`<math copy="$l[1]"/>`) is hidden if the entry was hidden when the copy was made, and keeps that through a save and reload, even if the reader has since hidden or shown the entry's source. Before, a copy of a `<collect>` entry made while its source was shown came back hidden after the reader hid the source and reloaded.
+
 Closes #2265.

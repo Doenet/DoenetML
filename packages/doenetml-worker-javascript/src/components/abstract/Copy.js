@@ -3243,7 +3243,14 @@ export async function replacementFromProp({
                                             ],
                                         );
                                     }
-                                    if (!usedDefault) {
+                                    // An entry's `hide` is pasted even when
+                                    // it is the default `false`: a reader can
+                                    // hide or show the entry's source, and a
+                                    // copy made again on reload must have the
+                                    // same components, in the same order, for
+                                    // the snapshot it was made with to apply
+                                    // (`applyCopySnapshot`)
+                                    if (!usedDefault || attrName === "hide") {
                                         additionalAttributes[attrName] =
                                             attributeValue;
                                     }
