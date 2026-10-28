@@ -207,7 +207,7 @@
         "vscode-languageserver-protocol": "3.17.5",
         "wait-on": "^9.0.10",
         "wasm-pack": "^0.15.0",
-        "webdriverio": "^9.29.1",
+        "webdriverio": "^9.32.0",
         "wick-a11y": "^2.5.0",
         "wireit": "^0.14.13",
         "xast-util-to-xml": "^4.0.0",
