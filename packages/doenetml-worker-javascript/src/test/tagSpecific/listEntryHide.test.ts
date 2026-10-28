@@ -315,16 +315,17 @@ describe("A hidden entry of a list @group4", async () => {
                 await resolvePathToNodeIdx("ci")
             ].stateValues.choiceTexts;
 
-        // a `<collect hide="false">` shows its entries, and an entry hidden
-        // only by its list is shown by `$hl[1]`
-        expect(await choiceTexts()).eqls(["a, b", "x, y", "u"]);
+        // a `<collect hide="false">` does not show an entry whose source is
+        // hidden (D29), and an entry hidden only by its list is shown by
+        // `$hl[1]`
+        expect(await choiceTexts()).eqls(["a, b", "y", "u"]);
 
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("h"),
             core,
         });
-        expect(await choiceTexts()).eqls(["b", "x, y", "u"]);
+        expect(await choiceTexts()).eqls(["b", "y", "u"]);
     });
 
     it("an unlinked copy of an entry keeps the `hide` it was made with through a reload", async () => {

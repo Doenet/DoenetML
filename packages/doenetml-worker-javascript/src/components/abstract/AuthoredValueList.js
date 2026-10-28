@@ -2089,30 +2089,13 @@ function returnEntryPresentationDefinitions(listClass) {
  * presentation variable for every entry over what each source says, as a
  * `<collect>`'s own `styleNumber` was given to every copy it made. The
  * list's `hide` is not one: it hides the list, which hides its entries
- * (`hidden`), but an entry's `hide` stays its source's (D29). Only a
- * `hide="false"` written on a list shown as its sources reveals its entries
- * (`entriesRevealed`).
+ * (`hidden`), but an entry's `hide` stays its source's, and the list's
+ * `hide="false"` does not show an entry whose source is hidden (D29).
  */
 const LIST_SETTING_OF_PRESENTATION = {
     selectedStyle: "styleNumber",
     styleNumber: "styleNumber",
 };
-
-/**
- * Whether a list shown as its sources shows every entry whatever its
- * source's `hide`, as a reference that sets `hide` itself shows its
- * referent: when `hide="false"` is written on it (`<collect hide="false">`),
- * from the list's `hide` and whether that is its default. Only a
- * `<collect>` can be written so: a `<sort>` or `<shuffle>` with `hide` stays
- * a composite (`listForms.ts`), whose `hide` does not reach its entries.
- */
-function entriesRevealed(listClass, listHide, listHideIsDefault) {
-    return (
-        listClass.listEntriesShownAsSources &&
-        !listHideIsDefault &&
-        listHide === false
-    );
-}
 
 /**
  * The arrays of a value per entry of a list
@@ -2129,7 +2112,6 @@ export function returnEntryPresentationArrays(listClass) {
     for (const [entryVariable, arrayName] of Object.entries(arrays)) {
         if (entryVariable in ENTRY_ATTRIBUTE_TYPES) {
             definitions[arrayName] = entryAttributeArrayDefinition(
-                listClass,
                 entryVariable,
                 arrayName,
             );
@@ -2155,14 +2137,6 @@ export function returnEntryPresentationArrays(listClass) {
                           },
                       }
                     : {}),
-                ...(entryVariable === "hidden"
-                    ? {
-                          listHide: {
-                              dependencyType: "stateVariable",
-                              variableName: "hide",
-                          },
-                      }
-                    : {}),
             }),
             ...(entryVariable === "hidden"
                 ? { markStale: () => ({ updateParentRenderedChildren: true }) }
@@ -2170,13 +2144,6 @@ export function returnEntryPresentationArrays(listClass) {
             definition({ dependencyValues, usedDefault }) {
                 const listSets =
                     Boolean(listSetting) && !usedDefault.listSetting;
-                const revealed =
-                    entryVariable === "hidden" &&
-                    entriesRevealed(
-                        listClass,
-                        dependencyValues.listHide,
-                        usedDefault.listHide,
-                    );
                 const values = dependencyValues.entryPresentation.map(
                     (presentation) => {
                         if (entryVariable === "hidden") {
@@ -2185,8 +2152,7 @@ export function returnEntryPresentationArrays(listClass) {
                             // which the list's `hide` does not hide
                             // (`hideIsOwn`), still hides that entry.
                             return Boolean(
-                                dependencyValues.listValue ||
-                                (!revealed && presentation.hide),
+                                dependencyValues.listValue || presentation.hide,
                             );
                         }
                         if (listSets) {
@@ -2227,7 +2193,7 @@ export const ENTRY_ATTRIBUTE_TYPES = Object.freeze({
  * the source sets is a default, which leaves that attribute to where the
  * component is.
  */
-function entryAttributeArrayDefinition(listClass, entryVariable, arrayName) {
+function entryAttributeArrayDefinition(entryVariable, arrayName) {
     const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
     return {
         isArray: true,
@@ -2266,14 +2232,6 @@ function entryAttributeArrayDefinition(listClass, entryVariable, arrayName) {
         }) {
             const listSets =
                 Boolean(listSetting) && !globalUsedDefault.listValue;
-            // the list's `hide` is `listValue` for the array of `hide`
-            const revealed =
-                entryVariable === "hide" &&
-                entriesRevealed(
-                    listClass,
-                    globalDependencyValues.listValue,
-                    globalUsedDefault.listValue,
-                );
             const values = {};
             const defaults = {};
             for (const arrayKey of arrayKeys) {
@@ -2281,9 +2239,7 @@ function entryAttributeArrayDefinition(listClass, entryVariable, arrayName) {
                     globalDependencyValues.entryPresentation[arrayKey]?.[
                         entryVariable
                     ];
-                if (revealed) {
-                    values[arrayKey] = false;
-                } else if (listSets) {
+                if (listSets) {
                     values[arrayKey] = globalDependencyValues.listValue;
                 } else if (
                     fromSource === undefined ||

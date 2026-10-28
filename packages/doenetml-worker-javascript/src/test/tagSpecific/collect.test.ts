@@ -3067,7 +3067,7 @@ describe("Collect tag tests @group4", async () => {
         ).eq(true);
     });
 
-    it("collect does not ignore hide", async () => {
+    it("collect does not ignore hide, and its own hide does not reveal what it collects", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">
@@ -3075,7 +3075,8 @@ describe("Collect tag tests @group4", async () => {
       <text>public</text>
     </p>
     <p name="p2">Hidden by default: <collect componentType="text" from="$p1" /></p>
-    <p name="p3">Force to reveal: <collect componentType="text" from="$p1" hide="false" /></p>
+    <p name="p3">Not revealed: <collect name="c" componentType="text" from="$p1" hide="false" /></p>
+    <p name="p4">Revealed: <repeat for="$c" valueName="t"><text extend="$t" hide="false" /></repeat></p>
 
     `,
         });
@@ -3092,9 +3093,18 @@ describe("Collect tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).contain("Hidden by default: public");
+        // A collect's `hide` hides the collect; its `hide="false"` does not
+        // show an entry whose source is hidden (D29). A reference that sets
+        // `hide` itself does (D31).
         expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
-        ).contain("Force to reveal: secret, public");
+        ).contain("Not revealed: public");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).not.contain("secret");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).contain("Revealed: secret, public");
     });
 
     it("collect keeps hidden children hidden", async () => {
