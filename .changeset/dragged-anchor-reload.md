@@ -6,6 +6,6 @@
 "doenet-vscode-extension": patch
 ---
 
-A `<math>`, `<number>`, `<text>`, `<label>`, `<image>`, input, or button that was dragged in a graph without an `anchor` attribute no longer loses a coordinate when it is moved again after the document reloads from saved state. Previously, after a reload, its anchor was not a math, so a move that changed only one coordinate sent the other back to 0.
+A `<text>`, `<number>`, `<math>`, `<m>`, `<md>` or `<label>` in a graph with `renderer="prefigure"`, without an `anchor` attribute, whose position was changed (for example, by dragging a point bound to its `anchor` in another graph) now stays at that position when the document reloads from saved state. Previously, after a reload, it was drawn at the origin.
 
 Closes #2190.

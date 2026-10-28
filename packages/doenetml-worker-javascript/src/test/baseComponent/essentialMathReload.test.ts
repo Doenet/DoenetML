@@ -5,6 +5,7 @@ import * as ComponentTypes from "../../ComponentTypes";
 import {
     moveMath,
     moveNumber,
+    movePoint,
     movePolygon,
     movePolyline,
     moveText,
@@ -132,6 +133,36 @@ describe("Essential math values after a reload @group4", async () => {
             ).eqls(["vector", 3, 6]);
         });
     }
+
+    it("a text moved through its anchor stays there in a PreFigure graph after a reload", async () => {
+        // PreFigure draws a text at its anchor's coordinates, and draws it at
+        // the origin when the anchor is not a math
+        const doenetML = `
+    <graph name="g" renderer="prefigure">
+        <text name="c">hi</text>
+    </graph>
+    <graph>
+        <point name="P" extend="$c.anchor" />
+    </graph>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await dragSaveAndReload({
+            doenetML,
+            drag: async ({ core, resolvePathToNodeIdx }) =>
+                movePoint({
+                    componentIdx: await resolvePathToNodeIdx("P"),
+                    x: 3,
+                    y: 4,
+                    core,
+                }),
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML,
+        ).toContain('<label at="text_0" anchor="(3,4)"');
+    });
 
     for (const [componentType, move] of [
         ["polygon", movePolygon],
