@@ -58,7 +58,7 @@ pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
         .unwrap_or_else(|e| panic!("{e}"))
         .as_slice()
     {
-        [c] => doc.cells[(*c).index()],
+        [c] => doc.cells[c.index()],
         cs => panic!("{path}: {} cells, not one", cs.len()),
     }
 }

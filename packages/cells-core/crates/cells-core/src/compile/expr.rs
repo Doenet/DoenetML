@@ -7,13 +7,13 @@
 pub type ExprId = u32;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expr {
+pub enum Expr<L> {
     Num(f64),
     /// A free symbol such as `x`.
     Sym(String),
     /// A numeric leaf, `$a` inside a math: a reference plan id in the
-    /// compile's arena, a slot in a build's. Never a cell index.
-    Cell(u32),
+    /// compile's arena, a slot (`SlotId`) in a build's.
+    Cell(L),
     Add(ExprId, ExprId),
     Sub(ExprId, ExprId),
     Mul(ExprId, ExprId),
@@ -69,9 +69,10 @@ impl Func {
     }
 }
 
-impl Expr {
-    /// The same binary operator over new operands.
-    pub fn with_operands(&self, a: ExprId, b: ExprId) -> Expr {
+impl<L: Copy + PartialEq + std::fmt::Debug> Expr<L> {
+    /// The same binary operator over new operands, in an arena of any
+    /// leaves.
+    pub fn with_operands<M>(&self, a: ExprId, b: ExprId) -> Expr<M> {
         match self {
             Expr::Add(..) => Expr::Add(a, b),
             Expr::Sub(..) => Expr::Sub(a, b),
@@ -83,13 +84,20 @@ impl Expr {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct Arena {
-    pub nodes: Vec<Expr>,
+/// Parsed expressions whose leaves are `L`s.
+#[derive(Debug, Clone)]
+pub struct Arena<L> {
+    pub nodes: Vec<Expr<L>>,
 }
 
-impl Arena {
-    pub fn push(&mut self, e: Expr) -> ExprId {
+impl<L> Default for Arena<L> {
+    fn default() -> Self {
+        Arena { nodes: Vec::new() }
+    }
+}
+
+impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
+    pub fn push(&mut self, e: Expr<L>) -> ExprId {
         // Fold constants as they are built.
         let folded = match &e {
             Expr::Add(a, b) => self.fold2(*a, *b, |x, y| x + y),
@@ -115,14 +123,14 @@ impl Arena {
         (self.nodes.len() - 1) as ExprId
     }
 
-    fn fold2(&self, a: ExprId, b: ExprId, f: impl Fn(f64, f64) -> f64) -> Option<Expr> {
+    fn fold2(&self, a: ExprId, b: ExprId, f: impl Fn(f64, f64) -> f64) -> Option<Expr<L>> {
         match (&self.nodes[a as usize], &self.nodes[b as usize]) {
             (Expr::Num(x), Expr::Num(y)) => Some(Expr::Num(f(*x, *y))),
             _ => None,
         }
     }
 
-    pub fn get(&self, id: ExprId) -> &Expr {
+    pub fn get(&self, id: ExprId) -> &Expr<L> {
         &self.nodes[id as usize]
     }
 
@@ -165,7 +173,7 @@ impl Arena {
     }
 
     /// Distinct cell leaves, in first-appearance order.
-    pub fn cell_leaves(&self, id: ExprId, out: &mut Vec<u32>) {
+    pub fn cell_leaves(&self, id: ExprId, out: &mut Vec<L>) {
         match self.get(id) {
             Expr::Cell(c) => {
                 if !out.contains(c) {
@@ -281,11 +289,11 @@ pub fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
 pub struct Parser<'a> {
     toks: &'a [Token],
     pos: usize,
-    arena: &'a mut Arena,
+    arena: &'a mut Arena<u32>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn parse(toks: &'a [Token], arena: &'a mut Arena) -> Result<ExprId, String> {
+    pub fn parse(toks: &'a [Token], arena: &'a mut Arena<u32>) -> Result<ExprId, String> {
         // No text at all (`<math/>`, an `<answer>` with only an input): the
         // blank expression, a symbol the engine spells `＿`.
         if toks.is_empty() {
@@ -474,14 +482,23 @@ pub fn unwrap_parens(toks: &[Token]) -> Option<&[Token]> {
 /// linear in the two symbols, each as an expression over the remaining
 /// leaves; `None` when it is not linear (a product of two variable terms,
 /// a variable in a denominator or exponent, another free symbol).
-pub fn linear_coeffs(arena: &mut Arena, id: ExprId, vx: &str, vy: &str) -> Option<[ExprId; 3]> {
-    fn is_zero(a: &Arena, e: ExprId) -> bool {
+pub fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
+    arena: &mut Arena<L>,
+    id: ExprId,
+    vx: &str,
+    vy: &str,
+) -> Option<[ExprId; 3]> {
+    fn is_zero<L: Copy + PartialEq + std::fmt::Debug>(a: &Arena<L>, e: ExprId) -> bool {
         matches!(a.get(e), Expr::Num(v) if *v == 0.0)
     }
-    fn is_one(a: &Arena, e: ExprId) -> bool {
+    fn is_one<L: Copy + PartialEq + std::fmt::Debug>(a: &Arena<L>, e: ExprId) -> bool {
         matches!(a.get(e), Expr::Num(v) if *v == 1.0)
     }
-    fn add(a: &mut Arena, x: ExprId, y: ExprId) -> ExprId {
+    fn add<L: Copy + PartialEq + std::fmt::Debug>(
+        a: &mut Arena<L>,
+        x: ExprId,
+        y: ExprId,
+    ) -> ExprId {
         if is_zero(a, x) {
             y
         } else if is_zero(a, y) {
@@ -490,7 +507,11 @@ pub fn linear_coeffs(arena: &mut Arena, id: ExprId, vx: &str, vy: &str) -> Optio
             a.push(Expr::Add(x, y))
         }
     }
-    fn sub(a: &mut Arena, x: ExprId, y: ExprId) -> ExprId {
+    fn sub<L: Copy + PartialEq + std::fmt::Debug>(
+        a: &mut Arena<L>,
+        x: ExprId,
+        y: ExprId,
+    ) -> ExprId {
         if is_zero(a, y) {
             x
         } else if is_zero(a, x) {
@@ -499,7 +520,11 @@ pub fn linear_coeffs(arena: &mut Arena, id: ExprId, vx: &str, vy: &str) -> Optio
             a.push(Expr::Sub(x, y))
         }
     }
-    fn mul(a: &mut Arena, x: ExprId, y: ExprId) -> ExprId {
+    fn mul<L: Copy + PartialEq + std::fmt::Debug>(
+        a: &mut Arena<L>,
+        x: ExprId,
+        y: ExprId,
+    ) -> ExprId {
         if is_zero(a, x) || is_zero(a, y) {
             a.push(Expr::Num(0.0))
         } else if is_one(a, x) {
@@ -510,7 +535,12 @@ pub fn linear_coeffs(arena: &mut Arena, id: ExprId, vx: &str, vy: &str) -> Optio
             a.push(Expr::Mul(x, y))
         }
     }
-    fn go(a: &mut Arena, id: ExprId, vx: &str, vy: &str) -> Option<[ExprId; 3]> {
+    fn go<L: Copy + PartialEq + std::fmt::Debug>(
+        a: &mut Arena<L>,
+        id: ExprId,
+        vx: &str,
+        vy: &str,
+    ) -> Option<[ExprId; 3]> {
         let zero = a.push(Expr::Num(0.0));
         let e = a.get(id).clone();
         Some(match e {
@@ -552,7 +582,7 @@ pub fn linear_coeffs(arena: &mut Arena, id: ExprId, vx: &str, vy: &str) -> Optio
                     return None;
                 }
                 let d = r[2];
-                let div = |a: &mut Arena, n: ExprId| {
+                let div = |a: &mut Arena<L>, n: ExprId| {
                     if is_zero(a, n) {
                         n
                     } else {

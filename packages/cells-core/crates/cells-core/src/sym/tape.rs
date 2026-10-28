@@ -9,6 +9,7 @@
 //! compiler vectorizes.
 
 use super::Tree;
+use crate::document::CellIdx;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Func {
@@ -42,7 +43,7 @@ pub enum TapeOp {
 pub struct Tape {
     pub ops: Vec<TapeOp>,
     /// Cells read as parameters, in `Param` order.
-    pub params: Vec<u32>,
+    pub params: Vec<CellIdx>,
     /// Columns the stack needs at its deepest.
     pub depth: usize,
 }
@@ -51,7 +52,7 @@ impl Tape {
     /// Compile `t` with `var` as the variable. `None` when the expression
     /// cannot be sampled numerically on its own: a math leaf (its shape
     /// changes at tick time) or a function the tape does not know.
-    pub fn compile(t: &Tree, var: &str) -> Option<Tape> {
+    pub fn compile(t: &Tree<CellIdx>, var: &str) -> Option<Tape> {
         let mut tape = Tape::default();
         let mut depth = 0usize;
         tape.emit(t, var, &mut depth)?;
@@ -64,7 +65,7 @@ impl Tape {
         self.depth = self.depth.max(*depth);
     }
 
-    fn emit(&mut self, t: &Tree, var: &str, depth: &mut usize) -> Option<()> {
+    fn emit(&mut self, t: &Tree<CellIdx>, var: &str, depth: &mut usize) -> Option<()> {
         match t {
             Tree::Num(v) => self.push(TapeOp::Const(*v), depth, 0),
             Tree::Sym(s) if s == var => self.push(TapeOp::X, depth, 0),
@@ -257,7 +258,7 @@ mod tests {
         assert!(
             Tape::compile(
                 &Tree::Cell {
-                    cell: 3,
+                    cell: CellIdx::new(3),
                     math: true
                 },
                 "x"

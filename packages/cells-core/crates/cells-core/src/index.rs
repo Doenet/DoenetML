@@ -12,6 +12,8 @@ macro_rules! index_type {
         #[repr(transparent)]
         $vis struct $name(u32);
 
+        // Not every type uses every helper; a crate-private one would warn.
+        #[allow(dead_code)]
         impl $name {
             /// No position: a sentinel for "none", never an index.
             pub const NONE: $name = $name(u32::MAX);
@@ -73,7 +75,7 @@ macro_rules! index_type {
         }
 
         impl serde::Serialize for $name {
-            fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+            fn serialize<S: serde::Serializer>(&self, s: S) -> std::result::Result<S::Ok, S::Error> {
                 s.serialize_u32(self.0)
             }
         }

@@ -79,7 +79,7 @@ impl<'c> Builder<'c> {
     }
 
     fn aggregates(&self, section: CompIdx) -> bool {
-        matches!(self.sources[self.slot(section, AGGREGATE) as usize], BuiltSource::Fixed(v) if v != 0.0)
+        matches!(self.sources[self.slot(section, AGGREGATE).index()], BuiltSource::Fixed(v) if v != 0.0)
     }
 
     fn component_children(&self, c: CompIdx) -> Vec<CompIdx> {

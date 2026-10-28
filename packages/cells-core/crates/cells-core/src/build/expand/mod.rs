@@ -89,7 +89,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) engine: &'c mut Engine,
     /// Templates of `Instantiate` instructions, cell leaves holding slots
     /// until emit rebinds them to cells and imports them.
-    pub(in crate::build) sym_templates: Vec<Tree>,
+    pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
     /// Slots defining a cell that is not a number, with its type: essential
     /// and fixed math cells, a choice's math interface, essential text.
     /// Symbolic instructions' outputs are math by their operator instead.
@@ -99,7 +99,7 @@ pub(in crate::build) struct Builder<'c> {
     /// Per component, whether its `expr` is a math cell (`is_symbolic`).
     pub(in crate::build) math_mode: Vec<MathMode>,
     pub(in crate::build) components: ComponentTable,
-    pub(in crate::build) slot_base: Vec<u32>,
+    pub(in crate::build) slot_base: Vec<SlotId>,
     /// Per component, how many of its slots are public props when that is
     /// not its type table's count: an element whose list holds points
     /// (ADR 0016). NONE: the table's.
@@ -139,7 +139,7 @@ pub(in crate::build) struct Builder<'c> {
     /// Essential math slots seeded from another slot's value when first
     /// built (`Source::MathEssentialFrom`): (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
-    pub(in crate::build) arena: Arena,
+    pub(in crate::build) arena: Arena<SlotId>,
     pub(in crate::build) root: CompIdx,
     /// Where the build learns counts, indexed referents, a collect's count
     /// and a select's options (`build/view.rs`).
@@ -263,7 +263,7 @@ impl<'c> Builder<'c> {
         self.components.scope.push(scope);
         self.comp_instance.push(NONE);
         self.comp_repeat.push(NONE);
-        self.slot_base.push(NONE);
+        self.slot_base.push(SlotId::NONE);
         self.n_public.push(NONE);
         self.allocate_slots(idx, n_slots);
         idx
@@ -316,7 +316,7 @@ impl<'c> Builder<'c> {
     }
 
     pub(in crate::build) fn allocate_slots(&mut self, comp: CompIdx, n: usize) {
-        self.slot_base[comp.index()] = self.sources.len() as u32;
+        self.slot_base[comp.index()] = SlotId::from_index(self.sources.len());
         self.sources
             .extend(std::iter::repeat_n(BuiltSource::Unset, n));
         self.slot_comp.extend(std::iter::repeat_n(comp, n));
@@ -326,7 +326,7 @@ impl<'c> Builder<'c> {
 
     #[inline]
     pub(in crate::build) fn slot(&self, comp: CompIdx, prop_index: usize) -> SlotId {
-        self.slot_base[comp.index()] + prop_index as u32
+        self.slot_base[comp.index()].offset(prop_index)
     }
 
     pub(in crate::build) fn set_children(&mut self, comp: CompIdx, kids: &[ChildEntry]) {
@@ -339,7 +339,7 @@ impl<'c> Builder<'c> {
     /// a lowered math subexpression, a literal inside one, the
     /// missing-referent cell.
     pub(in crate::build) fn anon_slot(&mut self, source: BuiltSource, scope: ScopeId) -> SlotId {
-        let s = self.sources.len() as SlotId;
+        let s = SlotId::from_index(self.sources.len());
         self.sources.push(source);
         self.slot_comp.push(CompIdx::NONE);
         self.slot_scope.push(scope);
@@ -369,11 +369,11 @@ impl<'c> Builder<'c> {
     }
 
     pub(in crate::build) fn slot_label(&self, slot: SlotId) -> String {
-        let comp = self.slot_comp[slot as usize];
+        let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return format!("(anonymous slot {slot})");
         }
-        let pi = (slot - self.slot_base[comp.index()]) as usize;
+        let pi = slot.index() - self.slot_base[comp.index()].index();
         let component_type = self.components.component_type[comp.index()];
         match component_type.prop_name(self.n_public(comp), pi) {
             Some(name) => format!("{}.{name}", self.comp_label(comp)),
@@ -675,7 +675,7 @@ impl<'c> Builder<'c> {
                 self.components.component_type[idx.index()] = ComponentType::Number;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, prop::number::VALUE);
-                self.sources[s as usize] = BuiltSource::Alias(self.missing_slot());
+                self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
             (_, Some(prop)) => {
                 let targets = self.targets_of(target, Some(prop), plan, Some(1))?;
@@ -689,7 +689,7 @@ impl<'c> Builder<'c> {
                 self.components.component_type[idx.index()] = component_type;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
-                self.sources[s as usize] = BuiltSource::Alias(targets[0]);
+                self.sources[s.index()] = BuiltSource::Alias(targets[0]);
                 self.record_label(s, targets[0]);
             }
             (target, None) => {
@@ -725,7 +725,7 @@ impl<'c> Builder<'c> {
         self.allocate_slots(idx, n);
         for pi in 0..n {
             let s = self.slot(idx, pi);
-            self.sources[s as usize] = BuiltSource::Alias(self.slot(referent, pi));
+            self.sources[s.index()] = BuiltSource::Alias(self.slot(referent, pi));
         }
     }
 
@@ -797,12 +797,12 @@ impl<'c> Builder<'c> {
                         self.slot(pt, prop::point::Y),
                         self.slot(pt, prop::point::HIDE),
                     );
-                    self.sources[sx as usize] = BuiltSource::Alias(x);
-                    self.sources[sy as usize] = BuiltSource::Alias(y);
+                    self.sources[sx.index()] = BuiltSource::Alias(x);
+                    self.sources[sy.index()] = BuiltSource::Alias(y);
                     self.record_label(sx, x);
                     self.record_label(sy, y);
                     // Not state: a synthesized point has no essential key.
-                    self.sources[sh as usize] = BuiltSource::Fixed(0.0);
+                    self.sources[sh.index()] = BuiltSource::Fixed(0.0);
                     kids.push(ChildEntry::comp(pt));
                 }
             }
@@ -1081,7 +1081,7 @@ impl<'c> Builder<'c> {
             // Nothing but a deferred plan is given its source elsewhere: a
             // slot's source is what its plan says.
             assert!(
-                matches!(self.sources[s as usize], BuiltSource::Unset),
+                matches!(self.sources[s.index()], BuiltSource::Unset),
                 "{} was given a source before its plan",
                 self.slot_label(s)
             );
@@ -1105,7 +1105,7 @@ impl<'c> Builder<'c> {
             {
                 self.typed_slots.push((s, ValueType::Math));
             }
-            self.sources[s as usize] = source;
+            self.sources[s.index()] = source;
         }
         Ok(())
     }
@@ -1237,12 +1237,12 @@ impl<'c> Builder<'c> {
         kind: Deferred,
         source: BuiltSource,
     ) {
-        let comp = self.slot_comp[s as usize];
+        let comp = self.slot_comp[s.index()];
         let deferred = comp != CompIdx::NONE && {
             let i = self.comp_instance[comp.index()];
             i != NONE && {
                 let inst = self.instances[i as usize];
-                let pi = (s - self.slot_base[comp.index()]) as usize;
+                let pi = s.index() - self.slot_base[comp.index()].index();
                 matches!(
                     self.compiled.templates[inst.template].elems[inst.elem]
                         .props
@@ -1252,11 +1252,11 @@ impl<'c> Builder<'c> {
             }
         };
         assert!(
-            deferred && matches!(self.sources[s as usize], BuiltSource::Unset),
+            deferred && matches!(self.sources[s.index()], BuiltSource::Unset),
             "{} is not a slot left to wire as {kind:?}",
             self.slot_label(s)
         );
-        self.sources[s as usize] = source;
+        self.sources[s.index()] = source;
     }
 
     /// An operator source over `inputs` (at most 255).

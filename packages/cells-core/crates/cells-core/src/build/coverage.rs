@@ -34,7 +34,7 @@ pub fn probe_edges(compiled: &Compiled) -> std::result::Result<ProbeEdges, Strin
     let b = staged(compiled, &session, &mut engine, &probe::Probe)?;
     let depth = b.scope_depths();
     let mut deps: HashMap<Key, Vec<(Key, Vec<Coord>)>> = HashMap::new();
-    for u in 0..b.sources.len() as SlotId {
+    for u in SlotId::below(b.sources.len()) {
         let Some(ku) = b.slot_key(u) else { continue };
         let found = deps.entry(ku).or_default();
         for (v, label) in b.element_deps(u, &depth, true) {
@@ -61,12 +61,12 @@ pub fn uncovered(
     let b = staged(compiled, session, &mut engine, &view)?;
     let depth = b.scope_depths();
     let mut out = Vec::new();
-    for u in 0..b.sources.len() as SlotId {
+    for u in SlotId::below(b.sources.len()) {
         let Some(ku) = b.slot_key(u) else { continue };
-        let at_u = b.positions(b.slot_scope[u as usize]);
+        let at_u = b.positions(b.slot_scope[u.index()]);
         for (v, _) in b.element_deps(u, &depth, false) {
             let kv = b.slot_key(v).expect("an element slot");
-            let at_v = b.positions(b.slot_scope[v as usize]);
+            let at_v = b.positions(b.slot_scope[v.index()]);
             let covered = probe.deps.get(&ku).is_some_and(|ds| {
                 ds.iter()
                     .any(|(k, label)| *k == kv && admits(label, &at_u, &at_v))
@@ -116,7 +116,7 @@ fn admits(label: &[Coord], at_u: &[(NodeId, u32)], at_v: &[(NodeId, u32)]) -> bo
 impl Builder<'_> {
     /// The key of an element's slot; None for any other slot.
     fn slot_key(&self, s: SlotId) -> Option<Key> {
-        let comp = self.slot_comp[s as usize];
+        let comp = self.slot_comp[s.index()];
         if comp == CompIdx::NONE {
             return None;
         }
@@ -125,7 +125,11 @@ impl Builder<'_> {
             return None;
         }
         let inst = self.instances[i as usize];
-        Some((inst.template, inst.elem, s - self.slot_base[comp.index()]))
+        Some((
+            inst.template,
+            inst.elem,
+            s.get() - self.slot_base[comp.index()].get(),
+        ))
     }
 
     /// The depth of every scope: 0 for the document.

@@ -131,7 +131,7 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
     pub(in crate::build) fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
-        self.source_inputs(&self.sources[s as usize], out);
+        self.source_inputs(&self.sources[s.index()], out);
         for (slot, src) in &self.later_sources {
             if *slot == s {
                 self.source_inputs(src, out);
@@ -158,7 +158,7 @@ impl<'c> Builder<'c> {
         let earlier = |s: usize, src: &BuiltSource, inputs: &mut Vec<SlotId>| {
             inputs.clear();
             self.source_inputs(src, inputs);
-            inputs.iter().all(|&w| (w as usize) < s)
+            inputs.iter().all(|&w| w.index() < s)
         };
         self.sources
             .iter()
@@ -167,7 +167,7 @@ impl<'c> Builder<'c> {
             && self
                 .later_sources
                 .iter()
-                .all(|(s, src)| earlier(*s as usize, src, &mut inputs))
+                .all(|(s, src)| earlier(s.index(), src, &mut inputs))
     }
 
     fn scope_within(&self, mut s: ScopeId, of: ScopeId) -> bool {
@@ -209,12 +209,12 @@ impl<'c> Builder<'c> {
                     // over its own iterations); the repeat names it best.
                     return Err(Error::Cycle(self.comp_label(r.comp)));
                 }
-                if seen[sl as usize] {
+                if seen[sl.index()] {
                     continue;
                 }
-                seen[sl as usize] = true;
+                seen[sl.index()] = true;
                 touched.push(sl);
-                for rc in self.enclosing_repeats(self.slot_scope[sl as usize]) {
+                for rc in self.enclosing_repeats(self.slot_scope[sl.index()]) {
                     let si = self.comp_repeat[rc.index()] as usize;
                     let nested =
                         si != ri && self.scope_within(r.scope, self.repeats[si].iter_scopes[0]);
@@ -225,7 +225,7 @@ impl<'c> Builder<'c> {
                 self.push_inputs(sl, &mut stack);
             }
             for &sl in &touched {
-                seen[sl as usize] = false;
+                seen[sl.index()] = false;
             }
         }
         // A back edge in a depth-first walk closes a loop at its target.
@@ -264,7 +264,7 @@ impl<'c> Builder<'c> {
         if let Some(l) = self.labels.get(&(u, v)) {
             return l.clone();
         }
-        let (mut a, mut b) = (self.slot_scope[u as usize], self.slot_scope[v as usize]);
+        let (mut a, mut b) = (self.slot_scope[u.index()], self.slot_scope[v.index()]);
         let dv = depth[b.index()];
         while depth[a.index()] > depth[b.index()] {
             a = self.scopes[a].0;
@@ -292,7 +292,7 @@ impl<'c> Builder<'c> {
         // Adjacency, compact.
         let mut adj_start = Vec::with_capacity(n + 1);
         let mut adj: Vec<SlotId> = Vec::new();
-        for s in 0..n as SlotId {
+        for s in SlotId::below(n) {
             adj_start.push(adj.len() as u32);
             self.push_inputs(s, &mut adj);
         }
@@ -307,56 +307,56 @@ impl<'c> Builder<'c> {
         let mut low = vec![0u32; n];
         let mut on_stack = vec![false; n];
         let mut scc_of = vec![NONE; n];
-        let mut stack: Vec<u32> = Vec::new();
-        let mut call: Vec<(u32, u32)> = Vec::new();
+        let mut stack: Vec<SlotId> = Vec::new();
+        let mut call: Vec<(SlotId, u32)> = Vec::new();
         let mut next = 0u32;
         let mut n_sccs = 0u32;
         let mut local = vec![NONE; n];
         // One buffer for every component's members: most are single slots.
-        let mut members: Vec<u32> = Vec::new();
-        for root in 0..n as u32 {
-            if index[root as usize] != NONE {
+        let mut members: Vec<SlotId> = Vec::new();
+        for root in SlotId::below(n) {
+            if index[root.index()] != NONE {
                 continue;
             }
-            index[root as usize] = next;
-            low[root as usize] = next;
+            index[root.index()] = next;
+            low[root.index()] = next;
             next += 1;
             stack.push(root);
-            on_stack[root as usize] = true;
-            call.push((root, adj_start[root as usize]));
+            on_stack[root.index()] = true;
+            call.push((root, adj_start[root.index()]));
             while let Some(&mut (v, ref mut pos)) = call.last_mut() {
-                if *pos < adj_start[v as usize + 1] {
+                if *pos < adj_start[v.index() + 1] {
                     let w = adj[*pos as usize];
                     *pos += 1;
-                    if index[w as usize] == NONE {
-                        index[w as usize] = next;
-                        low[w as usize] = next;
+                    if index[w.index()] == NONE {
+                        index[w.index()] = next;
+                        low[w.index()] = next;
                         next += 1;
                         stack.push(w);
-                        on_stack[w as usize] = true;
-                        call.push((w, adj_start[w as usize]));
-                    } else if on_stack[w as usize] {
-                        low[v as usize] = low[v as usize].min(index[w as usize]);
+                        on_stack[w.index()] = true;
+                        call.push((w, adj_start[w.index()]));
+                    } else if on_stack[w.index()] {
+                        low[v.index()] = low[v.index()].min(index[w.index()]);
                     }
                     continue;
                 }
                 call.pop();
                 if let Some(&(u, _)) = call.last() {
-                    low[u as usize] = low[u as usize].min(low[v as usize]);
+                    low[u.index()] = low[u.index()].min(low[v.index()]);
                 }
-                if low[v as usize] == index[v as usize] {
+                if low[v.index()] == index[v.index()] {
                     members.clear();
                     loop {
                         let w = stack.pop().expect("tarjan stack");
-                        on_stack[w as usize] = false;
-                        scc_of[w as usize] = n_sccs;
+                        on_stack[w.index()] = false;
+                        scc_of[w.index()] = n_sccs;
                         members.push(w);
                         if w == v {
                             break;
                         }
                     }
                     let self_loop = members.len() == 1
-                        && adj[adj_start[v as usize] as usize..adj_start[v as usize + 1] as usize]
+                        && adj[adj_start[v.index()] as usize..adj_start[v.index() + 1] as usize]
                             .contains(&v);
                     if members.len() > 1 || self_loop {
                         self.check_scc(&members, &adj_start, &adj, &scc_of, &depth, &mut local)?;
@@ -382,25 +382,25 @@ impl<'c> Builder<'c> {
         depth: &[u32],
         local: &mut [u32],
     ) -> Result<()> {
-        let this = scc_of[members[0] as usize];
+        let this = scc_of[members[0].index()];
         for (i, &m) in members.iter().enumerate() {
-            local[m as usize] = i as u32;
+            local[m.index()] = i as u32;
         }
         let min_depth = members
             .iter()
-            .map(|&m| depth[self.slot_scope[m as usize].index()] as usize)
+            .map(|&m| depth[self.slot_scope[m.index()].index()] as usize)
             .min()
             .unwrap_or(0);
         let mut edges: Vec<(u32, u32)> = Vec::new();
         let mut shifts: Vec<Vec<i64>> = vec![Vec::new(); min_depth];
         let mut free = vec![false; min_depth];
         for &u in members {
-            for &v in &adj[adj_start[u as usize] as usize..adj_start[u as usize + 1] as usize] {
-                if scc_of[v as usize] != this {
+            for &v in &adj[adj_start[u.index()] as usize..adj_start[u.index() + 1] as usize] {
+                if scc_of[v.index()] != this {
                     continue;
                 }
                 let label = self.edge_label(u, v, depth);
-                edges.push((local[u as usize], local[v as usize]));
+                edges.push((local[u.index()], local[v.index()]));
                 for j in 0..min_depth {
                     match label.get(j) {
                         Some(Coord::Keep(s)) => shifts[j].push(*s),
@@ -418,16 +418,16 @@ impl<'c> Builder<'c> {
                     && has_nonpositive_cycle(members.len(), &edges, &shifts[j], -1))
         });
         for &m in members {
-            local[m as usize] = NONE;
+            local[m.index()] = NONE;
         }
         if !cycle {
             return Ok(());
         }
         let named = |s: SlotId| {
-            let c = self.slot_comp[s as usize];
+            let c = self.slot_comp[s.index()];
             c != CompIdx::NONE && self.components.name[c.index()] != StrId::NONE
         };
-        let owned = |s: SlotId| self.slot_comp[s as usize] != CompIdx::NONE;
+        let owned = |s: SlotId| self.slot_comp[s.index()] != CompIdx::NONE;
         let at = members
             .iter()
             .find(|&&s| named(s))

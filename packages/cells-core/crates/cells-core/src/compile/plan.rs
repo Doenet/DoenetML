@@ -107,7 +107,7 @@ pub(crate) enum Source {
     SymExpr(ExprId, Post),
     /// An essential math cell (an unbound mathInput's `expr`, an answer's
     /// `submitted`) holding this expression, or blank (NaN).
-    MathEssential(Option<Tree>),
+    MathEssential(Option<Tree<u32>>),
     /// An essential math cell whose initial expression is the value the
     /// reference names when the cell is first built (a mathInput's
     /// `prefill="$n"`): a seed, not a binding.
@@ -739,7 +739,7 @@ pub struct Compiled {
     pub(crate) templates: Vec<Template>,
     pub(crate) refs: Vec<RefPlan>,
     /// Expression templates: cell leaves hold plan ids.
-    pub(crate) arena: Arena,
+    pub(crate) arena: Arena<u32>,
     /// The math text of templates that may be symbolic, with each `$ref`
     /// written `cellN<plan>` (see `sym::engine::leaf_name`).
     pub(crate) sym_text: HashMap<ExprId, String>,
@@ -748,7 +748,7 @@ pub struct Compiled {
     /// instances stamp it and however many builds run. Empty in a document
     /// without repeats, which builds each template once and would only raise
     /// its load's peak memory by keeping the trees.
-    pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree, String>>>,
+    pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<u32>, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
     /// The source's `Dast::version_hash`, once per load rather than per
     /// build.

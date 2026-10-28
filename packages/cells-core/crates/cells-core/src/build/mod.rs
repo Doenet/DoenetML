@@ -66,7 +66,21 @@ mod writable;
 pub(crate) use probe::probe;
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
-type SlotId = u32;
+crate::index::index_type! {
+    /// A build's slot: one prop of one stamped element, before emit gives it
+    /// a cell (slots that alias share one). A position in the build's
+    /// `sources`.
+    pub(crate) struct SlotId;
+}
+
+impl crate::sym::Leaf for SlotId {
+    fn raw(self) -> u32 {
+        self.get()
+    }
+    fn from_raw(raw: u32) -> Self {
+        Self::new(raw)
+    }
+}
 
 use expand::*;
 use probe::Coord;

@@ -70,7 +70,7 @@ impl<'c> Builder<'c> {
                 );
                 let pos = self.anon_slot(BuiltSource::Fixed(k as f64), scope);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
-                self.sources[active_slot as usize] = self.op_source(OpSpec::Eq, &[choice, pos]);
+                self.sources[active_slot.index()] = self.op_source(OpSpec::Eq, &[choice, pos]);
                 self.enter_scope(s, def.branches[k - 1]);
                 let these = self.expand(def.branches[k - 1], s, case)?;
                 self.set_children(case, &these);
@@ -194,7 +194,7 @@ impl<'c> Builder<'c> {
                 )));
             }
             let s = self.slot(w, pi);
-            self.sources[s as usize] = match choice {
+            self.sources[s.index()] = match choice {
                 None => {
                     // An edge to the prop in every option.
                     let scope = self.components.scope[w.index()];

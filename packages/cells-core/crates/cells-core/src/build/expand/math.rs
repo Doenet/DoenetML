@@ -86,39 +86,18 @@ impl<'c> Builder<'c> {
     /// Rebind a parsed template's `cellN<plan>` leaves to slots: a math leaf where
     /// the reference names an expression, else a numeric leaf. Distinct leaf
     /// slots are appended to `leaves`.
-    fn bind_leaves(&mut self, t: &Tree, scope: ScopeId, leaves: &mut Vec<SlotId>) -> Result<Tree> {
-        let mut kids = |ts: &[Tree], this: &mut Self| {
-            ts.iter()
-                .map(|k| this.bind_leaves(k, scope, leaves))
-                .collect::<Result<Vec<_>>>()
-        };
-        Ok(match t {
-            Tree::Cell { cell: plan, .. } => {
-                let (slot, math) = self.leaf_slot(*plan as RefId, scope)?;
-                if !leaves.contains(&slot) {
-                    leaves.push(slot);
-                }
-                Tree::Cell { cell: slot, math }
+    fn bind_leaves(
+        &mut self,
+        t: &Tree<u32>,
+        scope: ScopeId,
+        leaves: &mut Vec<SlotId>,
+    ) -> Result<Tree<SlotId>> {
+        t.try_map_leaves(&mut |plan, _| {
+            let (slot, math) = self.leaf_slot(plan as RefId, scope)?;
+            if !leaves.contains(&slot) {
+                leaves.push(slot);
             }
-            Tree::Num(_) | Tree::Sym(_) => t.clone(),
-            Tree::Add(ts) => Tree::Add(kids(ts, self)?),
-            Tree::Mul(ts) => Tree::Mul(kids(ts, self)?),
-            Tree::Sub(a, b) => Tree::Sub(
-                Box::new(self.bind_leaves(a, scope, leaves)?),
-                Box::new(self.bind_leaves(b, scope, leaves)?),
-            ),
-            Tree::Div(a, b) => Tree::Div(
-                Box::new(self.bind_leaves(a, scope, leaves)?),
-                Box::new(self.bind_leaves(b, scope, leaves)?),
-            ),
-            Tree::Pow(a, b) => Tree::Pow(
-                Box::new(self.bind_leaves(a, scope, leaves)?),
-                Box::new(self.bind_leaves(b, scope, leaves)?),
-            ),
-            Tree::Neg(a) => Tree::Neg(Box::new(self.bind_leaves(a, scope, leaves)?)),
-            Tree::Apply(f, a) => {
-                Tree::Apply(f.clone(), Box::new(self.bind_leaves(a, scope, leaves)?))
-            }
+            Ok((slot, math))
         })
     }
 
@@ -156,12 +135,12 @@ impl<'c> Builder<'c> {
     /// math's `expr` or `value`, a function, a math answer's props), the
     /// slot of that expression.
     fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
-        let comp = self.slot_comp[slot as usize];
+        let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return None;
         }
         let component_type = self.components.component_type[comp.index()];
-        let pi = (slot - self.slot_base[comp.index()]) as usize;
+        let pi = slot.index() - self.slot_base[comp.index()].index();
         let name = component_type.prop_defs().get(pi)?.name;
         match (component_type, name) {
             // An answer's response and correct value are expressions when
@@ -198,7 +177,7 @@ impl<'c> Builder<'c> {
     }
 
     fn value_type_within(&mut self, slot: SlotId, depth: u32) -> ValueType {
-        let comp = self.slot_comp[slot as usize];
+        let comp = self.slot_comp[slot.index()];
         if depth == 0 || comp == CompIdx::NONE {
             return ValueType::Number;
         }
@@ -206,8 +185,8 @@ impl<'c> Builder<'c> {
         if inst == NONE {
             // A copy or a placed reference aliases what it copies; an
             // interface name holds what its branches' components hold.
-            let pi = slot - self.slot_base[comp.index()];
-            if let BuiltSource::Alias(t) = self.sources[slot as usize] {
+            let pi = slot.get() - self.slot_base[comp.index()].get();
+            if let BuiltSource::Alias(t) = self.sources[slot.index()] {
                 return self.value_type_within(t, depth - 1);
             }
             // A stand-in holds what any branch may: text or math when one
@@ -217,7 +196,7 @@ impl<'c> Builder<'c> {
             };
             let mut kind = ValueType::Number;
             for m in members {
-                let t = self.slot_base[m.index()] + pi;
+                let t = self.slot_base[m.index()].offset(pi as usize);
                 match self.value_type_within(t, depth - 1) {
                     ValueType::Number => {}
                     k => kind = k,
@@ -226,7 +205,7 @@ impl<'c> Builder<'c> {
             return kind;
         }
         let i = self.instances[inst as usize];
-        let pi = (slot - self.slot_base[comp.index()]) as usize;
+        let pi = slot.index() - self.slot_base[comp.index()].index();
         let c: &'c Compiled = self.compiled;
         let next = match c.templates[i.template].elems[i.elem].props.get(pi) {
             Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
@@ -294,17 +273,19 @@ impl<'c> Builder<'c> {
             ComponentType::Function | ComponentType::Derivative => true,
             // A copy of a math (its `expr`) or a bound mathInput (its `value`).
             ComponentType::Math | ComponentType::MathInput if inst == NONE => {
-                match self.sources.get(self.slot(
-                    comp,
-                    if component_type == ComponentType::Math {
-                        prop::math::EXPR
-                    } else {
-                        prop::math_input::VALUE
-                    },
-                ) as usize)
-                {
+                match self.sources.get(
+                    self.slot(
+                        comp,
+                        if component_type == ComponentType::Math {
+                            prop::math::EXPR
+                        } else {
+                            prop::math_input::VALUE
+                        },
+                    )
+                    .index(),
+                ) {
                     Some(BuiltSource::Alias(t)) => {
-                        let referent = self.slot_comp[*t as usize];
+                        let referent = self.slot_comp[t.index()];
                         referent != CompIdx::NONE && self.is_symbolic(referent)
                     }
                     _ => false,
@@ -388,7 +369,7 @@ impl<'c> Builder<'c> {
     /// `Scale`/`Offset` parameters where an operator has one; otherwise they
     /// become fixed cells.
     pub(in crate::build) fn lower(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
-        let num = |a: &Arena, e: ExprId| match a.get(e) {
+        let num = |a: &Arena<SlotId>, e: ExprId| match a.get(e) {
             Expr::Num(v) => Some(*v),
             _ => None,
         };
@@ -452,7 +433,8 @@ impl<'c> Builder<'c> {
             }
             // Clamp's bounds are parameters, so only its argument is lowered.
             Expr::Call(Func::Clamp, args) => {
-                let bound = |a: &Arena, e| num(a, e).expect("the parser checks clamp's bounds");
+                let bound =
+                    |a: &Arena<SlotId>, e| num(a, e).expect("the parser checks clamp's bounds");
                 let (lo, hi) = (bound(&self.arena, args[1]), bound(&self.arena, args[2]));
                 let x = self.lower(args[0], scope);
                 self.op_slot(OpSpec::Clamp { lo, hi }, &[x], scope)

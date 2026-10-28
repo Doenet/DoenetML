@@ -194,7 +194,7 @@ impl<'c> Builder<'c> {
             inst.scopes
                 .iter()
                 .map(|&s| match self.iteration_components(c, s).as_slice() {
-                    [one] => Some(self.components.component_type[(*one).index()]),
+                    [one] => Some(self.components.component_type[one.index()]),
                     _ => None,
                 });
         let first = types.next().flatten();

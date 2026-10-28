@@ -17,15 +17,15 @@ use super::*;
 impl<'c> Builder<'c> {
     /// Per slot, whether its class is live. `roots` is each slot's alias
     /// class and `class_def` each class's defining slot, by root.
-    pub(in crate::build) fn live_slots(&self, roots: &[u32], class_def: &[u32]) -> Vec<bool> {
+    pub(in crate::build) fn live_slots(&self, roots: &[SlotId], class_def: &[SlotId]) -> Vec<bool> {
         let n = self.sources.len();
         let mut seen = vec![false; n];
-        let mut stack: Vec<u32> = Vec::new();
+        let mut stack: Vec<SlotId> = Vec::new();
         let (rendered, in_sticky) = self.components.placement(self.root);
         for c in CompIdx::below(self.components.component_type.len()) {
             let ty = self.components.component_type[c.index()];
             let np = self.n_public(c);
-            let base = self.slot_base[c.index()] as usize;
+            let base = self.slot_base[c.index()].index();
             // Snapping reads a sticky group's settings and every point of
             // its members (`document/sticky.rs`); a member is rendered, so
             // in a sticky group is in a rendered one.
@@ -41,42 +41,42 @@ impl<'c> Builder<'c> {
             }
         }
         // The later sources of each class, by root (the probe only).
-        let mut later: HashMap<u32, Vec<usize>> = HashMap::new();
+        let mut later: HashMap<SlotId, Vec<usize>> = HashMap::new();
         for (i, &(s, _)) in self.later_sources.iter().enumerate() {
-            later.entry(roots[s as usize]).or_default().push(i);
+            later.entry(roots[s.index()]).or_default().push(i);
         }
         // The seed sources of each class, by root.
-        let mut seeded: HashMap<u32, Vec<SlotId>> = HashMap::new();
+        let mut seeded: HashMap<SlotId, Vec<SlotId>> = HashMap::new();
         for &(s, from) in &self.seeds {
-            seeded.entry(roots[s as usize]).or_default().push(from);
+            seeded.entry(roots[s.index()]).or_default().push(from);
         }
-        let follow = |src: &BuiltSource, stack: &mut Vec<u32>| match src {
-            BuiltSource::Alias(t) => stack.push(roots[*t as usize]),
+        let follow = |src: &BuiltSource, stack: &mut Vec<SlotId>| match src {
+            BuiltSource::Alias(t) => stack.push(roots[t.index()]),
             BuiltSource::Op(_, start, count) => stack.extend(
                 self.op_inputs[*start as usize..*start as usize + *count as usize]
                     .iter()
-                    .map(|&i| roots[i as usize]),
+                    .map(|&i| roots[i.index()]),
             ),
-            BuiltSource::VecOut(head, _) => stack.push(roots[*head as usize]),
+            BuiltSource::VecOut(head, _) => stack.push(roots[head.index()]),
             BuiltSource::Literal(_)
             | BuiltSource::Default(_)
             | BuiltSource::Fixed(_)
             | BuiltSource::Unset => {}
         };
         while let Some(root) = stack.pop() {
-            if std::mem::replace(&mut seen[root as usize], true) {
+            if std::mem::replace(&mut seen[root.index()], true) {
                 continue;
             }
-            follow(&self.sources[class_def[root as usize] as usize], &mut stack);
+            follow(&self.sources[class_def[root.index()].index()], &mut stack);
             if let Some(entries) = later.get(&root) {
                 for &i in entries {
                     follow(&self.later_sources[i].1, &mut stack);
                 }
             }
             if let Some(froms) = seeded.get(&root) {
-                stack.extend(froms.iter().map(|&f| roots[f as usize]));
+                stack.extend(froms.iter().map(|&f| roots[f.index()]));
             }
         }
-        roots.iter().map(|&r| seen[r as usize]).collect()
+        roots.iter().map(|&r| seen[r.index()]).collect()
     }
 }

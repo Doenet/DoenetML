@@ -15,7 +15,7 @@ use std::hash::{BuildHasher, RandomState};
 use math_expressions as me;
 use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptions};
 
-use super::{Handle, Tree};
+use super::{Handle, Leaf, Tree};
 
 pub struct Engine {
     exprs: Vec<Expr>,
@@ -138,16 +138,17 @@ impl Engine {
         h
     }
 
-    fn convert(&self, t: &Tree, leaves: &mut Vec<(u32, bool)>) -> Expr {
+    fn convert<L: Leaf>(&self, t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
         match t {
             Tree::Num(v) => number(*v),
             Tree::Sym(s) if s == BLANK => Expr::Blank,
             Tree::Sym(s) => Expr::sym(s),
             Tree::Cell { cell, math } => {
-                if !leaves.contains(&(*cell, *math)) {
-                    leaves.push((*cell, *math));
+                let cell = cell.raw();
+                if !leaves.contains(&(cell, *math)) {
+                    leaves.push((cell, *math));
                 }
-                Expr::sym(&leaf_name(*cell, *math))
+                Expr::sym(&leaf_name(cell, *math))
             }
             Tree::Add(ts) => Expr::Add(ts.iter().map(|t| self.convert(t, leaves)).collect()),
             Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| self.convert(t, leaves)).collect()),
@@ -168,8 +169,10 @@ impl Engine {
         }
     }
 
-    /// Bring a builder tree in. Cell leaves are kept as leaves.
-    pub fn import(&mut self, tree: &Tree) -> Handle {
+    /// Bring a builder tree in. Cell leaves are kept as leaves, by number:
+    /// only a tree whose leaves are cells makes a template `instantiate`
+    /// can fill.
+    pub fn import<L: Leaf>(&mut self, tree: &Tree<L>) -> Handle {
         let mut leaves = Vec::new();
         let e = self.convert(tree, &mut leaves);
         let h = self.push(e);
@@ -198,7 +201,7 @@ impl Engine {
     /// build does with a template's math text, whose `$ref`s it has written
     /// as `cellN<plan>` leaves. Fails on what a tree cannot say (a relation,
     /// a tuple, a function of several arguments).
-    pub fn parse_tree(&mut self, text: &str) -> Result<Tree, String> {
+    pub fn parse_tree<L: Leaf>(&mut self, text: &str) -> Result<Tree<L>, String> {
         let e = self.convert_text(text)?;
         to_tree(&e).ok_or_else(|| {
             format!("'{text}' is not supported in a math cell (a relation, tuple or multi-argument function)")
@@ -299,10 +302,11 @@ impl Engine {
         !me::variables(&self.exprs[h as usize]).is_empty()
     }
 
-    /// The expression as a builder tree, cell leaves included, for
-    /// compiling (`tape::Tape`). `None` when it uses something a tree cannot
-    /// say (sets, relations, a function of several arguments).
-    pub fn export(&self, h: Handle) -> Option<Tree> {
+    /// The expression as a builder tree, cell leaves included as the `L`
+    /// the caller knows them to be, for compiling (`tape::Tape`). `None`
+    /// when it uses something a tree cannot say (sets, relations, a
+    /// function of several arguments).
+    pub fn export<L: Leaf>(&self, h: Handle) -> Option<Tree<L>> {
         to_tree(&self.exprs[h as usize])
     }
 
@@ -388,7 +392,7 @@ const BLANK: &str = "\u{ff3f}";
 
 /// An engine expression as a builder tree; cell leaves come back from their
 /// `cellN<i>`/`cellM<i>` symbol names.
-fn to_tree(e: &Expr) -> Option<Tree> {
+fn to_tree<L: Leaf>(e: &Expr) -> Option<Tree<L>> {
     let all = |es: &[Expr]| es.iter().map(to_tree).collect::<Option<Vec<_>>>();
     let one = |e: &Expr| to_tree(e).map(Box::new);
     Some(match e {
@@ -396,7 +400,10 @@ fn to_tree(e: &Expr) -> Option<Tree> {
         Expr::Sym(s) => {
             let name = s.name();
             match leaf_of(&name) {
-                Some((cell, math)) => Tree::Cell { cell, math },
+                Some((cell, math)) => Tree::Cell {
+                    cell: L::from_raw(cell),
+                    math,
+                },
                 None => Tree::Sym(name),
             }
         }
@@ -424,7 +431,9 @@ mod tests {
 
     #[test]
     fn placeholders_are_cell_leaves() {
-        let t = Engine::new().parse_tree("cellN3 x + sin(cellN12)").unwrap();
+        let t = Engine::new()
+            .parse_tree::<u32>("cellN3 x + sin(cellN12)")
+            .unwrap();
         let Tree::Add(terms) = t else { panic!("{t:?}") };
         assert_eq!(
             terms[0],
@@ -453,8 +462,8 @@ mod tests {
         let mut e = Engine::new();
         let h = e.parse("  ").unwrap();
         assert_eq!(e.text(h), "\u{ff3f}");
-        assert_eq!(e.parse_tree("").unwrap(), Tree::Sym(BLANK.into()));
-        let back = e.import(&Tree::Sym(BLANK.into()));
+        assert_eq!(e.parse_tree::<u32>("").unwrap(), Tree::Sym(BLANK.into()));
+        let back = e.import(&Tree::<u32>::Sym(BLANK.into()));
         assert_eq!(e.text(back), "\u{ff3f}");
     }
 
@@ -486,7 +495,7 @@ mod tests {
     #[test]
     fn unsupported_shapes_are_errors() {
         let mut e = Engine::new();
-        assert!(e.parse_tree("x = 2").is_err());
-        assert!(e.parse_tree("(1, 2)").is_err());
+        assert!(e.parse_tree::<u32>("x = 2").is_err());
+        assert!(e.parse_tree::<u32>("(1, 2)").is_err());
     }
 }

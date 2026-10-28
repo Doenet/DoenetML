@@ -13,6 +13,6 @@ pub mod tape;
 pub mod tree;
 
 pub use engine::Engine;
-pub use tree::{FUNCTIONS, Tree};
+pub use tree::{FUNCTIONS, Leaf, Tree};
 
 pub type Handle = u32;

@@ -17,22 +17,22 @@ impl<'c> Builder<'c> {
         let mut uf = UnionFind::new(n);
         for (s, src) in self.sources.iter().enumerate() {
             if let BuiltSource::Alias(t) = src {
-                uf.union(s as SlotId, *t);
+                uf.union(SlotId::from_index(s), *t);
             }
         }
         // The one non-alias slot in each class defines its cell.
-        let mut class_def: Vec<u32> = vec![NONE; n];
+        let mut class_def: Vec<SlotId> = vec![SlotId::NONE; n];
         for (s, src) in self.sources.iter().enumerate() {
             match src {
                 BuiltSource::Alias(_) => {}
                 BuiltSource::Unset => unreachable!(
                     "slot {} never received a source",
-                    self.slot_label(s as SlotId)
+                    self.slot_label(SlotId::from_index(s))
                 ),
                 _ => {
-                    let root = uf.find(s as SlotId) as usize;
-                    debug_assert!(class_def[root] == NONE, "two sources in one alias class");
-                    class_def[root] = s as u32;
+                    let root = uf.find(SlotId::from_index(s)).index();
+                    debug_assert!(class_def[root].is_none(), "two sources in one alias class");
+                    class_def[root] = SlotId::from_index(s);
                 }
             }
         }
@@ -40,21 +40,21 @@ impl<'c> Builder<'c> {
 
         // Number cells: essential classes first, then fixed, then derived.
         // Essential values come from the previous build when the slot existed.
-        let roots: Vec<u32> = (0..n as SlotId).map(|s| uf.find(s)).collect();
+        let roots: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
         // A class of aliases with no definer is a loop of aliases. When the
         // view folds iterations it may be a recurrence folded onto itself,
         // which the cycle check has judged; it becomes a constant here.
         for (s, &root) in roots.iter().enumerate() {
-            let root = root as usize;
-            if class_def[root] == NONE {
+            let root = root.index();
+            if class_def[root] == SlotId::NONE {
                 if !self.view.folds_iterations() {
                     return Err(Failure {
-                        error: Error::Cycle(self.slot_label(s as SlotId)),
+                        error: Error::Cycle(self.slot_label(SlotId::from_index(s))),
                         node: None,
                     });
                 }
                 self.sources[s] = BuiltSource::Fixed(f64::NAN);
-                class_def[root] = s as u32;
+                class_def[root] = SlotId::from_index(s);
             }
         }
         // A value slot is essential when a student's action can write it,
@@ -64,7 +64,7 @@ impl<'c> Builder<'c> {
         let mut record = None;
         let essential: Vec<bool> = match &self.compiled.classes {
             Classes::Off => vec![true; n],
-            Classes::Record(r) if !self.view.folds_iterations() => (0..n as SlotId)
+            Classes::Record(r) if !self.view.folds_iterations() => SlotId::below(n)
                 .map(|s| {
                     self.template_slot(s)
                         .is_none_or(|(t, ts)| Classes::recorded(r, t, ts))
@@ -104,7 +104,7 @@ impl<'c> Builder<'c> {
         let prune = self.compiled.prune && !self.view.folds_iterations();
         let pruned = |s: usize| {
             let s = match self.sources[s] {
-                BuiltSource::VecOut(head, _) => head as usize,
+                BuiltSource::VecOut(head, _) => head.index(),
                 _ => s,
             };
             prune
@@ -121,9 +121,9 @@ impl<'c> Builder<'c> {
         let mut n_cells = 0;
         let mut any_dead = false;
         for (s, &root) in roots.iter().enumerate() {
-            if class_def[root as usize] as usize == s && pruned(s) {
+            if class_def[root.index()].index() == s && pruned(s) {
                 any_dead = true;
-            } else if class_def[root as usize] as usize == s {
+            } else if class_def[root.index()].index() == s {
                 let (kind, n_out) = match &self.sources[s] {
                     BuiltSource::Literal(_) | BuiltSource::Default(_) if essential[s] => (0, 1),
                     BuiltSource::Literal(_) | BuiltSource::Default(_) => (1, 1),
@@ -152,8 +152,8 @@ impl<'c> Builder<'c> {
         let mut outputs = Vec::with_capacity(counts[3]);
         let mut dead_defs = Vec::new();
         for (s, &root) in roots.iter().enumerate() {
-            let root = root as usize;
-            if class_def[root] as usize != s {
+            let root = root.index();
+            if class_def[root].index() != s {
                 continue; // not the defining slot of its class
             }
             if pruned(s) {
@@ -165,7 +165,7 @@ impl<'c> Builder<'c> {
                     fixed_defs.push(s)
                 }
                 BuiltSource::Literal(v) | BuiltSource::Default(v) => {
-                    let (scope, tslot, key) = self.essential_key(s as SlotId);
+                    let (scope, tslot, key) = self.essential_key(SlotId::from_index(s));
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
                         && let Some(p) = parked.remove(&(scope, key.0, key.1))
@@ -175,7 +175,7 @@ impl<'c> Builder<'c> {
                     }
                     slot_cell[root] = CellIdx::from_index(cells.len());
                     cells.push(value);
-                    cell_def_slot.push(s as SlotId);
+                    cell_def_slot.push(SlotId::from_index(s));
                     essential_slots.push((scope, tslot));
                     essential_keys.push(key);
                     essential_defaults.push(*v);
@@ -192,9 +192,9 @@ impl<'c> Builder<'c> {
         let dead_cell = (!dead_defs.is_empty()).then(|| {
             let dead = CellIdx::from_index(cells.len());
             cells.push(f64::NAN);
-            cell_def_slot.push(dead_defs[0] as SlotId);
+            cell_def_slot.push(SlotId::from_index(dead_defs[0]));
             for &s in &dead_defs {
-                slot_cell[roots[s] as usize] = dead;
+                slot_cell[roots[s].index()] = dead;
             }
             dead
         });
@@ -205,15 +205,15 @@ impl<'c> Builder<'c> {
             else {
                 unreachable!()
             };
-            let root = roots[s] as usize;
+            let root = roots[s].index();
             slot_cell[root] = CellIdx::from_index(cells.len());
             cells.push(v);
-            cell_def_slot.push(s as SlotId);
+            cell_def_slot.push(SlotId::from_index(s));
         }
         let n_fixed = fixed_defs.len() + dead_cell.is_some() as usize;
         // A vector instruction's outputs are consecutive cells after its head.
         for &s in &derived_defs {
-            let root = roots[s] as usize;
+            let root = roots[s].index();
             slot_cell[root] = CellIdx::from_index(cells.len());
             let n_out = match self.sources[s] {
                 BuiltSource::Op(spec, ..) => spec.n_out(),
@@ -221,23 +221,23 @@ impl<'c> Builder<'c> {
             };
             for _ in 0..n_out {
                 cells.push(f64::NAN);
-                cell_def_slot.push(s as SlotId);
+                cell_def_slot.push(SlotId::from_index(s));
             }
         }
         for &s in &outputs {
             let BuiltSource::VecOut(head, k) = self.sources[s] else {
                 unreachable!()
             };
-            let head_cell = slot_cell[roots[head as usize] as usize];
+            let head_cell = slot_cell[roots[head.index()].index()];
             debug_assert!(head_cell != CellIdx::NONE, "vector output before its head");
-            slot_cell[roots[s] as usize] = head_cell.offset(k as usize);
-            cell_def_slot[(head_cell.offset(k as usize)).index()] = s as SlotId;
+            slot_cell[roots[s].index()] = head_cell.offset(k as usize);
+            cell_def_slot[(head_cell.offset(k as usize)).index()] = SlotId::from_index(s);
         }
         debug_assert_eq!(cells.len(), n_cells);
         let live_bits = |live: &[bool]| {
             let mut bits = vec![0u64; cells.len().div_ceil(64)];
             for (cell, &s) in cell_def_slot.iter().enumerate() {
-                if live[s as usize] {
+                if live[s.index()] {
                     bits[cell / 64] |= 1 << (cell % 64);
                 }
             }
@@ -248,12 +248,12 @@ impl<'c> Builder<'c> {
             #[cfg(feature = "testing")]
             walked: live_bits(&walked_slot),
         };
-        let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r as usize]).collect();
+        let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r.index()]).collect();
         self.seed_cells(
             &mut cells,
             &mut essential_defaults,
             &slot_to_cell,
-            |s| class_def[roots[s as usize] as usize],
+            |s| class_def[roots[s.index()].index()],
             dead_cell,
         )
         .map_err(|error| Failure {
@@ -267,8 +267,8 @@ impl<'c> Builder<'c> {
         let mut bound: Vec<CellIdx> = Vec::with_capacity(8);
         let mut value_types = vec![ValueType::Number; cells.len()];
         for &(s, ty) in &self.typed_slots {
-            if Some(slot_to_cell[s as usize]) != dead_cell {
-                value_types[slot_to_cell[s as usize].index()] = ty;
+            if Some(slot_to_cell[s.index()]) != dead_cell {
+                value_types[slot_to_cell[s.index()].index()] = ty;
             }
         }
         // A restored value stays only in a cell of the type it was saved
@@ -299,7 +299,7 @@ impl<'c> Builder<'c> {
             bound.extend(
                 self.op_inputs[start as usize..start as usize + count as usize]
                     .iter()
-                    .map(|&i| slot_to_cell[i as usize]),
+                    .map(|&i| slot_to_cell[i.index()]),
             );
             // The walk follows every input, so a live instruction reads no
             // dead cell; the record, made from the probe's walk, keeps one
@@ -312,7 +312,7 @@ impl<'c> Builder<'c> {
                 return Err(Failure {
                     error: Error::Unchecked(format!(
                         "{} reads {}, which has no cell: the live slots are not closed under what reads them (ADR 0019)",
-                        self.slot_label(s as SlotId),
+                        self.slot_label(SlotId::from_index(s)),
                         self.slot_label(input)
                     )),
                     node: None,
@@ -335,7 +335,8 @@ impl<'c> Builder<'c> {
                 // only fills in the parameters.
                 if compile
                     && kind == SymKind::Derivative
-                    && let Some(d) = self.fixed_shape(s as SlotId, &slot_to_cell, &mut fixed_shape)
+                    && let Some(d) =
+                        self.fixed_shape(SlotId::from_index(s), &slot_to_cell, &mut fixed_shape)
                     && let Some(tree) = self.engine.export(d)
                 {
                     bound.clear();
@@ -357,7 +358,7 @@ impl<'c> Builder<'c> {
                     let (lo, hi) = (bound[1], bound[2]);
                     bound.clear();
                     bound.extend([lo, hi]);
-                    bound.extend(tape.params.iter().map(|&c| CellIdx::new(c)));
+                    bound.extend_from_slice(&tape.params);
                     spec = OpSpec::Sym(SymKind::SampleTape {
                         tape: tapes.len() as u32,
                     });
@@ -381,7 +382,7 @@ impl<'c> Builder<'c> {
             self.components
                 .prop_base
                 .push(self.components.prop_cells.len() as u32);
-            let base = self.slot_base[c] as usize;
+            let base = self.slot_base[c].index();
             self.components
                 .prop_cells
                 .extend_from_slice(&slot_to_cell[base..base + np]);
@@ -454,11 +455,11 @@ impl<'c> Builder<'c> {
         let dast = self.compiled.dast.clone();
         let cell_label = Box::new(move |cell: CellIdx| {
             let slot = cell_def_slot[cell.index()];
-            let comp = slot_comp[slot as usize];
+            let comp = slot_comp[slot.index()];
             if comp == CompIdx::NONE {
                 return "(anonymous cell)".to_string();
             }
-            let pi = (slot - slot_base[comp.index()]) as usize;
+            let pi = slot.index() - slot_base[comp.index()].index();
             let owner = match names[comp.index()] {
                 StrId::NONE => format!("<{}>#{}", component_types[comp.index()].tag(), comp),
                 s => dast.strings.get(s).trim().to_string(),
@@ -515,13 +516,13 @@ impl<'c> Builder<'c> {
         memo: &mut HashMap<SlotId, Option<Handle>>,
     ) -> Option<Handle> {
         let mut root = slot;
-        while let BuiltSource::Alias(t) = self.sources[root as usize] {
+        while let BuiltSource::Alias(t) = self.sources[root.index()] {
             root = t;
         }
         if let Some(&h) = memo.get(&root) {
             return h;
         }
-        let h = match self.sources[root as usize] {
+        let h = match self.sources[root.index()] {
             BuiltSource::Fixed(h) if !h.is_nan() => Some(h as Handle),
             BuiltSource::Op(OpSpec::Sym(SymKind::Instantiate { template, .. }), _, _) => {
                 let tree = rebind(&self.sym_templates[template as usize], slot_to_cell);
@@ -554,7 +555,7 @@ impl<'c> Builder<'c> {
         cells: &mut [f64],
         defaults: &mut [f64],
         slot_to_cell: &[CellIdx],
-        def: impl Fn(SlotId) -> u32,
+        def: impl Fn(SlotId) -> SlotId,
         dead_cell: Option<CellIdx>,
     ) -> Result<()> {
         if self.seeds.is_empty() {
@@ -564,52 +565,52 @@ impl<'c> Builder<'c> {
         let sources: HashSet<CellIdx> = self
             .seeds
             .iter()
-            .map(|&(_, from)| slot_to_cell[from as usize])
+            .map(|&(_, from)| slot_to_cell[from.index()])
             .collect();
         let math_cells: HashSet<CellIdx> = self
             .typed_slots
             .iter()
             .filter(|&&(_, ty)| ty == ValueType::Math)
-            .map(|&(s, _)| slot_to_cell[s as usize])
+            .map(|&(s, _)| slot_to_cell[s.index()])
             .filter(|c| sources.contains(c))
             .collect();
         for &(s, from) in &self.seeds {
             let (scope, tslot, _) = self.essential_key(s);
             let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
-            let src = slot_to_cell[from as usize];
+            let src = slot_to_cell[from.index()];
             // A collect's count is a constant in every real build; the probe
             // only stands it in by an operator over the repeats' counts.
             let stand_in = || {
                 self.follows_counts
                     .iter()
-                    .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT) as usize] == src)
+                    .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT).index()] == src)
             };
             let computed = matches!(
-                self.sources[def(from) as usize],
+                self.sources[def(from).index()],
                 BuiltSource::Op(..) | BuiltSource::VecOut(..)
             );
             if computed && !stand_in() {
                 // The seeded element is boxed (ADR 0013).
-                let node = self.components.dast_node[self.slot_comp[s as usize].index()];
+                let node = self.components.dast_node[self.slot_comp[s.index()].index()];
                 self.failed_node = (node != NodeId::NONE).then_some(node);
                 return Err(Error::Unsupported(format!(
                     "prefill=\"${}\": a prefill reference must name a value that is not computed",
                     self.slot_label(from)
                 )));
             }
-            if dead_cell == Some(slot_to_cell[s as usize]) {
+            if dead_cell == Some(slot_to_cell[s.index()]) {
                 continue;
             }
             let v = cells[src.index()];
             let seed = if math_cells.contains(&src) || v.is_nan() {
                 v
             } else {
-                self.engine.import(&Tree::Num(v)) as f64
+                self.engine.import(&Tree::<CellIdx>::Num(v)) as f64
             };
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);
             // a seeded cell no student can write (ADR 0018) is fixed at it.
-            let cell = slot_to_cell[s as usize].index();
+            let cell = slot_to_cell[s.index()].index();
             let essential = cell < defaults.len();
             if essential {
                 defaults[cell] = seed;
@@ -628,7 +629,7 @@ impl<'c> Builder<'c> {
     /// as the referent (`place_list_copies`), and no template slot names
     /// them.
     pub(in crate::build) fn template_slot(&self, slot: SlotId) -> Option<(usize, u32)> {
-        let comp = self.slot_comp[slot as usize];
+        let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return None;
         }
@@ -638,7 +639,7 @@ impl<'c> Builder<'c> {
         }
         let inst = self.instances[i as usize];
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
-        let pi = slot - self.slot_base[comp.index()];
+        let pi = slot.get() - self.slot_base[comp.index()].get();
         if pi as usize >= el.props.len().max(el.component_type.prop_defs().len()) {
             return None;
         }
@@ -656,7 +657,7 @@ impl<'c> Builder<'c> {
             .map(|t| vec![0; (t.n_slots as usize).div_ceil(64)])
             .collect();
         for (s, _) in marked.iter().enumerate().filter(|(_, w)| **w) {
-            if let Some((t, ts)) = self.template_slot(s as SlotId) {
+            if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
                 record[t][ts as usize / 64] |= 1 << (ts % 64);
             }
         }
@@ -667,20 +668,20 @@ impl<'c> Builder<'c> {
     /// slot of it has a template slot the record marks, or when none of
     /// its slots has a template slot to name it by, so the record cannot
     /// say, and the class is kept.
-    fn live_by_record(&self, record: &[Vec<u64>], roots: &[u32]) -> Vec<bool> {
+    fn live_by_record(&self, record: &[Vec<u64>], roots: &[SlotId]) -> Vec<bool> {
         let n = roots.len();
         let (mut live, mut named) = (vec![false; n], vec![false; n]);
         for (s, &root) in roots.iter().enumerate() {
-            if let Some((t, ts)) = self.template_slot(s as SlotId) {
-                named[root as usize] = true;
+            if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
+                named[root.index()] = true;
                 if Classes::recorded(record, t, ts) {
-                    live[root as usize] = true;
+                    live[root.index()] = true;
                 }
             }
         }
         roots
             .iter()
-            .map(|&r| live[r as usize] || !named[r as usize])
+            .map(|&r| live[r.index()] || !named[r.index()])
             .collect()
     }
 
@@ -690,9 +691,9 @@ impl<'c> Builder<'c> {
     /// its element's key and position, `HIDDEN` marking a hidden slot.
     #[inline]
     pub(in crate::build) fn essential_key(&self, slot: SlotId) -> (ScopeId, u32, (ElemKey, u32)) {
-        let comp = self.slot_comp[slot as usize];
+        let comp = self.slot_comp[slot.index()];
         let inst = self.instances[self.comp_instance[comp.index()] as usize];
-        let pi = slot - self.slot_base[comp.index()];
+        let pi = slot.get() - self.slot_base[comp.index()].get();
         let el = &self.compiled.templates[inst.template].elems[inst.elem];
         let prop = if (pi as usize) < self.n_public(comp) {
             pi
@@ -743,12 +744,12 @@ impl<'c> Builder<'c> {
             stack.push(self.slot(r.comp, count_pi));
             touched.clear();
             while let Some(sl) = stack.pop() {
-                if seen[sl as usize] {
+                if seen[sl.index()] {
                     continue;
                 }
-                seen[sl as usize] = true;
+                seen[sl.index()] = true;
                 touched.push(sl);
-                let comp = self.slot_comp[sl as usize];
+                let comp = self.slot_comp[sl.index()];
                 if comp != CompIdx::NONE {
                     let scope = self.components.scope[comp.index()];
                     if scope != ScopeId::DOCUMENT
@@ -762,7 +763,7 @@ impl<'c> Builder<'c> {
                         }
                     }
                 }
-                match &self.sources[sl as usize] {
+                match &self.sources[sl.index()] {
                     BuiltSource::Alias(t) => stack.push(*t),
                     BuiltSource::Op(_, start, n) => stack.extend_from_slice(
                         &self.op_inputs[*start as usize..*start as usize + *n as usize],
@@ -772,7 +773,7 @@ impl<'c> Builder<'c> {
                 }
             }
             for &sl in &touched {
-                seen[sl as usize] = false;
+                seen[sl.index()] = false;
             }
         }
         fn depth(ri: usize, reads: &[Vec<usize>], memo: &mut [u32], visiting: &mut [bool]) -> u32 {
@@ -802,26 +803,11 @@ impl<'c> Builder<'c> {
 }
 
 /// A template with its slot leaves replaced by cells.
-fn rebind(t: &Tree, slot_to_cell: &[CellIdx]) -> Tree {
-    let all = |ts: &[Tree]| ts.iter().map(|k| rebind(k, slot_to_cell)).collect();
-    let one = |k: &Tree| Box::new(rebind(k, slot_to_cell));
-    match t {
-        Tree::Cell { cell, math } => Tree::Cell {
-            cell: slot_to_cell[*cell as usize].get(),
-            math: *math,
-        },
-        Tree::Num(_) | Tree::Sym(_) => t.clone(),
-        Tree::Add(ts) => Tree::Add(all(ts)),
-        Tree::Mul(ts) => Tree::Mul(all(ts)),
-        Tree::Sub(a, b) => Tree::Sub(one(a), one(b)),
-        Tree::Div(a, b) => Tree::Div(one(a), one(b)),
-        Tree::Pow(a, b) => Tree::Pow(one(a), one(b)),
-        Tree::Neg(a) => Tree::Neg(one(a)),
-        Tree::Apply(f, a) => Tree::Apply(f.clone(), one(a)),
-    }
+fn rebind(t: &Tree<SlotId>, slot_to_cell: &[CellIdx]) -> Tree<CellIdx> {
+    t.map_leaves(|s| slot_to_cell[s.index()])
 }
 
-fn has_math_leaf(t: &Tree) -> bool {
+fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     match t {
         Tree::Cell { math, .. } => *math,
         Tree::Num(_) | Tree::Sym(_) => false,
@@ -833,46 +819,37 @@ fn has_math_leaf(t: &Tree) -> bool {
 
 /// Distinct cell leaves of a tree, rebound to cells (`rebind`), in
 /// first-seen order.
-fn cell_leaves(t: &Tree, out: &mut Vec<CellIdx>) {
-    match t {
-        Tree::Cell { cell, .. } => {
-            let cell = CellIdx::new(*cell);
-            if !out.contains(&cell) {
-                out.push(cell);
-            }
+fn cell_leaves(t: &Tree<CellIdx>, out: &mut Vec<CellIdx>) {
+    t.for_each_leaf(&mut |cell, _| {
+        if !out.contains(&cell) {
+            out.push(cell);
         }
-        Tree::Num(_) | Tree::Sym(_) => {}
-        Tree::Add(ts) | Tree::Mul(ts) => ts.iter().for_each(|k| cell_leaves(k, out)),
-        Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => {
-            cell_leaves(a, out);
-            cell_leaves(b, out);
-        }
-        Tree::Neg(a) | Tree::Apply(_, a) => cell_leaves(a, out),
-    }
+    });
 }
 
+/// Alias classes of slots.
 struct UnionFind {
-    parent: Vec<u32>,
+    parent: Vec<SlotId>,
 }
 
 impl UnionFind {
     fn new(n: usize) -> Self {
         UnionFind {
-            parent: (0..n as u32).collect(),
+            parent: SlotId::below(n).collect(),
         }
     }
-    fn find(&mut self, mut x: u32) -> u32 {
-        while self.parent[x as usize] != x {
-            let p = self.parent[x as usize];
-            self.parent[x as usize] = self.parent[p as usize];
+    fn find(&mut self, mut x: SlotId) -> SlotId {
+        while self.parent[x.index()] != x {
+            let p = self.parent[x.index()];
+            self.parent[x.index()] = self.parent[p.index()];
             x = p;
         }
         x
     }
-    fn union(&mut self, a: u32, b: u32) {
+    fn union(&mut self, a: SlotId, b: SlotId) {
         let (ra, rb) = (self.find(a), self.find(b));
         if ra != rb {
-            self.parent[ra as usize] = rb;
+            self.parent[ra.index()] = rb;
         }
     }
 }
