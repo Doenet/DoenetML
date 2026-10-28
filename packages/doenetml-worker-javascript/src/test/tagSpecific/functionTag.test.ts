@@ -7799,6 +7799,8 @@ describe("Function tag tests @group4", async () => {
 <function name="f" variables="x y z" domain="(0,1) (0,2) (0,3)">x+y+z</function>
 <function name="g" numInputs="2">$f</function>
 <function name="h" variables="x y z w">$f</function>
+<piecewiseFunction name="pw"><function domain="(s,t)">x^2</function></piecewiseFunction>
+<function name="k">$pw</function>
 `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -7825,6 +7827,12 @@ describe("Function tag tests @group4", async () => {
             interval(0, 3),
             interval(-Infinity, Infinity),
         ]);
+        // A piecewise function whose pieces have symbolic bounds has a null
+        // domain, so its input gets the unrestricted domain.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pw")].stateValues.domain,
+        ).eq(null);
+        expect(await domainOf("k")).eqls([interval(-Infinity, Infinity)]);
     });
 
     describe("a formula with no symbolic derivative", () => {
