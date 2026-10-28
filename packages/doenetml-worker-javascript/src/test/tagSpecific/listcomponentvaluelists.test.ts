@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
+    movePoint,
+    movePolygon,
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
@@ -1236,6 +1238,104 @@ describe("Value lists as list components @group4", async () => {
             pce: "b, w",
             pP: "1, 2",
             pcex: "9, 2",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+    });
+
+    it("a copy of an extend made after the reader changed its source starts from the source's current values, through a reload", async () => {
+        const doenetML = `
+    <mathInput name="m" prefill="a" />
+    <mathList name="l">$m <math>y</math> z</mathList>
+    <mathInput name="ml2" bindValueTo="$l[2]" />
+    <mathInput name="ml3" bindValueTo="$l[3]" />
+    <mathList name="e" extend="$l" />
+    <mathList name="ee" extend="$e" />
+    <graph>
+      <point name="P">(1,2)</point>
+      <polygon name="poly" vertices="(0,0) (3,0) (0,4)" />
+    </graph>
+    <mathList name="ex" extend="$P.xs" />
+    <pointList name="ev" extend="$poly.vertices" />
+    <booleanInput name="b" />
+    <conditionalContent name="cc" condition="$b">
+      <p name="pe"><mathList name="ce" copy="$e" /></p>
+      <p name="pee"><mathList copy="$ee" /></p>
+      <p name="pcce"><mathList copy="$ce" /></p>
+      <p name="pex"><mathList copy="$ex" /></p>
+      <p name="pev"><pointList copy="$ev" /></p>
+    </conditionalContent>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("ml2"),
+            core,
+        });
+        // a write to a piece of text of the list
+        await updateMathInputValue({
+            latex: "s",
+            componentIdx: await resolvePathToNodeIdx("ml3"),
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("poly"),
+            pointCoords: { 0: [1, 1] },
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        const names = ["cc.pe", "cc.pee", "cc.pcce", "cc.pex", "cc.pev"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            "cc.pe": "a, q, s",
+            "cc.pee": "a, q, s",
+            "cc.pcce": "a, q, s",
+            "cc.pex": "5, 6",
+            "cc.pev": "(1, 1), (3, 0), (0, 4)",
+        });
+
+        // the copies of an extend of a list follow the references in it;
+        // those of an extend of a property hold their values
+        await updateMathInputValue({
+            latex: "b",
+            componentIdx: await resolvePathToNodeIdx("m"),
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("poly"),
+            pointCoords: { 1: [2, 2] },
+            core,
+        });
+        const changed = {
+            "cc.pe": "b, q, s",
+            "cc.pee": "b, q, s",
+            "cc.pcce": "b, q, s",
+            "cc.pex": "5, 6",
+            "cc.pev": "(1, 1), (3, 0), (0, 4)",
         };
         expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
 

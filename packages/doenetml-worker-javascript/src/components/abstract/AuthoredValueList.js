@@ -1926,8 +1926,9 @@ export function valueForChild(value, child) {
 }
 
 /**
- * A value written to a piece of text, or to an entry of the values a copy
- * holds, as the entry holds it. A saved state keeps a math as its tree.
+ * A value a list reads for an entry (one written to a piece of text, one of
+ * a shadowed array, or a collected source's), as the entry holds it. A saved
+ * state keeps a math as its tree.
  */
 export function restoredValue(value, kind) {
     if (kind === "math" && !(value instanceof me.class)) {
