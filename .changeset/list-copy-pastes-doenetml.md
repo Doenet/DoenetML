@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-A `copy` of a `<mathList>`, `<numberList>`, `<textList>`, `<booleanList>`, `<intervalList>`, `<tupleList>`, `<pointList>` or `<vectorList>` is now that list's DoenetML pasted, as a `copy` of any other component is. A reference written in the list stays live in the copy: `<mathList copy="$l"/>` of `<mathList name="l">$mi 2</mathList>` now follows `mi`, where before it held the values `l` had when the copy was made. The children the list names can also be reached through the copy (`$c.h`).
+A `copy` of a `<mathList>`, `<numberList>`, `<textList>`, `<booleanList>`, `<intervalList>`, `<tupleList>`, `<pointList>` or `<vectorList>` is now that list's DoenetML pasted, as a `copy` of any other component is. A reference written in the list stays live in the copy: `<mathList copy="$l"/>` of `<mathList name="l">$mi 2</mathList>` now follows `mi`, where before it held the values `l` had when the copy was made. The children the list names can also be reached through the copy (`$c.h`). The name of the list it copies is not a name inside the copy: `$c.l` names nothing, as it never did for a copy of a `<p>`. The same holds for an `extend` of a list (`$e.l`).
 
 A `copy` of an `extend` of a list (`<mathList copy="$e"/>` of `<mathList name="e" extend="$l"/>`) is likewise the DoenetML of `l` pasted, not linked to `l`, and a `copy` of an `extend` of a `<repeat>` pastes the repeat. A `copy` of an `extend` of a property (`<mathList name="ex" extend="$P.xs"/>`) still holds the values it had when the copy was made.
 

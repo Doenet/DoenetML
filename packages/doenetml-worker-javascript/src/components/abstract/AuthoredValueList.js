@@ -2306,14 +2306,19 @@ async function pasteWhatListExtends(list, serialized, parameters) {
           );
     const pasted = [];
     for (const replacement of replacements) {
-        pasted.push(
-            typeof replacement === "object"
-                ? await replacement.serialize({
-                      ...parameters,
-                      serializingDescendant: false,
-                  })
-                : replacement,
-        );
+        if (typeof replacement !== "object") {
+            pasted.push(replacement);
+            continue;
+        }
+        const serializedReplacement = await replacement.serialize({
+            ...parameters,
+            serializingDescendant: false,
+        });
+        // The copy has the name the author gave it; the name of what it
+        // pastes would be a name inside the copy (`$c.l`), as for the
+        // `_copy` of any copy of a list (`Copy.createReplacementForSource`).
+        delete serializedReplacement.attributes?.name;
+        pasted.push(serializedReplacement);
     }
     serialized.children.splice(ind, 1, ...pasted);
     delete serialized.doenetAttributes.extendListViaComposite;

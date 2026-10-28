@@ -618,6 +618,43 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("a copy or extend of a list has the name written on it, and none of the list it copies", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l"><math name="h">x</math> 2</mathList>
+    <mathList name="c1" copy="$l" />
+    <mathList name="c2" copy="$c1" />
+    <mathList name="e" extend="$l" />
+    <mathList name="ce" copy="$e" />
+    <repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>
+    <mathList name="er" extend="$r" />
+    <mathList name="cer" copy="$er" />
+    <pointList name="pl"><point name="A">(1,2)</point></pointList>
+    <pointList name="pc" copy="$pl" />
+    <p name="p">$c1.h | $ce.h | $pc.A | $c2 | $cer</p>
+    `,
+        });
+
+        // the children the list names are reached through the copy
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "x | x | (1, 2) | x, 2 | 1, 2",
+        });
+        // but the name of the list it copies or extends is not in it
+        for (const path of [
+            "c1.l",
+            "c2.c1",
+            "c2.l",
+            "e.l",
+            "ce.e",
+            "ce.l",
+            "cer.er",
+            "cer.r",
+            "pc.pl",
+        ]) {
+            expect(await resolvePathToNodeIdx(path), path).eq(-1);
+        }
+    });
+
     it("a copy of each kind of authored list follows the references in it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
