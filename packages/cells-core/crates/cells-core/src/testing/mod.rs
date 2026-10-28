@@ -110,12 +110,12 @@ pub fn unsaved_essentials(doc: &crate::Document) -> Vec<String> {
         .structure
         .essential_keys
         .iter()
-        .filter(|&&(key, prop)| doc.keys.prop_key(key, prop).is_none())
+        .filter(|&&(key, prop)| doc.loaded.keys.prop_key(key, prop).is_none())
         .map(|&(key, prop)| {
             format!(
                 "{} {} (hidden slot {})",
-                doc.keys.key_type(key).tag(),
-                doc.keys.key_text(key),
+                doc.loaded.keys.key_type(key).tag(),
+                doc.loaded.keys.key_text(key),
                 prop & !HIDDEN
             )
         })
@@ -169,7 +169,7 @@ pub fn inputs(
         if names.is_empty() {
             continue;
         }
-        let text = |cell: crate::CellIdx| match doc.program.value_types[cell as usize] {
+        let text = |cell: crate::CellIdx| match doc.value_types[cell as usize] {
             ValueType::Number => format!("{:?}", doc.cells[cell as usize]),
             ValueType::Text => doc.text_value(cell),
             ValueType::Math => doc.math_text(cell),
@@ -248,7 +248,7 @@ pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Res
             if !pruned.is_live(p) {
                 continue;
             }
-            let same = match pruned.program.value_types[p as usize] {
+            let same = match pruned.value_types[p as usize] {
                 ValueType::Math => full.math_text(f) == pruned.math_text(p),
                 ValueType::Text => full.text_value(f) == pruned.text_value(p),
                 ValueType::Number => {

@@ -13,8 +13,8 @@ use crate::session::{Counts, Session};
 
 use crate::components::{ComponentType, prop};
 use crate::dast::{Dast, StrId, StringTable};
-use crate::program::{Program, ValueType};
-use crate::tick::eval::Recompute;
+use crate::program::{Program, SymRun, SymState, ValueType};
+use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
 
 mod interactive;
@@ -42,8 +42,13 @@ pub const NONE: u32 = u32::MAX;
 /// Set on a `child_list` entry whose low bits are a string id, not a component.
 pub const TEXT_BIT: u32 = 1 << 31;
 
+/// A loaded document. Its fields fall in two groups by how long they
+/// live: what one build made, which a rebuild replaces (`load.rs`), and
+/// what outlives every build, which a rebuild carries: the session, what
+/// the load fixed, and how ticks recompute.
 #[derive(Debug, Clone)]
 pub struct Document {
+    // What one build made.
     /// All cells. Essential cells come first, then fixed, then derived.
     pub cells: Vec<f64>,
     /// Number of essential cells; `cells[..n_essential]` are essential.
@@ -51,7 +56,16 @@ pub struct Document {
     /// Fixed cells follow the essential ones: constants that are not state
     /// (iteration indices, collect counts, the missing-referent NaN).
     pub n_fixed: usize,
+    /// What each cell's value means: read when a request arrives and when
+    /// state is saved, never while recomputing.
+    pub value_types: Vec<ValueType>,
+    /// The scheduled instructions, which a tick only reads.
     pub program: Program,
+    /// What the program's symbolic instructions keep between runs.
+    pub sym: SymState,
+    /// The dirty closure's tables for `program`: built on the first tick
+    /// that recomputes by them, so a document never ticked never holds them.
+    dirty: Option<DirtyClosure>,
     pub components: ComponentTable,
     /// Names and text: the DAST's table, then the strings the build added
     /// (`Compiled::extra_strings`), then those interned since load.
@@ -65,12 +79,30 @@ pub struct Document {
     /// Index of the root `<document>` component.
     pub root: CompIdx,
     pub structure: Structure,
+    /// Sticky groups as cells, for the request pre-pass (ADR 0007).
+    sticky: Vec<sticky::StickyTable>,
+    /// One bit per cell a renderer may request (`interactive.rs`).
+    interactive: Vec<u64>,
+    /// Which cells the document computes (ADR 0019, `outputs.rs`).
+    live: crate::build::Live,
+
+    // What outlives every build.
     /// What the session has accumulated (ADR 0015): carried values, scopes,
-    /// strings interned at runtime. Every build reads it.
-    pub session: crate::session::Session,
+    /// strings interned at runtime, the math engine. Every build reads it
+    /// and returns the next.
+    pub session: Session,
+    /// What the load fixed.
+    pub loaded: Loaded,
+    /// How a tick recomputes (`set_evaluator`).
+    recompute: Recompute,
+}
+
+/// What a document's load fixed, which every rebuild carries.
+#[derive(Debug, Clone)]
+pub struct Loaded {
     /// The source's literal attributes, for a renderer (`attr_text`): all
     /// a document keeps of its DAST, unless it keeps its compile. Gathered
-    /// once a load settles, off the load's peak, and shared by rebuilds.
+    /// once a load settles, off the load's peak.
     pub literal_attrs: Arc<crate::dast::LiteralAttrs>,
     /// The document as compiled at load, which every rebuild stamps
     /// (ADR 0015). Kept only by a document with a repeat: one without
@@ -83,15 +115,6 @@ pub struct Document {
     /// The source's `Dast::version_hash`: the version saved state was made
     /// in.
     pub(crate) version: u64,
-    /// Sticky groups as cells, for the request pre-pass (ADR 0007).
-    sticky: Vec<sticky::StickyTable>,
-    /// One bit per cell a renderer may request (`interactive.rs`).
-    interactive: Vec<u64>,
-    /// Which cells the document computes (ADR 0019, `outputs.rs`).
-    live: crate::build::Live,
-    /// How a tick recomputes (`request`): a dirty closure unless set
-    /// otherwise (`set_evaluator`), kept across rebuilds.
-    evaluator: Recompute,
 }
 
 impl Document {
@@ -100,12 +123,13 @@ impl Document {
         cells: Vec<f64>,
         n_essential: usize,
         n_fixed: usize,
+        value_types: Vec<ValueType>,
         program: Program,
         components: ComponentTable,
         strings: StringTable,
         root: CompIdx,
         structure: Structure,
-        session: crate::session::Session,
+        session: Session,
         compiled: Arc<crate::compile::Compiled>,
         live: crate::build::Live,
     ) -> Self {
@@ -119,22 +143,27 @@ impl Document {
             cells,
             n_essential,
             n_fixed,
+            value_types,
+            sym: SymState::new(&program),
             program,
+            dirty: None,
             components,
             strings,
             n_static_strings,
             interned: None,
             root,
             structure,
-            session,
-            literal_attrs: Arc::default(),
-            keys: compiled.keys.clone(),
-            version: compiled.version,
-            compiled: compiled.rebuilds().then_some(compiled),
             sticky: Vec::new(),
             interactive: Vec::new(),
             live,
-            evaluator: Recompute::default(),
+            session,
+            loaded: Loaded {
+                literal_attrs: Arc::default(),
+                keys: compiled.keys.clone(),
+                version: compiled.version,
+                compiled: compiled.rebuilds().then_some(compiled),
+            },
+            recompute: Recompute::default(),
         };
         doc.sticky = doc.sticky_tables();
         doc.interactive = doc.interactive_bits();
@@ -195,7 +224,7 @@ impl Document {
     /// engine for a math cell. Checked once per request, never in the tick.
     pub(super) fn can_hold(&self, cell: CellIdx, value: f64) -> bool {
         let index_below = |n: usize| value >= 0.0 && value.fract() == 0.0 && value < n as f64;
-        match self.program.value_types[cell as usize] {
+        match self.value_types[cell as usize] {
             ValueType::Number => true,
             ValueType::Text => value.is_nan() || index_below(self.strings.len()),
             ValueType::Math => value.is_nan() || index_below(self.session.engine.borrow().len()),
@@ -214,7 +243,12 @@ impl Document {
 
     /// Recompute all derived cells from the essential cells.
     pub fn recompute(&mut self) {
-        self.program.run_all(&mut self.cells);
+        let mut engine = self.session.engine.borrow_mut();
+        let mut sym = SymRun {
+            state: &mut self.sym,
+            engine: &mut engine,
+        };
+        self.program.run_all(&mut sym, &mut self.cells);
     }
 
     /// Write an essential cell and recompute. Panics if `cell` is derived.

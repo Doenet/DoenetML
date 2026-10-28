@@ -57,30 +57,30 @@ impl Document {
             let (key, prop) = st.essential_keys[i];
             // A hidden slot that holds no shared state has no name to save
             // it by.
-            let Some(prop) = self.keys.prop_key(key, prop) else {
+            let Some(prop) = self.loaded.keys.prop_key(key, prop) else {
                 continue;
             };
             let cell = i as CellIdx;
             let v = self.cells[i];
-            let (kind, value) = match self.program.value_types[i] {
-                _ if v.is_nan() => (kind_of(self.program.value_types[i]), Value::Null),
+            let (kind, value) = match self.value_types[i] {
+                _ if v.is_nan() => (kind_of(self.value_types[i]), Value::Null),
                 ValueType::Number => ("n", json!(v)),
                 ValueType::Text => ("t", json!(self.text_value(cell))),
                 ValueType::Math => ("m", json!(self.math_text(cell))),
             };
             let mut entry = vec![
                 self.scope_path(scope),
-                json!(self.keys.key_text(key)),
+                json!(self.loaded.keys.key_text(key)),
                 json!(prop),
                 json!(kind),
                 value,
             ];
-            if self.keys.is_view(key, &prop) {
+            if self.loaded.keys.is_view(key, &prop) {
                 entry.push(number(st.essential_defaults[i]));
             }
             out.push(Value::Array(entry));
         }
-        let doc = format!("{:016x}", self.version);
+        let doc = format!("{:016x}", self.loaded.version);
         json!({ "v": FORMAT, "core": crate::RELEASE, "doc": doc, "state": out }).to_string()
     }
 
@@ -118,7 +118,7 @@ impl Document {
             .enumerate()
             .map(|(i, (&(scope, _), &(key, prop)))| ((scope, key, prop), i as CellIdx))
             .collect();
-        let keys = self.keys.clone();
+        let keys = self.loaded.keys.clone();
         let by_text = keys.by_text();
         for e in entries {
             let bad = || Error::Unsupported(format!("malformed saved state entry {e}"));
@@ -161,7 +161,7 @@ impl Document {
             if let Some(cell) = live {
                 let c = cell as usize;
                 let default = self.structure.essential_defaults[c];
-                if !parked_kind.fits(self.program.value_types[c], default) {
+                if !parked_kind.fits(self.value_types[c], default) {
                     continue;
                 }
             }
@@ -211,7 +211,7 @@ impl Document {
         let mut path = Vec::new();
         while scope != 0 {
             let (parent, node, k) = self.session.scopes[scope];
-            path.push(self.keys.scope_level(node, k));
+            path.push(self.loaded.keys.scope_level(node, k));
             scope = parent;
         }
         path.reverse();
@@ -224,7 +224,7 @@ impl Document {
     fn scope_at(&mut self, path: &[Value]) -> Option<ScopeId> {
         let mut scope = 0;
         for level in path {
-            let (node, k) = self.keys.level_at(level)?;
+            let (node, k) = self.loaded.keys.level_at(level)?;
             scope = self.session.scopes.get_or_insert(scope, node, k);
         }
         Some(scope)

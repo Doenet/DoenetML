@@ -224,8 +224,7 @@ fn act_on_both(full: &mut Document, pruned: &mut Document, at: &str) {
             if !pruned.is_interactive(p) {
                 continue;
             }
-            let value = |doc: &mut Document, cell: u32| match doc.program.value_types[cell as usize]
-            {
+            let value = |doc: &mut Document, cell: u32| match doc.value_types[cell as usize] {
                 ValueType::Number => {
                     let v = doc.cells[cell as usize];
                     if v.is_nan() { 1.0 } else { v + 1.0 }

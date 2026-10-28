@@ -140,9 +140,13 @@ a build succeeds, a failed rebuild leaves the document as it was.
 
 ### Document (`document/`)
 
-A `Document` is a loaded document: the cells, the program, the
-`ComponentTable`, the string table, and the source's literal attributes for
-a renderer. It is the API that the wasm binding and the tests use.
+A `Document` is a loaded document: the cells and what each holds
+(`value_types`), the program and its symbolic state, the
+`ComponentTable` and the string table, all of which one build made and a
+rebuild replaces; and the session, what the load fixed (`Loaded`: the
+compile, the keys, the source's literal attributes for a renderer) and how
+ticks recompute, which a rebuild carries. It is the API that the wasm
+binding and the tests use.
 
 ### Tick (`tick/`)
 
@@ -246,11 +250,11 @@ the other action: it sets each `<updateValue>`'s target.
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
 | `Session`, `Counts` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine; and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
-| `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. `Program::value_types` records whether each cell holds a number, text or math. |
+| `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. A `Program` is read-only while a tick runs; what its symbolic instructions keep between runs is a `SymState` beside it in the document. |
 | `Document` | `document/mod.rs` | A loaded document and the API to it. |
 | `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
-| `Evaluator` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`. |
+| `Evaluator`, `Recompute` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`; `Recompute` is the document's setting of which one a tick uses. |
 | `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
 | `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells: math-expressions-rs called directly (ADR 0008, ADR 0011). A math cell holds a handle into it. `Tape` compiles a curve of fixed shape to numeric steps. |
 

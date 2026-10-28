@@ -29,8 +29,8 @@ type HashSet<K> = std::collections::HashSet<K, BuildHasherDefault<IndexHasher>>;
 
 use crate::document::CellIdx;
 use crate::program::Produced;
-use crate::program::Program;
 use crate::program::{Op, SymKind};
+use crate::program::{Program, SymRun};
 use crate::tick::Request;
 
 /// A request on both cells of a point, issued together with others as a
@@ -70,6 +70,7 @@ pub struct Inversion {
 /// groups an inverse produces.
 pub fn invert_requests(
     program: &Program,
+    sym: &mut SymRun,
     cells: &[f64],
     n_essential: usize,
     requests: &[Request],
@@ -77,6 +78,7 @@ pub fn invert_requests(
 ) -> Inversion {
     let mut engine = RequestEngine {
         program,
+        sym: sym.reborrow(),
         cells,
         n_essential,
         pending: HashMap::default(),
@@ -119,6 +121,7 @@ pub fn invert_requests(
 /// returned is a handle the lookahead forgets.
 pub fn realize(
     program: &Program,
+    sym: &mut SymRun,
     cells: &[f64],
     n_essential: usize,
     requests: &[(CellIdx, f64)],
@@ -128,7 +131,7 @@ pub fn realize(
         .iter()
         .map(|&(cell, value)| Request { cell, value })
         .collect();
-    let inv = invert_requests(program, cells, n_essential, &reqs, &[]);
+    let inv = invert_requests(program, sym, cells, n_essential, &reqs, &[]);
     let mut scratch = cells.to_vec();
     for &(c, v) in &inv.writes {
         scratch[c as usize] = v;
@@ -139,10 +142,10 @@ pub fn realize(
         .filter(|&p| p != u32::MAX)
         .max();
     if let Some(hi) = hi {
-        program.lookahead(|| {
+        Program::lookahead(sym, |sym| {
             for ins in &program.instrs[..=hi as usize] {
                 if program.any_input_differs(ins, &scratch, cells) {
-                    program.step_lookahead(ins, &mut scratch);
+                    program.step_lookahead(ins, sym, &mut scratch);
                 }
             }
         });
@@ -153,6 +156,7 @@ pub fn realize(
 /// One run of the inversion engine.
 struct RequestEngine<'a> {
     program: &'a Program,
+    sym: SymRun<'a>,
     cells: &'a [f64],
     n_essential: usize,
     /// Requested value per derived cell awaiting its producer's inverse.
@@ -229,6 +233,7 @@ impl RequestEngine<'_> {
             let mut realized = Vec::with_capacity(reqs.len());
             realize(
                 self.program,
+                &mut self.sym,
                 self.cells,
                 self.n_essential,
                 &reqs,
@@ -309,7 +314,7 @@ impl RequestEngine<'_> {
                     let h = if d.is_nan() {
                         f64::NAN
                     } else {
-                        self.program.sym.engine.borrow_mut().num(d) as f64
+                        self.sym.engine.num(d) as f64
                     };
                     produced.write(expr, h);
                     true

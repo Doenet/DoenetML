@@ -398,8 +398,8 @@ mod tests {
 
     fn keys(src: &str) -> Vec<String> {
         let doc = load(src).unwrap();
-        (0..doc.keys.ends.len() as u32)
-            .map(|k| doc.keys.key_text(k).to_string())
+        (0..doc.loaded.keys.ends.len() as u32)
+            .map(|k| doc.loaded.keys.key_text(k).to_string())
             .collect()
     }
 

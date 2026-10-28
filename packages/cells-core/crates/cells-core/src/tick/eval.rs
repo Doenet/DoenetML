@@ -3,12 +3,18 @@
 //! they differ only in how much work they do.
 
 use crate::document::CellIdx;
-use crate::program::Program;
+use crate::program::{Program, SymRun};
 
 pub trait Evaluator {
     fn name(&self) -> &'static str;
     /// `changed` holds the essential cells written this tick on entry.
-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>);
+    fn recompute(
+        &mut self,
+        program: &Program,
+        sym: &mut SymRun,
+        cells: &mut [f64],
+        changed: &mut Vec<CellIdx>,
+    );
 }
 
 /// Run every instruction in schedule order, ignoring the seeds.
@@ -19,8 +25,14 @@ impl Evaluator for FullRecompute {
     fn name(&self) -> &'static str {
         "full"
     }
-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
-        program.run_all_tracking(cells, changed);
+    fn recompute(
+        &mut self,
+        program: &Program,
+        sym: &mut SymRun,
+        cells: &mut [f64],
+        changed: &mut Vec<CellIdx>,
+    ) {
+        program.run_all_tracking(sym, cells, changed);
     }
 }
 
@@ -88,24 +100,16 @@ impl DirtyClosure {
     }
 }
 
-/// How a document recomputes after a tick's writes: what it holds and
-/// ticks with (`Document::request`). A dirty closure's tables follow the
-/// program they were built for: they are built on the first tick, and a
-/// rebuild's document starts without them (`fresh`), so no caller keeps
-/// them in step by hand and a document never ticked never holds them.
-#[derive(Debug, Clone)]
+/// How a document recomputes after a tick's writes (`Document::request`):
+/// a setting, which a rebuild keeps. The dirty closure's tables follow the
+/// program and live beside it in the document.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Recompute {
     /// Every instruction (`FullRecompute`).
     Full,
-    /// The closure of what changed (`DirtyClosure`), what the browser runs;
-    /// None until the first tick.
-    DirtyClosure(Option<DirtyClosure>),
-}
-
-impl Default for Recompute {
-    fn default() -> Self {
-        Recompute::DirtyClosure(None)
-    }
+    /// The closure of what changed (`DirtyClosure`), what the browser runs.
+    #[default]
+    DirtyClosure,
 }
 
 impl Recompute {
@@ -113,33 +117,15 @@ impl Recompute {
     pub fn named(name: &str) -> Option<Recompute> {
         match name {
             "full" => Some(Recompute::Full),
-            "dirty-closure" => Some(Recompute::DirtyClosure(None)),
+            "dirty-closure" => Some(Recompute::DirtyClosure),
             _ => None,
         }
     }
 
-    /// The same strategy, for another program: without tables.
-    pub fn fresh(&self) -> Recompute {
-        match self {
-            Recompute::Full => Recompute::Full,
-            Recompute::DirtyClosure(_) => Recompute::DirtyClosure(None),
-        }
-    }
-}
-
-impl Evaluator for Recompute {
-    fn name(&self) -> &'static str {
+    pub fn name(self) -> &'static str {
         match self {
             Recompute::Full => "full",
-            Recompute::DirtyClosure(_) => "dirty-closure",
-        }
-    }
-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
-        match self {
-            Recompute::Full => FullRecompute.recompute(program, cells, changed),
-            Recompute::DirtyClosure(d) => d
-                .get_or_insert_with(|| DirtyClosure::new(program, cells.len()))
-                .recompute(program, cells, changed),
+            Recompute::DirtyClosure => "dirty-closure",
         }
     }
 }
@@ -148,7 +134,13 @@ impl Evaluator for DirtyClosure {
     fn name(&self) -> &'static str {
         "dirty-closure"
     }
-    fn recompute(&mut self, program: &Program, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
+    fn recompute(
+        &mut self,
+        program: &Program,
+        sym: &mut SymRun,
+        cells: &mut [f64],
+        changed: &mut Vec<CellIdx>,
+    ) {
         let mut lo = usize::MAX;
         let mut hi = 0;
         for &c in changed.iter() {
@@ -173,7 +165,7 @@ impl Evaluator for DirtyClosure {
                 bits &= bits - 1;
                 let ins = &program.instrs[w * 64 + b];
                 let before = changed.len();
-                program.step(ins, cells, Some(changed));
+                program.step(ins, sym, cells, Some(changed));
                 for &c in &changed[before..] {
                     // Readers come later in the schedule: above bit `b`, or in a later word.
                     self.mark_dependents(c, w, &mut bits, &mut hi);

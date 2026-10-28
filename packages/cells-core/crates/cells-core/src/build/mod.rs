@@ -49,7 +49,7 @@ use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::VecOp;
 use crate::program::{Instr, OpSpec, Post, SymKind};
-use crate::program::{Operands, Program, Sym, ValueType};
+use crate::program::{Operands, Program, ValueType};
 use crate::session::{Counts, Session};
 
 #[cfg(feature = "testing")]
@@ -264,12 +264,10 @@ impl BuildOutput {
         self.structure.diagnostics
     }
 
-    /// Schedule the program, which computes with the session's engine.
+    /// Schedule the program into a document.
     pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
         let n = self.cells.len();
-        let sym = Sym::new(self.session.engine.clone());
-        let program = match Program::schedule(self.instrs, n, sym, self.operands, self.value_types)
-        {
+        let program = match Program::schedule(self.instrs, n, self.operands) {
             Ok(mut p) => {
                 p.tapes = self.tapes;
                 p
@@ -283,6 +281,7 @@ impl BuildOutput {
             self.cells,
             self.n_essential,
             self.n_fixed,
+            self.value_types,
             program,
             self.components,
             self.strings,

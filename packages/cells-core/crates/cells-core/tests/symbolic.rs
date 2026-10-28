@@ -16,7 +16,7 @@ fn text(doc: &Document, name: &str) -> String {
 
 /// How many symbolic instructions have called the engine.
 fn runs(doc: &Document) -> u64 {
-    doc.program.sym.stats.get().runs
+    doc.sym.stats.runs
 }
 
 #[test]
@@ -168,7 +168,7 @@ fn a_copy_of_a_symbolic_math_shares_its_cell() {
 }
 
 fn engine_len(doc: &Document) -> usize {
-    doc.program.sym.engine.borrow().len()
+    doc.session.engine.borrow().len()
 }
 
 // The `Evaluate` inverse (`tick/invert.rs`) makes the requested number's
@@ -213,6 +213,7 @@ fn rebuilding_back_and_forth_does_not_grow_the_engine() {
 // give what the tick then computes.
 #[test]
 fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
+    use cells_core::program::SymRun;
     use cells_core::tick::invert::realize;
     let src = r#"<graph>
              <point name="p">(1,2)</point>
@@ -233,8 +234,13 @@ fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
     let bits = |doc: &Document| doc.cells.iter().map(|v| v.to_bits()).collect::<Vec<_>>();
     let (len, cells) = (engine_len(&doc), bits(&doc));
     let mut realized = Vec::new();
+    let engine = doc.session.engine.clone();
     realize(
         &doc.program,
+        &mut SymRun {
+            state: &mut doc.sym,
+            engine: &mut engine.borrow_mut(),
+        },
         &doc.cells,
         doc.n_essential,
         &asked,

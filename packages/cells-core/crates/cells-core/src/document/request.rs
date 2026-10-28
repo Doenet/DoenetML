@@ -9,7 +9,8 @@
 use std::sync::Arc;
 
 use super::{CellIdx, Document};
-use crate::tick::eval::{Evaluator, Recompute};
+use crate::program::SymRun;
+use crate::tick::eval::{DirtyClosure, Evaluator, FullRecompute, Recompute};
 use crate::tick::invert::{PointRequest, invert_requests};
 use crate::tick::{Request, TickOutcome};
 
@@ -62,8 +63,8 @@ impl Document {
     /// default). False for any other name.
     pub fn set_evaluator(&mut self, name: &str) -> bool {
         match Recompute::named(name) {
-            Some(e) => {
-                self.evaluator = e;
+            Some(r) => {
+                self.recompute = r;
                 true
             }
             None => false,
@@ -72,7 +73,7 @@ impl Document {
 
     /// The name of how ticks recompute.
     pub fn evaluator(&self) -> &'static str {
-        self.evaluator.name()
+        self.recompute.name()
     }
 
     fn tick(
@@ -110,8 +111,15 @@ impl Document {
             }
         }
         self.snap_sticky(&mut accepted, &mut finite_groups);
+        let engine = self.session.engine.clone();
+        let mut engine = engine.borrow_mut();
+        let mut sym = SymRun {
+            state: &mut self.sym,
+            engine: &mut engine,
+        };
         let inv = invert_requests(
             &self.program,
+            &mut sym,
             &self.cells,
             self.n_essential,
             &accepted,
@@ -141,11 +149,15 @@ impl Document {
             }
         }
         if !tick.changed.is_empty() {
-            let evaluator = match evaluator {
-                Some(e) => e,
-                None => &mut self.evaluator,
+            let evaluator: &mut dyn Evaluator = match (evaluator, self.recompute) {
+                (Some(e), _) => e,
+                (None, Recompute::Full) => &mut FullRecompute,
+                (None, Recompute::DirtyClosure) => self
+                    .dirty
+                    .get_or_insert_with(|| DirtyClosure::new(&self.program, self.cells.len())),
             };
-            evaluator.recompute(&self.program, &mut self.cells, &mut tick.changed);
+            evaluator.recompute(&self.program, &mut sym, &mut self.cells, &mut tick.changed);
+            drop(engine);
             if !self.structure_settled() {
                 match self.rebuild() {
                     Ok(passes) => {
@@ -220,26 +232,27 @@ impl Document {
         if node == crate::document::NONE {
             return None;
         }
-        let &(_, value) = self
-            .literal_attrs
+        let attrs = &self.loaded.literal_attrs;
+        let &(_, value) = attrs
             .of(node)
             .iter()
             .find(|&&(n, _)| self.strings.get(n).eq_ignore_ascii_case(name))?;
-        Some(self.literal_attrs.text(&self.strings, value).to_string())
+        Some(attrs.text(&self.strings, value).to_string())
     }
 
     /// Every literal attribute of every element (`name` aside), keyed by
     /// DAST node, for a renderer that reads presentation once per build
     /// instead of asking per component (`attr_text`).
     pub fn literal_attrs(&self) -> Vec<(crate::dast::NodeId, Vec<(&str, String)>)> {
-        self.literal_attrs
+        let literal = &self.loaded.literal_attrs;
+        literal
             .iter()
             .filter_map(|(n, attrs)| {
                 let attrs: Vec<(&str, String)> = attrs
                     .iter()
                     .map(|&(k, v)| (self.strings.get(k), v))
                     .filter(|(k, _)| !k.eq_ignore_ascii_case("name"))
-                    .map(|(k, v)| (k, self.literal_attrs.text(&self.strings, v).to_string()))
+                    .map(|(k, v)| (k, literal.text(&self.strings, v).to_string()))
                     .collect();
                 (!attrs.is_empty()).then_some((n, attrs))
             })

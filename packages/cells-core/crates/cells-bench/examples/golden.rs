@@ -57,7 +57,7 @@ fn dump(doc: &Document, out: &mut String) {
             }
             let cell = doc.comp_cells(c)[i];
             let v = doc.cells[cell as usize];
-            if doc.program.value_types.get(cell as usize) == Some(&ValueType::Math) {
+            if doc.value_types.get(cell as usize) == Some(&ValueType::Math) {
                 let _ = write!(out, " {}={:?}", def.name, doc.math_text(cell));
             } else if component_type == ComponentType::Text && i == 0 {
                 let _ = write!(out, " {}={:?}", def.name, doc.text_value(cell));

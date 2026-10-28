@@ -4,6 +4,7 @@
 //! every kind of inverse.
 
 use cells_core::Request;
+use cells_core::program::SymRun;
 use cells_core::testing::test_utils::load;
 
 const DOCS: &[&str] = &[
@@ -17,12 +18,17 @@ const DOCS: &[&str] = &[
 fn the_walk_matches_the_queue() {
     let mut checked = 0;
     for src in DOCS {
-        let doc = load(src).unwrap();
+        let mut doc = load(src).unwrap();
+        let engine = doc.session.engine.clone();
         for cell in 0..doc.cells.len() as u32 {
             for value in [0.5, -3.0, 7.25] {
                 let r = Request { cell, value };
                 let alone = cells_core::tick::invert::invert_requests(
                     &doc.program,
+                    &mut SymRun {
+                        state: &mut doc.sym,
+                        engine: &mut engine.borrow_mut(),
+                    },
                     &doc.cells,
                     doc.n_essential,
                     &[r],
@@ -30,6 +36,10 @@ fn the_walk_matches_the_queue() {
                 );
                 let twice = cells_core::tick::invert::invert_requests(
                     &doc.program,
+                    &mut SymRun {
+                        state: &mut doc.sym,
+                        engine: &mut engine.borrow_mut(),
+                    },
                     &doc.cells,
                     doc.n_essential,
                     &[r, r],
@@ -41,8 +51,8 @@ fn the_walk_matches_the_queue() {
                     writes
                         .iter()
                         .map(|&(c, v)| {
-                            let engine = doc.program.sym.engine.borrow();
-                            if doc.program.value_types[c as usize] == cells_core::ValueType::Math
+                            let engine = doc.session.engine.borrow();
+                            if doc.value_types[c as usize] == cells_core::ValueType::Math
                                 && v.fract() == 0.0
                                 && (0.0..engine.len() as f64).contains(&v)
                             {

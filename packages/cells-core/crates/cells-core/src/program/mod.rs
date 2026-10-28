@@ -5,9 +5,6 @@
 //! instruction list and its topological schedule. The inversion engine that drives the inverses is
 //! `tick/invert.rs`.
 
-use std::cell::{Cell, RefCell};
-use std::rc::Rc;
-
 use crate::sym::{Engine, Handle};
 
 use crate::document::CellIdx;
@@ -33,20 +30,44 @@ pub enum ValueType {
     Math,
 }
 
-/// The document's symbolic engine and the memo of every symbolic
-/// instruction. Interior mutability because instructions run through
-/// `&Program`; the engine only grows (see `sym::Engine`), but for what a
-/// lookahead stores and forgets (`Program::lookahead`).
-#[derive(Debug, Clone)]
-pub struct Sym {
-    /// The session's engine (`Session::engine`), which the program shares.
-    pub engine: Rc<RefCell<Engine>>,
-    /// For each symbolic instruction, from its `MemoIdx`: the input values
-    /// it last ran on, then its outputs from that run.
-    memo: RefCell<Vec<f64>>,
-    pub stats: Cell<SymStats>,
+/// What a program's symbolic instructions keep between runs: for each,
+/// from its `MemoIdx`, the input values it last ran on and its outputs
+/// from that run; with scratch for `SampleTape` and counters. Owned by the
+/// document beside its program, which stays read-only while a tick runs.
+#[derive(Debug, Clone, Default)]
+pub struct SymState {
+    memo: Vec<f64>,
+    pub stats: SymStats,
     /// Scratch columns for `SampleTape`.
-    tape_stack: RefCell<Vec<f64>>,
+    tape_stack: Vec<f64>,
+}
+
+impl SymState {
+    /// The state of `program`'s symbolic instructions before any has run.
+    pub fn new(program: &Program) -> Self {
+        SymState {
+            memo: vec![NEVER; program.memo_len],
+            stats: SymStats::default(),
+            tape_stack: Vec::new(),
+        }
+    }
+}
+
+/// What running a program writes besides its cells: its symbolic
+/// instructions' state and the session's engine they call.
+pub struct SymRun<'a> {
+    pub state: &'a mut SymState,
+    pub engine: &'a mut Engine,
+}
+
+impl SymRun<'_> {
+    /// The same run, reborrowed for a call.
+    pub fn reborrow(&mut self) -> SymRun<'_> {
+        SymRun {
+            state: self.state,
+            engine: self.engine,
+        }
+    }
 }
 
 /// Counters for the cutoff measurement.
@@ -61,24 +82,6 @@ pub struct SymStats {
 /// Bits no computation produces: a memo that has never run matches no input.
 const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 
-impl Default for Sym {
-    fn default() -> Self {
-        Sym::new(Rc::default())
-    }
-}
-
-impl Sym {
-    /// A program's symbolic state over `engine`, the session's.
-    pub fn new(engine: Rc<RefCell<Engine>>) -> Self {
-        Sym {
-            engine,
-            memo: RefCell::new(Vec::new()),
-            stats: Cell::new(SymStats::default()),
-            tape_stack: RefCell::new(Vec::new()),
-        }
-    }
-}
-
 /// Instructions in a valid evaluation order: every instruction's inputs are
 /// either essential cells or outputs of earlier instructions.
 #[derive(Debug, Clone, Default)]
@@ -88,13 +91,11 @@ pub struct Program {
     /// cell, or `u32::MAX` for essential and fixed cells. A vector
     /// instruction produces several consecutive cells.
     pub producer: Vec<u32>,
-    /// The symbolic engine that math cells' handles index.
-    pub sym: Sym,
     /// Every input of a vector or symbolic instruction, indexed by
     /// `OperandIdx`.
     pub operands: Vec<CellIdx>,
-    /// What each cell's value means.
-    pub value_types: Vec<ValueType>,
+    /// How many memo entries its symbolic instructions take (`SymState`).
+    pub memo_len: usize,
     /// Compiled curves that `SampleTape` instructions run.
     pub tapes: Vec<crate::sym::tape::Tape>,
     /// Whether creation order was already a valid evaluation order, so no
@@ -120,12 +121,12 @@ impl Program {
     pub fn schedule(
         instrs: Vec<Instr>,
         n_cells: usize,
-        sym: Sym,
         operands: Operands,
-        value_types: Vec<ValueType>,
     ) -> std::result::Result<Program, CellIdx> {
-        sym.memo.replace(vec![NEVER; operands.memo_len]);
-        let operands = operands.cells;
+        let Operands {
+            cells: operands,
+            memo_len,
+        } = operands;
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in instrs.iter().enumerate() {
             for k in 0..ins.op.n_out() {
@@ -144,9 +145,8 @@ impl Program {
             return Ok(Program {
                 instrs,
                 producer,
-                sym,
                 operands,
-                value_types,
+                memo_len,
                 tapes: Vec::new(),
                 in_creation_order: true,
             });
@@ -210,9 +210,8 @@ impl Program {
         Ok(Program {
             instrs: order,
             producer,
-            sym,
             operands,
-            value_types,
+            memo_len,
             tapes: Vec::new(),
             in_creation_order: false,
         })
@@ -221,10 +220,16 @@ impl Program {
     /// Evaluate one instruction into `cells`. With `changed`, outputs whose
     /// value changed are appended (NaN to NaN counts as unchanged).
     #[inline(always)]
-    pub fn step(&self, ins: &Instr, cells: &mut [f64], changed: Option<&mut Vec<CellIdx>>) {
+    pub fn step(
+        &self,
+        ins: &Instr,
+        sym: &mut SymRun,
+        cells: &mut [f64],
+        changed: Option<&mut Vec<CellIdx>>,
+    ) {
         let out = ins.out as usize;
         if let Op::Sym(kind, start, n, memo) = ins.op {
-            self.step_sym(kind, start, n as usize, memo, out, cells, changed);
+            self.step_sym(kind, start, n as usize, memo, sym, out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
             let mut buf = [0.0f64; 16];
             let n = ins.op.n_out();
@@ -258,28 +263,28 @@ impl Program {
     /// forget every expression it stored: what a request would do
     /// (`tick::invert::realize`) is evaluated without leaving anything in
     /// the session's engine or in a memo. `f` must keep no handle.
-    pub fn lookahead<R>(&self, f: impl FnOnce() -> R) -> R {
-        self.sym.engine.borrow_mut().begin_scratch();
-        let r = f();
-        self.sym.engine.borrow_mut().end_scratch();
+    pub fn lookahead<R>(sym: &mut SymRun, f: impl FnOnce(&mut SymRun) -> R) -> R {
+        sym.engine.begin_scratch();
+        let r = f(sym);
+        sym.engine.end_scratch();
         r
     }
 
     /// Evaluate one instruction into a copy of the cells, within
     /// `lookahead`: a symbolic instruction runs without its memo, which
     /// keeps the inputs it last ran on in the document's cells.
-    pub fn step_lookahead(&self, ins: &Instr, cells: &mut [f64]) {
+    pub fn step_lookahead(&self, ins: &Instr, sym: &mut SymRun, cells: &mut [f64]) {
         let Op::Sym(kind, start, n, _) = ins.op else {
-            return self.step(ins, cells, None);
+            return self.step(ins, sym, cells, None);
         };
         let out = ins.out as usize;
         let inputs = self.operands_at(start, n as usize);
         let mut outs = vec![0.0; kind.n_out()];
         if let SymKind::SampleTape { tape } = kind {
-            self.run_tape(&self.tapes[tape as usize], cells, inputs, &mut outs);
+            let stack = &mut sym.state.tape_stack;
+            run_tape(&self.tapes[tape as usize], cells, inputs, &mut outs, stack);
         } else {
-            let mut engine = self.sym.engine.borrow_mut();
-            run_sym(&mut engine, kind, cells, inputs, &mut outs);
+            run_sym(sym.engine, kind, cells, inputs, &mut outs);
         }
         cells[out..out + outs.len()].copy_from_slice(&outs);
     }
@@ -296,33 +301,32 @@ impl Program {
         start: OperandIdx,
         n: usize,
         memo: MemoIdx,
+        sym: &mut SymRun,
         out: usize,
         cells: &mut [f64],
         changed: Option<&mut Vec<CellIdx>>,
     ) {
         let n_out = kind.n_out();
         let inputs = self.operands_at(start, n);
-        let mut memo_cells = self.sym.memo.borrow_mut();
-        let (last, outs) = memo_cells[memo.index()..memo.index() + n + n_out].split_at_mut(n);
-        let mut stats = self.sym.stats.get();
-        stats.steps += 1;
+        let state = &mut *sym.state;
+        let (last, outs) = state.memo[memo.index()..memo.index() + n + n_out].split_at_mut(n);
+        state.stats.steps += 1;
         if !inputs
             .iter()
             .zip(last.iter())
             .all(|(&c, m)| cells[c as usize].to_bits() == m.to_bits())
         {
-            stats.runs += 1;
+            state.stats.runs += 1;
             for (m, &c) in last.iter_mut().zip(inputs) {
                 *m = cells[c as usize];
             }
             if let SymKind::SampleTape { tape } = kind {
-                self.run_tape(&self.tapes[tape as usize], cells, inputs, outs);
+                let stack = &mut state.tape_stack;
+                run_tape(&self.tapes[tape as usize], cells, inputs, outs, stack);
             } else {
-                let mut engine = self.sym.engine.borrow_mut();
-                run_sym(&mut engine, kind, cells, inputs, outs);
+                run_sym(sym.engine, kind, cells, inputs, outs);
             }
         }
-        self.sym.stats.set(stats);
         match changed {
             Some(changed) => {
                 for (k, &v) in outs.iter().enumerate() {
@@ -336,29 +340,6 @@ impl Program {
         }
     }
 
-    /// A compiled curve: inputs are `xmin`, `xmax`, then the parameters.
-    fn run_tape(
-        &self,
-        tape: &crate::sym::tape::Tape,
-        cells: &[f64],
-        inputs: &[CellIdx],
-        out: &mut [f64],
-    ) {
-        let (lo, hi) = (cells[inputs[0] as usize], cells[inputs[1] as usize]);
-        if !lo.is_finite() || !hi.is_finite() {
-            out.fill(f64::NAN);
-            return;
-        }
-        let step = (hi - lo) / (SAMPLES - 1) as f64;
-        let mut xs = [0.0f64; SAMPLES];
-        for (i, x) in xs.iter_mut().enumerate() {
-            *x = lo + step * i as f64;
-        }
-        let params: Vec<f64> = inputs[2..].iter().map(|&c| cells[c as usize]).collect();
-        let mut stack = self.sym.tape_stack.borrow_mut();
-        tape.eval_many(&params, &xs, out, &mut stack);
-    }
-
     /// The `n` input cells parked from `start`.
     #[inline(always)]
     pub fn operands_at(&self, start: OperandIdx, n: usize) -> &[CellIdx] {
@@ -366,9 +347,9 @@ impl Program {
     }
 
     /// Evaluate one instruction's outputs into `out` without writing cells.
-    pub fn eval_into(&self, ins: &Instr, cells: &[f64], out: &mut [f64]) {
+    pub fn eval_into(&self, ins: &Instr, sym: &mut SymRun, cells: &[f64], out: &mut [f64]) {
         let mut scratch = cells.to_vec();
-        self.step(ins, &mut scratch, None);
+        self.step(ins, sym, &mut scratch, None);
         out.copy_from_slice(&scratch[ins.out as usize..ins.out as usize + ins.op.n_out()]);
     }
 
@@ -376,17 +357,22 @@ impl Program {
     /// changed to `changed`. NaN to NaN counts as unchanged. Never inlined:
     /// the tick's hot loop then compiles the same whatever its caller does.
     #[inline(never)]
-    pub fn run_all_tracking(&self, cells: &mut [f64], changed: &mut Vec<CellIdx>) {
+    pub fn run_all_tracking(
+        &self,
+        sym: &mut SymRun,
+        cells: &mut [f64],
+        changed: &mut Vec<CellIdx>,
+    ) {
         for ins in &self.instrs {
-            self.step(ins, cells, Some(changed));
+            self.step(ins, sym, cells, Some(changed));
         }
     }
 
     /// Recompute every derived cell in schedule order.
     #[inline]
-    pub fn run_all(&self, cells: &mut [f64]) {
+    pub fn run_all(&self, sym: &mut SymRun, cells: &mut [f64]) {
         for ins in &self.instrs {
-            self.step(ins, cells, None);
+            self.step(ins, sym, cells, None);
         }
     }
 
@@ -405,6 +391,28 @@ impl Program {
     pub fn is_empty(&self) -> bool {
         self.instrs.is_empty()
     }
+}
+
+/// A compiled curve: inputs are `xmin`, `xmax`, then the parameters.
+fn run_tape(
+    tape: &crate::sym::tape::Tape,
+    cells: &[f64],
+    inputs: &[CellIdx],
+    out: &mut [f64],
+    stack: &mut Vec<f64>,
+) {
+    let (lo, hi) = (cells[inputs[0] as usize], cells[inputs[1] as usize]);
+    if !lo.is_finite() || !hi.is_finite() {
+        out.fill(f64::NAN);
+        return;
+    }
+    let step = (hi - lo) / (SAMPLES - 1) as f64;
+    let mut xs = [0.0f64; SAMPLES];
+    for (i, x) in xs.iter_mut().enumerate() {
+        *x = lo + step * i as f64;
+    }
+    let params: Vec<f64> = inputs[2..].iter().map(|&c| cells[c as usize]).collect();
+    tape.eval_many(&params, &xs, out, stack);
 }
 
 fn handle(v: f64) -> Option<Handle> {

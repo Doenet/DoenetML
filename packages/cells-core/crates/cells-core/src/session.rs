@@ -48,8 +48,8 @@ pub struct Session {
     /// every build's own table so an interned id keeps its text.
     pub runtime_strings: Vec<String>,
     /// The symbolic engine every math value of the session is a handle
-    /// into: what a build imports, what the tick computes with (the
-    /// program shares it), what a student's typed math is parsed into. It
+    /// into: what a build imports, what the tick computes with (borrowed
+    /// for each tick, `SymRun`), what a student's typed math is parsed into. It
     /// only grows, so a handle stays valid for the session, across builds
     /// and through a failed rebuild, which needs nothing back.
     pub engine: Rc<RefCell<Engine>>,

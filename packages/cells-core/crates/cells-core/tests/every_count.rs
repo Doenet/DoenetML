@@ -214,7 +214,11 @@ fn check(name: &str, bytes: &[u8]) -> bool {
         let Ok((mut doc, _)) = Document::load(bytes, options) else {
             continue; // the promise is about documents that load
         };
-        let compiled = doc.compiled.clone().expect("a document with a repeat");
+        let compiled = doc
+            .loaded
+            .compiled
+            .clone()
+            .expect("a document with a repeat");
         let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
         let at = |what: &str| format!("{name}, seed {seed}, {what}");
         for &node in &nodes {
@@ -254,7 +258,11 @@ fn stamp(
             for (&(scope, node), &n) in &counts {
                 stamped.set(scope, node, n);
             }
-            let compiled = loaded.compiled.clone().expect("a document with a repeat");
+            let compiled = loaded
+                .loaded
+                .compiled
+                .clone()
+                .expect("a document with a repeat");
             covered(what, probe, &compiled, &session, &stamped);
             let doc = build(&compiled, &session, &stamped, false)
                 .and_then(|built| built.schedule(compiled.clone()));
@@ -492,7 +500,7 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
     };
     for cell in doc.interactive_cells() {
         let cur = doc.cells[cell as usize];
-        let value = match doc.program.value_types[cell as usize] {
+        let value = match doc.value_types[cell as usize] {
             cells_core::ValueType::Number if cur.is_nan() => 1.0,
             cells_core::ValueType::Number => cur + 1.5,
             // Text and math ask for what they hold: the walk is the same.

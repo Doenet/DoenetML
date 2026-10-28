@@ -292,7 +292,7 @@ fn session(doc: &mut Document, rng: &mut Rng) {
         }
         let cell = cells[rng.below(cells.len())];
         let k = rng.below(17) as f64 / 2.0 - 4.0;
-        let value = match doc.program.value_types[cell as usize] {
+        let value = match doc.value_types[cell as usize] {
             ValueType::Number => k,
             ValueType::Text => doc.intern(&format!("t{k}")),
             ValueType::Math => match doc.parse_math(&format!("x+{k}")) {

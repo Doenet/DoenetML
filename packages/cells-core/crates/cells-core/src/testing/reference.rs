@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 
 use crate::document::{CellIdx, Document};
+use crate::program::{SymRun, SymState};
 
 pub struct ReferenceEvaluator<'a> {
     doc: &'a Document,
@@ -13,6 +14,10 @@ pub struct ReferenceEvaluator<'a> {
     /// cells each read the previous ones several times (function iterates)
     /// is exponential.
     memo: std::cell::RefCell<HashMap<CellIdx, f64>>,
+    /// A copy of the document's symbolic state: a symbolic instruction's
+    /// memo is keyed on its input values, so stepping on scratch cells
+    /// with it gives what stepping on the cells did.
+    sym: std::cell::RefCell<SymState>,
 }
 
 impl<'a> ReferenceEvaluator<'a> {
@@ -28,6 +33,7 @@ impl<'a> ReferenceEvaluator<'a> {
             doc,
             producer,
             memo: Default::default(),
+            sym: std::cell::RefCell::new(doc.sym.clone()),
         }
     }
 
@@ -46,7 +52,15 @@ impl<'a> ReferenceEvaluator<'a> {
             scratch[input as usize] = self.value(input);
         }
         let mut out = vec![0.0; ins.op.n_out()];
-        self.doc.program.eval_into(ins, &scratch, &mut out);
+        let mut engine = self.doc.session.engine.borrow_mut();
+        let mut state = self.sym.borrow_mut();
+        let mut sym = SymRun {
+            state: &mut state,
+            engine: &mut engine,
+        };
+        self.doc
+            .program
+            .eval_into(ins, &mut sym, &scratch, &mut out);
         let v = out[(cell - ins.out) as usize];
         self.memo.borrow_mut().insert(cell, v);
         v

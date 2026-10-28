@@ -197,7 +197,7 @@ impl Document {
             if doc.structure_settled() {
                 t.structural_depth = doc.structure.structural_depth;
                 let _s = crate::trace::span("attributes");
-                doc.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
+                doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
                 return Ok(doc);
             }
             counts = Counts::of(&doc);
@@ -269,7 +269,7 @@ impl Document {
     pub fn rebuild(&mut self) -> crate::Result<u32> {
         let profile = crate::profile::enabled();
         // Without a repeat the structure never changes: nothing to rebuild.
-        let Some(compiled) = self.compiled.clone() else {
+        let Some(compiled) = self.loaded.compiled.clone() else {
             return Ok(0);
         };
         // The values as they are now are what the build carries.
@@ -320,15 +320,20 @@ impl Document {
                 eprintln!("rebuild/recompute: {:.2?}", clock.elapsed());
             }
             if doc.structure_settled() {
-                doc.literal_attrs = self.literal_attrs.clone();
-                doc.evaluator = self.evaluator.fresh();
                 result = Ok(doc);
                 break;
             }
             counts = Counts::of(&doc);
             next = Some(doc.session_with_values());
         }
-        *self = result?;
+        // Replace what one build made and carry what outlives a build; the
+        // session is the one the build returned.
+        let built = result?;
+        *self = Document {
+            loaded: self.loaded.clone(),
+            recompute: self.recompute,
+            ..built
+        };
         Ok(n)
     }
 }

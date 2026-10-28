@@ -110,7 +110,7 @@ core in full; paths here are relative to `crates/cells-core/src/`.
   essential first, then fixed, then derived, so whether a cell is
   essential is one comparison. A cell holding text or a math expression
   holds an id or a handle into a store outside the array; its type is in
-  a side table (`Program::value_types`).
+  a side table (`Document::value_types`).
 - **Components are only names.** A component's props name cells; a
   component is not a node in the graph and owns no value.
 - **Instructions.** `Program::instrs` is the list of instructions, each
