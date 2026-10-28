@@ -1346,4 +1346,46 @@ describe("Value lists as list components @group4", async () => {
         }));
         expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
     });
+    it("a copy of an extend of a repeat pastes the repeat, not linked to the repeat's own values", async () => {
+        const doenetML = `
+    <setup><repeat name="r" for="1 2" valueName="v"><math>2$v</math></repeat></setup>
+    <p name="pe"><mathList name="e" extend="$r" /></p>
+    <p name="pc"><mathList name="c" copy="$e" /></p>
+    <mathInput name="ic" bindValueTo="$c[1]" />
+    <mathInput name="ie" bindValueTo="$e[2]" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        const names = ["pe", "pc"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pe: "2 * 1, 2 * 2",
+            pc: "2 * 1, 2 * 2",
+        });
+
+        // a write to the copy changes the copy's own repeat, not `r`
+        await updateMathInputValue({
+            latex: "50",
+            componentIdx: await resolvePathToNodeIdx("ic"),
+            core,
+        });
+        // and a write to the extend changes `r`, not the copy
+        await updateMathInputValue({
+            latex: "60",
+            componentIdx: await resolvePathToNodeIdx("ie"),
+            core,
+        });
+        const changed = {
+            pe: "2 * 1, 2 * 30",
+            pc: "2 * 25, 2 * 2",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(changed);
+    });
 });

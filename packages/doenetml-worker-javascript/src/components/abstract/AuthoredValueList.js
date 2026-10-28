@@ -2279,10 +2279,10 @@ export function sourceComponentOf(source) {
 /**
  * For a `copy=` of `list`, an `extend` of a list, a property or a composite
  * (`<mathList extend="$l"/>`), paste in place of the composite that extend
- * makes (`extendListViaComposite`) what it stands for: its replacements as
- * an unlinked copy makes them, so that the copy is not linked to what
- * `list` extends (CPY-4). A list it extends is pasted (that list's
- * DoenetML), a property's values are held (CPY-5).
+ * makes (`extendListViaComposite`) what it stands for, as an unlinked copy
+ * makes it, so that the copy is not linked to what `list` extends (CPY-4).
+ * A component it names whole (`extendsList`), a list or a `<repeat>`, is
+ * pasted (its DoenetML); a property's values are held (CPY-5).
  */
 async function pasteWhatListExtends(list, serialized, parameters) {
     const compositeIdx = list.doenetAttributes?.extendListViaComposite;
@@ -2293,10 +2293,17 @@ async function pasteWhatListExtends(list, serialized, parameters) {
     if (!composite?.isExpanded || ind === -1) {
         return;
     }
-    const replacements = composite.replacements.slice(
-        0,
-        composite.replacements.length - (composite.replacementsToWithhold ?? 0),
-    );
+    // A component the extend names whole is pasted itself, not what it
+    // expands to: a `<repeat>`'s groups refer to its own `for`, which a
+    // paste of the groups alone would stay linked to.
+    const named = parameters.components?.[list.doenetAttributes.extendsList];
+    const replacements = named
+        ? [named]
+        : composite.replacements.slice(
+              0,
+              composite.replacements.length -
+                  (composite.replacementsToWithhold ?? 0),
+          );
     const pasted = [];
     for (const replacement of replacements) {
         pasted.push(
