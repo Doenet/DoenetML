@@ -64,6 +64,13 @@ fn check(doc: &Document, at: &str) -> usize {
     for c in 0..doc.n_essential as u32 {
         assert!(doc.is_live(c), "{at}: essential cell {c} is not live");
     }
+    // Emit sizes the cells for what it keeps, the dead cell included: an
+    // array that grew while numbering holds twice what it needs.
+    assert_eq!(
+        doc.memory_estimate().cells,
+        doc.cells.len() * 8,
+        "{at}: the cells outgrew what emit counted"
+    );
     doc.live_cells().len() - walked.len()
 }
 

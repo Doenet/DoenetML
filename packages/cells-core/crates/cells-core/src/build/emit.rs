@@ -119,8 +119,11 @@ impl<'c> Builder<'c> {
         // kept, and none of these should reserve more than it fills.
         let mut counts = [0usize; 4];
         let mut n_cells = 0;
+        let mut any_dead = false;
         for (s, &root) in roots.iter().enumerate() {
-            if class_def[root as usize] as usize == s && !pruned(s) {
+            if class_def[root as usize] as usize == s && pruned(s) {
+                any_dead = true;
+            } else if class_def[root as usize] as usize == s {
                 let (kind, n_out) = match &self.sources[s] {
                     BuiltSource::Literal(_) | BuiltSource::Default(_) if essential[s] => (0, 1),
                     BuiltSource::Literal(_) | BuiltSource::Default(_) => (1, 1),
@@ -132,6 +135,9 @@ impl<'c> Builder<'c> {
                 n_cells += n_out;
             }
         }
+        // The dead cell, when there is one: counted here, so the arrays
+        // below hold it without growing.
+        n_cells += any_dead as usize;
         let mut cells = Vec::with_capacity(n_cells);
         let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n_cells);
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
@@ -190,7 +196,6 @@ impl<'c> Builder<'c> {
             for &s in &dead_defs {
                 slot_cell[roots[s] as usize] = dead;
             }
-            n_cells += 1;
             dead
         });
         for &s in &fixed_defs {

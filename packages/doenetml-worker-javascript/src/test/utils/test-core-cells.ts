@@ -361,16 +361,26 @@ export async function createTestCoreCells({
     try {
         const bytes = new TextEncoder().encode(JSON.stringify(dast));
         // Unpruned (ADR 0019): the tests read any state variable, not only
-        // what a renderer reads.
-        cells =
-            initialState === undefined
-                ? mod.Core.with_options(bytes, requestedVariantIndex, false)
-                : mod.Core.with_options_and_state(
+        // what a renderer reads. `CELLS_PRUNE=1` loads as a browser does,
+        // for timing (`packages/benchmark/scripts/perf-diff.sh`); a core
+        // older than the option always loads every prop.
+        const prune = process.env.CELLS_PRUNE === "1";
+        cells = !mod.Core.with_options
+            ? initialState === undefined
+                ? mod.Core.with_seed(bytes, requestedVariantIndex)
+                : mod.Core.with_seed_and_state(
                       bytes,
                       requestedVariantIndex,
-                      false,
                       initialState,
-                  );
+                  )
+            : initialState === undefined
+              ? mod.Core.with_options(bytes, requestedVariantIndex, prune)
+              : mod.Core.with_options_and_state(
+                    bytes,
+                    requestedVariantIndex,
+                    prune,
+                    initialState,
+                );
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
