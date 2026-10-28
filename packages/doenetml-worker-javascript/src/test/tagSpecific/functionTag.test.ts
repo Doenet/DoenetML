@@ -7835,6 +7835,26 @@ describe("Function tag tests @group4", async () => {
         expect(await domainOf("k")).eqls([interval(-Infinity, Infinity)]);
     });
 
+    it("graph a function whose child is a piecewise function with symbolic bounds", async () => {
+        // The function's domain used to be undefined, and a curve graphing
+        // it read the endpoints of that undefined interval, so the document
+        // failed to load. Its domain is now unrestricted, so it is graphed
+        // across the graph, as a function with no domain is.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<piecewiseFunction name="pw"><function domain="(s,t)">x^2</function></piecewiseFunction>
+<graph>
+  <function name="k">$pw</function>
+  <curve name="c"><function>$pw</function></curve>
+</graph>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const c = stateVariables[await resolvePathToNodeIdx("c")].stateValues;
+        expect(c.parMin).eq(-12);
+        expect(c.parMax).eq(12);
+    });
+
     describe("a formula with no symbolic derivative", () => {
         // #1876. `<function>`'s sugar wraps every non-label child into one
         // `<math>`, so a math child beside a child that expands to several
