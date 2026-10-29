@@ -130,7 +130,26 @@ was built" assertions.
 
 ### COMP-5: a repeat writes its template once per item; `valueName` and `indexName` are per iteration (Tier 1)
 In iteration k, `$v` is item k and `$i` is k. A reference inside the template keeps the referent
-it had where it was written. A `valueName` never captures a `$i` carried in by copied items.
+it had where it was written.
+
+That holds for references inside the items a repeat goes over, too. If an item contains a
+reference with the same name as the repeat's `valueName`, the reference keeps its original
+meaning; the repeat does not take it over:
+
+```xml
+<mathList name="m">11 22 33 44</mathList>
+<repeatForSequence from="2" to="3" valueName="i" name="rounded">
+  <round>$m[$i]</round>
+</repeatForSequence>
+
+<p name="p"><repeat for="$rounded" valueName="i">$i</repeat></p>
+```
+
+`p` shows `22, 33`. Each item is a copy of `<round>$m[$i]</round>`, whose `$i` still means
+`rounded`'s index, 2 then 3. Read as the outer repeat's `i`, it would mean the item it sits
+inside, which is circular; before #1838 that took the whole document down. The same holds for
+an `$i` inside an item's attribute, such as `<updateValue target="$m[$i]">`: a copy changes the
+entry its original changes.
 
 Evidence:
 - `T/tagSpecific/repeatIterationValues.test.ts:29`, `:64`, `:137`, `:169`, `:188`, `:263`, `:277`;
