@@ -864,55 +864,11 @@ impl Compiled {
         self.choices.shrink_to_fit();
     }
 
-    /// Everything the compile holds, as text that is equal exactly when two
-    /// compiles are (maps in key order): what `tests/compile_purity.rs`
-    /// compares across seeds.
-    pub(crate) fn fingerprint(&self) -> String {
-        use std::fmt::Write;
-        let mut out = String::new();
-        let mut sym: Vec<_> = self.sym_text.iter().collect();
-        sym.sort();
-        let _ = writeln!(out, "templates {:?}", self.templates);
-        let _ = writeln!(out, "refs {:?}", self.refs);
-        let _ = writeln!(out, "arena {:?}", self.arena);
-        let _ = writeln!(out, "sym_text {sym:?}");
-        for c in &self.choices {
-            let mut iface: Vec<_> = c.iface.iter().collect();
-            iface.sort_by(|a, b| a.0.cmp(b.0));
-            let _ = writeln!(
-                out,
-                "choice {:?} {} {:?} {:?} {:?} {} {} {:?} {:?} {iface:?}",
-                c.at,
-                c.reactive,
-                c.branches,
-                c.branch_keys,
-                c.conditions,
-                c.num_to_select,
-                c.with_replacement,
-                c.weights,
-                c.used,
-            );
-        }
-        let _ = writeln!(out, "keys {}", self.keys.fingerprint());
-        let _ = writeln!(out, "extra_strings {:?}", self.extra_strings);
-        let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
-        let _ = writeln!(out, "rebuilds {}", self.rebuilds);
-        let _ = writeln!(out, "structural_depth {:?}", self.structural_depth);
-        let _ = writeln!(out, "classes {:?}", self.classes);
-        out
-    }
-
     /// How many build passes a load or a rebuild may take before the
     /// structure must have settled: the structural depth plus one, and
     /// never fewer than `floor`. None when the check was skipped.
     pub(crate) fn passes(&self, floor: usize) -> Option<usize> {
         self.structural_depth.map(|d| (d as usize + 1).max(floor))
-    }
-
-    /// Whether the document has a load-time choice (a `<select>`), which a
-    /// seed draws from.
-    pub(crate) fn has_selects(&self) -> bool {
-        self.choices.iter().any(|c| !c.reactive)
     }
 
     /// Whether any template is a repeat body: without one the structure

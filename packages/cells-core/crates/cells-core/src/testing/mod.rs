@@ -11,15 +11,13 @@ pub mod test_utils;
 #[cfg(feature = "testing")]
 pub use crate::build::coverage::{ProbeEdges, probe_edges, uncovered};
 
-/// The compile of `dast` for a session at `seed`, checked as a load checks
-/// it, whether or not a load would keep it.
+/// The compile of `dast`, checked as a load checks it. It depends on the
+/// source alone (ADR 0014): no seed reaches it.
 pub fn compile(
     dast: &crate::dast::Dast,
-    seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed, false);
-    Ok(crate::compile::compile(&dast, &session, true, true, true)?.compiled)
+    Ok(crate::compile::compile(&dast, true, true, true)?.compiled)
 }
 
 /// `compile`, with every value slot essential, as before ADR 0018
@@ -27,11 +25,9 @@ pub fn compile(
 #[cfg(feature = "testing")]
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
-    seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed, false);
-    Ok(crate::compile::compile(&dast, &session, true, false, true)?.compiled)
+    Ok(crate::compile::compile(&dast, true, false, true)?.compiled)
 }
 
 /// `compiled`, but each of its builds classes its value slots by its own
@@ -43,12 +39,6 @@ pub fn with_own_walk(
     let mut own = compiled.clone();
     own.classes = crate::compile::plan::Classes::Walk;
     std::sync::Arc::new(own)
-}
-
-/// The compile of `dast` for a session at `seed`, as text equal exactly when
-/// two compiles are: what `tests/compile_purity.rs` compares across seeds.
-pub fn compile_fingerprint(dast: &crate::dast::Dast, seed: u64) -> crate::Result<String> {
-    Ok(compile(dast, seed)?.fingerprint())
 }
 
 /// The value of the one-cell prop at `path` (`"c.radius"`), for a unit

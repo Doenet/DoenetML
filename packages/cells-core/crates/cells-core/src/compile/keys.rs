@@ -369,20 +369,6 @@ impl Keys {
         Some((node, k))
     }
 
-    /// The keys as text that is equal exactly when two compiles' are.
-    pub(crate) fn fingerprint(&self) -> String {
-        let mut hidden: Vec<_> = self.hidden.iter().collect();
-        hidden.sort();
-        let mut held: Vec<_> = self.held.iter().collect();
-        held.sort();
-        let mut owners: Vec<_> = self.owners.iter().collect();
-        owners.sort_by_key(|(n, _)| **n);
-        format!(
-            "{:?} {:?} {owners:?} {hidden:?} {held:?}",
-            self.text, self.ends
-        )
-    }
-
     /// Heap bytes, for the memory estimate.
     pub(crate) fn heap_bytes(&self) -> usize {
         self.text.capacity()
