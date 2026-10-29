@@ -336,8 +336,11 @@ It bans, in order of how often documents use them:
 - `extend` of a select, conditionalContent or case;
 - names present in only some branches;
 - type-varying names;
-- positional references into options (`$s[2][1]`), which D27 generalizes;
-- a non-literal `numToSelect`.
+- positional references into options (`$s[2][1]`), which D27 generalizes.
+
+ADR 0009 also bans a non-literal `numToSelect`. That is **not accepted**: a reference there is read
+once, when the choice is made, and is part of DoenetML. The cells core should eventually support
+it, and main's tests of it stay binding (COMP-8).
 
 **Recommendation.** Accept the rule. It is easy to state, and the alternative is visibly broken
 output: `<math>$cc.x+1</math>` becomes `h i + 1` when a branch switches type.
