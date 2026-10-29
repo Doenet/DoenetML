@@ -481,6 +481,12 @@ impl ComponentType {
         self.is_marked(n_props, pi, |d| d.rendered, |l| l.rendered)
     }
 
+    /// How many consecutive cells prop `pi` is the first of: 1 but for a
+    /// curve's samples (ADR 0019).
+    pub fn prop_span(self, pi: usize) -> usize {
+        self.prop_defs().get(pi).map_or(1, |d| d.span)
+    }
+
     /// Whether prop `pi` is a score a grader reads (ADR 0019).
     pub fn is_score_prop(self, pi: usize) -> bool {
         self.prop_defs().get(pi).is_some_and(|d| d.score)
@@ -641,6 +647,9 @@ pub struct PropDef {
     pub score: bool,
     /// An action reads this prop (ADR 0019).
     pub read_by_action: bool,
+    /// How many consecutive cells the prop is the first of: 1, or
+    /// `SAMPLES` for a curve's samples, which a renderer reads together.
+    pub span: usize,
 }
 
 impl PropDef {

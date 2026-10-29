@@ -432,7 +432,9 @@ export class CellsBridge {
             this._children(reads, c, children, c);
             element = {
                 type: "element",
-                name: contract?.name?.(this.table, c) ?? this.table.tag(c),
+                name:
+                    contract?.name?.(this.table, c, inGraph) ??
+                    this.table.tag(c),
                 attributes: {},
                 children,
                 data: { id, props } as FlatDastElement["data"],

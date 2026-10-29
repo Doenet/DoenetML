@@ -39,6 +39,7 @@ const BLANK: PropDef = PropDef {
     rendered: false,
     score: false,
     read_by_action: false,
+    span: 1,
 };
 
 const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> Prop {
@@ -134,6 +135,12 @@ impl Prop {
     /// core needs its value though no renderer may read it (ADR 0019).
     pub(super) const fn read_by_action(mut self) -> Self {
         self.def.read_by_action = true;
+        self
+    }
+    /// The first of `SAMPLES` consecutive cells (a curve's samples), which
+    /// a renderer reads together: when it is an output, all of them are.
+    pub(super) const fn sampled(mut self) -> Self {
+        self.def.span = crate::program::SAMPLES;
         self
     }
 }

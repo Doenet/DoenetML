@@ -355,6 +355,31 @@ describe("step 3 components", () => {
         ]);
     });
 
+    it("draws a function's curve through its samples", async () => {
+        const { all, props } = await open(`<graph xmin="-1" xmax="1">
+<function name="f">x^2</function>
+<derivative>$f</derivative>
+<function variables="x y">(x, y)</function>
+</graph>
+<p><function>x</function></p>`);
+        // In a graph, a polyline through the samples over the x-range; a
+        // function of several variables has none.
+        const curves = all("polyline");
+        expect(curves).toHaveLength(3);
+        const [f, df, vector] = curves.map(
+            (e) => (e.data as any).props.numericalVertices,
+        );
+        expect(f).toHaveLength(200);
+        expect(f[0]).toEqual([-1, 1]);
+        expect(f[199]).toEqual([1, 1]);
+        expect(df[0]).toEqual([-1, -2]);
+        expect(df[199]).toEqual([1, 2]);
+        expect(vector).toEqual([]);
+        expect(curves[0].children).toEqual([]);
+        // In text it has no view yet.
+        expect(props("function")).toEqual({});
+    });
+
     it("takes numbers, expressions and slider values", async () => {
         const { props, send, changed } = await open(`
 <numberInput name="n"/><number>$n</number>

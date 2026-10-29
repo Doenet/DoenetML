@@ -142,6 +142,8 @@ const EXPECTED_READS = [
     "tuple.x3",
     "text.value",
     "evaluate.value",
+    "function.xmin",
+    "function.samples",
     "numberInput.value",
     "booleanInput.value",
     "boolean.value",

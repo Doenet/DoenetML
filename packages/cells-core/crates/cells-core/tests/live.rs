@@ -131,11 +131,12 @@ fn census() {
         golden[0], golden[1], golden[2], golden[3]
     );
     // Context counted 177 of the golden set's 275 instructions live, from
-    // the viewer's reads; the marks find the same. The two points
-    // `circles.doenet` and `lines.doenet` constrain (written as attributes
-    // before the unread-attribute check, which the point ignored) add two
-    // projections, both live.
-    assert!(golden[0] <= 179 && golden[1] == 277, "{golden:?}");
+    // the viewer's reads; the marks find the same, plus the three of
+    // `symbolic`'s function and derivative since their curves are drawn
+    // (ADR 0020), and the two projections of the points `circles.doenet`
+    // and `lines.doenet` constrain (written as attributes before the
+    // unread-attribute check, which the point ignored), both live.
+    assert!(golden[0] <= 182 && golden[1] == 277, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

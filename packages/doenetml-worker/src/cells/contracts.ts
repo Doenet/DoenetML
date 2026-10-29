@@ -47,6 +47,14 @@ export class Reads {
         return this.table.value(cell);
     }
 
+    /** The `n` consecutive cells from the prop `name` of `c` on (a curve's
+     * samples), recorded. */
+    run(c: number, name: string, n: number): number[] {
+        const first = this.table.cell(c, name);
+        if (first === undefined) return [];
+        return Array.from({ length: n }, (_, i) => this.cell(first + i));
+    }
+
     /** The number prop `name` of `c`; NaN when its type has none. */
     num(c: number, name: string): number {
         const cell = this.table.cell(c, name);
@@ -94,7 +102,7 @@ export type Role =
 
 export type Contract = {
     /** The element's name; the component's tag by default. */
-    name?: (table: CellsTable, c: number) => string;
+    name?: (table: CellsTable, c: number, inGraph: boolean) => string;
     props?: (r: Reads, c: number, inGraph: boolean) => Record<string, unknown>;
     /** Leave this child component out of the element's children (a title
      * drawn from a prop instead). */
@@ -294,6 +302,30 @@ const MATH_VALUE: Contract = {
     props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
 };
 
+/** A function's or a derivative's curve: in a graph, a polyline through
+ * its samples, which the core takes over the graph's x-range. A function
+ * of several variables has no samples (its `samples` is a fixed absent
+ * value) and no curve. In text it has no view yet. */
+const CURVE: Contract = {
+    name: (table, c, inGraph) => (inGraph ? "polyline" : table.tag(c)),
+    props: (r, c, inGraph) => {
+        if (!inGraph) return {};
+        const samples = r.table.cell(c, "samples")!;
+        if (r.table.core.cell_class(samples) !== "derived") {
+            return { numericalVertices: [] };
+        }
+        const n = r.table.core.n_samples();
+        const xmin = r.num(c, "xmin");
+        const step = (r.num(c, "xmax") - xmin) / (n - 1);
+        return {
+            numericalVertices: r
+                .run(c, "samples", n)
+                .map((y, i) => [xmin + step * i, y]),
+        };
+    },
+    noChildren: true,
+};
+
 export const CONTRACTS: Record<string, Contract> = {
     document: {},
     p: {},
@@ -338,6 +370,8 @@ export const CONTRACTS: Record<string, Contract> = {
     },
     clampNumber: MATH_VALUE,
     evaluate: MATH_VALUE,
+    function: CURVE,
+    derivative: CURVE,
     sequenceValue: {
         name: () => "number",
         props: (r, c) => ({

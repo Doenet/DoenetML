@@ -23,6 +23,9 @@ import {
     Ul,
     ChoiceInput,
     Em,
+    Feedback,
+    Figure,
+    Footnote,
     _Omit,
     _PassThroughWithTag,
     _PassThroughWithLogging,
@@ -48,9 +51,12 @@ import {
     NumberInput,
     PolygonInGraph,
     PolylineInGraph,
+    RayInGraph,
     Ref,
+    VectorInGraph,
     SideBySide,
     Slider,
+    Solution,
     Stack,
 } from "./doenet";
 export {
@@ -156,6 +162,16 @@ function showAttrOnly<T extends string>(
 }
 
 /**
+ * A sectioning component other than `section` itself, which the core sends
+ * as `division`: drawn as a division under its own name.
+ */
+const Section: ComponentWithPassthroughChildren = {
+    component: Division,
+    passthroughChildren: true,
+    monitorVisibility: true,
+};
+
+/**
  * A map of tag names to components. This is used for naive component rendering, where the
  * tag name uniquely determines the component to render.
  */
@@ -164,9 +180,12 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     table: { component: Table, passthroughChildren: true },
     tabular: { component: Tabular, passthroughChildren: true },
     cell: { component: Cell, passthroughChildren: true },
+    caption: PassThroughWithoutTagConverter,
+    conclusion: passThroughWithRenamedTag("div"),
     // cell: passThroughWithRenamedTag("td"),
     _fragment: { component: _Fragment, passthroughChildren: true },
     abs: { component: M },
+    activity: Section,
     alert: passThroughWithRenamedTag("strong"),
     and: { component: Boolean },
     angle: { component: Angle },
@@ -196,13 +215,19 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
         passthroughChildren: true,
         monitorVisibility: true,
     },
+    div: passThroughWithRenamedTag("div"),
     document: { component: Document, passthroughChildren: true },
     electronConfiguration: { component: M },
     ellipsis: renderAs("…", { wrapInSpanWithId: true }),
     em: { component: Em, passthroughChildren: true },
+    example: Section,
+    exercise: Section,
     evaluate: { component: M },
     extractMath: { component: M },
+    feedback: { component: Feedback, passthroughChildren: true },
+    figure: { component: Figure, passthroughChildren: true },
     floor: { component: M },
+    footnote: { component: Footnote },
     function: { component: M },
     gcd: { component: M },
     graph: { component: Graph },
@@ -212,6 +237,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     iff: { component: Boolean },
     implies: { component: Boolean },
     intComma: showAttrOnly("text"),
+    introduction: passThroughWithRenamedTag("div"),
     integer: showAttrOnly("text"),
     interval: { component: M },
     ion: { component: M },
@@ -242,6 +268,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     nbsp: renderAs(" "),
     ndash: renderAs("–"),
     not: { component: Boolean },
+    note: Section,
     number: { component: Number },
     numberInput: { component: NumberInput },
     odeSystem: { component: M },
@@ -250,15 +277,21 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     orbitalDiagram: { component: OrbitalDiagram },
     p: { component: P, passthroughChildren: true },
     piecewiseFunction: { component: M },
+    paragraphs: Section,
     pluralize: showAttrOnly("text"),
     point: { component: PointInText },
+    pre: passThroughWithRenamedTag("pre"),
     problem: {
         component: Problem,
         passthroughChildren: true,
         monitorVisibility: true,
     },
+    proof: Section,
     product: { component: M },
     q: { component: Q, passthroughChildren: true },
+    question: Section,
+    // Outside a graph a ray is nothing but its anchor, as in production.
+    ray: renderAs(null, { wrapInSpanWithId: true }),
     ref: { component: Ref, passthroughChildren: true },
     rightHandSide: { component: M },
     round: { component: M },
@@ -267,15 +300,21 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     setSmallToZero: { component: M },
     sideBySide: { component: SideBySide, passthroughChildren: true },
     sign: { component: M },
+    solution: { component: Solution, passthroughChildren: true },
+    span: passThroughWithRenamedTag("span"),
     slider: { component: Slider },
     sq: { component: Sq, passthroughChildren: true },
     stack: { component: Stack, passthroughChildren: true },
     standardDeviation: { component: M },
+    statement: passThroughWithRenamedTag("div"),
+    subsection: Section,
+    subsubsection: Section,
     subsetOfReals: { component: M },
     sum: { component: M },
     tag: { component: Tag, passthroughChildren: true },
     tagc: { component: TagC, passthroughChildren: true },
     text: { component: Text },
+    theorem: Section,
     textInput: { component: TextInput },
     title: { component: Title, passthroughChildren: true },
     triggerSet: { component: Button },
@@ -283,6 +322,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     ul: { component: Ul, passthroughChildren: true },
     updateValue: { component: Button },
     variance: { component: M },
+    vector: { component: M },
     wrapFunctionPeriodic: { component: M },
     wrapNumberPeriodic: { component: M },
     xor: { component: Boolean },
@@ -302,4 +342,15 @@ export const GRAPH_MODE_COMPONENTS: RendererObject = {
     point: { component: PointInGraph },
     polygon: { component: PolygonInGraph },
     polyline: { component: PolylineInGraph },
+    ray: { component: RayInGraph },
+    // Polygons given another way: each sends its vertices as a polygon does.
+    rectangle: { component: PolygonInGraph },
+    regularPolygon: { component: PolygonInGraph },
+    triangle: { component: PolygonInGraph },
+    vector: { component: VectorInGraph },
+    // A value placed in a graph is drawn as a label at its anchor, which no
+    // core sends yet: until one does, it is not drawn.
+    math: OmitElementConverter,
+    number: OmitElementConverter,
+    text: OmitElementConverter,
 };

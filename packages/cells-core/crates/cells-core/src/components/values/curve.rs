@@ -12,17 +12,19 @@ use crate::program::{Post, SymKind};
 component! {
     /// `<function>`: a math cell `expr` (variable `x`) and, as a curve, the
     /// `SAMPLES` cells from `samples` on, filled by a `Sample` instruction over
-    /// the enclosing graph's x-range.
+    /// the enclosing graph's x-range. Drawn in a graph, as its curve through
+    /// the samples; in text it has no view yet.
     tags: ["function"],
     flags: [copyable, symbolic],
-    renders: Never,
+    renders: InGraph,
     default_prop: expr,
     props {
         expr: children,
-        // `samples` is the first of `SAMPLES` consecutive cells.
-        xmin: by_planner,
-        xmax: by_planner,
-        samples: by_planner,
+        xmin: by_planner { rendered },
+        xmax: by_planner { rendered },
+        // `samples` is the first of `SAMPLES` consecutive cells, outputs
+        // with it (`sampled`).
+        samples: by_planner { rendered, sampled },
     }
     planner: Whole(plan),
 }

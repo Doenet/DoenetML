@@ -149,6 +149,65 @@ describe("flatDastUpdateFromJS", () => {
         expect(updates[1].newChildren).toBeUndefined();
     });
 
+    it("ships a component the action created whole, as a new element", () => {
+        // A solution's content is created when it is revealed: the batch
+        // names the new child under the solution and carries its state.
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 1,
+                        stateValues: { open: true },
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 2,
+                                componentType: "p",
+                                id: "/_p1",
+                            }),
+                        ],
+                    },
+                    {
+                        componentIdx: 2,
+                        stateValues: {},
+                        childrenInstructions: ["the answer"],
+                    },
+                    // The core states a new component again, without its
+                    // children: a change to the element, not another one.
+                    {
+                        componentIdx: 2,
+                        stateValues: { hidden: false },
+                    },
+                ],
+            },
+        ];
+        const componentIdxToName: Record<number, string> = {
+            0: "document",
+            1: "solution",
+        };
+        const known = new Set(Object.keys(componentIdxToName).map(Number));
+        collectInstructionMaps(updateInstructions, componentIdxToName, {});
+        const updates = flatDastUpdateFromJS(
+            updateInstructions,
+            componentIdxToName,
+            {},
+            known,
+        );
+        expect(updates[1]).toEqual({
+            changedState: { open: true },
+            newChildren: [{ id: 2, annotation: "original" }],
+        });
+        expect(updates[2]).toEqual({
+            newFlatDastElement: {
+                type: "element",
+                name: "p",
+                attributes: {},
+                children: ["the answer"],
+                data: { id: 2, props: { hidden: false } },
+            },
+        });
+    });
+
     it("merges multiple batches for the same component, later batches winning", () => {
         const updateInstructions: UpdateInstruction[] = [
             {
@@ -308,6 +367,102 @@ describe("flatDastFromJS (shared-helper refactor)", () => {
             name: "text",
             // `textJsToRust` adds `value` alongside `text`.
             data: { props: { text: "hello", value: "hello" } },
+        });
+    });
+
+    it("draws every sectioning component as a division, under its own name", () => {
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 0,
+                        stateValues: {},
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 1,
+                                componentType: "subsection",
+                                id: "/_subsection1",
+                            }),
+                        ],
+                    },
+                    {
+                        componentIdx: 1,
+                        stateValues: {
+                            title: "Subsection 1.1 Details",
+                            titlePrefix: "Subsection 1.1 ",
+                            level: 2,
+                            sectionNumber: "1.1",
+                        },
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 2,
+                                componentType: "p",
+                                id: "/_p1",
+                            }),
+                        ],
+                    },
+                ],
+            },
+        ];
+        const flatRoot = flatDastFromJS(documentToRender, updateInstructions);
+        expect(flatRoot.elements[1]).toMatchObject({
+            name: "subsection",
+            children: [{ id: 2 }],
+            data: {
+                props: {
+                    divisionType: "subsection",
+                    divisionDepth: 2,
+                    title: null,
+                    xrefLabel: { label: "Subsection 1.1 Details" },
+                },
+            },
+        });
+    });
+
+    it("takes a figure's caption child out of its children, into a prop", () => {
+        const updateInstructions: UpdateInstruction[] = [
+            {
+                instructionType: "updateRendererStates",
+                rendererStatesToUpdate: [
+                    {
+                        componentIdx: 0,
+                        stateValues: {},
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 1,
+                                componentType: "figure",
+                                id: "/_figure1",
+                            }),
+                        ],
+                    },
+                    {
+                        componentIdx: 1,
+                        stateValues: {
+                            captionChildName: "3",
+                            figureEnumeration: "1",
+                        },
+                        childrenInstructions: [
+                            componentInstruction({
+                                componentIdx: 2,
+                                componentType: "p",
+                                id: "/_p1",
+                            }),
+                            componentInstruction({
+                                componentIdx: 3,
+                                componentType: "caption",
+                                id: "/_caption1",
+                            }),
+                        ],
+                    },
+                ],
+            },
+        ];
+        const flatRoot = flatDastFromJS(documentToRender, updateInstructions);
+        expect(flatRoot.elements[1]).toMatchObject({
+            name: "figure",
+            children: [{ id: 2 }],
+            data: { props: { captionChild: 3 } },
         });
     });
 });

@@ -46,12 +46,16 @@ in every instance of an element when it is live in one:
 | golden set | 177 / 275 | 197 / 696 | 54 / 234 | 225 / 242 |
 | `sir.doenet` | 2829 / 2829 | 2829 / 2829 | 1823 / 2649 | 1910 / 4952 |
 
+Since a function's curve is drawn (ADR 0020, 2026-10-29) `symbolic` is
+all live, 13 of 13 instructions and 411 of 411 derived cells, and the
+golden set 180 of 275 and 598 of 696; `tests/live.rs` counts it.
+
 What it shows:
 
 - On the golden set about a third of the instructions are dead: geometry
   computed for props nothing draws (`lines`, `circles`), a repeat's
-  unrendered values (`repeats`), and in `symbolic` a function's samples,
-  401 of its 411 derived cells.
+  unrendered values (`repeats`), and, before its curve was drawn, in
+  `symbolic` a function's samples, 401 of its 411 derived cells.
 - On `sir.doenet` every instruction is live: three fifths of its
   components are not rendered, but what is rendered reads all of them.
   What it gains is 1823 of its 2649 fixed cells, author values in
@@ -136,8 +140,10 @@ viewer's test fails when a renderer reads, through the store's `get` or
 `subscribe` (which `useCell` and the board's elements read through), a
 cell the core does not report as an output, as it fails on a request to
 a cell that is not interactive. A renderer added for a
-type marks what it reads in the same change: the viewer draws no
-`<function>` today, so a function's samples are dead until one does.
+type marks what it reads in the same change: a function's samples were
+dead until the prototype's renderers drew a curve through them (ADR
+0020), when `<function>` became rendered in a graph and `samples` marked
+`rendered, sampled`, the run of cells it heads being outputs with it.
 
 ### 4. The compile decides, per template slot, once
 
