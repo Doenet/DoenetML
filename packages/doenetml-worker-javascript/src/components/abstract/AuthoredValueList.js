@@ -2042,10 +2042,11 @@ function returnEntryPresentationDefinitions(listClass) {
 
     Object.assign(definitions, returnEntryPresentationArrays(listClass));
 
-    // An entry is hidden, ignoring the list's parent, by its source's own
-    // `hide` or with the list, whose own `hiddenIgnoreParent` counts what
-    // stands between it and its parent (#2375). The entry's `hide` stays its
-    // source's (D29).
+    // Whether each entry is hidden for a parent that ignores its own hiding
+    // (a `<choice>`'s text, an `<li>`'s lead): by its source's own `hide`, or
+    // with the list. The list's `hiddenIgnoreParent` includes a hidden
+    // composite the list came from, such as a `<group hide>` (#2375). The
+    // entry's `hide` stays its source's (D29).
     definitions.entryHiddenIgnoreParents = {
         returnDependencies: () => ({
             entryPresentation: {

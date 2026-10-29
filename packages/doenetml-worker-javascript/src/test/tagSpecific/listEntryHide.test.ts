@@ -423,8 +423,8 @@ describe("A hidden entry of a list @group4", async () => {
  * `<choice>`'s text, the child an `<li>` leads with) counts a child exactly
  * when the child would be drawn if the parent were shown (D29, #2375). So
  * for each content, the choice's text is the text of a `<p>` holding the
- * same content, and an `<li>` holding it leads with the list's first entry
- * only when the `<p>` draws it, and otherwise with the string ` r`.
+ * same content, and an `<li>` holding it leads with the content's first
+ * component only when the `<p>` draws it, and otherwise with the string ` r`.
  */
 describe("What a parent ignoring its own hiding counts of a list @group4", async () => {
     const contents = [
@@ -462,6 +462,21 @@ describe("What a parent ignoring its own hiding counts of a list @group4", async
         { content: `<mathList hide>x</mathList> r`, text: " r" },
         { content: `<booleanList hide>true</booleanList> r`, text: " r" },
         { content: `<sort hide>2 1</sort> r`, text: " r" },
+        { content: `<pointList hide>(1,2)</pointList> r`, text: " r" },
+        {
+            content: `<sampleRandomNumbers hide numSamples="2"/> r`,
+            text: " r",
+        },
+        {
+            content: `<group hide><cumulativeSum>1 2</cumulativeSum></group> r`,
+            text: " r",
+        },
+        // a `<repeatForSequence>` whose template is one value is a list
+        {
+            content: `<group hide><repeatForSequence from="1" to="2" valueName="v"><point>($v,1)</point></repeatForSequence></group> r`,
+            text: " r",
+        },
+        { content: `$rs r`, text: "1, 2 r" },
     ];
 
     for (const { content, text } of contents) {
@@ -473,6 +488,7 @@ describe("What a parent ignoring its own hiding counts of a list @group4", async
       <section name="s"><text>q</text></section>
       <group name="g" hide><text>q</text></group>
       <sequence name="seq" hide from="1" to="2"/>
+      <repeatForSequence name="rs" hide from="1" to="2" valueName="v">$v</repeatForSequence>
     </setup>
     <collect name="c" hide componentType="text" from="$s"/>
     <choiceInput><choice name="ch">${content}</choice></choiceInput>
