@@ -2,6 +2,8 @@
 //! every repeat's iteration count matches its `count` cell (ADR 0004).
 
 use super::*;
+use crate::build::BuildOutput;
+use crate::compile::Compiled;
 use crate::trace::Span;
 
 /// How to load a document. The default: seed 0, curves compiled, cycles
@@ -183,12 +185,11 @@ impl Document {
     /// Compile, then build until the structure settles (ADR 0015); with
     /// the document, its structural depth as the check bounded it.
     fn settle_load(dast: Arc<Dast>, options: LoadOptions) -> crate::Result<(Document, u32)> {
-        let mut session = Session::new(options.seed, options.sample_with_engine);
-        let mut counts = Counts::default();
+        let session = Session::new(options.seed, options.sample_with_engine);
         // Compile once (ADR 0015); every pass is a build of that compile.
         let crate::compile::CompileOutput {
             compiled,
-            mut first_build,
+            first_build,
         } = {
             let _s = crate::trace::span("compile");
             crate::compile::compile(
@@ -199,40 +200,12 @@ impl Document {
                 options.prune,
             )?
         };
-        let passes = compiled.passes(MAX_PASSES);
-        for pass in 0..passes.unwrap_or(MAX_PASSES) {
-            let built = match first_build.take() {
-                // The compile's check was this build.
-                Some(built) => built,
-                // After the first pass no student has changed a value yet,
-                // so a seeded cell takes its seed again, from the counts
-                // this pass stamps.
-                None => {
-                    let _s = crate::trace::span("build");
-                    crate::trace::count("pass", pass + 1);
-                    crate::build::build(&compiled, &session, &counts, pass > 0)?
-                }
-            };
-            let mut doc = {
-                let _s = crate::trace::span("schedule");
-                let doc = built.schedule(compiled.clone())?;
-                crate::trace::count("instructions", doc.program.len());
-                doc
-            };
-            {
-                let _s = crate::trace::span("compute");
-                crate::trace::count("cells", doc.cells.len());
-                doc.recompute();
-            }
-            if doc.structure_settled() {
-                let _s = crate::trace::span("attributes");
-                doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
-                return Ok((doc, compiled.structural_depth.unwrap_or(0)));
-            }
-            counts = Counts::of(&doc);
-            session = doc.session_with_values();
-        }
-        Err(unsettled(passes))
+        // After the first pass no student has changed a value yet, so a
+        // seeded cell takes its seed again, from the counts the pass stamps.
+        let (mut doc, _) = settle(&compiled, &session, Counts::default(), first_build, true)?;
+        let _s = crate::trace::span("attributes");
+        doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
+        Ok((doc, compiled.structural_depth.unwrap_or(0)))
     }
 
     /// This document's session with its essential values recorded, taken
@@ -321,61 +294,67 @@ impl Document {
         let n = self.n_essential;
         self.session
             .record(&self.structure.essential_slots, &self.cells[..n]);
-        let mut counts = Counts::of(self);
+        let counts = Counts::of(self);
         // What every repeat asks for now, kept for an iteration this
         // rebuild drops and a later one brings back.
         self.session.counts = Arc::new(counts.clone());
-        // The session a later pass reads: the last pass's.
-        let mut next: Option<Session> = None;
-        let passes = compiled.passes(MAX_PASSES);
-        let mut result = Err(unsettled(passes));
-        let mut n = 0;
-        for _ in 0..passes.unwrap_or(MAX_PASSES) {
-            n += 1;
-            let session = next.as_ref().unwrap_or(&self.session);
-            let built = {
-                let _s = crate::trace::span("build");
-                crate::build::build(&compiled, session, &counts, false)
-            };
-            let built = match built {
-                Ok(built) => built,
-                Err(e) => {
-                    result = Err(e.into());
-                    break;
-                }
-            };
-            let scheduled = {
-                let _s = crate::trace::span("schedule");
-                built.schedule(compiled.clone())
-            };
-            let mut doc = match scheduled {
-                Ok(doc) => doc,
-                Err(e) => {
-                    result = Err(e.into());
-                    break;
-                }
-            };
-            {
-                let _s = crate::trace::span("compute");
-                doc.recompute();
-            }
-            if doc.structure_settled() {
-                result = Ok(doc);
-                break;
-            }
-            counts = Counts::of(&doc);
-            next = Some(doc.session_with_values());
-        }
+        let (built, passes) = settle(&compiled, &self.session, counts, None, false)?;
         // Replace what one build made and carry what outlives a build; the
         // session is the one the build returned.
-        let built = result?;
         *self = Document {
             loaded: self.loaded.clone(),
             recompute: self.recompute,
             ..built
         };
-        Ok(n)
+        Ok(passes)
     }
+}
+
+/// Build `compiled` at `counts`, reading `session`, schedule and compute,
+/// and again at the counts the count cells then hold, until every repeat
+/// was built with the count its cell asks for (ADR 0004): the document and
+/// how many passes it took. `first` is a build already made for the first
+/// pass (the compile's check, at a load); with `reseed`, every pass after
+/// the first stamps seeded cells afresh. `session` is only read, so a
+/// caller that fails here is left as it was.
+fn settle(
+    compiled: &Arc<Compiled>,
+    session: &Session,
+    mut counts: Counts,
+    mut first: Option<BuildOutput>,
+    reseed: bool,
+) -> crate::Result<(Document, u32)> {
+    let passes = compiled.passes(MAX_PASSES);
+    // The session a later pass reads: the last pass's.
+    let mut next: Option<Session> = None;
+    for pass in 0..passes.unwrap_or(MAX_PASSES) {
+        let built = match first.take() {
+            Some(built) => built,
+            None => {
+                let _s = crate::trace::span("build");
+                crate::trace::count("pass", pass + 1);
+                let session = next.as_ref().unwrap_or(session);
+                crate::build::build(compiled, session, &counts, reseed && pass > 0)?
+            }
+        };
+        let mut doc = {
+            let _s = crate::trace::span("schedule");
+            let doc = built.schedule(compiled.clone())?;
+            crate::trace::count("instructions", doc.program.len());
+            doc
+        };
+        {
+            let _s = crate::trace::span("compute");
+            crate::trace::count("cells", doc.cells.len());
+            doc.recompute();
+        }
+        if doc.structure_settled() {
+            return Ok((doc, pass as u32 + 1));
+        }
+        counts = Counts::of(&doc);
+        next = Some(doc.session_with_values());
+    }
+    Err(unsettled(passes))
 }
 
 /// The structure did not settle in the passes allowed. For a checked
