@@ -285,7 +285,11 @@ ADR 0009 also bans several forms that main's tests use (D13):
   - Tier 3: that the children are not created until first rendered (`group.test.ts:800`).
 - **COMP-13: `<module>` (Tier 1).**
   - A module is a group whose `<moduleAttributes>` are parameters.
-  - A copy or extend can override them.
+  - A **copy** can override them: `<module copy="$m" item="banana"/>`.
+  - An **extend** cannot. It shows the same content, linked to the source, and ignores module
+    attributes written on it, with a warning (`module.test.ts:1474`, `:1571`; **[probe]**). Like
+    a group's extend, it can add children, `hide` or a name. D32 proposes making a module
+    attribute on an extend an error.
   - References in a supplied attribute resolve where the copy is written (NAME-4).
   - Evidence: `module.test.ts:68`, `:539`, `:1606-1910`.
 - **COMP-14: `<setup>` (Tier 1).**

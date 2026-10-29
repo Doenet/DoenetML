@@ -1038,7 +1038,20 @@ It covers these tags:
 - **parts of a choosing tag:** `case`, `else`, `option`.
 
 It does not cover `group` and `module`. They do not make their content; they hold what is
-written in them. Their extends add children and apply attributes (REF-4, COMP-13).
+written in them. Their extends show the same content, linked, and can add children, `hide` or a
+name (REF-4, COMP-12, COMP-13).
+
+**Module attributes on an extend of a module: an error.** A module's attributes are what make
+its content, as `for` is for a repeat, so the same reasoning applies to them.
+- They can feed any part of the module, including its structure, such as a `<repeat
+  for="$n">` inside it. An extend that changed `n` would need different iterations while staying
+  linked to the source's, which cannot be done coherently.
+- Today such an attribute is ignored with a warning (**[probe]**:
+  `<module extend="$m" item="banana"/>` still shows "apple", and typing into its input changes
+  `m`'s). Make it an error that says to use `copy`, which does apply module attributes.
+- The extend itself stays allowed, as a group's does. It is the same content again, linked,
+  with appended children, `hide` or a name. `$m` and `$m.t` cover most uses, and no use case for
+  appended children has come up. There is also no reason it fails, so it is not banned.
 
 **What it means in practice:**
 - **`$x` stays.** A bare reference to any of these tags shows its content, as now (REF-1). Only an
