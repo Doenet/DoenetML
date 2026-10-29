@@ -504,6 +504,13 @@ content: it draws its own value, which is fixed for a given variant, and never r
 the source's.
 
 Evidence:
+- `T/copying/group_copy_variants.test.ts` (#2344), over variants 1–5:
+  - a `<group copy>` keeps random values nested in divs and inner groups, including in a hidden
+    group, a `<shuffle>` and a `<select>` with unique variants;
+  - a random child added to a `<group copy>` gets its own value, the same for a given variant,
+    and keeps it through a reload. A copy of that copy keeps it too;
+  - an unlinked copy of a repeat keeps the random values in its template, and they are kept when
+    the page is loaded again with the variant it generated;
 - `T/tagSpecific/select.test.ts:432` (copies do not resample);
 - `selectfromsequence.test.ts:567`;
 - `shuffle.test.ts:47`.
@@ -511,18 +518,14 @@ Evidence:
 Code: `copyVariants` in `W/components/abstract/Copy.js`. It gives each serialized component its
 `generatedVariantInfo` as its desired variant.
 
-**Known violations (#2342, open; defect B8):**
-- **Nested content.** A `<group copy>` of a group holding `<div><group><p><selectFromSequence/>`
-  draws a new value. A `<section>` around the same content, or a shallower nesting, keeps it.
-  The likely cause is that the group is serialized before its inner content has been expanded,
-  so its `generatedVariantInfo` has no subvariants yet.
-- **An added child.** A random child added to a `<group copy>` repeats the source's first draw
-  (`429 966` becomes `429 966 429`). Under `<p copy>`, `<div copy>` and `<section copy>` it draws
-  its own value.
+**Fixed: #2342, by #2344.** A `<group copy>` used to break this rule in two ways:
+- it drew a new value for a random component nested in a `<div>` and an inner group, because
+  the group was serialized before its inner content had been expanded;
+- a random child added to it repeated the source's first draw (`429 966` became `429 966 429`).
 
-Both look like isolated bugs in how a group copy passes on variants, not a gap in the principle.
-No test covers random content in copies beyond one level, or added random children, and the
-issue proposes such tests in `T/copying/`.
+#2344 keeps the variant of each child of an unexpanded group, and gives a group copy with added
+random children a seed of its own. **[probe]** on main, for variants 1–3: the nested value matches
+its source, and an added child draws its own (`323 109` becomes `323 109 722`).
 
 ### CPY-3: references inside a copy stay live; ones that pointed into the source now point into the copy (Tier 1)
 ```xml
