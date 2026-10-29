@@ -87,12 +87,10 @@ impl<'a> Compiler<'a> {
                         }
                     } else {
                         match self.plan_value(t, scope, def.name, d.children(el), None) {
-                            // `<number>3</number>` cannot be changed by a drag in
-                            // the current core (no math child to write), so it is
-                            // a constant; an input's literal is its initial state.
-                            Ok(Source::Literal(v)) if component_type == ComponentType::Number => {
-                                Source::Fixed(v)
-                            }
+                            // A literal child (`<number>3</number>`, an input's
+                            // initial state) is a value slot: the classing
+                            // (ADR 0018) makes it essential when an input or an
+                            // action can reach it, a fixed cell otherwise.
                             Ok(p) => p,
                             // Not a single literal or reference: math text.
                             Err(Error::BadValue { .. }) => {

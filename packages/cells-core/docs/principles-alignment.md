@@ -297,7 +297,7 @@ this document:
 `<updateValue target="$n" newValue="7"/>` (ACT-2), and `<number
 name="n">3</number>` under `<point>($n, 0)</point>` cannot be dragged.
 
-**Fix.** Plan it as `Source::Literal(3)`, like a point's literal
+**Fix (done 2026-10-29).** Plan it as `Source::Literal(3)`, like a point's literal
 coordinate. ADR 0018's classing then decides, per template slot and from
 the source alone, whether anything a student does can reach it; a
 literal nothing reaches stays a fixed cell, so the golden documents'
@@ -501,7 +501,8 @@ Tier 1 first, smallest reversible step first:
    on a type whose planner ignores them) with a diagnostic on the
    element. Stops the silent wrong answers in §3.1 and §3.3; `styleNumber`
    and the other attributes a renderer reads stay accepted.
-2. Literal `<number>` as `Source::Literal` (§3.4).
+2. **Done.** Literal `<number>` as `Source::Literal` (§3.4), classed by
+   ADR 0018's walk like every other literal.
 3. The inherited-attribute primitive, starting with `fixed` from
    containers, then `fixLocation`, `disabled`, `styleNumber`, `hide`
    (§3.3); the `location` mark on props.

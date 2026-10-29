@@ -1,6 +1,8 @@
 # Essential means a student can write it
 
 Status: proposed 2026-10-24. Every migration step is done; see Migration.
+Amended 2026-10-29: a literal `<number>`'s value is a value slot like any
+other literal, classed by the walk (see Settled while implementing).
 
 A cell is essential when a student's action can write it, and only then.
 Every other value the author wrote, given as a literal or left to a
@@ -429,8 +431,15 @@ Settled while implementing:
 - `<numberInput>` has no `bindValueTo` in this core, so a spec binds a
   `<mathInput>` (step 5's example says so now).
 - A literal `<number>`'s value was a fixed cell before this ADR
-  (`compile/attrs.rs`), so a trigger whose target is one sets nothing;
-  the viewer's and the core's tests of a trigger target a `<boolean>`.
+  (`compile/attrs.rs`), so a trigger whose target is one set nothing, and
+  the viewer's and the core's tests of a trigger targeted a `<boolean>`.
+  Since 2026-10-29 it is a value slot like a point's literal coordinate:
+  essential when an input is bound to it, a point's coordinates read it,
+  or an `<updateValue>` targets it, and a fixed cell otherwise, which is
+  the walk's decision, not the planner's. DoenetML's authors rely on
+  `<number name="n">3</number><mathInput bindValueTo="$n"/>` changing `n`
+  (`docs/principles-alignment.md` §3.4), and the special case had made
+  the number the one literal the classing never got to see.
 - `tests/every_count.rs` and `tests/diagnostics.rs` force counts with
   `request_unchecked`, not `request`: with the classing on, a literal
   count is fixed either way, but before it the forced ticks would have
