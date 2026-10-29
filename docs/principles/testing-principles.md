@@ -262,6 +262,10 @@ does not count them. The common shapes are:
   `principles/generated/fixtures.ts`, or an exemption with a reason".
 - **CI.** Run `--tags-filter tier1` on every PR as a fast gate. Fail when a schema component has
   no fixture and no exemption, or when a registry id has no tagged test.
+- **Guard tests over every class.** `T/baseComponent/essentialMathReload.test.ts` (#2380) is an
+  example that already exists. It checks every component class for a property of SAVE-1, a math
+  value restored as a math, so that a new component that breaks it fails a test. Sweeps of
+  this kind are cheap, and they keep a principle true as components are added.
 - **Schema metadata.** Add optional static fields on component classes, emitted into the schema:
   - `interactiveProps`;
   - `principleExemptions: { "CPY-1": "reason" }`.
