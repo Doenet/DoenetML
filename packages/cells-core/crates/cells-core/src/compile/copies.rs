@@ -185,10 +185,7 @@ impl<'a> Compiler<'a> {
                 }
             }
         }
-        let scope = self.compiled.templates[t.index()].elems[e.index()].name_scope;
-        let held = self
-            .plan_fix(t, scope, el, &["fixed"])?
-            .apply(&mut wiring.props);
+        let held = self.plan_fix(t, e)?.apply(&mut wiring.props);
         self.record_held(t, e, held);
         if !wiring.shared_state.is_empty() {
             self.shared_state

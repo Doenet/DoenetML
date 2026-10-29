@@ -281,7 +281,9 @@ is pruned (ADR 0019); the dead cell is itself a fixed cell.
 cell: forward it is the identity, and its inverse drops the request while the
 flag is nonzero. A literal `fixed` holds, by a constant flag, the cells it
 cannot make fixed: references and a copy's referent. Not to be confused with
-a gate.
+a gate. An element's `fixed` is its own or the nearest container's (ADR
+0022); `fixLocation` holds a *located* type (one whose every value is a
+location: the geometry types) the same way.
 
 **Slot** — At build time, one prop of one component instance (or a hidden
 value a component type's planner needs), before aliases merge slots into cells. A

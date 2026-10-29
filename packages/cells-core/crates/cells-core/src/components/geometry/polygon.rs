@@ -14,7 +14,7 @@ component! {
     /// `<polygon vertices="...">`, optionally rigid: its vertices are its list
     /// (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
     tags: ["polygon", "triangle"],
-    flags: [copyable],
+    flags: [copyable, located],
     renders: InGraph,
     props {
         // The vertices follow, as the list.

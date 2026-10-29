@@ -13,7 +13,7 @@ use crate::tick::snap::Shape;
 component! {
     /// `<point>`. `coords` combines `x` and `y`.
     tags: ["point"],
-    flags: [copyable],
+    flags: [copyable, located],
     default_prop: coords,
     props {
         x: by_planner { interactive, rendered },

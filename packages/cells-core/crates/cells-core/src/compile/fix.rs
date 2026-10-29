@@ -1,38 +1,98 @@
-//! `fixed` (and a graph's `fixAxes`): a literal true turns the element's
-//! essential values into constants and holds the rest (references, a
-//! copy's referent) for good; references put a `Hold` on every slot a request could write
-//! through.
+//! `fixed`, `fixLocation` and a graph's `fixAxes`: a literal true turns
+//! the element's essential values into constants and holds the rest
+//! (references, a copy's referent) for good; references put a `Hold` on
+//! every slot a request could write through. `fixed` and `fixLocation`
+//! are inherited (ADR 0022): what an element does not give itself, the
+//! nearest element around it that gives decides, a container's content
+//! being fixed with the container unless it says otherwise.
 
 use super::*;
 
 impl<'a> Compiler<'a> {
-    /// `fixed`-like attributes of an element. A literal true fixes it at
+    /// The `fixed`-like attributes that reach element `e`: its own
+    /// `fixed` and `fixLocation`, else the nearest ancestor's (ADR 0022),
+    /// and a graph's own `fixAxes`. A literal true fixes the element at
     /// build time; a reference is a flag cell, so the element is gated
     /// while the flag is nonzero. Several references gate on any of them.
-    pub(in crate::compile) fn plan_fix(
-        &mut self,
-        t: TemplateId,
-        scope: ElemId,
-        el: NodeId,
-        names: &[&str],
-    ) -> Result<Fix> {
+    /// `fixLocation` holds only a *located* type, one whose every value is
+    /// a location (`ComponentType::located`); it is read on every type, so
+    /// a container may give it to the shapes inside, and has nothing to
+    /// hold on a type without location state.
+    pub(in crate::compile) fn plan_fix(&mut self, t: TemplateId, e: ElemId) -> Result<Fix> {
         let d = self.dast;
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         let mut flags = Vec::new();
-        for &name in names {
-            let Some(a) = d.attr(el, name) else { continue };
-            if self.attr_text(a).is_some() {
-                if self.attr_flag(el, name) {
-                    return Ok(Fix::Literal);
-                }
+        for (name, inherited, applies) in [
+            ("fixed", true, true),
+            ("fixLocation", true, component_type.located()),
+            ("fixAxes", false, component_type == ComponentType::Graph),
+        ] {
+            let Some((at, ae, a, hops)) = self.nearest_attr(t, e, name, inherited) else {
+                continue;
+            };
+            if !applies {
                 continue;
             }
-            flags.push(self.plan_value(t, scope, name, d.attr_children(a), None)?);
+            let Elem {
+                node, name_scope, ..
+            } = self.compiled.templates[at.index()].elems[ae.index()];
+            if self.attr_text(a).is_some() {
+                if self.attr_flag(node, name) {
+                    return Ok(Fix::Literal);
+                }
+                // An explicit false, the element's own or the nearest
+                // around it, is the answer for this attribute.
+                continue;
+            }
+            // A reference, planned where the element that wrote it sits
+            // (its names mean what they mean there), and reached from
+            // `e` that many templates up.
+            let source = self.plan_value(at, name_scope, name, d.attr_children(a), None)?;
+            if let (Source::Alias(Arg::Ref(p, _)), 1..) = (&source, hops) {
+                self.compiled.refs[p.index()].hops += hops;
+            }
+            flags.push(source);
         }
         Ok(if flags.is_empty() {
             Fix::Off
         } else {
             Fix::Dynamic(flags)
         })
+    }
+
+    /// The nearest element, from `e` up through its ancestors and, when
+    /// `inherited`, through the repeats and choices around its template,
+    /// whose node gives attribute `name`: its template and element, the
+    /// attribute, and how many templates up it is from `e`. Without
+    /// `inherited`, only `e` itself.
+    fn nearest_attr(
+        &self,
+        mut t: TemplateId,
+        mut e: ElemId,
+        name: &str,
+        inherited: bool,
+    ) -> Option<(TemplateId, ElemId, u32, u32)> {
+        let d = self.dast;
+        let mut hops = 0;
+        loop {
+            let el = &self.compiled.templates[t.index()].elems[e.index()];
+            if el.node != NodeId::NONE
+                && let Some(a) = d.attr(el.node, name)
+            {
+                return Some((t, e, a, hops));
+            }
+            if !inherited {
+                return None;
+            }
+            if el.name_scope != ROOT_SCOPE {
+                e = el.name_scope;
+            } else {
+                let (pt, pe) = self.compiled.templates[t.index()].parent?;
+                t = pt;
+                e = pe;
+                hops += 1;
+            }
+        }
     }
 }
 

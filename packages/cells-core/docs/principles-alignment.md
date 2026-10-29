@@ -242,6 +242,9 @@ is the referent's content re-planned, and then in the referent's scope.
 aside). `<point draggable="false">`, `<section disabled>` and
 `<graph styleNumber="2">` are accepted and ignored.
 
+**Done 2026-10-29 for `fixed` and `fixLocation` (ADR 0022).** The rest
+of this section stands for `hide`, `styleNumber` and `disabled`.
+
 **The fix is one primitive.** `inherited-attributes.md` §5 reduces every
 one of these to four parameters: combine (OR or nearest wins), whether
 an own setting overrides, what passes through a linked reference (own
@@ -503,9 +506,13 @@ Tier 1 first, smallest reversible step first:
    and the other attributes a renderer reads stay accepted.
 2. **Done.** Literal `<number>` as `Source::Literal` (§3.4), classed by
    ADR 0018's walk like every other literal.
-3. The inherited-attribute primitive, starting with `fixed` from
-   containers, then `fixLocation`, `disabled`, `styleNumber`, `hide`
-   (§3.3); the `location` mark on props.
+3. The inherited-attribute primitive (§3.3). **Done for `fixed` and
+   `fixLocation` (ADR 0022):** nearest container wins, across templates,
+   clones included, with a `located` flag on the geometry types in place
+   of a per-prop mark. **Open:** `disabled` (a cell inputs refuse on and
+   the renderer shows), `styleNumber` (a cell the bridge reads; today
+   only the viewer reads the element's own literal) and the `hide` fold
+   for `$x.hidden`.
 4. Inherited attributes planned in the referent's scope (§3.2 small
    fix), then the alias-based inheritance that removes `base`,
    `shared_state` and `Given`.

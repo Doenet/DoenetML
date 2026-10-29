@@ -357,6 +357,11 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   a piece of shared state, which a copy giving the same attribute keeps
   as its own. State from the element's own children is `Given::Children`,
   from its referent's `Given::Referent`.
+- `fixed` is applied around the planner, not by it (`plan_with_extend`,
+  `plan_attrs`): the element's own, else the nearest container's (ADR
+  0022), as `Hold`s on every slot a request could write through. A type
+  whose every value is a location says `located` among its flags, and
+  `fixLocation` then holds it the same way.
 - A combination of attributes the planner cannot honor is a warning
   (`PlanCtx::warn`), never a silent NaN: what it cannot define is
   `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A

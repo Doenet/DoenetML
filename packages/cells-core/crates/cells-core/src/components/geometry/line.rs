@@ -14,7 +14,7 @@ component! {
     /// `<line>`: its own two points are derived cells (ADR 0006); slope,
     /// intercepts and coefficients follow from them or from the equation.
     tags: ["line"],
-    flags: [copyable],
+    flags: [copyable, located],
     renders: InGraph,
     props {
         // The first four props are the line's own points (ADR 0006).

@@ -227,6 +227,7 @@ pub(super) const fn definition(
             container: false,
             symbolic: false,
             internal: false,
+            located: false,
         },
         renders: super::Renders::Always,
         sticky: None,
@@ -254,6 +255,11 @@ impl ComponentDef {
     /// Made by the builder, never by a tag in the source.
     pub(super) const fn internal(mut self) -> Self {
         self.flags.internal = true;
+        self
+    }
+    /// See [`super::Flags::located`].
+    pub(super) const fn located(mut self) -> Self {
+        self.flags.located = true;
         self
     }
     /// Where a component of the type is drawn (ADR 0019).

@@ -121,12 +121,7 @@ impl<'a> Compiler<'a> {
         if let Planner::PropsThen(then) = Self::planner(component_type) {
             then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
-        let fix_attrs: &[&str] = if component_type == ComponentType::Graph {
-            &["fixed", "fixAxes"]
-        } else {
-            &["fixed"]
-        };
-        let held = self.plan_fix(t, scope, el, fix_attrs)?.apply(&mut props);
+        let held = self.plan_fix(t, e)?.apply(&mut props);
         self.record_held(t, e, held);
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);

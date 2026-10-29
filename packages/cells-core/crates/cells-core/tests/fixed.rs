@@ -223,3 +223,129 @@ fn a_literal_fixed_point_follows_the_point_it_references() {
     set(&mut doc, "A", "x", 4.0);
     assert_eq!(v(&doc, "P", "x"), 4.0);
 }
+
+// `fixed` and `fixLocation` are inherited from the nearest element around
+// that gives them (ADR 0022; CTX-5 of the principles): a container's
+// content is fixed with the container unless it says otherwise.
+
+#[test]
+fn a_fixed_graph_fixes_the_points_inside_it() {
+    for container in ["graph", "group", "section", "p"] {
+        let mut doc = load(&format!(
+            r#"<{container} fixed><point name="P" x="1" y="2"/></{container}>"#
+        ))
+        .unwrap();
+        assert_eq!(set(&mut doc, "P", "x", 9.0), 1, "<{container} fixed>");
+        assert_eq!(v(&doc, "P", "x"), 1.0);
+    }
+}
+
+#[test]
+fn an_items_own_fixed_false_wins_over_its_container() {
+    let mut doc = load(
+        r#"<graph fixed>
+             <point name="P" x="1" y="2" fixed="false"/>
+             <group fixed="false"><point name="Q" x="3" y="4"/></group>
+             <point name="R" x="5" y="6"/>
+           </graph>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "P", "x", 9.0), 0, "its own fixed=\"false\"");
+    assert_eq!(
+        set(&mut doc, "Q", "x", 9.0),
+        0,
+        "the nearer group says false"
+    );
+    assert_eq!(set(&mut doc, "R", "x", 9.0), 1, "the graph's fixed");
+    assert_eq!(
+        (v(&doc, "P", "x"), v(&doc, "Q", "x"), v(&doc, "R", "x")),
+        (9.0, 9.0, 5.0)
+    );
+}
+
+#[test]
+fn a_dynamic_fixed_on_a_container_gates_its_content() {
+    let mut doc = load(
+        r#"<booleanInput name="b" value="true"/>
+           <graph fixed="$b"><point name="P" x="1" y="2"/></graph>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "P", "x", 9.0), 1);
+    set(&mut doc, "b", "value", 0.0);
+    assert_eq!(set(&mut doc, "P", "x", 9.0), 0);
+    assert_eq!(v(&doc, "P", "x"), 9.0);
+}
+
+/// Through a repeat: the container is in the template above, and a flag
+/// it names resolves where the container sits, not where the point does.
+#[test]
+fn a_fixed_container_reaches_into_a_repeat() {
+    let mut doc = load(
+        r#"<booleanInput name="b" value="true"/>
+           <graph fixed>
+             <repeatForSequence name="r" from="1" to="2"><point name="P" x="1" y="2"/></repeatForSequence>
+           </graph>
+           <graph fixed="$b">
+             <repeatForSequence name="s" from="1" to="2">
+               <booleanInput name="b" value="false"/>
+               <point name="Q" x="3" y="4"/>
+             </repeatForSequence>
+           </graph>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "r[2].P", "x", 9.0), 1);
+    // The graph's `$b` is the document's `b`, not the iteration's.
+    assert_eq!(set(&mut doc, "s[1].Q", "x", 9.0), 1);
+    set(&mut doc, "b", "value", 0.0);
+    assert_eq!(set(&mut doc, "s[1].Q", "x", 9.0), 0);
+    assert_eq!(v(&doc, "s[1].Q", "x"), 9.0);
+}
+
+/// A copy sits where it is written: a fixed copy of a graph holds its
+/// clones' aliases, and the original's points still move.
+#[test]
+fn a_fixed_container_copy_holds_its_clones() {
+    let mut doc = load(
+        r#"<graph name="g"><point name="p" x="1" y="2"/></graph>
+           <graph name="h" extend="$g" fixed/>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "h.p", "x", 9.0), 1);
+    assert_eq!(set(&mut doc, "g.p", "x", 9.0), 0);
+    assert_eq!(v(&doc, "h.p", "x"), 9.0);
+}
+
+#[test]
+fn fix_location_holds_a_shape_and_is_inherited() {
+    let mut doc = load(
+        r#"<graph fixLocation>
+             <point name="P" x="1" y="2"/>
+             <circle name="c" center="(0,0)" radius="2"/>
+             <mathInput name="r" bindValueTo="$c.radius"/>
+           </graph>
+           <point name="Q" x="3" y="4" fixLocation/>
+           <point name="R" x="5" y="6" fixLocation="false"/>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "P", "x", 9.0), 1);
+    assert_eq!(
+        set(&mut doc, "r", "value", 5.0),
+        1,
+        "a radius is a location"
+    );
+    assert_eq!(set(&mut doc, "Q", "x", 9.0), 1);
+    assert_eq!(set(&mut doc, "R", "x", 9.0), 0);
+}
+
+/// A type without location state has nothing for `fixLocation` to hold:
+/// its value still takes a write.
+#[test]
+fn fix_location_leaves_a_value_writable() {
+    let mut doc = load(
+        r#"<number name="n">3</number>
+           <mathInput name="mi" bindValueTo="$n" fixLocation/>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "mi", "value", 5.0), 0);
+    assert_eq!(v(&doc, "n", "value"), 5.0);
+}

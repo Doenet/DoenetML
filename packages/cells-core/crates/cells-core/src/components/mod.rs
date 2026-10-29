@@ -296,6 +296,10 @@ pub struct Flags {
     pub symbolic: bool,
     /// Made by the builder, never by a tag in the source.
     pub internal: bool,
+    /// Every value it holds is a location: a point's coordinates, a
+    /// circle's center and radius, a polygon's vertices. `fixLocation`
+    /// holds it as `fixed` does (ADR 0022).
+    pub located: bool,
 }
 
 impl ComponentType {
@@ -559,6 +563,11 @@ impl ComponentType {
     /// Function, derivative and answer: planned as math cells.
     pub fn symbolic(self) -> bool {
         self.def().flags.symbolic
+    }
+
+    /// See [`Flags::located`].
+    pub fn located(self) -> bool {
+        self.def().flags.located
     }
 
     /// The structural cell of a type built like a repeat (one scope per

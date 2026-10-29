@@ -653,10 +653,19 @@ impl<'a> Compiler<'a> {
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         match self.elem_shape(t, e)? {
-            // Every public prop aliases the original's; nothing else to plan.
+            // Every public prop aliases the original's; nothing else to
+            // plan, except a `fixed` the copy or its containers give (ADR
+            // 0022), which holds the aliases. A clone of a type with a
+            // list of points takes its points from the original at build
+            // (`place_list_copy`), which no hold reaches yet.
             ElemShape::Cloned => {
                 let n = component_type.prop_defs().len();
-                let mut props = vec![Source::Inherit; n];
+                let mut props: Vec<Option<Source>> = vec![Some(Source::Inherit); n];
+                if component_type.given_coords().is_none() {
+                    let held = self.plan_fix(t, e)?.apply(&mut props);
+                    self.record_held(t, e, held);
+                }
+                let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
                 Deferred::mark(component_type, &mut props);
                 let el = &mut self.compiled.templates[t.index()].elems[e.index()];
                 el.props = props;
