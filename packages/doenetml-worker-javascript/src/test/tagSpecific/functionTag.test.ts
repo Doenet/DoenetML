@@ -7835,6 +7835,37 @@ describe("Function tag tests @group4", async () => {
         expect(await domainOf("k")).eqls([interval(-Infinity, Infinity)]);
     });
 
+    it("inputs beyond a function child's get default variables", async () => {
+        // A function given more inputs than its function child used to have
+        // undefined variables for the extra inputs, so the document failed
+        // to load (Doenet/DoenetML#2382). They now get default names that
+        // differ from the child's variables.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f">x^2</function>
+<function name="g" numInputs="2">$f</function>
+<function name="f3" variables="x y z">x+y+z</function>
+<function name="g3" numInputs="4">$f3</function>
+<function name="fy" variable="y">y^2</function>
+<function name="gy" numInputs="2">$fy</function>
+<p name="p">$$g(3,5), $$g3(1,2,3,4), $$gy(3,5)</p>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function variablesOf(name: string) {
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.variables.map((v: any) => v.tree);
+        }
+
+        expect(await variablesOf("g")).eqls(["x", "y"]);
+        expect(await variablesOf("g3")).eqls(["x", "y", "z", ["_", "x", 4]]);
+        expect(await variablesOf("gy")).eqls(["y", ["_", "x", 2]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("9, 6, 9");
+    });
+
     it("graph a function whose child is a piecewise function with symbolic bounds", async () => {
         // The function's domain used to be undefined, and a curve graphing
         // it read the endpoints of that undefined interval, so the document

@@ -2381,6 +2381,33 @@ describe("Function Operator tag tests @group1", async () => {
         ).eq("＿, 1");
     });
 
+    it("function operators with more inputs than their function", async () => {
+        // An operator given more inputs than its function child used to have
+        // undefined variables for the extra inputs, so the document failed
+        // to load (Doenet/DoenetML#2382). They now get default names.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <function name="g">x^2</function>
+      <derivative name="d" numInputs="2">$g</derivative>
+      <clampFunction name="c" numInputs="2">$g</clampFunction>
+      <wrapFunctionPeriodic name="w" numInputs="2">$g</wrapFunctionPeriodic>
+      <p name="p">$$d(3,5), $$c(0.5,5), $$w(1.5,5)</p>
+      `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        for (let name of ["d", "c", "w"]) {
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.variables.map((v) => v.tree),
+            ).eqls(["x", "y"]);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("6, 0.25, 0.25");
+    });
+
     it("derivatives of vector-valued functions", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

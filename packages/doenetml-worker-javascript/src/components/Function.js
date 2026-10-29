@@ -962,7 +962,7 @@ export default class Function extends InlineComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numInputs];
             },
-            returnArrayDependenciesByKey({ arrayKeys }) {
+            returnArrayDependenciesByKey() {
                 let globalDependencies = {
                     variablesAttr: {
                         dependencyType: "attributeComponent",
@@ -983,29 +983,15 @@ export default class Function extends InlineComponent {
                     functionChild: {
                         dependencyType: "child",
                         childGroups: ["functions"],
+                        variableNames: ["variables"],
                     },
                 };
 
-                let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    dependenciesByKey[arrayKey] = {
-                        functionChild: {
-                            dependencyType: "child",
-                            childGroups: ["functions"],
-                            variableNames: [
-                                "variable" + (Number(arrayKey) + 1),
-                            ],
-                        },
-                    };
-                }
-
-                return { globalDependencies, dependenciesByKey };
+                return { globalDependencies };
             },
             arrayDefinitionByKey({
                 globalDependencyValues,
-                dependencyValuesByKey,
                 arraySize,
-                arrayKeys,
                 usedDefault,
             }) {
                 if (
@@ -1030,16 +1016,19 @@ export default class Function extends InlineComponent {
                         },
                     };
                 } else if (globalDependencyValues.functionChild.length > 0) {
-                    let variables = {};
-                    for (let arrayKey of arrayKeys) {
-                        variables[arrayKey] =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].functionChild[0].stateValues[
-                                "variable" + (Number(arrayKey) + 1)
-                            ];
-                    }
-                    return { setValue: { variables } };
+                    // This function's numInputs can be larger than the
+                    // child's (e.g., when set by a numInputs attribute).
+                    // Inputs the child doesn't have get default names that
+                    // differ from the child's variables.
+                    return {
+                        setValue: {
+                            variables: returnNVariables(
+                                arraySize[0],
+                                globalDependencyValues.functionChild[0]
+                                    .stateValues.variables,
+                            ),
+                        },
+                    };
                 } else if (
                     globalDependencyValues.parentVariableForChild &&
                     !usedDefault.parentVariableForChild
