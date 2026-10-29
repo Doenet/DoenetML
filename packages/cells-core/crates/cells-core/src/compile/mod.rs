@@ -574,12 +574,26 @@ impl<'a> Compiler<'a> {
             ComponentType::When => {}
             // A number's children are its value, not rendered children; a
             // `Plan` type's planner reads its children itself (a line's
-            // equation, a point's constraints).
+            // equation, a point's constraints). Its presentational
+            // children (`<label>`) are components all the same, for the
+            // renderer to read (ADR 0024).
             _ if matches!(Self::planner(component_type), Planner::Plan(_))
                 || component_type
                     .prop_defs()
                     .iter()
-                    .any(|p| p.from == PropFrom::Children) => {}
+                    .any(|p| p.from == PropFrom::Children) =>
+            {
+                let presentational: Vec<NodeId> = d
+                    .children(el)
+                    .iter()
+                    .copied()
+                    .filter(|&n| self.is_presentation_child(n))
+                    .collect();
+                if !presentational.is_empty() {
+                    let kids = self.add_children(t, Some(e), child_scope, &presentational)?;
+                    self.compiled.templates[t.index()].elems[e.index()].children = kids;
+                }
+            }
             _ => {
                 let kids = self.add_children(t, Some(e), child_scope, d.children(el))?;
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
@@ -727,6 +741,22 @@ impl<'a> Compiler<'a> {
             Some(p) if component_type.container() => ElemShape::ContainerCopy(p),
             _ => ElemShape::ByType(extend),
         })
+    }
+
+    /// Whether a child node is presentation a renderer reads rather than
+    /// content a planner does: a `<label>` or `<shortDescription>` element.
+    /// Every type keeps such a child as a component (ADR 0024); a planner
+    /// reading its element children passes over them.
+    pub(in crate::compile) fn is_presentation_child(&self, n: NodeId) -> bool {
+        self.dast.kind(n) == NodeKind::Element
+            && matches!(self.dast.str(n), "label" | "shortDescription")
+    }
+
+    /// Whether a child node is no content of its element: layout
+    /// (`is_blank`) or presentation (`is_presentation_child`). What
+    /// decides an element's value from its children looks past these.
+    pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
+        self.is_blank(n) || self.is_presentation_child(n)
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {

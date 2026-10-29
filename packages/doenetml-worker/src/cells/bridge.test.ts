@@ -113,6 +113,42 @@ describe("flat DAST", () => {
     });
 });
 
+describe("references and copies", () => {
+    it("present a reference as its referent, and append a copy's own children", async () => {
+        const bridge =
+            await load(`<p name="p">a<text>x</text></p><p name="pe" extend="$p">b</p>
+<textInput name="ti"><label>Name</label></textInput><textInput extend="$ti"/>
+<textInput extend="$ti"><label>Other</label></textInput>
+<p><number name="n" displayDecimals="1">3.14159</number> $n <number extend="$n" displayDecimals="3"/></p>`);
+        const root = bridge.flatDast();
+        const props = (name: string) =>
+            byName(root, name).map((e) => (e.data as any).props);
+        // The copy shows the referent's children, then its own (REF-4).
+        const texts = (e: any) =>
+            e.children.map((c: any) =>
+                typeof c === "string"
+                    ? c
+                    : (root.elements[c.id]?.data as any).props?.value,
+            );
+        const [p, pe] = byName(root, "p");
+        expect(texts(p)).toEqual(["a", "x"]);
+        expect(texts(pe)).toEqual(["a", "x", "b"]);
+        // A reference has its referent's label unless it gives its own,
+        // the last `<label>` written winning (ADR 0024, REF-4a).
+        expect(props("textInput").map((q) => q.label)).toEqual([
+            "Name",
+            "Name",
+            "Other",
+        ]);
+        // And its referent's display settings.
+        expect(props("number").map((q) => q.text)).toEqual([
+            "3.1",
+            "3.1",
+            "3.142",
+        ]);
+    });
+});
+
 describe("renderer actions", () => {
     it("moves a point and sends only what changed", async () => {
         const bridge = await load(

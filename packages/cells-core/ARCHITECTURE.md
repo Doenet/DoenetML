@@ -281,7 +281,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Document` | `document/mod.rs` | A loaded document and the API to it. `output_cells` and `is_live` (`document/outputs.rs`) say what leaves it and what it computes. |
 | `Renders`, `Live` | `components/mod.rs`, `build/mod.rs` | Where a component type is drawn (always, never, only in a graph), which decides whether its `rendered` props are outputs; and a build's bit per cell of what it computes (ADR 0019). |
 | `CellIdx`, `CompIdx`, `NodeId`, `StrId`, `ScopeId`, `OperandIdx`, `MemoIdx`, and the compile's and build's ids (`TemplateId`, `ElemId`, `RefId`, `ChoiceId`, `ElemKey`, `ExprId`, `SlotId`, `Handle`) | `index.rs` | Positions in the cells, the component table, the DAST, a string table, the session's scopes, a program's operands and its symbolic memo, and the like, each its own type over a `u32` made by `index_type!` (`index()` reads the position), so one cannot be passed for another. A text cell holds a `StrId` as its value (`StrId::to_value`). Two lists mix kinds of entry and say so in their types: a child list's `ChildEntry` (`document/table.rs`) is a component or a text child's string, and a literal attribute's `AttrValue` (`dast/attrs.rs`) is a string or text the attributes keep. A math's leaves say what they are by type: `Expr<L>` and `sym::Tree<L>` hold `RefId`s in the compile, `SlotId`s in a build, `CellIdx`s once emit rebinds them. |
-| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
+| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, the component each reference refers to (`referent`, ADR 0024), and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Evaluator`, `Recompute` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`; `Recompute` is the document's setting of which one a tick uses. |
 | `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
@@ -361,6 +361,9 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   a piece of shared state, which a copy giving the same attribute keeps
   as its own. State from the element's own children is `Given::Children`,
   from its referent's `Given::Referent`.
+- A `<label>` or `<shortDescription>` child is a component of the element
+  on every type, for the renderer to read (ADR 0024); a planner reading
+  its element children passes over them (`ctx.is_presentation_child`).
 - What an extend omits comes from its referent, planned where the
   referent sits (ADR 0023): `ctx.attr`, `ctx.scalar`, `ctx.flag`,
   `ctx.tuple` and the rest pick the referent's scope for the referent's

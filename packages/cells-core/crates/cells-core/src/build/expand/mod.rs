@@ -238,6 +238,7 @@ impl<'c> Builder<'c> {
                 child_list: Vec::with_capacity(guess),
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
+                referent: Vec::with_capacity(guess),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
@@ -296,6 +297,7 @@ impl<'c> Builder<'c> {
         self.components.child_count.push(0);
         self.components.dast_node.push(node);
         self.components.scope.push(scope);
+        self.components.referent.push(CompIdx::NONE);
         self.comp_instance.push(NONE);
         self.comp_repeat.push(NONE);
         self.slot_base.push(SlotId::NONE);
@@ -758,6 +760,7 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn copy_into(&mut self, idx: CompIdx, referent: CompIdx) {
         let component_type = self.components.component_type[referent.index()];
         self.components.component_type[idx.index()] = component_type;
+        self.components.referent[idx.index()] = referent;
         let n = self.n_public(referent);
         self.n_public[idx.index()] = self.n_public[referent.index()];
         self.allocate_slots(idx, n);
@@ -1092,6 +1095,8 @@ impl<'c> Builder<'c> {
                         component_type: component_type.tag().into(),
                     });
                 }
+                // What a renderer reads through the reference (ADR 0024).
+                self.components.referent[comp.index()] = referent;
                 Some(referent)
             }
             None => None,

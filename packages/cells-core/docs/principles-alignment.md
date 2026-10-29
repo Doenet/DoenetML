@@ -323,7 +323,7 @@ clones of the referent's. The element's own children were planned by
 
 **[probe]** `pe` renders `ax`, no diagnostic.
 
-**Fix.** Append the planned own children after the clones. REF-4a (of a
+**Fix (done 2026-10-29, ADR 0024).** Append the planned own children after the clones. REF-4a (of a
 single-use child the last one wins, so a `<label>` or `<title>` added
 inside an extend replaces the source's) then follows if the bridge's
 `label()` and the section-title contract take the *last* such child;
@@ -346,7 +346,7 @@ bridge reads a label from the component's own `<label>` children or
 `label` attribute, so a reference to a labelled point (the common `$P`
 in a second graph) has none, against CTX-11 rule 5.
 
-**Fix.** Planners skip presentational children (`<label>`,
+**Fix (done 2026-10-29, ADR 0024).** Planners skip presentational children (`<label>`,
 `<shortDescription>`) by one shared predicate, as `is_blank` skips
 whitespace. For CTX-11 and for VAL-4/CTX-10 (display settings travel
 with a value), add one column to the `ComponentTable`: the component a
@@ -520,9 +520,12 @@ Tier 1 first, smallest reversible step first:
    override-extends across a scope refused. **Open:** the alias-based
    inheritance that removes `base`, `shared_state` and `Given` from the
    `Plan` types' planners.
-5. Own children appended on a container extend; presentational
-   children skipped by planners; the `referent` column, and labels and
-   display settings read through it (§3.5, §3.6).
+5. **Done (ADR 0024).** Own children appended on a container extend;
+   `<label>` and `<shortDescription>` children kept as components and
+   skipped by planners; the `referent` column, with labels and
+   `displayDecimals` read through it in the bridge, the last `<label>`
+   or `<title>` winning. The prototype's point renderer does not draw a
+   label yet.
 6. `implicit_prop` on inputs (§3.7); the D26 conversion table (§3.8);
    commas in the bridge (§3.9).
 7. `copy` as paste-at-compile with seeds (§3.1), after D1 is decided.

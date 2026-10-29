@@ -61,7 +61,14 @@ impl<'a> Compiler<'a> {
                 },
                 (None, PropFrom::Computed { op, args }) => Source::from_def(op, &args),
                 (None, PropFrom::Children) => {
-                    let blank = d.children(el).iter().all(|&n| self.is_blank(n));
+                    // A `<label>` child is presentation, not the value.
+                    let content: Vec<NodeId> = d
+                        .children(el)
+                        .iter()
+                        .copied()
+                        .filter(|&n| !self.is_presentation_child(n))
+                        .collect();
+                    let blank = content.iter().all(|&n| self.is_blank(n));
                     // A mathInput's `prefill` stands in for blank children.
                     let from_attr = def.attr.and_then(|a| d.attr(el, a));
                     if blank {
@@ -86,7 +93,7 @@ impl<'a> Compiler<'a> {
                             None => default(def.default),
                         }
                     } else {
-                        match self.plan_value(t, scope, def.name, d.children(el), None) {
+                        match self.plan_value(t, scope, def.name, &content, None) {
                             // A literal child (`<number>3</number>`, an input's
                             // initial state) is a value slot: the classing
                             // (ADR 0018) makes it essential when an input or an
@@ -94,7 +101,7 @@ impl<'a> Compiler<'a> {
                             Ok(p) => p,
                             // Not a single literal or reference: math text.
                             Err(Error::BadValue { .. }) => {
-                                Source::Math(self.plan_math(t, scope, d.children(el))?)
+                                Source::Math(self.plan_math(t, scope, &content)?)
                             }
                             Err(e) => return Err(e),
                         }

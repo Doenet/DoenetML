@@ -40,7 +40,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .children(el)
         .iter()
         .copied()
-        .filter(|&n| !ctx.is_blank(n))
+        .filter(|&n| !ctx.is_not_content(n))
         .collect();
     let value: Wire = match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
         ([n], _) if d.kind(*n) == NodeKind::Macro => Source::reference(ctx.reference(*n)?).into(),

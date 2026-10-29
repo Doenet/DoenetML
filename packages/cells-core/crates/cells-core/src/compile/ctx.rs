@@ -195,6 +195,18 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.is_blank(n)
     }
 
+    /// Whether a child node is presentation a renderer reads (a `<label>`),
+    /// which a planner reading element children passes over (ADR 0024).
+    pub(crate) fn is_presentation_child(&self, n: NodeId) -> bool {
+        self.c.is_presentation_child(n)
+    }
+
+    /// Whether a child node is no content of the element: layout or
+    /// presentation (`is_blank`, `is_presentation_child`).
+    pub(crate) fn is_not_content(&self, n: NodeId) -> bool {
+        self.c.is_not_content(n)
+    }
+
     /// A node's children that make up math text: text and `$ref`s, not
     /// blanks or elements.
     pub(crate) fn math_children(&self, node: NodeId) -> Vec<NodeId> {

@@ -40,7 +40,9 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
-    /// original's and its children are clones, named under the copy.
+    /// original's and its children are clones, named under the copy,
+    /// followed by the children written inside the copy (REF-4 of the
+    /// principles: added after the referent's).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
         t: TemplateId,
@@ -52,7 +54,9 @@ impl<'a> Compiler<'a> {
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         self.plan_attrs(t, e, Some(p))?;
         let scope = self.child_scope(t, e);
-        let kids = self.clone_children(t, r, scope, e)?;
+        let mut kids = self.clone_children(t, r, scope, e)?;
+        let own = std::mem::take(&mut self.compiled.templates[t.index()].elems[e.index()].children);
+        kids.extend(own);
         self.compiled.templates[t.index()].elems[e.index()].children = kids;
         Ok(())
     }
@@ -141,7 +145,7 @@ impl<'a> Compiler<'a> {
             .map(|a| d.attr_name(a).to_string())
             .filter(|n| n != "name" && n != "extend")
             .collect();
-        let has_children = !d.children(el).iter().all(|&n| self.is_blank(n));
+        let has_children = !d.children(el).iter().all(|&n| self.is_not_content(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
             let n = component_type.prop_defs().len();
             let el = &mut self.compiled.templates[t.index()].elems[e.index()];

@@ -340,8 +340,8 @@ instruction in schedule order, or only the downstream closure of the cells
 that changed. Both give the same values.
 
 **Component table** — The columnar description of components (component
-type, name, parent, children, prop cell indices) that the bridge reads
-directly, the same way it reads cells. It replaces an earlier serialized render manifest.
+type, name, parent, children, the referent of a reference, prop cell
+indices) that the bridge reads directly, the same way it reads cells. It replaces an earlier serialized render manifest.
 
 **Bridge** — What stands between the core and the renderer: it turns the
 component table and the changed cells of each tick into the components'

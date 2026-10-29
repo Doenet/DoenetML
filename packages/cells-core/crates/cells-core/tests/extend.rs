@@ -105,3 +105,65 @@ fn overrides_on_an_extend_across_a_scope_are_refused() {
     // The bare extend aliases the iteration's point.
     assert_eq!(v(&doc, "S", "x"), 2.0);
 }
+
+// Children written inside a container extend are appended after the
+// referent's (REF-4), and a `<label>` child is a component of its element,
+// which a reference presents through its referent (ADR 0024).
+
+#[test]
+fn children_written_inside_a_container_extend_are_appended() {
+    let doc = load(
+        r#"<p name="p">a<text name="t">x</text></p>
+           <p name="pe" extend="$p">b<text name="u">y</text></p>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    let pe = doc.component("pe").unwrap();
+    assert_eq!(doc.rendered_text(pe), "axby");
+    // The clone of `t` is reached through the copy's name, and so is the
+    // copy's own child.
+    assert!(doc.component("pe.t").is_some());
+    assert!(doc.component("pe.u").is_some());
+    assert_eq!(doc.rendered_text(doc.component("p").unwrap()), "ax");
+}
+
+#[test]
+fn a_label_child_is_kept_and_a_reference_knows_its_referent() {
+    let doc = load(
+        r#"<graph><point name="P">(1,2)<label>A</label></point></graph>
+           <graph><point name="Q" extend="$P"/>$P</graph>
+           <mathInput name="mi"><label>x</label></mathInput>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    let p = doc.component("P").unwrap();
+    assert_eq!(v(&doc, "P", "x"), 1.0);
+    // The label is a child component of the point, with its text.
+    let kids: Vec<_> = doc
+        .children(p)
+        .filter_map(|c| match c {
+            cells_core::Child::Component(k) => Some(k),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(kids.len(), 1);
+    assert_eq!(doc.rendered_text(kids[0]), "A");
+    // References record what they refer to; the original refers to nothing.
+    let q = doc.component("Q").unwrap();
+    assert_eq!(doc.components.referent(q), Some(p));
+    assert_eq!(doc.components.referent(p), None);
+    let mi = doc.component("mi").unwrap();
+    assert_eq!(doc.children(mi).count(), 1);
+}

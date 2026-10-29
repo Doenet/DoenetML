@@ -274,6 +274,10 @@ impl Core {
     pub fn comp_scope_ptr(&self) -> *const u32 {
         ScopeId::as_u32s(&self.doc.components.scope).as_ptr()
     }
+    /// The component each one is a reference to, or `u32::MAX` (ADR 0024).
+    pub fn comp_referent_ptr(&self) -> *const u32 {
+        CompIdx::as_u32s(&self.doc.components.referent).as_ptr()
+    }
     /// String table: `n_strings + 1` offsets into the UTF-8 byte blob.
     pub fn string_offsets_ptr(&self) -> *const u32 {
         self.doc.strings.offsets.as_ptr()
