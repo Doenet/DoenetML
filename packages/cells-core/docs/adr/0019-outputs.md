@@ -444,3 +444,17 @@ Settled after the migration (2026-10-28):
   more); content under a literal `hide`, which stays rendered; and a
   polyline's vertices, whose `hide` counts as rendered with their
   coordinates.
+
+## Amendment: one record for every build, 2026-10-29
+
+Every document is probed now (ADR 0015's amendment of the same date), so
+every build reads the live record; the one build of a document without
+repeats or selects no longer walks for itself. Reading the record in
+every build found that a class the record cannot name, a reactive
+choice's interface component being synthesized, was taken as live
+whatever read it, which computed an interface prop nothing reads from
+branch cells the record had pruned. Such a class is live only when a
+root or a live class reads it, as it was in the probe's walk
+(`Builder::live_by_record`); a class the record names and does not mark
+stays dead whatever reads it, so `tests/live.rs` still checks the record
+against the walk. `Classes` is gone: `Compiled::live` is the record.

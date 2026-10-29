@@ -3,73 +3,48 @@
 //! every element that fails until every element builds (ADR 0013). What it
 //! finds is every error the document has; no later build finds another.
 //! What it finds depends on the source alone, never on the seed or the
-//! session, so the compile does too (`tests/compile_purity.rs`).
+//! session, and so does the compile: no seed reaches it.
 
 use super::*;
-use crate::build::{self, BuildOutput};
+use crate::build;
 use crate::diagnostics::Diagnostic;
-use crate::session::Session;
 
 /// What a compile returns.
 pub(crate) struct CompileOutput {
     /// The compile, which every build of the document stamps.
     pub(crate) compiled: Arc<Compiled>,
-    /// The first build, when it was the check: a document without repeats
-    /// or selects (or one loaded without the check, in tests) is checked by
-    /// its one stamped build, which draws nothing and runs the probe's loop
-    /// check, and the load keeps it rather than building again.
-    pub(crate) first_build: Option<BuildOutput>,
 }
 
-/// Compile `dast` (ADR 0015): plan it, check it, and box every element
-/// that fails until every element builds. A document with repeats or
-/// selects is checked through the probe (ADR 0012, ADR 0014), which builds
-/// every option of every select; any other by its stamped build at no
-/// iteration, its only build, with the probe's loop check. Either way the
-/// compile finds every cycle. `check_cycles` off (a test load) skips both
-/// the probe and the loop check. `session` is the load's, which only that
-/// stamped build reads. The compile holds the source's diagnostics: the
-/// lint findings and the boxed errors. Only a cycle, which has no element
-/// to box, fails it.
+/// Compile `dast` (ADR 0015): plan it, check it through the probe (ADR
+/// 0012, ADR 0014), which stands for every count and every pick, and box
+/// every element that fails until every element builds. The probe also
+/// records what every build of the document reads: which template slots
+/// a student's action can write (ADR 0018), which are live (ADR 0019),
+/// and the structural depth. The compile holds the source's diagnostics:
+/// the lint findings, the boxed errors and the planners' and the probe's
+/// warnings. Only a cycle, which has no element to box, fails it.
 ///
-/// It also decides how every build classes its value slots (ADR 0018,
-/// `Classes`): by the probe's record when the probe runs, by the one build's
-/// own walk otherwise, and all essential when `classify` is off or a test
-/// load skips the probe of a document that has repeats or selects.
+/// Two test loads vary this: `check_cycles` off runs the probe without
+/// its loop checks, so a document the check would reject loads; and
+/// `classify` off makes every value slot essential (no record to read).
 pub(crate) fn compile(
     dast: &Arc<Dast>,
-    session: &Session,
     check_cycles: bool,
     classify: bool,
     prune: bool,
 ) -> Result<CompileOutput> {
     let mut list = Vec::new();
-    let (mut compiled, first_build) = plan_and_check(dast, &mut list, |compiled| {
-        let varies = compiled.has_repeats() || compiled.has_selects();
-        if !classify || (varies && !check_cycles) {
-            compiled.classes = Classes::Off;
-        }
+    let (mut compiled, ()) = plan_and_check(dast, &mut list, |compiled| {
         compiled.prune = prune;
-        // Without the probe, a document that varies has no record of
-        // what is live: every build computes everything (ADR 0019).
-        if varies && !check_cycles {
-            compiled.live = Classes::Off;
-        }
-        if check_cycles && varies {
-            let _s = crate::trace::span("probe");
-            compiled.set_probe(build::probe(compiled)?.probe);
-            Ok(None)
-        } else {
-            let mut first = {
-                let _s = crate::trace::span("first build");
-                build::first_build(compiled, session, check_cycles)?
-            };
-            // With the check, the depth is 0 and there is no warning:
-            // the document has no repeat. Without it (a test load) no
-            // build here bounds the depth.
-            compiled.set_probe(first.probe.take());
-            Ok(Some(first))
-        }
+        let _s = crate::trace::span("probe");
+        let probed = build::probe(compiled, check_cycles)?.probed();
+        compiled.structural_depth = probed.structural_depth;
+        compiled.classes = classify.then(|| Arc::new(probed.writable));
+        compiled.live = Arc::new(probed.live);
+        // The probe's warnings are the document's: no build finds one
+        // the probe did not (ADR 0014).
+        Arc::make_mut(&mut compiled.diagnostics).extend(probed.warnings);
+        Ok(())
     })?;
     {
         let _s = crate::trace::span("lint");
@@ -81,7 +56,6 @@ pub(crate) fn compile(
     compiled.diagnostics = Arc::new(list);
     Ok(CompileOutput {
         compiled: Arc::new(compiled),
-        first_build,
     })
 }
 
@@ -95,9 +69,11 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let mut list = Vec::new();
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
-    if let Ok((compiled, u)) = plan_and_check(&dast, &mut list, |c| build::probe(c)) {
+    if let Ok((compiled, probed)) =
+        plan_and_check(&dast, &mut list, |c| Ok(build::probe(c, true)?.probed()))
+    {
         list.extend(compiled.diagnostics.iter().cloned());
-        list.extend(u.probe.map(|p| p.warnings).unwrap_or_default());
+        list.extend(probed.warnings);
     }
     list.extend(lint::lint(&dast));
     crate::diagnostics::sort(&mut list);
@@ -111,7 +87,7 @@ pub(crate) fn signature_renamed(
     rename: &dyn Fn(&str) -> String,
 ) -> Result<crate::build::signature::Signature> {
     let dast = Arc::new(dast.clone());
-    let (compiled, u) = plan_and_check(&dast, &mut Vec::new(), |c| build::probe(c))?;
+    let (compiled, u) = plan_and_check(&dast, &mut Vec::new(), |c| build::probe(c, true))?;
     Ok(u.signature(&compiled, rename))
 }
 

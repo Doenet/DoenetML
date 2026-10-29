@@ -44,23 +44,21 @@ fn load_seeded(src: &str, seed: u64, prune: bool) -> Document {
         .0
 }
 
-/// The document at `seed` built from one compile two ways, both unpruned
-/// so their cells correspond one to one: by the probe's record of what is
-/// live, as a load builds it, and by each build's own walk
-/// (`with_own_live_walk`), what the record is checked against.
-fn load_pair(src: &str, seed: u64) -> (Document, Document) {
-    let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
-    let compiled = cells_core::testing::compile_unpruned(&dast, seed).unwrap();
-    let own = cells_core::testing::with_own_live_walk(&compiled);
-    (
-        cells_core::testing::load_compiled(&compiled, seed).unwrap(),
-        cells_core::testing::load_compiled(&own, seed).unwrap(),
-    )
-}
-
-/// What every build must hold: every output and every essential cell is
-/// live, and emit sized the cells for what it keeps.
-fn check(doc: &Document, at: &str) {
+/// What every build must hold, by the record and by its own walk: the
+/// walk finds nothing live the record leaves out, and every output and
+/// every essential cell is live. Returns how many cells the record keeps
+/// that the walk does not: what deciding per template slot costs.
+fn check(doc: &Document, at: &str) -> usize {
+    let walked = doc.live_cells_walked();
+    let missed: Vec<CellIdx> = walked
+        .iter()
+        .copied()
+        .filter(|&c| !doc.is_live(c))
+        .collect();
+    assert!(
+        missed.is_empty(),
+        "{at}: live by the walk, not the record: {missed:?}"
+    );
     for c in doc.output_cells() {
         assert!(doc.is_live(c), "{at}: output cell {c} is not live");
     }
@@ -74,29 +72,7 @@ fn check(doc: &Document, at: &str) {
         doc.cells.len() * 8,
         "{at}: the cells outgrew what emit counted"
     );
-}
-
-/// What the record must hold against the build's own walk (`load_pair`):
-/// the walk finds nothing live the record leaves out. Returns how many
-/// cells the record keeps that the walk does not: what deciding per
-/// template slot costs.
-fn walk_within_record(by_record: &Document, by_walk: &Document, at: &str) -> usize {
-    assert_eq!(
-        by_record.cells.len(),
-        by_walk.cells.len(),
-        "{at}: the two builds number their cells differently"
-    );
-    let walked = by_walk.live_cells();
-    let missed: Vec<CellIdx> = walked
-        .iter()
-        .copied()
-        .filter(|&c| !by_record.is_live(c))
-        .collect();
-    assert!(
-        missed.is_empty(),
-        "{at}: live by the walk, not the record: {missed:?}"
-    );
-    by_record.live_cells().len() - walked.len()
+    doc.live_cells().len() - walked.len()
 }
 
 /// The repeats' count cells, one per repeat or function iterate.
@@ -116,10 +92,9 @@ fn census() {
     let mut golden = [0usize; 4];
     for (name, src) in documents() {
         // Unpruned, so every instruction is there to count.
-        let (doc, own) = load_pair(&src, 0);
+        let doc = load_seeded(&src, 0, false);
         check(&doc, &name);
-        walk_within_record(&doc, &own, &name);
-        let walked = own.live_cells();
+        let walked = doc.live_cells_walked();
         let is_walked = |c: CellIdx| walked.binary_search(&c).is_ok();
         let instrs = &doc.program.instrs;
         let live_instrs = instrs.iter().filter(|i| doc.is_live(i.out)).count();
@@ -171,36 +146,21 @@ fn the_record_holds_every_build() {
     for (name, src) in documents() {
         let mut extra = 0;
         for seed in [0, 1, 2, 3] {
-            let mut pruned = load_seeded(&src, seed, true);
-            let (mut doc, mut own) = load_pair(&src, seed);
-            let at = format!("{name}, seed {seed}");
-            check(&pruned, &at);
-            check(&doc, &at);
-            extra += walk_within_record(&doc, &own, &at);
+            let mut doc = load_seeded(&src, seed, true);
+            extra += check(&doc, &format!("{name}, seed {seed}"));
             for k in 0..=4 {
-                let set_counts = |doc: &mut Document| {
-                    let requests: Vec<Request> = count_cells(doc)
-                        .into_iter()
-                        .map(|cell| Request {
-                            cell,
-                            value: k as f64,
-                        })
-                        .collect();
-                    if requests.is_empty() {
-                        return false;
-                    }
-                    request_unchecked(doc, &requests);
-                    true
-                };
-                if !set_counts(&mut pruned) {
+                let requests: Vec<Request> = count_cells(&doc)
+                    .into_iter()
+                    .map(|cell| Request {
+                        cell,
+                        value: k as f64,
+                    })
+                    .collect();
+                if requests.is_empty() {
                     break;
                 }
-                set_counts(&mut doc);
-                set_counts(&mut own);
-                let at = format!("{name}, seed {seed}, count {k}");
-                check(&pruned, &at);
-                check(&doc, &at);
-                extra += walk_within_record(&doc, &own, &at);
+                request_unchecked(&mut doc, &requests);
+                extra += check(&doc, &format!("{name}, seed {seed}, count {k}"));
             }
         }
         eprintln!("{name:>10}: the record keeps {extra} cells the builds' walks do not");
@@ -351,4 +311,34 @@ fn pruning_keeps_every_live_value() {
             }
         }
     }
+}
+
+/// A reactive choice's interface component is synthesized, so the record
+/// cannot name its slots: they are live by what reads them, as in the
+/// probe's walk. Its `throughX3` is read, so the branches' are live; its
+/// diameter is not, so the branches' stay dead, and a pruned load must not
+/// compute the interface's diameter from them.
+#[test]
+fn an_interface_is_live_by_what_reads_it() {
+    let src = r#"<booleanInput name="b"/>
+<graph>
+  <conditionalContent name="cc">
+    <case condition="$b"><circle name="c" through="(0,0) (2,0)"/></case>
+    <else><circle name="c" through="(0,0) (0,2) (2,0)"/></else>
+  </conditionalContent>
+</graph>
+<number name="x3">$cc.c.throughX3</number>"#;
+    let mut pruned = load_seeded(src, 0, true);
+    let mut full = load_seeded(src, 0, false);
+    check(&pruned, "interface");
+    assert!(pruned.cells.len() < full.cells.len());
+    live_cells_agree(&full, &pruned).unwrap();
+    for doc in [&mut full, &mut pruned] {
+        let b = doc.cell("b", "value").unwrap();
+        doc.request(&[Request {
+            cell: b,
+            value: 1.0,
+        }]);
+    }
+    live_cells_agree(&full, &pruned).unwrap();
 }

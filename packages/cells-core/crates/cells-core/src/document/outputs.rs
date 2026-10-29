@@ -60,6 +60,15 @@ impl Document {
             .filter(|&c| self.is_live(c))
             .collect()
     }
+
+    /// Every cell this build's own walk finds live, whatever the compile's
+    /// record says: what the record is checked against.
+    #[cfg(feature = "testing")]
+    pub fn live_cells_walked(&self) -> Vec<CellIdx> {
+        CellIdx::below(self.cells.len())
+            .filter(|&c| bit(&self.live.walked, c))
+            .collect()
+    }
 }
 
 fn bit(bits: &[u64], cell: CellIdx) -> bool {

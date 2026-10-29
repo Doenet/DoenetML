@@ -164,7 +164,7 @@ impl Version {
     fn new(src: &str) -> Option<Version> {
         let json = dast_json(src);
         let dast = Dast::from_json(&json).ok()?;
-        let compiled = compile(&dast, 0).ok()?;
+        let compiled = compile(&dast).ok()?;
         let signature = input_signature(&dast).ok()?;
         Some(Version {
             json,

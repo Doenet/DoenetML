@@ -2,7 +2,6 @@
 //! every repeat's iteration count matches its `count` cell (ADR 0004).
 
 use super::*;
-use crate::build::BuildOutput;
 use crate::compile::Compiled;
 use crate::trace::Span;
 
@@ -194,22 +193,13 @@ impl Document {
             ..Session::new(options.seed)
         };
         // Compile once (ADR 0015); every pass is a build of that compile.
-        let crate::compile::CompileOutput {
-            compiled,
-            first_build,
-        } = {
+        let crate::compile::CompileOutput { compiled } = {
             let _s = crate::trace::span("compile");
-            crate::compile::compile(
-                &dast,
-                &session,
-                options.checks(),
-                options.classifies(),
-                options.prune,
-            )?
+            crate::compile::compile(&dast, options.checks(), options.classifies(), options.prune)?
         };
         // After the first pass no student has changed a value yet, so a
         // seeded cell takes its seed again, from the counts the pass stamps.
-        let (mut doc, _) = settle(&compiled, &session, Counts::default(), first_build, true)?;
+        let (mut doc, _) = settle(&compiled, &session, Counts::default(), true)?;
         let _s = crate::trace::span("attributes");
         doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
         Ok((doc, compiled.structural_depth))
@@ -226,12 +216,12 @@ impl Document {
         session
     }
 
-    /// What the compile reported about the source (ADR 0013): the errors
-    /// of the elements that became `_error` components, the lint findings
-    /// and the warnings of the rest, in node order. This is the list for
-    /// rendering error boxes. It is fixed at load and depends on the source
-    /// alone: the same at every count and every seed, every option of every
-    /// select included (ADR 0014), so it is [`crate::diagnose`]'s list.
+    /// What the build reported about the elements it stamped (ADR 0013):
+    /// the errors of the elements that became `_error` components and the
+    /// warnings of the rest, in node order. This is the list for rendering
+    /// error boxes. It is fixed at load and depends on the source alone:
+    /// the same at every count and every seed, every option of every select
+    /// included (ADR 0014), so it is [`crate::diagnose`]'s list.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {
         &self.loaded.diagnostics
     }
@@ -305,7 +295,7 @@ impl Document {
         // What every repeat asks for now, kept for an iteration this
         // rebuild drops and a later one brings back.
         self.session.counts = Arc::new(counts.clone());
-        let (built, passes) = settle(&compiled, &self.session, counts, None, false)?;
+        let (built, passes) = settle(&compiled, &self.session, counts, false)?;
         // Replace what one build made and carry what outlives a build; the
         // session is the one the build returned.
         *self = Document {
@@ -320,29 +310,24 @@ impl Document {
 /// Build `compiled` at `counts`, reading `session`, schedule and compute,
 /// and again at the counts the count cells then hold, until every repeat
 /// was built with the count its cell asks for (ADR 0004): the document and
-/// how many passes it took. `first` is a build already made for the first
-/// pass (the compile's check, at a load); with `reseed`, every pass after
-/// the first stamps seeded cells afresh. `session` is only read, so a
+/// how many passes it took. With `reseed`, every pass after the first
+/// stamps seeded cells afresh (a load). `session` is only read, so a
 /// caller that fails here is left as it was.
-pub(crate) fn settle(
+fn settle(
     compiled: &Arc<Compiled>,
     session: &Session,
     mut counts: Counts,
-    mut first: Option<BuildOutput>,
     reseed: bool,
 ) -> crate::Result<(Document, u32)> {
     let passes = compiled.passes(MAX_PASSES);
     // The session a later pass reads: the last pass's.
     let mut next: Option<Session> = None;
     for pass in 0..passes {
-        let built = match first.take() {
-            Some(built) => built,
-            None => {
-                let _s = crate::trace::span("build");
-                crate::trace::count("pass", pass + 1);
-                let session = next.as_ref().unwrap_or(session);
-                crate::build::build(compiled, session, &counts, reseed && pass > 0)?
-            }
+        let built = {
+            let _s = crate::trace::span("build");
+            crate::trace::count("pass", pass + 1);
+            let session = next.as_ref().unwrap_or(session);
+            crate::build::build(compiled, session, &counts, reseed && pass > 0)?
         };
         let mut doc = {
             let _s = crate::trace::span("schedule");

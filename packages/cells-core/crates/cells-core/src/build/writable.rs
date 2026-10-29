@@ -37,15 +37,22 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        self.walk_classes(roots, class_def, stack, &[], |slot, src, stack| {
-            if let BuiltSource::Literal(_) = src {
-                writable[slot.index()] = true;
-            }
-            stack.extend(
-                src.writable_inputs(&self.op_inputs)
-                    .map(|i| roots[i.index()]),
-            );
-        });
+        self.walk_classes(
+            roots,
+            class_def,
+            stack,
+            &[],
+            |_| true,
+            |slot, src, stack| {
+                if let BuiltSource::Literal(_) = src {
+                    writable[slot.index()] = true;
+                }
+                stack.extend(
+                    src.writable_inputs(&self.op_inputs)
+                        .map(|i| roots[i.index()]),
+                );
+            },
+        );
         writable
     }
 }

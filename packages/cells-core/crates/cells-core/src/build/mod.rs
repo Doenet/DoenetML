@@ -100,24 +100,20 @@ pub(in crate::build) fn build_with(
     let staged = (|| {
         crate::trace::span("expand").run(|| b.expand_all())?;
         crate::trace::span("resolve").run(|| b.resolve_all())?;
-        if !probe_checks {
-            return Ok(None);
+        if probe_checks {
+            let _s = crate::trace::span("loop check");
+            b.check_counts()?;
+            b.check_loops()?;
         }
-        let _s = crate::trace::span("loop check");
-        let probe = b.check_counts()?;
-        b.check_loops()?;
-        Ok(Some(probe))
+        Ok(())
     })();
-    let probe = match staged {
-        Ok(probe) => probe,
-        Err(error) => {
-            return Err(Failure {
-                error,
-                node: b.failed_node,
-            });
-        }
-    };
-    let mut u = {
+    if let Err(error) = staged {
+        return Err(Failure {
+            error,
+            node: b.failed_node,
+        });
+    }
+    let u = {
         let _s = crate::trace::span("emit");
         let u = b.finish()?;
         crate::trace::count("cells", u.cells.len());
@@ -125,31 +121,28 @@ pub(in crate::build) fn build_with(
         crate::trace::count("components", u.components.len());
         u
     };
-    if let Some(found) = probe {
-        let out = u.probe.get_or_insert_default();
-        out.structural_depth = found.structural_depth;
-        out.warnings = found.warnings;
-    }
     Ok(u)
 }
 
 impl<'c> Builder<'c> {
     /// The backward walk over emit's alias classes that the writable walk
     /// (`writable.rs`, ADR 0018) and the live walk (`live.rs`, ADR 0019)
-    /// share: from the classes on `stack`, `edge` is given each class's
-    /// defining slot and source, then each source the slots of the class
-    /// have besides (its later sources when the view folds iterations, and
-    /// `extra`), and pushes the classes to go on to. `roots` is each
-    /// slot's class and `class_def` each class's defining slot, by root.
-    /// Returns, by root, whether the walk reached the class.
+    /// share: from the classes on `stack`, each class `enter` admits is
+    /// given to `edge` as its defining slot and source, then as each
+    /// source the slots of the class have besides (its later sources when
+    /// the view folds iterations, and `extra`), and `edge` pushes the
+    /// classes to go on to. A class `enter` refuses is neither followed
+    /// nor seen. `roots` is each slot's class and `class_def` each class's
+    /// defining slot, by root.
     pub(in crate::build) fn walk_classes(
         &self,
         roots: &[SlotId],
         class_def: &[SlotId],
         mut stack: Vec<SlotId>,
         extra: &[(SlotId, BuiltSource)],
+        mut enter: impl FnMut(SlotId) -> bool,
         mut edge: impl FnMut(SlotId, &BuiltSource, &mut Vec<SlotId>),
-    ) -> Vec<bool> {
+    ) {
         let mut seen = vec![false; self.sources.len()];
         // The other sources of each class, by root.
         let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
@@ -160,7 +153,7 @@ impl<'c> Builder<'c> {
                 .push(entry);
         }
         while let Some(root) = stack.pop() {
-            if std::mem::replace(&mut seen[root.index()], true) {
+            if std::mem::replace(&mut seen[root.index()], true) || !enter(root) {
                 continue;
             }
             let def = class_def[root.index()];
@@ -171,7 +164,6 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        seen
     }
 }
 
@@ -216,28 +208,6 @@ pub fn build(
         .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 
-/// The stamped build at no iteration that checks a document the probe
-/// does not (one without repeats or selects, whose one build this is): its
-/// failures name the element for the compile to box, and it runs the
-/// probe's loop check, so a cycle is the compile's finding here too,
-/// unless `check_loops` is off (a test load without the check).
-pub(crate) fn first_build(
-    compiled: &Compiled,
-    session: &Session,
-    check_loops: bool,
-) -> std::result::Result<BuildOutput, Failure> {
-    let counts = Counts::default();
-    let view = View::Stamped { counts: &counts };
-    build_with(
-        compiled,
-        session,
-        false,
-        &mut session.engine.borrow_mut(),
-        &view,
-        check_loops,
-    )
-}
-
 /// A built document whose program has not yet been scheduled.
 pub struct BuildOutput {
     cells: Vec<f64>,
@@ -253,39 +223,31 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
+    /// Each component's element's stable key, `NONE` for one no element
+    /// makes (a case): what the input signature names components by.
+    comp_keys: Vec<ElemKey>,
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
     cell_label: Box<dyn Fn(CellIdx) -> String>,
     /// Which cells the document computes (ADR 0019).
     live: Live,
-    /// What only the compile's check reads, from a build that ran the
-    /// probe's checks (`build_with`): the probe's, or the first build's of
-    /// a document without repeats or selects. None for any other build.
-    pub(crate) probe: Option<ProbeOutput>,
+    /// What the probe found for the compile to keep (`probed`): empty in
+    /// any other build, which records nothing and runs no count check.
+    probed: Probed,
 }
 
-/// What the compile's check learns from its build beyond the errors (ADR
-/// 0012, ADR 0014): facts about the source that every build of the
-/// document shares, which the compile keeps, and what the input signature
-/// (`signature.rs`) is read off.
-#[derive(Debug, Clone, Default)]
-pub(crate) struct ProbeOutput {
-    /// The document's structural depth (`CONTEXT.md`), which bounds every
-    /// build's: a load or a rebuild settles in this many passes plus one.
-    /// 0 without a repeat.
+/// What the probe's build found for the compile to keep (ADR 0012, ADR
+/// 0018, ADR 0019): what every later build reads, and the warnings.
+#[derive(Debug, Default)]
+pub(crate) struct Probed {
+    /// The structural depth (`check_counts`).
     pub(crate) structural_depth: u32,
-    /// The repeats whose count reads a cell inside another repeat's
-    /// iterations, the avoidable kind of depth (ADR 0013).
+    /// The template slots a student's action can write.
+    pub(crate) writable: Record,
+    /// The live template slots.
+    pub(crate) live: Record,
+    /// The warnings (`check_counts`).
     pub(crate) warnings: Vec<Diagnostic>,
-    /// The writable template slots the probe found (`Classes::Record`,
-    /// ADR 0018), which every later build classes its value slots by. None
-    /// when the view did not fold iterations or the classing was off.
-    pub(crate) record: Option<Vec<Vec<u64>>>,
-    /// The live template slots the probe found (ADR 0019), the same way.
-    pub(crate) live_record: Option<Vec<Vec<u64>>>,
-    /// Each component's element's stable key, `NONE` for one no element
-    /// makes (a case): what the input signature names components by.
-    pub(crate) comp_keys: Vec<ElemKey>,
 }
 
 /// Which cells a build computes (ADR 0019): a bit per cell, set for one
@@ -294,9 +256,18 @@ pub(crate) struct ProbeOutput {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Live {
     pub(crate) cells: Vec<u64>,
+    /// The same by this build's own walk, whatever the record says: what
+    /// the record is checked against (`tests/live.rs`).
+    #[cfg(feature = "testing")]
+    pub(crate) walked: Vec<u64>,
 }
 
 impl BuildOutput {
+    /// What the probe found, which the compile keeps.
+    pub(crate) fn probed(self) -> Probed {
+        self.probed
+    }
+
     /// Schedule the program into a document.
     pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
         let n = self.cells.len();

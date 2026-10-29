@@ -93,17 +93,19 @@ Runs once per load and depends on the source alone.
   stamped copy. Each element is planned by its component type's planner
   (see [Add a component type](#add-a-component-type)).
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
-  can have. For a document with repeats or selects, it builds the plans once
-  through the **probe** (`build/probe.rs`), which folds every iteration into
-  one and builds every option of every select, so its graph holds every
-  edge any count or pick could create. It rejects any dependency loop that
-  could close at some count, then discards that build. A document without
-  repeats or selects is checked by its single real build, which the load
-  keeps. An element that fails to build is *boxed*; see
+  can have. It builds the plans once through the **probe**
+  (`build/probe.rs`), which folds every iteration into one and builds
+  every option of every select, so its graph holds every edge any count or
+  pick could create. It rejects any dependency loop that could close at
+  some count, records what every build reads (below) and the document's
+  structural depth, then discards that build. Every document is probed,
+  with or without repeats: a load is one sequence of steps. An element
+  that fails to build is *boxed*; see
   [An element cannot be built](#an-element-cannot-be-built).
 
-The result is `Compiled` (`plan.rs`): the templates, their plans and the
-source's diagnostics.
+The result is `Compiled` (`plan.rs`): the templates, their plans, the
+probe's records and the source's diagnostics, the probe's warnings
+included.
 
 ### Build (`build/`)
 
@@ -119,16 +121,17 @@ draw for every select.
   binds operators to them as instructions. A value slot (a literal or a
   default) is essential only when a student's action can write it (ADR
   0018): `build/writable.rs` walks back from every input prop through the
-  inputs each inverse may write. The probe records the writable template
-  slots in `Compiled` (`Classes::Record`), and every build of a document
-  with repeats or selects classes by that record; a document without
-  either classes its one build by its own walk. A class is computed only
-  when it is live (ADR 0019): `build/live.rs` walks back from every root
-  (the rendered props of rendered components, scores, inputs, what an
-  action or snapping reads, repeat counts) through every input of every
-  instruction. The probe records the live template slots in
-  `Compiled::live` as it records the writable ones. A dead class gets no
-  cell: its props name the one dead cell, a fixed NaN, and its
+  inputs each inverse may write. The probe runs the walk and records the
+  writable template slots in `Compiled` (a `Record`), and every build
+  classes by that record, so a slot's class is the same in every build. A
+  class is computed only when it is live (ADR 0019): `build/live.rs`
+  walks back from every root (the rendered props of rendered components,
+  scores, inputs, what an action or snapping reads, repeat counts)
+  through every input of every instruction. The probe records the live
+  template slots in `Compiled::live` as it records the writable ones; a
+  class the record cannot name (a synthesized component's, such as a
+  choice's interface) is live when something live reads it. A dead class
+  gets no cell: its props name the one dead cell, a fixed NaN, and its
   instruction is never bound. A live instruction that would read the dead
   cell fails the build (`Error::Unchecked`). `LoadOptions::prune` off
   computes every class.
@@ -176,7 +179,8 @@ downstream, and report a `TickOutcome`. See
 1. The bytes become a `Dast`.
 2. The compile runs once: lint, plan, check. The check's probe also
    records which template slots are writable (ADR 0018) and which are
-   live (ADR 0019), which every later build reads.
+   live (ADR 0019), which every build reads, and the structural depth,
+   which bounds the passes below.
 3. Builds run from the compile, each at the counts it is asked for, until
    the structure settles. After each build the document computes every
    derived cell once; if a repeat's `count` cell now disagrees with the

@@ -101,4 +101,9 @@ pub struct Structure {
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
     pub repeats: Vec<Repeat>,
+    /// Per value slot this build's own walk finds writable, in slot order:
+    /// its essential key, whatever the record says. What the record is
+    /// checked against (`tests/every_count.rs`).
+    #[cfg(feature = "testing")]
+    pub walked_essential_slots: Vec<(ScopeId, u32)>,
 }

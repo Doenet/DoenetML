@@ -367,7 +367,7 @@ fn the_probe_covers_every_build_of_a_document_without_repeats() {
     let mut checked = 0;
     for (name, bytes) in documents() {
         let dast = cells_core::dast::load(&bytes).unwrap();
-        let Ok(compiled) = cells_core::testing::compile(&dast, 0) else {
+        let Ok(compiled) = cells_core::testing::compile(&dast) else {
             continue;
         };
         if has_repeats(&dast) {
@@ -423,11 +423,10 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
             vec![None]
         };
         for &seed in seeds {
-            let Ok(on) = cells_core::testing::compile(&dast, seed) else {
+            let Ok(on) = cells_core::testing::compile(&dast) else {
                 continue; // the promise is about documents that load
             };
-            let off = cells_core::testing::compile_unclassified(&dast, seed).unwrap();
-            let own = cells_core::testing::with_own_walk(&on);
+            let off = cells_core::testing::compile_unclassified(&dast).unwrap();
             for &c in &counts {
                 let what = format!("{name}, seed {seed}, count {c:?}");
                 let (session, stamped) = settle_at(&on, seed, c);
@@ -438,9 +437,10 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
                     doc.recompute();
                     doc
                 };
+                let checked = at(&on);
                 let essential: BTreeSet<(ScopeId, u32)> =
-                    at(&on).structure.essential_slots.iter().copied().collect();
-                for key in &at(&own).structure.essential_slots {
+                    checked.structure.essential_slots.iter().copied().collect();
+                for key in &checked.structure.walked_essential_slots {
                     assert!(
                         essential.contains(key),
                         "{what}: {key:?} is writable in this build's own walk, not in the record"

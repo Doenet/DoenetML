@@ -10,81 +10,22 @@ pub mod test_utils;
 
 pub use crate::build::coverage::{ProbeEdges, probe_edges, uncovered};
 
-/// The compile of `dast` for a session at `seed`, checked as a load checks
-/// it, whether or not a load would keep it.
+/// The compile of `dast`, checked as a load checks it. It depends on the
+/// source alone (ADR 0014): no seed reaches it.
 pub fn compile(
     dast: &crate::dast::Dast,
-    seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed);
-    Ok(crate::compile::compile(&dast, &session, true, true, true)?.compiled)
+    Ok(crate::compile::compile(&dast, true, true, true)?.compiled)
 }
 
 /// `compile`, with every value slot essential, as before ADR 0018
 /// (`LoadOptions::classify` off): what the classing is checked against.
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
-    seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed);
-    Ok(crate::compile::compile(&dast, &session, true, false, true)?.compiled)
-}
-
-/// `compile`, with every prop computed (`LoadOptions::prune` off, ADR
-/// 0019), so two builds of it number their cells alike whatever each finds
-/// live.
-pub fn compile_unpruned(
-    dast: &crate::dast::Dast,
-    seed: u64,
-) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
-    let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed);
-    Ok(crate::compile::compile(&dast, &session, true, true, false)?.compiled)
-}
-
-/// `compiled`, but each of its builds classes its value slots by its own
-/// walk, not by the probe's record (ADR 0018): what the record must hold.
-pub fn with_own_walk(
-    compiled: &crate::compile::Compiled,
-) -> std::sync::Arc<crate::compile::Compiled> {
-    let mut own = compiled.clone();
-    own.classes = crate::compile::plan::Classes::Walk;
-    std::sync::Arc::new(own)
-}
-
-/// `compiled`, but each of its builds finds what is live by its own walk,
-/// not by the probe's record (ADR 0019): what the record must hold.
-pub fn with_own_live_walk(
-    compiled: &crate::compile::Compiled,
-) -> std::sync::Arc<crate::compile::Compiled> {
-    let mut own = compiled.clone();
-    own.live = crate::compile::plan::Classes::Walk;
-    std::sync::Arc::new(own)
-}
-
-/// A document built from `compiled` at `seed` as a load builds it: until
-/// the structure settles, seeding afresh on later passes.
-pub fn load_compiled(
-    compiled: &std::sync::Arc<crate::compile::Compiled>,
-    seed: u64,
-) -> crate::Result<crate::Document> {
-    let session = crate::session::Session::new(seed);
-    let (doc, _) = crate::document::settle(
-        compiled,
-        &session,
-        crate::session::Counts::default(),
-        None,
-        true,
-    )?;
-    Ok(doc)
-}
-
-/// The compile of `dast` for a session at `seed`, as text equal exactly when
-/// two compiles are: what `tests/compile_purity.rs` compares across seeds.
-pub fn compile_fingerprint(dast: &crate::dast::Dast, seed: u64) -> crate::Result<String> {
-    Ok(compile(dast, seed)?.fingerprint())
+    Ok(crate::compile::compile(&dast, true, false, true)?.compiled)
 }
 
 /// The value of the one-cell prop at `path` (`"c.radius"`), for a unit

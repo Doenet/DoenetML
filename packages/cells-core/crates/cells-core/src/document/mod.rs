@@ -27,8 +27,6 @@ mod state;
 mod sticky;
 mod table;
 
-#[cfg(feature = "testing")]
-pub(crate) use load::settle;
 pub use load::{LoadOptions, LoadTimings};
 pub use table::{Child, ChildEntry, ComponentTable};
 
@@ -43,9 +41,8 @@ crate::index::index_type! {
 }
 
 /// Build passes allowed before the structure must have settled, at least:
-/// a checked document is allowed its structural depth plus one too
-/// (`Compiled::passes`), and only a test load without the check is held
-/// to this alone.
+/// a document is allowed its structural depth plus one too
+/// (`Compiled::passes`).
 const MAX_PASSES: usize = 8;
 
 pub const NONE: u32 = u32::MAX;
@@ -118,6 +115,9 @@ pub struct Loaded {
     /// The elements' stable keys (ADR 0017), what saved state names cells
     /// by: kept by every document, with its compile or without.
     pub(crate) keys: Arc<crate::compile::keys::Keys>,
+    /// The document's structural depth (`CONTEXT.md`), which the compile's
+    /// check found: zero without repeats.
+    pub structural_depth: u32,
     /// The source's `Dast::version_hash`: the version saved state was made
     /// in.
     pub(crate) version: u64,
@@ -167,6 +167,7 @@ impl Document {
             loaded: Loaded {
                 literal_attrs: Arc::default(),
                 keys: compiled.keys.clone(),
+                structural_depth: compiled.structural_depth,
                 version: compiled.version,
                 diagnostics: compiled.diagnostics.clone(),
                 compiled: compiled.has_repeats().then_some(compiled),
