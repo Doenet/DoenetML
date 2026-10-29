@@ -343,7 +343,7 @@ export class Derivative extends FunctionBaseOperator {
                 return [dependencyValues.numInputs];
             },
             stateVariablesDeterminingDependencies: ["haveFunctionChild"],
-            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+            returnArrayDependenciesByKey({ stateValues }) {
                 let globalDependencies = {
                     variablesAttr: {
                         dependencyType: "attributeComponent",
@@ -371,20 +371,12 @@ export class Derivative extends FunctionBaseOperator {
                     },
                 };
 
-                let dependenciesByKey = {};
-
                 if (stateValues.haveFunctionChild) {
-                    for (let arrayKey of arrayKeys) {
-                        dependenciesByKey[arrayKey] = {
-                            functionChild: {
-                                dependencyType: "child",
-                                childGroups: ["functions"],
-                                variableNames: [
-                                    "variable" + (Number(arrayKey) + 1),
-                                ],
-                            },
-                        };
-                    }
+                    globalDependencies.functionChild = {
+                        dependencyType: "child",
+                        childGroups: ["functions"],
+                        variableNames: ["variables"],
+                    };
                 } else {
                     globalDependencies.derivVariablesAttr = {
                         dependencyType: "attributeComponent",
@@ -400,13 +392,11 @@ export class Derivative extends FunctionBaseOperator {
                     };
                 }
 
-                return { globalDependencies, dependenciesByKey };
+                return { globalDependencies };
             },
             arrayDefinitionByKey({
                 globalDependencyValues,
-                dependencyValuesByKey,
                 arraySize,
-                arrayKeys,
                 usedDefault,
             }) {
                 if (
@@ -431,16 +421,19 @@ export class Derivative extends FunctionBaseOperator {
                         },
                     };
                 } else if (globalDependencyValues.haveFunctionChild) {
-                    let variables = {};
-                    for (let arrayKey of arrayKeys) {
-                        variables[arrayKey] =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].functionChild[0].stateValues[
-                                "variable" + (Number(arrayKey) + 1)
-                            ];
-                    }
-                    return { setValue: { variables } };
+                    // This function's numInputs can be larger than the
+                    // child's (e.g., when set by a numInputs attribute).
+                    // Inputs the child doesn't have get default names that
+                    // differ from the child's variables.
+                    return {
+                        setValue: {
+                            variables: returnNVariables(
+                                arraySize[0],
+                                globalDependencyValues.functionChild[0]
+                                    .stateValues.variables,
+                            ),
+                        },
+                    };
                 } else if (
                     globalDependencyValues.derivVariablesAttr !== null ||
                     globalDependencyValues.derivVariableAttr !== null
