@@ -191,7 +191,8 @@ function resolveDoenetMLSource(root: Element): string {
 
 // Wait for the @doenet/standalone bundle to finish evaluating and
 // define `window.renderDoenetViewerToContainer`. Returns true on
-// success, false if the function never appears within `timeoutMs`.
+// success, false if the bundle's `<script>` fails to load or the function
+// never appears within `timeoutMs`.
 //
 // See the equivalent in iframe-editor-index.ts for the full motivation.
 // The short version: the standalone bundle and this inline module load

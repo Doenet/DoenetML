@@ -154,7 +154,8 @@ function resolveInitialDoenetMLSource(root: Element): string {
 
 // Wait for the @doenet/standalone bundle to finish evaluating and
 // define `window.renderDoenetEditorToContainer`. Returns true on success,
-// false if the function never appears within `timeoutMs`.
+// false if the bundle's `<script>` fails to load or the function never
+// appears within `timeoutMs`.
 //
 // `iframeReady` MUST be gated on this. The two scripts in the srcDoc —
 // the standalone bundle (~32 MB) and this inline editor module — load in
