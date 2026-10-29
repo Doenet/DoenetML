@@ -531,6 +531,18 @@ Code: `copyVariants` in `W/components/abstract/Copy.js`. It gives each serialize
 random children a seed of its own. **[probe]** on main, for variants 1–3: the nested value matches
 its source, and an added child draws its own (`323 109` becomes `323 109 722`).
 
+**Open: a copy that changes what is chosen (#2389, defect B11).** CPY-8 says a copy keeps its
+source's random choices, and D4 says the attributes written on a copy override. They conflict
+when the copy changes what is chosen, as `<select copy="$x" numToSelect="4"/>` of a two-pick
+select does. The copy cannot keep two picks and make four. Today (**[probe]**):
+- `<select>` makes the whole document fail to load;
+- `<selectFromSequence>` shows nothing, with error `doenet-e0037`;
+- `<sampleRandomNumbers copy numSamples="4">` makes four new samples.
+
+Proposed: CPY-8 holds when the copy chooses from the same options in the same number. A copy that
+changes what is chosen makes its own choices instead, fixed for a given variant, as a child added
+to a copy does.
+
 ### CPY-3: references inside a copy stay live; ones that pointed into the source now point into the copy (Tier 1)
 ```xml
 <group name="g"><mathInput name="mi" prefill="1"/><p name="p">$mi</p></group>
