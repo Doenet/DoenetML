@@ -24,6 +24,11 @@ pub struct ComponentTable {
     /// rebuilds, which lets a renderer keep its tree keyed by identity.
     pub dast_node: Vec<NodeId>,
     pub scope: Vec<ScopeId>,
+    /// The component this one is a reference to (`$P`, `<point
+    /// extend="$P"/>`, a container copy's clone), or `NONE`. What a
+    /// reference presents as and does not hold a cell for (a label, how a
+    /// number is displayed) a renderer reads through it (ADR 0024).
+    pub referent: Vec<CompIdx>,
 }
 
 impl ComponentTable {
@@ -41,6 +46,12 @@ impl ComponentTable {
 
     pub fn len(&self) -> usize {
         self.component_type.len()
+    }
+
+    /// The component `c` is a reference to, if it is one.
+    pub fn referent(&self, c: CompIdx) -> Option<CompIdx> {
+        let r = self.referent[c.index()];
+        (r != CompIdx::NONE).then_some(r)
     }
 
     pub fn is_empty(&self) -> bool {
@@ -122,7 +133,8 @@ impl ComponentTable {
                 + self.child_count.capacity()
                 + self.child_list.capacity()
                 + self.dast_node.capacity()
-                + self.scope.capacity())
+                + self.scope.capacity()
+                + self.referent.capacity())
     }
 }
 

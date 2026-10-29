@@ -55,6 +55,44 @@ impl<'a> Compiler<'a> {
         self.static_target(t, p).map(|(_, e)| e)
     }
 
+    /// The component type a plan names, when it can be told from the
+    /// templates alone: the element its path ends at, through the
+    /// repeats and collects an index steps into. `None` past an interface
+    /// name (settled after planning) or where the path cannot be followed.
+    pub(in crate::compile) fn ref_target_type(
+        &self,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<ComponentType> {
+        let plan = &self.compiled.refs[p.index()];
+        let mut t = t;
+        for _ in 0..plan.hops {
+            t = self.compiled.templates[t.index()].parent?.0;
+        }
+        let mut cur: Option<ElemId> = None;
+        let mut ty = None;
+        for step in &plan.steps {
+            match step {
+                Step::Elem(e) => {
+                    cur = Some(*e);
+                    ty = Some(self.compiled.templates[t.index()].elems[e.index()].component_type);
+                }
+                Step::Index(_) => match self.compiled.templates[t.index()].elems[cur?.index()].body
+                {
+                    Body::Repeat { template } => {
+                        t = template;
+                        cur = None;
+                        ty = None;
+                    }
+                    Body::Collect { component_type, .. } => ty = Some(component_type),
+                    _ => return None,
+                },
+                Step::Iface(..) => return None,
+            }
+        }
+        ty
+    }
+
     /// Find a name as the current core's resolver does: from the
     /// referencing element `from` (or `ROOT_SCOPE`) walk up the ancestors;
     /// at each, the ancestor's own name wins, then a unique descendant with

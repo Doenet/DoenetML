@@ -13,7 +13,7 @@ use crate::tick::snap::Shape;
 component! {
     /// `<point>`. `coords` combines `x` and `y`.
     tags: ["point"],
-    flags: [copyable],
+    flags: [copyable, located],
     default_prop: coords,
     props {
         x: by_planner { interactive, rendered },
@@ -74,16 +74,27 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         || ctx.has(attr::y)
         || (own_children.is_empty() && base_children.is_empty())
     {
-        let mut coord = |name: Attr, state: SharedState| -> Result<Wire> {
+        // A coordinate the element does not give comes from the
+        // referent's `(a, b)` children when it has them and the element
+        // has none of its own (an extend writing one coordinate), else
+        // it is the element's own state at 0.
+        let from_referent = if own_children.is_empty() && !base_children.is_empty() {
+            let p = GivenPoint::Tuple(ctx.tuple(&base_children)?);
+            Wire::point(&p, coords_state, Given::Referent).map(Some)
+        } else {
+            [None, None]
+        };
+        let mut coord = |name: Attr, state: SharedState, inherited: Option<Wire>| -> Result<Wire> {
             Ok(match ctx.scalar(name)? {
                 Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
                 Some(source) => source.into(),
-                None => Wire::essential(state, 0.0),
+                None => inherited.unwrap_or_else(|| Wire::essential(state, 0.0)),
             })
         };
+        let [bx, by] = from_referent;
         [
-            coord(attr::x, coords_state[0])?,
-            coord(attr::y, coords_state[1])?,
+            coord(attr::x, coords_state[0], bx)?,
+            coord(attr::y, coords_state[1], by)?,
         ]
     } else {
         // The point's own children, else its referent's, which a copy
@@ -103,7 +114,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let mut constraints: Vec<NodeId> = Vec::new();
     for node in std::iter::once(el).chain(base) {
         for &n in d.children(node) {
-            if d.kind(n) == NodeKind::Element {
+            if d.kind(n) == NodeKind::Element && !ctx.is_presentation_child(n) {
                 if d.str(n) == "constraints" {
                     constraints.extend(
                         d.children(n)

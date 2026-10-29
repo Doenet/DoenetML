@@ -26,6 +26,7 @@ type Columns = {
     childList: Uint32Array;
     node: Uint32Array;
     scope: Uint32Array;
+    referent: Uint32Array;
     stringOffsets: Uint32Array;
     stringBytes: Uint8Array;
     cells: Float64Array;
@@ -75,6 +76,7 @@ export class CellsTable {
             childList: u32(core.child_list_ptr(), core.child_list_len()),
             node: u32(core.comp_node_ptr(), n),
             scope: u32(core.comp_scope_ptr(), n),
+            referent: u32(core.comp_referent_ptr(), n),
             stringOffsets: u32(core.string_offsets_ptr(), core.n_strings() + 1),
             stringBytes: new Uint8Array(
                 memory.buffer,
@@ -146,6 +148,13 @@ export class CellsTable {
         return p === NONE ? null : p;
     }
 
+    /** The component `c` is a reference to (`$P`, an `extend`, a container
+     * copy's clone), or null (ADR 0024). */
+    referent(c: number): number | null {
+        const r = this.cols.referent[c];
+        return r === NONE ? null : r;
+    }
+
     node(c: number): number {
         return this.cols.node[c];
     }
@@ -198,6 +207,17 @@ export class CellsTable {
             );
         }
         return out;
+    }
+
+    /** A presentational attribute of `c`: its own literal attribute, else
+     * its referent's, through any chain of references (ADR 0024). A
+     * reference is shown as its referent is, unless it says otherwise. */
+    attrThrough(c: number, name: string): string | null {
+        for (let k: number | null = c; k !== null; k = this.referent(k)) {
+            const own = this.attr(k, name);
+            if (own !== null) return own;
+        }
+        return null;
     }
 
     /** A literal attribute of the element `c` was made from (names ignore

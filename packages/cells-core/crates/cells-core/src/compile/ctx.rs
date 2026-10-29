@@ -7,16 +7,30 @@ use super::*;
 /// shares, the machinery several components build on, and the writes that
 /// make the element's wiring. An attribute by name is the element's own or,
 /// when the element omits it and is a `Plan` type extending another, its
-/// `extend` referent's. One context serves every kind of planner; the kind
-/// decides what is done around the call. For a `Plan` type,
-/// `plan_with_extend` makes it and does the rest: a bare copy, sharing
-/// state with the referent, and `fixed`.
+/// `extend` referent's. What comes from the referent, an attribute or its
+/// children, is planned where the referent sits, so a `$n` in it keeps the
+/// meaning it has there (ADR 0023); what the element writes itself is
+/// planned where the element sits. One context serves every kind of
+/// planner; the kind decides what is done around the call. For a `Plan`
+/// type, `plan_with_extend` makes it and does the rest: a bare copy,
+/// sharing state with the referent, and `fixed`.
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,
     e: ElemId,
-    /// The `extend` referent's node, which supplies what the element omits.
-    base: Option<NodeId>,
+    /// The `extend` referent, which supplies what the element omits.
+    base: Option<Base>,
+}
+
+/// The `extend` referent of a `Plan` type planned with overrides: an
+/// element of the same template.
+struct Base {
+    node: NodeId,
+    /// Where its attributes and children are planned.
+    scope: ElemId,
+    /// Every node under it, attributes' values included: what a planner
+    /// reads from it rather than from the element.
+    subtree: HashSet<NodeId>,
 }
 
 impl<'c, 'a> PlanCtx<'c, 'a> {
@@ -24,8 +38,32 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         c: &'c mut Compiler<'a>,
         t: TemplateId,
         e: ElemId,
-        base: Option<NodeId>,
+        base: Option<ElemId>,
     ) -> Self {
+        let base = base.map(|b| {
+            let Elem {
+                node, name_scope, ..
+            } = c.compiled.templates[t.index()].elems[b.index()];
+            let d = c.dast;
+            let mut subtree = HashSet::new();
+            let mut stack = vec![node];
+            while let Some(n) = stack.pop() {
+                if !subtree.insert(n) {
+                    continue;
+                }
+                stack.extend(d.children(n).iter().copied());
+                if d.kind(n) == NodeKind::Element {
+                    for a in d.attrs(n) {
+                        stack.extend(d.attr_children(a).iter().copied());
+                    }
+                }
+            }
+            Base {
+                node,
+                scope: name_scope,
+                subtree,
+            }
+        });
         PlanCtx { c, t, e, base }
     }
 }
@@ -37,6 +75,28 @@ impl<'a> PlanCtx<'_, 'a> {
 
     fn scope(&self) -> ElemId {
         self.elem().name_scope
+    }
+
+    /// Where nodes are planned: the referent's scope for nodes under the
+    /// referent, else the element's.
+    fn scope_for(&self, nodes: &[NodeId]) -> ElemId {
+        match (&self.base, nodes.first()) {
+            (Some(b), Some(n)) if b.subtree.contains(n) => b.scope,
+            _ => self.scope(),
+        }
+    }
+
+    /// Where attribute `a` is planned: the referent's scope when it is the
+    /// referent's attribute.
+    fn scope_for_attr(&self, a: u32) -> ElemId {
+        match &self.base {
+            Some(b) if self.c.dast.attrs(b.node).contains(&a) => b.scope,
+            _ => self.scope(),
+        }
+    }
+
+    fn base_node(&self) -> Option<NodeId> {
+        self.base.as_ref().map(|b| b.node)
     }
 
     // The element and its source.
@@ -59,7 +119,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The node of the element a `Plan` type extends, which supplies the
     /// attributes and children the element omits.
     pub(crate) fn base(&self) -> Option<NodeId> {
-        self.base
+        self.base_node()
     }
 
     /// The reference in the element's `extend`, if any.
@@ -89,7 +149,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// element's own, else its `extend` referent's for a `Plan` type.
     pub(crate) fn attr(&self, name: Attr) -> Option<u32> {
         self.c
-            .attr_or_inherited(self.node(), self.base, name.name())
+            .attr_or_inherited(self.node(), self.base_node(), name.name())
     }
 
     /// Whether the attribute is given.
@@ -135,6 +195,18 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.is_blank(n)
     }
 
+    /// Whether a child node is presentation a renderer reads (a `<label>`),
+    /// which a planner reading element children passes over (ADR 0024).
+    pub(crate) fn is_presentation_child(&self, n: NodeId) -> bool {
+        self.c.is_presentation_child(n)
+    }
+
+    /// Whether a child node is no content of the element: layout or
+    /// presentation (`is_blank`, `is_presentation_child`).
+    pub(crate) fn is_not_content(&self, n: NodeId) -> bool {
+        self.c.is_not_content(n)
+    }
+
     /// A node's children that make up math text: text and `$ref`s, not
     /// blanks or elements.
     pub(crate) fn math_children(&self, node: NodeId) -> Vec<NodeId> {
@@ -155,7 +227,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The `extend` referent's children as math text, if it has any. A
     /// planner decides when they stand for the element's own.
     pub(crate) fn referent_child_math(&self) -> Option<Vec<NodeId>> {
-        Some(self.math_children(self.base?)).filter(|n| !n.is_empty())
+        Some(self.math_children(self.base_node()?)).filter(|n| !n.is_empty())
     }
 
     /// A `<function>`'s `variables`, split at spaces and commas; `x` when
@@ -177,7 +249,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Attribute `a` as a point.
     pub(crate) fn point_at(&mut self, a: u32) -> Result<GivenPoint> {
-        let scope = self.scope();
+        let scope = self.scope_for_attr(a);
         self.c.plan_point_attr(self.t, scope, a)
     }
 
@@ -193,7 +265,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// Nodes as a scalar, a literal, a reference or math; `name` is the
     /// attribute they come from, for errors.
     pub(crate) fn scalar_of(&mut self, name: Attr, nodes: &[NodeId]) -> Result<Source> {
-        let scope = self.scope();
+        let scope = self.scope_for(nodes);
         self.c.plan_scalar(self.t, scope, name.name(), nodes)
     }
 
@@ -202,7 +274,8 @@ impl<'a> PlanCtx<'_, 'a> {
     /// `default`.
     pub(crate) fn flag(&mut self, name: Attr, default: bool) -> Result<Source> {
         let scope = self.scope();
-        let (node, base) = (self.node(), self.base);
+        let node = self.node();
+        let base = self.base.as_ref().map(|b| (b.node, b.scope));
         self.c
             .plan_flag(self.t, scope, node, base, name.name(), default)
     }
@@ -213,20 +286,20 @@ impl<'a> PlanCtx<'_, 'a> {
         let Some(a) = self.attr(name) else {
             return Ok(Vec::new());
         };
-        let scope = self.scope();
+        let scope = self.scope_for_attr(a);
         let node = self.node();
         self.c.plan_point_list(self.t, scope, node, a)
     }
 
     /// Math text that is a pair, `(a, b)`, as its two coordinates.
     pub(crate) fn tuple(&mut self, nodes: &[NodeId]) -> Result<[Source; 2]> {
-        let scope = self.scope();
+        let scope = self.scope_for(nodes);
         self.c.plan_tuple(self.t, scope, nodes)
     }
 
     /// A `$ref` node as a reference.
     pub(crate) fn reference(&mut self, node: NodeId) -> Result<RefId> {
-        let scope = self.scope();
+        let scope = self.scope_for(&[node]);
         self.c.plan_ref(self.t, scope, node)
     }
 
@@ -264,7 +337,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// Math text as tokens, `$ref`s as cell leaves, and its text.
     pub(crate) fn math_tokens(&mut self, nodes: &[NodeId]) -> Result<(Vec<Token>, String)> {
-        let scope = self.scope();
+        let scope = self.scope_for(nodes);
         self.c.math_tokens(self.t, scope, nodes)
     }
 
@@ -282,7 +355,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// Math text as an expression that may be symbolic, its text kept for
     /// the symbolic engine.
     pub(crate) fn sym_math(&mut self, nodes: &[NodeId]) -> Result<ExprId> {
-        let scope = self.scope();
+        let scope = self.scope_for(nodes);
         self.c.plan_sym_math(self.t, scope, nodes)
     }
 
@@ -339,7 +412,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// connectives, `=` compared under the element's compare attributes),
     /// in a hidden slot of `wiring` holding 1 while it holds.
     pub(crate) fn condition(&mut self, nodes: &[NodeId], wiring: &mut ElemWiring) -> Result<usize> {
-        let scope = self.scope();
+        let scope = self.scope_for(nodes);
         let compare = self.c.compare_attrs(&[self.node()]);
         self.c
             .plan_condition_content(self.t, scope, nodes, compare, wiring)

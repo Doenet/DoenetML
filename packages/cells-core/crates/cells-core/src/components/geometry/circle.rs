@@ -19,7 +19,7 @@ component! {
     /// `center`, `radius` and `through` the author gave (see `plan`). The
     /// through points are its list, after these props.
     tags: ["circle"],
-    flags: [copyable],
+    flags: [copyable, located],
     renders: InGraph,
     props {
         // A whole-circle drag requests the center.

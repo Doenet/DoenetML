@@ -27,7 +27,7 @@ pub enum Error {
     #[error("cannot copy a <{0}>")]
     UncopyableType(String),
     #[error(
-        "extend=\"${referent}\" is a <{referent_type}> but the element is a <{component_type}>"
+        "cannot extend a <{referent_type}> (extend=\"${referent}\") as a <{component_type}>: only related types may differ (a number and a math, an input and its value type)"
     )]
     ExtendTypeMismatch {
         referent: String,

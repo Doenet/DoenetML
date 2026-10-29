@@ -568,12 +568,26 @@ impl<'a> Compiler<'a> {
             ComponentType::When => {}
             // A number's children are its value, not rendered children; a
             // `Plan` type's planner reads its children itself (a line's
-            // equation, a point's constraints).
+            // equation, a point's constraints). Its presentational
+            // children (`<label>`) are components all the same, for the
+            // renderer to read (ADR 0024).
             _ if matches!(Self::planner(component_type), Planner::Plan(_))
                 || component_type
                     .prop_defs()
                     .iter()
-                    .any(|p| p.from == PropFrom::Children) => {}
+                    .any(|p| p.from == PropFrom::Children) =>
+            {
+                let presentational: Vec<NodeId> = d
+                    .children(el)
+                    .iter()
+                    .copied()
+                    .filter(|&n| self.is_presentation_child(n))
+                    .collect();
+                if !presentational.is_empty() {
+                    let kids = self.add_children(t, Some(e), child_scope, &presentational)?;
+                    self.compiled.templates[t.index()].elems[e.index()].children = kids;
+                }
+            }
             _ => {
                 let kids = self.add_children(t, Some(e), child_scope, d.children(el))?;
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
@@ -647,9 +661,28 @@ impl<'a> Compiler<'a> {
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         match self.elem_shape(t, e)? {
-            // Every public prop aliases the original's; nothing else to plan.
+            // Every public prop aliases the original's; nothing else to
+            // plan, except a `fixed` the copy or its containers give (ADR
+            // 0022), which holds the aliases. A clone of a type with a
+            // list of points takes its points from the original at build
+            // (`place_list_copy`), which no hold reaches yet.
             ElemShape::Cloned => {
                 self.plan_bare_copy(t, e);
+                // A cloned child inherits `fixed` and `fixLocation` from the
+                // nearest container (ADR 0022); a list's are its referent's.
+                if component_type.given_coords().is_none() {
+                    let mut props: Vec<Option<Source>> = self.compiled.templates[t.index()].elems
+                        [e.index()]
+                    .props
+                    .iter()
+                    .cloned()
+                    .map(Some)
+                    .collect();
+                    let held = self.plan_fix(t, e)?.apply(&mut props);
+                    self.record_held(t, e, held);
+                    self.compiled.templates[t.index()].elems[e.index()].props =
+                        props.into_iter().map(|p| p.unwrap()).collect();
+                }
                 Ok(())
             }
             // Synthesized elements (iteration values) come planned.
@@ -695,6 +728,21 @@ impl<'a> Compiler<'a> {
                 if self.compiled.refs[p.index()].prop.is_some() {
                     return Ok(ElemShape::ExtendProp(p));
                 }
+                // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an
+                // extend across related types is the referent's value as
+                // the element's type (REF-5, ADR 0025), so it is the
+                // extend of its default prop. An unrelated pair is left to
+                // the build, which refuses it once both types are known.
+                if let Some(rt) = self.ref_target_type(t, p)
+                    && rt != component_type
+                    && ComponentType::extends_as(rt, component_type)
+                    && let Some(dp) = rt.default_prop()
+                {
+                    let r = &mut self.compiled.refs[p.index()];
+                    r.prop = Some(dp.to_string());
+                    r.display = format!("{}.{dp}", r.display);
+                    return Ok(ElemShape::ExtendProp(p));
+                }
                 Some(p)
             }
             None => None,
@@ -704,6 +752,22 @@ impl<'a> Compiler<'a> {
             Some(p) if component_type.container() => ElemShape::ContainerCopy(p),
             _ => ElemShape::ByType(extend),
         })
+    }
+
+    /// Whether a child node is presentation a renderer reads rather than
+    /// content a planner does: a `<label>` or `<shortDescription>` element.
+    /// Every type keeps such a child as a component (ADR 0024); a planner
+    /// reading its element children passes over them.
+    pub(in crate::compile) fn is_presentation_child(&self, n: NodeId) -> bool {
+        self.dast.kind(n) == NodeKind::Element
+            && matches!(self.dast.str(n), "label" | "shortDescription")
+    }
+
+    /// Whether a child node is no content of its element: layout
+    /// (`is_blank`) or presentation (`is_presentation_child`). What
+    /// decides an element's value from its children looks past these.
+    pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
+        self.is_blank(n) || self.is_presentation_child(n)
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {

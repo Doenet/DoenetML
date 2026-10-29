@@ -11,7 +11,7 @@ component! {
     /// its length follows the repeat. `numVertices` counts them. Only drawn:
     /// dragging a polyline is not supported.
     tags: ["polyline"],
-    flags: [copyable],
+    flags: [copyable, located],
     renders: InGraph,
     props {
         numVertices: by_planner,

@@ -12,7 +12,7 @@ use crate::tick::snap::Shape;
 component! {
     /// `<lineSegment endpoints="$a $b">`.
     tags: ["lineSegment"],
-    flags: [copyable],
+    flags: [copyable, located],
     renders: InGraph,
     props {
         x1: by_planner { rendered },

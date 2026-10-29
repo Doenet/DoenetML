@@ -275,6 +275,7 @@ impl<'c> Builder<'c> {
                 child_list: Vec::with_capacity(guess),
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
+                referent: Vec::with_capacity(guess),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
@@ -333,6 +334,7 @@ impl<'c> Builder<'c> {
         self.components.child_count.push(0);
         self.components.dast_node.push(node);
         self.components.scope.push(scope);
+        self.components.referent.push(CompIdx::NONE);
         self.comp_instance.push(NONE);
         self.comp_repeat.push(NONE);
         self.slot_base.push(SlotId::NONE);
@@ -767,6 +769,14 @@ impl<'c> Builder<'c> {
                 if !component_type.copyable() {
                     return Err(Error::UncopyableType(component_type.tag().into()));
                 }
+                // A bare reference to an input is its value (ADR 0025):
+                // `$mi` is a math, not a second input. Through an
+                // iteration (`$r[1]`) it is the input, as the current
+                // core has it (REF-1a).
+                if let (Resolved::Comp(_), Some(as_type)) = (target, component_type.reads_as()) {
+                    self.value_copy_into(idx, referent, as_type);
+                    return Ok(());
+                }
                 self.copy_into(idx, referent);
                 for pi in 0..self.n_public(referent) {
                     self.record_label(self.slot(idx, pi), self.slot(referent, pi));
@@ -776,10 +786,35 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
+    /// Make `idx` an `as_type` holding `referent`'s value (ADR 0025): each
+    /// of its props aliases the referent's prop of the same name (a math's
+    /// `value` and `expr` from a mathInput's), and one the referent lacks
+    /// is the missing value.
+    fn value_copy_into(&mut self, idx: CompIdx, referent: CompIdx, as_type: ComponentType) {
+        self.components.component_type[idx.index()] = as_type;
+        self.components.referent[idx.index()] = referent;
+        let defs = as_type.prop_defs();
+        let rt = self.components.component_type[referent.index()];
+        self.n_public[idx.index()] = defs.len() as u32;
+        self.allocate_slots(idx, defs.len());
+        for (pi, def) in defs.iter().enumerate() {
+            let s = self.slot(idx, pi);
+            self.sources[s.index()] = match rt.prop_index(def.name) {
+                Some(rp) if rp < self.n_public(referent) => {
+                    let target = self.slot(referent, rp);
+                    self.record_label(s, target);
+                    BuiltSource::Alias(target)
+                }
+                _ => BuiltSource::Alias(self.missing_slot()),
+            };
+        }
+    }
+
     /// Make `idx` a copy of `referent`: same type, every slot aliased.
     pub(in crate::build) fn copy_into(&mut self, idx: CompIdx, referent: CompIdx) {
         let component_type = self.components.component_type[referent.index()];
         self.components.component_type[idx.index()] = component_type;
+        self.components.referent[idx.index()] = referent;
         let n = self.n_public(referent);
         self.n_public[idx.index()] = self.n_public[referent.index()];
         self.allocate_slots(idx, n);
@@ -1117,6 +1152,10 @@ impl<'c> Builder<'c> {
             Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
+        // What a renderer reads through the reference (ADR 0024).
+        if let Some(referent) = extend {
+            self.components.referent[comp.index()] = referent;
+        }
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
             && self.compiled.templates[inst.template.index()].elems[inst.elem.index()].n_public

@@ -55,6 +55,7 @@ pub mod repeat_for_sequence {
             lengthNonNeg: computed(OpSpec::Clamp { lo: 0.0, hi: f64::INFINITY }, [lengthFloor]),
             count: computed(OpSpec::Min, [lengthNonNeg, maxNumber]),
         }
+        presentation { asList }
         planner: Props,
     }
 }

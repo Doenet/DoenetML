@@ -14,6 +14,7 @@ pub mod number_input {
         /// `<numberInput>`.
         tags: ["numberInput"],
         flags: [copyable],
+        reads_as: Number,
         default_prop: value,
         props {
             value: attr(NO_VALUE) { interactive, rendered },
@@ -30,6 +31,7 @@ pub mod boolean_input {
         /// essential unless `bindValueTo` names another (a `<boolean>`'s).
         tags: ["booleanInput"],
         flags: [copyable],
+        reads_as: Boolean,
         default_prop: value,
         props {
             value: attr(0.0) { bind: bindValueTo, interactive, rendered },
@@ -76,6 +78,7 @@ pub mod slider {
         /// component's value.
         tags: ["slider"],
         flags: [copyable],
+        reads_as: Number,
         default_prop: value,
         props {
             from: attr(0.0) { rendered },

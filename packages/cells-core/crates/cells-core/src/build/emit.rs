@@ -458,6 +458,7 @@ impl<'c> Builder<'c> {
         components.prop_cells.shrink_to_fit();
         components.dast_node.shrink_to_fit();
         components.scope.shrink_to_fit();
+        components.referent.shrink_to_fit();
         Ok(BuildOutput {
             cells,
             n_essential,
