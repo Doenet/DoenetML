@@ -38,12 +38,55 @@ function renderedParagraphText($iframe: JQuery<HTMLElement>): string {
 // bundle evaluation; budget more than IFRAME_READY_TIMEOUT for it.
 const CONTENT_TIMEOUT = 30_000;
 
+// A second missing version, for tests that switch `doenetML` after a
+// fallback. Stubbed in `beforeEach` like the first.
+const OTHER_VERSION = "0.0.0-missing.2";
+
+/**
+ * A viewer on `DOENETML` (whose `xmlns` names the missing version) with a
+ * button that switches its `doenetML` to name `OTHER_VERSION` instead.
+ * `render={false}` keeps the document from booting a core, which these tests
+ * do not need.
+ */
+function SwitchingViewer(props: {
+    standaloneUrl?: string;
+    cssUrl?: string;
+    doenetmlVersion?: string;
+}) {
+    const [doenetML, setDoenetML] = useState(DOENETML);
+    return (
+        <div>
+            <button
+                data-test="switch"
+                onClick={() =>
+                    setDoenetML(
+                        DOENETML.replace(MISSING_VERSION, OTHER_VERSION),
+                    )
+                }
+            >
+                Switch
+            </button>
+            <DoenetViewer
+                doenetML={doenetML}
+                render={false}
+                addVirtualKeyboard={false}
+                {...props}
+            />
+        </div>
+    );
+}
+
 describe("xmlns-detected version that fails to load", () => {
     beforeEach(() => {
         cy.intercept("GET", MISSING_BUNDLE_URL, {
             statusCode: 404,
             body: "Not Found",
         }).as("missingBundle");
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@v${OTHER_VERSION}/**`,
+            { statusCode: 404, body: "Not Found" },
+        ).as("otherMissingBundle");
     });
 
     it("DoenetViewer falls back to the host-specified bundle and warns", () => {
@@ -133,52 +176,60 @@ describe("xmlns-detected version that fails to load", () => {
         // `doenetML` naming another version must load that version's bundle,
         // not stay on the fallback. The second version is missing too, so
         // the test sees its bundle requested and a second fallback warning
-        // without leaving the stubbed network. `render={false}` keeps the
-        // document from booting a core, which this test does not need.
-        const OTHER_VERSION = "0.0.0-missing.2";
-        cy.intercept(
-            "GET",
-            `https://cdn.jsdelivr.net/npm/@doenet/standalone@v${OTHER_VERSION}/**`,
-            { statusCode: 404, body: "Not Found" },
-        ).as("otherMissingBundle");
+        // without leaving the stubbed network.
         cy.window().then((win) => {
             cy.spy(win.console, "warn").as("warn");
         });
 
-        function Harness() {
-            const [doenetML, setDoenetML] = useState(DOENETML);
-            return (
-                <div>
-                    <button
-                        data-test="switch"
-                        onClick={() =>
-                            setDoenetML(
-                                DOENETML.replace(
-                                    MISSING_VERSION,
-                                    OTHER_VERSION,
-                                ),
-                            )
-                        }
-                    >
-                        Switch
-                    </button>
-                    <DoenetViewer
-                        doenetML={doenetML}
-                        render={false}
-                        standaloneUrl={STANDALONE_BLOB_URL}
-                        cssUrl={STANDALONE_CSS_BLOB_URL}
-                        addVirtualKeyboard={false}
-                    />
-                </div>
-            );
-        }
-        cy.mount(<Harness />);
+        cy.mount(
+            <SwitchingViewer
+                standaloneUrl={STANDALONE_BLOB_URL}
+                cssUrl={STANDALONE_CSS_BLOB_URL}
+            />,
+        );
 
         cy.wait("@missingBundle");
         cy.get("@warn").should(
             "have.been.calledWithMatch",
             `v${MISSING_VERSION}`,
         );
+
+        cy.get("[data-test=switch]").click();
+        cy.wait("@otherMissingBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${OTHER_VERSION}`,
+        );
+    });
+
+    it("DoenetViewer tries a different version even after its fallback failed too", () => {
+        // The fallback here, the host's `doenetmlVersion` (given without a
+        // `v`), is missing as well, so the viewer ends in its error state.
+        // Switching to a document naming another version must still request
+        // that version's bundle: the error belongs to the fallback bundle,
+        // not to the new version, which used to be blamed for it (warned
+        // about as unloadable without ever being requested).
+        const FALLBACK_VERSION = "0.0.0-fallback.2";
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@${FALLBACK_VERSION}/**`,
+            { statusCode: 404, body: "Not Found" },
+        ).as("fallbackBundle");
+        cy.window().then((win) => {
+            cy.spy(win.console, "warn").as("warn");
+        });
+
+        cy.mount(<SwitchingViewer doenetmlVersion={FALLBACK_VERSION} />);
+
+        cy.wait("@missingBundle");
+        cy.wait("@fallbackBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `using version \`v${FALLBACK_VERSION}\` instead`,
+        );
+        cy.contains("Invalid DoenetML version", {
+            timeout: IFRAME_READY_TIMEOUT,
+        });
 
         cy.get("[data-test=switch]").click();
         cy.wait("@otherMissingBundle");

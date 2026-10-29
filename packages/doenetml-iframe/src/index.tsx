@@ -60,15 +60,16 @@ export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 /**
- * A DoenetML version as messages show it: always with its `v` prefix. A
- * detected version gets one from `xmlns` detection, but `IFRAME_VERSION` and
- * a host's `doenetmlVersion` may come without it, and both spellings name
- * the same CDN package.
+ * A DoenetML version as messages show it: a version number always carries
+ * its `v` prefix. A detected version gets one from `xmlns` detection, but
+ * `IFRAME_VERSION` and a host's `doenetmlVersion` may come without it, and
+ * both spellings name the same CDN package. A host's `doenetmlVersion` may
+ * also be a dist-tag such as `dev`, which is shown as given.
  */
 function versionLabel(doenetmlVersion: string): string {
-    return doenetmlVersion.startsWith("v")
-        ? doenetmlVersion
-        : `v${doenetmlVersion}`;
+    return /^\d/.test(doenetmlVersion)
+        ? `v${doenetmlVersion}`
+        : doenetmlVersion;
 }
 
 export { mathjaxConfig } from "@doenet/utils";
@@ -448,7 +449,13 @@ export function DoenetViewer({
     }
 
     const [height, setHeight] = React.useState("500px");
-    const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    // The error the iframe last reported, with the standalone bundle URL it
+    // was loading at the time, so a later render can tell whether the error
+    // belongs to the bundle it currently selects.
+    const [inErrorState, setInErrorState] = React.useState<{
+        message: string;
+        standaloneUrl: string;
+    } | null>(null);
     // The `xmlns`-detected version whose bundle failed to load, if any. Only
     // that version is ignored from then on: `doenetML` can change live, and a
     // later document naming a different version must still get that version
@@ -781,8 +788,10 @@ export function DoenetViewer({
                 if (windowed) {
                     relinquishBootSlot();
                 }
-                //@ts-ignore
-                return setInErrorState(data.error);
+                return setInErrorState({
+                    message: String(data.error),
+                    standaloneUrl: standaloneUrlRef.current,
+                });
             } else if (data.iframeReady) {
                 // if `iframeReady`, then Comlink.expose has been called in the iframe
                 // and we can call `renderViewerWithFunctionProps`
@@ -1235,6 +1244,15 @@ export function DoenetViewer({
         updateEffectiveVisibility();
     }, [windowed, keepLive]);
 
+    if (inErrorState && inErrorState.standaloneUrl !== standaloneUrl) {
+        // `doenetML` changed since the error to one that selects a different
+        // bundle (e.g. its `xmlns` now names another version). The error
+        // belongs to the old bundle: drop it and load the new one, rather
+        // than blaming the new version for it below.
+        setInErrorState(null);
+        return null;
+    }
+
     if (inErrorState) {
         if (foundAutoVersion) {
             // The bundle for the `xmlns`-detected version failed to load
@@ -1250,7 +1268,7 @@ export function DoenetViewer({
                 } instead.`,
             );
             setFailedDetectedVersion(detectedVersion!);
-            setInErrorState("");
+            setInErrorState(null);
             return null;
         }
 
@@ -1278,7 +1296,7 @@ export function DoenetViewer({
                     padding: "0.5em",
                 }}
             >
-                {errorIcon} {inErrorState}
+                {errorIcon} {inErrorState.message}
             </div>
         );
     }
