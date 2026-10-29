@@ -39,6 +39,23 @@ export type ElementUpdate = FlatDastElementUpdate & {
     newFlatDastElement?: Element;
 };
 
+/** Where a tick's time went in the worker, in ms: the core's tick, and the
+ * bridge turning its changed cells into updates. */
+export type TickTiming = { core: number; bridge: number };
+
+/** Where a load's time went in the worker, in ms. */
+export type LoadTiming = {
+    /** The DAST encoded for the core. */
+    encode: number;
+    /** The core's load: compile and builds (ADR 0015). */
+    core: number;
+    /** The bridge: element ids, then the first flat DAST. */
+    bridge: number;
+};
+
+/** How many ticks' timings are kept, the latest. */
+const TICK_TIMINGS_KEPT = 1000;
+
 export type RendererAction = {
     component: string;
     actionName: string;
@@ -74,6 +91,11 @@ export class CellsBridge {
     _refs = new Map<number, number[]>();
     _outputs: Set<number> | null = null;
     _interactive: Set<number> | null = null;
+    /** For the benchmark (ADR 0020's comparison): the load's timing, and
+     * the latest ticks', read with `takeTimings`. */
+    loadTiming: LoadTiming = { encode: NaN, core: NaN, bridge: 0 };
+    _tickTimings: TickTiming[] = [];
+    _flatDastTimed = false;
 
     constructor(core: Core, memory: WebAssembly.Memory) {
         this.core = core;
@@ -84,6 +106,7 @@ export class CellsBridge {
 
     /** The document as flat DAST, every element the renderer can reach. */
     flatDast() {
+        const start = performance.now();
         const root = this.table.root();
         this._computeTree(root, false);
         const elements: Element[] = [];
@@ -91,6 +114,10 @@ export class CellsBridge {
         const warnings: DastWarning[] = this.diagnostics
             .filter((d) => d.kind === "warning" || d.kind === "info")
             .map((d) => ({ type: "warning", message: d.message }));
+        if (!this._flatDastTimed) {
+            this._flatDastTimed = true;
+            this.loadTiming.bridge += performance.now() - start;
+        }
         return {
             type: "root" as const,
             children: [
@@ -123,6 +150,7 @@ export class CellsBridge {
             return { payload: {} };
         }
         let changed: Uint32Array;
+        const start = performance.now();
         switch (effect.kind) {
             case "none":
                 return { payload: {} };
@@ -144,7 +172,24 @@ export class CellsBridge {
                 changed = this.core.trigger(effect.component);
                 break;
         }
-        return { payload: this._afterTick(changed) };
+        const ticked = performance.now();
+        const payload = this._afterTick(changed);
+        this._tickTimings.push({
+            core: ticked - start,
+            bridge: performance.now() - ticked,
+        });
+        if (this._tickTimings.length > TICK_TIMINGS_KEPT) {
+            this._tickTimings.shift();
+        }
+        return { payload };
+    }
+
+    /** The load's timing and the ticks' since the last call, which are
+     * then forgotten. */
+    takeTimings(): { load: LoadTiming; ticks: TickTiming[] } {
+        const ticks = this._tickTimings;
+        this._tickTimings = [];
+        return { load: this.loadTiming, ticks };
     }
 
     /** The element id of the component a name path (`p.q`, `r[2].x`)

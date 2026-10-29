@@ -56,6 +56,31 @@ const adapters: Record<string, string> = Object.fromEntries(
         ),
     ]),
 );
+/** The cores whose adapters split each tick (`breakdown`): the cells core
+ * in its viewer and behind the prototype's renderers (ADR 0020). */
+const BREAKDOWN = new Set(["cells", "cells-prototype"]);
+const BREAKDOWN_PARTS = [
+    "core",
+    "bridge",
+    "hop",
+    "react",
+    "redraw",
+    "total",
+] as const;
+
+/** The quantiles of each part of the ticks since the last clear. */
+async function breakdown(page: Page) {
+    const samples: Record<string, number>[] = await page.evaluate(() =>
+        (window as any).__bench.breakdown(),
+    );
+    return Object.fromEntries(
+        BREAKDOWN_PARTS.map((part) => [
+            part,
+            quantiles(samples.map((s) => s[part])),
+        ]),
+    );
+}
+
 const machine = process.env.BENCH_MACHINE;
 if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
 const run = openRun({
@@ -79,6 +104,7 @@ function quantiles(xs: number[]) {
               n: s.length,
               p50_ms: q(0.5),
               p90_ms: q(0.9),
+              p95_ms: q(0.95),
               max_ms: s[s.length - 1],
           }
         : { n: 0 };
@@ -217,7 +243,15 @@ for (const m of FIXTURES) {
                     ),
                     LOAD_MS,
                 );
+                if (core === "cells-prototype")
+                    record.load_breakdown = await page.evaluate(() =>
+                        (window as any).__bench.loadBreakdown(),
+                    );
                 stage = "tick";
+                if (BREAKDOWN.has(core))
+                    await page.evaluate(() =>
+                        (window as any).__bench.clearSamples(),
+                    );
                 if (first.action === "movePoint") {
                     stage = "locate";
                     const at = await deadline(
@@ -230,7 +264,7 @@ for (const m of FIXTURES) {
                     );
                     if (!at) throw new Error(`cannot locate ${first.target}`);
                     stage = "tick";
-                    if (core === "cells")
+                    if (BREAKDOWN.has(core))
                         await page.evaluate(() =>
                             (window as any).__bench.clearSamples(),
                         );
@@ -264,6 +298,8 @@ for (const m of FIXTURES) {
                         paint: quantiles(v.paint),
                     }));
                 }
+                if (BREAKDOWN.has(core))
+                    record.breakdown = await breakdown(page);
             } catch (e: any) {
                 record.status =
                     e.message === "timeout"

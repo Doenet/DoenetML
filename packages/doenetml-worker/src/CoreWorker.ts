@@ -1281,6 +1281,15 @@ export class CoreWorker {
     }
 
     /**
+     * For the benchmark: where the cells core's load and its ticks since the
+     * last call spent their time in this worker (ADR 0020 in
+     * `packages/cells-core`), or null for another core.
+     */
+    cellsTimings() {
+        return this._cellsBridge?.takeTimings() ?? null;
+    }
+
+    /**
      * Call submitAnswer on all answers in the document
      */
     async submitAllAnswers() {

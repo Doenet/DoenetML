@@ -17,7 +17,10 @@ import { defaultFlags } from "../../../doenetml-prototype/src/DoenetML";
 import {
     coreThunks,
     getWorker,
+    workerCache,
 } from "../../../doenetml-prototype/src/state/redux-slices/core/thunks";
+import { BoardRedraw } from "../../../doenetml-prototype/src/renderers/doenet/jsxgraph/redraw";
+import { useAppSelector } from "../../../doenetml-prototype/src/state/hooks";
 import { numberFromSerializedAst } from "../../../doenetml-prototype/src/utils/math/math-expression-utils";
 
 const root = createRoot(document.getElementById("root")!);
@@ -31,6 +34,69 @@ const flags = {
     allowSaveState: false,
     allowLocalState: false,
 };
+
+/** One tick through the prototype path, in ms: the core's tick and the
+ * bridge's work in the worker (the cells core only), the rest of the round
+ * trip (the worker hop: messages, Comlink, structured clone), the store
+ * update and React's render until it commits, and the board's redraw after
+ * the commit. `total` is from the action's dispatch to the later of the
+ * commit and the redraw's end. */
+type TickSample = {
+    core: number;
+    bridge: number;
+    hop: number;
+    react: number;
+    redraw: number;
+    total: number;
+};
+
+/** Each action's dispatch to the worker and the arrival of its answer, and
+ * each board redraw, by `performance.now()`. */
+const dispatches: { sent: number; received: number }[] = [];
+const flushes: { start: number; end: number }[] = [];
+const commits: number[] = [];
+
+/** Records when React commits a change to the viewer's elements: its layout
+ * effect runs in the commit, after the document's own. */
+function CommitProbe() {
+    const elements = useAppSelector(
+        (state) => state.dast.flatDastRoot.elements,
+    );
+    React.useLayoutEffect(() => {
+        commits.push(performance.now());
+    }, [elements]);
+    return null;
+}
+const flush = BoardRedraw.prototype.flush;
+BoardRedraw.prototype.flush = function (this: BoardRedraw) {
+    const start = performance.now();
+    flush.call(this);
+    flushes.push({ start, end: performance.now() });
+};
+
+/** The workers whose actions are timed. (A Comlink proxy answers every
+ * property, so a mark on the worker itself cannot say so.) */
+const timed = new WeakSet<object>();
+
+/** Time every action the viewer sends its worker, once per worker. */
+function timeDispatches() {
+    for (const entry of workerCache) {
+        if (!entry || timed.has(entry.worker)) continue;
+        const worker = entry.worker;
+        entry.worker = new Proxy(worker, {
+            get(target, key) {
+                if (key !== "dispatchAction") return (target as any)[key];
+                return async (action: unknown) => {
+                    const sent = performance.now();
+                    const answer = await target.dispatchAction(action as any);
+                    dispatches.push({ sent, received: performance.now() });
+                    return answer;
+                };
+            },
+        });
+        timed.add(entry.worker);
+    }
+}
 
 /** A render that throws ends the load with its message instead of a blank page. */
 class Boundary extends React.Component<{ children: React.ReactNode }> {
@@ -64,6 +130,7 @@ const rust = {
                             darkMode="light"
                             coreType={coreType}
                         />
+                        <CommitProbe />
                     </MathJaxContext>
                 </Provider>
             </Boundary>,
@@ -74,7 +141,44 @@ const rust = {
             if (s.dast.flatDastRoot.elements.length > 0) break;
             await new Promise((ok) => setTimeout(ok, 5));
         }
+        timeDispatches();
         rust.ready = true;
+    },
+    /** Where the load's time went in the worker (the cells core only). */
+    async loadTimings() {
+        const t = await getWorker(store.getState())!.cellsTimings();
+        return t?.load ?? null;
+    },
+    /** The ticks since the last call, each with where its time went; the
+     * cells core only, since only its worker times its ticks. */
+    async tickSamples(): Promise<TickSample[]> {
+        const t = await getWorker(store.getState())!.cellsTimings();
+        const ticks = t?.ticks ?? [];
+        // The worker times only the actions that ticked; they are the last
+        // of the actions sent.
+        const sent = dispatches.splice(0).slice(-ticks.length);
+        const redraws = flushes.splice(0);
+        const commitTimes = commits.splice(0);
+        return ticks.map((tick, i) => {
+            const d = sent[i];
+            const next = sent[i + 1]?.received ?? Infinity;
+            const within = (t: number) => t >= d.received && t < next;
+            // A tick that changed nothing the viewer shows commits nothing.
+            const commit = commitTimes.find(within);
+            const redraw = redraws.find((f) => within(f.start));
+            const roundTrip = d.received - d.sent;
+            return {
+                core: tick.core,
+                bridge: tick.bridge,
+                hop: roundTrip - tick.core - tick.bridge,
+                react: commit === undefined ? NaN : commit - d.received,
+                redraw: redraw ? redraw.end - redraw.start : 0,
+                total:
+                    commit === undefined
+                        ? NaN
+                        : Math.max(commit, redraw?.end ?? 0) - d.sent,
+            };
+        });
     },
     /** Component index of a name path (`p3.mi`, `P[2]`), or -1. */
     async resolve(name: string, origin = 0): Promise<number> {

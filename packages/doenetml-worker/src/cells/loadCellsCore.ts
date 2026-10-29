@@ -39,6 +39,14 @@ export async function loadCellsDocument(
     seed = 0,
 ): Promise<CellsBridge> {
     const memory = await initCellsCore();
+    const start = performance.now();
     const bytes = new TextEncoder().encode(JSON.stringify(dast));
-    return new CellsBridge(Core.with_seed(bytes, seed), memory);
+    const encoded = performance.now();
+    const core = Core.with_seed(bytes, seed);
+    const loaded = performance.now();
+    const bridge = new CellsBridge(core, memory);
+    bridge.loadTiming.encode = encoded - start;
+    bridge.loadTiming.core = loaded - encoded;
+    bridge.loadTiming.bridge = performance.now() - loaded;
+    return bridge;
 }

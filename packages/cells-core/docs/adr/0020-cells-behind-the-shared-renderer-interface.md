@@ -1,6 +1,7 @@
 # Cells behind the shared renderer interface
 
-Status: proposed 2026-10-28. Steps 1 to 4 of 5 are done; see Migration.
+Status: proposed 2026-10-28. Steps 1 to 5 are done; see Migration and
+Measured. Whether the viewer is retired is still open.
 The Measured section is filled in by step 5.
 
 The cells core reaches DoenetML's renderers the way the other two cores
@@ -116,6 +117,76 @@ compares the two paths, and whether it is retired is decided then.
 
 ## Measured
 
-To be filled in by step 5: first render, drag p50 and p95, and each
-tick's time in the core, the bridge, the worker hop, Redux and React, and
-the board redraw, for the viewer and for the prototype path.
+`packages/benchmark/results/runs/2026-10-28-laptop-a528ef710-dirty`
+(`browser.json`): headless Chromium on an Intel i7-10510U laptop, the
+browser layer's `perf.spec.ts` with the core `cells` (the viewer) and
+`cells-prototype` (the prototype's renderers through the bridge), the
+code measured being this ADR's step 5 before it was committed. Load is
+text to first render. A drag is 61 real pointer moves; its latency is to
+the first frame that shows the point moved. Each tick is then split
+(`breakdown`, p50 in ms): the core's tick; the bridge's updates; the
+worker hop, the rest of the round trip from the action's dispatch to its
+answer, which includes waiting behind earlier ticks still in the worker;
+React, from the answer (in the viewer, from the board's redraw) to the
+commit, store update included; and the board's redraw. In the viewer the
+bridge and hop are nil and the board redraws before React commits.
+
+| Fixture | Path | Load ms | Drag p50 / p95 ms | Core | Bridge | Hop | React | Redraw | Tick total |
+|---|---|---|---|---|---|---|---|---|---|
+| depth-1000 | viewer | 223 | 9.3 / 21.3 | 0.1 | — | — | 3.3 | 0.5 | 3.8 |
+| | prototype | 1273 | 34.2 / 114.9 | 0.1 | 5.8 | 2.4 | 19.8 | 0.2 | 27.9 |
+| breadth-1000 | viewer | 424 | 12.2 / 22.4 | 0.1 | — | — | 5.9 | 1.2 | 7.3 |
+| | prototype | 1500 | 29.7 / 95.0 | 0.1 | 4.8 | 1.9 | 16.0 | 0.1 | 23.3 |
+| inversion-1000 | viewer | 352 | 9.3 / 19.8 | 0.1 | — | — | 4.3 | 1.3 | 5.8 |
+| | prototype | 1584 | 31.7 / 104.8 | 0.1 | 5.0 | 1.8 | 16.5 | 0.2 | 23.9 |
+| symbolic-1000 | viewer | 563 | 56.1 / 103.6 | 39.1 | — | — | 9.0 | 0.8 | 48.4 |
+| | prototype | 2201 | 115.2 / 3332.6 | 41.5 | 65.7 | 1909.8 | 19.5 | 0.2 | 2030.1 |
+| rebuild-1000 | viewer | 217 | 13.1 / 44.0 | 0.1 | — | — | 0.4 | 0.1 | 0.7 |
+| | prototype | 1791 | 82.1 / 235.1 | 2.8 | 15.4 | 28.9 | 7.4 | 0.1 | 55.1 |
+| breadth-10000 | viewer | 962 | 83.2 / 111.2 | 0.2 | — | — | 33.8 | 4.4 | 38.6 |
+| | prototype | 3219 | 258.2 / 446.9 | 0.3 | 47.3 | 222.3 | 162.6 | 0.2 | 424.9 |
+| lesson | viewer | 124 | 2.5 / 5.0 | 0.1 | — | — | 0.7 | 0.2 | 1.0 |
+| | prototype | 1024 | 17.7 / 50.3 | 0.1 | 0.1 | 2.3 | 0.8 | 0.1 | 3.3 |
+| sir | viewer | 222 | 6.8 / 905.8 | 0.1 | — | — | 3.4 | 1.2 | 4.9 |
+| | prototype | 1194 | 34.0 / 267.4 | 0.1 | 1.6 | 1.1 | 7.3 | 0.2 | 10.4 |
+| homework | viewer | 158 | (steps) 17.0 | 0.1 | — | — | 0.4 | 0.0 | 0.6 |
+| | prototype | 1024 | (steps) 16.5 | 0.1 | 0.1 | 0.2 | 0.4 | 0.0 | 0.7 |
+
+`homework` is typed into and submitted, not dragged: its column is the
+p50 to the next frame of typing into its math input, one frame on either
+path. At 10,000 elements the prototype path ran out of the 15 s it has for
+the drag on depth, inversion and rebuild (the viewer: 80 to 90 ms per
+drag step; `rebuild-10000` 2.6 ms); `symbolic-10000` ran out on both.
+`venn` is a trigger, which neither adapter carries out.
+
+What the numbers say:
+
+- **The core is the same.** Its share of a tick is equal on both paths.
+  Everything the prototype path adds is around it.
+- **Load costs about a second more**, a floor whatever the size:
+  `homework` is 158 ms in the viewer and 1024 ms through the prototype.
+  The worker's own share is small (encode, core and bridge together 47 ms
+  for `homework`, 86 ms for `depth-1000`); the rest is starting the
+  worker (a 7.8 MB script), fetching the core's WASM and the first render,
+  not split further here.
+- **A drag is about three times slower at 1,000 elements** (30 to 34 ms
+  p50 against 9 to 12 ms), and the largest share is React and the store,
+  not the worker: 16 to 20 ms against 3 to 6 ms in the viewer, which
+  re-renders the same elements from cells without an immutable store
+  update per element. Next come the bridge's diff (about 5 ms) and the
+  hop (about 2 ms). The prototype's board redraw is cheaper than the
+  viewer's (step 2).
+- **At 10,000 elements the prototype path does not keep up.** Each part
+  grows with the elements a drag changes (`breadth-10000`: bridge 47 ms,
+  React 163 ms), and since the worker serializes ticks, the moves queue
+  behind one another: the hop's 222 ms is mostly that wait. Where the
+  core itself is slow (`symbolic-1000`, 41 ms a tick), the queue grows to
+  seconds, which the viewer, ticking synchronously, never builds.
+- **Real documents are fine on both paths**: a tick of `lesson`, `sir`
+  or `homework` is under 11 ms p50 end to end through the prototype.
+
+What would close the gap, if the prototype path stays: dropping moves
+while a tick is in flight (the queue), a store update per tick rather
+than an immutable copy per changed element, a cheaper diff in the bridge
+than comparing serialized props, and the bridge on the main thread
+(considered above) to remove the hop and the second of load.

@@ -118,6 +118,19 @@
                     );
             }
         },
+        /** Where the load's time went in the worker (the cells core
+         * only), else null. */
+        loadBreakdown() {
+            return cells() ? window.__rust.loadTimings() : null;
+        },
+        /** Each tick since the last call, split into core, bridge, worker
+         * hop, React and redraw (the cells core only). */
+        breakdown() {
+            return cells() ? window.__rust.tickSamples() : [];
+        },
+        async clearSamples() {
+            if (cells()) await window.__rust.tickSamples();
+        },
         nextFrame,
         nextPaint,
     };

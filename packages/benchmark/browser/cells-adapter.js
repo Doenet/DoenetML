@@ -99,6 +99,19 @@
         clearSamples() {
             store().samples.length = 0;
         },
+        /** Each tick's time split as the prototype path's is (rust-viewer's
+         * `TickSample`): the viewer has no bridge or worker hop, and draws
+         * its boards before React commits. */
+        breakdown() {
+            return store().samples.map((s) => ({
+                core: s.core,
+                bridge: 0,
+                hop: s.roundTrip - s.core,
+                redraw: s.sync - s.roundTrip,
+                react: s.commit - s.sync,
+                total: Math.max(s.sync, s.commit),
+            }));
+        },
         nextFrame,
         nextPaint,
     };
