@@ -246,3 +246,45 @@ size is about 0.01 ms):
 About 0.01 ms more, which is the emit pass the probe now runs. The real
 build's time ("build, check off") did not move beyond run-to-run noise on
 any fixture, from 0.2 ms to the 590 ms of chain-100000.
+
+### Every document is probed, 2026-10-29
+
+The probe now runs for every document (ADR 0015's amendment of the same
+date): the first build of a document without repeats or selects no
+longer doubles as its check, so a load is one sequence of steps, and the
+probe's records of what every build reads are made for every document.
+What it costs is one more expand and emit at load for such a document,
+about the size of its one build, and for a document with symbolic math
+the engine work emit does; the probe compiles no curve tape and takes no
+derivative, since its instructions never run. Measured with
+`cycle_check_cost` (medians of 7 loads, release, this laptop; "before" is
+177f1a1, the last commit of the two-path load):
+
+| fixture | load before (ms) | load now (ms) | probe (ms) | probe / load | now / before |
+|---|---:|---:|---:|---:|---:|
+| adventure-3 | 33.07 | 52.19 | 13.06 | 25% | 1.58 |
+| chain-1000 | 2.38 | 3.05 | 0.60 | 20% | 1.28 |
+| chain-100000 | 438.41 | 566.73 | 97.99 | 17% | 1.29 |
+| curves-100 | 1.70 | 3.21 | 1.27 | 40% | 1.89 |
+| fanout-10000 | 61.20 | 69.90 | 11.31 | 16% | 1.14 |
+| points-100 | 0.16 | 0.23 | 0.05 | 22% | 1.44 |
+| points-1000 | 1.40 | 1.81 | 0.32 | 18% | 1.29 |
+| points-10000 | 17.91 | 19.85 | 3.46 | 17% | 1.11 |
+| recur-1000 | 2.53 | 3.02 | 0.05 | 2% | 1.19 |
+| repeat-1000 | 2.18 | 2.37 | 0.05 | 2% | 1.09 |
+| repeat-10000 | 25.78 | 28.02 | 0.06 | 0% | 1.09 |
+| select-1000 | 30.68 | 29.66 | 12.98 | 44% | 0.97 |
+| selectflat-1000 | 5.08 | 8.77 | 3.00 | 34% | 1.73 |
+| sir | 2.68 | 4.08 | 0.13 | 3% | 1.52 |
+| sliderstack-1000 | 3.56 | 6.05 | 1.92 | 32% | 1.70 |
+| sticky-1000 | 6.02 | 9.86 | 1.63 | 17% | 1.64 |
+| symchain-1000 | 45.78 | 57.81 | 10.66 | 18% | 1.26 |
+| wording-1000 | 26.43 | 41.53 | 13.34 | 32% | 1.57 |
+
+Over the 41 fixtures without a repeat or a select, a load now takes 1.0
+to 2.2 times what it took, the median 1.5, with the probe 16% to 41% of
+it. The fixtures the probe already ran for (repeat, recur, select, sir's
+probe column) moved within this laptop's run-to-run noise, about 10%,
+which the whole table carries. `LoadTimings::cycle_check` is the probe's
+time, which `check off` (`LoadOptions::check_cycles`) no longer removes:
+it only skips the probe's loop checks.

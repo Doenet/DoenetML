@@ -350,3 +350,29 @@ neither. A change that needs more across the line is a change to this ADR.
 - **Make the check independent of build's code.** Rejected: the probe's
   value is that it runs the very resolution the build runs, so the two
   cannot disagree about what a reference reaches.
+
+## Amendment: one load sequence, 2026-10-29
+
+As accepted, the compile checked a document with repeats or selects
+through the probe and any other through its first stamped build, which
+the load then kept as its first pass (`build::first_build`). Which path a
+document took decided whether its builds classed value slots by the
+probe's record or by their own walk (ADR 0018), whether its live cells
+came from the record or the walk (ADR 0019), and whether its structural
+depth was known; a test load with the check off added a third way to
+each. Now every document is probed and every load builds from pass zero:
+compile, probe, build until the structure settles. The compile reads no
+session, so it depends on the source alone by construction and
+`tests/compile_purity.rs` is gone. The record is the one way a build
+classes its slots (`compile/plan.rs`, `Record`), the depth is always the
+probe's, and `Error::UnstableStructure` is gone with the unchecked case.
+The price is one more expand and emit at load for a document without
+repeats or selects, about the size of its one build; ADR 0012's
+measurement of 2026-10-29 has the numbers. Reading the record in every
+build also found a bug the first-build path had hidden: a class the
+record cannot name (a reactive choice's interface component is
+synthesized and has no template slot) was taken as live whatever read
+it, so a pruned build computed an interface prop nothing reads from
+branch cells the record had pruned and failed as unchecked. Such a class
+is now live only when a root or a live class reads it, as in the probe's
+walk (`build/live.rs`).

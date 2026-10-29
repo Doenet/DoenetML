@@ -171,3 +171,12 @@ deep).
   reads the counts the load settles on.
 - `Error::Unchecked` is a core bug by definition; it should never reach a
   student, and the every-count net is what keeps it so.
+
+## Amendment: every document is probed, 2026-10-29
+
+The probe now runs for every document, with or without repeats or
+selects, and the first build no longer doubles as the check (ADR 0015's
+amendment of the same date). The compile takes no session, so its
+independence from the seed is by construction, and the check's
+warnings, the structural depth among them, come from the probe alone,
+so a load's diagnostics equal `diagnose`'s for the warnings too.

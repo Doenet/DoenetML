@@ -95,12 +95,15 @@ impl View for Probe {
 /// reads a session of its own, so nothing a student's session holds (the
 /// seed above all) reaches what it finds. The compile's check and
 /// `compile::diagnose` keep only its failures and warnings.
-pub(crate) fn probe(compiled: &Compiled) -> std::result::Result<BuildOutput, Failure> {
+pub(crate) fn probe(
+    compiled: &Compiled,
+    checks: bool,
+) -> std::result::Result<BuildOutput, Failure> {
     let session = Session::new(0, false);
     // The session's own engine, which the output keeps, so what the build
     // made can be read (the input signature reads expressions).
     let mut engine = session.engine.borrow_mut();
-    build_with(compiled, &session, false, &mut engine, &Probe, true)
+    build_with(compiled, &session, false, &mut engine, &Probe, checks)
 }
 
 /// The coordinate an index step contributes: a shift of the referencing
@@ -186,7 +189,15 @@ impl<'c> Builder<'c> {
     /// when `r`'s count reads a cell inside `s`'s iterations, unless `r`
     /// itself sits inside them (an inner count reading its outer iteration
     /// is legal). A self-loop is a count reading its own iterations.
-    pub(in crate::build) fn check_counts(&self) -> Result<()> {
+    ///
+    /// Without a loop, the same edges give the document's structural depth
+    /// (`CONTEXT.md`): how many repeats must be expanded in sequence before
+    /// a count can be computed, plus one. Nesting adds one; an edge of the
+    /// graph, a count reading a cell inside another repeat's iterations,
+    /// adds one and is warned about, since authors can avoid it. The probe
+    /// stands for every count (ADR 0014), so no build exceeds the depth it
+    /// finds, and the load allows that many passes (`Compiled::passes`).
+    pub(in crate::build) fn check_counts(&mut self) -> Result<()> {
         let n = self.repeats.len();
         let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
         let mut seen = vec![false; self.sources.len()];
@@ -253,6 +264,49 @@ impl<'c> Builder<'c> {
                 }
                 color[v] = 2;
                 walk.pop();
+            }
+        }
+        // No loop: depth is the longest path, nesting edges included. An
+        // outer repeat's iteration encloses its inner repeat's scope.
+        let nests: Vec<Option<usize>> = self
+            .repeats
+            .iter()
+            .map(|r| {
+                self.enclosing_repeats(r.scope)
+                    .first()
+                    .map(|&c| self.comp_repeat[c.index()] as usize)
+            })
+            .collect();
+        fn depth(ri: usize, adj: &[Vec<usize>], nests: &[Option<usize>], memo: &mut [u32]) -> u32 {
+            if memo[ri] != 0 {
+                return memo[ri];
+            }
+            let d = 1 + adj[ri]
+                .iter()
+                .copied()
+                .chain(nests[ri])
+                .map(|o| depth(o, adj, nests, memo))
+                .max()
+                .unwrap_or(0);
+            memo[ri] = d;
+            d
+        }
+        let mut memo = vec![0u32; n];
+        for (ri, r) in self.repeats.iter().enumerate() {
+            let d = depth(ri, &adj, &nests, &mut memo);
+            self.structural_depth = self.structural_depth.max(d);
+            if !adj[ri].is_empty() {
+                let name = self.components.name[r.comp.index()];
+                let name = if name == StrId::NONE {
+                    format!("<{}>", self.components.component_type[r.comp.index()].tag())
+                } else {
+                    self.compiled.dast.strings.get(name).trim().to_string()
+                };
+                self.diagnostics.push(Diagnostic::warning(
+                    "cells-repeat-count-reads-iterations",
+                    Some(r.node),
+                    format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"),
+                ));
             }
         }
         Ok(())

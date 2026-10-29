@@ -58,50 +58,46 @@ impl<'c> Builder<'c> {
             }
         }
         // A value slot is essential when a student's action can write it,
-        // and fixed otherwise (ADR 0018): by this build's own walk, by the
-        // probe's record of the template slots it found writable, or, with
-        // the classing off, always essential.
-        let mut record = None;
-        let essential: Vec<bool> = match &self.compiled.classes {
-            Classes::Off => vec![true; n],
-            Classes::Record(r) if !self.view.folds_iterations() => SlotId::below(n)
-                .map(|s| {
-                    self.template_slot(s)
-                        .is_none_or(|(t, ts)| Classes::recorded(r, t, ts))
-                })
-                .collect(),
-            Classes::Walk | Classes::Record(_) => {
-                let writable = self.writable_slots(&roots, &class_def);
-                if self.view.folds_iterations() {
-                    record = Some(self.record_of(&writable));
-                }
-                writable
-            }
+        // and fixed otherwise (ADR 0018): the probe finds them by its walk
+        // and records them by template slot, and every other build reads
+        // the record, so a slot's class is the same in every build; with
+        // the classing off (no record), every value slot is essential.
+        let folds = self.view.folds_iterations();
+        let (essential, record): (Vec<bool>, Record) = if folds {
+            let writable = self.writable_slots(&roots, &class_def);
+            let record = self.record_of(&writable);
+            (writable, record)
+        } else {
+            let essential = match &self.compiled.classes {
+                None => vec![true; n],
+                Some(r) => SlotId::below(n)
+                    .map(|s| self.template_slot(s).is_none_or(|(t, ts)| r.marks(t, ts)))
+                    .collect(),
+            };
+            (essential, Record::default())
         };
-        // Which classes the document computes (ADR 0019): by the probe's
-        // record of the template slots it found live, by this build's own
-        // walk, or, with no record to read, all of them. Measured only:
-        // nothing is pruned yet.
-        let mut live_record = None;
-        let live_slot: Vec<bool> = match &self.compiled.live {
-            Classes::Off => vec![true; n],
-            Classes::Record(r) if !self.view.folds_iterations() => self.live_by_record(r, &roots),
-            Classes::Walk | Classes::Record(_) => {
-                let live = self.live_slots(&roots, &class_def);
-                if self.view.folds_iterations() {
-                    live_record = Some(self.record_of(&live));
-                }
-                live
-            }
+        // Which classes the document computes (ADR 0019), the same way:
+        // the probe walks and records, every other build reads the record.
+        let (live_slot, live_record): (Vec<bool>, Record) = if folds {
+            let live = self.live_slots(&roots, &class_def);
+            let record = self.record_of(&live);
+            (live, record)
+        } else {
+            let live = self.live_by_record(&self.compiled.live, &roots, &class_def);
+            (live, Record::default())
         };
+        // What this build's own walks find, whatever the record says: what
+        // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
         let walked_slot = self.live_slots(&roots, &class_def);
+        #[cfg(feature = "testing")]
+        let walked_writable = self.writable_slots(&roots, &class_def);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
         // cell. Not in the probe, whose build is not kept, nor where the
         // load asked for every cell (`LoadOptions::prune`). An essential
         // slot is always live; were one not, it would be kept. A vector
         // output goes with its head, whose instruction writes it.
-        let prune = self.compiled.prune && !self.view.folds_iterations();
+        let prune = self.compiled.prune && !folds;
         let pruned = |s: usize| {
             let s = match self.sources[s] {
                 BuiltSource::VecOut(head, _) => head.index(),
@@ -151,6 +147,8 @@ impl<'c> Builder<'c> {
         let mut derived_defs = Vec::with_capacity(counts[2]);
         let mut outputs = Vec::with_capacity(counts[3]);
         let mut dead_defs = Vec::new();
+        #[cfg(feature = "testing")]
+        let mut walked_essential_slots = Vec::new();
         for (s, &root) in roots.iter().enumerate() {
             let root = root.index();
             if class_def[root].index() != s {
@@ -159,6 +157,16 @@ impl<'c> Builder<'c> {
             if pruned(s) {
                 dead_defs.push(s);
                 continue;
+            }
+            #[cfg(feature = "testing")]
+            if walked_writable[s]
+                && matches!(
+                    self.sources[s],
+                    BuiltSource::Literal(_) | BuiltSource::Default(_)
+                )
+            {
+                let (scope, tslot, _) = self.essential_key(SlotId::from_index(s));
+                walked_essential_slots.push((scope, tslot));
             }
             match &self.sources[s] {
                 BuiltSource::Literal(_) | BuiltSource::Default(_) if !essential[s] => {
@@ -286,9 +294,12 @@ impl<'c> Builder<'c> {
             };
         }
         let mut tapes = Vec::new();
-        // Compile curves whose expression has a fixed shape into tapes, unless
-        // the load asked for engine sampling.
-        let compile = !self.session.sample_with_engine;
+        // Compile curves whose expression has a fixed shape into tapes, and
+        // take a fixed shape's derivative once, unless the load asked for
+        // engine sampling. Not in the probe, whose instructions never run:
+        // its build is discarded, and the input signature reads the
+        // expressions themselves (`signature.rs`).
+        let compile = !self.session.sample_with_engine && !folds;
         let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
             let (planned, start, count) = match &self.sources[s] {
@@ -396,24 +407,6 @@ impl<'c> Builder<'c> {
             .map(|c| self.n_public(c))
             .collect();
 
-        let (depths, cross_reads) = self.structural_depths();
-        lap("structural depth");
-        for (r, (&d, &cross)) in self.repeats.iter().zip(depths.iter().zip(&cross_reads)) {
-            if cross {
-                let name = self.components.name[r.comp.index()];
-                let name = if name == StrId::NONE {
-                    format!("<{}>", self.components.component_type[r.comp.index()].tag())
-                } else {
-                    self.compiled.dast.strings.get(name).trim().to_string()
-                };
-                self.diagnostics.push(Diagnostic::warning(
-                    "cells-repeat-count-reads-iterations",
-                    Some(r.node),
-                    format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"),
-                ));
-            }
-        }
-
         // The next session: this build's scopes and what is still parked;
         // the value store is shared, since the build only read it.
         let session = Session {
@@ -443,11 +436,9 @@ impl<'c> Builder<'c> {
             essential_slots,
             essential_keys,
             essential_defaults,
-            structural_depth: depths.iter().copied().max().unwrap_or(0),
-            repeat_depths: depths,
-            repeat_cross_reads: cross_reads,
             repeats: self.repeats,
-            diagnostics: self.diagnostics,
+            #[cfg(feature = "testing")]
+            walked_essential_slots,
         };
 
         // Lazy labels for cycle errors.
@@ -502,9 +493,13 @@ impl<'c> Builder<'c> {
             tapes,
             comp_keys,
             cell_label,
-            record,
             live,
-            live_record,
+            probed: Probed {
+                structural_depth: self.structural_depth,
+                writable: record,
+                live: live_record,
+                warnings: self.diagnostics,
+            },
         })
     }
 
@@ -626,7 +621,7 @@ impl<'c> Builder<'c> {
     }
 
     /// A component slot's template and template slot (the element's slot
-    /// offset plus the prop's position), what `Classes::Record` is indexed
+    /// offset plus the prop's position), what a `Record` is indexed
     /// by; None for a slot of no element, or past the slots its element
     /// reserves: a copy that takes its referent's list has as many points
     /// as the referent (`place_list_copies`), and no template slot names
@@ -650,9 +645,9 @@ impl<'c> Builder<'c> {
     }
 
     /// The template slots of the slots `marked`, per template: the record
-    /// every later build classes by (`Classes::Record`), of the writable
-    /// slots (ADR 0018) or the live ones (ADR 0019).
-    fn record_of(&self, marked: &[bool]) -> Vec<Vec<u64>> {
+    /// every later build reads, of the writable slots (ADR 0018) or the
+    /// live ones (ADR 0019).
+    fn record_of(&self, marked: &[bool]) -> Record {
         let mut record: Vec<Vec<u64>> = self
             .compiled
             .templates
@@ -664,28 +659,7 @@ impl<'c> Builder<'c> {
                 record[t][ts as usize / 64] |= 1 << (ts % 64);
             }
         }
-        record
-    }
-
-    /// Per slot, whether the probe's record makes its class live: when a
-    /// slot of it has a template slot the record marks, or when none of
-    /// its slots has a template slot to name it by, so the record cannot
-    /// say, and the class is kept.
-    fn live_by_record(&self, record: &[Vec<u64>], roots: &[SlotId]) -> Vec<bool> {
-        let n = roots.len();
-        let (mut live, mut named) = (vec![false; n], vec![false; n]);
-        for (s, &root) in roots.iter().enumerate() {
-            if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
-                named[root.index()] = true;
-                if Classes::recorded(record, t, ts) {
-                    live[root.index()] = true;
-                }
-            }
-        }
-        roots
-            .iter()
-            .map(|&r| live[r.index()] || !named[r.index()])
-            .collect()
+        Record(record)
     }
 
     /// An essential slot's key: its scope, its template slot (the element's
@@ -704,104 +678,6 @@ impl<'c> Builder<'c> {
             pi | HIDDEN
         };
         (inst.scope, el.slot_off + pi, (el.key, prop))
-    }
-
-    /// Structural depth per repeat: how many repeats must be expanded, in
-    /// sequence, before its count can be computed, plus one. Nesting adds
-    /// one; a count that reads a cell inside another repeat's iterations adds
-    /// one, and is flagged (`cross`) since authors can avoid it.
-    pub(in crate::build) fn structural_depths(&self) -> (Vec<u32>, Vec<bool>) {
-        // The repeat each iteration scope belongs to, by scope id.
-        let mut owner: Vec<usize> = vec![usize::MAX; self.scopes.len()];
-        for (ri, r) in self.repeats.iter().enumerate() {
-            for &s in &r.iter_scopes {
-                owner[s.index()] = ri;
-            }
-        }
-        let owner = |s: ScopeId| Some(owner[s.index()]).filter(|&o| o != usize::MAX);
-        let is_ancestor_or_self = |s: ScopeId, of: ScopeId| -> bool {
-            let mut cur = of;
-            loop {
-                if cur == s {
-                    return true;
-                }
-                if cur == ScopeId::DOCUMENT {
-                    return false;
-                }
-                cur = self.scopes[cur].0;
-            }
-        };
-        let mut reads: Vec<Vec<usize>> = vec![Vec::new(); self.repeats.len()];
-        let mut cross = vec![false; self.repeats.len()];
-        let mut seen = vec![false; self.sources.len()];
-        let mut stack = Vec::new();
-        let mut touched = Vec::new();
-        for (ri, r) in self.repeats.iter().enumerate() {
-            if let Some(o) = owner(r.scope) {
-                reads[ri].push(o);
-            }
-            stack.clear();
-            let count_pi = self.components.component_type[r.comp.index()]
-                .count_prop()
-                .expect("a repeat has a count");
-            stack.push(self.slot(r.comp, count_pi));
-            touched.clear();
-            while let Some(sl) = stack.pop() {
-                if seen[sl.index()] {
-                    continue;
-                }
-                seen[sl.index()] = true;
-                touched.push(sl);
-                let comp = self.slot_comp[sl.index()];
-                if comp != CompIdx::NONE {
-                    let scope = self.components.scope[comp.index()];
-                    if scope != ScopeId::DOCUMENT
-                        && !is_ancestor_or_self(scope, r.scope)
-                        && let Some(o) = owner(scope)
-                        && o != ri
-                    {
-                        cross[ri] = true;
-                        if !reads[ri].contains(&o) {
-                            reads[ri].push(o);
-                        }
-                    }
-                }
-                match &self.sources[sl.index()] {
-                    BuiltSource::Alias(t) => stack.push(*t),
-                    BuiltSource::Op(_, start, n) => stack.extend_from_slice(
-                        &self.op_inputs[*start as usize..*start as usize + *n as usize],
-                    ),
-                    BuiltSource::VecOut(head, _) => stack.push(*head),
-                    _ => {}
-                }
-            }
-            for &sl in &touched {
-                seen[sl.index()] = false;
-            }
-        }
-        fn depth(ri: usize, reads: &[Vec<usize>], memo: &mut [u32], visiting: &mut [bool]) -> u32 {
-            if memo[ri] != 0 {
-                return memo[ri];
-            }
-            if visiting[ri] {
-                return 1;
-            }
-            visiting[ri] = true;
-            let d = 1 + reads[ri]
-                .iter()
-                .map(|&o| depth(o, reads, memo, visiting))
-                .max()
-                .unwrap_or(0);
-            visiting[ri] = false;
-            memo[ri] = d;
-            d
-        }
-        let mut memo = vec![0u32; self.repeats.len()];
-        let mut visiting = vec![false; self.repeats.len()];
-        let depths = (0..self.repeats.len())
-            .map(|ri| depth(ri, &reads, &mut memo, &mut visiting))
-            .collect();
-        (depths, cross)
     }
 }
 
