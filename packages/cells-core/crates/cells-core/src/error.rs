@@ -8,6 +8,10 @@ pub enum Error {
     WireFormat(String),
     #[error("unsupported tag <{0}>")]
     UnsupportedTag(String),
+    #[error(
+        "attribute '{attr}' is not supported on <{tag}> in this core: nothing reads it, so it would be ignored"
+    )]
+    UnsupportedAttribute { tag: String, attr: String },
     #[error("duplicate name '{0}'")]
     DuplicateName(String),
     #[error("reference '${0}' is ambiguous: several components with that name are visible")]

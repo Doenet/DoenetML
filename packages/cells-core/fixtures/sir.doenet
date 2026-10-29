@@ -44,9 +44,9 @@ where</p>
       <point>($i-1, $x[3])</point>
     </repeat>
   </setup>
-  <polyline vertices="$SPoints" draggable="false" />
-  <polyline vertices="$IPoints" draggable="false" styleNumber="2" />
-  <polyline vertices="$RPoints" draggable="false" styleNumber="3" />
+  <polyline vertices="$SPoints" />
+  <polyline vertices="$IPoints" styleNumber="2" />
+  <polyline vertices="$RPoints" styleNumber="3" />
   <point name="Spt" x="$zeroFixed" y="$S0" layer="1">
     <constrainToGrid dy="1" />
   </point>
@@ -66,7 +66,7 @@ where</p>
 <aside>
 <title>Values at each time</title>
 
-<spreadsheet name="table" height="200px" columnHeaders="false" rowHeaders="false" fixedRowsTop="1">
+<spreadsheet name="table" height="200px" rowHeaders="false" fixedRowsTop="1">
   <row><cell>t</cell><cell>S_t</cell><cell>I_t</cell><cell>R_t</cell></row>
   <repeat for="$iteration.allIteratesWithInitial" valueName="x" indexName="i">
     <row>
@@ -92,7 +92,7 @@ where</p>
     <number name="defaultYmax">12000</number>
   </setup>
 
-  <sideBySide margins="0%" widths="40% 30% 20%">
+  <sideBySide widths="40% 30% 20%">
     <stack>
       For the equation
       <md>

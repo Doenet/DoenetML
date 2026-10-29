@@ -35,6 +35,22 @@ pub(crate) mod test_only;
 pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
+
+/// Attributes a renderer reads from the document's literal attributes
+/// (`LiteralAttrs`, ADR 0020) rather than the core from the DAST: how a
+/// component is presented, which is document text, not state. The check
+/// accepts them on any element, since the core never looks them up
+/// (`compile/check.rs`); one a renderer reads of one type alone is in that
+/// type's `presentation { .. }`. Every other attribute must be read by the
+/// type's planner, or the element is refused.
+pub const PRESENTATION_ATTRS: &[&str] = &[
+    "displayDecimals",
+    "label",
+    "labelPosition",
+    "layer",
+    "shortDescription",
+    "styleNumber",
+];
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
@@ -180,6 +196,10 @@ pub struct ComponentDef {
     pub renders: Renders,
     /// How an element of the type is planned.
     pub(crate) planner: crate::compile::api::Planner,
+    /// Attributes of this type a renderer reads from the literal attributes
+    /// and the core does not (`presentation { .. }`), accepted by the check
+    /// beside `PRESENTATION_ATTRS`.
+    pub presentation: &'static [&'static str],
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,

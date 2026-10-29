@@ -169,7 +169,7 @@ spec! {
     }
 
     case "a point on a fixed number: half its drag is refused" {
-        doenet r#"<number hide name="fixedZero" fixed>0</number>
+        doenet r#"<number name="fixedZero" fixed>0</number>
                   <graph>
                     <triangle name="t" vertices="(1,2) (3,5) (-5,2)"/>
                     <circle name="c" through="$t.vertex1 $t.vertex2 $t.vertex3"/>

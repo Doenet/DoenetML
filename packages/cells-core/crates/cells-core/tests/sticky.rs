@@ -11,8 +11,8 @@ use common::*;
 const SCENE: &str = r#"
     <graph name="g1">
       <stickyGroup name="sg">
-        <polygon name="pg1" vertices="(1,2) (4,5) (-2,5)" rigid filled />
-        <polygon name="pg2" vertices="(7,8) (5,4) (9,1) (7,3)" filled />
+        <polygon name="pg1" vertices="(1,2) (4,5) (-2,5)" rigid />
+        <polygon name="pg2" vertices="(7,8) (5,4) (9,1) (7,3)" />
         <point name="A">(-6,2)</point>
       </stickyGroup>
     </graph>

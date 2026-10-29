@@ -192,7 +192,7 @@ fn circle_through_triangle_vertices() {
 #[test]
 fn fixed_number_and_inscribed_triangle_drag() {
     let mut doc = load(
-        r#"<number hide name="fixedZero" fixed>0</number>
+        r#"<number name="fixedZero" fixed>0</number>
            <graph>
              <triangle name="t" vertices="(1,2) (3,5) (-5,2)"/>
              <circle name="c" through="$t.vertex1 $t.vertex2 $t.vertex3"/>

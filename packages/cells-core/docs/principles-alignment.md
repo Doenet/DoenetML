@@ -111,11 +111,14 @@ loads with no diagnostic and `Q` is a new point at (0, 0) **[probe]**.
 
 **Now, before any design:** make an attribute the planner does not read a
 load error on the element (`copy`, `fixLocation`, `draggable`,
-`disabled`, `styleNumber`, and anything else the schema lists that the
-type's planner ignores). ADR 0016's "no silent NaN" rule already says a
-combination the planner cannot honor is a diagnostic, never a wrong
-value; an attribute it never looks at is the same case. This one lint
-turns three of the probes below from wrong answers into reported gaps.
+`disabled`, and anything else the schema lists that the type's planner
+ignores). ADR 0016's "no silent NaN" rule already says a combination the
+planner cannot honor is a diagnostic, never a wrong value; an attribute it
+never looks at is the same case. This one lint turns three of the probes
+below from wrong answers into reported gaps. **Done: ADR 0021** records
+every attribute lookup and boxes any element with one nothing read, apart
+from the attributes a renderer reads (`styleNumber`, `displayDecimals`,
+and the like).
 
 **Design that fits the core.** CPY-1 says a copy behaves as the source's
 DoenetML pasted in place. The compile already *plans from source text*,
@@ -493,9 +496,11 @@ decision text assumes, which the principles branch could adopt:
 
 Tier 1 first, smallest reversible step first:
 
-1. Refuse attributes a planner never reads (`copy`, `fixLocation`,
-   `draggable`, `disabled`, `styleNumber`) with a diagnostic. Stops the
-   silent wrong answers in §3.1 and §3.3 today.
+1. **Done (ADR 0021).** Refuse attributes a planner never reads
+   (`copy`, `fixLocation`, `draggable`, `disabled`, and `hide` or `fixed`
+   on a type whose planner ignores them) with a diagnostic on the
+   element. Stops the silent wrong answers in §3.1 and §3.3; `styleNumber`
+   and the other attributes a renderer reads stay accepted.
 2. Literal `<number>` as `Source::Literal` (§3.4).
 3. The inherited-attribute primitive, starting with `fixed` from
    containers, then `fixLocation`, `disabled`, `styleNumber`, `hide`

@@ -171,9 +171,11 @@ pub mod reference {
     use super::*;
 
     component! {
-        /// `<ref to="...">`: a link around its content.
+        /// `<ref to="...">`: a link around its content. The renderer reads
+        /// `to`.
         tags: ["ref"],
         flags: [container],
+        presentation { to }
         planner: Props,
     }
 }
@@ -249,9 +251,10 @@ pub mod side_by_side {
     use super::*;
 
     component! {
-        /// `<sideBySide>`: its children in columns.
+        /// `<sideBySide>`: its children in columns, `widths` wide.
         tags: ["sideBySide"],
         flags: [container],
+        presentation { widths }
         planner: Props,
     }
 }
@@ -286,6 +289,7 @@ pub mod spreadsheet {
         /// values and does not edit them.
         tags: ["spreadsheet"],
         flags: [container],
+        presentation { height }
         planner: Props,
     }
 }

@@ -120,6 +120,7 @@ impl Error {
             WireFormat(_) => "cells-invalid-wire-format",
             // component-type-invalid
             UnsupportedTag(_) => "doenet-e0002",
+            UnsupportedAttribute { .. } => "cells-unsupported-attribute",
             DuplicateName(_) => "cells-duplicate-name",
             // reference-multiple-referents
             AmbiguousName(_) => "doenet-w0105",

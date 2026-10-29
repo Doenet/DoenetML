@@ -125,6 +125,9 @@ pub struct Dast {
     attr_name: Vec<StrId>,
     attr_c_start: Vec<u32>,
     attr_c_count: Vec<u32>,
+    /// Per attribute, whether the core has looked it up by name (`attr`).
+    /// The check refuses an attribute nothing read (`compile/check.rs`).
+    attr_read: ReadFlags,
     children: Vec<NodeId>,
     path: Vec<StrId>,
     /// Per path part: range into `idx_c_*` of its `[index]` expressions.
@@ -246,10 +249,21 @@ impl Dast {
         &self.children[s..s + c]
     }
 
-    /// An attribute by name; DoenetML attribute names ignore case.
+    /// An attribute by name; DoenetML attribute names ignore case. A hit
+    /// is recorded as read (`attr_read`).
     pub fn attr(&self, n: NodeId, name: &str) -> Option<AttrId> {
-        self.attrs(n)
-            .find(|&a| self.attr_name(a).eq_ignore_ascii_case(name))
+        let a = self
+            .attrs(n)
+            .find(|&a| self.attr_name(a).eq_ignore_ascii_case(name))?;
+        self.attr_read.mark(a as usize);
+        Some(a)
+    }
+
+    /// Whether `attr` has looked attribute `a` up since the tree was made:
+    /// some part of the core read it, so the author's attribute means
+    /// something here. Listing a node's attributes (`attrs`) is not a read.
+    pub fn attr_read(&self, a: AttrId) -> bool {
+        self.attr_read.get(a as usize)
     }
 
     /// Path parts of a macro node, as string ids.
@@ -314,6 +328,64 @@ impl Dast {
                 + self.path_i_count.capacity()
                 + self.idx_c_start.capacity()
                 + self.idx_c_count.capacity())
+            + self.attr_read.heap_bytes()
+    }
+}
+
+/// One flag per attribute, set when the core reads the attribute. Set
+/// through a shared reference, since every read of the tree is one, and
+/// never cleared: a `Dast` is made once per load and read by the compile
+/// alone (`LiteralAttrs` keeps what a renderer reads).
+#[derive(Default)]
+pub struct ReadFlags(Vec<std::sync::atomic::AtomicBool>);
+
+impl ReadFlags {
+    pub(crate) fn with_len(n: usize) -> ReadFlags {
+        ReadFlags(
+            (0..n)
+                .map(|_| std::sync::atomic::AtomicBool::new(false))
+                .collect(),
+        )
+    }
+
+    fn push(&mut self) {
+        self.0.push(std::sync::atomic::AtomicBool::new(false));
+    }
+
+    fn mark(&self, i: usize) {
+        self.0[i].store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    fn get(&self, i: usize) -> bool {
+        self.0[i].load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    fn heap_bytes(&self) -> usize {
+        self.0.capacity()
+    }
+}
+
+impl Clone for ReadFlags {
+    fn clone(&self) -> Self {
+        ReadFlags(
+            self.0
+                .iter()
+                .map(|f| {
+                    std::sync::atomic::AtomicBool::new(f.load(std::sync::atomic::Ordering::Relaxed))
+                })
+                .collect(),
+        )
+    }
+}
+
+impl std::fmt::Debug for ReadFlags {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let read = self
+            .0
+            .iter()
+            .filter(|b| b.load(std::sync::atomic::Ordering::Relaxed))
+            .count();
+        write!(f, "ReadFlags({read} of {} read)", self.0.len())
     }
 }
 
@@ -374,6 +446,7 @@ impl DastWriter {
         d.a_count[id.index()] = attrs.len() as u32;
         for (n, c) in attrs {
             d.attr_name.push(n);
+            d.attr_read.push();
             d.attr_c_start.push(d.children.len() as u32);
             d.attr_c_count.push(c.len() as u32);
             d.children.extend_from_slice(&c);

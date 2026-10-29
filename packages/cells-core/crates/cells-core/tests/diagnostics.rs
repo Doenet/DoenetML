@@ -98,6 +98,66 @@ fn a_repeat_body_at_count_zero_is_still_diagnosed() {
     assert_eq!(doc.structure.repeats[0].iterations, 0);
 }
 
+/// An attribute nothing in the core reads is refused on its element, which
+/// is boxed, rather than ignored: an author's attribute that does nothing
+/// would be a silent wrong answer. The error names the attribute, and
+/// `diagnose` reports the same one.
+#[test]
+fn an_attribute_nothing_reads_is_refused_on_its_element() {
+    let src = r#"<point name="p" x="1" draggable="false"/><number name="n">3</number>"#;
+    let doc = load(src).unwrap();
+    assert_eq!(doc.value("n", "value"), Some(3.0));
+    assert!(doc.component("p").is_none(), "the point is boxed");
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
+    assert_eq!(errs[0].code, "cells-unsupported-attribute");
+    assert!(
+        errs[0].message.contains("'draggable'") && errs[0].message.contains("<point>"),
+        "{}",
+        errs[0].message
+    );
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}
+
+/// Every element with such an attribute is reported in one load, each on
+/// its own node, and a boxed element's descendants are not reported for
+/// the attributes its planner never ran to read.
+#[test]
+fn every_unread_attribute_is_reported_at_once_and_boxed_content_is_not() {
+    let src = r#"<number name="a" hide>1</number>
+        <p name="p" disabled><number name="b" hide>2</number></p>
+        <number name="c">3</number>"#;
+    let doc = load(src).unwrap();
+    assert_eq!(doc.value("c", "value"), Some(3.0));
+    let errs = errors(doc.diagnostics());
+    let mut messages: Vec<_> = errs.iter().map(|d| d.message.as_str()).collect();
+    messages.sort();
+    assert_eq!(errs.len(), 2, "{messages:?}");
+    assert!(messages[0].contains("'disabled'") && messages[0].contains("<p>"));
+    assert!(messages[1].contains("'hide'") && messages[1].contains("<number>"));
+}
+
+/// An attribute a renderer reads from the literal attributes is not the
+/// core's to refuse: the ones every type may carry (`styleNumber`,
+/// `displayDecimals`), and one a type declares as its renderer's (`to` on a
+/// `<ref>`). The names ignore case, as every attribute name does. Nor is
+/// anything inside the normalizer's own elements: a repeat's `indexName`
+/// becomes an `<integer>` in `_repeatSetup` that no planner visits.
+#[test]
+fn presentation_attributes_and_the_normalizers_elements_are_not_refused() {
+    let src = r#"<graph><point name="p" x="1" styleNumber="2" DISPLAYDECIMALS="1"/></graph>
+        <p><ref to="https://doenet.org">Doenet</ref></p>
+        <repeatForSequence name="r" from="1" to="2" indexName="i"><number name="k">$i</number></repeatForSequence>"#;
+    let doc = load(src).unwrap();
+    assert!(
+        errors(doc.diagnostics()).is_empty(),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(doc.value("p", "x"), Some(1.0));
+    assert_eq!(doc.value("r[2].k", "value"), Some(2.0));
+}
+
 #[test]
 fn a_cycle_has_no_element_and_is_reported_on_the_document() {
     let src = r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#;

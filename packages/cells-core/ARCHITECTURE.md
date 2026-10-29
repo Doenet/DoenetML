@@ -230,6 +230,14 @@ load.
 `Document::diagnostics` lists, in node order, the lint findings plus the
 errors and warnings of the elements that built.
 
+An element is also boxed for an attribute nothing read while the document
+was planned and checked (ADR 0021): the core ignores no attribute
+silently. `Dast::attr` records every lookup; after a compile and its
+check succeed, every element outside the boxes with an attribute never
+looked up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
+`presentation`), is boxed, all of them at once, and the compile runs
+again.
+
 Every error depends on the source alone (ADR 0014), and the probe stands
 for every count and every pick, so the check finds every error at load.
 Later builds never find a new one: a build's error type
@@ -356,6 +364,14 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   past a tuple's end) is `NO_VALUE` or `Wire::absent()`. `Wire::fixed`
   refuses NaN, and a test (`components/mod.rs`) finds any `f64::NAN` a
   component writes.
+- An attribute the planner never looks up is refused: the check boxes any
+  element carrying an attribute nothing read while the document was
+  planned (`compile/check.rs`, ADR 0021), so an author's attribute never
+  does nothing silently. Reading an attribute (`ctx.attr`, `d.attr`) is
+  what accepts it; an attribute a renderer reads from the literal
+  attributes instead, and the core never does, is declared in the block
+  (`presentation { to }`) or, for one every type may carry, in
+  `PRESENTATION_ATTRS` (`components/mod.rs`).
 
 The renderer for the new type goes in `packages/cells-viewer/src/renderers/`.
 Mark every prop it requests `interactive` in the block (`value: attr(0.0) {

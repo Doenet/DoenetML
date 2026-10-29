@@ -4,7 +4,7 @@
 <point name="a">(1,2)</point><point name="b">(4,7)</point><point name="d">(0,6)</point>
 <circle name="t" through="$a $b $d"/>
 <circle name="u" center="$a" through="$b"/>
-<point name="on" x="5" y="5" constrainTo="$u"/>
+<point name="on" x="5" y="5"><constraints><constrainTo>$u</constrainTo></constraints></point>
 <circle name="rv" radius="2"/>
 <circle name="rc" center="(1,1)" radius="-3"/>
 <circle name="t1" through="$a"/>

@@ -231,6 +231,7 @@ pub(super) const fn definition(
         renders: super::Renders::Always,
         sticky: None,
         planner: crate::compile::api::Planner::Props,
+        presentation: &[],
     }
 }
 
@@ -290,6 +291,10 @@ impl ComponentDef {
         alternate_names: &'static [(&'static str, &'static str)],
     ) -> Self {
         self.alternate_names = alternate_names;
+        self
+    }
+    pub(super) const fn presentation(mut self, presentation: &'static [&'static str]) -> Self {
+        self.presentation = presentation;
         self
     }
     /// A sticky member with `n` points from the table's prop `first`.
@@ -456,6 +461,12 @@ pub(crate) use typed_props;
 /// lacks fails to compile. The sections come in the
 /// order below; only `tags`, `props` and `planner` are required.
 ///
+/// `presentation { .. }` names the attributes of this type that a renderer
+/// reads from the document's literal attributes (a `<ref>`'s `to`), which
+/// the core itself never looks up; with `PRESENTATION_ATTRS`, the ones
+/// every type may carry, they are the attributes the check accepts
+/// without a planner reading them (`compile/check.rs`).
+///
 /// `attributes { .. }` names the attributes the type's planner reads
 /// itself, beyond its table's: a module `attr` holds one
 /// `compile::api::Attr` per name (`attr::radius`), which is how a planner
@@ -504,6 +515,7 @@ macro_rules! component {
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
+        $(presentation { $($prname:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
         $(#[$doc])*
@@ -511,6 +523,7 @@ macro_rules! component {
             $crate::components::define::definition(&[$($tag),+], &[])
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
+                $(.presentation(&[$(stringify!($prname)),*]))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
     };
     (
@@ -535,6 +548,7 @@ macro_rules! component {
                 $(, rendered: $lcrendered:literal)? $(,)?)?
         })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
+        $(presentation { $($prname:ident),* $(,)? })?
         $(sticky_points: ($($sp:expr),+ $(,)?),)?
         $(sticky_list: $sl:expr,)?
         $(attributes { $($aname:ident),* $(,)? })?
@@ -559,6 +573,7 @@ macro_rules! component {
                     rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
+                $(.presentation(&[$(stringify!($prname)),*]))?
                 $(.sticky($($sp),+))?
                 $(.sticky_list($sl))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));

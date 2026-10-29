@@ -1,7 +1,7 @@
 //! The binary wire format (`CDST`, little-endian; see
 //! `docs/adr/0002-binary-wire-format.md` and `scripts/cdast-encode.mjs`).
 
-use super::{Dast, NodeId, NodeKind, StrId, StringTable};
+use super::{Dast, NodeId, NodeKind, ReadFlags, StrId, StringTable};
 
 impl Dast {
     /// Load from the binary wire format (little-endian, see module docs).
@@ -67,6 +67,7 @@ impl Dast {
             attr_name: StrId::from_u32s(r.u32s(n_attrs)),
             attr_c_start: r.u32s(n_attrs),
             attr_c_count: r.u32s(n_attrs),
+            attr_read: ReadFlags::with_len(n_attrs),
             children: NodeId::from_u32s(r.u32s(n_children)),
             path: StrId::from_u32s(r.u32s(n_path)),
             path_i_start: if version >= 2 {

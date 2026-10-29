@@ -407,6 +407,14 @@ function of the document text alone, found by the compile's check through
 the probe; `diagnose`, which the language server calls, returns the same
 list a load reports. A tick never produces one (ADR 0013).
 
+**Presentation attribute** — An attribute a renderer reads from the
+document's literal attributes (a `styleNumber`, a `<ref>`'s `to`) and the
+core never looks up: how a component is shown, which is document text,
+not state. Declared in `PRESENTATION_ATTRS` (every type) or a type's
+`presentation { .. }`. Every other attribute an author writes must be
+read by the core while the document is planned, or its element is an
+error component (ADR 0021).
+
 **Error component** — The `_error` component an element that could not be
 built stands as: no name, no children, no cells; its DAST node names its
 diagnostic in the load's list. The rest of the document builds around it
