@@ -44,76 +44,40 @@ pub(crate) fn compile(
     prune: bool,
 ) -> Result<CompileOutput> {
     let mut list = Vec::new();
-    let mut boxed: HashSet<NodeId> = HashSet::new();
-    let (mut compiled, first_build) = loop {
-        let planned = {
-            let _s = crate::trace::span("plan");
-            let planned = Compiler::compile(dast, &boxed);
-            if let Ok(compiled) = &planned {
-                crate::trace::count("templates", compiled.templates.len());
-                crate::trace::count(
-                    "elements",
-                    compiled.templates.iter().map(|t| t.elems.len()).sum(),
-                );
-            }
-            planned
-        };
-        let attempt = planned.and_then(|mut compiled| {
-            let varies = compiled.has_repeats() || compiled.has_selects();
-            if !classify || (varies && !check_cycles) {
-                compiled.classes = Classes::Off;
-            }
-            compiled.prune = prune;
-            // Without the probe, a document that varies has no record of
-            // what is live: every build computes everything (ADR 0019).
-            if varies && !check_cycles {
-                compiled.live = Classes::Off;
-            }
-            if check_cycles && varies {
-                let _s = crate::trace::span("probe");
-                let mut probed = build::probe(&compiled)?;
-                compiled.set_probe(probed.probe.take());
-                if let Some(record) = probed.writable_record() {
-                    compiled.classes = Classes::Record(Arc::new(record));
-                }
-                if let Some(record) = probed.live_record() {
-                    compiled.live = Classes::Record(Arc::new(record));
-                }
-                Ok((compiled, None))
-            } else {
-                let mut first = {
-                    let _s = crate::trace::span("first build");
-                    build::first_build(&compiled, session, check_cycles)?
-                };
-                // With the check, the depth is 0 and there is no warning:
-                // the document has no repeat. Without it (a test load) no
-                // build here bounds the depth.
-                compiled.set_probe(first.probe.take());
-                Ok((compiled, Some(first)))
-            }
-        });
-        match attempt {
-            Ok(done) => {
-                let unread = unread_attributes(dast, &boxed);
-                if unread.is_empty() {
-                    break done;
-                }
-                for (node, error) in unread {
-                    crate::trace::count("boxed", 1);
-                    boxed.insert(node);
-                    list.push(Diagnostic::error(Some(node), &error));
-                }
-            }
-            Err(f) => {
-                crate::trace::count("boxed", 1);
-                let node = f.node.filter(|n| boxed.insert(*n));
-                list.push(Diagnostic::error(node, &f.error));
-                if node.is_none() {
-                    return Err(f.error);
-                }
-            }
+    let (mut compiled, first_build) = plan_and_check(dast, &mut list, |compiled| {
+        let varies = compiled.has_repeats() || compiled.has_selects();
+        if !classify || (varies && !check_cycles) {
+            compiled.classes = Classes::Off;
         }
-    };
+        compiled.prune = prune;
+        // Without the probe, a document that varies has no record of
+        // what is live: every build computes everything (ADR 0019).
+        if varies && !check_cycles {
+            compiled.live = Classes::Off;
+        }
+        if check_cycles && varies {
+            let _s = crate::trace::span("probe");
+            let mut probed = build::probe(compiled)?;
+            compiled.set_probe(probed.probe.take());
+            if let Some(record) = probed.writable_record() {
+                compiled.classes = Classes::Record(Arc::new(record));
+            }
+            if let Some(record) = probed.live_record() {
+                compiled.live = Classes::Record(Arc::new(record));
+            }
+            Ok(None)
+        } else {
+            let mut first = {
+                let _s = crate::trace::span("first build");
+                build::first_build(compiled, session, check_cycles)?
+            };
+            // With the check, the depth is 0 and there is no warning:
+            // the document has no repeat. Without it (a test load) no
+            // build here bounds the depth.
+            compiled.set_probe(first.probe.take());
+            Ok(Some(first))
+        }
+    })?;
     {
         let _s = crate::trace::span("lint");
         list.extend(lint::lint(dast));
@@ -136,37 +100,79 @@ pub(crate) fn compile(
 pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let dast = Arc::new(dast.clone());
     let mut list = Vec::new();
-    let mut boxed: HashSet<NodeId> = HashSet::new();
-    loop {
-        let attempt = Compiler::compile(&dast, &boxed)
-            .and_then(|compiled| Ok((build::probe(&compiled)?, compiled.diagnostics)));
-        match attempt {
-            // The build is not wanted, but its warnings are, with the
-            // planners'.
-            Ok((u, planner_warnings)) => {
-                let unread = unread_attributes(&dast, &boxed);
-                if unread.is_empty() {
-                    list.extend(planner_warnings.iter().cloned());
-                    list.extend(u.probe.map(|p| p.warnings).unwrap_or_default());
-                    break;
-                }
-                for (node, error) in unread {
-                    boxed.insert(node);
-                    list.push(Diagnostic::error(Some(node), &error));
-                }
-            }
-            Err(f) => {
-                let node = f.node.filter(|n| boxed.insert(*n));
-                list.push(Diagnostic::error(node, &f.error));
-                if node.is_none() {
-                    break;
-                }
-            }
-        }
+    // The build is not wanted, but its warnings are, with the planners'.
+    // A failure with no element to box is in the list already.
+    if let Ok((compiled, u)) = plan_and_check(&dast, &mut list, |c| build::probe(c)) {
+        list.extend(compiled.diagnostics.iter().cloned());
+        list.extend(u.probe.map(|p| p.warnings).unwrap_or_default());
     }
     list.extend(lint::lint(&dast));
     crate::diagnostics::sort(&mut list);
     list
+}
+
+/// The input signature of `dast` (ADR 0017, step 3), from the check's
+/// build. Every key goes through `rename`.
+pub(crate) fn signature_renamed(
+    dast: &Dast,
+    rename: &dyn Fn(&str) -> String,
+) -> Result<crate::build::signature::Signature> {
+    let dast = Arc::new(dast.clone());
+    let (compiled, u) = plan_and_check(&dast, &mut Vec::new(), |c| build::probe(c))?;
+    Ok(u.signature(&compiled, rename))
+}
+
+/// The compile's loop (ADR 0013): plan `dast`, run `check` on the plan,
+/// and box until it holds. The element `check` fails on, or every element
+/// with an attribute nothing read while planning and checking (ADR 0021),
+/// is boxed and the plan made again, each box an error in `errors`. Only
+/// a failure with no element to box, a cycle, fails it, after its error
+/// joins `errors` too.
+fn plan_and_check<T>(
+    dast: &Arc<Dast>,
+    errors: &mut Vec<Diagnostic>,
+    mut check: impl FnMut(&mut Compiled) -> std::result::Result<T, Failure>,
+) -> Result<(Compiled, T)> {
+    let mut boxed: HashSet<NodeId> = HashSet::new();
+    loop {
+        let planned = {
+            let _s = crate::trace::span("plan");
+            let planned = Compiler::compile(dast, &boxed);
+            if let Ok(compiled) = &planned {
+                crate::trace::count("templates", compiled.templates.len());
+                crate::trace::count(
+                    "elements",
+                    compiled.templates.iter().map(|t| t.elems.len()).sum(),
+                );
+            }
+            planned
+        };
+        let attempt = planned.and_then(|mut compiled| {
+            let checked = check(&mut compiled)?;
+            Ok((compiled, checked))
+        });
+        match attempt {
+            Ok(done) => {
+                let unread = unread_attributes(dast, &boxed);
+                if unread.is_empty() {
+                    return Ok(done);
+                }
+                for (node, error) in unread {
+                    crate::trace::count("boxed", 1);
+                    boxed.insert(node);
+                    errors.push(Diagnostic::error(Some(node), &error));
+                }
+            }
+            Err(f) => {
+                crate::trace::count("boxed", 1);
+                let node = f.node.filter(|n| boxed.insert(*n));
+                errors.push(Diagnostic::error(node, &f.error));
+                if node.is_none() {
+                    return Err(f.error);
+                }
+            }
+        }
+    }
 }
 
 /// The elements, outside every boxed element, with an attribute nothing
