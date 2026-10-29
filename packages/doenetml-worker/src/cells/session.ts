@@ -16,29 +16,12 @@ import { loadCellsDocument } from "./loadCellsCore";
 
 /** Renderer actions that say where something is, not how far it moved: a
  * later one makes an earlier one that has not run yet pointless. */
-const ABSOLUTE_ACTIONS = new Set([
-    "move",
-    "moveLine",
-    "moveLineSegment",
-    "moveCircle",
-    "movePolygon",
-    "changeBoundingBox",
-    "changeValue",
-]);
+const ABSOLUTE_ACTIONS = new Set(["move", "changeBoundingBox"]);
 
-/** What a superseding move must match: the element, the action and which
- * parts it sets (one endpoint of a segment does not supersede the other). */
+/** What a superseding move must match: the element and the action. */
 function supersedingKey(action: RendererAction): string | null {
     if (!ABSOLUTE_ACTIONS.has(action.actionName)) return null;
-    const args = action.args ?? {};
-    const parts = Object.keys(args)
-        .sort()
-        .map((key) =>
-            key === "pointCoords"
-                ? `pointCoords:${Object.keys(args[key]).sort().join(",")}`
-                : key,
-        );
-    return `${action.componentIdx}:${action.actionName}:${parts.join(";")}`;
+    return `${action.componentIdx}:${action.actionName}`;
 }
 
 export class CellsSession {

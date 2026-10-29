@@ -1,8 +1,25 @@
 # Cells behind the shared renderer interface
 
-Status: proposed 2026-10-28. Steps 1 to 5 are done; see Migration and
-Measured. Whether the viewer is retired is still open.
-The Measured section is filled in by step 5.
+Status: proposed 2026-10-28. Steps 1, 4 and 5 are done; steps 2 and 3
+were reverted (see Reverted). Whether the viewer is retired is still open.
+
+## Reverted
+
+For simplicity, the cells core uses the prototype's renderer interface
+exactly as it was before this ADR, for now: no change to the prototype's
+renderers or store is part of this work. Steps 2 and 3 were reverted, as
+was the second of the four fixes below (the store's draft-free update).
+So the bridge's contracts and renderer actions cover only the components
+the prototype already drew (`line` and `answer` stay stubs, and an
+`aside`, a table or a spreadsheet keeps its step 3 contract, which only
+maps it onto a renderer the prototype had), and the components step 3
+ported (circle, polygon, polyline, line segment, legend, slider,
+numberInput, mathInput, tuple, sideBySide, stack, hint, ref) are not
+drawn on the prototype path. The benchmark's
+wiring stays; its bench page times the board's own `updateRenderer` as
+the redraw, and `homework` cannot be typed into there, having no
+mathInput renderer. The measurements below were taken with steps 2 and 3
+in place and are kept as a record of that path.
 
 The cells core reaches DoenetML's renderers the way the other two cores
 do: as a third core type (`"cells"`) behind the prototype's `CoreWorker`.

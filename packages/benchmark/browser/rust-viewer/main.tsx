@@ -9,6 +9,7 @@
 import "../../../doenetml-prototype/src/index";
 import React from "react";
 import { createRoot } from "react-dom/client";
+import * as JSG from "jsxgraph";
 import { Provider } from "react-redux";
 import { MathJaxContext } from "better-react-mathjax";
 import { PageViewer } from "../../../doenetml-prototype/src/viewer/page-viewer";
@@ -19,7 +20,6 @@ import {
     getWorker,
     workerCache,
 } from "../../../doenetml-prototype/src/state/redux-slices/core/thunks";
-import { BoardRedraw } from "../../../doenetml-prototype/src/renderers/doenet/jsxgraph/redraw";
 import { useAppSelector } from "../../../doenetml-prototype/src/state/hooks";
 import { numberFromSerializedAst } from "../../../doenetml-prototype/src/utils/math/math-expression-utils";
 
@@ -38,9 +38,10 @@ const flags = {
 /** One tick through the prototype path, in ms: the core's tick and the
  * bridge's work in the worker (the cells core only), the rest of the round
  * trip (the worker hop: messages, Comlink, structured clone), the store
- * update and React's render until it commits, and the board's redraw after
- * the commit. `total` is from the action's dispatch to the later of the
- * commit and the redraw's end. */
+ * update and React's render until it commits, and the boards' redraws (the
+ * graph renderers redraw as they render, so `react` includes them). `total`
+ * is from the action's dispatch to the later of the commit and the last
+ * redraw's end. */
 type TickSample = {
     core: number;
     bridge: number;
@@ -67,11 +68,14 @@ function CommitProbe() {
     }, [elements]);
     return null;
 }
-const flush = BoardRedraw.prototype.flush;
-BoardRedraw.prototype.flush = function (this: BoardRedraw) {
+// The prototype's graph renderers redraw their board as they render, each
+// with `updateRenderer`; a tick's redraw is every one of them it caused.
+const updateRenderer = JSG.Board.prototype.updateRenderer;
+JSG.Board.prototype.updateRenderer = function (this: JSG.Board) {
     const start = performance.now();
-    flush.call(this);
+    const result = updateRenderer.call(this);
     flushes.push({ start, end: performance.now() });
+    return result;
 };
 
 /** The workers whose actions are timed. (A Comlink proxy answers every
@@ -165,18 +169,19 @@ const rust = {
             const within = (t: number) => t >= d.received && t < next;
             // A tick that changed nothing the viewer shows commits nothing.
             const commit = commitTimes.find(within);
-            const redraw = redraws.find((f) => within(f.start));
+            const tickRedraws = redraws.filter((f) => within(f.start));
+            const redrawEnd = tickRedraws.at(-1)?.end ?? 0;
             const roundTrip = d.received - d.sent;
             return {
                 core: tick.core,
                 bridge: tick.bridge,
                 hop: roundTrip - tick.core - tick.bridge,
                 react: commit === undefined ? NaN : commit - d.received,
-                redraw: redraw ? redraw.end - redraw.start : 0,
+                redraw: tickRedraws.reduce((t, f) => t + f.end - f.start, 0),
                 total:
                     commit === undefined
                         ? NaN
-                        : Math.max(commit, redraw?.end ?? 0) - d.sent,
+                        : Math.max(commit, redrawEnd) - d.sent,
             };
         });
     },

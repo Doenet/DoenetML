@@ -462,7 +462,6 @@ export class CellsBridge {
         owner: number,
     ) {
         const contract = CONTRACTS[this.table.componentType(owner)];
-        if (contract?.noChildren) return;
         for (const child of this.table.children(c)) {
             if (!("component" in child)) {
                 out.push(child.text);

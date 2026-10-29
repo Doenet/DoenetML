@@ -87,25 +87,35 @@ describe("the cells core rendered to HTML by the prototype's renderers", () => {
         expect(html).toMatch(/^<article class="doenet-document">/);
     });
 
-    test("a graph is its board's container, with its legend", async () => {
+    test("a graph is its board's container", async () => {
         const html = await renderDocument(
             resolve(packages, "cells-core/fixtures/sir.doenet"),
         );
         expect(html).toMatch(
             /<div class="jsxgraph-container" id="jsxgraph-board-\d+">/,
         );
-        expect(html).toContain('class="graph-legend"');
     });
 
     // Last: every document above has been rendered. What no renderer
-    // draws is what the cells viewer does not draw either: a function's
-    // curve, and a number or math placed in a graph.
+    // draws is what the cells viewer does not draw either (a function's
+    // curve, and a number or math placed in a graph), and what the
+    // prototype has no renderer for yet (ADR 0020, Reverted).
     test("every element the bridge sends has a renderer, but these", () => {
         expect([...unrendered].sort()).toEqual([
+            "circle in graph",
             "derivative in graph",
             "function in graph",
+            "hint in text",
+            "lineSegment in graph",
             "math in graph",
+            "mathInput in text",
             "number in graph",
+            "numberInput in text",
+            "polygon in graph",
+            "polyline in graph",
+            "ref in text",
+            "sideBySide in text",
+            "slider in text",
         ]);
     });
 });

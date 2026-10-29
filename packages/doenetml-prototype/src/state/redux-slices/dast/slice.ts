@@ -1,4 +1,4 @@
-import { createSlice, original } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
@@ -69,20 +69,11 @@ const dastSlice = createSlice({
         },
         /**
          * Process an `elementUpdate` coming from Core.
-         *
-         * Written against the state as it was (`original`), not through
-         * immer's drafts: an update can change thousands of elements, and a
-         * draft per element, finalized afterwards, cost more than the rest
-         * of the update (ADR 0020 in `packages/cells-core`). The elements
-         * array is copied once, and each changed element and its props are
-         * copied, not mutated.
          */
         processElementUpdates: (
             state,
             action: PayloadAction<ElementUpdates>,
         ) => {
-            const root = original(state.flatDastRoot)!;
-            const elements = root.elements.slice();
             for (const [id, update] of Object.entries(action.payload)) {
                 const updateWithNewElement = update as typeof update &
                     ElementUpdateWithNewElement;
@@ -90,12 +81,12 @@ const dastSlice = createSlice({
                 // not yet exist in `elements`; the bridge ships the whole
                 // element so we can upsert it before any parent references it.
                 if (updateWithNewElement.newFlatDastElement) {
-                    elements[Number(id)] =
+                    state.flatDastRoot.elements[Number(id)] =
                         updateWithNewElement.newFlatDastElement;
                     continue;
                 }
 
-                const elm = elements[Number(id)];
+                const elm = state.flatDastRoot.elements[Number(id)];
                 if (elm == null) {
                     console.error(
                         "Failed to find element in FlatDast with id =",
@@ -112,26 +103,24 @@ const dastSlice = createSlice({
                 if (elm.type === "error") {
                     throw new Error("Updating errors is not yet implemented");
                 }
-                const changed: any = { ...elm };
                 // XXX: Check the types to see if this is even possible
-                const changedState = (update as any).changedState;
-                if (changedState) {
-                    const data: any = elm.data ?? { id: Number(id) };
-                    changed.data = {
-                        ...data,
-                        props: { ...data.props, ...changedState },
-                    };
+                if ((update as any).changedState) {
+                    // XXX: Suppressing type errors for now. This should be investigated and the correct type should be used.
+                    // @ts-ignore
+                    elm.data ??= { id: Number(id), props: {} };
+                    // @ts-ignore
+                    elm.data.props ??= {};
+                    // @ts-ignore
+                    Object.assign(elm.data.props, update.changedState);
                 }
                 // XXX: Check the types to see if this is even possible
                 if ((update as any).changedAttributes) {
                     console.warn("Updating attributes is not yet implemented");
                 }
                 if (update.newChildren) {
-                    changed.children = update.newChildren;
+                    elm.children = update.newChildren;
                 }
-                elements[Number(id)] = changed;
             }
-            state.flatDastRoot = { ...root, elements };
         },
     },
 });

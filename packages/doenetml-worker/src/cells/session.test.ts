@@ -56,20 +56,8 @@ describe("superseded moves", () => {
         });
     });
 
-    it("keeps moves that set different parts, and every other action", async () => {
-        const { session, id } = await open(
-            `<graph><lineSegment endpoints="(0,0) (1,0)"/></graph><booleanInput/>`,
-        );
-        const end = (key: string, at: number[]) => ({
-            component: "lineSegment",
-            actionName: "moveLineSegment",
-            componentIdx: id("lineSegment"),
-            args: { [key]: at },
-        });
-        const first = session.claim(end("point1coords", [2, 2]));
-        const second = session.claim(end("point2coords", [3, 3]));
-        expect(first()).toBe(true);
-        expect(second()).toBe(true);
+    it("runs every other action, however many wait", async () => {
+        const { session, id } = await open(`<booleanInput/>`);
         const check = {
             component: "booleanInput",
             actionName: "updateBoolean",

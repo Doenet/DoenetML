@@ -8,7 +8,6 @@ import {
     GraphListeners,
     removeStandardGraphListeners,
 } from "./jsxgraph/listeners";
-import { boardRedraw } from "./jsxgraph/redraw";
 import { Action, PointPropsInGraph } from "@doenet/doenetml-worker";
 import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
@@ -37,7 +36,6 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
         if (pointRef.current) {
             return;
         }
-        boardRedraw(board).structure();
         const point = createPoint(board, {
             coords: [x, y],
             labelForGraph: "test",
@@ -74,7 +72,6 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
 
         return () => {
             removeStandardGraphListeners(point, pointListenersAttached.current);
-            boardRedraw(board).structure();
             board.removeObject(point);
         };
     }, [board, pointRef]);
@@ -94,8 +91,7 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
     // move the point to the current location determined by the props
     pointRef.current.coords.setCoordinates(JXG.COORDS_BY_USER, [1, x, y]);
 
-    // update the point so it moves to the specified location; the board
-    // redraws it once, with every other element this update changed
+    // update the point and the board so the point actually moves to the specified location
     pointRef.current.needsUpdate = true;
     // if the point previous had non-numeric coordinates,
     // it appears that the point requires a fullUpdate to get it to reappear.
@@ -109,7 +105,7 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
     // record for next time whether or not we have non-numeric coordinates
     hadNonNumericCoords.current = !Number.isFinite(x) || !Number.isFinite(y);
 
-    boardRedraw(board).changed(pointRef.current, pointRef.current.label);
+    board.updateRenderer();
 
     return null;
 };

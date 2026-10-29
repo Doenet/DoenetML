@@ -40,18 +40,6 @@ import {
     Tabular,
     Cell,
     Row,
-    CircleInGraph,
-    Hint,
-    LegendInGraph,
-    LineSegmentInGraph,
-    MathInput,
-    NumberInput,
-    PolygonInGraph,
-    PolylineInGraph,
-    Ref,
-    SideBySide,
-    Slider,
-    Stack,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -123,25 +111,6 @@ function passThroughWithRenamedTag(
 }
 
 /**
- * Render `component` only when its element carries every prop in `keys`. A
- * core that sends the element without them (one with no such component, or
- * with a different shape for it) gets nothing drawn, as for an element with
- * no renderer, rather than a renderer reading props that are not there.
- */
-function withProps(
-    component: BasicComponent<any>,
-    ...keys: string[]
-): BasicComponent<any> {
-    return function WithProps(props) {
-        const given = props.node.data.props ?? {};
-        if (!keys.every((key) => given[key] !== undefined)) {
-            return null;
-        }
-        return React.createElement(component, props);
-    };
-}
-
-/**
  * Render this component as `reactNode`, possibly wrapped in a span with htmlId applied to the id field
  * @param reactNode
  */
@@ -189,7 +158,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     alert: passThroughWithRenamedTag("strong"),
     and: { component: Boolean },
     angle: { component: Angle },
-    answer: { component: Answer, passthroughChildren: true },
+    answer: { component: Answer },
     argMax: { component: M },
     argMin: { component: M },
     aside: { component: Division, passthroughChildren: true },
@@ -225,7 +194,6 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     function: { component: M },
     gcd: { component: M },
     graph: { component: Graph },
-    hint: { component: Hint, passthroughChildren: true },
     hasSameFactoring: { component: Boolean },
     hr: { component: _PassThroughWithTag },
     iff: { component: Boolean },
@@ -246,7 +214,6 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     m: { component: M, passthroughChildren: true },
     matchesPattern: { component: Boolean },
     math: { component: M },
-    mathInput: { component: withProps(MathInput, "text") },
     matrix: { component: M },
     max: { component: M },
     md: { component: M },
@@ -262,18 +229,11 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     ndash: renderAs("–"),
     not: { component: Boolean },
     number: { component: Number },
-    numberInput: { component: withProps(NumberInput, "value") },
     odeSystem: { component: M },
     ol: { component: Ol, passthroughChildren: true },
     or: { component: Boolean },
     orbitalDiagram: { component: OrbitalDiagram },
     p: { component: P, passthroughChildren: true },
-    ref: { component: Ref, passthroughChildren: true },
-    sideBySide: { component: SideBySide, passthroughChildren: true },
-    slider: {
-        component: withProps(Slider, "from", "to", "step", "value"),
-    },
-    stack: { component: Stack, passthroughChildren: true },
     piecewiseFunction: { component: M },
     pluralize: showAttrOnly("text"),
     point: { component: PointInText },
@@ -297,7 +257,6 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     tag: { component: Tag, passthroughChildren: true },
     tagc: { component: TagC, passthroughChildren: true },
     text: { component: Text },
-    tuple: { component: M },
     textInput: { component: TextInput },
     title: { component: Title, passthroughChildren: true },
     triggerSet: { component: Button },
@@ -316,21 +275,6 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
 };
 
 export const GRAPH_MODE_COMPONENTS: RendererObject = {
-    circle: {
-        component: withProps(
-            CircleInGraph,
-            "numericalCenter",
-            "numericalRadius",
-        ),
-    },
-    legend: { component: withProps(LegendInGraph, "legendElements") },
-    line: { component: withProps(LineInGraph, "numericalPoints") },
-    lineSegment: {
-        component: withProps(LineSegmentInGraph, "numericalEndpoints"),
-    },
+    line: { component: LineInGraph },
     point: { component: PointInGraph },
-    polygon: { component: withProps(PolygonInGraph, "numericalVertices") },
-    polyline: {
-        component: withProps(PolylineInGraph, "numericalVertices"),
-    },
 };
