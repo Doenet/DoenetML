@@ -22,12 +22,16 @@ const DOENETML = `<document xmlns="https://doenet.org/spec/doenetml/v${MISSING_V
 
 // The fallback swaps the iframe's `srcdoc`, which reloads its document, so
 // read `contentDocument` afresh on every retry: a `.its("0.contentDocument")`
-// chain would lock onto the document from before the reload.
-function currentBodyText($iframe: JQuery<HTMLElement>): string {
-    return (
-        ($iframe[0] as HTMLIFrameElement).contentDocument?.body?.textContent ??
-        ""
-    );
+// chain would lock onto the document from before the reload. Look for the
+// rendered paragraph (the `<p>` renderer emits `role="paragraph"`), not the
+// body's text: the srcdoc carries the DoenetML source in a
+// `<script type="text/doenetml">`, whose text is in the body before anything
+// renders.
+function renderedParagraphText($iframe: JQuery<HTMLElement>): string {
+    const doc = ($iframe[0] as HTMLIFrameElement).contentDocument;
+    return Array.from(doc?.querySelectorAll('[role="paragraph"]') ?? [])
+        .map((p) => p.textContent ?? "")
+        .join("\n");
 }
 
 // Rendering the document requires a full core-worker boot on top of the
@@ -66,9 +70,11 @@ describe("xmlns-detected version that fails to load", () => {
                     srcDoc.includes(STANDALONE_BLOB_URL),
                     "srcdoc loads the host-specified bundle",
                 ).to.be.true;
+                // Match the bundle URL, not the bare version: the srcdoc also
+                // embeds the DoenetML source, whose `xmlns` names the version.
                 expect(
-                    srcDoc.includes(MISSING_VERSION),
-                    "srcdoc names the missing version",
+                    srcDoc.includes(`@doenet/standalone@v${MISSING_VERSION}`),
+                    "srcdoc loads the missing version's bundle",
                 ).to.be.false;
             },
         );
@@ -78,7 +84,7 @@ describe("xmlns-detected version that fails to load", () => {
         );
 
         cy.get("iframe", { timeout: CONTENT_TIMEOUT }).should(($iframe) => {
-            expect(currentBodyText($iframe)).to.include("Fallback works");
+            expect(renderedParagraphText($iframe)).to.include("Fallback works");
         });
     });
 
