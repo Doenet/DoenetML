@@ -215,9 +215,20 @@ Evidence:
 Code: `Select.js:263` (`selectedIndices` is immutable and stored), and `:693` (no replacement
 changes).
 
-Differences in the cells core, all Tier 3:
-- Picks are derived from the seed rather than stored.
-- A non-literal `numToSelect` is banned.
+Differences in the cells core:
+- Picks are derived from the seed rather than stored. Tier 3.
+- **A non-literal `numToSelect` is banned there (ADR 0009). That is a flaw in the cells core, to
+  be fixed eventually, not an accepted change to DoenetML.**
+  - A reference in `numToSelect` is allowed. It is read once, when the choice is made, and later
+    changes are ignored, like every other input to a selection (above).
+  - These tests stay binding, in each of `select.test.ts`, `selectfromsequence.test.ts`,
+    `selectprimenumbers.test.ts` and `selectsamplerandomnumbers.test.ts`:
+    - "select doesn't change dynamically": `numToSelect="$numToSelect"`, changed after load, is
+      ignored;
+    - "numToSelect from selectFromSequence": `numToSelect` taken from another random choice;
+    - in all but `selectsamplerandomnumbers.test.ts`, the "…initially unresolved" tests (for
+      example `select.test.ts:283`): `numToSelect` read through a chain of references.
+  - PR #2281's rewrite of the select test to use a literal does not replace them.
 - Stable `stateId`s on shuffle and sort keep saved state on the right item. The *property* is
   Tier 2. The id format asserted in `shuffle.test.ts:791`, `sort.test.ts:1008` and
   `collect.test.ts:3710` is Tier 3.
@@ -260,7 +271,8 @@ ADR 0009 also bans several forms that main's tests use (D13):
 - references into a branch from outside, other than interface names;
 - positional references into options (`$s[2][1]`), which D27 generalizes;
 - a branch-dependent type fed to a typed parent;
-- a non-literal `numToSelect`.
+- a non-literal `numToSelect`. **Not accepted:** that is a flaw in the cells core, and main's
+  tests of it stay binding (COMP-8).
 
 ---
 
@@ -325,7 +337,10 @@ Evidence:
 - **Forms that ADR 0009 bans,** if D13 accepts the bans:
   - `conditionalcontent.test.ts:272`, `:416`, `:670`, `:865`, `:1030`, `:1064`, `:1139`, `:1213`,
     `:1306`;
-  - `select.test.ts:283`, `:357`, `:432`, `:544`, `:2897`.
+  - `select.test.ts:357`, `:432`, `:2897`.
+
+  The tests of a non-literal `numToSelect` (`select.test.ts:283`, `:544`) are not in this list:
+  they stay binding (COMP-8).
 
   PR #2281 already rewrites these in `conditionalContentSelectInterfaceNames.test.ts`.
 - **Tests that state their own behavior is undesired:** `select.test.ts:2493`, `:2545`, `:2636`,
