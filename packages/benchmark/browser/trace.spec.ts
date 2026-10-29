@@ -24,28 +24,28 @@
 // See METHOD.md.
 //
 //   BENCH_MACHINE=<id> npm run trace
-import { test, type Browser, type BrowserContext } from "@playwright/test";
+import {
+    test,
+    type Browser,
+    type BrowserContext,
+    type Page,
+} from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { gzipSync } from "node:zlib";
-import { packageRoot } from "../src/fixtures.mjs";
 import { CATEGORIES, mainThreadWork } from "../src/chrome-trace.mjs";
+import { listEnv } from "../src/env.mjs";
+import { homeworkFixture, packageRoot } from "../src/fixtures.mjs";
 import { appendRecord, openRun } from "../src/results.mjs";
-import { homeworkFixture } from "../src/trace-fixtures.mjs";
+import { median } from "../src/stats.mjs";
 
-function list(v: string | undefined, d: string) {
-    return (v ?? d).split(",");
-}
 const RUNS = Number(process.env.BENCH_TRACE_RUNS ?? 5);
-const CPUS = list(process.env.BENCH_TRACE_CPU, "1,4").map(Number);
-const SIZES = list(process.env.BENCH_TRACE_SIZES, "1,4,16").map(Number);
-const PAGES = list(process.env.BENCH_TRACE_PAGES, "editor,viewer");
+const CPUS = listEnv("BENCH_TRACE_CPU", "1,4").map(Number);
+const SIZES = listEnv("BENCH_TRACE_SIZES", "1,4,16").map(Number);
+const PAGES = listEnv("BENCH_TRACE_PAGES", "editor,viewer");
 const ORIGIN = "http://localhost:4176";
 /** The longest one visit may take before it counts as failed. */
 const LOAD_MS = 120_000;
-
-const machine = process.env.BENCH_MACHINE;
-if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
 
 /** The scenarios: every page at every CPU rate on `homework`; the size
  * sweep on the editor page only, where documents are written. */
@@ -55,7 +55,7 @@ const SCENARIOS = PAGES.flatMap((page) =>
     ),
 );
 const run = openRun({
-    machine,
+    machine: process.env.BENCH_MACHINE,
     cores: ["cells"],
     layer: "trace",
     // Playwright loads this spec again in a worker it starts after a test
@@ -85,10 +85,7 @@ type Measured = {
 };
 
 /** Read the `cells:` measures from `since` on, and the files fetched. */
-async function collect(
-    page: import("@playwright/test").Page,
-    since: number,
-): Promise<Measured> {
+async function collect(page: Page, since: number): Promise<Measured> {
     return page.evaluate((since) => {
         // Hundredths of a millisecond: finer than any clock here resolves.
         const r = (x: number) => Math.round(x * 100) / 100;
@@ -132,7 +129,7 @@ async function collect(
 async function visit(
     browser: Browser,
     context: BrowserContext,
-    state: { page?: import("@playwright/test").Page },
+    state: { page?: Page },
     v: Visit,
     s: { page: string; cpu: number },
     fixture: { url: string; text: string },
@@ -224,7 +221,7 @@ for (const s of SCENARIOS) {
         for (let r = 0; r <= RUNS; r++) {
             const isTraced = r === RUNS;
             const context = await browser.newContext();
-            const state: { page?: import("@playwright/test").Page } = {};
+            const state: { page?: Page } = {};
             try {
                 for (const v of VISITS) {
                     const m = await visit(
@@ -254,9 +251,6 @@ for (const s of SCENARIOS) {
                 runs: runs[v],
                 traced: traced[v],
             });
-        function median(xs: number[]) {
-            return [...xs].sort((a, b) => a - b)[xs.length >> 1];
-        }
         console.log(
             `${s.page} ${fixture.name} cpu x${s.cpu}: ` +
                 VISITS.map(

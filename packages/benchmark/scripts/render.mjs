@@ -14,33 +14,19 @@
 // `results/README.md` lists the runs, newest first, grouped by machine.
 import { writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { loadFixture, packageRoot, shapes } from "../src/fixtures.mjs";
-import { listRuns, runsDir } from "../src/results.mjs";
+import { loadFixture, shapes } from "../src/fixtures.mjs";
+import { listRuns, resultsDir } from "../src/results.mjs";
+import { median, quantile } from "../src/stats.mjs";
+import { coreName, header, mb, table } from "./page.mjs";
 import { loadPage } from "./render-load.mjs";
 import { tracePage } from "./render-trace.mjs";
 
-/** The limits a run's layer was measured under; a run before they were recorded had 15 s for everything. */
+/** The limits a run's Node layer was measured under. */
 function limits(layer) {
-    return {
-        load: layer?.load_timeout_ms ?? 15_000,
-        tick: layer?.step_timeout_ms ?? 15_000,
-    };
-}
-const CORE_NAME = { javascript: "JS", rust: "Rust", cells: "cells" };
-function coreName(c) {
-    return CORE_NAME[c] ?? c;
+    return { load: layer.load_timeout_ms, tick: layer.step_timeout_ms };
 }
 
-function median(xs) {
-    const s = [...xs].sort((a, b) => a - b);
-    return s.length % 2
-        ? s[s.length >> 1]
-        : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-}
-function quantile(xs, p) {
-    const s = [...xs].sort((a, b) => a - b);
-    return s[Math.min(s.length - 1, Math.floor(p * s.length))];
-}
+/** A time at the precision the comparison needs: a tick can be microseconds. */
 function ms(x) {
     return x >= 1000
         ? `${(x / 1000).toFixed(x >= 10_000 ? 0 : 1)} s`
@@ -49,19 +35,6 @@ function ms(x) {
           : x >= 0.1
             ? `${x.toFixed(2)} ms`
             : `${(x * 1000).toFixed(0)} µs`;
-}
-function mb(b) {
-    return `${(b / 2 ** 20).toFixed(b >= 10 * 2 ** 20 ? 0 : 1)} MB`;
-}
-function cellText(s) {
-    return String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
-}
-function table(head, rows) {
-    return [
-        `| ${head.join(" | ")} |`,
-        `|${head.map(() => "---").join("|")}|`,
-        ...rows.map((r) => `| ${r.map(cellText).join(" | ")} |`),
-    ].join("\n");
 }
 
 /**
@@ -573,18 +546,6 @@ function budgets(run) {
     return out.join("\n");
 }
 
-function header(m) {
-    const h = m.hardware;
-    const builds = Object.entries(m.builds)
-        .map(([c, b]) => `${coreName(c)}: ${b}`)
-        .join("; ");
-    return [
-        `Machine **${m.machine}** (${h.cpu}, ${h.cores} cores, ${mb(h.memory_bytes)}, ${h.os}, Node ${h.node}); commit \`${m.commit}\`${m.dirty ? " with uncommitted changes" : ""}; ${m.date}.`,
-        "",
-        `Builds: ${builds || "none recorded"}.`,
-    ].join("\n");
-}
-
 const runs = listRuns();
 for (const run of runs) {
     const pages = [];
@@ -598,11 +559,11 @@ for (const run of runs) {
         pages.push("budgets");
     }
     if (run.layers.trace?.length) {
-        writeFileSync(resolve(run.dir, "trace.md"), tracePage(run, header));
+        writeFileSync(resolve(run.dir, "trace.md"), tracePage(run));
         pages.push("trace");
     }
     if (run.layers.load?.length) {
-        writeFileSync(resolve(run.dir, "load.md"), loadPage(run, header));
+        writeFileSync(resolve(run.dir, "load.md"), loadPage(run));
         pages.push("load");
     }
     run.pages = pages;
@@ -648,7 +609,7 @@ for (const [machine, list] of machines) {
                 r.pages
                     .map(
                         (p) =>
-                            `[${p}](${relative(resolve(packageRoot, "results"), resolve(r.dir, `${p}.md`))})`,
+                            `[${p}](${relative(resultsDir, resolve(r.dir, `${p}.md`))})`,
                     )
                     .join(" · "),
             ]),
@@ -656,5 +617,5 @@ for (const [machine, list] of machines) {
         "",
     );
 }
-writeFileSync(resolve(runsDir, "../README.md"), index.join("\n"));
+writeFileSync(resolve(resultsDir, "README.md"), index.join("\n"));
 console.log(`rendered ${runs.length} run(s)`);

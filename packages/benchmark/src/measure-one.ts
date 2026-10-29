@@ -2,7 +2,7 @@
 //
 // Runs from packages/doenetml-worker-javascript, whose test utilities give
 // every core the same interface (DOENET_TEST_CORE selects it), prebundled
-// by `scripts/bundle-driver.mjs`. `src/run.mjs` spawns this once per (core,
+// by `src/bundle-driver.mjs`. `src/run.mjs` spawns this once per (core,
 // fixture), so each memory figure is a fresh process, and limits the time
 // between two lines (120 s up to the load and after the ticks, 15 s for a
 // tick): every stage and every tick reports as it ends, so a timeout bounds

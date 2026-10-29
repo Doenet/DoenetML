@@ -23,7 +23,8 @@
     window.__bench = {
         ready: false,
         core: "cells",
-        async load(text, _waitFor) {
+        /** Text to first render; the viewer flips `ready` at its first render. */
+        async load(text) {
             while (!window.__cells)
                 await new Promise((ok) => setTimeout(ok, 20));
             const t0 = performance.now();
@@ -69,14 +70,6 @@
                     ]);
                     return;
                 case "updateValue":
-                    try {
-                        s.comps.componentType(idx);
-                        s.comps.cell(idx, "expr");
-                    } catch (e) {
-                        throw new Error(
-                            `lookup for ${step.target} (idx ${idx}, type ${s.comps.componentType(idx)}, n ${s.comps.length}): ${e.message}`,
-                        );
-                    }
                     if (s.comps.componentType(idx) === "textInput")
                         s.requestText(s.comps.cell(idx, "value"), step.value);
                     else

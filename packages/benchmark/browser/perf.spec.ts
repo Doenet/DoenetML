@@ -17,11 +17,13 @@
 import { test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { listEnv } from "../src/env.mjs";
 import { fixtureText, listFixtures, packageRoot } from "../src/fixtures.mjs";
 import { appendRecord, openRun } from "../src/results.mjs";
+import { quantile } from "../src/stats.mjs";
 
-const CORES = (process.env.BENCH_CORES ?? "javascript,cells").split(",");
-const only = process.env.BENCH_FIXTURES?.split(",");
+const CORES = listEnv("BENCH_CORES", "javascript,cells");
+const only = process.env.BENCH_FIXTURES ? listEnv("BENCH_FIXTURES", "") : null;
 const FIXTURES = listFixtures().filter(
     (m: any) => !only || only.includes(m.name) || only.includes(m.shape),
 );
@@ -81,10 +83,8 @@ async function breakdown(page: Page) {
     );
 }
 
-const machine = process.env.BENCH_MACHINE;
-if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
 const run = openRun({
-    machine,
+    machine: process.env.BENCH_MACHINE,
     cores: CORES,
     layer: "browser",
     fixtures: FIXTURES.map((m: any) => m.name),
@@ -94,18 +94,16 @@ const run = openRun({
 });
 const out = run.records;
 
+/** The quantiles of a sample, as every timing is recorded. */
 function quantiles(xs: number[]) {
-    const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
-    function q(p: number) {
-        return s[Math.min(s.length - 1, Math.floor(p * s.length))];
-    }
-    return s.length
+    const n = xs.filter(Number.isFinite).length;
+    return n
         ? {
-              n: s.length,
-              p50_ms: q(0.5),
-              p90_ms: q(0.9),
-              p95_ms: q(0.95),
-              max_ms: s[s.length - 1],
+              n,
+              p50_ms: quantile(xs, 0.5),
+              p90_ms: quantile(xs, 0.9),
+              p95_ms: quantile(xs, 0.95),
+              max_ms: quantile(xs, 1),
           }
         : { n: 0 };
 }
@@ -283,14 +281,11 @@ for (const m of FIXTURES) {
                     record.load_breakdown = await page.evaluate(() =>
                         (window as any).__bench.loadBreakdown(),
                     );
-                stage = "tick";
-                if (BREAKDOWN.has(core))
-                    await page.evaluate(() =>
-                        (window as any).__bench.clearSamples(),
-                    );
+                // Where the dragged point is on screen, for a drag.
+                let at: [number, number] | null = null;
                 if (first.action === "movePoint") {
                     stage = "locate";
-                    const at = await deadline(
+                    at = await deadline(
                         page.evaluate(
                             async ({ n, start }) =>
                                 (window as any).__bench.locate(n, start),
@@ -311,11 +306,14 @@ for (const m of FIXTURES) {
                         if (!w)
                             throw new Error(`cannot locate ${m.watch.name}`);
                     }
-                    stage = "tick";
-                    if (BREAKDOWN.has(core))
-                        await page.evaluate(() =>
-                            (window as any).__bench.clearSamples(),
-                        );
+                }
+                stage = "tick";
+                // The action's ticks alone: not the load's.
+                if (BREAKDOWN.has(core))
+                    await page.evaluate(() =>
+                        (window as any).__bench.clearSamples(),
+                    );
+                if (at) {
                     const d = await deadline(
                         drag(page, first.target, at, m.watch?.name),
                         STAGE_MS,

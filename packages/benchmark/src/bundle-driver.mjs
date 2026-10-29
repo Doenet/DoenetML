@@ -1,19 +1,21 @@
-// Bundle src/measure-one.ts and the workspace source it imports into one
-// file that plain node runs, so a measurement process starts in a fraction
-// of a second instead of the ten seconds vite-node spent transforming the
-// JS core from source. Packages are bundled too: the JS core uses deep
-// imports without extensions, which Vite resolves and node's loader does
-// not. Files that find their wasm or fixtures relative
-// to their own location keep working: `import.meta.dirname` and
-// `import.meta.url` (and `__dirname`, `__filename`) are rewritten to the
-// source file's.
+// Bundle `src/measure-one.ts` and the workspace source it imports into one
+// file that plain node runs (`src/run.mjs` spawns it once per measurement),
+// so a measurement process starts in a fraction of a second instead of the
+// ten seconds vite-node spent transforming the JS core from source.
+// Packages are bundled too: the JS core uses deep imports without
+// extensions, which Vite resolves and node's loader does not. Files that
+// find their wasm or fixtures relative to their own location keep working:
+// `import.meta.dirname` and `import.meta.url` (and `__dirname`,
+// `__filename`) are rewritten to the source file's.
 import { build } from "esbuild";
 import { readFileSync, statSync, existsSync, readdirSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { packageRoot, repoRoot } from "../src/fixtures.mjs";
+import { packageRoot, repoRoot } from "./fixtures.mjs";
 
-export const bundlePath = resolve(
+/** Where the bundle is written: beside the JS core, whose test utilities
+ * it is built over, and out of this package, which does not build. */
+const bundlePath = resolve(
     repoRoot,
     "packages/doenetml-worker-javascript/.bench/measure-one.mjs",
 );
@@ -94,12 +96,4 @@ export async function ensureBundle() {
     });
     console.error(`bundled the driver in ${Date.now() - t} ms`);
     return bundlePath;
-}
-
-if (
-    process.argv[1] &&
-    resolve(process.argv[1]) === new URL(import.meta.url).pathname
-) {
-    await ensureBundle();
-    console.log(bundlePath);
 }

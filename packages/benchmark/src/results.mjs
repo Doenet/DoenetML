@@ -1,8 +1,8 @@
 // Runs: one directory per run, `results/runs/<id>/`, committed.
 // `manifest.json` says where and on what the run was measured; each layer
 // writes its records beside it (`node.json`, `browser.json`, `bundle.json`,
-// `trace.json`), one JSON array each, appended as measurements end so an
-// interrupted run keeps what it measured. The id is
+// `trace.json`, `load.json`), one JSON array each, appended as measurements
+// end so an interrupted run keeps what it measured. The id is
 // `<date>-<machine>-<commit>`, with `-dirty` for uncommitted changes.
 import { execSync } from "node:child_process";
 import {
@@ -16,7 +16,11 @@ import os from "node:os";
 import { resolve } from "node:path";
 import { packageRoot, repoRoot } from "./fixtures.mjs";
 
-export const runsDir = resolve(packageRoot, "results/runs");
+export const resultsDir = resolve(packageRoot, "results");
+export const runsDir = resolve(resultsDir, "runs");
+/** A machine's id: lowercase letters, digits and dashes, the same every
+ * time the suite runs on it; it names the run's directory. */
+const MACHINE_ID = /^[a-z0-9][a-z0-9-]*$/;
 
 /** The records in a results file, or none if it does not exist. */
 export function readRecords(file) {
@@ -38,7 +42,7 @@ export function appendRecord(file, record) {
 }
 
 /** Today's date in local time, so an evening run does not land on tomorrow. */
-export function localDate() {
+function localDate() {
     return new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
         .toISOString()
         .slice(0, 10);
@@ -66,10 +70,12 @@ function hardware() {
  */
 function builds(cores) {
     const defaults = {
-        javascript: "source, bundled by scripts/bundle-driver.mjs",
+        javascript: "source, bundled by src/bundle-driver.mjs",
         rust: "wasm-pack --release, without logging features",
         cells: "wasm-pack --release (npm run build -w packages/cells-core)",
     };
+    // The cells core behind the prototype's renderers is the same build.
+    defaults["cells-prototype"] = defaults.cells;
     return Object.fromEntries(
         cores.map((c) => [
             c,
@@ -81,16 +87,21 @@ function builds(cores) {
 }
 
 /**
- * Start a run's layer `layer` (`node`, `browser`, `bundle`, `trace`): the
- * run's directory and manifest, created on its first layer, and an empty
- * records file. A layer
- * run again the same day at the same commit replaces its records. A caller
- * that opens the same layer more than once in one invocation (Playwright
- * loads the spec again in each worker it starts, and starts a new one after
- * a test times out) passes the same `session` each time, and keeps the
- * records already written.
+ * Start a run's layer `layer` (`node`, `browser`, `bundle`, `trace`,
+ * `load`) on `machine`: the run's directory and manifest, created on its
+ * first layer, and an empty records file. A layer run again the same day
+ * at the same commit replaces its records. A caller that opens the same
+ * layer more than once in one invocation (Playwright loads the spec again
+ * in each worker it starts, and starts a new one after a test times out)
+ * passes the same `session` each time, and keeps the records already
+ * written. Whatever else is passed (the layer's cores, fixtures, timeouts,
+ * scenarios) is recorded in the manifest as what the layer measured.
  */
 export function openRun({ machine, cores, layer = "node", session, ...rest }) {
+    if (!machine || !MACHINE_ID.test(machine))
+        throw new Error(
+            "name the machine: BENCH_MACHINE=<id> (or --machine=<id> for the Node driver), lowercase letters, digits and dashes",
+        );
     const commit = git("rev-parse --short HEAD");
     // Changes to the results themselves do not make the measured code dirty.
     const dirty = git("status --porcelain -- . ':!packages/benchmark/results'")

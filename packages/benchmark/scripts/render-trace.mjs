@@ -4,7 +4,9 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { KINDS } from "../src/chrome-trace.mjs";
+import { median } from "../src/stats.mjs";
 import { CORE_STEPS, KIND_TEXT, STEPS, explain } from "../src/steps.mjs";
+import { header, table } from "./page.mjs";
 
 const VISITS = ["cold", "warm", "hot", "edit"];
 const VISIT_TEXT = {
@@ -14,13 +16,6 @@ const VISIT_TEXT = {
     edit: "the open page given a changed document, as the editor's Refresh does",
 };
 
-function median(xs) {
-    const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
-    if (!s.length) return NaN;
-    return s.length % 2
-        ? s[s.length >> 1]
-        : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-}
 function ms(x) {
     return !Number.isFinite(x)
         ? "—"
@@ -32,16 +27,7 @@ function ms(x) {
               ? `${x.toFixed(1)} ms`
               : `${x.toFixed(2)} ms`;
 }
-function cellText(s) {
-    return String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
-}
-function table(head, rows) {
-    return [
-        `| ${head.join(" | ")} |`,
-        `|${head.map(() => "---").join("|")}|`,
-        ...rows.map((r) => `| ${r.map(cellText).join(" | ")} |`),
-    ].join("\n");
-}
+/** Text in an SVG. */
 function esc(s) {
     return String(s)
         .replace(/&/g, "&amp;")
@@ -255,7 +241,7 @@ function svgName(r) {
     return `trace-${r.page}-${r.fixture}-cpu${r.cpu}-${r.visit}.svg`;
 }
 
-export function tracePage(run, header) {
+export function tracePage(run) {
     const records = run.layers.trace ?? [];
     const out = [];
     const pages = [...new Set(records.map((r) => r.page))];

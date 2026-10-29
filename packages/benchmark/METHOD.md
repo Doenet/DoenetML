@@ -66,7 +66,7 @@ generated (`.gitattributes`), so a review collapses it.
 Each core is measured as it would ship:
 
 - **JS**: from source, bundled with the driver by
-  `scripts/bundle-driver.mjs`.
+  `src/bundle-driver.mjs`.
 - **Rust**: the release profile, without the logging features: `cd
 packages/doenetml-worker-rust && npx wasm-pack build lib-js-wasm-binding
 --target web --release`. The browser page carries the core in other
@@ -86,7 +86,7 @@ A runner who built a core otherwise says so in `BENCH_BUILD_<CORE>`
 
 ## The shapes
 
-The comparison runs five synthetic shapes, each exercising one mechanism, at
+The comparison runs seven synthetic shapes, each exercising one mechanism, at
 1,000, 10,000 and 100,000 elements: the sizes where a tick is substantial
 work, and where cores differ by factors rather than percent. A document
 built with `<repeat>`s reaches 100,000 components as easily as one
@@ -261,9 +261,9 @@ first render, the end of the `render` step.
 - CPU: Chromium's throttling (`Emulation.setCPUThrottlingRate`), ×1 and
   ×4, standing in for a slower device; the network is not slowed.
 - Size: `homework-x<n>` repeats the homework page in `n` sections
-  (`src/trace-fixtures.mjs`), on the editor page. A step whose time stays
-  put as `n` grows is a fixed cost of the page; one that grows with `n` is
-  work on the document.
+  (`homeworkFixture` in `src/fixtures.mjs`), on the editor page. A step
+  whose time stays put as `n` grows is a fixed cost of the page; one that
+  grows with `n` is work on the document.
 
 Each scenario runs `BENCH_TRACE_RUNS` times (5 by default), each in a new
 browser profile so `cold` is always cold; a step's time on the page is its

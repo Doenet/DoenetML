@@ -1,11 +1,13 @@
 // The load layer's page, `load.md`, from a run's `load.json` alone
 // (browser/load.spec.ts). Called by render.mjs for every run with a load
 // layer.
-import { CPUS, DEVICES, NETWORKS } from "../src/devices.mjs";
+import { DEVICES, NETWORKS } from "../src/devices.mjs";
+import { median } from "../src/stats.mjs";
+import { header, table } from "./page.mjs";
 
-/** The load budget: the document readable within this long on the
- * slow phone, cold. */
-export const VISIBLE_BUDGET_MS = 300;
+/** The load budget (METHOD.md): the document readable within this long on
+ * the slow phone, cold. */
+const VISIBLE_BUDGET_MS = 300;
 const BUDGET_DEVICE = "slow-phone";
 /** A change in the host's speed beyond this, between the calibration and
  * the recheck after the run, is flagged on the page. */
@@ -17,13 +19,6 @@ const VISIT_TEXT = {
     warm: "a second visit: the same profile, the files in the HTTP cache",
 };
 
-function median(xs) {
-    const s = xs.filter(Number.isFinite).sort((a, b) => a - b);
-    if (!s.length) return NaN;
-    return s.length % 2
-        ? s[s.length >> 1]
-        : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-}
 function ms(x) {
     return !Number.isFinite(x)
         ? "—"
@@ -39,16 +34,6 @@ function kb(b) {
         : b >= 1e6
           ? `${(b / 1e6).toFixed(2)} MB`
           : `${(b / 1e3).toFixed(0)} KB`;
-}
-function cellText(s) {
-    return String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
-}
-function table(head, rows) {
-    return [
-        `| ${head.join(" | ")} |`,
-        `|${head.map(() => "---").join("|")}|`,
-        ...rows.map((r) => `| ${r.map(cellText).join(" | ")} |`),
-    ].join("\n");
 }
 
 /** The median of `key` over a record's runs, with the fastest and slowest
@@ -72,7 +57,7 @@ function scenarioName(r) {
     return `${r.page}, ${r.device}, ${r.network}`;
 }
 
-export function loadPage(run, header) {
+export function loadPage(run) {
     const all = run.layers.load ?? [];
     const calibration = all.find((r) => r.kind === "calibration");
     const recheck = all.find((r) => r.kind === "recheck");
@@ -134,11 +119,11 @@ export function loadPage(run, header) {
                 `After the run the workload took ${ms(recheck.host_workload_ms)} on this machine, ${drift >= 0 ? "+" : ""}${(drift * 100).toFixed(1)}% against the calibration${Math.abs(drift) > DRIFT_LIMIT ? `: **the machine's speed moved by more than ${DRIFT_LIMIT * 100}% during the run**, so by its end the devices ran up to that much off their times, and the run is not one to compare with another` : ", within the run's tolerance"}.`,
                 "",
             );
-        if (CPUS["mid-phone"] && CPUS["slow-phone"])
-            out.push(
-                "The phones' workload times are provisional until measured on real phones (`src/devices.mjs`).",
-                "",
-            );
+        // The phones' times in `src/devices.mjs` are provisional, and say so.
+        out.push(
+            "The phones' workload times are provisional until measured on real phones (`src/devices.mjs`).",
+            "",
+        );
     }
 
     // The budget.

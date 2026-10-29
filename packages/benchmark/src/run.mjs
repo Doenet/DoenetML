@@ -10,14 +10,15 @@
 // run: a scratch measurement, such as `scripts/perf-diff.sh` makes.
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
+import { ensureBundle } from "./bundle-driver.mjs";
 import { listFixtures, repoRoot } from "./fixtures.mjs";
 import { openRun, appendRecord } from "./results.mjs";
-import { ensureBundle } from "../scripts/bundle-driver.mjs";
+import { median } from "./stats.mjs";
 
 /** The longest a stage up to the load, or a stage after the ticks, may take. */
-export const LOAD_TIMEOUT_MS = 120_000;
+const LOAD_TIMEOUT_MS = 120_000;
 /** The longest a tick may take. */
-export const STEP_TIMEOUT_MS = 15_000;
+const STEP_TIMEOUT_MS = 15_000;
 const LOAD_STAGES = new Set(["start", "generate", "parse", "load"]);
 /**
  * Stages after the ticks, which are not timed: the value check (one more
@@ -33,13 +34,6 @@ const args = Object.fromEntries(
         return [k, v];
     }),
 );
-const machine = args.machine ?? process.env.BENCH_MACHINE;
-if (!args.out && (!machine || !/^[a-z0-9][a-z0-9-]*$/.test(machine))) {
-    console.error(
-        "name the machine: --machine=<id> (or BENCH_MACHINE), lowercase letters, digits and dashes",
-    );
-    process.exit(1);
-}
 const cores = (args.cores ?? "javascript,rust,cells").split(",");
 // A fixture filter names fixtures (`depth-1000`) or whole shapes (`depth`).
 const only = args.fixtures ? args.fixtures.split(",") : null;
@@ -47,16 +41,17 @@ const fixtures = listFixtures().filter(
     (m) => !only || only.includes(m.name) || only.includes(m.shape),
 );
 const jsWorker = resolve(repoRoot, "packages/doenetml-worker-javascript");
-const bundle = await ensureBundle();
+// The run first, so a missing machine id fails before the bundle is built.
 const run = args.out
     ? { dir: null, records: resolve(args.out) }
     : openRun({
-          machine,
+          machine: args.machine ?? process.env.BENCH_MACHINE,
           cores,
           fixtures: fixtures.map((m) => m.name),
           load_timeout_ms: LOAD_TIMEOUT_MS,
           step_timeout_ms: STEP_TIMEOUT_MS,
       });
+const bundle = await ensureBundle();
 
 /**
  * Measure `fixture` in `core`. The process reports each stage and tick as
@@ -149,10 +144,7 @@ function measure(core, fixture) {
     });
 }
 
-function median(xs) {
-    return [...xs].sort((a, b) => a - b)[xs.length >> 1];
-}
-
+/** One line on a record, as the driver prints its progress. */
 function brief(r) {
     function ms(x) {
         return x < 10 ? x.toFixed(2) : x.toFixed(0);
