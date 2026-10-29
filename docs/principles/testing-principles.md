@@ -181,7 +181,7 @@ including components added later:
    `<caption>` or `<shortDescription>` child group:
    - writing two of them uses the last;
    - adding one inside an `extend` or `copy` replaces the source's.
-7. **Every list: a hidden entry (D29).** For each list type (the authored value lists,
+7. **Every list: a hidden entry (D29; done in #2368 as `listEntryHide.test.ts`).** For each list type (the authored value lists,
    `pointList`, `vectorList`, `sequence`, `sort`, `shuffle`, `collect`, `group asList`), write
    the first entry's source with `hide` and check, under one rule:
    - whether it is drawn and included in text;
@@ -273,7 +273,7 @@ does not count them. The common shapes are:
 ## 4. Suggested order of work
 
 1. Fix B1 and B2 in [decisions.md](decisions.md). They break a Tier 1 guarantee today.
-2. Settle D1, D2, D7, D8, D9, D13, D22, D23 and D29. D30 (identity in events) is checked against
+2. Settle D1, D2, D7, D8, D9, D13, D22 and D23. (D3 and D29 are done: #2367, #2368.) D30 (identity in events) is checked against
    doenet.org; its fix is #2365. These decide what the Tier 1 author model says.
 3. Add `registry.ts`, the tags and the `principle()` helper. Tag the principle-stating files.
    Change the parity scripts to report by principle.

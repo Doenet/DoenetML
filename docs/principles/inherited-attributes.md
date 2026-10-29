@@ -19,7 +19,7 @@ The columns say how each input is used.
 
 | Attribute | If the component writes it itself | Taken from its container | Taken through a linked reference | Code |
 |---|---|---|---|---|
-| `hide` | **only adds to the others.** `hide="true"` hides it, but `hide="false"` cannot unhide it inside a hidden container. Exception: the authored value lists (`mathList`, …) draw a hidden child (D29) | yes: hidden if the container is hidden | the source's own `hide` attribute, but not the hiding of the source's container. Exception: a bare `$x` of a hidden list, group, repeat or select is shown (D9) | `BaseComponent.js:753-829` |
+| `hide` | **only adds to the others.** `hide="true"` hides it, but `hide="false"` cannot unhide it inside a hidden container. | yes: hidden if the container is hidden | the source's own `hide` attribute, but not the hiding of the source's container. Exception: a bare `$x` of a hidden list, group, repeat or select is shown (D9) | `BaseComponent.js:753-829` |
 | `disabled` | **overrides everything else**, `false` included | yes, unless the component writes its own | the source's own `disabled` attribute, but not the disabling of the source's container | `BaseComponent.js:860-978` |
 | `fixed`, `fixLocation` | **overrides everything else** for that component. On a linked reference it reports `false` while writes are still refused at the fixed source (D7) | yes, unless the component writes its own. A `<group>` counts as a container | the source's **effective** value, including what the source's container gives it | `W/utils/contextAttribute.js` |
 | `styleNumber` | **overrides everything else** | the nearest enclosing setting wins | the source's own attribute | `W/core/StateVariableDefinitionFactory.ts:1291-1305`, `:1640-1690` |
