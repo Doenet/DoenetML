@@ -1,6 +1,7 @@
 # Composed inverses write the input that leads to state, and are checked whole
 
-Status: proposed 2026-10-29. A plan: steps 1 to 6 below are to do. It
+Status: proposed 2026-10-29. A plan: step 1 below is done, steps 2 to
+6 are to do. It
 decides whether component props keep inverting by composition before
 the remaining components are ported (ADR 0016).
 
@@ -65,7 +66,7 @@ one. The Rust core's handwritten `<math>` inverse refuses any math with
 more than one input (`math_prop.rs`, a TODO).
 
 **This core.** A sweep asked every interactive number cell of the golden
-documents and `fixtures/sir.doenet` for several values, about 17,600
+documents and `fixtures/sir.doenet` for several values, 18,248
 requests, with an x/y pair asked together as a point group.
 
 - Every request whose written value reaches the requested cell along one
@@ -196,14 +197,14 @@ masks and aliases as the walk does.
 Each step is one commit that passes `cargo test --workspace` and the
 golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
 
-1. **Write up the evidence.** Add `docs/composed-inverses.md`:
+1. **Write up the evidence.** Done. `docs/composed-inverses.md` holds:
    - the survey of the current core's `inverseDefinition`s, with the
      examples behind each count;
    - the sweep's results;
    - the comparison with `checkForScalarLinearExpression`.
 
-   Add the sweep as `crates/cells-bench/examples/round_trip.rs`, which
-   prints the classification for any document (`-- path.doenet`).
+   The sweep is `crates/cells-bench/examples/round_trip.rs`, which prints
+   the classification for any document (`-- path.doenet`).
 2. **Survey the 94 `inverseArrayDefinitionByKey` sites** in the same
    categories and add them to the report. *Gate:* if a class of them is
    neither composable, nor a vector operator this core has, nor a point
