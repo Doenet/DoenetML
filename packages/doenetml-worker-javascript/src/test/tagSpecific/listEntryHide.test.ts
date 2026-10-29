@@ -433,6 +433,10 @@ describe("What a parent ignoring its own hiding counts of a list @group4", async
         // a bare reference to a hidden list or group is shown (D9)
         { content: `$tl r`, text: "q r" },
         { content: `$g r`, text: "q r" },
+        // an entry referenced on its own is shown when only the list is
+        // hidden (D29 rule 4), and an `extend` of a hidden list is hidden
+        { content: `$tl[1] r`, text: "q r" },
+        { content: `<textList extend="$tl"/> r`, text: " r" },
         {
             content: `<group hide><textList>q</textList></group> r`,
             text: " r",
