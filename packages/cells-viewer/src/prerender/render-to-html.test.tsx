@@ -50,8 +50,14 @@ describe("rendering to HTML", () => {
     });
 
     test("a graph is its board's container, sized and empty", async () => {
+        // A golden document: the benchmark's `homework.doenet` gives its
+        // graph a `size`, which no renderer on this path reads, so the
+        // core refuses the graph (ADR 0021).
         const html = await renderDocument(
-            resolve(packages, "benchmark/fixtures/homework.doenet"),
+            resolve(
+                packages,
+                "cells-core/crates/cells-bench/golden/circles.doenet",
+            ),
         );
         const board = html.match(/<div id="cells-board-\d+"[^>]*>/)?.[0];
         expect(board).toBeDefined();

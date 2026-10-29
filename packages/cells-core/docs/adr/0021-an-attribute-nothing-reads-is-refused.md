@@ -74,6 +74,16 @@ what it supports.
   `fixtures/sir.doenet` loses `draggable="false"` on its polylines,
   `columnHeaders` and `margins`; the core read none of them, so no value
   changes.
+- The benchmark's real documents (`packages/benchmark/fixtures`) carry
+  attributes no renderer on this path reads: `size` on a `<graph>`,
+  `width` on a `<textInput>`, `inline` on a `<choiceInput>` and
+  `displayDigits` on a `<number>`, all presentation, and `shuffleOrder`
+  on a `<choiceInput>`, which is the core's to implement. Those elements
+  now load as error components on the cells path, and the viewer's
+  prerender test takes its graph from a golden document instead. The
+  bridge should read the presentation ones and declare them; the
+  benchmark's numbers for these documents are not comparable until it
+  does.
 - The JavaScript worker's parity run on this core will report these
   documents as load errors naming the attribute, in place of values that
   differed. That is the intended reading until the attributes are
