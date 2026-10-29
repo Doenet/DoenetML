@@ -11,6 +11,7 @@ component! {
     props {
         count: attr(0.0),
     }
+    presentation { asList }
     planner: Whole(plan),
 }
 

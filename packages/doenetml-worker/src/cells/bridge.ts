@@ -18,7 +18,15 @@ import type {
     FlatDastElementContent,
     FlatDastElementUpdate,
 } from "@doenet/doenetml-worker-rust";
-import { CONTRACTS, OMITTED, Reads, TRANSPARENT } from "./contracts";
+import {
+    BLOCKS,
+    CONTRACTS,
+    LIST_LIKE,
+    OMITTED,
+    PER_SCOPE,
+    Reads,
+    TRANSPARENT,
+} from "./contracts";
 import { resolveRendererAction } from "./actions";
 import { CellsTable, NONE } from "./table";
 
@@ -464,29 +472,103 @@ export class CellsBridge {
         const contract = CONTRACTS[this.table.componentType(owner)];
         if (contract?.noChildren) return;
         for (const child of this.table.children(c)) {
-            if (!("component" in child)) {
-                out.push(child.text);
-                continue;
-            }
-            const k = child.component;
-            const type = this.table.componentType(k);
-            if (OMITTED.has(type)) continue;
-            if (contract?.excludeChild?.(this.table, owner, k)) continue;
-            const hide = this.table.cell(k, "hide");
-            if (hide !== undefined) {
-                const v = reads.cell(hide);
-                if (v !== 0 && !Number.isNaN(v)) continue;
-            }
-            if (type === "case" && reads.num(k, "active") !== 1) continue;
-            if (TRANSPARENT.has(type)) {
-                this._children(reads, k, out, owner);
-                continue;
-            }
-            out.push({
-                id: this._idByComponent.get(k)!,
-                annotation: "original",
-            });
+            this._child(reads, child, out, owner);
         }
+    }
+
+    /** One child of a component into `out` (see `_children`). A
+     * component that stands as its children is spliced in; one that
+     * repeats, picks or gathers several items shows them as a list, its
+     * items separated by commas (COMP-2 of the principles), unless it says
+     * `asList="false"`, it is drawn in a graph, or an item is a block. */
+    _child(
+        reads: Reads,
+        child: { component: number } | { text: string },
+        out: FlatDastElementContent[],
+        owner: number,
+    ) {
+        const contract = CONTRACTS[this.table.componentType(owner)];
+        if (!("component" in child)) {
+            out.push(child.text);
+            return;
+        }
+        const k = child.component;
+        const type = this.table.componentType(k);
+        if (OMITTED.has(type)) return;
+        if (contract?.excludeChild?.(this.table, owner, k)) return;
+        const hide = this.table.cell(k, "hide");
+        if (hide !== undefined) {
+            const v = reads.cell(hide);
+            if (v !== 0 && !Number.isNaN(v)) return;
+        }
+        if (type === "case" && reads.num(k, "active") !== 1) return;
+        if (TRANSPARENT.has(type)) {
+            if (this._isList(k, type, owner)) {
+                this._listItems(reads, k, out, owner);
+            } else {
+                this._children(reads, k, out, owner);
+            }
+            return;
+        }
+        out.push({
+            id: this._idByComponent.get(k)!,
+            annotation: "original",
+        });
+    }
+
+    /** Whether `k`, which stands as its children, shows them as a list:
+     * a repeat, a select or a collect unless `asList="false"`, a group
+     * only with `asList`, and never inside a graph. */
+    _isList(k: number, type: string, owner: number): boolean {
+        if (CONTRACTS[this.table.componentType(owner)]?.graph) return false;
+        const asList = this.table.attr(k, "asList");
+        if (asList !== null) return asList.trim().toLowerCase() !== "false";
+        return LIST_LIKE.has(type);
+    }
+
+    /** The items of a list-like `k` into `out`, comma-separated: each
+     * iteration or pick (the children of one scope) is one item, each
+     * gathered or grouped child one. An empty item is skipped; a block
+     * item turns the commas off for the whole list. */
+    _listItems(
+        reads: Reads,
+        k: number,
+        out: FlatDastElementContent[],
+        owner: number,
+    ) {
+        const items: FlatDastElementContent[][] = [];
+        const byScope = PER_SCOPE.has(this.table.componentType(k));
+        let lastScope: number | null = null;
+        for (const child of this.table.children(k)) {
+            const scope =
+                byScope && "component" in child
+                    ? this.table.scope(child.component)
+                    : null;
+            const part: FlatDastElementContent[] = [];
+            this._child(reads, child, part, owner);
+            if (part.length === 0) continue;
+            if (scope !== null && scope === lastScope && items.length) {
+                items[items.length - 1].push(...part);
+            } else {
+                items.push(part);
+            }
+            lastScope = scope;
+        }
+        const block = items.some((item) =>
+            item.some(
+                (e) =>
+                    typeof e !== "string" &&
+                    BLOCKS.has(
+                        this.table.componentType(
+                            this._componentById.get(e.id)!,
+                        ),
+                    ),
+            ),
+        );
+        items.forEach((item, i) => {
+            if (i > 0 && !block) out.push(", ");
+            out.push(...item);
+        });
     }
 
     _setDeps(id: number, deps: Set<number>) {

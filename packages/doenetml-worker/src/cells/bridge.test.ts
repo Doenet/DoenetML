@@ -149,6 +149,51 @@ describe("references and copies", () => {
     });
 });
 
+describe("values and lists", () => {
+    it("reads a bare reference to an input as its value, and shows repeated items as a list", async () => {
+        const bridge =
+            await load(`<mathInput name="mi" prefill="x+1"/><textInput name="ti" prefill="hi"/>
+<p name="vals">$mi $ti</p>
+<number name="n">3</number><math name="m" extend="$n"/>
+<p name="r"><repeatForSequence from="1" to="3" valueName="v">$v</repeatForSequence></p>
+<p name="g"><group><number>1</number><number>2</number></group></p>
+<p name="gl"><group asList><number>1</number><number>2</number></group></p>
+<p name="rn"><repeatForSequence from="1" to="2" valueName="w" asList="false">$w</repeatForSequence></p>`);
+        const root = bridge.flatDast();
+        const texts = (e: any) =>
+            e.children.map((c: any) => {
+                if (typeof c === "string") return c;
+                const el = root.elements[c.id] as any;
+                return `<${el.name}>${el.data.props?.text ?? el.data.props?.value ?? el.data.props?.latex ?? ""}`;
+            });
+        const [vals] = byName(root, "p").filter(
+            (e) => (e as any).attributes?.name?.children?.[0] === "vals",
+        ).length
+            ? byName(root, "p")
+            : byName(root, "p");
+        const ps = byName(root, "p").map(texts);
+        // `$mi` is a math showing what was entered; `$ti` a text.
+        expect(ps[0]).toEqual(["<math>x + 1", " ", "<text>hi"]);
+        // `<math extend="$n"/>` is n's value as a math.
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual(["x + 1", "3"]);
+        // A repeat's items are comma-separated; a group's are not unless
+        // it asks; `asList="false"` turns them off.
+        expect(ps[1]).toEqual([
+            "<number>1",
+            ", ",
+            "<number>2",
+            ", ",
+            "<number>3",
+        ]);
+        expect(ps[2]).toEqual(["<number>1", "<number>2"]);
+        expect(ps[3]).toEqual(["<number>1", ", ", "<number>2"]);
+        expect(ps[4]).toEqual(["<number>1", "<number>2"]);
+        void vals;
+    });
+});
+
 describe("renderer actions", () => {
     it("moves a point and sends only what changed", async () => {
         const bridge = await load(

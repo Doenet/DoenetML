@@ -167,3 +167,103 @@ fn a_label_child_is_kept_and_a_reference_knows_its_referent() {
     let mi = doc.component("mi").unwrap();
     assert_eq!(doc.children(mi).count(), 1);
 }
+
+// A bare reference to an input is its value (REF-1a, ADR 0025), and an
+// extend across related types is the referent's value as the element's
+// type; any other pair is refused (REF-5, D26).
+
+fn child_types(doc: &cells_core::Document, path: &str) -> Vec<&'static str> {
+    let c = doc.component(path).unwrap();
+    doc.children(c)
+        .filter_map(|ch| match ch {
+            cells_core::Child::Component(k) => Some(doc.component_type(k).tag()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn a_bare_reference_to_an_input_is_its_value() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="2"/><textInput name="ti" prefill="hi"/>
+           <booleanInput name="bi" value="true"/><numberInput name="ni" value="4"/>
+           <p name="out">$mi $ti $bi $ni</p>
+           <repeatForSequence name="r" from="1" to="1"><mathInput name="in" prefill="7"/></repeatForSequence>
+           <p name="iter">$r[1]</p>
+           <p name="second"><mathInput extend="$mi"/></p>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(
+        child_types(&doc, "out"),
+        ["math", "text", "boolean", "number"]
+    );
+    // Through an iteration, and written out, it is the input.
+    assert_eq!(child_types(&doc, "iter"), ["mathInput"]);
+    assert_eq!(child_types(&doc, "second"), ["mathInput"]);
+    // The value follows the input, and the math knows its referent.
+    let out = doc.component("out").unwrap();
+    let m = doc
+        .children(out)
+        .find_map(|ch| match ch {
+            cells_core::Child::Component(k) => Some(k),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(doc.components.referent(m), doc.component("mi"));
+    assert_eq!(doc.rendered_text(m), "2");
+    set(&mut doc, "mi", "value", 5.0);
+    assert_eq!(doc.rendered_text(m), "5");
+}
+
+#[test]
+fn an_extend_across_related_types_is_the_value_as_that_type() {
+    let mut doc = load(
+        r#"<number name="n">3</number>
+           <math name="m" extend="$n"/>
+           <math name="sym">x</math><number name="k" extend="$sym"/>
+           <mathInput name="mi" extend="$n"/>
+           <textInput name="ti" prefill="hi"/><text name="t" extend="$ti"/>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(v(&doc, "m", "value"), 3.0);
+    assert!(
+        v(&doc, "k", "value").is_nan(),
+        "a symbolic math has no number"
+    );
+    assert_eq!(doc.rendered_text(doc.component("t").unwrap()), "hi");
+    // The input is bound to n: typing changes n, and m follows.
+    assert!(set(&mut doc, "mi", "value", 8.0).dropped.is_empty());
+    assert_eq!((v(&doc, "n", "value"), v(&doc, "m", "value")), (8.0, 8.0));
+}
+
+#[test]
+fn an_extend_across_unrelated_types_is_refused() {
+    let doc = load(r#"<section name="s"><p>x</p></section><math name="m" extend="$s"/><number name="ok">1</number>"#).unwrap();
+    let errors: Vec<_> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.kind == DiagnosticKind::Error)
+        .collect();
+    assert_eq!(errors.len(), 1, "{:?}", doc.diagnostics());
+    assert_eq!(errors[0].code, "cells-extend-type-mismatch");
+    assert!(
+        errors[0].message.contains("<section>") && errors[0].message.contains("<math>"),
+        "{}",
+        errors[0].message
+    );
+    assert_eq!(v(&doc, "ok", "value"), 1.0);
+}

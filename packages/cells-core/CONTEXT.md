@@ -88,9 +88,11 @@ text), which is the kind of value a cell or prop holds.
 _Avoid_: kind (the current core and DoenetML's docs say component type)
 
 **Reference** — A `$name` or `$name.prop` in the document. A component-level
-reference (`$p1`) produces a copy sharing every cell with the referent; a
-prop-level reference (`$p1.x`) aliases that one prop. A bare `$name` resolves
-to the referent's default prop (`value` for numbers and inputs).
+reference (`$p1`) produces a copy sharing every cell with the referent,
+except to an input, which it *reads as* a value of the input's declared
+type (`$mi` is a `<math>`, ADR 0025); a prop-level reference (`$p1.x`)
+aliases that one prop. A bare `$name` where a value is read resolves to
+the referent's default prop (`value` for numbers and inputs).
 
 **Copy** — The component produced by a component-level reference. A copy may
 override individual props with attributes (`<point extend="$p1" y="3"/>`);

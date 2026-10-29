@@ -18,9 +18,19 @@ impl<'a> Compiler<'a> {
         let display = self.compiled.refs[p.index()].display.clone();
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
-            ComponentType::Number | ComponentType::NumberInput | ComponentType::MathInput => {
-                vec![Source::reference(p)]
+            // A mathInput bound to a cell is a numeric input: no expression
+            // of its own (`components/inputs/math_input.rs`).
+            ComponentType::MathInput => prop::math_input::Props {
+                value: Source::reference(p),
+                expr: Source::absent(),
             }
+            .into_vec(),
+            ComponentType::Number
+            | ComponentType::NumberInput
+            | ComponentType::Text
+            | ComponentType::TextInput
+            | ComponentType::Boolean
+            | ComponentType::BooleanInput => vec![Source::reference(p)],
             ComponentType::Math => {
                 let id = self.compiled.arena.push(Expr::Cell(p));
                 self.compiled

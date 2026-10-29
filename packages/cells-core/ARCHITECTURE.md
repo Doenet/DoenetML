@@ -369,6 +369,11 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   `ctx.tuple` and the rest pick the referent's scope for the referent's
   attributes and children, so a planner reading `ctx.base()`'s children
   need not think about it.
+- A type a bare reference reads as a value says so in its block
+  (`reads_as: Math` on `<mathInput>`, ADR 0025); the build then makes a
+  `<math>` aliasing the input's props for `$mi`, and `<math
+  extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
+  referent's default prop (`ComponentType::extends_as`).
 - `fixed` is applied around the planner, not by it (`plan_with_extend`,
   `plan_attrs`): the element's own, else the nearest container's (ADR
   0022), as `Hold`s on every slot a request could write through. A type

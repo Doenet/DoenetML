@@ -128,6 +128,7 @@ pub mod group {
         /// prototype renders `<label>` the same way.
         tags: ["group", "label"],
         flags: [container],
+        presentation { asList }
         planner: Props,
     }
 }

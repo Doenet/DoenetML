@@ -233,6 +233,7 @@ pub(super) const fn definition(
         sticky: None,
         planner: crate::compile::api::Planner::Props,
         presentation: &[],
+        reads_as: None,
     }
 }
 
@@ -301,6 +302,11 @@ impl ComponentDef {
     }
     pub(super) const fn presentation(mut self, presentation: &'static [&'static str]) -> Self {
         self.presentation = presentation;
+        self
+    }
+    /// See [`super::ComponentDef::reads_as`].
+    pub(super) const fn reads_as(mut self, component_type: super::ComponentType) -> Self {
+        self.reads_as = Some(component_type);
         self
     }
     /// A sticky member with `n` points from the table's prop `first`.
@@ -467,6 +473,10 @@ pub(crate) use typed_props;
 /// lacks fails to compile. The sections come in the
 /// order below; only `tags`, `props` and `planner` are required.
 ///
+/// `reads_as: T` says a bare reference to a component of this type is a
+/// `T` holding its value, not a copy (`$mi` of a `<mathInput>` is a
+/// `<math>`; ADR 0025); its props alias the referent's of the same name.
+///
 /// `presentation { .. }` names the attributes of this type that a renderer
 /// reads from the document's literal attributes (a `<ref>`'s `to`), which
 /// the core itself never looks up; with `PRESENTATION_ATTRS`, the ones
@@ -521,6 +531,7 @@ macro_rules! component {
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
+        $(reads_as: $ras:ident,)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
@@ -529,6 +540,7 @@ macro_rules! component {
             $crate::components::define::definition(&[$($tag),+], &[])
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
+                $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
     };
@@ -537,6 +549,7 @@ macro_rules! component {
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
+        $(reads_as: $ras:ident,)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -566,6 +579,7 @@ macro_rules! component {
             $crate::components::define::definition(&[$($tag),+], PROPS)
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
+                $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {

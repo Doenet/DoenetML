@@ -13,6 +13,7 @@ component! {
     /// requests the id. Planned by `plan`; `immediateValue` is the same cell.
     tags: ["textInput"],
     flags: [copyable],
+    reads_as: Text,
     default_prop: value,
     props {
         value: children { attribute: prefill, bind: bindValueTo, interactive, rendered },

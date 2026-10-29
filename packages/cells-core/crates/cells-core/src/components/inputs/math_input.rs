@@ -13,6 +13,7 @@ component! {
     /// evaluates it; a request on `value` writes a constant expression.
     tags: ["mathInput"],
     flags: [copyable],
+    reads_as: Math,
     default_prop: value,
     props {
         // A mathInput's value is bound by a child reference or `bindValueTo`,

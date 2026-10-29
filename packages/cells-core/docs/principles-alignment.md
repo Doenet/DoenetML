@@ -364,7 +364,7 @@ the paragraph **[probe]**; REF-1a says `$mi` is the math the reader
 entered, and `<mathInput extend="$mi"/>` is how to ask for a second box.
 Authors rely on this everywhere feedback shows "you entered $mi".
 
-**Fix.** D21 asks that the rule be "a declared, schema-visible property
+**Fix (done 2026-10-29, ADR 0025).** D21 asks that the rule be "a declared, schema-visible property
 of the class". The cells core already keys behavior on declarations:
 add `implicit_prop: value` to the input types' `component!` blocks (and
 `answer`, `award`, `choice` if D21 keeps them), and let a macro child
@@ -380,7 +380,7 @@ type differs from the element's: `<math extend="$n"/>` of a number,
 **[probe]**. For an *unrelated* pair that is exactly D26's rule, and
 better than main's silent default. For the related pairs it is a gap.
 
-**Fix.** Declare D26's table once (math, number, text and boolean among
+**Fix (done 2026-10-29, ADR 0025, for the pairs the core expresses).** Declare D26's table once (math, number, text and boolean among
 each other; point, vector and coords; an input from its value type and
 back; a list from the matching scalar or list) and let `plan_extend_prop`
 read it: the element's value props alias the referent's default prop,
@@ -397,7 +397,7 @@ items of a repeat, select, collect or list are comma-separated in text,
 on screen and inside `<math>`, and `<group>` is not a list unless
 `asList`.
 
-**Fix.** The prototype's FlatDast already uses `compositeLists.ts` in
+**Fix (done 2026-10-29 in the bridge, ADR 0025).** The prototype's FlatDast already uses `compositeLists.ts` in
 `@doenet/utils` for this; the bridge should call the same helper where
 it splices, so that the sub-rules (innermost decides, an inner list is
 one item, hidden items skipped) are one implementation across cores.
@@ -526,8 +526,11 @@ Tier 1 first, smallest reversible step first:
    `displayDecimals` read through it in the bridge, the last `<label>`
    or `<title>` winning. The prototype's point renderer does not draw a
    label yet.
-6. `implicit_prop` on inputs (§3.7); the D26 conversion table (§3.8);
-   commas in the bridge (§3.9).
+6. **Done (ADR 0025).** `reads_as` on the inputs (§3.7); the D26 table
+   for the pairs the core expresses, number and math and an input with
+   its value types (§3.8), number and text waiting on a format operator;
+   commas in the bridge for repeats, selects, collects and `asList`
+   groups (§3.9), not yet inside `<math>` or in the core's text.
 7. `copy` as paste-at-compile with seeds (§3.1), after D1 is decided.
 8. Dynamic indices as `Choose` (§3.10); credit as a record once D16 is
    decided (§3.11).

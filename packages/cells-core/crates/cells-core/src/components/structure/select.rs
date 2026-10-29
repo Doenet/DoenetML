@@ -12,6 +12,7 @@ component! {
     props {
         hide: by_planner { rendered },
     }
+    presentation { asList }
     planner: Whole(plan),
 }
 

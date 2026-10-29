@@ -194,6 +194,11 @@ pub struct ComponentDef {
     pub flags: Flags,
     /// Where a component of the type is drawn (ADR 0019).
     pub renders: Renders,
+    /// The type a bare reference to a component of this type reads as
+    /// (ADR 0025): `$mi` of a `<mathInput>` is a `<math>` holding what the
+    /// reader entered, not a second input. `None` for a type a bare
+    /// reference copies.
+    pub reads_as: Option<ComponentType>,
     /// How an element of the type is planned.
     pub(crate) planner: crate::compile::api::Planner,
     /// Attributes of this type a renderer reads from the literal attributes
@@ -568,6 +573,28 @@ impl ComponentType {
     /// See [`Flags::located`].
     pub fn located(self) -> bool {
         self.def().flags.located
+    }
+
+    /// See [`ComponentDef::reads_as`].
+    pub fn reads_as(self) -> Option<ComponentType> {
+        self.def().reads_as
+    }
+
+    /// Whether `<to extend="$x"/>` of an `x` of type `from` is a related
+    /// type's extend (REF-5 of the principles, D26): it gives `x`'s value
+    /// as a `to`. The pairs this core expresses: a number and a math; an
+    /// input and a value type it reads as or one related to it, either
+    /// way (`<math extend="$mi"/>`, `<mathInput extend="$n"/>`). Any other
+    /// pair is an error (ADR 0025).
+    pub fn extends_as(from: ComponentType, to: ComponentType) -> bool {
+        use ComponentType::*;
+        fn values(a: ComponentType, b: ComponentType) -> bool {
+            a == b || matches!((a, b), (Number, Math) | (Math, Number))
+        }
+        from != to
+            && (values(from, to)
+                || from.reads_as().is_some_and(|vt| values(vt, to))
+                || to.reads_as().is_some_and(|vt| values(vt, from)))
     }
 
     /// The structural cell of a type built like a repeat (one scope per

@@ -16,6 +16,7 @@ component! {
     props {
         count: by_planner,
     }
+    presentation { asList }
     planner: Whole(plan),
 }
 

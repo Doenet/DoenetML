@@ -732,6 +732,21 @@ impl<'a> Compiler<'a> {
                 if self.compiled.refs[p.index()].prop.is_some() {
                     return Ok(ElemShape::ExtendProp(p));
                 }
+                // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an
+                // extend across related types is the referent's value as
+                // the element's type (REF-5, ADR 0025), so it is the
+                // extend of its default prop. An unrelated pair is left to
+                // the build, which refuses it once both types are known.
+                if let Some(rt) = self.ref_target_type(t, p)
+                    && rt != component_type
+                    && ComponentType::extends_as(rt, component_type)
+                    && let Some(dp) = rt.default_prop()
+                {
+                    let r = &mut self.compiled.refs[p.index()];
+                    r.prop = Some(dp.to_string());
+                    r.display = format!("{}.{dp}", r.display);
+                    return Ok(ElemShape::ExtendProp(p));
+                }
                 Some(p)
             }
             None => None,

@@ -651,6 +651,37 @@ export const TRANSPARENT = new Set([
     "case",
 ]);
 
+/** Component types that show what they produce as a list, items
+ * separated by commas, unless `asList="false"` (COMP-2 of the
+ * principles); a `group` is a list only with `asList`. */
+export const LIST_LIKE = new Set([
+    "repeat",
+    "repeatForSequence",
+    "collect",
+    "select",
+]);
+
+/** List-like types whose items are the children of one scope (an
+ * iteration, a pick) rather than single children. */
+export const PER_SCOPE = new Set(["repeat", "repeatForSequence", "select"]);
+
+/** Component types that cannot sit in a list: one of them among a list's
+ * items turns the commas off (COMP-2). */
+export const BLOCKS = new Set([
+    "p",
+    "section",
+    "graph",
+    "ul",
+    "ol",
+    "tabular",
+    "spreadsheet",
+    "sideBySide",
+    "stack",
+    "aside",
+    "hint",
+    "md",
+]);
+
 /** Component types with no view of their own. */
 export const OMITTED = new Set([
     "award",
