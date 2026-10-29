@@ -28,17 +28,6 @@ pub struct Engine {
     hasher: RandomState,
     parser: TextToAst,
     eq: EqOptions,
-    /// While a lookahead runs (`scratch`), what it adds, to forget after.
-    scratch: Option<Scratch>,
-}
-
-/// What a lookahead added to an engine: the expressions from `from` on, the
-/// hashes it indexed, and the templates whose leaves it found.
-#[derive(Debug, Default)]
-struct Scratch {
-    from: usize,
-    keys: Vec<u64>,
-    leaves: Vec<Handle>,
 }
 
 impl Default for Engine {
@@ -57,7 +46,6 @@ impl Clone for Engine {
             hasher: self.hasher.clone(),
             parser: TextToAst::new(TextToAstOptions::default()),
             eq: self.eq.clone(),
-            scratch: None,
         }
     }
 }
@@ -77,40 +65,6 @@ impl Engine {
             hasher: RandomState::new(),
             parser: TextToAst::new(TextToAstOptions::default()),
             eq: EqOptions::default(),
-            scratch: None,
-        }
-    }
-
-    /// Start a lookahead: what is stored until `end_scratch` is forgotten
-    /// then, so evaluating what a request would do (`tick::invert::realize`)
-    /// leaves the engine as it found it. Whoever starts one drops every
-    /// handle stored since before ending it. Not nested.
-    pub fn begin_scratch(&mut self) {
-        assert!(self.scratch.is_none(), "a lookahead within a lookahead");
-        self.scratch = Some(Scratch {
-            from: self.exprs.len(),
-            ..Scratch::default()
-        });
-    }
-
-    /// End a lookahead, forgetting what it stored.
-    pub fn end_scratch(&mut self) {
-        let s = self.scratch.take().expect("a lookahead to end");
-        self.exprs.truncate(s.from);
-        for k in s.keys {
-            self.index.remove(&k);
-        }
-        for h in s.leaves {
-            self.leaves.remove(&h);
-        }
-    }
-
-    /// Note that `h` was given leaves, if a lookahead stored it.
-    fn note_leaves(&mut self, h: Handle) {
-        if let Some(s) = &mut self.scratch
-            && h.index() >= s.from
-        {
-            s.leaves.push(h);
         }
     }
 
@@ -132,9 +86,6 @@ impl Engine {
         self.exprs.push(e);
         let h = Handle::from_index(self.exprs.len() - 1);
         self.index.insert(key, h);
-        if let Some(s) = &mut self.scratch {
-            s.keys.push(key);
-        }
         h
     }
 
@@ -177,7 +128,6 @@ impl Engine {
         let e = self.convert(tree, &mut leaves);
         let h = self.push(e);
         if !leaves.is_empty() {
-            self.note_leaves(h);
             self.leaves.insert(h, leaves);
         }
         h
@@ -217,7 +167,6 @@ impl Engine {
     /// returns itself. Any expression can be a template: a derivative taken
     /// at build time keeps its leaves, found here on first use.
     pub fn instantiate(&mut self, template: Handle, cells: &[f64]) -> Handle {
-        self.note_leaves(template);
         let leaves = self
             .leaves
             .entry(template)

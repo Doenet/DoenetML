@@ -207,12 +207,14 @@ fn rebuilding_back_and_forth_does_not_grow_the_engine() {
     assert_eq!(engine_len(&doc), len);
 }
 
-// A dragged group looks ahead (`realize`) at where its points would land,
-// stepping the symbolic instructions on the way on a copy of the cells: it
-// must leave no expression in the session's engine and no memo behind, and
-// give what the tick then computes.
+/// A lookahead (`realize`, ADR 0006 as amended) writes no cell. What it
+/// stores in the engine and the memos is what the tick after it computes,
+/// so that tick finds its expressions already there; and a lookahead at
+/// other values leaves memos the tick cannot use, since a memo is keyed by
+/// the values it last ran on, so the tick reruns and answers as a fresh
+/// document does.
 #[test]
-fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
+fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
     use cells_core::program::SymRun;
     use cells_core::tick::invert::realize;
     let src = r#"<graph>
@@ -221,44 +223,59 @@ fn a_lookahead_leaves_the_engine_and_the_memos_as_it_found_them() {
              <evaluate name="e" function="$m" input="3"/>
              <point name="q">($e, 0)</point>
            </graph>"#;
-    let mut doc = load(src).unwrap();
     let cell = |doc: &Document, n: &str, p: &str| doc.cell(n, p).unwrap();
-    assert_eq!(doc.cells[cell(&doc, "q", "x").index()], 4.0);
-    let ran = runs(&doc);
-    let asked = [
-        (cell(&doc, "p", "x"), 5.0),
-        (cell(&doc, "p", "y"), 2.0),
-        (cell(&doc, "q", "x"), 16.0),
-        (cell(&doc, "q", "y"), 0.0),
-    ];
     let bits = |doc: &Document| doc.cells.iter().map(|v| v.to_bits()).collect::<Vec<_>>();
+    let look = |doc: &mut Document, x: f64| {
+        let asked = [
+            (cell(doc, "p", "x"), x),
+            (cell(doc, "p", "y"), 2.0),
+            (cell(doc, "q", "x"), 3.0 * x + 1.0),
+            (cell(doc, "q", "y"), 0.0),
+        ];
+        let mut realized = Vec::new();
+        let engine = doc.session.engine.clone();
+        realize(
+            &doc.program,
+            &mut SymRun {
+                state: &mut doc.sym,
+                engine: &mut engine.borrow_mut(),
+            },
+            &doc.cells,
+            doc.n_essential,
+            &asked,
+            &mut realized,
+        );
+        realized
+    };
+    let mut doc = load(src).unwrap();
+    assert_eq!(doc.cells[cell(&doc, "q", "x").index()], 4.0);
     let (len, cells) = (engine_len(&doc), bits(&doc));
-    let mut realized = Vec::new();
-    let engine = doc.session.engine.clone();
-    realize(
-        &doc.program,
-        &mut SymRun {
-            state: &mut doc.sym,
-            engine: &mut engine.borrow_mut(),
-        },
-        &doc.cells,
-        doc.n_essential,
-        &asked,
-        &mut realized,
-    );
-    assert_eq!(realized, [5.0, 2.0, 16.0, 0.0]);
-    assert_eq!(engine_len(&doc), len, "the lookahead kept an expression");
-    assert_eq!(runs(&doc), ran, "the lookahead counted as a run");
-    assert_eq!(bits(&doc), cells);
-    // The tick computes what the lookahead saw, through the memo it left.
+    assert_eq!(look(&mut doc, 5.0), [5.0, 2.0, 16.0, 0.0]);
+    assert_eq!(bits(&doc), cells, "a lookahead writes no cell");
+    let stored = engine_len(&doc);
+    assert!(stored > len, "the lookahead stores what it computes");
+    // The tick computes what the lookahead saw, and finds it stored.
     doc.request(&[req(&doc, "p", "x", 5.0)]);
     assert_eq!(doc.cells[cell(&doc, "q", "x").index()], 16.0);
-    assert!(engine_len(&doc) > len, "the tick stores what it computes");
-    // As many runs as a tick no lookahead preceded: no memo the lookahead
-    // wrote spared one.
+    assert_eq!(
+        engine_len(&doc),
+        stored,
+        "the tick finds the lookahead's expressions"
+    );
+    assert_eq!(reference::check(&doc), None);
+
+    // A lookahead at another value than the tick's: the memo it leaves
+    // is keyed by that value, so the tick reruns, and answers as a fresh
+    // document does, in as many runs.
+    let mut doc = load(src).unwrap();
+    let ran = runs(&doc);
+    assert_eq!(look(&mut doc, 7.0), [7.0, 2.0, 22.0, 0.0]);
+    let looked = runs(&doc) - ran;
+    doc.request(&[req(&doc, "p", "x", 5.0)]);
+    assert_eq!(doc.cells[cell(&doc, "q", "x").index()], 16.0);
     let mut fresh = load(src).unwrap();
     let ran_fresh = runs(&fresh);
     fresh.request(&[req(&fresh, "p", "x", 5.0)]);
-    assert_eq!(runs(&doc) - ran, runs(&fresh) - ran_fresh);
+    assert_eq!(runs(&doc) - ran - looked, runs(&fresh) - ran_fresh);
     assert_eq!(reference::check(&doc), None);
 }

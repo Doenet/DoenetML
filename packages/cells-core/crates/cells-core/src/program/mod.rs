@@ -247,36 +247,6 @@ impl Program {
         }
     }
 
-    /// Run `f`, which steps on a copy of the cells (`step_lookahead`), and
-    /// forget every expression it stored: what a request would do
-    /// (`tick::invert::realize`) is evaluated without leaving anything in
-    /// the session's engine or in a memo. `f` must keep no handle.
-    pub fn lookahead<R>(sym: &mut SymRun, f: impl FnOnce(&mut SymRun) -> R) -> R {
-        sym.engine.begin_scratch();
-        let r = f(sym);
-        sym.engine.end_scratch();
-        r
-    }
-
-    /// Evaluate one instruction into a copy of the cells, within
-    /// `lookahead`: a symbolic instruction runs without its memo, which
-    /// keeps the inputs it last ran on in the document's cells.
-    pub fn step_lookahead(&self, ins: &Instr, sym: &mut SymRun, cells: &mut [f64]) {
-        let Op::Sym(kind, start, n, _) = ins.op else {
-            return self.step(ins, sym, cells, None);
-        };
-        let out = ins.out.index();
-        let inputs = self.operands_at(start, n as usize);
-        let mut outs = vec![0.0; kind.n_out()];
-        if let SymKind::SampleTape { tape } = kind {
-            let stack = &mut sym.state.tape_stack;
-            run_tape(&self.tapes[tape as usize], cells, inputs, &mut outs, stack);
-        } else {
-            run_sym(sym.engine, kind, cells, inputs, &mut outs);
-        }
-        cells[out..out + outs.len()].copy_from_slice(&outs);
-    }
-
     /// A symbolic instruction: rerun only if an input changed since its last
     /// run, then write the outputs of that run. Keyed on input values rather
     /// than on a dirty flag, so stepping on a scratch copy (the reference
