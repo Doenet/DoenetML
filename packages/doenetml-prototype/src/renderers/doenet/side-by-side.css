@@ -1,0 +1,11 @@
+.doenet-document {
+    .side-by-side {
+        @apply flex flex-wrap items-start gap-4;
+        > div {
+            min-width: 0;
+        }
+    }
+    .stack {
+        @apply flex flex-col;
+    }
+}

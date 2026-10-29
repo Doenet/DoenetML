@@ -105,8 +105,10 @@
                         });
                         return call("updateValue");
                     }
+                    if (cells() && component === "mathInput")
+                        return call("updateValue", { text: step.value });
                     throw new Error(
-                        `unsupported: typing into a ${component} (the prototype has no mathInput renderer)`,
+                        `unsupported: typing into a ${component} (the Rust core has no mathInput)`,
                     );
                 case "submitAnswer":
                     if (cells()) return call("submitAnswer");

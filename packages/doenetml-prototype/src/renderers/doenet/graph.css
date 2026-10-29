@@ -66,3 +66,14 @@
         grid-area: center;
     }
 }
+
+.doenet-document .graph-legend {
+    @apply absolute top-2 right-2 text-sm px-2 py-1 border rounded-sm;
+    background-color: var(--canvas);
+    border-color: var(--canvasText);
+    z-index: 10;
+}
+
+.doenet-document .graph-legend-entry {
+    @apply flex items-center gap-1.5;
+}

@@ -1,0 +1,5 @@
+.doenet-document {
+    .slider .slider-value {
+        @apply ml-1;
+    }
+}
