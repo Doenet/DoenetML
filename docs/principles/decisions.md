@@ -731,7 +731,7 @@ and adds a special case that users of modules would have to know about.
 every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
 the sweep: 19 list forms, each with its first entry's source hidden. Still open:
 - `styleNumber` and display settings under the container model: #2374;
-- a hidden list's entries in a `<choice>`'s text and an `<li>`'s lead: #2375;
+- a hidden list's entries in a `<choice>`'s text and an `<li>`'s lead: #2375, decided below;
 - writes through `$l[k].hide`, a follow-up under VAL-9.
 
 **Before #2368** a list entry whose source is written with `hide` was handled by three different rules
@@ -820,15 +820,42 @@ and never override or clear what an entry's source sets:
   - For an authored `<mathList styleNumber="2"><math styleNumber="3">`, the entry is style 3.
 - Authors who want a list to override its entries opt in explicitly: D31.
 
-**Known violation, not caused by D29: a list's own `hide` in a parent that reads its entries.** A
-component's `hiddenIgnoreParent` includes its source composite's, so `<group hide>` takes its
-replacements out of a `<choice>`'s text and out of what an `<li>` leads with. A list's entries
-stand in their parent's children the same way, but their `hiddenIgnoreParent` leaves out the
-list's own `hide`:
-- `<choice><textList hide>q</textList> r</choice>` has text `q r`; with `<text hide>` it is ` r`;
-- `<li><textList hide>q</textList><p>x</p></li>` leads with the undrawn entry.
+**Decided: what a parent that ignores its own hiding counts is what would be drawn (#2375).**
+A few parents read their children while ignoring whether they themselves are hidden:
+- a `<choice>`'s text;
+- the child an `<li>` leads with (`childRendersSomething`);
+- a `<chart>`'s series.
 
-Tracked in #2375. The fix is to include the list's `hiddenIgnoreParent` in each entry's (CTX-5).
+They read each child's `hiddenIgnoreParent`. The rule for them is:
+
+> A child counts exactly when it would be drawn if the parent were shown. Everything between the
+> child and the parent counts toward that, including a list whose entry it is, and the
+> composites the list came from.
+
+So an entry's `hiddenIgnoreParent` is its source's own `hide` OR the list's `hiddenIgnoreParent`,
+the same way a composite's replacements include the composite's. This does not touch D29 rule
+1: `$l[k].hide` stays the source's own attribute. `hiddenIgnoreParent` is not `hide`, and for
+every other component it already includes what stands between the component and its parent.
+
+Before the fix (**[probe]**, `<choice>`'s text, compared with what a `<p>` draws for the same
+content):
+
+| Choice | Text today | Drawn in a `<p>` | After the fix |
+|---|---|---|---|
+| `<textList hide>q</textList> r` | `q r` | nothing | ` r` |
+| `<group hide><text>q</text></group> r` | ` r` | nothing | ` r` (unchanged) |
+| `<group hide><textList>q</textList></group> r` | `q r` | nothing | ` r` |
+| `$c r`, `c` a `<collect hide>` | `q r` | nothing | ` r` |
+| `$tl r`, `tl` a `<textList hide>` | `q r` | shown | `q r` (unchanged) |
+| `$g r`, `g` a `<group hide>` | `q r` | shown | `q r` (unchanged) |
+| `<textList><text hide>q</text></textList> r` | ` r` | the entry is not drawn | ` r` (unchanged) |
+
+The two bare references stay as they are because today's D9 shows them. If D9 changes, they follow
+it automatically under this rule. The `<collect>` row needs the same treatment as its drawing:
+#2368's `listHiddenWithReferences` hides `$c`, so its entries must not count either.
+
+A test for #2375 can assert the rule directly: for each row, the choice's text equals the text of
+a `<p>` holding the same content.
 
 **Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
 (**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
