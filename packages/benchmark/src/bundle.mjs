@@ -119,10 +119,8 @@ for (const [set, list] of Object.entries(SETS)) {
     // them means nothing once the dist is rebuilt.
     records.push({ set, raw_bytes: raw, brotli_bytes: brotli });
 }
-const machine = process.env.BENCH_MACHINE;
-if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
 const run = openRun({
-    machine,
+    machine: process.env.BENCH_MACHINE,
     cores: [],
     layer: "bundle",
     sets: records.map((r) => r.set),

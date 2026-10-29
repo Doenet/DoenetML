@@ -16,7 +16,7 @@ import { createServer } from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, resolve } from "node:path";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
-import { repoRoot } from "../src/fixtures.mjs";
+import { fixturesDir, generatedDir, repoRoot } from "../src/fixtures.mjs";
 
 export const CELLS_PORT = 4173;
 export const JS_PORT = 4174;
@@ -134,8 +134,8 @@ function serve(port, roots, cache = NO_STORE, compress = false) {
 
 const here = resolve(new URL(".", import.meta.url).pathname);
 const cellsRoots = [
-    ["/fixtures/generated/", resolve(here, "../fixtures/generated")],
-    ["/fixtures/", resolve(here, "../fixtures")],
+    ["/fixtures/generated/", generatedDir],
+    ["/fixtures/", fixturesDir],
     ["/", resolve(repoRoot, "packages/cells-viewer/dist")],
 ];
 serve(CELLS_PORT, cellsRoots);

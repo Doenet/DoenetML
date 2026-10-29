@@ -1,6 +1,7 @@
 // The corpus: the real documents, one manifest each in `fixtures/*.json`,
-// and the synthetic shapes of `src/generate.mjs` at every size in `SIZES`.
-// See METHOD.md for both.
+// the synthetic shapes of `src/generate.mjs` at every size in `SIZES`, and
+// the trace layer's `homework-x<n>`. See METHOD.md for all three, and
+// README.md for the manifest's fields.
 import {
     existsSync,
     mkdirSync,
@@ -16,8 +17,11 @@ export { SIZES, shapes };
 const here = dirname(fileURLToPath(import.meta.url));
 export const packageRoot = resolve(here, "..");
 export const repoRoot = resolve(packageRoot, "../..");
-const fixturesDir = resolve(packageRoot, "fixtures");
-const generatedDir = resolve(fixturesDir, "generated");
+/** The real documents and their manifests, which `browser/serve.mjs`
+ * serves under `/fixtures/`. */
+export const fixturesDir = resolve(packageRoot, "fixtures");
+/** Generated text, ignored by git, served under `/fixtures/generated/`. */
+export const generatedDir = resolve(fixturesDir, "generated");
 
 /** The manifest of synthetic fixture `shape-n`. */
 function synthetic(shape, n) {
@@ -36,7 +40,6 @@ function synthetic(shape, n) {
         // layer also times on screen (`follow`).
         ...(watch ? { watch } : {}),
         check,
-        structural: null,
     };
 }
 
@@ -63,6 +66,7 @@ export function listFixtures() {
     return [...out, ...real];
 }
 
+/** The manifest named `name`: the floor, a synthetic fixture or a real document. */
 export function loadFixture(name) {
     if (name === "floor") {
         const { steps, check } = generate("floor");
@@ -72,7 +76,6 @@ export function loadFixture(name) {
             source: { generate: "floor" },
             steps,
             check,
-            structural: null,
         };
     }
     const m = /^([a-z]+)-(\d+)$/.exec(name);
@@ -89,18 +92,49 @@ export function fixtureText(manifest) {
         return readFileSync(resolve(fixturesDir, source.file), "utf8");
     if (source.path)
         return readFileSync(resolve(repoRoot, source.path), "utf8");
-    if (source.generate) return generated(source.generate);
+    if (source.generate)
+        return generated(source.generate, generate(source.generate).text);
     throw new Error(
         `${manifest.name}: source must name a file, a path or a generate spec`,
     );
 }
 
-/** Generated text is cached in `fixtures/generated/` (ignored by git). */
-function generated(spec) {
+/** Keep `text` as `fixtures/generated/<name>.doenet`, written when it
+ * differs from what is there, so a server can serve it; returns `text`. */
+function generated(name, text) {
     mkdirSync(generatedDir, { recursive: true });
-    const out = resolve(generatedDir, `${spec}.doenet`);
-    const text = generate(spec).text;
+    const out = resolve(generatedDir, `${name}.doenet`);
     if (!existsSync(out) || readFileSync(out, "utf8") !== text)
         writeFileSync(out, text);
     return text;
+}
+
+/**
+ * The trace layer's document of size `n`: `homework` itself for `n` = 1,
+ * else `homework-x<n>`, the homework page with its problems and score
+ * repeated in `n` sections, so a load's steps can be read against the size
+ * of the document (a step whose time stays put as `n` grows is a fixed
+ * cost of the page; one that grows with it is work on the document). Gives
+ * its name, its text, and the URL `browser/serve.mjs` serves it at.
+ */
+export function homeworkFixture(n) {
+    const text = readFileSync(resolve(fixturesDir, "homework.doenet"), "utf8");
+    if (n === 1)
+        return { name: "homework", url: "/fixtures/homework.doenet", text };
+    // The title and the instructions once; the problems and the score in
+    // each section, where their names are scoped to the section.
+    const firstProblem = text.indexOf("<problem");
+    const head = text.slice(0, firstProblem);
+    const body = text.slice(firstProblem).trim();
+    const sections = Array.from(
+        { length: n },
+        (_, i) =>
+            `<section name="set${i + 1}"><title>Set ${i + 1}</title>\n\n${body}\n</section>`,
+    );
+    const name = `homework-x${n}`;
+    return {
+        name,
+        url: `/fixtures/generated/${name}.doenet`,
+        text: generated(name, head + sections.join("\n\n") + "\n"),
+    };
 }

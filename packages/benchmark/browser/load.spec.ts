@@ -13,24 +13,25 @@
 // See METHOD.md, The load layer.
 //
 //   BENCH_MACHINE=<id> npm run load
-import { test, type Browser, type Page } from "@playwright/test";
 import {
-    DEVICES,
-    NETWORKS,
-    calibrate,
-    listEnv,
-    recheck,
-} from "../src/devices.mjs";
+    test,
+    type Browser,
+    type BrowserContext,
+    type Page,
+} from "@playwright/test";
+import { DEVICES, NETWORKS, calibrate, recheck } from "../src/devices.mjs";
+import { listEnv } from "../src/env.mjs";
+import { homeworkFixture } from "../src/fixtures.mjs";
 import { appendRecord, openRun, readRecords } from "../src/results.mjs";
-import { homeworkFixture } from "../src/trace-fixtures.mjs";
+import { median } from "../src/stats.mjs";
 
 type DeviceName = keyof typeof DEVICES;
 
 const RUNS = Number(process.env.BENCH_LOAD_RUNS ?? 5);
-const DEVICE_NAMES: DeviceName[] = listEnv(
+const DEVICE_NAMES = listEnv(
     "BENCH_LOAD_DEVICES",
     "desktop,mid-phone,slow-phone",
-);
+) as DeviceName[];
 /** Unset: each device on its own network. Set: every device on each. */
 const NETWORK_NAMES: string[] | null = process.env.BENCH_LOAD_NETWORKS
     ? listEnv("BENCH_LOAD_NETWORKS", "")
@@ -51,25 +52,16 @@ for (const n of NETWORK_NAMES ?? [])
     if (!(n in NETWORKS)) throw new Error(`no network ${n}`);
 
 /**
- * The pages. `path` is where the document is loaded from its URL.
- * `visible` is the moment the document can be read: the client-rendered
- * pages show nothing of it before their first render (their first paint
- * is the page's toolbar), so it is the `render` step's end.
+ * The pages, each by where it loads the document from its URL. Both are
+ * client-rendered: nothing of the document shows before their first render
+ * (their first paint is the page's toolbar), so the document is readable
+ * at the `render` step's end.
  */
-const PAGES: Record<
-    string,
-    { path: (url: string) => string; visible: "first_render" | "first_paint" }
-> = {
-    viewer: {
-        path: (url) => `/?src=${url}&editor=0`,
-        visible: "first_render",
-    },
-    editor: { path: (url) => `/?src=${url}`, visible: "first_render" },
+const PAGES: Record<string, (url: string) => string> = {
+    viewer: (url) => `/?src=${url}&editor=0`,
+    editor: (url) => `/?src=${url}`,
 };
 for (const p of PAGE_NAMES) if (!(p in PAGES)) throw new Error(`no page ${p}`);
-
-const machine = process.env.BENCH_MACHINE;
-if (!machine) throw new Error("name the machine: BENCH_MACHINE=<id>");
 
 const SCENARIOS = PAGE_NAMES.flatMap((page) =>
     DEVICE_NAMES.flatMap((device) =>
@@ -81,7 +73,7 @@ const SCENARIOS = PAGE_NAMES.flatMap((page) =>
     ),
 );
 const run = openRun({
-    machine,
+    machine: process.env.BENCH_MACHINE,
     cores: ["cells"],
     layer: "load",
     // Playwright loads this spec again in a worker it starts after a test
@@ -130,7 +122,7 @@ function observePaint() {
 }
 
 /** Read one visit's measurements from the page. */
-async function collect(page: Page, visible: "first_render" | "first_paint") {
+async function collect(page: Page) {
     const m = await page.evaluate(() => {
         const r = (x: number) => Math.round(x * 100) / 100;
         const measures = performance
@@ -174,8 +166,7 @@ async function collect(page: Page, visible: "first_render" | "first_paint") {
             })),
         };
     });
-    const visible_ms =
-        visible === "first_paint" ? m.first_paint_ms : m.first_render_ms;
+    const visible_ms = m.first_render_ms;
     // Total blocking time from the document's being visible until it can
     // be used: each long task's time beyond LONG_TASK_MS, within that span.
     let blocking_ms = 0;
@@ -197,7 +188,7 @@ async function collect(page: Page, visible: "first_render" | "first_paint") {
 
 /** Open a page in `context` throttled as `rate` and `network` say. */
 async function devicePage(
-    context: import("@playwright/test").BrowserContext,
+    context: BrowserContext,
     rate: number,
     network: string,
 ) {
@@ -268,7 +259,7 @@ test("warm the server", async ({ browser }) => {
         for (const p of PAGE_NAMES) {
             const page = await context.newPage();
             page.on("pageerror", (e) => console.warn(String(e)));
-            await load(page, PAGES[p].path(fixture.url));
+            await load(page, PAGES[p](fixture.url));
             await page.close();
         }
     } finally {
@@ -287,7 +278,7 @@ for (const s of SCENARIOS) {
         const cal = await calibration(browser);
         const device = DEVICES[s.device];
         const rate: number = cal.cpus[device.cpu].rate;
-        const page = PAGES[s.page];
+        const path = PAGES[s.page](fixture.url);
         const runs: Record<Visit, any[]> = { cold: [], warm: [] };
         // A new profile per repetition, so `cold` is cold every time.
         for (let r = 0; r < RUNS; r++) {
@@ -296,8 +287,8 @@ for (const s of SCENARIOS) {
             try {
                 for (const v of VISITS) {
                     const p = await devicePage(context, rate, s.network);
-                    await load(p, page.path(fixture.url));
-                    runs[v].push(await collect(p, page.visible));
+                    await load(p, path);
+                    runs[v].push(await collect(p));
                     await p.close();
                 }
             } finally {
@@ -315,8 +306,6 @@ for (const s of SCENARIOS) {
                 visit: v,
                 runs: runs[v],
             });
-        const median = (xs: number[]) =>
-            [...xs].sort((a, b) => a - b)[xs.length >> 1];
         console.log(
             `${s.page} ${s.device} ${s.network} (cpu x${rate.toFixed(2)}): ` +
                 VISITS.map(

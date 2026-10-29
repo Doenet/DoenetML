@@ -114,13 +114,6 @@ const TOLERANCE = 0.05;
 /** ...or for this many steps. */
 const MAX_STEPS = 5;
 
-function median(xs) {
-    const s = [...xs].sort((a, b) => a - b);
-    return s.length % 2
-        ? s[s.length >> 1]
-        : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-}
-
 /** The workload's fastest repetition in a new page throttled by `rate`. */
 async function fastestMs(browser, rate, repeats) {
     const page = await browser.newPage();
@@ -249,12 +242,4 @@ export async function calibrate(browser) {
 export async function recheck(browser) {
     const host = await workloadMs(browser);
     return { host_workload_ms: host.ms, host_rounds_ms: host.rounds };
-}
-
-/** A comma-separated list from the environment, or the default. */
-export function listEnv(name, d) {
-    return (process.env[name] ?? d)
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
 }

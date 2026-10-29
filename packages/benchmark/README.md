@@ -8,6 +8,24 @@ waits for a document on a phone (the load layer). `METHOD.md` says what is
 measured and why; this file says how to run it. The results are in
 `results/README.md`, one directory per run.
 
+## Layout
+
+- `src/`: the layers that run in Node (`run.mjs` with `measure-one.ts`,
+  the comparison; `bundle.mjs`, the bundle sizes) and what every layer
+  shares: the corpus (`fixtures.mjs`, `generate.mjs`), the runs
+  (`results.mjs`), the load layer's devices, the trace layer's glossary
+  (`steps.mjs`) and its reader of Chrome traces.
+- `browser/`: the layers that run in a browser, as Playwright specs
+  (`perf`, `trace`, `load`, `interaction`), the pages and adapters each
+  core is driven through, and the server that serves them (`serve.mjs`).
+- `scripts/`: what a person runs besides a layer: the pages
+  (`render.mjs`, with a module per page that has one of its own), the
+  corpus listing, the regression check.
+- `fixtures/`: the real documents and their manifests. Generated text
+  lands in `fixtures/generated/`, ignored by git.
+- `results/`: the committed runs, their pages and the index, all
+  generated and never edited by hand.
+
 ## A run
 
 A run measures every core on one machine at one commit. Build each core
@@ -31,7 +49,7 @@ quickly; such a run is not one to keep.
 
 The driver, `src/run.mjs`, measures each core's adapter floor, then every
 fixture across the cores in turn, each in its own process running
-`src/measure-one.ts`, prebundled by `scripts/bundle-driver.mjs` into
+`src/measure-one.ts`, prebundled by `src/bundle-driver.mjs` into
 `packages/doenetml-worker-javascript/.bench/` (rebuilt when a source is
 newer) over that package's test utilities (`DOENET_TEST_CORE` selects the
 core; the Rust and cells adapters are `test-core-rust.ts` and
@@ -51,6 +69,24 @@ every prop. A record in `node.json`:
 | `check`                           | The value check: `ok`, the `values` read and the `expected` ones. Real documents have none.                                                                                                                                                                                                                              |
 | `state_bytes`, `state_gzip_bytes` | The session's saved state after the ticks. The JS core's is the `coreState` of its persistence payload; `state_envelope_bytes` is the whole payload a host stores.                                                                                                                                                       |
 | `error_components`                | Error components in the loaded document, where the core can report them; real documents only, since a shape's value check already says whether the work was done.                                                                                                                                                        |
+
+## Fixtures
+
+`npm run fixtures` lists the corpus: every shape at every size, then the
+real documents, each with where its text comes from, its size, the
+actions its manifest drives and the values it checks. A real document is
+a DoenetML file and a manifest beside it, `fixtures/<name>.json`; the
+shapes' manifests are made by `src/generate.mjs`.
+
+| Field                     | Meaning                                                                                                                                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                    | The fixture's name, the file's own.                                                                                                                                                                                                                                                                                     |
+| `tier`                    | `real`; a shape is `synthetic`, the adapter floor `floor`.                                                                                                                                                                                                                                                              |
+| `mechanism`, `notes`      | What the document exercises, and what a reader should know about it.                                                                                                                                                                                                                                                    |
+| `source`                  | Where the text is: `file`, relative to `fixtures/`; `path`, relative to the repository; or `generate`, a shape and size (`depth-1000`).                                                                                                                                                                                  |
+| `steps`                   | The primary action, as steps taken in turn, each with its `target` (a name path, `p3.mi`): `movePoint` (`x`, `y`); `updateValue` (`value`, and `kind: "text"` for a text input, which the JS core takes differently from a math input); `submitAnswer`; `triggerActions`. The browser layer drags a `movePoint` target with the pointer. |
+| `in_graph`                | The first step's target is drawn in a graph and has no element of its own in the JS viewer, whose load waits for the board instead.                                                                                                                                                                                      |
+| `start`, `watch`, `check` | The shapes' own: where the dragged point starts, so a page can find it on screen without asking the core; a point the drag moves that the browser layer times too (`follow`); and the value check (`METHOD.md`).                                                                                                      |
 
 ## The browser layer
 
@@ -150,6 +186,7 @@ every file with its bytes on the wire and when it arrived.
 
 Load on a network of `none` to read a device's CPU alone, as in
 `BENCH_LOAD_NETWORKS=none,slow-4g`.
+
 ## The interaction layer
 
 ```bash
