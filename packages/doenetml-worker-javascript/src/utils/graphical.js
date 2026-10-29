@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { convertValueToMathExpression } from "@doenet/utils";
 
 export function returnAnchorAttributes() {
     return {
@@ -103,6 +104,9 @@ export function returnAnchorStateVariableDefinition() {
             public: true,
             forRenderer: true,
             hasEssential: true,
+            // a save holds a math-expression as its tree, so a restored value
+            // must be made a math-expression again
+            set: convertValueToMathExpression,
             isLocation: true,
             groupName: "positioning",
             shadowingInstructions: {
