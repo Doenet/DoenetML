@@ -10,7 +10,8 @@
 //!
 //! When the view folds iterations (the probe), a slot may have another
 //! source in the iterations after the first (`Builder::later_sources`): the
-//! walk follows that one too, as the writable walk does.
+//! walk follows that one too, as the writable walk does
+//! (`Builder::walk_classes` is the walk both share).
 
 use super::*;
 
@@ -18,8 +19,6 @@ impl<'c> Builder<'c> {
     /// Per slot, whether its class is live. `roots` is each slot's alias
     /// class and `class_def` each class's defining slot, by root.
     pub(in crate::build) fn live_slots(&self, roots: &[SlotId], class_def: &[SlotId]) -> Vec<bool> {
-        let n = self.sources.len();
-        let mut seen = vec![false; n];
         let mut stack: Vec<SlotId> = Vec::new();
         let (rendered, in_sticky) = self.components.placement(self.root);
         for c in CompIdx::below(self.components.component_type.len()) {
@@ -40,40 +39,15 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        // The later sources of each class, by root (the probe only).
-        let mut later: HashMap<SlotId, Vec<usize>> = HashMap::new();
-        for (i, &(s, _)) in self.later_sources.iter().enumerate() {
-            later.entry(roots[s.index()]).or_default().push(i);
-        }
-        // The seed sources of each class, by root.
-        let mut seeded: HashMap<SlotId, Vec<SlotId>> = HashMap::new();
-        for &(s, from) in &self.seeds {
-            seeded.entry(roots[s.index()]).or_default().push(from);
-        }
-        let follow = |src: &BuiltSource, stack: &mut Vec<SlotId>| match src {
-            BuiltSource::Alias(t) => stack.push(roots[t.index()]),
-            BuiltSource::Op(_, start, count) => stack.extend(
-                self.op_inputs[*start as usize..*start as usize + *count as usize]
-                    .iter()
-                    .map(|&i| roots[i.index()]),
-            ),
-            BuiltSource::VecOut(head, _) => stack.push(roots[head.index()]),
-            BuiltSource::Literal(_) | BuiltSource::Fixed(_) | BuiltSource::Unset => {}
-        };
-        while let Some(root) = stack.pop() {
-            if std::mem::replace(&mut seen[root.index()], true) {
-                continue;
-            }
-            follow(&self.sources[class_def[root.index()].index()], &mut stack);
-            if let Some(entries) = later.get(&root) {
-                for &i in entries {
-                    follow(&self.later_sources[i].1, &mut stack);
-                }
-            }
-            if let Some(froms) = seeded.get(&root) {
-                stack.extend(froms.iter().map(|&f| roots[f.index()]));
-            }
-        }
+        // A seeded slot reads its seed's source when it is built.
+        let seeds: Vec<(SlotId, BuiltSource)> = self
+            .seeds
+            .iter()
+            .map(|&(s, from)| (s, BuiltSource::Alias(from)))
+            .collect();
+        let seen = self.walk_classes(roots, class_def, stack, &seeds, |_, src, stack| {
+            stack.extend(src.inputs(&self.op_inputs).map(|i| roots[i.index()]))
+        });
         roots.iter().map(|&r| seen[r.index()]).collect()
     }
 }

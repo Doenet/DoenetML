@@ -11,7 +11,8 @@
 //! When the view folds iterations (the probe), a slot may have another
 //! source in the iterations after the first (`Builder::later_sources`): the
 //! walk follows that one too when it reaches the slot's class, so a
-//! template slot a later iteration writes is found.
+//! template slot a later iteration writes is found (`Builder::walk_classes`
+//! is the walk the live walk shares).
 
 use super::*;
 
@@ -24,9 +25,7 @@ impl<'c> Builder<'c> {
         roots: &[SlotId],
         class_def: &[SlotId],
     ) -> Vec<bool> {
-        let n = self.sources.len();
-        let mut writable = vec![false; n];
-        let mut seen = vec![false; n];
+        let mut writable = vec![false; self.sources.len()];
         let mut stack: Vec<SlotId> = Vec::new();
         for c in CompIdx::below(self.components.component_type.len()) {
             let ty = self.components.component_type[c.index()];
@@ -38,38 +37,15 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        // The later sources of each class, by root (the probe only).
-        let mut later: HashMap<SlotId, Vec<usize>> = HashMap::new();
-        for (i, &(s, _)) in self.later_sources.iter().enumerate() {
-            later.entry(roots[s.index()]).or_default().push(i);
-        }
-        let mut follow = |slot: SlotId, src: &BuiltSource, stack: &mut Vec<SlotId>| match src {
-            BuiltSource::Literal(_) => writable[slot.index()] = true,
-            BuiltSource::Alias(t) => stack.push(roots[t.index()]),
-            BuiltSource::Op(spec, start, count) => {
-                let mask = spec.writes();
-                for k in 0..(*count as usize).min(64) {
-                    if mask & (1 << k) != 0 {
-                        stack.push(roots[self.op_inputs[*start as usize + k].index()]);
-                    }
-                }
+        self.walk_classes(roots, class_def, stack, &[], |slot, src, stack| {
+            if let BuiltSource::Literal(_) = src {
+                writable[slot.index()] = true;
             }
-            BuiltSource::VecOut(head, _) => stack.push(roots[head.index()]),
-            BuiltSource::Fixed(_) | BuiltSource::Unset => {}
-        };
-        while let Some(root) = stack.pop() {
-            if std::mem::replace(&mut seen[root.index()], true) {
-                continue;
-            }
-            let def = class_def[root.index()];
-            follow(def, &self.sources[def.index()], &mut stack);
-            if let Some(entries) = later.get(&root) {
-                for &i in entries {
-                    let (s, src) = &self.later_sources[i];
-                    follow(*s, src, &mut stack);
-                }
-            }
-        }
+            stack.extend(
+                src.writable_inputs(&self.op_inputs)
+                    .map(|i| roots[i.index()]),
+            );
+        });
         writable
     }
 }

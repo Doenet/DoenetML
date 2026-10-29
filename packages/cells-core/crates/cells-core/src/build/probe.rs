@@ -131,22 +131,11 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
     pub(in crate::build) fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
-        self.source_inputs(&self.sources[s.index()], out);
+        out.extend(self.sources[s.index()].inputs(&self.op_inputs));
         for (slot, src) in &self.later_sources {
             if *slot == s {
-                self.source_inputs(src, out);
+                out.extend(src.inputs(&self.op_inputs));
             }
-        }
-    }
-
-    /// The slots a source reads.
-    fn source_inputs(&self, src: &BuiltSource, out: &mut Vec<SlotId>) {
-        match src {
-            BuiltSource::Alias(t) => out.push(*t),
-            BuiltSource::Op(_, start, n) => out
-                .extend_from_slice(&self.op_inputs[*start as usize..*start as usize + *n as usize]),
-            BuiltSource::VecOut(head, _) => out.push(*head),
-            _ => {}
         }
     }
 
@@ -154,20 +143,16 @@ impl<'c> Builder<'c> {
     /// can do: the common case, decided in one pass before any component
     /// is searched.
     fn reads_only_earlier_slots(&self) -> bool {
-        let mut inputs = Vec::new();
-        let earlier = |s: usize, src: &BuiltSource, inputs: &mut Vec<SlotId>| {
-            inputs.clear();
-            self.source_inputs(src, inputs);
-            inputs.iter().all(|&w| w.index() < s)
-        };
+        let earlier =
+            |s: usize, src: &BuiltSource| src.inputs(&self.op_inputs).all(|w| w.index() < s);
         self.sources
             .iter()
             .enumerate()
-            .all(|(s, src)| earlier(s, src, &mut inputs))
+            .all(|(s, src)| earlier(s, src))
             && self
                 .later_sources
                 .iter()
-                .all(|(s, src)| earlier(s.index(), src, &mut inputs))
+                .all(|(s, src)| earlier(s.index(), src))
     }
 
     fn scope_within(&self, mut s: ScopeId, of: ScopeId) -> bool {

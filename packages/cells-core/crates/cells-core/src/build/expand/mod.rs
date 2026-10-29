@@ -62,6 +62,44 @@ pub(in crate::build) enum BuiltSource {
     VecOut(SlotId, u8),
 }
 
+impl BuiltSource {
+    /// The slots this source reads: an alias its target, an operator its
+    /// inputs (in `op_inputs`), a vector output its head, which reads every
+    /// input; a value or a constant none.
+    pub(in crate::build) fn inputs<'a>(
+        &self,
+        op_inputs: &'a [SlotId],
+    ) -> impl Iterator<Item = SlotId> + 'a {
+        let (one, many): (Option<SlotId>, &[SlotId]) = match self {
+            BuiltSource::Alias(t) => (Some(*t), &[]),
+            BuiltSource::Op(_, start, n) => (
+                None,
+                &op_inputs[*start as usize..*start as usize + *n as usize],
+            ),
+            BuiltSource::VecOut(head, _) => (Some(*head), &[]),
+            BuiltSource::Unset | BuiltSource::Literal(_) | BuiltSource::Fixed(_) => (None, &[]),
+        };
+        one.into_iter().chain(many.iter().copied())
+    }
+
+    /// Of `inputs`, those a request on what this source defines could write
+    /// through (ADR 0018): an operator's inputs its inverse may write
+    /// (`OpSpec::writes`); all of an alias's or a vector output's.
+    pub(in crate::build) fn writable_inputs<'a>(
+        &self,
+        op_inputs: &'a [SlotId],
+    ) -> impl Iterator<Item = SlotId> + 'a {
+        let mask = match self {
+            BuiltSource::Op(spec, ..) => spec.writes(),
+            _ => u64::MAX,
+        };
+        self.inputs(op_inputs)
+            .enumerate()
+            .filter(move |&(k, _)| k < 64 && mask & (1 << k) != 0)
+            .map(|(_, s)| s)
+    }
+}
+
 /// `Builder::is_symbolic`'s memo for one component.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub(in crate::build) enum MathMode {

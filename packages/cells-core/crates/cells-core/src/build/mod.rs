@@ -129,6 +129,48 @@ pub(in crate::build) fn build_with(
     Ok(u)
 }
 
+impl<'c> Builder<'c> {
+    /// The backward walk over emit's alias classes that the writable walk
+    /// (`writable.rs`, ADR 0018) and the live walk (`live.rs`, ADR 0019)
+    /// share: from the classes on `stack`, `edge` is given each class's
+    /// defining slot and source, then each source the slots of the class
+    /// have besides (its later sources when the view folds iterations, and
+    /// `extra`), and pushes the classes to go on to. `roots` is each
+    /// slot's class and `class_def` each class's defining slot, by root.
+    /// Returns, by root, whether the walk reached the class.
+    pub(in crate::build) fn walk_classes(
+        &self,
+        roots: &[SlotId],
+        class_def: &[SlotId],
+        mut stack: Vec<SlotId>,
+        extra: &[(SlotId, BuiltSource)],
+        mut edge: impl FnMut(SlotId, &BuiltSource, &mut Vec<SlotId>),
+    ) -> Vec<bool> {
+        let mut seen = vec![false; self.sources.len()];
+        // The other sources of each class, by root.
+        let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
+        for entry in self.later_sources.iter().chain(extra) {
+            besides
+                .entry(roots[entry.0.index()])
+                .or_default()
+                .push(entry);
+        }
+        while let Some(root) = stack.pop() {
+            if std::mem::replace(&mut seen[root.index()], true) {
+                continue;
+            }
+            let def = class_def[root.index()];
+            edge(def, &self.sources[def.index()], &mut stack);
+            if let Some(entries) = besides.get(&root) {
+                for (slot, src) in entries {
+                    edge(*slot, src, &mut stack);
+                }
+            }
+        }
+        seen
+    }
+}
+
 /// What can go wrong in a build (ADR 0014, ADR 0015): only that the
 /// compile missed something, a core bug, which `tests/every_count.rs`
 /// exists to catch. Never an author's error: the compile has boxed or
