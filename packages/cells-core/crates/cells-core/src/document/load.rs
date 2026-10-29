@@ -188,12 +188,11 @@ impl Document {
     /// Compile, then build until the structure settles (ADR 0015); with
     /// the document, its structural depth as the check bounded it.
     fn settle_load(dast: Arc<Dast>, options: LoadOptions) -> crate::Result<(Document, u32)> {
-        #[allow(unused_mut)]
-        let mut session = Session::new(options.seed);
-        #[cfg(feature = "testing")]
-        {
-            session.sample_with_engine = options.sample_with_engine;
-        }
+        let session = Session {
+            #[cfg(feature = "testing")]
+            sample_with_engine: options.sample_with_engine,
+            ..Session::new(options.seed)
+        };
         // Compile once (ADR 0015); every pass is a build of that compile.
         let crate::compile::CompileOutput {
             compiled,

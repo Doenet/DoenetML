@@ -239,7 +239,7 @@ case), carry every piece before other components follow:
    slider started at the grid point nearest 0, not at `from`; fixed
    since.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
-   **Done for the circle**: `typed_props!` (`components/define.rs`) gives
+   **Done for the circle**: `component!` (`components/define.rs`) gives
    a table its `Props<T>`, and the circle's planner gives its props as a
    `Props<Wire>` (`compile/plan.rs`), a plan with its role, as a struct
    literal; roles are `SharedState` constants everywhere; a planner warns
