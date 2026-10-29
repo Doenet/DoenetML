@@ -503,7 +503,6 @@ describe("What a parent ignoring its own hiding counts of a list @group4", async
             doenetML: `
     <booleanInput name="h" />
     <choiceInput><choice name="ch"><numberList hide="$h">1 2</numberList> r</choice></choiceInput>
-    <p name="props">$ch.text</p>
     `,
         });
 

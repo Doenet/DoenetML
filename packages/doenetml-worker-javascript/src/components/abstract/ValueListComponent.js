@@ -469,10 +469,12 @@ export default class ValueListComponent extends BaseComponent {
             },
         };
 
-        // `hidden` and `hiddenIgnoreParent` both read the list's own `hide`
-        // where a reference to it shows the list (`hideIsOwn`). So an entry
-        // of `$l`, which a parent reading `hiddenIgnoreParent` counts as
-        // drawn, is counted as it is drawn (#2375).
+        // `hidden` and `hiddenIgnoreParent` both read the list's own `hide`,
+        // not its source's, where a reference shows the list (`hideIsOwn`).
+        // So a parent reading `hiddenIgnoreParent` counts the entries of `$l`
+        // exactly when `$l` draws them: those of a bare reference to a hidden
+        // list (D9), but not those of `$c` for a `<collect hide>`
+        // (`listHiddenWithReferences`) (#2375).
         for (const variableName of ["hidden", "hiddenIgnoreParent"]) {
             const baseDefinition = stateVariableDefinitions[variableName];
             stateVariableDefinitions[variableName] = {

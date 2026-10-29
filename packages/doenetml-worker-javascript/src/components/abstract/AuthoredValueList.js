@@ -145,8 +145,8 @@ export default class AuthoredValueList extends ValueListComponent {
         // A parent that reads `hiddenIgnoreParent` of its children, not
         // `hidden` (the text of a `<choice>` holding the list, and the child
         // a list item leads with, `childRendersSomething`), leaves out an
-        // entry hidden by its own `hide` or with the list, as a composite's
-        // `hide` is part of its replacements' (#2375).
+        // entry hidden by its source's own `hide` or with the list, as it
+        // leaves out a hidden composite's replacements (#2375).
         variables.hiddenIgnoreParent = "entryHiddenIgnoreParents";
         if (this.listEntriesShownAsSources) {
             // the component an entry stands for, which a list reading the
