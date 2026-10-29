@@ -5,14 +5,14 @@ import * as Comlink from "comlink";
 import { MdError } from "react-icons/md";
 import {
     codedDiagnostic,
-    findAllNewlines,
-    getLineCharRange,
     getSystemTheme,
     subscribeToSystemTheme,
 } from "@doenet/utils";
 import type {
     DiagnosticRecord,
     ErrorRecord,
+    Point,
+    Position,
     WarningRecord,
     ThemeSetting,
     ResolvedTheme,
@@ -142,7 +142,10 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
     /**
      * If `true`, look for a xmlns attribute in an outer `<document>` tag
      * and use that for the doenetmlVersion,
-     * overwriting any doenetmlVersion or urls provided
+     * overwriting any doenetmlVersion or urls provided.
+     * If the bundle for the detected version fails to load (e.g. the version
+     * is mistyped or was never published), fall back to the provided urls,
+     * or else to doenetmlVersion or the latest version, and warn.
      */
     autodetectVersion?: boolean;
     /**
@@ -220,7 +223,10 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
     /**
      * If `true`, look for a xmlns attribute in an outer `<document>` tag
      * and use that for the doenetmlVersion,
-     * overwriting any doenetmlVersion or urls provided
+     * overwriting any doenetmlVersion or urls provided.
+     * If the bundle for the detected version fails to load (e.g. the version
+     * is mistyped or was never published), fall back to the provided urls,
+     * or else to doenetmlVersion or the latest version, and warn.
      */
     autodetectVersion?: boolean;
     /**
@@ -1211,6 +1217,18 @@ export function DoenetViewer({
 
     if (inErrorState) {
         if (foundAutoVersion) {
+            // The bundle for the `xmlns`-detected version failed to load
+            // (e.g. a mistyped or unpublished version): fall back to the
+            // version the host would otherwise have used. The viewer has no
+            // diagnostics panel to carry this (the editor reports it as a
+            // coded diagnostic), so tell the author via the console.
+            console.warn(
+                `DoenetViewer: the xmlns names DoenetML version \`${detectedVersion}\`, which could not be loaded; using ${
+                    specifiedStandaloneUrl
+                        ? "the host-specified standalone bundle"
+                        : `\`${specifiedDoenetmlVersion ?? latestDoenetmlVersion}\``
+                } instead.`,
+            );
             setIgnoreDetectedVersion(true);
             setInErrorState("");
             return null;
@@ -1361,6 +1379,29 @@ function serializePropsSnapshot(
         }
     }
     return JSON.stringify(snapshot);
+}
+
+/**
+ * Convert a `{ begin, end }` character-offset range in `source` (as
+ * `detectVersionFromDoenetML` reports it) into the unist `Position` a
+ * diagnostic record carries: 1-based `line` and `column` plus the offset.
+ */
+function offsetRangeToPosition(
+    source: string,
+    range: { begin: number; end: number },
+): Position {
+    function offsetToPoint(offset: number): Point {
+        let line = 1;
+        let lineStart = 0;
+        for (let i = 0; i < offset; i++) {
+            if (source[i] === "\n") {
+                line++;
+                lineStart = i + 1;
+            }
+        }
+        return { line, column: offset - lineStart + 1, offset };
+    }
+    return { start: offsetToPoint(range.begin), end: offsetToPoint(range.end) };
 }
 
 // ComLink RPC calls return Promises, but the wrapper APIs built on them are
@@ -1515,7 +1556,8 @@ export const DoenetEditor = React.forwardRef<
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
-    let detectedVersion, detectedDoenetMLrange;
+    let detectedVersion: string | undefined;
+    let detectedDoenetMLrange: { begin: number; end: number } | undefined;
 
     if (autodetectVersion && !ignoreDetectedVersion) {
         let result = detectVersionFromDoenetML(doenetML);
@@ -1813,15 +1855,14 @@ export const DoenetEditor = React.forwardRef<
                 },
             });
 
-            // add line number to the doenetML range of the error
-            let allNewlines = findAllNewlines(doenetML);
-            Object.assign(
-                detectedDoenetMLrange!,
-                getLineCharRange(detectedDoenetMLrange!, allNewlines),
-            );
-
             setInitialDiagnostics([
-                { ...versionDiagnostic, position: detectedDoenetMLrange! },
+                {
+                    ...versionDiagnostic,
+                    position: offsetRangeToPosition(
+                        doenetML,
+                        detectedDoenetMLrange!,
+                    ),
+                },
             ]);
             return null;
         }

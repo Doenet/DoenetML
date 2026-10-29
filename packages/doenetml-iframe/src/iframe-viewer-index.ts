@@ -5,6 +5,7 @@
 // script, never supplied as a free binding by the srcdoc. See the equivalent
 // import in iframe-editor-index.ts for the cold-boot hang that motivated it.
 import * as Comlink from "comlink";
+import { STANDALONE_LOAD_FAILED_FLAG } from "./standalone-load-failure";
 
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
@@ -226,8 +227,23 @@ async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
         if (bundleReady()) {
             return true;
         }
+        // The bundle's `<script>` failed to load (e.g. a 404 for an
+        // unpublished version): it will never define the function, so stop
+        // waiting and let the caller report the failure to the parent now.
+        if (bundleLoadFailed()) {
+            return false;
+        }
     }
     return false;
+}
+
+/** Whether the srcdoc's standalone `<script>` reported a load error. */
+function bundleLoadFailed(): boolean {
+    return Boolean(
+        (window as unknown as Record<string, unknown>)[
+            STANDALONE_LOAD_FAILED_FLAG
+        ],
+    );
 }
 
 Comlink.expose(
