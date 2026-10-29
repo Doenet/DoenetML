@@ -365,9 +365,9 @@ Settled while implementing phase 3:
   check read the source's cell index; it reads the source's kind now, so
   a seed nothing reads, which has no cell, is checked all the same, and
   the load's errors do not depend on pruning.
-- `cells-wasm` loads pruned by `with_seed`, and either way by
-  `with_options` and `with_options_and_state`; the JavaScript worker's
-  parity harness (`test-core-cells.ts`) loads unpruned. Phase 4 runs it.
+- `cells-wasm` loads pruned unless its constructor's `prune` is false;
+  the JavaScript worker's parity harness (`test-core-cells.ts`) loads
+  unpruned. Phase 4 runs it.
 - The golden dump (`cells-bench/examples/golden.rs`) loads unpruned, and
   `golden-diff.sh` against phase 2 is identical, values and programs
   (`GOLDEN_OWN=1`: phase 2's harness has no `prune` to set).

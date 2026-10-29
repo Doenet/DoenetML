@@ -9,7 +9,6 @@ description = "wasm-bindgen binding exposing the cells core to a browser rendere
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-web-time = "1"
 cells-core = { path = "../cells-core" }
 wasm-bindgen = "0.2"
 serde_json.workspace = true

@@ -410,10 +410,7 @@ export async function loadDocument(
     // compile, started at boot, had left to do.
     if (firstInit) measure("core/wasm init", t);
     t = performance.now();
-    const core =
-        state === undefined
-            ? Core.with_seed(bytes, seed)
-            : Core.with_seed_and_state(bytes, seed, state);
+    const core = new Core(bytes, seed, true, state);
     measure("core/new Core", t, { bytes: bytes.length });
     measureCoreSpans("core/new Core", t, core.load_trace_json());
     core.set_evaluator(evaluator);

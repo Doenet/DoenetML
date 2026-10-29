@@ -435,8 +435,8 @@ session generator can start after 3.
    answer's `submitted` and `numSubmissions` and a response's
    `submitted`, since every answer is an input. A polyline is not dragged;
    its vertices are points, marked as points. `Document::interactive_cells`
-   and `is_interactive` (`document/interactive.rs`), exposed by
-   `cells-wasm`, give the cells; a cell several components share is
+   and `is_interactive` (`document/interactive.rs`; the first exposed by
+   `cells-wasm`) give the cells; a cell several components share is
    interactive when any of them marks it. `CellStore` checks each request
    against them in development and tests, and
    `packages/cells-viewer/src/interactive.test.tsx` renders a document

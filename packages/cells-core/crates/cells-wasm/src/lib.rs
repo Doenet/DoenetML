@@ -59,11 +59,8 @@ pub fn compare_versions_json(old: &[u8], new: &[u8], renames: &str) -> Result<St
 pub struct Core {
     doc: Document,
     timings: cells_core::LoadTimings,
-    last_dropped: u32,
     last_rebuilt: bool,
     last_rebuild_error: Option<String>,
-    /// ms spent inside the rebuild during the last tick, if one happened.
-    last_rebuild_ms: f64,
 }
 
 #[wasm_bindgen]
@@ -71,58 +68,39 @@ impl Core {
     /// Load a document from either wire format (DAST JSON or binary CDST,
     /// detected by content) and compute its initial values. The bytes are
     /// taken, not borrowed, so the load frees them once they are read.
+    /// `seed` is the document seed load-time choices draw from (ADR 0009;
+    /// 0 without one). With `prune` false every prop of every component is
+    /// computed (ADR 0019; pruned without it), for a reader of props no
+    /// renderer reads, as the JavaScript worker's parity harness is. With
+    /// `state`, `save_state`'s JSON, the document comes back where the
+    /// session left it (ADR 0017).
     #[wasm_bindgen(constructor)]
-    pub fn new(dast: Vec<u8>) -> Result<Core, JsError> {
-        Core::with_seed(dast, 0.0)
-    }
-
-    /// Load with the document seed load-time choices draw from (ADR 0009).
-    pub fn with_seed(dast: Vec<u8>, seed: f64) -> Result<Core, JsError> {
-        Core::with_options(dast, seed, true)
-    }
-
-    /// Load with a seed, and with `prune` false every prop of every
-    /// component computed (ADR 0019): for a reader of props no renderer
-    /// reads, as the JavaScript worker's parity harness is.
-    pub fn with_options(dast: Vec<u8>, seed: f64, prune: bool) -> Result<Core, JsError> {
+    pub fn new(
+        dast: Vec<u8>,
+        seed: Option<f64>,
+        prune: Option<bool>,
+        state: Option<String>,
+    ) -> Result<Core, JsError> {
         console_error_panic_hook::set_once();
-        let (doc, timings) = Document::load_owned(
+        let (mut doc, timings) = Document::load_owned(
             dast,
             LoadOptions {
-                seed: seed as u64,
-                prune,
+                seed: seed.unwrap_or(0.0) as u64,
+                prune: prune.unwrap_or(true),
                 ..Default::default()
             },
         )
         .map_err(|e| JsError::new(&e.to_string()))?;
+        if let Some(state) = state {
+            doc.restore_state(&state)
+                .map_err(|e| JsError::new(&e.to_string()))?;
+        }
         Ok(Core {
             doc,
             timings,
-            last_dropped: 0,
             last_rebuilt: false,
             last_rebuild_error: None,
-            last_rebuild_ms: 0.0,
         })
-    }
-
-    /// Load with a seed and saved state (`save_state`'s JSON): the document
-    /// comes back where the session left it.
-    pub fn with_seed_and_state(dast: Vec<u8>, seed: f64, state: &str) -> Result<Core, JsError> {
-        Core::with_options_and_state(dast, seed, true, state)
-    }
-
-    /// `with_options`, then saved state, as `with_seed_and_state`.
-    pub fn with_options_and_state(
-        dast: Vec<u8>,
-        seed: f64,
-        prune: bool,
-        state: &str,
-    ) -> Result<Core, JsError> {
-        let mut core = Core::with_options(dast, seed, prune)?;
-        core.doc
-            .restore_state(state)
-            .map_err(|e| JsError::new(&e.to_string()))?;
-        Ok(core)
     }
 
     /// This core's release id (ADR 0017): saved state records it, and only
@@ -300,8 +278,7 @@ impl Core {
     /// Apply cell-addressed requests. Returns the changed cell indices. When
     /// the tick rebuilt the document (`last_rebuilt`), the list is empty and
     /// every pointer and length above must be re-read. A request on a cell
-    /// that is not interactive (`interactive_cells`) is refused and counted
-    /// in `last_dropped` (ADR 0018).
+    /// that is not interactive (`interactive_cells`) is refused (ADR 0018).
     pub fn request(&mut self, cells: &[u32], values: &[f64]) -> Vec<u32> {
         let reqs: Vec<Request> = cells
             .iter()
@@ -371,52 +348,25 @@ impl Core {
             .collect()
     }
 
-    /// A component's parent, or `u32::MAX` at the root.
-    pub fn component_parent(&self, idx: u32) -> u32 {
-        if (idx as usize) < self.doc.n_components() {
-            self.doc
-                .parent(CompIdx::new(idx))
-                .map_or(u32::MAX, CompIdx::get)
-        } else {
-            u32::MAX
-        }
-    }
-
-    /// The text of a literal attribute of a component's element
-    /// (`Document::attr_text`).
-    pub fn attr_text(&self, idx: u32, name: &str) -> Option<String> {
-        if (idx as usize) < self.doc.n_components() {
-            self.doc.attr_text(CompIdx::new(idx), name)
-        } else {
-            None
-        }
-    }
-
     fn apply(&mut self, reqs: &[Request], groups: &[Vec<PointRequest>]) -> Vec<u32> {
         self.act(|doc| doc.request_with_groups(reqs, groups))
     }
 
-    /// One tick, its outcome recorded for `last_dropped` and the rebuild
-    /// getters.
+    /// One tick, its outcome recorded for the rebuild getters.
     fn act(&mut self, tick: impl FnOnce(&mut Document) -> cells_core::TickOutcome) -> Vec<u32> {
-        let clock = web_time::Instant::now();
         let tick = tick(&mut self.doc);
-        self.last_dropped = tick.dropped.len() as u32;
         self.last_rebuilt = tick.rebuilt;
         self.last_rebuild_error = tick.rebuild_error;
-        self.last_rebuild_ms = 0.0;
-        if tick.rebuilt {
-            // The whole tick is the rebuild when the program changed shape.
-            self.last_rebuild_ms = clock.elapsed().as_secs_f64() * 1e3;
-        }
         raw_cells(tick.changed)
     }
 
-    // ---- test adapter -----------------------------------------------------
+    // ---- by name ----------------------------------------------------------
     //
-    // The current core's vitest suites run against this core through an
-    // adapter. These calls answer by name so the adapter needs no
-    // knowledge of the column layout.
+    // What the core resolves by name, for the bridge (ADR 0020) and for the
+    // JavaScript worker's test suites, which run against this core through
+    // an adapter (`test-core-cells.ts`). Everything the component table
+    // holds, the adapter reads from the bridge's view of the columns above
+    // instead.
 
     /// Component index of a dotted path as the tests write it
     /// (`"g.Ps[2]"`), or `u32::MAX`.
@@ -445,14 +395,6 @@ impl Core {
         )
     }
 
-    pub fn cell_value(&self, cell: u32) -> f64 {
-        self.doc
-            .cells
-            .get(cell as usize)
-            .copied()
-            .unwrap_or(f64::NAN)
-    }
-
     /// Whether a cell is essential (state), fixed (a constant), or derived.
     pub fn cell_class(&self, cell: u32) -> String {
         let cell = CellIdx::new(cell);
@@ -463,12 +405,6 @@ impl Core {
         } else {
             "derived".into()
         }
-    }
-
-    /// Whether a renderer may request a cell: one of a prop its component's
-    /// definition marks interactive (ADR 0017).
-    pub fn is_interactive(&self, cell: u32) -> bool {
-        self.doc.is_interactive(CellIdx::new(cell))
     }
 
     /// Every cell a renderer may request, ascending; new indices after a
@@ -483,16 +419,8 @@ impl Core {
         raw_cells(self.doc.output_cells())
     }
 
-    pub fn last_dropped(&self) -> u32 {
-        self.last_dropped
-    }
-
     pub fn last_rebuilt(&self) -> bool {
         self.last_rebuilt
-    }
-
-    pub fn last_rebuild_ms(&self) -> f64 {
-        self.last_rebuild_ms
     }
 
     pub fn last_rebuild_error(&self) -> Option<String> {
@@ -509,15 +437,6 @@ impl Core {
         }
     }
 
-    /// The string a `<text>` value cell holds.
-    pub fn text_value(&self, cell: u32) -> String {
-        if (cell as usize) < self.doc.cells.len() {
-            self.doc.text_value(CellIdx::new(cell))
-        } else {
-            String::new()
-        }
-    }
-
     /// Text of the expression a math cell holds, for display.
     pub fn expr_text(&self, cell: u32) -> String {
         self.doc.math_text(CellIdx::new(cell))
@@ -527,11 +446,6 @@ impl Core {
     /// math (the bridge, ADR 0020); empty for a NaN handle.
     pub fn expr_latex(&self, cell: u32) -> String {
         self.doc.math_latex(CellIdx::new(cell))
-    }
-
-    /// Build passes the load took to settle repeat counts.
-    pub fn passes(&self) -> u32 {
-        self.timings.passes
     }
 
     /// What the load reported about the elements it stamped (ADR 0013),
