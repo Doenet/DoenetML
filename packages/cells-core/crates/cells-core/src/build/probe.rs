@@ -248,6 +248,7 @@ impl<'c> Builder<'c> {
         Ok(ProbeOutput {
             structural_depth: depths.iter().copied().max().unwrap_or(0),
             warnings,
+            ..Default::default()
         })
     }
 

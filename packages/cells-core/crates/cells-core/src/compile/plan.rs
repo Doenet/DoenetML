@@ -932,12 +932,20 @@ impl Compiled {
     }
 
     /// Take what the check's build found about the source: its structural
-    /// depth, which bounds every build's, and its warnings, which join the
-    /// diagnostics. None when the check was skipped (a test load).
+    /// depth, which bounds every build's, its warnings, which join the
+    /// diagnostics, and the probe's records of the writable and the live
+    /// template slots, which every later build classes by (ADR 0018, ADR
+    /// 0019). None when the check was skipped (a test load).
     pub(crate) fn set_probe(&mut self, probe: Option<crate::build::ProbeOutput>) {
         if let Some(probe) = probe {
             self.structural_depth = Some(probe.structural_depth);
             Arc::make_mut(&mut self.diagnostics).extend(probe.warnings);
+            if let Some(record) = probe.record {
+                self.classes = Classes::Record(Arc::new(record));
+            }
+            if let Some(record) = probe.live_record {
+                self.live = Classes::Record(Arc::new(record));
+            }
         }
     }
 }

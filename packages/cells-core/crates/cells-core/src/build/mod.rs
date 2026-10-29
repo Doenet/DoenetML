@@ -125,7 +125,11 @@ pub(in crate::build) fn build_with(
         crate::trace::count("components", u.components.len());
         u
     };
-    u.probe = probe;
+    if let Some(found) = probe {
+        let out = u.probe.get_or_insert_default();
+        out.structural_depth = found.structural_depth;
+        out.warnings = found.warnings;
+    }
     Ok(u)
 }
 
@@ -249,29 +253,21 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
-    /// Each component's element's stable key, `NONE` for one no element
-    /// makes (a case): what the input signature names components by.
-    comp_keys: Vec<ElemKey>,
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
     cell_label: Box<dyn Fn(CellIdx) -> String>,
-    /// The probe's writable template slots (`Classes::Record`); None for
-    /// any other build.
-    record: Option<Vec<Vec<u64>>>,
     /// Which cells the document computes (ADR 0019).
     live: Live,
-    /// The probe's live template slots (`Classes::Record`); None for any
-    /// other build.
-    live_record: Option<Vec<Vec<u64>>>,
-    /// What the compile's check learns from a build that ran the probe's
-    /// checks (`build_with`): the probe's, or the first build's of a
-    /// document without repeats or selects. None for any other build.
+    /// What only the compile's check reads, from a build that ran the
+    /// probe's checks (`build_with`): the probe's, or the first build's of
+    /// a document without repeats or selects. None for any other build.
     pub(crate) probe: Option<ProbeOutput>,
 }
 
-/// What the probe's checks find out about the document beyond its errors
-/// (ADR 0012, ADR 0014): facts about the source that every build of it
-/// shares, which the compile keeps.
+/// What the compile's check learns from its build beyond the errors (ADR
+/// 0012, ADR 0014): facts about the source that every build of the
+/// document shares, which the compile keeps, and what the input signature
+/// (`signature.rs`) is read off.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ProbeOutput {
     /// The document's structural depth (`CONTEXT.md`), which bounds every
@@ -281,6 +277,15 @@ pub(crate) struct ProbeOutput {
     /// The repeats whose count reads a cell inside another repeat's
     /// iterations, the avoidable kind of depth (ADR 0013).
     pub(crate) warnings: Vec<Diagnostic>,
+    /// The writable template slots the probe found (`Classes::Record`,
+    /// ADR 0018), which every later build classes its value slots by. None
+    /// when the view did not fold iterations or the classing was off.
+    pub(crate) record: Option<Vec<Vec<u64>>>,
+    /// The live template slots the probe found (ADR 0019), the same way.
+    pub(crate) live_record: Option<Vec<Vec<u64>>>,
+    /// Each component's element's stable key, `NONE` for one no element
+    /// makes (a case): what the input signature names components by.
+    pub(crate) comp_keys: Vec<ElemKey>,
 }
 
 /// Which cells a build computes (ADR 0019): a bit per cell, set for one
@@ -289,25 +294,9 @@ pub(crate) struct ProbeOutput {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Live {
     pub(crate) cells: Vec<u64>,
-    /// The same by this build's own walk, whatever the record says: what
-    /// the record is checked against (`tests/live.rs`).
-    #[cfg(feature = "testing")]
-    pub(crate) walked: Vec<u64>,
 }
 
 impl BuildOutput {
-    /// The writable template slots the probe found, which every later
-    /// build classes its value slots by (ADR 0018).
-    pub(crate) fn writable_record(&self) -> Option<Vec<Vec<u64>>> {
-        self.record.clone()
-    }
-
-    /// The live template slots the probe found, which every later build
-    /// reads which cells it computes by (ADR 0019).
-    pub(crate) fn live_record(&self) -> Option<Vec<Vec<u64>>> {
-        self.live_record.clone()
-    }
-
     /// Schedule the program into a document.
     pub fn schedule(self, compiled: Arc<Compiled>) -> std::result::Result<Document, BuildError> {
         let n = self.cells.len();

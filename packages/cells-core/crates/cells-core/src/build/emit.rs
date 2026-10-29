@@ -85,8 +85,6 @@ impl<'c> Builder<'c> {
                 live
             }
         };
-        #[cfg(feature = "testing")]
-        let walked_slot = self.live_slots(&roots, &class_def);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
         // cell. Not in the probe, whose build is not kept, nor where the
         // load asked for every cell (`LoadOptions::prune`). An essential
@@ -229,8 +227,6 @@ impl<'c> Builder<'c> {
         };
         let live = crate::build::Live {
             cells: live_bits(&live_slot),
-            #[cfg(feature = "testing")]
-            walked: live_bits(&walked_slot),
         };
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r.index()]).collect();
         self.seed_cells(
@@ -391,17 +387,26 @@ impl<'c> Builder<'c> {
             engine: self.session.engine.clone(),
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
-        let comp_keys: Vec<ElemKey> = self
-            .comp_instance
-            .iter()
-            .map(|&i| {
-                if i == NONE {
-                    return ElemKey::NONE;
-                }
-                let inst = self.instances[i as usize];
-                self.compiled.templates[inst.template.index()].elems[inst.elem.index()].key
-            })
-            .collect();
+        // What only the compile's check reads (`ProbeOutput`).
+        let probe = self
+            .view
+            .folds_iterations()
+            .then(|| crate::build::ProbeOutput {
+                record,
+                live_record,
+                comp_keys: self
+                    .comp_instance
+                    .iter()
+                    .map(|&i| {
+                        if i == NONE {
+                            return ElemKey::NONE;
+                        }
+                        let inst = self.instances[i as usize];
+                        self.compiled.templates[inst.template.index()].elems[inst.elem.index()].key
+                    })
+                    .collect(),
+                ..Default::default()
+            });
         let structure = Structure {
             essential_slots,
             essential_keys,
@@ -459,12 +464,9 @@ impl<'c> Builder<'c> {
             operands,
             value_types,
             tapes,
-            comp_keys,
             cell_label,
-            record,
             live,
-            live_record,
-            probe: None,
+            probe,
         })
     }
 

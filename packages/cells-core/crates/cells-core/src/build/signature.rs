@@ -93,6 +93,16 @@ impl Domain {
 }
 
 impl BuildOutput {
+    /// Each component's element's key, from the probe's output: the
+    /// signature is read off the check's build.
+    fn comp_keys(&self) -> &[ElemKey] {
+        &self
+            .probe
+            .as_ref()
+            .expect("the input signature is read off the probe's build")
+            .comp_keys
+    }
+
     /// The input signature of the document this build is the check of,
     /// with every key passed through `rename` (an editor's renames, applied
     /// to the version before them).
@@ -187,7 +197,7 @@ impl<'a> Signer<'a> {
                 .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                 .collect();
             if (interactive.is_empty() && ty != ComponentType::Select)
-                || out.comp_keys[c.index()] == ElemKey::NONE
+                || out.comp_keys()[c.index()] == ElemKey::NONE
             {
                 continue;
             }
@@ -286,7 +296,7 @@ impl<'a> Signer<'a> {
                     .map(|&l| (self.named[&l].clone(), (self.default_hash(l), starting(l))))
                     .collect(),
             };
-            let key = self.key(out.comp_keys[c.index()]);
+            let key = self.key(out.comp_keys()[c.index()]);
             sig.inputs.entry(key).or_insert(input);
         }
         sig
@@ -295,7 +305,7 @@ impl<'a> Signer<'a> {
     /// How a seed names ancestor `a`: its key, or its type for one no
     /// element makes.
     fn ancestor_label(&self, a: CompIdx) -> String {
-        match self.out.comp_keys[a.index()] {
+        match self.out.comp_keys()[a.index()] {
             ElemKey::NONE => self.out.components.component_type[a.index()]
                 .tag()
                 .to_string(),
@@ -433,7 +443,7 @@ impl<'a> Signer<'a> {
         let ty = t.component_type[c.index()];
         match ty {
             ComponentType::Select => {
-                let key = out.comp_keys[c.index()];
+                let key = out.comp_keys()[c.index()];
                 let templates = &self.compiled.templates;
                 let def = self
                     .compiled
@@ -456,7 +466,7 @@ impl<'a> Signer<'a> {
                 return Domain::Choices(
                     kids.into_iter()
                         .map(|k| {
-                            let key = match out.comp_keys[k.index()] {
+                            let key = match out.comp_keys()[k.index()] {
                                 ElemKey::NONE => String::new(),
                                 key => self.key(key),
                             };
@@ -497,7 +507,8 @@ impl<'a> Signer<'a> {
             .iter()
             .map(|&b| {
                 let bi = b.index();
-                if bi < out.n_essential && self.named[&b].0 == self.key(out.comp_keys[a.index()]) {
+                if bi < out.n_essential && self.named[&b].0 == self.key(out.comp_keys()[a.index()])
+                {
                     Some(out.structure.essential_defaults[bi])
                 } else if bi >= out.n_essential && bi < out.n_essential + out.n_fixed {
                     Some(out.cells[bi])

@@ -57,14 +57,7 @@ pub(crate) fn compile(
         }
         if check_cycles && varies {
             let _s = crate::trace::span("probe");
-            let mut probed = build::probe(compiled)?;
-            compiled.set_probe(probed.probe.take());
-            if let Some(record) = probed.writable_record() {
-                compiled.classes = Classes::Record(Arc::new(record));
-            }
-            if let Some(record) = probed.live_record() {
-                compiled.live = Classes::Record(Arc::new(record));
-            }
+            compiled.set_probe(build::probe(compiled)?.probe);
             Ok(None)
         } else {
             let mut first = {

@@ -34,6 +34,19 @@ pub fn compile_unclassified(
     Ok(crate::compile::compile(&dast, &session, true, false, true)?.compiled)
 }
 
+/// `compile`, with every prop computed (`LoadOptions::prune` off, ADR
+/// 0019), so two builds of it number their cells alike whatever each finds
+/// live.
+#[cfg(feature = "testing")]
+pub fn compile_unpruned(
+    dast: &crate::dast::Dast,
+    seed: u64,
+) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
+    let dast = std::sync::Arc::new(dast.clone());
+    let session = crate::session::Session::new(seed, false);
+    Ok(crate::compile::compile(&dast, &session, true, true, false)?.compiled)
+}
+
 /// `compiled`, but each of its builds classes its value slots by its own
 /// walk, not by the probe's record (ADR 0018): what the record must hold.
 #[cfg(feature = "testing")]
@@ -43,6 +56,35 @@ pub fn with_own_walk(
     let mut own = compiled.clone();
     own.classes = crate::compile::plan::Classes::Walk;
     std::sync::Arc::new(own)
+}
+
+/// `compiled`, but each of its builds finds what is live by its own walk,
+/// not by the probe's record (ADR 0019): what the record must hold.
+#[cfg(feature = "testing")]
+pub fn with_own_live_walk(
+    compiled: &crate::compile::Compiled,
+) -> std::sync::Arc<crate::compile::Compiled> {
+    let mut own = compiled.clone();
+    own.live = crate::compile::plan::Classes::Walk;
+    std::sync::Arc::new(own)
+}
+
+/// A document built from `compiled` at `seed` as a load builds it: until
+/// the structure settles, seeding afresh on later passes.
+#[cfg(feature = "testing")]
+pub fn load_compiled(
+    compiled: &std::sync::Arc<crate::compile::Compiled>,
+    seed: u64,
+) -> crate::Result<crate::Document> {
+    let session = crate::session::Session::new(seed, false);
+    let (doc, _) = crate::document::settle(
+        compiled,
+        &session,
+        crate::session::Counts::default(),
+        None,
+        true,
+    )?;
+    Ok(doc)
 }
 
 /// The compile of `dast` for a session at `seed`, as text equal exactly when

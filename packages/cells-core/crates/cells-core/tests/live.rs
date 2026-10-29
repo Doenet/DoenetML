@@ -44,21 +44,23 @@ fn load_seeded(src: &str, seed: u64, prune: bool) -> Document {
         .0
 }
 
-/// What every build must hold, by the record and by its own walk: the
-/// walk finds nothing live the record leaves out, and every output and
-/// every essential cell is live. Returns how many cells the record keeps
-/// that the walk does not: what deciding per template slot costs.
-fn check(doc: &Document, at: &str) -> usize {
-    let walked = doc.live_cells_walked();
-    let missed: Vec<CellIdx> = walked
-        .iter()
-        .copied()
-        .filter(|&c| !doc.is_live(c))
-        .collect();
-    assert!(
-        missed.is_empty(),
-        "{at}: live by the walk, not the record: {missed:?}"
-    );
+/// The document at `seed` built from one compile two ways, both unpruned
+/// so their cells correspond one to one: by the probe's record of what is
+/// live, as a load builds it, and by each build's own walk
+/// (`with_own_live_walk`), what the record is checked against.
+fn load_pair(src: &str, seed: u64) -> (Document, Document) {
+    let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
+    let compiled = cells_core::testing::compile_unpruned(&dast, seed).unwrap();
+    let own = cells_core::testing::with_own_live_walk(&compiled);
+    (
+        cells_core::testing::load_compiled(&compiled, seed).unwrap(),
+        cells_core::testing::load_compiled(&own, seed).unwrap(),
+    )
+}
+
+/// What every build must hold: every output and every essential cell is
+/// live, and emit sized the cells for what it keeps.
+fn check(doc: &Document, at: &str) {
     for c in doc.output_cells() {
         assert!(doc.is_live(c), "{at}: output cell {c} is not live");
     }
@@ -72,7 +74,29 @@ fn check(doc: &Document, at: &str) -> usize {
         doc.cells.len() * 8,
         "{at}: the cells outgrew what emit counted"
     );
-    doc.live_cells().len() - walked.len()
+}
+
+/// What the record must hold against the build's own walk (`load_pair`):
+/// the walk finds nothing live the record leaves out. Returns how many
+/// cells the record keeps that the walk does not: what deciding per
+/// template slot costs.
+fn walk_within_record(by_record: &Document, by_walk: &Document, at: &str) -> usize {
+    assert_eq!(
+        by_record.cells.len(),
+        by_walk.cells.len(),
+        "{at}: the two builds number their cells differently"
+    );
+    let walked = by_walk.live_cells();
+    let missed: Vec<CellIdx> = walked
+        .iter()
+        .copied()
+        .filter(|&c| !by_record.is_live(c))
+        .collect();
+    assert!(
+        missed.is_empty(),
+        "{at}: live by the walk, not the record: {missed:?}"
+    );
+    by_record.live_cells().len() - walked.len()
 }
 
 /// The repeats' count cells, one per repeat or function iterate.
@@ -92,9 +116,10 @@ fn census() {
     let mut golden = [0usize; 4];
     for (name, src) in documents() {
         // Unpruned, so every instruction is there to count.
-        let doc = load_seeded(&src, 0, false);
+        let (doc, own) = load_pair(&src, 0);
         check(&doc, &name);
-        let walked = doc.live_cells_walked();
+        walk_within_record(&doc, &own, &name);
+        let walked = own.live_cells();
         let is_walked = |c: CellIdx| walked.binary_search(&c).is_ok();
         let instrs = &doc.program.instrs;
         let live_instrs = instrs.iter().filter(|i| doc.is_live(i.out)).count();
@@ -146,21 +171,36 @@ fn the_record_holds_every_build() {
     for (name, src) in documents() {
         let mut extra = 0;
         for seed in [0, 1, 2, 3] {
-            let mut doc = load_seeded(&src, seed, true);
-            extra += check(&doc, &format!("{name}, seed {seed}"));
+            let mut pruned = load_seeded(&src, seed, true);
+            let (mut doc, mut own) = load_pair(&src, seed);
+            let at = format!("{name}, seed {seed}");
+            check(&pruned, &at);
+            check(&doc, &at);
+            extra += walk_within_record(&doc, &own, &at);
             for k in 0..=4 {
-                let requests: Vec<Request> = count_cells(&doc)
-                    .into_iter()
-                    .map(|cell| Request {
-                        cell,
-                        value: k as f64,
-                    })
-                    .collect();
-                if requests.is_empty() {
+                let set_counts = |doc: &mut Document| {
+                    let requests: Vec<Request> = count_cells(doc)
+                        .into_iter()
+                        .map(|cell| Request {
+                            cell,
+                            value: k as f64,
+                        })
+                        .collect();
+                    if requests.is_empty() {
+                        return false;
+                    }
+                    request_unchecked(doc, &requests);
+                    true
+                };
+                if !set_counts(&mut pruned) {
                     break;
                 }
-                request_unchecked(&mut doc, &requests);
-                extra += check(&doc, &format!("{name}, seed {seed}, count {k}"));
+                set_counts(&mut doc);
+                set_counts(&mut own);
+                let at = format!("{name}, seed {seed}, count {k}");
+                check(&pruned, &at);
+                check(&doc, &at);
+                extra += walk_within_record(&doc, &own, &at);
             }
         }
         eprintln!("{name:>10}: the record keeps {extra} cells the builds' walks do not");

@@ -317,7 +317,7 @@ impl Document {
 /// pass (the compile's check, at a load); with `reseed`, every pass after
 /// the first stamps seeded cells afresh. `session` is only read, so a
 /// caller that fails here is left as it was.
-fn settle(
+pub(crate) fn settle(
     compiled: &Arc<Compiled>,
     session: &Session,
     mut counts: Counts,

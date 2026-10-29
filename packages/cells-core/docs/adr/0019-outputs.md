@@ -251,7 +251,7 @@ Each phase leaves the tree green.
 2. **The record, measured** (steps 2 and 4). `build/live.rs`, beside
    `build/writable.rs`; `Compiled` gains a live record beside the
    writable one (`Classes`), set by the probe in `compile/check.rs` where
-   `writable_record` is, and off (every slot live) where the classing is
+   the writable record is, and off (every slot live) where the classing is
    off for want of a probe. A census test,
    `tests/live.rs`, prints per document what each build's own walk finds
    live and what the record finds, at counts 0 to 4, and asserts every
@@ -313,9 +313,9 @@ Settled while implementing phase 2:
   record: a class is live when one of its slots has a template slot the
   record marks, or when none has a template slot to be named by. Each
   build keeps a bit per cell, `Document::is_live` and `live_cells`, which
-  phase 3 prunes by; nothing reads them yet. With the `testing` feature
-  each build also runs its own walk (`live_cells_walked`), which
-  `tests/live.rs` checks the record against.
+  phase 3 prunes by; nothing reads them yet. `tests/live.rs` checks the
+  record against a build of the same compile that finds what is live by
+  its own walk (`testing::with_own_live_walk`).
 - A component is rendered when the children lists reach it from the
   document (`ComponentTable::placement`, which `rendered_components` and
   the walk share), as a renderer finds it, not when its chain of parents

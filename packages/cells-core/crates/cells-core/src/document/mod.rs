@@ -27,6 +27,8 @@ mod state;
 mod sticky;
 mod table;
 
+#[cfg(feature = "testing")]
+pub(crate) use load::settle;
 pub use load::{LoadOptions, LoadTimings};
 pub use table::{Child, ChildEntry, ComponentTable};
 
