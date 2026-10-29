@@ -112,26 +112,21 @@ fn a_collect_over_fixed_items_is_not_clamped() {
     assert!(doc.structure_settled());
 }
 
+// Every document is probed, with or without repeats: the one load
+// sequence (ADR 0012, ADR 0015).
 #[test]
-fn a_document_without_repeats_is_not_probed() {
-    let (_, t) = Document::load(
-        dast_json(r#"<point name="p"/><number>$p.x</number>"#).as_bytes(),
-        Default::default(),
-    )
-    .unwrap();
-    assert_eq!(t.cycle_check.as_nanos(), 0);
-    let (_, t) = Document::load(
-        dast_json(r#"<repeatForSequence name="r" length="2"><point/></repeatForSequence>"#)
-            .as_bytes(),
-        Default::default(),
-    )
-    .unwrap();
-    assert!(t.cycle_check.as_nanos() > 0);
+fn every_document_is_probed() {
+    for src in [
+        r#"<point name="p"/><number>$p.x</number>"#,
+        r#"<repeatForSequence name="r" length="2"><point/></repeatForSequence>"#,
+    ] {
+        let (_, t) = Document::load(dast_json(src).as_bytes(), Default::default()).unwrap();
+        assert!(t.cycle_check.as_nanos() > 0, "{src}");
+    }
 }
 
-// A document without repeats or selects is checked by its one build, which
-// runs the probe's loop check: a cycle through operators is the compile's
-// finding, named by its element, never the schedule's.
+// A cycle through operators is the compile's finding, named by its
+// element, never the schedule's.
 #[test]
 fn a_cycle_without_repeats_is_found_by_the_compile() {
     for src in [

@@ -148,32 +148,21 @@ impl Document {
         let compile_span = crate::trace::span("compile");
         let crate::compile::CompileOutput {
             compiled,
-            mut first_build,
             check_time,
-        } = crate::compile::compile(
-            &dast,
-            &session,
-            options.checks(),
-            options.classifies(),
-            options.prune,
-        )?;
+        } = crate::compile::compile(&dast, options.checks(), options.classifies(), options.prune)?;
         drop(compile_span);
         t.build += clock.elapsed();
         t.cycle_check += check_time;
         let passes = compiled.passes(MAX_PASSES);
         for pass in 0..passes.unwrap_or(MAX_PASSES) {
             let clock = web_time::Instant::now();
-            let built = match first_build.take() {
-                // The compile's check was this build.
-                Some(built) => built,
-                // After the first pass no student has changed a value yet,
-                // so a seeded cell takes its seed again, from the counts
-                // this pass stamps.
-                None => {
-                    let _s = crate::trace::span("build");
-                    crate::trace::count("pass", pass + 1);
-                    crate::build::build(&compiled, &session, &counts, pass > 0)?
-                }
+            // After the first pass no student has changed a value yet, so
+            // a seeded cell takes its seed again, from the counts this pass
+            // stamps.
+            let built = {
+                let _s = crate::trace::span("build");
+                crate::trace::count("pass", pass + 1);
+                crate::build::build(&compiled, &session, &counts, pass > 0)?
             };
             t.build += clock.elapsed();
 

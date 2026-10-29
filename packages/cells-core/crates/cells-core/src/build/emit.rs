@@ -85,7 +85,9 @@ impl<'c> Builder<'c> {
         let mut live_record = None;
         let live_slot: Vec<bool> = match &self.compiled.live {
             Classes::Off => vec![true; n],
-            Classes::Record(r) if !self.view.folds_iterations() => self.live_by_record(r, &roots),
+            Classes::Record(r) if !self.view.folds_iterations() => {
+                self.live_by_record(r, &roots, &class_def)
+            }
             Classes::Walk | Classes::Record(_) => {
                 let live = self.live_slots(&roots, &class_def);
                 if self.view.folds_iterations() {
@@ -645,27 +647,6 @@ impl<'c> Builder<'c> {
             }
         }
         record
-    }
-
-    /// Per slot, whether the probe's record makes its class live: when a
-    /// slot of it has a template slot the record marks, or when none of
-    /// its slots has a template slot to name it by, so the record cannot
-    /// say, and the class is kept.
-    fn live_by_record(&self, record: &[Vec<u64>], roots: &[SlotId]) -> Vec<bool> {
-        let n = roots.len();
-        let (mut live, mut named) = (vec![false; n], vec![false; n]);
-        for (s, &root) in roots.iter().enumerate() {
-            if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
-                named[root.index()] = true;
-                if Classes::recorded(record, t, ts) {
-                    live[root.index()] = true;
-                }
-            }
-        }
-        roots
-            .iter()
-            .map(|&r| live[r.index()] || !named[r.index()])
-            .collect()
     }
 
     /// An essential slot's key: its scope, its template slot (the element's

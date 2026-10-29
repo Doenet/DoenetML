@@ -40,7 +40,7 @@ pub(crate) fn signature_renamed(dast: &Dast, rename: &dyn Fn(&str) -> String) ->
     let mut boxed: HashSet<NodeId> = HashSet::new();
     loop {
         let attempt = Compiler::compile(&dast, &boxed)
-            .and_then(|compiled| Ok((build::probe(&compiled)?, compiled)));
+            .and_then(|compiled| Ok((build::probe(&compiled, true)?, compiled)));
         match attempt {
             Ok((u, compiled)) => return Ok(u.signature(&compiled, rename)),
             Err(f) => match f.node.filter(|n| boxed.insert(*n)) {

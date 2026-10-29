@@ -95,12 +95,15 @@ impl View for Probe {
 /// reads a session of its own, so nothing a student's session holds (the
 /// seed above all) reaches what it finds. The compile's check and
 /// `compile::diagnose` keep only its failures and warnings.
-pub(crate) fn probe(compiled: &Compiled) -> std::result::Result<BuildOutput, Failure> {
+pub(crate) fn probe(
+    compiled: &Compiled,
+    checks: bool,
+) -> std::result::Result<BuildOutput, Failure> {
     let session = Session::new(0, false);
     // The session's own engine, which the output keeps, so what the build
     // made can be read (the input signature reads expressions).
     let mut engine = session.engine.borrow_mut();
-    build_with(compiled, &session, false, &mut engine, &Probe, true)
+    build_with(compiled, &session, false, &mut engine, &Probe, checks)
 }
 
 /// The coordinate an index step contributes: a shift of the referencing

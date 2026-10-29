@@ -175,31 +175,6 @@ pub fn build(
         .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 
-/// The stamped build at no iteration that checks a document the probe
-/// does not (one without repeats or selects, whose one build this is): its
-/// failures name the element for the compile to box, and it runs the
-/// probe's loop check, so a cycle is the compile's finding here too,
-/// unless `check_loops` is off (a test load without the check).
-pub(crate) fn first_build(
-    compiled: &Compiled,
-    session: &Session,
-    check_loops: bool,
-) -> std::result::Result<BuildOutput, Failure> {
-    let counts = Counts::default();
-    let view = Stamped {
-        session,
-        counts: &counts,
-    };
-    build_with(
-        compiled,
-        session,
-        false,
-        &mut session.engine.borrow_mut(),
-        &view,
-        check_loops,
-    )
-}
-
 /// A built document whose program has not yet been scheduled.
 pub struct BuildOutput {
     cells: Vec<f64>,
