@@ -190,6 +190,13 @@ by name, after every load.
   across `cy.reload()`. PR #2364 changes it to look the inputs up by name after each load.
 - The paginator tests that do the same are all `it.skip`.
 
+Tests that assert indices stay the same are Tier 3:
+- `T/copying/group_copy_variants.test.ts:265` "a group copy's components keep their indices
+  through a reload" (#2344). It checks that three answers' inputs have the same `componentIdx`
+  after the page is loaded again with saved state. It holds for that document today, but a core
+  that numbers components differently would fail it with no author-visible difference. The part
+  worth keeping is that the reloaded answers find their saved state; check that by name instead.
+
 The index is still exposed outside the core, in two places:
 - recorded events name their component by index;
 - the viewer's DOM ids are built from it.
