@@ -12,8 +12,9 @@ use super::*;
 /// meaning it has there (ADR 0023); what the element writes itself is
 /// planned where the element sits. One context serves every kind of
 /// planner; the kind decides what is done around the call. For a `Plan`
-/// type, `plan_with_extend` makes it and does the rest: a bare copy,
-/// sharing state with the referent, and `fixed`.
+/// type, `plan_with_extend` makes it and does the rest: a bare copy and
+/// sharing state with the referent. No planner applies `fixed`:
+/// `plan_elem` holds every element after its planner (`compile/fix.rs`).
 pub(crate) struct PlanCtx<'c, 'a> {
     c: &'c mut Compiler<'a>,
     t: TemplateId,

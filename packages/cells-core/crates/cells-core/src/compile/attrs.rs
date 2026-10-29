@@ -128,8 +128,6 @@ impl<'a> Compiler<'a> {
         if let Planner::PropsThen(then) = Self::planner(component_type) {
             then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
-        let held = self.plan_fix(t, e)?.apply(&mut props);
-        self.record_held(t, e, held);
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
         self.compiled.templates[t.index()].elems[e.index()].props = props;
@@ -521,8 +519,7 @@ impl<'a> Compiler<'a> {
                     return id;
                 }
                 match self.compiled.templates[t.index()].elems[target.index()]
-                    .props
-                    .get(prop::math::EXPR)
+                    .planned(prop::math::EXPR)
                 {
                     Some(Source::MathHandle(inner, _)) => {
                         let inner = *inner;

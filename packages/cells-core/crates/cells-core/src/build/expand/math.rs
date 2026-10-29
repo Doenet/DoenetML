@@ -204,10 +204,7 @@ impl<'c> Builder<'c> {
         let i = self.instances[inst as usize];
         let pi = slot.index() - self.slot_base[comp.index()].index();
         let c: &'c Compiled = self.compiled;
-        let next = match c.templates[i.template.index()].elems[i.elem.index()]
-            .props
-            .get(pi)
-        {
+        let next = match c.templates[i.template.index()].elems[i.elem.index()].planned(pi) {
             Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
                 return ValueType::Math;
             }
@@ -241,11 +238,6 @@ impl<'c> Builder<'c> {
             Some(Source::Alias(Arg::Ref(p, Sel::Whole))) => match self.resolve_one(*p, i.scope) {
                 Ok(t) => t,
                 Err(_) => return ValueType::Number,
-            },
-            // A dynamic `fixed` holds the moved plan behind a `Hold`.
-            Some(Source::Op(OpSpec::Hold, args)) => match args.first() {
-                Some(Arg::Own(h)) => self.slot(comp, *h as usize),
-                _ => return ValueType::Number,
             },
             _ => return ValueType::Number,
         };
@@ -295,16 +287,14 @@ impl<'c> Builder<'c> {
                 let i = self.instances[inst as usize];
                 matches!(
                     self.compiled.templates[i.template.index()].elems[i.elem.index()]
-                        .props
-                        .get(prop::math_input::EXPR),
+                        .planned(prop::math_input::EXPR),
                     Some(Source::MathEssential(_))
                 )
             }
             ComponentType::Math => {
                 let i = self.instances[inst as usize];
                 match self.compiled.templates[i.template.index()].elems[i.elem.index()]
-                    .props
-                    .get(prop::math::EXPR)
+                    .planned(prop::math::EXPR)
                 {
                     Some(Source::MathHandle(id, _)) => {
                         let id = *id;

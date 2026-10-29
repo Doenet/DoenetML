@@ -288,6 +288,22 @@ pub(crate) struct Elem {
     pub(crate) body: Body,
 }
 
+impl Elem {
+    /// The source the element's planner gave prop `pi`, seen through the
+    /// `Hold` a `fixed` puts in front of it (`compile/fix.rs`): what reads
+    /// a plan for what it is (an essential math, a math's expression)
+    /// reads it here, so a hold changes nothing it decides.
+    pub(crate) fn planned(&self, pi: usize) -> Option<&Source> {
+        match self.props.get(pi) {
+            Some(Source::Op(OpSpec::Hold, args)) => match args.first() {
+                Some(Arg::Own(h)) => self.props.get(*h as usize),
+                _ => None,
+            },
+            other => other,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Template {
     /// (template, element) of the repeat or choice this template belongs to.

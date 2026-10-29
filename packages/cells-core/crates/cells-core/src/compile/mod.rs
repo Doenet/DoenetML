@@ -112,6 +112,10 @@ pub(in crate::compile) struct Compiler<'a> {
     /// By (template, element), the slots a `fixed` holds and the hidden
     /// slot each one's source moved to (`Fix::apply`).
     held: HashMap<(u32, u32), Vec<(u8, u8)>>,
+    /// By (template, element), the elements `plan_elem` has planned and
+    /// held: one planned ahead of its turn (a `<math>` another element's
+    /// math inlines) is not planned, or held, twice.
+    planned: HashSet<(u32, u32)>,
 }
 
 /// A name-table entry naming more than one element.
@@ -171,6 +175,7 @@ impl<'a> Compiler<'a> {
             sibling_names: HashSet::new(),
             shared_state: HashMap::new(),
             held: HashMap::new(),
+            planned: HashSet::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -650,10 +655,22 @@ impl<'a> Compiler<'a> {
         Ok(kids)
     }
 
+    /// Plans element `e`, then holds it as the `fixed`-like attributes
+    /// that reach it say (`hold_fixed`, ADR 0022). Every element is planned
+    /// here and nowhere else, so `fixed` holds whatever planned it: no
+    /// planner applies it, and none can leave it out.
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let r = self.plan_elem_inner(t, e);
-        if r.is_err() {
-            self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node);
+        if self.planned.contains(&(t.get(), e.get())) {
+            return Ok(());
+        }
+        let r = self
+            .plan_elem_inner(t, e)
+            .and_then(|()| self.hold_fixed(t, e));
+        match r {
+            Ok(()) => {
+                self.planned.insert((t.get(), e.get()));
+            }
+            Err(_) => self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node),
         }
         r
     }
@@ -662,27 +679,9 @@ impl<'a> Compiler<'a> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
-            // plan, except a `fixed` the copy or its containers give (ADR
-            // 0022), which holds the aliases. A clone of a type with a
-            // list of points takes its points from the original at build
-            // (`place_list_copy`), which no hold reaches yet.
+            // plan.
             ElemShape::Cloned => {
                 self.plan_bare_copy(t, e);
-                // A cloned child inherits `fixed` and `fixLocation` from the
-                // nearest container (ADR 0022); a list's are its referent's.
-                if component_type.given_coords().is_none() {
-                    let mut props: Vec<Option<Source>> = self.compiled.templates[t.index()].elems
-                        [e.index()]
-                    .props
-                    .iter()
-                    .cloned()
-                    .map(Some)
-                    .collect();
-                    let held = self.plan_fix(t, e)?.apply(&mut props);
-                    self.record_held(t, e, held);
-                    self.compiled.templates[t.index()].elems[e.index()].props =
-                        props.into_iter().map(|p| p.unwrap()).collect();
-                }
                 Ok(())
             }
             // Synthesized elements (iteration values) come planned.

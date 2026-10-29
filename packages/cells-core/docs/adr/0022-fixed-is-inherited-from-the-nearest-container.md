@@ -49,11 +49,26 @@ it, so the fold costs nothing at tick time, and the one `Hold` mechanism
 ## Consequences
 
 - `Compiler::plan_fix(t, e)` takes the element and walks the chain
-  (`nearest_attr`); `Fix::apply` and `Hold` are unchanged. Every planner
-  that applied `fixed` before inherits it now: the prop-table types, the
-  `Plan` types, and container copies' clones, whose aliases are held when
-  the copy or a container around it is fixed (a clone of a type with a
-  list of points takes its points at build and is not held yet).
+  (`nearest_attr`); `Fix::apply` and `Hold` are unchanged. A clone of a
+  type with a list of points takes its points at build and is not held
+  yet.
+- *Amended 2026-10-29.* The attributes that hold an element are one
+  table, `HOLD_ATTRS` in `compile/fix.rs` (its name, whether it is
+  inherited, the types it holds), and `plan_elem` holds every element
+  once, after whatever planned it (`hold_fixed`). Before, each planning
+  path applied `fixed` itself and two never did: a type with a planner of
+  its own (`<math>`, `<text>`, `<boolean>`, `<textInput>`) and an
+  `extend` of a prop took writes inside a fixed container. Which kinds of
+  source a hold covers is an exhaustive match (`writable`), which had
+  missed the essential math of an unbound `<mathInput>`, so `fixed` on
+  one did nothing. Code reading what a planner gave a slot reads it
+  through the hold (`Elem::planned`). The table has one test,
+  `every_hold_attribute_holds_as_its_row_says`, and the hold one,
+  `a_hold_leaves_no_slot_of_any_kind_writable`; neither names a
+  component, so a new type or a new row needs no test of its own. An
+  own-only attribute (`fixAxes`) is now looked up only on a type it
+  holds, so `<point fixAxes>` is refused (ADR 0021) where it had been
+  read and ignored.
 - `fixLocation` is read on every type, so a container may carry it for
   the shapes inside; a type that is neither located nor a container
   accepts it with no effect, which is the attribute's meaning there.

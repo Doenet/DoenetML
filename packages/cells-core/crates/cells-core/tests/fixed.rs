@@ -349,3 +349,28 @@ fn fix_location_leaves_a_value_writable() {
     assert_eq!(set(&mut doc, "mi", "value", 5.0), 0);
     assert_eq!(v(&doc, "n", "value"), 5.0);
 }
+
+/// `fixed` is applied once, after whatever planned an element
+/// (`Compiler::hold_fixed`), so it holds the elements no planner of the
+/// prop table or `extend` handles: a type with a planner of its own (a
+/// `<math>`, reached through an input bound to it), an `extend` of a
+/// prop, and an essential math (an unbound `<mathInput>`'s expression).
+/// Each once took the write.
+#[test]
+fn fixed_holds_however_an_element_is_planned() {
+    let mut doc = load(
+        r#"<group fixed>
+             <math name="m">3</math>
+             <mathInput name="typed"/>
+           </group>
+           <mathInput name="mi" bindValueTo="$m"/>
+           <point name="C">(1,2)</point>
+           <graph fixed><point name="Q" extend="$C.coords"/></graph>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "mi", "value", 7.0), 1);
+    assert_eq!(v(&doc, "m", "value"), 3.0);
+    assert_eq!(set(&mut doc, "typed", "value", 7.0), 1);
+    assert_eq!(set(&mut doc, "Q", "x", 9.0), 1);
+    assert_eq!(v(&doc, "C", "x"), 1.0);
+}
