@@ -104,6 +104,8 @@ that vanishes at these sizes; what differs is what the core does next.
 | `inversion` | A request walked back through n operators: dragging the point at the end of a chain moves the free point at its start. | JS, cells (Rust does not invert)                                                    |
 | `symbolic`  | Symbolic work: a chain of n simplified expressions in x, fed by a dragged point and evaluated at its end.              | JS, cells                                                                           |
 | `rebuild`   | A structural change: the drag sets a repeat's length between n and n - 1 iterations of a number and a point.           | JS, cells (Rust has no repeat; cells caps a repeat at 10,000 iterations by default) |
+| `crowd`     | A large document, a small change: a point dragged in a graph of n static points; a tick should not grow with n.        | JS, Rust, cells                                                                     |
+| `follow`    | Drawing: n points in a graph follow a dragged point, so every tick moves all of them on screen.                        | JS, Rust, cells                                                                     |
 
 The generator is `src/generate.mjs`. The text is cached in
 `fixtures/generated/`, not committed.
@@ -189,7 +191,10 @@ out.
 real page with its own viewer (the standalone viewer for JS, the prototype
 viewer for Rust, the cells viewer), on the same shapes, sizes and
 timeouts. A drag is 60 real pointer moves; its latency is the time from a
-move to the first frame that shows the point moved. Because each viewer is
+move to the first frame that shows the point moved, and its frame rate how
+many frames the page drew from the first move to the last. A shape whose
+drag moves other points (`follow`) names one of them to watch, and its
+latency is timed the same way. Because each viewer is
 at a different stage, these numbers are read against the budgets, never
 against each other. The browser has no value check of its own: a drag
 whose core left wrong values in the same run's Node layer is shown as not
@@ -373,6 +378,8 @@ Product goals, not gates (the only gate is CI's bundle size check,
 | ----------------------------------------------- | ----------------------------------- |
 | Frame latency of a drag, browser                | 16 ms (one vsync)                   |
 | Frame latency of a drag that rebuilds, browser  | 50 ms                               |
+| Frame rate during a drag, browser               | 55 fps                              |
+| Frame latency of what a drag moves, browser     | 16 ms (`follow`'s watched point)    |
 | Load, text to first render, `homework`          | 100 ms: no loading screen           |
 | Load, navigation to readable, `homework`, cold  | 300 ms on `slow-phone` (load layer) |
 | State storage, `homework` after its script, raw | 2 KB                                |

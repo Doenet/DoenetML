@@ -14,7 +14,7 @@
 // `results/README.md` lists the runs, newest first, grouped by machine.
 import { writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { packageRoot, shapes } from "../src/fixtures.mjs";
+import { loadFixture, packageRoot, shapes } from "../src/fixtures.mjs";
 import { listRuns, runsDir } from "../src/results.mjs";
 import { loadPage } from "./render-load.mjs";
 import { tracePage } from "./render-trace.mjs";
@@ -377,6 +377,7 @@ function coverage(run) {
 const BUDGETS = {
     tick: 16,
     structural: 50,
+    fps: 55,
     load: 100,
     state: 2048,
     bundle: 1e6,
@@ -410,17 +411,63 @@ function budgets(run) {
         const nodeBy = new Map(
             (run.layers.node ?? []).map((r) => [`${r.core}/${r.fixture}`, r]),
         );
-        const lat = (r, budget) => {
+        /** What a cell shows instead of a number: the record's failure,
+         * or wrong values in the Node layer; null when it has a number. */
+        const gate = (r) => {
             if (!r) return "";
             if (r.status !== "ok") return `${r.status} at ${r.stage}`;
             const n = nodeBy.get(`${r.core}/${r.fixture}`);
             if (n?.check && !n.check.ok)
                 return `not comparable<br><sub>wrong values in the Node layer</sub>`;
+            return null;
+        };
+        const unchecked = (r) =>
+            !nodeBy.get(`${r.core}/${r.fixture}`)?.check &&
+            /-\d+$/.test(r.fixture)
+                ? " †"
+                : "";
+        const lat = (r, budget) => {
+            const g = gate(r);
+            if (g !== null) return g;
             const l = r.drag?.latency;
             if (!l?.n) return "no frames";
-            const unchecked = !n?.check && /-\d+$/.test(r.fixture) ? " †" : "";
-            return `${pass(l.p50_ms, budget)} ${ms(l.p50_ms)}${unchecked}<br><sub>p90 ${ms(l.p90_ms)} · ${r.drag.frames}/${r.drag.moves} frames</sub>`;
+            return `${pass(l.p50_ms, budget)} ${ms(l.p50_ms)}${unchecked(r)}<br><sub>p90 ${ms(l.p90_ms)} · ${r.drag.frames}/${r.drag.moves} frames</sub>`;
         };
+        const fps = (r) => {
+            const g = gate(r);
+            if (g !== null) return g;
+            const d = r.drag;
+            if (d?.fps == null) return "";
+            return `${d.fps >= BUDGETS.fps ? "✓" : "✗"} ${d.fps.toFixed(0)} fps${unchecked(r)}<br><sub>p95 gap ${ms(d.frame_gap.p95_ms)}</sub>`;
+        };
+        const watched = (r) => {
+            const g = gate(r);
+            if (g !== null) return g;
+            const w = r.drag?.watch;
+            if (!w) return "";
+            if (!w.latency?.n) return "no frames";
+            return `${pass(w.latency.p50_ms, BUDGETS.tick)} ${ms(w.latency.p50_ms)}${unchecked(r)}<br><sub>p90 ${ms(w.latency.p90_ms)} · ${w.per_s.toFixed(1)}/s</sub>`;
+        };
+        /** The fixtures whose manifest passes `has`, timed out or not;
+         * none for a fixture this checkout no longer has. */
+        const manifests = (has) =>
+            fixtures.filter((f) => {
+                try {
+                    return has(loadFixture(f));
+                } catch {
+                    return false;
+                }
+            });
+        const drags = manifests((m) => m.steps?.[0]?.action === "movePoint");
+        const watches = manifests((m) => m.watch != null);
+        const rows = (list, cell) =>
+            table(
+                ["Fixture", ...cores.map(coreName)],
+                list.map((f) => [
+                    f,
+                    ...cores.map((c) => cell(by.get(`${c}/${f}`))),
+                ]),
+            );
         out.push(
             table(
                 ["Fixture", ...cores.map(coreName)],
@@ -441,6 +488,27 @@ function budgets(run) {
                     ]),
             ),
             "",
+        );
+        // Runs before the frame rate was recorded have none to show.
+        if (browser.some((r) => r.drag?.fps != null))
+            out.push(
+                `## Frame rate during a drag`,
+                "",
+                `Animation frames the page drew per second, from the first pointer move of the drag to the last: ${BUDGETS.fps} fps, whatever the points did. A page busy with a tick draws no frame. Under it: the p95 gap between frames.`,
+                "",
+                rows(drags, fps),
+                "",
+            );
+        if (watches.length)
+            out.push(
+                `## What a drag moves`,
+                "",
+                `For a shape whose drag moves other points (\`follow\`): the median time from a pointer move to the frame that shows the last of them moved, ${BUDGETS.tick} ms. Under it: p90 and how many times a second it moved.`,
+                "",
+                rows(watches, watched),
+                "",
+            );
+        out.push(
             `## Load`,
             "",
             `Text to first render. The budget, ${BUDGETS.load} ms, is for \`homework\`; the other loads are for reference.`,

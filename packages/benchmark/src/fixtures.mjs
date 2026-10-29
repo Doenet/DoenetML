@@ -22,7 +22,7 @@ const generatedDir = resolve(fixturesDir, "generated");
 /** The manifest of synthetic fixture `shape-n`. */
 function synthetic(shape, n) {
     const name = `${shape}-${n}`;
-    const { steps, start, check } = generate(name);
+    const { steps, start, watch, check } = generate(name);
     return {
         name,
         tier: "synthetic",
@@ -32,6 +32,9 @@ function synthetic(shape, n) {
         source: { generate: name },
         steps,
         start,
+        // A point the drag moves besides the dragged one, which the browser
+        // layer also times on screen (`follow`).
+        ...(watch ? { watch } : {}),
         check,
         structural: null,
     };

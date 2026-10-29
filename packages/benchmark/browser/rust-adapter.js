@@ -60,17 +60,18 @@
          * element's own position would time JSXGraph alone; the JS viewer
          * drags a hidden shadow point and moves the visible one only on the
          * core's answer, which is what this measures for the Rust core.
+         * Each located point is kept by name for `position`.
          */
         async locate(name) {
             const b = board();
             if (!b) return null;
             const idx = await window.__rust.resolve(name);
             if (idx === -1 || !window.__rust.pointCoords(idx)) return null;
-            this._pt = { board: b, idx };
-            return this.position();
+            (this._pts ??= new Map()).set(name, { board: b, idx });
+            return this.position(name);
         },
-        position() {
-            const p = this._pt;
+        position(name) {
+            const p = this._pts?.get(name);
             const xy = p && window.__rust.pointCoords(p.idx);
             if (!xy) return null;
             p.board.containerObj.scrollIntoView({ block: "center" });

@@ -20,8 +20,28 @@ export const SIZES = process.env.BENCH_SIZES
 function point(name, x) {
     return `<graph name="g"><point name="${name}" x="${x}" y="0"/></graph>`;
 }
+/** A free point `name` at (x, y), inside a graph the caller writes. */
+function graphPoint(name, x, y) {
+    return `<point name="${name}" x="${x}" y="${y}"/>`;
+}
 function drag(target, x) {
     return { action: "movePoint", target, x, y: 0 };
+}
+
+/** The `k`th of `n` places on a grid over [x0, x0 + w) by [y0, y0 + h),
+ * row by row, each coordinate to three decimals as the text writes it. */
+function gridPlace(k, n, [x0, w], [y0, h]) {
+    const side = Math.ceil(Math.sqrt(n));
+    const at = (v) => Number(v.toFixed(3));
+    return [
+        at(x0 + (w * (k % side)) / side),
+        at(y0 + (h * Math.floor(k / side)) / side),
+    ];
+}
+
+/** `base` plus `d`, as DoenetML text: `$p.x - 2.5`, `$p.x + 0`. */
+function offset(base, d) {
+    return d < 0 ? `${base} - ${-d}` : `${base} + ${d}`;
 }
 
 export const shapes = {
@@ -144,6 +164,66 @@ export const shapes = {
                 check: {
                     step: drag("p", -1),
                     values: { [`r[${n - 1}].h`]: 2 * (n - 1) },
+                },
+            };
+        },
+    },
+    crowd: {
+        mechanism:
+            "a large document, a small change: a point dragged in a graph of n static points; a tick should not grow with n",
+        generate(n) {
+            // The static points fill the graph above p's row (y from 2), so
+            // a pointer pressed on p grabs p.
+            const lines = ['<graph name="g">', graphPoint("p", 1, 0)];
+            let last;
+            for (let k = 0; k < n; k++) {
+                last = gridPlace(k, n, [-9, 18], [2, 7]);
+                lines.push(graphPoint(`s${k}`, ...last));
+            }
+            // Read through numbers: a point has no single value to check.
+            // `px` changes with the drag, one element besides p.
+            lines.push(
+                "</graph>",
+                '<number name="px">$p.x</number>',
+                `<number name="sx">$s${n - 1}.x</number>`,
+            );
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", 2), drag("p", 3)],
+                start: [1, 0],
+                check: { step: drag("p", 5), values: { px: 5, sx: last[0] } },
+            };
+        },
+    },
+    follow: {
+        mechanism:
+            "drawing: n points in a graph follow a dragged point, so every tick moves all of them on screen",
+        generate(n) {
+            // Each follower sits at a fixed offset from p, above its row
+            // (y from 1) and close enough to stay in view as p is dragged.
+            const lines = ['<graph name="g">', graphPoint("p", 1, 0)];
+            let last;
+            for (let k = 0; k < n; k++) {
+                last = gridPlace(k, n, [-4, 8], [1, 4]);
+                lines.push(
+                    `<point name="f${k}" x="${offset("$p.x", last[0])}" y="${offset("$p.y", last[1])}"/>`,
+                );
+            }
+            lines.push(
+                "</graph>",
+                `<number name="fx">$f${n - 1}.x</number>`,
+                `<number name="fy">$f${n - 1}.y</number>`,
+            );
+            const [dx, dy] = last;
+            return {
+                text: lines.join("\n") + "\n",
+                steps: [drag("p", 2), drag("p", 3)],
+                start: [1, 0],
+                // The browser layer also times the last follower on screen.
+                watch: { name: `f${n - 1}`, start: [1 + dx, dy] },
+                check: {
+                    step: drag("p", 5),
+                    values: { fx: 5 + dx, fy: dy },
                 },
             };
         },

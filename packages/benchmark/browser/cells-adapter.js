@@ -40,13 +40,15 @@
             this.ready = true;
             return performance.now() - t0;
         },
+        /** Each located point is kept by name for `position`. */
         async locate(name) {
             const idx = resolve(name);
-            this._idx = idx;
+            (this._idx ??= new Map()).set(name, idx);
             return idx === null ? null : window.__cells.locate(idx);
         },
-        position() {
-            return this._idx === null ? null : window.__cells.locate(this._idx);
+        position(name) {
+            const idx = this._idx?.get(name) ?? null;
+            return idx === null ? null : window.__cells.locate(idx);
         },
         async act(step) {
             const s = store();

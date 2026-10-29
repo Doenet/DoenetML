@@ -121,33 +121,48 @@ function deadline<T>(p: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
- * Drag with real pointer events. In the page, a frame poller records when
- * the point's screen position changes; each move's latency is the first
- * such frame after the move. Chromium coalesces moves while the main
+ * Drag with real pointer events. In the page, a frame poller records every
+ * animation frame, and when the point's screen position changes; each
+ * move's latency is the first such frame after the move. With `watch`, a
+ * point the drag moves besides the dragged one (`follow`), it times that
+ * point's frames the same way. Chromium coalesces moves while the main
  * thread is busy, so slow documents yield fewer samples than moves.
  */
-async function drag(page: Page, target: string, [cx, cy]: [number, number]) {
-    await page.evaluate((name) => {
-        const b = (window as any).__bench;
-        const w = window as any;
-        w.__moves = [] as number[];
-        w.__frames = [] as number[];
-        let last = JSON.stringify(b.position());
-        const poll = () => {
-            const now = JSON.stringify(b.position());
-            if (now !== last) {
-                w.__frames.push(performance.now());
-                last = now;
-            }
-            if (!w.__stopPoll) requestAnimationFrame(poll);
-        };
-        document.addEventListener(
-            "pointermove",
-            () => w.__moves.push(performance.now()),
-            true,
-        );
-        requestAnimationFrame(poll);
-    }, target);
+async function drag(
+    page: Page,
+    target: string,
+    [cx, cy]: [number, number],
+    watch?: string,
+) {
+    await page.evaluate(
+        ({ target, watch }) => {
+            const b = (window as any).__bench;
+            const w = window as any;
+            w.__moves = [] as number[];
+            w.__ticks = [] as number[];
+            const names = watch ? [target, watch] : [target];
+            w.__frames = names.map(() => [] as number[]);
+            const last = names.map((n) => JSON.stringify(b.position(n)));
+            const poll = (t: number) => {
+                w.__ticks.push(t);
+                names.forEach((n, i) => {
+                    const now = JSON.stringify(b.position(n));
+                    if (now !== last[i]) {
+                        w.__frames[i].push(performance.now());
+                        last[i] = now;
+                    }
+                });
+                if (!w.__stopPoll) requestAnimationFrame(poll);
+            };
+            document.addEventListener(
+                "pointermove",
+                () => w.__moves.push(performance.now()),
+                true,
+            );
+            requestAnimationFrame(poll);
+        },
+        { target, watch },
+    );
     await page.mouse.move(cx, cy);
     await page.mouse.down();
     // Paced like a 60 Hz mouse, so a slow core is measured against real
@@ -165,22 +180,43 @@ async function drag(page: Page, target: string, [cx, cy]: [number, number]) {
     return page.evaluate(() => {
         const w = window as any;
         w.__stopPoll = true;
-        const moves: number[] = w.__moves,
-            frames: number[] = w.__frames;
-        // Each frame in which the point moved answers every move since the
+        const moves: number[] = w.__moves;
+        // Each frame in which a point moved answers every move since the
         // previous such frame; the lag the user saw is measured from the
         // oldest of them, since until this frame the display was that stale.
-        const latencies: number[] = [];
-        let j = 0;
-        for (const f of frames) {
-            let oldest = -1;
-            while (j < moves.length && moves[j] < f) {
-                if (oldest < 0) oldest = moves[j];
-                j++;
+        function latencies(frames: number[]) {
+            const out: number[] = [];
+            let j = 0;
+            for (const f of frames) {
+                let oldest = -1;
+                while (j < moves.length && moves[j] < f) {
+                    if (oldest < 0) oldest = moves[j];
+                    j++;
+                }
+                if (oldest >= 0) out.push(f - oldest);
             }
-            if (oldest >= 0) latencies.push(f - oldest);
+            return out;
         }
-        return { moves: moves.length, frames: frames.length, latencies };
+        // The frames the page drew from the first move to the last: how
+        // smooth the drag looked, whatever the points did.
+        const first = moves[0],
+            end = moves[moves.length - 1];
+        const ticks = (w.__ticks as number[]).filter(
+            (t) => t >= first && t <= end,
+        );
+        const [frames, watched] = w.__frames as number[][];
+        return {
+            moves: moves.length,
+            frames: frames.length,
+            latencies: latencies(frames),
+            span_ms: end - first,
+            ticks: ticks.length,
+            gaps: ticks.slice(1).map((t, i) => t - ticks[i]),
+            watch: watched && {
+                frames: watched.length,
+                latencies: latencies(watched),
+            },
+        };
     });
 }
 
@@ -263,20 +299,41 @@ for (const m of FIXTURES) {
                         LOCATE_MS,
                     );
                     if (!at) throw new Error(`cannot locate ${first.target}`);
+                    if (m.watch) {
+                        const w = await deadline(
+                            page.evaluate(
+                                async ({ name, start }) =>
+                                    (window as any).__bench.locate(name, start),
+                                m.watch,
+                            ),
+                            LOCATE_MS,
+                        );
+                        if (!w)
+                            throw new Error(`cannot locate ${m.watch.name}`);
+                    }
                     stage = "tick";
                     if (BREAKDOWN.has(core))
                         await page.evaluate(() =>
                             (window as any).__bench.clearSamples(),
                         );
                     const d = await deadline(
-                        drag(page, first.target, at),
+                        drag(page, first.target, at, m.watch?.name),
                         STAGE_MS,
                     );
                     record.drag = {
                         moves: d.moves,
                         frames: d.frames,
                         latency: quantiles(d.latencies),
+                        fps: (d.ticks / d.span_ms) * 1000,
+                        frame_gap: quantiles(d.gaps),
                     };
+                    if (d.watch)
+                        record.drag.watch = {
+                            name: m.watch.name,
+                            frames: d.watch.frames,
+                            per_s: (d.watch.frames / d.span_ms) * 1000,
+                            latency: quantiles(d.watch.latencies),
+                        };
                     if (core === "cells") {
                         const samples: any[] = await page.evaluate(() =>
                             (window as any).__bench.samples(),
@@ -318,7 +375,10 @@ for (const m of FIXTURES) {
                 record.status === "ok"
                     ? `load ${record.load_ms.toFixed(0)} ms` +
                       (record.drag
-                          ? `, drag ${record.drag.latency.p50_ms?.toFixed(1)} ms (${record.drag.frames} frames / ${record.drag.moves} moves)`
+                          ? `, drag ${record.drag.latency.p50_ms?.toFixed(1)} ms (${record.drag.frames} frames / ${record.drag.moves} moves), ${record.drag.fps.toFixed(0)} fps` +
+                            (record.drag.watch
+                                ? `, ${record.drag.watch.name} ${record.drag.watch.latency.p50_ms?.toFixed(1)} ms (${record.drag.watch.per_s.toFixed(1)}/s)`
+                                : "")
                           : "") +
                       (record.steps
                           ? `, ${record.steps.map((s: any) => `${s.label} ${s.frame.p50_ms?.toFixed(1)} ms`).join(", ")}`
