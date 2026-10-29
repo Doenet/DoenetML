@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use super::{CellIdx, Document};
 use crate::program::SymRun;
-use crate::tick::eval::{DirtyClosure, Evaluator, FullRecompute, Recompute};
+use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::invert::{PointRequest, invert_requests};
 use crate::tick::{Request, TickOutcome};
 
@@ -28,25 +28,14 @@ impl Document {
         self.request_with_groups(&[], &[points.to_vec()])
     }
 
-    /// Scalar requests and point groups in one tick, recomputed by the
-    /// document's evaluator (`set_evaluator`).
+    /// Scalar requests and point groups in one tick, recomputed as
+    /// `set_evaluator` chose.
     pub fn request_with_groups(
         &mut self,
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
-        self.tick(None, requests, groups, true)
-    }
-
-    /// One tick recomputed by `evaluator` instead of the document's: a
-    /// strategy under test.
-    pub fn request_with(
-        &mut self,
-        evaluator: &mut dyn Evaluator,
-        requests: &[Request],
-        groups: &[Vec<PointRequest>],
-    ) -> TickOutcome {
-        self.tick(Some(evaluator), requests, groups, true)
+        self.tick(requests, groups, true)
     }
 
     /// A tick on any cell, without the check that it is an input's: an
@@ -56,7 +45,7 @@ impl Document {
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
-        self.tick(None, requests, groups, false)
+        self.tick(requests, groups, false)
     }
 
     /// Choose how ticks recompute: "full" or "dirty-closure" (the
@@ -78,7 +67,6 @@ impl Document {
 
     fn tick(
         &mut self,
-        evaluator: Option<&mut dyn Evaluator>,
         requests: &[Request],
         groups: &[Vec<PointRequest>],
         checked: bool,
@@ -149,14 +137,16 @@ impl Document {
             }
         }
         if !tick.changed.is_empty() {
-            let evaluator: &mut dyn Evaluator = match (evaluator, self.recompute) {
-                (Some(e), _) => e,
-                (None, Recompute::Full) => &mut FullRecompute,
-                (None, Recompute::DirtyClosure) => self
+            match self.recompute {
+                Recompute::Full => {
+                    self.program
+                        .run_all_tracking(&mut sym, &mut self.cells, &mut tick.changed)
+                }
+                Recompute::DirtyClosure => self
                     .dirty
-                    .get_or_insert_with(|| DirtyClosure::new(&self.program, self.cells.len())),
-            };
-            evaluator.recompute(&self.program, &mut sym, &mut self.cells, &mut tick.changed);
+                    .get_or_insert_with(|| DirtyClosure::new(&self.program, self.cells.len()))
+                    .recompute(&self.program, &mut sym, &mut self.cells, &mut tick.changed),
+            }
             drop(engine);
             if !self.structure_settled() {
                 match self.rebuild() {

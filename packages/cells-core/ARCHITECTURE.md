@@ -197,10 +197,11 @@ downstream, and report a `TickOutcome`. See
    inverses of the instructions that produced its cell, until it lands on
    essential cells. Dragged point groups are kept together (ADR 0003,
    ADR 0006).
-4. The essential writes are applied and the document's `Evaluator`
-   (`tick/eval.rs`) recomputes. By default this is `DirtyClosure`, which runs
-   only the instructions downstream of a changed cell; `FullRecompute` runs
-   all of them and can be selected with `set_evaluator`.
+4. The essential writes are applied and the document recomputes as its
+   `Recompute` setting says (`tick/eval.rs`). By default this is the
+   `DirtyClosure`, which runs only the instructions downstream of a
+   changed cell; `Recompute::Full` runs all of them and can be selected
+   with `set_evaluator`.
 5. The `TickOutcome` lists the cells that changed and the requests that
    were dropped.
 
@@ -279,7 +280,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `CellIdx`, `CompIdx`, `NodeId`, `StrId`, `ScopeId`, `OperandIdx`, `MemoIdx`, and the compile's and build's ids (`TemplateId`, `ElemId`, `RefId`, `ChoiceId`, `ElemKey`, `ExprId`, `SlotId`, `Handle`) | `index.rs` | Positions in the cells, the component table, the DAST, a string table, the session's scopes, a program's operands and its symbolic memo, and the like, each its own type over a `u32` made by `index_type!` (`index()` reads the position), so one cannot be passed for another. A text cell holds a `StrId` as its value (`StrId::to_value`). Two lists mix kinds of entry and say so in their types: a child list's `ChildEntry` (`document/table.rs`) is a component or a text child's string, and a literal attribute's `AttrValue` (`dast/attrs.rs`) is a string or text the attributes keep. A math's leaves say what they are by type: `Expr<L>` and `sym::Tree<L>` hold `RefId`s in the compile, `SlotId`s in a build, `CellIdx`s once emit rebinds them. |
 | `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
-| `Evaluator`, `Recompute` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`; `Recompute` is the document's setting of which one a tick uses. |
+| `Recompute`, `DirtyClosure` | `tick/eval.rs` | The document's setting of how a tick recomputes: every instruction, or the dirty closure of what changed, whose tables are `DirtyClosure`. |
 | `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
 | `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells: math-expressions-rs called directly (ADR 0008, ADR 0011). A math cell holds a handle into it. `Tape` compiles a curve of fixed shape to numeric steps. |
 

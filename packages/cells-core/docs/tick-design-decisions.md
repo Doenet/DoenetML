@@ -919,6 +919,8 @@ To measure a patch, at that tag: `git apply` it (the cell-type
 patches on top of `4-6-cells-type.patch`), commit it locally, and run
 `scripts/tick-diff.sh` with the commit before it as the base. To measure
 an evaluator, at that tag: `CELLS_EVALUATORS=dirty,full,<name> cargo
-run --release -p cells-bench --example tick_cost`. To measure a change
+run --release -p cells-bench --example tick_cost` (the example as kept
+names the core's two `dirty-closure` and `full`, as `set_evaluator`
+does). To measure a change
 to the core now, make it in the working tree and run
 `scripts/tick-diff.sh`.

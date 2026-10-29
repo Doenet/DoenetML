@@ -16,8 +16,8 @@
 //!
 //! - `CELLS_SHAPES=depth,chain10`: shapes (default `shapes::SHAPES`).
 //! - `CELLS_SIZES=1000,10000`: sizes (default 1,000, 10,000 and 100,000).
-//! - `CELLS_EVALUATORS`: from `dirty` and `full` (the core's); default
-//!   `dirty,full`. An evaluator to compare is added to `evaluator`.
+//! - `CELLS_EVALUATORS`: from `dirty-closure` and `full`, the core's
+//!   (`Recompute::named`); default `dirty-closure,full`.
 //!
 //!   cargo run --release -p cells-bench --example tick_cost
 
@@ -25,15 +25,7 @@ use std::io::Write as _;
 use std::time::{Duration, Instant};
 
 use cells_bench::shapes::{SHAPES, cell, fingerprint, load, shape};
-use cells_core::{DirtyClosure, Document, Evaluator, FullRecompute, Request};
-
-fn evaluator(name: &str, doc: &Document) -> Box<dyn Evaluator> {
-    match name {
-        "dirty" => Box::new(DirtyClosure::new(&doc.program, doc.cells.len())),
-        "full" => Box::new(FullRecompute),
-        _ => panic!("no evaluator {name}"),
-    }
-}
+use cells_core::{Document, Request};
 
 fn median(xs: &[Duration]) -> Duration {
     let mut xs = xs.to_vec();
@@ -74,7 +66,10 @@ fn main() {
         SHAPES.iter().map(|s| s.to_string()).collect(),
     );
     let sizes: Vec<usize> = list("CELLS_SIZES", vec![1000, 10000, 100000]);
-    let names: Vec<String> = list("CELLS_EVALUATORS", vec!["dirty".into(), "full".into()]);
+    let names: Vec<String> = list(
+        "CELLS_EVALUATORS",
+        vec!["dirty-closure".into(), "full".into()],
+    );
     let ticks: usize = std::env::var("CELLS_TICKS")
         .ok()
         .and_then(|s| s.parse().ok())
@@ -104,9 +99,10 @@ fn main() {
             let drag = cell(&base, s.drag);
             let what = format!("{name}-{n}");
             let m = names.len();
-            let mut evs: Vec<Box<dyn Evaluator>> =
-                names.iter().map(|e| evaluator(e, &base)).collect();
             let mut docs: Vec<Document> = (0..m).map(|_| base.clone()).collect();
+            for (d, e) in docs.iter_mut().zip(&names) {
+                assert!(d.set_evaluator(e), "no evaluator {e}");
+            }
 
             // The shape computes what it says, and every evaluator
             // reads the same values.
@@ -115,8 +111,8 @@ fn main() {
                 cell: drag,
                 value: *check,
             }];
-            for (d, ev) in docs.iter_mut().zip(&mut evs) {
-                d.request_with(ev.as_mut(), &req, &[]);
+            for d in &mut docs {
+                d.request(&req);
             }
             for (path, v) in values {
                 let got = docs[0].cells[cell(&docs[0], path).index()];
@@ -134,7 +130,7 @@ fn main() {
                     value: x[j],
                 }];
                 let t = Instant::now();
-                let tick = docs[j].request_with(evs[j].as_mut(), &req, &[]);
+                let tick = docs[j].request(&req);
                 let dt = t.elapsed();
                 assert!(!tick.changed.is_empty() && !tick.rebuilt);
                 if k >= 3 * m {
