@@ -32,12 +32,15 @@ pub enum ValueType {
 
 /// What a program's symbolic instructions keep between runs: for each,
 /// from its `MemoIdx`, the input values it last ran on and its outputs
-/// from that run; with scratch for `SampleTape` and counters. Owned by the
-/// document beside its program, which stays read-only while a tick runs.
+/// from that run; with scratch for `SampleTape`. Owned by the document
+/// beside its program, which stays read-only while a tick runs.
 #[derive(Debug, Clone, Default)]
 pub struct SymState {
     memo: Vec<f64>,
-    pub stats: SymStats,
+    /// How many symbolic steps called the engine (an input had changed):
+    /// what the cutoff is measured by (`tests/symbolic.rs`).
+    #[cfg(feature = "testing")]
+    pub runs: u64,
     /// Scratch columns for `SampleTape`.
     tape_stack: Vec<f64>,
 }
@@ -47,8 +50,7 @@ impl SymState {
     pub fn new(program: &Program) -> Self {
         SymState {
             memo: vec![NEVER; program.memo_len],
-            stats: SymStats::default(),
-            tape_stack: Vec::new(),
+            ..Default::default()
         }
     }
 }
@@ -68,15 +70,6 @@ impl SymRun<'_> {
             engine: self.engine,
         }
     }
-}
-
-/// Counters for the cutoff measurement.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct SymStats {
-    /// Symbolic instructions stepped.
-    pub steps: u64,
-    /// Of those, how many called the engine (an input had changed).
-    pub runs: u64,
 }
 
 /// Bits no computation produces: a memo that has never run matches no input.
@@ -306,13 +299,15 @@ impl Program {
         let inputs = self.operands_at(start, n);
         let state = &mut *sym.state;
         let (last, outs) = state.memo[memo.index()..memo.index() + n + n_out].split_at_mut(n);
-        state.stats.steps += 1;
         if !inputs
             .iter()
             .zip(last.iter())
             .all(|(&c, m)| cells[c.index()].to_bits() == m.to_bits())
         {
-            state.stats.runs += 1;
+            #[cfg(feature = "testing")]
+            {
+                state.runs += 1;
+            }
             for (m, &c) in last.iter_mut().zip(inputs) {
                 *m = cells[c.index()];
             }

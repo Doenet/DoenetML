@@ -266,8 +266,11 @@ impl<'c> Builder<'c> {
         }
         let mut tapes = Vec::new();
         // Compile curves whose expression has a fixed shape into tapes, unless
-        // the load asked for engine sampling.
+        // a test load asked for engine sampling.
+        #[cfg(feature = "testing")]
         let compile = !self.session.sample_with_engine;
+        #[cfg(not(feature = "testing"))]
+        let compile = true;
         let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
             let (planned, start, count) = match &self.sources[s] {
@@ -377,6 +380,7 @@ impl<'c> Builder<'c> {
         // the value store is shared, since the build only read it.
         let session = Session {
             seed: self.session.seed,
+            #[cfg(feature = "testing")]
             sample_with_engine: self.session.sample_with_engine,
             scopes: self.scopes,
             values: self.session.values.clone(),

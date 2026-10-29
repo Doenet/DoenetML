@@ -8,7 +8,6 @@ pub mod reference;
 pub mod spec;
 pub mod test_utils;
 
-#[cfg(feature = "testing")]
 pub use crate::build::coverage::{ProbeEdges, probe_edges, uncovered};
 
 /// The compile of `dast` for a session at `seed`, checked as a load checks
@@ -18,38 +17,35 @@ pub fn compile(
     seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed, false);
+    let session = crate::session::Session::new(seed);
     Ok(crate::compile::compile(&dast, &session, true, true, true)?.compiled)
 }
 
 /// `compile`, with every value slot essential, as before ADR 0018
 /// (`LoadOptions::classify` off): what the classing is checked against.
-#[cfg(feature = "testing")]
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
     seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed, false);
+    let session = crate::session::Session::new(seed);
     Ok(crate::compile::compile(&dast, &session, true, false, true)?.compiled)
 }
 
 /// `compile`, with every prop computed (`LoadOptions::prune` off, ADR
 /// 0019), so two builds of it number their cells alike whatever each finds
 /// live.
-#[cfg(feature = "testing")]
 pub fn compile_unpruned(
     dast: &crate::dast::Dast,
     seed: u64,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    let session = crate::session::Session::new(seed, false);
+    let session = crate::session::Session::new(seed);
     Ok(crate::compile::compile(&dast, &session, true, true, false)?.compiled)
 }
 
 /// `compiled`, but each of its builds classes its value slots by its own
 /// walk, not by the probe's record (ADR 0018): what the record must hold.
-#[cfg(feature = "testing")]
 pub fn with_own_walk(
     compiled: &crate::compile::Compiled,
 ) -> std::sync::Arc<crate::compile::Compiled> {
@@ -60,7 +56,6 @@ pub fn with_own_walk(
 
 /// `compiled`, but each of its builds finds what is live by its own walk,
 /// not by the probe's record (ADR 0019): what the record must hold.
-#[cfg(feature = "testing")]
 pub fn with_own_live_walk(
     compiled: &crate::compile::Compiled,
 ) -> std::sync::Arc<crate::compile::Compiled> {
@@ -71,12 +66,11 @@ pub fn with_own_live_walk(
 
 /// A document built from `compiled` at `seed` as a load builds it: until
 /// the structure settles, seeding afresh on later passes.
-#[cfg(feature = "testing")]
 pub fn load_compiled(
     compiled: &std::sync::Arc<crate::compile::Compiled>,
     seed: u64,
 ) -> crate::Result<crate::Document> {
-    let session = crate::session::Session::new(seed, false);
+    let session = crate::session::Session::new(seed);
     let (doc, _) = crate::document::settle(
         compiled,
         &session,
@@ -109,7 +103,6 @@ pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
 /// test of the language's rules over test-only components: a test of the
 /// machinery, so the request is unchecked (`request_unchecked`). Panics
 /// as `prop_value` does.
-#[cfg(any(test, feature = "testing"))]
 pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate::TickOutcome {
     let cell = match spec::cells(doc, path)
         .unwrap_or_else(|e| panic!("{e}"))
@@ -127,7 +120,6 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
 /// `<number>`), not of a component, whose spec reaches a prop through an
 /// input. It still writes only essential cells, so it cannot change a
 /// fixed value.
-#[cfg(feature = "testing")]
 pub fn request_unchecked(
     doc: &mut crate::Document,
     requests: &[crate::Request],
@@ -136,7 +128,6 @@ pub fn request_unchecked(
 }
 
 /// A point group on any cells (`request_unchecked`).
-#[cfg(feature = "testing")]
 pub fn request_points_unchecked(
     doc: &mut crate::Document,
     points: &[crate::PointRequest],

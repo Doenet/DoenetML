@@ -150,11 +150,6 @@ impl Core {
         self.doc.intern(text)
     }
 
-    /// Symbolic instructions that called the engine since load.
-    pub fn sym_runs(&self) -> f64 {
-        self.doc.sym.stats.runs as f64
-    }
-
     /// Pointer to the cell array inside wasm memory. Valid until the next
     /// call that may allocate; callers re-derive their view after each call.
     pub fn cells_ptr(&self) -> *const f64 {

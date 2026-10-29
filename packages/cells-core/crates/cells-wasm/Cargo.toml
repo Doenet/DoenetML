@@ -15,6 +15,10 @@ wasm-bindgen = "0.2"
 serde_json.workspace = true
 console_error_panic_hook = "0.1"
 
+[dev-dependencies]
+# The binding's own test parses DoenetML through the core's test helpers.
+cells-core = { path = "../cells-core", features = ["testing"] }
+
 # wasm-pack runs wasm-opt `-O` on the release build, its default, which
 # shrinks the wasm by a fifth after link-time optimization (2.44 MB to
 # 1.92 MB). It uses the first `wasm-opt` on its PATH, else the binaryen it

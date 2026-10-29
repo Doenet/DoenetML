@@ -273,6 +273,7 @@ impl Keys {
     }
 
     /// The type of the element `key` names.
+    #[cfg(feature = "testing")]
     pub(crate) fn key_type(&self, key: ElemKey) -> ComponentType {
         self.types[key.index()]
     }
@@ -370,6 +371,7 @@ impl Keys {
     }
 
     /// The keys as text that is equal exactly when two compiles' are.
+    #[cfg(feature = "testing")]
     pub(crate) fn fingerprint(&self) -> String {
         let mut hidden: Vec<_> = self.hidden.iter().collect();
         hidden.sort();

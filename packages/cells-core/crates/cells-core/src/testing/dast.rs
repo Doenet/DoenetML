@@ -241,7 +241,6 @@ fn write_all(w: &mut DastWriter, nodes: Vec<Node>) -> Vec<NodeId> {
 /// tests it serves check the language's rules over test-only components,
 /// which no input reaches and no renderer reads, and request and read
 /// their props unchecked (`request_prop`).
-#[cfg(any(test, feature = "testing"))]
 pub fn load(dast: Dast) -> crate::Result<crate::Document> {
     let options = crate::LoadOptions {
         classify: false,

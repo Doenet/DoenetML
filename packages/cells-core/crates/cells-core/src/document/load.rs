@@ -14,7 +14,9 @@ pub struct LoadOptions {
     /// gives one variant of the document.
     pub seed: u64,
     /// Sample curves through the engine instead of tapes compiled at build
-    /// time; for checking the tapes and for measuring.
+    /// time; for checking the tapes and for measuring. Only with the
+    /// `testing` feature.
+    #[cfg(feature = "testing")]
     pub sample_with_engine: bool,
     /// Skip the compile's check, so a document that should be rejected
     /// loads: for tests of what the check prevents and for measuring what
@@ -60,6 +62,7 @@ impl Default for LoadOptions {
     fn default() -> Self {
         LoadOptions {
             seed: 0,
+            #[cfg(feature = "testing")]
             sample_with_engine: false,
             #[cfg(feature = "testing")]
             check_cycles: true,
@@ -91,7 +94,7 @@ pub struct LoadTimings {
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,
     /// The document's structural depth (`CONTEXT.md`), as the compile's
-    /// check bounded it; 0 when a test load skipped the check.
+    /// check bounded it (0 when a test load skipped the check).
     pub structural_depth: u32,
 }
 
@@ -185,7 +188,12 @@ impl Document {
     /// Compile, then build until the structure settles (ADR 0015); with
     /// the document, its structural depth as the check bounded it.
     fn settle_load(dast: Arc<Dast>, options: LoadOptions) -> crate::Result<(Document, u32)> {
-        let session = Session::new(options.seed, options.sample_with_engine);
+        #[allow(unused_mut)]
+        let mut session = Session::new(options.seed);
+        #[cfg(feature = "testing")]
+        {
+            session.sample_with_engine = options.sample_with_engine;
+        }
         // Compile once (ADR 0015); every pass is a build of that compile.
         let crate::compile::CompileOutput {
             compiled,
@@ -205,7 +213,7 @@ impl Document {
         let (mut doc, _) = settle(&compiled, &session, Counts::default(), first_build, true)?;
         let _s = crate::trace::span("attributes");
         doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
-        Ok((doc, compiled.structural_depth.unwrap_or(0)))
+        Ok((doc, compiled.structural_depth))
     }
 
     /// This document's session with its essential values recorded, taken
@@ -327,7 +335,7 @@ pub(crate) fn settle(
     let passes = compiled.passes(MAX_PASSES);
     // The session a later pass reads: the last pass's.
     let mut next: Option<Session> = None;
-    for pass in 0..passes.unwrap_or(MAX_PASSES) {
+    for pass in 0..passes {
         let built = match first.take() {
             Some(built) => built,
             None => {
@@ -357,15 +365,12 @@ pub(crate) fn settle(
     Err(unsettled(passes))
 }
 
-/// The structure did not settle in the passes allowed. For a checked
-/// document a core bug: its structural depth, which the check bounded,
-/// says how many passes it needs (ADR 0014). Only a test load without the
-/// check can fail this way by itself.
-fn unsettled(passes: Option<usize>) -> crate::Error {
-    match passes {
-        Some(n) => crate::Error::Unchecked(format!(
-            "the structure did not settle in {n} passes, more than its structural depth allows"
-        )),
-        None => crate::Error::UnstableStructure(MAX_PASSES),
-    }
+/// The structure did not settle in the passes allowed: a core bug, since
+/// the document's structural depth, which the check bounded, says how many
+/// passes it needs (ADR 0014). Only a test load without the check can fail
+/// this way by itself.
+fn unsettled(passes: usize) -> crate::Error {
+    crate::Error::Unchecked(format!(
+        "the structure did not settle in {passes} passes, more than its structural depth allows"
+    ))
 }

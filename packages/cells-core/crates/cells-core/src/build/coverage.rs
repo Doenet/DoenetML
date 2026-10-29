@@ -29,7 +29,7 @@ pub struct ProbeEdges {
 
 /// The probe's dependencies for `compiled`.
 pub fn probe_edges(compiled: &Compiled) -> std::result::Result<ProbeEdges, String> {
-    let session = Session::new(0, false);
+    let session = Session::new(0);
     let mut engine = Engine::new();
     let b = staged(compiled, &session, &mut engine, &View::Probe)?;
     let depth = b.scope_depths();

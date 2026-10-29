@@ -49,7 +49,7 @@ pub(in crate::build) enum Coord {
 /// seed above all) reaches what it finds. The compile's check and
 /// `compile::diagnose` keep only its failures and warnings.
 pub(crate) fn probe(compiled: &Compiled) -> std::result::Result<BuildOutput, Failure> {
-    let session = Session::new(0, false);
+    let session = Session::new(0);
     // The session's own engine, which the output keeps, so what the build
     // made can be read (the input signature reads expressions).
     let mut engine = session.engine.borrow_mut();

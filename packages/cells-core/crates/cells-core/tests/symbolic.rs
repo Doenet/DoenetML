@@ -16,7 +16,7 @@ fn text(doc: &Document, name: &str) -> String {
 
 /// How many symbolic instructions have called the engine.
 fn runs(doc: &Document) -> u64 {
-    doc.sym.stats.runs
+    doc.sym.runs
 }
 
 #[test]

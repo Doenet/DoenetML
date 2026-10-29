@@ -156,7 +156,7 @@ impl<'a> Compiler<'a> {
                 extra_strings: Vec::new(),
                 diagnostics: Arc::default(),
                 rebuilds: false,
-                structural_depth: None,
+                structural_depth: 0,
                 classes: Classes::default(),
                 live: Classes::default(),
                 prune: false,

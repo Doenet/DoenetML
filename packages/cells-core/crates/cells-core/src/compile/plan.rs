@@ -794,11 +794,12 @@ pub struct Compiled {
     /// Whether the document has a repeat, so its structure can change and
     /// a later build will stamp this compile.
     pub(crate) rebuilds: bool,
-    /// The document's structural depth (`Structure::structural_depth`) as
-    /// the check found it: the probe's, which bounds every build's, since
-    /// each build's chains of repeats map onto the probe's; 0 without a
-    /// repeat. None when the check was skipped (a test load).
-    pub(crate) structural_depth: Option<u32>,
+    /// The document's structural depth (`CONTEXT.md`) as the check found
+    /// it: the probe's, which bounds every build's, since each build's
+    /// chains of repeats map onto the probe's; 0 without a repeat, and 0
+    /// when the check was skipped (a test load), which no build then
+    /// bounds.
+    pub(crate) structural_depth: u32,
     /// How a build classes its value slots, essential or fixed (ADR 0018).
     pub(crate) classes: Classes,
     /// How a build finds which slots it computes, by the same three ways
@@ -868,6 +869,7 @@ impl Compiled {
     /// Everything the compile holds, as text that is equal exactly when two
     /// compiles are (maps in key order): what `tests/compile_purity.rs`
     /// compares across seeds.
+    #[cfg(feature = "testing")]
     pub(crate) fn fingerprint(&self) -> String {
         use std::fmt::Write;
         let mut out = String::new();
@@ -898,16 +900,16 @@ impl Compiled {
         let _ = writeln!(out, "extra_strings {:?}", self.extra_strings);
         let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
         let _ = writeln!(out, "rebuilds {}", self.rebuilds);
-        let _ = writeln!(out, "structural_depth {:?}", self.structural_depth);
+        let _ = writeln!(out, "structural_depth {}", self.structural_depth);
         let _ = writeln!(out, "classes {:?}", self.classes);
         out
     }
 
     /// How many build passes a load or a rebuild may take before the
     /// structure must have settled: the structural depth plus one, and
-    /// never fewer than `floor`. None when the check was skipped.
-    pub(crate) fn passes(&self, floor: usize) -> Option<usize> {
-        self.structural_depth.map(|d| (d as usize + 1).max(floor))
+    /// never fewer than `floor`.
+    pub(crate) fn passes(&self, floor: usize) -> usize {
+        (self.structural_depth as usize + 1).max(floor)
     }
 
     /// Whether the document has a load-time choice (a `<select>`), which a
@@ -938,7 +940,7 @@ impl Compiled {
     /// 0019). None when the check was skipped (a test load).
     pub(crate) fn set_probe(&mut self, probe: Option<crate::build::ProbeOutput>) {
         if let Some(probe) = probe {
-            self.structural_depth = Some(probe.structural_depth);
+            self.structural_depth = probe.structural_depth;
             Arc::make_mut(&mut self.diagnostics).extend(probe.warnings);
             if let Some(record) = probe.record {
                 self.classes = Classes::Record(Arc::new(record));

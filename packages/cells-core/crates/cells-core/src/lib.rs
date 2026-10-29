@@ -24,7 +24,8 @@
 //!   request entry points, and the read API a renderer or test uses.
 //! - [`tick`]: run time. A request is snapped, inverted to essential cells,
 //!   and recomputed.
-//! - [`testing`]: the reference oracle and test helpers.
+//! - `testing`: the reference oracle and test helpers (the `testing`
+//!   feature, which this crate's own tests and the bench enable).
 //! - [`trace`]: named spans over a load, for the benchmark's trace layer.
 
 mod index;
@@ -41,6 +42,7 @@ mod profile;
 pub mod program;
 pub mod session;
 pub mod sym;
+#[cfg(feature = "testing")]
 pub mod testing;
 pub mod tick;
 pub mod trace;
