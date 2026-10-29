@@ -1,6 +1,7 @@
 // The prototype viewer, which renders the flat DAST the Rust core produces,
 // mounted with the Rust core (or, with `?core=cells`, the cells core behind
-// its bridge, ADR 0020 in packages/cells-core) and driven from
+// its bridge, or with `?core=javascript`, the JavaScript core; the bridge is
+// ADR 0020 in packages/cells-core) and driven from
 // `window.__rust`: load a source, say when it has rendered, resolve a name,
 // dispatch an action as a renderer would. Imports the prototype's sources so
 // the store is the viewer's own.
@@ -24,11 +25,11 @@ import { useAppSelector } from "../../../doenetml-prototype/src/state/hooks";
 import { numberFromSerializedAst } from "../../../doenetml-prototype/src/utils/math/math-expression-utils";
 
 const root = createRoot(document.getElementById("root")!);
-/** The core behind the viewer: the Rust core, or the cells core. */
+/** The core behind the viewer: the Rust core, the cells core, or the
+ * JavaScript core. */
+const requested = new URLSearchParams(location.search).get("core");
 const coreType =
-    new URLSearchParams(location.search).get("core") === "cells"
-        ? "cells"
-        : "rust";
+    requested === "cells" || requested === "javascript" ? requested : "rust";
 const flags = {
     ...defaultFlags,
     allowSaveState: false,

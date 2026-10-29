@@ -34,6 +34,15 @@ renderer draws. A `<math>`, `<number>` or `<text>` placed in a graph is a
 label at an anchor no core sends yet, so the graph renderers leave it out
 rather than warn.
 
+The JavaScript core's `vector` and `ray` are drawn on the same hook, with
+that core's props and actions (`numericalEndpoints`, `moveVector`;
+`numericalEndpoint`, `numericalThroughpoint`, `moveRay`), and its
+`triangle`, `rectangle` and `regularPolygon` by the polygon renderer, which
+their props already fit. The cells core has no vector or ray yet; its
+`<triangle>` is a polygon, sent under its tag. The benchmark's prototype
+page runs the JavaScript core with `?core=javascript`, which is how these
+were checked.
+
 Both remain possible later, for all three cores, if large documents need
 them: a board redrawn once per update batch rather than by each element
 as it renders (step 2, the pattern ADR 0010 measured), and the store's

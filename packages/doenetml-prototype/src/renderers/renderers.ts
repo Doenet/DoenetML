@@ -48,7 +48,9 @@ import {
     NumberInput,
     PolygonInGraph,
     PolylineInGraph,
+    RayInGraph,
     Ref,
+    VectorInGraph,
     SideBySide,
     Slider,
     Stack,
@@ -259,6 +261,8 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     },
     product: { component: M },
     q: { component: Q, passthroughChildren: true },
+    // Outside a graph a ray is nothing but its anchor, as in production.
+    ray: renderAs(null, { wrapInSpanWithId: true }),
     ref: { component: Ref, passthroughChildren: true },
     rightHandSide: { component: M },
     round: { component: M },
@@ -283,6 +287,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     ul: { component: Ul, passthroughChildren: true },
     updateValue: { component: Button },
     variance: { component: M },
+    vector: { component: M },
     wrapFunctionPeriodic: { component: M },
     wrapNumberPeriodic: { component: M },
     xor: { component: Boolean },
@@ -302,6 +307,12 @@ export const GRAPH_MODE_COMPONENTS: RendererObject = {
     point: { component: PointInGraph },
     polygon: { component: PolygonInGraph },
     polyline: { component: PolylineInGraph },
+    ray: { component: RayInGraph },
+    // Polygons given another way: each sends its vertices as a polygon does.
+    rectangle: { component: PolygonInGraph },
+    regularPolygon: { component: PolygonInGraph },
+    triangle: { component: PolygonInGraph },
+    vector: { component: VectorInGraph },
     // A value placed in a graph is drawn as a label at its anchor, which no
     // core sends yet: until one does, it is not drawn.
     math: OmitElementConverter,

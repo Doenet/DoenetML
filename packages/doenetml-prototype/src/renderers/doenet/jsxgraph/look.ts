@@ -43,6 +43,8 @@ export const look = {
         highlightFillOpacity: 0.05,
         borders: look.line(),
         vertices: { visible: false },
+        // Dragged by its area, not only its sides
+        hasInnerPoints: true,
     }),
 
     /** A point that defines a shape, drawn as a small handle. */

@@ -22,6 +22,8 @@ export * from "./graph-line-segment";
 export * from "./graph-point";
 export * from "./graph-polygon";
 export * from "./graph-polyline";
+export * from "./graph-ray";
+export * from "./graph-vector";
 export * from "./hint";
 export * from "./li";
 export * from "./math-input";
