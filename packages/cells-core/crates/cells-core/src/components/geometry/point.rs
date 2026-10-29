@@ -24,7 +24,7 @@ component! {
     combined_props {
         coords: [x, y],
     }
-    sticky_points: (Shape::Point, X, 1),
+    sticky: Shape::Point,
     attributes {
         coords,
         x,

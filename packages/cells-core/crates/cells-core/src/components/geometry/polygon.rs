@@ -31,7 +31,7 @@ component! {
         interactive: true,
         rendered: true,
     }
-    sticky_list: Shape::Closed,
+    sticky: Shape::Closed,
     attributes {
         vertices,
         rigid,

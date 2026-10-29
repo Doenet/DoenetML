@@ -27,7 +27,7 @@ component! {
         // An endpoint drag requests one, a whole-segment drag both.
         interactive: true,
     }
-    sticky_points: (Shape::Open, X1, 2),
+    sticky: Shape::Open,
     attributes {
         endpoints,
     }

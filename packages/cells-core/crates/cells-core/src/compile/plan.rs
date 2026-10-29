@@ -357,13 +357,13 @@ pub(crate) struct SharedState(&'static str, u32);
 
 impl SharedState {
     /// Shared state a component declares (`shared_state { .. }`); only
-    /// `typed_props!` calls this.
+    /// `component!` calls this.
     #[doc(hidden)]
     pub(crate) const fn declared(name: &'static str) -> SharedState {
         SharedState(name, 0)
     }
 
-    /// Its name, for `typed_props!`'s check that no declared name is the
+    /// Its name, for `component!`'s check that no declared name is the
     /// one `shared_point_state` uses.
     #[doc(hidden)]
     pub(crate) const fn name(self) -> &'static str {
@@ -430,7 +430,7 @@ pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
 
 /// One prop's source and, when it is essential state that a copy shares,
 /// which shared state it is and where its value was given: what a typed
-/// plan's fields hold (`typed_props!`), so shared state is always named on
+/// plan's fields hold (`component!`'s `Props`), so shared state is always named on
 /// the slot that holds it.
 #[derive(Debug, Clone)]
 pub(crate) struct Wire {
