@@ -129,8 +129,12 @@ Evidence:
 The end-to-end form is `packages/test-cypress/cypress/e2e/DocViewer/saveLoadState.cy.js`.
 
 Recent fixes show where the current representation is fragile:
-- **Math loses its type through JSON** (#2316, #2321, #2323, #2328). ADR 0017 keeps a kind with
-  each entry instead.
+- **Math loses its type through JSON** (#2316, #2321, #2323, #2328, #2380). ADR 0017 keeps a kind
+  with each entry instead. #2380 (closing #1973 and #2190) fixed the last known cases: a dragged
+  `anchor` reloaded as a bare tree, so a PreFigure graph drew the moved component at the origin.
+  It also added a guard, `T/baseComponent/essentialMathReload.test.ts`: every `hasEssential`
+  state variable whose default is a math-expression must restore it as one. The guard cannot
+  see a variable whose default is `null` but which later holds a math-expression.
 - **A restore raced an array's size** (#2328).
 - **Restored values are trusted rather than recomputed**, so a restored "just submitted" can be
   stale (#2325).

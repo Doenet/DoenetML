@@ -418,7 +418,8 @@ To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
 **Known violation: list extends.** `$e.h` names nothing for `<mathList name="e" extend="$l"/>`,
 while `$E.h` resolves for `<p name="E" extend="$P"/>`. A linked list extend has no children of
-its own to name. This predates #2367 (defect B10). A copy of a list does reach them (NAME-3).
+its own to name. This predates #2367 (defect B10, tracked in #2376). A copy of a list does reach
+them (NAME-3).
 
 Other tests: `:1626`, `:1837`, `:6408`, `:5773`.
 
