@@ -39,7 +39,7 @@ impl<'c> Builder<'c> {
     /// and a live instruction reading a dead cell fails the build.
     pub(in crate::build) fn live_by_record(
         &self,
-        record: &[Vec<u64>],
+        record: &Record,
         roots: &[SlotId],
         class_def: &[SlotId],
     ) -> Vec<bool> {
@@ -48,7 +48,7 @@ impl<'c> Builder<'c> {
         for (s, &root) in roots.iter().enumerate() {
             if let Some((t, ts)) = self.template_slot(SlotId::from_index(s)) {
                 named[root.index()] = true;
-                if Classes::recorded(record, t, ts) {
+                if record.marks(t, ts) {
                     live[root.index()] = true;
                 }
             }

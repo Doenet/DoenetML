@@ -142,7 +142,6 @@ impl Error {
             AmbiguousIteration(..) => "cells-ambiguous-iteration",
             BadCollectType(_) => "cells-bad-collect-type",
             BadCollect => "cells-bad-collect",
-            UnstableStructure(_) => "cells-unstable-structure",
             BadMath { .. } => "cells-bad-math",
             Unsupported(_) => "cells-unsupported",
             OtherRelease { .. } => "cells-other-release",

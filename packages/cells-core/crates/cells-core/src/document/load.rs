@@ -80,7 +80,7 @@ pub struct LoadTimings {
     pub cycle_check: Duration,
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,
-    /// `Structure::structural_depth` of the settled document.
+    /// The document's structural depth, which the probe found.
     pub structural_depth: u32,
 }
 
@@ -154,7 +154,7 @@ impl Document {
         t.build += clock.elapsed();
         t.cycle_check += check_time;
         let passes = compiled.passes(MAX_PASSES);
-        for pass in 0..passes.unwrap_or(MAX_PASSES) {
+        for pass in 0..passes {
             let clock = web_time::Instant::now();
             // After the first pass no student has changed a value yet, so
             // a seeded cell takes its seed again, from the counts this pass
@@ -274,7 +274,7 @@ impl Document {
         let passes = compiled.passes(MAX_PASSES);
         let mut result = Err(unsettled(passes));
         let mut n = 0;
-        for _ in 0..passes.unwrap_or(MAX_PASSES) {
+        for _ in 0..passes {
             n += 1;
             let clock = web_time::Instant::now();
             let session = next.as_ref().unwrap_or(&self.session);
@@ -327,15 +327,12 @@ impl Document {
     }
 }
 
-/// The structure did not settle in the passes allowed. For a checked
-/// document a core bug: its structural depth, which the check bounded,
-/// says how many passes it needs (ADR 0014). Only a test load without the
-/// check can fail this way by itself.
-fn unsettled(passes: Option<usize>) -> crate::Error {
-    match passes {
-        Some(n) => crate::Error::Unchecked(format!(
-            "the structure did not settle in {n} passes, more than its structural depth allows"
-        )),
-        None => crate::Error::UnstableStructure(MAX_PASSES),
-    }
+/// The structure did not settle in the passes allowed: a core bug, since
+/// the structural depth the probe found says how many passes a document
+/// needs (ADR 0014). Only a test load without the probe's count check,
+/// which bounds no depth, can fail this way by itself.
+fn unsettled(passes: usize) -> crate::Error {
+    crate::Error::Unchecked(format!(
+        "the structure did not settle in {passes} passes, more than its structural depth allows"
+    ))
 }

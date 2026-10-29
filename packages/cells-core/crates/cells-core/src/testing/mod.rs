@@ -30,17 +30,6 @@ pub fn compile_unclassified(
     Ok(crate::compile::compile(&dast, true, false, true)?.compiled)
 }
 
-/// `compiled`, but each of its builds classes its value slots by its own
-/// walk, not by the probe's record (ADR 0018): what the record must hold.
-#[cfg(feature = "testing")]
-pub fn with_own_walk(
-    compiled: &crate::compile::Compiled,
-) -> std::sync::Arc<crate::compile::Compiled> {
-    let mut own = compiled.clone();
-    own.classes = crate::compile::plan::Classes::Walk;
-    std::sync::Arc::new(own)
-}
-
 /// The value of the one-cell prop at `path` (`"c.radius"`), for a unit
 /// test; panics when there is no such prop or it has several cells.
 pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
