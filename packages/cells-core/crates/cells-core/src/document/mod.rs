@@ -120,6 +120,14 @@ pub struct Loaded {
     /// The elements' stable keys (ADR 0017), what saved state names cells
     /// by: kept by every document, with its compile or without.
     pub(crate) keys: Arc<crate::compile::keys::Keys>,
+    /// The compile's diagnostics (ADR 0013): the lint findings, the errors
+    /// of the elements it boxed and the warnings of the rest, in node
+    /// order, which depend on the source alone (ADR 0014). Kept by every
+    /// document, with its compile or without.
+    pub(crate) diagnostics: Arc<[crate::Diagnostic]>,
+    /// The document's structural depth (`CONTEXT.md`), which the compile's
+    /// check found: zero without repeats.
+    pub structural_depth: u32,
     /// The source's `Dast::version_hash`: the version saved state was made
     /// in.
     pub(crate) version: u64,
@@ -168,6 +176,8 @@ impl Document {
             loaded: Loaded {
                 literal_attrs: Arc::default(),
                 keys: compiled.keys.clone(),
+                diagnostics: compiled.diagnostics.clone().into(),
+                structural_depth: compiled.structural_depth.unwrap_or(0),
                 version: compiled.version,
                 compiled: compiled.rebuilds().then_some(compiled),
             },

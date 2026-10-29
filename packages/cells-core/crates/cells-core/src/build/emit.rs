@@ -396,24 +396,6 @@ impl<'c> Builder<'c> {
             .map(|c| self.n_public(c))
             .collect();
 
-        let (depths, cross_reads) = self.structural_depths();
-        lap("structural depth");
-        for (r, (&d, &cross)) in self.repeats.iter().zip(depths.iter().zip(&cross_reads)) {
-            if cross {
-                let name = self.components.name[r.comp.index()];
-                let name = if name == StrId::NONE {
-                    format!("<{}>", self.components.component_type[r.comp.index()].tag())
-                } else {
-                    self.compiled.dast.strings.get(name).trim().to_string()
-                };
-                self.diagnostics.push(Diagnostic::warning(
-                    "cells-repeat-count-reads-iterations",
-                    Some(r.node),
-                    format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"),
-                ));
-            }
-        }
-
         // The next session: this build's scopes and what is still parked;
         // the value store is shared, since the build only read it.
         let session = Session {
@@ -443,11 +425,7 @@ impl<'c> Builder<'c> {
             essential_slots,
             essential_keys,
             essential_defaults,
-            structural_depth: depths.iter().copied().max().unwrap_or(0),
-            repeat_depths: depths,
-            repeat_cross_reads: cross_reads,
             repeats: self.repeats,
-            diagnostics: self.diagnostics,
         };
 
         // Lazy labels for cycle errors.
@@ -505,6 +483,8 @@ impl<'c> Builder<'c> {
             record,
             live,
             live_record,
+            structural_depth: self.structural_depth,
+            warnings: self.diagnostics,
         })
     }
 
@@ -704,104 +684,6 @@ impl<'c> Builder<'c> {
             pi | HIDDEN
         };
         (inst.scope, el.slot_off + pi, (el.key, prop))
-    }
-
-    /// Structural depth per repeat: how many repeats must be expanded, in
-    /// sequence, before its count can be computed, plus one. Nesting adds
-    /// one; a count that reads a cell inside another repeat's iterations adds
-    /// one, and is flagged (`cross`) since authors can avoid it.
-    pub(in crate::build) fn structural_depths(&self) -> (Vec<u32>, Vec<bool>) {
-        // The repeat each iteration scope belongs to, by scope id.
-        let mut owner: Vec<usize> = vec![usize::MAX; self.scopes.len()];
-        for (ri, r) in self.repeats.iter().enumerate() {
-            for &s in &r.iter_scopes {
-                owner[s.index()] = ri;
-            }
-        }
-        let owner = |s: ScopeId| Some(owner[s.index()]).filter(|&o| o != usize::MAX);
-        let is_ancestor_or_self = |s: ScopeId, of: ScopeId| -> bool {
-            let mut cur = of;
-            loop {
-                if cur == s {
-                    return true;
-                }
-                if cur == ScopeId::DOCUMENT {
-                    return false;
-                }
-                cur = self.scopes[cur].0;
-            }
-        };
-        let mut reads: Vec<Vec<usize>> = vec![Vec::new(); self.repeats.len()];
-        let mut cross = vec![false; self.repeats.len()];
-        let mut seen = vec![false; self.sources.len()];
-        let mut stack = Vec::new();
-        let mut touched = Vec::new();
-        for (ri, r) in self.repeats.iter().enumerate() {
-            if let Some(o) = owner(r.scope) {
-                reads[ri].push(o);
-            }
-            stack.clear();
-            let count_pi = self.components.component_type[r.comp.index()]
-                .count_prop()
-                .expect("a repeat has a count");
-            stack.push(self.slot(r.comp, count_pi));
-            touched.clear();
-            while let Some(sl) = stack.pop() {
-                if seen[sl.index()] {
-                    continue;
-                }
-                seen[sl.index()] = true;
-                touched.push(sl);
-                let comp = self.slot_comp[sl.index()];
-                if comp != CompIdx::NONE {
-                    let scope = self.components.scope[comp.index()];
-                    if scope != ScopeId::DOCUMENT
-                        && !is_ancestor_or_self(scope, r.scope)
-                        && let Some(o) = owner(scope)
-                        && o != ri
-                    {
-                        cross[ri] = true;
-                        if !reads[ri].contains(&o) {
-                            reads[ri].push(o);
-                        }
-                    }
-                }
-                match &self.sources[sl.index()] {
-                    BuiltSource::Alias(t) => stack.push(*t),
-                    BuiltSource::Op(_, start, n) => stack.extend_from_slice(
-                        &self.op_inputs[*start as usize..*start as usize + *n as usize],
-                    ),
-                    BuiltSource::VecOut(head, _) => stack.push(*head),
-                    _ => {}
-                }
-            }
-            for &sl in &touched {
-                seen[sl.index()] = false;
-            }
-        }
-        fn depth(ri: usize, reads: &[Vec<usize>], memo: &mut [u32], visiting: &mut [bool]) -> u32 {
-            if memo[ri] != 0 {
-                return memo[ri];
-            }
-            if visiting[ri] {
-                return 1;
-            }
-            visiting[ri] = true;
-            let d = 1 + reads[ri]
-                .iter()
-                .map(|&o| depth(o, reads, memo, visiting))
-                .max()
-                .unwrap_or(0);
-            visiting[ri] = false;
-            memo[ri] = d;
-            d
-        }
-        let mut memo = vec![0u32; self.repeats.len()];
-        let mut visiting = vec![false; self.repeats.len()];
-        let depths = (0..self.repeats.len())
-            .map(|ri| depth(ri, &reads, &mut memo, &mut visiting))
-            .collect();
-        (depths, cross)
     }
 }
 

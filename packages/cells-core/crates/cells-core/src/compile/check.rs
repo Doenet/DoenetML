@@ -87,6 +87,9 @@ pub(crate) fn compile(
                 if let Some(record) = probed.live_record() {
                     compiled.live = Classes::Record(Arc::new(record));
                 }
+                // The probe's warnings are the document's: no build
+                // finds one the probe did not (ADR 0014).
+                compiled.diagnostics.extend(probed.warnings());
                 let checked = clock.elapsed();
                 if profile {
                     eprintln!("  compile/check: {checked:.2?}");
@@ -131,14 +134,10 @@ pub(crate) fn compile(
         let _s = crate::trace::span("lint");
         list.extend(lint::lint(dast));
     }
-    // The planners' warnings, from the compile that built.
+    // The planners' and the probe's warnings, from the compile that built.
     list.append(&mut compiled.diagnostics);
     crate::diagnostics::sort(&mut list);
     compiled.diagnostics = list;
-    let first_build = first_build.map(|mut u| {
-        u.add_compile_diagnostics(&compiled);
-        u
-    });
     Ok(CompileOutput {
         compiled: Arc::new(compiled),
         first_build,
