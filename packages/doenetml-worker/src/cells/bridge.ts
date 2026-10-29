@@ -56,6 +56,33 @@ export type LoadTiming = {
 /** How many ticks' timings are kept, the latest. */
 const TICK_TIMINGS_KEPT = 1000;
 
+/** Whether two prop values (JSON data: numbers, strings, booleans, null,
+ * arrays and plain objects) are equal. */
+function sameValue(a: unknown, b: unknown): boolean {
+    if (a === b) return true;
+    // NaN is a value a prop holds, and it does not change.
+    if (typeof a === "number" && typeof b === "number") {
+        return Number.isNaN(a) && Number.isNaN(b);
+    }
+    if (typeof a !== "object" || typeof b !== "object" || !a || !b) {
+        return false;
+    }
+    if (Array.isArray(a)) {
+        if (!Array.isArray(b) || a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (!sameValue(a[i], b[i])) return false;
+        }
+        return true;
+    }
+    if (Array.isArray(b)) return false;
+    const ka = Object.keys(a);
+    if (ka.length !== Object.keys(b).length) return false;
+    for (const k of ka) {
+        if (!sameValue((a as any)[k], (b as any)[k])) return false;
+    }
+    return true;
+}
+
 export type RendererAction = {
     component: string;
     actionName: string;
@@ -107,6 +134,7 @@ export class CellsBridge {
     /** The document as flat DAST, every element the renderer can reach. */
     flatDast() {
         const start = performance.now();
+        this.table.sync();
         const root = this.table.root();
         this._computeTree(root, false);
         const elements: Element[] = [];
@@ -130,6 +158,7 @@ export class CellsBridge {
 
     /** Carry out a renderer action and return the updates it caused. */
     dispatch(action: RendererAction): ActionResponse {
+        this.table.sync();
         const c = this._componentById.get(action.componentIdx);
         if (c === undefined) {
             console.warn(
@@ -215,8 +244,12 @@ export class CellsBridge {
     _afterTick(changed: Uint32Array): Record<number, ElementUpdate> {
         const error = this.core.last_rebuild_error();
         if (error) console.error("the cells core's rebuild failed:", error);
-        const before = new Map(this._sent);
-        if (this.core.last_rebuilt()) {
+        // The elements this tick recomputes, as they were sent before it.
+        const before = new Map<number, Element | undefined>();
+        const rebuilt = this.core.last_rebuilt();
+        if (rebuilt) {
+            // Every element is recomputed: what was sent is the before.
+            for (const [id, element] of this._sent) before.set(id, element);
             this.table.reload();
             this._outputs = null;
             this._interactive = null;
@@ -229,6 +262,8 @@ export class CellsBridge {
             this._assignIds();
             this._computeTree(this.table.root(), false);
         } else {
+            this.table.sync();
+            this._before = before;
             const affected = new Set<number>();
             for (const cell of changed) {
                 for (const id of this._readers.get(cell) ?? []) {
@@ -243,13 +278,26 @@ export class CellsBridge {
                 // became active) has never been computed.
                 this._computeMissing(element, this._inGraph.get(id)!);
             }
+            this._before = null;
         }
-        return this._diff(before);
+        return this._diff(before, rebuilt);
     }
 
-    _diff(before: Map<number, Element>): Record<number, ElementUpdate> {
+    /** What each element recomputed this tick was before it, kept while a
+     * tick recomputes; null otherwise. */
+    _before: Map<number, Element | undefined> | null = null;
+
+    _diff(
+        before: Map<number, Element | undefined>,
+        rebuilt: boolean,
+    ): Record<number, ElementUpdate> {
         const updates: Record<number, ElementUpdate> = {};
-        for (const [id, element] of this._sent) {
+        // A rebuild recomputes every element sent, new ones included;
+        // another tick, those it recorded in `before`.
+        const candidates = rebuilt ? this._sent.keys() : before.keys();
+        for (const id of candidates) {
+            const element = this._sent.get(id);
+            if (element === undefined) continue;
             const old = before.get(id);
             if (old === element) continue;
             if (
@@ -270,17 +318,12 @@ export class CellsBridge {
             const oldProps = (old.data as any).props ?? {};
             const newProps = (next.data as any).props ?? {};
             for (const key of Object.keys(newProps)) {
-                if (
-                    JSON.stringify(oldProps[key]) !==
-                    JSON.stringify(newProps[key])
-                ) {
+                if (!sameValue(oldProps[key], newProps[key])) {
                     (update.changedState ??= {})[key] = newProps[key];
                     any = true;
                 }
             }
-            if (
-                JSON.stringify(old.children) !== JSON.stringify(next.children)
-            ) {
+            if (!sameValue(old.children, next.children)) {
                 update.newChildren = next.children;
                 any = true;
             }
@@ -395,6 +438,9 @@ export class CellsBridge {
                 data: { id, props } as FlatDastElement["data"],
             };
         }
+        if (this._before && !this._before.has(id)) {
+            this._before.set(id, this._sent.get(id));
+        }
         this._setDeps(id, reads.deps);
         this._refs.set(
             id,
@@ -480,6 +526,7 @@ export class CellsBridge {
     /** The props a cell is, as `type.prop` (a list prop's as
      * `type.list[i]`), for an error message. */
     _describe(cell: number): string {
+        this.table.sync();
         const names: string[] = [];
         const typeProps: string[][] = JSON.parse(this.core.type_props());
         for (let c = 0; c < this.table.length; c++) {

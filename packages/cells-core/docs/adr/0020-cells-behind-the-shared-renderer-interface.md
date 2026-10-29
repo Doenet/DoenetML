@@ -70,7 +70,12 @@ compares the two paths, and whether it is retired is decided then.
   by the cells core" until saved state is wired up.
 - **The wasm.** The worker is one IIFE file, so the cells core's glue is
   bundled into it, but its `.wasm` is fetched only when a cells core is
-  first loaded, from beside the worker script, as the Rust core's is.
+  first loaded, from beside the worker script, as the Rust core's is. The
+  cells core also has a worker of its own, `cells-worker.js`, which the
+  prototype starts for a cells document: it carries neither of the other
+  cores, whose start costs most of a second (see After four fixes). The
+  inlined-worker build, which has only the one worker, runs the cells core
+  in it.
 
 ## Considered options
 
@@ -190,3 +195,86 @@ while a tick is in flight (the queue), a store update per tick rather
 than an immutable copy per changed element, a cheaper diff in the bridge
 than comparing serialized props, and the bridge on the main thread
 (considered above) to remove the hop and the second of load.
+
+### After four fixes
+
+A profile of the prototype path's drag (`depth-1000`) found the time in
+immer's drafts in the store's update (about 5 ms a tick), React rendering
+each changed element as two components with their selectors (about 7 ms),
+the bridge's recompute and JSON-string diff (about 4 ms), the worker hop's
+copy of the updates (about 2 ms), and, at load, the worker's start (680 to
+880 ms, mostly the JavaScript core's math library initializing). Four
+changes, none of them to the interface:
+
+1. **Superseded moves are dropped.** A move, of a point, a shape, a
+   bound or a slider, says where something is, so one still waiting in
+   the worker when a newer move of the same kind arrives is answered with
+   no updates (`cells/session.ts`). The queue that a slow tick built is
+   gone.
+2. **The store applies updates without drafts.** The prototype's
+   `processElementUpdates` copies the elements array once and each changed
+   element, instead of drafting them through immer.
+3. **The cells core has its own worker** (`cells-worker.js`, 41 kB against
+   7.8 MB), without the JavaScript and Rust cores, which the prototype
+   starts for a cells document. The bridge's LaTeX now comes from the
+   core's own engine (`expr_latex`), not from `math-expressions`. A fresh
+   worker answers in 8 ms instead of about 720.
+4. **The bridge does less per tick.** It re-views wasm memory once per
+   tick instead of on every read, compares props by value instead of as
+   JSON, and diffs only the elements it recomputed.
+
+`packages/benchmark/results/runs/2026-10-28-laptop-c59b45388-dirty`, the
+same fixtures and machine as above with the four changes, uncommitted. The
+machine ran faster in this run (the viewer, unchanged, is faster too), so
+the two runs compare through their ratios, not their milliseconds. p50 in
+ms:
+
+| Fixture | Path | Load | Drag p50 / p95 | Core | Bridge | Hop | React | Redraw | Tick total |
+|---|---|---|---|---|---|---|---|---|---|
+| depth-1000 | viewer | 210 | 7.8 / 17.2 | 0.1 | — | — | 3.2 | 0.5 | 3.8 |
+| | prototype | 409 | 20.6 / 93.8 | 0.1 | 2.9 | 1.5 | 8.1 | 0.1 | 13.1 |
+| breadth-1000 | viewer | 201 | 8.6 / 14.9 | 0.1 | — | — | 3.8 | 0.5 | 4.3 |
+| | prototype | 389 | 20.4 / 84.6 | 0.1 | 3.3 | 1.5 | 8.5 | 0.1 | 13.7 |
+| inversion-1000 | viewer | 201 | 8.3 / 15.8 | 0.1 | — | — | 3.6 | 0.6 | 4.3 |
+| | prototype | 399 | 20.1 / 83.5 | 0.1 | 3.2 | 1.6 | 8.5 | 0.2 | 13.9 |
+| symbolic-1000 | viewer | 324 | 51.9 / 62.4 | 36.2 | — | — | 8.2 | 0.7 | 45.1 |
+| | prototype | 566 | 76.6 / 257.5 | 39.4 | 7.3 | 9.7 | 16.7 | 0.1 | 76.9 |
+| rebuild-1000 | viewer | 145 | 12.1 / 36.0 | 0.1 | — | — | 0.5 | 0.2 | 0.8 |
+| | prototype | 245\* | 78.3 / 437.3 | 2.4 | 5.6 | 37.4 | 6.9 | 0.1 | 51.3 |
+| depth-10000 | viewer | 622 | — | 0.2 | — | — | 25.3 | 4.0 | 29.2 |
+| | prototype | 1308 | — | 0.2 | 26.8 | 12.8 | 91.6 | 0.1 | 139.5 |
+| breadth-10000 | viewer | 659 | — | 0.2 | — | — | 25.9 | 4.3 | 30.3 |
+| | prototype | 1396 | — | 0.2 | 24.2 | 15.3 | 93.0 | 0.1 | 148.1 |
+| lesson | viewer | 121 | 3.0 / 3.7 | 0.1 | — | — | 0.8 | 0.2 | 1.1 |
+| | prototype | 493 | 17.8 / 36.6 | 0.1 | 0.1 | 2.6 | 0.8 | 0.1 | 3.8 |
+| homework | viewer | 151 | (steps) 17.3 | 0.1 | — | — | 0.8 | 0.1 | 0.9 |
+| | prototype | 212 | (steps) 16.5 | 0.1 | 0.1 | 0.3 | 0.7 | 0.0 | 1.1 |
+
+\* From a rerun of the fixture; the run's own record, 2222 ms, was a
+one-off. At 10,000 elements the drag's latency is left out: Playwright
+waits for the page to take each pointer event, so a page that is busy for
+most of a frame slows the drag itself, and the latency it records is then
+not the student's wait; the tick's total, from the action to the screen,
+is. `sir`'s drag is left out as well: its point is constrained (its x is
+fixed), and the prototype's point renderer leaves a refused move where the
+pointer put it, so its position changed in 3 frames of 17 ticks.
+
+What changed, by the ratios:
+
+- **Load.** The prototype path's extra second is gone: `homework` loads in
+  212 ms against the viewer's 151 (it was 1024 against 158), `depth-1000`
+  in about twice the viewer's time instead of five to six times.
+- **A tick at 1,000 elements** is about 13 ms against the viewer's 4, a
+  ratio of about 3.3 where it was 6 to 7; a drag step's latency is about
+  2.5 times the viewer's instead of 3.5.
+- **At 10,000 elements every drag now finishes** (three of four timed out
+  before), at about 140 ms a tick against the viewer's 30: no queue builds,
+  so a tick costs what its work costs. `symbolic-1000`'s hop is 10 ms
+  instead of 1.9 s.
+- **What is left** at 1,000 elements is React (8 ms against 3.5), the
+  bridge (3 ms) and the hop (1.5 ms); at 10,000 the same three, React by
+  far the largest (92 ms against 25). React's share is the prototype's
+  renderer architecture, an `Element` wrapper with its selectors around
+  each component renderer, which the viewer's cell subscriptions do not
+  have. A rebuild still recomputes and sends the whole document
+  (`rebuild-1000`: a 37 ms hop).

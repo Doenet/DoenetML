@@ -89,9 +89,21 @@ export class CellsTable {
         };
     }
 
-    /** The columns, re-viewed when wasm memory grew (which detaches every
-     * view), the core moved its cells, or interned text grew the strings. */
+    /** The columns, re-viewed when wasm memory grew, which detaches every
+     * view (a call that returns a string can grow it). Checked on every
+     * read, in JavaScript alone; that the core moved its arrays is checked
+     * by `sync`. */
     get cols(): Columns {
+        if (this._cols.cells.buffer !== this.memory.buffer) {
+            this._cols = this._view();
+        }
+        return this._cols;
+    }
+
+    /** Re-view the columns if the core moved its cells or interned text grew
+     * its strings: only a core call that ticks, loads or interns does, so
+     * once before each read of the table after one is enough. */
+    sync() {
         const c = this._cols;
         const core = this.core;
         if (
@@ -103,7 +115,6 @@ export class CellsTable {
         ) {
             this._cols = this._view();
         }
-        return this._cols;
     }
 
     /** After a rebuild every component and cell index is new. String ids

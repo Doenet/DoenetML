@@ -8,7 +8,6 @@
  * element is recomputed when one changes) and, in development and tests,
  * checks it is an output (ADR 0019).
  */
-import me from "math-expressions";
 import { CellsTable } from "./table";
 
 /** The blank expression the other cores show for an empty math. */
@@ -64,24 +63,24 @@ export class Reads {
         return Number.isNaN(id) ? "" : this.table.string(id);
     }
 
-    /** The expression a math cell holds, as math-expressions; the blank
-     * expression when its handle is NaN. */
-    expr(c: number, name: string): any {
+    /** LaTeX of the expression a math cell holds, from the core's own
+     * engine; the blank expression when its handle is NaN. */
+    exprLatex(c: number, name: string): string {
         const cell = this.table.cell(c, name);
         if (cell === undefined || Number.isNaN(this.cell(cell))) {
-            return me.fromAst(BLANK);
+            return BLANK;
         }
-        return me.fromText(this.table.core.expr_text(cell));
+        return this.table.core.expr_latex(cell);
     }
 
-    /** A math component's value: the number its lowered chain computes, or
-     * the expression its math cell holds (ADR 0005). */
-    math(c: number): any {
+    /** LaTeX of a math component's value: the number its lowered chain
+     * computes, or the expression its math cell holds (ADR 0005). */
+    mathLatex(c: number): string {
         const value = this.num(c, "value");
         if (!Number.isNaN(value) || this.table.cell(c, "expr") === undefined) {
-            return me.fromAst(value);
+            return numberLatex(value);
         }
-        return this.expr(c, "expr");
+        return this.exprLatex(c, "expr");
     }
 }
 
@@ -125,12 +124,12 @@ function mathObject(v: number) {
     return { math_object: String(v) };
 }
 
-function latexOf(expr: any): string {
-    try {
-        return expr.toLatex();
-    } catch {
-        return String(expr);
-    }
+/** A number as LaTeX. */
+export function numberLatex(v: number): string {
+    if (Number.isNaN(v)) return "\\mathrm{NaN}";
+    if (v === Infinity) return "\\infty";
+    if (v === -Infinity) return "-\\infty";
+    return String(v);
 }
 
 /** The `<label>` children of `c`: the core makes each a group. */
@@ -234,7 +233,7 @@ const NUMBER_TYPES = new Set([
 /** A component's value as LaTeX, where math notation refers to it. */
 function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
-    if (type === "math" || type === "mathInput") return latexOf(r.math(c));
+    if (type === "math" || type === "mathInput") return r.mathLatex(c);
     if (NUMBER_TYPES.has(type)) return mathNumber(r.num(c, "value"));
     if (type === "text" || type === "textInput") {
         return `\\text{${r.text(c, "value")}}`;
@@ -292,7 +291,7 @@ function sizes(table: CellsTable, c: number, name: string): string[] {
 
 /** A number shown as math notation (the renderer draws it with `M`). */
 const MATH_VALUE: Contract = {
-    props: (r, c) => ({ latex: latexOf(r.math(c)), renderMode: "inline" }),
+    props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
 };
 
 export const CONTRACTS: Record<string, Contract> = {
@@ -315,7 +314,7 @@ export const CONTRACTS: Record<string, Contract> = {
     },
     math: {
         props: (r, c) => ({
-            latex: latexOf(r.math(c)),
+            latex: r.mathLatex(c),
             renderMode: "inline",
         }),
     },
@@ -372,7 +371,7 @@ export const CONTRACTS: Record<string, Contract> = {
             return inGraph
                 ? { x: mathObject(x), y: mathObject(y) }
                 : {
-                      coordsLatex: `\\left( ${latexOf(me.fromAst(x))}, ${latexOf(me.fromAst(y))} \\right)`,
+                      coordsLatex: `\\left( ${numberLatex(x)}, ${numberLatex(y)} \\right)`,
                   };
         },
     },

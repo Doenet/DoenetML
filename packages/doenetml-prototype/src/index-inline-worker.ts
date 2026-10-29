@@ -25,3 +25,5 @@ const workerBlobUrl = URL.createObjectURL(
     ),
 );
 doenetGlobalConfig.doenetWorkerUrl = workerBlobUrl;
+// Only the inlined worker is at hand: it runs the cells core too.
+doenetGlobalConfig.doenetCellsWorkerUrl = null;

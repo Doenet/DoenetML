@@ -14,9 +14,15 @@ import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
+ * The cells core gets its own worker when there is one, which answers the
+ * same calls and starts without the other two cores.
  */
-export function createWrappedCoreWorker() {
-    const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
+export function createWrappedCoreWorker(coreType?: CoreType) {
+    const url =
+        coreType === "cells" && doenetGlobalConfig.doenetCellsWorkerUrl
+            ? doenetGlobalConfig.doenetCellsWorkerUrl
+            : doenetGlobalConfig.doenetWorkerUrl;
+    const worker = new Worker(url, {
         type: "classic",
     });
 
@@ -64,7 +70,7 @@ export const coreThunks = {
 
             // We need to load a new worker
 
-            const worker = createWrappedCoreWorker();
+            const worker = createWrappedCoreWorker(coreType);
             await worker.setCoreType(coreType);
             const key = workerCache.length;
             workerCache[key] = { worker, coreType };

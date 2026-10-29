@@ -533,6 +533,12 @@ impl Core {
         self.doc.math_text(CellIdx::new(cell))
     }
 
+    /// LaTeX of the expression a math cell holds, for a renderer that draws
+    /// math (the bridge, ADR 0020); empty for a NaN handle.
+    pub fn expr_latex(&self, cell: u32) -> String {
+        self.doc.math_latex(CellIdx::new(cell))
+    }
+
     /// Build passes the load took to settle repeat counts.
     pub fn passes(&self) -> u32 {
         self.timings.passes

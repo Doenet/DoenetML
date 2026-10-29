@@ -218,6 +218,17 @@ impl Document {
         }
     }
 
+    /// LaTeX of the expression a math cell holds, empty for a NaN handle:
+    /// what a renderer that draws math shows (ADR 0020).
+    pub fn math_latex(&self, cell: CellIdx) -> String {
+        let h = self.cells[cell.index()];
+        if h.is_nan() {
+            String::new()
+        } else {
+            self.session.engine.borrow().latex(Handle::from_value(h))
+        }
+    }
+
     /// A `<mathInput>` holds any math value, infinity included; every other
     /// request site rejects an infinite ask as the current core does.
     fn accepts_infinity(&self, cell: CellIdx) -> bool {

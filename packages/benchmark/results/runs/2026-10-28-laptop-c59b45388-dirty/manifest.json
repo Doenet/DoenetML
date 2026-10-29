@@ -1,0 +1,46 @@
+{
+    "id": "2026-10-28-laptop-c59b45388-dirty",
+    "date": "2026-10-28",
+    "machine": "laptop",
+    "commit": "c59b45388",
+    "dirty": true,
+    "hardware": {
+        "cpu": "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+        "cores": 8,
+        "memory_bytes": 16411729920,
+        "os": "Linux 6.8.0-138-generic x64",
+        "node": "v24.15.0"
+    },
+    "builds": {
+        "cells": "wasm-pack --release (npm run build -w packages/cells-core)",
+        "cells-prototype": "unrecorded"
+    },
+    "layers": {
+        "browser": {
+            "cores": [
+                "cells",
+                "cells-prototype"
+            ],
+            "fixtures": [
+                "depth-1000",
+                "depth-10000",
+                "breadth-1000",
+                "breadth-10000",
+                "inversion-1000",
+                "inversion-10000",
+                "symbolic-1000",
+                "symbolic-10000",
+                "rebuild-1000",
+                "rebuild-10000",
+                "homework",
+                "lesson",
+                "sir",
+                "venn"
+            ],
+            "load_timeout_ms": 120000,
+            "step_timeout_ms": 15000,
+            "session": "617963-1793237170280",
+            "started": "2026-10-29T01:26:10.471Z"
+        }
+    }
+}

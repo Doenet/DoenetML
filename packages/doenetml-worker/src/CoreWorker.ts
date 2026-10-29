@@ -49,8 +49,8 @@ import { translateJsCoreActionName } from "./jsCoreActionNames";
 // The WASM is not inlined into this bundle: it is located and fetched at run
 // time. See the loading ladder documented in `./wasmLoading.ts`.
 import { resolveWasmInput } from "./wasmLoading";
-import type { CellsBridge, RendererAction } from "./cells/bridge";
-import { loadCellsDocument } from "./cells/loadCellsCore";
+import type { RendererAction } from "./cells/bridge";
+import { CellsSession } from "./cells/session";
 
 /**
  * The correct type of `FlatDastRoot`. **This should be used instead of
@@ -223,12 +223,10 @@ export class CoreWorker {
     core_type: CoreType = "rust";
 
     /**
-     * The cells core (ADR 0020 in `packages/cells-core`): the document's
-     * DAST, kept from `setSource` until `returnDast` loads it, and the bridge
-     * the renderer reaches the loaded core through.
+     * The cells core (ADR 0020 in `packages/cells-core`): its document, and
+     * the bridge the renderer reaches the loaded core through.
      */
-    _cellsDast: DastRoot | undefined = undefined;
-    _cellsBridge: CellsBridge | undefined = undefined;
+    _cells = new CellsSession();
 
     /**
      * Buffer of update batches pushed by the JS core's persistent
@@ -336,12 +334,6 @@ export class CoreWorker {
         }
     }
 
-    /** Free the loaded cells core, if any. */
-    _freeCellsCore() {
-        this._cellsBridge?.core.free();
-        this._cellsBridge = undefined;
-    }
-
     async setSource(args: { source: string; dast: DastRoot }) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -352,8 +344,7 @@ export class CoreWorker {
         try {
             if (this.core_type === "cells") {
                 // Loaded by `returnDast`; the Rust core is not used.
-                this._freeCellsCore();
-                this._cellsDast = args.dast;
+                this._cells.setSource(args.dast);
                 this.source_set = true;
                 return;
             }
@@ -711,14 +702,12 @@ export class CoreWorker {
 
         if (this.core_type === "cells") {
             try {
-                if (!this.source_set || !this.flags_set || !this._cellsDast) {
+                if (!this.source_set || !this.flags_set) {
                     throw Error(
                         "Cannot return dast before setting source and flags",
                     );
                 }
-                this._freeCellsCore();
-                this._cellsBridge = await loadCellsDocument(this._cellsDast);
-                return this._cellsBridge.flatDast() as FlatDastRootWithErrors;
+                return (await this._cells.load()) as FlatDastRootWithErrors;
             } finally {
                 resolve();
             }
@@ -1089,27 +1078,7 @@ export class CoreWorker {
 
         if (this.core_type === "cells") {
             try {
-                if (!this._cellsBridge) {
-                    throw Error("Cannot resolve a path before returning dast");
-                }
-                // The cells core resolves a name path from the document,
-                // whatever the origin.
-                const name = args.path.path
-                    .map(
-                        (part) =>
-                            part.name +
-                            part.index
-                                .map((i) => `[${i.value.join("")}]`)
-                                .join(""),
-                    )
-                    .join(".");
-                const nodeIdx = this._cellsBridge.resolveName(name);
-                return {
-                    nodeIdx,
-                    nodesInResolvedPath: [],
-                    unresolvedPath: nodeIdx === -1 ? args.path.path : null,
-                    originalPath: args.path.path,
-                };
+                return this._cells.resolvePath(args.path.path);
             } finally {
                 resolve();
             }
@@ -1133,6 +1102,12 @@ export class CoreWorker {
     }
 
     async dispatchAction(action: Action): Promise<ActionResponse> {
+        // The prototype's renderers send actions the Rust core's `Action`
+        // type does not list (`updateBoolean`).
+        const current =
+            this.core_type === "cells"
+                ? this._cells.claim(action as RendererAction)
+                : null;
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -1141,12 +1116,7 @@ export class CoreWorker {
 
         if (this.core_type === "cells") {
             try {
-                if (!this._cellsBridge) {
-                    throw Error("Cannot handle action before returning dast");
-                }
-                // The prototype's renderers send actions the Rust core's
-                // `Action` type does not list (`updateBoolean`).
-                return this._cellsBridge.dispatch(action as RendererAction);
+                return this._cells.dispatch(action as RendererAction, current!);
             } finally {
                 resolve();
             }
@@ -1229,8 +1199,7 @@ export class CoreWorker {
 
         this.doenetCore?.free();
         this.doenetCore = undefined;
-        this._freeCellsCore();
-        this._cellsDast = undefined;
+        this._cells.free();
 
         // Since we store source and flags in doenetCore,
         // we lose source and flags when terminating it.
@@ -1286,7 +1255,7 @@ export class CoreWorker {
      * `packages/cells-core`), or null for another core.
      */
     cellsTimings() {
-        return this._cellsBridge?.takeTimings() ?? null;
+        return this._cells.timings();
     }
 
     /**
@@ -1294,7 +1263,7 @@ export class CoreWorker {
      */
     async submitAllAnswers() {
         if (this.core_type === "cells") {
-            return this._cellsBridge?.submitAllAnswers();
+            return this._cells.submitAllAnswers();
         }
         if (this.javascriptCore) {
             // Awaited, so that a rejection (such as a document stopped by a
