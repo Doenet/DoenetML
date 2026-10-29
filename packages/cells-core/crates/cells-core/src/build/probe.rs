@@ -182,11 +182,19 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// A loop on the repeat graph: an edge from repeat `r` to repeat `s`
-    /// when `r`'s count reads a cell inside `s`'s iterations, unless `r`
-    /// itself sits inside them (an inner count reading its outer iteration
-    /// is legal). A self-loop is a count reading its own iterations.
-    pub(in crate::build) fn check_counts(&self) -> Result<()> {
+    /// The repeat graph, with the loops on it rejected, and what it says
+    /// about the structure: an edge from repeat `r` to repeat `s` when
+    /// `r`'s count reads a cell inside `s`'s iterations, unless `r` itself
+    /// sits inside them (an inner count reading its outer iteration is
+    /// legal). A self-loop is a count reading its own iterations. Without a
+    /// loop, the graph gives each repeat its structural depth (`CONTEXT.md`):
+    /// how many repeats must be expanded in sequence before its count is
+    /// known, plus one, where nesting adds one and each edge adds one. The
+    /// edges are the avoidable kind of depth, and each is a warning (ADR
+    /// 0013). The probe stands for every count (ADR 0014), so a real build
+    /// finds neither the depth nor the warnings: at a count of zero the
+    /// read lands on the missing referent and it would see no edge.
+    pub(in crate::build) fn check_counts(&self) -> Result<ProbeOutput> {
         let n = self.repeats.len();
         let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
         let mut seen = vec![false; self.sources.len()];
@@ -255,7 +263,54 @@ impl<'c> Builder<'c> {
                 walk.pop();
             }
         }
-        Ok(())
+        // The graph is acyclic, so the depths are well founded: one more
+        // than the deepest repeat a count waits for, the one it is nested
+        // in among them.
+        let nested_in = |ri: usize| {
+            self.enclosing_repeats(self.repeats[ri].scope)
+                .first()
+                .map(|rc| self.comp_repeat[rc.index()] as usize)
+        };
+        fn depth(ri: usize, waits_for: &dyn Fn(usize) -> Vec<usize>, memo: &mut [u32]) -> u32 {
+            if memo[ri] == 0 {
+                let d = 1 + waits_for(ri)
+                    .into_iter()
+                    .map(|o| depth(o, waits_for, memo))
+                    .max()
+                    .unwrap_or(0);
+                memo[ri] = d;
+            }
+            memo[ri]
+        }
+        let waits_for = |ri: usize| {
+            let mut v = adj[ri].clone();
+            v.extend(nested_in(ri));
+            v
+        };
+        let mut memo = vec![0u32; n];
+        let depths: Vec<u32> = (0..n).map(|ri| depth(ri, &waits_for, &mut memo)).collect();
+        let warnings = (0..n)
+            .filter(|&ri| !adj[ri].is_empty())
+            .map(|ri| {
+                let r = &self.repeats[ri];
+                let d = depths[ri];
+                let name = self.components.name[r.comp.index()];
+                let name = if name == StrId::NONE {
+                    format!("<{}>", self.components.component_type[r.comp.index()].tag())
+                } else {
+                    self.compiled.dast.strings.get(name).trim().to_string()
+                };
+                Diagnostic::warning(
+                    "cells-repeat-count-reads-iterations",
+                    Some(r.node),
+                    format!("repeat '{name}' has structural depth {d}: its count reads a cell inside another repeat's iterations, so a change there costs {d} build passes instead of one"),
+                )
+            })
+            .collect();
+        Ok(ProbeOutput {
+            structural_depth: depths.iter().copied().max().unwrap_or(0),
+            warnings,
+        })
     }
 
     /// The label of edge `u -> v`: as recorded for a reference, else the

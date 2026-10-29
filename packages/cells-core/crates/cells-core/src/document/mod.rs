@@ -123,6 +123,9 @@ pub struct Loaded {
     /// The source's `Dast::version_hash`: the version saved state was made
     /// in.
     pub(crate) version: u64,
+    /// The compile's diagnostics (ADR 0013), the document's list: fixed at
+    /// load and a fact about the source alone (ADR 0014).
+    pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
 
 impl Document {
@@ -169,6 +172,7 @@ impl Document {
                 literal_attrs: Arc::default(),
                 keys: compiled.keys.clone(),
                 version: compiled.version,
+                diagnostics: compiled.diagnostics.clone(),
                 compiled: compiled.rebuilds().then_some(compiled),
             },
             recompute: Recompute::default(),

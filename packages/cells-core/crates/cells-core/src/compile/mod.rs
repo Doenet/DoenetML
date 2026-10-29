@@ -154,7 +154,7 @@ impl<'a> Compiler<'a> {
                 keys: Arc::default(),
                 version: dast.version_hash(),
                 extra_strings: Vec::new(),
-                diagnostics: Vec::new(),
+                diagnostics: Arc::default(),
                 rebuilds: false,
                 structural_depth: None,
                 classes: Classes::default(),
@@ -200,13 +200,9 @@ impl<'a> Compiler<'a> {
         code: &'static str,
         message: &str,
     ) -> Warned {
-        self.compiled
-            .diagnostics
-            .push(crate::diagnostics::Diagnostic::warning(
-                code,
-                Some(node),
-                message.into(),
-            ));
+        Arc::make_mut(&mut self.compiled.diagnostics).push(
+            crate::diagnostics::Diagnostic::warning(code, Some(node), message.into()),
+        );
         Warned::raised()
     }
 

@@ -787,9 +787,11 @@ pub struct Compiled {
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.
     pub(crate) extra_strings: Vec<String>,
-    /// The source's diagnostics (ADR 0015): the lint findings and the
-    /// errors of the boxed elements, in node order. Set by `compile::compile`.
-    pub(crate) diagnostics: Vec<crate::diagnostics::Diagnostic>,
+    /// The source's diagnostics (ADR 0013, ADR 0015): the lint findings,
+    /// the errors of the boxed elements and the planners' and the probe's
+    /// warnings, in node order, which every document built from this
+    /// compile reports. Set by `compile::compile`.
+    pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
     /// Whether the document has a repeat, so its structure can change and
     /// a later build will stamp this compile.
     pub(crate) rebuilds: bool,
@@ -928,5 +930,15 @@ impl Compiled {
     /// Whether a later build can stamp it: the document has a repeat.
     pub fn rebuilds(&self) -> bool {
         self.rebuilds
+    }
+
+    /// Take what the check's build found about the source: its structural
+    /// depth, which bounds every build's, and its warnings, which join the
+    /// diagnostics. None when the check was skipped (a test load).
+    pub(crate) fn set_probe(&mut self, probe: Option<crate::build::ProbeOutput>) {
+        if let Some(probe) = probe {
+            self.structural_depth = Some(probe.structural_depth);
+            Arc::make_mut(&mut self.diagnostics).extend(probe.warnings);
+        }
     }
 }

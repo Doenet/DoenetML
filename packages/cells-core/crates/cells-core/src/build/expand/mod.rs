@@ -194,8 +194,6 @@ pub(in crate::build) struct Builder<'c> {
     /// The node of the element whose expansion or resolution failed, for
     /// `build` to box (ADR 0013); none when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
-    /// Warnings about elements that were built (ADR 0013).
-    pub(in crate::build) diagnostics: Vec<Diagnostic>,
 }
 
 impl<'c> Builder<'c> {
@@ -268,7 +266,6 @@ impl<'c> Builder<'c> {
             label: Vec::new(),
             labels: HashMap::new(),
             failed_node: None,
-            diagnostics: Vec::new(),
         }
     }
 

@@ -231,8 +231,10 @@ fn a_structure_deeper_than_eight_passes_settles() {
     );
     assert_eq!(doc.structure.repeats.len(), 10);
     assert!(doc.structure.repeats.iter().all(|r| r.iterations == 1));
-    let loaded = load(&deep_chain(1)).unwrap();
-    assert_eq!(loaded.structure.structural_depth, 10);
+    let (loaded, t) =
+        Document::load(dast_json(&deep_chain(1)).as_bytes(), LoadOptions::default()).unwrap();
+    assert_eq!(t.structural_depth, 10);
+    assert_eq!(t.passes, 11);
     assert!(loaded.structure.repeats.iter().all(|r| r.iterations == 1));
 }
 

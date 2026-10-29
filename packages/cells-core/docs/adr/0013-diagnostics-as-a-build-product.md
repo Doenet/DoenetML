@@ -61,8 +61,10 @@ flip is an ordinary tick.
 
 ## The design
 
-- **Collected, not thrown.** The build carries a `Vec<Diagnostic>`
-  (`src/diagnostics.rs`). A diagnostic is a kind (error, warning, info,
+- **Collected, not thrown.** The compile carries a `Vec<Diagnostic>`
+  (`src/diagnostics.rs`; since ADR 0015 it is the compile's, and since
+  ADR 0014's amendment of 2026-10-29 the probe's one warning joins it
+  there, so a build has no list of its own). A diagnostic is a kind (error, warning, info,
   accessibility with its level 1 or 2), a stable code, its arguments as
   data, and the node it is about. The code is the i18n registry's
   (`packages/i18n/src/diagnostics.ts`) where it names the same situation,

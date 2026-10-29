@@ -80,7 +80,8 @@ pub struct LoadTimings {
     pub cycle_check: Duration,
     /// Build passes until repeat counts settled (1 without repeats).
     pub passes: u32,
-    /// `Structure::structural_depth` of the settled document.
+    /// The document's structural depth (`CONTEXT.md`), as the compile's
+    /// check bounded it; 0 when a test load skipped the check.
     pub structural_depth: u32,
 }
 
@@ -195,7 +196,7 @@ impl Document {
             t.initial_compute += clock.elapsed();
             t.passes += 1;
             if doc.structure_settled() {
-                t.structural_depth = doc.structure.structural_depth;
+                t.structural_depth = compiled.structural_depth.unwrap_or(0);
                 let _s = crate::trace::span("attributes");
                 doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
                 return Ok(doc);
@@ -217,14 +218,14 @@ impl Document {
         session
     }
 
-    /// What the build reported about the elements it stamped (ADR 0013):
-    /// the errors of the elements that became `_error` components and the
-    /// warnings of the rest, in node order. This is the list for rendering
-    /// error boxes. It is fixed at load and depends on the source alone:
-    /// the same at every count and every seed, every option of every select
-    /// included (ADR 0014), so it is [`crate::diagnose`]'s list.
+    /// What the compile reported about the source (ADR 0013): the errors
+    /// of the elements that became `_error` components, the lint findings
+    /// and the warnings of the rest, in node order. This is the list for
+    /// rendering error boxes. It is fixed at load and depends on the source
+    /// alone: the same at every count and every seed, every option of every
+    /// select included (ADR 0014), so it is [`crate::diagnose`]'s list.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {
-        &self.structure.diagnostics
+        &self.loaded.diagnostics
     }
 
     /// The warnings among `diagnostics`, as sentences.

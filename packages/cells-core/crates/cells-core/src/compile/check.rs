@@ -79,8 +79,8 @@ pub(crate) fn compile(
             if check_cycles && varies {
                 let clock = web_time::Instant::now();
                 let _s = crate::trace::span("probe");
-                let probed = build::probe(&compiled)?;
-                compiled.structural_depth = Some(probed.structural_depth());
+                let mut probed = build::probe(&compiled)?;
+                compiled.set_probe(probed.probe.take());
                 if let Some(record) = probed.writable_record() {
                     compiled.classes = Classes::Record(Arc::new(record));
                 }
@@ -93,15 +93,14 @@ pub(crate) fn compile(
                 }
                 Ok((compiled, None, checked))
             } else {
-                let first = {
+                let mut first = {
                     let _s = crate::trace::span("first build");
                     build::first_build(&compiled, session, check_cycles)?
                 };
-                // Without a repeat the depth is 0; with one (a test load
-                // without the check) no build here bounds it.
-                if !compiled.has_repeats() {
-                    compiled.structural_depth = Some(0);
-                }
+                // With the check, the depth is 0 and there is no warning:
+                // the document has no repeat. Without it (a test load) no
+                // build here bounds the depth.
+                compiled.set_probe(first.probe.take());
                 Ok((compiled, Some(first), std::time::Duration::ZERO))
             }
         });
@@ -131,14 +130,10 @@ pub(crate) fn compile(
         let _s = crate::trace::span("lint");
         list.extend(lint::lint(dast));
     }
-    // The planners' warnings, from the compile that built.
-    list.append(&mut compiled.diagnostics);
+    // The planners' and the probe's warnings, from the compile that built.
+    list.append(Arc::make_mut(&mut compiled.diagnostics));
     crate::diagnostics::sort(&mut list);
-    compiled.diagnostics = list;
-    let first_build = first_build.map(|mut u| {
-        u.add_compile_diagnostics(&compiled);
-        u
-    });
+    compiled.diagnostics = Arc::new(list);
     Ok(CompileOutput {
         compiled: Arc::new(compiled),
         first_build,
@@ -164,8 +159,8 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
             Ok((u, planner_warnings)) => {
                 let unread = unread_attributes(&dast, &boxed);
                 if unread.is_empty() {
-                    list.extend(planner_warnings);
-                    list.extend(u.warnings());
+                    list.extend(planner_warnings.iter().cloned());
+                    list.extend(u.probe.map(|p| p.warnings).unwrap_or_default());
                     break;
                 }
                 for (node, error) in unread {

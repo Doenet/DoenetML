@@ -13,8 +13,8 @@
 //! (scope, template slot).
 //!
 //! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (essential, then fixed, then derived); operators are bound; and
-//! structural depth is measured. [`BuildOutput::schedule`] then orders the
+//! (essential, then fixed, then derived); and operators are bound.
+//! [`BuildOutput::schedule`] then orders the
 //! instructions, with a fast path when creation order is already a valid
 //! evaluation order.
 //!
@@ -109,20 +109,24 @@ pub(in crate::build) fn build_with(
         lap("expand");
         crate::trace::span("resolve").run(|| b.resolve_all())?;
         lap("resolve");
-        if probe_checks {
-            let _s = crate::trace::span("loop check");
-            b.check_counts()?;
-            b.check_loops()?;
+        if !probe_checks {
+            return Ok(None);
         }
-        Ok(())
+        let _s = crate::trace::span("loop check");
+        let probe = b.check_counts()?;
+        b.check_loops()?;
+        Ok(Some(probe))
     })();
-    if let Err(error) = staged {
-        return Err(Failure {
-            error,
-            node: b.failed_node,
-        });
-    }
-    let u = {
+    let probe = match staged {
+        Ok(probe) => probe,
+        Err(error) => {
+            return Err(Failure {
+                error,
+                node: b.failed_node,
+            });
+        }
+    };
+    let mut u = {
         let _s = crate::trace::span("emit");
         let u = b.finish()?;
         crate::trace::count("cells", u.cells.len());
@@ -130,6 +134,7 @@ pub(in crate::build) fn build_with(
         crate::trace::count("components", u.components.len());
         u
     };
+    u.probe = probe;
     lap("cells, program");
     Ok(u)
 }
@@ -171,11 +176,8 @@ pub fn build(
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = Stamped { session, counts };
     let mut engine = session.engine.borrow_mut();
-    let mut u = build_with(compiled, session, reseed, &mut engine, &view, false)
-        .map_err(|f| BuildError::Unchecked(f.error.to_string()))?;
-    drop(engine);
-    u.add_compile_diagnostics(compiled);
-    Ok(u)
+    build_with(compiled, session, reseed, &mut engine, &view, false)
+        .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 
 /// The stamped build at no iteration that checks a document the probe
@@ -232,6 +234,24 @@ pub struct BuildOutput {
     /// The probe's live template slots (`Classes::Record`); None for any
     /// other build.
     live_record: Option<Vec<Vec<u64>>>,
+    /// What the compile's check learns from a build that ran the probe's
+    /// checks (`build_with`): the probe's, or the first build's of a
+    /// document without repeats or selects. None for any other build.
+    pub(crate) probe: Option<ProbeOutput>,
+}
+
+/// What the probe's checks find out about the document beyond its errors
+/// (ADR 0012, ADR 0014): facts about the source that every build of it
+/// shares, which the compile keeps.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct ProbeOutput {
+    /// The document's structural depth (`CONTEXT.md`), which bounds every
+    /// build's: a load or a rebuild settles in this many passes plus one.
+    /// 0 without a repeat.
+    pub(crate) structural_depth: u32,
+    /// The repeats whose count reads a cell inside another repeat's
+    /// iterations, the avoidable kind of depth (ADR 0013).
+    pub(crate) warnings: Vec<Diagnostic>,
 }
 
 /// Which cells a build computes (ADR 0019): a bit per cell, set for one
@@ -247,15 +267,6 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
-    /// Put the compile's diagnostics with the build's warnings, in node
-    /// order: the build's list.
-    pub(crate) fn add_compile_diagnostics(&mut self, compiled: &Compiled) {
-        let mut list = compiled.diagnostics.clone();
-        list.append(&mut self.structure.diagnostics);
-        crate::diagnostics::sort(&mut list);
-        self.structure.diagnostics = list;
-    }
-
     /// The writable template slots the probe found, which every later
     /// build classes its value slots by (ADR 0018).
     pub(crate) fn writable_record(&self) -> Option<Vec<Vec<u64>>> {
@@ -266,16 +277,6 @@ impl BuildOutput {
     /// reads which cells it computes by (ADR 0019).
     pub(crate) fn live_record(&self) -> Option<Vec<Vec<u64>>> {
         self.live_record.clone()
-    }
-
-    /// The structural depth this build found (`Structure`).
-    pub(crate) fn structural_depth(&self) -> u32 {
-        self.structure.structural_depth
-    }
-
-    /// The build's own warnings.
-    pub(crate) fn warnings(self) -> Vec<Diagnostic> {
-        self.structure.diagnostics
     }
 
     /// Schedule the program into a document.

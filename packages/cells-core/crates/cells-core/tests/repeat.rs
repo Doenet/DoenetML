@@ -269,11 +269,7 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
         Default::default(),
     )
     .unwrap();
-    assert_eq!(
-        doc.structure.repeat_depths,
-        vec![1, 2, 2, 1],
-        "a, then c in each of b's iterations (recorded before b), then b"
-    );
+    assert_eq!(t.structural_depth, 2, "a is 1, b is 2 and c inside b is 2");
     assert_eq!(t.passes, 3);
     assert!(doc.warnings().is_empty());
 
@@ -287,12 +283,27 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
     ).as_bytes(), Default::default()).unwrap();
     // b reads inside a, c reads inside b: a chain of two links, so depth 3
     // and one pass per link beyond the two every repeat needs.
-    assert_eq!(doc.structure.structural_depth, 3);
-    assert_eq!(doc.structure.repeat_depths, vec![1, 2, 3]);
+    assert_eq!(t.structural_depth, 3);
     assert_eq!(t.passes, 4);
     let w = doc.warnings();
     assert_eq!(w.len(), 2, "{w:?}");
-    assert!(w[0].contains("'b'") && w[1].contains("'c'"), "{w:?}");
+    assert!(w[0].contains("'b' has structural depth 2"), "{w:?}");
+    assert!(w[1].contains("'c' has structural depth 3"), "{w:?}");
+    // The depth and the warnings are the probe's, so a load at a count
+    // that stamps nothing reports the same (ADR 0014).
+    let (empty, t) = Document::load(
+        cells_core::testing::test_utils::dast_json(
+            r#"<numberInput name="n" value="0"/>
+           <repeatForSequence name="a" length="$n" indexName="i"><number name="k">$i</number></repeatForSequence>
+           <repeatForSequence name="b" length="$a[3].k"><point name="q" x="2"/></repeatForSequence>
+           <repeatForSequence name="c" length="$b[1].q.x"><point/></repeatForSequence>"#,
+        )
+        .as_bytes(),
+        Default::default(),
+    )
+    .unwrap();
+    assert_eq!(t.structural_depth, 3);
+    assert_eq!(empty.warnings(), w);
 }
 
 #[test]
