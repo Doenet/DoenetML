@@ -59,6 +59,18 @@ import {
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
+/**
+ * A DoenetML version as messages show it: always with its `v` prefix. A
+ * detected version gets one from `xmlns` detection, but `IFRAME_VERSION` and
+ * a host's `doenetmlVersion` may come without it, and both spellings name
+ * the same CDN package.
+ */
+function versionLabel(doenetmlVersion: string): string {
+    return doenetmlVersion.startsWith("v")
+        ? doenetmlVersion
+        : `v${doenetmlVersion}`;
+}
+
 export { mathjaxConfig } from "@doenet/utils";
 export {
     mediaLicenses,
@@ -437,8 +449,13 @@ export function DoenetViewer({
 
     const [height, setHeight] = React.useState("500px");
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
-    const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
-        React.useState(false);
+    // The `xmlns`-detected version whose bundle failed to load, if any. Only
+    // that version is ignored from then on: `doenetML` can change live, and a
+    // later document naming a different version must still get that version
+    // rather than this viewer's fallback.
+    const [failedDetectedVersion, setFailedDetectedVersion] = React.useState<
+        string | null
+    >(null);
     const resolvedTheme = useResolvedTheme(
         doenetViewerProps.darkMode ?? "system",
     );
@@ -455,11 +472,14 @@ export function DoenetViewer({
 
     let standaloneUrl: string, cssUrl: string;
     let foundAutoVersion = false;
-    let detectedVersion;
+    let detectedVersion: string | undefined;
 
-    if (autodetectVersion && !ignoreDetectedVersion) {
+    if (autodetectVersion) {
         let result = detectVersionFromDoenetML(doenetML);
-        if (result?.version !== undefined) {
+        if (
+            result?.version !== undefined &&
+            "v" + result.version !== failedDetectedVersion
+        ) {
             foundAutoVersion = true;
             detectedVersion = "v" + result.version;
         }
@@ -1226,10 +1246,10 @@ export function DoenetViewer({
                 `DoenetViewer: the xmlns names DoenetML version \`${detectedVersion}\`, which could not be loaded; using ${
                     specifiedStandaloneUrl
                         ? "the host-specified standalone bundle"
-                        : `\`${specifiedDoenetmlVersion ?? latestDoenetmlVersion}\``
+                        : `version \`${versionLabel(specifiedDoenetmlVersion ?? latestDoenetmlVersion)}\``
                 } instead.`,
             );
-            setIgnoreDetectedVersion(true);
+            setFailedDetectedVersion(detectedVersion!);
             setInErrorState("");
             return null;
         }
@@ -1457,6 +1477,10 @@ export const DoenetEditor = React.forwardRef<
     const onStylePalettesRef = React.useRef(onStylePalettes);
     onStylePalettesRef.current = onStylePalettes;
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
+    // Unlike the viewer, the editor stops detecting for good after a failed
+    // detected version: its document is initial-only, so switching bundles
+    // would reload the iframe with the initial DoenetML and drop the author's
+    // edits. A fixed `xmlns` takes effect on the next mount.
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
     const [initialDiagnostics, setInitialDiagnostics] = React.useState<
@@ -1849,7 +1873,7 @@ export const DoenetEditor = React.forwardRef<
                     version: String(detectedVersion),
                     fallback: specifiedStandaloneUrl
                         ? "none"
-                        : String(
+                        : versionLabel(
                               specifiedDoenetmlVersion ?? latestDoenetmlVersion,
                           ),
                 },

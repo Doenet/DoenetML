@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { DoenetEditor, DoenetViewer } from "../../../src/index";
 import {
     STANDALONE_BLOB_URL,
@@ -124,6 +124,100 @@ describe("xmlns-detected version that fails to load", () => {
                 expect(
                     doc?.querySelector(".cm-content")?.textContent ?? "",
                 ).to.include(MISSING_VERSION);
+            },
+        );
+    });
+
+    it("DoenetViewer still honors a different version in a later document", () => {
+        // After one fallback, only the version that failed is ignored: a new
+        // `doenetML` naming another version must load that version's bundle,
+        // not stay on the fallback. The second version is missing too, so
+        // the test sees its bundle requested and a second fallback warning
+        // without leaving the stubbed network. `render={false}` keeps the
+        // document from booting a core, which this test does not need.
+        const OTHER_VERSION = "0.0.0-missing.2";
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@v${OTHER_VERSION}/**`,
+            { statusCode: 404, body: "Not Found" },
+        ).as("otherMissingBundle");
+        cy.window().then((win) => {
+            cy.spy(win.console, "warn").as("warn");
+        });
+
+        function Harness() {
+            const [doenetML, setDoenetML] = useState(DOENETML);
+            return (
+                <div>
+                    <button
+                        data-test="switch"
+                        onClick={() =>
+                            setDoenetML(
+                                DOENETML.replace(
+                                    MISSING_VERSION,
+                                    OTHER_VERSION,
+                                ),
+                            )
+                        }
+                    >
+                        Switch
+                    </button>
+                    <DoenetViewer
+                        doenetML={doenetML}
+                        render={false}
+                        standaloneUrl={STANDALONE_BLOB_URL}
+                        cssUrl={STANDALONE_CSS_BLOB_URL}
+                        addVirtualKeyboard={false}
+                    />
+                </div>
+            );
+        }
+        cy.mount(<Harness />);
+
+        cy.wait("@missingBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${MISSING_VERSION}`,
+        );
+
+        cy.get("[data-test=switch]").click();
+        cy.wait("@otherMissingBundle");
+        cy.get("@warn").should(
+            "have.been.calledWithMatch",
+            `v${OTHER_VERSION}`,
+        );
+    });
+
+    it("DoenetEditor names the fallback version with its `v` prefix", () => {
+        // With no host-specified bundle the editor falls back to
+        // `doenetmlVersion`, given here without a `v`. Hold that bundle's
+        // (stubbed) response back so the srcdoc carrying the diagnostic can
+        // be read before the fallback's own load fails.
+        const FALLBACK_VERSION = "0.0.0-fallback.1";
+        cy.intercept(
+            "GET",
+            `https://cdn.jsdelivr.net/npm/@doenet/standalone@${FALLBACK_VERSION}/**`,
+            { statusCode: 404, body: "Not Found", delay: 10_000 },
+        );
+
+        cy.mount(
+            <div style={{ height: "600px", width: "900px" }}>
+                <DoenetEditor
+                    doenetML={DOENETML}
+                    doenetmlVersion={FALLBACK_VERSION}
+                    addVirtualKeyboard={false}
+                />
+            </div>,
+        );
+
+        cy.wait("@missingBundle");
+        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT }).should(
+            ($iframe) => {
+                const srcDoc = ($iframe[0] as HTMLIFrameElement).srcdoc;
+                expect(
+                    srcDoc.includes(`"fallback":"v${FALLBACK_VERSION}"`),
+                    "diagnostic names the fallback as v" + FALLBACK_VERSION,
+                ).to.be.true;
             },
         );
     });
