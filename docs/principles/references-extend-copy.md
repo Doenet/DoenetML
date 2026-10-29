@@ -589,9 +589,8 @@ Evidence:
 
 Code: `replacementFromProp`, `W/components/abstract/Copy.js:1457-1545`.
 
-Inconsistency: a copy of an *authored value list* (`<mathList>$mi 2</mathList>`) also freezes
-its entries, though the list does have DoenetML to paste. The same list inside a copied `<p>`
-does follow `mi` (**[probe]**). See D3.
+A copy of an *authored value list* used to freeze its entries too, though the list has DoenetML
+to paste. Since #2367 it is pasted like any other component (D3).
 
 ### CPY-6: references to names outside the copied part are looked up again where the copy lands (current behavior; decision D1)
 The copy is pasted DoenetML, so a `$n` inside it that pointed to something *outside* the copied
@@ -735,7 +734,6 @@ through extend and copy at depths 1–3.
 | `copy_of_extend.test.ts` `bothWays` toggle (expression attributes on and off) | Proves two internal representations agree. Keep the expected values; drop the toggle |
 | `unlinked_copy_reload.test.ts:84` "holds nothing when no copy's source changed" | A saved-state size optimization |
 | `unlinked_copy_reload.test.ts:229-421` (`stateId` type matching across cases) | Follows from positional `stateId`s |
-| `listcomponentvaluelists.test.ts:562` and the `c.h` = −1 assertion | Locks in D3 |
 | `module.test.ts:1474`, `:1505` (module attributes named `constructor`, `toString`, `link`) | Robustness against prototype maps and `_copy` attribute collisions |
 | `utils/copy.test.ts` (whole file) | Unit test of an internal fallback. Keep one integration test of "a reference to a point in its own label shows its value" |
 | `warningsInfos.test.ts` w0168/w0169 exemptions for `_copy`'s own attributes | Artifacts of the `_copy` encoding |

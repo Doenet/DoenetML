@@ -301,16 +301,13 @@ Evidence:
 - `listcomponentpointlists.test.ts` and `listcomponentcollections.test.ts` (#2187, #2193, #2195);
 - **[probe]** `<point extend="$pl[1]">` and `<point copy="$pl[1]">` both carry the authored label.
 
-`hide` holds only for `<sort>`, `<shuffle>`, `<collect>` and `<group asList>` today:
-- a hidden entry there is not drawn, `$l[k].hide` is true, and it still counts for indices and
-  values;
-- `<pointList>` and `<vectorList>` draw the entry marked hidden but report `.hide` false, and
-  `$pl[1]` placed elsewhere is shown;
-- the authored value lists (`mathList`, `numberList`, `textList`, `booleanList`, `intervalList`,
-  `tupleList`) ignore a child's `hide` entirely, including on content of a nested `<sort>` or
-  `<group>`.
+`hide` holds for every list since #2368 (D29):
+- a hidden entry is not drawn, and `$l[k].hide` is true;
+- `$l[k]` and `$l` placed elsewhere keep it hidden;
+- it still counts for indices and values.
 
-Four tests pin the last case, and one the point-list case (#2265, D29).
+`styleNumber` does not hold yet. Collect and sort let the list's override each source's, and
+authored lists and `<pointList>` ignore a child's (#2374).
 
 Follow-up, not part of D29: a write through `$l[k].hide` does nothing in any family today
 (`<booleanInput bindValueTo="$l[k].hide"/>`), while `$n.hide` is writable (**[probe]**). An entry
