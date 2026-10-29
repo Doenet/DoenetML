@@ -137,29 +137,44 @@ export function seedInstructionMaps(
  * @param doenetIdToComponentIdx Map from JS string id to `componentIdx`,
  *   required by the `ref` converter. Defaults to an empty map and is extended in
  *   place as component children are encountered.
+ * @param knownComponents The components the consumer already holds. One the
+ *   action created (a solution's content on reveal) is not among them, and is
+ *   shipped whole as `newFlatDastElement`, since there is no element to update.
+ *   Omitted, every component is taken as known.
  */
 export function flatDastUpdateFromJS(
     updateInstructions: UpdateInstruction[],
     componentIdxToName: Record<number, string>,
     doenetIdToComponentIdx: Record<string, number> = {},
+    knownComponents?: Set<number>,
 ): Record<number, FlatDastElementUpdateFromJS> {
     const updates: Record<number, FlatDastElementUpdateFromJS> = {};
 
     function mergeUpdate(idx: number, update: FlatDastElementUpdateFromJS) {
         const existing = updates[idx];
-        if (existing) {
-            existing.changedState = {
-                ...existing.changedState,
-                ...update.changedState,
-            };
-            if (update.newChildren) {
-                existing.newChildren = update.newChildren;
-            }
-            if (update.newFlatDastElement) {
-                existing.newFlatDastElement = update.newFlatDastElement;
-            }
-        } else {
+        if (!existing) {
             updates[idx] = update;
+            return;
+        }
+        if (update.newFlatDastElement) {
+            existing.newFlatDastElement = update.newFlatDastElement;
+        }
+        // A whole element takes later changes into itself: the consumer
+        // upserts it as it is.
+        const whole = existing.newFlatDastElement;
+        if (whole) {
+            whole.data.props = { ...whole.data.props, ...update.changedState };
+            if (update.newChildren) {
+                whole.children = update.newChildren;
+            }
+            return;
+        }
+        existing.changedState = {
+            ...existing.changedState,
+            ...update.changedState,
+        };
+        if (update.newChildren) {
+            existing.newChildren = update.newChildren;
         }
     }
 
@@ -212,16 +227,26 @@ export function flatDastUpdateFromJS(
 
             applyElementJsToRustFixups(element, doenetIdToComponentIdx);
 
-            const update: FlatDastElementUpdateFromJS = {
-                changedState: element.data.props,
-            };
-            // Only report children when the batch carried child instructions;
-            // otherwise leave the consumer's existing children untouched.
-            if (childrenInstructions) {
-                update.newChildren = element.children;
+            // A component is new on its first appearance only: a later
+            // state of it in the same batches is a change to that element.
+            if (
+                knownComponents &&
+                !knownComponents.has(componentIdx) &&
+                !updates[componentIdx]
+            ) {
+                mergeUpdate(componentIdx, { newFlatDastElement: element });
+            } else {
+                const update: FlatDastElementUpdateFromJS = {
+                    changedState: element.data.props,
+                };
+                // Only report children when the batch carried child
+                // instructions; otherwise leave the consumer's existing
+                // children untouched.
+                if (childrenInstructions) {
+                    update.newChildren = element.children;
+                }
+                mergeUpdate(componentIdx, update);
             }
-
-            mergeUpdate(componentIdx, update);
 
             // Ship each synthetic wrapper as a full element so the prototype's
             // `processElementUpdates` reducer can upsert it (the wrapper has no

@@ -43,6 +43,18 @@ their props already fit. The cells core has no vector or ray yet; its
 page runs the JavaScript core with `?core=javascript`, which is how these
 were checked.
 
+In text, the JavaScript core's sectioning components (`subsection`,
+`exercise`, `example`, `theorem`, `note`, `proof`, `question`, `activity`,
+`paragraphs`) are drawn as divisions under their own names, as `aside` and
+`problem` were, its `figure` with its `<caption>` child drawn in the
+caption, `feedback`, `solution` (revealed through the core), `footnote`,
+`pre`, `div`, `span`, `introduction`, `conclusion` and `statement`. A
+component the JavaScript core creates during an action (a solution's
+content on reveal) reaches the renderer as a whole new element, as the
+Rust core's do. Still undrawn: `image` and `video`, whose sources the
+production renderer resolves itself, `spreadsheet`, `matrixInput`,
+`fractionInput` and `codeEditor`.
+
 Both remain possible later, for all three cores, if large documents need
 them: a board redrawn once per update batch rather than by each element
 as it renders (step 2, the pattern ADR 0010 measured), and the store's

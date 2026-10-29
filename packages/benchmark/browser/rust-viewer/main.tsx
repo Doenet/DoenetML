@@ -211,6 +211,10 @@ const rust = {
         const el = store.getState().dast.flatDastRoot.elements[idx] as any;
         return el?.name;
     },
+    /** An element as the viewer holds it. */
+    element(idx: number): unknown {
+        return store.getState().dast.flatDastRoot.elements[idx];
+    },
     /** A point's coordinates as the viewer holds them. */
     pointCoords(idx: number): [number, number] | null {
         const el = store.getState().dast.flatDastRoot.elements[idx] as any;
