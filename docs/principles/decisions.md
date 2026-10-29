@@ -28,9 +28,9 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
 | B9 | A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
-| B10 | `$e.h` names nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It breaks REF-8. Predates #2367 | reported in #2367's review | a linked list extend has no children of its own |
+| B10 | (#2376) `$e.h` names nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It breaks REF-8. Predates #2367 | reported in #2367's review | a linked list extend has no children of its own |
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. The rule is open under CPY-8 |
-| B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error) |
+| B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -739,8 +739,12 @@ and adds a special case that users of modules would have to know about.
 every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
 the sweep: 19 list forms, each with its first entry's source hidden. Still open:
 - `styleNumber` and display settings under the container model: #2374;
-- a hidden list's entries in a `<choice>`'s text and an `<li>`'s lead: #2375, decided below;
+- hidden content nested inside a list, such as a `<textList hide>` or `<group hide>` inside
+  another list, is still drawn: #2390 (below);
 - writes through `$l[k].hide`, a follow-up under VAL-9.
+
+A hidden list's entries in a `<choice>`'s text and an `<li>`'s lead are done too (#2388, closing
+#2375; decided below).
 
 **Before #2368** a list entry whose source is written with `hide` was handled by three different rules
 (#2265, survey at `34393fb`; **[probe]** confirms the main cases). Each list below was written
@@ -828,7 +832,8 @@ and never override or clear what an entry's source sets:
   - For an authored `<mathList styleNumber="2"><math styleNumber="3">`, the entry is style 3.
 - Authors who want a list to override its entries opt in explicitly: D31.
 
-**Decided: what a parent that ignores its own hiding counts is what would be drawn (#2375).**
+**Decided, and done in #2388: what a parent that ignores its own hiding counts is what would be
+drawn (#2375).**
 A few parents read their children while ignoring whether they themselves are hidden:
 - a `<choice>`'s text;
 - the child an `<li>` leads with (`childRendersSomething`);
@@ -862,8 +867,30 @@ The two bare references stay as they are because today's D9 shows them. If D9 ch
 it automatically under this rule. The `<collect>` row needs the same treatment as its drawing:
 #2368's `listHiddenWithReferences` hides `$c`, so its entries must not count either.
 
-A test for #2375 can assert the rule directly: for each row, the choice's text equals the text of
-a `<p>` holding the same content.
+#2388 implements this, and asserts it directly in `listEntryHide.test.ts`: for 22 contents, a
+choice's text equals the text of a `<p>` holding the same content, and an `<li>` leads with a
+component only when the `<p>` draws it. It also covers lists with no per-entry `hide` (a
+`<sequence>`, the samplers, list operators such as `<cumulativeSum>`, and the list a repeat of
+one value becomes), whose entries now take the list's hiding. A list's own
+`hiddenIgnoreParent` follows `hideIsOwn`, as its `hidden` does, so `$tl` of a hidden list still
+counts (D9 today).
+
+**Decision needed: hidden content between an entry and its list (#2390).** Content hidden on its
+own and nested inside another list is still drawn today. Examples:
+`<textList><textList hide>q</textList> r</textList>` draws `q, r`, and so does a `<group hide>`,
+`<collect hide>` or `<sequence hide>` inside a list, or a `<group hide>` inside a `<sort>`. That
+breaks rule 3, and so it is a defect.
+
+#2390 asks how such an entry behaves through a reference. Is the hidden inner list or group like
+the outer list's own `hide`, or like the entry's own?
+- **Recommendation: like the list's own `hide`.** The inner list or group is a container of the
+  entry's source, and a reference takes its source's own `hide`, not the hiding of the
+  container it sits in (CTX-8, rule 4).
+- So for the outer list `l`, `$l[1]` placed elsewhere is shown, `$l[1].hide` is the innermost
+  source's own (`false`), and `$l[1].hidden` is `true`.
+- It matches a plain component: `$n` of a `<number>` inside a `<group hide>` is shown.
+- It holds whatever D9 decides, because D9 concerns a referent's own `hide`, not its
+  container's.
 
 **Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
 (**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
@@ -1021,6 +1048,11 @@ select, the items a collect gathers. Such an extend is one of two things:
   `<select extend="$s" numToSelect="4">`, it needs different content. That cannot be the same
   component: it would be new iterations, or new picks. So it is a new tag. Today the change is
   silently dropped, with only a warning.
+
+Children added to such an extend show the same problem from another side. #2366 (closed as not
+planned) found that a child added to `<shuffle extend="$sh">` is never shown, yet can be reached
+by name, and its random value changes when the page is loaded again. Under this rule the extend
+is an error, so the case cannot arise.
 
 **Proposed principle (Tier 1):**
 
