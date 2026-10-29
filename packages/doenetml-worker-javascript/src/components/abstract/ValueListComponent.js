@@ -233,6 +233,10 @@ export default class ValueListComponent extends BaseComponent {
             value: this.listValuesArrayName,
             ...typeVariables,
             hidden: "hidden",
+            // what a parent that ignores its own hiding (a `<choice>`'s
+            // text, an `<li>`'s lead) counts as drawn: an entry is hidden
+            // with the list (#2375)
+            hiddenIgnoreParent: "hiddenIgnoreParent",
             fixed: "entriesFixed",
             canBeModified: "entriesCanBeModified",
             unordered: "entriesUnordered",
@@ -465,38 +469,46 @@ export default class ValueListComponent extends BaseComponent {
             },
         };
 
-        const baseHidden = stateVariableDefinitions.hidden;
-        stateVariableDefinitions.hidden = {
-            ...baseHidden,
-            returnDependencies: (args) => ({
-                ...baseHidden.returnDependencies(args),
-                ownHide: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "hide",
-                    variableNames: ["value"],
-                    dontRecurseToShadows: true,
-                },
-                hideIsOwn: {
-                    dependencyType: "stateVariable",
-                    variableName: "hideIsOwn",
-                },
-            }),
-            definition(args) {
-                const { dependencyValues } = args;
-                if (!dependencyValues.hideIsOwn) {
-                    return baseHidden.definition(args);
-                }
-                return baseHidden.definition({
-                    ...args,
-                    dependencyValues: {
-                        ...dependencyValues,
-                        hide: Boolean(
-                            dependencyValues.ownHide?.stateValues.value,
-                        ),
+        // `hidden` and `hiddenIgnoreParent` both read the list's own `hide`,
+        // not its source's, where a reference shows the list (`hideIsOwn`).
+        // So a parent reading `hiddenIgnoreParent` counts the entries of `$l`
+        // exactly when `$l` draws them: those of a bare reference to a hidden
+        // list (D9), but not those of `$c` for a `<collect hide>`
+        // (`listHiddenWithReferences`) (#2375).
+        for (const variableName of ["hidden", "hiddenIgnoreParent"]) {
+            const baseDefinition = stateVariableDefinitions[variableName];
+            stateVariableDefinitions[variableName] = {
+                ...baseDefinition,
+                returnDependencies: (args) => ({
+                    ...baseDefinition.returnDependencies(args),
+                    ownHide: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "hide",
+                        variableNames: ["value"],
+                        dontRecurseToShadows: true,
                     },
-                });
-            },
-        };
+                    hideIsOwn: {
+                        dependencyType: "stateVariable",
+                        variableName: "hideIsOwn",
+                    },
+                }),
+                definition(args) {
+                    const { dependencyValues } = args;
+                    if (!dependencyValues.hideIsOwn) {
+                        return baseDefinition.definition(args);
+                    }
+                    return baseDefinition.definition({
+                        ...args,
+                        dependencyValues: {
+                            ...dependencyValues,
+                            hide: Boolean(
+                                dependencyValues.ownHide?.stateValues.value,
+                            ),
+                        },
+                    });
+                },
+            };
+        }
 
         Object.assign(
             stateVariableDefinitions,
