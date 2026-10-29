@@ -42,53 +42,6 @@ pub(in crate::build) enum Coord {
     Reset,
 }
 
-/// The probe's structure view: one iteration per repeat, standing for
-/// every iteration, and every option of every select, standing for every
-/// draw.
-pub(super) struct Probe;
-
-impl View for Probe {
-    /// Nothing is drawn (`options`), so no seed is read.
-    fn seed(&self) -> u64 {
-        0
-    }
-
-    /// Every template is stamped once.
-    fn iterations(&self, _scope: ScopeId, _node: NodeId) -> u32 {
-        1
-    }
-
-    /// An index past the stamped entries lands in them when they stand for
-    /// entries at other counts; the edge's label says which it named.
-    fn index(&self, len: usize, k: i64, varies: bool) -> Option<usize> {
-        if varies && len > 0 {
-            Some((k.max(1) as usize - 1).min(len - 1))
-        } else {
-            view::in_range(len, k)
-        }
-    }
-
-    /// A count reading the collect's count reaches the gathered repeats.
-    fn collect_count(&self) -> CollectCount {
-        CollectCount::RepeatCounts
-    }
-
-    /// Every option, whatever a seed or an iteration would draw, so what
-    /// the probe finds depends on the source alone (ADR 0014).
-    fn options(&self, _in_iteration: bool) -> Options {
-        Options::Every
-    }
-
-    /// The one iteration carries both plans' edges.
-    fn plans(&self, _k: u32) -> Plans {
-        Plans::Both
-    }
-
-    fn folds_iterations(&self) -> bool {
-        true
-    }
-}
-
 /// The probe build (ADR 0012, ADR 0014): the compile built once through
 /// the probe view, its graph tested for loops at any count, and emitted so
 /// emit's rules run on the referents of every count and every option. It
@@ -100,7 +53,7 @@ pub(crate) fn probe(compiled: &Compiled) -> std::result::Result<BuildOutput, Fai
     // The session's own engine, which the output keeps, so what the build
     // made can be read (the input signature reads expressions).
     let mut engine = session.engine.borrow_mut();
-    build_with(compiled, &session, false, &mut engine, &Probe, true)
+    build_with(compiled, &session, false, &mut engine, &View::Probe, true)
 }
 
 /// The coordinate an index step contributes: a shift of the referencing

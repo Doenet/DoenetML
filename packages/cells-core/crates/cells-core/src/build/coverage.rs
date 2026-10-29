@@ -31,7 +31,7 @@ pub struct ProbeEdges {
 pub fn probe_edges(compiled: &Compiled) -> std::result::Result<ProbeEdges, String> {
     let session = Session::new(0, false);
     let mut engine = Engine::new();
-    let b = staged(compiled, &session, &mut engine, &probe::Probe)?;
+    let b = staged(compiled, &session, &mut engine, &View::Probe)?;
     let depth = b.scope_depths();
     let mut deps: HashMap<Key, Vec<(Key, Vec<Coord>)>> = HashMap::new();
     for u in SlotId::below(b.sources.len()) {
@@ -57,7 +57,7 @@ pub fn uncovered(
     counts: &Counts,
 ) -> std::result::Result<Vec<String>, String> {
     let mut engine = Engine::new();
-    let view = Stamped { session, counts };
+    let view = View::Stamped { counts };
     let b = staged(compiled, session, &mut engine, &view)?;
     let depth = b.scope_depths();
     let mut out = Vec::new();
@@ -89,7 +89,7 @@ fn staged<'c>(
     compiled: &'c Compiled,
     session: &'c Session,
     engine: &'c mut Engine,
-    view: &'c dyn View,
+    view: &'c View<'c>,
 ) -> std::result::Result<Builder<'c>, String> {
     let mut b = Builder::new(compiled, session, false, engine, view);
     b.expand_all().map_err(|e| e.to_string())?;

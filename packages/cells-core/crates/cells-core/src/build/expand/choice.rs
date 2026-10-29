@@ -15,8 +15,7 @@ impl<'c> Builder<'c> {
     ) -> Result<Vec<ChildEntry>> {
         let c: &'c Compiled = self.compiled;
         let def = &c.choices[cid.index()];
-        let every_option =
-            !def.reactive && self.view.options(self.in_iteration(scope)) == Options::Every;
+        let every_option = !def.reactive && self.view.options() == Options::Every;
         let mut inst = ChoiceInst {
             def: cid,
             comp,
@@ -316,7 +315,7 @@ impl<'c> Builder<'c> {
     /// sits in (ADR 0017), so it draws the same way in every build and in
     /// every version of the document that keeps the element's key.
     pub(super) fn seeded_stream(&self, scope: ScopeId, key: ElemKey) -> u64 {
-        let mut h = splitmix(self.view.seed() ^ 0x5eed_5e1e_c7ed_0001);
+        let mut h = splitmix(self.session.seed ^ 0x5eed_5e1e_c7ed_0001);
         h = splitmix(h ^ stable_hash(self.compiled.keys.key_text(key).as_bytes()));
         let mut s = scope;
         while s != ScopeId::DOCUMENT {

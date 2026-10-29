@@ -212,7 +212,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) root: CompIdx,
     /// Where the build learns counts, indexed referents, a collect's count
     /// and a select's options (`build/view.rs`).
-    pub(in crate::build) view: &'c dyn View,
+    pub(in crate::build) view: &'c View<'c>,
     /// The scope each slot was made in.
     pub(in crate::build) slot_scope: Vec<ScopeId>,
     /// Per scope, the repeat component whose iteration it is, or NONE.
@@ -239,7 +239,7 @@ impl<'c> Builder<'c> {
         session: &'c Session,
         reseed: bool,
         engine: &'c mut Engine,
-        view: &'c dyn View,
+        view: &'c View<'c>,
     ) -> Self {
         // Size the columns by what every template stamped once makes (all
         // of a document without repeats), or by the previous build with an
@@ -476,21 +476,6 @@ impl<'c> Builder<'c> {
             scope = self.scopes[scope].0;
         }
         out
-    }
-
-    /// Whether `scope` lies inside some repeat's iteration.
-    pub(in crate::build) fn in_iteration(&self, mut scope: ScopeId) -> bool {
-        while scope != ScopeId::DOCUMENT {
-            if self
-                .scope_repeat
-                .get(scope.index())
-                .is_some_and(|&r| r != CompIdx::NONE)
-            {
-                return true;
-            }
-            scope = self.scopes[scope].0;
-        }
-        false
     }
 
     /// Record `node` as the element to box if the build fails; the first

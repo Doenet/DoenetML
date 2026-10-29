@@ -84,7 +84,7 @@ impl crate::sym::Leaf for SlotId {
 
 use expand::*;
 use probe::Coord;
-use view::{CollectCount, Options, Plans, Stamped, View};
+use view::{CollectCount, Options, Plans, View};
 
 /// Expand, resolve, optionally run the probe's count and loop checks, and
 /// emit, through `view`. The failure names the element to box.
@@ -93,7 +93,7 @@ pub(in crate::build) fn build_with(
     session: &Session,
     reseed: bool,
     engine: &mut Engine,
-    view: &dyn View,
+    view: &View,
     probe_checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
     let mut b = Builder::new(compiled, session, reseed, engine, view);
@@ -206,7 +206,7 @@ pub fn build(
     counts: &Counts,
     reseed: bool,
 ) -> std::result::Result<BuildOutput, BuildError> {
-    let view = Stamped { session, counts };
+    let view = View::Stamped { counts };
     let mut engine = session.engine.borrow_mut();
     build_with(compiled, session, reseed, &mut engine, &view, false)
         .map_err(|f| BuildError::Unchecked(f.error.to_string()))
@@ -223,10 +223,7 @@ pub(crate) fn first_build(
     check_loops: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
     let counts = Counts::default();
-    let view = Stamped {
-        session,
-        counts: &counts,
-    };
+    let view = View::Stamped { counts: &counts };
     build_with(
         compiled,
         session,

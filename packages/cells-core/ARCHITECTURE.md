@@ -137,7 +137,7 @@ A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
 index names, a collect's count, a select's options. A real build uses the
 `Stamped` view, which answers from the counts it was asked for; the check
-uses the probe. Because the cycle check reasons about the probe, any
+uses the `Probe` view. Because the cycle check reasons about the probe, any
 structural read that bypasses the view is one the cycle check cannot see.
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
@@ -270,7 +270,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
 | `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
-| `View`, `Stamped` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options. The probe (`build/probe.rs`) is the other implementation. |
+| `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Probe`, which folds every iteration into one (`build/probe.rs`). |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
 | `Session`, `Counts` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine; and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
