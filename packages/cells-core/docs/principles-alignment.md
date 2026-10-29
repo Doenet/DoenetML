@@ -195,10 +195,12 @@ more probes:
   tests exist to re-share the *essential* slots that re-planning would
   otherwise have made private.
 
-**Smallest fix.** When an attribute is inherited from `base`, plan it in
-the referent's scope, not the extend's: `plan_elem_target` knows the
-referent element, so its `name_scope` is at hand. That alone gives
-`Q.x = 1`.
+**Smallest fix (done 2026-10-29, ADR 0023).** When an attribute, a child
+or a constraint is inherited from `base`, plan it in the referent's scope,
+not the extend's: `PlanCtx` picks the scope by the node's owner. That
+gives `Q.x = 1`, and an override-extend whose referent is not in the
+scope is refused instead of defaulting silently. The alias-based
+simplification below is still open; ADR 0023 says why it waits.
 
 **The simplification.** The principles state an extend as "x itself,
 with the changes written on it". In cells that is: *every prop the
@@ -513,9 +515,11 @@ Tier 1 first, smallest reversible step first:
    the renderer shows), `styleNumber` (a cell the bridge reads; today
    only the viewer reads the element's own literal) and the `hide` fold
    for `$x.hidden`.
-4. Inherited attributes planned in the referent's scope (§3.2 small
-   fix), then the alias-based inheritance that removes `base`,
-   `shared_state` and `Given`.
+4. **Done for the first half (ADR 0023):** inherited attributes,
+   children and constraints planned in the referent's scope, and
+   override-extends across a scope refused. **Open:** the alias-based
+   inheritance that removes `base`, `shared_state` and `Given` from the
+   `Plan` types' planners.
 5. Own children appended on a container extend; presentational
    children skipped by planners; the `referent` column, and labels and
    display settings read through it (§3.5, §3.6).

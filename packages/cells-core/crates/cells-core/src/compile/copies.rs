@@ -152,12 +152,22 @@ impl<'a> Compiler<'a> {
             }
             return Ok(());
         }
-        // Merged attributes: the referent's node supplies what the copy omits.
+        // Merged attributes: the referent's node supplies what the copy
+        // omits, each planned where its writer sits (ADR 0023).
         let base_elem = extend
             .and_then(|p| self.plan_elem_target(t, p))
             .filter(|&r| self.compiled.templates[t.index()].elems[r.index()].node != NodeId::NONE);
-        let base = base_elem.map(|r| self.compiled.templates[t.index()].elems[r.index()].node);
-        let mut wiring = plan(&mut PlanCtx::new(self, t, e, base))?;
+        if let (Some(p), None) = (extend, base_elem) {
+            // Reached by an index, through another repeat or choice, or
+            // an element the compile made: nothing here to take the rest
+            // from, and planning the element from its own attributes
+            // alone would give it defaults in silence.
+            return Err(Error::Unsupported(format!(
+                "attributes or children on an extend of '${}', which is not an element of this scope; a bare extend of it works",
+                self.compiled.refs[p.index()].display
+            )));
+        }
+        let mut wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables.
         if let Some(r) = base_elem {
@@ -209,19 +219,26 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         scope: ElemId,
         el: NodeId,
-        base: Option<NodeId>,
+        base: Option<(NodeId, ElemId)>,
         name: &str,
         default: bool,
     ) -> Result<Source> {
         let d = self.dast;
-        Ok(match self.attr_or_inherited(el, base, name) {
+        let base_node = base.map(|(b, _)| b);
+        Ok(match self.attr_or_inherited(el, base_node, name) {
             Some(a) if self.single_macro(a).is_some() => {
+                // The referent's reference is planned where the referent
+                // sits (ADR 0023).
+                let scope = match base {
+                    Some((_, bs)) if d.attr(el, name).is_none() => bs,
+                    _ => scope,
+                };
                 self.plan_scalar(t, scope, name, d.attr_children(a))?
             }
             Some(_) => {
                 // The copy's own attribute wins: `hide="false"` reveals a
                 // copy of a hidden point, as in the current core.
-                let owner = match base {
+                let owner = match base_node {
                     Some(b) if d.attr(el, name).is_none() => b,
                     _ => el,
                 };

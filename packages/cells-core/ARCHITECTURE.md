@@ -361,6 +361,11 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   a piece of shared state, which a copy giving the same attribute keeps
   as its own. State from the element's own children is `Given::Children`,
   from its referent's `Given::Referent`.
+- What an extend omits comes from its referent, planned where the
+  referent sits (ADR 0023): `ctx.attr`, `ctx.scalar`, `ctx.flag`,
+  `ctx.tuple` and the rest pick the referent's scope for the referent's
+  attributes and children, so a planner reading `ctx.base()`'s children
+  need not think about it.
 - `fixed` is applied around the planner, not by it (`plan_with_extend`,
   `plan_attrs`): the element's own, else the nearest container's (ADR
   0022), as `Hold`s on every slot a request could write through. A type
