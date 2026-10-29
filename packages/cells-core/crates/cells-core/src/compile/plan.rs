@@ -596,23 +596,23 @@ impl ElemWiring {
     /// Wiring for an element of `component_type`, one public slot per prop
     /// in its table, each set by its name's position (`components::prop`).
     pub(crate) fn of(component_type: ComponentType) -> Self {
-        Self::new(component_type.prop_defs().len())
-    }
-
-    /// Wiring for an element of `component_type` whose list holds
-    /// `n_points` points, after the table's props.
-    pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
-        debug_assert!(component_type.given_coords().is_some());
-        Self::new(component_type.prop_defs().len() + 2 * n_points)
-    }
-
-    pub(crate) fn new(n_public: usize) -> Self {
+        let n_public = component_type.prop_defs().len();
         ElemWiring {
             n_public,
             props: vec![None; n_public],
             shared_state: HashMap::new(),
             shared_state_given: HashMap::new(),
         }
+    }
+
+    /// Wiring for an element of `component_type` whose list holds
+    /// `n_points` points, after the table's props.
+    pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
+        debug_assert!(component_type.given_coords().is_some());
+        let mut wiring = Self::of(component_type);
+        wiring.n_public += 2 * n_points;
+        wiring.props.resize(wiring.n_public, None);
+        wiring
     }
     pub(crate) fn hidden(&mut self, source: Source) -> usize {
         self.props.push(Some(source));

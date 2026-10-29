@@ -1049,26 +1049,15 @@ impl<'c> Builder<'c> {
             return Err(Error::Cycle(self.comp_label(inst.comp)));
         }
         let referent = match extend_plan {
-            Some(p) => match self.resolve(p, inst.scope)? {
-                (Resolved::Missing, _) => None,
-                (target, _) => Some((p, self.single_component(target, p)?)),
-            },
+            Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
         let label = self.label.clone();
-        let Some((p, referent)) = referent else {
+        let Some(referent) = referent else {
             self.n_public[inst.comp.index()] = component_type.prop_defs().len() as u32;
             self.allocate_slots(inst.comp, n_props);
             return Ok(());
         };
-        let rk = self.components.component_type[referent.index()];
-        if rk != component_type {
-            return Err(Error::ExtendTypeMismatch {
-                referent: self.compiled.refs[p.index()].display.clone(),
-                referent_type: rk.tag().into(),
-                component_type: component_type.tag().into(),
-            });
-        }
         let ri = self.comp_instance[referent.index()];
         if ri != NONE {
             visiting.push(inst.comp);
@@ -1086,6 +1075,31 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
+    /// The component an `extend` plan names from `scope`, of the copy's
+    /// own type: None for an index past the count, when the copy holds the
+    /// missing value wherever it would inherit, as `$r[k].x` does (ADR
+    /// 0014).
+    fn extend_referent(
+        &mut self,
+        p: RefId,
+        scope: ScopeId,
+        component_type: ComponentType,
+    ) -> Result<Option<CompIdx>> {
+        let referent = match self.resolve(p, scope)?.0 {
+            Resolved::Missing => return Ok(None),
+            target => self.single_component(target, p)?,
+        };
+        let rk = self.components.component_type[referent.index()];
+        if rk != component_type {
+            return Err(Error::ExtendTypeMismatch {
+                referent: self.compiled.refs[p.index()].display.clone(),
+                referent_type: rk.tag().into(),
+                component_type: component_type.tag().into(),
+            });
+        }
+        Ok(Some(referent))
+    }
+
     /// Sources for every prop of one instantiated element.
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
@@ -1094,22 +1108,7 @@ impl<'c> Builder<'c> {
             (el.component_type, el.extend)
         };
         let extend = match extend_plan {
-            // An index past the count: the copy holds the missing value
-            // wherever it would inherit, as `$r[k].x` does (ADR 0014).
-            Some(p) if matches!(self.resolve(p, inst.scope)?.0, Resolved::Missing) => None,
-            Some(p) => {
-                let (target, _) = self.resolve(p, inst.scope)?;
-                let referent = self.single_component(target, p)?;
-                let rk = self.components.component_type[referent.index()];
-                if rk != component_type {
-                    return Err(Error::ExtendTypeMismatch {
-                        referent: self.compiled.refs[p.index()].display.clone(),
-                        referent_type: rk.tag().into(),
-                        component_type: component_type.tag().into(),
-                    });
-                }
-                Some(referent)
-            }
+            Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
         // A copy of a type with a list was made whole by `place_list_copy`.

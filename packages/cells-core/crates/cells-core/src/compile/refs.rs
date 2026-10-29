@@ -14,13 +14,27 @@ impl<'a> Compiler<'a> {
         RefId::from_index(self.compiled.refs.len() - 1)
     }
 
-    /// The element a plan names, if it is in template `t` itself (a path of
-    /// names without indices, no prop).
-    pub(in crate::compile) fn plan_elem_target(&self, _t: TemplateId, p: RefId) -> Option<ElemId> {
-        let plan = &self.compiled.refs[p.index()];
-        if plan.hops != 0 || plan.prop.is_some() {
-            return None;
+    /// The template `hops` levels up from `t`: the one a plan's names are
+    /// looked up in.
+    pub(in crate::compile) fn template_up(&self, mut t: TemplateId, hops: u32) -> TemplateId {
+        for _ in 0..hops {
+            t = self.compiled.templates[t.index()]
+                .parent
+                .expect("a plan's hops stay within the template nesting")
+                .0;
         }
+        t
+    }
+
+    /// The element a plan names, wherever it is up the template nesting,
+    /// when the path is names only (no index, no interface), with its
+    /// template. The plan may name a prop of it.
+    pub(in crate::compile) fn static_target(
+        &self,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<(TemplateId, ElemId)> {
+        let plan = &self.compiled.refs[p.index()];
         let mut last = None;
         for step in &plan.steps {
             match step {
@@ -28,7 +42,17 @@ impl<'a> Compiler<'a> {
                 Step::Index(_) | Step::Iface(..) => return None,
             }
         }
-        last
+        last.map(|e| (self.template_up(t, plan.hops), e))
+    }
+
+    /// The element a plan names, if it is in template `t` itself (a path of
+    /// names without indices, no prop).
+    pub(in crate::compile) fn plan_elem_target(&self, t: TemplateId, p: RefId) -> Option<ElemId> {
+        let plan = &self.compiled.refs[p.index()];
+        if plan.hops != 0 || plan.prop.is_some() {
+            return None;
+        }
+        self.static_target(t, p).map(|(_, e)| e)
     }
 
     /// Find a name as the current core's resolver does: from the
@@ -105,10 +129,7 @@ impl<'a> Compiler<'a> {
         let (hops, e0) = self
             .lookup(t, scope, first)?
             .ok_or_else(|| Error::UnknownName(first.into()))?;
-        let mut cur_t = t;
-        for _ in 0..hops {
-            cur_t = self.compiled.templates[cur_t.index()].parent.unwrap().0;
-        }
+        let mut cur_t = self.template_up(t, hops);
         let mut steps = vec![Step::Elem(e0)];
         let mut at = At::Elem(e0);
         let mut prop = None;
@@ -424,10 +445,7 @@ impl<'a> Compiler<'a> {
                     let (hops, e) = self
                         .lookup(t, ROOT_SCOPE, name)?
                         .ok_or_else(|| Error::UnknownName(name.into()))?;
-                    let mut tt = t;
-                    for _ in 0..hops {
-                        tt = self.compiled.templates[tt.index()].parent.unwrap().0;
-                    }
+                    let tt = self.template_up(t, hops);
                     let el = &self.compiled.templates[tt.index()].elems[e.index()];
                     match (el.component_type, el.props.get(prop::number::VALUE)) {
                         (ComponentType::Number, Some(Source::IterIndex)) => {

@@ -315,24 +315,7 @@ impl<'c> Builder<'c> {
     /// placeholder `ArityMismatch` (callers fill in type and prop) when the
     /// reference names several cells.
     pub(in crate::build) fn resolve_one(&mut self, plan: RefId, scope: ScopeId) -> Result<SlotId> {
-        let (target, prop) = self.resolve(plan, scope)?;
-        let comp = match target {
-            Resolved::Missing => return Ok(self.missing_slot()),
-            other => self.single_component(other, plan)?,
-        };
-        let component_type = self.components.component_type[comp.index()];
-        let prop = match prop {
-            Some(p) => p,
-            None => component_type
-                .default_prop()
-                .ok_or_else(|| Error::NoDefaultProp(self.comp_label(comp)))?,
-        };
-        let slots = self
-            .prop_slots(comp, prop)
-            .ok_or_else(|| Error::UnknownProp {
-                name: self.comp_label(comp),
-                prop: prop.into(),
-            })?;
+        let slots = self.resolve_ref(plan, scope, Some(1))?;
         match slots[..] {
             [s] => Ok(s),
             _ => Err(Error::ArityMismatch {

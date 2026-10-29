@@ -651,15 +651,7 @@ impl<'a> Compiler<'a> {
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to plan.
             ElemShape::Cloned => {
-                let n = component_type.prop_defs().len();
-                let mut props = vec![Source::Inherit; n];
-                Deferred::mark(component_type, &mut props);
-                let el = &mut self.compiled.templates[t.index()].elems[e.index()];
-                el.props = props;
-                // A list is as long as the original's.
-                if component_type.given_coords().is_some() {
-                    el.n_public = NPublic::AsReferent;
-                }
+                self.plan_bare_copy(t, e);
                 Ok(())
             }
             // Synthesized elements (iteration values) come planned.

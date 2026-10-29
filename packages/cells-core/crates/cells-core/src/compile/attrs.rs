@@ -174,10 +174,7 @@ impl<'a> Compiler<'a> {
         let Ok(Some((hops, e))) = self.lookup(t, scope, d.strings.get(names[0])) else {
             return false;
         };
-        let mut cur_t = t;
-        for _ in 0..hops {
-            cur_t = self.compiled.templates[cur_t.index()].parent.unwrap().0;
-        }
+        let cur_t = self.template_up(t, hops);
         matches!(
             self.compiled.templates[cur_t.index()].elems[e.index()].component_type,
             ComponentType::Text | ComponentType::TextInput

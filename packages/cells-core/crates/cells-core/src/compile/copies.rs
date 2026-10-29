@@ -118,6 +118,21 @@ impl<'a> Compiler<'a> {
         Ok(out)
     }
 
+    /// Plan a bare copy (an `extend` with no attribute or child of its own,
+    /// or a cloned child of one): every public prop aliases the referent's,
+    /// its deferred props planned as every element's are, and a list is as
+    /// long as the referent's, which only the build knows.
+    pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let mut props = vec![Source::Inherit; component_type.prop_defs().len()];
+        Deferred::mark(component_type, &mut props);
+        let el = &mut self.compiled.templates[t.index()].elems[e.index()];
+        el.props = props;
+        if component_type.given_coords().is_some() {
+            el.n_public = NPublic::AsReferent;
+        }
+    }
+
     /// Runs a `Plan` type's planner (`plan`, from `planner`) with the copy
     /// rules around it: a bare copy aliases every prop, and a copy with its
     /// own attributes merges them over the referent's.
@@ -143,13 +158,7 @@ impl<'a> Compiler<'a> {
             .collect();
         let has_children = !d.children(el).iter().all(|&n| self.is_blank(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
-            let n = component_type.prop_defs().len();
-            let el = &mut self.compiled.templates[t.index()].elems[e.index()];
-            el.props = vec![Source::Inherit; n];
-            // A list is as long as the referent's, which the build knows.
-            if component_type.given_coords().is_some() {
-                el.n_public = NPublic::AsReferent;
-            }
+            self.plan_bare_copy(t, e);
             return Ok(());
         }
         // Merged attributes: the referent's node supplies what the copy omits.
