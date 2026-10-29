@@ -4,9 +4,10 @@
 //! score, an input, a prop an action reads, a repeat's count, and what
 //! snapping a sticky group reads. It goes backward over emit's alias
 //! classes, from a class to its defining slot and through an operator to
-//! every input it reads, a hold's flag included; a vector operator's
-//! output to its head, which reads every input. A seeded slot reads its
-//! seed's source when it is built. A class it reaches is live.
+//! every input it reads; a vector operator's output to its head, which
+//! reads every input. A held class reads its flags, which a request on it
+//! needs (`Program::holds`). A seeded slot reads its seed's source when it
+//! is built. A class it reaches is live.
 //!
 //! When the view folds iterations (the probe), a slot may have another
 //! source in the iterations after the first (`Builder::later_sources`): the
@@ -104,6 +105,7 @@ impl<'c> Builder<'c> {
             .iter()
             .map(|&(s, from)| (s, BuiltSource::Alias(from)))
             .collect();
+        let flags = self.class_flags(roots);
         self.walk_classes(
             roots,
             class_def,
@@ -118,7 +120,12 @@ impl<'c> Builder<'c> {
                 }
                 true
             },
-            |_, src, stack| stack.extend(src.inputs(&self.op_inputs).map(|i| roots[i.index()])),
+            |def, src, stack| {
+                stack.extend(src.inputs(&self.op_inputs).map(|i| roots[i.index()]));
+                if let Some(fs) = flags.get(&roots[def.index()]) {
+                    stack.extend(fs.iter().map(|f| roots[f.index()]));
+                }
+            },
         );
     }
 }

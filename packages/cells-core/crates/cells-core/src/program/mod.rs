@@ -91,6 +91,40 @@ pub struct Program {
     pub memo_len: usize,
     /// Compiled curves that `SampleTape` instructions run.
     pub tapes: Vec<crate::sym::tape::Tape>,
+    /// The cells a `fixed` holds, each with its flag cells: a request on
+    /// one is dropped while any of its flags is anything but exactly 0 (a
+    /// NaN flag, a missing referent, holds). Forward evaluation is
+    /// untouched: a held cell still follows what it is computed from.
+    pub holds: Holds,
+}
+
+/// The cells a `fixed` holds, and the flag cells that hold each.
+#[derive(Debug, Clone, Default)]
+pub struct Holds(std::collections::HashMap<CellIdx, Vec<CellIdx>>);
+
+impl Holds {
+    /// Hold `cell` while `flag` is set.
+    pub fn insert(&mut self, cell: CellIdx, flag: CellIdx) {
+        let flags = self.0.entry(cell).or_default();
+        if !flags.contains(&flag) {
+            flags.push(flag);
+        }
+    }
+
+    /// Whether a request on `cell` is refused, with `cells` as they are.
+    #[inline]
+    pub fn holds(&self, cell: CellIdx, cells: &[f64]) -> bool {
+        !self.0.is_empty()
+            && self
+                .0
+                .get(&cell)
+                .is_some_and(|flags| flags.iter().any(|f| cells[f.index()] != 0.0))
+    }
+
+    /// The flag cells that hold `cell`.
+    pub fn flags(&self, cell: CellIdx) -> &[CellIdx] {
+        self.0.get(&cell).map_or(&[], Vec::as_slice)
+    }
 }
 
 #[inline(always)]
@@ -138,6 +172,7 @@ impl Program {
                 operands,
                 memo_len,
                 tapes: Vec::new(),
+                holds: Holds::default(),
             });
         }
 
@@ -202,6 +237,7 @@ impl Program {
             operands,
             memo_len,
             tapes: Vec::new(),
+            holds: Holds::default(),
         })
     }
 

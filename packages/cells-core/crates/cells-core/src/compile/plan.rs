@@ -103,8 +103,6 @@ pub(crate) enum Source {
     TextLiteral(f64),
     /// The matching slot of the `extend` referent.
     Inherit,
-    /// Slot `k` of the `extend` referent: an `Inherit` a gate moved.
-    InheritFrom(u8),
     /// A constant that is not state.
     Fixed(f64),
     Alias(Arg),
@@ -286,22 +284,21 @@ pub(crate) struct Elem {
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
     pub(crate) body: Body,
+    /// What holds it (`fixed`, `compile/fix.rs`).
+    pub(crate) hold: Hold,
 }
 
-impl Elem {
-    /// The source the element's planner gave prop `pi`, seen through the
-    /// `Hold` a `fixed` puts in front of it (`compile/fix.rs`): what reads
-    /// a plan for what it is (an essential math, a math's expression)
-    /// reads it here, so a hold changes nothing it decides.
-    pub(crate) fn planned(&self, pi: usize) -> Option<&Source> {
-        match self.props.get(pi) {
-            Some(Source::Op(OpSpec::Hold, args)) => match args.first() {
-                Some(Arg::Own(h)) => self.props.get(*h as usize),
-                _ => None,
-            },
-            other => other,
-        }
-    }
+/// What holds an element (`compile/fix.rs`): a fact beside its plans,
+/// never a change to them. The build makes each of the element's cells
+/// refuse requests as it says (`Program::holds`).
+#[derive(Debug, Clone, Default)]
+pub(crate) enum Hold {
+    #[default]
+    Off,
+    /// A literal `fixed`.
+    Always,
+    /// While any of these flags is set.
+    While(Vec<RefId>),
 }
 
 #[derive(Debug, Clone, Default)]

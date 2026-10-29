@@ -55,8 +55,12 @@ fn census() {
     // Context counted 226 and 622 when a literal `<number>` was a fixed
     // cell; since one is a value slot (ADR 0018, amended 2026-10-29), the
     // golden set's ten and `sir.doenet`'s seven count among the values.
-    assert_eq!(golden.0, 236, "the golden set as Context counted it");
-    assert_eq!(sir.0, 629, "sir.doenet as Context counted it");
+    // Since a `fixed` holds cells rather than rewriting plans (ADR 0022,
+    // amended), a literal under a literal `fixed` is an author's value like
+    // any other, which the classing makes a fixed cell: five in the golden
+    // set and one in `sir.doenet` count here and not below.
+    assert_eq!(golden.0, 241, "the golden set as Context counted it");
+    assert_eq!(sir.0, 630, "sir.doenet as Context counted it");
     assert!(golden.1 > 0 && golden.1 <= 164, "golden set: {golden:?}");
     assert!(sir.1 > 0 && sir.1 <= 16, "sir.doenet: {sir:?}");
 }

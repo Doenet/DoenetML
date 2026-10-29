@@ -375,11 +375,13 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   `<math>` aliasing the input's props for `$mi`, and `<math
   extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
   referent's default prop (`ComponentType::extends_as`).
-- `fixed` is applied around the planner, not by it (`plan_with_extend`,
-  `plan_attrs`): the element's own, else the nearest container's (ADR
-  0022), as `Hold`s on every slot a request could write through. A type
-  whose every value is a location says `located` among its flags, and
-  `fixLocation` then holds it the same way.
+- `fixed` is not the planner's: `plan_elem` records, beside the plans,
+  what holds the element (`Elem::hold`, from the table `HOLD_ATTRS`): the
+  element's own setting, else the nearest container's (ADR 0022). The
+  build holds every cell of a held element (`Program::holds`), and the
+  inversion refuses a request on a held cell; the plans are never
+  rewritten. A type whose every value is a location says `located` among
+  its flags, and `fixLocation` then holds it the same way.
 - A combination of attributes the planner cannot honor is a warning
   (`PlanCtx::warn`), never a silent NaN: what it cannot define is
   `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A

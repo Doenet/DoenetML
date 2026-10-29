@@ -205,6 +205,11 @@ pub(in crate::build) struct Builder<'c> {
     /// Per select (in the probe): the stand-in for its whole pick.
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
+    /// The shared flag that holds an element always (a literal `fixed`).
+    pub(in crate::build) always: Option<SlotId>,
+    /// The slots a `fixed` holds, each with a flag slot (`hold_all`): a
+    /// slot held by several flags is listed once per flag.
+    pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
     /// Essential math slots seeded from another slot's value when first
     /// built (`Source::MathEssentialFrom`): (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
@@ -297,6 +302,8 @@ impl<'c> Builder<'c> {
             stand_ins: HashMap::new(),
             pick_stand_ins: HashMap::new(),
             missing: None,
+            always: None,
+            holds: Vec::new(),
             seeds: Vec::new(),
             arena: Arena::default(),
             root: CompIdx::new(0),
@@ -417,6 +424,16 @@ impl<'c> Builder<'c> {
         self.sources.push(source);
         self.slot_comp.push(CompIdx::NONE);
         self.slot_scope.push(scope);
+        s
+    }
+
+    /// The flag that holds an element always: a constant 1.
+    fn always_slot(&mut self) -> SlotId {
+        if let Some(s) = self.always {
+            return s;
+        }
+        let s = self.anon_slot(BuiltSource::Fixed(1.0), ScopeId::DOCUMENT);
+        self.always = Some(s);
         s
     }
 
@@ -720,6 +737,70 @@ impl<'c> Builder<'c> {
             }
         }
         self.scoring_sources();
+        self.hold_all()
+    }
+
+    /// Hold every slot of every element the compile says is held
+    /// (`Elem::hold`, `compile/fix.rs`), each by its flags: whatever planned
+    /// the element, and whatever its slots turned out to be, once each has
+    /// its source. A slot is held as its cell, so a reference to the
+    /// element is held with it. A slot that aliases another element's gets
+    /// a cell of its own first (`OpSpec::Copy`), so the hold is on this
+    /// element and not on the other.
+    fn hold_all(&mut self) -> Result<()> {
+        let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
+        for i in 0..self.instances.len() {
+            let inst = self.instances[i];
+            let c: &'c Compiled = self.compiled;
+            let flags = match &c.templates[inst.template.index()].elems[inst.elem.index()].hold {
+                Hold::Off => continue,
+                Hold::Always => vec![self.always_slot()],
+                Hold::While(refs) => {
+                    let mut flags = Vec::with_capacity(refs.len());
+                    for &p in refs {
+                        match self.resolve_one(p, inst.scope) {
+                            Ok(s) => flags.push(s),
+                            Err(e) => {
+                                self.fail_at_comp(inst.comp);
+                                return Err(e);
+                            }
+                        }
+                    }
+                    flags
+                }
+            };
+            flags_of.insert(inst.comp, flags);
+        }
+        if flags_of.is_empty() {
+            return Ok(());
+        }
+        let own = |b: &Self, comp: CompIdx, t: SlotId| {
+            let owner = b.slot_comp[t.index()];
+            owner == comp || owner == CompIdx::NONE
+        };
+        for s in SlotId::below(self.sources.len()) {
+            let comp = self.slot_comp[s.index()];
+            let Some(flags) = flags_of.get(&comp) else {
+                continue;
+            };
+            if let BuiltSource::Alias(t) = self.sources[s.index()]
+                && !own(self, comp, t)
+            {
+                self.sources[s.index()] = self.op_source(OpSpec::Copy, &[t]);
+            }
+            for &f in flags {
+                self.holds.push((s, f));
+            }
+        }
+        for i in 0..self.later_sources.len() {
+            let (s, BuiltSource::Alias(t)) = self.later_sources[i] else {
+                continue;
+            };
+            let comp = self.slot_comp[s.index()];
+            if flags_of.contains_key(&comp) && !own(self, comp, t) {
+                self.later_sources[i].1 = self.op_source(OpSpec::Copy, &[t]);
+            }
+        }
         Ok(())
     }
 
@@ -1232,15 +1313,11 @@ impl<'c> Builder<'c> {
                 self.typed_slots.push((s, ValueType::Text));
                 BuiltSource::Literal(*v)
             }
-            Source::Inherit | Source::InheritFrom(_) => {
+            Source::Inherit => {
                 let Some(referent) = extend else {
                     return Ok(BuiltSource::Alias(self.missing_slot()));
                 };
-                let k = match plan {
-                    Source::InheritFrom(k) => *k as usize,
-                    _ => pi,
-                };
-                let t = self.slot(referent, k);
+                let t = self.slot(referent, pi);
                 self.record_label_as(s, t, extend_label);
                 BuiltSource::Alias(t)
             }
@@ -1399,7 +1476,7 @@ impl<'c> Builder<'c> {
 /// Inheritance as the build makes it (ADR 0016, Migration step 8), against
 /// the test-only components: an `Inherit` prop aliases its referent's slot
 /// in every instance, a copy of a list holds as many points as its
-/// referent, and a gated `InheritFrom` reads the referent through a hold.
+/// referent, and a held copy reads its referent through a cell of its own.
 #[cfg(test)]
 mod tests {
     use crate::Document;
@@ -1483,8 +1560,8 @@ mod tests {
 
     #[test]
     fn a_gated_copy_reads_its_referent_through_the_hold() {
-        // `fixed="$f"` gates the copy: its inherited `value` moves to a
-        // hidden `InheritFrom` slot read through a `Hold` (`compile/fix.rs`).
+        // `fixed="$f"` holds the copy: its inherited `value` is a cell of its
+        // own (`OpSpec::Copy`), held, and its referent's is not.
         let mut doc = load(document([
             el("testValue").name("f").attr("value", "1"),
             el("testValue").name("v").attr("value", "3"),

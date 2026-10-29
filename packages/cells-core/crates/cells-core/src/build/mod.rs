@@ -125,6 +125,18 @@ pub(in crate::build) fn build_with(
 }
 
 impl<'c> Builder<'c> {
+    /// The flags that hold each class, by root (`hold_all`).
+    pub(in crate::build) fn class_flags(&self, roots: &[SlotId]) -> HashMap<SlotId, Vec<SlotId>> {
+        let mut flags: HashMap<SlotId, Vec<SlotId>> = HashMap::new();
+        for &(s, f) in &self.holds {
+            let held = flags.entry(roots[s.index()]).or_default();
+            if !held.contains(&f) {
+                held.push(f);
+            }
+        }
+        flags
+    }
+
     /// The backward walk over emit's alias classes that the writable walk
     /// (`writable.rs`, ADR 0018) and the live walk (`live.rs`, ADR 0019)
     /// share: from the classes on `stack`, each class `enter` admits is
@@ -223,6 +235,8 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
+    /// The cells a `fixed` holds (`Program::holds`).
+    holds: crate::program::Holds,
     /// Each component's element's stable key, `NONE` for one no element
     /// makes (a case): what the input signature names components by.
     comp_keys: Vec<ElemKey>,
@@ -274,6 +288,7 @@ impl BuildOutput {
         let program = match Program::schedule(self.instrs, n, self.operands) {
             Ok(mut p) => {
                 p.tapes = self.tapes;
+                p.holds = self.holds;
                 p
             }
             Err(cell) => {

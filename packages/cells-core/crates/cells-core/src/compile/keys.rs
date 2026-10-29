@@ -33,12 +33,8 @@ pub(crate) struct Keys {
     /// key, and a choice's branches.
     owners: HashMap<NodeId, (ElemKey, Option<Branches>)>,
     /// A hidden slot's name, by (element, position), when it holds shared
-    /// state or the source of a slot a `fixed` holds; one without is not
-    /// saved.
+    /// state; one without is not saved.
     hidden: HashMap<(ElemKey, u32), Box<str>>,
-    /// The hidden slot holding the source of each slot a `fixed` holds, by
-    /// (element, held slot): what the held slot's name restores into.
-    held: HashMap<(ElemKey, u32), u32>,
 }
 
 /// A choice's branches, as a scope level names them.
@@ -219,28 +215,6 @@ impl Compiler<'_> {
                 }
             }
         }
-        // A `fixed` moves a slot's source to a hidden slot, which holds the
-        // state saved under the held slot's name.
-        for (&(t, e), held) in &self.held {
-            let id = elem_keys[t as usize][e as usize];
-            let n_public = n_public(&c.templates[t as usize].elems[e as usize]);
-            for &(from, to) in held {
-                let (from, to) = (from as u32, to as u32);
-                let name = keys
-                    .hidden
-                    .get(&(id, from))
-                    .map(|n| n.to_string())
-                    .or_else(|| {
-                        ((from as usize) < n_public)
-                            .then(|| keys.prop_key(id, from))
-                            .flatten()
-                    });
-                if let Some(name) = name {
-                    keys.hidden.insert((id, to), name.into());
-                    keys.held.insert((id, from), to);
-                }
-            }
-        }
         for (t, ids) in elem_keys.into_iter().enumerate() {
             for (el, id) in c.templates[t].elems.iter_mut().zip(ids) {
                 el.key = id;
@@ -317,9 +291,8 @@ impl Keys {
             Some(PropAt::Coord(k, j)) => Some((fixed + 2 * (k - 1) + j) as u32),
             _ => None,
         };
-        if let Some(pi) = public {
-            // A held slot's state is in the slot its source moved to.
-            return Some(self.held.get(&(key, pi)).map_or(pi, |&h| h | HIDDEN));
+        if public.is_some() {
+            return public;
         }
         self.hidden
             .iter()
@@ -377,7 +350,6 @@ impl Keys {
             + self.types.capacity() * std::mem::size_of::<ComponentType>()
             + self.owners.capacity() * 48
             + self.hidden.capacity() * 32
-            + self.held.capacity() * 12
     }
 }
 

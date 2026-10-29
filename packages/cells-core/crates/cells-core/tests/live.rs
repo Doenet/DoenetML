@@ -135,8 +135,10 @@ fn census() {
     // `symbolic`'s function and derivative since their curves are drawn
     // (ADR 0020), and the two projections of the points `circles.doenet`
     // and `lines.doenet` constrain (written as attributes before the
-    // unread-attribute check, which the point ignored), both live.
-    assert!(golden[0] <= 182 && golden[1] == 277, "{golden:?}");
+    // unread-attribute check, which the point ignored), both live. A
+    // `fixed` costs no instruction since it holds cells (ADR 0022,
+    // amended): `fixed.doenet`'s three holds are gone.
+    assert!(golden[0] <= 179 && golden[1] == 274, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

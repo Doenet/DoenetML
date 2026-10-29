@@ -236,6 +236,16 @@ impl<'c> Builder<'c> {
             walked: live_bits(&walked_slot),
         };
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r.index()]).collect();
+        // The cells a `fixed` holds, by their flags' cells. A dead cell
+        // takes no request; a live held cell's flags are live (`live.rs`).
+        let mut holds = crate::program::Holds::default();
+        for &(s, f) in &self.holds {
+            let (cell, flag) = (slot_to_cell[s.index()], slot_to_cell[f.index()]);
+            if Some(cell) != dead_cell {
+                debug_assert!(Some(flag) != dead_cell, "a held cell's flag is dead");
+                holds.insert(cell, flag);
+            }
+        }
         self.seed_cells(
             &mut cells,
             &mut essential_defaults,
@@ -472,6 +482,7 @@ impl<'c> Builder<'c> {
             operands,
             value_types,
             tapes,
+            holds,
             comp_keys,
             cell_label,
             live,

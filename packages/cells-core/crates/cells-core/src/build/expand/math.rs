@@ -204,14 +204,17 @@ impl<'c> Builder<'c> {
         let i = self.instances[inst as usize];
         let pi = slot.index() - self.slot_base[comp.index()].index();
         let c: &'c Compiled = self.compiled;
-        let next = match c.templates[i.template.index()].elems[i.elem.index()].planned(pi) {
+        let next = match c.templates[i.template.index()].elems[i.elem.index()]
+            .props
+            .get(pi)
+        {
             Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
                 return ValueType::Math;
             }
             Some(Source::TextLiteral(_)) => return ValueType::Text,
             Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
-            Some(plan @ (Source::Inherit | Source::InheritFrom(_))) => {
+            Some(Source::Inherit) => {
                 let Some(p) = c.templates[i.template.index()].elems[i.elem.index()].extend else {
                     return ValueType::Number;
                 };
@@ -222,11 +225,7 @@ impl<'c> Builder<'c> {
                     },
                     Err(_) => return ValueType::Number,
                 };
-                let k = match plan {
-                    Source::InheritFrom(k) => *k as usize,
-                    _ => pi,
-                };
-                self.slot(referent, k)
+                self.slot(referent, pi)
             }
             Some(Source::Alias(Arg::Elem(e, k))) => {
                 let other = self.scope_comps[i.scope.index()][e.index()];
@@ -287,14 +286,16 @@ impl<'c> Builder<'c> {
                 let i = self.instances[inst as usize];
                 matches!(
                     self.compiled.templates[i.template.index()].elems[i.elem.index()]
-                        .planned(prop::math_input::EXPR),
+                        .props
+                        .get(prop::math_input::EXPR),
                     Some(Source::MathEssential(_))
                 )
             }
             ComponentType::Math => {
                 let i = self.instances[inst as usize];
                 match self.compiled.templates[i.template.index()].elems[i.elem.index()]
-                    .planned(prop::math::EXPR)
+                    .props
+                    .get(prop::math::EXPR)
                 {
                     Some(Source::MathHandle(id, _)) => {
                         let id = *id;

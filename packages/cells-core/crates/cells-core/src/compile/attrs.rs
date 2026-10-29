@@ -519,7 +519,8 @@ impl<'a> Compiler<'a> {
                     return id;
                 }
                 match self.compiled.templates[t.index()].elems[target.index()]
-                    .planned(prop::math::EXPR)
+                    .props
+                    .get(prop::math::EXPR)
                 {
                     Some(Source::MathHandle(inner, _)) => {
                         let inner = *inner;

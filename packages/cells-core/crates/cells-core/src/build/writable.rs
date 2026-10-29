@@ -3,10 +3,10 @@
 //! a definition marks interactive (a renderer's request) or written by an
 //! action (a submit, a trigger), and goes backward over emit's alias
 //! classes, from a class to its defining slot: through an operator to the
-//! inputs its inverse may write (`OpSpec::writes`), a hold to the value it
-//! holds and never its flag, and a vector operator's output to its head. A
-//! value slot it reaches (a literal or a default) is writable; a fixed one
-//! ends it.
+//! inputs its inverse may write (`OpSpec::writes`), and a vector
+//! operator's output to its head. A value slot it reaches (a literal or a
+//! default) is writable; a fixed one ends it, and so does a class a
+//! `fixed` holds by a constant flag (`hold_all`), which no request passes.
 //!
 //! When the view folds iterations (the probe), a slot may have another
 //! source in the iterations after the first (`Builder::later_sources`): the
@@ -27,6 +27,15 @@ impl<'c> Builder<'c> {
     ) -> Vec<bool> {
         let mut writable = vec![false; self.sources.len()];
         let mut stack: Vec<SlotId> = Vec::new();
+        let flags = self.class_flags(roots);
+        let held_always = |root: SlotId| {
+            flags.get(&root).is_some_and(|fs| {
+                fs.iter().any(|f| {
+                    matches!(self.sources[class_def[roots[f.index()].index()].index()],
+                        BuiltSource::Fixed(v) if v != 0.0)
+                })
+            })
+        };
         for c in CompIdx::below(self.components.component_type.len()) {
             let ty = self.components.component_type[c.index()];
             let np = self.n_public(c);
@@ -42,7 +51,7 @@ impl<'c> Builder<'c> {
             class_def,
             stack,
             &[],
-            |_| true,
+            |root| !held_always(root),
             |slot, src, stack| {
                 if let BuiltSource::Literal(_) = src {
                     writable[slot.index()] = true;

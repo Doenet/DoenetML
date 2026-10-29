@@ -485,7 +485,7 @@ impl<'a> Compiler<'a> {
                         .ok_or_else(|| Error::UnknownName(name.into()))?;
                     let tt = self.template_up(t, hops);
                     let el = &self.compiled.templates[tt.index()].elems[e.index()];
-                    match (el.component_type, el.planned(prop::number::VALUE)) {
+                    match (el.component_type, el.props.get(prop::number::VALUE)) {
                         (ComponentType::Number, Some(Source::IterIndex)) => {
                             terms.push(IndexTerm::Iter(hops))
                         }
