@@ -61,8 +61,6 @@ pub enum Error {
     BadCollectType(String),
     #[error("<collect> needs a 'from' reference and a 'componentType'")]
     BadCollect,
-    #[error("document structure did not settle after {0} rebuilds")]
-    UnstableStructure(usize),
     #[error("cannot parse math '{text}': {reason}")]
     BadMath { text: String, reason: String },
     #[error("unsupported: {0}")]

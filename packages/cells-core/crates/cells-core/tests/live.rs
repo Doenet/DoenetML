@@ -311,3 +311,33 @@ fn pruning_keeps_every_live_value() {
         }
     }
 }
+
+/// A reactive choice's interface component is synthesized, so the record
+/// cannot name its slots: they are live by what reads them, as in the
+/// probe's walk. Its `throughX3` is read, so the branches' are live; its
+/// diameter is not, so the branches' stay dead, and a pruned load must not
+/// compute the interface's diameter from them.
+#[test]
+fn an_interface_is_live_by_what_reads_it() {
+    let src = r#"<booleanInput name="b"/>
+<graph>
+  <conditionalContent name="cc">
+    <case condition="$b"><circle name="c" through="(0,0) (2,0)"/></case>
+    <else><circle name="c" through="(0,0) (0,2) (2,0)"/></else>
+  </conditionalContent>
+</graph>
+<number name="x3">$cc.c.throughX3</number>"#;
+    let mut pruned = load_seeded(src, 0, true);
+    let mut full = load_seeded(src, 0, false);
+    check(&pruned, "interface");
+    assert!(pruned.cells.len() < full.cells.len());
+    live_cells_agree(&full, &pruned).unwrap();
+    for doc in [&mut full, &mut pruned] {
+        let b = doc.cell("b", "value").unwrap();
+        doc.request(&[Request {
+            cell: b,
+            value: 1.0,
+        }]);
+    }
+    live_cells_agree(&full, &pruned).unwrap();
+}

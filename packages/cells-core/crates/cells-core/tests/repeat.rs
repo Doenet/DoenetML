@@ -270,9 +270,8 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
     )
     .unwrap();
     assert_eq!(
-        doc.structure.repeat_depths,
-        vec![1, 2, 2, 1],
-        "a, then c in each of b's iterations (recorded before b), then b"
+        doc.loaded.structural_depth, 2,
+        "a is depth 1, b (reading a's count) 2, and c inside b 2"
     );
     assert_eq!(t.passes, 3);
     assert!(doc.warnings().is_empty());
@@ -287,8 +286,7 @@ fn structural_depth_counts_cross_iteration_count_dependencies() {
     ).as_bytes(), Default::default()).unwrap();
     // b reads inside a, c reads inside b: a chain of two links, so depth 3
     // and one pass per link beyond the two every repeat needs.
-    assert_eq!(doc.structure.structural_depth, 3);
-    assert_eq!(doc.structure.repeat_depths, vec![1, 2, 3]);
+    assert_eq!(doc.loaded.structural_depth, 3);
     assert_eq!(t.passes, 4);
     let w = doc.warnings();
     assert_eq!(w.len(), 2, "{w:?}");

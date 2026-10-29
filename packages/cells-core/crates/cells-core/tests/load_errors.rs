@@ -8,7 +8,7 @@ mod common;
 use common::{set, v};
 
 use cells_core::testing::test_utils::{dast_json, load, load_with_seed};
-use cells_core::{DiagnosticKind, Document, Error, LoadOptions};
+use cells_core::{DiagnosticKind, Document, LoadOptions};
 
 fn errors(doc: &Document) -> Vec<String> {
     doc.diagnostics()
@@ -123,13 +123,14 @@ fn a_referent_past_the_count_is_missing_not_an_error() {
     assert_eq!(doc.cells[x.index()], 1.0);
 }
 
-// A build after the load that finds an error the load did not report is a
-// gap in the core, never a new box: the tick is rolled back with
-// `Error::Unchecked`. Loading without the cycle check skips the probe, so
-// the whole-pick rule is not checked at load and a growth finds it.
+// The probe runs in every load, its loop checks aside (`check_cycles`),
+// so an error a growth would otherwise find, the whole-pick rule, is
+// reported at load at every seed, and no build after the load finds one
+// (ADR 0014). A build that does roll the tick back with `Error::Unchecked`:
+// `rebuild_cycles.rs` reaches that with a cycle, which only the loop checks
+// find.
 #[test]
-fn an_error_found_after_load_rolls_the_tick_back() {
-    let mut found = false;
+fn an_error_a_growth_would_find_is_reported_at_load() {
     for seed in 0..12 {
         let options = LoadOptions {
             seed,
@@ -137,16 +138,17 @@ fn an_error_found_after_load_rolls_the_tick_back() {
             ..Default::default()
         };
         let (mut doc, _) = Document::load(dast_json(WHOLE_PICK).as_bytes(), options).unwrap();
-        assert_eq!(errors(&doc), Vec::<String>::new(), "seed {seed}");
+        let at_load = errors(&doc);
+        assert_eq!(at_load.len(), 1, "seed {seed}: {at_load:?}");
+        assert!(at_load[0].contains("names a whole pick"), "{at_load:?}");
         let t = set(&mut doc, "n", "value", 2.0);
-        let Some(e) = t.rebuild_error else { continue };
-        found = true;
-        let unchecked = Error::Unchecked(String::new()).to_string();
-        assert!(e.starts_with(&unchecked), "seed {seed}: {e}");
-        assert_eq!(v(&doc, "n", "value"), 1.0, "seed {seed}");
-        assert_eq!(errors(&doc), Vec::<String>::new(), "seed {seed}");
+        assert!(
+            t.rebuilt && t.rebuild_error.is_none(),
+            "seed {seed}: {:?}",
+            t.rebuild_error
+        );
+        assert_eq!(errors(&doc), at_load, "seed {seed}");
     }
-    assert!(found, "no seed picked the two-component option");
 }
 
 // A choice's interface name holds whatever its branch does, so each branch
@@ -232,7 +234,7 @@ fn a_structure_deeper_than_eight_passes_settles() {
     assert_eq!(doc.structure.repeats.len(), 10);
     assert!(doc.structure.repeats.iter().all(|r| r.iterations == 1));
     let loaded = load(&deep_chain(1)).unwrap();
-    assert_eq!(loaded.structure.structural_depth, 10);
+    assert_eq!(loaded.loaded.structural_depth, 10);
     assert!(loaded.structure.repeats.iter().all(|r| r.iterations == 1));
 }
 

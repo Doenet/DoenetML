@@ -470,3 +470,15 @@ Settled after the migration (2026-10-26):
   `Input::cells`, `essential_leaves`'s `writes` and `Op::writes` go;
   `OpSpec::writes` stays the one declaration, which the writable walk
   reads. Phase 6's row for `$a + $b` went with the condition it tested.
+
+## Amendment: one record for every build, 2026-10-29
+
+Every document is probed now (ADR 0015's amendment of the same date), so
+every build classes its value slots by the probe's record; the first
+build of a document without repeats or selects no longer classes by its
+own walk, and a load with `check_cycles` off still has a record, since
+only the probe's loop checks are skipped. `Classes` is gone: `Compiled`
+holds the record, or none with the classing off. Under the `testing`
+feature each build still runs its own walk and keeps the keys it would
+make essential (`Structure::walked_essential_slots`), which
+`tests/every_count.rs` checks the record against.

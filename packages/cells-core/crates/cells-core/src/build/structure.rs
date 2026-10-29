@@ -85,9 +85,9 @@ impl std::ops::Index<ScopeId> for ScopeTable {
     }
 }
 
-/// What one build made of the document's shape (ADR 0015): its repeats,
-/// its essential cells' keys and defaults, and its diagnostics. What
-/// outlives the build is in the `Session`.
+/// What one build made of the document's shape (ADR 0015): its repeats
+/// and its essential cells' keys and defaults. What outlives the build is
+/// in the `Session`.
 #[derive(Debug, Clone, Default)]
 pub struct Structure {
     /// Per essential cell, in cell order: its essential key as (scope,
@@ -101,19 +101,9 @@ pub struct Structure {
     /// nothing was carried over; saved state holds only the cells that differ.
     pub essential_defaults: Vec<f64>,
     pub repeats: Vec<Repeat>,
-    /// Per repeat (same order as `repeats`): how many repeats must be
-    /// expanded in sequence before this one's count is known, plus one.
-    /// Nesting adds one; a count that reads a cell inside another repeat's
-    /// iterations adds one. Load takes `structural_depth + 1` passes.
-    pub repeat_depths: Vec<u32>,
-    /// Per repeat: whether its count reads a cell inside another repeat's
-    /// iterations (the avoidable kind of depth, reported by `warnings`).
-    pub repeat_cross_reads: Vec<bool>,
-    /// The largest `repeat_depths` entry; 0 without repeats.
-    pub structural_depth: u32,
-    /// What the build reported (ADR 0013): the compile's diagnostics, the
-    /// lint findings and the errors of the elements it boxed, which are
-    /// fixed at load (ADR 0014, ADR 0015), and the build's warnings, sorted
-    /// by node.
-    pub diagnostics: Vec<crate::diagnostics::Diagnostic>,
+    /// Per value slot this build's own walk finds writable, in slot order:
+    /// its essential key, whatever the record says. What the record is
+    /// checked against (`tests/every_count.rs`).
+    #[cfg(feature = "testing")]
+    pub walked_essential_slots: Vec<(ScopeId, u32)>,
 }

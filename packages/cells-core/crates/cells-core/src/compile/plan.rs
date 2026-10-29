@@ -774,8 +774,8 @@ pub struct Compiled {
     /// In a document with repeats, each math text's parse once a build has
     /// found the math symbolic: a template parses once however many
     /// instances stamp it and however many builds run. Empty in a document
-    /// without repeats, which builds each template once and would only raise
-    /// its load's peak memory by keeping the trees.
+    /// without repeats, whose probe and one build each parse, which costs
+    /// less than keeping the trees would raise its load's peak memory.
     pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<RefId>, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
     /// The source's `Dast::version_hash`, once per load rather than per
@@ -793,45 +793,35 @@ pub struct Compiled {
     /// Whether the document has a repeat, so its structure can change and
     /// a later build will stamp this compile.
     pub(crate) rebuilds: bool,
-    /// The document's structural depth (`Structure::structural_depth`) as
-    /// the check found it: the probe's, which bounds every build's, since
-    /// each build's chains of repeats map onto the probe's; 0 without a
-    /// repeat. None when the check was skipped (a test load).
-    pub(crate) structural_depth: Option<u32>,
-    /// How a build classes its value slots, essential or fixed (ADR 0018).
-    pub(crate) classes: Classes,
-    /// How a build finds which slots it computes, by the same three ways
-    /// (ADR 0019): the probe's record of the live template slots, its own
-    /// walk, or every slot, where a document that varies has no probe.
-    pub(crate) live: Classes,
+    /// The document's structural depth (`CONTEXT.md`) as the probe found
+    /// it, which bounds every build's, since each build's chains of
+    /// repeats map onto the probe's: 0 without a repeat, and 0 when a test
+    /// load skips the probe's count check.
+    pub(crate) structural_depth: u32,
+    /// The probe's record of the value slots a student's action can write
+    /// (ADR 0018), by which every build classes them essential or fixed;
+    /// None with the classing off (a test load), when every value slot is
+    /// essential.
+    pub(crate) classes: Option<Arc<Record>>,
+    /// The probe's record of the live slots (ADR 0019), by which every
+    /// build finds which cells it computes.
+    pub(crate) live: Arc<Record>,
     /// Whether a build gives a dead slot no cell (ADR 0019,
     /// `LoadOptions::prune`); never in the probe.
     pub(crate) prune: bool,
 }
 
-/// How a build classes its value slots (ADR 0018): essential when a
-/// student's action can write one (`build/writable.rs`), else fixed.
+/// What the probe records of a document (ADR 0018, ADR 0019): per
+/// template, a bit per template slot (`slot_off + pi`), set for a slot a
+/// student's action can write or for a live one. Every build of the
+/// document reads it, so a slot's class is the same in every build.
 #[derive(Debug, Clone, Default, PartialEq)]
-pub(crate) enum Classes {
-    /// By the build's own walk: the probe, and the one build of a document
-    /// without repeats or selects.
-    #[default]
-    Walk,
-    /// By the probe's walk, which holds every edge any count or pick can
-    /// create: per template, a bit per template slot (`slot_off + pi`),
-    /// set for a writable one. Every build of a document with repeats or
-    /// selects reads it, so a slot's class is the same in every build.
-    Record(Arc<Vec<Vec<u64>>>),
-    /// Every value slot essential, as before ADR 0018: a test load with
-    /// the classing off (`LoadOptions::classify`), or with the check off
-    /// and a repeat or select, which has no probe to record.
-    Off,
-}
+pub(crate) struct Record(pub(crate) Vec<Vec<u64>>);
 
-impl Classes {
+impl Record {
     /// Whether the record marks template slot `slot` of `template`.
-    pub(crate) fn recorded(record: &[Vec<u64>], template: usize, slot: u32) -> bool {
-        record[template]
+    pub(crate) fn marks(&self, template: usize, slot: u32) -> bool {
+        self.0[template]
             .get(slot as usize / 64)
             .is_some_and(|w| w & (1 << (slot % 64)) != 0)
     }
@@ -864,55 +854,11 @@ impl Compiled {
         self.choices.shrink_to_fit();
     }
 
-    /// Everything the compile holds, as text that is equal exactly when two
-    /// compiles are (maps in key order): what `tests/compile_purity.rs`
-    /// compares across seeds.
-    pub(crate) fn fingerprint(&self) -> String {
-        use std::fmt::Write;
-        let mut out = String::new();
-        let mut sym: Vec<_> = self.sym_text.iter().collect();
-        sym.sort();
-        let _ = writeln!(out, "templates {:?}", self.templates);
-        let _ = writeln!(out, "refs {:?}", self.refs);
-        let _ = writeln!(out, "arena {:?}", self.arena);
-        let _ = writeln!(out, "sym_text {sym:?}");
-        for c in &self.choices {
-            let mut iface: Vec<_> = c.iface.iter().collect();
-            iface.sort_by(|a, b| a.0.cmp(b.0));
-            let _ = writeln!(
-                out,
-                "choice {:?} {} {:?} {:?} {:?} {} {} {:?} {:?} {iface:?}",
-                c.at,
-                c.reactive,
-                c.branches,
-                c.branch_keys,
-                c.conditions,
-                c.num_to_select,
-                c.with_replacement,
-                c.weights,
-                c.used,
-            );
-        }
-        let _ = writeln!(out, "keys {}", self.keys.fingerprint());
-        let _ = writeln!(out, "extra_strings {:?}", self.extra_strings);
-        let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
-        let _ = writeln!(out, "rebuilds {}", self.rebuilds);
-        let _ = writeln!(out, "structural_depth {:?}", self.structural_depth);
-        let _ = writeln!(out, "classes {:?}", self.classes);
-        out
-    }
-
     /// How many build passes a load or a rebuild may take before the
     /// structure must have settled: the structural depth plus one, and
-    /// never fewer than `floor`. None when the check was skipped.
-    pub(crate) fn passes(&self, floor: usize) -> Option<usize> {
-        self.structural_depth.map(|d| (d as usize + 1).max(floor))
-    }
-
-    /// Whether the document has a load-time choice (a `<select>`), which a
-    /// seed draws from.
-    pub(crate) fn has_selects(&self) -> bool {
-        self.choices.iter().any(|c| !c.reactive)
+    /// never fewer than `floor`.
+    pub(crate) fn passes(&self, floor: usize) -> usize {
+        (self.structural_depth as usize + 1).max(floor)
     }
 
     /// Whether any template is a repeat body: without one the structure
