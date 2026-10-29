@@ -195,7 +195,7 @@ impl Document {
             t.initial_compute += clock.elapsed();
             t.passes += 1;
             if doc.structure_settled() {
-                t.structural_depth = doc.structure.structural_depth;
+                t.structural_depth = doc.loaded.structural_depth;
                 let _s = crate::trace::span("attributes");
                 doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
                 return Ok(doc);
@@ -224,7 +224,7 @@ impl Document {
     /// the same at every count and every seed, every option of every select
     /// included (ADR 0014), so it is [`crate::diagnose`]'s list.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {
-        &self.structure.diagnostics
+        &self.loaded.diagnostics
     }
 
     /// The warnings among `diagnostics`, as sentences.

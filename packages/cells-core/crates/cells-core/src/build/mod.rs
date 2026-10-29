@@ -171,11 +171,8 @@ pub fn build(
 ) -> std::result::Result<BuildOutput, BuildError> {
     let view = Stamped { session, counts };
     let mut engine = session.engine.borrow_mut();
-    let mut u = build_with(compiled, session, reseed, &mut engine, &view, false)
-        .map_err(|f| BuildError::Unchecked(f.error.to_string()))?;
-    drop(engine);
-    u.add_compile_diagnostics(compiled);
-    Ok(u)
+    build_with(compiled, session, reseed, &mut engine, &view, false)
+        .map_err(|f| BuildError::Unchecked(f.error.to_string()))
 }
 
 /// The stamped build at no iteration that checks a document the probe
@@ -232,6 +229,10 @@ pub struct BuildOutput {
     /// The probe's live template slots (`Classes::Record`); None for any
     /// other build.
     live_record: Option<Vec<Vec<u64>>>,
+    /// The probe's structural depth and warnings (`check_counts`); zero and
+    /// none for any other build, which runs no count check.
+    structural_depth: u32,
+    warnings: Vec<Diagnostic>,
 }
 
 /// Which cells a build computes (ADR 0019): a bit per cell, set for one
@@ -247,15 +248,6 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
-    /// Put the compile's diagnostics with the build's warnings, in node
-    /// order: the build's list.
-    pub(crate) fn add_compile_diagnostics(&mut self, compiled: &Compiled) {
-        let mut list = compiled.diagnostics.clone();
-        list.append(&mut self.structure.diagnostics);
-        crate::diagnostics::sort(&mut list);
-        self.structure.diagnostics = list;
-    }
-
     /// The writable template slots the probe found, which every later
     /// build classes its value slots by (ADR 0018).
     pub(crate) fn writable_record(&self) -> Option<Vec<Vec<u64>>> {
@@ -268,14 +260,14 @@ impl BuildOutput {
         self.live_record.clone()
     }
 
-    /// The structural depth this build found (`Structure`).
+    /// The structural depth the probe found (`check_counts`).
     pub(crate) fn structural_depth(&self) -> u32 {
-        self.structure.structural_depth
+        self.structural_depth
     }
 
-    /// The build's own warnings.
+    /// The probe's warnings (`check_counts`), which the compile keeps.
     pub(crate) fn warnings(self) -> Vec<Diagnostic> {
-        self.structure.diagnostics
+        self.warnings
     }
 
     /// Schedule the program into a document.
