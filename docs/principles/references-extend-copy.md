@@ -369,13 +369,17 @@ replacements without resolving them again. When a linked shadow does have to re-
 fails, it falls back to the source's binding (#1805,
 `W/core/dependencies/refResolutionDependencies.ts:278`).
 
-### REF-7: an extend of a composite shows the same content (Tier 2)
+### REF-7: an extend of a composite shows the same content (Tier 2; D32 proposes making it an error)
 `<repeat extend="$r"/>`, `<select extend="$s"/>` and similar show exactly what the source shows.
 - **Ignored, with a warning:** attributes that would change that content (`for`, `to`,
   `numToSelect`) give `doenet-w0168`, and children written inside give `doenet-w0169` (#2213).
 - **Still applied:** shared attributes (`hide`, `asList`, display settings).
 - **Exceptions:** `<group>` and `<module>`, which do add children and apply `rendered` and
   module attributes.
+
+D32 proposes replacing this with a Tier 1 rule: a tag that makes its own content (repeating,
+choosing or gathering it) cannot be extended. `$x` shows the same content, and `copy` makes a new
+instance.
 
 Evidence:
 - `T/diagnostics/warningsInfos.test.ts:1144-1406`;

@@ -29,6 +29,8 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
 | B9 | A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
 | B10 | `$e.h` names nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It breaks REF-8. Predates #2367 | reported in #2367's review | a linked list extend has no children of its own |
+| B11 | A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit (D32) |
+| B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error) |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -333,7 +335,9 @@ at all.
 branch declares it, with the same type."
 
 It bans, in order of how often documents use them:
-- `extend` of a select, conditionalContent or case;
+- `extend` of a select, conditionalContent or case. ADR 0009 gives no reason for these three in
+  particular. D32 replaces this item with a principle that covers every tag that makes its own
+  content;
 - names present in only some branches;
 - type-varying names;
 - positional references into options (`$s[2][1]`), which D27 generalizes.
@@ -989,3 +993,83 @@ Rejected shapes:
 
 **Until then:** document the repeat-of-extends form as the way to restyle a set of components, on
 the `<collect>` and list reference pages.
+
+## D32. Tags that make their own content cannot be extended (proposed Tier 1)
+
+**Today** ADR 0009 bans `extend` of `<select>`, `<conditionalContent>` and `<case>`, with no stated
+reason for those three. In the current core an `extend` of *any* tag that makes its own content
+does nothing that `$x` does not (**[probe]**, current main):
+
+| Tag | Bare `extend` | `extend` with an attribute or child | `copy` with the same change |
+|---|---|---|---|
+| `select` | same picks | `numToSelect` ignored, with warning w0168 | **the document fails to load** (B11) |
+| `selectFromSequence` | same | ignored, w0168 | **empty**, with an error (B11) |
+| `sampleRandomNumbers` | same | `numSamples` ignored, w0168 | four new samples |
+| `shuffle` | same order | child ignored, **no warning** (B12) | reshuffled, with a warning |
+| `sort`, `collect`, `sequence` | same | ignored, w0168/w0169 | applied |
+| `repeat` | same | `for` and the child ignored | applied (`7z, 8z, 9z`) |
+| `conditionalContent` | same, with a **spurious** w0169 (B12) | ignored | `condition` ignored (B5, #2217) |
+| `case`, `option` | invalid outside their parent | invalid | invalid |
+| `group`, `module` | same | the child is added, `rendered` applies | the child is added |
+
+**Why.** An `extend` is the same component, with your changes (REF-2, REF-3). For a tag that makes
+its own content, the content *is* the component: the iterations of a repeat, the picks of a
+select, the items a collect gathers. Such an extend is one of two things:
+- **written with nothing added**, it shows the same content, which `$x` already does;
+- **written with changes,** such as `<repeat extend="$r" for="7 8 9">` or
+  `<select extend="$s" numToSelect="4">`, it needs different content. That cannot be the same
+  component: it would be new iterations, or new picks. So it is a new tag. Today the change is
+  silently dropped, with only a warning.
+
+**Proposed principle (Tier 1):**
+
+> A tag that makes its own content, by repeating it, choosing it or gathering it, cannot be
+> extended. To show the same content again, reference it: `$x`. To make a new instance, `copy` it
+> or write the tag again. The parts of a choosing tag (`<case>`, `<else>`, `<option>`) cannot be
+> extended either: a branch means something only inside the tag that chooses it.
+
+It covers these tags:
+- **repeating:** `repeat`, `repeatForSequence`;
+- **choosing:** `select`, `selectFromSequence`, `selectPrimeNumbers`, `selectRandomNumbers`, the
+  `sample…` tags, `shuffle`, `conditionalContent`;
+- **gathering:** `collect`, `sort`;
+- **generating:** `sequence`;
+- **parts of a choosing tag:** `case`, `else`, `option`.
+
+It does not cover `group` and `module`. They do not make their content; they hold what is
+written in them. Their extends add children and apply attributes (REF-4, COMP-13).
+
+**What it means in practice:**
+- **`$x` stays.** A bare reference to any of these tags shows its content, as now (REF-1). Only an
+  `extend` written out is an error. That includes a named one: `$x` already reaches the content
+  (`$r[2].y`), so a name adds nothing.
+- **A list type stays allowed** when the tags are related types (D26). `<numberList
+  extend="$seq">` is a list made from the sequence's values, not an extend of the sequence.
+- **`copy` stays allowed,** as the way to make a new instance (CPY-1). D4 already says the
+  attributes written on a copy override. For a choosing tag, CPY-8 says a copy keeps its source's
+  random choices. A copy that changes what is chosen, such as `numToSelect`, cannot keep them.
+  Proposed: it makes its own choices, fixed for a given variant, as `<sampleRandomNumbers copy>`
+  already does. That also fixes B11.
+- **The error says what to write:** "A `<repeat>` makes its own content, so it cannot be
+  extended. Use `$r` to show the same content, or `copy` to make a new repeat."
+
+**Recommendation: adopt it.**
+- It replaces ADR 0009's list of three with a rule an author can be told.
+- It removes the special handling that decides which attributes an extend of these tags ignores
+  (w0168, w0169, `extendIgnoresAttributesAndChildren`). With it go B12 and REF-7's list of
+  exceptions.
+- Before the cut-over, turn w0168 and w0169 on these tags into a deprecation warning that says
+  the extend will become an error, so documents can migrate.
+
+**Tests that change:**
+- `T/diagnostics/warningsInfos.test.ts:1144-1406`: the w0168 and w0169 tests on these tags become
+  error tests;
+- `T/copying/extend_references.test.ts:3153` "extend repeat" and `:3177` "extend
+  repeatForSequence";
+- the extend-of-select and extend-of-conditionalContent tests listed under D13 and in
+  `composites-and-lists.md` §6;
+- `T/tagSpecific/repeatIterationValues.test.ts:234`, its extend case;
+- tests that extend a `sort`, `collect`, `shuffle` or `sequence`, for example in
+  `listcomponentcollections.test.ts`.
+
+Each of these should be rewritten to use `$x` where it checks that the content is shown again.
