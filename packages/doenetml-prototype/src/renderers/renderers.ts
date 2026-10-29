@@ -302,4 +302,9 @@ export const GRAPH_MODE_COMPONENTS: RendererObject = {
     point: { component: PointInGraph },
     polygon: { component: PolygonInGraph },
     polyline: { component: PolylineInGraph },
+    // A value placed in a graph is drawn as a label at its anchor, which no
+    // core sends yet: until one does, it is not drawn.
+    math: OmitElementConverter,
+    number: OmitElementConverter,
+    text: OmitElementConverter,
 };

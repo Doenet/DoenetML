@@ -97,15 +97,8 @@ describe("the cells core rendered to HTML by the prototype's renderers", () => {
         expect(html).toContain('class="graph-legend"');
     });
 
-    // Last: every document above has been rendered. What no renderer
-    // draws is what the cells viewer does not draw either: a function's
-    // curve, and a number or math placed in a graph.
-    test("every element the bridge sends has a renderer, but these", () => {
-        expect([...unrendered].sort()).toEqual([
-            "derivative in graph",
-            "function in graph",
-            "math in graph",
-            "number in graph",
-        ]);
+    // Last: every document above has been rendered.
+    test("every element the bridge sends has a renderer", () => {
+        expect([...unrendered].sort()).toEqual([]);
     });
 });

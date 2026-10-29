@@ -18,7 +18,9 @@ impl Document {
     /// One bit per cell, set for an output: a rendered prop of a rendered
     /// component, or a score of any component. A cell several components
     /// share (a copy and its original) is an output when any of them
-    /// makes it one.
+    /// makes it one. A rendered prop that heads a run of cells (a curve's
+    /// samples) makes every cell of the run an output, when it was
+    /// computed: a run the planner left absent is one fixed cell.
     fn output_bits(&self) -> Vec<u64> {
         let rendered = self.rendered_components();
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
@@ -26,10 +28,19 @@ impl Document {
             let component_type = self.component_type(c);
             let cells = self.comp_cells(c);
             for (pi, &cell) in cells.iter().enumerate() {
-                if component_type.is_score_prop(pi)
-                    || (rendered[c.index()] && component_type.is_rendered_prop(cells.len(), pi))
-                {
-                    bits[cell.index() / 64] |= 1 << (cell.index() % 64);
+                let is_rendered =
+                    rendered[c.index()] && component_type.is_rendered_prop(cells.len(), pi);
+                if !is_rendered && !component_type.is_score_prop(pi) {
+                    continue;
+                }
+                let derived = !self.is_essential(cell) && !self.is_fixed(cell);
+                let span = if is_rendered && derived {
+                    component_type.prop_span(pi)
+                } else {
+                    1
+                };
+                for i in cell.index()..cell.index() + span {
+                    bits[i / 64] |= 1 << (i % 64);
                 }
             }
         }

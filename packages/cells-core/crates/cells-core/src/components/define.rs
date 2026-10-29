@@ -22,6 +22,7 @@ pub(super) struct Prop {
     rendered: bool,
     score: bool,
     read_by_action: bool,
+    span: usize,
 }
 
 /// [`PropFrom`] with props named rather than numbered.
@@ -47,6 +48,7 @@ const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> 
         rendered: false,
         score: false,
         read_by_action: false,
+        span: 1,
     }
 }
 
@@ -134,6 +136,12 @@ impl Prop {
         self.read_by_action = true;
         self
     }
+    /// The first of `SAMPLES` consecutive cells (a curve's samples), which
+    /// a renderer reads together: when it is an output, all of them are.
+    pub(super) const fn sampled(mut self) -> Self {
+        self.span = crate::program::SAMPLES;
+        self
+    }
 }
 
 /// A table's [`PropDef`]s, with each prop name a computed prop reads
@@ -151,6 +159,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
         rendered: false,
         score: false,
         read_by_action: false,
+        span: 1,
     };
     let mut out = [blank; N];
     let mut i = 0;
@@ -192,6 +201,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             rendered: p.rendered,
             score: p.score,
             read_by_action: p.read_by_action,
+            span: p.span,
         };
         i += 1;
     }

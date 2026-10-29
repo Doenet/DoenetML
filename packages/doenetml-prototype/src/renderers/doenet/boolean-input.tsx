@@ -1,23 +1,18 @@
 import React from "react";
-import { BasicComponent } from "../types";
-import { processLabelWithMath } from "./text-input";
-import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { renderingOnServerSelector } from "../../state/redux-slices/global";
-import { Action } from "@doenet/doenetml-worker";
-import { coreActions } from "../../state/redux-slices/core";
-import "./boolean-input.css";
 import classNames from "classnames";
+import { Action } from "@doenet/doenetml-worker";
+import { BasicComponent } from "../types";
+import { useAppDispatch } from "../../state/hooks";
+import { coreActions } from "../../state/redux-slices/core";
+import { ariaProps, InputLabelProps, LabeledInput } from "./_labeled-input";
+import "./boolean-input.css";
 
 type BooleanInputData = {
     props: {
         asToggleButton: boolean;
         immediateValue: boolean;
-        label: string;
-        labelHasLatex: boolean;
-        labelPosition: "start" | "end";
         disabled?: boolean;
-        shortDescription?: string;
-    };
+    } & InputLabelProps;
 };
 
 /**
@@ -35,57 +30,38 @@ export const BooleanInput: BasicComponent<BooleanInputData> = ({
     node,
     htmlId,
 }) => {
-    const onServer = useAppSelector(renderingOnServerSelector);
-    const id = node.data.id;
+    const dispatch = useAppDispatch();
     const {
         immediateValue,
-        label,
-        labelHasLatex,
-        labelPosition,
+        asToggleButton,
         disabled = false,
-        shortDescription,
+        ...labelProps
     } = node.data.props;
 
-    const dispatch = useAppDispatch();
-
-    const onChange = React.useCallback(() => {
-        const action: Action = {
-            component: "booleanInput",
-            componentIdx: id,
-            actionName: "updateBoolean",
-            args: { boolean: !immediateValue },
-        };
-        dispatch(coreActions.dispatchAction(action));
-    }, [dispatch, id, immediateValue]);
-
-    const hasLabel = !!label?.trim();
-    const displayLabel = processLabelWithMath(label, labelHasLatex);
-
-    const containerClasses = classNames("boolean-input", {
-        "as-toggle-button": node.data.props.asToggleButton,
-    });
-
-    if (onServer) {
-        return (
-            <span className={containerClasses} id={htmlId}>
-                {immediateValue ? "true" : "false"}
-            </span>
-        );
-    }
-
     return (
-        <span className={containerClasses} id={htmlId}>
-            <label className={`input-label-${labelPosition}`}>
-                <span className="input-label">{displayLabel}</span>
-                <input
-                    type="checkbox"
-                    checked={immediateValue}
-                    onChange={onChange}
-                    disabled={disabled}
-                    aria-label={!hasLabel ? shortDescription : undefined}
-                    aria-description={hasLabel ? shortDescription : undefined}
-                />
-            </label>
-        </span>
+        <LabeledInput
+            className={classNames("boolean-input", {
+                "as-toggle-button": asToggleButton,
+            })}
+            htmlId={htmlId}
+            labelProps={labelProps}
+            server={immediateValue ? "true" : "false"}
+        >
+            <input
+                type="checkbox"
+                checked={immediateValue}
+                disabled={disabled}
+                {...ariaProps(labelProps)}
+                onChange={() => {
+                    const action: Action = {
+                        component: "booleanInput",
+                        componentIdx: node.data.id,
+                        actionName: "updateBoolean",
+                        args: { boolean: !immediateValue },
+                    };
+                    dispatch(coreActions.dispatchAction(action));
+                }}
+            />
+        </LabeledInput>
     );
 };

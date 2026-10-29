@@ -136,6 +136,12 @@ impl Core {
         cells_core::RELEASE.to_string()
     }
 
+    /// How many cells a curve's `samples` prop heads: its samples over the
+    /// graph's x-range, evenly spaced from `xmin` to `xmax`.
+    pub fn n_samples(&self) -> usize {
+        cells_core::program::SAMPLES
+    }
+
     /// The session's state as JSON: every essential cell that differs from
     /// its default, by essential key (`Document::save_state`).
     pub fn save_state(&self) -> String {

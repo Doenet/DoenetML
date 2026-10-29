@@ -131,8 +131,10 @@ fn census() {
         golden[0], golden[1], golden[2], golden[3]
     );
     // Context counted 177 of the golden set's 275 instructions live, from
-    // the viewer's reads; the marks find the same.
-    assert!(golden[0] <= 177 && golden[1] == 275, "{golden:?}");
+    // the viewer's reads; the marks find the same, plus the three of
+    // `symbolic`'s function and derivative since their curves are drawn
+    // (ADR 0020).
+    assert!(golden[0] <= 180 && golden[1] == 275, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

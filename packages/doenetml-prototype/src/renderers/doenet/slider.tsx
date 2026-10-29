@@ -1,10 +1,9 @@
 import React from "react";
 import type { Action } from "@doenet/doenetml-worker";
 import { BasicComponent } from "../types";
-import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { renderingOnServerSelector } from "../../state/redux-slices/global";
+import { useAppDispatch } from "../../state/hooks";
 import { coreActions } from "../../state/redux-slices/core";
-import { processLabelWithMath } from "./text-input";
+import { ariaProps, InputLabelProps, LabeledInput } from "./_labeled-input";
 import "./slider.css";
 
 type SliderData = {
@@ -14,14 +13,7 @@ type SliderData = {
         step: number;
         /** NaN when no value is set; the slider then shows `from`. */
         value: number;
-        label: string;
-        labelHasLatex: boolean;
-        labelPosition: "start" | "end";
-        /**
-         * Description used for Aria state.
-         */
-        shortDescription: string;
-    };
+    } & InputLabelProps;
 };
 
 /**
@@ -35,61 +27,41 @@ type SliderData = {
   ```
  */
 export const Slider: BasicComponent<SliderData> = ({ node, htmlId }) => {
-    const onServer = useAppSelector(renderingOnServerSelector);
-    const id = node.data.id;
-    const { from, to, step, value, label, labelHasLatex, shortDescription } =
-        node.data.props;
-
     const dispatch = useAppDispatch();
-
-    const onChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const action: Action = {
-                component: "slider",
-                componentIdx: id,
-                actionName: "changeValue",
-                args: { value: Number(e.target.value) },
-            };
-            dispatch(coreActions.dispatchAction(action));
-        },
-        [dispatch, id],
-    );
-
+    const { from, to, step, value, ...labelProps } = node.data.props;
     if (value === undefined) {
         return null;
     }
-
     const shown = Number.isNaN(value) ? from : value;
     const shownText = Number.isInteger(shown)
         ? String(shown)
         : String(Number(shown.toPrecision(6)));
-    const hasLabel = !!label?.trim();
-    const displayLabel = processLabelWithMath(label, labelHasLatex);
-
-    if (onServer) {
-        return (
-            <span className="slider" id={htmlId}>
-                {shownText}
-            </span>
-        );
-    }
 
     return (
-        <span className="slider input" id={htmlId}>
-            <label className={`input-label-${node.data.props.labelPosition}`}>
-                <span className="input-label">{displayLabel}</span>
-                <input
-                    type="range"
-                    min={from}
-                    max={to}
-                    step={step > 0 ? step : "any"}
-                    value={shown}
-                    aria-label={hasLabel ? undefined : shortDescription}
-                    aria-description={hasLabel ? shortDescription : undefined}
-                    onChange={onChange}
-                />
-                <span className="slider-value">{shownText}</span>
-            </label>
-        </span>
+        <LabeledInput
+            className="slider"
+            htmlId={htmlId}
+            labelProps={labelProps}
+            server={shownText}
+        >
+            <input
+                type="range"
+                min={from}
+                max={to}
+                step={step > 0 ? step : "any"}
+                value={shown}
+                {...ariaProps(labelProps)}
+                onChange={(e) => {
+                    const action: Action = {
+                        component: "slider",
+                        componentIdx: node.data.id,
+                        actionName: "changeValue",
+                        args: { value: Number(e.target.value) },
+                    };
+                    dispatch(coreActions.dispatchAction(action));
+                }}
+            />
+            <span className="slider-value">{shownText}</span>
+        </LabeledInput>
     );
 };
