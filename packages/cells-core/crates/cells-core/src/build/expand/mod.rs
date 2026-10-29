@@ -1364,7 +1364,9 @@ mod tests {
     /// The cells of `name.prop`, which may be several.
     fn cells(doc: &Document, path: &str) -> Vec<f64> {
         let (name, prop) = path.rsplit_once('.').unwrap();
-        let comp = doc.component(name).unwrap_or_else(|| panic!("no {name}"));
+        let comp = doc
+            .resolve_path(name)
+            .unwrap_or_else(|| panic!("no {name}"));
         doc.prop_cells(comp, prop)
             .unwrap_or_else(|| panic!("{name} has no {prop}"))
             .iter()

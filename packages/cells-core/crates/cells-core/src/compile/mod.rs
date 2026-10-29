@@ -155,7 +155,6 @@ impl<'a> Compiler<'a> {
                 version: dast.version_hash(),
                 extra_strings: Vec::new(),
                 diagnostics: Arc::default(),
-                rebuilds: false,
                 structural_depth: 0,
                 classes: Classes::default(),
                 live: Classes::default(),
@@ -177,8 +176,7 @@ impl<'a> Compiler<'a> {
             Ok(()) => {
                 let c = &mut cp.compiled;
                 c.shrink_to_fit();
-                c.rebuilds = c.has_repeats();
-                if c.rebuilds {
+                if c.has_repeats() {
                     c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
                 }
                 Ok(cp.compiled)

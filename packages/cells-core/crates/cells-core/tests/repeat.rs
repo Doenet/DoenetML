@@ -45,7 +45,7 @@ const POINTS: &str = r#"
 fn repeat_expands_to_its_count_and_names_are_scoped() {
     let doc = load(POINTS).unwrap();
     assert_eq!(reference::check(&doc), None);
-    let r = doc.component("r").unwrap();
+    let r = doc.resolve_path("r").unwrap();
     let kids: Vec<_> = doc.children(r).collect();
     assert_eq!(kids.len(), 3);
     assert_eq!(val(&doc, &["r", "1", "p"], "x"), 1.0);
@@ -82,7 +82,7 @@ fn changing_the_count_rebuilds_within_the_tick_and_keeps_moved_points() {
     let tick = doc.request(&[req(n, 1.0)]);
     assert!(tick.rebuilt, "a structural change rebuilds");
     assert!(tick.changed.is_empty());
-    assert_eq!(doc.children(doc.component("r").unwrap()).count(), 1);
+    assert_eq!(doc.children(doc.resolve_path("r").unwrap()).count(), 1);
     assert_eq!(
         doc.value("n", "value"),
         Some(1.0),
@@ -92,7 +92,7 @@ fn changing_the_count_rebuilds_within_the_tick_and_keeps_moved_points() {
     let n = doc.cell("n", "value").unwrap();
     let tick = doc.request(&[req(n, 5.0)]);
     assert!(tick.rebuilt);
-    assert_eq!(doc.children(doc.component("r").unwrap()).count(), 5);
+    assert_eq!(doc.children(doc.resolve_path("r").unwrap()).count(), 5);
     assert_eq!(
         val(&doc, &["r", "2", "p"], "y"),
         7.5,
@@ -110,12 +110,12 @@ fn changing_the_count_rebuilds_within_the_tick_and_keeps_moved_points() {
 #[test]
 fn bad_counts_are_floored_clamped_and_capped() {
     let mut doc = load(r#"<numberInput name="n" value="2.9"/><repeatForSequence name="r" length="$n" maxNumber="4"><point/></repeatForSequence>"#).unwrap();
-    let r = doc.component("r").unwrap();
+    let r = doc.resolve_path("r").unwrap();
     assert_eq!(doc.children(r).count(), 2);
     for (ask, expect) in [(-3.0, 0), (f64::NAN, 0), (1e9, 4), (3.2, 3)] {
         let n = doc.cell("n", "value").unwrap();
         doc.request(&[req(n, ask)]);
-        let r = doc.component("r").unwrap();
+        let r = doc.resolve_path("r").unwrap();
         assert_eq!(doc.children(r).count(), expect, "length {ask}");
     }
 }
@@ -190,7 +190,7 @@ fn collect_gathers_through_a_repeat_and_follows_its_growth() {
     .unwrap();
     assert_eq!(doc.value("cnt", "value"), Some(3.0));
     assert_eq!(doc.value("second", "value"), Some(1.0));
-    let c = doc.component("c").unwrap();
+    let c = doc.resolve_path("c").unwrap();
     assert_eq!(doc.children(c).count(), 3);
     // The copies share cells with the originals.
     let Child::Component(copy1) = doc.children(c).next().unwrap() else {
@@ -204,7 +204,7 @@ fn collect_gathers_through_a_repeat_and_follows_its_growth() {
     let n = doc.cell("n", "value").unwrap();
     doc.request(&[req(n, 5.0)]);
     assert_eq!(doc.value("cnt", "value"), Some(5.0));
-    assert_eq!(doc.children(doc.component("c").unwrap()).count(), 5);
+    assert_eq!(doc.children(doc.resolve_path("c").unwrap()).count(), 5);
     // A request on the collect count is dropped: it is fixed, not state.
     let tick = doc.request(&[req(doc.cell("cnt", "value").unwrap(), 9.0)]);
     assert_eq!(tick.dropped.len(), 1);

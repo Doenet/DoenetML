@@ -145,7 +145,7 @@ mod tests {
     use crate::testing::dast::{document, el, load, mac};
 
     fn read(doc: &Document, name: &str, prop: &str) -> f64 {
-        let comp = doc.component(name).unwrap();
+        let comp = doc.resolve_path(name).unwrap();
         let cells = doc.prop_cells(comp, prop).unwrap();
         assert_eq!(cells.len(), 1, "{name}.{prop}");
         doc.cells[cells[0].index()]

@@ -300,7 +300,7 @@ pub(crate) fn cells(doc: &Document, path: &str) -> Result<Vec<crate::CellIdx>, S
         .rsplit_once('.')
         .ok_or_else(|| format!("{path}: not name.prop"))?;
     let comp = doc
-        .component(name)
+        .resolve_path(name)
         .ok_or_else(|| format!("{path}: no component {name}"))?;
     doc.prop_cells(comp, prop)
         .ok_or_else(|| format!("{path}: {name} has no prop {prop}"))

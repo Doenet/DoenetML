@@ -47,7 +47,7 @@ fn bare_component_reference_shares_every_cell() {
     // four graph bounds plus two coordinates and a hide, and the document's
     // two constant credit cells; the copy adds none
     assert_eq!(doc.cells.len(), 9);
-    let g = doc.component("g").unwrap();
+    let g = doc.resolve_path("g").unwrap();
     let kids: Vec<_> = doc
         .children(g)
         .filter_map(|c| {
@@ -169,8 +169,8 @@ fn graph_defaults_and_tree() {
     assert_eq!(doc.value("g", "xmin"), Some(-5.0));
     assert_eq!(doc.value("g", "xmax"), Some(10.0));
     assert_eq!(doc.value("p", "x"), Some(0.0));
-    let p = doc.component("p").unwrap();
-    assert_eq!(doc.parent(p), doc.component("g"));
+    let p = doc.resolve_path("p").unwrap();
+    assert_eq!(doc.parent(p), doc.resolve_path("g"));
     assert_eq!(doc.cells.len(), 9);
 }
 
@@ -334,13 +334,13 @@ fn literal_attributes_outlive_the_dast() {
         r#"<number name="a" displayDecimals="3">1</number>
 <graph><point name="p" styleNumber="2" x="$a" y="0"/></graph>"#,
     );
-    let p = doc.component("p").unwrap();
+    let p = doc.resolve_path("p").unwrap();
     assert_eq!(doc.attr_text(p, "styleNumber").as_deref(), Some("2"));
     assert_eq!(doc.attr_text(p, "stylenumber").as_deref(), Some("2"));
     // A reference is state, not presentation.
     assert_eq!(doc.attr_text(p, "x"), None);
     assert_eq!(doc.attr_text(p, "hidden"), None);
-    let a = doc.component("a").unwrap();
+    let a = doc.resolve_path("a").unwrap();
     assert_eq!(doc.attr_text(a, "displayDecimals").as_deref(), Some("3"));
     let attrs = doc.literal_attrs();
     let node = |c: CompIdx| doc.components.dast_node[c.index()];

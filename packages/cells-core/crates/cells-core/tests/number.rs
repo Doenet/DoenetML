@@ -34,7 +34,7 @@ fn an_update_value_targeting_a_literal_number_sets_it() {
            <triggerSet name="t"><label>Go</label><updateValue target="$n" newValue="7"/></triggerSet>"#,
     )
     .unwrap();
-    let t = doc.component("t").unwrap();
+    let t = doc.resolve_path("t").unwrap();
     assert!(doc.trigger(t).dropped.is_empty());
     assert_eq!(v(&doc, "n", "value"), 7.0);
 }

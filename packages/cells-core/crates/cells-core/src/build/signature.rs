@@ -158,12 +158,7 @@ impl<'a> Signer<'a> {
         let n = out.cells.len();
         let mut producer = vec![(u32::MAX, 0u8); n];
         for (i, instr) in out.instrs.iter().enumerate() {
-            let n_out = match instr.op {
-                Op::Vec(_, _, _, n_out) => n_out as usize,
-                Op::Sym(kind, ..) => kind.n_out(),
-                _ => 1,
-            };
-            for k in 0..n_out {
+            for k in 0..instr.op.n_out() {
                 producer[instr.out.index() + k] = (i as u32, k as u8);
             }
         }
@@ -192,7 +187,7 @@ impl<'a> Signer<'a> {
         let mut found: Vec<Found> = Vec::new();
         for c in CompIdx::below(t.component_type.len()) {
             let ty = t.component_type[c.index()];
-            let cells = comp_cells(t, c);
+            let cells = t.comp_cells(c);
             let interactive: Vec<usize> = (0..cells.len())
                 .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                 .collect();
@@ -222,7 +217,7 @@ impl<'a> Signer<'a> {
             let mut a = c;
             loop {
                 let aty = t.component_type[a.index()];
-                let acells = comp_cells(t, a);
+                let acells = t.comp_cells(a);
                 let label = |p: &str| format!("{p}@{}", self.ancestor_label(a));
                 if let Some(h) = aty.prop_index("hide") {
                     seeds.push((label("hide"), acells[h]));
@@ -270,7 +265,7 @@ impl<'a> Signer<'a> {
             let mixed = self.read_by_ops(seeds.iter().map(|s| s.1));
             let starting = |l: CellIdx| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
             let ty = t.component_type[c.index()];
-            let cells = comp_cells(t, c);
+            let cells = t.comp_cells(c);
             let mut h = DefaultHasher::new();
             for (label, cell) in seeds {
                 label.hash(&mut h);
@@ -492,7 +487,7 @@ impl<'a> Signer<'a> {
         if a == CompIdx::NONE {
             return Domain::Any;
         }
-        let gcells = comp_cells(t, a);
+        let gcells = t.comp_cells(a);
         let bounds: Vec<CellIdx> = ["xmin", "xmax", "ymin", "ymax"]
             .iter()
             .map(|p| {
@@ -533,15 +528,6 @@ impl<'a> Signer<'a> {
 }
 
 /// The cells of component `c`'s props.
-fn comp_cells(t: &ComponentTable, c: CompIdx) -> &[CellIdx] {
-    let base = t.prop_base[c.index()] as usize;
-    let end = t
-        .prop_base
-        .get(c.index() + 1)
-        .map_or(t.prop_cells.len(), |&e| e as usize);
-    &t.prop_cells[base..end]
-}
-
 /// Component `c`'s component children.
 fn children(t: &ComponentTable, c: CompIdx) -> Vec<CompIdx> {
     let (s, n) = (

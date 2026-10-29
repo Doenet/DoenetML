@@ -11,8 +11,7 @@ impl Dast {
             return Err(bad("missing CDST magic"));
         }
         let mut r = Reader { b: bytes, pos: 4 };
-        let version = r.u32();
-        if version != 1 && version != 2 {
+        if r.u32() != 2 {
             return Err(bad("unsupported version"));
         }
         let n_strings = r.u32() as usize;
@@ -21,20 +20,10 @@ impl Dast {
         let n_attrs = r.u32() as usize;
         let n_children = r.u32() as usize;
         let n_path = r.u32() as usize;
-        // Version 2 adds per-part index ranges and the index expressions.
-        let n_index = if version >= 2 {
-            if bytes.len() < r.pos + 4 {
-                return Err(bad("truncated"));
-            }
-            r.u32() as usize
-        } else {
-            0
-        };
-        let extra = if version >= 2 {
-            n_path * 4 * 2 + n_index * 4 * 2
-        } else {
-            0
-        };
+        if bytes.len() < r.pos + 4 {
+            return Err(bad("truncated"));
+        }
+        let n_index = r.u32() as usize;
         let need = r.pos
             + (n_strings + 1) * 4
             + strings_len.div_ceil(4) * 4
@@ -42,8 +31,8 @@ impl Dast {
             + n_nodes * 4 * 5
             + n_attrs * 4 * 3
             + n_children * 4
-            + n_path * 4
-            + extra;
+            + n_path * 4 * 3
+            + n_index * 4 * 2;
         if bytes.len() < need {
             return Err(bad("truncated"));
         }
@@ -70,26 +59,10 @@ impl Dast {
             attr_read: ReadFlags::with_len(n_attrs),
             children: NodeId::from_u32s(r.u32s(n_children)),
             path: StrId::from_u32s(r.u32s(n_path)),
-            path_i_start: if version >= 2 {
-                r.u32s(n_path)
-            } else {
-                vec![0; n_path]
-            },
-            path_i_count: if version >= 2 {
-                r.u32s(n_path)
-            } else {
-                vec![0; n_path]
-            },
-            idx_c_start: if version >= 2 {
-                r.u32s(n_index)
-            } else {
-                Vec::new()
-            },
-            idx_c_count: if version >= 2 {
-                r.u32s(n_index)
-            } else {
-                Vec::new()
-            },
+            path_i_start: r.u32s(n_path),
+            path_i_count: r.u32s(n_path),
+            idx_c_start: r.u32s(n_index),
+            idx_c_count: r.u32s(n_index),
         };
         // Bounds checks so accessors can index without panicking on bad input.
         let ns = StrId::from_index(dast.strings.len());
@@ -135,7 +108,9 @@ impl Dast {
         Ok(dast)
     }
 
-    /// Serialize to the binary wire format (used by tests and tooling).
+    /// Serialize to the binary wire format: what the tests check the
+    /// JavaScript encoder's bytes against (`tests/wire.rs`).
+    #[cfg(feature = "testing")]
     pub fn to_binary(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(64 + self.strings.bytes.len() + self.len() * 24);
         out.extend_from_slice(b"CDST");

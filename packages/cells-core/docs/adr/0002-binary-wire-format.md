@@ -36,4 +36,5 @@ columnar as well (see `ComponentTable` in `document/table.rs`).
 
 Version 2 adds, per macro path part, the `[index]` expressions as ranges of
 ordinary nodes, so `$r[3].p.x` and `$r[$i-2].x` reach the core. Version 1
-files still load (with no indices).
+files loaded (with no indices) until 2026-10-29; the encoder has written
+version 2 since plan 2, and the core now reads only that.

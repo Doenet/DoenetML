@@ -791,9 +791,6 @@ pub struct Compiled {
     /// warnings, in node order, which every document built from this
     /// compile reports. Set by `compile::compile`.
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
-    /// Whether the document has a repeat, so its structure can change and
-    /// a later build will stamp this compile.
-    pub(crate) rebuilds: bool,
     /// The document's structural depth (`CONTEXT.md`) as the check found
     /// it: the probe's, which bounds every build's, since each build's
     /// chains of repeats map onto the probe's; 0 without a repeat, and 0
@@ -899,7 +896,6 @@ impl Compiled {
         let _ = writeln!(out, "keys {}", self.keys.fingerprint());
         let _ = writeln!(out, "extra_strings {:?}", self.extra_strings);
         let _ = writeln!(out, "diagnostics {:?}", self.diagnostics);
-        let _ = writeln!(out, "rebuilds {}", self.rebuilds);
         let _ = writeln!(out, "structural_depth {}", self.structural_depth);
         let _ = writeln!(out, "classes {:?}", self.classes);
         out
@@ -919,18 +915,14 @@ impl Compiled {
     }
 
     /// Whether any template is a repeat body: without one the structure
-    /// never changes and the schedule's own check is complete.
+    /// never changes, the schedule's own check is complete, and no later
+    /// build stamps the compile.
     pub(crate) fn has_repeats(&self) -> bool {
         self.templates.iter().any(|t| {
             t.elems
                 .iter()
                 .any(|e| matches!(e.body, Body::Repeat { .. }))
         })
-    }
-
-    /// Whether a later build can stamp it: the document has a repeat.
-    pub fn rebuilds(&self) -> bool {
-        self.rebuilds
     }
 
     /// Take what the check's build found about the source: its structural

@@ -80,10 +80,6 @@ pub struct Document {
     /// Names and text: the DAST's table, then the strings the build added
     /// (`Compiled::extra_strings`), then those interned since load.
     pub strings: StringTable,
-    /// How many of `strings` every build of this document produces (the
-    /// DAST's and the build's): ids from here on were interned at runtime
-    /// and are carried across rebuilds (`Session::runtime_strings`).
-    pub n_static_strings: usize,
     /// Each string's canonical id, built on first `intern`.
     interned: Option<HashMap<String, StrId>>,
     /// Index of the root `<document>` component.
@@ -147,7 +143,6 @@ impl Document {
         live: crate::build::Live,
     ) -> Self {
         let mut strings = strings;
-        let n_static_strings = strings.len();
         // Strings interned before this build keep their ids.
         for s in &session.runtime_strings {
             strings.push(s);
@@ -162,7 +157,6 @@ impl Document {
             dirty: None,
             components,
             strings,
-            n_static_strings,
             interned: None,
             root,
             structure,
@@ -175,7 +169,7 @@ impl Document {
                 keys: compiled.keys.clone(),
                 version: compiled.version,
                 diagnostics: compiled.diagnostics.clone(),
-                compiled: compiled.rebuilds().then_some(compiled),
+                compiled: compiled.has_repeats().then_some(compiled),
             },
             recompute: Recompute::default(),
         };

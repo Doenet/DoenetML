@@ -106,6 +106,3 @@ impl<L: Copy> Tree<L> {
         }
     }
 }
-
-/// Functions the tape knows (`tape.rs`), by the names the engine uses.
-pub const FUNCTIONS: &[&str] = &["sin", "cos", "tan", "exp", "ln", "log", "sqrt", "abs"];

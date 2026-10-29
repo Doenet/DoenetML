@@ -92,7 +92,7 @@ fn without_what_the_core_skips_the_values_are_the_same() {
     assert_eq!(built.cells.len(), parsed.cells.len());
     for (name, prop) in [("c", "radius"), ("d", "radius"), ("d", "center")] {
         let read = |doc: &cells_core::Document| -> Vec<f64> {
-            let comp = doc.component(name).unwrap();
+            let comp = doc.resolve_path(name).unwrap();
             doc.prop_cells(comp, prop)
                 .unwrap()
                 .iter()

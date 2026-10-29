@@ -27,6 +27,18 @@ pub struct ComponentTable {
 }
 
 impl ComponentTable {
+    /// The cell indices of component `c`'s props, in prop order
+    /// (`prop_cells` from `prop_base[c]`); the cells themselves are not
+    /// contiguous.
+    pub fn comp_cells(&self, c: CompIdx) -> &[CellIdx] {
+        let base = self.prop_base[c.index()] as usize;
+        let end = self
+            .prop_base
+            .get(c.index() + 1)
+            .map_or(self.prop_cells.len(), |&e| e as usize);
+        &self.prop_cells[base..end]
+    }
+
     pub fn len(&self) -> usize {
         self.component_type.len()
     }
@@ -184,13 +196,7 @@ impl Document {
     /// Cells of the single-cell props of `c`: its type table's, in
     /// `component_type.prop_defs()` order, then two per point of its list.
     pub fn comp_cells(&self, c: CompIdx) -> &[CellIdx] {
-        let t = &self.components;
-        let base = t.prop_base[c.index()] as usize;
-        let end = t
-            .prop_base
-            .get(c.index() + 1)
-            .map_or(t.prop_cells.len(), |&e| e as usize);
-        &t.prop_cells[base..end]
+        self.components.comp_cells(c)
     }
 
     /// The text a component shows, as the current core's `text` state
@@ -252,11 +258,6 @@ impl Document {
         } else {
             self.strings.get(StrId::from_value(v)).to_string()
         }
-    }
-
-    /// The component a path names; see `resolve_path`.
-    pub fn component(&self, path: &str) -> Option<CompIdx> {
-        self.resolve_path(path)
     }
 
     /// Cells of a prop, including combined props such as a point's `coords`

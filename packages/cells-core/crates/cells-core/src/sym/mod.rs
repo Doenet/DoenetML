@@ -13,7 +13,7 @@ pub mod tape;
 pub mod tree;
 
 pub use engine::Engine;
-pub use tree::{FUNCTIONS, Leaf, Tree};
+pub use tree::{Leaf, Tree};
 
 crate::index::index_type! {
     /// An expression in the [`Engine`]: a position in its store. A math

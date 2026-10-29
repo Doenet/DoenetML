@@ -68,10 +68,6 @@ impl Engine {
         }
     }
 
-    pub fn expr(&self, h: Handle) -> &Expr {
-        &self.exprs[h.index()]
-    }
-
     /// Store `e`, or find it: the handle of an equal expression already
     /// stored.
     fn push(&mut self, e: Expr) -> Handle {
@@ -245,10 +241,6 @@ impl Engine {
     /// Structural equality after reordering (`symbolicEquality`).
     pub fn equals_syntax(&mut self, a: Handle, b: Handle) -> bool {
         me::equals_syntactic(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
-    }
-
-    pub fn has_symbols(&mut self, h: Handle) -> bool {
-        !me::variables(&self.exprs[h.index()]).is_empty()
     }
 
     /// The expression as a builder tree, cell leaves included as the `L`
