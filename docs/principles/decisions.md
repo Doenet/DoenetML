@@ -29,7 +29,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
 | B9 | A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
 | B10 | `$e.h` names nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It breaks REF-8. Predates #2367 | reported in #2367's review | a linked list extend has no children of its own |
-| B11 | A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit (D32) |
+| B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037` (D32) |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error) |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
@@ -1002,7 +1002,7 @@ does nothing that `$x` does not (**[probe]**, current main):
 
 | Tag | Bare `extend` | `extend` with an attribute or child | `copy` with the same change |
 |---|---|---|---|
-| `select` | same picks | `numToSelect` ignored, with warning w0168 | **the document fails to load** (B11) |
+| `select` | same picks | `numToSelect` ignored, with warning w0168 | **the document fails to load** (B11, #2389) |
 | `selectFromSequence` | same | ignored, w0168 | **empty**, with an error (B11) |
 | `sampleRandomNumbers` | same | `numSamples` ignored, w0168 | four new samples |
 | `shuffle` | same order | child ignored, **no warning** (B12) | reshuffled, with a warning |
