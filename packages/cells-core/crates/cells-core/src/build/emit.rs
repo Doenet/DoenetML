@@ -5,13 +5,6 @@ use super::*;
 
 impl<'c> Builder<'c> {
     pub(in crate::build) fn finish(mut self) -> std::result::Result<BuildOutput, Failure> {
-        let profile = crate::profile::enabled();
-        let clock = web_time::Instant::now();
-        let lap = |what: &str| {
-            if profile {
-                eprintln!("    emit/{what}: {:.2?}", clock.elapsed());
-            }
-        };
         let n = self.sources.len();
         let mut uf = UnionFind::new(n);
         for (s, src) in self.sources.iter().enumerate() {
@@ -35,7 +28,6 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        lap("union-find");
 
         // Number cells: essential classes first, then fixed, then derived.
         // Essential values come from the previous build when the slot existed.
@@ -259,7 +251,6 @@ impl<'c> Builder<'c> {
             error,
             node: self.failed_node,
         })?;
-        lap("number cells");
 
         let mut instrs = Vec::with_capacity(derived_defs.len());
         let mut operands = Operands::default();
@@ -372,7 +363,6 @@ impl<'c> Builder<'c> {
                 op: spec.bind(&bound, &mut operands),
             });
         }
-        lap("bind instructions");
 
         // Each component's prop cell indices, one component after another,
         // in slot order; the cells themselves are not contiguous.
@@ -389,7 +379,6 @@ impl<'c> Builder<'c> {
                 .prop_cells
                 .extend_from_slice(&slot_to_cell[base..base + np]);
         }
-        lap("prop cells");
         // Each component's public prop count, for the cycle labels below.
         let n_public: Vec<usize> = (CompIdx::below(n_comps))
             .map(|c| self.n_public(c))

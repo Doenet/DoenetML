@@ -2,6 +2,7 @@
 //! every repeat's iteration count matches its `count` cell (ADR 0004).
 
 use super::*;
+use crate::trace::Span;
 
 /// How to load a document. The default: seed 0, curves compiled, cycles
 /// checked at every count.
@@ -67,9 +68,16 @@ impl Default for LoadOptions {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+/// What a load took: its spans (`crate::trace`), and the stage timings
+/// read off them.
+#[derive(Debug, Clone, Default)]
 pub struct LoadTimings {
+    /// Every span the load recorded, in opening order: `load`, then
+    /// `deserialize`, `compile` (with the plan, the probe or the first
+    /// build, and the lint), and per pass `build`, `schedule` and `compute`.
+    pub spans: Vec<Span>,
     pub deserialize: Duration,
+    /// The compile, its check included, and every build pass after it.
     pub build: Duration,
     pub schedule: Duration,
     pub initial_compute: Duration,
@@ -85,6 +93,38 @@ pub struct LoadTimings {
     pub structural_depth: u32,
 }
 
+impl LoadTimings {
+    fn of(spans: Vec<Span>, structural_depth: u32) -> Self {
+        let total = |name: &str| {
+            spans
+                .iter()
+                .filter(|s| s.name == name)
+                .map(|s| s.duration)
+                .sum()
+        };
+        LoadTimings {
+            deserialize: total("deserialize"),
+            build: total("compile") + total("build"),
+            schedule: total("schedule"),
+            initial_compute: total("compute"),
+            cycle_check: total("probe"),
+            passes: spans.iter().filter(|s| s.name == "schedule").count() as u32,
+            structural_depth,
+            spans,
+        }
+    }
+}
+
+/// The bytes of either wire format (JSON or binary), detected by content,
+/// read into a DAST.
+fn deserialize(bytes: &[u8]) -> crate::Result<Arc<Dast>> {
+    let _s = crate::trace::span("deserialize");
+    crate::trace::count("bytes", bytes.len());
+    let dast = Arc::new(crate::dast::load(bytes)?);
+    crate::trace::count("dast_nodes", dast.len());
+    Ok(dast)
+}
+
 impl Document {
     /// Load from either wire format (JSON or binary), detected by content,
     /// with the default options.
@@ -92,23 +132,11 @@ impl Document {
         Ok(Self::load(bytes, LoadOptions::default())?.0)
     }
 
-    /// Load from either wire format, timing each stage separately. Build,
-    /// schedule and compute repeat until every repeat's iteration count
-    /// matches its `count` cell; the timings sum over passes.
+    /// Load from either wire format, timing each stage. Build, schedule and
+    /// compute repeat until every repeat's iteration count matches its
+    /// `count` cell; the timings sum over passes.
     pub fn load(bytes: &[u8], options: LoadOptions) -> crate::Result<(Document, LoadTimings)> {
-        let _load = crate::trace::span("load");
-        let mut t = LoadTimings::default();
-        let clock = web_time::Instant::now();
-        let dast = {
-            let _s = crate::trace::span("deserialize");
-            crate::trace::count("bytes", bytes.len());
-            let dast = Arc::new(crate::dast::load(bytes)?);
-            crate::trace::count("dast_nodes", dast.len());
-            dast
-        };
-        t.deserialize = clock.elapsed();
-        let doc = Self::load_dast(dast, options, &mut t)?;
-        Ok((doc, t))
+        Self::load_with(options, || deserialize(bytes))
     }
 
     /// `load` taking the wire-format bytes, which it frees once the DAST is
@@ -119,51 +147,60 @@ impl Document {
         bytes: Vec<u8>,
         options: LoadOptions,
     ) -> crate::Result<(Document, LoadTimings)> {
-        let _load = crate::trace::span("load");
-        let mut t = LoadTimings::default();
-        let clock = web_time::Instant::now();
-        let dast = {
-            let _s = crate::trace::span("deserialize");
-            crate::trace::count("bytes", bytes.len());
-            let dast = Arc::new(crate::dast::load(&bytes)?);
+        Self::load_with(options, move || {
+            let dast = deserialize(&bytes)?;
             drop(bytes);
-            crate::trace::count("dast_nodes", dast.len());
-            dast
-        };
-        t.deserialize = clock.elapsed();
-        let doc = Self::load_dast(dast, options, &mut t)?;
-        Ok((doc, t))
+            Ok(dast)
+        })
     }
 
-    /// `load` from a deserialized DAST: compile, then build until the
-    /// structure settles (ADR 0015).
+    /// `load` from a deserialized DAST.
     pub fn load_dast(
         dast: Arc<Dast>,
         options: LoadOptions,
-        t: &mut LoadTimings,
-    ) -> crate::Result<Document> {
+    ) -> crate::Result<(Document, LoadTimings)> {
+        Self::load_with(options, || Ok(dast))
+    }
+
+    /// A load, recording its spans (`crate::trace`), which it owns: the
+    /// DAST from `dast`, then compile, then build until the structure
+    /// settles (ADR 0015).
+    fn load_with(
+        options: LoadOptions,
+        dast: impl FnOnce() -> crate::Result<Arc<Dast>>,
+    ) -> crate::Result<(Document, LoadTimings)> {
+        crate::trace::start();
+        let loaded = (|| {
+            let _s = crate::trace::span("load");
+            Self::settle_load(dast()?, options)
+        })();
+        let spans = crate::trace::finish();
+        crate::profile::dump(&spans);
+        let (doc, depth) = loaded?;
+        Ok((doc, LoadTimings::of(spans, depth)))
+    }
+
+    /// Compile, then build until the structure settles (ADR 0015); with
+    /// the document, its structural depth as the check bounded it.
+    fn settle_load(dast: Arc<Dast>, options: LoadOptions) -> crate::Result<(Document, u32)> {
         let mut session = Session::new(options.seed, options.sample_with_engine);
         let mut counts = Counts::default();
         // Compile once (ADR 0015); every pass is a build of that compile.
-        let clock = web_time::Instant::now();
-        let compile_span = crate::trace::span("compile");
         let crate::compile::CompileOutput {
             compiled,
             mut first_build,
-            check_time,
-        } = crate::compile::compile(
-            &dast,
-            &session,
-            options.checks(),
-            options.classifies(),
-            options.prune,
-        )?;
-        drop(compile_span);
-        t.build += clock.elapsed();
-        t.cycle_check += check_time;
+        } = {
+            let _s = crate::trace::span("compile");
+            crate::compile::compile(
+                &dast,
+                &session,
+                options.checks(),
+                options.classifies(),
+                options.prune,
+            )?
+        };
         let passes = compiled.passes(MAX_PASSES);
         for pass in 0..passes.unwrap_or(MAX_PASSES) {
-            let clock = web_time::Instant::now();
             let built = match first_build.take() {
                 // The compile's check was this build.
                 Some(built) => built,
@@ -176,30 +213,21 @@ impl Document {
                     crate::build::build(&compiled, &session, &counts, pass > 0)?
                 }
             };
-            t.build += clock.elapsed();
-
-            let clock = web_time::Instant::now();
             let mut doc = {
                 let _s = crate::trace::span("schedule");
                 let doc = built.schedule(compiled.clone())?;
                 crate::trace::count("instructions", doc.program.len());
                 doc
             };
-            t.schedule += clock.elapsed();
-
-            let clock = web_time::Instant::now();
             {
                 let _s = crate::trace::span("compute");
                 crate::trace::count("cells", doc.cells.len());
                 doc.recompute();
             }
-            t.initial_compute += clock.elapsed();
-            t.passes += 1;
             if doc.structure_settled() {
-                t.structural_depth = compiled.structural_depth.unwrap_or(0);
                 let _s = crate::trace::span("attributes");
                 doc.loaded.literal_attrs = Arc::new(crate::dast::LiteralAttrs::new(&dast));
-                return Ok(doc);
+                return Ok((doc, compiled.structural_depth.unwrap_or(0)));
             }
             counts = Counts::of(&doc);
             session = doc.session_with_values();
@@ -268,7 +296,23 @@ impl Document {
     /// handle the document holds valid.
     /// Returns how many passes it took.
     pub fn rebuild(&mut self) -> crate::Result<u32> {
+        // The rebuild's spans are recorded only for the profile: a tick
+        // records nothing otherwise.
         let profile = crate::profile::enabled();
+        if profile {
+            crate::trace::start();
+        }
+        let result = {
+            let _s = crate::trace::span("rebuild");
+            self.rebuild_passes()
+        };
+        if profile {
+            crate::profile::dump(&crate::trace::finish());
+        }
+        result
+    }
+
+    fn rebuild_passes(&mut self) -> crate::Result<u32> {
         // Without a repeat the structure never changes: nothing to rebuild.
         let Some(compiled) = self.loaded.compiled.clone() else {
             return Ok(0);
@@ -288,37 +332,32 @@ impl Document {
         let mut n = 0;
         for _ in 0..passes.unwrap_or(MAX_PASSES) {
             n += 1;
-            let clock = web_time::Instant::now();
             let session = next.as_ref().unwrap_or(&self.session);
-            let built = match crate::build::build(&compiled, session, &counts, false) {
+            let built = {
+                let _s = crate::trace::span("build");
+                crate::build::build(&compiled, session, &counts, false)
+            };
+            let built = match built {
                 Ok(built) => built,
                 Err(e) => {
                     result = Err(e.into());
                     break;
                 }
             };
-            if profile {
-                eprintln!("rebuild/build: {:.2?}", clock.elapsed());
-            }
-            let clock = web_time::Instant::now();
-            let mut doc = match built.schedule(compiled.clone()) {
+            let scheduled = {
+                let _s = crate::trace::span("schedule");
+                built.schedule(compiled.clone())
+            };
+            let mut doc = match scheduled {
                 Ok(doc) => doc,
                 Err(e) => {
                     result = Err(e.into());
                     break;
                 }
             };
-            if profile {
-                eprintln!(
-                    "rebuild/schedule: {:.2?} (creation order valid: {})",
-                    clock.elapsed(),
-                    doc.program.in_creation_order
-                );
-            }
-            let clock = web_time::Instant::now();
-            doc.recompute();
-            if profile {
-                eprintln!("rebuild/recompute: {:.2?}", clock.elapsed());
+            {
+                let _s = crate::trace::span("compute");
+                doc.recompute();
             }
             if doc.structure_settled() {
                 result = Ok(doc);

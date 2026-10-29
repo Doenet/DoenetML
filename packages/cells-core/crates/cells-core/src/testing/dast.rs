@@ -243,11 +243,10 @@ fn write_all(w: &mut DastWriter, nodes: Vec<Node>) -> Vec<NodeId> {
 /// their props unchecked (`request_prop`).
 #[cfg(any(test, feature = "testing"))]
 pub fn load(dast: Dast) -> crate::Result<crate::Document> {
-    let mut t = crate::LoadTimings::default();
     let options = crate::LoadOptions {
         classify: false,
         prune: false,
         ..Default::default()
     };
-    crate::Document::load_dast(std::sync::Arc::new(dast), options, &mut t)
+    Ok(crate::Document::load_dast(std::sync::Arc::new(dast), options)?.0)
 }

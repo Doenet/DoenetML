@@ -1,8 +1,8 @@
-//! The load trace: named, nested spans with the work each did, for the
-//! benchmark's trace layer (`packages/benchmark`, `METHOD.md`), which puts
-//! them on one timeline with the page's own steps. Where `profile` prints
-//! laps to stderr for a person at a terminal, this records them for a
-//! program to read.
+//! The load trace: named, nested spans with the work each did. A load
+//! records its own (`LoadTimings::spans`), and reads its stage timings
+//! off them; the benchmark's trace layer (`packages/benchmark`,
+//! `METHOD.md`) puts them on one timeline with the page's own steps, and
+//! `profile` prints them to stderr for a person at a terminal.
 //!
 //! Recording is off until `start` and costs one thread-local check per span
 //! when off. A span is opened by `span(name)` and closed when its guard

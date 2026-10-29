@@ -98,9 +98,6 @@ pub struct Program {
     pub memo_len: usize,
     /// Compiled curves that `SampleTape` instructions run.
     pub tapes: Vec<crate::sym::tape::Tape>,
-    /// Whether creation order was already a valid evaluation order, so no
-    /// sort ran. Diagnostic.
-    pub in_creation_order: bool,
 }
 
 #[inline(always)]
@@ -148,7 +145,6 @@ impl Program {
                 operands,
                 memo_len,
                 tapes: Vec::new(),
-                in_creation_order: true,
             });
         }
 
@@ -213,7 +209,6 @@ impl Program {
             operands,
             memo_len,
             tapes: Vec::new(),
-            in_creation_order: false,
         })
     }
 

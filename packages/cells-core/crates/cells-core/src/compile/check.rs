@@ -19,8 +19,6 @@ pub(crate) struct CompileOutput {
     /// its one stamped build, which draws nothing and runs the probe's loop
     /// check, and the load keeps it rather than building again.
     pub(crate) first_build: Option<BuildOutput>,
-    /// How long the probe took; zero when it did not run.
-    pub(crate) check_time: std::time::Duration,
 }
 
 /// Compile `dast` (ADR 0015): plan it, check it, and box every element
@@ -45,11 +43,9 @@ pub(crate) fn compile(
     classify: bool,
     prune: bool,
 ) -> Result<CompileOutput> {
-    let profile = crate::profile::enabled();
     let mut list = Vec::new();
     let mut boxed: HashSet<NodeId> = HashSet::new();
-    let (mut compiled, first_build, check_time) = loop {
-        let clock = web_time::Instant::now();
+    let (mut compiled, first_build) = loop {
         let planned = {
             let _s = crate::trace::span("plan");
             let planned = Compiler::compile(dast, &boxed);
@@ -63,9 +59,6 @@ pub(crate) fn compile(
             planned
         };
         let attempt = planned.and_then(|mut compiled| {
-            if profile {
-                eprintln!("  compile/plan: {:.2?}", clock.elapsed());
-            }
             let varies = compiled.has_repeats() || compiled.has_selects();
             if !classify || (varies && !check_cycles) {
                 compiled.classes = Classes::Off;
@@ -77,7 +70,6 @@ pub(crate) fn compile(
                 compiled.live = Classes::Off;
             }
             if check_cycles && varies {
-                let clock = web_time::Instant::now();
                 let _s = crate::trace::span("probe");
                 let mut probed = build::probe(&compiled)?;
                 compiled.set_probe(probed.probe.take());
@@ -87,11 +79,7 @@ pub(crate) fn compile(
                 if let Some(record) = probed.live_record() {
                     compiled.live = Classes::Record(Arc::new(record));
                 }
-                let checked = clock.elapsed();
-                if profile {
-                    eprintln!("  compile/check: {checked:.2?}");
-                }
-                Ok((compiled, None, checked))
+                Ok((compiled, None))
             } else {
                 let mut first = {
                     let _s = crate::trace::span("first build");
@@ -101,7 +89,7 @@ pub(crate) fn compile(
                 // the document has no repeat. Without it (a test load) no
                 // build here bounds the depth.
                 compiled.set_probe(first.probe.take());
-                Ok((compiled, Some(first), std::time::Duration::ZERO))
+                Ok((compiled, Some(first)))
             }
         });
         match attempt {
@@ -137,7 +125,6 @@ pub(crate) fn compile(
     Ok(CompileOutput {
         compiled: Arc::new(compiled),
         first_build,
-        check_time,
     })
 }
 

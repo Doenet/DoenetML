@@ -96,19 +96,10 @@ pub(in crate::build) fn build_with(
     view: &dyn View,
     probe_checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
-    let profile = crate::profile::enabled();
-    let clock = web_time::Instant::now();
-    let lap = |what: &str| {
-        if profile {
-            eprintln!("  build/{what}: {:.2?}", clock.elapsed());
-        }
-    };
     let mut b = Builder::new(compiled, session, reseed, engine, view);
     let staged = (|| {
         crate::trace::span("expand").run(|| b.expand_all())?;
-        lap("expand");
         crate::trace::span("resolve").run(|| b.resolve_all())?;
-        lap("resolve");
         if !probe_checks {
             return Ok(None);
         }
@@ -135,7 +126,6 @@ pub(in crate::build) fn build_with(
         u
     };
     u.probe = probe;
-    lap("cells, program");
     Ok(u)
 }
 

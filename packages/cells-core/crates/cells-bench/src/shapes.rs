@@ -8,7 +8,7 @@
 use std::sync::Arc;
 
 use cells_core::testing::dast::{Element, Node, build, el, mac, text};
-use cells_core::{CellIdx, Document, LoadOptions, LoadTimings};
+use cells_core::{CellIdx, Document, LoadOptions};
 
 pub struct Shape {
     pub elements: Vec<Element>,
@@ -325,12 +325,9 @@ fn chain(n: usize, pct: usize) -> Shape {
 pub fn load(elements: Vec<Element>) -> Document {
     let doc = elements.into_iter().fold(el("document"), |d, e| d.child(e));
     let dast = build([Node::from(doc)]);
-    Document::load_dast(
-        Arc::new(dast),
-        LoadOptions::default(),
-        &mut LoadTimings::default(),
-    )
-    .unwrap()
+    Document::load_dast(Arc::new(dast), LoadOptions::default())
+        .unwrap()
+        .0
 }
 
 /// The one cell of `component.prop`.
