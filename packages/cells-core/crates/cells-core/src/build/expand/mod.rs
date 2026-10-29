@@ -51,7 +51,6 @@ impl PlannedOp {
 pub(in crate::build) enum BuiltSource {
     Unset,
     Literal(f64),
-    Default(f64),
     /// A constant that is not essential: an iteration index, a collect's
     /// count, a math handle, the shared missing-referent cell.
     Fixed(f64),
@@ -1166,7 +1165,6 @@ impl<'c> Builder<'c> {
                 self.typed_slots.push((s, ValueType::Text));
                 BuiltSource::Literal(*v)
             }
-            Source::Default(v) => BuiltSource::Default(*v),
             Source::Inherit | Source::InheritFrom(_) => {
                 let Some(referent) = extend else {
                     return Ok(BuiltSource::Alias(self.missing_slot()));

@@ -110,7 +110,6 @@ fn writable(source: &Source) -> bool {
         Source::Inherit
         | Source::Literal(_)
         | Source::TextLiteral(_)
-        | Source::Default(_)
         | Source::Alias(Arg::Ref(..) | Arg::Elem(..))
         | Source::Math(_) => true,
         Source::Op(_, args) => args.iter().any(|a| !matches!(a, Arg::Own(_))),
@@ -121,7 +120,7 @@ fn writable(source: &Source) -> bool {
 /// A literal `fixed`: essential cells, given or defaulted, become constants.
 fn fix_literals(props: &mut [Option<Source>]) {
     for p in props.iter_mut() {
-        if let Some(Source::Literal(v) | Source::TextLiteral(v) | Source::Default(v)) = p {
+        if let Some(Source::Literal(v) | Source::TextLiteral(v)) = p {
             *p = Some(Source::Fixed(*v));
         }
     }

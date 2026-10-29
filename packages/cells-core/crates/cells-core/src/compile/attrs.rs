@@ -25,7 +25,7 @@ impl<'a> Compiler<'a> {
             if extend.is_some() {
                 Source::Inherit
             } else {
-                Source::Default(v)
+                Source::Literal(v)
             }
         };
         let mut props: Vec<Option<Source>> = vec![None; component_type.prop_defs().len()];

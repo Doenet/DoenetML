@@ -53,7 +53,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
     wiring.set_public(Props {
         x: x.into(),
         y: y.into(),
-        hide: Source::Default(hide).into(),
+        hide: Source::Literal(hide).into(),
     });
     wiring.finish()
 }

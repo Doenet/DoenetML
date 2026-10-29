@@ -79,8 +79,8 @@ through:
 - an operator's inverse, to the inputs that inverse may write (step 2);
 - a hold (a dynamic `fixed`), to the value it holds, never to its flag.
 
-A slot whose source is a value (`Literal`, `TextLiteral`, `Default`,
-`MathEssential`, `MathEssentialFrom`) is **essential** when it is
+A slot whose source is a value (`Literal`, a type's default included,
+`TextLiteral`, `MathEssential`, `MathEssentialFrom`) is **essential** when it is
 writable, and **fixed** otherwise, with the same value. Derived slots are
 unchanged.
 
@@ -276,7 +276,7 @@ snapshots only.
    only measured here, so the marks stay as they are. From a class the
    walk goes to its defining slot: an `Op` or a `VecOut`'s head to the
    classes of the inputs `OpSpec::writes` names, a value slot (`Literal`,
-   `Default`, and `MathEssential` and `MathEssentialFrom` once expanded)
+   and `MathEssential` and `MathEssentialFrom` once expanded)
    is marked writable, a `Fixed` slot ends it. The result is a bit per
    class. A census test over the golden set and the fixtures prints
    essential and writable counts per document beside Context's table,

@@ -100,10 +100,7 @@ impl<'c> Builder<'c> {
             };
             prune
                 && !live_slot[s]
-                && !(matches!(
-                    self.sources[s],
-                    BuiltSource::Literal(_) | BuiltSource::Default(_)
-                ) && essential[s])
+                && !(matches!(self.sources[s], BuiltSource::Literal(_)) && essential[s])
         };
         let mut slot_cell: Vec<CellIdx> = vec![CellIdx::NONE; n];
         // Count each kind of defining slot first: the essential tables are
@@ -116,8 +113,8 @@ impl<'c> Builder<'c> {
                 any_dead = true;
             } else if class_def[root.index()].index() == s {
                 let (kind, n_out) = match &self.sources[s] {
-                    BuiltSource::Literal(_) | BuiltSource::Default(_) if essential[s] => (0, 1),
-                    BuiltSource::Literal(_) | BuiltSource::Default(_) => (1, 1),
+                    BuiltSource::Literal(_) if essential[s] => (0, 1),
+                    BuiltSource::Literal(_) => (1, 1),
                     BuiltSource::Fixed(_) => (1, 1),
                     BuiltSource::Op(spec, ..) => (2, spec.n_out()),
                     _ => (3, 0),
@@ -152,10 +149,8 @@ impl<'c> Builder<'c> {
                 continue;
             }
             match &self.sources[s] {
-                BuiltSource::Literal(_) | BuiltSource::Default(_) if !essential[s] => {
-                    fixed_defs.push(s)
-                }
-                BuiltSource::Literal(v) | BuiltSource::Default(v) => {
+                BuiltSource::Literal(_) if !essential[s] => fixed_defs.push(s),
+                BuiltSource::Literal(v) => {
                     let (scope, tslot, key) = self.essential_key(SlotId::from_index(s));
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
@@ -191,9 +186,7 @@ impl<'c> Builder<'c> {
         });
         for &s in &fixed_defs {
             // A constant, or an author's value no student can change.
-            let (BuiltSource::Fixed(v) | BuiltSource::Literal(v) | BuiltSource::Default(v)) =
-                self.sources[s]
-            else {
+            let (BuiltSource::Fixed(v) | BuiltSource::Literal(v)) = self.sources[s] else {
                 unreachable!()
             };
             let root = roots[s].index();

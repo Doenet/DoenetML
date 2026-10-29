@@ -96,12 +96,11 @@ impl Warned {
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
-    /// An essential cell with this initial value.
+    /// An essential cell with this initial value: the attribute's, or
+    /// the type's default without one.
     Literal(f64),
     /// An essential text cell: a string id, or NaN for none.
     TextLiteral(f64),
-    /// An essential cell with the type's default value.
-    Default(f64),
     /// The matching slot of the `extend` referent.
     Inherit,
     /// Slot `k` of the `extend` referent: an `Inherit` a gate moved.

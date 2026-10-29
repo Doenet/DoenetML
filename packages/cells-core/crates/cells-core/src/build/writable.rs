@@ -44,7 +44,7 @@ impl<'c> Builder<'c> {
             later.entry(roots[s.index()]).or_default().push(i);
         }
         let mut follow = |slot: SlotId, src: &BuiltSource, stack: &mut Vec<SlotId>| match src {
-            BuiltSource::Literal(_) | BuiltSource::Default(_) => writable[slot.index()] = true,
+            BuiltSource::Literal(_) => writable[slot.index()] = true,
             BuiltSource::Alias(t) => stack.push(roots[t.index()]),
             BuiltSource::Op(spec, start, count) => {
                 let mask = spec.writes();

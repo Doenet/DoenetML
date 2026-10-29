@@ -58,10 +58,7 @@ impl<'c> Builder<'c> {
                     .map(|&i| roots[i.index()]),
             ),
             BuiltSource::VecOut(head, _) => stack.push(roots[head.index()]),
-            BuiltSource::Literal(_)
-            | BuiltSource::Default(_)
-            | BuiltSource::Fixed(_)
-            | BuiltSource::Unset => {}
+            BuiltSource::Literal(_) | BuiltSource::Fixed(_) | BuiltSource::Unset => {}
         };
         while let Some(root) = stack.pop() {
             if std::mem::replace(&mut seen[root.index()], true) {

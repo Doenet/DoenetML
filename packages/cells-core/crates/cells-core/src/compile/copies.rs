@@ -235,7 +235,7 @@ impl<'a> Compiler<'a> {
                 })
             }
             None if base.is_some() => Source::Inherit,
-            None => Source::Default(if default { 1.0 } else { 0.0 }),
+            None => Source::Literal(if default { 1.0 } else { 0.0 }),
         })
     }
 
