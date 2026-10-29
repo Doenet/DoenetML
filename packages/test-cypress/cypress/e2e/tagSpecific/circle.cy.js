@@ -190,16 +190,40 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
     });
 
     describe("off-graph indicators follow the graph's limits", () => {
-        // The circle's off-graph indicator, if it is shown.
-        function visibleIndicators(win, $g) {
-            const board = Object.values(win.JXG.boards).find(
-                (b) => b?.containerObj === $g[0],
-            );
-            expect(board, "JSXGraph board for graph g").to.exist;
+        // Check graph g once its circle is drawn and its bounding box has
+        // reached `yMax` (if given). Waiting for both keeps a check that
+        // expects no indicator from passing before the circle is drawn or
+        // before the new limits are applied. `check` receives the circle's
+        // visible off-graph indicators.
+        function checkIndicators({ yMax, check }) {
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    const board = Object.values(win.JXG.boards).find(
+                        (b) => b?.containerObj === $g[0],
+                    );
+                    expect(board, "JSXGraph board for graph g").to.exist;
 
-            return Object.values(board.objects).filter(
-                (o) => o?.elType === "point" && o.visProp?.visible !== false,
-            );
+                    if (yMax !== undefined) {
+                        expect(board.getBoundingBox()[1]).closeTo(yMax, 1e-12);
+                    }
+
+                    const objects = Object.values(board.objects);
+                    const circles = objects.filter(
+                        (o) => o?.elType === "circle",
+                    );
+                    expect(circles.length, "circles on graph g").eq(1);
+
+                    // Skip the circle's center, a hidden point JSXGraph
+                    // creates along with the circle.
+                    const indicators = objects.filter(
+                        (o) =>
+                            o?.elType === "point" &&
+                            o !== circles[0].center &&
+                            o.visProp?.visible !== false,
+                    );
+                    check(indicators);
+                });
+            });
         }
 
         it("redraws a circle when only the graph's limits change", () => {
@@ -221,14 +245,14 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
 
             cy.get("#g").find("svg").should("exist");
 
-            cy.get("#g").then(($g) => {
-                cy.window().should((win) => {
-                    const indicators = visibleIndicators(win, $g);
+            checkIndicators({
+                yMax: 10,
+                check(indicators) {
                     expect(indicators.length).eq(1);
                     expect(indicators[0].visProp.face).eq("triangleup");
                     expect(indicators[0].X()).closeTo(0, 1e-12);
                     expect(indicators[0].Y()).lessThan(10);
-                });
+                },
             });
 
             cy.get("#yMax textarea").type(
@@ -236,23 +260,25 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 { force: true },
             );
 
-            cy.get("#g").then(($g) => {
-                cy.window().should((win) => {
-                    expect(visibleIndicators(win, $g).length).eq(0);
-                });
+            checkIndicators({
+                yMax: 30,
+                check(indicators) {
+                    expect(indicators.length).eq(0);
+                },
             });
 
-            // The bottom of the circle is on the graph, so there is still no
-            // indicator.
+            // The center is off the graph, but the bottom of the circle is
+            // on it, so there is still no indicator.
             cy.get("#yMax textarea").type(
                 "{end}{backspace}{backspace}19{enter}",
                 { force: true },
             );
 
-            cy.get("#g").then(($g) => {
-                cy.window().should((win) => {
-                    expect(visibleIndicators(win, $g).length).eq(0);
-                });
+            checkIndicators({
+                yMax: 19,
+                check(indicators) {
+                    expect(indicators.length).eq(0);
+                },
             });
 
             cy.get("#yMax textarea").type(
@@ -260,13 +286,13 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 { force: true },
             );
 
-            cy.get("#g").then(($g) => {
-                cy.window().should((win) => {
-                    const indicators = visibleIndicators(win, $g);
+            checkIndicators({
+                yMax: 10,
+                check(indicators) {
                     expect(indicators.length).eq(1);
                     expect(indicators[0].visProp.face).eq("triangleup");
                     expect(indicators[0].Y()).lessThan(10);
-                });
+                },
             });
 
             // The indicator moves to the new edge.
@@ -275,18 +301,20 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 { force: true },
             );
 
-            cy.get("#g").then(($g) => {
-                cy.window().should((win) => {
-                    const indicators = visibleIndicators(win, $g);
+            checkIndicators({
+                yMax: 5,
+                check(indicators) {
                     expect(indicators.length).eq(1);
                     expect(indicators[0].visProp.face).eq("triangleup");
                     expect(indicators[0].Y()).lessThan(5);
                     expect(indicators[0].Y()).greaterThan(4);
-                });
+                },
             });
         });
 
         it("shows no indicator for a circle that reaches into a graph with a flipped x-axis", () => {
+            // The circle's center is off the top of the graph, but its bottom
+            // is on it.
             cy.window().then(async (win) => {
                 win.postMessage(
                     {
@@ -309,8 +337,13 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                     );
                     const [xMin, , xMax] = board.getBoundingBox();
                     expect(xMin).greaterThan(xMax);
-                    expect(visibleIndicators(win, $g).length).eq(0);
                 });
+            });
+
+            checkIndicators({
+                check(indicators) {
+                    expect(indicators.length).eq(0);
+                },
             });
         });
     });
