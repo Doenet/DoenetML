@@ -330,15 +330,14 @@ fn count_cell(doc: &Document, r: &Repeat) -> cells_core::CellIdx {
     doc.comp_cells(r.comp)[pi]
 }
 
-/// Whether a rebuild error is a cycle, an unsettled structure or an error
-/// the load did not report: a tick reports the error as text, so it is
-/// matched against the three messages.
+/// Whether a rebuild error is a cycle or an error the load did not report
+/// (an unsettled structure among them): a tick reports the error as text,
+/// so it is matched against the two messages.
 fn structural(e: &str) -> bool {
     let prefix = |full: String, param: &str| full[..full.find(param).unwrap()].to_string();
     let cycle = prefix(Error::Cycle("\u{1}".into()).to_string(), "\u{1}");
-    let unsettled = prefix(Error::UnstableStructure(987_654).to_string(), "987654");
     let unchecked = prefix(Error::Unchecked("\u{1}".into()).to_string(), "\u{1}");
-    e.starts_with(&cycle) || e.starts_with(&unsettled) || e.starts_with(&unchecked)
+    e.starts_with(&cycle) || e.starts_with(&unchecked)
 }
 
 /// Every dependency of the build at `counts` must be one the probe's graph
@@ -428,7 +427,6 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
                 continue; // the promise is about documents that load
             };
             let off = cells_core::testing::compile_unclassified(&dast).unwrap();
-            let own = cells_core::testing::with_own_walk(&on);
             for &c in &counts {
                 let what = format!("{name}, seed {seed}, count {c:?}");
                 let (session, stamped) = settle_at(&on, seed, c);
@@ -439,9 +437,10 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
                     doc.recompute();
                     doc
                 };
+                let checked = at(&on);
                 let essential: BTreeSet<(ScopeId, u32)> =
-                    at(&on).structure.essential_slots.iter().copied().collect();
-                for key in &at(&own).structure.essential_slots {
+                    checked.structure.essential_slots.iter().copied().collect();
+                for key in &checked.structure.walked_essential_slots {
                     assert!(
                         essential.contains(key),
                         "{what}: {key:?} is writable in this build's own walk, not in the record"

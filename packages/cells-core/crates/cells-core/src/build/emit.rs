@@ -58,52 +58,46 @@ impl<'c> Builder<'c> {
             }
         }
         // A value slot is essential when a student's action can write it,
-        // and fixed otherwise (ADR 0018): by this build's own walk, by the
-        // probe's record of the template slots it found writable, or, with
-        // the classing off, always essential.
-        let mut record = None;
-        let essential: Vec<bool> = match &self.compiled.classes {
-            Classes::Off => vec![true; n],
-            Classes::Record(r) if !self.view.folds_iterations() => SlotId::below(n)
-                .map(|s| {
-                    self.template_slot(s)
-                        .is_none_or(|(t, ts)| Classes::recorded(r, t, ts))
-                })
-                .collect(),
-            Classes::Walk | Classes::Record(_) => {
-                let writable = self.writable_slots(&roots, &class_def);
-                if self.view.folds_iterations() {
-                    record = Some(self.record_of(&writable));
-                }
-                writable
-            }
+        // and fixed otherwise (ADR 0018): the probe finds them by its walk
+        // and records them by template slot, and every other build reads
+        // the record, so a slot's class is the same in every build; with
+        // the classing off (no record), every value slot is essential.
+        let folds = self.view.folds_iterations();
+        let (essential, record): (Vec<bool>, Record) = if folds {
+            let writable = self.writable_slots(&roots, &class_def);
+            let record = self.record_of(&writable);
+            (writable, record)
+        } else {
+            let essential = match &self.compiled.classes {
+                None => vec![true; n],
+                Some(r) => SlotId::below(n)
+                    .map(|s| self.template_slot(s).is_none_or(|(t, ts)| r.marks(t, ts)))
+                    .collect(),
+            };
+            (essential, Record::default())
         };
-        // Which classes the document computes (ADR 0019): by the probe's
-        // record of the template slots it found live, by this build's own
-        // walk, or, with no record to read, all of them. Measured only:
-        // nothing is pruned yet.
-        let mut live_record = None;
-        let live_slot: Vec<bool> = match &self.compiled.live {
-            Classes::Off => vec![true; n],
-            Classes::Record(r) if !self.view.folds_iterations() => {
-                self.live_by_record(r, &roots, &class_def)
-            }
-            Classes::Walk | Classes::Record(_) => {
-                let live = self.live_slots(&roots, &class_def);
-                if self.view.folds_iterations() {
-                    live_record = Some(self.record_of(&live));
-                }
-                live
-            }
+        // Which classes the document computes (ADR 0019), the same way:
+        // the probe walks and records, every other build reads the record.
+        let (live_slot, live_record): (Vec<bool>, Record) = if folds {
+            let live = self.live_slots(&roots, &class_def);
+            let record = self.record_of(&live);
+            (live, record)
+        } else {
+            let live = self.live_by_record(&self.compiled.live, &roots, &class_def);
+            (live, Record::default())
         };
+        // What this build's own walks find, whatever the record says: what
+        // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
         let walked_slot = self.live_slots(&roots, &class_def);
+        #[cfg(feature = "testing")]
+        let walked_writable = self.writable_slots(&roots, &class_def);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
         // cell. Not in the probe, whose build is not kept, nor where the
         // load asked for every cell (`LoadOptions::prune`). An essential
         // slot is always live; were one not, it would be kept. A vector
         // output goes with its head, whose instruction writes it.
-        let prune = self.compiled.prune && !self.view.folds_iterations();
+        let prune = self.compiled.prune && !folds;
         let pruned = |s: usize| {
             let s = match self.sources[s] {
                 BuiltSource::VecOut(head, _) => head.index(),
@@ -153,6 +147,8 @@ impl<'c> Builder<'c> {
         let mut derived_defs = Vec::with_capacity(counts[2]);
         let mut outputs = Vec::with_capacity(counts[3]);
         let mut dead_defs = Vec::new();
+        #[cfg(feature = "testing")]
+        let mut walked_essential_slots = Vec::new();
         for (s, &root) in roots.iter().enumerate() {
             let root = root.index();
             if class_def[root].index() != s {
@@ -161,6 +157,16 @@ impl<'c> Builder<'c> {
             if pruned(s) {
                 dead_defs.push(s);
                 continue;
+            }
+            #[cfg(feature = "testing")]
+            if walked_writable[s]
+                && matches!(
+                    self.sources[s],
+                    BuiltSource::Literal(_) | BuiltSource::Default(_)
+                )
+            {
+                let (scope, tslot, _) = self.essential_key(SlotId::from_index(s));
+                walked_essential_slots.push((scope, tslot));
             }
             match &self.sources[s] {
                 BuiltSource::Literal(_) | BuiltSource::Default(_) if !essential[s] => {
@@ -428,6 +434,8 @@ impl<'c> Builder<'c> {
             essential_keys,
             essential_defaults,
             repeats: self.repeats,
+            #[cfg(feature = "testing")]
+            walked_essential_slots,
         };
 
         // Lazy labels for cycle errors.
@@ -482,11 +490,13 @@ impl<'c> Builder<'c> {
             tapes,
             comp_keys,
             cell_label,
-            record,
             live,
-            live_record,
-            structural_depth: self.structural_depth,
-            warnings: self.diagnostics,
+            probed: Probed {
+                structural_depth: self.structural_depth,
+                writable: record,
+                live: live_record,
+                warnings: self.diagnostics,
+            },
         })
     }
 
@@ -608,7 +618,7 @@ impl<'c> Builder<'c> {
     }
 
     /// A component slot's template and template slot (the element's slot
-    /// offset plus the prop's position), what `Classes::Record` is indexed
+    /// offset plus the prop's position), what a `Record` is indexed
     /// by; None for a slot of no element, or past the slots its element
     /// reserves: a copy that takes its referent's list has as many points
     /// as the referent (`place_list_copies`), and no template slot names
@@ -632,9 +642,9 @@ impl<'c> Builder<'c> {
     }
 
     /// The template slots of the slots `marked`, per template: the record
-    /// every later build classes by (`Classes::Record`), of the writable
-    /// slots (ADR 0018) or the live ones (ADR 0019).
-    fn record_of(&self, marked: &[bool]) -> Vec<Vec<u64>> {
+    /// every later build reads, of the writable slots (ADR 0018) or the
+    /// live ones (ADR 0019).
+    fn record_of(&self, marked: &[bool]) -> Record {
         let mut record: Vec<Vec<u64>> = self
             .compiled
             .templates
@@ -646,7 +656,7 @@ impl<'c> Builder<'c> {
                 record[t][ts as usize / 64] |= 1 << (ts % 64);
             }
         }
-        record
+        Record(record)
     }
 
     /// An essential slot's key: its scope, its template slot (the element's

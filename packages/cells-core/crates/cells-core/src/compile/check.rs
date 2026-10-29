@@ -28,7 +28,7 @@ pub(crate) struct CompileOutput {
 ///
 /// Two test loads vary this: `check_cycles` off runs the probe without
 /// its loop checks, so a document the check would reject loads; and
-/// `classify` off makes every value slot essential (`Classes::Off`).
+/// `classify` off makes every value slot essential (no record to read).
 pub(crate) fn compile(
     dast: &Arc<Dast>,
     check_cycles: bool,
@@ -59,18 +59,13 @@ pub(crate) fn compile(
             compiled.prune = prune;
             let clock = web_time::Instant::now();
             let _s = crate::trace::span("probe");
-            let probed = build::probe(&compiled, check_cycles)?;
-            compiled.structural_depth = Some(probed.structural_depth());
-            match probed.writable_record() {
-                Some(record) if classify => compiled.classes = Classes::Record(Arc::new(record)),
-                _ => compiled.classes = Classes::Off,
-            }
-            if let Some(record) = probed.live_record() {
-                compiled.live = Classes::Record(Arc::new(record));
-            }
+            let probed = build::probe(&compiled, check_cycles)?.probed();
+            compiled.structural_depth = probed.structural_depth;
+            compiled.classes = classify.then(|| Arc::new(probed.writable));
+            compiled.live = Arc::new(probed.live);
             // The probe's warnings are the document's: no build finds one
             // the probe did not (ADR 0014).
-            compiled.diagnostics.extend(probed.warnings());
+            compiled.diagnostics.extend(probed.warnings);
             let checked = clock.elapsed();
             if profile {
                 eprintln!("  compile/check: {checked:.2?}");
@@ -113,14 +108,18 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let mut list = Vec::new();
     let mut boxed: HashSet<NodeId> = HashSet::new();
     loop {
-        let attempt = Compiler::compile(&dast, &boxed)
-            .and_then(|compiled| Ok((build::probe(&compiled, true)?, compiled.diagnostics)));
+        let attempt = Compiler::compile(&dast, &boxed).and_then(|compiled| {
+            Ok((
+                build::probe(&compiled, true)?.probed(),
+                compiled.diagnostics,
+            ))
+        });
         match attempt {
             // The build is not wanted, but its warnings are, with the
             // planners'.
             Ok((u, planner_warnings)) => {
                 list.extend(planner_warnings);
-                list.extend(u.warnings());
+                list.extend(u.warnings);
                 break;
             }
             Err(f) => {

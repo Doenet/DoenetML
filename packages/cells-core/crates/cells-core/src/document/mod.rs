@@ -41,9 +41,8 @@ crate::index::index_type! {
 }
 
 /// Build passes allowed before the structure must have settled, at least:
-/// a checked document is allowed its structural depth plus one too
-/// (`Compiled::passes`), and only a test load without the check is held
-/// to this alone.
+/// a document is allowed its structural depth plus one too
+/// (`Compiled::passes`).
 const MAX_PASSES: usize = 8;
 
 pub const NONE: u32 = u32::MAX;
@@ -177,7 +176,7 @@ impl Document {
                 literal_attrs: Arc::default(),
                 keys: compiled.keys.clone(),
                 diagnostics: compiled.diagnostics.clone().into(),
-                structural_depth: compiled.structural_depth.unwrap_or(0),
+                structural_depth: compiled.structural_depth,
                 version: compiled.version,
                 compiled: compiled.rebuilds().then_some(compiled),
             },

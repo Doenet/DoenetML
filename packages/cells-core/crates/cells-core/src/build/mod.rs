@@ -196,18 +196,25 @@ pub struct BuildOutput {
     /// Human-readable owner of a cell, e.g. "p1.x". Computed lazily because
     /// a cycle error is the only consumer.
     cell_label: Box<dyn Fn(CellIdx) -> String>,
-    /// The probe's writable template slots (`Classes::Record`); None for
-    /// any other build.
-    record: Option<Vec<Vec<u64>>>,
     /// Which cells the document computes (ADR 0019).
     live: Live,
-    /// The probe's live template slots (`Classes::Record`); None for any
-    /// other build.
-    live_record: Option<Vec<Vec<u64>>>,
-    /// The probe's structural depth and warnings (`check_counts`); zero and
-    /// none for any other build, which runs no count check.
-    structural_depth: u32,
-    warnings: Vec<Diagnostic>,
+    /// What the probe found for the compile to keep (`probed`): empty in
+    /// any other build, which records nothing and runs no count check.
+    probed: Probed,
+}
+
+/// What the probe's build found for the compile to keep (ADR 0012, ADR
+/// 0018, ADR 0019): what every later build reads, and the warnings.
+#[derive(Debug, Default)]
+pub(crate) struct Probed {
+    /// The structural depth (`check_counts`).
+    pub(crate) structural_depth: u32,
+    /// The template slots a student's action can write.
+    pub(crate) writable: Record,
+    /// The live template slots.
+    pub(crate) live: Record,
+    /// The warnings (`check_counts`).
+    pub(crate) warnings: Vec<Diagnostic>,
 }
 
 /// Which cells a build computes (ADR 0019): a bit per cell, set for one
@@ -223,26 +230,9 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
-    /// The writable template slots the probe found, which every later
-    /// build classes its value slots by (ADR 0018).
-    pub(crate) fn writable_record(&self) -> Option<Vec<Vec<u64>>> {
-        self.record.clone()
-    }
-
-    /// The live template slots the probe found, which every later build
-    /// reads which cells it computes by (ADR 0019).
-    pub(crate) fn live_record(&self) -> Option<Vec<Vec<u64>>> {
-        self.live_record.clone()
-    }
-
-    /// The structural depth the probe found (`check_counts`).
-    pub(crate) fn structural_depth(&self) -> u32 {
-        self.structural_depth
-    }
-
-    /// The probe's warnings (`check_counts`), which the compile keeps.
-    pub(crate) fn warnings(self) -> Vec<Diagnostic> {
-        self.warnings
+    /// What the probe found, which the compile keeps.
+    pub(crate) fn probed(self) -> Probed {
+        self.probed
     }
 
     /// Schedule the program into a document.
