@@ -19,10 +19,11 @@ import {
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { useSourceNavigation } from "./utils/useSourceNavigation";
-import { JXGCircle, JXGPoint } from "./jsxgraph-distrib/types";
+import { JXGBoard, JXGCircle, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { useRerenderOnBoundingBoxChange } from "./utils/useRerenderOnBoundingBoxChange";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import {
     DragCoordinationState,
@@ -103,6 +104,32 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
+
+    // Whether and where the off-graph indicator is drawn depends on the
+    // graph's bounding box. Re-render whenever a new bounding box changes
+    // that: when the graph's limits change, the graph applies them only after
+    // this has rendered for the same update.
+    useRerenderOnBoundingBoxChange(board, () => {
+        if (!board) {
+            return false;
+        }
+        const placement = placeCircleOffGraphIndicator(
+            SVs.numericalCenter,
+            SVs.numericalRadius,
+            board,
+            SVs.hideOffGraphIndicator,
+        );
+        return (
+            placement.displayOffGraphIndicator !==
+                displayOffGraphIndicator.current ||
+            placement.offGraphIndicatorOrientation.some(
+                (v, i) => v !== offGraphIndicatorOrientation.current?.[i],
+            ) ||
+            placement.offGraphIndicatorCoords.some(
+                (v, i) => !Object.is(v, offGraphIndicatorCoords.current?.[i]),
+            )
+        );
+    });
 
     useJSXGraphCleanup({
         objectRef: circleJXG,
@@ -453,242 +480,16 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     if (board) {
         lastCenterFromCore.current = [...SVs.numericalCenter];
 
-        displayOffGraphIndicator.current = false;
-        offGraphIndicatorOrientation.current = [0, 0];
-        offGraphIndicatorCoords.current = [0, 0];
-
-        if (!SVs.hideOffGraphIndicator) {
-            let centerOffResults = characterizeOffGraphPoint(
-                lastCenterFromCore.current,
-                board,
-            );
-
-            if (centerOffResults.needIndicator) {
-                // center is off graph
-                if (!offGraphIndicatorCoords.current) {
-                    return;
-                }
-
-                let centerSides = centerOffResults.indicatorSides;
-                let { flippedX, flippedY } = getEffectiveBoundingBox(board);
-                let xSign = flippedX ? -1 : 1;
-                let ySign = flippedY ? -1 : 1;
-
-                if (centerSides[0] === 1) {
-                    if (centerSides[1] === 1) {
-                        // off to the upper right
-
-                        // first check if lower left point is off graph
-                        let lowerLeftPoint = [...lastCenterFromCore.current];
-                        lowerLeftPoint[0] -= SVs.numericalRadius * xSign;
-                        lowerLeftPoint[1] -= SVs.numericalRadius * ySign;
-                        let lowerLeftOffResults = characterizeOffGraphPoint(
-                            lowerLeftPoint,
-                            board,
-                        );
-
-                        if (lowerLeftOffResults.needIndicator) {
-                            displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current = [1, 1];
-                            offGraphIndicatorCoords.current =
-                                getGraphCornerWithBuffer(board, [1, 1]);
-                        } else {
-                            // check if a point in lower left quadrant is visible
-
-                            let arcResults = characterizeOffGraphCircleArc({
-                                center: SVs.numericalCenter,
-                                radius: SVs.numericalRadius,
-                                directionToCheck: [1, 1],
-                                board,
-                            });
-
-                            if (arcResults.needIndicator) {
-                                displayOffGraphIndicator.current = true;
-                                offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides!;
-                                offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords!;
-                            }
-                        }
-                    } else if (centerSides[1] === -1) {
-                        // off to the lower right
-
-                        // first check if upper left point is off graph
-                        let upperLeftPoint = [...lastCenterFromCore.current];
-                        upperLeftPoint[0] -= SVs.numericalRadius * xSign;
-                        upperLeftPoint[1] += SVs.numericalRadius * ySign;
-                        let upperLeftOffResults = characterizeOffGraphPoint(
-                            upperLeftPoint,
-                            board,
-                        );
-
-                        if (upperLeftOffResults.needIndicator) {
-                            displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current = [1, -1];
-                            offGraphIndicatorCoords.current =
-                                getGraphCornerWithBuffer(board, [1, -1]);
-                        } else {
-                            // check if a point in upper left quadrant is visible
-
-                            let arcResults = characterizeOffGraphCircleArc({
-                                center: SVs.numericalCenter,
-                                radius: SVs.numericalRadius,
-                                directionToCheck: [1, -1],
-                                board,
-                            });
-
-                            if (arcResults.needIndicator) {
-                                displayOffGraphIndicator.current = true;
-                                offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides!;
-                                offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords!;
-                            }
-                        }
-                    } else {
-                        // off to the right
-                        // check if left most point is off graph
-                        let leftPoint = [...lastCenterFromCore.current];
-                        leftPoint[0] -= SVs.numericalRadius * xSign;
-                        let leftOffResults = characterizeOffGraphPoint(
-                            leftPoint,
-                            board,
-                        );
-
-                        if (leftOffResults.needIndicator) {
-                            displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current =
-                                leftOffResults.indicatorSides;
-                            offGraphIndicatorCoords.current =
-                                leftOffResults.indicatorCoords;
-                        }
-                    }
-                } else if (centerSides[0] === -1) {
-                    if (centerSides[1] === 1) {
-                        // off to the upper left
-
-                        // first check if lower right point is off graph
-                        let lowerRightPoint = [...lastCenterFromCore.current];
-                        lowerRightPoint[0] += SVs.numericalRadius * xSign;
-                        lowerRightPoint[1] -= SVs.numericalRadius * ySign;
-                        let lowerRightOffResults = characterizeOffGraphPoint(
-                            lowerRightPoint,
-                            board,
-                        );
-
-                        if (lowerRightOffResults.needIndicator) {
-                            displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current = [-1, 1];
-                            offGraphIndicatorCoords.current =
-                                getGraphCornerWithBuffer(board, [-1, 1]);
-                        } else {
-                            // check if a point in lower right quadrant is visible
-
-                            let arcResults = characterizeOffGraphCircleArc({
-                                center: SVs.numericalCenter,
-                                radius: SVs.numericalRadius,
-                                directionToCheck: [-1, 1],
-                                board,
-                            });
-
-                            if (arcResults.needIndicator) {
-                                displayOffGraphIndicator.current = true;
-                                offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides!;
-                                offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords!;
-                            }
-                        }
-                    } else if (centerSides[1] === -1) {
-                        // off to the lower left
-
-                        // first check if upper right point is off graph
-                        let upperRightPoint = [...lastCenterFromCore.current];
-                        upperRightPoint[0] += SVs.numericalRadius * xSign;
-                        upperRightPoint[1] += SVs.numericalRadius * ySign;
-                        let upperRightOffResults = characterizeOffGraphPoint(
-                            upperRightPoint,
-                            board,
-                        );
-
-                        if (upperRightOffResults.needIndicator) {
-                            displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current = [-1, -1];
-                            offGraphIndicatorCoords.current =
-                                getGraphCornerWithBuffer(board, [-1, -1]);
-                        } else {
-                            // check if a point in upper right quadrant is visible
-
-                            let arcResults = characterizeOffGraphCircleArc({
-                                center: SVs.numericalCenter,
-                                radius: SVs.numericalRadius,
-                                directionToCheck: [-1, -1],
-                                board,
-                            });
-
-                            if (arcResults.needIndicator) {
-                                displayOffGraphIndicator.current = true;
-                                offGraphIndicatorOrientation.current =
-                                    arcResults.indicatorSides!;
-                                offGraphIndicatorCoords.current =
-                                    arcResults.indicatorCoords!;
-                            }
-                        }
-                    } else {
-                        // off to the left
-                        // check if right most point is off graph
-                        let rightPoint = [...lastCenterFromCore.current];
-                        rightPoint[0] += SVs.numericalRadius * xSign;
-                        let rightOffResults = characterizeOffGraphPoint(
-                            rightPoint,
-                            board,
-                        );
-
-                        if (rightOffResults.needIndicator) {
-                            displayOffGraphIndicator.current = true;
-                            offGraphIndicatorOrientation.current! =
-                                rightOffResults.indicatorSides;
-                            offGraphIndicatorCoords.current =
-                                rightOffResults.indicatorCoords;
-                        }
-                    }
-                } else if (centerSides[1] === 1) {
-                    // off to the top
-                    // check if bottom point is off graph
-                    let bottomPoint = [...lastCenterFromCore.current];
-                    bottomPoint[1] -= SVs.numericalRadius * xSign;
-                    let bottomOffResults = characterizeOffGraphPoint(
-                        bottomPoint,
-                        board,
-                    );
-
-                    if (bottomOffResults.needIndicator) {
-                        displayOffGraphIndicator.current = true;
-                        offGraphIndicatorOrientation.current! =
-                            bottomOffResults.indicatorSides;
-                        offGraphIndicatorCoords.current =
-                            bottomOffResults.indicatorCoords;
-                    }
-                } else {
-                    // off to the bottom
-                    // check if top point is off graph
-                    let topPoint = [...lastCenterFromCore.current];
-                    topPoint[1] += SVs.numericalRadius * xSign;
-                    let topOffResults = characterizeOffGraphPoint(
-                        topPoint,
-                        board,
-                    );
-
-                    if (topOffResults.needIndicator) {
-                        displayOffGraphIndicator.current = true;
-                        offGraphIndicatorOrientation.current! =
-                            topOffResults.indicatorSides;
-                        offGraphIndicatorCoords.current =
-                            topOffResults.indicatorCoords;
-                    }
-                }
-            }
-        }
+        const placement = placeCircleOffGraphIndicator(
+            SVs.numericalCenter,
+            SVs.numericalRadius,
+            board,
+            SVs.hideOffGraphIndicator,
+        );
+        displayOffGraphIndicator.current = placement.displayOffGraphIndicator;
+        offGraphIndicatorOrientation.current =
+            placement.offGraphIndicatorOrientation;
+        offGraphIndicatorCoords.current = placement.offGraphIndicatorCoords;
 
         if (!circleJXG.current) {
             // attempt to create circleJXG.current if it doesn't exist yet
@@ -915,3 +716,93 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
     return <span id={id} />;
 });
+
+/**
+ * Whether and where to draw the off-graph indicator of a circle with `center`
+ * and `radius` on `board`.
+ *
+ * The indicator is shown (unless `hideOffGraphIndicator`) when no part of the
+ * circle is on the graph. `offGraphIndicatorOrientation` gives, for each
+ * coordinate, the side of the graph the circle went off, else 0, as drawn: -1
+ * for left or bottom and 1 for right or top, even when an axis is flipped.
+ * `offGraphIndicatorCoords` is where the indicator is drawn, at the edge of
+ * the graph.
+ */
+function placeCircleOffGraphIndicator(
+    center: [number, number],
+    radius: number,
+    board: JXGBoard,
+    hideOffGraphIndicator: boolean,
+) {
+    const noIndicator = {
+        displayOffGraphIndicator: false,
+        offGraphIndicatorOrientation: [0, 0] as [number, number],
+        offGraphIndicatorCoords: [0, 0] as [number, number],
+    };
+
+    if (hideOffGraphIndicator) {
+        return noIndicator;
+    }
+
+    const centerOffResults = characterizeOffGraphPoint(center, board);
+    if (!centerOffResults.needIndicator) {
+        return noIndicator;
+    }
+
+    const centerSides = centerOffResults.indicatorSides;
+    const { flippedX, flippedY } = getEffectiveBoundingBox(board);
+    const xSign = flippedX ? -1 : 1;
+    const ySign = flippedY ? -1 : 1;
+
+    // Step back from the center toward the graph by the radius in each
+    // direction the center went off. Past one edge, this is the point of the
+    // circle nearest the graph. Past a corner, it is the corner of the
+    // circle's bounding square nearest the graph.
+    const nearestPoint: [number, number] = [
+        center[0] - centerSides[0] * xSign * radius,
+        center[1] - centerSides[1] * ySign * radius,
+    ];
+    const nearestOffResults = characterizeOffGraphPoint(nearestPoint, board);
+
+    if (centerSides[0] === 0 || centerSides[1] === 0) {
+        // Off past one edge.
+        if (!nearestOffResults.needIndicator) {
+            return noIndicator;
+        }
+        return {
+            displayOffGraphIndicator: true,
+            offGraphIndicatorOrientation: nearestOffResults.indicatorSides,
+            offGraphIndicatorCoords: nearestOffResults.indicatorCoords,
+        };
+    }
+
+    // Off past a corner.
+    if (nearestOffResults.needIndicator) {
+        return {
+            displayOffGraphIndicator: true,
+            offGraphIndicatorOrientation: centerSides,
+            offGraphIndicatorCoords: getGraphCornerWithBuffer(
+                board,
+                centerSides,
+            ),
+        };
+    }
+
+    // The bounding square reaches the graph, but the circle may still miss
+    // the graph's corner: check whether its arc facing the graph crosses
+    // into it.
+    const arcResults = characterizeOffGraphCircleArc({
+        center,
+        radius,
+        directionToCheck: centerSides,
+        board,
+    });
+    if (!arcResults.needIndicator) {
+        return noIndicator;
+    }
+    return {
+        displayOffGraphIndicator: true,
+        offGraphIndicatorOrientation: arcResults.indicatorSides!,
+        offGraphIndicatorCoords: arcResults.indicatorCoords!,
+    };
+}
