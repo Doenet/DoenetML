@@ -194,7 +194,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
         // reached `yMax` (if given). Waiting for both keeps a check that
         // expects no indicator from passing before the circle is drawn or
         // before the new limits are applied. `check` receives the circle's
-        // visible off-graph indicators.
+        // visible off-graph indicators and the board.
         function checkIndicators({ yMax, check }) {
             cy.get("#g").then(($g) => {
                 cy.window().should((win) => {
@@ -221,7 +221,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                             o !== circles[0].center &&
                             o.visProp?.visible !== false,
                     );
-                    check(indicators);
+                    check(indicators, board);
                 });
             });
         }
@@ -330,18 +330,10 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
 
             cy.get("#g").find("svg").should("exist");
 
-            cy.get("#g").then(($g) => {
-                cy.window().should((win) => {
-                    const board = Object.values(win.JXG.boards).find(
-                        (b) => b?.containerObj === $g[0],
-                    );
+            checkIndicators({
+                check(indicators, board) {
                     const [xMin, , xMax] = board.getBoundingBox();
                     expect(xMin).greaterThan(xMax);
-                });
-            });
-
-            checkIndicators({
-                check(indicators) {
                     expect(indicators.length).eq(0);
                 },
             });
