@@ -91,9 +91,8 @@ Code: `compositeLists.ts` in `@doenet/utils`, used by four consumers: the render
 Small inconsistencies:
 - `<group>` defaults to `asList="false"` while every other multi-item composite defaults to
   true (D19).
-- A hidden child is drawn by a `<mathList>` and the other authored value lists, drawn but
-  marked hidden by a `<pointList>`, and left out by a `<group asList>`, `<sort>` and `<collect>`
-  (#2265, D29).
+- Lists used to treat a hidden child three different ways. Since #2368 every list leaves it out
+  of what is drawn, and still counts it as a value (D29).
 
 The rule worth stating is: "`hide` affects display, never the values a list holds" (D29).
 

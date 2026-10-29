@@ -96,24 +96,36 @@ snapshot idiom authors already use, and it is one rule with no per-storage cases
 The alternative, "a copy is only the written DoenetML, and no reader state is carried", would
 remove the snapshot idiom (CPY-2). That is Tier 1, so do not take it.
 
-## D3. A copy of an authored value list freezes its entries
+## D3. A copy of an authored value list is its DoenetML pasted (done, #2367)
 
-**Today.** `<mathList copy="$ml"/>` of `<mathList name="ml">$mi 2</mathList>` does not follow `mi`.
-The same list inside a copied `<p>` does follow it (**[probe]**). Its named entries also cannot be
-reached through the copy.
+**Before #2367**, `<mathList copy="$ml"/>` of `<mathList name="ml">$mi 2</mathList>` held the
+values the list had when the copy was made (`serializeUnlinkedAsValues`). It did not follow `mi`,
+and its named entries could not be reached through it. The same list inside a copied `<p>` did
+follow `mi`.
 
-Cause: `serializeUnlinkedAsValues` (`W/components/abstract/AuthoredValueList.js:91`).
+**Now** a copy of any authored list (`mathList`, `numberList`, `textList`, `booleanList`,
+`intervalList`, `tupleList`, `pointList`, `vectorList`) is its DoenetML pasted, as for any other
+component (CPY-1):
+- references in the list stay live (CPY-3);
+- named children are reached through the copy (`$c.h`, NAME-3);
+- a copy made after the reader changed the list starts from its current values, and keeps them
+  through a reload (CPY-2).
 
-**Recommendation.** Paste the list like any other component, per CPY-1. Keep "a copy of a list
-*entry*, or of a prop, holds a value" (CPY-5).
+The value-copy path is removed.
 
-**Tests that change:**
-- `T/tagSpecific/listcomponentvaluelists.test.ts:562`, `:578`, possibly `:591`;
-- `T/copying/list_extend_attributes.test.ts:140`.
-- any test where a copy of an authored list shows a child that is hidden in the source. Under D3
-  the copy pastes the list, so it hides that child too (D29, rule 6).
+**A copy of an extend of a list** pastes what the extend points to (CPY-4), not the linked
+`_copy` inside the extend (`pasteWhatListExtends`):
+- an extend of a whole component (a list, a `<repeat>`, a math) is pasted as that component's
+  DoenetML, so it follows that component's references without being linked to it;
+- an extend of a property holds its values (CPY-5).
 
-Implement D3 before D29, or together with it: D29's rule for copies depends on it.
+**Left as is, noted in #2367:**
+- `<mathList copy="$r"/>` written directly on a `<repeat>` stays linked to the repeat, through
+  the repeat's groups.
+- Two lists that copy each other, or a list that extends itself, fail to load with a
+  circular-dependency error (D14).
+- References into a list copy through a repeat index or a case render empty (B9, #2371).
+- A list `extend` does not reach its children by name (B10).
 
 ## D4. Children and attributes on an `extend` or `copy` of a composite
 
@@ -247,8 +259,8 @@ define a hidden `<select>`, `<sequence>` or list, and show it elsewhere with `$s
 issue #246)", at `select.test.ts:2493` and `conditionalcontent.test.ts:1213`.
 
 `collect` is now the only list special-cased here. A bare `$c` of `<collect hide>` used to be
-hidden only because the collect pushed its `hide` into every entry. D29 rule 1 removes that, so
-#2368 keeps this row with a flag of its own (`listHiddenWithReferences`). Either option below
+hidden only because the collect pushed its `hide` into every entry. D29 rule 1 removed that in
+#2368, which kept this row with a flag of its own (`listHiddenWithReferences`). Either option below
 removes the flag: under (a) every hidden list hides its references, and under (b) none does.
 
 **Options.**
@@ -715,7 +727,14 @@ and adds a special case that users of modules would have to know about.
 
 ## D29. Hidden entries in lists
 
-**Today** a list entry whose source is written with `hide` is handled by three different rules
+**Status: done for `hide` (#2368, closing #2265), on top of D3 (#2367).** Rules 1–6 below hold for
+every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
+the sweep: 19 list forms, each with its first entry's source hidden. Still open:
+- `styleNumber` and display settings under the container model: #2374;
+- a hidden list's entries in a `<choice>`'s text and an `<li>`'s lead: #2375;
+- writes through `$l[k].hide`, a follow-up under VAL-9.
+
+**Before #2368** a list entry whose source is written with `hide` was handled by three different rules
 (#2265, survey at `34393fb`; **[probe]** confirms the main cases). Each list below was written
 with its first entry's source hidden:
 
@@ -775,9 +794,7 @@ placed elsewhere is shown.
    - Leaving hidden entries out of `$l.text` would either shift `$l.text[k]` away from
      `$l[k].text`, or make a property hidden. So `$l.text` is unchanged (#2368).
 6. **A copy hides the same entries as its source**, because a copy is the source's DoenetML
-   pasted (CPY-1). This needs no rule of its own, but it depends on D3. Today
-   `<mathList copy="$ml">` freezes the entries as values and shows the hidden child, while
-   `<sort copy>` already keeps it hidden. **Implement D3 before D29, or together with it.**
+   pasted (CPY-1). This needs no rule of its own. It follows from D3 (#2367).
 
 That makes `hide` on an entry mean what it means on any component, and makes every list one
 family.
@@ -788,14 +805,15 @@ and never override or clear what an entry's source sets:
 - **`hide`.** `hide` on a list hides the list. It never sets, or clears, an entry's `hide`.
   - So `hide="false"` on a `<collect>` no longer reveals entries whose sources are hidden. That
     matches `<sort hide="false">`, and `hide="false"` inside a hidden container (CTX-5).
-  - Today the reveal is pinned by `collect.test.ts` "collect does not ignore hide" and
-    `listcomponentcollections.test.ts`, and #2368 keeps it (`entriesRevealed`). Those tests
-    change.
+  - #2368 removed the reveal. `collect.test.ts` "collect does not ignore hide" became "collect
+    does not ignore hide, and its own hide does not reveal what it collects". It also shows the
+    repeat of extends with `hide="false"` that does reveal (D31).
 - **`styleNumber`, and display settings such as `displayDigits`.** The entry's source's own
   setting wins. The list's applies to entries whose source sets none, which is CTX-5's "nearest
   wins": the source's own attribute is nearer.
-  - Today collect and sort let the list's `styleNumber` override each source's
-    (`LIST_SETTING_OF_PRESENTATION`).
+  - **Not done yet (#2374).** Collect and sort still let the list's `styleNumber` override each
+    source's (`LIST_SETTING_OF_PRESENTATION`). Authored lists and `<pointList>` still ignore a
+    child's `styleNumber`.
   - For the common case, `<collect styleNumber="2">` of points that set no style, the result
     does not change. Tests where a source with its own `styleNumber` is restyled by the list
     change.
@@ -810,28 +828,26 @@ list's own `hide`:
 - `<choice><textList hide>q</textList> r</choice>` has text `q r`; with `<text hide>` it is ` r`;
 - `<li><textList hide>q</textList><p>x</p></li>` leads with the undrawn entry.
 
-#2368 lists this under "Not done". The fix is to include the list's `hiddenIgnoreParent` in each
-entry's (CTX-5).
+Tracked in #2375. The fix is to include the list's `hiddenIgnoreParent` in each entry's (CTX-5).
 
 **Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
 (**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
 `<pointList>` (#2265's follow-up). Display settings such as `displayDigits` do carry through.
 - **Recommendation:** rule 1 covers both. An entry carries its source's own `hide` and
   `styleNumber`, the two presentation attributes D20 already lists for entries.
-- They share one mechanism, so it is simplest to fix them together. Fixing #2265 needs only
-  `hide`, so `styleNumber` may follow in a separate change if that keeps the first one small.
-- **Settled above:** the source's own `styleNumber` wins, and the list's fills in.
+- `hide` is done (#2368). `styleNumber` follows in #2374: the source's own `styleNumber` wins, and
+  the list's fills in.
 
 **Out of scope: writes through `$l[k].hide`.** `<booleanInput bindValueTo="$l[k].hide"/>` does
 nothing in any family, while `$n.hide` is writable (**[probe]**). VAL-9 notes it as a follow-up.
 
-**Tests that change:**
-- the four "…ignore child hide" tests;
-- `listcomponentpointlists.test.ts:729`;
-- any test where a list holds a nested `<sort>` or `<group>` with a hidden item;
-- `<collect hide>` tests that expect `$c[k].hide` true, or `$c[k]` hidden elsewhere
-  (`listcomponentcollections.test.ts`, around `:816`);
-- with rule 6, the D3 tests.
+**Tests changed in #2368:**
+- the four "…within …Lists, ignore child hide" tests, renamed "…a hidden child keeps its value but
+  is not shown";
+- `listcomponentpointlists.test.ts` "an authored point that is not draggable is drawn so, and one
+  that is hidden is not drawn", replacing the test that showed the hidden point through `$pl`;
+- `listcomponentcollections.test.ts`: `$ct.hide` is now the list's own, and the reveal cases;
+- `collect.test.ts` "collect does not ignore hide".
 
 ## D30. Should identity that leaves the core be stable across a reload?
 
