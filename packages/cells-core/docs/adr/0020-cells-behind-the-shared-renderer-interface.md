@@ -22,6 +22,15 @@ benchmark's bench page times the board's own `updateRenderer` as the
 redraw. The measurements below were taken with step 2 and the store fix in
 place and are kept as a record of that path.
 
+Both remain possible later, for all three cores, if large documents need
+them: a board redrawn once per update batch rather than by each element
+as it renders (step 2, the pattern ADR 0010 measured), and the store's
+`processElementUpdates` copying the elements array once instead of
+drafting each changed element through immer (fix 2 below). The profile in
+After four fixes put the drafts at about 5 ms of a `depth-1000` tick, and
+without the batch a tick that moves N points redraws the board N times;
+both costs grow with the elements a tick changes.
+
 The cells core reaches DoenetML's renderers the way the other two cores
 do: as a third core type (`"cells"`) behind the prototype's `CoreWorker`.
 The renderer sees flat DAST, each component's props as its component
