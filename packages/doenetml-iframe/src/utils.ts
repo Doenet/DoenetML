@@ -6,6 +6,7 @@ import type {
 import viewerIframeJsSource from "../dist/iframe-viewer/iframe-viewer-index.iife.js?raw";
 // @ts-ignore
 import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife.js?raw";
+import { STANDALONE_LOAD_FAILED_FLAG } from "./standalone-load-failure";
 
 export type DoenetViewerProps = Omit<
     React.ComponentProps<typeof DoenetViewerOrig>,
@@ -62,10 +63,16 @@ export function setIframeBodyBackground(
     body.setAttribute(BODY_BACKGROUND_ATTRIBUTE, bodyBackgroundMode(darkMode));
 }
 
+/**
+ * The `onerror` handler on the standalone bundle's `<script>` flags a failed
+ * fetch (e.g. a 404 for an `xmlns`-detected version that was never
+ * published) so the boot script can report it to the parent at once rather
+ * than after its poll for the bundle times out. See `standalone-load-failure.ts`.
+ */
 function createIframeHead(standaloneUrl: string, cssUrl: string) {
     return `
     <head>
-        <script type="module" src="${standaloneUrl}"></script>
+        <script type="module" src="${standaloneUrl}" onerror="window.${STANDALONE_LOAD_FAILED_FLAG} = true"></script>
         <link rel="stylesheet" href="${cssUrl}">
         ${BODY_BACKGROUND_STYLE_BLOCK}
     </head>`;

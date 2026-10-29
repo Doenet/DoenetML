@@ -54,6 +54,7 @@
             "command": "vite -c vite.config-iframe-viewer.ts build",
             "files": [
                 "src/iframe-viewer-index.ts",
+                "src/standalone-load-failure.ts",
                 "vite.config-iframe-viewer.ts",
                 "tsconfig.json"
             ],
@@ -81,6 +82,7 @@
             "command": "vite -c vite.config-iframe-editor.ts build",
             "files": [
                 "src/iframe-editor-index.ts",
+                "src/standalone-load-failure.ts",
                 "vite.config-iframe-editor.ts",
                 "tsconfig.json"
             ],
