@@ -142,13 +142,12 @@ export default class AuthoredValueList extends ValueListComponent {
             variables.listEntryGraphSource = "entryGraphSources";
         }
         Object.assign(variables, this.listEntryPresentationVariables);
-        // An entry hidden by its own `hide` is left out by a parent that
-        // reads `hiddenIgnoreParent` of its children, not `hidden`: the
-        // text of a `<choice>` holding the list, and the child a list item
-        // leads with (`childRendersSomething`). The list's own `hide` is not
-        // part of it, although a composite's `hide` is part of its
-        // replacements'.
-        variables.hiddenIgnoreParent = ENTRY_PRESENTATION_ARRAYS.hide;
+        // A parent that reads `hiddenIgnoreParent` of its children, not
+        // `hidden` (the text of a `<choice>` holding the list, and the child
+        // a list item leads with, `childRendersSomething`), leaves out an
+        // entry hidden by its own `hide` or with the list, as a composite's
+        // `hide` is part of its replacements' (#2375).
+        variables.hiddenIgnoreParent = "entryHiddenIgnoreParents";
         if (this.listEntriesShownAsSources) {
             // the component an entry stands for, which a list reading the
             // entry stands it for in turn
@@ -170,6 +169,7 @@ export default class AuthoredValueList extends ValueListComponent {
             variables.push(
                 ...Object.values(this.listEntryPresentationVariables),
             );
+            variables.push("entryHiddenIgnoreParents");
             if (this.listEntriesShownAsSources) {
                 variables.push("entrySourceComponents");
             }
@@ -2041,6 +2041,34 @@ function returnEntryPresentationDefinitions(listClass) {
     };
 
     Object.assign(definitions, returnEntryPresentationArrays(listClass));
+
+    // An entry is hidden, ignoring the list's parent, by its source's own
+    // `hide` or with the list, whose own `hiddenIgnoreParent` counts what
+    // stands between it and its parent (#2375). The entry's `hide` stays its
+    // source's (D29).
+    definitions.entryHiddenIgnoreParents = {
+        returnDependencies: () => ({
+            entryPresentation: {
+                dependencyType: "stateVariable",
+                variableName: "entryPresentation",
+            },
+            listHiddenIgnoreParent: {
+                dependencyType: "stateVariable",
+                variableName: "hiddenIgnoreParent",
+            },
+        }),
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryHiddenIgnoreParents:
+                    dependencyValues.entryPresentation.map((presentation) =>
+                        Boolean(
+                            dependencyValues.listHiddenIgnoreParent ||
+                            presentation.hide,
+                        ),
+                    ),
+            },
+        }),
+    };
 
     if (!listClass.listEntriesShownAsSources) {
         return definitions;

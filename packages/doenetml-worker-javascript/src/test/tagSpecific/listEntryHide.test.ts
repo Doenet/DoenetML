@@ -417,3 +417,111 @@ describe("A hidden entry of a list @group4", async () => {
         expect(await hides()).eqls(made);
     });
 });
+
+/**
+ * A parent that reads its children while ignoring its own hiding (a
+ * `<choice>`'s text, the child an `<li>` leads with) counts a child exactly
+ * when the child would be drawn if the parent were shown (D29, #2375). So
+ * for each content, the choice's text is the text of a `<p>` holding the
+ * same content, and an `<li>` holding it leads with the list's first entry
+ * only when the `<p>` draws it, and otherwise with the string ` r`.
+ */
+describe("What a parent ignoring its own hiding counts of a list @group4", async () => {
+    const contents = [
+        { content: `<textList hide>q</textList> r`, text: " r" },
+        { content: `<group hide><text>q</text></group> r`, text: " r" },
+        // a bare reference to a hidden list or group is shown (D9)
+        { content: `$tl r`, text: "q r" },
+        { content: `$g r`, text: "q r" },
+        {
+            content: `<group hide><textList>q</textList></group> r`,
+            text: " r",
+        },
+        // a bare reference to a hidden `<collect>` is hidden
+        // (`listHiddenWithReferences`)
+        { content: `$c r`, text: " r" },
+        {
+            content: `<collect hide componentType="text" from="$s"/> r`,
+            text: " r",
+        },
+        { content: `<textList><text hide>q</text></textList> r`, text: " r" },
+        { content: `<sequence hide from="1" to="2"/> r`, text: " r" },
+        {
+            content: `<group hide><sequence from="1" to="2"/></group> r`,
+            text: " r",
+        },
+        { content: `$seq r`, text: "1, 2 r" },
+        {
+            content: `<numberList hide><number>1</number></numberList> r`,
+            text: " r",
+        },
+        { content: `<mathList hide>x</mathList> r`, text: " r" },
+        { content: `<booleanList hide>true</booleanList> r`, text: " r" },
+        { content: `<sort hide>2 1</sort> r`, text: " r" },
+    ];
+
+    for (const { content, text } of contents) {
+        it(content, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <setup>
+      <textList name="tl" hide>q</textList>
+      <section name="s"><text>q</text></section>
+      <group name="g" hide><text>q</text></group>
+      <sequence name="seq" hide from="1" to="2"/>
+    </setup>
+    <collect name="c" hide componentType="text" from="$s"/>
+    <choiceInput><choice name="ch">${content}</choice></choiceInput>
+    <p name="p">${content}</p>
+    <ol><li name="li">${content}</li></ol>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+            expect((await stateValues("p")).text).eq(text);
+            expect((await stateValues("ch")).text).eq(text);
+            expect(
+                (await stateValues("li")).childrenToRenderInlineForListItem.map(
+                    (child: any) => child.componentType,
+                ),
+            ).eqls(text === " r" ? [] : [text === "q r" ? "text" : "number"]);
+        });
+    }
+
+    it("a list's `hide` that changes changes what the choice counts", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <choiceInput><choice name="ch"><numberList hide="$h">1 2</numberList> r</choice></choiceInput>
+    <p name="props">$ch.text</p>
+    `,
+        });
+
+        const choiceText = async () =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("ch")
+            ].stateValues.text;
+
+        expect(await choiceText()).eq("1, 2 r");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await choiceText()).eq(" r");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await choiceText()).eq("1, 2 r");
+    });
+});
