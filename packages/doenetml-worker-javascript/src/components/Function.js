@@ -962,7 +962,7 @@ export default class Function extends InlineComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numInputs];
             },
-            returnArrayDependenciesByKey({ arrayKeys }) {
+            returnArrayDependenciesByKey() {
                 let globalDependencies = {
                     variablesAttr: {
                         dependencyType: "attributeComponent",
