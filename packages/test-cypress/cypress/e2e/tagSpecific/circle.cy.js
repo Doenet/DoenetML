@@ -188,4 +188,130 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
             });
         });
     });
+
+    describe("off-graph indicators follow the graph's limits", () => {
+        // The circle's off-graph indicator, if it is shown.
+        function visibleIndicators(win, $g) {
+            const board = Object.values(win.JXG.boards).find(
+                (b) => b?.containerObj === $g[0],
+            );
+            expect(board, "JSXGraph board for graph g").to.exist;
+
+            return Object.values(board.objects).filter(
+                (o) => o?.elType === "point" && o.visProp?.visible !== false,
+            );
+        }
+
+        it("redraws a circle when only the graph's limits change", () => {
+            // The circle's own state never changes here, so nothing but the
+            // new bounding box can tell its renderer to redraw it.
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<mathInput name="yMax" prefill="10" />
+<graph name="g" yMax="$yMax">
+    <circle center="(0,20)" radius="2" />
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#g").find("svg").should("exist");
+
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    const indicators = visibleIndicators(win, $g);
+                    expect(indicators.length).eq(1);
+                    expect(indicators[0].visProp.face).eq("triangleup");
+                    expect(indicators[0].X()).closeTo(0, 1e-12);
+                    expect(indicators[0].Y()).lessThan(10);
+                });
+            });
+
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}30{enter}",
+                { force: true },
+            );
+
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    expect(visibleIndicators(win, $g).length).eq(0);
+                });
+            });
+
+            // The bottom of the circle is on the graph, so there is still no
+            // indicator.
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}19{enter}",
+                { force: true },
+            );
+
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    expect(visibleIndicators(win, $g).length).eq(0);
+                });
+            });
+
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}10{enter}",
+                { force: true },
+            );
+
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    const indicators = visibleIndicators(win, $g);
+                    expect(indicators.length).eq(1);
+                    expect(indicators[0].visProp.face).eq("triangleup");
+                    expect(indicators[0].Y()).lessThan(10);
+                });
+            });
+
+            // The indicator moves to the new edge.
+            cy.get("#yMax textarea").type(
+                "{end}{backspace}{backspace}5{enter}",
+                { force: true },
+            );
+
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    const indicators = visibleIndicators(win, $g);
+                    expect(indicators.length).eq(1);
+                    expect(indicators[0].visProp.face).eq("triangleup");
+                    expect(indicators[0].Y()).lessThan(5);
+                    expect(indicators[0].Y()).greaterThan(4);
+                });
+            });
+        });
+
+        it("shows no indicator for a circle that reaches into a graph with a flipped x-axis", () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<graph name="g" xMin="10" xMax="-10">
+    <circle center="(0,11)" radius="2" />
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#g").find("svg").should("exist");
+
+            cy.get("#g").then(($g) => {
+                cy.window().should((win) => {
+                    const board = Object.values(win.JXG.boards).find(
+                        (b) => b?.containerObj === $g[0],
+                    );
+                    const [xMin, , xMax] = board.getBoundingBox();
+                    expect(xMin).greaterThan(xMax);
+                    expect(visibleIndicators(win, $g).length).eq(0);
+                });
+            });
+        });
+    });
 });
