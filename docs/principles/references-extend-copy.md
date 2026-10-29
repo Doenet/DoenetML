@@ -374,8 +374,9 @@ fails, it falls back to the source's binding (#1805,
 - **Ignored, with a warning:** attributes that would change that content (`for`, `to`,
   `numToSelect`) give `doenet-w0168`, and children written inside give `doenet-w0169` (#2213).
 - **Still applied:** shared attributes (`hide`, `asList`, display settings).
-- **Exceptions:** `<group>` and `<module>`, which do add children and apply `rendered` and
-  module attributes.
+- **Exceptions:** `<group>` and `<module>`, which do add children and apply `rendered`. A
+  module's own `<moduleAttributes>` are not applied on an extend: they are ignored with a warning,
+  as content-setting attributes are. Only a copy applies them (COMP-13).
 
 D32 proposes replacing this with a Tier 1 rule: a tag that makes its own content (repeating,
 choosing or gathering it) cannot be extended. `$x` shows the same content, and `copy` makes a new
