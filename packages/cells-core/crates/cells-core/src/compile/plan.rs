@@ -774,8 +774,8 @@ pub struct Compiled {
     /// In a document with repeats, each math text's parse once a build has
     /// found the math symbolic: a template parses once however many
     /// instances stamp it and however many builds run. Empty in a document
-    /// without repeats, which builds each template once and would only raise
-    /// its load's peak memory by keeping the trees.
+    /// without repeats, whose probe and one build each parse, which costs
+    /// less than keeping the trees would raise its load's peak memory.
     pub(crate) sym_trees: HashMap<ExprId, OnceLock<std::result::Result<Tree<RefId>, String>>>,
     pub(crate) choices: Vec<ChoiceDef>,
     /// The source's `Dast::version_hash`, once per load rather than per

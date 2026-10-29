@@ -294,9 +294,12 @@ impl<'c> Builder<'c> {
             };
         }
         let mut tapes = Vec::new();
-        // Compile curves whose expression has a fixed shape into tapes, unless
-        // the load asked for engine sampling.
-        let compile = !self.session.sample_with_engine;
+        // Compile curves whose expression has a fixed shape into tapes, and
+        // take a fixed shape's derivative once, unless the load asked for
+        // engine sampling. Not in the probe, whose instructions never run:
+        // its build is discarded, and the input signature reads the
+        // expressions themselves (`signature.rs`).
+        let compile = !self.session.sample_with_engine && !folds;
         let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
             let (planned, start, count) = match &self.sources[s] {
