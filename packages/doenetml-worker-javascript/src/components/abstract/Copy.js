@@ -4681,7 +4681,7 @@ function copyChangesChoices({
             // when it writes that default, as `numToSelect="1"`.
             return !writtenAsDefault(written, attributesObject[attrName]);
         }
-        return !sameWrittenValue(written, source);
+        return !sameWrittenValue(written, source, attributesObject[attrName]);
     });
 }
 
@@ -4724,13 +4724,23 @@ function writtenAsDefault(attribute, spec) {
 /**
  * Whether two serialized attributes were written the same: the same
  * primitive, the same literal, or components of the same types with the same
- * text, whatever their indices and positions. A component holding a
- * reference (`extending`) or a value of its own (`state`) is never the same
- * as another, as what it stands for is not in what was written.
+ * text, whatever their indices and positions, and whatever their case when
+ * their attribute specification `spec` lower-cases them, as `type="Letters"`
+ * and `type="letters"`. A component holding a reference (`extending`) or a
+ * value of its own (`state`) is never the same as another, as what it stands
+ * for is not in what was written.
  */
-function sameWrittenValue(a, b) {
-    const writtenA = writtenAttributeValue(a);
-    return writtenA !== null && writtenA === writtenAttributeValue(b);
+function sameWrittenValue(a, b, spec) {
+    let writtenA = writtenAttributeValue(a);
+    let writtenB = writtenAttributeValue(b);
+    if (writtenA === null || writtenB === null) {
+        return false;
+    }
+    if (spec?.toLowerCase) {
+        writtenA = writtenA.toLowerCase();
+        writtenB = writtenB.toLowerCase();
+    }
+    return writtenA === writtenB;
 }
 
 /**
@@ -4739,7 +4749,13 @@ function sameWrittenValue(a, b) {
  */
 function writtenAttributeValue(attribute) {
     if (attribute?.type === "primitive") {
-        return JSON.stringify({ primitive: attribute.primitive });
+        const { value } = attribute.primitive ?? {};
+        return JSON.stringify({
+            primitive: {
+                ...attribute.primitive,
+                value: typeof value === "string" ? value.trim() : value,
+            },
+        });
     }
     if (attribute?.type === "literal") {
         return JSON.stringify({

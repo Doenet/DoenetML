@@ -268,9 +268,19 @@ describe("A copy that changes what is chosen @group3", async () => {
         const doenetML4 = `
 <p><selectPrimeNumbers name="x" numToSelect="2"/></p>
 <p><selectPrimeNumbers name="y" copy="$x" from="2" to="100"/></p>`;
+        // nor does writing a value in another case or with spaces around
+        // it, where the attribute ignores both
+        const doenetML5 = `
+<p><selectFromSequence name="x" type="letters" from="a" to="z" numToSelect="2"/></p>
+<p><selectFromSequence name="y" copy="$x" type=" Letters "/></p>`;
+        const doenetML6 = `
+<p><selectRandomNumbers name="x" type="gaussian" numToSelect="2"/></p>
+<p><selectRandomNumbers name="y" copy="$x" type="Gaussian"/></p>`;
         for (const [doenetML, variable] of [
             [doenetML3, "selectedIndices"],
             [doenetML4, "selectedValues"],
+            [doenetML5, "selectedValues"],
+            [doenetML6, "selectedValues"],
         ] as const) {
             for (const requestedVariantIndex of variantIndices) {
                 const { x, y, errors } = await choices({
