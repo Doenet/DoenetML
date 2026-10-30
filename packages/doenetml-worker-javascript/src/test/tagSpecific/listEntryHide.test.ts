@@ -544,3 +544,122 @@ describe("What a parent ignoring its own hiding counts of a list @group4", async
         expect(await choiceText()).eq("1, 2 r");
     });
 });
+
+/**
+ * Content hidden on its own inside another list: a hidden inner list, or a
+ * hidden composite (`<group>`, `<collect>`, `<sequence>`) between an entry's
+ * source and the outer list. That `hide` hides a container of the entry's
+ * source, as the outer list's own `hide` does (D29 rule 4, CTX-8; #2390):
+ * the entry is not drawn in the outer list and is `hidden`, but its `hide`
+ * is still its source's own, so `$l[1]` placed elsewhere is shown. A
+ * `<choice>` holding the same content counts what the `<p>` draws.
+ */
+describe("Hidden content nested inside a list @group4", async () => {
+    const contents = [
+        {
+            list: `<textList name="l"><textList hide>q</textList> r</textList>`,
+            shown: "r",
+            first: "q",
+        },
+        {
+            list: `<numberList name="l"><group hide><number>1</number></group><number>2</number></numberList>`,
+            shown: "2",
+            first: "1",
+        },
+        {
+            list: `<textList name="l"><collect hide componentType="text" from="$s"/> r</textList>`,
+            shown: "r",
+            first: "q",
+        },
+        {
+            list: `<numberList name="l"><sequence hide from="1" to="2"/> 3</numberList>`,
+            shown: "3",
+            first: "1",
+        },
+        {
+            list: `<sort name="l"><group hide><number>1</number></group><number>2</number></sort>`,
+            shown: "2",
+            first: "1",
+        },
+        {
+            list: `<shuffle name="l"><group hide><number>1</number></group></shuffle>`,
+            shown: "",
+            first: "1",
+        },
+        {
+            list: `<sort name="l"><textList hide>q</textList><text>r</text></sort>`,
+            shown: "r",
+            first: "q",
+        },
+    ];
+
+    for (const { list, shown, first } of contents) {
+        it(list, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <setup><section name="s"><text>q</text></section></setup>
+    <p name="p">${list}</p>
+    <p name="entry">$l[1]</p>
+    <p name="props">$l[1].hide $l[1].hidden</p>
+    <choiceInput><choice name="ch">${list.replace(` name="l"`, "")}</choice></choiceInput>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const text = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text;
+
+            expect(await text("p")).eq(shown);
+            expect(await text("entry")).eq(first);
+            expect(await text("props")).eq("false true");
+            expect(await text("ch")).eq(shown);
+        });
+    }
+
+    it("a hidden group around children of a sort is still sorted with them, and shows as its `hide` changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number><number>4</number></group><number>1</number></sort></p>
+    <p name="entries">$l[1] $l[2] $l[3] $l[4]</p>
+    <math name="value">$l</math>
+    `,
+        });
+
+        const texts = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: Record<string, string> = {};
+            for (const name of ["p", "entries", "value"]) {
+                texts[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return texts;
+        };
+
+        expect(await texts()).eqls({
+            p: "1, 2, 3, 4",
+            entries: "1 2 3 4",
+            value: "1, 2, 3, 4",
+        });
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p: "1, 3",
+            entries: "1 2 3 4",
+            value: "1, 2, 3, 4",
+        });
+    });
+});

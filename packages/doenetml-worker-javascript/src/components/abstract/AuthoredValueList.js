@@ -2021,20 +2021,36 @@ function returnEntryPresentationDefinitions(listClass) {
             children: {
                 dependencyType: "child",
                 childGroups: componentGroups,
-                variableNames: ENTRY_PRESENTATION_SOURCE_VARIABLES,
+                variableNames: [
+                    ...ENTRY_PRESENTATION_SOURCE_VARIABLES,
+                    "hiddenIgnoreParent",
+                ],
                 variablesOptional: true,
             },
         }),
         definition: ({ dependencyValues }) => ({
             setValue: {
                 entryPresentation: dependencyValues.entryStructure.map(
-                    (source) =>
-                        source.componentInd === undefined
-                            ? {}
-                            : sourcePresentation(
-                                  dependencyValues.children[source.componentInd]
-                                      ?.stateValues,
-                              ),
+                    (source) => {
+                        if (source.componentInd === undefined) {
+                            return {};
+                        }
+                        const stateValues =
+                            dependencyValues.children[source.componentInd]
+                                ?.stateValues;
+                        // A child hidden by a container of its source between
+                        // it and the list, such as an inner `<textList hide>`
+                        // or a `<group hide>` it is a replacement of, hides
+                        // the entry as the list's own `hide` does: not drawn
+                        // and `hidden`, but its `hide` is still the source's
+                        // own (D29, #2390).
+                        return {
+                            ...sourcePresentation(stateValues),
+                            hiddenByContainer: Boolean(
+                                stateValues?.hiddenIgnoreParent,
+                            ),
+                        };
+                    },
                 ),
             },
         }),
@@ -2064,7 +2080,8 @@ function returnEntryPresentationDefinitions(listClass) {
                     dependencyValues.entryPresentation.map((presentation) =>
                         Boolean(
                             dependencyValues.listHiddenIgnoreParent ||
-                            presentation.hide,
+                            presentation.hide ||
+                            presentation.hiddenByContainer,
                         ),
                     ),
             },
@@ -2176,12 +2193,16 @@ export function returnEntryPresentationArrays(listClass) {
                 const values = dependencyValues.entryPresentation.map(
                     (presentation) => {
                         if (entryVariable === "hidden") {
-                            // Hidden with the list, or by the source's own
-                            // `hide`. A reference to the whole list (`$l`),
-                            // which the list's `hide` does not hide
-                            // (`hideIsOwn`), still hides that entry.
+                            // Hidden with the list, by the source's own
+                            // `hide`, or by a hidden container of the source
+                            // inside the list (`hiddenByContainer`). A
+                            // reference to the whole list (`$l`), which the
+                            // list's `hide` does not hide (`hideIsOwn`), still
+                            // hides that entry.
                             return Boolean(
-                                dependencyValues.listValue || presentation.hide,
+                                dependencyValues.listValue ||
+                                presentation.hide ||
+                                presentation.hiddenByContainer,
                             );
                         }
                         if (listSets) {

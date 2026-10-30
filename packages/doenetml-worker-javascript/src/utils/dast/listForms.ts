@@ -15,7 +15,8 @@ import { serializedAttributeComponent } from "../literalAttribute";
  * - a `<sort>` or `<shuffle>` qualifies when every child is a value of one
  *   of the types of `REORDERED_LIST_BASES`, or a list of them: an authored
  *   component, the text its sugar split into such components, a reference
- *   whose type the document gives, or a list component;
+ *   whose type the document gives, a list component, or a `<group>` of
+ *   such children;
  * - and none is an `extend` or `copy`, or takes an attribute the list does
  *   not (`sortByProp`, or, for a `<collect>`, one it would pass on to the
  *   copies it makes, other than the display settings and `hide`).
@@ -82,6 +83,12 @@ const LIST_FORM_ATTRIBUTES: Record<string, Set<string>> = {
     ]),
     shuffle: new Set(["name", "type", "aslist"]),
 };
+
+/**
+ * The attributes, in lowercase, that a `<group>` among the children of a
+ * `<sort>` or `<shuffle>` can have for the list form to read through it.
+ */
+const GROUP_ATTRIBUTES = new Set(["name", "hide"]);
 
 /**
  * The attributes, in lowercase, that an `extend` or `copy` of each list form
@@ -240,6 +247,9 @@ export function convertToListForms({
         if (child.componentType === "_copy") {
             return referenceValueType(child);
         }
+        if (child.componentType === "group") {
+            return groupValueType(child);
+        }
         const componentClass = componentInfoObjects.allComponentClasses[
             child.componentType
         ] as any;
@@ -307,6 +317,49 @@ export function convertToListForms({
         return target ? valueTypeOf(target.valueComponentType) : undefined;
     }
 
+    /**
+     * The type of the values of a `<group>` among the children, read as the
+     * values of its children are, as an authored list reads them. Only a
+     * group that is not an `extend` or `copy` and sets nothing but its name
+     * and `hide` qualifies, so that a hidden group hides its entries in the
+     * list as it hides them anywhere else (#2390).
+     */
+    function groupValueType(
+        group: SerializedComponent,
+    ): string | null | undefined {
+        if (
+            group.extending !== undefined ||
+            !Object.keys(group.attributes).every((name) =>
+                GROUP_ATTRIBUTES.has(name.toLowerCase()),
+            )
+        ) {
+            return undefined;
+        }
+        return childrenValueType(group.children);
+    }
+
+    /**
+     * The one type of the values of `children`, `null` when they give no
+     * value, or `undefined` when the document does not say or they give
+     * values of more than one type.
+     */
+    function childrenValueType(
+        children: (SerializedComponent | string)[],
+    ): string | null | undefined {
+        let type: string | null = null;
+        for (const child of children) {
+            const childType = childValueType(child);
+            if (childType === null) {
+                continue;
+            }
+            if (childType === undefined || (type && type !== childType)) {
+                return undefined;
+            }
+            type = childType;
+        }
+        return type;
+    }
+
     function hasOnlyListFormAttributes(component: SerializedComponent) {
         const allowed = LIST_FORM_ATTRIBUTES[component.componentType];
         return Object.keys(component.attributes).every(
@@ -370,17 +423,7 @@ export function convertToListForms({
 
     /** The type of the values a `<sort>` or `<shuffle>` reorders, if one. */
     function reorderedType(component: SerializedComponent): string | null {
-        let type: string | null = null;
-        for (const child of component.children) {
-            const childType = childValueType(child);
-            if (childType === null) {
-                continue;
-            }
-            if (childType === undefined || (type && type !== childType)) {
-                return null;
-            }
-            type = childType;
-        }
+        const type = childrenValueType(component.children);
         return type && type in REORDERED_LIST_BASES ? type : null;
     }
 

@@ -387,10 +387,10 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 545,
+  "dependencies": 561,
   "shadows": 1,
   "stateVariables": 421,
-  "stateVariablesResolved": 245,
+  "stateVariablesResolved": 249,
 }
 `;
 
@@ -428,9 +428,9 @@ exports[`component census of the micro-documents > textList $mi a 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 465,
+  "dependencies": 474,
   "shadows": 1,
   "stateVariables": 382,
-  "stateVariablesResolved": 222,
+  "stateVariablesResolved": 225,
 }
 `;
