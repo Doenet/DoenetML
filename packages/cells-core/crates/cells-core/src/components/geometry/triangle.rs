@@ -16,8 +16,15 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        // The vertices follow, as the list.
         numVertices: by_planner { rendered },
+        // The mean of the vertices; the renderer's center handle requests
+        // it, and it translates every vertex. The vertices follow, as the
+        // list.
+        cx: by_planner { interactive },
+        cy: by_planner { interactive },
+    }
+    combined_props {
+        center: [cx, cy],
     }
     list {
         names: [vertices],
@@ -27,6 +34,10 @@ component! {
         attribute: vertices,
         interactive: true,
         rendered: true,
+    }
+    alternate_names {
+        centerX1: cx,
+        centerX2: cy,
     }
     sticky: Shape::Closed,
     attributes {
@@ -47,6 +58,14 @@ component! {
     }
     planner: Plan(plan),
 }
+
+// Planned as a polygon, whose table it shares.
+const _: () = assert!(
+    Props::AT.numVertices == super::polygon::NUM_VERTICES
+        && Props::AT.cx == super::polygon::CX
+        && Props::AT.cy == super::polygon::CY,
+    "a triangle's props must be laid out as a polygon's"
+);
 
 /// Plans a triangle: a polygon whose three vertices default as the current
 /// core's do.

@@ -7,7 +7,7 @@ use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::limits::byte;
+use crate::limits::{MAX_VEC_IN, byte};
 use crate::program::{Pivot, RigidOpts, VecOp};
 use crate::tick::snap::Shape;
 
@@ -18,8 +18,15 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        // The vertices follow, as the list.
         numVertices: by_planner { rendered },
+        // The mean of the vertices; the renderer's center handle requests
+        // it, and it translates every vertex. The vertices follow, as the
+        // list.
+        cx: by_planner { interactive },
+        cy: by_planner { interactive },
+    }
+    combined_props {
+        center: [cx, cy],
     }
     list {
         names: [vertices],
@@ -31,6 +38,10 @@ component! {
         // renderer draws every one.
         interactive: true,
         rendered: true,
+    }
+    alternate_names {
+        centerX1: cx,
+        centerX2: cy,
     }
     sticky: Shape::Closed,
     attributes {
@@ -49,6 +60,8 @@ component! {
 }
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
+pub const CX: usize = Props::AT.cx;
+pub const CY: usize = Props::AT.cy;
 
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
@@ -196,8 +209,35 @@ pub(super) fn plan_vertices(
         // from its siblings without a cycle.
         _ => (0..n).map(vertex).collect(),
     };
+    // The center: one `Centroid` over the vertices, which reads at most
+    // `MAX_VEC_IN` inputs.
+    let [cx, cy] = if n == 0 {
+        [Wire::absent(), Wire::absent()]
+    } else if 2 * n > MAX_VEC_IN {
+        let w = ctx.warn(
+            "cells-polygon-center-unsupported",
+            &format!(
+                "the center of a polygon of more than {} vertices is not supported",
+                MAX_VEC_IN / 2
+            ),
+        );
+        [Wire::undefined(w), Wire::undefined(w)]
+    } else {
+        let vertices = (1..=n)
+            .flat_map(|k| (0..2).map(move |j| (k, j)))
+            .map(|(k, j)| {
+                component_type
+                    .list_slot(n_public, k, j)
+                    .expect("a vertex the polygon holds")
+            })
+            .collect();
+        ElemWiring::vector([CX, CY], VecOp::Centroid { n: byte(n) }, vertices)
+    };
+    // A triangle's table is laid out as this one (`triangle.rs`).
     wiring.set_public(Props {
         numVertices: Wire::fixed(n as f64),
+        cx,
+        cy,
     });
     wiring.set_list(points);
     Ok(wiring)

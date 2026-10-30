@@ -183,8 +183,10 @@ fn census() {
     // and `lines.doenet` constrain (written as attributes before the
     // unread-attribute check, which the point ignored), both live. A
     // `fixed` costs no instruction since it holds cells (ADR 0022,
-    // amended): `fixed.doenet`'s three holds are gone.
-    assert!(golden[0] <= 179 && golden[1] == 274, "{golden:?}");
+    // amended): `fixed.doenet`'s three holds are gone. Each of the four
+    // polygons' centers is a `Centroid` (ADR 0026), live since the
+    // renderer's center handle requests it.
+    assert!(golden[0] <= 183 && golden[1] == 278, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

@@ -28,6 +28,7 @@
 //! |                          | branch's cell                         |                                                                      | never the choice  |
 //! | `WeightedMean{n}`        | (n weights, n credits) → (mean,       | none: credit is not set by a request                                 | none              |
 //! |                          | total weight)                         |                                                                      |                   |
+//! | `Centroid{n}`            | n points → their mean                 | translate every point by the requested center's shift                | every point       |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]); the engine, not the
@@ -132,6 +133,10 @@ pub enum VecOp {
     /// projects onto the bounds and writes input 0 (ADR 0003). A vector
     /// operator only so that a scalar one reads at most two cells.
     Clamp,
+    /// Inputs 2n point coordinates (n ≥ 1); outputs (cx, cy), their mean:
+    /// a polygon's center. A request on it translates every point by the
+    /// shift, as one point group.
+    Centroid { n: u8 },
 }
 
 /// Most inputs a vector operator reads.
@@ -169,6 +174,7 @@ impl VecOp {
             VecOp::Choose { n } => n as usize + 1,
             VecOp::WeightedMean { n } => 2 * n as usize,
             VecOp::Clamp => 3,
+            VecOp::Centroid { n } => 2 * n as usize,
         }
     }
 
@@ -187,6 +193,7 @@ impl VecOp {
             VecOp::First { .. } | VecOp::WeightedMean { .. } => 0,
             VecOp::Choose { n } => first(n as usize + 1) & !1,
             VecOp::Clamp => 1,
+            VecOp::Centroid { n } => first(2 * n as usize),
         }
     }
 
@@ -199,7 +206,7 @@ impl VecOp {
             VecOp::LinePointsFromCoeffs => 4,
             VecOp::ProjectCircle | VecOp::ProjectLine => 2,
             VecOp::First { .. } | VecOp::Choose { .. } | VecOp::Clamp => 1,
-            VecOp::WeightedMean { .. } => 2,
+            VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
         }
     }
 
@@ -281,6 +288,11 @@ impl VecOp {
                 out[1] = total;
             }
             VecOp::Clamp => out[0] = clamp(inp[0], inp[1], inp[2]),
+            VecOp::Centroid { n } => {
+                let (cx, cy) = centroid(inp, n as usize);
+                out[0] = cx;
+                out[1] = cy;
+            }
         }
     }
 
@@ -420,6 +432,18 @@ impl VecOp {
                 }
                 None => false,
             },
+            VecOp::Centroid { n } => {
+                let (dx, dy) = (want(0) - cur[0], want(1) - cur[1]);
+                if !dx.is_finite() || !dy.is_finite() {
+                    return false;
+                }
+                out.group(
+                    (0..n as usize)
+                        .map(|i| point(i, inp[2 * i] + dx, inp[2 * i + 1] + dy))
+                        .collect(),
+                );
+                true
+            }
         }
     }
 }
@@ -741,6 +765,7 @@ mod writes {
             VecOp::Choose { n: 3 },
             VecOp::WeightedMean { n: 2 },
             VecOp::Clamp,
+            VecOp::Centroid { n: 3 },
         ]
     }
 
@@ -845,6 +870,7 @@ mod writes {
             | VecOp::ProjectCircle
             | VecOp::ProjectLine => points(1).collect(),
             VecOp::LinePointsFromCoeffs => points(2).collect(),
+            VecOp::Centroid { .. } => points(1).collect(),
             VecOp::First { .. }
             | VecOp::Choose { .. }
             | VecOp::WeightedMean { .. }

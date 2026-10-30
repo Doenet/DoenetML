@@ -50,6 +50,36 @@ spec! {
         expect { "p.vertex3" = (5, 1) }
     }
 
+    case "the center is the vertices' mean, and a request on it translates them" {
+        doenet r#"<graph><polygon name="p" vertices="(0,0) (4,0) (4,2) (0,2)"/></graph>"#;
+        expect { "p.center" = (2, 1) }
+        request { "p.center" = (5, -1) }
+        expect { "p.vertices" = [3, -2, 7, -2, 7, 0, 3, 0], "p.center" = (5, -1) }
+    }
+
+    case "a center request moves the points the vertices are" {
+        doenet r#"<graph>
+                    <point name="a">(1,1)</point>
+                    <polygon name="p" vertices="$a (3,1) (2,4)"/>
+                  </graph>"#;
+        expect { "p.center" = (2, 2) }
+        request { "p.center" = (3, 0) }
+        expect { "a.coords" = (2, -1), "p.vertices" = [2, -1, 4, -1, 3, 2] }
+    }
+
+    case "a rigid polygon's center translates it" {
+        doenet r#"<graph><polygon name="p" rigid vertices="(0,0) (3,0) (0,3)"/></graph>"#;
+        expect { "p.center" = (1, 1) }
+        request { "p.center" = (2, 3) }
+        expect { "p.vertices" = [1, 2, 4, 2, 1, 5] }
+    }
+
+    case "past 32 vertices the center is not supported, and says so" {
+        doenet r#"<graph><polygon name="p" vertices="(1,0) (2,0) (3,0) (4,0) (5,0) (6,0) (7,0) (8,0) (9,0) (10,0) (11,0) (12,0) (13,0) (14,0) (15,0) (16,0) (17,0) (18,0) (19,0) (20,0) (21,0) (22,0) (23,0) (24,0) (25,0) (26,0) (27,0) (28,0) (29,0) (30,0) (31,0) (32,0) (33,0)"/></graph>"#;
+        diagnostics["cells-polygon-center-unsupported"]
+        expect { "p.numVertices" = 33, "p.x33" = 33 }
+    }
+
     case "a rigid polygon drags as one shape" {
         doenet r#"<graph><polygon name="p" rigid vertices="(0,0) (2,0) (0,2)"/></graph>"#;
         request { "p.vertex1" = (1, 1), "p.vertex2" = (3, 1), "p.vertex3" = (1, 3) }

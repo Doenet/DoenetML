@@ -49,4 +49,11 @@ spec! {
         request { "t.vertex1" = (1, 7), "t.vertex2" = (4, 1), "t.vertex3" = (1, 1) }
         expect { "t.vertices" = [1, 7, 4, 1, 1, 1] }
     }
+
+    case "its center translates it, defaulted vertices too" {
+        doenet r#"<graph><triangle name="t" vertices="(3,3)"/></graph>"#;
+        expect { "t.center" = (4.0 / 3.0, 1) }
+        request { "t.center" = (7.0 / 3.0, 0) }
+        expect { "t.vertices" = [4, 2, 2, -1, 1, -1] }
+    }
 }

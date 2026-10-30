@@ -218,6 +218,7 @@ const polygonReaders: Record<string, Reader> = {
         items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
     numericalVertices: (g) =>
         items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
+    center: (g) => pt(g, "cx", "cy"),
 };
 
 /**
@@ -677,6 +678,30 @@ export async function createTestCoreCells({
                         true,
                     );
                     return;
+                case "movePolygonCenter":
+                case "moveTriangleCenter": {
+                    // As the current core's action: a center that is not
+                    // two finite numbers is ignored.
+                    const center = args.center;
+                    if (
+                        !Array.isArray(center) ||
+                        center.length !== 2 ||
+                        !center.every((x) => Number.isFinite(x))
+                    ) {
+                        return;
+                    }
+                    request(
+                        pointRequests(
+                            componentIdx,
+                            componentType,
+                            "cx",
+                            "cy",
+                            center,
+                        ),
+                        true,
+                    );
+                    return;
+                }
                 case "movePolygon":
                 case "movePolyline": {
                     const reqs: [number, number][] = [];
