@@ -337,6 +337,39 @@ export class RefResolutionDependency extends Dependency {
         return refResolutionAt(component, this.slot);
     }
 
+    /**
+     * Wait for the `_copy` children that fill the list at `listIdx`
+     * (`listCopiesOf`) to expand, and update when they change. Returns
+     * `false` if one has not expanded yet (a blocker was added).
+     *
+     * Not the `_copy` `composite` belongs to, or one holding it: a list that
+     * copies itself (`<mathList name="c" copy="$c"/>`) would wait on itself,
+     * where it should report the cycle.
+     */
+    async waitForListCopies(listIdx: number, composite: any) {
+        const listCopies = listCopiesOf(
+            this.dependencyHandler._components[listIdx],
+        ).filter(
+            (copy) =>
+                copy.componentIdx !== composite.componentIdx &&
+                !composite.ancestors?.some(
+                    (ancestor: any) =>
+                        ancestor.componentIdx === copy.componentIdx,
+                ),
+        );
+        const unexpandedListCopy = listCopies.find((copy) => !copy.isExpanded);
+        if (unexpandedListCopy) {
+            await this.addBlockerForUnexpandedComposite(unexpandedListCopy);
+            return false;
+        }
+        if (listCopies.length > 0) {
+            const indices = listCopies.map((copy) => copy.componentIdx);
+            this.compositeReplacementDependencies.push(...indices);
+            this.addUpdateTriggersForCompositeReplacements(indices);
+        }
+        return true;
+    }
+
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
 
@@ -406,33 +439,12 @@ export class RefResolutionDependency extends Dependency {
         // `_copy` inside what that one made, too. Wait for them, as for a copy
         // made with `_createComponentIdx` above, so that `$c.h` finds the
         // copy's `h` wherever it is written (NAME-2).
-        // Not the `_copy` this reference belongs to, or one holding it: a
-        // list that copies itself (`<mathList name="c" copy="$c"/>`) would
-        // wait on itself, where it should report the cycle.
-        const listCopies = listCopiesOf(
-            this.dependencyHandler._components[nodeIdx],
-        ).filter(
-            (copy) =>
-                copy.componentIdx !== composite.componentIdx &&
-                !composite.ancestors?.some(
-                    (ancestor: any) =>
-                        ancestor.componentIdx === copy.componentIdx,
-                ),
-        );
-        const unexpandedListCopy = listCopies.find((copy) => !copy.isExpanded);
-        if (unexpandedListCopy) {
-            await this.addBlockerForUnexpandedComposite(unexpandedListCopy);
-
+        if (!(await this.waitForListCopies(nodeIdx, composite))) {
             return {
                 success: false,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
-        }
-        if (listCopies.length > 0) {
-            const indices = listCopies.map((copy) => copy.componentIdx);
-            this.compositeReplacementDependencies.push(...indices);
-            this.addUpdateTriggersForCompositeReplacements(indices);
         }
 
         // Resolve all components in the path indices to integer values
@@ -675,6 +687,23 @@ export class RefResolutionDependency extends Dependency {
                     },
                     ...(refResolution.unresolvedPath ?? []),
                 ],
+            };
+        }
+
+        // The name was resolved to a list made inside a copy (`$E.e.h` for
+        // an `extend` `E` of a component holding `<mathList name="e"
+        // extend="$l"/>`), whose children are again made by a `_copy` child
+        // that may not have expanded yet. Wait for it, as for the list the
+        // reference starts at (above), so that `h` is not read as a property.
+        if (
+            refResolution.unresolvedPath !== null &&
+            refResolution.nodeIdx !== nodeIdx &&
+            !(await this.waitForListCopies(refResolution.nodeIdx, composite))
+        ) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
             };
         }
 

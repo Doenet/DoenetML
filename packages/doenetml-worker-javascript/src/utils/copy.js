@@ -3,6 +3,26 @@ import {
     unwrapSource,
 } from "./dast/convertNormalizedDast";
 
+/**
+ * Whether the names inside what `composite` makes are reached through its
+ * name (`$e.h`): it is the `_copy` made for an `extend` (or `copy`) of a list
+ * (`forList`) or of any other component (`_createComponentIdx`). A reference
+ * (`$l`) has no name to reach them through.
+ *
+ * A linked copy of a list made in such a `_copy` keeps the list's named
+ * children (`namesReachedThroughCopy`, `BaseComponent.serialize`). So does
+ * the shadow of a composite's replacements or of a parent's new children,
+ * decided by the `_copy` mediating it (`shadows.compositeIdx`) so that it is
+ * made with the same children as the copy that holds it
+ * (`createComponentIndicesFromSerializedChildren` matches the two).
+ */
+export function namesReachedThroughCopy(composite) {
+    return (
+        composite?.doenetAttributes.forList !== undefined ||
+        composite?.attributes._createComponentIdx !== undefined
+    );
+}
+
 export function postProcessCopy({
     serializedComponents,
     componentIdx,

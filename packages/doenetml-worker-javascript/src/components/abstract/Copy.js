@@ -3,6 +3,7 @@ import CompositeComponent from "./CompositeComponent";
 import ValueListComponent from "./ValueListComponent";
 import Group from "../Group";
 import {
+    namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
     addAttributesToSingleReplacement,
@@ -1729,6 +1730,8 @@ export default class Copy extends CompositeComponent {
                     copyPrimaryEssentialIfShadow: !link,
                     copyEssentialStateIfShadow: !link,
                     errorIfEncounterComponent: [component.componentIdx],
+                    namesReachedThroughCopy:
+                        link && namesReachedThroughCopy(component),
                 }),
             ];
 

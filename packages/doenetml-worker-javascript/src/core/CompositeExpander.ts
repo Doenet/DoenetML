@@ -15,6 +15,7 @@ import {
 } from "./ResolverAdapter";
 import {
     addAttributesToSingleReplacement,
+    namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "../utils/copy";
@@ -535,10 +536,15 @@ async function expandShadowingComposite({
     // value reference as one.
     const valueReferenceAsComponent =
         component.attributes._createComponentOfType?.primitive != null;
+    // as the mediating copy was made (`namesReachedThroughCopy`)
+    const namesReached = namesReachedThroughCopy(
+        core._components[component.shadows.compositeIdx],
+    );
     for (let [idx, repl] of shadowedComposite.replacements.entries()) {
         if (typeof repl === "object") {
             const serializedComponent = await repl.serialize({
                 valueReferenceAsComponent,
+                namesReachedThroughCopy: namesReached,
             });
 
             if (component.constructor.useSerializedChildrenComponentIndices) {

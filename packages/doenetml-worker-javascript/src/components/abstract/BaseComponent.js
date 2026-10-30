@@ -1431,6 +1431,31 @@ export default class BaseComponent {
         return descendants;
     }
 
+    /**
+     * Whether a name is given to one of this component's defining children
+     * or anything beneath them, also to a child written with `extend` or
+     * `copy` (`<math name="h" extend="$m"/>`), whose `_copy` passes its name
+     * on (`_createComponentName`). The `_copy` that fills a list written with
+     * `extend` or `copy` (`forList`) counts as holding one, as the copy of
+     * the list it makes may hold the names of that list's children
+     * (`$E.e.h` for a `<mathList name="e" extend="$l"/>` in `E`'s source).
+     * Whether it does is not read from what it made, as it may not have
+     * expanded yet, and the answer must not depend on when it is asked: a
+     * shadow must be made with the same children as the copy holding it
+     * (`namesReachedThroughCopy`, `utils/copy.js`).
+     */
+    childrenHoldAName() {
+        const holdsAName = (component) =>
+            typeof component === "object" &&
+            component !== null &&
+            (component.attributes?.name !== undefined ||
+                component.attributes?._createComponentName !== undefined ||
+                (component.componentType === "_copy" &&
+                    component.doenetAttributes?.forList !== undefined) ||
+                component.definingChildren?.some(holdsAName));
+        return this.definingChildren.some(holdsAName);
+    }
+
     async serialize(parameters = {}) {
         if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
             throw Error(
@@ -1440,10 +1465,18 @@ export default class BaseComponent {
 
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
-        // without its children unless the copy is unlinked (`copyAll`).
+        // without its children unless the copy is unlinked (`copyAll`), or
+        // the copy is made in an `extend`, whose descendants are reached
+        // through its name (`namesReachedThroughCopy`, `utils/copy.js`), and
+        // a child holds a name: the copy's children are then where that
+        // name is reached (`$e.h` of `<mathList name="e" extend="$l"/>`), as
+        // for `<p extend>`. A reference (`$l`) has no name to reach them
+        // through, so it is still made without them.
         let includeDefiningChildren =
             !this.constructor.serializeChildrenOnlyIfUnlinked ||
-            Boolean(parameters.copyAll);
+            Boolean(parameters.copyAll) ||
+            (Boolean(parameters.namesReachedThroughCopy) &&
+                this.childrenHoldAName());
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {
