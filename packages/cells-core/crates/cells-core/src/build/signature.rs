@@ -378,6 +378,13 @@ impl<'a> Signer<'a> {
                 hash_of(("f", self.value_hash(c, out.cells[ci])))
             } else if let Some(instr) = instr {
                 let k = self.producer[ci].1;
+                // A `ChoiceIndex`'s count of choices (its second input) is
+                // the input's domain, which condition 1 compares: appending
+                // a choice keeps every index a student could have chosen.
+                let ins = match instr.op {
+                    Op::ChoiceIndex(..) => &ins[..1],
+                    _ => ins,
+                };
                 hash_of(("d", self.op_hash(instr, &reads[..n_inputs]), k, ins))
             } else {
                 hash_of("unwritten")
