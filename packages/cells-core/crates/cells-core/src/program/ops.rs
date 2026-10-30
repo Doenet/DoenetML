@@ -166,6 +166,16 @@ macro_rules! scalar_ops {
                 }
             }
 
+            /// The input positions its inverse may write, as a mask over
+            /// `Op::inputs`: bit `k` for input `k`, as `OpSpec::writes`.
+            pub fn writes(&self) -> u64 {
+                match *self {
+                    $(Op::$name(..) => scalar_ops!(@writes $kind),)*
+                    Op::Vec(op, ..) => op.writes(),
+                    Op::Sym(kind, ..) => kind.writes(),
+                }
+            }
+
             /// The operator with its inputs left out: what it computes, with
             /// its literal parameters, whatever cells it reads.
             #[allow(unused_variables)]

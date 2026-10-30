@@ -31,6 +31,36 @@ impl Document {
             .collect()
     }
 
+    /// One bit per interactive cell whose inverse would write a value that
+    /// reaches it along more than one path, where a request is refused
+    /// (ADR 0024, `program::refuse`). Made once per build, after
+    /// `interactive_bits`.
+    pub(crate) fn refused_bits(&self) -> Vec<u64> {
+        let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
+        let found = crate::program::refuse::analyze(
+            &self.program.instrs,
+            &self.program.operands,
+            self.cells.len(),
+            self.n_essential,
+            &self.interactive_cells(),
+        );
+        for (cell, finding) in found {
+            if let crate::program::refuse::Finding::Twice { .. } = finding {
+                bits[cell.index() / 64] |= 1 << (cell.index() % 64);
+            }
+        }
+        bits
+    }
+
+    /// Whether a request on `cell` is refused: its inverse would write a
+    /// value that reaches it along more than one path (ADR 0024).
+    #[inline]
+    pub fn is_refused(&self, cell: CellIdx) -> bool {
+        self.refused
+            .get(cell.index() / 64)
+            .is_some_and(|w| w & (1 << (cell.index() % 64)) != 0)
+    }
+
     /// Whether a renderer may request `cell`; see `interactive_cells`.
     #[inline]
     pub fn is_interactive(&self, cell: CellIdx) -> bool {

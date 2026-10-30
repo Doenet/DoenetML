@@ -1,7 +1,7 @@
 # Composed inverses write the input that leads to state, and are checked whole
 
-Status: proposed 2026-10-29. A plan: steps 1 to 4 below are done,
-steps 5 and 6 are to do. It
+Status: proposed 2026-10-29. A plan: steps 1 to 5 below are done,
+step 6 is to do. It
 decides whether component props keep inverting by composition before
 the remaining components are ported (ADR 0016).
 
@@ -141,22 +141,34 @@ as in the current core (`tests/repeat.rs` found this).
 
 ### Refusal (fix 2)
 
-After the writable walk, the build finds each interactive cell's
-*written slots*: those its inverse can reach, following the `writes`
-masks and aliases as the walk does.
+One analysis over the program (`program/refuse.rs`) finds each
+interactive cell's *written cells*: the essential cells its inverse can
+reach, following each operator's `writes` mask (`Op::writes`), as the
+writable walk does.
 
-- It counts the paths from each written slot to the cell over every
+- It counts the paths from each written cell to the cell over every
   input of every instruction, saturating at 2.
-- A vector operator counts as one node: its handwritten inverse is
-  trusted to handle its own inputs together.
+- A vector operator counts as one node: its outputs take the largest
+  count of its inputs, not their sum, since its handwritten inverse is
+  trusted with its own inputs together.
 - A cell with any count of 2 gets a bit beside `interactive`
-  (`document/interactive.rs`).
+  (`document/interactive.rs`), made with it on every build.
 - `request.rs` drops a request on such a cell, before inversion, into
-  `TickOutcome::dropped`.
-- The build emits a warning (a new `cells-` code, ADR 0013) naming the
-  prop and the source it reaches twice.
-- The same pass emits the listing ADR 0016 promised: an info diagnostic
-  for a `drops` operator on an interactive path.
+  `TickOutcome::dropped`. A point group is dropped whole when any of its
+  cells is refused, as the current core fails the whole update when one
+  coordinate cannot be inverted.
+- The probe's build (`build/emit.rs`) runs the same analysis and warns
+  of each refused prop, `cells-request-reaches-its-source-twice`, naming
+  the prop and the value it reaches twice: "a request on 'p.x' is
+  refused: the value it would write, 'n.value', reaches it along more
+  than one path …".
+- The same pass emits the listing ADR 0016 promised: an info diagnostic,
+  `cells-request-meets-no-inverse`, for an interactive prop whose inverse
+  reaches an operator that drops every request (a power, a comparison).
+- *A known gap:* the probe folds a repeat's or an iterate's iterations
+  into one, so a value reaching a cell twice *across* iterations is not
+  seen there. `sir`'s iterates are refused, but the build does not warn
+  of them.
 
 ### Whole-prop checks (fix 3)
 
@@ -297,13 +309,40 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
    - The golden diff, the programs' fingerprints and the round-trip sweep
      are identical: no golden document has an operator turned round, and
      the standing test's known list is unchanged.
-5. **Refusal**: the bit, the drop in `request.rs`, the warning and the
-   `drops` listing. The standing test's known-unstable list becomes
-   empty and is removed.
-   - Expected golden diff: the listed cells' requests are dropped.
-   - Requests the sweep found projected but reaching their source twice
-     (483, nearly all in `sir`) are dropped too. The commit lists those
-     that are not in `sir` and says whether the current core moves them.
+5. **Refusal.** Done: `program/refuse.rs`, the bit, the drop in
+   `request.rs`, the warning and the `drops` listing.
+   - **The standing test's known-unstable list is gone.** It now requires
+     that no request comes out unstable, and runs in 2 seconds, since a
+     refused request stops before inversion.
+   - **The sweep:** the 10,733 unstable requests are refused. So are the
+     483 that came out projected while reaching their source twice: 476
+     in `sir` and 7 in `ops`. One request in `ops` that landed exactly
+     is refused too: it was on point `p`, whose x is refused, so the
+     point is dropped whole.
+   - **Outside `sir`, the refused props are `ops`'s `p.x` and `q.x`.**
+     `p.x` is `$i`, where `n` reaches `i` through `a`, `b` and `f`.
+     `q.x` is `$index`, where `stored` reaches `index` directly and
+     through `floor(...)`. From its code, the current core refuses them
+     too: the `<math>` inverse returns `foundLinear: false` when both
+     operands of an operator hold the variable. This was not run on the
+     current core.
+   - **The golden diff** is `ops` alone: its two warnings, and its
+     scripted drags of `p` and `q` dropped. Before, the drag of `p`
+     asked x = −2.875 and wrote `n = 1`, which put `p` at x = 3. `sir`'s
+     script drags none of its points. The programs are identical.
+   - **`tests/refuse.rs`** checks that these are refused, with the
+     warning: `$n * $n`, `$a + $n` with `a` from `n`, and a whole point
+     whose x is refused. It checks that `$k $n` and a one-path chain are
+     not refused, and that a power is listed.
+   - **The analysis costs** about 2 ms per call on `depth`, `breadth` and
+     `poly` at 100,000 elements, and 27 ms on `coords` (200,000
+     interactive cells along one chain). It runs twice per load, in the
+     probe and in the document, so under 1% of load on the first three
+     and about 5% on `coords`. Each written cell's paths are counted
+     only over the cells from which an asked cell can be reached, and a
+     group asking only the written cell itself is skipped. Loads timed
+     before and after, alternately, agree within the machine's noise of
+     about 5%.
 6. **Measure and close.**
    - `scripts/tick-diff.sh`: the tick must not slow by more than the
      noise floor. The new operators cost what the ones they replace do,

@@ -90,6 +90,10 @@ pub struct Document {
     sticky: Vec<sticky::StickyTable>,
     /// One bit per cell a renderer may request (`interactive.rs`).
     interactive: Vec<u64>,
+    /// One bit per interactive cell whose requests are refused: the value
+    /// its inverse writes reaches it along more than one path (ADR 0024,
+    /// `program::refuse`).
+    refused: Vec<u64>,
     /// Which cells the document computes (ADR 0019, `outputs.rs`).
     live: crate::build::Live,
 
@@ -170,6 +174,7 @@ impl Document {
             structure,
             sticky: Vec::new(),
             interactive: Vec::new(),
+            refused: Vec::new(),
             live,
             session,
             loaded: Loaded {
@@ -184,6 +189,7 @@ impl Document {
         };
         doc.sticky = doc.sticky_tables();
         doc.interactive = doc.interactive_bits();
+        doc.refused = doc.refused_bits();
         doc
     }
 

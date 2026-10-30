@@ -74,6 +74,17 @@ impl Diagnostic {
         }
     }
 
+    pub fn info(code: &'static str, node: Option<NodeId>, message: String) -> Diagnostic {
+        Diagnostic {
+            kind: Kind::Info,
+            level: None,
+            code,
+            message,
+            node,
+            args: BTreeMap::new(),
+        }
+    }
+
     pub fn accessibility(
         level: u8,
         code: &'static str,

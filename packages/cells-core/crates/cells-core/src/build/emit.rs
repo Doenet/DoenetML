@@ -481,6 +481,76 @@ impl<'c> Builder<'c> {
         components.prop_cells.shrink_to_fit();
         components.dast_node.shrink_to_fit();
         components.scope.shrink_to_fit();
+        // Requests the program cannot land (ADR 0024, `program::refuse`):
+        // the probe warns of each interactive prop once, by its template
+        // element, so a repeat's props are named once, not per iteration.
+        if folds {
+            // Each asked cell once, with the first component and prop that
+            // names it.
+            let mut asked = Vec::new();
+            let mut owner: Vec<(usize, usize, usize)> = Vec::new();
+            let mut is_asked = vec![false; cells.len()];
+            for c in 0..n_comps {
+                let base = components.prop_base[c] as usize;
+                let end = components
+                    .prop_base
+                    .get(c + 1)
+                    .map_or(components.prop_cells.len(), |&e| e as usize);
+                let np = end - base;
+                for pi in 0..np {
+                    let cell = components.prop_cells[base + pi];
+                    if !cell.is_none()
+                        && !is_asked[cell.index()]
+                        && components.component_type[c].is_interactive_prop(np, pi)
+                    {
+                        is_asked[cell.index()] = true;
+                        asked.push(cell);
+                        owner.push((c, pi, np));
+                    }
+                }
+            }
+            let findings = crate::program::refuse::analyze(
+                &instrs,
+                &operands.cells,
+                cells.len(),
+                n_essential,
+                &asked,
+            );
+            let at: HashMap<CellIdx, usize> = findings
+                .iter()
+                .map(|(cell, _)| (*cell, asked.iter().position(|a| a == cell).unwrap()))
+                .collect();
+            for (cell, finding) in findings {
+                let (c, pi, np) = owner[at[&cell]];
+                let node = Some(components.dast_node[c]).filter(|n| !n.is_none());
+                let ty = components.component_type[c];
+                let who = match components.name[c] {
+                    StrId::NONE => format!("<{}>", ty.tag()),
+                    s => strings.get(s).trim().to_string(),
+                };
+                let prop = match ty.prop_name(np, pi) {
+                    Some(name) => format!("{who}.{name}"),
+                    None => who,
+                };
+                self.diagnostics.push(match finding {
+                    crate::program::refuse::Finding::Twice { source } => Diagnostic::warning(
+                        "cells-request-reaches-its-source-twice",
+                        node,
+                        format!(
+                            "a request on '{prop}' is refused: the value it would write, '{}', reaches it along more than one path, so the request could not land where it asks",
+                            cell_label(source)
+                        ),
+                    ),
+                    crate::program::refuse::Finding::Drops => Diagnostic::info(
+                        "cells-request-meets-no-inverse",
+                        node,
+                        format!(
+                            "a request on '{prop}' is dropped: it reaches an operator with no inverse (a power or a comparison)"
+                        ),
+                    ),
+                });
+            }
+        }
         Ok(BuildOutput {
             cells,
             n_essential,

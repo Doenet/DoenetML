@@ -10,6 +10,7 @@ use crate::sym::{Engine, Handle};
 use crate::document::CellIdx;
 mod instr;
 mod ops;
+pub mod refuse;
 mod scalar;
 mod vector;
 
