@@ -318,11 +318,12 @@ export function convertToListForms({
     }
 
     /**
-     * The type of the values of a `<group>` among the children, read as the
-     * values of its children are, as an authored list reads them. Only a
-     * group that is not an `extend` or `copy` and sets nothing but its name
-     * and `hide` qualifies, so that a hidden group hides its entries in the
-     * list as it hides them anywhere else (#2390).
+     * The type of the values of a `<group>` among the children: that of its
+     * children, which the list reads through the group, as an authored list
+     * reads through a `<group>` among its children. Only a group that is not
+     * an `extend` or `copy` and sets nothing but its name and `hide`
+     * qualifies, so that a hidden group hides its entries in the list as it
+     * hides them anywhere else (#2390).
      */
     function groupValueType(
         group: SerializedComponent,
