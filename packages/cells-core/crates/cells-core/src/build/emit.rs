@@ -422,6 +422,7 @@ impl<'c> Builder<'c> {
             touched,
             runtime_strings: self.session.runtime_strings.clone(),
             engine: self.session.engine.clone(),
+            math_constants: self.session.math_constants.clone(),
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
         let comp_keys: Vec<ElemKey> = self

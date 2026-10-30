@@ -46,7 +46,7 @@ pub enum SymKind {
 }
 
 /// What a `<math>` does to its expression after instantiating it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Post {
     None,
     Simplify,

@@ -25,6 +25,12 @@ impl<'c> Builder<'c> {
                 reason: "round, floor, min, max and clamp are for numeric math only".into(),
             });
         }
+        // A constant expression is the same in every instance and every
+        // build: made once per load (ADR 0026).
+        let constant = (expr, post);
+        if let Some(&h) = self.session.math_constants.borrow().get(&constant) {
+            return Ok(BuiltSource::Fixed(h.to_value()));
+        }
         let parsed;
         let tree = if let Some(cached) = compiled.sym_trees.get(&expr) {
             cached.get_or_init(|| self.engine.parse_tree(text))
@@ -38,7 +44,7 @@ impl<'c> Builder<'c> {
             // leaves is a fixed expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
             Err(reason) => match self.engine.parse_fixed(text) {
-                Ok(h) => return Ok(BuiltSource::Fixed(self.post(h, post).to_value())),
+                Ok(h) => return Ok(self.math_constant(constant, h)),
                 Err(_) => {
                     return Err(Error::BadMath {
                         text: text.clone(),
@@ -51,7 +57,7 @@ impl<'c> Builder<'c> {
         let tree = self.bind_leaves(tree, scope, &mut leaves)?;
         if leaves.is_empty() {
             let h = self.engine.import(&tree);
-            return Ok(BuiltSource::Fixed(self.post(h, post).to_value()));
+            return Ok(self.math_constant(constant, h));
         }
         if let (Tree::Cell { cell, math: true }, Post::None) = (&tree, post) {
             return Ok(BuiltSource::Alias(*cell));
@@ -65,6 +71,14 @@ impl<'c> Builder<'c> {
             });
         }
         Ok(self.planned_source(PlannedOp::Template { template, post }, &leaves))
+    }
+
+    /// Constant expression `constant` as imported (`h`), its post applied
+    /// and kept for every later instance and build (ADR 0026).
+    fn math_constant(&mut self, constant: (ExprId, Post), h: crate::sym::Handle) -> BuiltSource {
+        let h = self.post(h, constant.1);
+        self.session.math_constants.borrow_mut().insert(constant, h);
+        BuiltSource::Fixed(h.to_value())
     }
 
     /// `post` applied to a fixed expression at build time.

@@ -1,17 +1,19 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. No migration step is done.
+Status: proposed 2026-10-30. Migration phase 1 is done; see Migration.
 
 A **constant** is a cell whose value is a function of the source, the
 document seed and the scope it is in, and of nothing else: not of state,
 not of the iteration counts. No tick changes a constant, and no rebuild
 changes one for a scope that still exists. A cell whose value follows
 the counts is derived, computed from the count cells like any other
-derived cell. A constant that is the same in every instance of its
-template slot is **shared**; shared constants are made once per load, in
-a pool at the front of the cells that every build reuses, so a rebuild
-makes none of them again. An instruction whose every input is a
-constant is evaluated once and becomes a constant itself.
+derived cell. A constant that depends on the document alone, the same
+in every instance of its template slot, is a **document constant**; one
+that depends on its scope too is a **scope constant**. Document constants
+are made once per load, in a pool at the front of the cells that every
+build reuses, so a rebuild makes none of them again. An instruction
+whose every input is a constant is evaluated once and becomes a constant
+itself.
 
 The class has been called *fixed*. It is renamed *constant*, and the
 word *fixed* is kept for the DoenetML attribute, whose effect is a
@@ -119,44 +121,46 @@ as a gated value already is:
 
 What the remaining constants are, by what they depend on:
 
-| Constant | Depends on | Shared |
+| Constant | Depends on | Kind |
 |---|---|---|
-| A given value no student can write (ADR 0018) | the source | yes |
-| An operator's constant (`Arg::Const`) | the source | yes |
-| A written expression's handle, its `simplify` or `expand` applied | the source | yes |
-| `NO_VALUE`, an undefined value's NaN, the missing-referent cell, the dead cell | nothing | yes |
-| A literal hold flag (`fixed`, `fixLocation`) | the source | yes |
-| A synthesized point's `hide` | nothing | yes |
-| An iteration's index | the scope | no |
-| A `FirstIteration` source's constant | the scope | no |
-| A `<selectFromSequence>` pick | the seed and the scope | no |
-| An instruction's value over constants (step 4) | its inputs | when they all are |
+| A given value no student can write (ADR 0018) | the source | document |
+| An operator's constant (`Arg::Const`) | the source | document |
+| A written expression's handle, its `simplify` or `expand` applied | the source | document |
+| `NO_VALUE`, an undefined value's NaN, the missing-referent cell, the dead cell | nothing | document |
+| A literal hold flag (`fixed`, `fixLocation`) | the source | document |
+| A synthesized point's `hide` | nothing | document |
+| An iteration's index | the scope | scope |
+| A `FirstIteration` source's constant | the scope | scope |
+| A `<selectFromSequence>` pick | the seed and the scope | scope |
+| An instruction's value over constants (step 4) | its inputs | document when they all are, else scope |
 
 A rebuild may change which cell a prop names (a missing referent that
 an iteration now provides, ADR 0004); it changes no constant's value.
 
-### 2. A shared constant is the same in every instance
+### 2. Document constants and scope constants
 
-A constant is **shared** when its template slot gives the same value in
-every instance: every iteration, every branch built. It is
-**per-scope** otherwise. Shared is a property of a constant, not a class
-of its own: every rule about constants (inversion, holds, liveness,
+A constant is a **document constant** when its template slot gives the
+same value in every instance: every iteration, every branch built. It
+is a **scope constant** otherwise. A document constant may be written
+inside a repeat; what makes it one is that it does not depend on the
+scope it is stamped in. The two are kinds of constant, not classes of
+their own: every rule about constants (inversion, holds, liveness,
 saved state) is the same for both. What differs is where the cell is
 made (step 3) and whether its index survives a rebuild.
 
 The compile decides it per template slot, once, from the source, as it
 decides what is writable (ADR 0018) and live (ADR 0019): a slot's source
 in the plan says whether it reads its scope (`IterIndex`,
-`SequencePick`, `FirstIteration`), and a folded instruction (step 4) is
-shared when every input is.
+`SequencePick`, `FirstIteration`), and a folded instruction (step 4) is a
+document constant when every input is.
 
-### 3. Shared constants are made once per load
+### 3. Document constants are made once per load
 
 The load makes the **constant pool** after the compile: one cell per
-distinct shared constant, keyed by its value type and its bits, as
+distinct document constant, keyed by its value type and its bits, as
 `const_slot` keys operator constants today. A math handle is imported,
 and simplified or expanded as its source asks, once. The pool holds the
-shared constants of every template slot the live record keeps, stamped
+document constants of every template slot the live record keeps, stamped
 in the first build or not, so a later rebuild never needs one it lacks;
 its size is bounded by the distinct constants in the source.
 
@@ -164,15 +168,15 @@ The pool is the front of the cells, and it is kept with what the load
 fixed (`Loaded`):
 
 ```
- [ shared constants | essential | per-scope constants | derived ]
+ [ document constants | essential | scope constants | derived ]
    made by the load,  ── made by every build, in this order ──
    reused by every build
 ```
 
 A build starts its cells from the pool and does not resolve or emit a
-slot whose template slot is a shared constant: its prop names the pool's
-cell directly. Since the pool's length is fixed for the load, a shared
-constant's index is the same in every build. Per-scope constants are
+slot whose template slot is a document constant: its prop names the pool's
+cell directly. Since the pool's length is fixed for the load, a
+document constant's index is the same in every build. Scope constants are
 made by each build, as fixed cells are today; they are cheap and the
 same in every build that stamps the scope, so nothing caches them.
 
@@ -181,12 +185,12 @@ The dead cell and the missing-referent cell are the pool's first cells.
 ### 4. An instruction over constants is a constant
 
 An instruction whose every input is a constant, its hold flags included,
-is evaluated once and its outputs become constants: shared when every
-input is shared, per-scope otherwise. The probe decides which template
+is evaluated once and its outputs become constants: document constants when
+every input is one, scope constants otherwise. The probe decides which template
 slots fold, after the writable walk and before the live walk, so an
-input read only by folded instructions can be dead. A shared fold is
+input read only by folded instructions can be dead. A document-constant fold is
 evaluated when the load makes the pool, in the probe graph's order; a
-per-scope fold when emit makes the scope's cells. Symbolic instructions
+scope-constant fold when emit makes the scope's cells. Symbolic instructions
 fold the same way, with the session's engine.
 
 This changes no value and no tick's outcome. A request that reaches a
@@ -206,7 +210,7 @@ rebuild and full recompute, always the same.
 | `Wire::essential`, `essential_from`, `text_essential` | `Wire::given`, `given_from`, `given_text` |
 | fixed shape (`fixed_shape`) | constant shape |
 | `Counter::fixed` | `Counter::known` |
-| "Constant" (an operator's literal) | an operator's constant: a shared constant |
+| "Constant" (an operator's literal) | an operator's constant: a document constant |
 
 A **given value** is a value the source gives a prop, by an attribute or
 a default: essential when a student can write it, a constant otherwise.
@@ -222,26 +226,27 @@ holds is *held*.
 - Holds (ADR 0022). A hold on a constant is moot, since no request
   passes a constant, and the held-slot copy (`OpSpec::Copy`) of a
   constant folds to the constant.
-- The interactive bit (ADR 0018). A shared cell an interactive prop
+- The interactive bit (ADR 0018). A document constant an interactive prop
   names (a held point's `x`) drops a request as a fixed cell does today.
 - The cycle check and diagnostics (ADR 0012, ADR 0014), which run on the
   probe's unfolded graph.
-- Pruning (ADR 0019): the pool holds only live shared constants, and a
+- Pruning (ADR 0019): the pool holds only live document constants, and a
   dead slot still names the dead cell.
 - The flat `f64` array and its zero-copy view (ADR 0001).
 
 ## Considered options
 
-- **Two classes, document constants and scope constants.** Rejected:
-  the tick treats them alike, so every rule would say "or". Where they
-  differ is where the build puts them, which a property says.
+- **Document constants and scope constants as two classes**, beside
+  essential and derived. Rejected: the tick treats them alike, so every
+  rule would say "or". Where they differ is where the build puts them
+  and whether an index survives a rebuild, which the kind says.
 - **Keep the structure values as constants of one build** ("build
   constants"). Rejected: it keeps a class whose values change on a
   rebuild under a name that says they do not, and every consumer that
   caches a constant must know which. Each has a derived form already
   (the probe's collect count, the gated section number); the cost is a
   few instructions where a repeat is involved.
-- **Cache per-scope constants in the session**, as essential values
+- **Cache scope constants in the session**, as essential values
   are. Rejected for now: an index or a pick costs less to compute than
   to look up, and is the same either way.
 - **A constant pool outside the cells**, a second array instructions
@@ -252,15 +257,15 @@ holds is *held*.
   record, and still collapses the iterations, but keeps the duplicates
   between slots (seven `1`s in the measured body). Per value costs one
   hash lookup per slot at load, which `const_slot` already pays.
-- **Folding only the shared constants.** Leaves most of the measured
+- **Folding only the document constants.** Leaves most of the measured
   instructions, which read an iteration's index.
 
 ## Consequences
 
-- A rebuild resolves, emits and simplifies no shared constant, and its
+- A rebuild resolves, emits and simplifies no document constant, and its
   cells and instructions shrink by what folds; in the measured body,
   nearly every instruction. The measurement is to be repeated per step.
-- A shared constant keeps its cell index across rebuilds. The bridge may
+- A document constant keeps its cell index across rebuilds. The bridge may
   then skip, after a rebuild, the props that name only pool cells; that
   is a change of its own.
 - `Recompute::Full` and the load's first compute run only instructions
@@ -273,7 +278,7 @@ holds is *held*.
   every constant of a (scope, template slot) has the same value in every
   build that stamps it, and the pool is identical across them.
 - `CONTEXT.md` merges *Fixed cell* and *Constant* into *Constant* (with
-  *shared* and *per-scope*), adds *Given value* and *Constant pool*, and
+  *document constant* and *scope constant*), adds *Given value* and *Constant pool*, and
   uses *held* where it said a `fixed` element. `ARCHITECTURE.md`'s emit,
   "A document loads" and "A repeat's count changes" describe the pool and
   the fold.
@@ -286,23 +291,44 @@ after each.
 1. **Symbolic constants once per load.** `sym_source` keeps each
    constant expression's handle, after its `post`, per (expression,
    post) in the load, so each is imported and simplified once. No other
-   change; the measured `simplify` cost leaves the rebuild.
+   change; the measured `simplify` cost leaves the rebuild. *Done
+   2026-10-30*; see below.
 2. **Structure values become derived.** A collect's count, a section's
    number and a section's credit as in step 1. The `every_count.rs` check
    above, which fails before this phase on a section after a repeat.
    `seed_cells`'s stand-in for a collect's count becomes the ordinary
    case of seeding from a derived count.
 3. **Rename** (step 5), code and docs, with no behavior change.
-4. **Shared or per-scope**, recorded per template slot by the probe
+4. **Document or scope constant**, recorded per template slot by the probe
    beside the writable and live records; a census test prints it per
    golden document and `sir.doenet`.
 5. **Fold** (step 4): the probe records folded template slots; emit
-   evaluates per-scope folds; a full recompute after load changes no
+   evaluates scope-constant folds; a full recompute after load changes no
    constant (tested). Spec cost snapshots move and are rewritten with
    `SPEC_UPDATE=1`.
 6. **The pool** (step 3): the load makes it, builds start from it, and
-   shared slots name it without a source. `is_essential` and `is_const`
+   document-constant slots name it without a source. `is_essential` and `is_const`
    become range checks after the pool. Measured with `perf-diff.sh` and
    `cells-bench` against the commit before phase 1.
 7. **Docs.** `CONTEXT.md` and `ARCHITECTURE.md` as above; this ADR's
    status.
+
+Settled while implementing phase 1:
+
+- The handles are kept in the session (`Session::math_constants`), not
+  in `Compiled`: a handle is a position in the session's engine, and the
+  probe builds with an engine of its own (`build/probe.rs`), so a handle
+  the compile kept would name nothing in the document's engine. The
+  cache is shared with every build's session as the engine is, and only
+  grows as the engine does, so a failed rebuild leaves it valid.
+- An expression is constant exactly when its parsed tree has no cell
+  leaves, which the source decides, so the key needs no scope.
+  `sym_source` looks it up before parsing, after the check that refuses
+  a numeric-only function in a math cell, so a build reports the same
+  errors as before.
+- Values are unchanged: the engine already gave an equal expression the
+  same handle, so the cache saves the import and the `simplify` or
+  `expand`, not a different result.
+- Measured with the benchmark of Context, rebuilding from 5000 to 5001
+  iterations: with `simplify` on the math, 68.0 ms before and 33.2 ms
+  after; without it, 40.2 ms and 35.0 ms (the import alone).

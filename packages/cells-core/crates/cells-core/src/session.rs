@@ -9,10 +9,12 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::build::{ScopeId, ScopeTable};
+use crate::compile::expr::ExprId;
 use crate::compile::plan::ElemKey;
 use crate::dast::NodeId;
 use crate::document::Document;
-use crate::sym::Engine;
+use crate::program::Post;
+use crate::sym::{Engine, Handle};
 
 /// What survives every build of a document.
 #[derive(Debug, Clone, Default)]
@@ -54,6 +56,12 @@ pub struct Session {
     /// only grows, so a handle stays valid for the session, across builds
     /// and through a failed rebuild, which needs nothing back.
     pub engine: Rc<RefCell<Engine>>,
+    /// The handle of each constant expression of the source, its `Post`
+    /// applied, by (expression, post): a math text with no cell leaves,
+    /// imported and simplified or expanded once per load however many
+    /// instances stamp it and however many builds run (ADR 0026). A handle
+    /// into `engine`, so it goes where the engine goes.
+    pub(crate) math_constants: Rc<RefCell<HashMap<(ExprId, Post), Handle>>>,
     /// How many components and slots the last build made: what the next
     /// sizes its tables by, so a rebuild neither over-reserves nor regrows.
     pub(crate) last_build: (usize, usize),
