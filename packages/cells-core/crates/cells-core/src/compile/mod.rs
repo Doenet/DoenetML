@@ -113,6 +113,10 @@ pub(in crate::compile) struct Compiler<'a> {
     /// planned ahead of its turn (a `<math>` another element's math
     /// inlines) is not planned twice.
     planned: HashSet<(u32, u32)>,
+    /// By (template, element), the elements `plan_elem` is planning now:
+    /// one reached again while it plans (a cycle of extends) is left to
+    /// its first call, and the build reports the cycle.
+    planning: HashSet<(u32, u32)>,
 }
 
 /// A name-table entry naming more than one element.
@@ -175,6 +179,7 @@ impl<'a> Compiler<'a> {
             sibling_names: HashSet::new(),
             shared_state: HashMap::new(),
             planned: HashSet::new(),
+            planning: HashSet::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -648,7 +653,8 @@ impl<'a> Compiler<'a> {
     /// else, so `fixed` holds whatever planned it: no planner applies it,
     /// and none can leave it out.
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        if self.planned.contains(&(t.get(), e.get())) {
+        let key = (t.get(), e.get());
+        if self.planned.contains(&key) || !self.planning.insert(key) {
             return Ok(());
         }
         let r = self.plan_elem_inner(t, e).and_then(|()| {
@@ -656,6 +662,7 @@ impl<'a> Compiler<'a> {
             self.compiled.templates[t.index()].elems[e.index()].hold = hold;
             Ok(())
         });
+        self.planning.remove(&key);
         match r {
             Ok(()) => {
                 self.planned.insert((t.get(), e.get()));

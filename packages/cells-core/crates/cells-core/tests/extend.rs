@@ -267,3 +267,110 @@ fn an_extend_across_unrelated_types_is_refused() {
     );
     assert_eq!(v(&doc, "ok", "value"), 1.0);
 }
+
+/// What an extend shares with its referent does not depend on which comes
+/// first in the document: the referent is planned before the copy reads
+/// its shared state.
+#[test]
+fn an_extend_shares_state_whichever_comes_first() {
+    for source in [
+        r#"<graph><point name="P" x="1" y="2"/><point name="Q" extend="$P" y="5"/></graph>"#,
+        r#"<graph><point name="Q" extend="$P" y="5"/><point name="P" x="1" y="2"/></graph>"#,
+    ] {
+        let mut doc = load(source).unwrap();
+        assert_eq!(
+            (v(&doc, "Q", "x"), v(&doc, "Q", "y")),
+            (1.0, 5.0),
+            "{source}"
+        );
+        // `x` is shared, from either side.
+        assert!(set(&mut doc, "Q", "x", 7.0).dropped.is_empty(), "{source}");
+        assert_eq!(v(&doc, "P", "x"), 7.0, "{source}");
+        set(&mut doc, "P", "x", 3.0);
+        assert_eq!(v(&doc, "Q", "x"), 3.0, "{source}");
+        // `y` is the copy's own.
+        set(&mut doc, "Q", "y", 6.0);
+        assert_eq!(
+            (v(&doc, "P", "y"), v(&doc, "Q", "y")),
+            (2.0, 6.0),
+            "{source}"
+        );
+    }
+}
+
+/// An index into a `<collect>` later in the document is planned as one
+/// earlier is: the collect is planned first, so `$c[1]` is indexable, in
+/// an `extend` and in an attribute.
+#[test]
+fn an_index_into_a_later_collect_is_planned_as_an_earlier_one() {
+    let collect = r#"<repeatForSequence name="r" length="2"><number>3</number></repeatForSequence>
+<collect name="c" from="$r" componentType="number"/>"#;
+    let reads =
+        r#"<math name="m" extend="$c[1]"/><graph><point name="P" x="$c[1]" y="2"/></graph>"#;
+    for source in [format!("{collect}{reads}"), format!("{reads}{collect}")] {
+        let doc = load(&source).unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .all(|d| d.kind != DiagnosticKind::Error),
+            "{source}: {:?}",
+            doc.diagnostics()
+        );
+        assert_eq!(
+            (v(&doc, "m", "value"), v(&doc, "P", "x")),
+            (3.0, 3.0),
+            "{source}"
+        );
+    }
+}
+
+/// A container copy whose referent holds a `<collect>` is refused
+/// whichever comes first; the collect is known as one once planned.
+#[test]
+fn a_copied_collect_is_refused_whichever_comes_first() {
+    let repeat = r#"<repeatForSequence name="r" length="2"><point/></repeatForSequence>"#;
+    let g = r#"<graph name="g"><collect name="c" from="$r" componentType="point"/></graph>"#;
+    let copy = r#"<graph name="g2" extend="$g"/>"#;
+    for source in [format!("{repeat}{g}{copy}"), format!("{repeat}{copy}{g}")] {
+        let doc = load(&source).unwrap();
+        let codes: Vec<_> = doc
+            .diagnostics()
+            .iter()
+            .filter(|d| d.kind == DiagnosticKind::Error)
+            .map(|d| d.code)
+            .collect();
+        assert_eq!(codes, ["cells-uncopyable-type"], "{source}");
+    }
+}
+
+/// A container copy of a copy later in the document has the clones its
+/// referent gets when planned.
+#[test]
+fn a_copy_of_a_later_container_copy_has_its_clones() {
+    let g = r#"<graph name="g"><point name="A" x="3" y="0"/></graph>"#;
+    let g2 = r#"<graph name="g2" extend="$g"/>"#;
+    let g3 = r#"<graph name="g3" extend="$g2"/>"#;
+    for source in [format!("{g}{g2}{g3}"), format!("{g3}{g2}{g}")] {
+        let doc = load(&source).unwrap();
+        assert_eq!(v(&doc, "g3.A", "x"), 3.0, "{source}");
+    }
+}
+
+/// A cycle of extends with attributes of their own is a dependency cycle,
+/// not a compile that never ends.
+#[test]
+fn a_cycle_of_extends_is_reported() {
+    for source in [
+        r#"<graph><point name="A" extend="$B" x="1"/><point name="B" extend="$A" y="2"/></graph>"#,
+        r#"<graph><point name="A" extend="$A" x="1"/></graph>"#,
+        r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#,
+    ] {
+        let err = load(source)
+            .err()
+            .unwrap_or_else(|| panic!("{source}: loaded"));
+        assert!(
+            err.to_string().contains("dependency cycle"),
+            "{source}: {err}"
+        );
+    }
+}

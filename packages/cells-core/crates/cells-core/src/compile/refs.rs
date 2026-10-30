@@ -381,6 +381,14 @@ impl<'a> Compiler<'a> {
                     prop = Some(parts_of[k as usize - 1].to_string());
                     continue;
                 }
+                // A `<collect>` (or a polyline) is indexable once planned,
+                // which one later in the document is not yet.
+                if matches!(
+                    self.compiled.templates[cur_t.index()].elems[e.index()].body,
+                    Body::Plain
+                ) {
+                    self.plan_elem(cur_t, e)?;
+                }
                 match self.compiled.templates[cur_t.index()].elems[e.index()].body {
                     Body::Repeat { template } => {
                         let ip = self.plan_index(t, expr, &display)?;

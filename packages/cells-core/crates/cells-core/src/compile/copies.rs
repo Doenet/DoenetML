@@ -62,6 +62,9 @@ impl<'a> Compiler<'a> {
         let r = self
             .plan_elem_target(t, p)
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
+        // A referent later in the document that is itself a copy has its
+        // cloned children once it is planned.
+        self.plan_elem(t, r)?;
         self.plan_attrs(t, e, Some(p))?;
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(t, r, scope, e)?;
@@ -89,6 +92,8 @@ impl<'a> Compiler<'a> {
                         let el = &self.compiled.templates[t.index()].elems[c.index()];
                         (el.component_type, el.name)
                     };
+                    // A `<collect>` is one once planned.
+                    self.plan_elem(t, c)?;
                     if matches!(
                         self.compiled.templates[t.index()].elems[c.index()].body,
                         Body::Repeat { .. } | Body::Collect { .. }
@@ -189,6 +194,11 @@ impl<'a> Compiler<'a> {
                 "attributes or children on an extend of '${}', which is not an element of this scope; a bare extend of it works",
                 self.compiled.refs[p.index()].display
             )));
+        }
+        // The referent's shared state is known once it is planned, which
+        // a referent later in the document is not yet.
+        if let Some(r) = base_elem {
+            self.plan_elem(t, r)?;
         }
         let mut wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
         // Essential state the copy did not override is the original's: the
