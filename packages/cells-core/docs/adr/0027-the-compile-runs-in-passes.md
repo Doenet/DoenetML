@@ -1,6 +1,6 @@
 # The compile runs in passes, each reading only what earlier passes finished
 
-Status: proposed 2026-10-30. Migration steps 1 to 4 are done. Amended
+Status: proposed 2026-10-30. Migration steps 1 to 5 are done. Amended
 2026-10-30: pass 3 plans on demand rather than from a graph made first
 (see "The rule for pass 3").
 
@@ -204,6 +204,12 @@ says otherwise.
    referent must be found from the name table alone, and copies of copies
    expanded in extend order. A copy whose referent is reached through an
    index or another template is refused today (`plan_with_extend`); it
-   stays refused. Removes the pending loop.
+   stays refused. Removes the pending loop. Done: the copies are
+   expanded once the walk is done (`expand_container_copies`), a copy of
+   a copy, or a copy among a referent's children, after its referent; a
+   copy reached again while it expands (one inside its own referent) is
+   a cycle. Since nothing is planned yet, a clone of a `<math>` takes its
+   type when the clone is planned, and a `<collect>` or `<polyline>`
+   under a copied container is refused by its type.
 6. **Split passes 2 and 4 out of `compile_all`** into functions of their
    inputs, so each pass's reads are the arguments it is given.

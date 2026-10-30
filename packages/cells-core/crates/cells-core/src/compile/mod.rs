@@ -118,6 +118,16 @@ pub(in crate::compile) struct Compiler<'a> {
     /// By (template, element), the elements a container copy has cloned:
     /// a clone took its type, so one boxed later cannot be boxed in place.
     cloned_sources: HashSet<(u32, u32)>,
+    /// The container copies (`<graph extend="$g"/>`) pass 1 found, which
+    /// get their clones once every name is in the table.
+    container_copies: Vec<(TemplateId, ElemId)>,
+    /// By (template, element), the container copies expanding now and
+    /// those done: one reached again while it expands is a cycle.
+    expanding: HashSet<(u32, u32)>,
+    expanded: HashSet<(u32, u32)>,
+    /// Whether pass 1 is still running: nothing is planned then, and what
+    /// reads a container copy's children expands it.
+    in_pass1: bool,
     /// The name table: by (template, scope, name), the one descendant of
     /// the scope (or `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when
     /// several do. A name is registered at every ancestor of its element.
@@ -200,6 +210,10 @@ impl<'a> Compiler<'a> {
             errors: Vec::new(),
             boxed_here: HashSet::new(),
             cloned_sources: HashSet::new(),
+            container_copies: Vec::new(),
+            expanding: HashSet::new(),
+            expanded: HashSet::new(),
+            in_pass1: true,
             names: HashMap::new(),
             name_ids: HashMap::new(),
             sibling_names: HashSet::new(),
@@ -305,44 +319,43 @@ impl<'a> Compiler<'a> {
             }
         };
         cp.compiled.templates[0].children = children;
-        // Every name exists now: plan attributes and macro children. Planning
-        // a container copy adds elements, so loop until nothing is pending.
-        while !cp.pending_elems.is_empty() || !cp.pending_macros.is_empty() {
-            for (t, e) in std::mem::take(&mut cp.pending_elems) {
-                cp.plan_elem(t, e)?;
+        // Every name is in the table now: container copies get their
+        // clones, which completes the element set (pass 1).
+        cp.expand_container_copies()?;
+        cp.in_pass1 = false;
+        // Plan every element and macro child (pass 3).
+        for (t, e) in std::mem::take(&mut cp.pending_elems) {
+            cp.plan_elem(t, e)?;
+        }
+        for (t, owner, i, m) in std::mem::take(&mut cp.pending_macros) {
+            // Content of a box is not planned.
+            let dead = match owner {
+                Some(e) => cp.is_box(t, e),
+                None => cp.compiled.templates[t.index()]
+                    .parent
+                    .is_some_and(|(pt, pe)| cp.is_box(pt, pe)),
+            };
+            if dead {
+                continue;
             }
-            for (t, owner, i, m) in std::mem::take(&mut cp.pending_macros) {
-                // Content of a box is not planned.
-                let dead = match owner {
-                    Some(e) => cp.is_box(t, e),
-                    None => cp.compiled.templates[t.index()]
-                        .parent
-                        .is_some_and(|(pt, pe)| cp.is_box(pt, pe)),
-                };
-                if dead {
-                    continue;
+            let scope = match owner {
+                Some(e) => cp.child_scope(t, e),
+                None => ROOT_SCOPE,
+            };
+            let child = match cp.plan_ref(t, scope, m) {
+                Ok(plan) => Child::Macro(plan, dast.macro_has_index(m)),
+                Err(e) if cp.failed_node.is_some() => return Err(e),
+                // A reference that cannot be planned is boxed where it
+                // stands (ADR 0027).
+                Err(error) => {
+                    cp.errors.push(Diagnostic::error(Some(m), &error));
+                    cp.boxed_here.insert(m);
+                    Child::Elem(cp.push_error_elem(t, m, scope))
                 }
-                let scope = match owner {
-                    Some(e) => cp.child_scope(t, e),
-                    None => ROOT_SCOPE,
-                };
-                let child = match cp.plan_ref(t, scope, m) {
-                    Ok(plan) => Child::Macro(plan, dast.macro_has_index(m)),
-                    Err(e) if cp.failed_node.is_some() => return Err(e),
-                    // A reference that cannot be planned is boxed where it
-                    // stands (ADR 0027).
-                    Err(error) => {
-                        cp.errors.push(Diagnostic::error(Some(m), &error));
-                        cp.boxed_here.insert(m);
-                        Child::Elem(cp.push_error_elem(t, m, scope))
-                    }
-                };
-                match owner {
-                    Some(e) => {
-                        cp.compiled.templates[t.index()].elems[e.index()].children[i] = child
-                    }
-                    None => cp.compiled.templates[t.index()].children[i] = child,
-                }
+            };
+            match owner {
+                Some(e) => cp.compiled.templates[t.index()].elems[e.index()].children[i] = child,
+                None => cp.compiled.templates[t.index()].children[i] = child,
             }
         }
         if let Some(error) = cp.restart.take() {
@@ -649,6 +662,9 @@ impl<'a> Compiler<'a> {
         let name = self.attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.pending_elems.push((t, e));
+        if self.is_container_copy(t, e) {
+            self.container_copies.push((t, e));
+        }
         let child_scope = e;
         match component_type {
             ComponentType::FunctionIterates => {
@@ -866,29 +882,41 @@ impl<'a> Compiler<'a> {
     /// cycle of values (`$a.x` in `b`, `$b.x` in `a`) plans in any order
     /// and is the build's to report.
     pub(in crate::compile) fn settled_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
-        if self.settles_in_planning(t, e) {
+        if self.is_container_copy(t, e) {
+            self.expand_container_copy(t, e)?;
+        } else if !self.in_pass1 && self.settles_in_planning(t, e) {
             self.plan_elem(t, e)?;
         }
         Ok(&self.compiled.templates[t.index()].elems[e.index()])
     }
 
     /// Whether planning `e` changes what a reference to it reads: a
-    /// `<math>` may become a point or a tuple (`PlanCtx::set_type`), a
-    /// `<collect>` or a `<polyline>` becomes a collect, a `<pointList>`
-    /// may become an extend of a list, and a container copy gets its
-    /// clones. A clone comes as its original was.
+    /// `<math>` may become a point or a tuple (`PlanCtx::set_type`), and
+    /// so may a clone of one; a `<collect>` or a `<polyline>` becomes a
+    /// collect, and a `<pointList>` may become an extend of a list. A
+    /// container copy has its clones from pass 1 (`expand_container_copy`).
     fn settles_in_planning(&self, t: TemplateId, e: ElemId) -> bool {
         let el = &self.compiled.templates[t.index()].elems[e.index()];
-        if el.node == NodeId::NONE || el.cloned {
+        if el.node == NodeId::NONE && !el.cloned {
             return false;
         }
         match el.component_type {
-            ComponentType::Math
-            | ComponentType::Collect
-            | ComponentType::Polyline
-            | ComponentType::PointList => true,
-            k => k.container() && self.dast.attr_peek(el.node, "extend").is_some(),
+            ComponentType::Math => true,
+            ComponentType::Collect | ComponentType::Polyline | ComponentType::PointList => {
+                !el.cloned
+            }
+            _ => false,
         }
+    }
+
+    /// Whether `e` is a container copy (`<graph extend="$g"/>`), which
+    /// pass 1 gives its clones.
+    pub(in crate::compile) fn is_container_copy(&self, t: TemplateId, e: ElemId) -> bool {
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        el.node != NodeId::NONE
+            && !el.cloned
+            && el.component_type.container()
+            && self.dast.attr_peek(el.node, "extend").is_some()
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
@@ -897,6 +925,15 @@ impl<'a> Compiler<'a> {
             // Every public prop aliases the original's; nothing else to
             // plan.
             ElemShape::Cloned => {
+                // Of its original's type as planning settles it (a clone
+                // of a `<math>` that is a point is a point).
+                let p = self.compiled.templates[t.index()].elems[e.index()]
+                    .extend
+                    .expect("a clone extends its original");
+                if let Some(o) = self.plan_elem_target(t, p) {
+                    let k = self.settled_elem(t, o)?.component_type;
+                    self.compiled.templates[t.index()].elems[e.index()].component_type = k;
+                }
                 self.plan_bare_copy(t, e);
                 Ok(())
             }
@@ -929,6 +966,12 @@ impl<'a> Compiler<'a> {
         }
         if el == NodeId::NONE {
             return Ok(ElemShape::Synthetic);
+        }
+        // A container copy's extend was planned in pass 1, with its clones.
+        if let Some(p) = self.compiled.templates[t.index()].elems[e.index()].extend
+            && component_type.container()
+        {
+            return Ok(ElemShape::ContainerCopy(p));
         }
         let extend = match d.attr(el, "extend") {
             Some(a) => {

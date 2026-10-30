@@ -50,21 +50,93 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
-    /// original's and its children are clones, named under the copy,
-    /// followed by the children written inside the copy (REF-4 of the
-    /// principles: added after the referent's).
+    /// original's. Its children, clones, it has from pass 1
+    /// (`expand_container_copy`).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
+        self.plan_attrs(t, e, Some(p))
+    }
+
+    /// The last of pass 1 (ADR 0027): every container copy gets its
+    /// clones, now that every name is in the table, so the element set is
+    /// complete before anything is planned. A copy of a copy is expanded
+    /// after its referent, whatever the document's order.
+    pub(in crate::compile) fn expand_container_copies(&mut self) -> Result<()> {
+        for (t, e) in std::mem::take(&mut self.container_copies) {
+            self.expand_container_copy(t, e)?;
+        }
+        Ok(())
+    }
+
+    /// Give container copy `e` its children: clones of its referent's,
+    /// named under the copy, followed by the children written inside the
+    /// copy (REF-4 of the principles: added after the referent's). A copy
+    /// that fails is boxed, and the clones it made die with it.
+    pub(in crate::compile) fn expand_container_copy(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
+        let key = (t.get(), e.get());
+        if self.expanded.contains(&key) || self.is_box(t, e) {
+            return Ok(());
+        }
+        if !self.expanding.insert(key) {
+            return Err(Error::Cycle(self.elem_label(t, e)));
+        }
+        let n = self.compiled.templates[t.index()].elems.len();
+        let r = self.expand_container_copy_inner(t, e);
+        self.expanding.remove(&key);
+        self.expanded.insert(key);
+        match r {
+            Ok(()) => Ok(()),
+            Err(error) if self.failed_node.is_some() => Err(error),
+            Err(error) => {
+                let tpl = &mut self.compiled.templates[t.index()];
+                for el in &mut tpl.elems[n..] {
+                    el.component_type = ComponentType::Error;
+                    el.dead = true;
+                }
+                self.box_in_place(t, e, error)
+            }
+        }
+    }
+
+    fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let Elem {
+            node: el,
+            name_scope: scope,
+            ..
+        } = self.compiled.templates[t.index()].elems[e.index()];
+        let a = self
+            .dast
+            .attr(el, "extend")
+            .expect("a container copy extends");
+        let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+            attr: "extend".into(),
+            text: self.attr_text(a).unwrap_or_default(),
+        })?;
+        let p = self.plan_ref(t, scope, m)?;
+        // `<graph extend="$x.prop"/>` is no container copy: pass 3 refuses
+        // it as an extend of a prop.
+        if self.compiled.refs[p.index()].prop.is_some() {
+            return Ok(());
+        }
         let r = self
             .plan_elem_target(t, p)
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
-        // A referent that is itself a copy has its clones once planned.
+        // A referent that is itself a copy has its clones first.
         self.settled_elem(t, r)?;
-        self.plan_attrs(t, e, Some(p))?;
+        if self.is_box(t, r) {
+            return Err(Error::BoxedReferent(
+                self.compiled.refs[p.index()].display.clone(),
+            ));
+        }
+        self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(t, r, scope, e)?;
         let own = std::mem::take(&mut self.compiled.templates[t.index()].elems[e.index()].children);
@@ -87,12 +159,20 @@ impl<'a> Compiler<'a> {
         for ch in kids {
             match ch {
                 Child::Elem(c) => {
-                    // A `<collect>` is one, a `<math>` has its type and a
-                    // copy its clones, once planned.
-                    self.cloned_sources.insert((t.get(), c.get()));
+                    // A copy among the children has its clones first. What
+                    // planning settles is not known yet: a clone of a
+                    // `<math>` takes its type when planned, and a
+                    // `<collect>` or `<polyline>` is refused by its type.
                     let el = self.settled_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
-                    if matches!(el.body, Body::Repeat { .. } | Body::Collect { .. }) {
+                    let repeat = matches!(el.body, Body::Repeat { .. });
+                    self.cloned_sources.insert((t.get(), c.get()));
+                    if repeat
+                        || matches!(
+                            component_type,
+                            ComponentType::Collect | ComponentType::Polyline
+                        )
+                    {
                         return Err(Error::UncopyableType(format!(
                             "{} inside a copied container",
                             component_type.tag()
