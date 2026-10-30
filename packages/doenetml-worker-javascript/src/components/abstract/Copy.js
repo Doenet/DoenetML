@@ -1742,10 +1742,14 @@ export default class Copy extends CompositeComponent {
                 prefix: `${stateIdInfo.prefix}${await stateIdSegmentForCopyOf(replacementSourceComponent)}`,
                 num: stateIdInfo.num,
             };
+            // An unlinked copy is its source's DoenetML pasted, whose
+            // references keep the referents they have in the source (D1).
             let res = createNewComponentIndices(
                 serializedReplacements,
                 nComponents,
                 sourceStateIdInfo,
+                undefined,
+                { keepReferents: !link },
             );
             stateIdInfo.num = sourceStateIdInfo.num;
             serializedReplacements = res.components;

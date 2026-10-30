@@ -7756,7 +7756,7 @@ describe("Extend and references tests @group2", async () => {
             ).eq(true);
         });
 
-        it("attribute inherited by a copy of a copy resolves where that copy is written", async () => {
+        it("attribute inherited by a copy of a copy keeps the referent it has in the copy it copies", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
 <graph name="G"><point name="n">(1,2)</point></graph>
@@ -7777,8 +7777,9 @@ describe("Extend and references tests @group2", async () => {
             expect((await stateOf(core, resolvePathToNodeIdx, "T.G2")).xMin).eq(
                 -3,
             );
+            // In `G2`, `$n` names `T.n`, which is outside what `G3` copies.
             expect((await stateOf(core, resolvePathToNodeIdx, "U.G3")).xMin).eq(
-                -5,
+                -3,
             );
         });
     });

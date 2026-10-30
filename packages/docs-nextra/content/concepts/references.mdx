@@ -163,6 +163,33 @@ To reach a component inside the copy, reference it through the copy's name, as
 </section>
 ```
 
+### References inside copied content
+
+A copy is the original's DoenetML pasted where the copy is written, with its
+names still meaning what they meant in the original. A reference inside the
+copied content to a component outside it keeps pointing at that component, even
+if the copy lands next to another component with the same name. Below, the
+copied paragraph still shows the `n` of the "Original" section, not the `n` of
+the section the copy is in.
+
+```doenet-editor-horiz
+<section name="orig">
+  <title>Original</title>
+  <number name="n">1</number>
+  <p name="p">n is $n.</p>
+</section>
+<section>
+  <title>Copy</title>
+  <number name="n">2</number>
+  <p copy="$orig.p" />
+</section>
+```
+
+A reference to a component inside the copied content points at the copy's own
+version of that component. This holds even when the reference goes through the
+name of the component being copied: `$orig.h` written inside `orig` names the
+copy's `h` in a copy of `orig`.
+
 ### When a name doesn't exist
 
 If nothing with the referenced name can be found, the reference fails. A common

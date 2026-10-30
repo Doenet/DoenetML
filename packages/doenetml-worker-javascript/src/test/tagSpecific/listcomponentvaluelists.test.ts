@@ -656,7 +656,7 @@ describe("Value lists as list components @group4", async () => {
         }
     });
 
-    it("a reference in a list by the list's own name refers to that list in a copy too, as in a copy of a <p>", async () => {
+    it("a reference in a list by the list's own name refers to the copy in a copy, as in a copy of a <p>", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathList name="l"><math name="h">1</math><math>$l.h+1</math></mathList>
@@ -671,8 +671,8 @@ describe("Value lists as list components @group4", async () => {
     `,
         });
 
-        // `$l.h` in the copy is `l`'s `h`, not the copy's own, as `$P.h` in
-        // a copy of `P` is `P`'s
+        // `$l.h` in the copy is the copy's own `h`, not `l`'s, as `$P.h` in
+        // a copy of `P` is the copy's: its referent is inside what is copied
         for (const [input, latex] of [
             ["mc", "7"],
             ["mq", "7"],
@@ -684,8 +684,8 @@ describe("Value lists as list components @group4", async () => {
             });
         }
         expect(await textsOf(core, resolvePathToNodeIdx, ["pc", "Q"])).eqls({
-            pc: "7, 1 + 1",
-            Q: "7 1 + 1",
+            pc: "7, 7 + 1",
+            Q: "7 7 + 1",
         });
         for (const [input, latex] of [
             ["ml", "3"],
@@ -698,8 +698,8 @@ describe("Value lists as list components @group4", async () => {
             });
         }
         expect(await textsOf(core, resolvePathToNodeIdx, ["pc", "Q"])).eqls({
-            pc: "7, 3 + 1",
-            Q: "7 3 + 1",
+            pc: "7, 7 + 1",
+            Q: "7 7 + 1",
         });
     });
 
