@@ -741,7 +741,7 @@ every list, and so does the container model for a list's own `hide`. `listEntryH
 the sweep: 19 list forms, each with its first entry's source hidden. Still open:
 - `styleNumber` and display settings under the container model: #2374;
 - a `<sort>` or `<shuffle>` that stays a composite still draws an entry hidden only by a
-  container (below, after #2391);
+  container: #2394 (below);
 - writes through `$l[k].hide`, a follow-up under VAL-9.
 
 A hidden list's entries in a `<choice>`'s text and an `<li>`'s lead are done too (#2388, closing
@@ -899,7 +899,7 @@ that it becomes a list form. `listEntryHide.test.ts` checks every example above,
 `$l` placed elsewhere, `.hide`/`.hidden`, and the choice's text. A `copy=` or `extend=` of a list
 holding a hidden inner list leaves that entry out too (rule 6).
 
-**Known violation of rule 3, left by #2391.** A `<sort>` or `<shuffle>` that stays a composite
+**Known violation of rule 3, left by #2391 (#2394).** A `<sort>` or `<shuffle>` that stays a composite
 still draws an entry hidden only by a container. **[probe]** at `a90ac9b`, each in a `<p>`, draws
 `1, 2`:
 - mixed entry types: `<sort><group hide><number>1</number></group><math>2</math></sort>`;
