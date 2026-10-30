@@ -60,6 +60,10 @@ removed.
 2. Names inside a copied or repeated piece are private to it. Reach them through the
    container's name: `$copy.h`, `$r[2].h`. (NAME-3)
 
+   Proposed (D6): this holds wherever the reference is written, including in an attribute on the
+   copy and in a child added inside it. A reference's first name only finds components written in
+   the DoenetML, and an attribute sees what a child of its component would see.
+
    Names inside a `<conditionalContent>` are private too: a plain `$x` from outside finds
    nothing, and only `$cc.x` reaches the `x` in the active case. Privacy is needed for repeats
    and copies, because they make several instances of a name. A `conditionalContent` shows at
