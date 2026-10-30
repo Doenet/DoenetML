@@ -2062,9 +2062,10 @@ function returnEntryPresentationDefinitions(listClass) {
 
     // Whether each entry is hidden for a parent that ignores its own hiding
     // (a `<choice>`'s text, an `<li>`'s lead): by its source's own `hide`, by
-    // a hidden container of its source inside the list, or with the list. The list's `hiddenIgnoreParent` includes a hidden
-    // composite the list came from, such as a `<group hide>` (#2375). The
-    // entry's `hide` stays its source's (D29).
+    // a hidden container of its source inside the list, or with the list.
+    // The list's `hiddenIgnoreParent` includes a hidden composite the list
+    // came from, such as a `<group hide>` (#2375). The entry's `hide` stays
+    // its source's (D29).
     definitions.entryHiddenIgnoreParents = {
         returnDependencies: () => ({
             entryPresentation: {
