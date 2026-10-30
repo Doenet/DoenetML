@@ -164,6 +164,7 @@ component_types! {
     When => values::when::DEFINITION,
     Response => values::response::DEFINITION,
     TextInput => inputs::text_input::DEFINITION,
+    Triangle => geometry::triangle::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

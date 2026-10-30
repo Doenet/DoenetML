@@ -1,4 +1,4 @@
-//! Point, circle, line, line segment, polygon, polyline and point list.
+//! Point, circle, line, line segment, polygon, triangle, polyline and point list.
 //! Each type with a planner is in its own file, its definition and its
 //! planner together (ADR 0016). This file holds what the family's members
 //! share: the defaults of a line's and a segment's two points, the
@@ -15,6 +15,7 @@ pub mod point;
 pub mod polygon;
 pub mod polyline;
 pub mod segment;
+pub mod triangle;
 
 /// The most vertices of a polygon, and of a rigid one.
 pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};

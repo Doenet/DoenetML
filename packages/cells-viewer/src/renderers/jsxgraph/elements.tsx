@@ -382,8 +382,8 @@ export function JxCircle({ idx }: { idx: number }) {
 
 // ---------------------------------------------------------------- polygon
 
-/** A polygon's props: `numVertices`, then its vertices as `x1, y1, ...`,
- * as many as it has (ADR 0016). */
+/** A polygon's cells: `numVertices`, then its vertices as `x1, y1, ...`,
+ * as many as it has (its list, ADR 0016). */
 function polygonElement(h: BoardHandle): BoardElement {
     const board = h.board;
     let vertices: any[] = [];
@@ -494,7 +494,11 @@ function polygonElement(h: BoardHandle): BoardElement {
 
 export function JxPolygon({ idx }: { idx: number }) {
     const store = useStore();
-    useBoardElementCells(idx, () => store.comps.props(idx), polygonElement);
+    useBoardElementCells(
+        idx,
+        () => [store.comps.cell(idx, "numVertices"), ...store.comps.list(idx)],
+        polygonElement,
+    );
     return null;
 }
 

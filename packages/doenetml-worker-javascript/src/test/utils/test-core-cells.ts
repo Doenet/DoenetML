@@ -211,6 +211,16 @@ const mathReaders: Record<string, Reader> = {
 const textOf: Reader = (_g, x) => x.cells.core.component_text(x.idx);
 const containerReaders: Record<string, Reader> = { text: textOf };
 
+/** A polygon's vertices; a triangle reads as one. */
+const polygonReaders: Record<string, Reader> = {
+    numVertices: (g) => g("numVertices"),
+    vertices: (g) =>
+        items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
+    numericalVertices: (g) =>
+        items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
+    center: (g) => pt(g, "cx", "cy"),
+};
+
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
@@ -278,13 +288,8 @@ const STATE: Record<string, Record<string, Reader>> = {
         endpoints: (g) => [pt(g, "x1", "y1"), pt(g, "x2", "y2")],
         numericalEndpoints: (g) => [npt(g, "x1", "y1"), npt(g, "x2", "y2")],
     },
-    polygon: {
-        numVertices: (g) => g("numVertices"),
-        vertices: (g) =>
-            items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
-        numericalVertices: (g) =>
-            items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
-    },
+    polygon: polygonReaders,
+    triangle: polygonReaders,
     mathInput: mathReaders,
     math: mathReaders,
     // The current core's number values are plain numbers.
@@ -673,6 +678,30 @@ export async function createTestCoreCells({
                         true,
                     );
                     return;
+                case "movePolygonCenter":
+                case "moveTriangleCenter": {
+                    // As the current core's action: a center that is not
+                    // two finite numbers is ignored.
+                    const center = args.center;
+                    if (
+                        !Array.isArray(center) ||
+                        center.length !== 2 ||
+                        !center.every((x) => Number.isFinite(x))
+                    ) {
+                        return;
+                    }
+                    request(
+                        pointRequests(
+                            componentIdx,
+                            componentType,
+                            "cx",
+                            "cy",
+                            center,
+                        ),
+                        true,
+                    );
+                    return;
+                }
                 case "movePolygon":
                 case "movePolyline": {
                     const reqs: [number, number][] = [];

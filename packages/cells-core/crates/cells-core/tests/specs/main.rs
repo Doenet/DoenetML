@@ -9,6 +9,7 @@ mod geometry {
     mod line;
     mod polygon;
     mod segment;
+    mod triangle;
 }
 
 mod inputs {
