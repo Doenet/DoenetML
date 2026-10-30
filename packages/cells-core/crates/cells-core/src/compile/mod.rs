@@ -160,6 +160,7 @@ impl<'a> Compiler<'a> {
                 classes: None,
                 live: Arc::default(),
                 counted: Arc::default(),
+                document_constants: Arc::default(),
                 prune: false,
             },
             pending_elems: Vec::new(),

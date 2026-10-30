@@ -107,10 +107,10 @@ pub struct Structure {
     #[cfg(feature = "testing")]
     pub walked_essential_slots: Vec<(ScopeId, u32)>,
     /// What each live template slot's own source makes it in this build,
-    /// by its (scope, template slot): what `tests/every_count.rs` checks a
+    /// by its (scope, template, template slot): what `tests/every_count.rs` checks a
     /// constant against across builds (ADR 0026).
     #[cfg(feature = "testing")]
-    pub slot_classes: Vec<((ScopeId, u32), SlotClass)>,
+    pub slot_classes: Vec<((ScopeId, u32, u32), SlotClass)>,
 }
 
 /// What a template slot's cell is in one build (`Structure::slot_classes`).
@@ -118,8 +118,12 @@ pub struct Structure {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SlotClass {
     Essential,
-    /// A constant, with its value.
-    Constant(f64),
+    /// A constant, with its value, and whether the compile's record makes
+    /// it a document constant (ADR 0026).
+    Constant {
+        value: f64,
+        document: bool,
+    },
     Derived,
     /// Another slot's cell.
     Alias,

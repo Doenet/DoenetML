@@ -194,6 +194,10 @@ pub(in crate::build) struct Builder<'c> {
     /// When the view folds iterations: the slots of the counted values it
     /// found (`Builder::counted`), which the probe records.
     pub(in crate::build) counted_slots: Vec<SlotId>,
+    /// When the view folds iterations: the slots whose plan gives a
+    /// document constant if they are constants (`Source::gives_document_constant`),
+    /// which the probe records.
+    pub(in crate::build) document_slots: Vec<SlotId>,
     /// Sources a slot has in iterations after the first, when the view
     /// folds iterations (`Plans::Both`): edges the graph carries as well.
     pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
@@ -281,6 +285,7 @@ impl<'c> Builder<'c> {
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
             counted_slots: Vec::new(),
+            document_slots: Vec::new(),
             later_sources: Vec::new(),
             label: Vec::new(),
             labels: HashMap::new(),
@@ -1291,6 +1296,12 @@ impl<'c> Builder<'c> {
                 && !h.is_nan()
             {
                 self.typed_slots.push((s, ValueType::Math));
+            }
+            if self.view.folds_iterations()
+                && matches!(source, BuiltSource::Const(_) | BuiltSource::Given(_))
+                && plan.gives_document_constant()
+            {
+                self.document_slots.push(s);
             }
             self.sources[s.index()] = source;
         }

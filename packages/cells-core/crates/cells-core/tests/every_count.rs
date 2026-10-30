@@ -573,7 +573,9 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
 /// alone. For every document with a repeat, at every seed it draws with,
 /// every template slot that is a constant in one build of a scope is a
 /// constant in every build that stamps the scope, with the same value,
-/// whatever the counts: a rebuild changes no constant.
+/// whatever the counts: a rebuild changes no constant. And a document
+/// constant, by the compile's record, has the same value in every scope
+/// its template is stamped in.
 #[test]
 fn a_constant_is_the_same_in_every_build() {
     let docs = documents();
@@ -602,8 +604,12 @@ fn a_constant_is_the_same_in_every_build() {
                 .compiled
                 .clone()
                 .expect("a document with a repeat");
-            // (scope, template slot) -> (counts it was first seen at, class).
-            let mut seen: HashMap<(ScopeId, u32), (u32, SlotClass)> = HashMap::new();
+            // (scope, template, template slot) -> (count it was first seen
+            // at, class).
+            let mut seen: HashMap<(ScopeId, u32, u32), (u32, SlotClass)> = HashMap::new();
+            // (template, template slot) -> (scope first seen in, value) of
+            // a document constant.
+            let mut document: HashMap<(u32, u32), (ScopeId, f64)> = HashMap::new();
             // One session throughout: scope ids are stable within it.
             let mut session = Session::new(seed);
             for c in COUNTS.chain(COUNTS.rev()) {
@@ -613,8 +619,22 @@ fn a_constant_is_the_same_in_every_build() {
                         if !same_class(first, class) {
                             failures.push(format!(
                                 "{name}, seed {seed}: scope {} slot {} is {first:?} at count {at} and {class:?} at count {c}",
-                                key.0, key.1
+                                key.0, key.2
                             ));
+                        }
+                        if let SlotClass::Constant {
+                            value,
+                            document: true,
+                        } = class
+                        {
+                            let (scope, first) =
+                                *document.entry((key.1, key.2)).or_insert((key.0, value));
+                            if !same_value(first, value) {
+                                failures.push(format!(
+                                    "{name}, seed {seed}: document constant at template {} slot {} is {first} in scope {scope} and {value} in scope {}",
+                                    key.1, key.2, key.0
+                                ));
+                            }
                         }
                     }
                 }
@@ -631,15 +651,27 @@ fn a_constant_is_the_same_in_every_build() {
 }
 
 /// Two classes of one template slot agree: the same class, and for a
-/// constant the same value (NaN equal to NaN).
+/// constant the same value (NaN equal to NaN) and kind.
 fn same_class(a: SlotClass, b: SlotClass) -> bool {
     match (a, b) {
-        (SlotClass::Constant(x), SlotClass::Constant(y)) => {
-            x.to_bits() == y.to_bits() || (x.is_nan() && y.is_nan())
-        }
-        (SlotClass::Constant(_), _) | (_, SlotClass::Constant(_)) => false,
+        (
+            SlotClass::Constant {
+                value: x,
+                document: dx,
+            },
+            SlotClass::Constant {
+                value: y,
+                document: dy,
+            },
+        ) => same_value(x, y) && dx == dy,
+        (SlotClass::Constant { .. }, _) | (_, SlotClass::Constant { .. }) => false,
         _ => true,
     }
+}
+
+/// Equal, or both NaN.
+fn same_value(x: f64, y: f64) -> bool {
+    x.to_bits() == y.to_bits() || (x.is_nan() && y.is_nan())
 }
 
 /// Every build, settled or not, on the way to stamping every repeat with

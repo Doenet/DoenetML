@@ -1,6 +1,6 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. Migration phases 1 to 3 are done; see
+Status: proposed 2026-10-30. Migration phases 1 to 4 are done; see
 Migration.
 
 A **constant** is a cell whose value is a function of the source, the
@@ -158,10 +158,17 @@ saved state) is the same for both. What differs is where the cell is
 made (step 3) and whether its index survives a rebuild.
 
 The compile decides it per template slot, once, from the source, as it
-decides what is writable (ADR 0018) and live (ADR 0019): a slot's source
-in the plan says whether it reads its scope (`IterIndex`,
-`SequencePick`, `FirstIteration`), and a folded instruction (step 4) is a
-document constant when every input is.
+decides what is writable (ADR 0018) and live (ADR 0019), and records it
+(`Compiled::document_constants`). A constant is a document constant only
+when its plan names a value from the source alone
+(`Source::gives_document_constant`: a given value, a constant written in
+the plan, math text with nothing to read); anything else is a scope
+constant, whether it reads its scope (`IterIndex`, `SequencePick`,
+`FirstIteration`, a seed) or is wired after expansion (a section's
+number, a credit). Calling a document constant a scope constant costs
+only a cell per instance; the reverse would give scopes one value that
+differs between them, so the rule names what qualifies. A folded
+instruction (step 4) is a document constant when every input is.
 
 ### 3. Document constants are made once per load
 
@@ -320,7 +327,7 @@ after each.
    2026-10-30*; see below.
 4. **Document or scope constant**, recorded per template slot by the probe
    beside the writable and live records; a census test prints it per
-   golden document and `sir.doenet`.
+   golden document and `sir.doenet`. *Done 2026-10-30*; see below.
 5. **Fold** (step 4): the probe records folded template slots; emit
    evaluates scope-constant folds; a full recompute after load changes no
    constant (tested). Spec cost snapshots move and are rewritten with
@@ -387,3 +394,26 @@ Settled while implementing phase 3:
   *Given value* and *Counted value*.
 - The spec cost snapshots name their count of constants `constant`, not
   `fixed`; no number in them changed.
+
+Settled while implementing phase 4:
+
+- The record is `Compiled::document_constants`, made by the probe from
+  the slots whose plan `Source::gives_document_constant` and which are
+  constants there (a given value only when no student can write it).
+- `a_constant_is_the_same_in_every_build` checks it: a template slot the
+  record makes a document constant has the same value in every scope its
+  template is stamped in, at every count and seed. Recording iteration
+  indices and picks as document constants instead fails it at once.
+- The census is `tests/constants.rs`, at load, pruned. Over the golden
+  set: 203 constants, 129 of them document constants holding 51
+  distinct values, 34 scope constants, and the rest no template slot's
+  (an operator's constant, the missing-referent and dead cells).
+  `sir.doenet`: 1232 constants, 624 document constants holding 10
+  values, 604 scope constants.
+- Every document has at least one scope constant, its own credit: a
+  value wired after expansion is a scope constant by the rule above,
+  even in the document's scope, where there is one instance. Counting a
+  constant in the document's own scope as a document constant would be
+  right, since phase 2 makes it the same in every build, but would make
+  the pool's correctness rest on phase 2 having found every counted
+  value; it is left for phase 6 to decide.

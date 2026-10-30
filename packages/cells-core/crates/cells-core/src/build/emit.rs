@@ -89,6 +89,21 @@ impl<'c> Builder<'c> {
         } else {
             Record::default()
         };
+        // The document constants the probe found (ADR 0026): of the slots
+        // whose plan gives one, those that are constants, not essential.
+        let document_record = if folds {
+            let mut marked = vec![false; n];
+            for &s in &self.document_slots {
+                marked[s.index()] = match self.sources[s.index()] {
+                    BuiltSource::Const(_) => true,
+                    BuiltSource::Given(_) => !essential[s.index()],
+                    _ => false,
+                };
+            }
+            self.record_of(&marked)
+        } else {
+            Record::default()
+        };
         // What this build's own walks find, whatever the record says: what
         // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
@@ -286,15 +301,18 @@ impl<'c> Builder<'c> {
                 .filter(|&s| self.template_slot(s).is_some())
                 .map(|s| {
                     let (scope, tslot, _) = self.essential_key(s);
+                    let (template, _) = self.template_slot(s).expect("a template slot");
                     let class = match self.sources[s.index()] {
                         BuiltSource::Alias(_) => SlotClass::Alias,
                         BuiltSource::Given(_) if essential[s.index()] => SlotClass::Essential,
-                        BuiltSource::Given(_) | BuiltSource::Const(_) => {
-                            SlotClass::Constant(cells[slot_to_cell[s.index()].index()])
-                        }
+                        BuiltSource::Given(_) | BuiltSource::Const(_) => SlotClass::Constant {
+                            value: cells[slot_to_cell[s.index()].index()],
+                            document: !folds
+                                && self.compiled.document_constants.marks(template, tslot),
+                        },
                         _ => SlotClass::Derived,
                     };
-                    ((scope, tslot), class)
+                    ((scope, template as u32, tslot), class)
                 })
                 .collect()
         };
@@ -541,6 +559,7 @@ impl<'c> Builder<'c> {
                 writable: record,
                 live: live_record,
                 counted: counted_record,
+                document_constants: document_record,
                 warnings: self.diagnostics,
             },
         })

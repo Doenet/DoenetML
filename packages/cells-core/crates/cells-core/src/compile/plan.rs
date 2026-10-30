@@ -158,6 +158,25 @@ pub(crate) enum Source {
 }
 
 impl Source {
+    /// Whether a constant this plan gives is a document constant (ADR
+    /// 0026): one made from the source alone, the same in every instance
+    /// of its template slot. A given value or a constant written in the
+    /// plan, or math text with nothing to read. An iteration's index, a
+    /// pick, a seed or a first-iteration form depends on the scope.
+    pub(crate) fn gives_document_constant(&self) -> bool {
+        matches!(
+            self,
+            Source::Given(_)
+                | Source::GivenText(_)
+                | Source::GivenMath(_)
+                | Source::Const(_)
+                | Source::Math(_)
+                | Source::MathHandle(..)
+                | Source::MathValue(_)
+                | Source::SymExpr(..)
+        )
+    }
+
     /// A value the element cannot have, as `warned` explains: NaN.
     pub(crate) fn undefined(_: Warned) -> Self {
         Source::Const(f64::NAN)
@@ -850,6 +869,10 @@ pub struct Compiled {
     /// so every build makes it a derived cell, never a constant, even at a
     /// count where it has nothing to count.
     pub(crate) counted: Arc<Record>,
+    /// The probe's record of the document constants (ADR 0026): the
+    /// template slots whose constant is the same in every instance, made
+    /// from the source alone. Every other constant is a scope constant.
+    pub(crate) document_constants: Arc<Record>,
     /// Whether a build gives a dead slot no cell (ADR 0019,
     /// `LoadOptions::prune`); never in the probe.
     pub(crate) prune: bool,
