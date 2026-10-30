@@ -543,9 +543,12 @@ select does. The copy cannot keep two picks and make four. Today (**[probe]**):
 - `<selectFromSequence>` shows nothing, with error `doenet-e0037`;
 - `<sampleRandomNumbers copy numSamples="4">` makes four new samples.
 
-Proposed: CPY-8 holds when the copy chooses from the same options in the same number. A copy that
-changes what is chosen makes its own choices instead, fixed for a given variant, as a child added
-to a copy does.
+Proposed in D33: a copy always keeps its source's choices. Writing on it an attribute that decides
+what is chosen, or adding options, is an error. A change that reaches nested content, known only
+at run time, gives a warning, and the carried choices win. Content that should choose again is
+written with a second form, "written again here", which carries no state and no choices (name
+open). That replaces an earlier proposal that a copy changing what is chosen chooses again, which
+made the result depend on the value written.
 
 ### CPY-3: references inside a copy stay live; ones that pointed into the source now point into the copy (Tier 1)
 ```xml

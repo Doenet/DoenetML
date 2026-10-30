@@ -95,6 +95,10 @@ removed.
    longer changes it. References inside it stay live. Ones that pointed into x now point into
    the copy. A child you add inside a copy draws its own random values.
    (CPY-1 to CPY-3, CPY-8)
+   Proposed (D33): a copy always keeps x's random choices, so an attribute on it that changes
+   what is chosen is an error. A second form, with its name still open, pastes x's DoenetML
+   without its state or choices, for content that should be written again here, such as a
+   module used several times.
 6. A copy of a reference pastes what the reference points to. A copy of a property
    (`copy="$P.x"`) has no DoenetML to paste, so it holds the value. (CPY-4, CPY-5)
 7. A copy is independent of what it copied, but not of what that refers to. To start
