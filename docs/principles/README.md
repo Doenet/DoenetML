@@ -93,7 +93,8 @@ removed.
 5. `copy="$x"` behaves as if x's DoenetML were pasted there, with the reader's current state
    and x's random choices carried over. After that the copy is on its own: changing x no
    longer changes it. References inside it stay live. Ones that pointed into x now point into
-   the copy. A child you add inside a copy draws its own random values.
+   the copy. Ones that pointed outside x keep their referent, wherever the copy is written
+   (decided in D1; today they are looked up again there, #2396). A child you add inside a copy draws its own random values.
    (CPY-1 to CPY-3, CPY-8)
    Proposed (D33): a copy always keeps x's random choices, so an attribute on it that changes
    what is chosen is an error. A second form, with its name still open, pastes x's DoenetML
