@@ -191,7 +191,7 @@ fn sir_loads_and_iterates() {
 fn sir_drag_type_and_reset() {
     let mut doc = sir_doc();
     // Drag the infectives' point: snapped to the grid, held at x = 0 (its x
-    // is a fixed number), and the whole simulation follows.
+    // is a constant), and the whole simulation follows.
     let p = doc
         .resolve_path("plot")
         .and_then(|g| {

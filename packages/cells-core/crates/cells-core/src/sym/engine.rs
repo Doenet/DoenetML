@@ -188,7 +188,7 @@ impl Engine {
     /// template's text becomes when it says something a tree cannot (a
     /// relation, a tuple, a function of several arguments) but reads no
     /// cell, so it never has to be instantiated.
-    pub fn parse_fixed(&mut self, text: &str) -> Result<Handle, String> {
+    pub fn parse_constant(&mut self, text: &str) -> Result<Handle, String> {
         let e = self.convert_text(text)?;
         if !cell_leaves(&e).is_empty() {
             return Err(format!(

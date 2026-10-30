@@ -91,16 +91,16 @@ impl<'c> Builder<'c> {
     /// document with nothing to score costs no instruction.
     fn set_constant_credit(&mut self, c: CompIdx, credit: f64) {
         let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
-        self.fill_deferred(s, Deferred::Credit, BuiltSource::Fixed(credit));
+        self.fill_deferred(s, Deferred::Credit, BuiltSource::Const(credit));
         self.fill_deferred(
             p,
             Deferred::PercentCredit,
-            BuiltSource::Fixed(100.0 * credit),
+            BuiltSource::Const(100.0 * credit),
         );
     }
 
     fn aggregates(&self, section: CompIdx) -> bool {
-        matches!(self.sources[self.slot(section, AGGREGATE).index()], BuiltSource::Fixed(v) if v != 0.0)
+        matches!(self.sources[self.slot(section, AGGREGATE).index()], BuiltSource::Const(v) if v != 0.0)
     }
 
     fn component_children(&self, c: CompIdx) -> Vec<CompIdx> {
@@ -193,7 +193,7 @@ impl<'c> Builder<'c> {
     /// follows a count inside `r` makes every number inside `r` follow, since
     /// a later iteration counts it before them.
     fn number_through_repeat(&mut self, r: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
-        let (fixed, before, follows) = (counter.fixed, counter.before, counter.follows);
+        let (known, before, follows) = (counter.known, counter.before, counter.follows);
         let start = counter.numbered.len();
         self.number_sections(r, gate, counter);
         if counter.follows && !follows {
@@ -202,7 +202,7 @@ impl<'c> Builder<'c> {
                 self.is_counted(s, true);
             }
         }
-        if counter.fixed != fixed || counter.before != before {
+        if counter.known != known || counter.before != before {
             counter.follows = true;
         }
     }
@@ -231,17 +231,17 @@ impl<'c> Builder<'c> {
                 ComponentType::Section => {
                     let s = self.slot(k, NUMBER);
                     let number = match counter.before {
-                        None => self.counted(s, counter.fixed + 1.0, counter.follows),
+                        None => self.counted(s, counter.known + 1.0, counter.follows),
                         Some(b) => {
                             self.is_counted(s, counter.follows);
-                            let k = self.const_slot(counter.fixed + 1.0);
+                            let k = self.const_slot(counter.known + 1.0);
                             self.op_source(OpSpec::Add, &[b, k])
                         }
                     };
                     counter.numbered.push(s);
                     self.fill_deferred(s, Deferred::SectionNumber, number);
                     match gate {
-                        None => counter.fixed += 1.0,
+                        None => counter.known += 1.0,
                         Some(g) => {
                             counter.before = Some(match counter.before {
                                 None => g,
@@ -266,7 +266,7 @@ impl<'c> Builder<'c> {
 /// of the rest.
 #[derive(Default)]
 struct Counter {
-    fixed: f64,
+    known: f64,
     before: Option<SlotId>,
     /// A section was counted in a repeat (or a collect from one) before
     /// the next one: its number follows the counts, a counted value (ADR

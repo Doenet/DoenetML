@@ -51,7 +51,7 @@ pub struct Inversion {
     /// (essential cell, value), in resolution order, one entry per cell
     /// (a later write to the same cell replaces the earlier one in place).
     pub writes: Vec<(CellIdx, f64)>,
-    /// Requests that could not be inverted or landed on a fixed cell.
+    /// Requests that could not be inverted or landed on a constant.
     pub dropped: Vec<Request>,
 }
 

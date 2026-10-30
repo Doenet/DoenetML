@@ -2,7 +2,7 @@
 //! DoenetML's authors rely on (INT-1, INT-3 and ACT-2 of the principles,
 //! `docs/principles-alignment.md` §3.4): it is a value slot the classing
 //! (ADR 0018) makes essential when something a student does can write it,
-//! and a fixed cell otherwise.
+//! and a constant otherwise.
 
 mod common;
 use common::{set, v};
@@ -51,14 +51,14 @@ fn dragging_a_point_whose_coordinate_is_a_literal_number_writes_it() {
 }
 
 /// Which literal numbers are essential is the walk's decision (ADR 0018):
-/// one nothing a student does can reach stays a fixed cell.
+/// one nothing a student does can reach stays a constant.
 #[test]
 fn a_literal_number_nothing_reaches_is_a_fixed_cell() {
     let src = r#"<number name="a">1</number>
         <number name="b">2</number><mathInput name="mi" bindValueTo="$b"/>
         <p>$a $b</p>"#;
     let (doc, _) = Document::load(dast_json(src).as_bytes(), LoadOptions::default()).unwrap();
-    assert!(doc.is_fixed(doc.cell("a", "value").unwrap()));
+    assert!(doc.is_const(doc.cell("a", "value").unwrap()));
     assert!(doc.is_essential(doc.cell("b", "value").unwrap()));
 }
 

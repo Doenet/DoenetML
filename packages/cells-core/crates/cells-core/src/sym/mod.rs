@@ -5,7 +5,7 @@
 //! enters the engine through [`Engine::import`]; its cell leaves become the
 //! symbols `cellN<i>` (a numeric cell) and `cellM<i>` (a math cell), which
 //! [`Engine::instantiate`] substitutes and [`Engine::export`] reads back.
-//! The compiled curve tape (`tape.rs`) samples a fixed-shape expression
+//! The compiled curve tape (`tape.rs`) samples a constant-shape expression
 //! without the engine.
 
 pub mod engine;

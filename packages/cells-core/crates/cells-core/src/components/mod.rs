@@ -279,7 +279,7 @@ pub enum StickyPoints {
 /// of the type's list (`k` 1-based), whole or one coordinate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PropAt {
-    Fixed(usize),
+    Position(usize),
     Item(usize),
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
@@ -423,7 +423,7 @@ impl ComponentType {
     /// table props already.
     pub fn prop_at(self, name: &str) -> Option<PropAt> {
         if let Some(i) = self.prop_index(name) {
-            return Some(PropAt::Fixed(i));
+            return Some(PropAt::Position(i));
         }
         let (list, coords, alternate_name) = self.given_list()?;
         if list.names.contains(&name) {
@@ -450,21 +450,21 @@ impl ComponentType {
     /// The position of coordinate `j` of list point `k` (1-based) in an
     /// element with `n_props` props, if the element has that point.
     pub fn list_slot(self, n_props: usize, k: usize, j: usize) -> Option<usize> {
-        let fixed = self.prop_defs().len();
-        (self.given_list().is_some() && k >= 1 && fixed + 2 * k <= n_props)
-            .then(|| fixed + 2 * (k - 1) + j)
+        let n_table = self.prop_defs().len();
+        (self.given_list().is_some() && k >= 1 && n_table + 2 * k <= n_props)
+            .then(|| n_table + 2 * (k - 1) + j)
     }
 
     /// The name of prop `pi` of an element with `n_props` public props:
     /// the table's, or a list coordinate (`throughX2`); None for a hidden
     /// slot.
     pub fn prop_name(self, n_props: usize, pi: usize) -> Option<std::borrow::Cow<'static, str>> {
-        let fixed = self.prop_defs().len();
-        if pi < fixed {
+        let n_table = self.prop_defs().len();
+        if pi < n_table {
             return Some(self.prop_defs()[pi].name.into());
         }
         let coords = self.given_coords().filter(|_| pi < n_props)?;
-        let (k, j) = ((pi - fixed) / 2 + 1, (pi - fixed) % 2);
+        let (k, j) = ((pi - n_table) / 2 + 1, (pi - n_table) % 2);
         Some(format!("{}{k}", coords[j]).into())
     }
 
@@ -650,7 +650,7 @@ pub struct Args {
 pub enum ArgFrom {
     /// The component's own prop at this position.
     Prop(u8),
-    /// A literal: the build's fixed cell for it.
+    /// A literal: the build's constant for it.
     Const(f64),
 }
 

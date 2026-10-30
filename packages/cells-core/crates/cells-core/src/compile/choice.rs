@@ -200,14 +200,14 @@ impl<'a> Compiler<'a> {
         } = self.compiled.templates[t.index()].elems[e.index()];
         let hide = match d.attr(node, "hide") {
             Some(a) if self.attr_text(a).is_some() => {
-                Source::Fixed(if self.attr_flag(node, "hide") {
+                Source::Const(if self.attr_flag(node, "hide") {
                     1.0
                 } else {
                     0.0
                 })
             }
             Some(a) => self.plan_value(t, scope, "hide", d.attr_children(a), None)?,
-            None => Source::Fixed(0.0),
+            None => Source::Const(0.0),
         };
         if !self.compiled.choices[cid.index()].reactive {
             self.compiled.templates[t.index()].elems[e.index()].props =
@@ -219,7 +219,7 @@ impl<'a> Compiler<'a> {
         for c in self.compiled.choices[cid.index()].conditions.clone() {
             conds.push(match c {
                 Some(a) => self.plan_condition(t, e, &mut wiring, d.attr_children(a))?,
-                None => wiring.hidden(Source::Fixed(1.0)),
+                None => wiring.hidden(Source::Const(1.0)),
             });
         }
         if conds.len() > MAX_CASES {

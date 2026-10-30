@@ -212,7 +212,7 @@ impl<'a> Compiler<'a> {
                     continue;
                 }
                 if let Some(&bs) = base_shared_state.get(state)
-                    && matches!(wiring.props[slot as usize], Some(Source::Literal(_)))
+                    && matches!(wiring.props[slot as usize], Some(Source::Given(_)))
                 {
                     wiring.props[slot as usize] = Some(Source::Alias(Arg::Elem(r, bs)));
                 }
@@ -263,14 +263,14 @@ impl<'a> Compiler<'a> {
                     Some(b) if d.attr(el, name).is_none() => b,
                     _ => el,
                 };
-                Source::Literal(if self.attr_flag(owner, name) {
+                Source::Given(if self.attr_flag(owner, name) {
                     1.0
                 } else {
                     0.0
                 })
             }
             None if base.is_some() => Source::Inherit,
-            None => Source::Literal(if default { 1.0 } else { 0.0 }),
+            None => Source::Given(if default { 1.0 } else { 0.0 }),
         })
     }
 

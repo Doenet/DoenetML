@@ -53,7 +53,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
     wiring.set_public(Props {
         x: x.into(),
         y: y.into(),
-        hide: Source::Literal(hide).into(),
+        hide: Source::Given(hide).into(),
     });
     wiring.finish()
 }
@@ -86,9 +86,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         };
         let mut coord = |name: Attr, state: SharedState, inherited: Option<Wire>| -> Result<Wire> {
             Ok(match ctx.scalar(name)? {
-                Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
+                Some(Source::Given(v)) => Wire::given_from(state, name, v),
                 Some(source) => source.into(),
-                None => inherited.unwrap_or_else(|| Wire::essential(state, 0.0)),
+                None => inherited.unwrap_or_else(|| Wire::given(state, 0.0)),
             })
         };
         let [bx, by] = from_referent;

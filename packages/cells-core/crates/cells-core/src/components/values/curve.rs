@@ -62,8 +62,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         // (`plan_function_iterates` reads its text).
         wiring.set_public(Props {
             expr: Wire::absent(),
-            xmin: Wire::fixed(-10.0),
-            xmax: Wire::fixed(10.0),
+            xmin: Wire::constant(-10.0),
+            xmax: Wire::constant(10.0),
             samples: Wire::absent(),
         });
         ctx.set_wiring(wiring);
@@ -81,7 +81,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         ctx.enclosing_graph_prop(graph::XMAX),
     ) {
         (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
-        _ => [Wire::fixed(-10.0), Wire::fixed(10.0)],
+        _ => [Wire::constant(-10.0), Wire::constant(10.0)],
     };
     wiring.set_public(Props {
         expr,

@@ -411,7 +411,7 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// itself, beyond its table's: a module `attr` holds one
 /// `compile::api::Attr` per name (`attr::radius`), which is how a planner
 /// names an attribute (`ctx.scalar(attr::radius)`), and where a piece of
-/// shared state's value was given (`Wire::essential_from(shared_state::R,
+/// shared state's value was given (`Wire::given_from(shared_state::R,
 /// attr::radius, v)`). Only the macro makes an `Attr`, so a planner names
 /// only attributes its type declares, and a misspelling does not compile.
 ///

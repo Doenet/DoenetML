@@ -13,7 +13,7 @@
 //! (scope, template slot).
 //!
 //! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (essential, then fixed, then derived); and operators are bound.
+//! (essential, then constants, then derived); and operators are bound.
 //! [`BuildOutput::schedule`] then orders the
 //! instructions, with a fast path when creation order is already a valid
 //! evaluation order.
@@ -217,7 +217,7 @@ pub fn build(
 pub struct BuildOutput {
     cells: Vec<f64>,
     n_essential: usize,
-    n_fixed: usize,
+    n_const: usize,
     instrs: Vec<Instr>,
     components: ComponentTable,
     strings: StringTable,
@@ -294,7 +294,7 @@ impl BuildOutput {
         Ok(Document::new(
             self.cells,
             self.n_essential,
-            self.n_fixed,
+            self.n_const,
             self.value_types,
             program,
             self.components,

@@ -6,7 +6,7 @@
 //! the element reads it through the hold, as a reference to it does.
 //! `fixed` and `fixLocation` are inherited (ADR 0022): what an element
 //! does not give itself, the nearest element around it that gives decides,
-//! a container's content being fixed with the container unless it says
+//! a container's content being held with the container unless it says
 //! otherwise.
 //!
 //! `plan_elem` decides the hold of every element (`Compiler::plan_hold`),
@@ -38,13 +38,13 @@ pub(in crate::compile) struct HoldAttr {
 
 /// Every attribute that holds an element. A new one is a row here.
 pub(in crate::compile) const HOLD_ATTRS: &[HoldAttr] = &[
-    // An element whose value is fixed: no request changes it.
+    // An element whose value is held: no request changes it.
     HoldAttr {
         name: "fixed",
         inherited: true,
         holds: every_type,
     },
-    // A located type's location is fixed (ADR 0022); in this core every
+    // A located type's location is held (ADR 0022); in this core every
     // value a located type holds is its location.
     HoldAttr {
         name: "fixLocation",

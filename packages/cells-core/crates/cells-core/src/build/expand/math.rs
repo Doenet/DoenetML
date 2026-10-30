@@ -5,7 +5,7 @@
 use super::*;
 
 impl<'c> Builder<'c> {
-    /// A math cell from a template's math text: a fixed handle when it has
+    /// A math cell from a template's math text: a constant handle when it has
     /// no cell leaves, an alias when it is one math leaf and nothing else,
     /// else an `Instantiate` over its leaves (each a number or a math cell).
     pub(in crate::build) fn sym_source(
@@ -29,7 +29,7 @@ impl<'c> Builder<'c> {
         // build: made once per load (ADR 0026).
         let constant = (expr, post);
         if let Some(&h) = self.session.math_constants.borrow().get(&constant) {
-            return Ok(BuiltSource::Fixed(h.to_value()));
+            return Ok(BuiltSource::Const(h.to_value()));
         }
         let parsed;
         let tree = if let Some(cached) = compiled.sym_trees.get(&expr) {
@@ -41,9 +41,9 @@ impl<'c> Builder<'c> {
         let tree = match tree {
             Ok(tree) => tree,
             // A relation, tuple or multi-argument function with no cell
-            // leaves is a fixed expression all the same (a `<boolean>`
+            // leaves is a constant expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
-            Err(reason) => match self.engine.parse_fixed(text) {
+            Err(reason) => match self.engine.parse_constant(text) {
                 Ok(h) => return Ok(self.math_constant(constant, h)),
                 Err(_) => {
                     return Err(Error::BadMath {
@@ -78,10 +78,10 @@ impl<'c> Builder<'c> {
     fn math_constant(&mut self, constant: (ExprId, Post), h: crate::sym::Handle) -> BuiltSource {
         let h = self.post(h, constant.1);
         self.session.math_constants.borrow_mut().insert(constant, h);
-        BuiltSource::Fixed(h.to_value())
+        BuiltSource::Const(h.to_value())
     }
 
-    /// `post` applied to a fixed expression at build time.
+    /// `post` applied to a constant expression at build time.
     fn post(&mut self, h: crate::sym::Handle, post: Post) -> crate::sym::Handle {
         match post {
             Post::None => h,
@@ -222,10 +222,10 @@ impl<'c> Builder<'c> {
             .props
             .get(pi)
         {
-            Some(Source::MathEssential(_) | Source::MathEssentialFrom(_)) => {
+            Some(Source::GivenMath(_) | Source::GivenMathFrom(_)) => {
                 return ValueType::Math;
             }
-            Some(Source::TextLiteral(_)) => return ValueType::Text,
+            Some(Source::GivenText(_)) => return ValueType::Text,
             Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
             Some(Source::Inherit) => {
@@ -302,7 +302,7 @@ impl<'c> Builder<'c> {
                     self.compiled.templates[i.template.index()].elems[i.elem.index()]
                         .props
                         .get(prop::math_input::EXPR),
-                    Some(Source::MathEssential(_))
+                    Some(Source::GivenMath(_))
                 )
             }
             ComponentType::Math => {

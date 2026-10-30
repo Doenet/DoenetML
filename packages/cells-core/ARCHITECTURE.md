@@ -16,9 +16,10 @@ variables. This one is organized around data:
 - **Cells.** All document state is one flat array of `f64`. A cell may stand
   for a number, a boolean, a string id or a handle into the symbolic engine.
   Every cell is *essential* (independent state a student's action can
-  write, the only thing a write can land on), *fixed* (a constant, an
-  author's value no student can change among them), or *derived* (computed
-  from other cells).
+  write, the only thing a write can land on), a *constant* (a value no
+  tick changes, which depends on the source and its scope alone, an
+  author's value no student can change among them; ADR 0026), or *derived*
+  (computed from other cells).
 - **Instructions.** The dependency graph is a list of instructions, each an
   operator bound to its input cells and the cell(s) it writes. Operators may
   carry an inverse, so a request to change a derived cell can be pushed back
@@ -117,9 +118,9 @@ draw for every select.
   *scope* (the document, and each iteration of each repeat) and resolves
   references to slots.
 - **Emit** (`build/emit.rs`) merges aliased slots into cells with a
-  union-find, numbers the cells (essential, then fixed, then derived) and
-  binds operators to them as instructions. A value slot (a literal or a
-  default) is essential only when a student's action can write it (ADR
+  union-find, numbers the cells (essential, then constants, then derived)
+  and binds operators to them as instructions. A given value (an
+  attribute's or a default) is essential only when a student's action can write it (ADR
   0018): `build/writable.rs` walks back from every input prop to where a
   request on each cell goes. Both walks read the cells the slots will make
   (`SlotCells`, `build/slot_cells.rs`) only through a cell's definition
@@ -136,7 +137,7 @@ draw for every select.
   template slots in `Compiled::live` as it records the writable ones; a
   class the record cannot name (a synthesized component's, such as a
   choice's interface) is live when something live reads it. A dead class
-  gets no cell: its props name the one dead cell, a fixed NaN, and its
+  gets no cell: its props name the one dead cell, a constant NaN, and its
   instruction is never bound. A live class that needs the dead cell, an
   instruction's input or a hold's flag, fails the build
   (`Error::Unchecked`). `LoadOptions::prune` off
@@ -165,7 +166,7 @@ a build succeeds, a failed rebuild leaves the document as it was.
 A `Document` is a loaded document: the cells and what each holds
 (`value_types`), the program and its symbolic state, the
 `ComponentTable` and the string table, all of which one build made and a
-rebuild replaces; and the session, what the load fixed (`Loaded`: the
+rebuild replaces; and the session, what the load settled (`Loaded`: the
 compile, the keys, the source's literal attributes for a renderer) and how
 ticks recompute, which a rebuild carries. It is the API that the wasm
 binding and the tests use.
@@ -292,7 +293,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Recompute`, `DirtyClosure` | `tick/eval.rs` | The document's setting of how a tick recomputes: every instruction, or the dirty closure of what changed, whose tables are `DirtyClosure`. |
 | `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
-| `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells: math-expressions-rs called directly (ADR 0008, ADR 0011). A math cell holds a handle into it. `Tape` compiles a curve of fixed shape to numeric steps. |
+| `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells: math-expressions-rs called directly (ADR 0008, ADR 0011). A math cell holds a handle into it. `Tape` compiles a curve of constant shape to numeric steps. |
 
 ## Where to change things
 
@@ -364,7 +365,7 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
 - Declare the attributes the planner reads itself (`attributes { center,
   radius, through }`) and name them by their handles (`attr::radius`):
   `ctx.scalar(attr::radius)` to read one, and
-  `Wire::essential_from(shared_state::R, attr::radius, v)` to say it gave
+  `Wire::given_from(shared_state::R, attr::radius, v)` to say it gave
   a piece of shared state, which a copy giving the same attribute keeps
   as its own. State from the element's own children is `Given::Children`,
   from its referent's `Given::Referent`.
@@ -392,7 +393,7 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   (`PlanCtx::warn`), never a silent NaN: what it cannot define is
   `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A
   value not given (an attribute's default, an emptied input, an entry
-  past a tuple's end) is `NO_VALUE` or `Wire::absent()`. `Wire::fixed`
+  past a tuple's end) is `NO_VALUE` or `Wire::absent()`. `Wire::constant`
   refuses NaN, and a test (`components/mod.rs`) finds any `f64::NAN` a
   component writes.
 - An attribute the planner never looks up is refused: the check boxes any
@@ -424,7 +425,7 @@ other cell.
 
 Add one entry to `scalar_ops!` in `program/scalar.rs` (ADR 0016) giving its
 inputs (at most two, so an instruction stays 16 bytes; a literal is an
-input, a fixed cell), its evaluation, and its inverse, declared `exact`,
+input, a constant), its evaluation, and its inverse, declared `exact`,
 `projection` or `drops`. An operator that reads more is a vector one
 (`VecOp`, as `Clamp` is), whose inputs a program parks in its operands. The macro (`program/ops.rs`) generates the
 `Op` and `OpSpec` variants and every match arm. The tests in

@@ -23,10 +23,10 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
         load(r#"<numberInput name="a" value="2"/><math name="m">3$a + 2</math>"#).unwrap();
     assert_eq!(doc.value("m", "value"), Some(8.0));
     assert!(!has_symbolic(&doc), "a numeric math is plain operators");
-    // Mul then Add: two instructions, reading the literals' fixed cells.
+    // Mul then Add: two instructions, reading the literals' constants.
     assert_eq!(doc.program.len(), 2);
     assert_eq!(
-        doc.n_fixed, 5,
+        doc.n_const, 5,
         "the (NaN) expression handle, the document's two credit cells, 3 and 2"
     );
     // Dragging the math's value inverts through the lowered chain.
@@ -37,7 +37,7 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
 
 #[test]
 fn a_literal_operand_is_one_cell_for_every_iteration() {
-    // A literal is a fixed cell, and the build keeps one per value, not
+    // A literal is a constant, and the build keeps one per value, not
     // one per iteration.
     let body = |n: &str| {
         format!(
@@ -46,7 +46,7 @@ fn a_literal_operand_is_one_cell_for_every_iteration() {
     };
     let doc = load(&body("$v^2 + max($v, 3)")).unwrap();
     let plain = load(&body("$v")).unwrap();
-    assert_eq!(doc.n_fixed, plain.n_fixed + 2, "one cell for 2, one for 3");
+    assert_eq!(doc.n_const, plain.n_const + 2, "one cell for 2, one for 3");
     let n = doc.resolve_path("r[4].n").unwrap();
     assert_eq!(
         doc.cells[doc.prop_cells(n, "value").unwrap()[0].index()],

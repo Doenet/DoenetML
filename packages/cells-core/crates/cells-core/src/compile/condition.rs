@@ -62,7 +62,7 @@ impl<'a> Compiler<'a> {
     /// one `=` or `!=` with a lone text reference or literal text on each
     /// side. Equal text holds equal string ids (`intern_literal`,
     /// `Document::intern`), so it is `Eq` on the two cells, the literal
-    /// side a fixed cell with its id. `None` when no text value is
+    /// side a constant with its id. `None` when no text value is
     /// involved; any other use of one is refused by name, so a text cell
     /// never compares as a number.
     fn plan_text_condition(
@@ -116,7 +116,7 @@ impl<'a> Compiler<'a> {
                 }
                 None => {
                     let id = cp.intern_literal(s);
-                    Ok(wiring.hidden(Source::Fixed(id.to_value())))
+                    Ok(wiring.hidden(Source::Const(id.to_value())))
                 }
             }
         };
@@ -405,13 +405,13 @@ impl CondParser<'_> {
         let toks = &self.toks[start..self.pos];
         let numeric = match toks {
             [] => return Err(self.err("expected a value".into())),
-            [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::Fixed(1.0)),
-            [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::Fixed(0.0)),
+            [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::Const(1.0)),
+            [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::Const(0.0)),
             _ => match Parser::parse(toks, &mut cp.compiled.arena) {
                 Ok(id) if cp.compiled.arena.is_numeric(id) => {
                     Some(match cp.compiled.arena.get(id) {
                         // A constant in a condition is not state.
-                        Expr::Num(v) => Source::Fixed(*v),
+                        Expr::Num(v) => Source::Const(*v),
                         // A lone reference too, so expand checks it is a
                         // number; it lowers to an alias of the referent.
                         _ => Source::Math(id),

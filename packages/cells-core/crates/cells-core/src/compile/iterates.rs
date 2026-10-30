@@ -157,7 +157,7 @@ impl<'a> Compiler<'a> {
             .map(|part| {
                 let id = self.parse_tokens(part, &text)?;
                 Ok(match self.plan_from_expr(id) {
-                    Source::Literal(v) => Source::Fixed(v),
+                    Source::Given(v) => Source::Const(v),
                     other => other,
                 })
             })

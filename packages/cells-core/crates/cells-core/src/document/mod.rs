@@ -52,17 +52,19 @@ pub const TEXT_BIT: u32 = 1 << 31;
 /// A loaded document. Its fields fall in two groups by how long they
 /// live: what one build made, which a rebuild replaces (`load.rs`), and
 /// what outlives every build, which a rebuild carries: the session, what
-/// the load fixed, and how ticks recompute.
+/// the load settled, and how ticks recompute.
 #[derive(Debug, Clone)]
 pub struct Document {
     // What one build made.
-    /// All cells. Essential cells come first, then fixed, then derived.
+    /// All cells. Essential cells come first, then constants, then derived.
     pub cells: Vec<f64>,
     /// Number of essential cells; `cells[..n_essential]` are essential.
     pub n_essential: usize,
-    /// Fixed cells follow the essential ones: constants that are not state
-    /// (iteration indices, collect counts, the missing-referent NaN).
-    pub n_fixed: usize,
+    /// Constants follow the essential ones: values no tick changes, which
+    /// depend on the source and their scope alone (ADR 0026), such as
+    /// an author's value no student can write, an iteration's index or the
+    /// missing-referent NaN.
+    pub n_const: usize,
     /// What each cell's value means: read when a request arrives and when
     /// state is saved, never while recomputing.
     pub value_types: Vec<ValueType>,
@@ -94,13 +96,13 @@ pub struct Document {
     /// strings interned at runtime, the math engine. Every build reads it
     /// and returns the next.
     pub session: Session,
-    /// What the load fixed.
+    /// What the load settled.
     pub loaded: Loaded,
     /// How a tick recomputes (`set_evaluator`).
     recompute: Recompute,
 }
 
-/// What a document's load fixed, which every rebuild carries.
+/// What a document's load settled, which every rebuild carries.
 #[derive(Debug, Clone)]
 pub struct Loaded {
     /// The source's literal attributes, for a renderer (`attr_text`): all
@@ -121,7 +123,7 @@ pub struct Loaded {
     /// The source's `Dast::version_hash`: the version saved state was made
     /// in.
     pub(crate) version: u64,
-    /// The compile's diagnostics (ADR 0013), the document's list: fixed at
+    /// The compile's diagnostics (ADR 0013), the document's list: settled at
     /// load and a fact about the source alone (ADR 0014).
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
@@ -131,7 +133,7 @@ impl Document {
     pub(crate) fn new(
         cells: Vec<f64>,
         n_essential: usize,
-        n_fixed: usize,
+        n_const: usize,
         value_types: Vec<ValueType>,
         program: Program,
         components: ComponentTable,
@@ -150,7 +152,7 @@ impl Document {
         let mut doc = Document {
             cells,
             n_essential,
-            n_fixed,
+            n_const,
             value_types,
             sym: SymState::new(&program),
             program,
@@ -257,8 +259,8 @@ impl Document {
 
     /// A constant that is not state (an iteration index, a math handle, a
     /// `fixed` value): fixed cells follow the essential ones.
-    pub fn is_fixed(&self, cell: CellIdx) -> bool {
-        (self.n_essential..self.n_essential + self.n_fixed).contains(&cell.index())
+    pub fn is_const(&self, cell: CellIdx) -> bool {
+        (self.n_essential..self.n_essential + self.n_const).contains(&cell.index())
     }
 
     /// Recompute all derived cells from the essential cells.

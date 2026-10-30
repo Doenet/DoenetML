@@ -33,7 +33,7 @@ fn expect_cycle(doc: cells_core::Result<Document>) {
     }
 }
 
-// Hole 1: a collect's `count` is a fixed constant in the build, not an
+// Hole 1: a collect's `count` was a constant in the build, not an
 // edge into the gathered iterations, so a count reading the count of a
 // collect over its own iterations passes `check_counts`. Settles at load
 // while `g` is 0; with `g` set, oscillates and fails after eight rebuilds.

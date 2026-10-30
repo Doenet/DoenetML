@@ -40,7 +40,7 @@ pub enum SymKind {
     Sample,
     /// `Program::tapes[tape]` at `SAMPLES` evenly spaced x from input 0 to
     /// input 1; inputs 2.. are the tape's parameter cells. What `Sample`
-    /// becomes when the expression's shape is fixed at build time: no engine
+    /// becomes when the expression's shape is constant at build time: no engine
     /// call at tick time.
     SampleTape { tape: u32 },
 }

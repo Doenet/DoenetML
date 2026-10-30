@@ -285,10 +285,10 @@ impl Keys {
     /// it.
     pub(crate) fn prop_named(&self, key: ElemKey, name: &str) -> Option<u32> {
         let component_type = self.types[key.index()];
-        let fixed = component_type.prop_defs().len();
+        let n_table = component_type.prop_defs().len();
         let public = match component_type.prop_at(name) {
-            Some(PropAt::Fixed(i)) => Some(i as u32),
-            Some(PropAt::Coord(k, j)) => Some((fixed + 2 * (k - 1) + j) as u32),
+            Some(PropAt::Position(i)) => Some(i as u32),
+            Some(PropAt::Coord(k, j)) => Some((n_table + 2 * (k - 1) + j) as u32),
             _ => None,
         };
         if public.is_some() {

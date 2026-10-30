@@ -138,7 +138,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             coeffvar1: a.into(),
             coeffvar2: b.into(),
             coeff0: c.into(),
-            basedOnDirection: Wire::fixed(0.0),
+            basedOnDirection: Wire::constant(0.0),
         });
         return Ok(wiring);
     }
@@ -162,7 +162,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             attr::through,
             second_default,
         );
-        let dist = wiring.essential(shared_state::DIST, 1.0);
+        let dist = wiring.given(shared_state::DIST, 1.0);
         let [x2, y2] = if let Some(m) = ctx.scalar(attr::slope)? {
             let m = wiring.hidden(m);
             ElemWiring::vector(
@@ -183,7 +183,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 vec![at.x1, at.y1, ux, uy, dist],
             )
         };
-        [x1, y1, x2, y2, Wire::fixed(1.0)]
+        [x1, y1, x2, y2, Wire::constant(1.0)]
     } else {
         // The line's points are the through points (or essential
         // defaults) themselves; a whole-line drag is a point group.
@@ -199,7 +199,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             attr::through,
             second_default,
         );
-        [x1, y1, x2, y2, Wire::fixed(0.0)]
+        [x1, y1, x2, y2, Wire::constant(0.0)]
     };
     // slope, intercepts and coefficients from the two points:
     // a = y2 - y1, b = x1 - x2, c = -(a x1 + b y1). The slope is the

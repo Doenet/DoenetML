@@ -2,7 +2,7 @@
 //! cells are held by the flag (`Program::holds`), so requests through the
 //! element are dropped while the flag is set, and the element follows its
 //! sources either way. A literal `fixed` holds them always, so the classing
-//! makes its values fixed cells. A prop no
+//! makes its values constants. A prop no
 //! renderer requests, a circle's radius, is requested through an input
 //! bound to it, as in a document (ADR 0018).
 

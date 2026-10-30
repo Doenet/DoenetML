@@ -28,7 +28,7 @@ pub struct TickOutcome {
     /// then derived ones in schedule order. No duplicates within each part.
     pub changed: Vec<CellIdx>,
     /// Requests that were dropped because an inverse was undefined or the
-    /// request landed on a fixed cell.
+    /// request landed on a constant.
     pub dropped: Vec<Request>,
     /// The tick changed a structural cell and the document was rebuilt:
     /// cell indices and the component table are new, `changed` is empty.

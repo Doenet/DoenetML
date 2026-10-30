@@ -63,7 +63,7 @@ pub(crate) enum Arg {
     /// A copy with overridden attributes shares the rest of the original's
     /// essential state through this.
     Elem(ElemId, u8),
-    /// A literal an operator reads: the build's one fixed cell for the
+    /// A literal an operator reads: the build's one constant for the
     /// value (`Builder::const_slot`). Only an operator input, never an
     /// alias.
     Const(f64),
@@ -102,15 +102,16 @@ impl Warned {
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
-    /// An essential cell with this initial value: the attribute's, or
-    /// the type's default without one.
-    Literal(f64),
-    /// An essential text cell holding this string, or none (blank).
-    TextLiteral(Option<StrId>),
+    /// A given value (ADR 0026): the attribute's, or the type's default
+    /// without one. Essential when a student's action can write it, a
+    /// constant otherwise (ADR 0018).
+    Given(f64),
+    /// A given text value holding this string, or none (blank).
+    GivenText(Option<StrId>),
     /// The matching slot of the `extend` referent.
     Inherit,
-    /// A constant that is not state.
-    Fixed(f64),
+    /// A constant (ADR 0026): never state, whatever can reach it.
+    Const(f64),
     Alias(Arg),
     /// Operator over cells.
     Op(OpSpec, Vec<Arg>),
@@ -132,17 +133,17 @@ pub(crate) enum Source {
     /// number, the lowered operators if numeric, else an `Evaluate` of its
     /// `expr`.
     MathValue(ExprId),
-    /// A math cell from math text (`Compiled::sym_text`): a fixed handle
+    /// A math cell from math text (`Compiled::sym_text`): a constant handle
     /// without cell leaves, an alias of a lone math leaf, else an
     /// `Instantiate` instruction over the leaves.
     SymExpr(ExprId, Post),
-    /// An essential math cell (an unbound mathInput's `expr`, an answer's
+    /// A given math value (an unbound mathInput's `expr`, an answer's
     /// `submitted`) holding this expression, or blank (NaN).
-    MathEssential(Option<Tree<RefId>>),
-    /// An essential math cell whose initial expression is the value the
+    GivenMath(Option<Tree<RefId>>),
+    /// A given math value whose initial expression is the value the
     /// reference names when the cell is first built (a mathInput's
     /// `prefill="$n"`): a seed, not a binding.
-    MathEssentialFrom(RefId),
+    GivenMathFrom(RefId),
     /// `first` in the first iteration of the enclosing repeat, `rest` in
     /// the others (a function iterate: the initial value, else `f` of the
     /// previous iterate). Chosen per instance, like `IterIndex`.
@@ -159,11 +160,11 @@ pub(crate) enum Source {
 impl Source {
     /// A value the element cannot have, as `warned` explains: NaN.
     pub(crate) fn undefined(_: Warned) -> Self {
-        Source::Fixed(f64::NAN)
+        Source::Const(f64::NAN)
     }
     /// A value not given (`NO_VALUE`), as a constant.
     pub(crate) fn absent() -> Self {
-        Source::Fixed(NO_VALUE)
+        Source::Const(NO_VALUE)
     }
     pub(crate) fn reference(p: RefId) -> Self {
         Source::Alias(Arg::Ref(p, Sel::Whole))
@@ -475,36 +476,37 @@ impl From<Source> for Wire {
 }
 
 impl Wire {
-    /// Essential state, shared as `state`, initially `v`.
-    pub(crate) fn essential(state: SharedState, v: f64) -> Self {
+    /// A given value, shared as `state`, initially `v`: state when a
+    /// student's action can write it (ADR 0018).
+    pub(crate) fn given(state: SharedState, v: f64) -> Self {
         Wire {
-            source: Source::Literal(v),
+            source: Source::Given(v),
             state: Some((state, None)),
         }
     }
-    /// Essential state, shared as `state`, initially `v`, given as `given`
+    /// A given value, shared as `state`, initially `v`, given as `given`
     /// says: a copy that gives it itself does not share it.
-    pub(crate) fn essential_from(state: SharedState, given: impl Into<Given>, v: f64) -> Self {
+    pub(crate) fn given_from(state: SharedState, given: impl Into<Given>, v: f64) -> Self {
         Wire {
-            source: Source::Literal(v),
+            source: Source::Given(v),
             state: Some((state, Some(given.into()))),
         }
     }
-    /// Essential text state, shared as `state`, initially the string `id`.
-    pub(crate) fn text_essential(state: SharedState, id: StrId) -> Self {
+    /// A given text value, shared as `state`, initially the string `id`.
+    pub(crate) fn given_text(state: SharedState, id: StrId) -> Self {
         Wire {
-            source: Source::TextLiteral(Some(id)),
+            source: Source::GivenText(Some(id)),
             state: Some((state, None)),
         }
     }
-    /// A constant that is not state, and not NaN: a value not given is
+    /// A constant (ADR 0026), not NaN: a value not given is
     /// `absent`, one the element cannot have `undefined`.
-    pub(crate) fn fixed(v: f64) -> Self {
+    pub(crate) fn constant(v: f64) -> Self {
         assert!(
             !v.is_nan(),
-            "Wire::fixed(NaN): use Wire::absent, or Wire::undefined after a warning"
+            "Wire::constant(NaN): use Wire::absent, or Wire::undefined after a warning"
         );
-        Source::Fixed(v).into()
+        Source::Const(v).into()
     }
     /// A value not given (`NO_VALUE`), as a constant.
     pub(crate) fn absent() -> Self {
@@ -542,7 +544,7 @@ impl Wire {
     ) -> [Self; 2] {
         match p {
             Some(p) => Self::point(p, shared_state, given),
-            None => std::array::from_fn(|j| Self::essential(default_shared_state[j], default[j])),
+            None => std::array::from_fn(|j| Self::given(default_shared_state[j], default[j])),
         }
     }
     /// A point's two coordinates: a literal coordinate is essential state
@@ -554,7 +556,7 @@ impl Wire {
     ) -> [Self; 2] {
         let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
-            Source::Literal(v) => Wire::essential_from(shared_state[j], given, v),
+            Source::Given(v) => Wire::given_from(shared_state[j], given, v),
             other => other.into(),
         })
     }
@@ -656,9 +658,9 @@ impl ElemWiring {
     ) -> [usize; 2] {
         let given = given.into();
         std::array::from_fn(|j| match p.coord(j) {
-            Source::Literal(v) => {
+            Source::Given(v) => {
                 self.shared_state_given.insert(shared_state[j], given);
-                self.essential(shared_state[j], v)
+                self.given(shared_state[j], v)
             }
             other => self.hidden(other),
         })
@@ -675,9 +677,9 @@ impl ElemWiring {
         }
         i
     }
-    /// A hidden essential slot holding shared state `state`.
-    pub(crate) fn essential(&mut self, state: SharedState, value: f64) -> usize {
-        let i = self.hidden(Source::Literal(value));
+    /// A hidden slot holding a given value, shared state `state`.
+    pub(crate) fn given(&mut self, state: SharedState, value: f64) -> usize {
+        let i = self.hidden(Source::Given(value));
         self.shared_state.insert(state, own_slot(i));
         i
     }
@@ -704,13 +706,13 @@ impl ElemWiring {
     /// The list's points, which fill the public slots after the table's
     /// props, with their shared state.
     pub(crate) fn set_list(&mut self, points: Vec<[Wire; 2]>) {
-        let n_fixed = self
+        let n_const = self
             .n_public
             .checked_sub(2 * points.len())
             .expect("the wiring holds the list's points");
         for (k, point) in points.into_iter().enumerate() {
             for (j, p) in point.into_iter().enumerate() {
-                let i = n_fixed + 2 * k + j;
+                let i = n_const + 2 * k + j;
                 self.props[i] = Some(p.source);
                 if let Some((state, given)) = p.state {
                     self.add_shared_state(i, state, given);
@@ -834,7 +836,7 @@ pub struct Compiled {
     /// load skips the probe's count check.
     pub(crate) structural_depth: u32,
     /// The probe's record of the value slots a student's action can write
-    /// (ADR 0018), by which every build classes them essential or fixed;
+    /// (ADR 0018), by which every build classes them essential or constant;
     /// None with the classing off (a test load), when every value slot is
     /// essential.
     pub(crate) classes: Option<Arc<Record>>,

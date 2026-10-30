@@ -78,10 +78,10 @@ pub(crate) mod test_shape {
         let (nodes, from) = match (ctx.child_math(), ctx.referent_child_math()) {
             (Some(own), _) => (own, Given::Children),
             (None, Some(referent)) => (referent, Given::Referent),
-            (None, None) => return Ok(Wire::essential(shared_state::A, 0.0)),
+            (None, None) => return Ok(Wire::given(shared_state::A, 0.0)),
         };
         Ok(match ctx.scalar_of(attr::a, &nodes)? {
-            Source::Literal(v) => Wire::essential_from(shared_state::A, from, v),
+            Source::Given(v) => Wire::given_from(shared_state::A, from, v),
             other => other.into(),
         })
     }
@@ -90,9 +90,9 @@ pub(crate) mod test_shape {
     /// value, anything else is what it computes, and none is 0.
     fn given(ctx: &mut PlanCtx<'_, '_>, state: SharedState, name: Attr) -> Result<Wire> {
         Ok(match ctx.scalar(name)? {
-            Some(Source::Literal(v)) => Wire::essential_from(state, name, v),
+            Some(Source::Given(v)) => Wire::given_from(state, name, v),
             Some(other) => other.into(),
-            None => Wire::essential(state, 0.0),
+            None => Wire::given(state, 0.0),
         })
     }
 }
@@ -126,7 +126,7 @@ pub(crate) mod test_list {
         let points = ctx.points(attr::points)?;
         let mut wiring = ElemWiring::with_list(ComponentType::TestList, points.len());
         wiring.set_public(Props {
-            numPoints: Wire::fixed(points.len() as f64),
+            numPoints: Wire::constant(points.len() as f64),
         });
         wiring.set_list(
             points

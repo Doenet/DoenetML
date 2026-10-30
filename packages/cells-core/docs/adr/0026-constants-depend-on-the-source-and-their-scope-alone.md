@@ -1,6 +1,6 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. Migration phases 1 and 2 are done; see
+Status: proposed 2026-10-30. Migration phases 1 to 3 are done; see
 Migration.
 
 A **constant** is a cell whose value is a function of the source, the
@@ -219,6 +219,8 @@ rebuild and full recompute, always the same.
 | `Wire::essential`, `essential_from`, `text_essential` | `Wire::given`, `given_from`, `given_text` |
 | fixed shape (`fixed_shape`) | constant shape |
 | `Counter::fixed` | `Counter::known` |
+| `PropAt::Fixed` (a prop at a set position) | `PropAt::Position` |
+| `cell_class`'s `"fixed"` (`cells-wasm`, the viewer's `cellClass`) | `"constant"` |
 | "Constant" (an operator's literal) | an operator's constant: a document constant |
 
 A **given value** is a value the source gives a prop, by an attribute or
@@ -314,7 +316,8 @@ after each.
    number and a section's credit as in step 1. The `every_count.rs` check
    above, which fails before this phase on a section after a repeat.
    *Done 2026-10-30*; see below.
-3. **Rename** (step 5), code and docs, with no behavior change.
+3. **Rename** (step 5), code and docs, with no behavior change. *Done
+   2026-10-30*; see below.
 4. **Document or scope constant**, recorded per template slot by the probe
    beside the writable and live records; a census test prints it per
    golden document and `sir.doenet`.
@@ -367,3 +370,20 @@ Settled while implementing phase 2:
   (`STRUCTURE_VALUES`) failed, one per kind of counted value, and pass.
 - A `prefill` naming a collect's count seeds from the copy's constant,
   since a seed is taken before the first compute.
+
+Settled while implementing phase 3:
+
+- Two names the table lacked were renamed with it: `PropAt::Fixed`, a
+  prop at a set position, and the string `cell_class` returns for a
+  constant, which the viewer's `cellClass` types; no caller compared it
+  with `"fixed"`.
+- *Fixed* is left where it is plain English that names no cell (a fixed
+  table of test values, a fixed array, the vertex a pivot keeps fixed),
+  and where it names the attribute or a held element. *Fixed at load*,
+  meaning decided once, became *settled at load*.
+- The earlier ADRs keep their words: they record what was decided when.
+  `CONTEXT.md` and `ARCHITECTURE.md` use the new vocabulary; *Constant*
+  now holds what *Fixed cell* and the old *Constant* entry did, beside
+  *Given value* and *Counted value*.
+- The spec cost snapshots name their count of constants `constant`, not
+  `fixed`; no number in them changed.

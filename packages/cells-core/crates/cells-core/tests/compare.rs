@@ -137,7 +137,7 @@ fn a_copy_given_an_override_fails_condition_2() {
 }
 
 /// ADR 0018: an author's value is state only while an input reaches it.
-/// Unbinding the input leaves the boolean a student wrote a fixed cell,
+/// Unbinding the input leaves the boolean a student wrote a constant,
 /// and the input reads a cell of its own: its derivation changed.
 #[test]
 fn an_edit_that_leaves_a_written_value_fixed_fails_condition_2() {

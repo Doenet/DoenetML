@@ -76,7 +76,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         _ => None,
     };
     let value = if let Some(v) = literal {
-        Wire::essential(shared_state::VALUE, v)
+        Wire::given(shared_state::VALUE, v)
     } else if macros == 1 && text.is_empty() {
         Source::reference(ctx.reference(nodes[0])?).into()
     } else {

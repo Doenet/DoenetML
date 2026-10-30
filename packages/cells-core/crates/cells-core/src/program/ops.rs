@@ -11,7 +11,7 @@
 //!
 //! In both expressions the inputs are their cells' values; an inverse names
 //! the input it writes by position, `A` for the first. A literal an
-//! operator reads is an input like any other, a fixed cell
+//! operator reads is an input like any other, a constant
 //! (`Builder::const_slot`). From the entries the macro makes `Op` and
 //! `OpSpec` (with the vector and symbolic variants, whose rules are in
 //! `vector.rs` and the engine), `Op::eval`, `Op::invert`,

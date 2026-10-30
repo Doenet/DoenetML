@@ -38,7 +38,7 @@ impl<'a> ReferenceEvaluator<'a> {
     }
 
     pub fn value(&self, cell: CellIdx) -> f64 {
-        // Essential and fixed cells have no producer.
+        // Essential cells and constants have no producer.
         let Some(&p) = self.producer.get(&cell) else {
             return self.doc.cells[cell.index()];
         };

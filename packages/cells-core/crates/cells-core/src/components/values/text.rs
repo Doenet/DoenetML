@@ -7,7 +7,7 @@ use crate::dast::{NodeId, NodeKind};
 use crate::error::{Error, Result};
 
 component! {
-    /// `<text>` with literal content: `value` is a fixed cell holding the
+    /// `<text>` with literal content: `value` is a given value holding the
     /// string id of its text (ADR 0009). A cell's meaning is a property of the
     /// operators around it, so a text value never reaches a numeric one.
     tags: ["text"],
@@ -25,8 +25,8 @@ component! {
 
 pub const VALUE: usize = Props::AT.value;
 
-/// Literal text (or nothing) is an essential cell holding its string id,
-/// since DoenetML's text value is state (a bound `<textInput>` writes it);
+/// Literal text (or nothing) is a given value holding its string id, since
+/// DoenetML's text value is state where a bound `<textInput>` writes it;
 /// a lone reference aliases another text's value. A text that extends
 /// another is planned from its prop table.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
@@ -41,10 +41,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .filter(|&n| !ctx.is_blank(n))
         .collect();
     let value = match nodes.as_slice() {
-        [] => Wire::text_essential(shared_state::VALUE, ctx.intern("")),
-        [n] if d.kind(*n) == NodeKind::Text => {
-            Wire::text_essential(shared_state::VALUE, d.str_id(*n))
-        }
+        [] => Wire::given_text(shared_state::VALUE, ctx.intern("")),
+        [n] if d.kind(*n) == NodeKind::Text => Wire::given_text(shared_state::VALUE, d.str_id(*n)),
         [n] if d.kind(*n) == NodeKind::Macro => Source::reference(ctx.reference(*n)?).into(),
         _ => {
             return Err(Error::Unsupported(

@@ -405,13 +405,13 @@ impl Core {
         )
     }
 
-    /// Whether a cell is essential (state), fixed (a constant), or derived.
+    /// Whether a cell is essential (state), a constant, or derived.
     pub fn cell_class(&self, cell: u32) -> String {
         let cell = CellIdx::new(cell);
         if self.doc.is_essential(cell) {
             "essential".into()
-        } else if self.doc.is_fixed(cell) {
-            "fixed".into()
+        } else if self.doc.is_const(cell) {
+            "constant".into()
         } else {
             "derived".into()
         }

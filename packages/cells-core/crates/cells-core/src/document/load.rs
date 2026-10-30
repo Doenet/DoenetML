@@ -24,7 +24,7 @@ pub struct LoadOptions {
     #[cfg(feature = "testing")]
     pub check_cycles: bool,
     /// Class every value slot by whether a student's action can write it,
-    /// essential or fixed (ADR 0018); off, every one is essential, as
+    /// essential or constant (ADR 0018); off, every one is essential, as
     /// before. Only with the `testing` feature: for a test of the
     /// machinery whose document no input reaches, and to check the
     /// classing against the inverses (`tests/every_count.rs`).
@@ -219,7 +219,7 @@ impl Document {
     /// What the build reported about the elements it stamped (ADR 0013):
     /// the errors of the elements that became `_error` components and the
     /// warnings of the rest, in node order. This is the list for rendering
-    /// error boxes. It is fixed at load and depends on the source alone:
+    /// error boxes. It is settled at load and depends on the source alone:
     /// the same at every count and every seed, every option of every select
     /// included (ADR 0014), so it is [`crate::diagnose`]'s list.
     pub fn diagnostics(&self) -> &[crate::Diagnostic] {

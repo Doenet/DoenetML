@@ -45,7 +45,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
         && ctx.single_macro(a).is_some()
         && let Some(Source::Alias(Arg::Ref(p, Sel::Whole))) = props[at.value]
     {
-        props[at.expr] = Some(Source::MathEssentialFrom(p));
+        props[at.expr] = Some(Source::GivenMathFrom(p));
         props[at.value] = Some(Source::computed(
             OpSpec::Sym(SymKind::Evaluate),
             vec![at.expr],
@@ -81,7 +81,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
                 })?,
         )
     };
-    props[at.expr] = Some(Source::MathEssential(tree));
+    props[at.expr] = Some(Source::GivenMath(tree));
     props[at.value] = Some(Source::computed(
         OpSpec::Sym(SymKind::Evaluate),
         vec![at.expr],

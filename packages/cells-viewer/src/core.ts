@@ -219,9 +219,10 @@ export class CellStore {
     }
 
     /** Whether a cell is state the core keeps (`essential`), a constant
-     * (`fixed`), or computed (`derived`). */
-    cellClass(cell: number): "essential" | "fixed" | "derived" {
-        return this.core.cell_class(cell) as "essential" | "fixed" | "derived";
+     * (`constant`), or computed (`derived`). */
+    cellClass(cell: number): "essential" | "constant" | "derived" {
+        return this.core.cell_class(cell) as
+            "essential" | "constant" | "derived";
     }
 
     /** Parse what a student typed into the core's math engine: the value

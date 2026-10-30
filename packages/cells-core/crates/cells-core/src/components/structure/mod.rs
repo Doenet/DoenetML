@@ -65,8 +65,8 @@ pub mod sequence_value {
 
     component! {
         /// The hidden component behind a repeat's `valueName`: `from + (k-1) *
-        /// step`. `from` and `step` alias the repeat's; `k` is the fixed
-        /// 1-based position.
+        /// step`. `from` and `step` alias the repeat's; `k` is the
+        /// iteration's 1-based position, a scope constant.
         tags: ["sequenceValue"],
         flags: [copyable, internal],
         default_prop: value,

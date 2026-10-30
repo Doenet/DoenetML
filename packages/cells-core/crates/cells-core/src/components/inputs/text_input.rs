@@ -58,7 +58,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
                 None => String::new(),
             };
             let id = ctx.intern(&text);
-            Wire::text_essential(shared_state::VALUE, id)
+            Wire::given_text(shared_state::VALUE, id)
         }
         _ => {
             return Err(Error::Unsupported(

@@ -155,7 +155,7 @@ pub mod tuple {
     /// entries past them.
     pub(crate) fn props_of(entries: Vec<Source>) -> Vec<Source> {
         debug_assert!(entries.len() <= MAX_TUPLE, "checked against MAX_TUPLE");
-        let n = Wire::fixed(entries.len() as f64);
+        let n = Wire::constant(entries.len() as f64);
         let mut entries = entries
             .into_iter()
             .map(Wire::from)

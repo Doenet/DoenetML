@@ -9,7 +9,7 @@
 //! interactive props and of what decides whether it exists or can be acted
 //! on: the `hide` of it and its ancestors, the cases and conditionals
 //! around it, the repeats around it. Each cell of the closure hashes as
-//! what it is: an essential cell by its key and prop, a fixed cell by its
+//! what it is: an essential cell by its key and prop, a constant by its
 //! value, a derived cell by its operator over its inputs' hashes; never by a cell index. The defaults of the essential
 //! cells in the closure are kept beside it, with whether each is the
 //! input's starting value, which an author may change: a cell that is one
@@ -374,7 +374,7 @@ impl<'a> Signer<'a> {
             let (ins, holds) = hashes.split_at(n_inputs);
             let what = if ci < out.n_essential {
                 hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
-            } else if ci < out.n_essential + out.n_fixed {
+            } else if ci < out.n_essential + out.n_const {
                 hash_of(("f", self.value_hash(c, out.cells[ci])))
             } else if let Some(instr) = instr {
                 let k = self.producer[ci].1;
@@ -504,14 +504,14 @@ impl<'a> Signer<'a> {
             })
             .collect();
         // A graph's own bounds, given as literals, are essential (a pan
-        // writes them) or fixed: their value as the author set it.
+        // writes them) or constants: their value as the author set it.
         let literal: Option<Vec<f64>> = bounds
             .iter()
             .map(|&b| {
                 let bi = b.index();
                 if bi < out.n_essential && self.named[&b].0 == self.key(out.comp_keys[a.index()]) {
                     Some(out.structure.essential_defaults[bi])
-                } else if bi >= out.n_essential && bi < out.n_essential + out.n_fixed {
+                } else if bi >= out.n_essential && bi < out.n_essential + out.n_const {
                     Some(out.cells[bi])
                 } else {
                     None

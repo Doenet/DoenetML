@@ -186,10 +186,10 @@ fn run_case(case: &Case) -> Result<String, String> {
     let mut doc = load_unpruned(case.source).map_err(|e| format!("does not load: {e}"))?;
     let mut pruned = load(case.source).map_err(|e| format!("does not load pruned: {e}"))?;
     let cost = format!(
-        "cells {} · essential {} · fixed {} · instrs {} · components {}",
+        "cells {} · essential {} · constant {} · instrs {} · components {}",
         pruned.cells.len(),
         pruned.n_essential,
-        pruned.n_fixed,
+        pruned.n_const,
         pruned.program.len(),
         pruned.n_components()
     );

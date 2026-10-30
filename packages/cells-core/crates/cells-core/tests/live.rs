@@ -96,7 +96,7 @@ fn relations_hold(doc: &mut Document, at: &str) -> usize {
         .filter(|(_, flags)| {
             flags
                 .iter()
-                .any(|&f| doc.is_fixed(f) && doc.cells[f.index()] != 0.0)
+                .any(|&f| doc.is_const(f) && doc.cells[f.index()] != 0.0)
         })
         .map(|(c, _)| c)
         .collect();
@@ -132,7 +132,7 @@ fn count_cells(doc: &Document) -> Vec<CellIdx> {
 }
 
 /// Per document, at load: instructions and derived cells live by the
-/// record, by the build's own walk, and in all; fixed cells dead.
+/// record, by the build's own walk, and in all; constants dead.
 #[test]
 fn census() {
     let mut golden = [0usize; 4];
@@ -145,7 +145,7 @@ fn census() {
         let instrs = &doc.program.instrs;
         let live_instrs = instrs.iter().filter(|i| doc.is_live(i.out)).count();
         let walked_instrs = instrs.iter().filter(|i| is_walked(i.out)).count();
-        let derived = doc.n_essential + doc.n_fixed..doc.cells.len();
+        let derived = doc.n_essential + doc.n_const..doc.cells.len();
         let live_derived = derived
             .clone()
             .filter(|&c| doc.is_live(CellIdx::from_index(c)))
@@ -154,16 +154,16 @@ fn census() {
             .clone()
             .filter(|&c| is_walked(CellIdx::from_index(c)))
             .count();
-        let fixed = doc.n_essential..doc.n_essential + doc.n_fixed;
-        let dead_fixed = fixed
+        let constants = doc.n_essential..doc.n_essential + doc.n_const;
+        let dead_constants = constants
             .filter(|&c| !doc.is_live(CellIdx::from_index(c)))
             .count();
         eprintln!(
             "{name:>10}: instructions {live_instrs:>5} live ({walked_instrs:>5} by the walk) of {:<5} \
-             derived {live_derived:>5} ({walked_derived:>5}) of {:<5} fixed {dead_fixed:>5} dead of {}",
+             derived {live_derived:>5} ({walked_derived:>5}) of {:<5} constant {dead_constants:>5} dead of {}",
             instrs.len(),
             derived.len(),
-            doc.n_fixed,
+            doc.n_const,
         );
         if name != "sir" {
             golden[0] += live_instrs;

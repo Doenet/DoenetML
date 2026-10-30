@@ -36,7 +36,7 @@ impl BuiltSource {
                 &op_inputs[*start as usize..*start as usize + *n as usize],
             ),
             BuiltSource::VecOut(head, _) => (Some(*head), &[]),
-            BuiltSource::Unset | BuiltSource::Literal(_) | BuiltSource::Fixed(_) => (None, &[]),
+            BuiltSource::Unset | BuiltSource::Given(_) | BuiltSource::Const(_) => (None, &[]),
         };
         one.into_iter().chain(many.iter().copied())
     }
@@ -97,7 +97,7 @@ impl SlotCells {
             .filter(|(_, fs)| {
                 fs.iter().any(|f| {
                     matches!(b.sources[def[cell_of[f.index()].index()].index()],
-                        BuiltSource::Fixed(v) if v != 0.0)
+                        BuiltSource::Const(v) if v != 0.0)
                 })
             })
             .map(|(&cell, _)| cell)

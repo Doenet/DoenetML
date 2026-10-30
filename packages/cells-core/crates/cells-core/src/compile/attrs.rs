@@ -25,7 +25,7 @@ impl<'a> Compiler<'a> {
             if extend.is_some() {
                 Source::Inherit
             } else {
-                Source::Literal(v)
+                Source::Given(v)
             }
         };
         let mut props: Vec<Option<Source>> = vec![None; component_type.prop_defs().len()];
@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
                             // A literal child (`<number>3</number>`, an input's
                             // initial state) is a value slot: the classing
                             // (ADR 0018) makes it essential when an input or an
-                            // action can reach it, a fixed cell otherwise.
+                            // action can reach it, a constant otherwise.
                             Ok(p) => p,
                             // Not a single literal or reference: math text.
                             Err(Error::BadValue { .. }) => {
@@ -224,11 +224,11 @@ impl<'a> Compiler<'a> {
                 Ok(Source::reference(p))
             }
             (0, false) => match text {
-                "true" => Ok(Source::Literal(1.0)),
-                "false" => Ok(Source::Literal(0.0)),
+                "true" => Ok(Source::Given(1.0)),
+                "false" => Ok(Source::Given(0.0)),
                 _ => text
                     .parse::<f64>()
-                    .map(Source::Literal)
+                    .map(Source::Given)
                     .map_err(|_| Error::BadValue {
                         attr: attr.into(),
                         text: text.into(),
@@ -378,7 +378,7 @@ impl<'a> Compiler<'a> {
     /// literal, a lone reference an alias, anything else a lowered math.
     pub(in crate::compile) fn plan_from_expr(&mut self, id: ExprId) -> Source {
         match self.compiled.arena.get(id) {
-            Expr::Num(v) => Source::Literal(*v),
+            Expr::Num(v) => Source::Given(*v),
             Expr::Cell(p) => Source::reference(*p),
             _ => Source::Math(id),
         }

@@ -294,7 +294,7 @@ impl Document {
         let n = cells.len();
         let coord = |k: usize, j: usize| component_type.list_slot(n, k, j).map(|i| cells[i]);
         match component_type.prop_at(prop)? {
-            PropAt::Fixed(i) => Some(vec![cells[i]]),
+            PropAt::Position(i) => Some(vec![cells[i]]),
             PropAt::Item(k) => Some(vec![coord(k, 0)?, coord(k, 1)?]),
             PropAt::Coord(k, j) => Some(vec![coord(k, j)?]),
             PropAt::List => (1..=component_type.list_len(n))

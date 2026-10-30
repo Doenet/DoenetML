@@ -147,7 +147,7 @@ impl<'a> Compiler<'a> {
             let id = self.plan_sym_math(t, scope, &text_nodes)?;
             Source::SymExpr(id, Post::None)
         };
-        let mut submitted = Source::MathEssential(None);
+        let mut submitted = Source::GivenMath(None);
         let weight = self.plan_weight(t, e, el)?;
 
         if forms.is_empty() {
@@ -158,7 +158,7 @@ impl<'a> Compiler<'a> {
                 submitted,
                 credit: Source::computed(OpSpec::Sym(eq), vec![at.submitted, at.correct]),
                 weight,
-                numSubmissions: Source::Literal(0.0),
+                numSubmissions: Source::Given(0.0),
             });
             self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
             return Ok(());
@@ -181,7 +181,7 @@ impl<'a> Compiler<'a> {
             submitted,
             credit: Source::own(best),
             weight,
-            numSubmissions: Source::Literal(0.0),
+            numSubmissions: Source::Given(0.0),
         });
         self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
@@ -194,7 +194,7 @@ impl<'a> Compiler<'a> {
         let scope = self.compiled.templates[t.index()].elems[e.index()].name_scope;
         Ok(match d.attr(el, "weight") {
             Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
-            None => Source::Fixed(1.0),
+            None => Source::Const(1.0),
         })
     }
 
@@ -240,10 +240,10 @@ impl<'a> Compiler<'a> {
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
             correct: Source::absent(),
-            submitted: Source::Literal(0.0),
+            submitted: Source::Given(0.0),
             credit: Source::computed_k(OpSpec::NanTo, chosen, 0.0),
             weight,
-            numSubmissions: Source::Literal(0.0),
+            numSubmissions: Source::Given(0.0),
         });
         self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
@@ -300,7 +300,7 @@ impl<'a> Compiler<'a> {
             let id = self.intern_literal(text.trim()).to_value();
             let mut award_wiring = ElemWiring::of(ComponentType::Award);
             let credit = self.award_credit(t, a, form.el)?;
-            let correct = award_wiring.hidden(Source::Fixed(id));
+            let correct = award_wiring.hidden(Source::Const(id));
             let holds = award_wiring.hidden(Source::Op(
                 OpSpec::Eq,
                 vec![
@@ -319,10 +319,10 @@ impl<'a> Compiler<'a> {
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
             correct: Source::absent(),
-            submitted: Source::TextLiteral(None),
+            submitted: Source::GivenText(None),
             credit: Source::own(best),
             weight,
-            numSubmissions: Source::Literal(0.0),
+            numSubmissions: Source::Given(0.0),
         });
         self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
@@ -549,15 +549,15 @@ impl<'a> Compiler<'a> {
     }
 
     /// An award's `credit`: what the attribute says (1 without one), which
-    /// is not state, so a literal is fixed.
+    /// is not state, so a literal is a constant.
     fn award_credit(&mut self, t: TemplateId, a: ElemId, el: NodeId) -> Result<Source> {
         let d = self.dast;
         Ok(match d.attr(el, "credit") {
             Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
-                Source::Literal(v) => Source::Fixed(v),
+                Source::Given(v) => Source::Const(v),
                 p => p,
             },
-            None => Source::Fixed(1.0),
+            None => Source::Const(1.0),
         })
     }
 
@@ -581,11 +581,11 @@ impl<'a> Compiler<'a> {
         let live = Source::reference(RefId::from_index(self.compiled.refs.len() - 1));
         let (submitted, value) = if math {
             (
-                Source::MathEssential(None),
+                Source::GivenMath(None),
                 Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![response::SUBMITTED]),
             )
         } else {
-            (Source::Literal(0.0), Source::own(response::SUBMITTED))
+            (Source::Given(0.0), Source::own(response::SUBMITTED))
         };
         self.compiled.templates[t.index()].elems[r.index()].props = response::Props {
             response: live,
@@ -607,7 +607,7 @@ impl<'a> Compiler<'a> {
             .expect("unnamed");
         self.compiled.templates[t.index()].elems[mi.index()].props = math_input::Props {
             value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![math_input::EXPR]),
-            expr: Source::MathEssential(None),
+            expr: Source::GivenMath(None),
         }
         .into_vec();
         self.compiled.templates[t.index()].elems[e.index()]

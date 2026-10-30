@@ -51,7 +51,8 @@ fn repeat_expands_to_its_count_and_names_are_scoped() {
     assert_eq!(val(&doc, &["r", "1", "p"], "x"), 1.0);
     assert_eq!(val(&doc, &["r", "3", "p"], "x"), 3.0);
     assert_eq!(val(&doc, &["r", "2", "p"], "y"), 1.0);
-    // Dragging a coordinate bound to the fixed sequence value is dropped,
+    // Dragging a coordinate bound to the sequence value, which reads only
+    // constants, is dropped,
     // as it is in the current core.
     let mut doc = doc;
     let tick = doc.request(&[req(cell(&doc, &["r", "2", "p"], "x"), 5.0)]);
@@ -205,7 +206,8 @@ fn collect_gathers_through_a_repeat_and_follows_its_growth() {
     doc.request(&[req(n, 5.0)]);
     assert_eq!(doc.value("cnt", "value"), Some(5.0));
     assert_eq!(doc.children(doc.resolve_path("c").unwrap()).count(), 5);
-    // A request on the collect count is dropped: it is fixed, not state.
+    // A request on the collect count is dropped: it is a counted value,
+    // not state (ADR 0026).
     let tick = doc.request(&[req(doc.cell("cnt", "value").unwrap(), 9.0)]);
     assert_eq!(tick.dropped.len(), 1);
 }

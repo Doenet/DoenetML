@@ -118,9 +118,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // (projection, ADR 0003).
     let radius_wire = |wiring: &mut ElemWiring| -> Wire {
         let pres = wiring.hidden_wire(match &radius {
-            Some(Source::Literal(v)) => Wire::essential_from(shared_state::R, attr::radius, *v),
+            Some(Source::Given(v)) => Wire::given_from(shared_state::R, attr::radius, *v),
             Some(other) => other.clone().into(),
-            None => Wire::essential(shared_state::R, 1.0),
+            None => Wire::given(shared_state::R, 1.0),
         });
         Wire::from(Source::computed_k(OpSpec::Max, pres, 0.0))
     };
@@ -166,8 +166,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 [Wire::own(at.centerX), Wire::own(at.centerY)]
             } else {
                 [
-                    Wire::essential(shared_state::CX, 0.0),
-                    Wire::essential(shared_state::CY, 0.0),
+                    Wire::given(shared_state::CX, 0.0),
+                    Wire::given(shared_state::CY, 0.0),
                 ]
             };
             [cx, cy, radius_wire(&mut wiring)]
@@ -212,7 +212,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         area: Source::computed_k(OpSpec::Mul, r2, std::f64::consts::PI).into(),
         centerX: center_x,
         centerY: center_y,
-        numThroughPoints: Wire::fixed(n as f64),
+        numThroughPoints: Wire::constant(n as f64),
     });
     wiring.set_list(through_points);
     Ok(wiring)

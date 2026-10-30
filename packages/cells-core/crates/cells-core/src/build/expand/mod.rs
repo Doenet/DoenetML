@@ -50,10 +50,12 @@ impl PlannedOp {
 #[derive(Debug, Clone)]
 pub(in crate::build) enum BuiltSource {
     Unset,
-    Literal(f64),
-    /// A constant that is not essential: an iteration index, a collect's
-    /// count, a math handle, the shared missing-referent cell.
-    Fixed(f64),
+    /// A given value: essential when the record says a student's action
+    /// can write it, a constant otherwise (ADR 0018).
+    Given(f64),
+    /// A constant, never essential (ADR 0026): an iteration index, a math
+    /// handle, the shared missing-referent cell.
+    Const(f64),
     Alias(SlotId),
     /// Operator over `op_inputs[start..start + n]`; for a vector operator,
     /// the head (output 0).
@@ -122,7 +124,7 @@ pub(in crate::build) struct Builder<'c> {
     /// until emit rebinds them to cells and imports them.
     pub(in crate::build) sym_templates: Vec<Tree<SlotId>>,
     /// Slots defining a cell that is not a number, with its type: essential
-    /// and fixed math cells, a choice's math interface, essential text.
+    /// and constant math cells, a choice's math interface, essential text.
     /// Symbolic instructions' outputs are math by their operator instead.
     /// A cell's type is its defining slot's (emit), so an alias never
     /// changes it.
@@ -175,7 +177,7 @@ pub(in crate::build) struct Builder<'c> {
     /// slot held by several flags is listed once per flag.
     pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
     /// Essential math slots seeded from another slot's value when first
-    /// built (`Source::MathEssentialFrom`): (slot, source slot).
+    /// built (`Source::GivenMathFrom`): (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena<SlotId>,
     pub(in crate::build) root: CompIdx,
@@ -353,7 +355,7 @@ impl<'c> Builder<'c> {
             None => b.missing_slot(),
         };
         Some(match component_type.prop_at(name)? {
-            PropAt::Fixed(i) => vec![self.slot(comp, i)],
+            PropAt::Position(i) => vec![self.slot(comp, i)],
             PropAt::Item(k) => vec![coord(self, k, 0), coord(self, k, 1)],
             PropAt::Coord(k, j) => vec![coord(self, k, j)],
             PropAt::List => (1..=component_type.list_len(n))
@@ -403,7 +405,7 @@ impl<'c> Builder<'c> {
         if let Some(&s) = self.consts.get(&v.to_bits()) {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Fixed(v), ScopeId::DOCUMENT);
+        let s = self.anon_slot(BuiltSource::Const(v), ScopeId::DOCUMENT);
         self.consts.insert(v.to_bits(), s);
         s
     }
@@ -432,7 +434,7 @@ impl<'c> Builder<'c> {
             let k = self.const_slot(v);
             self.op_source(OpSpec::Copy, &[k])
         } else {
-            BuiltSource::Fixed(v)
+            BuiltSource::Const(v)
         }
     }
 
@@ -440,7 +442,7 @@ impl<'c> Builder<'c> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Fixed(f64::NAN), ScopeId::DOCUMENT);
+        let s = self.anon_slot(BuiltSource::Const(f64::NAN), ScopeId::DOCUMENT);
         self.missing = Some(s);
         s
     }
@@ -977,7 +979,7 @@ impl<'c> Builder<'c> {
                     self.record_label(sx, x);
                     self.record_label(sy, y);
                     // Not state: a synthesized point has no essential key.
-                    self.sources[sh.index()] = BuiltSource::Fixed(0.0);
+                    self.sources[sh.index()] = BuiltSource::Const(0.0);
                     kids.push(ChildEntry::comp(pt));
                 }
             }
@@ -1284,7 +1286,7 @@ impl<'c> Builder<'c> {
                 }
                 plan => self.plan_source(plan, inst, pi, extend, &extend_label)?,
             };
-            if let (BuiltSource::Fixed(h), Source::MathHandle(..) | Source::SymExpr(..)) =
+            if let (BuiltSource::Const(h), Source::MathHandle(..) | Source::SymExpr(..)) =
                 (&source, plan)
                 && !h.is_nan()
             {
@@ -1314,10 +1316,10 @@ impl<'c> Builder<'c> {
             // Left unset: wired from the tree by `fill_deferred`.
             Source::Deferred(_) => BuiltSource::Unset,
             Source::FirstIteration(..) => unreachable!("nested FirstIteration"),
-            Source::Literal(v) => BuiltSource::Literal(*v),
-            Source::TextLiteral(id) => {
+            Source::Given(v) => BuiltSource::Given(*v),
+            Source::GivenText(id) => {
                 self.typed_slots.push((s, ValueType::Text));
-                BuiltSource::Literal(id.map_or(f64::NAN, StrId::to_value))
+                BuiltSource::Given(id.map_or(f64::NAN, StrId::to_value))
             }
             Source::Inherit => {
                 let Some(referent) = extend else {
@@ -1327,7 +1329,7 @@ impl<'c> Builder<'c> {
                 self.record_label_as(s, t, extend_label);
                 BuiltSource::Alias(t)
             }
-            Source::Fixed(v) => BuiltSource::Fixed(*v),
+            Source::Const(v) => BuiltSource::Const(*v),
             Source::Alias(arg) => {
                 BuiltSource::Alias(self.arg_slot(*arg, comp, inst.scope, component_type, pi)?)
             }
@@ -1349,22 +1351,22 @@ impl<'c> Builder<'c> {
                 }
                 BuiltSource::Op(PlannedOp::Spec(*spec), start, byte(args.len()))
             }
-            Source::IterIndex => BuiltSource::Fixed(self.scopes[inst.scope].2 as f64),
+            Source::IterIndex => BuiltSource::Const(self.scopes[inst.scope].2 as f64),
             Source::SequencePick { from, step, count } => {
                 let key = c.templates[inst.template.index()].elems[inst.elem.index()].key;
                 let h = choice::splitmix(self.seeded_stream(inst.scope, key));
                 let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
-                BuiltSource::Fixed(from + step * k.min(count - 1) as f64)
+                BuiltSource::Const(from + step * k.min(count - 1) as f64)
             }
             Source::Math(expr) => {
                 let id = self.instantiate_expr(*expr, inst.scope)?;
                 if let Expr::Num(v) = *self.arena.get(id) {
                     // Its own cell: `lower` gives a shared constant.
-                    BuiltSource::Fixed(v)
+                    BuiltSource::Const(v)
                 } else if self.arena.is_numeric(id) {
                     BuiltSource::Alias(self.lower(id, inst.scope))
                 } else {
-                    BuiltSource::Fixed(f64::NAN)
+                    BuiltSource::Const(f64::NAN)
                 }
             }
             Source::MathHandle(expr, post) => {
@@ -1372,7 +1374,7 @@ impl<'c> Builder<'c> {
                     self.sym_source(*expr, *post, inst.scope)?
                 } else {
                     // A numeric math is not a math cell (ADR 0005).
-                    BuiltSource::Fixed(f64::NAN)
+                    BuiltSource::Const(f64::NAN)
                 }
             }
             Source::MathValue(expr) => {
@@ -1385,27 +1387,27 @@ impl<'c> Builder<'c> {
                     if let Expr::Num(v) = *self.arena.get(id) {
                         // `<math>5</math>` is state, as a number literal is: a
                         // drag that reaches it changes it, as in the current core.
-                        BuiltSource::Literal(v)
+                        BuiltSource::Given(v)
                     } else {
                         BuiltSource::Alias(self.lower(id, inst.scope))
                     }
                 }
             }
             Source::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
-            Source::MathEssential(tree) => {
+            Source::GivenMath(tree) => {
                 self.typed_slots.push((s, ValueType::Math));
                 match tree {
-                    Some(tree) => BuiltSource::Literal(self.engine.import(tree).to_value()),
-                    None => BuiltSource::Literal(f64::NAN),
+                    Some(tree) => BuiltSource::Given(self.engine.import(tree).to_value()),
+                    None => BuiltSource::Given(f64::NAN),
                 }
             }
-            Source::MathEssentialFrom(p) => {
+            Source::GivenMathFrom(p) => {
                 self.typed_slots.push((s, ValueType::Math));
                 let from = self
                     .resolve_one(*p, inst.scope)
                     .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
                 self.seeds.push((s, from));
-                BuiltSource::Literal(f64::NAN)
+                BuiltSource::Given(f64::NAN)
             }
             Source::VecOut(head, k) => BuiltSource::VecOut(self.slot(comp, *head as usize), *k),
         })

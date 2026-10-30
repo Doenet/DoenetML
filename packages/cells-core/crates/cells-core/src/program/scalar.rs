@@ -1,5 +1,5 @@
 //! Operators: the numeric functions that compute derived cells. A literal
-//! an operator reads is a fixed cell like any other input
+//! an operator reads is a constant like any other input
 //! (`Builder::const_slot`). Every
 //! scalar operator is one `scalar_ops!` entry (`ops.rs`, ADR 0016): to add
 //! one, add an entry.

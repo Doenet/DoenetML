@@ -1,5 +1,5 @@
 //! Emit: merge aliases into cells with a union-find, number cells
-//! (essential, fixed, derived) and bind operators to instructions.
+//! (essential, constant, derived) and bind operators to instructions.
 
 use super::*;
 
@@ -43,15 +43,15 @@ impl<'c> Builder<'c> {
                         node: None,
                     });
                 }
-                self.sources[s] = BuiltSource::Fixed(f64::NAN);
+                self.sources[s] = BuiltSource::Const(f64::NAN);
                 def[root] = SlotId::from_index(s);
             }
         }
         let slot_cells = SlotCells::new(&self, cell_of, def);
-        // Number cells: essential first, then fixed, then derived.
+        // Number cells: essential first, then constants, then derived.
         // Essential values come from the previous build when the slot existed.
         // A value slot is essential when a student's action can write it,
-        // and fixed otherwise (ADR 0018): the probe finds them by its walk
+        // and a constant otherwise (ADR 0018): the probe finds them by its walk
         // and records them by template slot, and every other build reads
         // the record, so a slot's class is the same in every build; with
         // the classing off (no record), every value slot is essential.
@@ -108,7 +108,7 @@ impl<'c> Builder<'c> {
             };
             prune
                 && !live_slot[s]
-                && !(matches!(self.sources[s], BuiltSource::Literal(_)) && essential[s])
+                && !(matches!(self.sources[s], BuiltSource::Given(_)) && essential[s])
         };
         let mut slot_cell: Vec<CellIdx> = vec![CellIdx::NONE; n];
         // Count each kind of defining slot first: the essential tables are
@@ -123,9 +123,9 @@ impl<'c> Builder<'c> {
                 any_dead = true;
             } else if defines {
                 let (kind, n_out) = match &self.sources[s] {
-                    BuiltSource::Literal(_) if essential[s] => (0, 1),
-                    BuiltSource::Literal(_) => (1, 1),
-                    BuiltSource::Fixed(_) => (1, 1),
+                    BuiltSource::Given(_) if essential[s] => (0, 1),
+                    BuiltSource::Given(_) => (1, 1),
+                    BuiltSource::Const(_) => (1, 1),
                     BuiltSource::Op(spec, ..) => (2, spec.n_out()),
                     _ => (3, 0),
                 };
@@ -145,7 +145,7 @@ impl<'c> Builder<'c> {
         // parked, its key).
         let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, u32))> = Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
-        let mut fixed_defs = Vec::with_capacity(counts[1]);
+        let mut const_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
         let mut outputs = Vec::with_capacity(counts[3]);
         let mut dead_defs = Vec::new();
@@ -162,13 +162,13 @@ impl<'c> Builder<'c> {
                 continue;
             }
             #[cfg(feature = "testing")]
-            if walked_writable[s] && matches!(self.sources[s], BuiltSource::Literal(_)) {
+            if walked_writable[s] && matches!(self.sources[s], BuiltSource::Given(_)) {
                 let (scope, tslot, _) = self.essential_key(SlotId::from_index(s));
                 walked_essential_slots.push((scope, tslot));
             }
             match &self.sources[s] {
-                BuiltSource::Literal(_) if !essential[s] => fixed_defs.push(s),
-                BuiltSource::Literal(v) => {
+                BuiltSource::Given(_) if !essential[s] => const_defs.push(s),
+                BuiltSource::Given(v) => {
                     let (scope, tslot, key) = self.essential_key(SlotId::from_index(s));
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
                     if !parked.is_empty()
@@ -184,14 +184,14 @@ impl<'c> Builder<'c> {
                     essential_keys.push(key);
                     essential_defaults.push(*v);
                 }
-                BuiltSource::Fixed(_) => fixed_defs.push(s),
+                BuiltSource::Const(_) => const_defs.push(s),
                 BuiltSource::Op(..) => derived_defs.push(s),
                 BuiltSource::VecOut(..) => outputs.push(s),
                 _ => unreachable!(),
             }
         }
         let n_essential = cells.len();
-        // The dead cell, first of the fixed cells: NaN, never computed,
+        // The dead cell, first of the constants: NaN, never computed,
         // and what every dead slot names.
         let dead_cell = (!dead_defs.is_empty()).then(|| {
             let dead = CellIdx::from_index(cells.len());
@@ -202,9 +202,9 @@ impl<'c> Builder<'c> {
             }
             dead
         });
-        for &s in &fixed_defs {
+        for &s in &const_defs {
             // A constant, or an author's value no student can change.
-            let (BuiltSource::Fixed(v) | BuiltSource::Literal(v)) = self.sources[s] else {
+            let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.sources[s] else {
                 unreachable!()
             };
             let root = slot_cells.cell_of(SlotId::from_index(s)).index();
@@ -212,7 +212,7 @@ impl<'c> Builder<'c> {
             cells.push(v);
             cell_def_slot.push(SlotId::from_index(s));
         }
-        let n_fixed = fixed_defs.len() + dead_cell.is_some() as usize;
+        let n_const = const_defs.len() + dead_cell.is_some() as usize;
         // A vector instruction's outputs are consecutive cells after its head.
         for &s in &derived_defs {
             let root = slot_cells.cell_of(SlotId::from_index(s)).index();
@@ -288,8 +288,8 @@ impl<'c> Builder<'c> {
                     let (scope, tslot, _) = self.essential_key(s);
                     let class = match self.sources[s.index()] {
                         BuiltSource::Alias(_) => SlotClass::Alias,
-                        BuiltSource::Literal(_) if essential[s.index()] => SlotClass::Essential,
-                        BuiltSource::Literal(_) | BuiltSource::Fixed(_) => {
+                        BuiltSource::Given(_) if essential[s.index()] => SlotClass::Essential,
+                        BuiltSource::Given(_) | BuiltSource::Const(_) => {
                             SlotClass::Constant(cells[slot_to_cell[s.index()].index()])
                         }
                         _ => SlotClass::Derived,
@@ -343,8 +343,8 @@ impl<'c> Builder<'c> {
             };
         }
         let mut tapes = Vec::new();
-        // Compile curves whose expression has a fixed shape into tapes, and
-        // take a fixed shape's derivative once, unless the load asked for
+        // Compile curves whose expression has a constant shape into tapes,
+        // and take a constant shape's derivative once, unless the load asked for
         // engine sampling. Not in the probe, whose instructions never run:
         // its build is discarded, and the input signature reads the
         // expressions themselves (`signature.rs`).
@@ -352,7 +352,7 @@ impl<'c> Builder<'c> {
         let compile = !self.session.sample_with_engine && !folds;
         #[cfg(not(feature = "testing"))]
         let compile = !folds;
-        let mut fixed_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
+        let mut constant_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
         for &s in &derived_defs {
             let (planned, start, count) = match &self.sources[s] {
                 BuiltSource::Op(op, start, count) => (*op, *start, *count),
@@ -380,12 +380,15 @@ impl<'c> Builder<'c> {
                     value_types[slot_to_cell[s].index()] = ValueType::Math;
                 }
                 let input = self.op_inputs[start as usize];
-                // A derivative of a fixed shape is taken once, here; the tick
+                // A derivative of a constant shape is taken once, here; the tick
                 // only fills in the parameters.
                 if compile
                     && kind == SymKind::Derivative
-                    && let Some(d) =
-                        self.fixed_shape(SlotId::from_index(s), &slot_to_cell, &mut fixed_shape)
+                    && let Some(d) = self.constant_shape(
+                        SlotId::from_index(s),
+                        &slot_to_cell,
+                        &mut constant_shape,
+                    )
                     && let Some(tree) = self.engine.export(d)
                 {
                     bound.clear();
@@ -395,10 +398,10 @@ impl<'c> Builder<'c> {
                         post: Post::Simplify,
                     });
                 }
-                // A curve of a fixed shape samples a compiled tape.
+                // A curve of a constant shape samples a compiled tape.
                 if compile
                     && kind == SymKind::Sample
-                    && let Some(h) = self.fixed_shape(input, &slot_to_cell, &mut fixed_shape)
+                    && let Some(h) = self.constant_shape(input, &slot_to_cell, &mut constant_shape)
                     && let Some(tape) = self
                         .engine
                         .export(h)
@@ -519,7 +522,7 @@ impl<'c> Builder<'c> {
         Ok(BuildOutput {
             cells,
             n_essential,
-            n_fixed,
+            n_const,
             instrs,
             components,
             strings,
@@ -544,10 +547,10 @@ impl<'c> Builder<'c> {
     }
 
     /// The expression a slot will hold as a template over numeric cell
-    /// leaves, when its shape is fixed at build time: a fixed handle, an
+    /// leaves, when its shape is constant at build time: a constant handle, an
     /// instantiated template, or the derivative of one (taken here, once).
     /// `None` when it depends on a math cell whose shape can change.
-    fn fixed_shape(
+    fn constant_shape(
         &mut self,
         slot: SlotId,
         slot_to_cell: &[CellIdx],
@@ -561,7 +564,7 @@ impl<'c> Builder<'c> {
             return h;
         }
         let h = match self.sources[root.index()] {
-            BuiltSource::Fixed(h) if !h.is_nan() => Some(Handle::from_value(h)),
+            BuiltSource::Const(h) if !h.is_nan() => Some(Handle::from_value(h)),
             BuiltSource::Op(PlannedOp::Template { template, .. }, _, _) => {
                 let tree = rebind(&self.sym_templates[template.index()], slot_to_cell);
                 if has_math_leaf(&tree) {
@@ -572,7 +575,7 @@ impl<'c> Builder<'c> {
             }
             BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Derivative)), start, _) => {
                 let input = self.op_inputs[start as usize];
-                self.fixed_shape(input, slot_to_cell, memo)
+                self.constant_shape(input, slot_to_cell, memo)
                     .map(|h| self.engine.derivative(h, "x"))
             }
             _ => None,
@@ -581,10 +584,10 @@ impl<'c> Builder<'c> {
         h
     }
 
-    /// Give each seeded essential math cell (`Source::MathEssentialFrom`)
+    /// Give each seeded essential math cell (`Source::GivenMathFrom`)
     /// its first expression: the source cell's value, unless the cell
     /// carried a value over from an earlier build. The source must be
-    /// essential or fixed, so its value is known before anything computes;
+    /// essential or a constant, so its value is known before anything computes;
     /// that is checked by the source's kind (`def` gives a slot's class's
     /// defining slot), so a seed no output reads, which has no cell
     /// (`dead_cell`, ADR 0019), is checked all the same.
@@ -649,7 +652,7 @@ impl<'c> Builder<'c> {
             };
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);
-            // a seeded cell no student can write (ADR 0018) is fixed at it.
+            // a seeded cell no student can write (ADR 0018) is a constant, at it.
             let cell = slot_to_cell[s.index()].index();
             let essential = cell < defaults.len();
             if essential {
@@ -705,7 +708,7 @@ impl<'c> Builder<'c> {
     }
 
     /// An essential slot's key: its scope, its template slot (the element's
-    /// slot offset plus the prop's position; a document's boxes are fixed
+    /// slot offset plus the prop's position; a document's boxes are settled
     /// at load, ADR 0014, so the offsets are the same in every build), and
     /// its element's key and position, `HIDDEN` marking a hidden slot.
     #[inline]

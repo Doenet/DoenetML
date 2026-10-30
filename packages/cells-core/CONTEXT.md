@@ -7,7 +7,8 @@ a glossary only; design decisions live in `docs/adr/`.
 ## Terms
 
 **Cell** — A single double-precision value in the document's state. Cells are
-the nodes of the dependency graph. Every cell is essential, fixed or derived.
+the nodes of the dependency graph. Every cell is essential, a constant or
+derived.
 A cell's number may stand for an integer, a boolean (0 or 1), a string id or
 a handle into the symbolic engine. Which of number, text or math it holds is
 its **value type**, recorded by the build from the source that defines the
@@ -17,10 +18,10 @@ saved, never while the tick recomputes.
 **Essential cell** — A cell with no dependencies that a student's action can
 write: a request through the inverses, a submit or a trigger (ADR 0018).
 Its value is part of the minimum independent data needed to recreate the
-document state, with the seed. Initialized from an attribute literal or a
-component default. The only cells a write can ultimately land on. An author's
-value nothing a student does can reach is a fixed cell instead; the compile
-decides which per template slot, once, from the source.
+document state, with the seed. Initialized from its given value. The only
+cells a write can ultimately land on. A given value nothing a student does can
+reach is a constant instead; the compile decides which per template slot, once,
+from the source.
 
 **Derived cell** — A cell whose value is computed by an operator from other
 cells. Never written directly; a request naming a derived cell is inverted
@@ -35,12 +36,6 @@ math text.
 **Instruction** — An operator bound to its input cells and the cell (or
 consecutive cells) it writes. The program is the list of instructions in
 schedule order.
-
-**Constant** — A literal an operator reads (a factor, clamp bounds, an
-exponent): document text, not state. Operators carry no literals; each
-constant is a fixed cell like any other input, one per distinct value in a
-build (`Builder::const_slot`), named in a plan as `Arg::Const` and in a type's
-table as `(value)`.
 
 **Alias** — Two state variables that are exactly equal by construction (a
 reference such as `x="$p1.x"`, or a component copy `$p1`) share one cell.
@@ -75,7 +70,7 @@ Its points are either as many as the element was given (a circle's
 `throughPoints`, a polygon's `vertices`), stored after the props of the
 type's table, its length the element's prop count less the table's, so it
 needs no cell of its own, and a point past the end the missing value
-(ADR 0016); or a fixed number of the table's own props (a line's `points`
+(ADR 0016); or a set number of the table's own props (a line's `points`
 are `x1`, `y1` and `x2`, `y2`).
 
 **Component** — A DoenetML tag instance (`number`, `numberInput`, `graph`,
@@ -141,7 +136,7 @@ every input of the instructions that compute it. The compile finds the live temp
 slots once, through the probe (the *live record*), and every build reads
 it. Every essential cell is live. A cell that is not live is **dead**: a
 load with `LoadOptions::prune`, the default, gives it no cell, and every
-prop that would name it names the one **dead cell** instead, a fixed NaN
+prop that would name it names the one **dead cell** instead, a constant NaN
 that nothing computes. Unpruned, every cell is computed and
 `Document::is_live` says which are needed.
 
@@ -163,8 +158,8 @@ requested input values. Most operators write one input, their first argument;
 a fan-out inverse writes several. Each operator declares the inputs its
 inverse may write (`OpSpec::writes`, ADR 0018), which is how the compile
 finds the essential cells. A request is dropped when its inversion is
-undefined for the current values (division by zero) or reaches only fixed
-cells: a derived cell no input reaches has only fixed ancestors.
+undefined for the current values (division by zero) or reaches only
+constants: a derived cell no input reaches has only constant ancestors.
 
 **Fan-out inverse** — An inverse that turns one requested output value into
 requests on several inputs at once (a circle's radius moving both coordinates
@@ -241,7 +236,7 @@ a non-number counting as zero.
 
 **Math cell** — A cell whose value is a handle into the symbolic engine rather
 than a number. A math cell may be essential (a `mathInput`'s expression),
-fixed (an expression written in the document) or derived (the result of a
+a constant (an expression written in the document) or derived (the result of a
 symbolic instruction). Operators on math cells live in the same program and
 schedule as numeric operators.
 
@@ -272,19 +267,39 @@ symbolic engine.
 number-typed components with numeric operators at build time, so it never
 becomes a math cell. Decided at build time, never from runtime values.
 
-**Fixed cell** — A cell that holds a constant which is not state: an
-iteration's index, a collect's count, the shared missing-referent NaN, an
-expression written in the document (a math handle), the values of an element
-under a literal `fixed`, and every author's value, given or defaulted, that
-no student's action can write (ADR 0018), such as a point's default `hide`.
-Fixed cells have no producer and no essential key; a request that reaches
-one is dropped. A fixed value nothing live reads gets no cell when the load
-is pruned (ADR 0019); the dead cell is itself a fixed cell.
+**Constant** — A cell whose value depends on the source, the seed and
+the scope it is in alone (ADR 0026): no tick changes it, and no rebuild changes
+it for a scope that still exists. Every given value no student's action can
+write (ADR 0018), such as a point's default `hide` or the values of an element
+under a literal `fixed`; an operator's constant (a factor, clamp bounds, an
+exponent; operators carry no literals, so each is an input like any other, one
+per distinct value in a build, `Builder::const_slot`, named in a plan as
+`Arg::Const` and in a type's table as `(value)`); an expression written in the
+document (a math handle); an iteration's index; the shared missing-referent
+NaN. A **document constant** is the same in every instance of its template
+slot; a **scope constant** (an iteration's index, a `<selectFromSequence>`
+pick) depends on its scope too. Constants have no producer and no essential
+key; a request that reaches one is dropped. A constant nothing live reads gets
+no cell when the load is pruned (ADR 0019); the dead cell is itself a constant.
+_Avoid_: fixed cell (*fixed* is the attribute, whose effect is a hold)
+
+**Given value** — A value the source gives a prop, by an attribute or the
+type's default (`Source::Given`): essential when a student's action can write
+it, a constant otherwise (ADR 0018).
+_Avoid_: literal (a literal is text written in the source)
+
+**Counted value** — A value a build counts from the structure it stamped,
+which follows the iteration counts (ADR 0026): a collect's count from a
+repeat, a section's number after one, the credit of a section whose answers
+are all in repeats. A derived cell in every build, holding the number its build
+counted; the probe records which template slots hold one
+(`Compiled::counted`), since at a count with nothing to count a build cannot
+tell. Never a constant.
 
 **Hold** — What `fixed` (or `fixAxes`) puts on an element: every cell of
 it refuses a request while one of its flags is nonzero (`Program::holds`);
 forward, nothing changes. A literal `fixed` holds by a constant flag, so the
-classing makes the element's values fixed cells. A held element's slot that
+classing makes the element's values constants. A held element's slot that
 would share another element's cell gets one of its own (`OpSpec::Copy`), so
 the hold is on it and not on the other; a reference to a held element shares
 its cell and is held with it. Not to be confused with a gate. An element's
@@ -333,14 +348,14 @@ line's `points`, a polygon's `vertices`): one point per item, each aliasing
 the item's cells.
 
 **Missing referent** — An indexed reference that names no component
-(`$r[32]` when there are ten iterations). It resolves to the shared fixed
+(`$r[32]` when there are ten iterations). It resolves to the shared constant
 NaN cell; after a rebuild that creates iteration 32 it aliases the real cell.
 
 **Dropped request** — A request whose inverse was undefined for the current
 values. It changes nothing and is reported back with the tick.
 
 **Schedule** — The topological order in which derived cells are recomputed
-after essential cells change. Fixed once the document is loaded.
+after essential cells change. Settled once the document is loaded.
 
 **Evaluator** — The strategy that recomputes derived cells in a tick: every
 instruction in schedule order, or only the downstream closure of the cells
@@ -369,7 +384,7 @@ survive a rebuild through their essential keys. See ADR 0004.
 
 **Essential key** — The identity of an essential cell independently of its
 index: the scope it lives in and its slot within that scope's template (which
-element, which prop). A document's boxes are fixed at load (ADR 0014), so the
+element, which prop). A document's boxes are settled at load (ADR 0014), so the
 slot is the same in every build. Essential values are kept by key across
 rebuilds, so an iteration that disappears and reappears returns with its last
 values. Saved state names a cell instead by its stable keys, which no

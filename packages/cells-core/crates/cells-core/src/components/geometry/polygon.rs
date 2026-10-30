@@ -169,7 +169,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             .collect(),
     };
     wiring.set_public(Props {
-        numVertices: Wire::fixed(n as f64),
+        numVertices: Wire::constant(n as f64),
     });
     wiring.set_list(points);
     Ok(wiring)

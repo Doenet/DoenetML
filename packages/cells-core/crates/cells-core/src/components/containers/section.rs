@@ -130,14 +130,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
         }
     };
     let at = Props::AT;
-    props[at.aggregateScores] = Some(Source::Fixed(flag(
+    props[at.aggregateScores] = Some(Source::Const(flag(
         "aggregateScores",
         section_tag.aggregates_scores,
     )?));
-    props[at.includeParentNumber] = Some(Source::Fixed(flag(
+    props[at.includeParentNumber] = Some(Source::Const(flag(
         "includeParentNumber",
         section_tag.includes_parent_number,
     )?));
-    props[at.label] = Some(Source::Fixed(label as f64));
+    props[at.label] = Some(Source::Const(label as f64));
     Ok(())
 }

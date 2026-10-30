@@ -60,7 +60,7 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
 /// the core's machinery (a forced count, an inversion through a
 /// `<number>`), not of a component, whose spec reaches a prop through an
 /// input. It still writes only essential cells, so it cannot change a
-/// fixed value.
+/// constant.
 pub fn request_unchecked(
     doc: &mut crate::Document,
     requests: &[crate::Request],

@@ -83,7 +83,7 @@ const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 pub struct Program {
     pub instrs: Vec<Instr>,
     /// producer[cell] = index into `instrs` of the instruction writing that
-    /// cell, or `u32::MAX` for essential and fixed cells. A vector
+    /// cell, or `u32::MAX` for essential cells and constants. A vector
     /// instruction produces several consecutive cells.
     pub producer: Vec<u32>,
     /// Every input of a vector or symbolic instruction, indexed by
@@ -117,8 +117,8 @@ pub struct Needs<'a> {
 }
 
 impl<'a> Needs<'a> {
-    /// What `cell` needs, written by `instr` (none for an essential or a
-    /// fixed cell) over `operands`, held as `holds` says.
+    /// What `cell` needs, written by `instr` (none for an essential cell or a
+    /// constant) over `operands`, held as `holds` says.
     pub fn new(
         instr: Option<&'a Instr>,
         operands: &'a [CellIdx],
@@ -212,7 +212,7 @@ impl Program {
     /// for a template stamped per iteration is almost always already a valid
     /// evaluation order (within an iteration the template is in document
     /// order; a lag of `k - d` reads an earlier iteration). One linear pass
-    /// checks that every input is essential, fixed, or produced earlier; only
+    /// checks that every input is essential, a constant, or produced earlier; only
     /// when that fails does the general sort run.
     pub fn schedule(
         instrs: Vec<Instr>,

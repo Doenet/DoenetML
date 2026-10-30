@@ -40,7 +40,7 @@ impl<'c> Builder<'c> {
             &[],
             |_| true,
             |def, stack| {
-                if let BuiltSource::Literal(_) = def.source
+                if let BuiltSource::Given(_) = def.source
                     && !def.held_always()
                 {
                     writable[def.slot.index()] = true;
