@@ -59,7 +59,8 @@ impl<'c> Builder<'c> {
             Some(mean) => {
                 let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
                 self.fill_deferred(s, Deferred::Credit, BuiltSource::Alias(mean));
-                let percent = self.op_source(OpSpec::Scale { k: 100.0 }, &[s]);
+                let hundred = self.const_slot(100.0);
+                let percent = self.op_source(OpSpec::Mul, &[s, hundred]);
                 self.fill_deferred(p, Deferred::PercentCredit, percent);
             }
             None => self.set_constant_credit(c, 1.0),
@@ -151,7 +152,8 @@ impl<'c> Builder<'c> {
                 ComponentType::Answer => {
                     // A blank response checks as NaN; it is no credit.
                     let checked = self.slot(k, answer::CREDIT);
-                    let credit = self.op_slot(OpSpec::NanTo { k: 0.0 }, &[checked], scope);
+                    let zero = self.const_slot(0.0);
+                    let credit = self.op_slot(OpSpec::NanTo, &[checked, zero], scope);
                     (self.slot(k, answer::WEIGHT), credit)
                 }
                 ComponentType::Section if self.aggregates(k) => {
@@ -187,12 +189,10 @@ impl<'c> Builder<'c> {
                 ComponentType::Section => {
                     let number = match counter.before {
                         None => BuiltSource::Fixed(counter.fixed + 1.0),
-                        Some(b) => self.op_source(
-                            OpSpec::Offset {
-                                k: counter.fixed + 1.0,
-                            },
-                            &[b],
-                        ),
+                        Some(b) => {
+                            let k = self.const_slot(counter.fixed + 1.0);
+                            self.op_source(OpSpec::Add, &[b, k])
+                        }
                     };
                     let s = self.slot(k, NUMBER);
                     self.fill_deferred(s, Deferred::SectionNumber, number);

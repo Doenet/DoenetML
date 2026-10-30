@@ -40,7 +40,8 @@ impl Document {
         let found = crate::program::refuse::analyze(
             &self.program.instrs,
             &self.program.operands,
-            self.cells.len(),
+            &self.program.vecs,
+            &self.program.syms,
             self.n_essential,
             &self.interactive_cells(),
             &self.program.holds.held_always(

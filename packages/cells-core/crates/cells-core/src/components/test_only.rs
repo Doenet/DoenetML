@@ -26,7 +26,7 @@ pub(crate) mod test_value {
         default_prop: value,
         props {
             value: attr(0.0),
-            double: computed(OpSpec::Scale { k: 2.0 }, [value]),
+            double: computed(OpSpec::Mul, [value, (2.0)]),
         }
         planner: Props,
     }

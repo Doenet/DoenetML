@@ -26,8 +26,8 @@ component! {
         cx: by_planner { interactive, rendered },
         cy: by_planner { interactive, rendered },
         radius: by_planner { rendered },
-        diameter: computed(OpSpec::Scale { k: 2.0 }, [radius]),
-        circumference: computed(OpSpec::Scale { k: TAU }, [radius]),
+        diameter: computed(OpSpec::Mul, [radius, (2.0)]),
+        circumference: computed(OpSpec::Mul, [radius, (TAU)]),
         area: by_planner,
         // The center as a *reference*: the prescribed center when there is
         // one (so a point extending `$c.center` drags that point alone, as
@@ -122,13 +122,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             Some(other) => other.clone().into(),
             None => Wire::essential(shared_state::R, 1.0),
         });
-        Wire::computed(
-            OpSpec::Clamp {
-                lo: 0.0,
-                hi: f64::INFINITY,
-            },
-            vec![pres],
-        )
+        Wire::from(Source::computed_k(OpSpec::Max, pres, 0.0))
     };
     // Through points and the center-as-reference, for `$c.throughPoint1`
     // and `<point extend="$c.center">`. The prescribed center lives on
@@ -215,12 +209,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         radius,
         diameter: Wire::from_table(ComponentType::Circle, at.diameter),
         circumference: Wire::from_table(ComponentType::Circle, at.circumference),
-        area: Wire::computed(
-            OpSpec::Scale {
-                k: std::f64::consts::PI,
-            },
-            vec![r2],
-        ),
+        area: Source::computed_k(OpSpec::Mul, r2, std::f64::consts::PI).into(),
         centerX: center_x,
         centerY: center_y,
         numThroughPoints: Wire::fixed(n as f64),

@@ -2,7 +2,6 @@
 //! tape compiled at build time instead of asking the engine on each tick.
 //! The tapes must sample what the engine samples.
 
-use cells_core::program::Op;
 use cells_core::program::{SAMPLES, SymKind};
 use cells_core::testing::test_utils::dast_json;
 use cells_core::{Document, LoadOptions, Request};
@@ -24,7 +23,12 @@ fn tapes(doc: &Document) -> usize {
     doc.program
         .instrs
         .iter()
-        .filter(|i| matches!(i.op, Op::Sym(SymKind::SampleTape { .. }, ..)))
+        .filter(|i| {
+            matches!(
+                doc.program.sym_kind(&i.op),
+                Some(SymKind::SampleTape { .. })
+            )
+        })
         .count()
 }
 

@@ -23,15 +23,35 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
         load(r#"<numberInput name="a" value="2"/><math name="m">3$a + 2</math>"#).unwrap();
     assert_eq!(doc.value("m", "value"), Some(8.0));
     assert!(!has_symbolic(&doc), "a numeric math is plain operators");
-    // Scale then Offset: two instructions, no fixed literal cells.
+    // Mul then Add: two instructions, reading the literals' fixed cells.
     assert_eq!(doc.program.len(), 2);
     assert_eq!(
-        doc.n_fixed, 3,
-        "only the (NaN) expression handle and the document's two credit cells are fixed"
+        doc.n_fixed, 5,
+        "the (NaN) expression handle, the document's two credit cells, 3 and 2"
     );
     // Dragging the math's value inverts through the lowered chain.
     set_unchecked(&mut doc, "m", "value", 14.0);
     assert_eq!(doc.value("a", "value"), Some(4.0));
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn a_literal_operand_is_one_cell_for_every_iteration() {
+    // A literal is a fixed cell, and the build keeps one per value, not
+    // one per iteration.
+    let body = |n: &str| {
+        format!(
+            r#"<repeatForSequence name="r" length="5" valueName="v"><number name="n">{n}</number></repeatForSequence>"#
+        )
+    };
+    let doc = load(&body("$v^2 + max($v, 3)")).unwrap();
+    let plain = load(&body("$v")).unwrap();
+    assert_eq!(doc.n_fixed, plain.n_fixed + 2, "one cell for 2, one for 3");
+    let n = doc.resolve_path("r[4].n").unwrap();
+    assert_eq!(
+        doc.cells[doc.prop_cells(n, "value").unwrap()[0].index()],
+        20.0
+    );
     assert_eq!(reference::check(&doc), None);
 }
 
@@ -136,10 +156,10 @@ fn a_nested_call_builds_the_same_operators_as_a_chain_of_numbers() {
         doc.program
             .instrs
             .iter()
-            .map(|i| match i.op {
-                Op::Min(..) => "Min".to_string(),
-                Op::Clamp(_, lo, hi) => format!("Clamp {lo} {hi}"),
-                other => format!("{other:?}"),
+            .map(|i| match (i.op, doc.program.vec_op(&i.op)) {
+                (_, Some(v)) => format!("{v:?}"),
+                (Op::Min(..), _) => "Min".to_string(),
+                (other, _) => format!("{other:?}"),
             })
             .collect::<Vec<_>>()
     };

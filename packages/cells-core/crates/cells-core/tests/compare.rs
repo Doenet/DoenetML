@@ -238,3 +238,13 @@ fn an_unrelated_insertion_moves_no_hash() {
     );
     safe(old, &new);
 }
+
+/// A choiceInput's choice count is its domain, not part of its
+/// derivation: appending a choice keeps every index a student could have
+/// chosen.
+#[test]
+fn appending_a_choice_is_safe() {
+    let old = r#"<choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>"#;
+    let new = r#"<choiceInput name="c"><choice>a</choice><choice>b</choice><choice>c</choice></choiceInput>"#;
+    safe(old, new);
+}

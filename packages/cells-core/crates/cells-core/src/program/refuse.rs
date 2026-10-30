@@ -21,7 +21,7 @@
 
 use std::rc::Rc;
 
-use super::{Instr, Op};
+use super::{Instr, Op, SymEntry, VecOp};
 use crate::document::CellIdx;
 
 /// What `analyze` found for one asked cell.
@@ -36,9 +36,10 @@ pub enum Finding {
 }
 
 /// For each cell of `asked`, what its inverse runs into, if anything; in
-/// the order of `asked`, at most one finding each (`Twice` first). A cell
-/// `held_always` marks, which a constant flag holds (`Holds::held_always`,
-/// ADR 0022), takes no request, so its inverse writes nothing.
+/// the order of `asked`, at most one finding each (`Twice` first).
+/// `held_always` has one entry per cell of the program: a cell it marks,
+/// which a constant flag holds (`Holds::held_always`, ADR 0022), takes no
+/// request, so its inverse writes nothing.
 ///
 /// Each cell's written cells come from one walk down the program, shared
 /// between cells. Paths are counted once per written cell, over the
@@ -50,11 +51,13 @@ pub enum Finding {
 pub fn analyze(
     instrs: &[Instr],
     operands: &[CellIdx],
-    n_cells: usize,
+    vecs: &[VecOp],
+    syms: &[SymEntry],
     n_essential: usize,
     asked: &[CellIdx],
     held_always: &[bool],
 ) -> Vec<(CellIdx, Finding)> {
+    let n_cells = held_always.len();
     let mut producer = vec![u32::MAX; n_cells];
     for (i, ins) in instrs.iter().enumerate() {
         for k in 0..ins.op.n_out() {
@@ -64,6 +67,8 @@ pub fn analyze(
     let mut graph = Graph {
         instrs,
         operands,
+        vecs,
+        syms,
         producer: &producer,
         start: Vec::new(),
         readers: Vec::new(),
@@ -242,6 +247,8 @@ impl Scratch {
 struct Graph<'a> {
     instrs: &'a [Instr],
     operands: &'a [CellIdx],
+    vecs: &'a [VecOp],
+    syms: &'a [SymEntry],
     producer: &'a [u32],
     /// The instructions reading each cell, compressed: those of cell `c`
     /// are `readers[start[c]..start[c + 1]]`. Made only for a count.
@@ -278,7 +285,7 @@ impl Graph<'_> {
     /// The inputs of `ins` its inverse may write, into `out`.
     fn written_inputs(&self, ins: &Instr, out: &mut Vec<CellIdx>) {
         out.clear();
-        let mask = ins.op.writes();
+        let mask = ins.op.writes(self.vecs, self.syms);
         out.extend(
             ins.op
                 .inputs(self.operands)

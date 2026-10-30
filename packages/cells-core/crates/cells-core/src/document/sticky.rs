@@ -11,7 +11,6 @@ use std::collections::HashSet;
 
 use super::*;
 use crate::components::StickyPoints;
-use crate::program::Op;
 use crate::program::VecOp;
 use crate::tick::invert::PointRequest;
 use crate::tick::snap::{Member, Params, Pt, snap_group};
@@ -113,8 +112,8 @@ impl Document {
         let p = self.program.producer[cell.index()];
         p != u32::MAX
             && matches!(
-                self.program.instrs[p as usize].op,
-                Op::Vec(VecOp::Shape { .. }, ..)
+                self.program.vec_op(&self.program.instrs[p as usize].op),
+                Some(VecOp::Shape { .. })
             )
     }
 

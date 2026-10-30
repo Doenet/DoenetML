@@ -356,9 +356,10 @@ impl<'c> Builder<'c> {
         Ok(self.arena.push(out))
     }
 
-    /// Lower a numeric expression to operator slots. Literals fold into
-    /// `Scale`/`Offset` parameters where an operator has one; otherwise they
-    /// become fixed cells.
+    /// Lower a numeric expression to operator slots. A literal is read from
+    /// the build's shared constants (`const_slot`), so a bare literal gives
+    /// a slot no prop may alias. A binary operator's inverse writes its
+    /// first input, so a literal goes second where the operator allows it.
     pub(in crate::build) fn lower(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
         let num = |a: &Arena<SlotId>, e: ExprId| match a.get(e) {
             Expr::Num(v) => Some(*v),
@@ -366,69 +367,43 @@ impl<'c> Builder<'c> {
         };
         let e = self.arena.get(id).clone();
         match e {
-            Expr::Num(v) => self.anon_slot(BuiltSource::Fixed(v), scope),
+            Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
                 let a = self.lower(a, scope);
                 self.math_op(OpSpec::Negate, &[a], scope)
             }
-            // Commutative: a literal on either side folds into the operator.
+            // Commutative: a literal on the left goes second.
             Expr::Add(a, b) | Expr::Mul(a, b) => {
-                let (with_k, both): (fn(f64) -> OpSpec, _) = match e {
-                    Expr::Add(..) => (|k| OpSpec::Offset { k }, OpSpec::Add),
-                    _ => (|k| OpSpec::Scale { k }, OpSpec::Mul),
+                let spec = match e {
+                    Expr::Add(..) => OpSpec::Add,
+                    _ => OpSpec::Mul,
                 };
-                match num(&self.arena, b)
-                    .map(|k| (a, k))
-                    .or_else(|| num(&self.arena, a).map(|k| (b, k)))
-                {
-                    Some((x, k)) => {
-                        let x = self.lower(x, scope);
-                        self.math_op(with_k(k), &[x], scope)
-                    }
-                    None => {
-                        let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                        self.math_op(both, &[a, b], scope)
-                    }
-                }
+                let (a, b) = match num(&self.arena, a) {
+                    Some(_) if num(&self.arena, b).is_none() => (b, a),
+                    _ => (a, b),
+                };
+                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                self.math_op(spec, &[a, b], scope)
             }
-            Expr::Sub(a, b) => match (num(&self.arena, a), num(&self.arena, b)) {
-                (_, Some(k)) => {
-                    let a = self.lower(a, scope);
-                    self.math_op(OpSpec::Offset { k: -k }, &[a], scope)
-                }
-                (Some(k), _) => {
-                    let b = self.lower(b, scope);
-                    let nb = self.math_op(OpSpec::Negate, &[b], scope);
-                    self.math_op(OpSpec::Offset { k }, &[nb], scope)
-                }
-                _ => {
-                    let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                    self.math_op(OpSpec::Sub, &[a, b], scope)
-                }
-            },
-            Expr::Div(a, b) => match num(&self.arena, b) {
-                Some(k) => {
-                    let a = self.lower(a, scope);
-                    self.math_op(OpSpec::Scale { k: 1.0 / k }, &[a], scope)
-                }
-                None => {
-                    let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                    self.math_op(OpSpec::Div, &[a, b], scope)
-                }
-            },
+            // `k - b` as `-b + k`, so a request reaches `b`.
+            Expr::Sub(a, b) if num(&self.arena, a).is_some() && num(&self.arena, b).is_none() => {
+                let (k, b) = (self.lower(a, scope), self.lower(b, scope));
+                let nb = self.math_op(OpSpec::Negate, &[b], scope);
+                self.math_op(OpSpec::Add, &[nb, k], scope)
+            }
+            Expr::Sub(a, b) => {
+                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                self.math_op(OpSpec::Sub, &[a, b], scope)
+            }
+            Expr::Div(a, b) => {
+                let (a, b) = (self.lower(a, scope), self.lower(b, scope));
+                self.math_op(OpSpec::Div, &[a, b], scope)
+            }
             Expr::Pow(a, b) => {
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
                 self.math_op(OpSpec::Pow, &[a, b], scope)
-            }
-            // Clamp's bounds are parameters, so only its argument is lowered.
-            Expr::Call(Func::Clamp, args) => {
-                let bound =
-                    |a: &Arena<SlotId>, e| num(a, e).expect("the parser checks clamp's bounds");
-                let (lo, hi) = (bound(&self.arena, args[1]), bound(&self.arena, args[2]));
-                let x = self.lower(args[0], scope);
-                self.math_op(OpSpec::Clamp { lo, hi }, &[x], scope)
             }
             Expr::Call(f, args) => {
                 let mut xs = args
@@ -438,6 +413,7 @@ impl<'c> Builder<'c> {
                 match f {
                     Func::Round => self.math_op(OpSpec::Round, &xs, scope),
                     Func::Floor => self.math_op(OpSpec::Floor, &xs, scope),
+                    Func::Clamp => self.math_op(OpSpec::Vec(VecOp::Clamp), &xs, scope),
                     // More than two arguments fold from the left.
                     Func::Min | Func::Max => {
                         let spec = if f == Func::Min {
@@ -449,7 +425,6 @@ impl<'c> Builder<'c> {
                         xs.into_iter()
                             .fold(first, |acc, x| self.math_op(spec, &[acc, x], scope))
                     }
-                    Func::Clamp => unreachable!("clamp is lowered above"),
                 }
             }
         }

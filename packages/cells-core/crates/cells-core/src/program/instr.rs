@@ -3,12 +3,16 @@
 //! the build plans it; [`SymKind`] the symbolic instructions (ADR 0008).
 
 use crate::document::CellIdx;
-use crate::program::{Op, OpSpec};
+use crate::program::{Op, OpSpec, VecOp};
 use crate::sym::Handle;
 
 /// Samples a function curve owns: `Sample` writes this many y-values over
 /// evenly spaced x-values from the graph's `xmin` to `xmax`.
 pub const SAMPLES: usize = 200;
+const _: () = assert!(
+    SAMPLES <= u8::MAX as usize,
+    "`Op::Sym` keeps its outputs in a byte"
+);
 
 /// A symbolic instruction (ADR 0008): it calls the document's symbolic
 /// engine. Inputs are cells holding numbers or expression handles; every
@@ -90,13 +94,54 @@ crate::index::index_type! {
     pub struct MemoIdx;
 }
 
-/// Where a build parks the inputs of the operators it binds
-/// (`OpSpec::bind`): the operand list a program keeps, and how much of the
-/// symbolic memo its instructions take.
+crate::index::index_type! {
+    /// A position in `Program::syms`: a symbolic instruction's kind and
+    /// memo.
+    pub struct SymIdx;
+}
+
+/// A position in `Program::vecs`, the program's distinct vector operators.
+/// A `u16`, so that `Op::Vec` fits an instruction of 16 bytes: a program
+/// has few distinct vector operators, however many instructions use them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct VecIdx(u16);
+
+impl VecIdx {
+    pub fn index(self) -> usize {
+        self.0 as usize
+    }
+}
+
+/// What a symbolic instruction runs: its kind, and where its memo starts
+/// (the `n + n_out` entries it keeps in `SymState`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SymEntry {
+    pub kind: SymKind,
+    pub memo: MemoIdx,
+}
+
+/// What a build parks for the operators it binds (`OpSpec::bind`): the
+/// operand list a program keeps, the symbolic instructions' kinds and the
+/// distinct vector operators, which an `Op` names by index, and how much
+/// of the symbolic memo its instructions take.
 #[derive(Debug, Clone, Default)]
 pub struct Operands {
     pub cells: Vec<CellIdx>,
+    pub syms: Vec<SymEntry>,
+    pub vecs: Vec<VecOp>,
+    vec_ids: std::collections::HashMap<VecOp, VecIdx>,
     pub memo_len: usize,
+}
+
+impl Operands {
+    /// `op`'s position in `vecs`, added if new.
+    fn intern(&mut self, op: VecOp) -> VecIdx {
+        let n = self.vecs.len();
+        *self.vec_ids.entry(op).or_insert_with(|| {
+            self.vecs.push(op);
+            VecIdx(u16::try_from(n).expect("more distinct vector operators than a u16 holds"))
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -104,6 +149,10 @@ pub struct Instr {
     pub out: CellIdx,
     pub op: Op,
 }
+
+// Four instructions to a cache line: what the tick walks. A variant that
+// needs more goes in a program table (`Operands`), as `Vec` and `Sym` do.
+const _: () = assert!(std::mem::size_of::<Instr>() == 16);
 
 impl OpSpec {
     /// How many inputs the operator reads; `usize::MAX` for one that takes
@@ -157,15 +206,17 @@ impl OpSpec {
             (start, leaves.len() as u8)
         };
         match *self {
-            OpSpec::Sym(k) => {
+            OpSpec::Sym(kind) => {
                 let (start, n) = park(operands, inputs);
                 let memo = MemoIdx::new(operands.memo_len as u32);
-                operands.memo_len += n as usize + k.n_out();
-                Op::Sym(k, start, n, memo)
+                operands.memo_len += n as usize + kind.n_out();
+                let sym = SymIdx::from_index(operands.syms.len());
+                operands.syms.push(SymEntry { kind, memo });
+                Op::Sym(n, kind.n_out() as u8, sym, start)
             }
             OpSpec::Vec(v) => {
                 let (start, n) = park(operands, inputs);
-                Op::Vec(v, start, n, v.n_out() as u8)
+                Op::Vec(n, v.n_out() as u8, operands.intern(v), start)
             }
             _ => self.bind_scalar(inputs),
         }
@@ -177,13 +228,13 @@ mod arity {
     use super::*;
     use crate::program::vector::{RigidOpts, VecOp};
 
-    /// Every operator: the scalar ones with each parameter sample
-    /// (`scalar_ops!` makes the list, so none is missing), then every vector
+    /// Every operator: the scalar ones (`scalar_ops!` makes the list, so
+    /// none is missing), then every vector
     /// and symbolic one. A vector or symbolic variant added does not compile
     /// until `tag` gives it a number, and then this test fails until `every`
     /// has one of it.
     fn every() -> Vec<OpSpec> {
-        let mut ops = OpSpec::scalar_samples();
+        let mut ops = OpSpec::scalars();
         ops.extend([
             OpSpec::Vec(VecOp::Shape {
                 n: 3,
@@ -202,6 +253,7 @@ mod arity {
             OpSpec::Vec(VecOp::First { n: 3 }),
             OpSpec::Vec(VecOp::Choose { n: 3 }),
             OpSpec::Vec(VecOp::WeightedMean { n: 3 }),
+            OpSpec::Vec(VecOp::Clamp),
             OpSpec::Sym(SymKind::Instantiate {
                 template: Handle::new(0),
                 post: Post::None,
@@ -233,9 +285,10 @@ mod arity {
                 VecOp::First { .. } => 9,
                 VecOp::Choose { .. } => 10,
                 VecOp::WeightedMean { .. } => 11,
+                VecOp::Clamp => 12,
             },
             OpSpec::Sym(k) => {
-                12 + match k {
+                13 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -249,7 +302,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 20;
+    const N_TAGS: usize = 21;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

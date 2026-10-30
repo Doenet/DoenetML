@@ -167,8 +167,10 @@ pub(in crate::build) struct Builder<'c> {
     /// Per select (in the probe): the stand-in for its whole pick.
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
-    /// The shared flag that holds an element always (a literal `fixed`).
-    pub(in crate::build) always: Option<SlotId>,
+    /// One slot per constant an operator or a hold reads, by the value's
+    /// bits (`const_slot`): a literal in math text, a case's position, the
+    /// flag that holds an element always.
+    pub(in crate::build) consts: HashMap<u64, SlotId>,
     /// The slots a `fixed` holds, each with a flag slot (`hold_all`): a
     /// slot held by several flags is listed once per flag.
     pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
@@ -267,7 +269,7 @@ impl<'c> Builder<'c> {
             stand_ins: HashMap::new(),
             pick_stand_ins: HashMap::new(),
             missing: None,
-            always: None,
+            consts: HashMap::new(),
             holds: Vec::new(),
             seeds: Vec::new(),
             arena: Arena::default(),
@@ -383,7 +385,7 @@ impl<'c> Builder<'c> {
     }
 
     /// A slot that belongs to no component, made for an element in `scope`:
-    /// a lowered math subexpression, a literal inside one, the
+    /// a lowered math subexpression, a shared constant (`const_slot`), the
     /// missing-referent cell.
     pub(in crate::build) fn anon_slot(&mut self, source: BuiltSource, scope: ScopeId) -> SlotId {
         let s = SlotId::from_index(self.sources.len());
@@ -393,13 +395,16 @@ impl<'c> Builder<'c> {
         s
     }
 
-    /// The flag that holds an element always: a constant 1.
-    fn always_slot(&mut self) -> SlotId {
-        if let Some(s) = self.always {
+    /// The one slot holding the constant `v` that operators and holds
+    /// read, so a literal in a repeat's body is one cell, not one per
+    /// iteration. Never alias a prop to it: every slot aliased to it
+    /// would be one cell.
+    pub(in crate::build) fn const_slot(&mut self, v: f64) -> SlotId {
+        if let Some(&s) = self.consts.get(&v.to_bits()) {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Fixed(1.0), ScopeId::DOCUMENT);
-        self.always = Some(s);
+        let s = self.anon_slot(BuiltSource::Fixed(v), ScopeId::DOCUMENT);
+        self.consts.insert(v.to_bits(), s);
         s
     }
 
@@ -720,7 +725,7 @@ impl<'c> Builder<'c> {
             let c: &'c Compiled = self.compiled;
             let flags = match &c.templates[inst.template.index()].elems[inst.elem.index()].hold {
                 Hold::Off => continue,
-                Hold::Always => vec![self.always_slot()],
+                Hold::Always => vec![self.const_slot(1.0)],
                 Hold::While(refs) => {
                     let mut flags = Vec::with_capacity(refs.len());
                     for &p in refs {
@@ -1275,9 +1280,9 @@ impl<'c> Builder<'c> {
             Source::Deferred(_) => BuiltSource::Unset,
             Source::FirstIteration(..) => unreachable!("nested FirstIteration"),
             Source::Literal(v) => BuiltSource::Literal(*v),
-            Source::TextLiteral(v) => {
+            Source::TextLiteral(id) => {
                 self.typed_slots.push((s, ValueType::Text));
-                BuiltSource::Literal(*v)
+                BuiltSource::Literal(id.map_or(f64::NAN, StrId::to_value))
             }
             Source::Inherit => {
                 let Some(referent) = extend else {
@@ -1318,7 +1323,10 @@ impl<'c> Builder<'c> {
             }
             Source::Math(expr) => {
                 let id = self.instantiate_expr(*expr, inst.scope)?;
-                if self.arena.is_numeric(id) {
+                if let Expr::Num(v) = *self.arena.get(id) {
+                    // Its own cell: `lower` gives a shared constant.
+                    BuiltSource::Fixed(v)
+                } else if self.arena.is_numeric(id) {
                     BuiltSource::Alias(self.lower(id, inst.scope))
                 } else {
                     BuiltSource::Fixed(f64::NAN)

@@ -517,7 +517,8 @@ impl<'c> Builder<'c> {
             let findings = crate::program::refuse::analyze(
                 &instrs,
                 &operands.cells,
-                cells.len(),
+                &operands.vecs,
+                &operands.syms,
                 n_essential,
                 &asked,
                 &holds.held_always(&cells, n_essential..n_essential + n_fixed),

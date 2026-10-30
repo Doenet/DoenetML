@@ -39,7 +39,7 @@ use crate::document::CellIdx;
 use crate::tick::invert::PointRequest;
 
 /// The point a rigid shape rotates or dilates about.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Pivot {
     Centroid,
     /// A vertex, 0-based.
@@ -50,14 +50,13 @@ pub enum Pivot {
 
 /// How a rigid shape may move. One dragged vertex rotates and, if `dilate`,
 /// scales the shape about the pivot; several dragged vertices translate it.
-/// `rotate` and `translate` switch those off; `min_shrink` bounds a pure
-/// dilation.
-#[derive(Debug, Clone, Copy, PartialEq)]
+/// `rotate` and `translate` switch those off. How far a pure dilation may
+/// shrink the shape is an input (`VecOp::Shape`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RigidOpts {
     pub dilate: bool,
     pub rotate: bool,
     pub translate: bool,
-    pub min_shrink: f64,
     pub pivot: Pivot,
 }
 
@@ -66,7 +65,6 @@ impl RigidOpts {
         dilate: false,
         rotate: true,
         translate: true,
-        min_shrink: 0.1,
         pivot: Pivot::Centroid,
     };
 }
@@ -92,10 +90,11 @@ impl Produced {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum VecOp {
     /// Identity on `n` points (2n outputs) that move rigidly. Inputs are the
-    /// 2n coordinates followed by a pivot point (NaN unless `Pivot::Point`).
+    /// 2n coordinates, a pivot point (NaN unless `Pivot::Point`), and the
+    /// least a pure dilation may shrink the shape to (`minShrink`).
     Shape { n: u8, opts: RigidOpts },
     /// Inputs (cx, cy, px, py); outputs (cx, cy, r).
     CircleCenterPoint,
@@ -129,10 +128,24 @@ pub enum VecOp {
     /// Means of chunks combine by their totals, so a large section is a
     /// tree of these. No inverse: credit is not set by a request.
     WeightedMean { n: u8 },
+    /// Input 0 held between inputs 1 and 2; NaN if any is NaN. A request
+    /// projects onto the bounds and writes input 0 (ADR 0003). A vector
+    /// operator only so that a scalar one reads at most two cells.
+    Clamp,
 }
 
 /// Most inputs a vector operator reads.
 pub use crate::limits::MAX_VEC_IN;
+
+/// `x` held between `lo` and `hi`; NaN if any is NaN (unlike `f64::clamp`,
+/// which panics on bounds out of order).
+fn clamp(x: f64, lo: f64, hi: f64) -> f64 {
+    if x.is_nan() || lo.is_nan() || hi.is_nan() {
+        f64::NAN
+    } else {
+        x.max(lo).min(hi)
+    }
+}
 
 /// The input position of the active branch of a `Choose` over `n`
 /// branches, from its choice cell's value.
@@ -143,7 +156,7 @@ fn active_branch(choice: f64, n: u8) -> Option<usize> {
 impl VecOp {
     pub const fn n_in(&self) -> usize {
         match *self {
-            VecOp::Shape { n, .. } => 2 * n as usize + 2,
+            VecOp::Shape { n, .. } => 2 * n as usize + 3,
             VecOp::CircleCenterPoint => 4,
             VecOp::CirclePoints { n } => 2 * n as usize,
             VecOp::CircleTwoPointsRadius => 5,
@@ -155,6 +168,7 @@ impl VecOp {
             VecOp::First { n } => n as usize,
             VecOp::Choose { n } => n as usize + 1,
             VecOp::WeightedMean { n } => 2 * n as usize,
+            VecOp::Clamp => 3,
         }
     }
 
@@ -172,6 +186,7 @@ impl VecOp {
             VecOp::ProjectCircle | VecOp::ProjectLine => 0b11,
             VecOp::First { .. } | VecOp::WeightedMean { .. } => 0,
             VecOp::Choose { n } => first(n as usize + 1) & !1,
+            VecOp::Clamp => 1,
         }
     }
 
@@ -183,7 +198,7 @@ impl VecOp {
             VecOp::PolarSlope | VecOp::PolarDirection { .. } => 2,
             VecOp::LinePointsFromCoeffs => 4,
             VecOp::ProjectCircle | VecOp::ProjectLine => 2,
-            VecOp::First { .. } | VecOp::Choose { .. } => 1,
+            VecOp::First { .. } | VecOp::Choose { .. } | VecOp::Clamp => 1,
             VecOp::WeightedMean { .. } => 2,
         }
     }
@@ -265,6 +280,7 @@ impl VecOp {
                 };
                 out[1] = total;
             }
+            VecOp::Clamp => out[0] = clamp(inp[0], inp[1], inp[2]),
         }
     }
 
@@ -397,6 +413,13 @@ impl VecOp {
                 }
                 _ => false,
             },
+            VecOp::Clamp => match desired[0] {
+                Some(d) => {
+                    out.write(inputs[0], clamp(d, inp[1], inp[2]));
+                    true
+                }
+                None => false,
+            },
         }
     }
 }
@@ -428,9 +451,9 @@ fn invert_rigid(
             dilate,
             rotate,
             translate,
-            min_shrink,
             pivot,
         } = opts;
+        let min_shrink = inp[2 * n + 2];
         let one = specified.len() == 1;
         let (rotate, dilate) = (one && rotate, one && dilate);
         if !(rotate || dilate || translate) {
@@ -717,6 +740,7 @@ mod writes {
             VecOp::First { n: 2 },
             VecOp::Choose { n: 3 },
             VecOp::WeightedMean { n: 2 },
+            VecOp::Clamp,
         ]
     }
 
@@ -821,9 +845,10 @@ mod writes {
             | VecOp::ProjectCircle
             | VecOp::ProjectLine => points(1).collect(),
             VecOp::LinePointsFromCoeffs => points(2).collect(),
-            VecOp::First { .. } | VecOp::Choose { .. } | VecOp::WeightedMean { .. } => {
-                (0..op.n_out()).map(|k| vec![k]).collect()
-            }
+            VecOp::First { .. }
+            | VecOp::Choose { .. }
+            | VecOp::WeightedMean { .. }
+            | VecOp::Clamp => (0..op.n_out()).map(|k| vec![k]).collect(),
         }
     }
 

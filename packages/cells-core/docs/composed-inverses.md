@@ -84,8 +84,8 @@ input, until an essential cell is written (`tick/invert.rs`):
   a center and one through point lowers to a different chain from a
   circle with a radius. A slider's table orders each operator's inputs
   so the first leads back to its state (`components/inputs/mod.rs`).
-  Math lowering folds literals so the cell stays first (`k + x` becomes
-  `Offset{k}(x)`).
+  Math lowering puts a literal second, a constant cell, so the input
+  that leads to state stays first (`k + x` becomes `Add(x, k)`).
 - **`fixed`, `fixLocation` and `fixAxes` are hold flags** beside each
   element's plans (`compile/fix.rs`, `Program::holds`): every cell of a
   held element refuses requests while its flag is set. They are not code
@@ -154,8 +154,8 @@ Each of these is a vector operator or a point group here. A circle's
 radius against its through points already is (`CircleCenterPoint`,
 `CirclePoints`). The rest are vector operators the remaining ports will
 need, unless a chain of existing ones expresses them. Scaling about a
-midpoint, for example, could be `Offset`s and `Scale`s from the
-midpoint, inverted by a point group; step 2 of ADR 0026 decides each.
+midpoint, for example, could be sums and products with constant cells
+from the midpoint, inverted by a point group; step 2 of ADR 0026 decides each.
 
 **Run-time context, the 22.** They depend on:
 

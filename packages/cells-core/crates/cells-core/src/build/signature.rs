@@ -10,8 +10,7 @@
 //! on: the `hide` of it and its ancestors, the cases and conditionals
 //! around it, the repeats around it. Each cell of the closure hashes as
 //! what it is: an essential cell by its key and prop, a fixed cell by its
-//! value, a derived cell by its operator and literal parameters over its
-//! inputs' hashes; never by a cell index. The defaults of the essential
+//! value, a derived cell by its operator over its inputs' hashes; never by a cell index. The defaults of the essential
 //! cells in the closure are kept beside it, with whether each is the
 //! input's starting value, which an author may change: a cell that is one
 //! of the input's props itself, that no operator around the input mixes
@@ -379,6 +378,13 @@ impl<'a> Signer<'a> {
                 hash_of(("f", self.value_hash(c, out.cells[ci])))
             } else if let Some(instr) = instr {
                 let k = self.producer[ci].1;
+                // A `ChoiceIndex`'s count of choices (its second input) is
+                // the input's domain, which condition 1 compares: appending
+                // a choice keeps every index a student could have chosen.
+                let ins = match instr.op {
+                    Op::ChoiceIndex(..) => &ins[..1],
+                    _ => ins,
+                };
                 hash_of(("d", self.op_hash(instr, &reads[..n_inputs]), k, ins))
             } else {
                 hash_of("unwritten")
@@ -392,21 +398,22 @@ impl<'a> Signer<'a> {
         self.hashes[cell.index()].unwrap()
     }
 
-    /// An operator as what it computes: its kind and literal parameters,
+    /// An operator as what it computes: its kind (a vector one's options),
     /// and for a symbolic one its expression with leaves numbered by input.
     fn op_hash(&self, instr: &Instr, inputs: &[CellIdx]) -> u64 {
+        let ops = &self.out.operands;
         match instr.op {
-            Op::Sym(SymKind::Instantiate { template, post }, ..) => {
-                let text = self.out.session.engine.borrow().text(template);
-                hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
-            }
-            Op::Sym(SymKind::SampleTape { tape }, ..) => {
-                hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
-            }
-            // Its count of choices is the input's domain, which condition 1
-            // compares: appending a choice keeps every index a student
-            // could have chosen.
-            Op::ChoiceIndex(..) => hash_of("choiceIndex"),
+            Op::Sym(_, _, s, _) => match ops.syms[s.index()].kind {
+                SymKind::Instantiate { template, post } => {
+                    let text = self.out.session.engine.borrow().text(template);
+                    hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
+                }
+                SymKind::SampleTape { tape } => {
+                    hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
+                }
+                kind => hash_of(format!("{kind:?}")),
+            },
+            Op::Vec(_, _, v, _) => hash_of(format!("{:?}", ops.vecs[v.index()])),
             op => hash_of(format!("{:?}", op.unbound())),
         }
     }

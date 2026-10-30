@@ -14,7 +14,9 @@ pub mod refuse;
 mod scalar;
 mod vector;
 
-pub use instr::{Instr, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymKind};
+pub use instr::{
+    Instr, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymEntry, SymIdx, SymKind, VecIdx,
+};
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 
@@ -88,6 +90,10 @@ pub struct Program {
     /// Every input of a vector or symbolic instruction, indexed by
     /// `OperandIdx`.
     pub operands: Vec<CellIdx>,
+    /// Each symbolic instruction's kind and memo, by `SymIdx`.
+    pub syms: Vec<SymEntry>,
+    /// The distinct vector operators, by `VecIdx`.
+    pub vecs: Vec<VecOp>,
     /// How many memo entries its symbolic instructions take (`SymState`).
     pub memo_len: usize,
     /// Compiled curves that `SampleTape` instructions run.
@@ -229,7 +235,10 @@ impl Program {
     ) -> std::result::Result<Program, CellIdx> {
         let Operands {
             cells: operands,
+            syms,
+            vecs,
             memo_len,
+            ..
         } = operands;
         let mut producer = vec![u32::MAX; n_cells];
         for (i, ins) in instrs.iter().enumerate() {
@@ -250,6 +259,8 @@ impl Program {
                 instrs,
                 producer,
                 operands,
+                syms,
+                vecs,
                 memo_len,
                 tapes: Vec::new(),
                 holds: Holds::default(),
@@ -315,6 +326,8 @@ impl Program {
             instrs: order,
             producer,
             operands,
+            syms,
+            vecs,
             memo_len,
             tapes: Vec::new(),
             holds: Holds::default(),
@@ -332,12 +345,14 @@ impl Program {
         changed: Option<&mut Vec<CellIdx>>,
     ) {
         let out = ins.out.index();
-        if let Op::Sym(kind, start, n, memo) = ins.op {
+        if let Op::Sym(n, _, s, start) = ins.op {
+            let SymEntry { kind, memo } = self.syms[s.index()];
             self.step_sym(kind, start, n as usize, memo, sym, ins.out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
             let mut buf = [0.0f64; 16];
             let n = ins.op.n_out();
-            ins.op.eval_vec(cells, &self.operands, &mut buf[..n]);
+            ins.op
+                .eval_vec(cells, &self.operands, &self.vecs, &mut buf[..n]);
             match changed {
                 Some(changed) => {
                     for k in 0..n {
@@ -414,6 +429,22 @@ impl Program {
                 }
             }
             None => cells[out..out + n_out].copy_from_slice(outs),
+        }
+    }
+
+    /// The vector operator `op` runs, if it is one.
+    pub fn vec_op(&self, op: &Op) -> Option<VecOp> {
+        match *op {
+            Op::Vec(_, _, v, _) => Some(self.vecs[v.index()]),
+            _ => None,
+        }
+    }
+
+    /// The symbolic kind `op` runs, if it is one.
+    pub fn sym_kind(&self, op: &Op) -> Option<SymKind> {
+        match *op {
+            Op::Sym(_, _, s, _) => Some(self.syms[s.index()].kind),
+            _ => None,
         }
     }
 

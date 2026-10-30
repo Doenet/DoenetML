@@ -41,9 +41,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .filter(|&n| !ctx.is_blank(n))
         .collect();
     let value = match nodes.as_slice() {
-        [] => Wire::text_essential(shared_state::VALUE, ctx.intern("").to_value()),
+        [] => Wire::text_essential(shared_state::VALUE, ctx.intern("")),
         [n] if d.kind(*n) == NodeKind::Text => {
-            Wire::text_essential(shared_state::VALUE, d.str_id(*n).to_value())
+            Wire::text_essential(shared_state::VALUE, d.str_id(*n))
         }
         [n] if d.kind(*n) == NodeKind::Macro => Source::reference(ctx.reference(*n)?).into(),
         _ => {

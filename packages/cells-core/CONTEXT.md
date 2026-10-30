@@ -36,9 +36,11 @@ math text.
 consecutive cells) it writes. The program is the list of instructions in
 schedule order.
 
-**Literal parameter** — A constant written in the document that an operator
-uses (a scale factor, clamp bounds). Literal parameters are document text, not
-state, so they are not cells.
+**Constant** — A literal an operator reads (a factor, clamp bounds, an
+exponent): document text, not state. Operators carry no literals; each
+constant is a fixed cell like any other input, one per distinct value in a
+build (`Builder::const_slot`), named in a plan as `Arg::Const` and in a type's
+table as `(value)`.
 
 **Alias** — Two state variables that are exactly equal by construction (a
 reference such as `x="$p1.x"`, or a component copy `$p1`) share one cell.

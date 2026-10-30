@@ -47,11 +47,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
         }
     }
     let at = Props::AT;
-    props[at.selectedIndex] = Some(Source::computed(
-        OpSpec::ChoiceIndex {
-            n: n_choices as f64,
-        },
-        vec![at.preliminaryIndex],
+    props[at.selectedIndex] = Some(Source::computed_k(
+        OpSpec::ChoiceIndex,
+        at.preliminaryIndex,
+        n_choices as f64,
     ));
     Ok(())
 }

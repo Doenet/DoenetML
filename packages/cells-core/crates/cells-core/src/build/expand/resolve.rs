@@ -16,6 +16,7 @@ impl<'c> Builder<'c> {
         let from = self.slot(comp, pi);
         Ok(match arg {
             Arg::Own(a) => self.slot(comp, a as usize),
+            Arg::Const(k) => self.const_slot(k),
             Arg::Elem(el, slot) => {
                 let other = self.scope_comps[scope.index()][el.index()];
                 self.slot(other, slot as usize)

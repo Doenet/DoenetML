@@ -241,7 +241,7 @@ impl<'a> Compiler<'a> {
             response: Source::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
             correct: Source::absent(),
             submitted: Source::Literal(0.0),
-            credit: Source::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
+            credit: Source::computed_k(OpSpec::NanTo, chosen, 0.0),
             weight,
             numSubmissions: Source::Literal(0.0),
         });
@@ -319,7 +319,7 @@ impl<'a> Compiler<'a> {
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
             correct: Source::absent(),
-            submitted: Source::TextLiteral(NO_VALUE),
+            submitted: Source::TextLiteral(None),
             credit: Source::own(best),
             weight,
             numSubmissions: Source::Literal(0.0),

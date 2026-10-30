@@ -1,5 +1,6 @@
-//! Operators: the numeric functions that compute derived cells. Literal
-//! parameters are stored inline in the instruction, not in cells. Every
+//! Operators: the numeric functions that compute derived cells. A literal
+//! an operator reads is a fixed cell like any other input
+//! (`Builder::const_slot`). Every
 //! scalar operator is one `scalar_ops!` entry (`ops.rs`, ADR 0016): to add
 //! one, add an entry.
 //!
@@ -14,7 +15,7 @@
 
 use super::ops::scalar_ops;
 use crate::document::CellIdx;
-use crate::program::{MemoIdx, OperandIdx, SymKind, VecOp};
+use crate::program::{OperandIdx, SymIdx, SymKind, VecIdx, VecOp};
 
 /// `Math.round`: halves round toward positive infinity, unlike Rust's
 /// `round`, which rounds them away from zero. The current core is JavaScript,
@@ -130,34 +131,18 @@ scalar_ops! {
         eval: a.floor(),
         projection |d| d.is_finite().then(|| (A, d.floor())),
     }
-    /// `a * k`.
-    Scale(a; k) samples [{ k: 2.0 }, { k: -0.5 }, { k: 0.0 }] {
-        eval: a * k,
-        exact |d| (k != 0.0).then_some((A, d / k)),
-    }
-    /// `a + k`.
-    Offset(a; k) samples [{ k: 3.0 }] {
-        eval: a + k,
-        exact |d| Some((A, d - k)),
-    }
-    /// `a` held between `lo` and `hi`.
-    Clamp(a; lo, hi) samples [{ lo: 0.0, hi: 1.0 }, { lo: -2.5, hi: 4.0 }] {
-        eval: a.clamp(lo, hi),
-        projection |d| Some((A, d.clamp(lo, hi))),
-    }
     /// `a` when it is a whole number from 1 to `n`, else 0: a choice
     /// index, 0 meaning none is chosen. A request outside that set
     /// (NaN, a fraction, out of range) chooses none, as the current
     /// core's `selectedIndices` inverse does.
-    ChoiceIndex(a; n) samples [{ n: 3.0 }, { n: 0.0 }] {
+    ChoiceIndex(a, n) {
         eval: choice_index(a, n),
         projection |d| Some((A, choice_index(d, n))),
     }
-    /// `a` unless it is NaN, then the literal: `valueOnNaN` with a
-    /// constant. A NaN ask has no inverse: it would be asking for the
-    /// fallback.
-    NanTo(a; k) samples [{ k: 7.0 }] {
-        eval: if a.is_nan() { k } else { a },
+    /// `a` unless it is NaN, then `b`: `valueOnNaN`. A NaN ask has no
+    /// inverse: it would be asking for the fallback.
+    NanTo(a, b) {
+        eval: if a.is_nan() { b } else { a },
         exact |d| (!d.is_nan()).then_some((A, d)),
     }
     /// `a` to the power `b`.
@@ -204,18 +189,19 @@ impl Op {
     #[inline(always)]
     pub fn n_out(&self) -> usize {
         match *self {
-            Op::Vec(_, _, _, n_out) => n_out as usize,
-            Op::Sym(k, ..) => k.n_out(),
+            Op::Vec(_, n_out, ..) | Op::Sym(_, n_out, ..) => n_out as usize,
             _ => 1,
         }
     }
 
-    /// Evaluate a vector operator into `out` (`n_out` values).
+    /// Evaluate a vector operator into `out` (`n_out` values); `vecs` is
+    /// the program's (`Program::vecs`).
     #[inline]
-    pub fn eval_vec(&self, cells: &[f64], operands: &[CellIdx], out: &mut [f64]) {
-        let Op::Vec(v, start, n_in, _) = *self else {
+    pub fn eval_vec(&self, cells: &[f64], operands: &[CellIdx], vecs: &[VecOp], out: &mut [f64]) {
+        let Op::Vec(n_in, _, v, start) = *self else {
             unreachable!()
         };
+        let v = vecs[v.index()];
         let mut inp = [0.0f64; crate::program::MAX_VEC_IN];
         let n_in = n_in as usize;
         for (k, &c) in operands[start.index()..start.index() + n_in]
@@ -232,7 +218,7 @@ impl Op {
     #[inline(always)]
     pub fn operand_range(&self) -> std::ops::Range<usize> {
         match *self {
-            Op::Vec(_, start, n, _) | Op::Sym(_, start, n, _) => {
+            Op::Vec(n, _, _, start) | Op::Sym(n, _, _, start) => {
                 start.index()..start.index() + n as usize
             }
             _ => 0..0,
@@ -241,22 +227,19 @@ impl Op {
 
     /// All input cells, direct and in `operands`.
     pub fn inputs<'a>(&self, operands: &'a [CellIdx]) -> impl Iterator<Item = CellIdx> + 'a {
-        let (a, b) = match self {
-            Op::Vec(..) | Op::Sym(..) => (None, None),
-            _ => {
-                let (a, b) = self.input_pair();
-                (Some(a), b)
-            }
+        let (scalar, n) = match self {
+            Op::Vec(..) | Op::Sym(..) => ([CellIdx::new(0); 2], 0),
+            _ => self.scalar_inputs(),
         };
-        a.into_iter()
-            .chain(b)
+        scalar
+            .into_iter()
+            .take(n)
             .chain(operands[self.operand_range()].iter().copied())
     }
 }
 
 /// Every scalar operator's inverse, checked against what its entry
-/// declares (ADR 0016), over a fixed table of values for each input and
-/// each of the operator's parameter samples.
+/// declares (ADR 0016), over a fixed table of values for each input.
 #[cfg(test)]
 mod inverses {
     use super::*;
@@ -300,7 +283,7 @@ mod inverses {
     /// (`OpSpec::writes`, ADR 0018).
     #[test]
     fn every_inverse_writes_a_declared_input() {
-        for spec in OpSpec::scalar_samples() {
+        for spec in OpSpec::scalars() {
             let n = spec.scalar_arity().unwrap();
             let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
             for cur in &assignments(n) {
@@ -319,7 +302,7 @@ mod inverses {
     #[test]
     fn every_inverse_does_what_its_entry_declares() {
         let mut failures = Vec::new();
-        for spec in OpSpec::scalar_samples() {
+        for spec in OpSpec::scalars() {
             let n = spec.scalar_arity().unwrap();
             let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
             let all = assignments(n);
