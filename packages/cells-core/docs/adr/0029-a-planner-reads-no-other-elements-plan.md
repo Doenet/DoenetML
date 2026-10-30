@@ -1,6 +1,6 @@
 # A planner reads no other element's plan
 
-Status: proposed 2026-10-30. Migration step 1 is done. Amends ADR 0027:
+Status: proposed 2026-10-30. Migration steps 1 and 2 are done. Amends ADR 0027:
 its rule for pass 3 (each element planned after the plans it reads)
 gives way to this one (no element reads another's plan).
 
@@ -88,7 +88,9 @@ Each step lands alone, with the golden diff unchanged.
    `Compiler::settle_shape` and `math_shape`; `PlanCtx::expect_type`
    replaces `set_type`.
 2. **Shared state linked in pass 4.** A copy with attributes records
-   what it shares by name; pass 4 links it to the referent's slot.
+   what it shares by name; pass 4 links it to the referent's slot. Done:
+   `Share`, linked by `Compiler::link_shared_state`. A loop of extends
+   with attributes is a dependency cycle again, which fails the load.
 3. **Inlining reads the source.** `inline_symbolic_maths` parses the
    inlined math's children instead of reading its plan.
 4. **Plan independently.** Remove the accessors and the `planning` set;

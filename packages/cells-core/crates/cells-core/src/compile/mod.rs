@@ -122,6 +122,8 @@ pub(in crate::compile) struct Compiler<'a> {
     /// Elements boxed where they failed, with their errors (ADR 0027).
     errors: Vec<Diagnostic>,
     boxed_here: HashSet<NodeId>,
+    /// What copies share of their referents' state, linked in pass 4.
+    shares: Vec<Share>,
     /// By (template, element), the elements a container copy has cloned:
     /// a clone took its type, so one boxed later cannot be boxed in place.
     cloned_sources: HashSet<(u32, u32)>,
@@ -148,6 +150,17 @@ pub(in crate::compile) struct Compiler<'a> {
     /// one reached again while it plans is a cycle in what reads whose
     /// plan (ADR 0027), an error on the element.
     planning: HashSet<(u32, u32)>,
+}
+
+/// A piece of essential state copy `e` shares with its referent (ADR
+/// 0023): slot `slot` of the copy is to alias the referent's slot for
+/// `state`, which only the referent's planning knows.
+pub(in crate::compile) struct Share {
+    t: TemplateId,
+    e: ElemId,
+    slot: u8,
+    referent: ElemId,
+    state: SharedState,
 }
 
 /// A name-table entry naming more than one element.
@@ -262,6 +275,7 @@ impl<'a> Compiler<'a> {
             errors: Vec::new(),
             boxed_here: HashSet::new(),
             cloned_sources: HashSet::new(),
+            shares: Vec::new(),
             container_copies: Vec::new(),
             expanding: HashSet::new(),
             expanded: HashSet::new(),
@@ -383,8 +397,9 @@ impl<'a> Compiler<'a> {
         if let Some(error) = cp.restart.take() {
             return Err(error);
         }
-        // What needs every plan (pass 4), from the plans, the source and
-        // the name table alone.
+        // What needs every plan (pass 4): the links between plans, then
+        // what reads the plans, the source and the name table alone.
+        cp.link_shared_state();
         let finished = finish::Finish {
             compiled: &mut cp.compiled,
             dast,

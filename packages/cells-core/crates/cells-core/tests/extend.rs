@@ -356,27 +356,35 @@ fn a_copy_of_a_later_container_copy_has_its_clones() {
     }
 }
 
-/// A cycle of extends with attributes of their own is a cycle in what
-/// reads whose plan (ADR 0027): an error on an element of the cycle, not
-/// a compile that never ends.
+/// A cycle of extends with attributes of their own is no cycle of plans
+/// (ADR 0029): each plans from its own source, and the state they share
+/// is a cycle of values, which the build reports. A cycle of container
+/// copies has no clones to make, an error on a copy in it (ADR 0027).
 #[test]
 fn a_cycle_of_extends_is_reported() {
     for source in [
         r#"<graph><point name="A" extend="$B" x="1"/><point name="B" extend="$A" y="2"/></graph>"#,
         r#"<graph><point name="A" extend="$A" x="1"/></graph>"#,
-        r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#,
     ] {
-        let doc = load(source).unwrap_or_else(|e| panic!("{source}: {e}"));
+        let err = load(source)
+            .err()
+            .unwrap_or_else(|| panic!("{source}: loaded"));
         assert!(
-            doc.diagnostics()
-                .iter()
-                .any(|d| d.kind == DiagnosticKind::Error
-                    && d.node.is_some()
-                    && d.message.contains("dependency cycle")),
-            "{source}: {:?}",
-            doc.diagnostics()
+            err.to_string().contains("dependency cycle"),
+            "{source}: {err}"
         );
     }
+    let source = r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#;
+    let doc = load(source).unwrap_or_else(|e| panic!("{source}: {e}"));
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.kind == DiagnosticKind::Error
+                && d.node.is_some()
+                && d.message.contains("dependency cycle")),
+        "{source}: {:?}",
+        doc.diagnostics()
+    );
 }
 
 /// A reference into a `<math>` reads the type planning gives it (a tuple

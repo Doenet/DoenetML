@@ -270,19 +270,12 @@ impl<'a> Compiler<'a> {
                 self.compiled.refs[p.index()].display
             )));
         }
-        // The referent's shared state is known once it is planned.
-        if let Some(r) = base_elem {
-            self.planned_elem(t, r)?;
-        }
-        let mut wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
+        let wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
         // Essential state the copy did not override is the original's: the
-        // current core's copies share their essential state variables.
+        // current core's copies share their essential state variables. The
+        // copy names what it shares, and pass 4 links it to the slot the
+        // referent's planning gives it (`link_shared_state`, ADR 0029).
         if let Some(r) = base_elem {
-            let base_shared_state = self
-                .shared_state
-                .get(&(t.get(), r.get()))
-                .cloned()
-                .unwrap_or_default();
             for (state, &slot) in &wiring.shared_state {
                 // Shared state the copy gave itself is its own.
                 let own = match wiring.shared_state_given.get(state) {
@@ -292,14 +285,16 @@ impl<'a> Compiler<'a> {
                     Some(Given::Children) => true,
                     Some(Given::Referent) | None => false,
                 };
-                if own {
+                if own || !matches!(wiring.props[slot as usize], Some(Source::Given(_))) {
                     continue;
                 }
-                if let Some(&bs) = base_shared_state.get(state)
-                    && matches!(wiring.props[slot as usize], Some(Source::Given(_)))
-                {
-                    wiring.props[slot as usize] = Some(Source::Alias(Arg::Elem(r, bs)));
-                }
+                self.shares.push(Share {
+                    t,
+                    e,
+                    slot,
+                    referent: r,
+                    state: *state,
+                });
             }
         }
         if !wiring.shared_state.is_empty() {
@@ -312,6 +307,26 @@ impl<'a> Compiler<'a> {
         }
         self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
+    }
+
+    /// Pass 4's first link (ADR 0029): each piece of state a copy shares
+    /// aliases the referent's slot for it, now that every element is
+    /// planned. A copy or referent that is a box shares nothing, and a
+    /// copy keeps its own given value for state its referent has none of.
+    pub(in crate::compile) fn link_shared_state(&mut self) {
+        for s in std::mem::take(&mut self.shares) {
+            if self.is_box(s.t, s.e) || self.is_box(s.t, s.referent) {
+                continue;
+            }
+            if let Some(&bs) = self
+                .shared_state
+                .get(&(s.t.get(), s.referent.get()))
+                .and_then(|m| m.get(&s.state))
+            {
+                self.compiled.templates[s.t.index()].elems[s.e.index()].props[s.slot as usize] =
+                    Source::Alias(Arg::Elem(s.referent, bs));
+            }
+        }
     }
 
     /// A 0/1 flag attribute of a `Plan` type (`hide`), as a copy inherits
