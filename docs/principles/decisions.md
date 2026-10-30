@@ -31,7 +31,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
-| B13 | A child written inside a copy that sets its value does not take precedence over carried reader state: after the reader drags `P` to (7,8), `<point copy="$P">(3,4)</point>` stays at (7,8), while `<point copy="$P" x="3"/>` is at (3,8). Written attributes and children should both take precedence (REF-3, REF-4a, D33) | **[probe]** on main | carried essential state is applied after the appended child (`copyPrimaryEssentialIfShadow`/`copyEssentialStateIfShadow` in `W/components/abstract/Copy.js`); not traced |
+| B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -1238,9 +1238,8 @@ reader state and random choices (CPY-2, CPY-8), whatever is written on it.
     means;
   - the same precedence should cover a reader's change to an attribute itself:
     `<p copy="$x" hide="false"/>` of something the reader hid is shown (D2).
-- **Possible defect (B13):** a child that sets the value does not take precedence today.
-  `<point copy="$P">(3,4)</point>` stays at (7,8) (**[probe]**), while REF-4a says the last
-  coordinates written win. Under the rule above it should be at (3,4).
+- `<point copy="$P">(3,4)</point>` stays at (7,8) (**[probe]**), but not because of carried state:
+  the coordinates child is ignored on any copy or extend, at load too (B13, #2395).
 - Content attributes of tags that do not choose at random stay allowed: `for` on a copy of a
   repeat, `condition` on a copy of a conditionalContent (D4, B5). Carried reader state attaches by
   iteration and by case (D12, COMP-10).
