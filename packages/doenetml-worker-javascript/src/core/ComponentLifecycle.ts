@@ -1,7 +1,7 @@
 import type Core from "../Core";
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import { createIsolatedComponents } from "./ComponentBuilder";
-import { postProcessCopy } from "../utils/copy";
+import { namesReachedThroughCopy, postProcessCopy } from "../utils/copy";
 import { createNewComponentIndices } from "../utils/componentIndices";
 
 /**
@@ -181,15 +181,15 @@ export async function addChildrenAndRecurseToShadows({
 
             let shadowingSerializeChildren: any[] = [];
             let nComponents = core._components.length;
+            // as the mediating copy was made (`namesReachedThroughCopy`)
+            const namesReached = namesReachedThroughCopy(
+                core._components[shadowingParent.shadows.compositeIdx],
+            );
 
             for (let child of newChildren) {
                 if (typeof child === "object") {
-                    // A shadow's names are reached wherever those of what it
-                    // shadows are (inside an `extend`, say), so a list in it
-                    // keeps its named children (`namesReachedThroughCopy`,
-                    // `BaseComponent.serialize`).
                     const serializedComponent = await child.serialize({
-                        namesReachedThroughCopy: true,
+                        namesReachedThroughCopy: namesReached,
                     });
 
                     const res = createNewComponentIndices(

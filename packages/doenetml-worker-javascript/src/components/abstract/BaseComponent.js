@@ -1457,8 +1457,8 @@ export default class BaseComponent {
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
         // without its children unless the copy is unlinked (`copyAll`), or
-        // the copy is an `extend`, whose descendants are reached through its
-        // name (`namesReachedThroughCopy`, `Copy.replacementForSource`), and
+        // the copy is made in an `extend`, whose descendants are reached
+        // through its name (`namesReachedThroughCopy`, `utils/copy.js`), and
         // a child holds a name: the copy's children are then where that
         // name is reached (`$e.h` of `<mathList name="e" extend="$l"/>`), as
         // for `<p extend>`. A reference (`$l`) has no name to reach them

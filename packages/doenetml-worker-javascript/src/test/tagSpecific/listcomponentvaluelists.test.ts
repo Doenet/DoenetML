@@ -860,6 +860,7 @@ describe("Value lists as list components @group4", async () => {
     </repeat>
     <p name="p">$g2.gl.h | $g2.gl | $m.h | $m | $ne2.n | $ne2</p>
     <p name="refs">$l $l</p>
+    <p name="rpRef">$rp</p>
     `,
         });
 
@@ -877,14 +878,30 @@ describe("Value lists as list components @group4", async () => {
             "rp[2].re.h": "2 x",
         });
 
-        // a reference to the list has no name to reach its children
-        // through, so it is made without them
+        // a reference to the list, or to a repeat holding lists, has no
+        // name to reach their children through, so they are made without
+        // them
         const refs = core.core!._components[await resolvePathToNodeIdx("refs")];
         for (const child of refs.activeChildren) {
             if (typeof child === "object") {
                 expect(child.componentType).eq("mathList");
                 expect(child.definingChildren).eqls([]);
             }
+        }
+        const listsIn = (component: any): any[] =>
+            (component.activeChildren ?? []).flatMap((child: any) =>
+                typeof child !== "object"
+                    ? []
+                    : child.componentType === "mathList"
+                      ? [child]
+                      : listsIn(child),
+            );
+        const rpRefLists = listsIn(
+            core.core!._components[await resolvePathToNodeIdx("rpRef")],
+        );
+        expect(rpRefLists.length).eq(4);
+        for (const list of rpRefLists) {
+            expect(list.definingChildren).eqls([]);
         }
 
         await updateMathInputValue({

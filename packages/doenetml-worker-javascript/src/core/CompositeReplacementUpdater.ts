@@ -21,7 +21,7 @@ import {
     gatherDiagnosticsAndAssignDoenetMLRange,
     refreshRootNames,
 } from "./ResolverAdapter";
-import { postProcessCopy } from "../utils/copy";
+import { namesReachedThroughCopy, postProcessCopy } from "../utils/copy";
 import { preprocessAttributesObject } from "../utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import {
@@ -963,12 +963,16 @@ export class CompositeReplacementUpdater {
 
                 let nComponents = this.core._components.length;
                 let newNComponents = nComponents;
+                // as the mediating copy was made (`namesReachedThroughCopy`)
+                const namesReached = namesReachedThroughCopy(
+                    this.core._components[
+                        shadowingComponent.shadows.compositeIdx
+                    ],
+                );
                 for (let [idx, repl] of replacementsToShadow.entries()) {
                     if (typeof repl === "object") {
-                        // as when the shadow was expanded
-                        // (`CompositeExpander`)
                         const serializedComponent = await repl.serialize({
-                            namesReachedThroughCopy: true,
+                            namesReachedThroughCopy: namesReached,
                         });
 
                         if (
