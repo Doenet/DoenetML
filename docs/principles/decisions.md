@@ -27,8 +27,8 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
-| B9 | A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
-| B10 | (#2376) `$e.h` names nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It breaks REF-8. Predates #2367 | reported in #2367's review | a linked list extend has no children of its own |
+| B9 | **Partly fixed on main** (**[probe]** at `a90ac9b`, after #2393): `$r[1].d.h` and `$cc.d.h` in #2371's repeat and conditionalContent examples now resolve; its reload example is not rechecked. A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
+| B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. The rule is open under CPY-8 |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
 
@@ -126,8 +126,9 @@ The value-copy path is removed.
   the repeat's groups.
 - Two lists that copy each other, or a list that extends itself, fail to load with a
   circular-dependency error (D14).
-- References into a list copy through a repeat index or a case render empty (B9, #2371).
-- A list `extend` does not reach its children by name (B10).
+- References into a list copy through a repeat index or a case render empty (B9, #2371). Partly
+  fixed since (B9).
+- A list `extend` does not reach its children by name (B10). Fixed by #2393.
 
 ## D4. Children and attributes on an `extend` or `copy` of a composite
 
@@ -739,8 +740,8 @@ and adds a special case that users of modules would have to know about.
 every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
 the sweep: 19 list forms, each with its first entry's source hidden. Still open:
 - `styleNumber` and display settings under the container model: #2374;
-- hidden content nested inside a list, such as a `<textList hide>` or `<group hide>` inside
-  another list, is still drawn: #2390 (below);
+- a `<sort>` or `<shuffle>` that stays a composite still draws an entry hidden only by a
+  container (below, after #2391);
 - writes through `$l[k].hide`, a follow-up under VAL-9.
 
 A hidden list's entries in a `<choice>`'s text and an `<li>`'s lead are done too (#2388, closing
@@ -875,15 +876,15 @@ one value becomes), whose entries now take the list's hiding. A list's own
 `hiddenIgnoreParent` follows `hideIsOwn`, as its `hidden` does, so `$tl` of a hidden list still
 counts (D9 today).
 
-**Decision needed: hidden content between an entry and its list (#2390).** Content hidden on its
-own and nested inside another list is still drawn today. Examples:
+**Decided and done: hidden content between an entry and its list (#2390, fixed by #2391).**
+Before #2391, content hidden on its own and nested inside another list was still drawn. Examples:
 `<textList><textList hide>q</textList> r</textList>` draws `q, r`, and so does a `<group hide>`,
 `<collect hide>` or `<sequence hide>` inside a list, or a `<group hide>` inside a `<sort>`. That
-breaks rule 3, and so it is a defect.
+broke rule 3.
 
 #2390 asks how such an entry behaves through a reference. Is the hidden inner list or group like
 the outer list's own `hide`, or like the entry's own?
-- **Recommendation: like the list's own `hide`.** The inner list or group is a container of the
+- **Decided: like the list's own `hide`.** The inner list or group is a container of the
   entry's source, and a reference takes its source's own `hide`, not the hiding of the
   container it sits in (CTX-8, rule 4).
 - So for the outer list `l`, `$l[1]` placed elsewhere is shown, `$l[1].hide` is the innermost
@@ -891,6 +892,26 @@ the outer list's own `hide`, or like the entry's own?
 - It matches a plain component: `$n` of a `<number>` inside a `<group hide>` is shown.
 - It holds whatever D9 decides, because D9 concerns a referent's own `hide`, not its
   container's.
+
+#2391 implements this: an entry's `hidden` also counts each child's `hiddenIgnoreParent`, and a
+`<sort>` or `<shuffle>` reads through a `<group>` child that sets nothing but `name` and `hide`, so
+that it becomes a list form. `listEntryHide.test.ts` checks every example above, plus `$l[1]` and
+`$l` placed elsewhere, `.hide`/`.hidden`, and the choice's text. A `copy=` or `extend=` of a list
+holding a hidden inner list leaves that entry out too (rule 6).
+
+**Known violation of rule 3, left by #2391.** A `<sort>` or `<shuffle>` that stays a composite
+still draws an entry hidden only by a container. **[probe]** at `a90ac9b`, each in a `<p>`, draws
+`1, 2`:
+- mixed entry types: `<sort><group hide><number>1</number></group><math>2</math></sort>`;
+- another composite child:
+  `<sort><repeatForSequence length="1" hide><number>1</number></repeatForSequence><number>2</number></sort>`;
+- a group with another attribute:
+  `<sort><group hide styleNumber="2"><number>1</number></group><number>2</number></sort>`.
+
+The same `<group hide>` with only `hide` draws `2`. The `Sort` composite copies each source, so
+the container's `hide` is lost. #2391 notes that a fix needs per-replacement hiding in
+`BaseComponent`'s `hidden`. In the cells core, where a list form is the only form, the case does
+not arise.
 
 **Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
 (**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
