@@ -552,7 +552,9 @@ describe("What a parent ignoring its own hiding counts of a list @group4", async
  * source, as the outer list's own `hide` does (D29 rule 4, CTX-8; #2390):
  * the entry is not drawn in the outer list and is `hidden`, but its `hide`
  * is still its source's own, so `$l[1]` placed elsewhere is shown. A
- * `<choice>` holding the same content counts what the `<p>` draws.
+ * reference to the whole list (`$l`), which holds that container, leaves
+ * the entry out, and a `<choice>` holding the same content counts what the
+ * `<p>` draws.
  */
 describe("Hidden content nested inside a list @group4", async () => {
     const contents = [
@@ -600,6 +602,7 @@ describe("Hidden content nested inside a list @group4", async () => {
     <setup><section name="s"><text>q</text></section></setup>
     <p name="p">${list}</p>
     <p name="entry">$l[1]</p>
+    <p name="whole">$l</p>
     <p name="props">$l[1].hide $l[1].hidden</p>
     <choiceInput><choice name="ch">${list.replace(` name="l"`, "")}</choice></choiceInput>
     `,
@@ -615,6 +618,9 @@ describe("Hidden content nested inside a list @group4", async () => {
 
             expect(await text("p")).eq(shown);
             expect(await text("entry")).eq(first);
+            // A reference to the whole list reproduces its content, the
+            // hidden container included.
+            expect(await text("whole")).eq(shown);
             expect(await text("props")).eq("false true");
             expect(await text("ch")).eq(shown);
         });

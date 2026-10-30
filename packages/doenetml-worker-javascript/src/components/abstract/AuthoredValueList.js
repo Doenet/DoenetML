@@ -145,8 +145,9 @@ export default class AuthoredValueList extends ValueListComponent {
         // A parent that reads `hiddenIgnoreParent` of its children, not
         // `hidden` (the text of a `<choice>` holding the list, and the child
         // a list item leads with, `childRendersSomething`), leaves out an
-        // entry hidden by its source's own `hide` or with the list, as it
-        // leaves out a hidden composite's replacements (#2375).
+        // entry hidden by its source's own `hide`, by a hidden container of
+        // its source inside the list, or with the list, as it leaves out a
+        // hidden composite's replacements (#2375).
         variables.hiddenIgnoreParent = "entryHiddenIgnoreParents";
         if (this.listEntriesShownAsSources) {
             // the component an entry stands for, which a list reading the
@@ -2002,7 +2003,8 @@ export function sourcePresentation(stateValues = {}) {
  * (`entryPresentation`; a piece of text as the list), and from that, an
  * array of a value per entry for each presentation variable of the list
  * (`listEntryPresentationVariables`), which the viewer reads for each entry.
- * An entry is hidden with the list or by its source's own `hide`. A list
+ * An entry is hidden with the list, by its source's own `hide`, or by a
+ * hidden container of its source inside the list (`hiddenByContainer`). A list
  * shown as its sources (`listEntriesShownAsSources`) also records the
  * component each entry stands for (`entrySourceComponents`).
  */
@@ -2059,8 +2061,8 @@ function returnEntryPresentationDefinitions(listClass) {
     Object.assign(definitions, returnEntryPresentationArrays(listClass));
 
     // Whether each entry is hidden for a parent that ignores its own hiding
-    // (a `<choice>`'s text, an `<li>`'s lead): by its source's own `hide`, or
-    // with the list. The list's `hiddenIgnoreParent` includes a hidden
+    // (a `<choice>`'s text, an `<li>`'s lead): by its source's own `hide`, by
+    // a hidden container of its source inside the list, or with the list. The list's `hiddenIgnoreParent` includes a hidden
     // composite the list came from, such as a `<group hide>` (#2375). The
     // entry's `hide` stays its source's (D29).
     definitions.entryHiddenIgnoreParents = {
