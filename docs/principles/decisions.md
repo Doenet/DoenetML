@@ -22,7 +22,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B1 | `<math extend="$m" fixed="false"/>` of a fixed `m` lets a bound input change `m` (also for `<number>` and `<text>`). For points and inputs the same write is refused. | `m` becomes 5. Confirmed twice | The check "a shadow source is fixed" exists only on the `setEssentialValue` path (`W/core/EssentialValueWriter.ts:1200-1222`). A literal child is written through `setDependency`, which does not re-check |
 | B2 | A write to `$Q.fixed`, where Q extends a point inside `<graph fixed>`, unfixes the source, which can then be dragged (#2197, open) | reproduces | `W/utils/contextAttribute.js:206-258` forwards the write |
 | B3 | One-input math operators report `canBeModified` from the wrong variable. `<sign>$n</sign>` claims it can be changed, but a bound input snaps back | yes | `W/components/abstract/MathBaseOperatorOneInput.js:94-97` reads `mathOperator` rather than `inverseMathOperator` |
-| B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
+| B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works. Fixed by D1's decision, under #2396 | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
 | B5 | Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
 | B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
@@ -39,6 +39,20 @@ interaction". They should be fixed on main whatever happens to the rewrite.
 ---
 
 ## D1. Should a copy re-bind names outside the copied part where it lands? (affects the author model)
+
+**Decided: (b), by referent (#2396 implements it).** A reference in copied content keeps meaning
+what it meant in the source:
+- a referent inside the copied part becomes the copy's counterpart;
+- a referent outside keeps that referent.
+
+The rule goes by referent, not by how the reference is spelled. `$P.h` inside a copy of `P` has
+its referent inside the copied part, so it names the copy's `h`. That reverses CPY-3's
+"through the source's own name" case, and #2367's `$l.h` in a copy of a list. References in
+attributes written on the copy tag itself still resolve where the copy is written (NAME-4). The
+same rule covers D33's fresh form. #376 asks for the same for an `extend`.
+
+Nothing decided since changes this. It removes one of the ways D33 found a copy's nested choices
+can change without anything written on the copy saying so.
 
 **Today.** A copy is pasted DoenetML, so a `$n` inside it that pointed *outside* the copied part
 is resolved again where the copy lands. A nearer `n` there captures it, and two equally near `n`s
@@ -66,12 +80,12 @@ make it ambiguous. An `extend` keeps the source's binding.
   - The author statement becomes "a copy is the source's DoenetML pasted here, with its names
     still meaning what they meant in the source".
 
-**Recommendation: (b).** Authors copy a problem to reuse it, not to have it re-interpreted by
+**Recommendation, now decided: (b).** Authors copy a problem to reuse it, not to have it re-interpreted by
 whatever is nearby. A core that compiles source text can implement (b) cheaply by resolving
 references *before* pasting, which is what the Rust resolver already does for the source.
 
 **Tests that change.**
-- `T/copying/extend_references.test.ts:7807` "attribute inherited by a copy of a copy resolves
+- `T/copying/extend_references.test.ts:7759` "attribute inherited by a copy of a copy resolves
   where that copy is written". That test was added recently and on purpose, so this decision
   should be taken explicitly.
 - Copy-of-module re-binding, which is untested.
@@ -723,7 +737,8 @@ either cannot be dragged, or writes back to the caller's variables. The fix,
   - The copy is then truly independent, and the module case works without `.value`.
   - It reverses #559, "a copy keeps following an outside `$n`"
     (`T/copying/unlinked copy.test.ts:1118`), which is currently Tier 1.
-  - It is the opposite of D1's lexical option, which keeps outside references live.
+  - It is the opposite of D1's decision (b), which keeps outside references live and pointing
+    at their original referents.
 - **(d) A dedicated way to say "initial value".** For example, `<number name="x"
   start="$x0"/>`, analogous to an input's `prefill`, which already means "start here, then
   change on your own".
@@ -731,8 +746,8 @@ either cannot be dragged, or writes back to the caller's variables. The fix,
   - It would have to be added to every value component, and authors must learn a new
     attribute.
 
-**Recommendation.** Do (a) now. Decide between (c) and (d) together with D1, since both are
-about what a copy does with references to things outside it. (b) solves only the module case,
+**Recommendation.** Do (a) now. D1 is decided as (b), which keeps outside references live, so
+(c) would now be a separate reversal of #559, not part of D1. (b) solves only the module case,
 and adds a special case that users of modules would have to know about.
 
 ## D29. Hidden entries in lists
@@ -1177,8 +1192,9 @@ the author cannot tell which one they wrote. Two variants were considered:
 <module name="m3" copy="$m"/>         <!-- the same two numbers as m -->
 ```
 
-Neither (A) nor (B), checking only the tag the copy is written on, sees this. The same happens
-when a reference inside a copy is looked up again where the copy lands (CPY-6, D1).
+Neither (A) nor (B), checking only the tag the copy is written on, sees this. Today the same
+happens when a reference inside a copy is looked up again where the copy lands (CPY-6). D1's
+decision removes that case (#2396).
 
 **Two intents behind `copy`.**
 1. **Duplicate it, as it is now.** A review section repeating a problem with the reader's
@@ -1204,8 +1220,8 @@ second form (see "Names").
 - Its random components draw their own values, fixed for a given variant and kept through a
   reload, as any written content's are. Two uses differ, and each is stable. Under D17 each is
   seeded from its own position.
-- References to names outside the pasted part are looked up again where it lands, as for a copy
-  (CPY-6, D1).
+- References keep meaning what they meant in the source, as for a copy (D1): a referent inside
+  the pasted part becomes its counterpart, and one outside is kept.
 - `<module NEW="$m" k="4"/>`, with `m` in `<setup>`, becomes the documented module pattern.
 
 **The duplicating form (today's `copy`): duplicated with its state.** It always keeps its source's
@@ -1217,7 +1233,7 @@ reader state and random choices (CPY-2, CPY-8), whatever is written on it.
   `numToSelect="2"` and `numToSelect="3"` behave the same, computed or not. The error says to use
   the fresh form. This matches D32, which makes the same changes an error on an `extend`.
 - **Known only at run time → warning.** When what is written reaches nested content, as `k`
-  does above, or a reference inside is looked up again elsewhere, the carried choices win and a
+  does above, the carried choices win and a
   warning says to use the fresh form. The mismatch may only appear after the reader interacts, so
   it cannot be an error. `<module copy="$m" k="2"/>` and `k="4"` then behave the same: the
   source's choices. `k` itself still takes the written value. Only the nested choice, which
