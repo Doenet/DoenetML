@@ -51,22 +51,46 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
     // Its node names its diagnostic; it has no cells of its own.
     assert_eq!(doc.components.dast_node[b.index()], errs[0].node.unwrap());
     assert!(doc.comp_cells(b).is_empty());
-    assert!(
-        doc.resolve_path("q").is_none(),
-        "a boxed element has no name"
-    );
+    // A box keeps its name (ADR 0027).
+    assert_eq!(doc.resolve_path("q"), Some(b));
 }
 
+/// A reference to a box resolves, and reads as undefined with no
+/// diagnostic of its own: the box's error is its explanation (ADR 0027).
 #[test]
-fn a_reference_to_a_boxed_element_is_boxed_in_turn() {
+fn a_reference_to_a_boxed_element_reads_undefined() {
     let doc = load(r#"<number name="a">$nope</number><number name="b">$a + 1</number><number name="c">2</number>"#).unwrap();
     assert_eq!(doc.value("c", "value"), Some(2.0));
+    assert!(doc.value("b", "value").unwrap().is_nan());
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 1, "{errs:?}");
+    assert!(errs[0].message.contains("nope"), "{}", errs[0].message);
+}
+
+/// One wrong element is one error: what names it, through a prop or
+/// through another element, is not reported unknown (ADR 0027).
+#[test]
+fn a_box_does_not_cascade() {
+    let src = r#"<point name="P" bogus="1"/><number name="n">$P.x</number><p name="t">$n</p>"#;
+    let doc = load(src).unwrap();
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 1, "{errs:?}");
+    assert_eq!(errs[0].code, "cells-unsupported-attribute");
+    assert!(doc.value("n", "value").unwrap().is_nan());
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}
+
+/// An extend of a box is planned from nothing, so it is boxed in turn,
+/// its error naming the referent as the cause.
+#[test]
+fn an_extend_of_a_box_is_boxed_with_its_cause() {
+    let doc =
+        load(r#"<graph><point name="P" bogus="1"/><point name="Q" extend="$P" x="2"/></graph>"#)
+            .unwrap();
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 2, "{errs:?}");
-    // In document order.
-    assert!(errs[0].node < errs[1].node);
-    assert!(errs[0].message.contains("nope"), "{}", errs[0].message);
-    assert!(errs[1].message.contains("$a"), "{}", errs[1].message);
+    assert_eq!(errs[1].code, "cells-boxed-referent");
+    assert!(errs[1].message.contains("$P"), "{}", errs[1].message);
 }
 
 #[test]
@@ -110,7 +134,12 @@ fn an_attribute_nothing_reads_is_refused_on_its_element() {
     let src = r#"<point name="p" x="1" draggable="false"/><number name="n">3</number>"#;
     let doc = load(src).unwrap();
     assert_eq!(doc.value("n", "value"), Some(3.0));
-    assert!(doc.resolve_path("p").is_none(), "the point is boxed");
+    let p = doc.resolve_path("p").unwrap();
+    assert_eq!(
+        doc.component_type(p),
+        ComponentType::Error,
+        "the point is boxed"
+    );
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
     assert_eq!(errs[0].code, "cells-unsupported-attribute");

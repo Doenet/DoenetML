@@ -333,7 +333,13 @@ impl<'a> PlanCtx<'_, 'a> {
     /// planning settles it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
         match self.c.plan_elem_target(self.t, p) {
-            Some(e) => Ok(Some(self.c.settled_elem(self.t, e)?.component_type)),
+            // What needs the referent's type cannot be planned from a box.
+            Some(e) => match self.c.settled_elem(self.t, e)?.component_type {
+                ComponentType::Error => Err(Error::BoxedReferent(
+                    self.c.compiled.refs[p.index()].display.clone(),
+                )),
+                k => Ok(Some(k)),
+            },
             None => Ok(None),
         }
     }

@@ -180,6 +180,14 @@ impl<'a> Compiler<'a> {
         // Past an interface name only props may follow.
         let mut after_iface = false;
         for (i, &part) in parts.iter().enumerate() {
+            // A box has no props, children or items: a path through it
+            // ends at it, and reads as undefined when built (ADR 0027).
+            if let At::Elem(e) = at
+                && self.compiled.templates[cur_t.index()].elems[e.index()].component_type
+                    == ComponentType::Error
+            {
+                break;
+            }
             if i > 0 {
                 let name = d.strings.get(names[i]);
                 // What follows an element's name is read from its type,

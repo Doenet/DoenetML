@@ -165,12 +165,12 @@ fn an_interface_name_holds_one_kind_of_value() {
 <p>$cc.t</p>"#,
     )
     .unwrap();
-    // The choice is boxed, so `$cc` is reported unknown too.
+    // The choice is boxed, and `$cc.t` reads it as undefined: the one
+    // error is the choice's (ADR 0027).
     let found = errors(&doc);
+    assert_eq!(found.len(), 1, "{found:?}");
     assert!(
-        found
-            .iter()
-            .any(|e| e.contains("'t' holds a different kind of value")),
+        found[0].contains("'t' holds a different kind of value"),
         "{found:?}"
     );
 }

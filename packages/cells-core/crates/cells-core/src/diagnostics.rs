@@ -142,6 +142,7 @@ impl Error {
             NoDefaultProp(_) => "cells-no-default-prop",
             UncopyableType(_) => "cells-uncopyable-type",
             ExtendTypeMismatch { .. } => "cells-extend-type-mismatch",
+            BoxedReferent(_) => "cells-boxed-referent",
             ArityMismatch { .. } => "cells-arity-mismatch",
             BadValue { .. } => "cells-bad-attribute-value",
             BadLiteralParam(_) => "cells-bad-literal-param",

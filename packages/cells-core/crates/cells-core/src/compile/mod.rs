@@ -92,7 +92,8 @@ pub(in crate::compile) struct Compiler<'a> {
     /// needed) and then `extra_strings`: see `intern_literal`.
     pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
     /// Nodes an earlier attempt could not build: compiled as `_error`
-    /// elements with no name, no children and no props (ADR 0013).
+    /// elements with their names but no children and no props (ADR 0013,
+    /// ADR 0027).
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
     /// The node of the innermost element whose planning failed, set on
     /// the way out of a failed compile; `build` boxes it and tries again.
@@ -328,11 +329,27 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// The `_error` element standing for boxed node `node`: no name, no
-    /// children, no props.
-    fn push_error_elem(&mut self, t: TemplateId, node: NodeId) -> ElemId {
-        self.push_elem(t, node, ComponentType::Error, StrId::NONE, ROOT_SCOPE)
-            .expect("an unnamed element never collides")
+    /// The `_error` element standing for boxed node `node`: no children,
+    /// no props, and the element's name, so a reference to it resolves and
+    /// reads as undefined rather than being an unknown reference of its
+    /// own (ADR 0027). A name a sibling already holds (the box of a
+    /// duplicate name) is left off.
+    fn push_error_elem(&mut self, t: TemplateId, node: NodeId, name_scope: ElemId) -> ElemId {
+        let name = match self.dast.kind(node) {
+            NodeKind::Element => self.attr_name_str(node, "name").unwrap_or(StrId::NONE),
+            _ => StrId::NONE,
+        };
+        let taken = name != StrId::NONE
+            && self
+                .name_ids
+                .get(self.dast.strings.get(name).trim())
+                .is_some_and(|&id| {
+                    self.sibling_names
+                        .contains(&(t.get(), name_scope.get(), id))
+                });
+        let name = if taken { StrId::NONE } else { name };
+        self.push_elem(t, node, ComponentType::Error, name, name_scope)
+            .expect("a box's name is free among its siblings")
     }
 
     /// Children of element `e` have `e` as their parent.
@@ -456,7 +473,7 @@ impl<'a> Compiler<'a> {
         name_scope: ElemId,
     ) -> Result<ElemId> {
         if self.boxed.contains(&el) {
-            return Ok(self.push_error_elem(t, el));
+            return Ok(self.push_error_elem(t, el, name_scope));
         }
         let r = self.add_elem_inner(t, el, name_scope);
         if r.is_err() {
@@ -636,7 +653,7 @@ impl<'a> Compiler<'a> {
                 NodeKind::Text => kids.push(Child::Text(d.str_id(n))),
                 NodeKind::Macro => {
                     if self.boxed.contains(&n) {
-                        kids.push(Child::Elem(self.push_error_elem(t, n)));
+                        kids.push(Child::Elem(self.push_error_elem(t, n, name_scope)));
                         continue;
                     }
                     self.pending_macros.push((t, owner, kids.len(), n));
@@ -766,6 +783,13 @@ impl<'a> Compiler<'a> {
                     text: self.attr_text(a).unwrap_or_default(),
                 })?;
                 let p = self.plan_ref(t, scope, m)?;
+                // An extend of a box is planned from nothing: it is boxed
+                // in turn, its referent's box the cause (ADR 0027).
+                if self.ref_target_type(t, p)? == Some(ComponentType::Error) {
+                    return Err(Error::BoxedReferent(
+                        self.compiled.refs[p.index()].display.clone(),
+                    ));
+                }
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
                 // props alias the named prop.

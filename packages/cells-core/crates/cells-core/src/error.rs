@@ -34,6 +34,8 @@ pub enum Error {
         referent_type: String,
         component_type: String,
     },
+    #[error("'${0}' names a component with an error of its own, so this cannot be planned from it")]
+    BoxedReferent(String),
     #[error(
         "prop '{prop}' of <{component_type}> expects {expected} cell(s) but the reference supplies {got}"
     )]

@@ -1,6 +1,6 @@
 # The compile runs in passes, each reading only what earlier passes finished
 
-Status: proposed 2026-10-30. Migration steps 1 and 3 are done. Amended
+Status: proposed 2026-10-30. Migration steps 1 to 3 are done. Amended
 2026-10-30: pass 3 plans on demand rather than from a graph made first
 (see "The rule for pass 3").
 
@@ -177,7 +177,14 @@ says otherwise.
    extend of a box is boxed with a cause. Removes the cascade. Tests: the
    three-error document above reports one error; any expectation in
    `tests/diagnostics.rs` or `tests/load_errors.rs` that lists a cascaded
-   error loses it.
+   error loses it. Done. What reads a referent's type to plan (an extend,
+   `<constrainTo>`, `<functionIterates function>`) is boxed with
+   `cells-boxed-referent`; a reference reads undefined, the build
+   resolving a box as it does a missing index. A path through a box ends
+   at it, so the box's descendants' names (`$g.A` of a boxed `g`) read
+   undefined too, while a bare `$A` of a descendant is still unknown,
+   since a box has no children. A box for a duplicate name stays unnamed.
+   The golden diff changes only by a box's path, now its name.
 3. **Lint reads without recording.** Add `Dast::attr_peek`, use it in
    `lint.rs`, and run lint first.
 4. **Collect pass 3's errors in place.** A planner's failure boxes its

@@ -237,9 +237,11 @@ document is unchanged and `rebuild_error` says why.
 Errors are a build product, not a failure (ADR 0013). When the compiler or
 builder raises an error, it records the innermost element it concerns. The
 check *boxes* that element: it recompiles as an `_error` element with no
-name, children or props, and the check builds again until every element
-builds. Only an error with no element to box, a dependency cycle, fails the
-load.
+children or props, and the check builds again until every element builds.
+A box keeps its name (ADR 0027): a reference to it resolves and reads as
+undefined, with no diagnostic of its own, and an extend of it is boxed in
+turn (`cells-boxed-referent`). Only an error with no element to box, a
+dependency cycle, fails the load.
 
 `Document::diagnostics` lists, in node order, the lint findings plus the
 errors and warnings of the elements that built.

@@ -101,7 +101,7 @@ fn overrides_on_an_extend_across_a_scope_are_refused() {
         "{}",
         errors[0].message
     );
-    assert!(doc.resolve_path("Q").is_none());
+    assert_eq!(doc.value("Q", "x"), None, "Q is boxed");
     // The bare extend aliases the iteration's point.
     assert_eq!(v(&doc, "S", "x"), 2.0);
 }
