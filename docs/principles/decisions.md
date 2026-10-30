@@ -219,8 +219,12 @@ sibling with the same name, but **not** ahead of a descendant with that name (**
 - `<point name="R" styleNumber="$R">(2, <number name="R">3</number>)</point>` has style number 3.
 
 So today an attribute's search order is its component's descendants, then the component, then its
-siblings. That differs from NAME-1's rule for a reference written inside a component, where an
-ancestor's name beats a descendant with the same name.
+siblings. **A child's is the same** (**[probe]**): `<point name="P">(2, <number name="P">3</number>$P.x)</point>`
+gives `(2, 3 ＿)`, and `<label>$A.x</label>` inside `<point name="A">(2, <number name="A">3</number>)</point>`
+is empty. Both follow NAME-1's nearest scope. The component's contents are the nearest scope. The
+component's own name belongs to its parent's scope, where it beats a same-named sibling, because a
+reference can always name its own ancestor. So an attribute on an ordinary element already acts as
+if written in a child.
 
 **Proposed principle (Tier 1): a reference resolves where it is written, among what is written.**
 - **The first name in a path resolves only to a component written in the DoenetML.** Content a
@@ -229,8 +233,8 @@ ancestor's name beats a descendant with the same name.
 - **That holds wherever the reference is:** beside the copy, in an attribute on it, or in a child
   written inside it. A reference inside a copy or extend follows no special rule.
 - **An attribute resolves as if it were written in a child of its component.** It sees the
-  component's own name first, ahead of siblings, then the component's written descendants, then
-  outward. An attribute on a copy or extend is no different from any other attribute:
+  component's written descendants first, then the component's own name, ahead of its siblings,
+  then outward (NAME-1's nearest scope, as for a child). An attribute on a copy or extend is no different from any other attribute:
   - it sees the children written inside the copy tag, because they are written;
   - it does not see the copied content, because that is not written there.
 - **The existing privacy rules still apply** to written content. Children of `repeat`, `option`,
@@ -256,11 +260,11 @@ tell where any reference lands by reading the DoenetML, with no rules specific t
   refers to it, as `<p hide="$h"><boolean name="h"/></p>` does. `<module name="m" xmin="$xmin">`
   is then a cycle, reported as one (NAME-7, D14) instead of "Multiple referents". The diagnostic
   should say that the attribute refers to the module's own `xmin`.
-- **The self-name rule:** an attribute naming its own component resolves to it, ahead of
-  siblings and descendants, as NAME-1 already says for a reference written in a child. Today the
-  component beats a sibling, but a descendant with the same name beats the component:
-  `<point name="P" styleNumber="$P.x">(2, <number name="P">3</number>)</point>` changes from no
-  style number to 2.
+- **Nothing changes for an attribute on an ordinary element.** It already acts as if written in a
+  child: a same-named descendant first, then the component, ahead of its siblings. That order
+  should be stated and tested, since no principle or test states it. Making the component beat its
+  own descendants instead would need a new rule for references inside a component, both in
+  children and in attributes. It is not proposed.
 
 **Code:**
 - The special origins for attributes on copies go: `W/utils/dast/convertToCopy.ts:204-215` and
@@ -282,7 +286,8 @@ should all still pass, since none of their copies has a written child with the r
 That needs checking.
 
 **Tests to add:**
-- the self-name rule, on an ordinary element and on a copy, with a same-named sibling;
+- the search order from an attribute and from a child, on an ordinary element and on a copy: a
+  same-named descendant, then the component, ahead of a same-named sibling;
 - an attribute on a copy and on an extend that names a child written inside the tag;
 - a child added inside a copy: a bare name, and the path through the copy's name;
 - the module-definition cycle diagnostic.
