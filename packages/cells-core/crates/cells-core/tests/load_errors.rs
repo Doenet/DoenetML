@@ -83,8 +83,8 @@ fn a_select_that_cannot_draw_is_reported_at_load() {
 }
 
 // The load's check must not reject what a real build accepts either: a
-// collect's count is a constant in every real build, so a prefill may name
-// it.
+// collect's count is a counted value, a copy of the number a build
+// gathered (ADR 0026), which a prefill may name.
 #[test]
 fn a_prefill_may_name_a_collects_count() {
     let doc = load(

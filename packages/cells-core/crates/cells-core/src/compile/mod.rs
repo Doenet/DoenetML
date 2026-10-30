@@ -159,6 +159,7 @@ impl<'a> Compiler<'a> {
                 structural_depth: 0,
                 classes: None,
                 live: Arc::default(),
+                counted: Arc::default(),
                 prune: false,
             },
             pending_elems: Vec::new(),

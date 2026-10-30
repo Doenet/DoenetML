@@ -841,6 +841,13 @@ pub struct Compiled {
     /// The probe's record of the live slots (ADR 0019), by which every
     /// build finds which cells it computes.
     pub(crate) live: Arc<Record>,
+    /// The probe's record of the counted values (ADR 0026): the template
+    /// slots whose value a build counts from the structure it stamped (a
+    /// collect's count, a section's number after a repeat, the credit of a
+    /// section whose answers are all in repeats). Each follows the counts,
+    /// so every build makes it a derived cell, never a constant, even at a
+    /// count where it has nothing to count.
+    pub(crate) counted: Arc<Record>,
     /// Whether a build gives a dead slot no cell (ADR 0019,
     /// `LoadOptions::prune`); never in the probe.
     pub(crate) prune: bool,

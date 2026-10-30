@@ -41,6 +41,7 @@ pub(crate) fn compile(
         compiled.structural_depth = probed.structural_depth;
         compiled.classes = classify.then(|| Arc::new(probed.writable));
         compiled.live = Arc::new(probed.live);
+        compiled.counted = Arc::new(probed.counted);
         // The probe's warnings are the document's: no build finds one
         // the probe did not (ADR 0014).
         Arc::make_mut(&mut compiled.diagnostics).extend(probed.warnings);

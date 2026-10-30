@@ -79,6 +79,16 @@ impl<'c> Builder<'c> {
             let live = self.live_by_record(&self.compiled.live, &slot_cells);
             (live, Record::default())
         };
+        // The counted values the probe found (ADR 0026).
+        let counted_record = if folds {
+            let mut marked = vec![false; n];
+            for &s in &self.counted_slots {
+                marked[s.index()] = true;
+            }
+            self.record_of(&marked)
+        } else {
+            Record::default()
+        };
         // What this build's own walks find, whatever the record says: what
         // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
@@ -527,6 +537,7 @@ impl<'c> Builder<'c> {
                 structural_depth: self.structural_depth,
                 writable: record,
                 live: live_record,
+                counted: counted_record,
                 warnings: self.diagnostics,
             },
         })
@@ -604,19 +615,21 @@ impl<'c> Builder<'c> {
         for &(s, from) in &self.seeds {
             let (scope, tslot, _) = self.essential_key(s);
             let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
-            let src = slot_to_cell[from.index()];
-            // A collect's count is a constant in every real build; the probe
-            // only stands it in by an operator over the repeats' counts.
-            let stand_in = || {
-                self.follows_counts
-                    .iter()
-                    .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT).index()] == src)
-            };
-            let computed = matches!(
-                self.sources[def(from).index()],
-                BuiltSource::Op(..) | BuiltSource::VecOut(..)
-            );
-            if computed && !stand_in() {
+            let mut src = slot_to_cell[from.index()];
+            // A collect's count is a counted value (ADR 0026): the number
+            // a build gathered, held by a copy, which the seed takes; the
+            // probe only stands it in by an operator over the repeats'
+            // counts.
+            let stand_in = self
+                .follows_counts
+                .iter()
+                .any(|&c| slot_to_cell[self.slot(c, prop::collect::COUNT).index()] == src);
+            let source = &self.sources[def(from).index()];
+            if stand_in && let BuiltSource::Op(PlannedOp::Spec(OpSpec::Copy), start, 1) = *source {
+                src = slot_to_cell[self.op_inputs[start as usize].index()];
+            }
+            let computed = matches!(source, BuiltSource::Op(..) | BuiltSource::VecOut(..));
+            if computed && !stand_in {
                 // The seeded element is boxed (ADR 0013).
                 let node = self.components.dast_node[self.slot_comp[s.index()].index()];
                 self.failed_node = (node != NodeId::NONE).then_some(node);

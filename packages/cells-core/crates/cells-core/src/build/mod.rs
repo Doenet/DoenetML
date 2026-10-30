@@ -253,6 +253,8 @@ pub(crate) struct Probed {
     pub(crate) writable: Record,
     /// The live template slots.
     pub(crate) live: Record,
+    /// The counted values' template slots (ADR 0026).
+    pub(crate) counted: Record,
     /// The warnings (`check_counts`).
     pub(crate) warnings: Vec<Diagnostic>,
 }

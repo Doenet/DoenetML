@@ -55,15 +55,35 @@ impl<'c> Builder<'c> {
 
     /// `creditAchieved` of the document or an aggregating section.
     fn set_credit(&mut self, c: CompIdx) {
-        match self.mean_credit(c) {
+        let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
+        let mut items = Vec::new();
+        self.scored_items(c, None, &mut items);
+        // With a scored item in a repeat below `c`, there is none at some
+        // count: the credit is then a counted value (ADR 0026), which the
+        // probe, whose one iteration stands for every count, records.
+        if self.view.folds_iterations() {
+            let depth = |b: &Self, scope| b.enclosing_repeats(scope).len();
+            let at = depth(self, self.components.scope[c.index()]);
+            let found = items
+                .iter()
+                .any(|&(_, credit)| depth(self, self.slot_scope[credit.index()]) > at);
+            self.is_counted(s, found);
+            self.is_counted(p, found);
+        }
+        match self.mean_credit(c, items) {
             Some(mean) => {
-                let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
                 self.fill_deferred(s, Deferred::Credit, BuiltSource::Alias(mean));
                 let hundred = self.const_slot(100.0);
                 let percent = self.op_source(OpSpec::Mul, &[s, hundred]);
                 self.fill_deferred(p, Deferred::PercentCredit, percent);
             }
-            None => self.set_constant_credit(c, 1.0),
+            None => {
+                // Nothing to score: full credit.
+                let credit = self.counted(s, 1.0, false);
+                self.fill_deferred(s, Deferred::Credit, credit);
+                let percent = self.counted(p, 100.0, false);
+                self.fill_deferred(p, Deferred::PercentCredit, percent);
+            }
         }
     }
 
@@ -100,11 +120,9 @@ impl<'c> Builder<'c> {
         Some(self.gated(gate, active, self.components.scope[case.index()]))
     }
 
-    /// The weighted mean of the scored items inside `c`; None when there
-    /// are none.
-    fn mean_credit(&mut self, c: CompIdx) -> Option<SlotId> {
-        let mut items = Vec::new();
-        self.scored_items(c, None, &mut items);
+    /// The weighted mean of `items`, the scored items inside `c`; None
+    /// when there are none.
+    fn mean_credit(&mut self, c: CompIdx, mut items: Vec<(SlotId, SlotId)>) -> Option<SlotId> {
         if items.is_empty() {
             return None;
         }
@@ -169,6 +187,26 @@ impl<'c> Builder<'c> {
         }
     }
 
+    /// Number the sections inside repeat (or collect from repeats) `r`,
+    /// among the children counted by `counter`. A section counted inside
+    /// makes the numbers after `r` follow its count; one whose number
+    /// follows a count inside `r` makes every number inside `r` follow, since
+    /// a later iteration counts it before them.
+    fn number_through_repeat(&mut self, r: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
+        let (fixed, before, follows) = (counter.fixed, counter.before, counter.follows);
+        let start = counter.numbered.len();
+        self.number_sections(r, gate, counter);
+        if counter.follows && !follows {
+            for i in start..counter.numbered.len() {
+                let s = counter.numbered[i];
+                self.is_counted(s, true);
+            }
+        }
+        if counter.fixed != fixed || counter.before != before {
+            counter.follows = true;
+        }
+    }
+
     /// Number the sections among the children of `c`, counting through the
     /// containers the current core expands in place; `gate` is the product
     /// of the cases between `c` and the component whose children are being
@@ -180,21 +218,27 @@ impl<'c> Builder<'c> {
                     let g = self.gate_through(gate, k);
                     self.number_sections(k, g, counter);
                 }
+                ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
+                    self.number_through_repeat(k, gate, counter)
+                }
+                ComponentType::Collect if self.follows_counts.contains(&k) => {
+                    self.number_through_repeat(k, gate, counter)
+                }
                 ComponentType::ConditionalContent
                 | ComponentType::Select
                 | ComponentType::Group
-                | ComponentType::RepeatForSequence
-                | ComponentType::RepeatFor
                 | ComponentType::Collect => self.number_sections(k, gate, counter),
                 ComponentType::Section => {
+                    let s = self.slot(k, NUMBER);
                     let number = match counter.before {
-                        None => BuiltSource::Fixed(counter.fixed + 1.0),
+                        None => self.counted(s, counter.fixed + 1.0, counter.follows),
                         Some(b) => {
+                            self.is_counted(s, counter.follows);
                             let k = self.const_slot(counter.fixed + 1.0);
                             self.op_source(OpSpec::Add, &[b, k])
                         }
                     };
-                    let s = self.slot(k, NUMBER);
+                    counter.numbered.push(s);
                     self.fill_deferred(s, Deferred::SectionNumber, number);
                     match gate {
                         None => counter.fixed += 1.0,
@@ -224,4 +268,11 @@ impl<'c> Builder<'c> {
 struct Counter {
     fixed: f64,
     before: Option<SlotId>,
+    /// A section was counted in a repeat (or a collect from one) before
+    /// the next one: its number follows the counts, a counted value (ADR
+    /// 0026). Found in the probe, whose one iteration stands for every
+    /// count; another build reads the probe's record.
+    follows: bool,
+    /// The number slots counted so far.
+    numbered: Vec<SlotId>,
 }

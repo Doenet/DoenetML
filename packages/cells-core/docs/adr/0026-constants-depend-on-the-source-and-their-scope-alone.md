@@ -1,6 +1,7 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. Migration phase 1 is done; see Migration.
+Status: proposed 2026-10-30. Migration phases 1 and 2 are done; see
+Migration.
 
 A **constant** is a cell whose value is a function of the source, the
 document seed and the scope it is in, and of nothing else: not of state,
@@ -102,22 +103,30 @@ document seed and its scope, and nothing computes it at tick time. It is
 essential when a student's action can write it (ADR 0018), and derived
 when an instruction computes it. Every cell is one of the three.
 
-So a value that follows the counts is not a constant. Each of today's
-fixed values that does becomes derived, wired as the probe wires it or
-as a gated value already is:
+So a value that follows the counts is not a constant. Three of today's
+fixed values do, each counted by the build from the structure it
+stamped:
 
-- **A collect's count** is the operator over the gathered repeats'
-  counts that the probe already stands in for it, in every build. A
-  collect that gathers no original from an iteration keeps a constant
-  count, as it does today.
-- **A section's number** counts the sections before it through a cell
-  that sums what each repeat before it contributes, chained as
-  `Counter::before` chains the gates of cases today. Only sections
-  outside every repeat and every case count in the constant part.
-- **A section's credit** with scored items only inside repeats is the
-  mean at every count, with no scored item giving the same credit as
-  today's constant, 1. A section with no scored item anywhere in its
-  template keeps the constant credit.
+- **A collect's count**, when it gathers from a repeat's iterations.
+- **A section's number**, after a repeat or a collect from one that
+  holds a section, and inside a repeat whose iterations count a section
+  through a repeat of their own (iteration 2 counts iteration 1's).
+- **A section's credit**, and its percentage, when a scored item lies in
+  a repeat below it: at a count with none, the credit is the constant 1
+  of a section with nothing to score.
+
+Each is a **counted value**: a derived cell holding the number its build
+counted, an `OpSpec::Copy` of an operator's constant, in every build,
+whatever the count. A build cannot tell which values are counted,
+since at a count with nothing to count it sees no repeat contribute; the
+probe, whose one iteration stands for every count, finds them and
+records their template slots (`Compiled::counted`), as it records the
+writable and live ones, and every build reads the record. The copy
+reads no count cell: a change of count rebuilds the document, which
+counts again, and the cycle check reads the probe's stand-ins, which do.
+Folding (step 4) never folds a counted value. A value the build counts
+from a scope alone (a section's number inside an iteration, counting
+the iterations before it) is a scope constant.
 
 What the remaining constants are, by what they depend on:
 
@@ -246,6 +255,14 @@ holds is *held*.
   caches a constant must know which. Each has a derived form already
   (the probe's collect count, the gated section number); the cost is a
   few instructions where a repeat is involved.
+- **Counted values as formulas over the count cells**: the count times
+  what one iteration contributes, where every iteration contributes the
+  same, else a sum of each iteration's contribution. Deferred: the graph
+  would read the counts, but nothing needs that edge (a count change
+  rebuilds; the cycle check has the probe's), and count 0, nested
+  repeats, a select in an iteration and sections collected among a
+  section's siblings each need their own wiring. It can replace the
+  copy for the common case later without changing any value.
 - **Cache scope constants in the session**, as essential values
   are. Rejected for now: an index or a pick costs less to compute than
   to look up, and is the same either way.
@@ -293,11 +310,10 @@ after each.
    post) in the load, so each is imported and simplified once. No other
    change; the measured `simplify` cost leaves the rebuild. *Done
    2026-10-30*; see below.
-2. **Structure values become derived.** A collect's count, a section's
+2. **Counted values become derived.** A collect's count, a section's
    number and a section's credit as in step 1. The `every_count.rs` check
    above, which fails before this phase on a section after a repeat.
-   `seed_cells`'s stand-in for a collect's count becomes the ordinary
-   case of seeding from a derived count.
+   *Done 2026-10-30*; see below.
 3. **Rename** (step 5), code and docs, with no behavior change.
 4. **Document or scope constant**, recorded per template slot by the probe
    beside the writable and live records; a census test prints it per
@@ -332,3 +348,22 @@ Settled while implementing phase 1:
 - Measured with the benchmark of Context, rebuilding from 5000 to 5001
   iterations: with `simplify` on the math, 68.0 ms before and 33.2 ms
   after; without it, 40.2 ms and 35.0 ms (the import alone).
+
+Settled while implementing phase 2:
+
+- The probe's operator for a collect's count was a stand-in for the
+  cycle check's edges (a `Max` over the counts, `Builder::reads`), never
+  its value, and the probe numbered a section after a repeat as a
+  constant like any build. So no build had a derived form to take, and
+  none could tell at count 0 that a value was counted: the record
+  (`Compiled::counted`) and the copy replace "as the probe wires it".
+- The check is `a_constant_is_the_same_in_every_build` in
+  `tests/every_count.rs`. Each build records, for tests, what every live
+  template slot's own source makes it (`Structure::slot_classes`); every
+  document with a repeat is built at counts 0 to 4 and back in one
+  session, and a slot that is a constant in one build must be the same
+  constant in every build of its scope. Every golden document and
+  `sir.doenet` passed before this phase; five documents in the test
+  (`STRUCTURE_VALUES`) failed, one per kind of counted value, and pass.
+- A `prefill` naming a collect's count seeds from the copy's constant,
+  since a seed is taken before the first compute.

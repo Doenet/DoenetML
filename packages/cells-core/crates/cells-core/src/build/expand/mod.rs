@@ -189,6 +189,9 @@ pub(in crate::build) struct Builder<'c> {
     /// Collects (a polyline is one) whose count reads the counts of the
     /// repeats they gather from (`CollectCount::RepeatCounts`).
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
+    /// When the view folds iterations: the slots of the counted values it
+    /// found (`Builder::counted`), which the probe records.
+    pub(in crate::build) counted_slots: Vec<SlotId>,
     /// Sources a slot has in iterations after the first, when the view
     /// folds iterations (`Plans::Both`): edges the graph carries as well.
     pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
@@ -275,6 +278,7 @@ impl<'c> Builder<'c> {
             slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
+            counted_slots: Vec::new(),
             later_sources: Vec::new(),
             label: Vec::new(),
             labels: HashMap::new(),
@@ -402,6 +406,34 @@ impl<'c> Builder<'c> {
         let s = self.anon_slot(BuiltSource::Fixed(v), ScopeId::DOCUMENT);
         self.consts.insert(v.to_bits(), s);
         s
+    }
+
+    /// Whether slot `s` holds a counted value (ADR 0026): one the build
+    /// counts from the structure it stamped, so it follows the counts. The
+    /// probe finds them, `found` saying this one is, and records them;
+    /// every other build reads the record, since at some counts there is
+    /// nothing to count and a build cannot tell.
+    pub(in crate::build) fn is_counted(&mut self, s: SlotId, found: bool) -> bool {
+        if self.view.folds_iterations() {
+            if found {
+                self.counted_slots.push(s);
+            }
+            return found;
+        }
+        self.template_slot(s)
+            .is_some_and(|(t, ts)| self.compiled.counted.marks(t, ts))
+    }
+
+    /// Slot `s`'s source when this build counted `v` for it: a constant,
+    /// or for a counted value a derived cell holding `v`, so a value that
+    /// follows the counts is never a constant (ADR 0026).
+    pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64, found: bool) -> BuiltSource {
+        if self.is_counted(s, found) {
+            let k = self.const_slot(v);
+            self.op_source(OpSpec::Copy, &[k])
+        } else {
+            BuiltSource::Fixed(v)
+        }
     }
 
     pub(in crate::build) fn missing_slot(&mut self) -> SlotId {
@@ -1033,10 +1065,17 @@ impl<'c> Builder<'c> {
             CollectCount::RepeatCounts => self.gathered_counts(&found),
         };
         // With no gathered original in an iteration, the number gathered is
-        // a constant at every count.
+        // a constant at every count. Otherwise it is a counted value: the
+        // probe stands it in by its repeats' counts, and every other build
+        // holds the number it gathered (ADR 0026).
         let count = if counts.is_empty() {
-            BuiltSource::Fixed(copies.len() as f64)
+            let count = self.counted(s0, copies.len() as f64, false);
+            if matches!(count, BuiltSource::Op(..)) {
+                self.follows_counts.insert(comp);
+            }
+            count
         } else {
+            self.is_counted(s0, true);
             self.follows_counts.insert(comp);
             self.reads(&counts, inst.scope)
         };

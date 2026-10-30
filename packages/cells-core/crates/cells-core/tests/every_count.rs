@@ -123,9 +123,10 @@ const HOLES: &[(&str, &str)] = &[
     ),
 ];
 
-/// Documents with a value that follows the counts (ADR 0026): a collect's
-/// count, a section's number after a repeat, and the credit of a section
-/// whose answers are all in a repeat.
+/// Documents with a counted value (ADR 0026), a value that follows the
+/// counts: a collect's count, a section's number after a repeat, before a
+/// repeat inside an iteration, or after sections collected from one, and
+/// the credit of a section whose answers are all in a repeat.
 const STRUCTURE_VALUES: &[(&str, &str)] = &[
     (
         "collect-count",
@@ -147,15 +148,21 @@ const STRUCTURE_VALUES: &[(&str, &str)] = &[
           <repeatForSequence name="r" length="$n"><mathInput name="m"/><answer name="a" response="$m">1</answer></repeatForSequence>
         </section>"#,
     ),
-];
-
-/// The documents of `STRUCTURE_VALUES` whose value is still a constant
-/// that changes with the counts, until ADR 0026's phase 2 makes it
-/// derived. A list that only shrinks: a document that passes must leave it.
-const STILL_CONSTANT: &[&str] = &[
-    "collect-count",
-    "section-after-repeat",
-    "credit-of-repeated-answers",
+    (
+        "section-before-nested-repeat",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="o" length="$n">
+          <section name="a"/>
+          <repeatForSequence name="r" length="$n"><section name="b"/></repeatForSequence>
+        </repeatForSequence>"#,
+    ),
+    (
+        "section-after-collected-sections",
+        r#"<numberInput name="n" value="2"/>
+        <group name="g"><repeatForSequence name="r" length="$n"><section name="s"/></repeatForSequence></group>
+        <collect name="c" from="$g" componentType="section"/>
+        <section name="after"/>"#,
+    ),
 ];
 
 #[test]
@@ -615,18 +622,6 @@ fn a_constant_is_the_same_in_every_build() {
         }
     }
     failures.dedup_by(|a, b| a.split(" is ").next() == b.split(" is ").next());
-    let failing = |name: &str| failures.iter().any(|f| f.starts_with(&format!("{name}, ")));
-    for name in STILL_CONSTANT {
-        assert!(
-            failing(name),
-            "{name} passes now: take it off `STILL_CONSTANT`"
-        );
-    }
-    failures.retain(|f| {
-        !STILL_CONSTANT
-            .iter()
-            .any(|n| f.starts_with(&format!("{n}, ")))
-    });
     assert!(
         failures.is_empty(),
         "{} constants change with the counts:\n{}",
