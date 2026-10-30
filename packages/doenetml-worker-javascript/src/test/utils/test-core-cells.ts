@@ -211,6 +211,15 @@ const mathReaders: Record<string, Reader> = {
 const textOf: Reader = (_g, x) => x.cells.core.component_text(x.idx);
 const containerReaders: Record<string, Reader> = { text: textOf };
 
+/** A polygon's vertices; a triangle reads as one. */
+const polygonReaders: Record<string, Reader> = {
+    numVertices: (g) => g("numVertices"),
+    vertices: (g) =>
+        items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
+    numericalVertices: (g) =>
+        items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
+};
+
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
@@ -278,13 +287,8 @@ const STATE: Record<string, Record<string, Reader>> = {
         endpoints: (g) => [pt(g, "x1", "y1"), pt(g, "x2", "y2")],
         numericalEndpoints: (g) => [npt(g, "x1", "y1"), npt(g, "x2", "y2")],
     },
-    polygon: {
-        numVertices: (g) => g("numVertices"),
-        vertices: (g) =>
-            items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
-        numericalVertices: (g) =>
-            items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
-    },
+    polygon: polygonReaders,
+    triangle: polygonReaders,
     mathInput: mathReaders,
     math: mathReaders,
     // The current core's number values are plain numbers.

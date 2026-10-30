@@ -1,0 +1,5 @@
+with no vertices, the current core's three: cells 13 · essential 10 · fixed 3 · instrs 0 · components 3
+a vertex not given is its default, and drags: cells 13 · essential 10 · fixed 3 · instrs 0 · components 3
+three vertices, and nothing past them: cells 14 · essential 10 · fixed 4 · instrs 0 · components 4
+a copy giving one vertex shares the others its referent defaulted: cells 16 · essential 12 · fixed 4 · instrs 0 · components 4
+a rigid triangle with a vertex defaulted drags as one shape: cells 22 · essential 10 · fixed 6 · instrs 1 · components 3

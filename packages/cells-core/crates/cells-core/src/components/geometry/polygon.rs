@@ -1,6 +1,7 @@
 //! `<polygon>`: its definition and its planner (ADR 0016). Its vertices
 //! are its list; a rigid or similar polygon keeps its shape through one
-//! instruction that owns every vertex.
+//! instruction that owns every vertex. A triangle is planned here too
+//! (`triangle.rs`), with three vertices.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
@@ -13,7 +14,7 @@ use crate::tick::snap::Shape;
 component! {
     /// `<polygon vertices="...">`, optionally rigid: its vertices are its list
     /// (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
-    tags: ["polygon", "triangle"],
+    tags: ["polygon"],
     flags: [copyable, located],
     renders: InGraph,
     props {
@@ -52,8 +53,33 @@ pub const NUM_VERTICES: usize = Props::AT.numVertices;
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let vertices = ctx.points(attr::vertices)?;
-    let n = vertices.len();
+    plan_vertices(ctx, ComponentType::Polygon, &[])
+}
+
+/// Plans an element of `component_type`, which declares the polygon's
+/// list and attributes, from its `vertices`. With `defaults`, it has as many
+/// vertices as they hold: one past those the author gave is essential
+/// state at its default, and one given past them is not read. Without, it
+/// has as many as were given.
+pub(super) fn plan_vertices(
+    ctx: &mut PlanCtx<'_, '_>,
+    component_type: ComponentType,
+    defaults: &[DefaultPoint],
+) -> Result<ElemWiring> {
+    let mut vertices = ctx.points(attr::vertices)?;
+    if !defaults.is_empty() {
+        vertices.truncate(defaults.len());
+    }
+    let n = vertices.len().max(defaults.len());
+    // A vertex as given, else its default.
+    let vertex = |k: usize| -> [Wire; 2] {
+        match vertices.get(k) {
+            Some(v) => Wire::point(v, shared_point_state(k), attr::vertices),
+            None => {
+                Wire::point_or_default(None, shared_point_state(k), attr::vertices, defaults[k])
+            }
+        }
+    };
     if n > super::MAX_VERTICES {
         return Err(Error::Unsupported(format!(
             "a polygon with more than {} vertices",
@@ -61,7 +87,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         )));
     }
     // The vertices are the list (ADR 0016), as many as given.
-    let mut wiring = ElemWiring::with_list(ComponentType::Polygon, n);
+    let mut wiring = ElemWiring::with_list(component_type, n);
     let n_public = wiring.n_public;
     let flag = |ctx: &PlanCtx<'_, '_>, name: Attr, default: bool| -> bool {
         match ctx.attr(name) {
@@ -127,9 +153,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // owns every vertex.
         Some(opts) if n > 0 => {
             let mut args = Vec::with_capacity(2 * n + 2);
-            for (k, v) in vertices.iter().enumerate() {
-                let [x, y] =
-                    wiring.hidden_point_with_shared_state(v, shared_point_state(k), attr::vertices);
+            for k in 0..n {
+                let [x, y] = match vertices.get(k) {
+                    Some(v) => wiring.hidden_point_with_shared_state(
+                        v,
+                        shared_point_state(k),
+                        attr::vertices,
+                    ),
+                    None => vertex(k).map(|w| wiring.hidden_wire(w)),
+                };
                 args.push(x);
                 args.push(y);
             }
@@ -146,7 +178,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                     args.push(wiring.hidden(Source::absent()));
                 }
             }
-            let first = ComponentType::Polygon
+            let first = component_type
                 .list_slot(n_public, 1, 0)
                 .expect("a vertex the polygon holds");
             let mut outputs = ElemWiring::vector_from(
@@ -162,11 +194,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         // Free: the vertices are the points; a vertex may be defined
         // from its siblings without a cycle.
-        _ => vertices
-            .iter()
-            .enumerate()
-            .map(|(k, v)| Wire::point(v, shared_point_state(k), attr::vertices))
-            .collect(),
+        _ => (0..n).map(vertex).collect(),
     };
     wiring.set_public(Props {
         numVertices: Wire::fixed(n as f64),

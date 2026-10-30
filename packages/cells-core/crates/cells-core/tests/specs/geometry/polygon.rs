@@ -6,15 +6,15 @@ use cells_core::spec;
 spec! {
     polygon;
 
-    case "a triangle holds three vertices, and nothing past them" {
-        doenet r#"<graph><triangle name="t" vertices="(1,2) (3,5) (-5,2)"/></graph>
-                  <number name="past">$t.x4</number>"#;
+    case "a polygon holds the vertices given, and nothing past them" {
+        doenet r#"<graph><polygon name="p" vertices="(1,2) (3,5) (-5,2)"/></graph>
+                  <number name="past">$p.x4</number>"#;
         expect {
-            "t.numVertices" = 3, "t.vertex2" = (3, 5), "t.x3" = -5, "t.y1" = 2,
-            "t.vertices" = [1, 2, 3, 5, -5, 2], "past.value" = f64::NAN,
+            "p.numVertices" = 3, "p.vertex2" = (3, 5), "p.x3" = -5, "p.y1" = 2,
+            "p.vertices" = [1, 2, 3, 5, -5, 2], "past.value" = f64::NAN,
         }
-        request { "t.x2" = 4, "t.y2" = 6 }
-        expect { "t.vertex2" = (4, 6), "t.vertex1" = (1, 2) }
+        request { "p.x2" = 4, "p.y2" = 6 }
+        expect { "p.vertex2" = (4, 6), "p.vertex1" = (1, 2) }
     }
 
     case "a whole-shape drag moves every vertex by the same shift" {
