@@ -574,6 +574,7 @@ impl<'a> Compiler<'a> {
             children: Vec::new(),
             extend: None,
             cloned: false,
+            planned_as: component_type,
             body: Body::Plain,
             hold: Hold::Off,
             dead: false,
@@ -786,7 +787,39 @@ impl<'a> Compiler<'a> {
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
             }
         }
+        self.settle_shape(t, e, el);
         Ok(e)
+    }
+
+    /// What planning `e` would settle that a reference to it reads, read
+    /// here from its own source so no planner reads another's plan (ADR
+    /// 0029): a `<math>` whose text is `(a, b)` is a point and one with
+    /// more entries a tuple (`math_shape`); a `<collect>` collects its
+    /// `componentType` and a `<polyline>` points. Its planner checks what
+    /// it plans against this, and adds a collect's `from`.
+    fn settle_shape(&mut self, t: TemplateId, e: ElemId, el: NodeId) {
+        let d = self.dast;
+        let elem = &self.compiled.templates[t.index()].elems[e.index()];
+        let collected = match elem.component_type {
+            ComponentType::Math => {
+                let k = self.math_shape(el);
+                self.compiled.templates[t.index()].elems[e.index()].component_type = k;
+                return;
+            }
+            ComponentType::Collect => d
+                .attr_peek(el, "componentType")
+                .and_then(|a| self.attr_text(a))
+                .and_then(|text| ComponentType::from_tag(text.trim()))
+                .filter(|k| k.copyable()),
+            ComponentType::Polyline => Some(ComponentType::Point),
+            _ => None,
+        };
+        if let Some(component_type) = collected {
+            self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect {
+                from: RefId::NONE,
+                component_type,
+            };
+        }
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as
@@ -935,7 +968,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].planned_as;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
             // plan.

@@ -317,6 +317,9 @@ pub(crate) struct Elem {
     /// A child of a container copy (`<graph extend="$g"/>`): every prop
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
+    /// The type whose planner plans it: its tag's, where `component_type`
+    /// is the type pass 1 settled (a `<math>` that is a point, ADR 0029).
+    pub(crate) planned_as: ComponentType,
     pub(crate) body: Body,
     /// What holds it (`fixed`, `compile/fix.rs`).
     pub(crate) hold: Hold,

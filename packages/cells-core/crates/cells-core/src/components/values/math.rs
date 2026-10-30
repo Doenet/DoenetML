@@ -49,8 +49,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     if let Some(inner) = unwrap_parens(&toks)
         && split_top(inner, &Token::Comma).len() == 2
     {
+        ctx.expect_type(ComponentType::Point)?;
         let [x, y] = ctx.tuple(&nodes)?;
-        ctx.set_type(ComponentType::Point);
         ctx.set_props(super::super::geometry::point::props_of(x, y));
         return Ok(());
     }
@@ -70,10 +70,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             let id = ctx.parse(part, &text)?;
             entries.push(ctx.plan_expr(id));
         }
-        ctx.set_type(ComponentType::Tuple);
+        ctx.expect_type(ComponentType::Tuple)?;
         ctx.set_props(super::tuple::props_of(entries));
         return Ok(());
     }
+    ctx.expect_type(ComponentType::Math)?;
     let id = ctx.sym_math(&nodes)?;
     let post = if ctx.attr_on(el, "expand") {
         Post::Expand

@@ -1,6 +1,6 @@
 # A planner reads no other element's plan
 
-Status: proposed 2026-10-30. No migration step is done. Amends ADR 0027:
+Status: proposed 2026-10-30. Migration step 1 is done. Amends ADR 0027:
 its rule for pass 3 (each element planned after the plans it reads)
 gives way to this one (no element reads another's plan).
 
@@ -84,7 +84,9 @@ Each step lands alone, with the golden diff unchanged.
 1. **Types and bodies in pass 1.** Set a `<math>`'s settled type, and a
    `<collect>`'s or `<polyline>`'s collected type, when pass 1 makes the
    element; the math's planner checks its parse against it. Which
-   planner runs is the tag's (`planned_as`), not the settled type's.
+   planner runs is the tag's (`planned_as`), not the settled type's. Done:
+   `Compiler::settle_shape` and `math_shape`; `PlanCtx::expect_type`
+   replaces `set_type`.
 2. **Shared state linked in pass 4.** A copy with attributes records
    what it shares by name; pass 4 links it to the referent's slot.
 3. **Inlining reads the source.** `inline_symbolic_maths` parses the

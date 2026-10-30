@@ -494,6 +494,33 @@ impl<'a> Compiler<'a> {
             .collect()
     }
 
+    /// The type of a `<math>` from its own text, as its planner settles it
+    /// (`components/values/math.rs`): `(a, b)` is a point, a tuple of more
+    /// entries a tuple, anything else a math. Each `$ref` is one atom, so
+    /// nothing is planned and no other element is read (ADR 0029).
+    pub(in crate::compile) fn math_shape(&self, el: NodeId) -> ComponentType {
+        let d = self.dast;
+        let mut toks = Vec::new();
+        for &n in d.children(el) {
+            match d.kind(n) {
+                NodeKind::Text => {
+                    if super::expr::tokenize(d.str(n), &mut toks).is_err() {
+                        return ComponentType::Math;
+                    }
+                }
+                NodeKind::Macro => toks.push(Token::Cell(RefId::NONE)),
+                _ => {}
+            }
+        }
+        match super::expr::unwrap_parens(&toks)
+            .map(|inner| super::expr::split_top(inner, &Token::Comma).len())
+        {
+            Some(2) => ComponentType::Point,
+            Some(n) if n > 2 => ComponentType::Tuple,
+            _ => ComponentType::Math,
+        }
+    }
+
     /// Replace cell leaves that name a `<math>` element of this template
     /// with that math's own expression when it has free symbols.
     pub(in crate::compile) fn inline_symbolic_maths(

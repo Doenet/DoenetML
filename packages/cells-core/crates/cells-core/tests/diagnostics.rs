@@ -417,3 +417,26 @@ fn what_is_under_a_box_is_not_built() {
     assert_eq!(doc.value("k", "value"), Some(5.0));
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
+
+/// Pass 1 settles a `<math>`'s type from its own text (ADR 0029), and its
+/// planner checks the type against what it parses: no golden document,
+/// and none of these maths, finds them disagreeing (`cells-internal`).
+#[test]
+fn a_maths_settled_type_agrees_with_its_plan() {
+    let src = r#"<number name="n">2</number>
+        <math name="a">($n, 2)</math><math name="b">(1, $n, 3)</math>
+        <math name="d">($n)</math><math name="e">x + $n</math><math name="g"/>"#;
+    let doc = load(src).unwrap();
+    assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+    assert_eq!(doc.value("a", "y"), Some(2.0));
+    // The golden documents and the hand-written fixture, not the large
+    // generated ones.
+    for (name, bytes) in documents().iter().filter(|(n, _)| !n.contains('-')) {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        let list = diagnose(&dast);
+        assert!(
+            list.iter().all(|d| d.code != "cells-internal"),
+            "{name}: {list:?}"
+        );
+    }
+}

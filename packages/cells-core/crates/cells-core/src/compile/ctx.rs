@@ -455,10 +455,20 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.compiled.templates[self.t.index()].elems[self.e.index()].props = props;
     }
 
-    /// Makes the element another type (a `<math>` that is a point).
-    pub(crate) fn set_type(&mut self, component_type: ComponentType) {
-        self.c.compiled.templates[self.t.index()].elems[self.e.index()].component_type =
-            component_type;
+    /// Checks that what the planner plans is of the type pass 1 settled
+    /// for the element (a `<math>` that is a point, ADR 0029): one that
+    /// disagrees is a core bug, reported on the element.
+    pub(crate) fn expect_type(&self, component_type: ComponentType) -> Result<()> {
+        let settled = self.elem().component_type;
+        if settled == component_type {
+            return Ok(());
+        }
+        Err(Error::Internal(format!(
+            "<{}> planned as a <{}> where pass 1 settled a <{}>",
+            self.elem().planned_as.tag(),
+            component_type.tag(),
+            settled.tag()
+        )))
     }
 
     /// Makes the element an alias of the value its `extend` names, which
