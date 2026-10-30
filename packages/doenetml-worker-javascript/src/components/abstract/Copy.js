@@ -4636,10 +4636,10 @@ function extendIgnoresAttributesAndChildren({
  * copy draws its own, so they are the same for a given variant.
  *
  * An attribute counts as unchanged only when the copy writes it as its source
- * did (`sameWrittenValue`), or, where its source did not write it, as its
- * default (`writtenAsDefault`). Anything else, a reference included, counts as
- * changed: its value is not known yet, and choosing anew never fails where
- * keeping choices that do not fit does.
+ * did, or, where its source did not write it, as its default, as
+ * `numToSelect="1"` (`writtenValue`). Anything else, a reference included,
+ * counts as changed: its value is not known yet, and choosing anew never
+ * fails where keeping choices that do not fit does.
  */
 function copyChangesChoices({
     replacement,
@@ -4675,106 +4675,75 @@ function copyChangesChoices({
         if (written === undefined) {
             return false;
         }
+        const spec = attributesObject[attrName];
         const source = replacement.attributes?.[attrName];
-        if (source === undefined) {
-            // The source left it to its default, so the copy changes nothing
-            // when it writes that default, as `numToSelect="1"`.
-            return !writtenAsDefault(written, attributesObject[attrName]);
-        }
-        return !sameWrittenValue(written, source, attributesObject[attrName]);
+        const copyValue = writtenValue(written, spec);
+        const sourceValue =
+            source === undefined
+                ? writtenDefault(spec)
+                : writtenValue(source, spec);
+        return copyValue === null || copyValue !== sourceValue;
     });
 }
 
 /**
- * Whether the serialized attribute `attribute` was written as the plain text
- * of the default of its attribute specification `spec`, as `numToSelect="1"`
- * or `withReplacement="false"`.
- */
-function writtenAsDefault(attribute, spec) {
-    const defaultValue = spec?.defaultValue;
-    if (!["number", "boolean", "string"].includes(typeof defaultValue)) {
-        return false;
-    }
-    let text;
-    if (attribute?.type === "primitive") {
-        text = attribute.primitive?.value;
-    } else if (attribute?.type === "literal") {
-        text = attribute.text ?? attribute.value;
-    } else if (attribute?.type === "component") {
-        const written = writtenComponent(attribute.component);
-        if (
-            written === null ||
-            typeof written !== "object" ||
-            written.children.length !== 1 ||
-            typeof written.children[0] !== "string" ||
-            Object.keys(written.attributes).length > 0
-        ) {
-            return false;
-        }
-        text = written.children[0];
-    } else {
-        return false;
-    }
-    if (typeof defaultValue === "boolean" || spec.toLowerCase) {
-        return String(text).trim().toLowerCase() === String(defaultValue);
-    }
-    return String(text).trim() === String(defaultValue);
-}
-
-/**
- * Whether two serialized attributes were written the same: the same
- * primitive, the same literal, or components of the same types with the same
- * text, whatever their indices and positions, and whatever their case when
- * their attribute specification `spec` lower-cases them, as `type="Letters"`
- * and `type="letters"`. A component holding a reference (`extending`) or a
- * value of its own (`state`) is never the same as another, as what it stands
- * for is not in what was written.
- */
-function sameWrittenValue(a, b, spec) {
-    let writtenA = writtenAttributeValue(a);
-    let writtenB = writtenAttributeValue(b);
-    if (writtenA === null || writtenB === null) {
-        return false;
-    }
-    if (spec?.toLowerCase) {
-        writtenA = writtenA.toLowerCase();
-        writtenB = writtenB.toLowerCase();
-    }
-    return writtenA === writtenB;
-}
-
-/**
  * What was written for the serialized attribute `attribute`, as a string, or
- * `null` when it cannot be told from what was written.
+ * `null` when that cannot be told from what was written. Text is taken
+ * without the spaces around it, and, where the attribute specification `spec`
+ * lower-cases it or has a boolean default, in lower case, so
+ * `type=" Letters "` matches `type="letters"`. A component holding only text
+ * is taken as that text, so `numToSelect="2"` matches whether it is held as a
+ * literal or as a component.
  */
-function writtenAttributeValue(attribute) {
+function writtenValue(attribute, spec) {
+    let written;
     if (attribute?.type === "primitive") {
-        const { value } = attribute.primitive ?? {};
-        return JSON.stringify({
-            primitive: {
-                ...attribute.primitive,
-                value: typeof value === "string" ? value.trim() : value,
-            },
-        });
+        written = attribute.primitive?.value;
+    } else if (attribute?.type === "literal") {
+        written = attribute.text ?? attribute.value;
+    } else if (attribute?.type === "component") {
+        written = writtenComponent(attribute.component);
+        if (
+            written?.children?.length === 1 &&
+            typeof written.children[0] === "string" &&
+            Object.keys(written.attributes).length === 0
+        ) {
+            written = written.children[0];
+        }
     }
-    if (attribute?.type === "literal") {
-        return JSON.stringify({
-            componentType: attribute.componentType,
-            text: attribute.text?.trim(),
-            value: attribute.value,
-        });
+    if (written === undefined || written === null) {
+        return null;
     }
-    if (attribute?.type === "component") {
-        const written = writtenComponent(attribute.component);
-        return written === null ? null : JSON.stringify(written);
-    }
-    return null;
+    return normalizedText(
+        typeof written === "object" ? JSON.stringify(written) : written,
+        spec,
+    );
+}
+
+/**
+ * The default of the attribute specification `spec` as `writtenValue` would
+ * give it written out, or `null` if it has no default that can be written.
+ */
+function writtenDefault(spec) {
+    const defaultValue = spec?.defaultValue;
+    return ["number", "boolean", "string"].includes(typeof defaultValue)
+        ? normalizedText(defaultValue, spec)
+        : null;
+}
+
+/** `value` as text without spaces around it, and in lower case where `spec` ignores case. */
+function normalizedText(value, spec) {
+    const text = String(value).trim();
+    return spec?.toLowerCase || typeof spec?.defaultValue === "boolean"
+        ? text.toLowerCase()
+        : text;
 }
 
 /**
  * What was written for the serialized `component`: its type, its non-blank
  * children and its attributes, each as written, or `null` when that cannot be
- * told from what was written (see `sameWrittenValue`).
+ * told from what was written: a component holding a reference (`extending`)
+ * or a value of its own (`state`) stands for what is not in what was written.
  */
 function writtenComponent(component) {
     if (typeof component === "string") {
@@ -4799,7 +4768,7 @@ function writtenComponent(component) {
     }
     const attributes = {};
     for (const attrName of Object.keys(component.attributes ?? {}).sort()) {
-        const written = writtenAttributeValue(component.attributes[attrName]);
+        const written = writtenValue(component.attributes[attrName]);
         if (written === null) {
             return null;
         }
