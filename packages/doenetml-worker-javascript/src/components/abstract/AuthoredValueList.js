@@ -345,7 +345,8 @@ export default class AuthoredValueList extends ValueListComponent {
         const copied = parameters.copyAll && !parameters.serializingDescendant;
         // A linked copy of the list (in an `extend` of its parent) has
         // no children of its own (`serializeChildrenOnlyIfUnlinked`)
-        // unless one of them holds a name (`childrenHoldAName`).
+        // unless one of them holds a name that the extend's name reaches
+        // (`namesReachedThroughCopy`, `childrenHoldAName`).
         // An unlinked copy of it is made from the children of the list
         // it copies.
         const source =

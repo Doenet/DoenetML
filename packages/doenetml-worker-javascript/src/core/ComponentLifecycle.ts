@@ -184,7 +184,13 @@ export async function addChildrenAndRecurseToShadows({
 
             for (let child of newChildren) {
                 if (typeof child === "object") {
-                    const serializedComponent = await child.serialize();
+                    // A shadow's names are reached wherever those of what it
+                    // shadows are (inside an `extend`, say), so a list in it
+                    // keeps its named children (`namesReachedThroughCopy`,
+                    // `BaseComponent.serialize`).
+                    const serializedComponent = await child.serialize({
+                        namesReachedThroughCopy: true,
+                    });
 
                     const res = createNewComponentIndices(
                         [serializedComponent],

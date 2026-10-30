@@ -1729,6 +1729,16 @@ export default class Copy extends CompositeComponent {
                     copyPrimaryEssentialIfShadow: !link,
                     copyEssentialStateIfShadow: !link,
                     errorIfEncounterComponent: [component.componentIdx],
+                    // The names inside an `extend` (the `_copy` of a list's
+                    // `extend` (`forList`) or of any other component's
+                    // (`_createComponentIdx`)) are reached through its name
+                    // (`$e.h`), so a linked copy of a list in it keeps its
+                    // named children (`BaseComponent.serialize`).
+                    namesReachedThroughCopy:
+                        link &&
+                        (component.doenetAttributes.forList !== undefined ||
+                            component.attributes._createComponentIdx !==
+                                undefined),
                 }),
             ];
 

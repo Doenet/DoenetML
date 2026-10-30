@@ -965,7 +965,11 @@ export class CompositeReplacementUpdater {
                 let newNComponents = nComponents;
                 for (let [idx, repl] of replacementsToShadow.entries()) {
                     if (typeof repl === "object") {
-                        const serializedComponent = await repl.serialize();
+                        // as when the shadow was expanded
+                        // (`CompositeExpander`)
+                        const serializedComponent = await repl.serialize({
+                            namesReachedThroughCopy: true,
+                        });
 
                         if (
                             shadowingComponent.constructor

@@ -537,8 +537,14 @@ async function expandShadowingComposite({
         component.attributes._createComponentOfType?.primitive != null;
     for (let [idx, repl] of shadowedComposite.replacements.entries()) {
         if (typeof repl === "object") {
+            // The names in the replacements of a shadow are reached wherever
+            // those of the composite it shadows are (inside an `extend` of an
+            // `extend`, or of a `<group>`), so a list among them keeps its
+            // named children (`namesReachedThroughCopy`,
+            // `BaseComponent.serialize`).
             const serializedComponent = await repl.serialize({
                 valueReferenceAsComponent,
+                namesReachedThroughCopy: true,
             });
 
             if (component.constructor.useSerializedChildrenComponentIndices) {
