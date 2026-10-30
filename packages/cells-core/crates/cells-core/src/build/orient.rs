@@ -25,10 +25,12 @@
 //! Whether an input leads to state depends on how the operators below it
 //! are oriented, so operators are oriented from their inputs up, by a
 //! depth-first walk over cells along what each needs
-//! (`slot_cells::Def::needs`). A loop of classes (a recurrence the
-//! view folds) counts as not leading where it closes. The walk follows a
-//! slot's later sources too (`Builder::later_sources`), as the writable walk
-//! does, so the probe orients what later iterations plan.
+//! (`slot_cells::Def::needs`), from the author's operators: what no author
+//! operator needs is never visited, and a document without one costs
+//! nothing. A loop of classes (a recurrence the view folds) counts as not
+//! leading where it closes. The walk follows a slot's later sources too
+//! (`Builder::later_sources`), as the writable walk does, so the probe
+//! orients what later iterations plan.
 
 use super::*;
 
@@ -77,17 +79,26 @@ impl<'c> Builder<'c> {
     /// Orient every binary operator lowered from the author's math; see the
     /// module documentation. Before the walks, which read the orientation.
     pub(in crate::build) fn orient(&mut self, slot_cells: &SlotCells) {
+        if self.author_ops.is_empty() {
+            return;
+        }
         let n = self.sources.len();
+        let mut author = vec![false; n];
+        for &s in &self.author_ops {
+            author[s.index()] = true;
+        }
         let mut later: HashMap<SlotId, Vec<usize>> = HashMap::new();
         for (i, &(s, _)) in self.later_sources.iter().enumerate() {
             later.entry(slot_cells.cell_of(s)).or_default().push(i);
         }
-        let sources_of = |cell: SlotId| -> Vec<At> {
-            let mut at = vec![At::Slot(slot_cells.def(cell).index())];
-            if let Some(entries) = later.get(&cell) {
-                at.extend(entries.iter().map(|&i| At::Later(i)));
-            }
-            at
+        let sources_of = |cell: SlotId| {
+            std::iter::once(At::Slot(slot_cells.def(cell).index())).chain(
+                later
+                    .get(&cell)
+                    .into_iter()
+                    .flatten()
+                    .map(|&i| At::Later(i)),
+            )
         };
         const NEW: u8 = 0;
         const OPEN: u8 = 1;
@@ -96,8 +107,8 @@ impl<'c> Builder<'c> {
         let mut leads = vec![false; n];
         // (cell, whether what it needs was pushed)
         let mut stack: Vec<(SlotId, bool)> = Vec::new();
-        for start in SlotId::below(n) {
-            let first = slot_cells.cell_of(start);
+        for k in 0..self.author_ops.len() {
+            let first = slot_cells.cell_of(self.author_ops[k]);
             if state[first.index()] != NEW {
                 continue;
             }
@@ -107,7 +118,7 @@ impl<'c> Builder<'c> {
                 if expanded {
                     let mut any = false;
                     for at in sources_of(cell) {
-                        any |= self.orient_source(at, slot_cells, &leads);
+                        any |= self.orient_source(at, slot_cells, &leads, &author);
                     }
                     leads[i] = any;
                     state[i] = DONE;
@@ -133,10 +144,16 @@ impl<'c> Builder<'c> {
 
     /// Turn the operator at `at` round if it should be, and say whether
     /// the source leads to state; every cell below it is decided.
-    fn orient_source(&mut self, at: At, slot_cells: &SlotCells, leads: &[bool]) -> bool {
+    fn orient_source(
+        &mut self,
+        at: At,
+        slot_cells: &SlotCells,
+        leads: &[bool],
+        author: &[bool],
+    ) -> bool {
         let leads_from = |s: SlotId| leads[slot_cells.cell_of(s).index()];
         if let BuiltSource::Op(PlannedOp::Spec(spec), start, 2) = *self.source_at(at)
-            && self.author_ops.contains(&self.slot_at(at))
+            && author[self.slot_at(at).index()]
             && let Some(turned) = swapped(spec)
             && !leads_from(self.op_inputs[start as usize])
             && leads_from(self.op_inputs[start as usize + 1])

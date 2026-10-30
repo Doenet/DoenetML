@@ -520,20 +520,15 @@ impl<'c> Builder<'c> {
                 cells.len(),
                 n_essential,
                 &asked,
-                &|c| {
-                    let fixed = n_essential..n_essential + n_fixed;
-                    holds
-                        .flags(c)
-                        .iter()
-                        .any(|f| fixed.contains(&f.index()) && cells[f.index()] != 0.0)
-                },
+                &holds.held_always(&cells, n_essential..n_essential + n_fixed),
             );
-            let at: HashMap<CellIdx, usize> = findings
-                .iter()
-                .map(|(cell, _)| (*cell, asked.iter().position(|a| a == cell).unwrap()))
-                .collect();
+            // The findings come in the order of `asked`.
+            let mut at = 0;
             for (cell, finding) in findings {
-                let (c, pi, np) = owner[at[&cell]];
+                while asked[at] != cell {
+                    at += 1;
+                }
+                let (c, pi, np) = owner[at];
                 let node = Some(components.dast_node[c]).filter(|n| !n.is_none());
                 let ty = components.component_type[c];
                 let who = match components.name[c] {

@@ -43,14 +43,10 @@ impl Document {
             self.cells.len(),
             self.n_essential,
             &self.interactive_cells(),
-            &|c| {
-                let fixed = self.n_essential..self.n_essential + self.n_fixed;
-                self.program
-                    .holds
-                    .flags(c)
-                    .iter()
-                    .any(|f| fixed.contains(&f.index()) && self.cells[f.index()] != 0.0)
-            },
+            &self.program.holds.held_always(
+                &self.cells,
+                self.n_essential..self.n_essential + self.n_fixed,
+            ),
         );
         for (cell, finding) in found {
             if let crate::program::refuse::Finding::Twice { .. } = finding {

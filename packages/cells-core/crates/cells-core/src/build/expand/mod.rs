@@ -191,8 +191,8 @@ pub(in crate::build) struct Builder<'c> {
     /// folds iterations (`Plans::Both`): edges the graph carries as well.
     pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
     /// The binary operators lowered from the author's math (`Builder::lower`),
-    /// which orientation may turn round (ADR 0026).
-    pub(in crate::build) author_ops: HashSet<SlotId>,
+    /// which orientation may turn round (ADR 0026), in the order lowered.
+    pub(in crate::build) author_ops: Vec<SlotId>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
     /// not the identity (`build/probe.rs`).
@@ -277,7 +277,7 @@ impl<'c> Builder<'c> {
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
             later_sources: Vec::new(),
-            author_ops: HashSet::new(),
+            author_ops: Vec::new(),
             label: Vec::new(),
             labels: HashMap::new(),
             failed_node: None,

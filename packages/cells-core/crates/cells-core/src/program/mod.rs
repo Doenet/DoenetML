@@ -192,6 +192,19 @@ impl Holds {
     pub fn iter(&self) -> impl Iterator<Item = (CellIdx, &[CellIdx])> {
         self.0.iter().map(|(&c, fs)| (c, fs.as_slice()))
     }
+
+    /// Per cell of `cells`, whether a constant flag holds it: one of the
+    /// fixed cells `fixed` (`Program::n_fixed`) that is set, which no
+    /// request passes while the program stands.
+    pub fn held_always(&self, cells: &[f64], fixed: std::ops::Range<usize>) -> Vec<bool> {
+        let mut held = vec![false; cells.len()];
+        for (&c, flags) in &self.0 {
+            held[c.index()] = flags
+                .iter()
+                .any(|f| fixed.contains(&f.index()) && cells[f.index()] != 0.0);
+        }
+        held
+    }
 }
 
 #[inline(always)]

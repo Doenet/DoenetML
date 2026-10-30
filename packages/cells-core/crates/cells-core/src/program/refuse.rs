@@ -37,22 +37,23 @@ pub enum Finding {
 
 /// For each cell of `asked`, what its inverse runs into, if anything; in
 /// the order of `asked`, at most one finding each (`Twice` first). A cell
-/// `held_always` says a constant flag holds (`Program::holds`, ADR 0022)
-/// takes no request, so its inverse writes nothing.
+/// `held_always` marks, which a constant flag holds (`Holds::held_always`,
+/// ADR 0022), takes no request, so its inverse writes nothing.
 ///
 /// Each cell's written cells come from one walk down the program, shared
 /// between cells. Paths are counted once per written cell, over the
 /// instructions downstream of it in an order of their own, into a scratch
 /// array kept between them, so the cost is the program plus each written
 /// cell's downstream, restricted to the cells from which an asked cell can
-/// be reached. An instruction in a loop is never counted.
+/// be reached. Where no instruction there joins two paths, nothing is
+/// counted. An instruction in a loop is never counted.
 pub fn analyze(
     instrs: &[Instr],
     operands: &[CellIdx],
     n_cells: usize,
     n_essential: usize,
     asked: &[CellIdx],
-    held_always: &dyn Fn(CellIdx) -> bool,
+    held_always: &[bool],
 ) -> Vec<(CellIdx, Finding)> {
     let mut producer = vec![u32::MAX; n_cells];
     for (i, ins) in instrs.iter().enumerate() {
@@ -60,37 +61,22 @@ pub fn analyze(
             producer[ins.out.index() + k] = i as u32;
         }
     }
-    // The instructions reading each cell, compressed.
-    let mut start = vec![0u32; n_cells + 1];
-    for ins in instrs {
-        for c in ins.op.inputs(operands) {
-            start[c.index() + 1] += 1;
-        }
-    }
-    for c in 0..n_cells {
-        start[c + 1] += start[c];
-    }
-    let mut fill = start.clone();
-    let mut readers = vec![0u32; start[n_cells] as usize];
-    for (i, ins) in instrs.iter().enumerate() {
-        for c in ins.op.inputs(operands) {
-            readers[fill[c.index()] as usize] = i as u32;
-            fill[c.index()] += 1;
-        }
-    }
-    let graph = Graph {
+    let mut graph = Graph {
         instrs,
         operands,
         producer: &producer,
-        start: &start,
-        readers: &readers,
+        start: Vec::new(),
+        readers: Vec::new(),
         n_essential,
         held_always,
     };
 
     // What each asked cell's inverse writes, and the asked cells by what
     // they write.
-    let mut memo: Vec<Option<Walked>> = vec![None; n_cells];
+    let mut memo = Memo {
+        at: vec![u32::MAX; n_cells],
+        walked: Vec::new(),
+    };
     let mut buffers = (Vec::new(), Vec::new());
     // Per written cell, its group in `by_source`; u32::MAX for none.
     let mut group = vec![u32::MAX; n_cells];
@@ -99,7 +85,7 @@ pub fn analyze(
     for (a, &cell) in asked.iter().enumerate() {
         let walked = graph.walk(cell, &mut memo, &mut buffers);
         drops[a] = walked.drops;
-        for &e in walked.written.iter() {
+        for &e in walked.written.as_slice() {
             if group[e as usize] == u32::MAX {
                 group[e as usize] = by_source.len() as u32;
                 by_source.push((e, Vec::new()));
@@ -107,31 +93,11 @@ pub fn analyze(
             by_source[group[e as usize] as usize].1.push(a);
         }
     }
-    // Paths from each written cell, into one scratch array.
+    // A group asking only the written cell itself reaches it once.
+    by_source.retain(|(e, group)| group.iter().any(|&a| asked[a].index() != *e as usize));
     let mut twice: Vec<Option<u32>> = vec![None; asked.len()];
-    let mut scratch = Scratch {
-        count: vec![0; n_cells],
-        touched: Vec::new(),
-        seen: vec![false; instrs.len()],
-        seen_list: Vec::new(),
-        waiting: vec![0; instrs.len()],
-        relevant: vec![false; n_cells],
-        relevant_list: Vec::new(),
-    };
-    by_source.sort_unstable_by_key(|&(e, _)| e);
-    for (e, group) in &by_source {
-        // A group asking only the written cell itself reaches it once.
-        if group.iter().all(|&a| asked[a].index() == *e as usize) {
-            continue;
-        }
-        graph.mark_relevant(group.iter().map(|&a| asked[a]), &mut scratch);
-        graph.count_from(*e, &mut scratch);
-        for &a in group {
-            if twice[a].is_none() && scratch.count[asked[a].index()] > 1 {
-                twice[a] = Some(*e);
-            }
-        }
-        scratch.reset();
+    if !by_source.is_empty() {
+        count_groups(&mut graph, n_cells, asked, &mut by_source, &mut twice);
     }
     asked
         .iter()
@@ -149,13 +115,96 @@ pub fn analyze(
         .collect()
 }
 
+/// For each group of asked cells by the cell they write, count the paths
+/// from that cell, and record in `twice` the asked cells it reaches more
+/// than once. A group whose region has no instruction where paths join is
+/// reached once everywhere, and is not counted; the readers are indexed
+/// for the first group that is.
+fn count_groups(
+    graph: &mut Graph,
+    n_cells: usize,
+    asked: &[CellIdx],
+    by_source: &mut [(u32, Vec<usize>)],
+    twice: &mut [Option<u32>],
+) {
+    let instrs = graph.instrs;
+    // Paths from each written cell, into one scratch array.
+    let mut scratch = Scratch {
+        count: vec![0; n_cells],
+        touched: Vec::new(),
+        seen: vec![false; instrs.len()],
+        seen_list: Vec::new(),
+        waiting: vec![0; instrs.len()],
+        relevant: vec![false; n_cells],
+        relevant_list: Vec::new(),
+    };
+    by_source.sort_unstable_by_key(|&(e, _)| e);
+    for (e, group) in by_source.iter() {
+        if graph.mark_relevant(group.iter().map(|&a| asked[a]), &mut scratch) {
+            if graph.readers.is_empty() {
+                graph.index_readers(n_cells);
+            }
+            graph.count_from(*e, &mut scratch);
+            for &a in group {
+                if twice[a].is_none() && scratch.count[asked[a].index()] > 1 {
+                    twice[a] = Some(*e);
+                }
+            }
+        }
+        scratch.reset();
+    }
+}
+
 /// The essential cells an inverse can write from a cell, and whether it
 /// meets an operator that drops every request on the way. Shared between
 /// a cell and the one its inverse passes a request to.
 #[derive(Debug, Clone, Default)]
 struct Walked {
-    written: Rc<[u32]>,
+    written: Written,
     drops: bool,
+}
+
+/// The essential cells a walk writes. Nearly every walk writes none or one,
+/// kept inline; several are shared.
+#[derive(Debug, Clone, Default)]
+enum Written {
+    #[default]
+    None,
+    One(u32),
+    Many(Rc<[u32]>),
+}
+
+impl Written {
+    fn as_slice(&self) -> &[u32] {
+        match self {
+            Written::None => &[],
+            Written::One(e) => std::slice::from_ref(e),
+            Written::Many(es) => es,
+        }
+    }
+}
+
+/// Each cell's walk, once walked: `at` indexes `walked`, `u32::MAX` for a
+/// cell not reached yet.
+struct Memo {
+    at: Vec<u32>,
+    walked: Vec<Walked>,
+}
+
+impl Memo {
+    fn get(&self, c: usize) -> Option<&Walked> {
+        self.walked.get(self.at[c] as usize)
+    }
+
+    fn set(&mut self, c: usize, w: Walked) {
+        match self.walked.get_mut(self.at[c] as usize) {
+            Some(slot) => *slot = w,
+            None => {
+                self.at[c] = self.walked.len() as u32;
+                self.walked.push(w);
+            }
+        }
+    }
 }
 
 /// Path counts from one written cell, and what to clear after it.
@@ -194,13 +243,38 @@ struct Graph<'a> {
     instrs: &'a [Instr],
     operands: &'a [CellIdx],
     producer: &'a [u32],
-    start: &'a [u32],
-    readers: &'a [u32],
+    /// The instructions reading each cell, compressed: those of cell `c`
+    /// are `readers[start[c]..start[c + 1]]`. Made only for a count.
+    start: Vec<u32>,
+    readers: Vec<u32>,
     n_essential: usize,
-    held_always: &'a dyn Fn(CellIdx) -> bool,
+    held_always: &'a [bool],
 }
 
 impl Graph<'_> {
+    /// Make `start` and `readers`.
+    fn index_readers(&mut self, n_cells: usize) {
+        let mut start = vec![0u32; n_cells + 1];
+        for ins in self.instrs {
+            for c in ins.op.inputs(self.operands) {
+                start[c.index() + 1] += 1;
+            }
+        }
+        for c in 0..n_cells {
+            start[c + 1] += start[c];
+        }
+        let mut fill = start.clone();
+        let mut readers = vec![0u32; start[n_cells] as usize];
+        for (i, ins) in self.instrs.iter().enumerate() {
+            for c in ins.op.inputs(self.operands) {
+                readers[fill[c.index()] as usize] = i as u32;
+                fill[c.index()] += 1;
+            }
+        }
+        self.start = start;
+        self.readers = readers;
+    }
+
     /// The inputs of `ins` its inverse may write, into `out`.
     fn written_inputs(&self, ins: &Instr, out: &mut Vec<CellIdx>) {
         out.clear();
@@ -219,43 +293,46 @@ impl Graph<'_> {
     fn walk(
         &self,
         cell: CellIdx,
-        memo: &mut [Option<Walked>],
+        memo: &mut Memo,
         (stack, below): &mut (Vec<(CellIdx, bool)>, Vec<CellIdx>),
     ) -> Walked {
-        if let Some(w) = &memo[cell.index()] {
+        if let Some(w) = memo.get(cell.index()) {
             return w.clone();
         }
         stack.clear();
         stack.push((cell, false));
         while let Some((c, expanded)) = stack.pop() {
             let i = c.index();
-            if memo[i].is_some() && !expanded {
+            if memo.get(i).is_some() && !expanded {
                 continue;
             }
-            if (self.held_always)(c) {
-                memo[i] = Some(Walked::default());
+            if self.held_always[i] {
+                memo.set(i, Walked::default());
                 continue;
             }
             if i < self.n_essential {
-                memo[i] = Some(Walked {
-                    written: Rc::from([i as u32]),
-                    drops: false,
-                });
+                memo.set(
+                    i,
+                    Walked {
+                        written: Written::One(i as u32),
+                        drops: false,
+                    },
+                );
                 continue;
             }
             let p = self.producer[i];
             if p == u32::MAX {
-                memo[i] = Some(Walked::default());
+                memo.set(i, Walked::default());
                 continue;
             }
             let ins = &self.instrs[p as usize];
             self.written_inputs(ins, below);
             if !expanded {
                 // Mark it open: a loop back to it writes nothing.
-                memo[i] = Some(Walked::default());
+                memo.set(i, Walked::default());
                 stack.push((c, true));
                 for &b in below.iter() {
-                    if memo[b.index()].is_none() {
+                    if memo.get(b.index()).is_none() {
                         stack.push((b, false));
                     }
                 }
@@ -267,7 +344,7 @@ impl Graph<'_> {
             let walked = match below.as_slice() {
                 // One written input, as every scalar operator: share it.
                 [b] => {
-                    let sub = memo[b.index()].clone().unwrap_or_default();
+                    let sub = memo.get(b.index()).cloned().unwrap_or_default();
                     Walked {
                         written: sub.written,
                         drops: sub.drops || own_drops,
@@ -277,9 +354,9 @@ impl Graph<'_> {
                     let mut written: Vec<u32> = Vec::new();
                     let mut drops = own_drops;
                     for b in below.iter() {
-                        if let Some(sub) = &memo[b.index()] {
+                        if let Some(sub) = memo.get(b.index()) {
                             drops |= sub.drops;
-                            for &e in sub.written.iter() {
+                            for &e in sub.written.as_slice() {
                                 if !written.contains(&e) {
                                     written.push(e);
                                 }
@@ -287,19 +364,27 @@ impl Graph<'_> {
                         }
                     }
                     Walked {
-                        written: written.into(),
+                        written: match written[..] {
+                            [] => Written::None,
+                            [e] => Written::One(e),
+                            _ => Written::Many(written.into()),
+                        },
                         drops,
                     }
                 }
             };
-            memo[i] = Some(walked);
+            memo.set(i, walked);
         }
-        memo[cell.index()].clone().unwrap_or_default()
+        memo.get(cell.index()).cloned().unwrap_or_default()
     }
 
     /// Mark the cells from which one of `targets` can be reached, through
-    /// every input of every instruction: the region a count needs.
-    fn mark_relevant(&self, targets: impl Iterator<Item = CellIdx>, scratch: &mut Scratch) {
+    /// every input of every instruction: the region a count needs. Whether
+    /// paths can join in it: whether it has an instruction that sums the
+    /// counts of two inputs or more (not a vector operator, which takes
+    /// their largest).
+    fn mark_relevant(&self, targets: impl Iterator<Item = CellIdx>, scratch: &mut Scratch) -> bool {
+        let mut joins = false;
         let mut todo: Vec<u32> = Vec::new();
         for c in targets {
             if !scratch.relevant[c.index()] {
@@ -313,14 +398,19 @@ impl Graph<'_> {
             if p == u32::MAX {
                 continue;
             }
-            for input in self.instrs[p as usize].op.inputs(self.operands) {
+            let op = &self.instrs[p as usize].op;
+            let mut n = 0;
+            for input in op.inputs(self.operands) {
+                n += 1;
                 if !scratch.relevant[input.index()] {
                     scratch.relevant[input.index()] = true;
                     scratch.relevant_list.push(input.index() as u32);
                     todo.push(input.index() as u32);
                 }
             }
+            joins |= n > 1 && !matches!(op, Op::Vec(..));
         }
+        joins
     }
 
     /// How many paths lead from cell `e` to each cell downstream of it,

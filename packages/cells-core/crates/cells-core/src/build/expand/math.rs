@@ -461,7 +461,7 @@ impl<'c> Builder<'c> {
     fn math_op(&mut self, spec: OpSpec, inputs: &[SlotId], scope: ScopeId) -> SlotId {
         let slot = self.op_slot(spec, inputs, scope);
         if inputs.len() == 2 {
-            self.author_ops.insert(slot);
+            self.author_ops.push(slot);
         }
         slot
     }

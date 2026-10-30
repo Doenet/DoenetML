@@ -46,7 +46,7 @@ console.log("|---|---:|---|---|---:|---|---:|---|");
 for (const [k, rb] of b) {
   const rn = n.get(k); if (!rn) continue;
   const [shape, size] = k.split(" ");
-  const db = tick(rb, "dirty_ns"), dn = tick(rn, "dirty_ns");
+  const db = tick(rb, "dirty-closure_ns"), dn = tick(rn, "dirty-closure_ns");
   const fb = tick(rb, "full_ns"), fn = tick(rn, "full_ns");
   const same = rb[0].fingerprint === rn[0].fingerprint ? "yes" : "**no**";
   console.log(`| ${shape} | ${size} | ${rb[0].instructions} → ${rn[0].instructions} | ${us(db)} → ${us(dn)} | ${(dn / db).toFixed(2)} | ${us(fb)} → ${us(fn)} | ${(fn / fb).toFixed(2)} | ${same} |`);
