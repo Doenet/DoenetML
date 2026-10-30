@@ -1,7 +1,7 @@
 # Composed inverses write the input that leads to state, and are checked whole
 
-Status: proposed 2026-10-29. A plan: steps 1 to 3 below are done,
-steps 4 to 6 are to do. It
+Status: proposed 2026-10-29. A plan: steps 1 to 4 below are done,
+steps 5 and 6 are to do. It
 decides whether component props keep inverting by composition before
 the remaining components are ported (ADR 0016).
 
@@ -10,9 +10,11 @@ a prop lowers to, each by its own rule, and component authors write no
 inverse code except as a vector operator. Three changes make that sound
 first:
 
-1. **Orientation.** A binary operator writes the input whose sources
-   include state, not whichever input happens to be first. When exactly
-   one input leads to a writable value, the build puts that input first.
+1. **Orientation.** A binary operator lowered from the author's math
+   writes the input whose sources include state, not whichever input
+   happens to be first. When exactly one input leads to a writable value,
+   the build puts that input first. Components' own tables keep their
+   operators as written.
    For subtraction and division this uses new reversed operators. When
    both inputs lead to state through *different* sources, the first
    input is written, as now.
@@ -100,33 +102,42 @@ drops `k / $a`, because the lowering puts the fixed `k` first.
 
 ### Orientation (fix 1)
 
-A new pass, after planning and before the writable walk (ADR 0018,
-`build/writable.rs`), orients every binary scalar operator. It cannot
-run during lowering, because the walk follows the operators' `writes`
-masks, which orientation decides.
+A new pass (`build/orient.rs`), after planning and before the writable
+walk (ADR 0018, `build/writable.rs`), orients every binary scalar
+operator lowered from the author's math (`Builder::lower` records them).
+It cannot run during lowering, because the walk follows the operators'
+`writes` masks, which orientation decides.
 
 1. **Find which inputs lead to state.** An input *leads to state* when
-   its sources, through every input of every operator below it, include
-   a value slot (a literal or a default) or an input's own state. A fixed
-   value does not count, nor a `Hold`'s flag.
+   the writable walk from it reaches a value slot (a literal or a
+   default): to an alias's class, through an operator to the inputs its
+   inverse writes, from a vector output to its head. A fixed value does
+   not count, nor a `Hold`'s flag. Operators are oriented from their
+   inputs up, since an input's answer depends on how the operators below
+   it are oriented.
 2. **Exactly one input leads to state:** that input becomes the first.
    - `Add`, `Mul`, `Min` and `Max` swap their inputs.
    - `Sub` and `Div` become new entries that keep the "writes its first
      input" rule, so `scalar_ops!` needs no new form and the
      `inverses` tests cover them as they are:
      - `RSub(a, b)` = `b - a`, written `exact |d| (A, b - d)`;
-     - `RDiv(a, b)` = `b / a`, written `exact |d| (d != 0).then_some((A, b / d))`.
-   - A literal numerator lowers to `Over(a; k)` = `k / a`, written
-     `exact |d| (d != 0).then_some((A, k / d))`, so `k / $a` is no
-     longer dropped.
+     - `RDiv(a, b)` = `b / a`, written `exact |d| (A, b / d)` when `d`
+       and `b` are finite and not 0.
+   - A literal numerator needs nothing more. `k / $a` lowers to a `Div`
+     of a fixed `k`, which becomes `RDiv(a, k)`, written `a = k / d`, so
+     it is no longer dropped.
 3. **Both inputs lead to state through different sources:** the first
    input is written, as now. ADR 0018 records that the current core does
    the same for `<point x="$k $n"/>`.
 4. **Both lead to the same source:** the request is refused (fix 2).
 5. **Neither leads to state:** the request drops, as now.
 
-Component tables (`computed(OpSpec::…)`) are oriented by the same pass,
-so an author no longer orders operands for the inverse's sake.
+Components' own tables (`computed(OpSpec::…)`) keep their operators as
+written. Their author orders the inputs, and the order can be what keeps
+a request from a parameter. A sequence's value is `from + (k − 1)·step`.
+Turned round, a drag of a point at a sequence value would write the
+sequence's `from` and move every point; as written, the drag is dropped,
+as in the current core (`tests/repeat.rs` found this).
 
 ### Refusal (fix 2)
 
@@ -196,6 +207,10 @@ masks and aliases as the walk does.
 - **Refusing every request where two inputs lead to state.** Rejected:
   it would refuse `<point x="$k $n"/>`, which the current core
   inverts.
+- **Orienting components' own tables too**, so a component author never
+  orders operands for the inverse's sake. Built first in step 4, and
+  rejected: a table's order can be what keeps a request from a component
+  parameter (a sequence's `from`, above).
 
 ## Migration
 
@@ -265,11 +280,23 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
      now also checks an index below the range, and a NaN index, dropped.
    - **`choiceInput`'s unprojected `selectedIndex`** is a separate task;
      it has no spec yet.
-4. **Orientation**: the pass, `RSub`, `RDiv` and `Over`, with
-   `Div(Fixed k, a)` lowered to `Over`.
-   - Expected golden diff: a request through a reoriented operator
-     writes the input that leads to state where it was dropped before.
-     Each such row is listed in the commit.
+4. **Orientation.** Done: `build/orient.rs`, `RSub` and `RDiv`.
+   - `Over` was not needed: `RDiv` with a fixed numerator does its work.
+   - `tests/orient.rs` checks these requests, each dropped before:
+     - `10 / $n`;
+     - `$k − $n`, `$k + $n`, `$k · $n` and `$k / $n` with `k` fixed;
+     - `min($k, $n)`, projecting onto the fixed bound.
+
+     It also checks that `$k $n` still writes `k`, that an operator whose
+     first input leads to state is not turned round, and that a sequence's
+     drag stays dropped.
+   - The `inverses` test now scales its tolerance by the asked value as
+     well as the inputs, as its projection branch does. `RDiv` asked for
+     1e18 at inputs below 1e9 rounds by 1e-16 of the answer, which an
+     absolute bound of 1e-9 times the inputs rejected.
+   - The golden diff, the programs' fingerprints and the round-trip sweep
+     are identical: no golden document has an operator turned round, and
+     the standing test's known list is unchanged.
 5. **Refusal**: the bit, the drop in `request.rs`, the warning and the
    `drops` listing. The standing test's known-unstable list becomes
    empty and is removed.

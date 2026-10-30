@@ -380,7 +380,7 @@ impl<'c> Builder<'c> {
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
                 let a = self.lower(a, scope);
-                self.op_slot(OpSpec::Negate, &[a], scope)
+                self.math_op(OpSpec::Negate, &[a], scope)
             }
             // Commutative: a literal on either side folds into the operator.
             Expr::Add(a, b) | Expr::Mul(a, b) => {
@@ -394,42 +394,42 @@ impl<'c> Builder<'c> {
                 {
                     Some((x, k)) => {
                         let x = self.lower(x, scope);
-                        self.op_slot(with_k(k), &[x], scope)
+                        self.math_op(with_k(k), &[x], scope)
                     }
                     None => {
                         let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                        self.op_slot(both, &[a, b], scope)
+                        self.math_op(both, &[a, b], scope)
                     }
                 }
             }
             Expr::Sub(a, b) => match (num(&self.arena, a), num(&self.arena, b)) {
                 (_, Some(k)) => {
                     let a = self.lower(a, scope);
-                    self.op_slot(OpSpec::Offset { k: -k }, &[a], scope)
+                    self.math_op(OpSpec::Offset { k: -k }, &[a], scope)
                 }
                 (Some(k), _) => {
                     let b = self.lower(b, scope);
-                    let nb = self.op_slot(OpSpec::Negate, &[b], scope);
-                    self.op_slot(OpSpec::Offset { k }, &[nb], scope)
+                    let nb = self.math_op(OpSpec::Negate, &[b], scope);
+                    self.math_op(OpSpec::Offset { k }, &[nb], scope)
                 }
                 _ => {
                     let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                    self.op_slot(OpSpec::Sub, &[a, b], scope)
+                    self.math_op(OpSpec::Sub, &[a, b], scope)
                 }
             },
             Expr::Div(a, b) => match num(&self.arena, b) {
                 Some(k) => {
                     let a = self.lower(a, scope);
-                    self.op_slot(OpSpec::Scale { k: 1.0 / k }, &[a], scope)
+                    self.math_op(OpSpec::Scale { k: 1.0 / k }, &[a], scope)
                 }
                 None => {
                     let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                    self.op_slot(OpSpec::Div, &[a, b], scope)
+                    self.math_op(OpSpec::Div, &[a, b], scope)
                 }
             },
             Expr::Pow(a, b) => {
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                self.op_slot(OpSpec::Pow, &[a, b], scope)
+                self.math_op(OpSpec::Pow, &[a, b], scope)
             }
             // Clamp's bounds are parameters, so only its argument is lowered.
             Expr::Call(Func::Clamp, args) => {
@@ -437,7 +437,7 @@ impl<'c> Builder<'c> {
                     |a: &Arena<SlotId>, e| num(a, e).expect("the parser checks clamp's bounds");
                 let (lo, hi) = (bound(&self.arena, args[1]), bound(&self.arena, args[2]));
                 let x = self.lower(args[0], scope);
-                self.op_slot(OpSpec::Clamp { lo, hi }, &[x], scope)
+                self.math_op(OpSpec::Clamp { lo, hi }, &[x], scope)
             }
             Expr::Call(f, args) => {
                 let mut xs = args
@@ -445,8 +445,8 @@ impl<'c> Builder<'c> {
                     .map(|&a| self.lower(a, scope))
                     .collect::<Vec<_>>();
                 match f {
-                    Func::Round => self.op_slot(OpSpec::Round, &xs, scope),
-                    Func::Floor => self.op_slot(OpSpec::Floor, &xs, scope),
+                    Func::Round => self.math_op(OpSpec::Round, &xs, scope),
+                    Func::Floor => self.math_op(OpSpec::Floor, &xs, scope),
                     // More than two arguments fold from the left.
                     Func::Min | Func::Max => {
                         let spec = if f == Func::Min {
@@ -456,11 +456,22 @@ impl<'c> Builder<'c> {
                         };
                         let first = xs.remove(0);
                         xs.into_iter()
-                            .fold(first, |acc, x| self.op_slot(spec, &[acc, x], scope))
+                            .fold(first, |acc, x| self.math_op(spec, &[acc, x], scope))
                     }
                     Func::Clamp => unreachable!("clamp is lowered above"),
                 }
             }
         }
+    }
+
+    /// `op_slot` for an operator lowered from the author's math: a binary
+    /// one is recorded for orientation (`build/orient.rs`, ADR 0024), which
+    /// leaves the operators of components' own tables as written.
+    fn math_op(&mut self, spec: OpSpec, inputs: &[SlotId], scope: ScopeId) -> SlotId {
+        let slot = self.op_slot(spec, inputs, scope);
+        if inputs.len() == 2 {
+            self.author_ops.insert(slot);
+        }
+        slot
     }
 }

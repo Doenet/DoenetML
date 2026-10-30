@@ -57,6 +57,7 @@ pub mod coverage;
 mod emit;
 mod expand;
 mod live;
+mod orient;
 mod probe;
 pub mod signature;
 mod structure;

@@ -57,6 +57,9 @@ impl<'c> Builder<'c> {
                 class_def[root] = SlotId::from_index(s);
             }
         }
+        // Each binary operator writes the input that leads to state (ADR
+        // 0024), before anything reads which inputs it writes.
+        self.orient(&roots, &class_def);
         // A value slot is essential when a student's action can write it,
         // and fixed otherwise (ADR 0018): the probe finds them by its walk
         // and records them by template slot, and every other build reads

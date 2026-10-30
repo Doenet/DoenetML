@@ -82,6 +82,20 @@ scalar_ops! {
         eval: a / b,
         exact |d| (b != 0.0 && b.is_finite()).then_some((A, d * b)),
     }
+    /// `b - a`: `Sub` with its inputs reversed, so that a request writes
+    /// what is subtracted. The build makes one from a `Sub` whose second
+    /// input leads to state and whose first does not (ADR 0024).
+    RSub(a, b) {
+        eval: b - a,
+        exact |d| b.is_finite().then_some((A, b - d)),
+    }
+    /// `b / a`: `Div` with its inputs reversed, so that a request writes the
+    /// divisor (ADR 0024). `k / $a` lowers to it: `a = k / d`.
+    RDiv(a, b) {
+        eval: b / a,
+        exact |d| (d != 0.0 && d.is_finite() && b != 0.0 && b.is_finite())
+            .then_some((A, b / d)),
+    }
     /// NaN if either argument is NaN (unlike `f64::min`).
     Min(a, b) {
         eval: nan_min(a, b),
@@ -308,7 +322,7 @@ mod inverses {
                                 let mut after = cur.clone();
                                 after[c.index()] = x;
                                 let got = op.eval(&after);
-                                if !close(got, d, &[cur.as_slice(), target, &[x]].concat()) {
+                                if !close(got, d, &[cur.as_slice(), target, &[x, d]].concat()) {
                                     fail(format!(
                                         "at {cur:?}, asked {d}, wrote {x} to input {c}, gives {got}"
                                     ));
