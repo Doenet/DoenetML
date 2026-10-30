@@ -16,7 +16,7 @@ pub fn compile(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    Ok(crate::compile::compile(&dast, true, true, true)?.compiled)
+    Ok(crate::compile::compile(&dast, true, true, true, true)?.compiled)
 }
 
 /// `compile`, with every value slot essential, as before ADR 0018
@@ -25,7 +25,7 @@ pub fn compile_unclassified(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
     let dast = std::sync::Arc::new(dast.clone());
-    Ok(crate::compile::compile(&dast, true, false, true)?.compiled)
+    Ok(crate::compile::compile(&dast, true, false, true, true)?.compiled)
 }
 
 /// The value of the one-cell prop at `path` (`"c.radius"`), for a unit

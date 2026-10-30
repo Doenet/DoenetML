@@ -125,6 +125,7 @@ impl<'c> Builder<'c> {
                 && !live_slot[s]
                 && !(matches!(self.sources[s], BuiltSource::Given(_)) && essential[s])
         };
+        let fold = self.folded_slots(&slot_cells, &essential, &pruned);
         let mut slot_cell: Vec<CellIdx> = vec![CellIdx::NONE; n];
         // Count each kind of defining slot first: the essential tables are
         // kept, and none of these should reserve more than it fills.
@@ -141,6 +142,7 @@ impl<'c> Builder<'c> {
                     BuiltSource::Given(_) if essential[s] => (0, 1),
                     BuiltSource::Given(_) => (1, 1),
                     BuiltSource::Const(_) => (1, 1),
+                    BuiltSource::Op(spec, ..) if fold[s] => (1, spec.n_out()),
                     BuiltSource::Op(spec, ..) => (2, spec.n_out()),
                     _ => (3, 0),
                 };
@@ -162,6 +164,7 @@ impl<'c> Builder<'c> {
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
         let mut const_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
+        let mut fold_defs = Vec::new();
         let mut outputs = Vec::with_capacity(counts[3]);
         let mut dead_defs = Vec::new();
         #[cfg(feature = "testing")]
@@ -200,6 +203,7 @@ impl<'c> Builder<'c> {
                     essential_defaults.push(*v);
                 }
                 BuiltSource::Const(_) => const_defs.push(s),
+                BuiltSource::Op(..) if fold[s] => fold_defs.push(s),
                 BuiltSource::Op(..) => derived_defs.push(s),
                 BuiltSource::VecOut(..) => outputs.push(s),
                 _ => unreachable!(),
@@ -227,16 +231,19 @@ impl<'c> Builder<'c> {
             cells.push(v);
             cell_def_slot.push(SlotId::from_index(s));
         }
-        let n_const = const_defs.len() + dead_cell.is_some() as usize;
-        // A vector instruction's outputs are consecutive cells after its head.
-        for &s in &derived_defs {
+        // A folded instruction's outputs are constants, computed once the
+        // instructions are bound; a vector instruction's outputs are
+        // consecutive cells after its head.
+        let n_out = |s: usize| match self.sources[s] {
+            BuiltSource::Op(spec, ..) => spec.n_out(),
+            _ => 1,
+        };
+        let n_const =
+            cells.len() - n_essential + fold_defs.iter().map(|&s| n_out(s)).sum::<usize>();
+        for &s in fold_defs.iter().chain(&derived_defs) {
             let root = slot_cells.cell_of(SlotId::from_index(s)).index();
             slot_cell[root] = CellIdx::from_index(cells.len());
-            let n_out = match self.sources[s] {
-                BuiltSource::Op(spec, ..) => spec.n_out(),
-                _ => 1,
-            };
-            for _ in 0..n_out {
+            for _ in 0..n_out(s) {
                 cells.push(f64::NAN);
                 cell_def_slot.push(SlotId::from_index(s));
             }
@@ -292,30 +299,6 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        #[cfg(feature = "testing")]
-        // What each template slot's cell is (`Structure::slot_classes`).
-        let slot_classes: Vec<_> = {
-            use crate::build::structure::SlotClass;
-            SlotId::below(n)
-                .filter(|&s| Some(slot_to_cell[s.index()]) != dead_cell)
-                .filter(|&s| self.template_slot(s).is_some())
-                .map(|s| {
-                    let (scope, tslot, _) = self.essential_key(s);
-                    let (template, _) = self.template_slot(s).expect("a template slot");
-                    let class = match self.sources[s.index()] {
-                        BuiltSource::Alias(_) => SlotClass::Alias,
-                        BuiltSource::Given(_) if essential[s.index()] => SlotClass::Essential,
-                        BuiltSource::Given(_) | BuiltSource::Const(_) => SlotClass::Constant {
-                            value: cells[slot_to_cell[s.index()].index()],
-                            document: !folds
-                                && self.compiled.document_constants.marks(template, tslot),
-                        },
-                        _ => SlotClass::Derived,
-                    };
-                    ((scope, template as u32, tslot), class)
-                })
-                .collect()
-        };
         // The cells a `fixed` holds, by their flags' cells; a dead cell
         // takes no request.
         let mut holds = crate::program::Holds::default();
@@ -371,7 +354,9 @@ impl<'c> Builder<'c> {
         #[cfg(not(feature = "testing"))]
         let compile = !folds;
         let mut constant_shape: HashMap<SlotId, Option<Handle>> = HashMap::new();
-        for &s in &derived_defs {
+        // The folded instructions, bound as any other and run once below.
+        let mut folded = Vec::with_capacity(fold_defs.len());
+        for &s in derived_defs.iter().chain(&fold_defs) {
             let (planned, start, count) = match &self.sources[s] {
                 BuiltSource::Op(op, start, count) => (*op, *start, *count),
                 _ => unreachable!(),
@@ -435,11 +420,68 @@ impl<'c> Builder<'c> {
                     tapes.push(tape);
                 }
             }
-            instrs.push(Instr {
+            let instr = Instr {
                 out: slot_to_cell[s],
                 op: spec.bind(&bound, &mut operands),
-            });
+            };
+            if fold[s] {
+                folded.push(instr);
+            } else {
+                instrs.push(instr);
+            }
         }
+        // Run the folded instructions once, in an order of their own: each
+        // reads only constants and the folds before it, so their outputs
+        // are constants from here on (ADR 0026).
+        if !folded.is_empty() {
+            let mut once =
+                Program::schedule(folded, cells.len(), operands.clone()).map_err(|cell| {
+                    Failure {
+                        error: Error::Unchecked(format!(
+                            "the folded instructions form a cycle at cell {cell}"
+                        )),
+                        node: None,
+                    }
+                })?;
+            once.tapes = tapes.clone();
+            let mut state = crate::program::SymState::new(&once);
+            once.run_all(
+                &mut crate::program::SymRun {
+                    state: &mut state,
+                    engine: self.engine,
+                },
+                &mut cells,
+            );
+        }
+        #[cfg(feature = "testing")]
+        // What each template slot's cell is (`Structure::slot_classes`).
+        let slot_classes: Vec<_> = {
+            use crate::build::structure::SlotClass;
+            SlotId::below(n)
+                .filter(|&s| Some(slot_to_cell[s.index()]) != dead_cell)
+                .filter(|&s| self.template_slot(s).is_some())
+                .map(|s| {
+                    let (scope, tslot, _) = self.essential_key(s);
+                    let (template, _) = self.template_slot(s).expect("a template slot");
+                    let class = match self.sources[s.index()] {
+                        BuiltSource::Alias(_) => SlotClass::Alias,
+                        BuiltSource::Given(_) if essential[s.index()] => SlotClass::Essential,
+                        BuiltSource::Op(..) if !fold[s.index()] => SlotClass::Derived,
+                        BuiltSource::VecOut(head, _) if !fold[head.index()] => SlotClass::Derived,
+                        BuiltSource::Given(_)
+                        | BuiltSource::Const(_)
+                        | BuiltSource::Op(..)
+                        | BuiltSource::VecOut(..) => SlotClass::Constant {
+                            value: cells[slot_to_cell[s.index()].index()],
+                            document: !folds
+                                && self.compiled.document_constants.marks(template, tslot),
+                        },
+                        _ => SlotClass::Derived,
+                    };
+                    ((scope, template as u32, tslot), class)
+                })
+                .collect()
+        };
 
         // Each component's prop cell indices, one component after another,
         // in slot order; the cells themselves are not contiguous.
@@ -682,6 +724,92 @@ impl<'c> Builder<'c> {
             }
         }
         Ok(())
+    }
+
+    /// The instructions this build folds (ADR 0026): by defining slot, an
+    /// operator whose every input, and every flag that holds it, is a
+    /// constant (a given value no student can write, a constant, or
+    /// another fold), so it is evaluated once, as the build ends, and its
+    /// outputs are constants. Each constant read must be made in the
+    /// slot's own scope or one around it, which exists whatever the counts,
+    /// so whether a slot folds never turns on whether a referent exists
+    /// (the missing-referent cell is never read as one). A counted value
+    /// (ADR 0026) follows the counts, and is never folded; nor is a curve's
+    /// `Sample`, since the bridge tells a function with a curve from one
+    /// without by its samples being derived (`CURVE` in
+    /// `doenetml-worker/src/cells/contracts.ts`). Nothing folds in
+    /// the probe, whose instructions never run, or where the load asked
+    /// for every instruction (`LoadOptions::fold`).
+    fn folded_slots(
+        &self,
+        slot_cells: &SlotCells,
+        essential: &[bool],
+        pruned: &dyn Fn(usize) -> bool,
+    ) -> Vec<bool> {
+        let n = self.sources.len();
+        let mut fold = vec![false; n];
+        if !self.compiled.fold || self.view.folds_iterations() {
+            return fold;
+        }
+        let counted = |s: SlotId| {
+            !self.compiled.counted.0.is_empty()
+                && self
+                    .template_slot(s)
+                    .is_some_and(|(t, ts)| self.compiled.counted.marks(t, ts))
+        };
+        let candidates: Vec<SlotId> = SlotId::below(n)
+            .filter(|&s| {
+                slot_cells.defines(s)
+                    && matches!(self.sources[s.index()], BuiltSource::Op(..))
+                    && !matches!(
+                        self.sources[s.index()],
+                        BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Sample)), ..)
+                    )
+                    && !pruned(s.index())
+                    && !counted(s)
+            })
+            .collect();
+        loop {
+            let mut changed = false;
+            for &s in &candidates {
+                if fold[s.index()] {
+                    continue;
+                }
+                let scope = self.slot_scope[s.index()];
+                let def = slot_cells.def_of(self, s, &self.sources[s.index()]);
+                let constant = def.needs().all(|input| {
+                    let d = slot_cells.def(slot_cells.cell_of(input));
+                    let made = match self.sources[d.index()] {
+                        BuiltSource::Const(_) => Some(d) != self.missing,
+                        BuiltSource::Given(_) => !essential[d.index()],
+                        BuiltSource::Op(..) => fold[d.index()],
+                        BuiltSource::VecOut(head, _) => fold[head.index()],
+                        _ => false,
+                    };
+                    made && self.encloses(self.slot_scope[d.index()], scope)
+                });
+                if constant {
+                    fold[s.index()] = true;
+                    changed = true;
+                }
+            }
+            if !changed {
+                return fold;
+            }
+        }
+    }
+
+    /// Whether scope `outer` is `inner` or one around it.
+    fn encloses(&self, outer: ScopeId, mut inner: ScopeId) -> bool {
+        loop {
+            if inner == outer {
+                return true;
+            }
+            if inner == ScopeId::DOCUMENT {
+                return false;
+            }
+            inner = self.scopes[inner].0;
+        }
     }
 
     /// A component slot's template and template slot (the element's slot

@@ -185,8 +185,10 @@ fn census() {
     // `fixed` costs no instruction since it holds cells (ADR 0022,
     // amended): `fixed.doenet`'s three holds are gone. A collect's count
     // from a repeat is a counted value, a copy (ADR 0026): one in
-    // `repeats.doenet`, dead.
-    assert!(golden[0] <= 179 && golden[1] == 275, "{golden:?}");
+    // `repeats.doenet`, dead. An instruction whose inputs are all
+    // constants is folded into a constant (ADR 0026): 90 of the 275,
+    // 42 of them live.
+    assert!(golden[0] <= 137 && golden[1] == 185, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record
@@ -367,6 +369,56 @@ fn pruning_keeps_every_live_value() {
                     panic!("{at}: {e}");
                 }
                 act_on_both(&mut full, &mut pruned, &at);
+            }
+        }
+    }
+}
+
+/// Folding changes no value either (ADR 0026): a load that folds every
+/// instruction over constants and one that folds none, both pruned, given
+/// the same requests and actions at four seeds and every repeat at 0 to 4
+/// iterations, hold the same value in every live cell.
+#[test]
+fn folding_keeps_every_live_value() {
+    let load = |src: &str, seed: u64, fold: bool| {
+        let options = LoadOptions {
+            seed,
+            fold,
+            ..Default::default()
+        };
+        Document::load(dast_json(src).as_bytes(), options)
+            .unwrap()
+            .0
+    };
+    for (name, src) in documents() {
+        for seed in [0, 1, 2, 3] {
+            let mut unfolded = load(&src, seed, false);
+            let mut folded = load(&src, seed, true);
+            if let Err(e) = live_cells_agree(&unfolded, &folded) {
+                panic!("{name}, seed {seed}, after the load: {e}");
+            }
+            act_on_both(&mut unfolded, &mut folded, &format!("{name}, seed {seed}"));
+            for k in 0..=4 {
+                let requests = |doc: &Document| -> Vec<Request> {
+                    count_cells(doc)
+                        .into_iter()
+                        .map(|cell| Request {
+                            cell,
+                            value: k as f64,
+                        })
+                        .collect()
+                };
+                let (ru, rf) = (requests(&unfolded), requests(&folded));
+                if rf.is_empty() {
+                    break;
+                }
+                request_unchecked(&mut unfolded, &ru);
+                request_unchecked(&mut folded, &rf);
+                let at = format!("{name}, seed {seed}, count {k}");
+                if let Err(e) = live_cells_agree(&unfolded, &folded) {
+                    panic!("{at}: {e}");
+                }
+                act_on_both(&mut unfolded, &mut folded, &at);
             }
         }
     }

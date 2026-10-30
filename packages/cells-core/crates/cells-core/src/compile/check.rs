@@ -32,10 +32,12 @@ pub(crate) fn compile(
     check_cycles: bool,
     classify: bool,
     prune: bool,
+    fold: bool,
 ) -> Result<CompileOutput> {
     let mut list = Vec::new();
     let (mut compiled, ()) = plan_and_check(dast, &mut list, |compiled| {
         compiled.prune = prune;
+        compiled.fold = fold;
         let _s = crate::trace::span("probe");
         let probed = build::probe(compiled, check_cycles)?.probed();
         compiled.structural_depth = probed.structural_depth;

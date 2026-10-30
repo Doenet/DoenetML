@@ -876,6 +876,9 @@ pub struct Compiled {
     /// Whether a build gives a dead slot no cell (ADR 0019,
     /// `LoadOptions::prune`); never in the probe.
     pub(crate) prune: bool,
+    /// Whether a build folds instructions over constants (ADR 0026,
+    /// `LoadOptions::fold`); never in the probe.
+    pub(crate) fold: bool,
 }
 
 /// What the probe records of a document (ADR 0018, ADR 0019): per

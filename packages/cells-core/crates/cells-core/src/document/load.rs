@@ -35,6 +35,12 @@ pub struct LoadOptions {
     /// any of them, as the JavaScript worker's parity harness and the
     /// golden diff do; `Document::is_live` still says which are needed.
     pub prune: bool,
+    /// Evaluate once, as it builds, every instruction whose inputs are all
+    /// constants, which become constants (ADR 0026): on by default. Off,
+    /// every instruction runs at tick time, as before. Only with the
+    /// `testing` feature: to check that folding changes no value.
+    #[cfg(feature = "testing")]
+    pub fold: bool,
 }
 
 impl LoadOptions {
@@ -42,6 +48,15 @@ impl LoadOptions {
     fn checks(&self) -> bool {
         #[cfg(feature = "testing")]
         return self.check_cycles;
+        #[cfg(not(feature = "testing"))]
+        return true;
+    }
+
+    /// Whether builds fold instructions over constants: always, outside
+    /// tests.
+    fn folds(&self) -> bool {
+        #[cfg(feature = "testing")]
+        return self.fold;
         #[cfg(not(feature = "testing"))]
         return true;
     }
@@ -68,6 +83,8 @@ impl Default for LoadOptions {
             #[cfg(feature = "testing")]
             classify: true,
             prune: true,
+            #[cfg(feature = "testing")]
+            fold: true,
         }
     }
 }
@@ -195,7 +212,13 @@ impl Document {
         // Compile once (ADR 0015); every pass is a build of that compile.
         let crate::compile::CompileOutput { compiled } = {
             let _s = crate::trace::span("compile");
-            crate::compile::compile(&dast, options.checks(), options.classifies(), options.prune)?
+            crate::compile::compile(
+                &dast,
+                options.checks(),
+                options.classifies(),
+                options.prune,
+                options.folds(),
+            )?
         };
         // After the first pass no student has changed a value yet, so a
         // seeded cell takes its seed again, from the counts the pass stamps.

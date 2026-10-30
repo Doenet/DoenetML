@@ -162,6 +162,7 @@ impl<'a> Compiler<'a> {
                 counted: Arc::default(),
                 document_constants: Arc::default(),
                 prune: false,
+                fold: false,
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),

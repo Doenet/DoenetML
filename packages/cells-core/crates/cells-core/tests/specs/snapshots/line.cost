@@ -14,7 +14,7 @@ an equation as the line's text: cells 14 · essential 7 · constant 3 · instrs 
 an equation in other variables: cells 14 · essential 7 · constant 3 · instrs 1 · components 3
 variables that are not two are x and y: cells 14 · essential 7 · constant 3 · instrs 1 · components 3
 an equation over a number: cells 15 · essential 7 · constant 3 · instrs 2 · components 4
-a nonlinear equation is not a line: cells 14 · essential 4 · constant 6 · instrs 1 · components 3
+a nonlinear equation is not a line: cells 14 · essential 4 · constant 10 · instrs 0 · components 3
 an equation without one '=' is refused: cells 6 · essential 4 · constant 2 · instrs 0 · components 3
 more than two points are refused: cells 6 · essential 4 · constant 2 · instrs 0 · components 3
 a bare copy shares the line: cells 11 · essential 8 · constant 3 · instrs 0 · components 4

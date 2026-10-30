@@ -1,6 +1,6 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. Migration phases 1 to 4 are done; see
+Status: proposed 2026-10-30. Migration phases 1 to 5 are done; see
 Migration.
 
 A **constant** is a cell whose value is a function of the source, the
@@ -202,12 +202,20 @@ The dead cell and the missing-referent cell are the pool's first cells.
 
 An instruction whose every input is a constant, its hold flags included,
 is evaluated once and its outputs become constants: document constants when
-every input is one, scope constants otherwise. The probe decides which template
-slots fold, after the writable walk and before the live walk, so an
-input read only by folded instructions can be dead. A document-constant fold is
-evaluated when the load makes the pool, in the probe graph's order; a
-scope-constant fold when emit makes the scope's cells. Symbolic instructions
-fold the same way, with the session's engine.
+every input is one, scope constants otherwise. Each build decides its own
+folds (`Builder::folded_slots`), since most foldable instructions are the
+anonymous steps of lowered math, which no template slot names: an
+operator folds when every input is a given value no student can write, a
+constant or another fold, made in its own scope or one around it. That
+scope rule keeps a fold from turning on whether a referent exists (`$r[3].x`
+is the missing cell at count 2 and a real one at 3), so whether a slot folds
+is the same in every build; the missing-referent cell is never read as a
+constant, and a counted value (step 1) never folds. Emit numbers a fold's
+outputs among the constants, binds the instruction as any other, and runs
+the folds once, in their own order, as the build ends; the program keeps
+none of them. Symbolic instructions fold the same way, with the session's
+engine. A document-constant fold is to be evaluated when the load makes the
+pool (phase 6).
 
 This changes no value and no tick's outcome. A request that reaches a
 derived cell whose ancestors are all constants is dropped today, after
@@ -331,7 +339,8 @@ after each.
 5. **Fold** (step 4): the probe records folded template slots; emit
    evaluates scope-constant folds; a full recompute after load changes no
    constant (tested). Spec cost snapshots move and are rewritten with
-   `SPEC_UPDATE=1`.
+   `SPEC_UPDATE=1`. *Done
+   2026-10-30*; see below.
 6. **The pool** (step 3): the load makes it, builds start from it, and
    document-constant slots name it without a source. `is_essential` and `is_const`
    become range checks after the pool. Measured with `perf-diff.sh` and
@@ -417,3 +426,34 @@ Settled while implementing phase 4:
   right, since phase 2 makes it the same in every build, but would make
   the pool's correctness rest on phase 2 having found every counted
   value; it is left for phase 6 to decide.
+
+Settled while implementing phase 5:
+
+- The probe does not record folds, as step 4 first said: most foldable
+  instructions are lowered math's anonymous steps, which a record by
+  template slot cannot name, so each build decides by its own walk under
+  the scope rule. What that gives up is pruning a constant read only by
+  folds, which stays live; constants are the cheapest cells.
+- `LoadOptions::fold`, on by default and off only in tests, turns folding
+  off. `folding_keeps_every_live_value` (`tests/live.rs`) loads every golden
+  document and `sir.doenet` both ways, pruned, at four seeds and counts 0
+  to 4, makes the same requests, submits and triggers on both, and finds
+  every live cell equal; `a_full_recompute_changes_no_constant`
+  (`tests/constants.rs`) finds no instruction writing a constant and no
+  cell changed by a full recompute after load.
+- Over the golden set, 90 of 275 instructions fold (42 of the 179 live
+  ones). In the benchmark of Context at 5000 iterations, 30,000 of 30,003;
+  its rebuild goes from 41 ms to 37 ms, since the folds run once in
+  emit in place of the load's first compute.
+- A curve's `Sample` never folds. The bridge draws a function's curve
+  only when its `samples` cell is derived, since a function of several
+  variables has one absent constant there and no curve (`CURVE` in
+  `doenetml-worker/src/cells/contracts.ts`); in a graph whose `fixAxes`
+  holds its bounds, a function's samples read only constants and would
+  fold, and its curve would vanish (`a_curve_is_never_folded`). The
+  bridge reading a cell's class for a fact about the source is the flaw;
+  a signal of its own for a function with no curve would let the
+  exception go.
+- The spec cost snapshots move only by instructions becoming constants:
+  in every changed case, cells, essential cells and components are the
+  same, and the constants grow by what the folded instructions wrote.

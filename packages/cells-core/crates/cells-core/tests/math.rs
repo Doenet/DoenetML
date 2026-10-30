@@ -44,15 +44,30 @@ fn a_literal_operand_is_one_cell_for_every_iteration() {
             r#"<repeatForSequence name="r" length="5" valueName="v"><number name="n">{n}</number></repeatForSequence>"#
         )
     };
-    let doc = load(&body("$v^2 + max($v, 3)")).unwrap();
-    let plain = load(&body("$v")).unwrap();
+    // Unfolded: every iteration's `$v` is computed from its index, so the
+    // operators run; folded, they read only constants (ADR 0026).
+    let unfolded = |src: &str| {
+        let options = cells_core::LoadOptions {
+            fold: false,
+            ..Default::default()
+        };
+        let json = cells_core::testing::test_utils::dast_json(src);
+        cells_core::Document::load(json.as_bytes(), options)
+            .unwrap()
+            .0
+    };
+    let doc = unfolded(&body("$v^2 + max($v, 3)"));
+    let plain = unfolded(&body("$v"));
     assert_eq!(doc.n_const, plain.n_const + 2, "one cell for 2, one for 3");
-    let n = doc.resolve_path("r[4].n").unwrap();
-    assert_eq!(
-        doc.cells[doc.prop_cells(n, "value").unwrap()[0].index()],
-        20.0
-    );
+    let value = |doc: &cells_core::Document| {
+        let n = doc.resolve_path("r[4].n").unwrap();
+        doc.cells[doc.prop_cells(n, "value").unwrap()[0].index()]
+    };
+    assert_eq!(value(&doc), 20.0);
     assert_eq!(reference::check(&doc), None);
+    let folded = load(&body("$v^2 + max($v, 3)")).unwrap();
+    assert_eq!(value(&folded), 20.0);
+    assert!(folded.program.is_empty(), "every operator folds");
 }
 
 #[test]

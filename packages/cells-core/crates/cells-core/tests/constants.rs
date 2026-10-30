@@ -77,3 +77,49 @@ fn census() {
     );
     assert!(total[1] > 0, "no document constant in the golden set");
 }
+
+/// A folded instruction is a constant (ADR 0026): after the load, a full
+/// recompute, which runs every instruction the program kept, changes no
+/// constant and no other cell, and nothing the program runs writes a
+/// constant.
+#[test]
+fn a_full_recompute_changes_no_constant() {
+    for (name, src) in documents() {
+        let (mut doc, _) =
+            Document::load(dast_json(&src).as_bytes(), LoadOptions::default()).unwrap();
+        let constants = doc.n_essential..doc.n_essential + doc.n_const;
+        for ins in &doc.program.instrs {
+            assert!(
+                !constants.contains(&ins.out.index()),
+                "{name}: an instruction writes constant {}",
+                ins.out
+            );
+        }
+        let before = doc.cells.clone();
+        doc.recompute();
+        for (i, (a, b)) in before.iter().zip(&doc.cells).enumerate() {
+            assert!(
+                a.to_bits() == b.to_bits() || (a.is_nan() && b.is_nan()),
+                "{name}: cell {i} was {a}, {b} after a full recompute"
+            );
+        }
+    }
+}
+
+/// A curve's samples are never folded, even over constants (a graph whose
+/// axes `fixAxes` holds): the bridge draws a function's curve only when
+/// its samples are derived, and a function of several variables, whose
+/// `samples` is one absent constant, has none (`CURVE` in
+/// `doenetml-worker/src/cells/contracts.ts`).
+#[test]
+fn a_curve_is_never_folded() {
+    for src in [
+        r#"<graph><function name="f">x^2</function></graph>"#,
+        r#"<graph fixAxes><function name="f">x^2</function></graph>"#,
+    ] {
+        let (doc, _) = Document::load(dast_json(src).as_bytes(), LoadOptions::default()).unwrap();
+        let samples = doc.cell("f", "samples").unwrap();
+        assert!(!doc.is_const(samples), "{src}: the samples are constants");
+        assert!(!doc.is_essential(samples), "{src}");
+    }
+}
