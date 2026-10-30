@@ -69,7 +69,7 @@ mechanism count as expected failures rather than gaps.
 |---|---|
 | REF-2 a reference is linked both ways; REF-6 an extend keeps the source's bindings, however deep | A bare `extend` aliases every prop to the referent's cells (`plan_with_extend`, `Source::Inherit`). There is no second state to drift, and no "re-resolve, fall back on failure" path (#1805) |
 | SAVE-2 a shadow's state is saved once | Aliased props share one essential cell with one key |
-| CTX-7 a reference is fixed when its source is | A `Hold` on the source's slot is upstream of every alias (`tests/fixed.rs` `a_copy_of_a_dynamically_fixed_point_is_fixed`) |
+| CTX-7 a reference is fixed when its source is | The hold is on the source's cells (`Program::holds`), which every alias shares (`tests/fixed.rs` `a_copy_of_a_dynamically_fixed_point_is_fixed`) |
 | CTX-1 `fixed` still follows its definition; nothing pushes into it | `Fix::Literal` turns essential literals into fixed cells and holds references and math; forward evaluation is untouched, inverses drop (`compile/fix.rs`) |
 | VAL-6 to VAL-8 three attribute forms | `plan_value`: literal, exactly one reference (an alias, so two-way), else math (an operator chain with inverses) |
 | VAL-5 and D10 one representation of a missing value | The shared fixed NaN cell (`missing_slot`); `$r[32]` and an index past a list both land there |

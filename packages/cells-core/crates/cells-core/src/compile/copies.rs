@@ -218,8 +218,6 @@ impl<'a> Compiler<'a> {
                 }
             }
         }
-        let held = self.plan_fix(t, e)?.apply(&mut wiring.props);
-        self.record_held(t, e, held);
         if !wiring.shared_state.is_empty() {
             self.shared_state
                 .insert((t.get(), e.get()), wiring.shared_state.clone());

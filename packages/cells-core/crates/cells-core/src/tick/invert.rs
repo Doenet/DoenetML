@@ -60,7 +60,8 @@ pub struct Inversion {
 /// request on an instruction's outputs is known before it is inverted
 /// once; the input requests an inverse produces join the queue. Cells
 /// below `n_essential` are essential; a request landing on another
-/// producer-less cell (a fixed cell) is dropped.
+/// producer-less cell (a fixed cell), or on a cell a `fixed` holds
+/// (`Program::holds`), is dropped.
 ///
 /// `groups` are points requested together (ADR 0006): before such a
 /// group is queued the engine asks what each point would actually
@@ -174,6 +175,10 @@ struct RequestEngine<'a> {
 
 impl RequestEngine<'_> {
     fn push(&mut self, cell: CellIdx, value: f64, origin: Request) {
+        if self.program.holds.holds(cell, self.cells) {
+            self.inversion.dropped.push(origin);
+            return;
+        }
         let p = self.program.producer[cell.index()];
         if p == u32::MAX {
             if cell.index() < self.n_essential {
@@ -204,7 +209,7 @@ impl RequestEngine<'_> {
     fn walk(&mut self, mut cell: CellIdx, mut value: f64, origin: Request) {
         loop {
             let p = self.program.producer[cell.index()];
-            if p == u32::MAX {
+            if p == u32::MAX || self.program.holds.holds(cell, self.cells) {
                 self.push(cell, value, origin);
                 return;
             }

@@ -120,20 +120,26 @@ draw for every select.
   union-find, numbers the cells (essential, then fixed, then derived) and
   binds operators to them as instructions. A value slot (a literal or a
   default) is essential only when a student's action can write it (ADR
-  0018): `build/writable.rs` walks back from every input prop through the
-  inputs each inverse may write. The probe runs the walk and records the
-  writable template slots in `Compiled` (a `Record`), and every build
+  0018): `build/writable.rs` walks back from every input prop to where a
+  request on each cell goes. Both walks read the cells the slots will make
+  (`SlotCells`, `build/slot_cells.rs`) only through a cell's definition
+  (`Def`), which defines its two relations once: what it needs (what its
+  source reads, and the flags that hold it) and where a request on it goes
+  (what its inverse may write, nowhere past a constant hold).
+  `Program::needs` is the first over the cells a build made. The probe
+  runs the walk and records the writable template slots in `Compiled` (a `Record`), and every build
   classes by that record, so a slot's class is the same in every build. A
   class is computed only when it is live (ADR 0019): `build/live.rs`
   walks back from every root (the rendered props of rendered components,
   scores, inputs, what an action or snapping reads, repeat counts)
-  through every input of every instruction. The probe records the live
+  through what each cell needs. The probe records the live
   template slots in `Compiled::live` as it records the writable ones; a
   class the record cannot name (a synthesized component's, such as a
   choice's interface) is live when something live reads it. A dead class
   gets no cell: its props name the one dead cell, a fixed NaN, and its
-  instruction is never bound. A live instruction that would read the dead
-  cell fails the build (`Error::Unchecked`). `LoadOptions::prune` off
+  instruction is never bound. A live class that needs the dead cell, an
+  instruction's input or a hold's flag, fails the build
+  (`Error::Unchecked`). `LoadOptions::prune` off
   computes every class.
 
 A build learns the document's structure only through the **structure view**
@@ -375,11 +381,13 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   `<math>` aliasing the input's props for `$mi`, and `<math
   extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
   referent's default prop (`ComponentType::extends_as`).
-- `fixed` is applied around the planner, not by it (`plan_with_extend`,
-  `plan_attrs`): the element's own, else the nearest container's (ADR
-  0022), as `Hold`s on every slot a request could write through. A type
-  whose every value is a location says `located` among its flags, and
-  `fixLocation` then holds it the same way.
+- `fixed` is not the planner's: `plan_elem` records, beside the plans,
+  what holds the element (`Elem::hold`, from the table `HOLD_ATTRS`): the
+  element's own setting, else the nearest container's (ADR 0022). The
+  build holds every cell of a held element (`Program::holds`), and the
+  inversion refuses a request on a held cell; the plans are never
+  rewritten. A type whose every value is a location says `located` among
+  its flags, and `fixLocation` then holds it the same way.
 - A combination of attributes the planner cannot honor is a warning
   (`PlanCtx::warn`), never a silent NaN: what it cannot define is
   `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A
@@ -502,7 +510,8 @@ the core does not compute it, and the viewer's test, which checks every
 - `tests/live.rs` checks the live record (ADR 0019) at every golden
   document and `sir.doenet`, four seeds and counts 0 to 4: nothing a
   build's own walk finds live is missing from it, every output and every
-  essential cell is live, and a pruned load and an unpruned one, given
+  essential cell is live, every live cell's `Program::needs` is live, a
+  cell a constant flag holds takes no request, and a pruned load and an unpruned one, given
   the same requests, submits and triggers, hold the same value in every
   live cell. `tests/outputs.rs` checks the marks and which components are
   rendered.

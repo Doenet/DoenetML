@@ -59,11 +59,13 @@ mod expand;
 mod live;
 mod probe;
 pub mod signature;
+mod slot_cells;
 mod structure;
 mod view;
 mod writable;
 
 pub(crate) use probe::probe;
+use slot_cells::SlotCells;
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
 crate::index::index_type! {
@@ -125,42 +127,43 @@ pub(in crate::build) fn build_with(
 }
 
 impl<'c> Builder<'c> {
-    /// The backward walk over emit's alias classes that the writable walk
-    /// (`writable.rs`, ADR 0018) and the live walk (`live.rs`, ADR 0019)
-    /// share: from the classes on `stack`, each class `enter` admits is
-    /// given to `edge` as its defining slot and source, then as each
-    /// source the slots of the class have besides (its later sources when
-    /// the view folds iterations, and `extra`), and `edge` pushes the
-    /// classes to go on to. A class `enter` refuses is neither followed
-    /// nor seen. `roots` is each slot's class and `class_def` each class's
-    /// defining slot, by root.
-    pub(in crate::build) fn walk_classes(
+    /// The backward walk over the cells the slots will make that the
+    /// writable walk (`writable.rs`, ADR 0018) and the live walk
+    /// (`live.rs`, ADR 0019) share: from the cells on `stack`, each cell
+    /// `enter` admits is given to `edge` as its definition
+    /// (`slot_cells::Def`), then as each other source its slots have (its
+    /// later sources when the view folds iterations, and `extra`), and
+    /// `edge` pushes the cells to go on to, by one of the definition's
+    /// relations. A cell `enter` refuses is neither followed nor seen.
+    pub(in crate::build) fn walk_cells(
         &self,
-        roots: &[SlotId],
-        class_def: &[SlotId],
+        slot_cells: &SlotCells,
         mut stack: Vec<SlotId>,
         extra: &[(SlotId, BuiltSource)],
         mut enter: impl FnMut(SlotId) -> bool,
-        mut edge: impl FnMut(SlotId, &BuiltSource, &mut Vec<SlotId>),
+        mut edge: impl FnMut(slot_cells::Def<'_>, &mut Vec<SlotId>),
     ) {
         let mut seen = vec![false; self.sources.len()];
-        // The other sources of each class, by root.
+        // The other sources of each cell.
         let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
         for entry in self.later_sources.iter().chain(extra) {
             besides
-                .entry(roots[entry.0.index()])
+                .entry(slot_cells.cell_of(entry.0))
                 .or_default()
                 .push(entry);
         }
-        while let Some(root) = stack.pop() {
-            if std::mem::replace(&mut seen[root.index()], true) || !enter(root) {
+        while let Some(cell) = stack.pop() {
+            if std::mem::replace(&mut seen[cell.index()], true) || !enter(cell) {
                 continue;
             }
-            let def = class_def[root.index()];
-            edge(def, &self.sources[def.index()], &mut stack);
-            if let Some(entries) = besides.get(&root) {
+            let def = slot_cells.def(cell);
+            edge(
+                slot_cells.def_of(self, def, &self.sources[def.index()]),
+                &mut stack,
+            );
+            if let Some(entries) = besides.get(&cell) {
                 for (slot, src) in entries {
-                    edge(*slot, src, &mut stack);
+                    edge(slot_cells.def_of(self, *slot, src), &mut stack);
                 }
             }
         }
@@ -223,6 +226,8 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
+    /// The cells a `fixed` holds (`Program::holds`).
+    holds: crate::program::Holds,
     /// Each component's element's stable key, `NONE` for one no element
     /// makes (a case): what the input signature names components by.
     comp_keys: Vec<ElemKey>,
@@ -274,6 +279,7 @@ impl BuildOutput {
         let program = match Program::schedule(self.instrs, n, self.operands) {
             Ok(mut p) => {
                 p.tapes = self.tapes;
+                p.holds = self.holds;
                 p
             }
             Err(cell) => {

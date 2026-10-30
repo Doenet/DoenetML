@@ -151,13 +151,12 @@ scalar_ops! {
         eval: a.powf(b),
         drops,
     }
-    /// `a`, whatever the flag. The flag is read only by the inverse, which
-    /// drops a request unless the flag is exactly 0 (a NaN flag, a missing
-    /// referent, holds): a dynamic `fixed` or `fixAxes`. The flag is still
-    /// an input, so the hold is an edge in the graph, like `Shape`'s pivot.
-    Hold(a, b) {
+    /// `a`: a held element's own cell for a value it reads from another
+    /// element's, so the hold (`Program::holds`) is on its cell and not on
+    /// the other's.
+    Copy(a) {
         eval: a,
-        exact |d| (b == 0.0).then_some((A, d)),
+        exact |d| Some((A, d)),
     }
     /// Comparisons for conditions (ADR 0009): 1 or 0, and 0 when either
     /// side is NaN. A request cannot change a condition.

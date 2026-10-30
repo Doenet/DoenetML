@@ -103,8 +103,6 @@ pub(crate) enum Source {
     TextLiteral(f64),
     /// The matching slot of the `extend` referent.
     Inherit,
-    /// Slot `k` of the `extend` referent: an `Inherit` a gate moved.
-    InheritFrom(u8),
     /// A constant that is not state.
     Fixed(f64),
     Alias(Arg),
@@ -286,6 +284,21 @@ pub(crate) struct Elem {
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
     pub(crate) body: Body,
+    /// What holds it (`fixed`, `compile/fix.rs`).
+    pub(crate) hold: Hold,
+}
+
+/// What holds an element (`compile/fix.rs`): a fact beside its plans,
+/// never a change to them. The build makes each of the element's cells
+/// refuse requests as it says (`Program::holds`).
+#[derive(Debug, Clone, Default)]
+pub(crate) enum Hold {
+    #[default]
+    Off,
+    /// A literal `fixed`.
+    Always,
+    /// While any of these flags is set.
+    While(Vec<RefId>),
 }
 
 #[derive(Debug, Clone, Default)]

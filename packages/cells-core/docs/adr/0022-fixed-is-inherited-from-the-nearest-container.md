@@ -22,7 +22,7 @@ that wrote it, so `<graph fixed>` drew draggable points
 (`docs/principles-alignment.md` §3.3). The compile is the right place to
 inherit: a container's chain is static, an element's ancestors in its
 template are its `name_scope` chain and the template's parent continues
-it, so the fold costs nothing at tick time, and the one `Hold` mechanism
+it, so the fold costs nothing at tick time, and the one hold mechanism
 `fixed` already had does the rest.
 
 ## Considered options
@@ -48,12 +48,29 @@ it, so the fold costs nothing at tick time, and the one `Hold` mechanism
 
 ## Consequences
 
-- `Compiler::plan_fix(t, e)` takes the element and walks the chain
-  (`nearest_attr`); `Fix::apply` and `Hold` are unchanged. Every planner
-  that applied `fixed` before inherits it now: the prop-table types, the
-  `Plan` types, and container copies' clones, whose aliases are held when
-  the copy or a container around it is fixed (a clone of a type with a
-  list of points takes its points at build and is not held yet).
+- `Compiler::plan_hold(t, e)` takes the element and walks the chain
+  (`nearest_attr`).
+- *Amended 2026-10-29.* `fixed` is a fact beside an element's plans, not
+  a rewrite of them. The attributes that hold an element are one table,
+  `HOLD_ATTRS` in `compile/fix.rs` (its name, whether it is inherited,
+  the types it holds); `plan_elem` records each element's `Hold` beside
+  its plans, whatever planned it, and the build holds every cell of a held
+  element (`Program::holds`), which the inversion checks before it writes
+  or inverts through a cell. A held slot that would share another
+  element's cell gets its own (`OpSpec::Copy`). Before, `fixed` moved each
+  writable source to a hidden slot behind a `Hold` instruction, so an
+  element had its planner's plan and `fixed`'s, and code reading a plan
+  had to know which to read; each planning path applied it itself, and two
+  never did (a type with a planner of its own, such as `<math>`, and an
+  `extend` of a prop), and the list of sources it moved had missed an
+  unbound `<mathInput>`'s essential math. Now there is one plan per slot
+  and no list: every cell of a held element is held. The table has one
+  test, `every_hold_attribute_holds_as_its_row_says`, which names no
+  component. A literal `fixed` holds by a constant flag, so the classing
+  (ADR 0018) makes the values fixed cells, as `Fix::Literal` did; one
+  constant flag cell is added per document that has one. An own-only
+  attribute (`fixAxes`) is looked up only on a type it holds, so `<point
+  fixAxes>` is refused (ADR 0021).
 - `fixLocation` is read on every type, so a container may carry it for
   the shapes inside; a type that is neither located nor a container
   accepts it with no effect, which is the attribute's meaning there.

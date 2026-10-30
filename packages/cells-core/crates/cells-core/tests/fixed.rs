@@ -1,8 +1,8 @@
 //! `fixed` (and a graph's `fixAxes`) given by a reference: the element's
-//! cells sit behind `Hold` instructions on the flag, so requests through the
+//! cells are held by the flag (`Program::holds`), so requests through the
 //! element are dropped while the flag is set, and the element follows its
-//! sources either way. A literal `fixed` makes fixed cells and holds the
-//! rest (references, a copy's referent) by a constant flag. A prop no
+//! sources either way. A literal `fixed` holds them always, so the classing
+//! makes its values fixed cells. A prop no
 //! renderer requests, a circle's radius, is requested through an input
 //! bound to it, as in a document (ADR 0018).
 
@@ -67,7 +67,7 @@ fn a_copy_of_a_dynamically_fixed_point_is_fixed() {
 }
 
 /// Requests on a circle's center invert through `CircleCenterPoint` into its
-/// own center and through-point slots, which are gated.
+/// own center and through-point slots, which are held.
 #[test]
 fn a_circle_with_dynamic_fixed() {
     let mut doc = load(
@@ -81,8 +81,8 @@ fn a_circle_with_dynamic_fixed() {
     let t = doc.request(&[req(&doc, "c", "cx", 2.0), req(&doc, "c", "cy", 2.0)]);
     assert!(!t.dropped.is_empty());
     assert_eq!(v(&doc, "C", "x"), 0.0);
-    // The radius fans out to both coordinates of the through point.
-    assert_eq!(set(&mut doc, "r", "value", 10.0), 2);
+    // The radius is the circle's own cell, held: the request stops there.
+    assert_eq!(set(&mut doc, "r", "value", 10.0), 1);
     assert_eq!(v(&doc, "c", "radius"), 5.0);
     // The referenced center still moves the circle.
     set(&mut doc, "C", "x", 1.0);
@@ -348,4 +348,29 @@ fn fix_location_leaves_a_value_writable() {
     .unwrap();
     assert_eq!(set(&mut doc, "mi", "value", 5.0), 0);
     assert_eq!(v(&doc, "n", "value"), 5.0);
+}
+
+/// What holds an element is decided beside its plans, whatever planned it
+/// (`Compiler::plan_hold`), and held in its cells, so it holds the
+/// elements no planner of the prop table or `extend` handles: a type with a planner of its own (a
+/// `<math>`, reached through an input bound to it), an `extend` of a
+/// prop, and an essential math (an unbound `<mathInput>`'s expression).
+/// Each once took the write.
+#[test]
+fn fixed_holds_however_an_element_is_planned() {
+    let mut doc = load(
+        r#"<group fixed>
+             <math name="m">3</math>
+             <mathInput name="typed"/>
+           </group>
+           <mathInput name="mi" bindValueTo="$m"/>
+           <point name="C">(1,2)</point>
+           <graph fixed><point name="Q" extend="$C.coords"/></graph>"#,
+    )
+    .unwrap();
+    assert_eq!(set(&mut doc, "mi", "value", 7.0), 1);
+    assert_eq!(v(&doc, "m", "value"), 3.0);
+    assert_eq!(set(&mut doc, "typed", "value", 7.0), 1);
+    assert_eq!(set(&mut doc, "Q", "x", 9.0), 1);
+    assert_eq!(v(&doc, "C", "x"), 1.0);
 }

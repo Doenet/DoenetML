@@ -22,7 +22,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
 use crate::components::prop::{case, conditional_content};
-use crate::program::Op;
+use crate::program::{Needs, Op};
 
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -314,9 +314,8 @@ impl<'a> Signer<'a> {
             }
             if cell.index() < self.out.n_essential {
                 leaves.insert(cell);
-            } else if let Some(instr) = self.instr_of(cell) {
-                stack.extend(instr.op.inputs(&self.out.operands.cells));
             }
+            stack.extend(self.needs(cell).all());
         }
         leaves
     }
@@ -328,27 +327,29 @@ impl<'a> Signer<'a> {
         let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
         let mut stack: Vec<CellIdx> = seeds.collect();
         while let Some(cell) = stack.pop() {
-            if !seen.insert(cell) || cell.index() < self.out.n_essential {
+            if !seen.insert(cell) {
                 continue;
             }
-            if let Some(instr) = self.instr_of(cell) {
-                for i in instr.op.inputs(&self.out.operands.cells) {
-                    if i.index() < self.out.n_essential {
-                        read.insert(i);
-                    }
-                    stack.push(i);
+            for i in self.needs(cell).all() {
+                if i.index() < self.out.n_essential {
+                    read.insert(i);
                 }
+                stack.push(i);
             }
         }
         read
     }
 
-    fn instr_of(&self, cell: CellIdx) -> Option<&Instr> {
+    /// What `cell` needs (`program::Needs`): the one relation the closure
+    /// and the hash follow.
+    fn needs(&self, cell: CellIdx) -> Needs<'a> {
         let (i, _) = self.producer[cell.index()];
-        (i != u32::MAX).then(|| &self.out.instrs[i as usize])
+        let instr = (i != u32::MAX).then(|| &self.out.instrs[i as usize]);
+        Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
     }
 
-    /// A cell's hash: what it is, never where it is.
+    /// A cell's hash: what it is, never where it is, and what holds it
+    /// (`Program::holds`).
     fn hash(&mut self, cell: CellIdx) -> u64 {
         // Post-order without recursion: a chain of cells may be long.
         let mut stack = vec![(cell, false)];
@@ -358,30 +359,35 @@ impl<'a> Signer<'a> {
             }
             let ci = c.index();
             let out = self.out;
-            let h = if ci < out.n_essential {
+            let needs = self.needs(c);
+            let instr = needs.instr();
+            let reads: Vec<CellIdx> = needs.all().collect();
+            let n_inputs = needs.inputs().count();
+            if !ready {
+                stack.push((c, true));
+                stack.extend(reads.iter().map(|&i| (i, false)));
+                continue;
+            }
+            let hashes: Vec<u64> = reads
+                .iter()
+                .map(|&i| self.hashes[i.index()].unwrap())
+                .collect();
+            let (ins, holds) = hashes.split_at(n_inputs);
+            let what = if ci < out.n_essential {
                 hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
             } else if ci < out.n_essential + out.n_fixed {
                 hash_of(("f", self.value_hash(c, out.cells[ci])))
-            } else {
-                let Some(instr) = self.instr_of(c) else {
-                    self.hashes[ci] = Some(hash_of("unwritten"));
-                    continue;
-                };
-                let inputs: Vec<CellIdx> = instr.op.inputs(&out.operands.cells).collect();
-                if !ready {
-                    stack.push((c, true));
-                    stack.extend(inputs.iter().map(|&i| (i, false)));
-                    continue;
-                }
+            } else if let Some(instr) = instr {
                 let k = self.producer[ci].1;
-                let op = self.op_hash(instr, &inputs);
-                let ins: Vec<u64> = inputs
-                    .iter()
-                    .map(|&i| self.hashes[i.index()].unwrap())
-                    .collect();
-                hash_of(("d", op, k, ins))
+                hash_of(("d", self.op_hash(instr, &reads[..n_inputs]), k, ins))
+            } else {
+                hash_of("unwritten")
             };
-            self.hashes[ci] = Some(h);
+            self.hashes[ci] = Some(if holds.is_empty() {
+                what
+            } else {
+                hash_of((what, "held", holds))
+            });
         }
         self.hashes[cell.index()].unwrap()
     }

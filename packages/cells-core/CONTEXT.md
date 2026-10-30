@@ -279,13 +279,16 @@ Fixed cells have no producer and no essential key; a request that reaches
 one is dropped. A fixed value nothing live reads gets no cell when the load
 is pruned (ADR 0019); the dead cell is itself a fixed cell.
 
-**Hold** — The instruction that puts a dynamic `fixed` (or `fixAxes`) on a
-cell: forward it is the identity, and its inverse drops the request while the
-flag is nonzero. A literal `fixed` holds, by a constant flag, the cells it
-cannot make fixed: references and a copy's referent. Not to be confused with
-a gate. An element's `fixed` is its own or the nearest container's (ADR
-0022); `fixLocation` holds a *located* type (one whose every value is a
-location: the geometry types) the same way.
+**Hold** — What `fixed` (or `fixAxes`) puts on an element: every cell of
+it refuses a request while one of its flags is nonzero (`Program::holds`);
+forward, nothing changes. A literal `fixed` holds by a constant flag, so the
+classing makes the element's values fixed cells. A held element's slot that
+would share another element's cell gets one of its own (`OpSpec::Copy`), so
+the hold is on it and not on the other; a reference to a held element shares
+its cell and is held with it. Not to be confused with a gate. An element's
+`fixed` is its own or the nearest container's (ADR 0022); `fixLocation`
+holds a *located* type (one whose every value is a location: the geometry
+types) the same way.
 
 **Slot** — At build time, one prop of one component instance (or a hidden
 value a component type's planner needs), before aliases merge slots into cells. A

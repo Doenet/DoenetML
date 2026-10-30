@@ -87,10 +87,10 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
     pub(in crate::build) fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
-        out.extend(self.sources[s.index()].inputs(&self.op_inputs));
+        out.extend(self.sources[s.index()].eval_inputs(&self.op_inputs));
         for (slot, src) in &self.later_sources {
             if *slot == s {
-                out.extend(src.inputs(&self.op_inputs));
+                out.extend(src.eval_inputs(&self.op_inputs));
             }
         }
     }
@@ -100,7 +100,7 @@ impl<'c> Builder<'c> {
     /// is searched.
     fn reads_only_earlier_slots(&self) -> bool {
         let earlier =
-            |s: usize, src: &BuiltSource| src.inputs(&self.op_inputs).all(|w| w.index() < s);
+            |s: usize, src: &BuiltSource| src.eval_inputs(&self.op_inputs).all(|w| w.index() < s);
         self.sources
             .iter()
             .enumerate()
