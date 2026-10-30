@@ -29,7 +29,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
 | B9 | **Partly fixed on main** (**[probe]** at `a90ac9b`, after #2393): `$r[1].d.h` and `$cc.d.h` in #2371's repeat and conditionalContent examples now resolve; its reload example is not rechecked. A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
 | B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
-| B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. The rule is open under CPY-8 |
+| B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
@@ -1079,7 +1079,7 @@ is an error, so the case cannot arise.
 
 > A tag that makes its own content, by repeating it, choosing it or gathering it, cannot be
 > extended. To show the same content again, reference it: `$x`. To make a new instance, `copy` it
-> or write the tag again. The parts of a choosing tag (`<case>`, `<else>`, `<option>`) cannot be
+> or write the tag again (D33 proposes a separate form for this). The parts of a choosing tag (`<case>`, `<else>`, `<option>`) cannot be
 > extended either: a branch means something only inside the tag that chooses it.
 
 It covers these tags:
@@ -1112,7 +1112,8 @@ its content, as `for` is for a repeat, so the same reasoning applies to them.
   (`$r[2].y`), so a name adds nothing.
 - **A list type stays allowed** when the tags are related types (D26). `<numberList
   extend="$seq">` is a list made from the sequence's values, not an extend of the sequence.
-- **`copy` is not part of this rule.** It stays the way to make a new instance. What a copy of
+- **`copy` is not part of this rule.** It stays the way to make a new instance (D33 proposes
+  splitting it into a duplicating form and a fresh form). What a copy of
   these tags does is governed by the copy principles:
   - CPY-1: a copy is the source's DoenetML pasted;
   - D4: a copy of a composite takes the attributes written on it, and appends its children;
@@ -1140,3 +1141,173 @@ its content, as `for` is for a repeat, so the same reasoning applies to them.
   `listcomponentcollections.test.ts`.
 
 Each of these should be rewritten to use `$x` where it checks that the content is shown again.
+
+## D33. Two kinds of copy: written again here, or duplicated with its state (proposed Tier 1; names open)
+
+**Today** a `copy` carries its source's reader state and random choices (CPY-2, CPY-8), and the
+attributes written on it override the source's (CPY-1, D4). The two conflict when what is written
+changes what is chosen: `<select copy="$x" numToSelect="4"/>` of a two-pick select cannot keep
+two picks and make four (#2389, B11). #2392 makes such a copy choose again when it writes an
+attribute that decides what is chosen with a different value. Two problems remain with any rule
+of that kind.
+
+**An author has to reason about values.** `<select copy="$s1" numToSelect="2"/>` would keep
+`s1`'s picks, while `numToSelect="3"` would choose again. When `s1`'s `numToSelect` is computed,
+the author cannot tell which one they wrote. Two variants were considered:
+- **(A) keep the choices unless an attribute that decides them is written.** Hard to state: the
+  author must know which attributes count. #2392 shows that it is hard to specify too. It needs a
+  list per class, comparison with defaults, attributes that set the same parameter
+  (`variance`/`standardDeviation`), and a rule that any reference counts as changed.
+- **(B) keep the choices only if nothing at all is written.** Easy to state, but it removes the
+  frozen copy (`<mathInput copy="$mi" disabled/>` keeps the reader's 5 today, **[probe]**). It
+  either resets everything nested in a `<section copy boxed>`, or misses the case below. Its
+  workaround, a plain copy then an extend, is an error under D32 for the tags concerned.
+
+**Changes reach nested content.** **[probe]** on main and on #2392's branch, variants 1–3:
+
+```xml
+<setup>
+  <module name="m">
+    <moduleAttributes><number name="k">2</number></moduleAttributes>
+    <p name="p"><selectFromSequence from="1" to="100" numToSelect="$k"/></p>
+  </module>
+</setup>
+<module name="m2" copy="$m" k="4"/>   <!-- shows nothing -->
+<module name="m3" copy="$m"/>         <!-- the same two numbers as m -->
+```
+
+Neither (A) nor (B), checking only the tag the copy is written on, sees this. The same happens
+when a reference inside a copy is looked up again where the copy lands (CPY-6, D1).
+
+**Two intents behind `copy`.**
+1. **Duplicate it, as it is now.** A review section repeating a problem with the reader's
+   answers; a disabled copy of an input. The random choices must come along, because the reader's
+   work only makes sense against the numbers they saw. This is CPY-2 and CPY-8.
+2. **Write it again here.** A module defined in `<setup>` and used several times; a question
+   repeated with new numbers. The author expects what would happen if the DoenetML were pasted by
+   hand: no reader state, and random choices of its own. Two `<select>`s written by hand already
+   choose independently, so this needs no new rule for randomness.
+
+Authors who use a module from `<setup>` expect each use to have its own random values, even with
+the same attributes. Today every `<module copy>` repeats the source's draws.
+
+### Proposal
+
+Let the form decide, never the attributes. Below, `NEW` is a placeholder for the name of the
+second form (see "Names").
+
+**The fresh form, `<T NEW="$x" …/>`: written again here.**
+- It is the source's DoenetML pasted (CPY-1): attributes override, children are appended
+  (D4), and names inside are private, reached through its name (NAME-3).
+- It carries no reader state and no random choices. It starts as written content does.
+- Its random components draw their own values, fixed for a given variant and kept through a
+  reload, as any written content's are. Two uses differ, and each is stable. Under D17 each is
+  seeded from its own position.
+- References to names outside the pasted part are looked up again where it lands, as for a copy
+  (CPY-6, D1).
+- `<module NEW="$m" k="4"/>`, with `m` in `<setup>`, becomes the documented module pattern.
+
+**The duplicating form (today's `copy`): duplicated with its state.** It always keeps its source's
+reader state and random choices (CPY-2, CPY-8), whatever is written on it.
+- **Known before the document runs → error.** Writing on it an attribute that decides what a
+  choosing tag chooses (`numToSelect`, `withReplacement`, a range, `exclude`, a sampler's
+  `numSamples` or distribution) is an error, as is adding children that are options (an
+  `<option>` inside a copy of a `<select>`). The check goes by attribute name, so
+  `numToSelect="2"` and `numToSelect="3"` behave the same, computed or not. The error says to use
+  the fresh form. This matches D32, which makes the same changes an error on an `extend`.
+- **Known only at run time → warning.** When what is written reaches nested content, as `k`
+  does above, or a reference inside is looked up again elsewhere, the carried choices win and a
+  warning says to use the fresh form. The mismatch may only appear after the reader interacts, so
+  it cannot be an error. `<module copy="$m" k="2"/>` and `k="4"` then behave the same: the
+  source's choices.
+- **Everything else is allowed** and keeps all of the state: appearance attributes (`hide`,
+  `displayDigits`, `styleNumber`), `disabled`, `fixed`, and children added to a group or
+  section (a random child added there draws its own value, as #2344 settled).
+- Carried reader state already wins over a written attribute that would set it today:
+  `<mathInput copy="$mi" prefill="9"/>` shows the reader's 5 (**[probe]**). Carried choices
+  winning is the same rule.
+- An attribute written on the copy does beat the reader's change to that same attribute. Without
+  it, `<p copy="$x" hide="false"/>` of something the reader hid stays hidden (D2).
+- Content attributes of tags that do not choose at random stay allowed: `for` on a copy of a
+  repeat, `condition` on a copy of a conditionalContent (D4, B5). Carried reader state attaches by
+  iteration and by case (D12, COMP-10).
+
+**Both forms are needed for every tag**, including the choosing ones. A `<select>` has reader
+state when its options hold inputs, so duplicating it with that state differs from writing it
+again.
+
+**For the author, one sentence each:**
+- `extend`: the same component, with your changes;
+- the duplicating form: a duplicate, as it is now;
+- the fresh form: written again here.
+
+### Names
+
+Left open, for feedback. Two directions:
+1. **Keep `copy` for the duplicating form, and name the fresh one** (`instance`, `use`,
+   `template`, `new`). Existing documents keep their meaning. The migration is below.
+2. **Give `copy` the fresh meaning, and name the duplicating form** by what it adds:
+   `copyWithState`, or a name like `snapshot`.
+   - The fresh form is then stated simply: "`copy` is the DoenetML pasted". The duplicating form
+     is stated as an addition: "and also the reader's work and the random choices".
+   - The module pattern uses plain `copy`, as authors write today.
+   - `snapshot` suggests the result is frozen. It is not: inputs in it still change, and
+     references inside it stay live (CPY-3).
+   - Every existing `copy` of random content, or of content the reader changed, would change
+     meaning. That needs a migration of its own: a version gate, or an automatic rename of
+     existing `copy` attributes.
+
+### Migration (direction 1)
+
+- `<module copy>` with attributes keeps today's draws, except where an attribute changes a nested
+  choice. Today that shows nothing (above), and after this it shows the source's choices with a
+  warning.
+- A hint on `<module copy>` of a module in `<setup>` points to the fresh form.
+- Moving existing content to the fresh form changes its random values. doenet.org does not let
+  the source or DoenetML version of assigned content change, so assigned work is not affected.
+
+### What it changes
+
+- **CPY-8** becomes absolute: a copy keeps its source's choices, with no exception for copies that
+  change what is chosen. B11 is resolved by the error and the warning above.
+- **#2392.** Its diagnostics, which stop a mismatch from failing the document, are needed in any
+  case. Its resampling becomes the error (by attribute name) or the warning (at run time). Its
+  per-class lists of attributes that decide choices (`attributesDeterminingChoices`) become what
+  the error checks.
+- **COMP-13.** The module pattern becomes the fresh form with attributes. A copy of a module with
+  attributes stays allowed, as a duplicate.
+- **Documents that promise a new choice from a copy:**
+  - `reference/pretzel.mdx` says a copy with added problems, or a `mode` that does not allow the
+    source's order, makes a new order. That moves to the fresh form.
+  - **[probe]** `<choiceInput copy="$ci" shuffleOrder>` with an added `<choice>` shuffles again
+    today. An added choice is an option, so it becomes the error above when the order is
+    shuffled. Whether that applies when `shuffleOrder` is not known until run time is a detail
+    to settle.
+- **D32.** Its error message names the fresh form, not `copy`, as the way to make a new
+  repeat or select.
+- **D17** is the mechanism for the fresh form's randomness.
+- **D18** no longer has to say which carried state "still fits" a changed copy.
+- **D2** gains the sub-rule that an attribute written on a copy beats the reader's change to it.
+- **D28.** The fresh form gives option (d)'s "start here, then change on your own" a natural
+  place, though `copy="$x0.value"` is still needed for a single value.
+
+### Open points
+
+- The names (above).
+- Whether a copy of a `choiceInput` with added choices is an error only when its order is
+  shuffled.
+- Whether several fresh uses of one module should ever share draws. If so, the author would ask
+  for it explicitly, for example with a seed attribute.
+
+**Tests that change** depend on the name. Under direction 1:
+- #2392's `copy_changes_choices.test.ts`, if merged: its resampling cases become error and
+  warning cases;
+- copies of a select, pretzel or choiceInput with added options;
+- `module.test.ts` cases that copy a module with attributes and expect independent values, if
+  any. None are known.
+
+New tests:
+- each choosing tag: the fresh form draws its own values, distinct between two uses and stable
+  through a reload;
+- the error for each attribute that decides a choice, with literal and computed values;
+- the run-time warning for the module case above.

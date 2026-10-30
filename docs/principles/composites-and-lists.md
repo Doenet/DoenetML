@@ -291,6 +291,10 @@ ADR 0009 also bans several forms that main's tests use (D13):
     a group's extend, it can add children, `hide` or a name. D32 proposes making a module
     attribute on an extend an error.
   - References in a supplied attribute resolve where the copy is written (NAME-4).
+  - A copy repeats the source's random choices (CPY-8), so every `<module copy>` of one module
+    shows the same draws, and an attribute that changes a nested choice shows nothing
+    (**[probe]**, `numToSelect="$k"`). D33 proposes a separate form for "use this module again,
+    with its own random values", as the pattern for a module defined in `<setup>`.
   - Evidence: `module.test.ts:68`, `:539`, `:1606-1910`.
 - **COMP-14: `<setup>` (Tier 1).**
   - Its content exists and can be referenced, but is never shown.
