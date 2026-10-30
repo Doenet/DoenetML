@@ -10,6 +10,7 @@ use crate::sym::{Engine, Handle};
 use crate::document::CellIdx;
 mod instr;
 mod ops;
+pub mod refuse;
 mod scalar;
 mod vector;
 
@@ -196,6 +197,19 @@ impl Holds {
     /// Every held cell, with its flags.
     pub fn iter(&self) -> impl Iterator<Item = (CellIdx, &[CellIdx])> {
         self.0.iter().map(|(&c, fs)| (c, fs.as_slice()))
+    }
+
+    /// Per cell of `cells`, whether a constant flag holds it: one of the
+    /// constants `constants` (`Document::n_const`) that is set, which no
+    /// request passes while the program stands.
+    pub fn held_always(&self, cells: &[f64], constants: std::ops::Range<usize>) -> Vec<bool> {
+        let mut held = vec![false; cells.len()];
+        for (&c, flags) in &self.0 {
+            held[c.index()] = flags
+                .iter()
+                .any(|f| constants.contains(&f.index()) && cells[f.index()] != 0.0);
+        }
+        held
     }
 }
 

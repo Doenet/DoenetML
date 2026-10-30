@@ -184,9 +184,9 @@ fn census() {
     // unread-attribute check, which the point ignored), both live. A
     // `fixed` costs no instruction since it holds cells (ADR 0022,
     // amended): `fixed.doenet`'s three holds are gone. A collect's count
-    // from a repeat is a counted value, a copy (ADR 0026): one in
+    // from a repeat is a counted value, a copy (ADR 0027): one in
     // `repeats.doenet`, dead. An instruction whose inputs are all
-    // constants is folded into a constant (ADR 0026): 90 of the 275,
+    // constants is folded into a constant (ADR 0027): 90 of the 275,
     // 42 of them live.
     assert!(golden[0] <= 137 && golden[1] == 185, "{golden:?}");
 }
@@ -374,7 +374,7 @@ fn pruning_keeps_every_live_value() {
     }
 }
 
-/// Folding changes no value either (ADR 0026): a load that folds every
+/// Folding changes no value either (ADR 0027): a load that folds every
 /// instruction over constants and one that folds none, both pruned, given
 /// the same requests and actions at four seeds and every repeat at 0 to 4
 /// iterations, hold the same value in every live cell.

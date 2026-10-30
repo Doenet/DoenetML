@@ -48,6 +48,10 @@ impl<'c> Builder<'c> {
             }
         }
         let slot_cells = SlotCells::new(&self, cell_of, def);
+        // Each binary operator of the author's math writes the input that
+        // leads to state (ADR 0026), before the walks read which inputs it
+        // writes.
+        self.orient(&slot_cells);
         // Number cells: essential first, then constants, then derived.
         // Essential values come from the previous build when the slot existed.
         // A value slot is essential when a student's action can write it,
@@ -79,7 +83,7 @@ impl<'c> Builder<'c> {
             let live = self.live_by_record(&self.compiled.live, &slot_cells);
             (live, Record::default())
         };
-        // The counted values the probe found (ADR 0026).
+        // The counted values the probe found (ADR 0027).
         let counted_record = if folds {
             let mut marked = vec![false; n];
             for &s in &self.counted_slots {
@@ -89,7 +93,7 @@ impl<'c> Builder<'c> {
         } else {
             Record::default()
         };
-        // The document constants the probe found (ADR 0026): of the slots
+        // The document constants the probe found (ADR 0027): of the slots
         // whose plan gives one, those that are constants, not essential.
         let document_record = if folds {
             let mut marked = vec![false; n];
@@ -432,7 +436,7 @@ impl<'c> Builder<'c> {
         }
         // Run the folded instructions once, in an order of their own: each
         // reads only constants and the folds before it, so their outputs
-        // are constants from here on (ADR 0026).
+        // are constants from here on (ADR 0027).
         if !folded.is_empty() {
             let mut once =
                 Program::schedule(folded, cells.len(), operands.clone()).map_err(|cell| {
@@ -579,6 +583,79 @@ impl<'c> Builder<'c> {
         components.dast_node.shrink_to_fit();
         components.scope.shrink_to_fit();
         components.referent.shrink_to_fit();
+        // Requests the program cannot land (ADR 0026, `program::refuse`):
+        // the probe warns of each interactive prop once, by its template
+        // element, so a repeat's props are named once, not per iteration.
+        if folds {
+            // Each asked cell once, with the first component and prop that
+            // names it.
+            let mut asked = Vec::new();
+            let mut owner: Vec<(usize, usize, usize)> = Vec::new();
+            let mut is_asked = vec![false; cells.len()];
+            for c in 0..n_comps {
+                let base = components.prop_base[c] as usize;
+                let end = components
+                    .prop_base
+                    .get(c + 1)
+                    .map_or(components.prop_cells.len(), |&e| e as usize);
+                let np = end - base;
+                for pi in 0..np {
+                    let cell = components.prop_cells[base + pi];
+                    if !cell.is_none()
+                        && !is_asked[cell.index()]
+                        && components.component_type[c].is_interactive_prop(np, pi)
+                    {
+                        is_asked[cell.index()] = true;
+                        asked.push(cell);
+                        owner.push((c, pi, np));
+                    }
+                }
+            }
+            let findings = crate::program::refuse::analyze(
+                &instrs,
+                &operands.cells,
+                &operands.vecs,
+                &operands.syms,
+                n_essential,
+                &asked,
+                &holds.held_always(&cells, n_essential..n_essential + n_const),
+            );
+            // The findings come in the order of `asked`.
+            let mut at = 0;
+            for (cell, finding) in findings {
+                while asked[at] != cell {
+                    at += 1;
+                }
+                let (c, pi, np) = owner[at];
+                let node = Some(components.dast_node[c]).filter(|n| !n.is_none());
+                let ty = components.component_type[c];
+                let who = match components.name[c] {
+                    StrId::NONE => format!("<{}>", ty.tag()),
+                    s => strings.get(s).trim().to_string(),
+                };
+                let prop = match ty.prop_name(np, pi) {
+                    Some(name) => format!("{who}.{name}"),
+                    None => who,
+                };
+                self.diagnostics.push(match finding {
+                    crate::program::refuse::Finding::Twice { source } => Diagnostic::warning(
+                        "cells-request-reaches-its-source-twice",
+                        node,
+                        format!(
+                            "a request on '{prop}' is refused: the value it would write, '{}', reaches it along more than one path, so the request could not land where it asks",
+                            cell_label(source)
+                        ),
+                    ),
+                    crate::program::refuse::Finding::Drops => Diagnostic::info(
+                        "cells-request-meets-no-inverse",
+                        node,
+                        format!(
+                            "a request on '{prop}' is dropped: it reaches an operator with no inverse (a power or a comparison)"
+                        ),
+                    ),
+                });
+            }
+        }
         Ok(BuildOutput {
             cells,
             n_essential,
@@ -680,7 +757,7 @@ impl<'c> Builder<'c> {
             let (scope, tslot, _) = self.essential_key(s);
             let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
             let mut src = slot_to_cell[from.index()];
-            // A collect's count is a counted value (ADR 0026): the number
+            // A collect's count is a counted value (ADR 0027): the number
             // a build gathered, held by a copy, which the seed takes; the
             // probe only stands it in by an operator over the repeats'
             // counts.
@@ -726,7 +803,7 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// The instructions this build folds (ADR 0026): by defining slot, an
+    /// The instructions this build folds (ADR 0027): by defining slot, an
     /// operator whose every input, and every flag that holds it, is a
     /// constant (a given value no student can write, a constant, or
     /// another fold), so it is evaluated once, as the build ends, and its
@@ -734,7 +811,7 @@ impl<'c> Builder<'c> {
     /// slot's own scope or one around it, which exists whatever the counts,
     /// so whether a slot folds never turns on whether a referent exists
     /// (the missing-referent cell is never read as one). A counted value
-    /// (ADR 0026) follows the counts, and is never folded; nor is a curve's
+    /// (ADR 0027) follows the counts, and is never folded; nor is a curve's
     /// `Sample`, since the bridge tells a function with a curve from one
     /// without by its samples being derived (`CURVE` in
     /// `doenetml-worker/src/cells/contracts.ts`). Nothing folds in

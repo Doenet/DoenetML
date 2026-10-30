@@ -57,6 +57,7 @@ pub mod coverage;
 mod emit;
 mod expand;
 mod live;
+mod orient;
 mod probe;
 pub mod signature;
 mod slot_cells;
@@ -253,9 +254,9 @@ pub(crate) struct Probed {
     pub(crate) writable: Record,
     /// The live template slots.
     pub(crate) live: Record,
-    /// The counted values' template slots (ADR 0026).
+    /// The counted values' template slots (ADR 0027).
     pub(crate) counted: Record,
-    /// The document constants' template slots (ADR 0026).
+    /// The document constants' template slots (ADR 0027).
     pub(crate) document_constants: Record,
     /// The warnings (`check_counts`).
     pub(crate) warnings: Vec<Diagnostic>,

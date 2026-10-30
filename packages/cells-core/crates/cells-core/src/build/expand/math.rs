@@ -26,7 +26,7 @@ impl<'c> Builder<'c> {
             });
         }
         // A constant expression is the same in every instance and every
-        // build: made once per load (ADR 0026).
+        // build: made once per load (ADR 0027).
         let constant = (expr, post);
         if let Some(&h) = self.session.math_constants.borrow().get(&constant) {
             return Ok(BuiltSource::Const(h.to_value()));
@@ -74,7 +74,7 @@ impl<'c> Builder<'c> {
     }
 
     /// Constant expression `constant` as imported (`h`), its post applied
-    /// and kept for every later instance and build (ADR 0026).
+    /// and kept for every later instance and build (ADR 0027).
     fn math_constant(&mut self, constant: (ExprId, Post), h: crate::sym::Handle) -> BuiltSource {
         let h = self.post(h, constant.1);
         self.session.math_constants.borrow_mut().insert(constant, h);
@@ -386,7 +386,7 @@ impl<'c> Builder<'c> {
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
                 let a = self.lower(a, scope);
-                self.op_slot(OpSpec::Negate, &[a], scope)
+                self.math_op(OpSpec::Negate, &[a], scope)
             }
             // Commutative: a literal on the left goes second.
             Expr::Add(a, b) | Expr::Mul(a, b) => {
@@ -399,25 +399,25 @@ impl<'c> Builder<'c> {
                     _ => (a, b),
                 };
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                self.op_slot(spec, &[a, b], scope)
+                self.math_op(spec, &[a, b], scope)
             }
             // `k - b` as `-b + k`, so a request reaches `b`.
             Expr::Sub(a, b) if num(&self.arena, a).is_some() && num(&self.arena, b).is_none() => {
                 let (k, b) = (self.lower(a, scope), self.lower(b, scope));
-                let nb = self.op_slot(OpSpec::Negate, &[b], scope);
-                self.op_slot(OpSpec::Add, &[nb, k], scope)
+                let nb = self.math_op(OpSpec::Negate, &[b], scope);
+                self.math_op(OpSpec::Add, &[nb, k], scope)
             }
             Expr::Sub(a, b) => {
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                self.op_slot(OpSpec::Sub, &[a, b], scope)
+                self.math_op(OpSpec::Sub, &[a, b], scope)
             }
             Expr::Div(a, b) => {
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                self.op_slot(OpSpec::Div, &[a, b], scope)
+                self.math_op(OpSpec::Div, &[a, b], scope)
             }
             Expr::Pow(a, b) => {
                 let (a, b) = (self.lower(a, scope), self.lower(b, scope));
-                self.op_slot(OpSpec::Pow, &[a, b], scope)
+                self.math_op(OpSpec::Pow, &[a, b], scope)
             }
             Expr::Call(f, args) => {
                 let mut xs = args
@@ -425,9 +425,9 @@ impl<'c> Builder<'c> {
                     .map(|&a| self.lower(a, scope))
                     .collect::<Vec<_>>();
                 match f {
-                    Func::Round => self.op_slot(OpSpec::Round, &xs, scope),
-                    Func::Floor => self.op_slot(OpSpec::Floor, &xs, scope),
-                    Func::Clamp => self.op_slot(OpSpec::Vec(VecOp::Clamp), &xs, scope),
+                    Func::Round => self.math_op(OpSpec::Round, &xs, scope),
+                    Func::Floor => self.math_op(OpSpec::Floor, &xs, scope),
+                    Func::Clamp => self.math_op(OpSpec::Vec(VecOp::Clamp), &xs, scope),
                     // More than two arguments fold from the left.
                     Func::Min | Func::Max => {
                         let spec = if f == Func::Min {
@@ -437,10 +437,21 @@ impl<'c> Builder<'c> {
                         };
                         let first = xs.remove(0);
                         xs.into_iter()
-                            .fold(first, |acc, x| self.op_slot(spec, &[acc, x], scope))
+                            .fold(first, |acc, x| self.math_op(spec, &[acc, x], scope))
                     }
                 }
             }
         }
+    }
+
+    /// `op_slot` for an operator lowered from the author's math: a binary
+    /// one is recorded for orientation (`build/orient.rs`, ADR 0026), which
+    /// leaves the operators of components' own tables as written.
+    fn math_op(&mut self, spec: OpSpec, inputs: &[SlotId], scope: ScopeId) -> SlotId {
+        let slot = self.op_slot(spec, inputs, scope);
+        if inputs.len() == 2 {
+            self.author_ops.push(slot);
+        }
+        slot
     }
 }

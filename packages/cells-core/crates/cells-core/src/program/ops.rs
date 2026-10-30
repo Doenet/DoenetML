@@ -122,6 +122,18 @@ macro_rules! scalar_ops {
                 }
             }
 
+            /// The input positions its inverse may write, as a mask over
+            /// `Op::inputs`: bit `k` for input `k`, as `OpSpec::writes`. A
+            /// vector or symbolic operator's kind is in the program's
+            /// tables (`Program::vecs`, `Program::syms`).
+            pub fn writes(&self, vecs: &[VecOp], syms: &[crate::program::SymEntry]) -> u64 {
+                match *self {
+                    $(Op::$name(..) => scalar_ops!(@writes $kind),)*
+                    Op::Vec(_, _, v, _) => vecs[v.index()].writes(),
+                    Op::Sym(_, _, s, _) => syms[s.index()].kind.writes(),
+                }
+            }
+
             /// A scalar operator with its inputs left out: what it computes,
             /// whatever cells it reads. None for a vector or symbolic one,
             /// which says what it computes through the program's tables.

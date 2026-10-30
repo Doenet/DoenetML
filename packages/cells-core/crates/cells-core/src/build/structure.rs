@@ -108,7 +108,7 @@ pub struct Structure {
     pub walked_essential_slots: Vec<(ScopeId, u32)>,
     /// What each live template slot's own source makes it in this build,
     /// by its (scope, template, template slot): what `tests/every_count.rs` checks a
-    /// constant against across builds (ADR 0026).
+    /// constant against across builds (ADR 0027).
     #[cfg(feature = "testing")]
     pub slot_classes: Vec<((ScopeId, u32, u32), SlotClass)>,
 }
@@ -119,7 +119,7 @@ pub struct Structure {
 pub enum SlotClass {
     Essential,
     /// A constant, with its value, and whether the compile's record makes
-    /// it a document constant (ADR 0026).
+    /// it a document constant (ADR 0027).
     Constant {
         value: f64,
         document: bool,

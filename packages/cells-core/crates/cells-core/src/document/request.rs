@@ -72,13 +72,16 @@ impl Document {
         checked: bool,
     ) -> TickOutcome {
         let mut tick = TickOutcome::default();
-        // A request on a cell that is not an input's is refused (ADR 0018).
+        // A request on a cell that is not an input's is refused (ADR 0018),
+        // and one whose inverse would write a value reaching its cell along
+        // more than one path, where it cannot land (ADR 0026).
         // An infinite ask is never meaningful state (NaN is: an emptied
         // input), and the current core rejects it; drop it before inverting,
         // with any value the cell cannot hold (a number asked of a math cell).
         let (mut accepted, refused): (Vec<Request>, Vec<Request>) =
             requests.iter().partition(|r| {
                 (!checked || self.is_interactive(r.cell))
+                    && !self.is_refused(r.cell)
                     && (!r.value.is_infinite() || self.accepts_infinity(r.cell))
                     && self.can_hold(r.cell, r.value)
             });
@@ -88,6 +91,7 @@ impl Document {
             let refused = |p: &PointRequest| {
                 p.values.iter().any(|v| v.is_infinite())
                     || (checked && !p.cells.iter().all(|&c| self.is_interactive(c)))
+                    || p.cells.iter().any(|&c| self.is_refused(c))
             };
             if g.iter().any(refused) {
                 tick.dropped.extend(g.iter().map(|p| Request {

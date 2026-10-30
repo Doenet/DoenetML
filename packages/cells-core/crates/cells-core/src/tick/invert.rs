@@ -60,7 +60,7 @@ pub struct Inversion {
 /// request on an instruction's outputs is known before it is inverted
 /// once; the input requests an inverse produces join the queue. Cells
 /// below `n_essential` are essential; a request landing on another
-/// producer-less cell (a fixed cell), or on a cell a `fixed` holds
+/// producer-less cell (a constant), or on a cell a `fixed` holds
 /// (`Program::holds`), is dropped.
 ///
 /// `groups` are points requested together (ADR 0006): before such a

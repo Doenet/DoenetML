@@ -207,7 +207,7 @@ fn collect_gathers_through_a_repeat_and_follows_its_growth() {
     assert_eq!(doc.value("cnt", "value"), Some(5.0));
     assert_eq!(doc.children(doc.resolve_path("c").unwrap()).count(), 5);
     // A request on the collect count is dropped: it is a counted value,
-    // not state (ADR 0026).
+    // not state (ADR 0027).
     let tick = doc.request(&[req(doc.cell("cnt", "value").unwrap(), 9.0)]);
     assert_eq!(tick.dropped.len(), 1);
 }

@@ -268,7 +268,7 @@ number-typed components with numeric operators at build time, so it never
 becomes a math cell. Decided at build time, never from runtime values.
 
 **Constant** — A cell whose value depends on the source, the seed and
-the scope it is in alone (ADR 0026): no tick changes it, and no rebuild changes
+the scope it is in alone (ADR 0027): no tick changes it, and no rebuild changes
 it for a scope that still exists. Every given value no student's action can
 write (ADR 0018), such as a point's default `hide` or the values of an element
 under a literal `fixed`; an operator's constant (a factor, clamp bounds, an
@@ -289,7 +289,7 @@ it, a constant otherwise (ADR 0018).
 _Avoid_: literal (a literal is text written in the source)
 
 **Counted value** — A value a build counts from the structure it stamped,
-which follows the iteration counts (ADR 0026): a collect's count from a
+which follows the iteration counts (ADR 0027): a collect's count from a
 repeat, a section's number after one, the credit of a section whose answers
 are all in repeats. A derived cell in every build, holding the number its build
 counted; the probe records which template slots hold one

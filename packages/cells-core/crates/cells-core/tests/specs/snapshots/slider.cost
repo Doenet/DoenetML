@@ -7,6 +7,7 @@ a range that does not start at zero: cells 20 · essential 1 · constant 11 · i
 non-finite requests are dropped: cells 20 · essential 1 · constant 11 · instrs 8 · components 2
 a fractional step counts its items as the current core does: cells 20 · essential 1 · constant 11 · instrs 8 · components 2
 a request on index snaps too: cells 21 · essential 1 · constant 12 · instrs 8 · components 3
+an index outside the range is projected onto it: cells 21 · essential 1 · constant 12 · instrs 8 · components 3
 bindValueTo an input: the input receives the snapped value: cells 20 · essential 1 · constant 11 · instrs 8 · components 3
 bindValueTo a derived value: the request continues down the chain: cells 22 · essential 1 · constant 12 · instrs 9 · components 4
 bound to a sum with an emptied input: the request is dropped, not written as NaN: cells 22 · essential 2 · constant 11 · instrs 9 · components 5

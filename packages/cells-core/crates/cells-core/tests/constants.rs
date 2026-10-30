@@ -1,4 +1,4 @@
-//! The constants of the golden set and `fixtures/sir.doenet` (ADR 0026,
+//! The constants of the golden set and `fixtures/sir.doenet` (ADR 0027,
 //! phase 4): per document, at load, how many constants it has, how many of
 //! their template slots the compile's record makes document constants and
 //! how many scope constants, and how many distinct values the document
@@ -78,7 +78,7 @@ fn census() {
     assert!(total[1] > 0, "no document constant in the golden set");
 }
 
-/// A folded instruction is a constant (ADR 0026): after the load, a full
+/// A folded instruction is a constant (ADR 0027): after the load, a full
 /// recompute, which runs every instruction the program kept, changes no
 /// constant and no other cell, and nothing the program runs writes a
 /// constant.

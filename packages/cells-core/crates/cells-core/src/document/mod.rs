@@ -61,7 +61,7 @@ pub struct Document {
     /// Number of essential cells; `cells[..n_essential]` are essential.
     pub n_essential: usize,
     /// Constants follow the essential ones: values no tick changes, which
-    /// depend on the source and their scope alone (ADR 0026), such as
+    /// depend on the source and their scope alone (ADR 0027), such as
     /// an author's value no student can write, an iteration's index or the
     /// missing-referent NaN.
     pub n_const: usize,
@@ -88,6 +88,10 @@ pub struct Document {
     sticky: Vec<sticky::StickyTable>,
     /// One bit per cell a renderer may request (`interactive.rs`).
     interactive: Vec<u64>,
+    /// One bit per interactive cell whose requests are refused: the value
+    /// its inverse writes reaches it along more than one path (ADR 0026,
+    /// `program::refuse`).
+    refused: Vec<u64>,
     /// Which cells the document computes (ADR 0019, `outputs.rs`).
     live: crate::build::Live,
 
@@ -164,6 +168,7 @@ impl Document {
             structure,
             sticky: Vec::new(),
             interactive: Vec::new(),
+            refused: Vec::new(),
             live,
             session,
             loaded: Loaded {
@@ -178,6 +183,7 @@ impl Document {
         };
         doc.sticky = doc.sticky_tables();
         doc.interactive = doc.interactive_bits();
+        doc.refused = doc.refused_bits();
         doc
     }
 
@@ -257,8 +263,9 @@ impl Document {
         cell.index() < self.n_essential
     }
 
-    /// A constant that is not state (an iteration index, a math handle, a
-    /// `fixed` value): fixed cells follow the essential ones.
+    /// A constant (ADR 0027): a value no tick changes, such as an
+    /// iteration index, a math handle or a `fixed` value. Constants follow
+    /// the essential cells.
     pub fn is_const(&self, cell: CellIdx) -> bool {
         (self.n_essential..self.n_essential + self.n_const).contains(&cell.index())
     }

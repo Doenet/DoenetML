@@ -45,7 +45,7 @@ fn a_literal_operand_is_one_cell_for_every_iteration() {
         )
     };
     // Unfolded: every iteration's `$v` is computed from its index, so the
-    // operators run; folded, they read only constants (ADR 0026).
+    // operators run; folded, they read only constants (ADR 0027).
     let unfolded = |src: &str| {
         let options = cells_core::LoadOptions {
             fold: false,

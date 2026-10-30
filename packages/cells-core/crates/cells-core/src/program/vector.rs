@@ -691,7 +691,9 @@ fn project_line(x: f64, y: f64, x1: f64, y1: f64, x2: f64, y2: f64) -> (f64, f64
 }
 
 /// Every input a vector inverse writes, as a scalar write or a point of a
-/// group, is one `VecOp::writes` declares (ADR 0018).
+/// group, is one `VecOp::writes` declares (ADR 0018); and every inverse
+/// round-trips: what it writes, evaluated again, gives the requested
+/// outputs, or a projection that asking again leaves where it is (ADR 0026).
 #[cfg(test)]
 mod writes {
     use super::*;
@@ -792,5 +794,135 @@ mod writes {
                 }
             }
         }
+    }
+
+    fn close(a: f64, b: f64) -> bool {
+        a == b
+            || (a - b).abs() <= 1e-9 * a.abs().max(b.abs()).max(1.0)
+            || (a.is_nan() && b.is_nan())
+    }
+
+    /// `inp` with everything `out` writes, as the request engine writes it
+    /// when nothing holds an input back.
+    fn written(inp: &[f64], out: &Produced) -> Vec<f64> {
+        let mut next = inp.to_vec();
+        for &(c, v) in &out.writes {
+            next[c.index()] = v;
+        }
+        for p in out.groups.iter().flatten() {
+            next[p.cells[0].index()] = p.values[0];
+            next[p.cells[1].index()] = p.values[1];
+        }
+        next
+    }
+
+    /// The outputs after asking `desired` of `op` at `inp`, or None when the
+    /// inverse drops it.
+    fn after(op: VecOp, inp: &[f64], desired: &[Option<f64>]) -> Option<(Vec<f64>, Vec<f64>)> {
+        let cells: Vec<CellIdx> = CellIdx::below(op.n_in()).collect();
+        let mut cur = vec![0.0; op.n_out()];
+        op.eval(inp, &mut cur);
+        let mut out = Produced::default();
+        if !op.invert(&cells, inp, &cur, desired, &mut out) {
+            return None;
+        }
+        let next = written(inp, &out);
+        let mut got = vec![0.0; op.n_out()];
+        op.eval(&next, &mut got);
+        Some((next, got))
+    }
+
+    /// The outputs a request asks together: a point's two coordinates, as
+    /// a renderer drags a point, and each other output alone.
+    fn requested_together(op: VecOp) -> Vec<Vec<usize>> {
+        let points = |n: usize| (0..n).map(|i| vec![2 * i, 2 * i + 1]);
+        match op {
+            VecOp::Shape { n, .. } => points(n as usize).collect(),
+            VecOp::CircleCenterPoint | VecOp::CirclePoints { .. } => vec![vec![0, 1], vec![2]],
+            VecOp::CircleTwoPointsRadius
+            | VecOp::PolarSlope
+            | VecOp::PolarDirection { .. }
+            | VecOp::ProjectCircle
+            | VecOp::ProjectLine => points(1).collect(),
+            VecOp::LinePointsFromCoeffs => points(2).collect(),
+            VecOp::First { .. }
+            | VecOp::Choose { .. }
+            | VecOp::WeightedMean { .. }
+            | VecOp::Clamp => (0..op.n_out()).map(|k| vec![k]).collect(),
+        }
+    }
+
+    #[test]
+    fn every_vector_inverse_round_trips() {
+        let mut failures = Vec::new();
+        for op in ops() {
+            let n_out = op.n_out();
+            for inp in inputs(op.n_in()) {
+                let mut cur = vec![0.0; n_out];
+                op.eval(&inp, &mut cur);
+                // Each point or other output alone, asked to move, then all
+                // together.
+                let mut asks: Vec<Vec<Option<f64>>> = requested_together(op)
+                    .into_iter()
+                    .map(|ks| {
+                        let mut d = vec![None; n_out];
+                        for (j, k) in ks.into_iter().enumerate() {
+                            d[k] = Some(cur[k] + 1.5 - j as f64);
+                        }
+                        d
+                    })
+                    .collect();
+                asks.push(cur.iter().map(|v| Some(v - 0.75)).collect());
+                for desired in asks {
+                    let Some((next, got)) = after(op, &inp, &desired) else {
+                        continue;
+                    };
+                    let asked: Vec<usize> = (0..n_out).filter(|&k| desired[k].is_some()).collect();
+                    let exact = asked.iter().all(|&k| close(got[k], desired[k].unwrap()));
+                    if !exact {
+                        // A projection: asking again, for what it gave or for
+                        // the first values, leaves it where it is.
+                        let again: Vec<Option<f64>> =
+                            (0..n_out).map(|k| desired[k].map(|_| got[k])).collect();
+                        let lands = |d: &[Option<f64>]| match after(op, &next, d) {
+                            None => true,
+                            Some((_, g)) => asked.iter().all(|&k| close(g[k], got[k])),
+                        };
+                        if !lands(&again) || !lands(&desired) {
+                            failures.push(format!(
+                                "{op:?} at {inp:?}: asked {desired:?}, got {got:?}, and asking again moves it"
+                            ));
+                        }
+                    }
+                    // The rules the operators state (the module documentation).
+                    if let VecOp::Shape { n, opts } = op
+                        && !opts.dilate
+                        && inp.iter().all(|v| v.is_finite())
+                    {
+                        let d = |p: &[f64], i: usize, j: usize| {
+                            (p[2 * i] - p[2 * j]).hypot(p[2 * i + 1] - p[2 * j + 1])
+                        };
+                        for i in 0..n as usize {
+                            for j in i + 1..n as usize {
+                                if !close(d(&inp, i, j), d(&next, i, j)) {
+                                    failures.push(format!(
+                                        "{op:?} at {inp:?}: asked {desired:?}, and points {i} and {j} moved apart"
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    let circle =
+                        matches!(op, VecOp::CircleCenterPoint | VecOp::CirclePoints { .. });
+                    if circle && desired[2].is_none() && !close(got[2], cur[2]) {
+                        failures.push(format!(
+                            "{op:?} at {inp:?}: asked {desired:?}, and the radius changed from {} to {}",
+                            cur[2], got[2]
+                        ));
+                    }
+                }
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
     }
 }

@@ -81,6 +81,19 @@ spec! {
         expect { "s.index" = 10, "s.value" = 10 }
     }
 
+    // ADR 0026: a round trip cannot see a value outside a prop's domain, so
+    // the index's domain is checked here, at both ends.
+    case "an index outside the range is projected onto it" {
+        doenet r#"<slider name="s" from="0" to="10"/><mathInput name="i" bindValueTo="$s.index"/>"#;
+        request { "i.value" = -2 }
+        expect { "s.index" = 0, "s.value" = 0 }
+        request { "i.value" = 12.6 }
+        expect { "s.index" = 10, "s.value" = 10 }
+        request { "i.value" = f64::NAN }
+        dropped(1)
+        expect { "s.index" = 10, "s.value" = 10 }
+    }
+
     case "bindValueTo an input: the input receives the snapped value" {
         doenet r#"<numberInput name="n" value="2"/>
                   <slider name="s" from="0" to="20" step="1" bindValueTo="$n"/>"#;

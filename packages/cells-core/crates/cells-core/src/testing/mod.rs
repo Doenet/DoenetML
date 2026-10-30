@@ -1,10 +1,12 @@
 //! Support for tests and benches, not used by the library itself: an
 //! independent oracle for the scheduled program, helpers that turn
 //! DoenetML source into a document, DASTs built in Rust for tests that
-//! need no parser (`dast`), and component specs (`spec!`).
+//! need no parser (`dast`), component specs (`spec!`), and the round trip
+//! of every interactive cell (`round_trip`, ADR 0026).
 
 pub mod dast;
 pub mod reference;
+pub mod round_trip;
 pub mod spec;
 pub mod test_utils;
 

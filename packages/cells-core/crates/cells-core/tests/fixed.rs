@@ -148,7 +148,7 @@ fn graph_axes_with_dynamic_fix_axes_and_fixed() {
     assert_eq!(v(&doc, "g", "xmin"), -3.0);
 }
 
-/// A literal `fixAxes` makes fixed cells, like a literal `fixed`.
+/// A literal `fixAxes` makes constants, like a literal `fixed`.
 #[test]
 fn graph_with_literal_fix_axes() {
     let mut doc = load(r#"<graph name="g" fixAxes/>"#).unwrap();

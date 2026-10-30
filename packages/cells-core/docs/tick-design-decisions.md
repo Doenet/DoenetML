@@ -35,7 +35,7 @@ documents of 10,000 and 100,000 elements, described in
 |---|---|---|---|
 | 1 | [The order of work is fixed when the document is built](#9-a-fixed-schedule) (#9) | finding the order at run time, as pull-based cores do | 2.6–5×; 110–870× where a change stops early |
 | 2 | [References share their referent's cell](#8-references-share-a-cell) (#8) | each reference an instruction that copies its value | about 2× on the shapes, whose instructions double, as the golden documents' do; `sir.doenet` would run 5× as many instructions |
-| 3 | [Operators are data the core interprets](#2-operators-are-data) (#2) | operators as code called through a pointer, as in the JavaScript core | 1.2–5× for the call alone; 2–12× with run-time dependency lookup |
+| 3 | [Operators are data the core interprets](#2-operators-are-data) (#2) | operators as code called through a pointer, as in the JavaScript core | 1.2–5× as first measured, mostly the alternatives' own bookkeeping: a clean call costs 1.0–1.3× natively and 1.33–1.40× in wasm ([revisited](operators-data-vs-code.md)); 2–12× with run-time dependency lookup |
 | 4 | [Values sit side by side in one array, apart from the graph](#4-and-1-one-contiguous-array-apart-from-the-graph) (#4, #1) | a heap allocation per value; a heap node per value | up to 3× (scattered allocations); 1.4–3.1× (nodes) |
 | 5 | [Early cutoff](#11-early-cutoff) (#11) | marking every reader, changed or not | 420–650× where a change stops partway; up to 10% *faster* where nothing stops |
 
@@ -389,6 +389,16 @@ on `sir.doenet`, whose geometry is mostly copies. Aliasing also carries
 meaning the core relies on elsewhere, as the three fixes show.
 
 ### 2. Operators are data
+
+> **Revisited.** [`operators-data-vs-code.md`](operators-data-vs-code.md)
+> remeasures this decision. The 1.2–5 times below came mostly from work
+> the two patches added per instruction to find its code, not from the
+> call: a clean function pointer costs 1.0–1.17 times natively on these
+> shapes, and 1.33–1.40 times in wasm. The explanation below, that the
+> processor cannot overlap work across a call, is not borne out. The
+> report also measures code compiled for the whole document, which is up
+> to 5 times faster than the interpreter on small programs with mixed
+> operators, and several times slower past about 2,000 instructions.
 
 Each operator in the core is a small piece of data, and one loop
 interprets them all; no component code runs during a tick. The
