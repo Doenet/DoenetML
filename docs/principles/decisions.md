@@ -210,10 +210,17 @@ Examples:
   and finds the outer `h`. An `extend` does the same.
 - `$h` in a `<p>` added inside `<section copy="$S">` finds the copied `h` (NAME-5).
 
-A name in an attribute that names the component itself already resolves to that component, ahead
-of a sibling with the same name. That holds for an ordinary element and for a copy:
-`<point name="Q" copy="$S" styleNumber="$Q.x"/>` beside another `<point name="Q">` uses its own
-`x`.
+A name in an attribute that names the component itself resolves to that component ahead of a
+sibling with the same name, but **not** ahead of a descendant with that name (**[probe]**):
+- `<point name="Q" copy="$S" styleNumber="$Q.x"/>` beside another `<point name="Q">` uses its own
+  `x`, and so does an ordinary `<point>`;
+- `<point name="P" styleNumber="$P.x">(2, <number name="P">3</number>)</point>` has no style
+  number: `$P` is the inner number, which has no `x`;
+- `<point name="R" styleNumber="$R">(2, <number name="R">3</number>)</point>` has style number 3.
+
+So today an attribute's search order is its component's descendants, then the component, then its
+siblings. That differs from NAME-1's rule for a reference written inside a component, where an
+ancestor's name beats a descendant with the same name.
 
 **Proposed principle (Tier 1): a reference resolves where it is written, among what is written.**
 - **The first name in a path resolves only to a component written in the DoenetML.** Content a
@@ -249,8 +256,11 @@ tell where any reference lands by reading the DoenetML, with no rules specific t
   refers to it, as `<p hide="$h"><boolean name="h"/></p>` does. `<module name="m" xmin="$xmin">`
   is then a cycle, reported as one (NAME-7, D14) instead of "Multiple referents". The diagnostic
   should say that the attribute refers to the module's own `xmin`.
-- **The self-name rule is stated:** an attribute naming its own component resolves to it, ahead
-  of siblings and descendants. Today it holds, but no principle or test states it.
+- **The self-name rule:** an attribute naming its own component resolves to it, ahead of
+  siblings and descendants, as NAME-1 already says for a reference written in a child. Today the
+  component beats a sibling, but a descendant with the same name beats the component:
+  `<point name="P" styleNumber="$P.x">(2, <number name="P">3</number>)</point>` changes from no
+  style number to 2.
 
 **Code:**
 - The special origins for attributes on copies go: `W/utils/dast/convertToCopy.ts:204-215` and
