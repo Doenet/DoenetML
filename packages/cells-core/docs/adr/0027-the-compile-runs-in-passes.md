@@ -1,6 +1,6 @@
 # The compile runs in passes, each reading only what earlier passes finished
 
-Status: proposed 2026-10-30. Migration steps 1 to 3 are done. Amended
+Status: proposed 2026-10-30. Migration steps 1 to 4 are done. Amended
 2026-10-30: pass 3 plans on demand rather than from a graph made first
 (see "The rule for pass 3").
 
@@ -189,7 +189,17 @@ says otherwise.
    `lint.rs`, and run lint first.
 4. **Collect pass 3's errors in place.** A planner's failure boxes its
    element and planning continues; `plan_and_check` loops only on probe
-   failures. Move the unread-attribute check to the end of pass 3.
+   failures. Move the unread-attribute check to the end of pass 3. Done,
+   for passes 1 and 3: an element that fails in either, and a `$ref` that
+   cannot be planned, is boxed in place (`Compiler::box_in_place`), and
+   what is under it (its children, its repeats' and choices' templates)
+   is marked dead and never built; a reference to it reads undefined. A
+   failure is still boxed by compiling again when it cannot be boxed in
+   place: something already planned or cloned what is under it, it has no
+   node (a clone), or it is pass 4's (a branch interface, a misbound
+   operator), which other elements' plans may already name.
+   `tests/diagnostics.rs` checks that four independent errors take one
+   plan.
 5. **Expand container copies in pass 1.** The riskiest step: a copy's
    referent must be found from the name table alone, and copies of copies
    expanded in extend order. A copy whose referent is reached through an

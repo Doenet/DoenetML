@@ -28,6 +28,7 @@ use std::sync::{Arc, OnceLock};
 
 use crate::components::{ComponentType, PropAt, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
+use crate::diagnostics::Diagnostic;
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
@@ -61,7 +62,8 @@ pub use plan::Compiled;
 /// A failed compile, check or first build: the error, and the node of the
 /// element it is about when there is one. `compile` boxes that element (it
 /// becomes an `_error` component, the error its diagnostic) and compiles
-/// again; an error with no element fails it (ADR 0013).
+/// again; an error with no element fails it (ADR 0013). Planning fails
+/// this way only where boxing in place cannot (`Compiler::box_in_place`).
 pub(crate) struct Failure {
     pub(crate) error: Error,
     pub(crate) node: Option<NodeId>,
@@ -75,6 +77,14 @@ impl From<Failure> for Error {
 
 use ctx::PlanCtx;
 use planner::Planner;
+
+/// A compile that planned: what it planned, and the elements it boxed
+/// where they failed (ADR 0027), each with its error.
+pub(in crate::compile) struct Planned {
+    pub(in crate::compile) compiled: Compiled,
+    pub(in crate::compile) errors: Vec<Diagnostic>,
+    pub(in crate::compile) boxed: HashSet<NodeId>,
+}
 
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too.
@@ -95,9 +105,19 @@ pub(in crate::compile) struct Compiler<'a> {
     /// elements with their names but no children and no props (ADR 0013,
     /// ADR 0027).
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
-    /// The node of the innermost element whose planning failed, set on
-    /// the way out of a failed compile; `build` boxes it and tries again.
+    /// The node of the element to box before compiling again, set when a
+    /// failure cannot be boxed in place (`box_in_place`); every failure
+    /// after it passes through to the end of the compile.
     pub(in crate::compile) failed_node: Option<NodeId>,
+    /// The error of that failure, when what met it could not pass it on
+    /// (the math inliner).
+    restart: Option<Error>,
+    /// Elements boxed where they failed, with their errors (ADR 0027).
+    errors: Vec<Diagnostic>,
+    boxed_here: HashSet<NodeId>,
+    /// By (template, element), the elements a container copy has cloned:
+    /// a clone took its type, so one boxed later cannot be boxed in place.
+    cloned_sources: HashSet<(u32, u32)>,
     /// The name table: by (template, scope, name), the one descendant of
     /// the scope (or `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when
     /// several do. A name is registered at every ancestor of its element.
@@ -141,12 +161,13 @@ enum ElemShape {
 }
 
 impl<'a> Compiler<'a> {
-    /// Compile `dast`, with the nodes in `boxed` as `_error` elements. A
-    /// failure names the node to box next, when the failing element has one.
+    /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
+    /// every element that fails to plan boxed where it fails. A failure
+    /// names the node to box before compiling again, when there is one.
     pub(in crate::compile) fn compile(
         dast: &'a Arc<Dast>,
         boxed: &'a HashSet<NodeId>,
-    ) -> std::result::Result<Compiled, Failure> {
+    ) -> std::result::Result<Planned, Failure> {
         let mut cp = Compiler {
             dast,
             compiled: Compiled {
@@ -175,6 +196,10 @@ impl<'a> Compiler<'a> {
             string_ids: None,
             boxed,
             failed_node: None,
+            restart: None,
+            errors: Vec::new(),
+            boxed_here: HashSet::new(),
+            cloned_sources: HashSet::new(),
             names: HashMap::new(),
             name_ids: HashMap::new(),
             sibling_names: HashSet::new(),
@@ -189,7 +214,11 @@ impl<'a> Compiler<'a> {
                 if c.has_repeats() {
                     c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
                 }
-                Ok(cp.compiled)
+                Ok(Planned {
+                    compiled: cp.compiled,
+                    errors: cp.errors,
+                    boxed: cp.boxed_here,
+                })
             }
             Err(error) => Err(Failure {
                 error,
@@ -283,28 +312,41 @@ impl<'a> Compiler<'a> {
                 cp.plan_elem(t, e)?;
             }
             for (t, owner, i, m) in std::mem::take(&mut cp.pending_macros) {
+                // Content of a box is not planned.
+                let dead = match owner {
+                    Some(e) => cp.is_box(t, e),
+                    None => cp.compiled.templates[t.index()]
+                        .parent
+                        .is_some_and(|(pt, pe)| cp.is_box(pt, pe)),
+                };
+                if dead {
+                    continue;
+                }
                 let scope = match owner {
                     Some(e) => cp.child_scope(t, e),
                     None => ROOT_SCOPE,
                 };
-                let plan = match cp.plan_ref(t, scope, m) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        cp.fail_at(m);
-                        return Err(e);
+                let child = match cp.plan_ref(t, scope, m) {
+                    Ok(plan) => Child::Macro(plan, dast.macro_has_index(m)),
+                    Err(e) if cp.failed_node.is_some() => return Err(e),
+                    // A reference that cannot be planned is boxed where it
+                    // stands (ADR 0027).
+                    Err(error) => {
+                        cp.errors.push(Diagnostic::error(Some(m), &error));
+                        cp.boxed_here.insert(m);
+                        Child::Elem(cp.push_error_elem(t, m, scope))
                     }
                 };
-                let has_index = dast.macro_has_index(m);
                 match owner {
                     Some(e) => {
-                        cp.compiled.templates[t.index()].elems[e.index()].children[i] =
-                            Child::Macro(plan, has_index)
+                        cp.compiled.templates[t.index()].elems[e.index()].children[i] = child
                     }
-                    None => {
-                        cp.compiled.templates[t.index()].children[i] = Child::Macro(plan, has_index)
-                    }
+                    None => cp.compiled.templates[t.index()].children[i] = child,
                 }
             }
+        }
+        if let Some(error) = cp.restart.take() {
+            return Err(error);
         }
         cp.finish_choices()?;
         cp.check_arity()?;
@@ -321,12 +363,104 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Record `node` as the element to box if the compile fails: the
-    /// innermost one wins, so a failure inside a child boxes the child.
+    /// Record `node` as the element to box before compiling again: what
+    /// fails after planning (pass 4) is not boxed in place, since what
+    /// other elements planned may read it.
     pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
         if node != NodeId::NONE {
             self.failed_node.get_or_insert(node);
         }
+    }
+
+    /// Whether element `e` is a box: boxed in pass 1, boxed in place, or
+    /// under one.
+    pub(in crate::compile) fn is_box(&self, t: TemplateId, e: ElemId) -> bool {
+        self.compiled.templates[t.index()].elems[e.index()].component_type == ComponentType::Error
+    }
+
+    /// Box element `e` where it failed (ADR 0027): it becomes an `_error`
+    /// element keeping its name, everything under it (its children, the
+    /// templates of its repeats and choices) is dead, and the compile goes
+    /// on. When something already read what is under it (planned it, or
+    /// cloned it into a container copy), or `e` has no node to carry the
+    /// error, it cannot be boxed here: the error passes on, `e`'s node to
+    /// be boxed before compiling again.
+    fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) -> Result<()> {
+        let node = self.compiled.templates[t.index()].elems[e.index()].node;
+        if node == NodeId::NONE {
+            return Err(error);
+        }
+        let doomed = self.subtree(t, e);
+        let read = doomed.iter().any(|&(dt, de)| {
+            let k = (dt.get(), de.get());
+            self.cloned_sources.contains(&k)
+                || ((dt, de) != (t, e) && (self.planned.contains(&k) || self.planning.contains(&k)))
+        });
+        if read {
+            self.fail_at(node);
+            return Err(error);
+        }
+        self.errors.push(Diagnostic::error(Some(node), &error));
+        self.boxed_here.insert(node);
+        for (dt, de) in doomed {
+            self.planned.insert((dt.get(), de.get()));
+            let el = &mut self.compiled.templates[dt.index()].elems[de.index()];
+            el.component_type = ComponentType::Error;
+            el.props = Vec::new();
+            el.children = Vec::new();
+            el.body = Body::Plain;
+            el.extend = None;
+            el.n_public = NPublic::Table;
+            el.hold = Hold::Off;
+            el.dead = (dt, de) != (t, e);
+        }
+        // A name that never made it into the table (a duplicate) is not
+        // the box's.
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        if el.name != StrId::NONE {
+            let id = self.name_ids.get(self.dast.strings.get(el.name).trim());
+            let registered = id.is_some_and(|&id| {
+                self.names.get(&(t.get(), el.name_scope.get(), id)) == Some(&e.get())
+                    || self.names.get(&(t.get(), el.name_scope.get(), id)) == Some(&AMBIGUOUS)
+            });
+            if !registered {
+                self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
+            }
+        }
+        Ok(())
+    }
+
+    /// Element `e` and everything under it: its children, theirs, and
+    /// the elements of every template a repeat or choice among them owns.
+    fn subtree(&self, t: TemplateId, e: ElemId) -> Vec<(TemplateId, ElemId)> {
+        let mut seen: HashSet<(u32, u32)> = HashSet::from([(t.get(), e.get())]);
+        let mut out = vec![(t, e)];
+        let mut i = 0;
+        while i < out.len() {
+            let (ct, ce) = out[i];
+            i += 1;
+            let el = &self.compiled.templates[ct.index()].elems[ce.index()];
+            let mut under: Vec<(TemplateId, ElemId)> = el
+                .children
+                .iter()
+                .filter_map(|c| match c {
+                    Child::Elem(x) => Some((ct, *x)),
+                    _ => None,
+                })
+                .collect();
+            for (ti, tpl) in self.compiled.templates.iter().enumerate() {
+                if tpl.parent == Some((ct, ce)) {
+                    let sub = TemplateId::from_index(ti);
+                    under.extend((0..tpl.elems.len()).map(|x| (sub, ElemId::from_index(x))));
+                }
+            }
+            for k in under {
+                if seen.insert((k.0.get(), k.1.get())) {
+                    out.push(k);
+                }
+            }
+        }
+        out
     }
 
     /// The `_error` element standing for boxed node `node`: no children,
@@ -408,6 +542,7 @@ impl<'a> Compiler<'a> {
             cloned: false,
             body: Body::Plain,
             hold: Hold::Off,
+            dead: false,
         });
         if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
@@ -475,11 +610,23 @@ impl<'a> Compiler<'a> {
         if self.boxed.contains(&el) {
             return Ok(self.push_error_elem(t, el, name_scope));
         }
-        let r = self.add_elem_inner(t, el, name_scope);
-        if r.is_err() {
-            self.fail_at(el);
+        let n = self.compiled.templates[t.index()].elems.len();
+        match self.add_elem_inner(t, el, name_scope) {
+            Ok(e) => Ok(e),
+            Err(error) if self.failed_node.is_some() => Err(error),
+            // The element is boxed where it fails (ADR 0027): the one
+            // made for it, when it got that far, else a new one.
+            Err(error) if self.compiled.templates[t.index()].elems.len() > n => {
+                let e = ElemId::from_index(n);
+                self.box_in_place(t, e, error)?;
+                Ok(e)
+            }
+            Err(error) => {
+                self.errors.push(Diagnostic::error(Some(el), &error));
+                self.boxed_here.insert(el);
+                Ok(self.push_error_elem(t, el, name_scope))
+            }
         }
-        r
     }
 
     fn add_elem_inner(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> Result<ElemId> {
@@ -676,6 +823,11 @@ impl<'a> Compiler<'a> {
         if self.planned.contains(&key) {
             return Ok(());
         }
+        // A box from pass 1 is planned as it is.
+        if self.is_box(t, e) {
+            self.planned.insert(key);
+            return Ok(());
+        }
         if !self.planning.insert(key) {
             return Err(Error::Cycle(self.elem_label(t, e)));
         }
@@ -687,11 +839,13 @@ impl<'a> Compiler<'a> {
         self.planning.remove(&key);
         match r {
             Ok(()) => {
-                self.planned.insert((t.get(), e.get()));
+                self.planned.insert(key);
+                Ok(())
             }
-            Err(_) => self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node),
+            Err(error) if self.failed_node.is_some() => Err(error),
+            // Boxed where it fails, and what reads it reads the box.
+            Err(error) => self.box_in_place(t, e, error),
         }
-        r
     }
 
     /// Element `e` as planned: the one way a planner reads what another

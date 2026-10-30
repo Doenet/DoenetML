@@ -89,6 +89,7 @@ impl<'a> Compiler<'a> {
                 Child::Elem(c) => {
                     // A `<collect>` is one, a `<math>` has its type and a
                     // copy its clones, once planned.
+                    self.cloned_sources.insert((t.get(), c.get()));
                     let el = self.settled_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     if matches!(el.body, Body::Repeat { .. } | Body::Collect { .. }) {

@@ -234,10 +234,13 @@ document is unchanged and `rebuild_error` says why.
 
 ### An element cannot be built
 
-Errors are a build product, not a failure (ADR 0013). When the compiler or
-builder raises an error, it records the innermost element it concerns. The
-check *boxes* that element: it recompiles as an `_error` element with no
-children or props, and the check builds again until every element builds.
+Errors are a build product, not a failure (ADR 0013). An element that
+fails to plan is *boxed* where it fails (ADR 0027): it becomes an `_error`
+element with no children or props, what is under it is never built, and
+planning goes on, so one compile finds every planning error. An error the
+probe raises records the innermost element it concerns, which is boxed
+from the start of a new compile, and the check builds again until every
+element builds.
 A box keeps its name (ADR 0027): a reference to it resolves and reads as
 undefined, with no diagnostic of its own, and an extend of it is boxed in
 turn (`cells-boxed-referent`). Only an error with no element to box, a
@@ -247,12 +250,12 @@ dependency cycle, fails the load.
 errors and warnings of the elements that built.
 
 An element is also boxed for an attribute nothing read while the document
-was planned and checked (ADR 0021): the core ignores no attribute
-silently. `Dast::attr` records every lookup; after a compile and its
-check succeed, every element outside the boxes with an attribute never
-looked up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
-`presentation`), is boxed, all of them at once, and the compile runs
-again.
+was planned (ADR 0021): the core ignores no attribute silently.
+`Dast::attr` records every lookup, and a build makes none; once planning
+is done, every element outside the boxes with an attribute never looked
+up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
+`presentation`), is boxed, all of them at once, and the plan is made
+again before the probe runs.
 
 Every error depends on the source alone (ADR 0014), and the probe stands
 for every count and every pick, so the check finds every error at load.

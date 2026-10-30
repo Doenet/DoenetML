@@ -373,3 +373,47 @@ fn documents() -> Vec<(String, Vec<u8>)> {
 fn stem(p: &Path) -> String {
     p.file_stem().unwrap().to_string_lossy().into_owned()
 }
+
+/// Errors planning finds are boxed where they arise, so a document with
+/// several independent ones plans once, not once per error (ADR 0027).
+#[test]
+fn independent_errors_plan_once() {
+    let dast = cells_core::dast::load(
+        dast_json(
+            r#"<point name="a" x="$nope1"/><number name="b">$nope2</number>
+               <bogusTag name="c"/><p>$nope3 and $b</p><number name="d">4</number>"#,
+        )
+        .as_bytes(),
+    )
+    .unwrap();
+    cells_core::trace::start();
+    let list = diagnose(&dast);
+    let plans = cells_core::trace::finish()
+        .iter()
+        .filter(|s| s.name == "plan")
+        .count();
+    assert_eq!(errors(&list).len(), 4, "{list:?}");
+    assert_eq!(plans, 1);
+}
+
+/// An element boxed where it fails takes what is under it along: its
+/// children and its repeat's body are not built or diagnosed, and a
+/// reference to them reads as undefined (ADR 0027).
+#[test]
+fn what_is_under_a_box_is_not_built() {
+    let src = r#"<graph name="g" xmin="$nope"><point name="A" x="$nope2"/></graph>
+        <repeatForSequence name="r" length="$nope3"><number name="x">$nope4</number></repeatForSequence>
+        <number name="n">$A.x</number><number name="m">$r[1].x</number><number name="k">5</number>"#;
+    let doc = load(src).unwrap();
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 2, "{errs:?}");
+    assert!(
+        errs.iter()
+            .all(|e| e.message.contains("$nope'") || e.message.contains("$nope3'")),
+        "{errs:?}"
+    );
+    assert!(doc.value("n", "value").unwrap().is_nan());
+    assert!(doc.value("m", "value").unwrap().is_nan());
+    assert_eq!(doc.value("k", "value"), Some(5.0));
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}

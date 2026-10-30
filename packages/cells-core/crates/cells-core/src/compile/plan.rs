@@ -320,6 +320,9 @@ pub(crate) struct Elem {
     pub(crate) body: Body,
     /// What holds it (`fixed`, `compile/fix.rs`).
     pub(crate) hold: Hold,
+    /// Under an element boxed while planning (ADR 0027): no build makes
+    /// it, and a reference to it reads as undefined.
+    pub(crate) dead: bool,
 }
 
 /// What holds an element (`compile/fix.rs`): a fact beside its plans,

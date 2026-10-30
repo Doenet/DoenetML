@@ -93,55 +93,74 @@ pub(crate) fn signature_renamed(
     Ok(u.signature(&compiled, rename))
 }
 
-/// The compile's loop (ADR 0013): plan `dast`, run `check` on the plan,
-/// and box until it holds. The element `check` fails on, or every element
-/// with an attribute nothing read while planning and checking (ADR 0021),
-/// is boxed and the plan made again, each box an error in `errors`. Only
-/// a failure with no element to box, a cycle, fails it, after its error
-/// joins `errors` too.
+/// The compile's loop (ADR 0013, ADR 0027): plan `dast`, boxing every
+/// element that fails where it fails; refuse every element with an
+/// attribute nothing read while planning (ADR 0021), which needs a second
+/// plan; then run `check` on the plan. An element `check` fails on, or
+/// one planning could not box in place, is boxed and the plan made again.
+/// Each box is an error in `errors`. Only a failure with no element to
+/// box, a cycle, fails it, after its error joins `errors` too.
 fn plan_and_check<T>(
     dast: &Arc<Dast>,
     errors: &mut Vec<Diagnostic>,
     mut check: impl FnMut(&mut Compiled) -> std::result::Result<T, Failure>,
 ) -> Result<(Compiled, T)> {
     let mut boxed: HashSet<NodeId> = HashSet::new();
+    // Box what `f` names, or fail with it when it names nothing.
+    let restart = |boxed: &mut HashSet<NodeId>, errors: &mut Vec<Diagnostic>, f: Failure| {
+        crate::trace::count("boxed", 1);
+        let node = f.node.filter(|n| boxed.insert(*n));
+        errors.push(Diagnostic::error(node, &f.error));
+        match node {
+            Some(_) => Ok(()),
+            None => Err(f.error),
+        }
+    };
     loop {
         let planned = {
             let _s = crate::trace::span("plan");
             let planned = Compiler::compile(dast, &boxed);
-            if let Ok(compiled) = &planned {
-                crate::trace::count("templates", compiled.templates.len());
+            if let Ok(p) = &planned {
+                crate::trace::count("templates", p.compiled.templates.len());
                 crate::trace::count(
                     "elements",
-                    compiled.templates.iter().map(|t| t.elems.len()).sum(),
+                    p.compiled.templates.iter().map(|t| t.elems.len()).sum(),
                 );
             }
             planned
         };
-        let attempt = planned.and_then(|mut compiled| {
-            let checked = check(&mut compiled)?;
-            Ok((compiled, checked))
-        });
-        match attempt {
-            Ok(done) => {
-                let unread = unread_attributes(dast, &boxed);
-                if unread.is_empty() {
-                    return Ok(done);
-                }
-                for (node, error) in unread {
-                    crate::trace::count("boxed", 1);
-                    boxed.insert(node);
-                    errors.push(Diagnostic::error(Some(node), &error));
-                }
-            }
+        let planned = match planned {
+            Ok(p) => p,
             Err(f) => {
-                crate::trace::count("boxed", 1);
-                let node = f.node.filter(|n| boxed.insert(*n));
-                errors.push(Diagnostic::error(node, &f.error));
-                if node.is_none() {
-                    return Err(f.error);
-                }
+                restart(&mut boxed, errors, f)?;
+                continue;
             }
+        };
+        // Every attribute the compile reads has been read once pass 3 is
+        // done: a build reads none (ADR 0027).
+        let mut outside: HashSet<NodeId> = boxed.clone();
+        outside.extend(planned.boxed.iter().copied());
+        let unread = unread_attributes(dast, &outside);
+        if !unread.is_empty() {
+            for (node, error) in unread {
+                crate::trace::count("boxed", 1);
+                boxed.insert(node);
+                errors.push(Diagnostic::error(Some(node), &error));
+            }
+            continue;
+        }
+        let Planned {
+            mut compiled,
+            errors: boxed_here,
+            ..
+        } = planned;
+        match check(&mut compiled) {
+            Ok(checked) => {
+                crate::trace::count("boxed", boxed_here.len());
+                errors.extend(boxed_here);
+                return Ok((compiled, checked));
+            }
+            Err(f) => restart(&mut boxed, errors, f)?,
         }
     }
 }
@@ -155,9 +174,9 @@ fn plan_and_check<T>(
 /// literal attributes are accepted (`PRESENTATION_ATTRS` and the type's
 /// `presentation`), and so is anything in an element the normalizer made
 /// (a tag starting with `_`).
-/// Reads are recorded by `Dast::attr` over the whole compile, every
-/// attempt included, so a node inside a boxed element is skipped rather
-/// than reported for what its planner never ran to read.
+/// Reads are recorded by `Dast::attr` over the whole compile; a node
+/// inside a boxed element is skipped rather than reported for what its
+/// planner never ran to read.
 fn unread_attributes(dast: &Dast, boxed: &HashSet<NodeId>) -> Vec<(NodeId, Error)> {
     let presentation = |tag: &str, name: &str| {
         let of_type = ComponentType::from_tag(tag).map_or(&[][..], |k| k.def().presentation);

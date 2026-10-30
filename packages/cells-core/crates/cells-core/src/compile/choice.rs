@@ -248,6 +248,10 @@ impl<'a> Compiler<'a> {
     pub(in crate::compile) fn finish_choices(&mut self) -> Result<()> {
         for cid in 0..self.compiled.choices.len() {
             let def = &self.compiled.choices[cid];
+            // A boxed choice has no branches to read.
+            if self.is_box(def.at.0, def.at.1) {
+                continue;
+            }
             // A conditional content without an else has an implicit empty
             // branch, so nothing in it is reachable from outside.
             let empty_branch = def.reactive && def.conditions.last().is_some_and(|c| c.is_some());
