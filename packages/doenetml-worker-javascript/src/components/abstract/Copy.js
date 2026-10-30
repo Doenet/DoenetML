@@ -4636,7 +4636,8 @@ function extendIgnoresAttributesAndChildren({
  * copy draws its own, so they are the same for a given variant.
  *
  * An attribute counts as unchanged only when the copy writes it as its source
- * did, or, where its source did not write it, as its default, as
+ * did, or, where its source wrote neither it nor an attribute setting the
+ * same parameter (`alternativeChoiceAttributes`), as its default, as
  * `numToSelect="1"` (`writtenValue`). Anything else, a reference included,
  * counts as changed: its value is not known yet, and choosing anew never
  * fails where keeping choices that do not fit does.
@@ -4669,6 +4670,8 @@ function copyChangesChoices({
     }
 
     const attributesObject = replacementClass.createAttributesObject();
+    const sourceAttributes = replacement.attributes ?? {};
+    const alternatives = replacementClass.alternativeChoiceAttributes ?? [];
 
     return choiceAttributes.some((attrName) => {
         const written = attributesFromComposite[attrName];
@@ -4676,12 +4679,24 @@ function copyChangesChoices({
             return false;
         }
         const spec = attributesObject[attrName];
-        const source = replacement.attributes?.[attrName];
+        const source = sourceAttributes[attrName];
         const copyValue = writtenValue(written, spec);
-        const sourceValue =
-            source === undefined
-                ? writtenDefault(spec)
-                : writtenValue(source, spec);
+        let sourceValue;
+        if (source !== undefined) {
+            sourceValue = writtenValue(source, spec);
+        } else if (
+            alternatives.some(
+                (group) =>
+                    group.includes(attrName) &&
+                    group.some((name) => sourceAttributes[name] !== undefined),
+            )
+        ) {
+            // The source set this parameter through another attribute, so
+            // the default does not apply to it.
+            sourceValue = null;
+        } else {
+            sourceValue = writtenDefault(spec);
+        }
         return copyValue === null || copyValue !== sourceValue;
     });
 }

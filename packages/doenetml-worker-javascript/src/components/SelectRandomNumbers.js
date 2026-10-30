@@ -66,6 +66,15 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         "probability",
     ];
 
+    // Attributes that set the same parameter, so that the default of one
+    // does not apply where its source wrote the other: a copy of
+    // `standardDeviation="3"` that writes `variance="1"` changes what is
+    // chosen (`copyChangesChoices` in `Copy.js`).
+    static alternativeChoiceAttributes = [
+        ["standardDeviation", "variance"],
+        ["logStandardDeviation", "logVariance"],
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

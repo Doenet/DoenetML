@@ -211,6 +211,27 @@ describe("A copy that changes what is chosen @group3", async () => {
         }
     });
 
+    it("a <selectRandomNumbers> copy that writes the default variance of a source with a standardDeviation makes its own choices", async () => {
+        // The copy's `variance="1"` overrides its source's
+        // `standardDeviation="1000"`, so the default variance is a change.
+        const doenetML = `
+<p><selectRandomNumbers name="x" type="gaussian" standardDeviation="1000" numToSelect="2"/></p>
+<p><selectRandomNumbers name="y" copy="$x" variance="1"/></p>`;
+        for (const requestedVariantIndex of variantIndices) {
+            const { x, y, errors } = await choices({
+                doenetML,
+                requestedVariantIndex,
+                variable: "selectedValues",
+            });
+            expect(errors).eqls([]);
+            expect(y.length).eq(2);
+            expect(y).not.eqls(x);
+            for (const v of y) {
+                expect(Math.abs(v) < 10).eq(true);
+            }
+        }
+    });
+
     it("a <select> copy with an option added chooses from all its options", async () => {
         const doenetML = `
 <p><select name="x" numToSelect="2">a b</select></p>
