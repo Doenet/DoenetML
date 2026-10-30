@@ -22,7 +22,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
 use crate::components::prop::{case, conditional_content};
-use crate::program::Op;
+use crate::program::{Needs, Op};
 
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -312,12 +312,10 @@ impl<'a> Signer<'a> {
             if !seen.insert(cell) {
                 continue;
             }
-            stack.extend(self.out.holds.flags(cell));
             if cell.index() < self.out.n_essential {
                 leaves.insert(cell);
-            } else if let Some(instr) = self.instr_of(cell) {
-                stack.extend(instr.op.inputs(&self.out.operands.cells));
             }
+            stack.extend(self.needs(cell).all());
         }
         leaves
     }
@@ -332,14 +330,7 @@ impl<'a> Signer<'a> {
             if !seen.insert(cell) {
                 continue;
             }
-            // What holds a cell is read as an operator's input is.
-            let flags = self.out.holds.flags(cell).iter().copied();
-            let inputs = self
-                .instr_of(cell)
-                .filter(|_| cell.index() >= self.out.n_essential)
-                .into_iter()
-                .flat_map(|instr| instr.op.inputs(&self.out.operands.cells));
-            for i in inputs.chain(flags) {
+            for i in self.needs(cell).all() {
                 if i.index() < self.out.n_essential {
                     read.insert(i);
                 }
@@ -349,9 +340,12 @@ impl<'a> Signer<'a> {
         read
     }
 
-    fn instr_of(&self, cell: CellIdx) -> Option<&Instr> {
+    /// What `cell` needs (`program::Needs`): the one relation the closure
+    /// and the hash follow.
+    fn needs(&self, cell: CellIdx) -> Needs<'a> {
         let (i, _) = self.producer[cell.index()];
-        (i != u32::MAX).then(|| &self.out.instrs[i as usize])
+        let instr = (i != u32::MAX).then(|| &self.out.instrs[i as usize]);
+        Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
     }
 
     /// A cell's hash: what it is, never where it is, and what holds it
@@ -365,14 +359,10 @@ impl<'a> Signer<'a> {
             }
             let ci = c.index();
             let out = self.out;
-            let instr = (ci >= out.n_essential + out.n_fixed)
-                .then(|| self.instr_of(c))
-                .flatten();
-            let mut reads: Vec<CellIdx> = instr
-                .map(|instr| instr.op.inputs(&out.operands.cells).collect())
-                .unwrap_or_default();
-            let n_inputs = reads.len();
-            reads.extend(out.holds.flags(c));
+            let needs = self.needs(c);
+            let instr = needs.instr();
+            let reads: Vec<CellIdx> = needs.all().collect();
+            let n_inputs = needs.inputs().count();
             if !ready {
                 stack.push((c, true));
                 stack.extend(reads.iter().map(|&i| (i, false)));

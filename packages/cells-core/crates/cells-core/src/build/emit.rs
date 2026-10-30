@@ -48,6 +48,7 @@ impl<'c> Builder<'c> {
                 class_def[root] = SlotId::from_index(s);
             }
         }
+        let classes = Classes::new(&self, &roots, &class_def);
         // A value slot is essential when a student's action can write it,
         // and fixed otherwise (ADR 0018): the probe finds them by its walk
         // and records them by template slot, and every other build reads
@@ -55,7 +56,7 @@ impl<'c> Builder<'c> {
         // the classing off (no record), every value slot is essential.
         let folds = self.view.folds_iterations();
         let (essential, record): (Vec<bool>, Record) = if folds {
-            let writable = self.writable_slots(&roots, &class_def);
+            let writable = self.writable_slots(&classes);
             let record = self.record_of(&writable);
             (writable, record)
         } else {
@@ -70,19 +71,19 @@ impl<'c> Builder<'c> {
         // Which classes the document computes (ADR 0019), the same way:
         // the probe walks and records, every other build reads the record.
         let (live_slot, live_record): (Vec<bool>, Record) = if folds {
-            let live = self.live_slots(&roots, &class_def);
+            let live = self.live_slots(&classes);
             let record = self.record_of(&live);
             (live, record)
         } else {
-            let live = self.live_by_record(&self.compiled.live, &roots, &class_def);
+            let live = self.live_by_record(&self.compiled.live, &classes);
             (live, Record::default())
         };
         // What this build's own walks find, whatever the record says: what
         // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
-        let walked_slot = self.live_slots(&roots, &class_def);
+        let walked_slot = self.live_slots(&classes);
         #[cfg(feature = "testing")]
-        let walked_writable = self.writable_slots(&roots, &class_def);
+        let walked_writable = self.writable_slots(&classes);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
         // cell. Not in the probe, whose build is not kept, nor where the
         // load asked for every cell (`LoadOptions::prune`). An essential
@@ -236,14 +237,36 @@ impl<'c> Builder<'c> {
             walked: live_bits(&walked_slot),
         };
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r.index()]).collect();
-        // The cells a `fixed` holds, by their flags' cells. A dead cell
-        // takes no request; a live held cell's flags are live (`live.rs`).
+        // The live walk follows what a class needs, so a live class needs
+        // no dead one; the record, made from the probe's walk, keeps that
+        // in every build (`tests/live.rs`). A build that breaks it would
+        // compute from NaN, or hold a cell by a flag never computed, so it
+        // fails instead.
+        if let Some(dead) = dead_cell {
+            for s in SlotId::below(n) {
+                if classes.def[roots[s.index()].index()] != s || pruned(s.index()) {
+                    continue;
+                }
+                let def = classes.def_of(&self, s, &self.sources[s.index()]);
+                if let Some(needed) = def.needs().find(|n| slot_to_cell[n.index()] == dead) {
+                    return Err(Failure {
+                        error: Error::Unchecked(format!(
+                            "{} needs {}, which has no cell: the live slots are not closed under what they need (ADR 0019)",
+                            self.slot_label(s),
+                            self.slot_label(needed)
+                        )),
+                        node: None,
+                    });
+                }
+            }
+        }
+        // The cells a `fixed` holds, by their flags' cells; a dead cell
+        // takes no request.
         let mut holds = crate::program::Holds::default();
         for &(s, f) in &self.holds {
-            let (cell, flag) = (slot_to_cell[s.index()], slot_to_cell[f.index()]);
+            let cell = slot_to_cell[s.index()];
             if Some(cell) != dead_cell {
-                debug_assert!(Some(flag) != dead_cell, "a held cell's flag is dead");
-                holds.insert(cell, flag);
+                holds.insert(cell, slot_to_cell[f.index()]);
             }
         }
         self.seed_cells(
@@ -303,23 +326,6 @@ impl<'c> Builder<'c> {
                     .iter()
                     .map(|&i| slot_to_cell[i.index()]),
             );
-            // The walk follows every input, so a live instruction reads no
-            // dead cell; the record, made from the probe's walk, keeps one
-            // in every build (`tests/live.rs`). A build that breaks that
-            // would compute from NaN, so it fails instead.
-            if let Some(dead) = dead_cell
-                && let Some(k) = bound.iter().position(|&c| c == dead)
-            {
-                let input = self.op_inputs[start as usize + k];
-                return Err(Failure {
-                    error: Error::Unchecked(format!(
-                        "{} reads {}, which has no cell: the live slots are not closed under what reads them (ADR 0019)",
-                        self.slot_label(SlotId::from_index(s)),
-                        self.slot_label(input)
-                    )),
-                    node: None,
-                });
-            }
             // A planned template's leaves were slots; they are cells now.
             let mut spec = match planned {
                 PlannedOp::Spec(spec) => spec,

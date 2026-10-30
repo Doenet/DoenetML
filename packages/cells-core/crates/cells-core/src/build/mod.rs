@@ -52,6 +52,7 @@ use crate::program::{Instr, OpSpec, Post, SymKind};
 use crate::program::{Operands, Program, ValueType};
 use crate::session::{Counts, Session};
 
+mod classes;
 #[cfg(feature = "testing")]
 pub mod coverage;
 mod emit;
@@ -63,6 +64,7 @@ mod structure;
 mod view;
 mod writable;
 
+use classes::Classes;
 pub(crate) use probe::probe;
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
@@ -125,42 +127,28 @@ pub(in crate::build) fn build_with(
 }
 
 impl<'c> Builder<'c> {
-    /// The flags that hold each class, by root (`hold_all`).
-    pub(in crate::build) fn class_flags(&self, roots: &[SlotId]) -> HashMap<SlotId, Vec<SlotId>> {
-        let mut flags: HashMap<SlotId, Vec<SlotId>> = HashMap::new();
-        for &(s, f) in &self.holds {
-            let held = flags.entry(roots[s.index()]).or_default();
-            if !held.contains(&f) {
-                held.push(f);
-            }
-        }
-        flags
-    }
-
     /// The backward walk over emit's alias classes that the writable walk
     /// (`writable.rs`, ADR 0018) and the live walk (`live.rs`, ADR 0019)
     /// share: from the classes on `stack`, each class `enter` admits is
-    /// given to `edge` as its defining slot and source, then as each
-    /// source the slots of the class have besides (its later sources when
-    /// the view folds iterations, and `extra`), and `edge` pushes the
-    /// classes to go on to. A class `enter` refuses is neither followed
-    /// nor seen. `roots` is each slot's class and `class_def` each class's
-    /// defining slot, by root.
+    /// given to `edge` as its definition (`classes::Def`), then as each
+    /// other source its slots have (its later sources when the view folds
+    /// iterations, and `extra`), and `edge` pushes the classes to go on to,
+    /// by one of the definition's relations. A class `enter` refuses is
+    /// neither followed nor seen.
     pub(in crate::build) fn walk_classes(
         &self,
-        roots: &[SlotId],
-        class_def: &[SlotId],
+        classes: &Classes<'_>,
         mut stack: Vec<SlotId>,
         extra: &[(SlotId, BuiltSource)],
         mut enter: impl FnMut(SlotId) -> bool,
-        mut edge: impl FnMut(SlotId, &BuiltSource, &mut Vec<SlotId>),
+        mut edge: impl FnMut(classes::Def<'_>, &mut Vec<SlotId>),
     ) {
         let mut seen = vec![false; self.sources.len()];
         // The other sources of each class, by root.
         let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
         for entry in self.later_sources.iter().chain(extra) {
             besides
-                .entry(roots[entry.0.index()])
+                .entry(classes.root(entry.0))
                 .or_default()
                 .push(entry);
         }
@@ -168,11 +156,14 @@ impl<'c> Builder<'c> {
             if std::mem::replace(&mut seen[root.index()], true) || !enter(root) {
                 continue;
             }
-            let def = class_def[root.index()];
-            edge(def, &self.sources[def.index()], &mut stack);
+            let def = classes.def[root.index()];
+            edge(
+                classes.def_of(self, def, &self.sources[def.index()]),
+                &mut stack,
+            );
             if let Some(entries) = besides.get(&root) {
                 for (slot, src) in entries {
-                    edge(*slot, src, &mut stack);
+                    edge(classes.def_of(self, *slot, src), &mut stack);
                 }
             }
         }

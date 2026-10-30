@@ -3,11 +3,11 @@
 //! that the core reads itself: a rendered prop of a rendered component, a
 //! score, an input, a prop an action reads, a repeat's count, and what
 //! snapping a sticky group reads. It goes backward over emit's alias
-//! classes, from a class to its defining slot and through an operator to
-//! every input it reads; a vector operator's output to its head, which
-//! reads every input. A held class reads its flags, which a request on it
-//! needs (`Program::holds`). A seeded slot reads its seed's source when it
-//! is built. A class it reaches is live.
+//! classes, from a class to what it needs (`classes::Def::needs`): through
+//! an operator to every input it reads, a vector operator's output to its
+//! head, which reads every input, and a held class to its flags, which a
+//! request on it reads. A seeded slot reads its seed's source when it is
+//! built. A class it reaches is live.
 //!
 //! When the view folds iterations (the probe), a slot may have another
 //! source in the iterations after the first (`Builder::later_sources`): the
@@ -20,15 +20,11 @@ use super::*;
 
 impl<'c> Builder<'c> {
     /// Per slot, whether its class is live by this build's own walk.
-    /// `roots` is each slot's alias class and `class_def` each class's
-    /// defining slot, by root.
-    pub(in crate::build) fn live_slots(&self, roots: &[SlotId], class_def: &[SlotId]) -> Vec<bool> {
+    pub(in crate::build) fn live_slots(&self, classes: &Classes<'_>) -> Vec<bool> {
         let n = self.sources.len();
         let mut live = vec![false; n];
-        self.walk_live(roots, class_def, self.live_roots(roots), &mut live, |_| {
-            true
-        });
-        roots.iter().map(|&r| live[r.index()]).collect()
+        self.walk_live(classes, self.live_roots(classes), &mut live, |_| true);
+        classes.roots.iter().map(|&r| live[r.index()]).collect()
     }
 
     /// Per slot, whether the probe's record makes its class live: a class
@@ -42,9 +38,9 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn live_by_record(
         &self,
         record: &Record,
-        roots: &[SlotId],
-        class_def: &[SlotId],
+        classes: &Classes<'_>,
     ) -> Vec<bool> {
+        let (roots, class_def) = (classes.roots, classes.def);
         let n = self.sources.len();
         let (mut live, mut named) = (vec![false; n], vec![false; n]);
         for (s, &root) in roots.iter().enumerate() {
@@ -55,16 +51,15 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        let mut stack = self.live_roots(roots);
+        let mut stack = self.live_roots(classes);
         stack.extend(SlotId::below(n).filter(|&r| live[r.index()] && class_def[r.index()] == r));
-        self.walk_live(roots, class_def, stack, &mut live, |root| {
-            !named[root.index()]
-        });
+        self.walk_live(classes, stack, &mut live, |root| !named[root.index()]);
         roots.iter().map(|&r| live[r.index()]).collect()
     }
 
     /// The classes the walk starts from, by root: the slots of the roots.
-    fn live_roots(&self, roots: &[SlotId]) -> Vec<SlotId> {
+    fn live_roots(&self, classes: &Classes<'_>) -> Vec<SlotId> {
+        let roots = classes.roots;
         let mut stack: Vec<SlotId> = Vec::new();
         let (rendered, in_sticky) = self.components.placement(self.root);
         for c in CompIdx::below(self.components.component_type.len()) {
@@ -89,13 +84,12 @@ impl<'c> Builder<'c> {
     }
 
     /// Mark live, in `live` by root, every class reached from `stack`
-    /// through what its defining slot reads, where `may_mark` allows it; a
+    /// through what it needs (`classes::Def::needs`), where `may_mark` allows it; a
     /// class it does not allow is neither marked nor followed. A seeded
     /// slot reads its seed's source when it is built.
     fn walk_live(
         &self,
-        roots: &[SlotId],
-        class_def: &[SlotId],
+        classes: &Classes<'_>,
         stack: Vec<SlotId>,
         live: &mut [bool],
         may_mark: impl Fn(SlotId) -> bool,
@@ -105,10 +99,8 @@ impl<'c> Builder<'c> {
             .iter()
             .map(|&(s, from)| (s, BuiltSource::Alias(from)))
             .collect();
-        let flags = self.class_flags(roots);
         self.walk_classes(
-            roots,
-            class_def,
+            classes,
             stack,
             &seeds,
             |root| {
@@ -120,12 +112,7 @@ impl<'c> Builder<'c> {
                 }
                 true
             },
-            |def, src, stack| {
-                stack.extend(src.inputs(&self.op_inputs).map(|i| roots[i.index()]));
-                if let Some(fs) = flags.get(&roots[def.index()]) {
-                    stack.extend(fs.iter().map(|f| roots[f.index()]));
-                }
-            },
+            |def, stack| stack.extend(def.needs().map(|i| classes.root(i))),
         );
     }
 }

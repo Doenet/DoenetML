@@ -98,6 +98,67 @@ pub struct Program {
     pub holds: Holds,
 }
 
+/// What a cell needs to be right: what its instruction reads, and the
+/// flags that hold it (`Program::holds`), which a request on it reads. The
+/// one place a cell's dependencies are defined: what is live is closed
+/// under it (ADR 0019), and the input signature hashes it (ADR 0017).
+/// Evaluation order is not it: a flag is read only when a request arrives,
+/// so `Program::schedule` orders instructions by `Op::inputs` alone.
+pub struct Needs<'a> {
+    instr: Option<&'a Instr>,
+    operands: &'a [CellIdx],
+    flags: &'a [CellIdx],
+}
+
+impl<'a> Needs<'a> {
+    /// What `cell` needs, written by `instr` (none for an essential or a
+    /// fixed cell) over `operands`, held as `holds` says.
+    pub fn new(
+        instr: Option<&'a Instr>,
+        operands: &'a [CellIdx],
+        holds: &'a Holds,
+        cell: CellIdx,
+    ) -> Self {
+        Needs {
+            instr,
+            operands,
+            flags: holds.flags(cell),
+        }
+    }
+
+    /// The instruction writing the cell, if one does.
+    pub fn instr(&self) -> Option<&'a Instr> {
+        self.instr
+    }
+
+    /// What its instruction reads, in its operator's order.
+    pub fn inputs(&self) -> impl Iterator<Item = CellIdx> + 'a {
+        let operands = self.operands;
+        self.instr
+            .into_iter()
+            .flat_map(move |instr| instr.op.inputs(operands))
+    }
+
+    /// The flags that hold it.
+    pub fn flags(&self) -> &'a [CellIdx] {
+        self.flags
+    }
+
+    /// Everything it needs: its inputs, then its flags.
+    pub fn all(&self) -> impl Iterator<Item = CellIdx> + 'a {
+        self.inputs().chain(self.flags.iter().copied())
+    }
+}
+
+impl Program {
+    /// What `cell` needs to be right (`Needs`).
+    pub fn needs(&self, cell: CellIdx) -> Needs<'_> {
+        let p = self.producer[cell.index()];
+        let instr = (p != u32::MAX).then(|| &self.instrs[p as usize]);
+        Needs::new(instr, &self.operands, &self.holds, cell)
+    }
+}
+
 /// The cells a `fixed` holds, and the flag cells that hold each.
 #[derive(Debug, Clone, Default)]
 pub struct Holds(std::collections::HashMap<CellIdx, Vec<CellIdx>>);
@@ -124,6 +185,11 @@ impl Holds {
     /// The flag cells that hold `cell`.
     pub fn flags(&self, cell: CellIdx) -> &[CellIdx] {
         self.0.get(&cell).map_or(&[], Vec::as_slice)
+    }
+
+    /// Every held cell, with its flags.
+    pub fn iter(&self) -> impl Iterator<Item = (CellIdx, &[CellIdx])> {
+        self.0.iter().map(|(&c, fs)| (c, fs.as_slice()))
     }
 }
 
