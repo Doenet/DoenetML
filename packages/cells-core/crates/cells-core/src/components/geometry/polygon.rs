@@ -86,6 +86,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         _ => None,
     };
+    // How far a pure dilation may shrink the shape: the `Shape`
+    // instruction's last input.
+    let min_shrink = ctx
+        .text(attr::minShrink)
+        .and_then(|s| s.trim().parse::<f64>().ok())
+        .unwrap_or(0.1);
     let rigid_opts = if rigid || similar {
         let rotate_around = ctx.text(attr::rotateAround).unwrap_or_default();
         let pivot = match rotate_around.trim() {
@@ -99,17 +105,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             "point" if pivot_point.is_some() => Pivot::Point,
             _ => Pivot::Centroid,
         };
-        let min_shrink = ctx
-            .text(attr::minShrink)
-            .and_then(|s| s.trim().parse::<f64>().ok())
-            .unwrap_or(0.1);
         Some(RigidOpts {
             // `rigid` forbids dilation; `preserveSimilarity` allows it
             // unless `allowDilation` says otherwise.
             dilate: !rigid && flag(ctx, attr::allowDilation, true),
             rotate: flag(ctx, attr::allowRotation, true),
             translate: flag(ctx, attr::allowTranslation, true),
-            min_shrink,
             pivot,
         })
     } else {
@@ -148,8 +149,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             let first = ComponentType::Polygon
                 .list_slot(n_public, 1, 0)
                 .expect("a vertex the polygon holds");
-            let mut outputs =
-                ElemWiring::vector_from(first, VecOp::Shape { n: byte(n), opts }, args).into_iter();
+            let mut outputs = ElemWiring::vector_from(
+                first,
+                VecOp::Shape { n: byte(n), opts },
+                args,
+                &[min_shrink],
+            )
+            .into_iter();
             (0..n)
                 .map(|_| [outputs.next().unwrap(), outputs.next().unwrap()])
                 .collect()

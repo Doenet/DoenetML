@@ -134,9 +134,10 @@ fn operators_compute_and_propagate() {
            <number name="n">-$a</number><number name="o">$a + 1</number>
            <point name="p" x="$t" y="$u"/>"#,
     );
-    // The two inputs; the point's `hide` is fixed (ADR 0018).
+    // The two inputs; the point's `hide` is fixed (ADR 0018), as are the
+    // literals 10, 0, 50 and 1, one cell each.
     assert_eq!(doc.n_essential, 2);
-    assert_eq!(doc.cells.len(), 13);
+    assert_eq!(doc.cells.len(), 17);
     assert_eq!(doc.value("s", "value"), Some(7.0));
     assert_eq!(doc.value("t", "value"), Some(70.0));
     assert_eq!(doc.value("u", "value"), Some(50.0));

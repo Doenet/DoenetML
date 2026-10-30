@@ -1,5 +1,6 @@
-//! Operators: the numeric functions that compute derived cells. Literal
-//! parameters are stored inline in the instruction, not in cells. Every
+//! Operators: the numeric functions that compute derived cells. A literal
+//! an operator reads is a fixed cell like any other input
+//! (`Builder::const_slot`). Every
 //! scalar operator is one `scalar_ops!` entry (`ops.rs`, ADR 0016): to add
 //! one, add an entry.
 //!
@@ -107,26 +108,16 @@ scalar_ops! {
         eval: a.floor(),
         projection |d| d.is_finite().then(|| (A, d.floor())),
     }
-    /// `a * k`.
-    Scale(a; k) samples [{ k: 2.0 }, { k: -0.5 }, { k: 0.0 }] {
-        eval: a * k,
-        exact |d| (k != 0.0).then_some((A, d / k)),
+    /// `a` held between `lo` and `hi`; NaN if any is NaN (unlike
+    /// `f64::clamp`, which panics on bounds out of order).
+    Clamp(a, lo, hi) {
+        eval: nan_min(nan_max(a, lo), hi),
+        projection |d| Some((A, nan_min(nan_max(d, lo), hi))),
     }
-    /// `a + k`.
-    Offset(a; k) samples [{ k: 3.0 }] {
-        eval: a + k,
-        exact |d| Some((A, d - k)),
-    }
-    /// `a` held between `lo` and `hi`.
-    Clamp(a; lo, hi) samples [{ lo: 0.0, hi: 1.0 }, { lo: -2.5, hi: 4.0 }] {
-        eval: a.clamp(lo, hi),
-        projection |d| Some((A, d.clamp(lo, hi))),
-    }
-    /// `a` unless it is NaN, then the literal: `valueOnNaN` with a
-    /// constant. A NaN ask has no inverse: it would be asking for the
-    /// fallback.
-    NanTo(a; k) samples [{ k: 7.0 }] {
-        eval: if a.is_nan() { k } else { a },
+    /// `a` unless it is NaN, then `b`: `valueOnNaN`. A NaN ask has no
+    /// inverse: it would be asking for the fallback.
+    NanTo(a, b) {
+        eval: if a.is_nan() { b } else { a },
         exact |d| (!d.is_nan()).then_some((A, d)),
     }
     /// `a` to the power `b`.
@@ -210,22 +201,19 @@ impl Op {
 
     /// All input cells, direct and in `operands`.
     pub fn inputs<'a>(&self, operands: &'a [CellIdx]) -> impl Iterator<Item = CellIdx> + 'a {
-        let (a, b) = match self {
-            Op::Vec(..) | Op::Sym(..) => (None, None),
-            _ => {
-                let (a, b) = self.input_pair();
-                (Some(a), b)
-            }
+        let (scalar, n) = match self {
+            Op::Vec(..) | Op::Sym(..) => ([CellIdx::new(0); 3], 0),
+            _ => self.scalar_inputs(),
         };
-        a.into_iter()
-            .chain(b)
+        scalar
+            .into_iter()
+            .take(n)
             .chain(operands[self.operand_range()].iter().copied())
     }
 }
 
 /// Every scalar operator's inverse, checked against what its entry
-/// declares (ADR 0016), over a fixed table of values for each input and
-/// each of the operator's parameter samples.
+/// declares (ADR 0016), over a fixed table of values for each input.
 #[cfg(test)]
 mod inverses {
     use super::*;
@@ -269,7 +257,7 @@ mod inverses {
     /// (`OpSpec::writes`, ADR 0018).
     #[test]
     fn every_inverse_writes_a_declared_input() {
-        for spec in OpSpec::scalar_samples() {
+        for spec in OpSpec::scalars() {
             let n = spec.scalar_arity().unwrap();
             let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
             for cur in &assignments(n) {
@@ -288,7 +276,7 @@ mod inverses {
     #[test]
     fn every_inverse_does_what_its_entry_declares() {
         let mut failures = Vec::new();
-        for spec in OpSpec::scalar_samples() {
+        for spec in OpSpec::scalars() {
             let n = spec.scalar_arity().unwrap();
             let op = spec.bind_scalar(&CellIdx::below(n).collect::<Vec<_>>());
             let all = assignments(n);

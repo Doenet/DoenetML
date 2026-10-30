@@ -636,21 +636,30 @@ pub enum PropFrom {
     ByPlanner,
 }
 
-/// The positions of a computed prop's inputs among its component's props.
-/// Written as prop names in the tables and resolved when compiled
-/// (`props` in `define.rs`).
+/// A computed prop's inputs: positions among its component's props, or
+/// literals. Written as prop names and `(value)`s in the tables and
+/// resolved when compiled (`props` in `define.rs`).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Args {
-    at: [u8; MAX_ARGS],
+    at: [ArgFrom; MAX_ARGS],
     len: u8,
+}
+
+/// One input of a computed prop.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ArgFrom {
+    /// The component's own prop at this position.
+    Prop(u8),
+    /// A literal: the build's fixed cell for it.
+    Const(f64),
 }
 
 /// The most inputs a computed prop's operator takes.
 const MAX_ARGS: usize = 4;
 
 impl std::ops::Deref for Args {
-    type Target = [u8];
-    fn deref(&self) -> &[u8] {
+    type Target = [ArgFrom];
+    fn deref(&self) -> &[ArgFrom] {
         &self.at[..self.len as usize]
     }
 }

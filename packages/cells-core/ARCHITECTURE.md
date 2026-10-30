@@ -423,11 +423,12 @@ other cell.
 ### Add an operator
 
 Add one entry to `scalar_ops!` in `program/scalar.rs` (ADR 0016) giving its
-inputs and literal parameters, its evaluation, and its inverse, declared
+inputs (at most three; a literal is an input, a fixed cell), its
+evaluation, and its inverse, declared
 `exact`, `projection` or `drops`. The macro (`program/ops.rs`) generates the
 `Op` and `OpSpec` variants and every match arm. The tests in
 `program::scalar::inverses` check each inverse against what its entry
-declares, over a fixed table of values and the entry's parameter `samples`,
+declares, over a fixed table of values for each input,
 and that it writes only an input it declares (`OpSpec::writes`, ADR 0018:
 an `exact` or `projection` inverse its first, a `drops` one none). The
 compile finds what a student can write by those declarations, so a vector

@@ -1,6 +1,6 @@
 //! `scalar_ops!`: every scalar operator from one entry (ADR 0016). An entry
-//! names the operator and its inputs (`Mul(a, b)`) and literal parameters
-//! (`Clamp(a; lo, hi)`), its evaluation, and its inverse as one of
+//! names the operator and its inputs (`Mul(a, b)`, at most three), its
+//! evaluation, and its inverse as one of
 //!
 //! - `exact |d| ..`: the input to write and its value, or None to drop the
 //!   request; where it writes, evaluating again gives `d`;
@@ -8,19 +8,17 @@
 //!   applied with `d` in the written input (ADR 0003);
 //! - `drops`: no request passes.
 //!
-//! In both expressions the inputs are their cells' values and the
-//! parameters their literals; an inverse names the input it writes by
-//! position, `A` for the first. From the entries the macro makes `Op` and `OpSpec`
-//! (with the vector and symbolic variants, whose rules are in `vector.rs`
-//! and the engine), `Op::eval`, `Op::invert`, `Op::input_pair`,
-//! `OpSpec::scalar_arity`, `OpSpec::bind_scalar`, `OpSpec::inverse` and
-//! `OpSpec::scalar_samples`, which
-//! the `inverses` tests in `scalar.rs` check every inverse against over a
-//! fixed table of values, and `Op::writes` and `OpSpec::writes`, the
-//! inputs an inverse may write (ADR 0018): an `exact` or `projection`
-//! inverse its first, a `drops` one none. An
-//! operator with parameters gives `samples`, the parameters it is checked
-//! with.
+//! In both expressions the inputs are their cells' values; an inverse names
+//! the input it writes by position, `A` for the first. A literal an
+//! operator reads is an input like any other, a fixed cell
+//! (`Builder::const_slot`). From the entries the macro makes `Op` and
+//! `OpSpec` (with the vector and symbolic variants, whose rules are in
+//! `vector.rs` and the engine), `Op::eval`, `Op::invert`,
+//! `Op::scalar_inputs`, `OpSpec::scalar_arity`, `OpSpec::bind_scalar`,
+//! `OpSpec::inverse` and `OpSpec::scalars`, which the `inverses` tests in
+//! `scalar.rs` check every inverse against over a fixed table of values,
+//! and `OpSpec::writes`, the inputs an inverse may write (ADR 0018): an
+//! `exact` or `projection` inverse its first, a `drops` one none.
 //!
 //! ```ignore
 //! scalar_ops! {
@@ -29,54 +27,13 @@
 //!         eval: a * b,
 //!         exact |d| (b != 0.0).then_some((A, d / b)),
 //!     }
-//!     /// `a * k`.
-//!     Scale(a; k) samples [{ k: 2.0 }, { k: 0.0 }] {
-//!         eval: a * k,
-//!         exact |d| (k != 0.0).then_some((A, d / k)),
-//!     }
 //! }
 //! ```
 
 /// See the module documentation.
 macro_rules! scalar_ops {
-    // Normalize each entry, one at a time, into
-    // `{ [attrs] Name [inputs] [params] [op def] [spec def] [spec pattern]
-    //   [samples] eval kind d inverse }`.
-    (@munch [$($done:tt)*]) => { scalar_ops!(@emit $($done)*); };
-    // With parameters.
-    (@munch [$($done:tt)*]
-        $(#[$m:meta])* $name:ident ($($in:ident),+ ; $($p:ident),+)
-        samples [$($s:tt),+ $(,)?]
-        { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(,)? }
-        $($rest:tt)*
-    ) => {
-        scalar_ops!(@munch [$($done)* {
-            [$(#[$m])*] $name [$($in),+] [$($p),+]
-            [$name($(scalar_ops!(@cell $in)),+, $(scalar_ops!(@param $p)),+)]
-            [$name { $($p: f64),+ }]
-            [$name { $($p),+ }]
-            [$($s),+]
-            $eval, $kind $(|$d| $inv)?
-        }] $($rest)*);
-    };
-    // Without.
-    (@munch [$($done:tt)*]
-        $(#[$m:meta])* $name:ident ($($in:ident),+)
-        { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(,)? }
-        $($rest:tt)*
-    ) => {
-        scalar_ops!(@munch [$($done)* {
-            [$(#[$m])*] $name [$($in),+] []
-            [$name($(scalar_ops!(@cell $in)),+)]
-            [$name]
-            [$name]
-            [{}]
-            $eval, $kind $(|$d| $inv)?
-        }] $($rest)*);
-    };
     (@cell $x:ident) => { CellIdx };
     (@zero $x:ident) => { CellIdx::new(0) };
-    (@param $x:ident) => { f64 };
     // The inverse's body, and its kind.
     (@inverse drops $desired:ident) => { None };
     (@inverse $kind:ident $desired:ident |$d:ident| $inv:expr) => {{
@@ -91,26 +48,27 @@ macro_rules! scalar_ops {
     (@writes exact) => { 1 };
     (@writes projection) => { 1 };
     (@writes drops) => { 0 };
-    // `input_pair` and `bind` by the number of inputs.
-    (@pair $a:ident) => { ($a, None) };
-    (@pair $a:ident, $b:ident) => { ($a, Some($b)) };
+    // `scalar_inputs` and `bind` by the number of inputs.
+    (@inputs $a:ident) => { ([$a, $a, $a], 1) };
+    (@inputs $a:ident, $b:ident) => { ([$a, $b, $b], 2) };
+    (@inputs $a:ident, $b:ident, $c:ident) => { ([$a, $b, $c], 3) };
     (@arity $a:ident) => { 1 };
     (@arity $a:ident, $b:ident) => { 2 };
-    (@bind $inputs:ident $name:ident [$a:ident] [$($p:ident),*]) => {
-        Op::$name($inputs[0], $($p),*)
+    (@arity $a:ident, $b:ident, $c:ident) => { 3 };
+    (@bind $inputs:ident $name:ident [$a:ident]) => { Op::$name($inputs[0]) };
+    (@bind $inputs:ident $name:ident [$a:ident, $b:ident]) => {
+        Op::$name($inputs[0], $inputs[1])
     };
-    (@bind $inputs:ident $name:ident [$a:ident, $b:ident] [$($p:ident),*]) => {
-        Op::$name($inputs[0], $inputs[1], $($p),*)
+    (@bind $inputs:ident $name:ident [$a:ident, $b:ident, $c:ident]) => {
+        Op::$name($inputs[0], $inputs[1], $inputs[2])
     };
-    (@emit $({
-        [$($attr:tt)*] $name:ident [$($in:ident),+] [$($p:ident),*]
-        [$($op_def:tt)*] [$($spec_def:tt)*] [$($spec_pat:tt)*]
-        [$($sample:tt),*]
-        $eval:expr, $kind:ident $(|$d:ident| $inv:expr)?
-    })*) => {
+    ($(
+        $(#[$m:meta])* $name:ident ($($in:ident),+)
+        { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(,)? }
+    )*) => {
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum Op {
-            $($($attr)* $($op_def)*,)*
+            $($(#[$m])* $name($(scalar_ops!(@cell $in)),+),)*
             /// A symbolic instruction: inputs are `operands[start..start + n]`;
             /// its memo is the `n + n_out` entries from `memo` (see `Program::step`).
             Sym(SymKind, OperandIdx, u8, MemoIdx),
@@ -122,7 +80,7 @@ macro_rules! scalar_ops {
         /// Description of an operator before its inputs are bound to cells.
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum OpSpec {
-            $($($attr)* $($spec_def)*,)*
+            $($(#[$m])* $name,)*
             Vec(VecOp),
             /// Any number of inputs (a template's leaves); see `SymKind`.
             Sym(SymKind),
@@ -130,10 +88,9 @@ macro_rules! scalar_ops {
 
         impl Op {
             #[inline(always)]
-            #[allow(unused_variables)]
             pub fn eval(&self, cells: &[f64]) -> f64 {
                 match *self {
-                    $(Op::$name($($in,)+ $($p,)*) => {
+                    $(Op::$name($($in),+) => {
                         $(let $in = cells[$in.index()];)+
                         $eval
                     })*
@@ -150,7 +107,7 @@ macro_rules! scalar_ops {
             #[allow(unused_variables)]
             pub fn invert(&self, cells: &[f64], desired: f64) -> Option<(CellIdx, f64)> {
                 match *self {
-                    $(Op::$name($($in,)+ $($p,)*) => {
+                    $(Op::$name($($in),+) => {
                         let written = [$($in),+];
                         $(let $in = cells[$in.index()];)+
                         let r: Option<(usize, f64)> =
@@ -166,24 +123,23 @@ macro_rules! scalar_ops {
                 }
             }
 
-            /// The operator with its inputs left out: what it computes, with
-            /// its literal parameters, whatever cells it reads.
+            /// The operator with its inputs left out: what it computes,
+            /// whatever cells it reads.
             #[allow(unused_variables)]
             pub fn unbound(&self) -> Op {
                 match *self {
-                    $(Op::$name($($in,)+ $($p,)*) => Op::$name($(scalar_ops!(@zero $in),)+ $($p,)*),)*
+                    $(Op::$name($($in),+) => Op::$name($(scalar_ops!(@zero $in)),+),)*
                     Op::Sym(kind, _, n, _) => Op::Sym(kind, OperandIdx::default(), n, MemoIdx::default()),
                     Op::Vec(op, _, n_in, n_out) => Op::Vec(op, OperandIdx::default(), n_in, n_out),
                 }
             }
 
-            /// Input cells, without allocating: `(first, Some(second))` for
-            /// binary ops.
+            /// A scalar operator's input cells without allocating: the first
+            /// `n` of the array.
             #[inline(always)]
-            #[allow(unused_variables)]
-            pub fn input_pair(&self) -> (CellIdx, Option<CellIdx>) {
+            pub fn scalar_inputs(&self) -> ([CellIdx; 3], usize) {
                 match *self {
-                    $(Op::$name($($in,)+ $($p,)*) => scalar_ops!(@pair $($in),+),)*
+                    $(Op::$name($($in),+) => scalar_ops!(@inputs $($in),+),)*
                     Op::Vec(..) | Op::Sym(..) => {
                         unreachable!("vector and symbolic operators keep every input in operands")
                     }
@@ -203,7 +159,7 @@ macro_rules! scalar_ops {
             /// A scalar operator's inputs; None for a vector or symbolic one.
             pub const fn scalar_arity(&self) -> Option<usize> {
                 match self {
-                    $(OpSpec::$name { .. } => Some(scalar_ops!(@arity $($in),+)),)*
+                    $(OpSpec::$name => Some(scalar_ops!(@arity $($in),+)),)*
                     OpSpec::Vec(_) | OpSpec::Sym(_) => None,
                 }
             }
@@ -211,7 +167,7 @@ macro_rules! scalar_ops {
             /// Bind a scalar operator to its input cells.
             pub(crate) fn bind_scalar(&self, inputs: &[CellIdx]) -> Op {
                 match *self {
-                    $(OpSpec::$($spec_pat)* => scalar_ops!(@bind inputs $name [$($in),+] [$($p),*]),)*
+                    $(OpSpec::$name => scalar_ops!(@bind inputs $name [$($in),+]),)*
                     OpSpec::Vec(_) | OpSpec::Sym(_) => unreachable!("not a scalar operator"),
                 }
             }
@@ -220,7 +176,7 @@ macro_rules! scalar_ops {
             /// vector or symbolic one.
             pub fn inverse(&self) -> Option<Inverse> {
                 match self {
-                    $(OpSpec::$name { .. } => Some(scalar_ops!(@kind $kind)),)*
+                    $(OpSpec::$name => Some(scalar_ops!(@kind $kind)),)*
                     OpSpec::Vec(_) | OpSpec::Sym(_) => None,
                 }
             }
@@ -232,20 +188,17 @@ macro_rules! scalar_ops {
             /// tests in `vector.rs` check it.
             pub fn writes(&self) -> u64 {
                 match self {
-                    $(OpSpec::$name { .. } => scalar_ops!(@writes $kind),)*
+                    $(OpSpec::$name => scalar_ops!(@writes $kind),)*
                     OpSpec::Vec(op) => op.writes(),
                     OpSpec::Sym(kind) => kind.writes(),
                 }
             }
 
-            /// Every scalar operator, with each of its parameter samples.
-            pub fn scalar_samples() -> Vec<OpSpec> {
-                vec![$($(OpSpec::$name $sample),*),*]
+            /// Every scalar operator.
+            pub fn scalars() -> Vec<OpSpec> {
+                vec![$(OpSpec::$name),*]
             }
         }
     };
-    // The entries, normalized by `@munch` (the arms above come first, so
-    // this one never sees the macro's own calls).
-    ($($entries:tt)*) => { scalar_ops!(@munch [] $($entries)*); };
 }
 pub(super) use scalar_ops;

@@ -16,8 +16,8 @@ pub const MAX_VEC_IN: usize = 64;
 pub const MAX_VERTICES: usize = 100;
 
 /// The most vertices of a rigid polygon (`VecOp::Shape` reads two per
-/// vertex and a pivot point).
-pub const MAX_RIGID_VERTICES: usize = (MAX_VEC_IN - 2) / 2;
+/// vertex, a pivot point and the least it may shrink).
+pub const MAX_RIGID_VERTICES: usize = (MAX_VEC_IN - 3) / 2;
 
 /// The most entries of a tuple.
 pub const MAX_TUPLE: usize = 8;

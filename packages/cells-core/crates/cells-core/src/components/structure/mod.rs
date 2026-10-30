@@ -48,11 +48,11 @@ pub mod repeat_for_sequence {
             maxNumber: attr(10_000.0),
             span: computed(OpSpec::Sub, [to, from]),
             spanSteps: computed(OpSpec::Div, [span, step]),
-            spanStepsEps: computed(OpSpec::Offset { k: 1.0 + 1e-10 }, [spanSteps]),
+            spanStepsEps: computed(OpSpec::Add, [spanSteps, (1.0 + 1e-10)]),
             lengthFromTo: computed(OpSpec::Floor, [spanStepsEps]),
             length: attr_or(lengthFromTo),
             lengthFloor: computed(OpSpec::Floor, [length]),
-            lengthNonNeg: computed(OpSpec::Clamp { lo: 0.0, hi: f64::INFINITY }, [lengthFloor]),
+            lengthNonNeg: computed(OpSpec::Max, [lengthFloor, (0.0)]),
             count: computed(OpSpec::Min, [lengthNonNeg, maxNumber]),
         }
         presentation { asList }
@@ -74,7 +74,7 @@ pub mod sequence_value {
             from: attr(1.0),
             step: attr(1.0),
             k: attr(1.0),
-            km1: computed(OpSpec::Offset { k: -1.0 }, [k]),
+            km1: computed(OpSpec::Add, [k, (-1.0)]),
             scaled: computed(OpSpec::Mul, [km1, step]),
             value: computed(OpSpec::Add, [scaled, from]) { rendered },
         }

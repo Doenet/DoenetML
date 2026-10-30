@@ -177,13 +177,13 @@ mod arity {
     use super::*;
     use crate::program::vector::{RigidOpts, VecOp};
 
-    /// Every operator: the scalar ones with each parameter sample
-    /// (`scalar_ops!` makes the list, so none is missing), then every vector
+    /// Every operator: the scalar ones (`scalar_ops!` makes the list, so
+    /// none is missing), then every vector
     /// and symbolic one. A vector or symbolic variant added does not compile
     /// until `tag` gives it a number, and then this test fails until `every`
     /// has one of it.
     fn every() -> Vec<OpSpec> {
-        let mut ops = OpSpec::scalar_samples();
+        let mut ops = OpSpec::scalars();
         ops.extend([
             OpSpec::Vec(VecOp::Shape {
                 n: 3,

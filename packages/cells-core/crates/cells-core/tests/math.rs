@@ -23,11 +23,11 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
         load(r#"<numberInput name="a" value="2"/><math name="m">3$a + 2</math>"#).unwrap();
     assert_eq!(doc.value("m", "value"), Some(8.0));
     assert!(!has_symbolic(&doc), "a numeric math is plain operators");
-    // Scale then Offset: two instructions, no fixed literal cells.
+    // Mul then Add: two instructions, reading the literals' fixed cells.
     assert_eq!(doc.program.len(), 2);
     assert_eq!(
-        doc.n_fixed, 3,
-        "only the (NaN) expression handle and the document's two credit cells are fixed"
+        doc.n_fixed, 5,
+        "the (NaN) expression handle, the document's two credit cells, 3 and 2"
     );
     // Dragging the math's value inverts through the lowered chain.
     set_unchecked(&mut doc, "m", "value", 14.0);
@@ -37,8 +37,8 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
 
 #[test]
 fn a_literal_operand_is_one_cell_for_every_iteration() {
-    // `^` and `max` take no literal parameter: their literal is a fixed
-    // cell, and the build keeps one per value, not one per iteration.
+    // A literal is a fixed cell, and the build keeps one per value, not
+    // one per iteration.
     let body = |n: &str| {
         format!(
             r#"<repeatForSequence name="r" length="5" valueName="v"><number name="n">{n}</number></repeatForSequence>"#
@@ -158,7 +158,7 @@ fn a_nested_call_builds_the_same_operators_as_a_chain_of_numbers() {
             .iter()
             .map(|i| match i.op {
                 Op::Min(..) => "Min".to_string(),
-                Op::Clamp(_, lo, hi) => format!("Clamp {lo} {hi}"),
+                Op::Clamp(..) => "Clamp".to_string(),
                 other => format!("{other:?}"),
             })
             .collect::<Vec<_>>()

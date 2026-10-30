@@ -3,6 +3,7 @@
 //! and every reference. Nothing here names an iteration; see `build/mod.rs`.
 
 use super::*;
+use crate::components::ArgFrom;
 
 crate::index::index_type! {
     /// An element's stable key (ADR 0017), as an index into the compile's
@@ -53,7 +54,8 @@ crate::index::index_type! {
 
 /// A cell an operator reads or a slot aliases, named before any iteration
 /// exists: a reference (with a selector into what it names), one of the
-/// element's own slots, or a slot of another element in the same template.
+/// element's own slots, a slot of another element in the same template, or
+/// a constant.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Arg {
     Ref(RefId, Sel),
@@ -61,6 +63,10 @@ pub(crate) enum Arg {
     /// A copy with overridden attributes shares the rest of the original's
     /// essential state through this.
     Elem(ElemId, u8),
+    /// A literal an operator reads: the build's one fixed cell for the
+    /// value (`Builder::const_slot`). Only an operator input, never an
+    /// alias.
+    Const(f64),
 }
 
 /// Which cell of a reference's target: the single cell, coordinate `j` of a
@@ -179,8 +185,16 @@ impl Source {
         )
     }
     /// A type's `PropFrom::Computed` prop.
-    pub(crate) fn from_def(op: OpSpec, args: &[u8]) -> Self {
-        Source::Op(op, args.iter().map(|&a| Arg::Own(a)).collect())
+    pub(crate) fn from_def(op: OpSpec, args: &[ArgFrom]) -> Self {
+        let arg = |&a: &ArgFrom| match a {
+            ArgFrom::Prop(p) => Arg::Own(p),
+            ArgFrom::Const(k) => Arg::Const(k),
+        };
+        Source::Op(op, args.iter().map(arg).collect())
+    }
+    /// Operator over the element's own slot `a` and the literal `k`.
+    pub(crate) fn computed_k(op: OpSpec, a: usize, k: f64) -> Self {
+        Source::Op(op, vec![Arg::Own(own_slot(a)), Arg::Const(k)])
     }
     /// Head of a vector instruction over own slots; this slot is output 0,
     /// the next `n_out - 1` slots are `VecOut`.
@@ -706,11 +720,21 @@ impl ElemWiring {
     }
     /// `vector` for as many consecutive slots as the operator has outputs,
     /// from `head` (a list's points, which a polygon's `Shape` moves).
-    pub(crate) fn vector_from(head: usize, op: VecOp, args: Vec<usize>) -> Vec<Wire> {
+    pub(crate) fn vector_from(
+        head: usize,
+        op: VecOp,
+        args: Vec<usize>,
+        consts: &[f64],
+    ) -> Vec<Wire> {
+        let args: Vec<Arg> = args
+            .into_iter()
+            .map(|a| Arg::Own(own_slot(a)))
+            .chain(consts.iter().map(|&k| Arg::Const(k)))
+            .collect();
         (0..op.n_out())
             .map(|k| {
                 if k == 0 {
-                    Source::vector(op, args.clone()).into()
+                    Source::Op(OpSpec::Vec(op), args.clone()).into()
                 } else {
                     Source::VecOut(own_slot(head), byte(k)).into()
                 }

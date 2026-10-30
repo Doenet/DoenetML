@@ -18,9 +18,9 @@ component! {
     props {
         numIterates: attr(0.0),
         numIteratesFloor: computed(OpSpec::Floor, [numIterates]),
-        numIteratesClamped: computed(OpSpec::Clamp { lo: 0.0, hi: 10_000.0 }, [numIteratesFloor]),
-        iterates: computed(OpSpec::NanTo { k: 0.0 }, [numIteratesClamped]),
-        count: computed(OpSpec::Offset { k: 1.0 }, [iterates]),
+        numIteratesClamped: computed(OpSpec::Clamp, [numIteratesFloor, (0.0), (10_000.0)]),
+        iterates: computed(OpSpec::NanTo, [numIteratesClamped, (0.0)]),
+        count: computed(OpSpec::Add, [iterates, (1.0)]),
         allIteratesWithInitial: by_planner,
     }
     planner: Whole(plan),

@@ -50,14 +50,13 @@ pub enum Pivot {
 
 /// How a rigid shape may move. One dragged vertex rotates and, if `dilate`,
 /// scales the shape about the pivot; several dragged vertices translate it.
-/// `rotate` and `translate` switch those off; `min_shrink` bounds a pure
-/// dilation.
+/// `rotate` and `translate` switch those off. How far a pure dilation may
+/// shrink the shape is an input (`VecOp::Shape`).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RigidOpts {
     pub dilate: bool,
     pub rotate: bool,
     pub translate: bool,
-    pub min_shrink: f64,
     pub pivot: Pivot,
 }
 
@@ -66,7 +65,6 @@ impl RigidOpts {
         dilate: false,
         rotate: true,
         translate: true,
-        min_shrink: 0.1,
         pivot: Pivot::Centroid,
     };
 }
@@ -95,7 +93,8 @@ impl Produced {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum VecOp {
     /// Identity on `n` points (2n outputs) that move rigidly. Inputs are the
-    /// 2n coordinates followed by a pivot point (NaN unless `Pivot::Point`).
+    /// 2n coordinates, a pivot point (NaN unless `Pivot::Point`), and the
+    /// least a pure dilation may shrink the shape to (`minShrink`).
     Shape { n: u8, opts: RigidOpts },
     /// Inputs (cx, cy, px, py); outputs (cx, cy, r).
     CircleCenterPoint,
@@ -143,7 +142,7 @@ fn active_branch(choice: f64, n: u8) -> Option<usize> {
 impl VecOp {
     pub const fn n_in(&self) -> usize {
         match *self {
-            VecOp::Shape { n, .. } => 2 * n as usize + 2,
+            VecOp::Shape { n, .. } => 2 * n as usize + 3,
             VecOp::CircleCenterPoint => 4,
             VecOp::CirclePoints { n } => 2 * n as usize,
             VecOp::CircleTwoPointsRadius => 5,
@@ -428,9 +427,9 @@ fn invert_rigid(
             dilate,
             rotate,
             translate,
-            min_shrink,
             pivot,
         } = opts;
+        let min_shrink = inp[2 * n + 2];
         let one = specified.len() == 1;
         let (rotate, dilate) = (one && rotate, one && dilate);
         if !(rotate || dilate || translate) {

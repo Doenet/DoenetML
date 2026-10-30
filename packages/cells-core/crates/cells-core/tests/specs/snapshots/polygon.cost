@@ -3,5 +3,5 @@ a whole-shape drag moves every vertex by the same shift: cells 15 · essential 1
 twenty vertices, past the old cap of sixteen: cells 47 · essential 44 · fixed 3 · instrs 0 · components 3
 a vertex from the others, by index and by coordinate name: cells 17 · essential 10 · fixed 3 · instrs 4 · components 3
 a bare copy holds its referent's vertices: cells 13 · essential 10 · fixed 3 · instrs 0 · components 4
-a rigid polygon drags as one shape: cells 21 · essential 10 · fixed 5 · instrs 1 · components 3
+a rigid polygon drags as one shape: cells 22 · essential 10 · fixed 6 · instrs 1 · components 3
 a rigid polygon has at most 31 vertices: cells 6 · essential 4 · fixed 2 · instrs 0 · components 3

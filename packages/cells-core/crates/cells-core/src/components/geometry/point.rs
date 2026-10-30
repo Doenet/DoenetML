@@ -177,18 +177,17 @@ fn constrain(
             let snap = |wiring: &mut ElemWiring, raw: usize, step: f64, offset: f64| -> Wire {
                 let mut cur = raw;
                 if offset != 0.0 {
-                    cur = wiring.hidden(Source::computed(OpSpec::Offset { k: -offset }, vec![cur]));
+                    cur = wiring.hidden(Source::computed_k(OpSpec::Sub, cur, offset));
                 }
                 if step != 1.0 {
-                    cur =
-                        wiring.hidden(Source::computed(OpSpec::Scale { k: 1.0 / step }, vec![cur]));
+                    cur = wiring.hidden(Source::computed_k(OpSpec::Div, cur, step));
                 }
                 cur = wiring.hidden(Source::computed(OpSpec::Round, vec![cur]));
                 if step != 1.0 {
-                    cur = wiring.hidden(Source::computed(OpSpec::Scale { k: step }, vec![cur]));
+                    cur = wiring.hidden(Source::computed_k(OpSpec::Mul, cur, step));
                 }
                 if offset != 0.0 {
-                    return Wire::computed(OpSpec::Offset { k: offset }, vec![cur]);
+                    return Source::computed_k(OpSpec::Add, cur, offset).into();
                 }
                 Wire::own(cur)
             };

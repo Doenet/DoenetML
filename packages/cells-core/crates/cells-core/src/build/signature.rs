@@ -10,8 +10,7 @@
 //! on: the `hide` of it and its ancestors, the cases and conditionals
 //! around it, the repeats around it. Each cell of the closure hashes as
 //! what it is: an essential cell by its key and prop, a fixed cell by its
-//! value, a derived cell by its operator and literal parameters over its
-//! inputs' hashes; never by a cell index. The defaults of the essential
+//! value, a derived cell by its operator over its inputs' hashes; never by a cell index. The defaults of the essential
 //! cells in the closure are kept beside it, with whether each is the
 //! input's starting value, which an author may change: a cell that is one
 //! of the input's props itself, that no operator around the input mixes
@@ -392,7 +391,7 @@ impl<'a> Signer<'a> {
         self.hashes[cell.index()].unwrap()
     }
 
-    /// An operator as what it computes: its kind and literal parameters,
+    /// An operator as what it computes: its kind (a vector one's options),
     /// and for a symbolic one its expression with leaves numbered by input.
     fn op_hash(&self, instr: &Instr, inputs: &[CellIdx]) -> u64 {
         match instr.op {

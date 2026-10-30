@@ -3,7 +3,7 @@
 //! by `props`, the definition's builders, and `at` for a prop's position
 //! by name).
 
-use super::{Args, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
+use super::{ArgFrom, Args, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
 pub(super) use crate::compile::api::NO_VALUE;
 pub(super) use crate::program::OpSpec;
 
@@ -16,12 +16,20 @@ pub(super) struct Prop {
     source: DeclaredSource,
 }
 
+/// A computed prop's input as a table writes it: a prop by name, or a
+/// literal.
+#[derive(Clone, Copy)]
+pub(super) enum DeclaredArg {
+    Prop(&'static str),
+    Const(f64),
+}
+
 /// [`PropFrom`] with props named rather than numbered.
 #[derive(Clone, Copy)]
 enum DeclaredSource {
     Attribute,
     Children,
-    Computed(OpSpec, &'static [&'static str]),
+    Computed(OpSpec, &'static [DeclaredArg]),
     AttributeOr(&'static str),
     ByPlanner,
 }
@@ -68,12 +76,8 @@ pub(super) const fn children(name: &'static str) -> Prop {
     prop_from(name, f64::NAN, DeclaredSource::Children)
 }
 
-/// `op` applied to the component's own props `args`.
-pub(super) const fn computed(
-    name: &'static str,
-    op: OpSpec,
-    args: &'static [&'static str],
-) -> Prop {
+/// `op` applied to `args`: the component's own props, and literals.
+pub(super) const fn computed(name: &'static str, op: OpSpec, args: &'static [DeclaredArg]) -> Prop {
     // A table's computed prop names its operator's inputs: a wrong count
     // fails to compile.
     assert!(
@@ -164,19 +168,22 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: at(&out, or) as u8,
             },
-            DeclaredSource::Computed(op, names) => {
-                assert!(names.len() <= MAX_ARGS, "too many args");
-                let mut positions = [0; MAX_ARGS];
+            DeclaredSource::Computed(op, args) => {
+                assert!(args.len() <= MAX_ARGS, "too many args");
+                let mut resolved = [ArgFrom::Prop(0); MAX_ARGS];
                 let mut j = 0;
-                while j < names.len() {
-                    positions[j] = at(&out, names[j]) as u8;
+                while j < args.len() {
+                    resolved[j] = match args[j] {
+                        DeclaredArg::Prop(name) => ArgFrom::Prop(at(&out, name) as u8),
+                        DeclaredArg::Const(k) => ArgFrom::Const(k),
+                    };
                     j += 1;
                 }
                 PropFrom::Computed {
                     op,
                     args: Args {
-                        at: positions,
-                        len: names.len() as u8,
+                        at: resolved,
+                        len: args.len() as u8,
                     },
                 }
             }
@@ -409,7 +416,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// only attributes its type declares, and a misspelling does not compile.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
-/// `attr(default)`, `attr_or(other)` or `computed(op, [args])`,
+/// `attr(default)`, `attr_or(other)` or `computed(op, [args])`, where an
+/// arg is a prop or a literal in parentheses (`[radius, (2.0)]`),
 /// optionally followed by `{ attribute: a, bind: b, ref_prop: p,
 /// interactive, written_by_action, rendered, score, read_by_action }`.
 /// `interactive` marks a prop a renderer may request (ADR 0017's inputs);
@@ -650,18 +658,26 @@ macro_rules! component {
     (@prop attr_or $name:ident ($or:ident)) => {
         $crate::components::define::attr_or(stringify!($name), stringify!($or))
     };
-    (@prop computed $name:ident ($op:expr, [$($arg:ident),+ $(,)?])) => {{
-        $(
-            const _: () = assert!(
-                $crate::components::define::has(PROPS, stringify!($arg)),
-                concat!(
-                    "component!: computed prop `", stringify!($name), "` reads `",
-                    stringify!($arg), "`, which is not a prop"
-                ),
-            );
-        )+
-        $crate::components::define::computed(stringify!($name), $op, &[$(stringify!($arg)),+])
+    (@prop computed $name:ident ($op:expr, [$($arg:tt),+ $(,)?])) => {{
+        $($crate::components::define::component!(@has_arg $name $arg);)+
+        $crate::components::define::computed(
+            stringify!($name),
+            $op,
+            &[$($crate::components::define::component!(@arg $arg)),+],
+        )
     }};
+    (@has_arg $name:ident $arg:ident) => {
+        const _: () = assert!(
+            $crate::components::define::has(PROPS, stringify!($arg)),
+            concat!(
+                "component!: computed prop `", stringify!($name), "` reads `",
+                stringify!($arg), "`, which is not a prop"
+            ),
+        );
+    };
+    (@has_arg $name:ident ($k:expr)) => {};
+    (@arg $arg:ident) => { $crate::components::define::DeclaredArg::Prop(stringify!($arg)) };
+    (@arg ($k:expr)) => { $crate::components::define::DeclaredArg::Const($k) };
     (@prop $other:ident $name:ident $($rest:tt)*) => {
         compile_error!(concat!(
             "component!: prop `", stringify!($name), "` has source `", stringify!($other),
