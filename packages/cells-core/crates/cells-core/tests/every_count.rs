@@ -123,7 +123,7 @@ const HOLES: &[(&str, &str)] = &[
     ),
 ];
 
-/// Documents with a counted value (ADR 0027), a value that follows the
+/// Documents with a counted value (ADR 0028), a value that follows the
 /// counts: a collect's count, a section's number after a repeat, before a
 /// repeat inside an iteration, or after sections collected from one, and
 /// the credit of a section whose answers are all in a repeat.
@@ -569,7 +569,7 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
     out
 }
 
-/// ADR 0027: a constant depends on the source, the seed and its scope
+/// ADR 0028: a constant depends on the source, the seed and its scope
 /// alone. For every document with a repeat, at every seed it draws with,
 /// every template slot that is a constant in one build of a scope is a
 /// constant in every build that stamps the scope, with the same value,

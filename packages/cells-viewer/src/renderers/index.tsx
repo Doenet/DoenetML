@@ -123,6 +123,7 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
         case "circle":
             return inGraph ? <JxCircle idx={idx} /> : null;
         case "polygon":
+        case "triangle":
             return inGraph ? <JxPolygon idx={idx} /> : null;
         // A point list's children are points aliasing a shape's own points.
         case "pointList":

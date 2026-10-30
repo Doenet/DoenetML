@@ -114,6 +114,14 @@ export class ComponentTable {
         return Array.from(propCells.subarray(propBase[c], end));
     }
 
+    /** Cells of component `c`'s list: two per point, after its type
+     * table's props (a polygon's vertices, ADR 0016). */
+    list(c: number): number[] {
+        return this.props(c).slice(
+            this.cols.typeProps[this.cols.componentType[c]].length,
+        );
+    }
+
     /** The DAST node the component was made from, or NONE for a
      * synthesized one. */
     node(c: number): number {

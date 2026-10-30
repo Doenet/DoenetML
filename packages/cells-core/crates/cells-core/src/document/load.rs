@@ -36,7 +36,7 @@ pub struct LoadOptions {
     /// golden diff do; `Document::is_live` still says which are needed.
     pub prune: bool,
     /// Evaluate once, as it builds, every instruction whose inputs are all
-    /// constants, which become constants (ADR 0027): on by default. Off,
+    /// constants, which become constants (ADR 0028): on by default. Off,
     /// every instruction runs at tick time, as before. Only with the
     /// `testing` feature: to check that folding changes no value.
     #[cfg(feature = "testing")]

@@ -102,7 +102,7 @@ impl Warned {
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
-    /// A given value (ADR 0027): the attribute's, or the type's default
+    /// A given value (ADR 0028): the attribute's, or the type's default
     /// without one. Essential when a student's action can write it, a
     /// constant otherwise (ADR 0018).
     Given(f64),
@@ -110,7 +110,7 @@ pub(crate) enum Source {
     GivenText(Option<StrId>),
     /// The matching slot of the `extend` referent.
     Inherit,
-    /// A constant (ADR 0027): never state, whatever can reach it.
+    /// A constant (ADR 0028): never state, whatever can reach it.
     Const(f64),
     Alias(Arg),
     /// Operator over cells.
@@ -518,7 +518,7 @@ impl Wire {
             state: Some((state, None)),
         }
     }
-    /// A constant (ADR 0027), not NaN: a value not given is
+    /// A constant (ADR 0028), not NaN: a value not given is
     /// `absent`, one the element cannot have `undefined`.
     pub(crate) fn constant(v: f64) -> Self {
         assert!(
@@ -862,21 +862,21 @@ pub struct Compiled {
     /// The probe's record of the live slots (ADR 0019), by which every
     /// build finds which cells it computes.
     pub(crate) live: Arc<Record>,
-    /// The probe's record of the counted values (ADR 0027): the template
+    /// The probe's record of the counted values (ADR 0028): the template
     /// slots whose value a build counts from the structure it stamped (a
     /// collect's count, a section's number after a repeat, the credit of a
     /// section whose answers are all in repeats). Each follows the counts,
     /// so every build makes it a derived cell, never a constant, even at a
     /// count where it has nothing to count.
     pub(crate) counted: Arc<Record>,
-    /// The probe's record of the document constants (ADR 0027): the
+    /// The probe's record of the document constants (ADR 0028): the
     /// template slots whose constant is the same in every instance, made
     /// from the source alone. Every other constant is a scope constant.
     pub(crate) document_constants: Arc<Record>,
     /// Whether a build gives a dead slot no cell (ADR 0019,
     /// `LoadOptions::prune`); never in the probe.
     pub(crate) prune: bool,
-    /// Whether a build folds instructions over constants (ADR 0027,
+    /// Whether a build folds instructions over constants (ADR 0028,
     /// `LoadOptions::fold`); never in the probe.
     pub(crate) fold: bool,
 }

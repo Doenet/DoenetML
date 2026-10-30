@@ -59,7 +59,7 @@ impl<'c> Builder<'c> {
         let mut items = Vec::new();
         self.scored_items(c, None, &mut items);
         // With a scored item in a repeat below `c`, there is none at some
-        // count: the credit is then a counted value (ADR 0027), which the
+        // count: the credit is then a counted value (ADR 0028), which the
         // probe, whose one iteration stands for every count, records.
         if self.view.folds_iterations() {
             let depth = |b: &Self, scope| b.enclosing_repeats(scope).len();

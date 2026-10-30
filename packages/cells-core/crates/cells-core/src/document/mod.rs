@@ -61,7 +61,7 @@ pub struct Document {
     /// Number of essential cells; `cells[..n_essential]` are essential.
     pub n_essential: usize,
     /// Constants follow the essential ones: values no tick changes, which
-    /// depend on the source and their scope alone (ADR 0027), such as
+    /// depend on the source and their scope alone (ADR 0028), such as
     /// an author's value no student can write, an iteration's index or the
     /// missing-referent NaN.
     pub n_const: usize,
@@ -263,7 +263,7 @@ impl Document {
         cell.index() < self.n_essential
     }
 
-    /// A constant (ADR 0027): a value no tick changes, such as an
+    /// A constant (ADR 0028): a value no tick changes, such as an
     /// iteration index, a math handle or a `fixed` value. Constants follow
     /// the essential cells.
     pub fn is_const(&self, cell: CellIdx) -> bool {

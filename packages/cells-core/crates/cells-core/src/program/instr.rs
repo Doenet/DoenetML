@@ -254,6 +254,7 @@ mod arity {
             OpSpec::Vec(VecOp::Choose { n: 3 }),
             OpSpec::Vec(VecOp::WeightedMean { n: 3 }),
             OpSpec::Vec(VecOp::Clamp),
+            OpSpec::Vec(VecOp::Centroid { n: 3 }),
             OpSpec::Sym(SymKind::Instantiate {
                 template: Handle::new(0),
                 post: Post::None,
@@ -286,9 +287,10 @@ mod arity {
                 VecOp::Choose { .. } => 10,
                 VecOp::WeightedMean { .. } => 11,
                 VecOp::Clamp => 12,
+                VecOp::Centroid { .. } => 13,
             },
             OpSpec::Sym(k) => {
-                13 + match k {
+                14 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -302,7 +304,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 21;
+    const N_TAGS: usize = 22;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

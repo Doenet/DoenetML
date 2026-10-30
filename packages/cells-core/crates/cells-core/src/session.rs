@@ -59,7 +59,7 @@ pub struct Session {
     /// The handle of each constant expression of the source, its `Post`
     /// applied, by (expression, post): a math text with no cell leaves,
     /// imported and simplified or expanded once per load however many
-    /// instances stamp it and however many builds run (ADR 0027). A handle
+    /// instances stamp it and however many builds run (ADR 0028). A handle
     /// into `engine`, so it goes where the engine goes.
     pub(crate) math_constants: Rc<RefCell<HashMap<(ExprId, Post), Handle>>>,
     /// How many components and slots the last build made: what the next

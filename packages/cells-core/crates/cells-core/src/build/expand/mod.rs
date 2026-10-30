@@ -53,7 +53,7 @@ pub(in crate::build) enum BuiltSource {
     /// A given value: essential when the record says a student's action
     /// can write it, a constant otherwise (ADR 0018).
     Given(f64),
-    /// A constant, never essential (ADR 0027): an iteration index, a math
+    /// A constant, never essential (ADR 0028): an iteration index, a math
     /// handle, the shared missing-referent cell.
     Const(f64),
     Alias(SlotId),
@@ -419,7 +419,7 @@ impl<'c> Builder<'c> {
         s
     }
 
-    /// Whether slot `s` holds a counted value (ADR 0027): one the build
+    /// Whether slot `s` holds a counted value (ADR 0028): one the build
     /// counts from the structure it stamped, so it follows the counts. The
     /// probe finds them, `found` saying this one is, and records them;
     /// every other build reads the record, since at some counts there is
@@ -437,7 +437,7 @@ impl<'c> Builder<'c> {
 
     /// Slot `s`'s source when this build counted `v` for it: a constant,
     /// or for a counted value a derived cell holding `v`, so a value that
-    /// follows the counts is never a constant (ADR 0027).
+    /// follows the counts is never a constant (ADR 0028).
     pub(in crate::build) fn counted(&mut self, s: SlotId, v: f64, found: bool) -> BuiltSource {
         if self.is_counted(s, found) {
             let k = self.const_slot(v);
@@ -1078,7 +1078,7 @@ impl<'c> Builder<'c> {
         // With no gathered original in an iteration, the number gathered is
         // a constant at every count. Otherwise it is a counted value: the
         // probe stands it in by its repeats' counts, and every other build
-        // holds the number it gathered (ADR 0027).
+        // holds the number it gathered (ADR 0028).
         let count = if counts.is_empty() {
             let count = self.counted(s0, copies.len() as f64, false);
             if matches!(count, BuiltSource::Op(..)) {

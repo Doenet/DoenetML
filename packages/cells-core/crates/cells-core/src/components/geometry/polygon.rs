@@ -1,24 +1,32 @@
 //! `<polygon>`: its definition and its planner (ADR 0016). Its vertices
 //! are its list; a rigid or similar polygon keeps its shape through one
-//! instruction that owns every vertex.
+//! instruction that owns every vertex. A triangle is planned here too
+//! (`triangle.rs`), with three vertices.
 
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::limits::byte;
+use crate::limits::{MAX_VEC_IN, byte};
 use crate::program::{Pivot, RigidOpts, VecOp};
 use crate::tick::snap::Shape;
 
 component! {
     /// `<polygon vertices="...">`, optionally rigid: its vertices are its list
     /// (ADR 0016), up to `MAX_VERTICES`, or `MAX_RIGID_VERTICES` when rigid.
-    tags: ["polygon", "triangle"],
+    tags: ["polygon"],
     flags: [copyable, located],
     renders: InGraph,
     props {
-        // The vertices follow, as the list.
         numVertices: by_planner { rendered },
+        // The mean of the vertices; the renderer's center handle requests
+        // it, and it translates every vertex. The vertices follow, as the
+        // list.
+        cx: by_planner { interactive },
+        cy: by_planner { interactive },
+    }
+    combined_props {
+        center: [cx, cy],
     }
     list {
         names: [vertices],
@@ -30,6 +38,10 @@ component! {
         // renderer draws every one.
         interactive: true,
         rendered: true,
+    }
+    alternate_names {
+        centerX1: cx,
+        centerX2: cy,
     }
     sticky: Shape::Closed,
     attributes {
@@ -48,12 +60,39 @@ component! {
 }
 
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
+pub const CX: usize = Props::AT.cx;
+pub const CY: usize = Props::AT.cy;
 
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let vertices = ctx.points(attr::vertices)?;
-    let n = vertices.len();
+    plan_vertices(ctx, ComponentType::Polygon, &[])
+}
+
+/// Plans an element of `component_type`, which declares the polygon's
+/// list and attributes, from its `vertices`. With `defaults`, it has as many
+/// vertices as they hold: one past those the author gave is essential
+/// state at its default, and one given past them is not read. Without, it
+/// has as many as were given.
+pub(super) fn plan_vertices(
+    ctx: &mut PlanCtx<'_, '_>,
+    component_type: ComponentType,
+    defaults: &[DefaultPoint],
+) -> Result<ElemWiring> {
+    let mut vertices = ctx.points(attr::vertices)?;
+    if !defaults.is_empty() {
+        vertices.truncate(defaults.len());
+    }
+    let n = vertices.len().max(defaults.len());
+    // A vertex as given, else its default.
+    let vertex = |k: usize| -> [Wire; 2] {
+        match vertices.get(k) {
+            Some(v) => Wire::point(v, shared_point_state(k), attr::vertices),
+            None => {
+                Wire::point_or_default(None, shared_point_state(k), attr::vertices, defaults[k])
+            }
+        }
+    };
     if n > super::MAX_VERTICES {
         return Err(Error::Unsupported(format!(
             "a polygon with more than {} vertices",
@@ -61,7 +100,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         )));
     }
     // The vertices are the list (ADR 0016), as many as given.
-    let mut wiring = ElemWiring::with_list(ComponentType::Polygon, n);
+    let mut wiring = ElemWiring::with_list(component_type, n);
     let n_public = wiring.n_public;
     let flag = |ctx: &PlanCtx<'_, '_>, name: Attr, default: bool| -> bool {
         match ctx.attr(name) {
@@ -127,9 +166,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // owns every vertex.
         Some(opts) if n > 0 => {
             let mut args = Vec::with_capacity(2 * n + 2);
-            for (k, v) in vertices.iter().enumerate() {
-                let [x, y] =
-                    wiring.hidden_point_with_shared_state(v, shared_point_state(k), attr::vertices);
+            for k in 0..n {
+                let [x, y] = match vertices.get(k) {
+                    Some(v) => wiring.hidden_point_with_shared_state(
+                        v,
+                        shared_point_state(k),
+                        attr::vertices,
+                    ),
+                    None => vertex(k).map(|w| wiring.hidden_wire(w)),
+                };
                 args.push(x);
                 args.push(y);
             }
@@ -146,7 +191,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                     args.push(wiring.hidden(Source::absent()));
                 }
             }
-            let first = ComponentType::Polygon
+            let first = component_type
                 .list_slot(n_public, 1, 0)
                 .expect("a vertex the polygon holds");
             let mut outputs = ElemWiring::vector_from(
@@ -162,14 +207,37 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         // Free: the vertices are the points; a vertex may be defined
         // from its siblings without a cycle.
-        _ => vertices
-            .iter()
-            .enumerate()
-            .map(|(k, v)| Wire::point(v, shared_point_state(k), attr::vertices))
-            .collect(),
+        _ => (0..n).map(vertex).collect(),
     };
+    // The center: one `Centroid` over the vertices, which reads at most
+    // `MAX_VEC_IN` inputs.
+    let [cx, cy] = if n == 0 {
+        [Wire::absent(), Wire::absent()]
+    } else if 2 * n > MAX_VEC_IN {
+        let w = ctx.warn(
+            "cells-polygon-center-unsupported",
+            &format!(
+                "the center of a polygon of more than {} vertices is not supported",
+                MAX_VEC_IN / 2
+            ),
+        );
+        [Wire::undefined(w), Wire::undefined(w)]
+    } else {
+        let vertices = (1..=n)
+            .flat_map(|k| (0..2).map(move |j| (k, j)))
+            .map(|(k, j)| {
+                component_type
+                    .list_slot(n_public, k, j)
+                    .expect("a vertex the polygon holds")
+            })
+            .collect();
+        ElemWiring::vector([CX, CY], VecOp::Centroid { n: byte(n) }, vertices)
+    };
+    // A triangle's table is laid out as this one (`triangle.rs`).
     wiring.set_public(Props {
         numVertices: Wire::constant(n as f64),
+        cx,
+        cy,
     });
     wiring.set_list(points);
     Ok(wiring)

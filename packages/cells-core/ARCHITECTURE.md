@@ -18,7 +18,7 @@ variables. This one is organized around data:
   Every cell is *essential* (independent state a student's action can
   write, the only thing a write can land on), a *constant* (a value no
   tick changes, which depends on the source and its scope alone, an
-  author's value no student can change among them; ADR 0027), or *derived*
+  author's value no student can change among them; ADR 0028), or *derived*
   (computed from other cells).
 - **Instructions.** The dependency graph is a list of instructions, each an
   operator bound to its input cells and the cell(s) it writes. Operators may

@@ -1,7 +1,8 @@
 # Constants depend on the source and their scope alone
 
 Status: proposed 2026-10-30. Migration phases 1 to 5 are done; see
-Migration.
+Migration. Drafted as 0026, and renumbered as `cells` took 0026 (composed
+inverses) and 0027 (the compile runs in passes) first.
 
 A **constant** is a cell whose value is a function of the source, the
 document seed and the scope it is in, and of nothing else: not of state,

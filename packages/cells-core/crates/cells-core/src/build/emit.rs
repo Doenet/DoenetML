@@ -83,7 +83,7 @@ impl<'c> Builder<'c> {
             let live = self.live_by_record(&self.compiled.live, &slot_cells);
             (live, Record::default())
         };
-        // The counted values the probe found (ADR 0027).
+        // The counted values the probe found (ADR 0028).
         let counted_record = if folds {
             let mut marked = vec![false; n];
             for &s in &self.counted_slots {
@@ -93,7 +93,7 @@ impl<'c> Builder<'c> {
         } else {
             Record::default()
         };
-        // The document constants the probe found (ADR 0027): of the slots
+        // The document constants the probe found (ADR 0028): of the slots
         // whose plan gives one, those that are constants, not essential.
         let document_record = if folds {
             let mut marked = vec![false; n];
@@ -436,7 +436,7 @@ impl<'c> Builder<'c> {
         }
         // Run the folded instructions once, in an order of their own: each
         // reads only constants and the folds before it, so their outputs
-        // are constants from here on (ADR 0027).
+        // are constants from here on (ADR 0028).
         if !folded.is_empty() {
             let mut once =
                 Program::schedule(folded, cells.len(), operands.clone()).map_err(|cell| {
@@ -757,7 +757,7 @@ impl<'c> Builder<'c> {
             let (scope, tslot, _) = self.essential_key(s);
             let carried = !self.reseed && self.session.carried(scope, tslot).is_some();
             let mut src = slot_to_cell[from.index()];
-            // A collect's count is a counted value (ADR 0027): the number
+            // A collect's count is a counted value (ADR 0028): the number
             // a build gathered, held by a copy, which the seed takes; the
             // probe only stands it in by an operator over the repeats'
             // counts.
@@ -803,7 +803,7 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
-    /// The instructions this build folds (ADR 0027): by defining slot, an
+    /// The instructions this build folds (ADR 0028): by defining slot, an
     /// operator whose every input, and every flag that holds it, is a
     /// constant (a given value no student can write, a constant, or
     /// another fold), so it is evaluated once, as the build ends, and its
@@ -811,7 +811,7 @@ impl<'c> Builder<'c> {
     /// slot's own scope or one around it, which exists whatever the counts,
     /// so whether a slot folds never turns on whether a referent exists
     /// (the missing-referent cell is never read as one). A counted value
-    /// (ADR 0027) follows the counts, and is never folded; nor is a curve's
+    /// (ADR 0028) follows the counts, and is never folded; nor is a curve's
     /// `Sample`, since the bridge tells a function with a curve from one
     /// without by its samples being derived (`CURVE` in
     /// `doenetml-worker/src/cells/contracts.ts`). Nothing folds in
