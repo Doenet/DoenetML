@@ -1431,6 +1431,22 @@ export default class BaseComponent {
         return descendants;
     }
 
+    /**
+     * Whether a name is given to one of this component's defining children
+     * or anything beneath them, including what an expanded composite among
+     * them made (the shadow of a list a `_copy` makes for an `extend`).
+     */
+    childrenHoldAName() {
+        const holdsAName = (component) =>
+            typeof component === "object" &&
+            component !== null &&
+            (component.attributes?.name !== undefined ||
+                component.definingChildren?.some(holdsAName) ||
+                (component.isExpanded === true &&
+                    component.replacements?.some(holdsAName)));
+        return this.definingChildren.some(holdsAName);
+    }
+
     async serialize(parameters = {}) {
         if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
             throw Error(
@@ -1440,10 +1456,14 @@ export default class BaseComponent {
 
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
-        // without its children unless the copy is unlinked (`copyAll`).
+        // without its children unless the copy is unlinked (`copyAll`), or
+        // a child holds a name: the copy's children are then where that
+        // name is reached through the copy's own name (`$e.h` of
+        // `<mathList name="e" extend="$l"/>`), as for `<p extend>`.
         let includeDefiningChildren =
             !this.constructor.serializeChildrenOnlyIfUnlinked ||
-            Boolean(parameters.copyAll);
+            Boolean(parameters.copyAll) ||
+            this.childrenHoldAName();
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {

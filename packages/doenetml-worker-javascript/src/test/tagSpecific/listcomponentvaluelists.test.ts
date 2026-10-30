@@ -750,6 +750,96 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("the children of an extend of a list are reached through its name, before or after the extend, and stay linked", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <p name="before">$e.h $e2.h $ne.n $te.t $be.b $ie.i $tue.tu $pe.A $ve.v $Pe.m.h</p>
+    <mathList name="l"><math name="h">$mi</math> 2</mathList>
+    <mathList name="e" extend="$l" />
+    <mathList name="e2" extend="$e" />
+    <numberList name="nl"><number name="n">3</number> 4</numberList>
+    <numberList name="ne" extend="$nl" />
+    <textList name="tl"><text name="t">a</text> b</textList>
+    <textList name="te" extend="$tl" />
+    <booleanList name="bl"><boolean name="b">true</boolean> false</booleanList>
+    <booleanList name="be" extend="$bl" />
+    <intervalList name="il"><interval name="i">(1,2)</interval> [3,4]</intervalList>
+    <intervalList name="ie" extend="$il" />
+    <tupleList name="tul"><math name="tu">(5,6)</math></tupleList>
+    <tupleList name="tue" extend="$tul" />
+    <pointList name="pl"><point name="A">(1,2)</point></pointList>
+    <pointList name="pe" extend="$pl" />
+    <vectorList name="vl"><vector name="v">(7,8)</vector></vectorList>
+    <vectorList name="ve" extend="$vl" />
+    <p name="P"><mathList name="m"><math name="h">$mi</math></mathList></p>
+    <p name="Pe" extend="$P" />
+    <p name="after">$e.h $e2.h $ne.n $te.t $be.b $ie.i $tue.tu $pe.A $ve.v $Pe.m.h</p>
+    <p name="lists">$e | $e2 | $ne | $pe</p>
+    <mathInput name="me" bindValueTo="$e2.h" />
+    `,
+        });
+
+        const values = "x x 3 a true (1, 2) (5, 6) (1, 2) (7, 8) x";
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "before",
+                "after",
+                "lists",
+            ]),
+        ).eqls({
+            before: values,
+            after: values,
+            lists: "x, 2 | x, 2 | 3, 4 | (1, 2)",
+        });
+
+        // the extend's own copy of the child, not the child of its source
+        for (const [path, source] of [
+            ["e.h", "l.h"],
+            ["e2.h", "l.h"],
+            ["pe.A", "pl.A"],
+            ["Pe.m.h", "P.m.h"],
+        ]) {
+            const idx = await resolvePathToNodeIdx(path);
+            expect(idx, path).not.eq(-1);
+            expect(idx, path).not.eq(await resolvePathToNodeIdx(source));
+        }
+        // and the name of the list it extends is not in it (NAME-3)
+        for (const path of ["e.l", "e2.e", "e2.l", "pe.pl"]) {
+            expect(await resolvePathToNodeIdx(path), path).eq(-1);
+        }
+
+        // the values stay shared with the source, both ways
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["after", "lists"]),
+        ).eqls({
+            after: "y y 3 a true (1, 2) (5, 6) (1, 2) (7, 8) y",
+            lists: "y, 2 | y, 2 | 3, 4 | (1, 2)",
+        });
+
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: await resolvePathToNodeIdx("me"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
+        ).eq("z");
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["after", "lists"]),
+        ).eqls({
+            after: "z z 3 a true (1, 2) (5, 6) (1, 2) (7, 8) z",
+            lists: "z, 2 | z, 2 | 3, 4 | (1, 2)",
+        });
+    });
+
     it("a list that copies itself loads and reports the cycle", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
