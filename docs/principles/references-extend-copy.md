@@ -573,6 +573,9 @@ original. In a copy of `<p name="P"><math name="h"/>$P.h</p>`, `$P.h` still name
 #2367 the same holds for lists: `$l.h` written inside `<mathList name="l">` refers to the original
 `l` in a copy.
 
+**Decided to change (D1, #2396).** The rule goes by referent, not spelling: `$P.h` and `$l.h`
+name something inside the copied part, so they will name the copy's counterpart.
+
 ### CPY-4: a copy of a reference pastes what the reference points to (Tier 2)
 `copy="$r"`, where `r` is `<T extend="$m" …/>`, pastes m's DoenetML with r's own attributes on
 top. This is the "exception" from the recent PRs (#2259). It is principled: `r` has no
@@ -618,7 +621,14 @@ Code: `replacementFromProp`, `W/components/abstract/Copy.js:1457-1545`.
 A copy of an *authored value list* used to freeze its entries too, though the list has DoenetML
 to paste. Since #2367 it is pasted like any other component (D3).
 
-### CPY-6: references to names outside the copied part are looked up again where the copy lands (current behavior; decision D1)
+### CPY-6: references to names outside the copied part keep their referents (Tier 1, decided in D1; #2396 implements it)
+
+A reference in copied content whose referent is outside the copied part keeps that referent. It
+is not looked up again where the copy is written. An `extend` already does this (REF-6), so the
+two agree. Author statement: a copy is the source's DoenetML pasted here, with its names still
+meaning what they meant in the source.
+
+**Today**, before #2396:
 The copy is pasted DoenetML, so a `$n` inside it that pointed to something *outside* the copied
 part is resolved again from the copy's new location. A nearer `n` there captures it. Two
 equally near `n`s make it ambiguous. An `extend` at the same spot keeps the source's `n`
@@ -634,11 +644,11 @@ equally near `n`s make it ambiguous. An `extend` at the same spot keeps the sour
 <section name="U"><group copy="$A.g" name="gu"/></section>   <!-- gu.p empty: "Multiple referents" -->
 ```
 
-Only one test pins this: `T/copying/extend_references.test.ts:7807` "attribute inherited by a
+Only one test pins this: `T/copying/extend_references.test.ts:7759` "attribute inherited by a
 copy of a copy resolves where that copy is written". A related silent failure:
 `copy="$r[2].p"` of repeat content showing `$i` renders `＿` with no warning, while the
-`extend` form works (**[probe]**). This is the most important open decision in this area. See
-D1.
+`extend` form works (**[probe]**, B4). Under D1, `gc.p` and `gu.p` show 1, and `$i` shows the
+iteration's value.
 
 ### CPY-7: to start from another component's current value, copy its value, not the component (Tier 1)
 A copy is independent of the component it copied, but **not of what that component refers
@@ -687,8 +697,8 @@ above. D28 asks whether the model can make the natural spelling work.
 
 When references are chained, each link follows its own rule:
 - **an `extend`** keeps the meaning its source's references already have (REF-6);
-- **a `copy`** pastes the source's DoenetML, and looks names up again where the copy is
-  written (CPY-6).
+- **a `copy`** pastes the source's DoenetML. Today it looks names up again where the copy is
+  written. Under D1 (decided, #2396) it keeps their meaning too (CPY-6).
 
 The example below chains extends and copies of one group. The group holds a paragraph that
 shows `$n`, and every section except F has its own number named `n`.
@@ -714,10 +724,10 @@ Each group's paragraph shows (**[probe]**):
 | `A.g.p` | n is 1 | the original; its `$n` is A's `n` |
 | `B.gB.p` | n is 1 | `gB` extends `g`, so its `$n` still means A's `n`, though B has its own `n` |
 | `C.gC.p` | n is 1 | an extend of an extend: still A's `n` |
-| `D.gD.p` | n is 4 | `gD` is a copy, so `g`'s DoenetML is pasted into D, where `$n` finds D's `n`. That `gC` reached `g` through two extends does not matter: a copy of an extend pastes what the extend stands for (CPY-4) |
-| `E.gE.p` | n is 5 | pasted again into E, where `$n` finds E's `n` |
-| `F.gF.p` | n is (empty) | pasted into F, which has no `n` of its own. From F, the `n`s in A to E and G are equally near, so `$n` is ambiguous |
-| `G.gG.p` | n is 5 | `gG` extends the copy `gE`, so it keeps what `$n` means in `gE`: E's `n` |
+| `D.gD.p` | n is 4 (1 under D1) | `gD` is a copy, so `g`'s DoenetML is pasted into D, where `$n` finds D's `n`. That `gC` reached `g` through two extends does not matter: a copy of an extend pastes what the extend stands for (CPY-4) |
+| `E.gE.p` | n is 5 (1 under D1) | pasted again into E, where `$n` finds E's `n` |
+| `F.gF.p` | n is (empty) (1 under D1) | pasted into F, which has no `n` of its own. From F, the `n`s in A to E and G are equally near, so `$n` is ambiguous |
+| `G.gG.p` | n is 5 (1 under D1) | `gG` extends the copy `gE`, so it keeps what `$n` means in `gE`: E's `n` |
 
 The same holds for a reference in an attribute written on a copy (NAME-4):
 
@@ -730,13 +740,12 @@ The same holds for a reference in an attribute written on a copy (NAME-4):
 <section name="U">
   <number name="m">-5</number>
   <graph name="G3" extend="$T.G2"/>            <!-- xMin -3: keeps G2's meaning of $m -->
-  <graph name="G4" copy="$T.G2"/>              <!-- xMin -5: G2's xMin="$m" is pasted into U -->
+  <graph name="G4" copy="$T.G2"/>              <!-- xMin -5: G2's xMin="$m" is pasted into U; -3 under D1 -->
 </section>
 ```
 
-**[probe]** confirms the three values. The test is `extend_references.test.ts:7807`. Whether a
-copy should look names up again where it lands, as in D, E, F and G4, or keep their original
-meaning, as an extend does, is decision D1.
+**[probe]** confirms the three values. The test is `extend_references.test.ts:7759`. D1 decides
+that a copy keeps the original meaning, as an extend does, so D, E, F, G and G4 change (#2396).
 
 Coverage of nesting is thin. These cases have no tests:
 - three-level chains are tested for attribute propagation, labels, groups and modules, but not
@@ -765,7 +774,7 @@ through extend and copy at depths 1–3.
 | `warningsInfos.test.ts` w0168/w0169 exemptions for `_copy`'s own attributes | Artifacts of the `_copy` encoding |
 | `module.test.ts:1857` "attribute written on the module's own definition is ambiguous" | An accidental outcome of NAME-4 (D6) |
 | `circularReferences.test.ts:27-67` `rejects.toThrow` | Pins "the document fails to load" as the failure mode (D14) |
-| `extend_references.test.ts:7807` | Tier 1 only if D1 keeps re-binding |
+| `extend_references.test.ts:7759` | Pins re-binding, which D1 reverses: its expected `xMin` becomes -3 (#2396) |
 
 ## 6. The critical tests for this area
 
