@@ -416,10 +416,12 @@ follow.
 
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
-**Known violation: list extends.** `$e.h` names nothing for `<mathList name="e" extend="$l"/>`,
-while `$E.h` resolves for `<p name="E" extend="$P"/>`. A linked list extend has no children of
-its own to name. This predates #2367 (defect B10, tracked in #2376). A copy of a list does reach
-them (NAME-3).
+**List extends (fixed by #2393).** `$e.h` reaches e's counterpart of `h` for
+`<mathList name="e" extend="$l"/>`, as `$E.h` does for `<p name="E" extend="$P"/>`. Before #2393 a
+linked list extend had no children of its own to name (defect B10, #2376). This holds for every
+authored list, an extend of an extend (`$e2.h`), a reference written before the extend, and a
+list inside an extended component (`$E.l.h`, `$Pe.Q.h`). `$e.l` still names nothing (NAME-3).
+Evidence: `T/tagSpecific/listcomponentvaluelists.test.ts:753`, `:843`, `:934`, `:995`, `:1040`.
 
 Other tests: `:1626`, `:1837`, `:6408`, `:5773`.
 
