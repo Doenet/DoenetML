@@ -1,7 +1,7 @@
 # Composed inverses write the input that leads to state, and are checked whole
 
-Status: proposed 2026-10-29. A plan: step 1 below is done, steps 2 to
-6 are to do. It
+Status: proposed 2026-10-29. A plan: steps 1 and 2 below are done,
+steps 3 to 6 are to do. It
 decides whether component props keep inverting by composition before
 the remaining components are ported (ADR 0016).
 
@@ -167,6 +167,11 @@ masks and aliases as the walk does.
 - **New components.** The spec harness (`testing/spec.rs`) runs the sweep
   on each spec's document, so every new component is held to it without
   writing a case.
+- **Domains.** An inverse can round-trip and still accept a value its
+  prop cannot hold, so the sweep cannot see it. A spec of an interactive
+  prop with a domain (an index, a count, a bounded value) requests
+  values outside it and expects them projected or dropped. The survey
+  found `choiceInput`'s `selectedIndex` writing 2.5, 7 and −1 as asked.
 
 ## Considered options
 
@@ -205,16 +210,35 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
 
    The sweep is `crates/cells-bench/examples/round_trip.rs`, which prints
    the classification for any document (`-- path.doenet`).
-2. **Survey the 94 `inverseArrayDefinitionByKey` sites** in the same
-   categories and add them to the report. *Gate:* if a class of them is
-   neither composable, nor a vector operator this core has, nor a point
-   group's equal shift, this ADR is reopened before step 3. Otherwise
-   the report names the vector operators the remaining ports will need.
-3. **Land the standing test**: `tests/round_trip.rs` with the known
-   unstable list (the 9 cells of `ops` and those of `sir` by component
-   path), the vector-operator round trips, and the spec hook. A vector
-   operator that fails its round trip is fixed in this step or listed
-   with its reason.
+2. **Survey the `inverseArrayDefinitionByKey` sites.** Done; the
+   report's "What the JavaScript core's array inverses do".
+   - There are 96 sites, about 7,200 lines.
+   - 63 are composable, 5 are existing vector operators, and 5 are
+     point groups or sticky snapping.
+   - 10 need new vector operators, about nine kinds, each a pure
+     function of the requested and current values.
+   - 6 are symbolic (out of scope, below), and 7 are plumbing.
+   - *Gate:* none needs history or the cause of a request without a
+     mechanism here, so the ADR stands.
+   - Three findings change the plan:
+     - The new vector operators come before the components that need
+       them (step 6). Composed, two of them reach a value along several
+       paths (a parabola's vertex, a normalized direction), so fix 2
+       would drop requests the current core moves.
+     - An inverse reads its inputs from the current cells. A port
+       therefore decides which cells a whole-shape drag requests, or
+       gives the joint move to one operator (a rectangle's span).
+     - A round trip does not check a domain: `choiceInput`'s
+       `selectedIndex` takes 2.5, 7 or −1 exactly. Fix 3 adds domain
+       cases.
+3. **Land the standing test.**
+   - `tests/round_trip.rs`, with the known unstable list by component
+     path: `ops`'s `i` and point `p`, and `sir`'s points and tuples.
+   - The vector-operator round trips. A vector operator that fails its
+     round trip is fixed in this step or listed with its reason.
+   - The spec hook, and domain cases for the specs' interactive props.
+   - `choiceInput`'s unprojected `selectedIndex` is fixed on its own,
+     before or with this step.
 4. **Orientation**: the pass, `RSub`, `RDiv` and `Over`, with
    `Div(Fixed k, a)` lowered to `Over`.
    - Expected golden diff: a request through a reoriented operator
@@ -239,11 +263,17 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
    - Then mark this ADR accepted, and port the remaining components
      (ADR 0016) with composition, vector operators for joint moves, and
      the round trip required of every spec.
+   - Each port lands with the vector operators the report lists for it
+     (`Centroid`, `Span`, `RegularPolygon`, `ParabolaVertex`,
+     `Normalize`, …). Each port says which cells a drag of the whole
+     component requests.
 
 Out of scope:
 
 - symbolic inverses beyond `Evaluate` (ADR 0005), which stay where the
-  engine is;
+  engine is, including the six symbolic array inverses step 2 found
+  (rebuilding a vector or matrix expression, matching a choice's
+  text);
 - the current core's run-time context in inverses (`initialChange`,
   `displayMode`), which is a difference between the cores' models, not
   between ways of writing an inverse.

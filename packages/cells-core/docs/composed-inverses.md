@@ -30,6 +30,17 @@ The plan that follows from the answers is ADR 0024.
   operators and point groups do. Hand-writing costs show in the survey:
   72 inverses carry conditional failure paths, and four return
   `{ sucess: false }`, a typo nobody noticed.
+- **The 96 array inverses (`inverseArrayDefinitionByKey`, about 7,200
+  lines) need nothing composition cannot give.**
+  - 63 are composable and 10 are what this core's vector operators and
+    point groups already do.
+  - 10 need new vector operators. Each is a pure function of the
+    requested and current values: about nine operators, such as a
+    centroid, a rectangle's span, a regular polygon and a parabola's
+    vertex.
+  - 6 rebuild math expressions, which is outside composition's scope.
+  - None needs history or the cause of a request in a way this core
+    lacks a mechanism for.
 - **On real documents, composition is right wherever a request's written
   value reaches the requested cell along one path.** A sweep made 18,248
   requests on every interactive number cell of the golden documents and
@@ -107,10 +118,7 @@ brace matching:
   `invertMath` and `Slider.js`'s `invertSliderValue`.
 - Each inverse was put in one category by what it does. The cited lines
   were checked to be inverse definitions.
-- The 94 `inverseArrayDefinitionByKey` sites (about 6,800 lines in 34
-  files) are not in this survey; ADR 0024's step 2 surveys them. They
-  are where polygons, polylines, rectangles and segments keep their
-  shape.
+- The `inverseArrayDefinitionByKey` sites are in the next section.
 
 Paths below are under `packages/doenetml-worker-javascript/src/`.
 
@@ -207,6 +215,158 @@ That is composition with two rules this core lacks:
   written regardless, which the sweep below shows is wrong when both
   contain *the same* variable.
 
+## What the JavaScript core's array inverses do
+
+An array state variable (a shape's vertices, a point's coordinates, a
+list's entries) has its own inverse, `inverseArrayDefinitionByKey`,
+which gets the requested entries by key. These are where polygons,
+polylines, rectangles and segments keep their shape.
+
+**Method.**
+
+- A search for `inverseArrayDefinitionByKey` outside tests finds 108
+  lines, of which 99 begin a definition.
+- Read by hand in three groups, they are 96 sites:
+  - calls to an inner function were merged with the function;
+  - the core's dispatcher (`core/StateVariableInitializer.ts:973`) and
+    shadow factory were kept as plumbing.
+- Together they are about 7,200 lines in 37 files.
+- Each was put in one class:
+
+| Class | Meaning |
+|---|---|
+| C1 composable | what operators and build-time lowering already do: a pass-through, routing by structure, arithmetic, a projection, or these entry by entry |
+| C2 existing vector operator | what one of `program/vector.rs`'s operators does |
+| C3 engine mechanism | a point group with lookahead (ADR 0006), sticky snapping (ADR 0007), a `Hold`, or gathering every request on an instruction |
+| C4 new vector operator | a joint move that is a pure function of the requested and current values, not yet among the vector operators |
+| C5 beyond composition | depends on history, on the cause of a request, or on the order of separate requests, with no mechanism here for it |
+| C6 symbolic | rewrites a math expression or matches text |
+| C7 plumbing | a generic factory or wrapper |
+
+These decisive claims were checked against the code:
+
+- this core's inverses read their inputs from the current cells;
+- `CirclePoints{n: 2}` is a midpoint;
+- the two JavaScript bugs and this core's two differences listed below.
+
+| Class | Sites | Lines |
+|---|---:|---:|
+| C1 composable | 63 | 3,313 |
+| C2 existing vector operator | 5 | 1,137 |
+| C3 engine mechanism | 5 | 295 |
+| C4 new vector operator | 10 | 1,103 |
+| C5 beyond composition | 0 | 0 |
+| C6 symbolic | 6 | 948 |
+| C7 plumbing | 7 | 422 |
+| All | 96 | 7,218 |
+
+**No site is C5.** The run-time context the array inverses read maps
+onto mechanisms this core has:
+
+- **`workspace`** (23 sites) merges the partial writes of one request.
+  The request engine gathers every request on an instruction before it
+  inverts it once (`tick/invert.rs`).
+- **The `draggable` guard** (`initialChange && !draggable`, 8 sites)
+  refuses a request that starts at the component. This core refuses the
+  attribute at load today. `principles-alignment.md` plans it as a rule
+  in the bridge, which builds requests from renderer actions.
+- **`initialChange` that admits only submissions** (`Answer.js:2080`,
+  `Pretzel.js:451`) is this core's cells written by an action.
+- **Shape-keeping across two updates.** `Triangle.js:99` and
+  `Polyline.js:550` record the requested vertices for a second update,
+  which shifts the free vertices by the shift of the held ones
+  (`_attemptConstrainedRigidTranslationReconciliation`). That is ADR
+  0006's lookahead, done in one tick here.
+
+Three behaviours inside other sites come closest to C5:
+
+- **A rigid shape dragged by one vertex is snapped after its rotation**
+  (`Polyline.js:1276`, `rotationReferenceMapping`). It caches the
+  unsnapped vertices across ticks. ADR 0007 records not snapping rigid
+  one-vertex drags as a declared gap.
+- **A reflected polyline's request is taken as it is**
+  (`Polyline.js:1204`, `overrides.isReflection`, set by the
+  `reflectPolyline` action). Here an action writes the cells it writes
+  itself, so a reflection need not pass through an inverse.
+- **A multiple-select `choiceInput`** replaces its selection when the
+  request is a whole array, and merges into it when it is keyed
+  (`ChoiceInput.js:1031`). That depends on the request's form. This
+  core refuses `selectMultiple` today.
+
+**Ten sites need new vector operators.** Each sketch is from the survey,
+not a design:
+
+| Site | Operator | Forward → inverse |
+|---|---|---|
+| `Polyline.js:2063`, `RegularPolygon.js:1716` (center) | `Centroid{n}` | n points → their mean; a requested center translates every point by the difference, as one point group |
+| `Rectangle.js:1142` (vertices) | `Span`, per axis | (position, size) → (lo, hi) from an anchor or a center; a request on lo alone translates, on lo and hi writes both |
+| `LineSegment.js:926` (unconstrained endpoints) | a segment by slope, length or midpoint | `PolarSlope` with the first point also an output, plus a midpoint mode, so one request can move both |
+| `RegularPolygon.js:1514` (vertices) | `RegularPolygon{n}` | (center, first vertex direction) → n vertices; one vertex keeps the center, several set it to their mean |
+| `ChoiceInput.js:1004` (`selectedIndices`) | `SelectedSet{n}` | n choice flags → the ascending positions of the set ones; requested positions replace entries, deduplicated |
+| `abstract/ValueListComponent.js:690` (sequence entries) | `Override` | (value, written, basis) → the written value while the basis is current; a request writes the value and the current basis |
+| `Parabola.js:1399` (vertex) | `ParabolaVertex` | (a, b, c) → the vertex; a requested vertex writes b = −2ah and c = k + ah², never a. A parabola stored in vertex form would make it C1 |
+| `dynamicalSystems/CobwebPolyline.js:693` (vertices) | `Attract{t}` | (point, attractor, lock) → the attractor when within t or locked, else the point; a request writes the point |
+| `abstract/DirectionComponent.js:304` (direction) | `Normalize{n}` | u → u / \|u\|; a request writes u = d·\|u\|, keeping the magnitude, with unrequested entries taken from the current output |
+
+They are needed for two reasons:
+
+- **An inverse reads its inputs from the current cells.** A request on a
+  point and a request on a value derived from it, made in the same tick,
+  do not see each other (`tick/invert.rs` reads `self.cells`). A
+  rectangle composed as `hi = lo + size` would get a single-vertex drag
+  right. On a whole-rectangle drag it would write the size against the
+  old position, so the rectangle would grow by the shift. That is
+  reasoned from the code; this core has no rectangle yet. One operator
+  owning both outputs sees both requests. Otherwise the port must choose
+  which cells a whole-shape drag requests, as the JavaScript core's
+  `moveVector` sends a tail and a displacement rather than a head.
+- **Composed, they reach a value along several paths.** The vertex `k =
+  c − b²/4a` reaches b twice, and `u / |u|` reaches each entry twice. ADR
+  0024's refusal would drop these requests, where the JavaScript core
+  moves them.
+
+**Six sites are symbolic.** They are `MatrixInput.js` ×3,
+`utils/mathVectorMatrixStateVariables.ts` ×2 (rebuilding a vector or
+matrix tree) and `ChoiceInput.js:1147` (matching a choice's text).
+
+- They are outside composition, as ADR 0005 leaves symbolic inverses.
+- This core stores a numeric tuple as one cell per entry, so a request on
+  an entry is an alias, not a rebuilt expression.
+
+**This core's behaviour differs in places the survey found:**
+
+- **`choiceInput`'s `selectedIndex` accepts any number.**
+  - With three choices, requests of 2.5, 7 and −1 are written as they
+    are (`components/inputs/choice_input.rs`: `attr(0.0) { interactive,
+    rendered }`; checked by running them).
+  - The JavaScript core drops all three (`ChoiceInput.js:1018–1022`).
+  - The sweep would class these "exact": an inverse can round-trip and
+    still accept a value outside the prop's domain. The round trip does
+    not check domains; a prop with a domain needs its projection
+    (`Clamp`, `Round`) in its chain.
+- **A line by equation flips its coefficients' signs after a rotation.**
+  This core writes `a = y2 − y1, b = x1 − x2` (`program/vector.rs`,
+  `LinePointsFromCoeffs`). The JavaScript core writes `a = y1 − y2, b =
+  x2 − x1` (`Line.js:1058–1059`). It is the same line, but the shown
+  equation differs in sign.
+- **A line by equation recomputes its two points from the
+  coefficients.** The JavaScript core places them at the projections of
+  the last dragged points (`Line.js:1106`, `lastPointsFromInverting`),
+  so the dragged handle stays under the pointer.
+- **A point takes one constraint here** (`components/geometry/point.rs`
+  refuses more). The JavaScript core chains several
+  (`utils/constraints.js:379`).
+
+**Two more silent JavaScript bugs**, of the `sucess` kind:
+
+- **`Point.js:1319`** writes `dependencyNamesByKey[arrayKey].xs`, but the
+  dependency is named `x` (`Point.js:1271`).
+- **`Extrema.js:665`** writes `.extremumChild`, but the dependency is
+  named `child` (`Extrema.js:617`).
+
+The core skips an instruction whose dependency is undefined and still
+reports success, so these writes do nothing.
+
 ## What composition does on real documents
 
 **Method.** `crates/cells-bench/examples/round_trip.rs` loads every
@@ -286,7 +446,7 @@ program.
 | | Composed (this core) | Handwritten (both other cores) |
 |---|---|---|
 | What a component author writes | a table of operators, or a planner choosing a chain, plus a vector operator for a joint move | an inverse per prop |
-| How much code | one entry per operator kind, about a dozen vector operators, one request engine | 221 `inverseDefinition`s and 94 `inverseArrayDefinitionByKey`s, about 13,700 lines |
+| How much code | one entry per operator kind, about a dozen vector operators (about twenty with those the ports need), one request engine | 221 `inverseDefinition`s and 96 `inverseArrayDefinitionByKey`s, about 14,100 lines |
 | What is checked | each operator over a table of values, generated; nothing for chains or vector operators yet | each component's tests, by hand |
 | What the build knows | every inverse's writes, statically (ADR 0018's writable walk) | nothing until it runs |
 | A value that feeds both sides of an operator | writes a wrong value, and asking again moves it | the `<math>` inverse refuses; the Rust core refuses any math with two inputs |
@@ -301,8 +461,6 @@ built. ADR 0024 plans the fixes, and the sweep above as a standing test.
 
 ## What was not covered
 
-- **The 94 `inverseArrayDefinitionByKey` sites.** That is where most of
-  the JavaScript core's shape-keeping code is; ADR 0024's step 2.
 - **The JavaScript core's behaviour on the swept documents.** The sweep
   runs this core only. Its comparison with the JavaScript core is from
   the code: refusal for a `<math>` whose operands share a variable. No
@@ -312,6 +470,10 @@ built. ADR 0024 plans the fixes, and the sweep above as a standing test.
   `sir` were swept.
 - **Requests other than a value or a point.** Submits, triggers and
   text or math requests are not swept.
+- **The array inverses' classes were not run.** They are read from the
+  code; most of the components they belong to (vector, ray, curve,
+  parabola, rectangle, regular polygon, matrix input, the lists) are not
+  in this core yet.
 
 ## Tools
 
