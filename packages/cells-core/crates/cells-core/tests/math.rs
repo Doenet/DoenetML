@@ -156,10 +156,10 @@ fn a_nested_call_builds_the_same_operators_as_a_chain_of_numbers() {
         doc.program
             .instrs
             .iter()
-            .map(|i| match i.op {
-                Op::Min(..) => "Min".to_string(),
-                Op::Clamp(..) => "Clamp".to_string(),
-                other => format!("{other:?}"),
+            .map(|i| match (i.op, doc.program.vec_op(&i.op)) {
+                (_, Some(v)) => format!("{v:?}"),
+                (Op::Min(..), _) => "Min".to_string(),
+                (other, _) => format!("{other:?}"),
             })
             .collect::<Vec<_>>()
     };

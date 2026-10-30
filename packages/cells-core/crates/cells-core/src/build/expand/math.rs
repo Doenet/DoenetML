@@ -413,7 +413,7 @@ impl<'c> Builder<'c> {
                 match f {
                     Func::Round => self.op_slot(OpSpec::Round, &xs, scope),
                     Func::Floor => self.op_slot(OpSpec::Floor, &xs, scope),
-                    Func::Clamp => self.op_slot(OpSpec::Clamp, &xs, scope),
+                    Func::Clamp => self.op_slot(OpSpec::Vec(VecOp::Clamp), &xs, scope),
                     // More than two arguments fold from the left.
                     Func::Min | Func::Max => {
                         let spec = if f == Func::Min {

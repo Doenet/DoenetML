@@ -394,14 +394,19 @@ impl<'a> Signer<'a> {
     /// An operator as what it computes: its kind (a vector one's options),
     /// and for a symbolic one its expression with leaves numbered by input.
     fn op_hash(&self, instr: &Instr, inputs: &[CellIdx]) -> u64 {
+        let ops = &self.out.operands;
         match instr.op {
-            Op::Sym(SymKind::Instantiate { template, post }, ..) => {
-                let text = self.out.session.engine.borrow().text(template);
-                hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
-            }
-            Op::Sym(SymKind::SampleTape { tape }, ..) => {
-                hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
-            }
+            Op::Sym(_, _, s, _) => match ops.syms[s.index()].kind {
+                SymKind::Instantiate { template, post } => {
+                    let text = self.out.session.engine.borrow().text(template);
+                    hash_of(("instantiate", canonical_leaves(&text, inputs), post as u8))
+                }
+                SymKind::SampleTape { tape } => {
+                    hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
+                }
+                kind => hash_of(format!("{kind:?}")),
+            },
+            Op::Vec(_, _, v, _) => hash_of(format!("{:?}", ops.vecs[v.index()])),
             op => hash_of(format!("{:?}", op.unbound())),
         }
     }

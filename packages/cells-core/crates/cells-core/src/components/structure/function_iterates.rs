@@ -5,6 +5,7 @@
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::Result;
+use crate::program::VecOp;
 
 component! {
     /// `<functionIterates function="$f" initialValue="$x0" numIterates="n">`:
@@ -18,7 +19,7 @@ component! {
     props {
         numIterates: attr(0.0),
         numIteratesFloor: computed(OpSpec::Floor, [numIterates]),
-        numIteratesClamped: computed(OpSpec::Clamp, [numIteratesFloor, (0.0), (10_000.0)]),
+        numIteratesClamped: computed(OpSpec::Vec(VecOp::Clamp), [numIteratesFloor, (0.0), (10_000.0)]),
         iterates: computed(OpSpec::NanTo, [numIteratesClamped, (0.0)]),
         count: computed(OpSpec::Add, [iterates, (1.0)]),
         allIteratesWithInitial: by_planner,

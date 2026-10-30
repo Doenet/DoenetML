@@ -15,7 +15,7 @@
 
 use super::ops::scalar_ops;
 use crate::document::CellIdx;
-use crate::program::{MemoIdx, OperandIdx, SymKind, VecOp};
+use crate::program::{OperandIdx, SymIdx, SymKind, VecIdx, VecOp};
 
 /// `Math.round`: halves round toward positive infinity, unlike Rust's
 /// `round`, which rounds them away from zero. The current core is JavaScript,
@@ -108,12 +108,6 @@ scalar_ops! {
         eval: a.floor(),
         projection |d| d.is_finite().then(|| (A, d.floor())),
     }
-    /// `a` held between `lo` and `hi`; NaN if any is NaN (unlike
-    /// `f64::clamp`, which panics on bounds out of order).
-    Clamp(a, lo, hi) {
-        eval: nan_min(nan_max(a, lo), hi),
-        projection |d| Some((A, nan_min(nan_max(d, lo), hi))),
-    }
     /// `a` unless it is NaN, then `b`: `valueOnNaN`. A NaN ask has no
     /// inverse: it would be asking for the fallback.
     NanTo(a, b) {
@@ -164,18 +158,19 @@ impl Op {
     #[inline(always)]
     pub fn n_out(&self) -> usize {
         match *self {
-            Op::Vec(_, _, _, n_out) => n_out as usize,
-            Op::Sym(k, ..) => k.n_out(),
+            Op::Vec(_, n_out, ..) | Op::Sym(_, n_out, ..) => n_out as usize,
             _ => 1,
         }
     }
 
-    /// Evaluate a vector operator into `out` (`n_out` values).
+    /// Evaluate a vector operator into `out` (`n_out` values); `vecs` is
+    /// the program's (`Program::vecs`).
     #[inline]
-    pub fn eval_vec(&self, cells: &[f64], operands: &[CellIdx], out: &mut [f64]) {
-        let Op::Vec(v, start, n_in, _) = *self else {
+    pub fn eval_vec(&self, cells: &[f64], operands: &[CellIdx], vecs: &[VecOp], out: &mut [f64]) {
+        let Op::Vec(n_in, _, v, start) = *self else {
             unreachable!()
         };
+        let v = vecs[v.index()];
         let mut inp = [0.0f64; crate::program::MAX_VEC_IN];
         let n_in = n_in as usize;
         for (k, &c) in operands[start.index()..start.index() + n_in]
@@ -192,7 +187,7 @@ impl Op {
     #[inline(always)]
     pub fn operand_range(&self) -> std::ops::Range<usize> {
         match *self {
-            Op::Vec(_, start, n, _) | Op::Sym(_, start, n, _) => {
+            Op::Vec(n, _, _, start) | Op::Sym(n, _, _, start) => {
                 start.index()..start.index() + n as usize
             }
             _ => 0..0,
@@ -202,7 +197,7 @@ impl Op {
     /// All input cells, direct and in `operands`.
     pub fn inputs<'a>(&self, operands: &'a [CellIdx]) -> impl Iterator<Item = CellIdx> + 'a {
         let (scalar, n) = match self {
-            Op::Vec(..) | Op::Sym(..) => ([CellIdx::new(0); 3], 0),
+            Op::Vec(..) | Op::Sym(..) => ([CellIdx::new(0); 2], 0),
             _ => self.scalar_inputs(),
         };
         scalar

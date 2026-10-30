@@ -1,5 +1,6 @@
 //! `scalar_ops!`: every scalar operator from one entry (ADR 0016). An entry
-//! names the operator and its inputs (`Mul(a, b)`, at most three), its
+//! names the operator and its inputs (`Mul(a, b)`, at most two, so an
+//! instruction stays 16 bytes), its
 //! evaluation, and its inverse as one of
 //!
 //! - `exact |d| ..`: the input to write and its value, or None to drop the
@@ -49,18 +50,13 @@ macro_rules! scalar_ops {
     (@writes projection) => { 1 };
     (@writes drops) => { 0 };
     // `scalar_inputs` and `bind` by the number of inputs.
-    (@inputs $a:ident) => { ([$a, $a, $a], 1) };
-    (@inputs $a:ident, $b:ident) => { ([$a, $b, $b], 2) };
-    (@inputs $a:ident, $b:ident, $c:ident) => { ([$a, $b, $c], 3) };
+    (@inputs $a:ident) => { ([$a, $a], 1) };
+    (@inputs $a:ident, $b:ident) => { ([$a, $b], 2) };
     (@arity $a:ident) => { 1 };
     (@arity $a:ident, $b:ident) => { 2 };
-    (@arity $a:ident, $b:ident, $c:ident) => { 3 };
     (@bind $inputs:ident $name:ident [$a:ident]) => { Op::$name($inputs[0]) };
     (@bind $inputs:ident $name:ident [$a:ident, $b:ident]) => {
         Op::$name($inputs[0], $inputs[1])
-    };
-    (@bind $inputs:ident $name:ident [$a:ident, $b:ident, $c:ident]) => {
-        Op::$name($inputs[0], $inputs[1], $inputs[2])
     };
     ($(
         $(#[$m:meta])* $name:ident ($($in:ident),+)
@@ -69,12 +65,15 @@ macro_rules! scalar_ops {
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub enum Op {
             $($(#[$m])* $name($(scalar_ops!(@cell $in)),+),)*
-            /// A symbolic instruction: inputs are `operands[start..start + n]`;
-            /// its memo is the `n + n_out` entries from `memo` (see `Program::step`).
-            Sym(SymKind, OperandIdx, u8, MemoIdx),
-            /// A vector operator (`vector.rs`): inputs are `operands[start..start + n_in]`,
-            /// outputs are the `n_out` cells from the instruction's `out`.
-            Vec(VecOp, OperandIdx, u8, u8),
+            /// A symbolic instruction `Sym(n, n_out, sym, start)`: inputs are
+            /// `operands[start..start + n]`; its kind and memo are
+            /// `Program::syms[sym]` (see `Program::step`).
+            Sym(u8, u8, SymIdx, OperandIdx),
+            /// A vector operator (`vector.rs`) `Vec(n_in, n_out, op, start)`:
+            /// the operator is `Program::vecs[op]`, inputs are
+            /// `operands[start..start + n_in]`, outputs the `n_out` cells from
+            /// the instruction's `out`.
+            Vec(u8, u8, VecIdx, OperandIdx),
         }
 
         /// Description of an operator before its inputs are bound to cells.
@@ -123,21 +122,21 @@ macro_rules! scalar_ops {
                 }
             }
 
-            /// The operator with its inputs left out: what it computes,
-            /// whatever cells it reads.
+            /// A scalar operator with its inputs left out: what it computes,
+            /// whatever cells it reads. None for a vector or symbolic one,
+            /// which says what it computes through the program's tables.
             #[allow(unused_variables)]
-            pub fn unbound(&self) -> Op {
+            pub fn unbound(&self) -> Option<Op> {
                 match *self {
-                    $(Op::$name($($in),+) => Op::$name($(scalar_ops!(@zero $in)),+),)*
-                    Op::Sym(kind, _, n, _) => Op::Sym(kind, OperandIdx::default(), n, MemoIdx::default()),
-                    Op::Vec(op, _, n_in, n_out) => Op::Vec(op, OperandIdx::default(), n_in, n_out),
+                    $(Op::$name($($in),+) => Some(Op::$name($(scalar_ops!(@zero $in)),+)),)*
+                    Op::Sym(..) | Op::Vec(..) => None,
                 }
             }
 
             /// A scalar operator's input cells without allocating: the first
             /// `n` of the array.
             #[inline(always)]
-            pub fn scalar_inputs(&self) -> ([CellIdx; 3], usize) {
+            pub fn scalar_inputs(&self) -> ([CellIdx; 2], usize) {
                 match *self {
                     $(Op::$name($($in),+) => scalar_ops!(@inputs $($in),+),)*
                     Op::Vec(..) | Op::Sym(..) => {
