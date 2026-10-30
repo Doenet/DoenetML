@@ -1,9 +1,8 @@
 # Composed inverses write the input that leads to state, and are checked whole
 
-Status: proposed 2026-10-29. A plan: steps 1 to 5 below are done,
-step 6 is to do. It
-decides whether component props keep inverting by composition before
-the remaining components are ported (ADR 0016).
+Status: accepted 2026-10-30. Steps 1 to 6 below are done. It decides
+that component props keep inverting by composition as the remaining
+components are ported (ADR 0016).
 
 A prop's inverse stays composed: the core inverts the chain of operators
 a prop lowers to, each by its own rule, and component authors write no
@@ -173,6 +172,19 @@ takes no request, so the walk stops there, as the writable walk stops at
   into one, so a value reaching a cell twice *across* iterations is not
   seen there. `sir`'s iterates are refused, but the build does not warn
   of them.
+- *Wider than the current core.* The current core refuses only where
+  both paths meet in one `<math>`, since each of its handwritten
+  inverses sees only its own expression. This rule counts paths over the
+  whole program, so it also refuses where they meet in a component's own
+  table. A circle whose one through point depends on its own radius,
+  `<circle radius="2" through="(1,2$circle1.radius)"/>`, has
+  `cy = throughY − r` with `throughY = 2r`: the radius reaches `cy`
+  twice, and a drag of the circle is refused. The current core drags it
+  half the distance asked (asked y = 5 from 2, it lands at 3.5; asked 5
+  again, at 4.25), which is unstable by fix 3's classes. Three of its
+  tests (`circle.test.ts`, "circle where single through point depends on
+  radius" and its two variants) encode that, and fail on this core by
+  design.
 
 ### Whole-prop checks (fix 3)
 
@@ -216,7 +228,16 @@ takes no request, so the walk stops there, as the writable walk stops at
     current core does.
   - It is a new behaviour to specify (which root, convergence, a
     projection's interplay).
-  - Refusing matches both current cores, and the bit leaves room for it.
+  - Refusing matches both current cores where the paths meet in the
+    author's math, and the bit leaves room for it. Where they meet in a
+    component's table it is the better answer: the self-referential
+    circle above has `cy = r`, so writing `r = d` lands exactly, where
+    one core refuses and the other lands halfway.
+- **Refusing only where the paths meet in the author's math**, as the
+  current core does. Rejected: that scope is where each of the current
+  core's handwritten inverses can see, not a property of the request.
+  The requests it lets through miss, and asking again moves them
+  (the circle above), which the standing sweep exists to rule out.
 - **Checking each request at run time by lookahead**, accepting it only
   if the realized value round-trips. Rejected: it pays a forward
   evaluation on every tick to find what the build can know once.
@@ -347,22 +368,61 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
      group asking only the written cell itself is skipped. Loads timed
      before and after, alternately, agree within the machine's noise of
      about 5%.
-6. **Measure and close.**
-   - `scripts/tick-diff.sh`: the tick must not slow by more than the
-     noise floor. The new operators cost what the ones they replace do,
-     and a refused request is one bit read.
-   - Load time on `sir` and the largest generated fixtures: orientation
-     is one pass over the operators. The path count is per interactive
-     cell; if it costs more than 5% of load, it becomes one pass per
-     written slot over its dominated region.
-   - Rerun the parity dashboard's drag rows (`CELLS_CORE_PARITY.md`).
-   - Then mark this ADR accepted, and port the remaining components
-     (ADR 0016) with composition, vector operators for joint moves, and
-     the round trip required of every spec.
-   - Each port lands with the vector operators the report lists for it
-     (`Centroid`, `Span`, `RegularPolygon`, `ParabolaVertex`,
-     `Normalize`, …). Each port says which cells a drag of the whole
-     component requests.
+6. **Measure and close.** Done, against `cqnykamp:cells` at 8b68b6c,
+   the same core without steps 4 and 5.
+   - **The tick** is within the noise floor, which is wider than one
+     machine's run-to-run noise. `scripts/tick-diff.sh` (fixed for
+     `tick_cost`'s per-evaluator fields) gives identical values on every
+     shape. No shape's dirty tick is more than 4% slower, except `depth`
+     and `coords`, 5–6% slower at 10,000 and 100,000 elements. That is code
+     layout, not the new operators:
+     - without `RSub` and `RDiv`, `depth` and `coords` tick as fast as
+       the base, though neither shape uses them;
+     - moving the two to the end of `scalar_ops!`, which changes no
+       instruction, leaves those two as slow and makes `breadth` 6%
+       slower;
+     - and the build without them ticks `breadth` 8% faster than the
+       base.
+     A rebuild moves a shape's tick by up to 8% either way. A refused
+     request costs one bit read per request.
+   - **Load** was over budget as first built: 5–19% slower on the
+     generated shapes at 100,000 elements (`poly` the most), 15% on
+     `sir`. Four changes brought it within it, with the programs and the
+     golden behaviour unchanged:
+     - orientation walks only from the author's binary operators, held
+       in a list, and allocates nothing per cell;
+     - the reader index and the path count are built only for a written
+       cell whose region has an instruction joining two paths, of which
+       `coords` has none;
+     - a walk keeps its zero or one written cells inline;
+     - the held cells are one array (`Holds::held_always`), not a hash
+       lookup per walked cell.
+     The passes cost, per load (probe and document, `examples/load_cost.rs`):
+
+     | | orientation | refusal | of load |
+     |---|---:|---:|---:|
+     | `coords`, 100,000 points | 0 | 33 ms | 3.2% |
+     | `poly`, 100,000 numbers | 13 ms | 8 ms | 1.8% |
+     | `sir` | 0.006 ms | 0.3 ms | 6% |
+
+     `sir`'s 0.3 ms is the count itself, one pass per written cell over
+     the region it reaches, which is what this step named for crossing
+     5%: it is the work that refuses its 476 iterates. Whole loads of
+     the generated shapes measure 0.95–1.07 of the base, run to run.
+   - **Parity.** The JavaScript worker's suite on this core
+     (`DOENET_TEST_CORE=cells`, 5,295 tests) passes 521, the base 523.
+     Four tests changed:
+     - three circle tests fail by design: the self-referential circle
+       under fix 2 above;
+     - "points related through intermediate math" (`point.test.ts`)
+       passes, failing before: its paths meet in the author's `<math>`,
+       and both cores now refuse the drag.
+   - **Next:** port the remaining components (ADR 0016) with
+     composition, vector operators for joint moves, and the round trip
+     required of every spec. Each port lands with the vector operators
+     the report lists for it (`Centroid`, `Span`, `RegularPolygon`,
+     `ParabolaVertex`, `Normalize`, …), and says which cells a drag of
+     the whole component requests.
 
 Out of scope:
 
