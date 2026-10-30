@@ -1,7 +1,7 @@
 # Composed inverses write the input that leads to state, and are checked whole
 
-Status: proposed 2026-10-29. A plan: steps 1 and 2 below are done,
-steps 3 to 6 are to do. It
+Status: proposed 2026-10-29. A plan: steps 1 to 3 below are done,
+steps 4 to 6 are to do. It
 decides whether component props keep inverting by composition before
 the remaining components are ported (ADR 0016).
 
@@ -150,16 +150,16 @@ masks and aliases as the walk does.
 ### Whole-prop checks (fix 3)
 
 - **The standing sweep.**
-  - `tests/round_trip.rs` loads the documents `tests/every_count.rs`
-    loads: the golden set, `sir` and the generated fixtures.
+  - `tests/round_trip.rs` loads the golden set and `sir` (not the
+    generated fixtures; see step 3).
   - It requests every interactive number cell at several values, and an
     x/y pair of one component as a point group.
   - It asserts that each comes out exact, projected, unchanged or
     dropped.
-  - Until fix 2 lands, it asserts the exact set of cells known to be
-    unstable instead. That list may only shrink: the test fails when a
-    new cell becomes unstable, or when a listed one stops being
-    unstable without being removed from the list.
+  - Until fix 2 lands, it asserts the exact unstable requests known
+    instead, counted by document and row. That list may only shrink: the
+    test fails when a row gains an unstable request, or when a listed row
+    loses one without the list being changed.
 - **Vector operators.** A test in `program/vector.rs` runs each vector
   operator's inverse over its `writes` samples. It requires the same
   round trip of each output requested alone and of all together, with
@@ -231,14 +231,40 @@ golden diff (`scripts/golden-diff.sh`), or lists the diff it expects.
      - A round trip does not check a domain: `choiceInput`'s
        `selectedIndex` takes 2.5, 7 or −1 exactly. Fix 3 adds domain
        cases.
-3. **Land the standing test.**
-   - `tests/round_trip.rs`, with the known unstable list by component
-     path: `ops`'s `i` and point `p`, and `sir`'s points and tuples.
-   - The vector-operator round trips. A vector operator that fails its
-     round trip is fixed in this step or listed with its reason.
-   - The spec hook, and domain cases for the specs' interactive props.
-   - `choiceInput`'s unprojected `selectedIndex` is fixed on its own,
-     before or with this step.
+3. **Land the standing test.** Done.
+   - **The sweep** is `testing::round_trip`. The `round_trip` example
+     prints it.
+   - **`tests/round_trip.rs`** sweeps the golden set and `sir`, 18,248
+     requests.
+     - It requires every unstable request to be multipath.
+     - It requires the unstable requests to be exactly
+       `KNOWN_UNSTABLE`: `ops`'s number and point (9) and `sir`'s
+       points and tuples (10,724).
+     - The list counts requests by document and row (`"point (x, y)"`)
+       rather than by component path, which would list `sir`'s hundreds
+       of components. A changed count fails either way.
+     - The generated fixtures are left out. Each is one synthetic shape
+       of up to 100,000 elements, where a sweep, a copy of the document
+       per request, costs the square of the size.
+     - It takes 14 seconds unoptimized, most of it `sir`.
+   - **The vector-operator round trip** (`program/vector.rs`) asks each
+     point output's two coordinates together, as a renderer does, and
+     each other output alone, then all together.
+     - Asked one coordinate at a time, a point's projection (`Shape`,
+       `ProjectCircle`, `ProjectLine`, `LinePointsFromCoeffs`) is not
+       idempotent: the other coordinate is filled from the current value.
+       No renderer asks that way.
+     - It also checks that a rigid `Shape` keeps its points' distances,
+       and that moving a circle's center keeps its radius.
+     - Every operator passes; none is listed.
+   - **The spec hook** sweeps each case's document after its load. All
+     five specs pass.
+   - **Domains.** Of the specs' components, only the slider has
+     interactive props with a domain, value and index. Its spec already
+     checked the value's range and step and an index above the range; it
+     now also checks an index below the range, and a NaN index, dropped.
+   - **`choiceInput`'s unprojected `selectedIndex`** is a separate task;
+     it has no spec yet.
 4. **Orientation**: the pass, `RSub`, `RDiv` and `Over`, with
    `Div(Fixed k, a)` lowered to `Over`.
    - Expected golden diff: a request through a reoriented operator

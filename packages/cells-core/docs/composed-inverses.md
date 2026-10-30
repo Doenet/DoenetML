@@ -484,5 +484,6 @@ ROUND_TRIP_SHOW=ops cargo run --release -p cells-bench --example round_trip
 ```
 
 The first sweeps every golden document and `sir`, the second named
-documents. With `ROUND_TRIP_SHOW`, the program also prints each unstable
+documents. The sweep itself is `cells_core::testing::round_trip`, which
+`tests/round_trip.rs` and the spec harness also run (ADR 0024, step 3). With `ROUND_TRIP_SHOW`, the program also prints each unstable
 request on a row containing the text.

@@ -37,7 +37,9 @@
 //! prop, against it on every live cell; and the pruned load's cost (cells,
 //! instructions, components) against the component's snapshot,
 //! `tests/specs/snapshots/<component>.cost`, reviewed with the change that
-//! changes it.
+//! changes it; and the round trip of every interactive cell of the case's
+//! document after the load (`testing::round_trip`, ADR 0024), where no
+//! request may come out unstable.
 //! `SPEC_UPDATE=1` rewrites a snapshot instead of comparing it.
 
 use crate::testing::reference;
@@ -178,6 +180,24 @@ pub fn run(component: &str, cases: &[Case]) {
     );
 }
 
+/// Every interactive cell of `doc` round-trips: no request on it, asked at
+/// the sweep's values, comes out unstable.
+fn round_trip(doc: &Document) -> Result<(), String> {
+    let unstable: Vec<String> = crate::testing::round_trip::sweep(doc)
+        .into_iter()
+        .filter(|o| o.class == crate::testing::round_trip::Class::Unstable)
+        .map(|o| format!("{} asked {:?} got {:?}", o.row, o.asked, o.got))
+        .collect();
+    if unstable.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "requests that do not round-trip (ADR 0024): {}",
+            unstable.join("; ")
+        ))
+    }
+}
+
 fn run_case(case: &Case) -> Result<String, String> {
     // A spec reads any prop, as an author's reference may (ADR 0019): it
     // reads a document with every prop computed, and ticks a pruned one
@@ -206,6 +226,7 @@ fn run_case(case: &Case) -> Result<String, String> {
     check_reference(&doc, "after the load")?;
     check_reference(&pruned, "after the load, pruned")?;
     agree(&doc, &pruned, "after the load")?;
+    round_trip(&doc)?;
     for (i, op) in case.ops.iter().enumerate() {
         let at = format!("step {}", i + 1);
         match op {
