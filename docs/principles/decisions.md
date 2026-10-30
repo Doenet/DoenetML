@@ -31,6 +31,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
+| B13 | A child written inside a copy that sets its value does not take precedence over carried reader state: after the reader drags `P` to (7,8), `<point copy="$P">(3,4)</point>` stays at (7,8), while `<point copy="$P" x="3"/>` is at (3,8). Written attributes and children should both take precedence (REF-3, REF-4a, D33) | **[probe]** on main | carried essential state is applied after the appended child (`copyPrimaryEssentialIfShadow`/`copyEssentialStateIfShadow` in `W/components/abstract/Copy.js`); not traced |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -1219,15 +1220,27 @@ reader state and random choices (CPY-2, CPY-8), whatever is written on it.
   does above, or a reference inside is looked up again elsewhere, the carried choices win and a
   warning says to use the fresh form. The mismatch may only appear after the reader interacts, so
   it cannot be an error. `<module copy="$m" k="2"/>` and `k="4"` then behave the same: the
-  source's choices.
-- **Everything else is allowed** and keeps all of the state: appearance attributes (`hide`,
+  source's choices. `k` itself still takes the written value. Only the nested choice, which
+  nothing written on the copy names, keeps the source's, so the result does not depend on the
+  value of `k`.
+- **Everything else is allowed** and keeps the rest of the state: appearance attributes (`hide`,
   `displayDigits`, `styleNumber`), `disabled`, `fixed`, and children added to a group or
   section (a random child added there draws its own value, as #2344 settled).
-- Carried reader state already wins over a written attribute that would set it today:
-  `<mathInput copy="$mi" prefill="9"/>` shows the reader's 5 (**[probe]**). Carried choices
-  winning is the same rule.
-- An attribute written on the copy does beat the reader's change to that same attribute. Without
-  it, `<p copy="$x" hide="false"/>` of something the reader hid stays hidden (D2).
+- **An attribute written on a copy or an extend takes precedence over carried state** (REF-3,
+  CPY-1). That is why a choice attribute is an error rather than a silent keep: the copy cannot
+  both honor the written attribute and keep the source's choices. **[probe]** on main, after the
+  reader drags `P` to (7,8):
+  - `<point copy="$P" x="3"/>` is at (3,8), and so is `<point extend="$P" x="3"/>`;
+  - `<point copy="$P" xs="3 4"/>` is at (3,4);
+  - `<mathInput copy="$mi" bindValueTo="7"/>` shows 7, though the reader typed 5 into `mi`;
+  - `prefill` is not an exception: it applies only until the reader interacts, so
+    `<mathInput copy="$mi" prefill="9"/>` showing the reader's 5 follows from what `prefill`
+    means;
+  - the same precedence should cover a reader's change to an attribute itself:
+    `<p copy="$x" hide="false"/>` of something the reader hid is shown (D2).
+- **Possible defect (B13):** a child that sets the value does not take precedence today.
+  `<point copy="$P">(3,4)</point>` stays at (7,8) (**[probe]**), while REF-4a says the last
+  coordinates written win. Under the rule above it should be at (3,4).
 - Content attributes of tags that do not choose at random stay allowed: `for` on a copy of a
   repeat, `condition` on a copy of a conditionalContent (D4, B5). Carried reader state attaches by
   iteration and by case (D12, COMP-10).
@@ -1287,7 +1300,8 @@ Left open, for feedback. Two directions:
   repeat or select.
 - **D17** is the mechanism for the fresh form's randomness.
 - **D18** no longer has to say which carried state "still fits" a changed copy.
-- **D2** gains the sub-rule that an attribute written on a copy beats the reader's change to it.
+- **D2** gains the rule that what is written on a copy takes precedence over carried state,
+  including the reader's change to that same attribute.
 - **D28.** The fresh form gives option (d)'s "start here, then change on your own" a natural
   place, though `copy="$x0.value"` is still needed for a single value.
 
