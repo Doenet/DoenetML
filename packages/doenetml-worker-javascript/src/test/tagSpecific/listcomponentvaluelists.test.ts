@@ -931,6 +931,67 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("the children of a list that extends another are reached through an extend of a component holding it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <p name="before">$Pe.Q.h $Pe2.Q.h</p>
+    <mathList name="m"><math name="h">$mi</math> 3</mathList>
+    <p name="P"><mathList name="Q" extend="$m" /></p>
+    <p name="Pe" extend="$P" />
+    <p name="Pe2" extend="$Pe" />
+    <p name="after">$Pe.Q.h $Pe2.Q.h</p>
+    <p name="lists">$Pe.Q | $Pe2.Q</p>
+    <mathInput name="me" bindValueTo="$Pe2.Q.h" />
+    <p name="others">$g2.Q.h $cc2.Q.h $s.Q.h $s2.Q.h $M2.Q.h</p>
+    <group name="g2" extend="$g" />
+    <group name="g"><mathList name="Q" extend="$m" /></group>
+    <conditionalContent name="cc"><case condition="true"><mathList name="Q" extend="$m" /></case></conditionalContent>
+    <conditionalContent name="cc2" extend="$cc" />
+    <select name="s"><option><mathList name="Q" extend="$m" /></option></select>
+    <select name="s2" extend="$s" />
+    <module name="M"><mathList name="Q" extend="$m" /></module>
+    <module name="M2" extend="$M" />
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "before",
+                "after",
+                "lists",
+                "others",
+            ]),
+        ).eqls({
+            before: "x x",
+            after: "x x",
+            lists: "x, 3 | x, 3",
+            others: "x x x x x",
+        });
+        for (const path of ["Pe.Q.h", "Pe2.Q.h", "g2.Q.h", "cc2.Q.h"]) {
+            const idx = await resolvePathToNodeIdx(path);
+            expect(idx, path).not.eq(-1);
+            expect(idx, path).not.eq(await resolvePathToNodeIdx("P.Q.h"));
+        }
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("me"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "after",
+                "lists",
+                "others",
+            ]),
+        ).eqls({
+            after: "y y",
+            lists: "y, 3 | y, 3",
+            others: "y y y y y",
+        });
+    });
+
     it("a list that copies itself loads and reports the cycle", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

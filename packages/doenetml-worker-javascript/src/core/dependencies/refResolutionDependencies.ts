@@ -678,6 +678,44 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
+        // The name was resolved to a list made inside a copy (`$E.e.h` for
+        // an `extend` `E` of a component holding `<mathList name="e"
+        // extend="$l"/>`), whose children are again made by a `_copy` child
+        // that may not have expanded yet. Wait for it, as for the list the
+        // reference starts at (above), so that `h` is not read as a property.
+        if (
+            refResolution.unresolvedPath !== null &&
+            refResolution.nodeIdx !== nodeIdx
+        ) {
+            const laterListCopies = listCopiesOf(
+                this.dependencyHandler._components[refResolution.nodeIdx],
+            ).filter(
+                (copy) =>
+                    copy.componentIdx !== composite.componentIdx &&
+                    !composite.ancestors?.some(
+                        (ancestor: any) =>
+                            ancestor.componentIdx === copy.componentIdx,
+                    ),
+            );
+            const unexpanded = laterListCopies.find((copy) => !copy.isExpanded);
+            if (unexpanded) {
+                await this.addBlockerForUnexpandedComposite(unexpanded);
+
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+            if (laterListCopies.length > 0) {
+                const indices = laterListCopies.map(
+                    (copy) => copy.componentIdx,
+                );
+                this.compositeReplacementDependencies.push(...indices);
+                this.addUpdateTriggersForCompositeReplacements(indices);
+            }
+        }
+
         this.extendIdx = refResolution.nodeIdx;
         this.unresolvedPath = refResolution.unresolvedPath;
 
