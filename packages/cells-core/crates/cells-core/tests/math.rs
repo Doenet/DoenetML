@@ -36,6 +36,26 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
 }
 
 #[test]
+fn a_literal_operand_is_one_cell_for_every_iteration() {
+    // `^` and `max` take no literal parameter: their literal is a fixed
+    // cell, and the build keeps one per value, not one per iteration.
+    let body = |n: &str| {
+        format!(
+            r#"<repeatForSequence name="r" length="5" valueName="v"><number name="n">{n}</number></repeatForSequence>"#
+        )
+    };
+    let doc = load(&body("$v^2 + max($v, 3)")).unwrap();
+    let plain = load(&body("$v")).unwrap();
+    assert_eq!(doc.n_fixed, plain.n_fixed + 2, "one cell for 2, one for 3");
+    let n = doc.resolve_path("r[4].n").unwrap();
+    assert_eq!(
+        doc.cells[doc.prop_cells(n, "value").unwrap()[0].index()],
+        20.0
+    );
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
 fn number_children_accept_math_text() {
     let doc = load(r#"<numberInput name="a" value="3"/><number name="n">2$a^2 - (1 + $a)/2</number><number name="k">4 * pi</number>"#).unwrap();
     assert_eq!(doc.value("n", "value"), Some(16.0));

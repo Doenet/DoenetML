@@ -38,7 +38,9 @@ schedule order.
 
 **Literal parameter** — A constant written in the document that an operator
 uses (a scale factor, clamp bounds). Literal parameters are document text, not
-state, so they are not cells.
+state, so they are not cells. A literal an operator has no parameter for (an
+exponent, a bound of `max`, a side of a comparison) is read from a fixed cell
+instead, one per distinct value in a build (`Builder::const_slot`).
 
 **Alias** — Two state variables that are exactly equal by construction (a
 reference such as `x="$p1.x"`, or a component copy `$p1`) share one cell.

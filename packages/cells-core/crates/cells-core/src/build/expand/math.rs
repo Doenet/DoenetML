@@ -358,7 +358,8 @@ impl<'c> Builder<'c> {
 
     /// Lower a numeric expression to operator slots. Literals fold into
     /// `Scale`/`Offset` parameters where an operator has one; otherwise they
-    /// become fixed cells.
+    /// are read from the build's shared constants (`const_slot`), so a
+    /// bare literal gives a slot no prop may alias.
     pub(in crate::build) fn lower(&mut self, id: ExprId, scope: ScopeId) -> SlotId {
         let num = |a: &Arena<SlotId>, e: ExprId| match a.get(e) {
             Expr::Num(v) => Some(*v),
@@ -366,7 +367,7 @@ impl<'c> Builder<'c> {
         };
         let e = self.arena.get(id).clone();
         match e {
-            Expr::Num(v) => self.anon_slot(BuiltSource::Fixed(v), scope),
+            Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
             Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {

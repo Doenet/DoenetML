@@ -67,7 +67,7 @@ impl<'c> Builder<'c> {
                     scope,
                     n,
                 );
-                let pos = self.anon_slot(BuiltSource::Fixed(k as f64), scope);
+                let pos = self.const_slot(k as f64);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
                 self.sources[active_slot.index()] = self.op_source(OpSpec::Eq, &[choice, pos]);
                 self.enter_scope(s, def.branches[k - 1]);
