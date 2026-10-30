@@ -4636,7 +4636,8 @@ function extendIgnoresAttributesAndChildren({
  * copy draws its own, so they are the same for a given variant.
  *
  * An attribute counts as unchanged only when the copy writes it as its source
- * did (`sameWrittenValue`). Anything else, a reference included, counts as
+ * did (`sameWrittenValue`), or, where its source did not write it, as its
+ * default (`writtenAsDefault`). Anything else, a reference included, counts as
  * changed: its value is not known yet, and choosing anew never fails where
  * keeping choices that do not fit does.
  */
@@ -4667,13 +4668,57 @@ function copyChangesChoices({
         return false;
     }
 
+    const attributesObject = replacementClass.createAttributesObject();
+
     return choiceAttributes.some((attrName) => {
         const written = attributesFromComposite[attrName];
         if (written === undefined) {
             return false;
         }
-        return !sameWrittenValue(written, replacement.attributes?.[attrName]);
+        const source = replacement.attributes?.[attrName];
+        if (source === undefined) {
+            // The source left it to its default, so the copy changes nothing
+            // when it writes that default, as `numToSelect="1"`.
+            return !writtenAsDefault(written, attributesObject[attrName]);
+        }
+        return !sameWrittenValue(written, source);
     });
+}
+
+/**
+ * Whether the serialized attribute `attribute` was written as the plain text
+ * of the default of its attribute specification `spec`, as `numToSelect="1"`
+ * or `withReplacement="false"`.
+ */
+function writtenAsDefault(attribute, spec) {
+    const defaultValue = spec?.defaultValue;
+    if (!["number", "boolean", "string"].includes(typeof defaultValue)) {
+        return false;
+    }
+    let text;
+    if (attribute?.type === "primitive") {
+        text = attribute.primitive?.value;
+    } else if (attribute?.type === "literal") {
+        text = attribute.text ?? attribute.value;
+    } else if (attribute?.type === "component") {
+        const written = writtenComponent(attribute.component);
+        if (
+            written === null ||
+            typeof written !== "object" ||
+            written.children.length !== 1 ||
+            typeof written.children[0] !== "string" ||
+            Object.keys(written.attributes).length > 0
+        ) {
+            return false;
+        }
+        text = written.children[0];
+    } else {
+        return false;
+    }
+    if (typeof defaultValue === "boolean" || spec.toLowerCase) {
+        return String(text).trim().toLowerCase() === String(defaultValue);
+    }
+    return String(text).trim() === String(defaultValue);
 }
 
 /**
@@ -4710,6 +4755,11 @@ function writtenAttributeValue(attribute) {
     return null;
 }
 
+/**
+ * What was written for the serialized `component`: its type, its non-blank
+ * children and its attributes, each as written, or `null` when that cannot be
+ * told from what was written (see `sameWrittenValue`).
+ */
 function writtenComponent(component) {
     if (typeof component === "string") {
         return component.trim();

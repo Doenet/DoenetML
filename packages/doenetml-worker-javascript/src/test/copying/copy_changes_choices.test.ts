@@ -259,6 +259,29 @@ describe("A copy that changes what is chosen @group3", async () => {
             expect(errors).eqls([]);
             expect(y).eqls(x);
         }
+
+        // writing the default of an attribute its source left unwritten
+        // changes nothing
+        const doenetML3 = `
+<p><select name="x">a b c d e</select></p>
+<p><select name="y" copy="$x" numToSelect="1" withReplacement="false"/></p>`;
+        const doenetML4 = `
+<p><selectPrimeNumbers name="x" numToSelect="2"/></p>
+<p><selectPrimeNumbers name="y" copy="$x" from="2" to="100"/></p>`;
+        for (const [doenetML, variable] of [
+            [doenetML3, "selectedIndices"],
+            [doenetML4, "selectedValues"],
+        ] as const) {
+            for (const requestedVariantIndex of variantIndices) {
+                const { x, y, errors } = await choices({
+                    doenetML,
+                    requestedVariantIndex,
+                    variable,
+                });
+                expect(errors).eqls([]);
+                expect(y).eqls(x);
+            }
+        }
     });
 
     it("an extend ignores the changed numToSelect and keeps its source's choices", async () => {
