@@ -305,17 +305,17 @@ const MATH_VALUE: Contract = {
 };
 
 /** A function's or a derivative's curve: in a graph, a polyline through
- * its samples, which the core takes over the graph's x-range. A function
- * of several variables has no samples (its `samples` is a fixed absent
- * value) and no curve. In text it has no view yet. */
+ * its samples, which the core takes over the graph's x-range. Its `curve`
+ * prop says whether it has one: a function of several variables, or one
+ * returning a tuple, has `curve` 0, no samples and no curve. Whether the
+ * samples are derived or constants (folded, in a graph whose `fixAxes`
+ * holds its bounds; ADR 0028) is no concern of the bridge's. In text it
+ * has no view yet. */
 const CURVE: Contract = {
     name: (table, c, inGraph) => (inGraph ? "polyline" : table.tag(c)),
     props: (r, c, inGraph) => {
         if (!inGraph) return {};
-        const samples = r.table.cell(c, "samples")!;
-        if (r.table.core.cell_class(samples) !== "derived") {
-            return { numericalVertices: [] };
-        }
+        if (!r.bool(c, "curve")) return { numericalVertices: [] };
         const n = r.table.core.n_samples();
         const xmin = r.num(c, "xmin");
         const step = (r.num(c, "xmax") - xmin) / (n - 1);

@@ -811,10 +811,7 @@ impl<'c> Builder<'c> {
     /// slot's own scope or one around it, which exists whatever the counts,
     /// so whether a slot folds never turns on whether a referent exists
     /// (the missing-referent cell is never read as one). A counted value
-    /// (ADR 0028) follows the counts, and is never folded; nor is a curve's
-    /// `Sample`, since the bridge tells a function with a curve from one
-    /// without by its samples being derived (`CURVE` in
-    /// `doenetml-worker/src/cells/contracts.ts`). Nothing folds in
+    /// (ADR 0028) follows the counts, and is never folded. Nothing folds in
     /// the probe, whose instructions never run, or where the load asked
     /// for every instruction (`LoadOptions::fold`).
     fn folded_slots(
@@ -838,10 +835,6 @@ impl<'c> Builder<'c> {
             .filter(|&s| {
                 slot_cells.defines(s)
                     && matches!(self.sources[s.index()], BuiltSource::Op(..))
-                    && !matches!(
-                        self.sources[s.index()],
-                        BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Sample)), ..)
-                    )
                     && !pruned(s.index())
                     && !counted(s)
             })

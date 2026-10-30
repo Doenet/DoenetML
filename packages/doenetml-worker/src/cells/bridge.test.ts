@@ -461,6 +461,25 @@ describe("step 3 components", () => {
         expect(props("function")).toEqual({});
     });
 
+    it("draws a curve whose samples are folded into constants", async () => {
+        // `fixAxes` holds the graph's bounds, so the samples read only
+        // constants and fold (ADR 0028); the curve is drawn all the same.
+        const { all } = await open(`<graph xmin="-1" xmax="1" fixAxes>
+<function name="f">x^2</function>
+<derivative>$f</derivative>
+<function variables="x y">(x, y)</function>
+</graph>`);
+        const [f, df, vector] = all("polyline").map(
+            (e) => (e.data as any).props.numericalVertices,
+        );
+        expect(f).toHaveLength(200);
+        expect(f[0]).toEqual([-1, 1]);
+        expect(f[199]).toEqual([1, 1]);
+        expect(df[0]).toEqual([-1, -2]);
+        expect(df[199]).toEqual([1, 2]);
+        expect(vector).toEqual([]);
+    });
+
     it("takes numbers, expressions and slider values", async () => {
         const { props, send, changed } = await open(`
 <numberInput name="n"/><number>$n</number>

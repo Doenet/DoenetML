@@ -19,8 +19,10 @@ impl Document {
     /// component, or a score of any component. A cell several components
     /// share (a copy and its original) is an output when any of them
     /// makes it one. A rendered prop that heads a run of cells (a curve's
-    /// samples) makes every cell of the run an output, when it was
-    /// computed: a run the planner left absent is one constant.
+    /// samples) makes every cell of the run an output, when the prop its
+    /// type names for it says the run is there (a function's `curve`): a
+    /// run the planner left absent is one constant. A run may be derived
+    /// or, over constants, folded into constants (ADR 0028).
     fn output_bits(&self) -> Vec<u64> {
         let rendered = self.rendered_components();
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
@@ -33,8 +35,10 @@ impl Document {
                 if !is_rendered && !component_type.is_score_prop(pi) {
                     continue;
                 }
-                let derived = !self.is_essential(cell) && !self.is_const(cell);
-                let span = if is_rendered && derived {
+                let has_run = component_type
+                    .prop_span_when(pi)
+                    .is_some_and(|w| cells.get(w).is_some_and(|&w| self.cells[w.index()] != 0.0));
+                let span = if is_rendered && has_run {
                     component_type.prop_span(pi)
                 } else {
                     1

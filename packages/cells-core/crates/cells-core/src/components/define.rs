@@ -14,6 +14,9 @@ pub(super) use crate::program::OpSpec;
 pub(super) struct Prop {
     def: PropDef,
     source: DeclaredSource,
+    /// For a run of cells (`sampled`), the prop that says whether it is
+    /// there, by name.
+    sampled_when: Option<&'static str>,
 }
 
 /// A computed prop's input as a table writes it: a prop by name, or a
@@ -48,6 +51,7 @@ const BLANK: PropDef = PropDef {
     score: false,
     read_by_action: false,
     span: 1,
+    span_when: None,
 };
 
 const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> Prop {
@@ -58,6 +62,7 @@ const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> 
             ..BLANK
         },
         source,
+        sampled_when: None,
     }
 }
 
@@ -142,9 +147,12 @@ impl Prop {
         self
     }
     /// The first of `SAMPLES` consecutive cells (a curve's samples), which
-    /// a renderer reads together: when it is an output, all of them are.
-    pub(super) const fn sampled(mut self) -> Self {
+    /// a renderer reads together, when the prop `when` is nonzero: then,
+    /// when it is an output, all of them are. When `when` is 0 the planner
+    /// left the run absent, one cell.
+    pub(super) const fn sampled(mut self, when: &'static str) -> Self {
         self.def.span = crate::program::SAMPLES;
+        self.sampled_when = Some(when);
         self
     }
 }
@@ -188,6 +196,9 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
                 }
             }
         };
+        if let Some(when) = table[i].sampled_when {
+            out[i].span_when = Some(at(&out, when) as u8);
+        }
         i += 1;
     }
     out
@@ -419,7 +430,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// `attr(default)`, `attr_or(other)` or `computed(op, [args])`, where an
 /// arg is a prop or a literal in parentheses (`[radius, (2.0)]`),
 /// optionally followed by `{ attribute: a, bind: b, ref_prop: p,
-/// interactive, written_by_action, rendered, score, read_by_action }`.
+/// interactive, written_by_action, rendered, score, read_by_action,
+/// sampled: p }`.
 /// `interactive` marks a prop a renderer may request (ADR 0017's inputs);
 /// a list ending `interactive: true` has every point interactive, for a
 /// shape a drag of one point or of the whole shape moves.
