@@ -3,6 +3,8 @@
 Status: proposed 2026-10-30. Every migration step is done. Amended
 2026-10-30: pass 3 plans on demand rather than from a graph made first
 (see "The rule for pass 3"), and pass 2 is part of pass 3 (see "Pass 2").
+ADR 0029 replaces the rule for pass 3: no planner reads another element's
+plan.
 
 The compile (ADR 0015) becomes five passes over the source, run once
 each, in a fixed order. A pass reads only what earlier passes finished,
