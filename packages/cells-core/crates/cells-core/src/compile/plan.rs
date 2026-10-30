@@ -105,8 +105,8 @@ pub(crate) enum Source {
     /// An essential cell with this initial value: the attribute's, or
     /// the type's default without one.
     Literal(f64),
-    /// An essential text cell: a string id, or NaN for none.
-    TextLiteral(f64),
+    /// An essential text cell holding this string, or none (blank).
+    TextLiteral(Option<StrId>),
     /// The matching slot of the `extend` referent.
     Inherit,
     /// A constant that is not state.
@@ -491,9 +491,9 @@ impl Wire {
         }
     }
     /// Essential text state, shared as `state`, initially the string `id`.
-    pub(crate) fn text_essential(state: SharedState, id: f64) -> Self {
+    pub(crate) fn text_essential(state: SharedState, id: StrId) -> Self {
         Wire {
-            source: Source::TextLiteral(id),
+            source: Source::TextLiteral(Some(id)),
             state: Some((state, None)),
         }
     }

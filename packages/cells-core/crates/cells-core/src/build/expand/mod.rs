@@ -1276,9 +1276,9 @@ impl<'c> Builder<'c> {
             Source::Deferred(_) => BuiltSource::Unset,
             Source::FirstIteration(..) => unreachable!("nested FirstIteration"),
             Source::Literal(v) => BuiltSource::Literal(*v),
-            Source::TextLiteral(v) => {
+            Source::TextLiteral(id) => {
                 self.typed_slots.push((s, ValueType::Text));
-                BuiltSource::Literal(*v)
+                BuiltSource::Literal(id.map_or(f64::NAN, StrId::to_value))
             }
             Source::Inherit => {
                 let Some(referent) = extend else {

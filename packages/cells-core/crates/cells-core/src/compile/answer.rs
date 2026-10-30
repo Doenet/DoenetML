@@ -319,7 +319,7 @@ impl<'a> Compiler<'a> {
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
             correct: Source::absent(),
-            submitted: Source::TextLiteral(NO_VALUE),
+            submitted: Source::TextLiteral(None),
             credit: Source::own(best),
             weight,
             numSubmissions: Source::Literal(0.0),
