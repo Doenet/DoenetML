@@ -509,14 +509,18 @@ impl<'a> Compiler<'a> {
                 let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
                 };
-                // The math may come later in the document and not be planned yet.
                 if self.compiled.templates[t.index()].elems[target.index()].component_type
-                    == ComponentType::Math
-                    && self.compiled.templates[t.index()].elems[target.index()]
-                        .props
-                        .is_empty()
-                    && self.plan_elem(t, target).is_err()
+                    != ComponentType::Math
                 {
+                    return id;
+                }
+                // A math that cannot be planned first, one that fails or
+                // one already being planned (two maths naming each other,
+                // a cycle the build reports), is left a cell: its failure
+                // is its own, reported when its turn comes.
+                let failed_node = self.failed_node;
+                if self.planned_elem(t, target).is_err() {
+                    self.failed_node = failed_node;
                     return id;
                 }
                 match self.compiled.templates[t.index()].elems[target.index()]

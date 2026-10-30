@@ -356,14 +356,60 @@ fn a_copy_of_a_later_container_copy_has_its_clones() {
     }
 }
 
-/// A cycle of extends with attributes of their own is a dependency cycle,
-/// not a compile that never ends.
+/// A cycle of extends with attributes of their own is a cycle in what
+/// reads whose plan (ADR 0027): an error on an element of the cycle, not
+/// a compile that never ends.
 #[test]
 fn a_cycle_of_extends_is_reported() {
     for source in [
         r#"<graph><point name="A" extend="$B" x="1"/><point name="B" extend="$A" y="2"/></graph>"#,
         r#"<graph><point name="A" extend="$A" x="1"/></graph>"#,
         r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#,
+    ] {
+        let doc = load(source).unwrap_or_else(|e| panic!("{source}: {e}"));
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::Error
+                    && d.node.is_some()
+                    && d.message.contains("dependency cycle")),
+            "{source}: {:?}",
+            doc.diagnostics()
+        );
+    }
+}
+
+/// A reference into a `<math>` reads the type planning gives it (a tuple
+/// of two is a point) whichever comes first in the document.
+#[test]
+fn a_reference_into_a_later_math_reads_its_planned_type() {
+    let m = r#"<math name="m">(3, 4)</math>"#;
+    let reads =
+        r#"<graph><point name="P" x="$m.x" y="$m[2]"/><point name="Q" extend="$m"/></graph>"#;
+    for source in [format!("{m}{reads}"), format!("{reads}{m}")] {
+        let doc = load(&source).unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .all(|d| d.kind != DiagnosticKind::Error),
+            "{source}: {:?}",
+            doc.diagnostics()
+        );
+        assert_eq!(
+            (v(&doc, "P", "x"), v(&doc, "P", "y"), v(&doc, "Q", "x")),
+            (3.0, 4.0, 3.0),
+            "{source}"
+        );
+    }
+}
+
+/// A cycle of values between elements is no cycle of plans: each is
+/// planned without the other's, and the build reports the cycle.
+#[test]
+fn a_cycle_of_values_is_the_builds() {
+    for source in [
+        r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#,
+        r#"<math name="a">$b + 1</math><math name="b">$a + 1</math>"#,
     ] {
         let err = load(source)
             .err()

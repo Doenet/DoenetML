@@ -1,6 +1,8 @@
 # The compile runs in passes, each reading only what earlier passes finished
 
-Status: proposed 2026-10-30. Migration step 3 is done.
+Status: proposed 2026-10-30. Migration steps 1 and 3 are done. Amended
+2026-10-30: pass 3 plans on demand rather than from a graph made first
+(see "The rule for pass 3").
 
 The compile (ADR 0015) becomes five passes over the source, run once
 each, in a fixed order. A pass reads only what earlier passes finished,
@@ -12,7 +14,7 @@ it where it arises rather than restarting the compile.
 |---|---|---|---|
 | **1. Shape** | the DAST | element types, templates, the name table, container copies expanded | unknown tags, duplicate names, extends that name nothing, lint findings |
 | **2. References** | shape | a `RefPlan` for every `$ref` and every `extend` | unknown or ambiguous names, bad paths |
-| **3. Plans** | shape, references | every element's `Source`s and hold, in dependency order | every planner's errors and warnings, then unread attributes (ADR 0021) |
+| **3. Plans** | shape, references | every element's `Source`s and hold, each after the plans it reads | every planner's errors and warnings, then unread attributes (ADR 0021) |
 | **4. Finish** | every plan | choice interfaces, arity, keys, slot offsets | a choice interface a reference misuses, a misbound operator |
 | **5. Probe** | the whole `Compiled` | cycles, writable and live records, structural depth | dependency and structural cycles, what only a build sees |
 
@@ -21,8 +23,9 @@ name**. A reference to a boxed element resolves, and reads an undefined
 value of what the reader expects, with no diagnostic of its own: the box's
 error is its explanation (`Source::undefined` takes the box's `Warned`).
 An extend of a boxed element is boxed in turn, its diagnostic naming the
-referent's box as its cause; because pass 3 plans in dependency order, the
-referent is boxed before the extend is planned, in the same pass.
+referent's box as its cause; because pass 3 plans a referent before what
+reads its plan, the referent is boxed before the extend is planned, in
+the same pass.
 
 We chose this because the compile today does not know what it knows until
 the end, and learns the rest by trial and restart:
@@ -65,20 +68,43 @@ rule can run at the end of pass 3 rather than after the probe.
 
 ## The rule for pass 3
 
-Pass 3 orders elements by a graph of *reads the plan of*: an extend reads
-its referent's (shared state, its attributes as the referent binds them,
-ADR 0023); a math that inlines another reads that math's; whatever reads
-an element's settled type (a tuple-valued `<math>` that becomes a point)
-reads that element's. The graph is made from pass 2's plans before any
-element is planned, then sorted; a loop in it is an error on the elements
-in the loop, which have no order to be planned in. A planner reads another
-element's plan only through one accessor, which asserts that the element
-is planned. A read the graph did not predict is then a core bug the
-assertion names, never a default value read in silence.
+A planner reads another element's plan only through one accessor,
+`Compiler::planned_elem`, which plans that element first when it is not
+planned yet. What reads only an element's type, body or children (a
+reference's path, an extend's referent type) reads through
+`settled_elem`, which does the same for the elements whose planning
+changes those: a `<math>` (a tuple may become a point), a `<collect>` or
+`<polyline>` (which become collects), a `<pointList>` (which may extend
+a list) and a container copy (which gets its clones). So every element
+is planned after the plans it reads, whatever the document's order: an
+extend reads its referent's (shared state, its attributes as the
+referent binds them, ADR 0023); a math that inlines another reads that
+math's; whatever reads an element's settled type reads that element's.
+
+An element reached again while it is being planned is in a loop of
+plans, an error on that element (`Error::Cycle`), since the loop has no
+order to be planned in. Reading another element's *values* is no read
+of its plan: `<point name="a" x="$b.x"/><point name="b" x="$a.x"/>`
+plans in any order, and its cycle is the build's to report, as before.
+Inlining is the one read that may fail softly: a math already being
+planned, or one that fails, is left a cell (two maths naming each other
+are a cycle of values).
 
 Reads of another element's *source* (an answer's planner reading an
 award's `symbolicEquality`, ADR 0021's example) need no order: the source
 is pass 1's.
+
+This amends the rule as first proposed, which built a graph of *reads
+the plan of* from pass 2's plans before any element was planned, sorted
+it, and asserted in the accessor that the graph had predicted every
+read. An element's planning follows references from its own attributes
+and content, its referent's attributes (ADR 0023), an ancestor's
+`fixed` (ADR 0022) and the `<when>`s under an answer, so the graph would
+have to predict each of these: too few edges and a document trips the
+assertion, too many and a cycle of values becomes a false loop of plans.
+Planning on demand through the accessor reaches the same order with
+nothing to predict, and the accessor is still the one place a read of
+another element's plan happens.
 
 ## Considered options
 
@@ -139,12 +165,13 @@ is pass 1's.
 Each step lands alone, with the golden diff unchanged except where a step
 says otherwise.
 
-1. **Plan in dependency order.** Build pass 3's graph from the plans the
-   compile already has after its first walk, and plan `pending_elems` in
-   its order instead of push order; add the read accessor and its
-   assertion. Fixes the extend bug above. Test: every test document with
-   its siblings shuffled, where shuffling cannot change meaning, plans to
-   the same `Compiled`.
+1. **Plan in dependency order.** Add `planned_elem` and `settled_elem`,
+   route every read of another element's plan through them, and make a
+   re-entry a cycle error. Fixes the extend bug above, and a reference
+   into a later `<math>` that reads its settled type (`$m.x` of a tuple
+   that becomes a point). Done: `tests/plan_order.rs` loads documents in
+   every rotation and the reverse of their siblings to the same values
+   and diagnostics.
 2. **Boxes keep their names.** `push_error_elem` keeps the node's name;
    resolution and planning treat an `Error` referent as undefined; an
    extend of a box is boxed with a cause. Removes the cascade. Tests: the

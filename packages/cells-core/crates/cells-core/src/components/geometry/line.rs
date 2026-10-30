@@ -234,7 +234,7 @@ fn direction(ctx: &mut PlanCtx<'_, '_>, name: Attr, wiring: &mut ElemWiring) -> 
     let p = ctx.point(name)?.expect("the direction attribute is given");
     if let GivenPoint::Ref(r) = p
         && matches!(
-            ctx.reference_type(r),
+            ctx.reference_type(r)?,
             Some(ComponentType::Line | ComponentType::LineSegment)
         )
     {

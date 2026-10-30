@@ -329,11 +329,13 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The component type of the element a reference names, when it
-    /// names one in this template (`$l`, not `$l.x` or `$r[2]`).
-    pub(crate) fn reference_type(&self, p: RefId) -> Option<ComponentType> {
-        self.c
-            .plan_elem_target(self.t, p)
-            .map(|e| self.c.compiled.templates[self.t.index()].elems[e.index()].component_type)
+    /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as
+    /// planning settles it (a `<math>` may be a point).
+    pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
+        match self.c.plan_elem_target(self.t, p) {
+            Some(e) => Ok(Some(self.c.settled_elem(self.t, e)?.component_type)),
+            None => Ok(None),
+        }
     }
 
     /// Math text as tokens, `$ref`s as cell leaves, and its text.

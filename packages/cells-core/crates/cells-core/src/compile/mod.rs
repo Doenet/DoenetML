@@ -110,12 +110,12 @@ pub(in crate::compile) struct Compiler<'a> {
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
     /// By (template, element), the elements `plan_elem` has planned: one
-    /// planned ahead of its turn (a `<math>` another element's math
-    /// inlines) is not planned twice.
+    /// planned ahead of its turn, because another element's planning read
+    /// its plan (`planned_elem`), is not planned twice.
     planned: HashSet<(u32, u32)>,
     /// By (template, element), the elements `plan_elem` is planning now:
-    /// one reached again while it plans (a cycle of extends) is left to
-    /// its first call, and the build reports the cycle.
+    /// one reached again while it plans is a cycle in what reads whose
+    /// plan (ADR 0027), an error on the element.
     planning: HashSet<(u32, u32)>,
 }
 
@@ -651,11 +651,16 @@ impl<'a> Compiler<'a> {
     /// Plans element `e`, and records what holds it (`plan_hold`, ADR
     /// 0022) beside its plans. Every element is planned here and nowhere
     /// else, so `fixed` holds whatever planned it: no planner applies it,
-    /// and none can leave it out.
+    /// and none can leave it out. An element already planned is left as
+    /// it is; one reached again while it is being planned (an extend of
+    /// itself, two maths each reading the other's type) is a cycle.
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let key = (t.get(), e.get());
-        if self.planned.contains(&key) || !self.planning.insert(key) {
+        if self.planned.contains(&key) {
             return Ok(());
+        }
+        if !self.planning.insert(key) {
+            return Err(Error::Cycle(self.elem_label(t, e)));
         }
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             let hold = self.plan_hold(t, e)?;
@@ -670,6 +675,49 @@ impl<'a> Compiler<'a> {
             Err(_) => self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node),
         }
         r
+    }
+
+    /// Element `e` as planned: the one way a planner reads what another
+    /// element's planning made (its shared state, the inlined expression
+    /// of a `<math>`, a container copy's clones), so the order elements
+    /// are planned in is that of what reads what, never the document's
+    /// (ADR 0027). One not yet planned is planned first.
+    pub(in crate::compile) fn planned_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
+        self.plan_elem(t, e)?;
+        Ok(&self.compiled.templates[t.index()].elems[e.index()])
+    }
+
+    /// Element `e` with its type, body and children as planning settles
+    /// them, for what reads only those (a reference's path, an extend's
+    /// referent type): `planned_elem` for an element whose planning
+    /// changes them (`settles_in_planning`), else the element as it is.
+    /// Reading another element's values is no read of its plan, so a
+    /// cycle of values (`$a.x` in `b`, `$b.x` in `a`) plans in any order
+    /// and is the build's to report.
+    pub(in crate::compile) fn settled_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
+        if self.settles_in_planning(t, e) {
+            self.plan_elem(t, e)?;
+        }
+        Ok(&self.compiled.templates[t.index()].elems[e.index()])
+    }
+
+    /// Whether planning `e` changes what a reference to it reads: a
+    /// `<math>` may become a point or a tuple (`PlanCtx::set_type`), a
+    /// `<collect>` or a `<polyline>` becomes a collect, a `<pointList>`
+    /// may become an extend of a list, and a container copy gets its
+    /// clones. A clone comes as its original was.
+    fn settles_in_planning(&self, t: TemplateId, e: ElemId) -> bool {
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        if el.node == NodeId::NONE || el.cloned {
+            return false;
+        }
+        match el.component_type {
+            ComponentType::Math
+            | ComponentType::Collect
+            | ComponentType::Polyline
+            | ComponentType::PointList => true,
+            k => k.container() && self.dast.attr_peek(el.node, "extend").is_some(),
+        }
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
@@ -729,7 +777,7 @@ impl<'a> Compiler<'a> {
                 // the element's type (REF-5, ADR 0025), so it is the
                 // extend of its default prop. An unrelated pair is left to
                 // the build, which refuses it once both types are known.
-                if let Some(rt) = self.ref_target_type(t, p)
+                if let Some(rt) = self.ref_target_type(t, p)?
                     && rt != component_type
                     && ComponentType::extends_as(rt, component_type)
                     && let Some(dp) = rt.default_prop()
