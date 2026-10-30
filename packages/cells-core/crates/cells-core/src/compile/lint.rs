@@ -4,7 +4,10 @@
 //! current core's rules: a `<graph>` needs a `<shortDescription>` child
 //! or `decorative`; an input needs one, or a `<label>` child, a `label`
 //! attribute or `labelIsName`. Every build reports them, so a document
-//! whose build fails outright still has them.
+//! whose build fails outright still has them. Lint looks attributes up
+//! with `Dast::attr_peek`, which records no read, so it may run in any
+//! pass without changing which attributes ADR 0021 refuses; it runs
+//! first (ADR 0027).
 
 use std::collections::BTreeMap;
 
@@ -28,7 +31,7 @@ fn accessibility(d: &Dast, el: NodeId, component_type: ComponentType) -> Option<
     };
     let described = has_child("shortDescription");
     let (code, message) = match component_type {
-        ComponentType::Graph if !described && d.attr(el, "decorative").is_none() => (
+        ComponentType::Graph if !described && d.attr_peek(el, "decorative").is_none() => (
             "doenet-a0001",
             "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
         ),
@@ -40,8 +43,8 @@ fn accessibility(d: &Dast, el: NodeId, component_type: ComponentType) -> Option<
         | ComponentType::Slider
             if !described
                 && !has_child("label")
-                && d.attr(el, "label").is_none()
-                && d.attr(el, "labelIsName").is_none() =>
+                && d.attr_peek(el, "label").is_none()
+                && d.attr_peek(el, "labelIsName").is_none() =>
         {
             (
                 "doenet-a0003",

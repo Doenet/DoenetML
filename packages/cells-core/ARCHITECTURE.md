@@ -84,7 +84,9 @@ loads it as JSON (`dast/json.rs`) or in a binary wire format
 Runs once per load and depends on the source alone.
 
 - **Lint** (`lint.rs`) is one walk over the DAST for the rules that need
-  nothing else, such as the accessibility rules.
+  nothing else, such as the accessibility rules. It looks attributes up
+  with `Dast::attr_peek`, which records no read (ADR 0021), so it runs
+  first without changing which attributes are refused (ADR 0027).
 - **Plan** walks the DAST and produces a `Template` for the document, each
   repeat body and each choice branch. Every prop in a template has a
   `Source` (a literal, a default, an operator over references, a math

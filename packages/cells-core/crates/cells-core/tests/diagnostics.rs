@@ -206,6 +206,27 @@ fn accessibility_findings_are_structural() {
     assert_eq!(doc.diagnostics()[0].code, "doenet-a0001");
 }
 
+/// Lint looks at attributes without reading them (ADR 0027), so it may
+/// run before the compile: an attribute only lint looks up is still
+/// unread, and still refused where nothing else reads it (ADR 0021).
+#[test]
+fn lint_records_no_read() {
+    let dast = cells_core::dast::load(
+        dast_json(r#"<graph decorative/><mathInput label="x" labelIsName/>"#).as_bytes(),
+    )
+    .unwrap();
+    assert!(cells_core::lint(&dast).is_empty());
+    let n_attrs: u32 = NodeId::below(dast.len())
+        .map(|n| dast.attrs(n).len() as u32)
+        .sum();
+    assert!(n_attrs >= 3);
+    for n in NodeId::below(dast.len()) {
+        for a in dast.attrs(n) {
+            assert!(!dast.attr_read(a), "{} read", dast.attr_name(a));
+        }
+    }
+}
+
 #[test]
 fn a_rebuild_keeps_the_boxes_and_adds_nothing() {
     let mut doc = load(

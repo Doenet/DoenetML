@@ -34,7 +34,10 @@ pub(crate) fn compile(
     prune: bool,
     fold: bool,
 ) -> Result<CompileOutput> {
-    let mut list = Vec::new();
+    let mut list = {
+        let _s = crate::trace::span("lint");
+        lint::lint(dast)
+    };
     let (mut compiled, ()) = plan_and_check(dast, &mut list, |compiled| {
         compiled.prune = prune;
         compiled.fold = fold;
@@ -50,10 +53,6 @@ pub(crate) fn compile(
         Arc::make_mut(&mut compiled.diagnostics).extend(probed.warnings);
         Ok(())
     })?;
-    {
-        let _s = crate::trace::span("lint");
-        list.extend(lint::lint(dast));
-    }
     // The planners' and the probe's warnings, from the compile that built.
     list.append(Arc::make_mut(&mut compiled.diagnostics));
     crate::diagnostics::sort(&mut list);
@@ -70,7 +69,7 @@ pub(crate) fn compile(
 /// language server, which has no document to load.
 pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let dast = Arc::new(dast.clone());
-    let mut list = Vec::new();
+    let mut list = lint::lint(&dast);
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
     if let Ok((compiled, probed)) =
@@ -79,7 +78,6 @@ pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
         list.extend(compiled.diagnostics.iter().cloned());
         list.extend(probed.warnings);
     }
-    list.extend(lint::lint(&dast));
     crate::diagnostics::sort(&mut list);
     list
 }

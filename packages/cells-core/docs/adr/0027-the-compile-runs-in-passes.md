@@ -1,6 +1,6 @@
 # The compile runs in passes, each reading only what earlier passes finished
 
-Status: proposed 2026-10-30. No migration step is done.
+Status: proposed 2026-10-30. Migration step 3 is done.
 
 The compile (ADR 0015) becomes five passes over the source, run once
 each, in a fixed order. A pass reads only what earlier passes finished,
