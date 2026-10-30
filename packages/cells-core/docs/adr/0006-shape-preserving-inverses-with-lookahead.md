@@ -4,11 +4,8 @@ A whole-shape drag is a *point group*: the renderer asks for several points
 at once (`Document::request_points`), and an inverse that moves several
 points (a circle's center or radius) produces one too. Before the request
 engine queues a group it asks what each point would actually become, by
-inverting the group on a scratch copy of the cells and evaluating forward,
-writing nothing (`tick::invert::realize`): not the cells, not a symbolic
-instruction's memo, which it steps past, and not the session's math
-engine, which forgets what the lookahead stored (`Program::lookahead`).
-If a strict subset of the points is
+inverting the group on a scratch copy of the cells and evaluating forward
+(`tick::invert::realize`), writing no cell. If a strict subset of the points is
 held back, all by the same shift, the shift is applied to the rest, so a line
 dragged against a grid-snapped point stays parallel to itself and a circle
 keeps its radius. That is the only context an inverse ever gets: realized
@@ -48,5 +45,22 @@ or similarity, extending ADR 0003 from scalar to vector projection.
 - Lookahead costs one inversion of the group plus a copy of the cell array,
   about a tenth of a tick at 160,000 cells; a dirty overlay would make it
   proportional to the group if that ever mattered.
+
+## Amendment: the lookahead steps as a tick does (2026-10-29)
+
+As accepted, a lookahead stepped symbolic instructions past their memo and
+the engine kept a scratch layer, forgetting every expression the lookahead
+stored (`Program::lookahead`, `step_lookahead`, `Engine::begin_scratch`),
+so that it left the memo and the engine as it found them. Neither needs
+protecting. A symbolic instruction's memo is keyed by the input values it
+last ran on, so whatever it holds after a lookahead, the next real step
+reruns on other inputs and reuses it on the same ones, and either way
+answers right. The engine only grows, and an expression it already holds
+is found, not stored again; the handles a lookahead makes stay valid, as
+every handle of the session does. So the lookahead now runs the ordinary
+`Program::step` on its copy of the cells, and the scratch layer is gone.
+What a lookahead adds to the engine that the tick after it does not
+(positions a constraint then moved) stays, as any expression a tick once
+computed does.
 - When two requests in one group or tick reach one essential cell, the later
   one wins, as everywhere in this core; the current core keeps the first.

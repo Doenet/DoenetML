@@ -33,12 +33,15 @@ pub enum ValueType {
 
 /// What a program's symbolic instructions keep between runs: for each,
 /// from its `MemoIdx`, the input values it last ran on and its outputs
-/// from that run; with scratch for `SampleTape` and counters. Owned by the
-/// document beside its program, which stays read-only while a tick runs.
+/// from that run; with scratch for `SampleTape`. Owned by the document
+/// beside its program, which stays read-only while a tick runs.
 #[derive(Debug, Clone, Default)]
 pub struct SymState {
     memo: Vec<f64>,
-    pub stats: SymStats,
+    /// How many symbolic steps called the engine (an input had changed):
+    /// what the cutoff is measured by (`tests/symbolic.rs`).
+    #[cfg(feature = "testing")]
+    pub runs: u64,
     /// Scratch columns for `SampleTape`.
     tape_stack: Vec<f64>,
 }
@@ -48,8 +51,7 @@ impl SymState {
     pub fn new(program: &Program) -> Self {
         SymState {
             memo: vec![NEVER; program.memo_len],
-            stats: SymStats::default(),
-            tape_stack: Vec::new(),
+            ..Default::default()
         }
     }
 }
@@ -71,15 +73,6 @@ impl SymRun<'_> {
     }
 }
 
-/// Counters for the cutoff measurement.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct SymStats {
-    /// Symbolic instructions stepped.
-    pub steps: u64,
-    /// Of those, how many called the engine (an input had changed).
-    pub runs: u64,
-}
-
 /// Bits no computation produces: a memo that has never run matches no input.
 const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 
@@ -99,9 +92,106 @@ pub struct Program {
     pub memo_len: usize,
     /// Compiled curves that `SampleTape` instructions run.
     pub tapes: Vec<crate::sym::tape::Tape>,
-    /// Whether creation order was already a valid evaluation order, so no
-    /// sort ran. Diagnostic.
-    pub in_creation_order: bool,
+    /// The cells a `fixed` holds, each with its flag cells: a request on
+    /// one is dropped while any of its flags is anything but exactly 0 (a
+    /// NaN flag, a missing referent, holds). Forward evaluation is
+    /// untouched: a held cell still follows what it is computed from.
+    pub holds: Holds,
+}
+
+/// What a cell needs to be right: what its instruction reads, and the
+/// flags that hold it (`Program::holds`), which a request on it reads. The
+/// one place a cell's dependencies are defined: what is live is closed
+/// under it (ADR 0019), and the input signature hashes it (ADR 0017).
+/// Evaluation order is not it: a flag is read only when a request arrives,
+/// so `Program::schedule` orders instructions by `Op::inputs` alone.
+pub struct Needs<'a> {
+    instr: Option<&'a Instr>,
+    operands: &'a [CellIdx],
+    flags: &'a [CellIdx],
+}
+
+impl<'a> Needs<'a> {
+    /// What `cell` needs, written by `instr` (none for an essential or a
+    /// fixed cell) over `operands`, held as `holds` says.
+    pub fn new(
+        instr: Option<&'a Instr>,
+        operands: &'a [CellIdx],
+        holds: &'a Holds,
+        cell: CellIdx,
+    ) -> Self {
+        Needs {
+            instr,
+            operands,
+            flags: holds.flags(cell),
+        }
+    }
+
+    /// The instruction writing the cell, if one does.
+    pub fn instr(&self) -> Option<&'a Instr> {
+        self.instr
+    }
+
+    /// What its instruction reads, in its operator's order.
+    pub fn inputs(&self) -> impl Iterator<Item = CellIdx> + 'a {
+        let operands = self.operands;
+        self.instr
+            .into_iter()
+            .flat_map(move |instr| instr.op.inputs(operands))
+    }
+
+    /// The flags that hold it.
+    pub fn flags(&self) -> &'a [CellIdx] {
+        self.flags
+    }
+
+    /// Everything it needs: its inputs, then its flags.
+    pub fn all(&self) -> impl Iterator<Item = CellIdx> + 'a {
+        self.inputs().chain(self.flags.iter().copied())
+    }
+}
+
+impl Program {
+    /// What `cell` needs to be right (`Needs`).
+    pub fn needs(&self, cell: CellIdx) -> Needs<'_> {
+        let p = self.producer[cell.index()];
+        let instr = (p != u32::MAX).then(|| &self.instrs[p as usize]);
+        Needs::new(instr, &self.operands, &self.holds, cell)
+    }
+}
+
+/// The cells a `fixed` holds, and the flag cells that hold each.
+#[derive(Debug, Clone, Default)]
+pub struct Holds(std::collections::HashMap<CellIdx, Vec<CellIdx>>);
+
+impl Holds {
+    /// Hold `cell` while `flag` is set.
+    pub fn insert(&mut self, cell: CellIdx, flag: CellIdx) {
+        let flags = self.0.entry(cell).or_default();
+        if !flags.contains(&flag) {
+            flags.push(flag);
+        }
+    }
+
+    /// Whether a request on `cell` is refused, with `cells` as they are.
+    #[inline]
+    pub fn holds(&self, cell: CellIdx, cells: &[f64]) -> bool {
+        !self.0.is_empty()
+            && self
+                .0
+                .get(&cell)
+                .is_some_and(|flags| flags.iter().any(|f| cells[f.index()] != 0.0))
+    }
+
+    /// The flag cells that hold `cell`.
+    pub fn flags(&self, cell: CellIdx) -> &[CellIdx] {
+        self.0.get(&cell).map_or(&[], Vec::as_slice)
+    }
+
+    /// Every held cell, with its flags.
+    pub fn iter(&self) -> impl Iterator<Item = (CellIdx, &[CellIdx])> {
+        self.0.iter().map(|(&c, fs)| (c, fs.as_slice()))
+    }
 }
 
 #[inline(always)]
@@ -149,7 +239,7 @@ impl Program {
                 operands,
                 memo_len,
                 tapes: Vec::new(),
-                in_creation_order: true,
+                holds: Holds::default(),
             });
         }
 
@@ -214,7 +304,7 @@ impl Program {
             operands,
             memo_len,
             tapes: Vec::new(),
-            in_creation_order: false,
+            holds: Holds::default(),
         })
     }
 
@@ -260,36 +350,6 @@ impl Program {
         }
     }
 
-    /// Run `f`, which steps on a copy of the cells (`step_lookahead`), and
-    /// forget every expression it stored: what a request would do
-    /// (`tick::invert::realize`) is evaluated without leaving anything in
-    /// the session's engine or in a memo. `f` must keep no handle.
-    pub fn lookahead<R>(sym: &mut SymRun, f: impl FnOnce(&mut SymRun) -> R) -> R {
-        sym.engine.begin_scratch();
-        let r = f(sym);
-        sym.engine.end_scratch();
-        r
-    }
-
-    /// Evaluate one instruction into a copy of the cells, within
-    /// `lookahead`: a symbolic instruction runs without its memo, which
-    /// keeps the inputs it last ran on in the document's cells.
-    pub fn step_lookahead(&self, ins: &Instr, sym: &mut SymRun, cells: &mut [f64]) {
-        let Op::Sym(kind, start, n, _) = ins.op else {
-            return self.step(ins, sym, cells, None);
-        };
-        let out = ins.out.index();
-        let inputs = self.operands_at(start, n as usize);
-        let mut outs = vec![0.0; kind.n_out()];
-        if let SymKind::SampleTape { tape } = kind {
-            let stack = &mut sym.state.tape_stack;
-            run_tape(&self.tapes[tape as usize], cells, inputs, &mut outs, stack);
-        } else {
-            run_sym(sym.engine, kind, cells, inputs, &mut outs);
-        }
-        cells[out..out + outs.len()].copy_from_slice(&outs);
-    }
-
     /// A symbolic instruction: rerun only if an input changed since its last
     /// run, then write the outputs of that run. Keyed on input values rather
     /// than on a dirty flag, so stepping on a scratch copy (the reference
@@ -312,13 +372,15 @@ impl Program {
         let inputs = self.operands_at(start, n);
         let state = &mut *sym.state;
         let (last, outs) = state.memo[memo.index()..memo.index() + n + n_out].split_at_mut(n);
-        state.stats.steps += 1;
         if !inputs
             .iter()
             .zip(last.iter())
             .all(|(&c, m)| cells[c.index()].to_bits() == m.to_bits())
         {
-            state.stats.runs += 1;
+            #[cfg(feature = "testing")]
+            {
+                state.runs += 1;
+            }
             for (m, &c) in last.iter_mut().zip(inputs) {
                 *m = cells[c.index()];
             }

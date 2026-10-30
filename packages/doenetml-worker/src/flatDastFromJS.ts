@@ -14,6 +14,7 @@ import { booleanInputJsToRust } from "./jsRustConversions/booleanInput";
 import { pointJsToRust } from "./jsRustConversions/point";
 import { refJsToRust } from "./jsRustConversions/ref";
 import { sectionJsToRust as divisionJsToRust } from "./jsRustConversions/section";
+import { figureJsToRust } from "./jsRustConversions/figure";
 import { tableJsToRust } from "./jsRustConversions/table";
 import { textJsToRust } from "./jsRustConversions/text";
 
@@ -112,13 +113,29 @@ export function applyElementJsToRustFixups(
         case "text":
             textJsToRust(element.data.props);
             break;
+        // Every sectioning component draws as a division: its kind stays
+        // in `divisionType`.
         case "aside":
         case "article":
         case "section":
+        case "subsection":
+        case "subsubsection":
+        case "problem":
+        case "exercise":
+        case "example":
+        case "theorem":
+        case "note":
+        case "proof":
+        case "question":
+        case "activity":
+        case "paragraphs":
             divisionJsToRust(element.data.props, element);
             if (element.name === "section") {
                 elementRename(element, "division");
             }
+            break;
+        case "figure":
+            figureJsToRust(element.data.props, element);
             break;
         case "table":
             tableJsToRust(element.data.props, element);

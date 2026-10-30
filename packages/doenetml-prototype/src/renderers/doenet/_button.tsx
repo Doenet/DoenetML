@@ -3,7 +3,7 @@ import { BasicComponent } from "../types";
 import { useAppDispatch } from "../../state/hooks";
 import { Action } from "@doenet/doenetml-worker";
 import { coreActions } from "../../state/redux-slices/core";
-import { processLabelWithMath } from "./text-input";
+import { processLabelWithMath } from "./_labeled-input";
 
 import "./_button.css";
 

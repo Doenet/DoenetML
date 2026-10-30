@@ -113,6 +113,87 @@ describe("flat DAST", () => {
     });
 });
 
+describe("references and copies", () => {
+    it("present a reference as its referent, and append a copy's own children", async () => {
+        const bridge =
+            await load(`<p name="p">a<text>x</text></p><p name="pe" extend="$p">b</p>
+<textInput name="ti"><label>Name</label></textInput><textInput extend="$ti"/>
+<textInput extend="$ti"><label>Other</label></textInput>
+<p><number name="n" displayDecimals="1">3.14159</number> $n <number extend="$n" displayDecimals="3"/></p>`);
+        const root = bridge.flatDast();
+        const props = (name: string) =>
+            byName(root, name).map((e) => (e.data as any).props);
+        // The copy shows the referent's children, then its own (REF-4).
+        const texts = (e: any) =>
+            e.children.map((c: any) =>
+                typeof c === "string"
+                    ? c
+                    : (root.elements[c.id]?.data as any).props?.value,
+            );
+        const [p, pe] = byName(root, "p");
+        expect(texts(p)).toEqual(["a", "x"]);
+        expect(texts(pe)).toEqual(["a", "x", "b"]);
+        // A reference has its referent's label unless it gives its own,
+        // the last `<label>` written winning (ADR 0024, REF-4a).
+        expect(props("textInput").map((q) => q.label)).toEqual([
+            "Name",
+            "Name",
+            "Other",
+        ]);
+        // And its referent's display settings.
+        expect(props("number").map((q) => q.text)).toEqual([
+            "3.1",
+            "3.1",
+            "3.142",
+        ]);
+    });
+});
+
+describe("values and lists", () => {
+    it("reads a bare reference to an input as its value, and shows repeated items as a list", async () => {
+        const bridge =
+            await load(`<mathInput name="mi" prefill="x+1"/><textInput name="ti" prefill="hi"/>
+<p name="vals">$mi $ti</p>
+<number name="n">3</number><math name="m" extend="$n"/>
+<p name="r"><repeatForSequence from="1" to="3" valueName="v">$v</repeatForSequence></p>
+<p name="g"><group><number>1</number><number>2</number></group></p>
+<p name="gl"><group asList><number>1</number><number>2</number></group></p>
+<p name="rn"><repeatForSequence from="1" to="2" valueName="w" asList="false">$w</repeatForSequence></p>`);
+        const root = bridge.flatDast();
+        const texts = (e: any) =>
+            e.children.map((c: any) => {
+                if (typeof c === "string") return c;
+                const el = root.elements[c.id] as any;
+                return `<${el.name}>${el.data.props?.text ?? el.data.props?.value ?? el.data.props?.latex ?? ""}`;
+            });
+        const [vals] = byName(root, "p").filter(
+            (e) => (e as any).attributes?.name?.children?.[0] === "vals",
+        ).length
+            ? byName(root, "p")
+            : byName(root, "p");
+        const ps = byName(root, "p").map(texts);
+        // `$mi` is a math showing what was entered; `$ti` a text.
+        expect(ps[0]).toEqual(["<math>x + 1", " ", "<text>hi"]);
+        // `<math extend="$n"/>` is n's value as a math.
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual(["x + 1", "3"]);
+        // A repeat's items are comma-separated; a group's are not unless
+        // it asks; `asList="false"` turns them off.
+        expect(ps[1]).toEqual([
+            "<number>1",
+            ", ",
+            "<number>2",
+            ", ",
+            "<number>3",
+        ]);
+        expect(ps[2]).toEqual(["<number>1", "<number>2"]);
+        expect(ps[3]).toEqual(["<number>1", ", ", "<number>2"]);
+        expect(ps[4]).toEqual(["<number>1", "<number>2"]);
+        void vals;
+    });
+});
+
 describe("renderer actions", () => {
     it("moves a point and sends only what changed", async () => {
         const bridge = await load(
@@ -353,6 +434,31 @@ describe("step 3 components", () => {
         expect(props("legend").legendElements).toEqual([
             { swatchType: "line", label: { value: "Path", hasLatex: false } },
         ]);
+    });
+
+    it("draws a function's curve through its samples", async () => {
+        const { all, props } = await open(`<graph xmin="-1" xmax="1">
+<function name="f">x^2</function>
+<derivative>$f</derivative>
+<function variables="x y">(x, y)</function>
+</graph>
+<p><function>x</function></p>`);
+        // In a graph, a polyline through the samples over the x-range; a
+        // function of several variables has none.
+        const curves = all("polyline");
+        expect(curves).toHaveLength(3);
+        const [f, df, vector] = curves.map(
+            (e) => (e.data as any).props.numericalVertices,
+        );
+        expect(f).toHaveLength(200);
+        expect(f[0]).toEqual([-1, 1]);
+        expect(f[199]).toEqual([1, 1]);
+        expect(df[0]).toEqual([-1, -2]);
+        expect(df[199]).toEqual([1, 2]);
+        expect(vector).toEqual([]);
+        expect(curves[0].children).toEqual([]);
+        // In text it has no view yet.
+        expect(props("function")).toEqual({});
     });
 
     it("takes numbers, expressions and slider values", async () => {

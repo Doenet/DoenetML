@@ -143,6 +143,17 @@ passes (and never fewer than eight), and a structure that still has not
 settled is `Unchecked`, a core bug (`tests/load_errors.rs`, a chain ten
 deep).
 
+Amended 2026-10-29: only the probe measures the depth. Every build used
+to measure its own, and the one build warning (a count reading a cell
+inside another repeat's iterations, ADR 0013) came from the real build's
+measurement, which broke the rule above for a warning: a load at a count
+of zero saw the read land on the missing referent, so it reported no
+warning where `diagnose` did. The probe's count check already walks the
+same edges to reject a loop of structure; it now gives the depth and the
+warnings too (`build/probe.rs`, `ProbeOutput`), the compile keeps them
+with its diagnostics, and a real build reports nothing of its own
+(`tests/repeat.rs`).
+
 ## Considered options
 
 - Box an element a later build fails, as before. Rejected: an author

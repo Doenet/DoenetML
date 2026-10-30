@@ -89,23 +89,13 @@ impl<'a> Compiler<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Result<Option<usize>> {
-        let plan = &self.compiled.refs[p.index()];
-        let Some(prop) = &plan.prop else {
+        let Some(prop) = &self.compiled.refs[p.index()].prop else {
             return Ok(None);
         };
-        // Find the element the path ends at, if it is in this template chain.
-        let mut cur_t = t;
-        for _ in 0..plan.hops {
-            cur_t = self.compiled.templates[cur_t.index()].parent.unwrap().0;
-        }
-        let mut e = None;
-        for step in &plan.steps {
-            match step {
-                Step::Elem(x) => e = Some(*x),
-                Step::Index(_) | Step::Iface(..) => return Ok(None),
-            }
-        }
-        let Some(e) = e else { return Ok(None) };
+        // The element the path ends at, if it is in this template chain.
+        let Some((cur_t, e)) = self.static_target(t, p) else {
+            return Ok(None);
+        };
         let el = &self.compiled.templates[cur_t.index()].elems[e.index()];
         // A list holds the points its attribute gives, up to its type's
         // most: a circle's `through`, up to three.

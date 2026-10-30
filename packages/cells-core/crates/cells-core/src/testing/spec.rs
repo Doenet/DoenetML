@@ -38,7 +38,7 @@
 //! instructions, components) against the component's snapshot,
 //! `tests/specs/snapshots/<component>.cost`, reviewed with the change that
 //! changes it; and the round trip of every interactive cell of the case's
-//! document after the load (`testing::round_trip`, ADR 0024), where no
+//! document after the load (`testing::round_trip`, ADR 0026), where no
 //! request may come out unstable.
 //! `SPEC_UPDATE=1` rewrites a snapshot instead of comparing it.
 
@@ -192,7 +192,7 @@ fn round_trip(doc: &Document) -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "requests that do not round-trip (ADR 0024): {}",
+            "requests that do not round-trip (ADR 0026): {}",
             unstable.join("; ")
         ))
     }
@@ -321,7 +321,7 @@ pub(crate) fn cells(doc: &Document, path: &str) -> Result<Vec<crate::CellIdx>, S
         .rsplit_once('.')
         .ok_or_else(|| format!("{path}: not name.prop"))?;
     let comp = doc
-        .component(name)
+        .resolve_path(name)
         .ok_or_else(|| format!("{path}: no component {name}"))?;
     doc.prop_cells(comp, prop)
         .ok_or_else(|| format!("{path}: {name} has no prop {prop}"))

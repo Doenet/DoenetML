@@ -194,6 +194,11 @@ pub struct ComponentDef {
     pub flags: Flags,
     /// Where a component of the type is drawn (ADR 0019).
     pub renders: Renders,
+    /// The type a bare reference to a component of this type reads as
+    /// (ADR 0025): `$mi` of a `<mathInput>` is a `<math>` holding what the
+    /// reader entered, not a second input. `None` for a type a bare
+    /// reference copies.
+    pub reads_as: Option<ComponentType>,
     /// How an element of the type is planned.
     pub(crate) planner: crate::compile::api::Planner,
     /// Attributes of this type a renderer reads from the literal attributes
@@ -485,6 +490,12 @@ impl ComponentType {
         self.is_marked(n_props, pi, |d| d.rendered, |l| l.rendered)
     }
 
+    /// How many consecutive cells prop `pi` is the first of: 1 but for a
+    /// curve's samples (ADR 0019).
+    pub fn prop_span(self, pi: usize) -> usize {
+        self.prop_defs().get(pi).map_or(1, |d| d.span)
+    }
+
     /// Whether prop `pi` is a score a grader reads (ADR 0019).
     pub fn is_score_prop(self, pi: usize) -> bool {
         self.prop_defs().get(pi).is_some_and(|d| d.score)
@@ -570,6 +581,28 @@ impl ComponentType {
         self.def().flags.located
     }
 
+    /// See [`ComponentDef::reads_as`].
+    pub fn reads_as(self) -> Option<ComponentType> {
+        self.def().reads_as
+    }
+
+    /// Whether `<to extend="$x"/>` of an `x` of type `from` is a related
+    /// type's extend (REF-5 of the principles, D26): it gives `x`'s value
+    /// as a `to`. The pairs this core expresses: a number and a math; an
+    /// input and a value type it reads as or one related to it, either
+    /// way (`<math extend="$mi"/>`, `<mathInput extend="$n"/>`). Any other
+    /// pair is an error (ADR 0025).
+    pub fn extends_as(from: ComponentType, to: ComponentType) -> bool {
+        use ComponentType::*;
+        fn values(a: ComponentType, b: ComponentType) -> bool {
+            a == b || matches!((a, b), (Number, Math) | (Math, Number))
+        }
+        from != to
+            && (values(from, to)
+                || from.reads_as().is_some_and(|vt| values(vt, to))
+                || to.reads_as().is_some_and(|vt| values(vt, from)))
+    }
+
     /// The structural cell of a type built like a repeat (one scope per
     /// iteration): its `count` prop.
     pub fn count_prop(self) -> Option<usize> {
@@ -650,6 +683,9 @@ pub struct PropDef {
     pub score: bool,
     /// An action reads this prop (ADR 0019).
     pub read_by_action: bool,
+    /// How many consecutive cells the prop is the first of: 1, or
+    /// `SAMPLES` for a curve's samples, which a renderer reads together.
+    pub span: usize,
 }
 
 impl PropDef {

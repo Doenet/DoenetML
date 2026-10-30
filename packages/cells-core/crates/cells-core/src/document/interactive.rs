@@ -33,7 +33,7 @@ impl Document {
 
     /// One bit per interactive cell whose inverse would write a value that
     /// reaches it along more than one path, where a request is refused
-    /// (ADR 0024, `program::refuse`). Made once per build, after
+    /// (ADR 0026, `program::refuse`). Made once per build, after
     /// `interactive_bits`.
     pub(crate) fn refused_bits(&self) -> Vec<u64> {
         let mut bits = vec![0u64; self.cells.len().div_ceil(64)];
@@ -43,6 +43,14 @@ impl Document {
             self.cells.len(),
             self.n_essential,
             &self.interactive_cells(),
+            &|c| {
+                let fixed = self.n_essential..self.n_essential + self.n_fixed;
+                self.program
+                    .holds
+                    .flags(c)
+                    .iter()
+                    .any(|f| fixed.contains(&f.index()) && self.cells[f.index()] != 0.0)
+            },
         );
         for (cell, finding) in found {
             if let crate::program::refuse::Finding::Twice { .. } = finding {
@@ -53,7 +61,7 @@ impl Document {
     }
 
     /// Whether a request on `cell` is refused: its inverse would write a
-    /// value that reaches it along more than one path (ADR 0024).
+    /// value that reaches it along more than one path (ADR 0026).
     #[inline]
     pub fn is_refused(&self, cell: CellIdx) -> bool {
         self.refused

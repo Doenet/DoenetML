@@ -75,6 +75,52 @@ fn check(doc: &Document, at: &str) -> usize {
     doc.live_cells().len() - walked.len()
 }
 
+/// What a cell depends on is defined once (`Program::needs`, and in the
+/// build `slot_cells::Def`), and every build holds to it: what is live is
+/// closed under what it needs, a cell's hold flags included, and a cell a
+/// constant flag holds takes no request. Returns how many requests it
+/// tried on such cells.
+fn relations_hold(doc: &mut Document, at: &str) -> usize {
+    for c in doc.live_cells() {
+        for n in doc.program.needs(c).all() {
+            assert!(
+                doc.is_live(n),
+                "{at}: live cell {c} needs {n}, which is dead"
+            );
+        }
+    }
+    let held_always: Vec<CellIdx> = doc
+        .program
+        .holds
+        .iter()
+        .filter(|(_, flags)| {
+            flags
+                .iter()
+                .any(|&f| doc.is_fixed(f) && doc.cells[f.index()] != 0.0)
+        })
+        .map(|(c, _)| c)
+        .collect();
+    for &cell in &held_always {
+        let before = doc.cells.clone();
+        let v = doc.cells[cell.index()];
+        let value = if v.is_nan() { 1.0 } else { v + 1.0 };
+        let tick = request_unchecked(doc, &[Request { cell, value }]);
+        assert_eq!(
+            tick.dropped.len(),
+            1,
+            "{at}: held cell {cell} took a request"
+        );
+        assert!(
+            doc.cells
+                .iter()
+                .zip(&before)
+                .all(|(a, b)| a == b || (a.is_nan() && b.is_nan())),
+            "{at}: a request on held cell {cell} changed a cell"
+        );
+    }
+    held_always.len()
+}
+
 /// The repeats' count cells, one per repeat or function iterate.
 fn count_cells(doc: &Document) -> Vec<CellIdx> {
     CompIdx::below(doc.components.len())
@@ -131,23 +177,29 @@ fn census() {
         golden[0], golden[1], golden[2], golden[3]
     );
     // Context counted 177 of the golden set's 275 instructions live, from
-    // the viewer's reads; the marks find the same. The two points
-    // `circles.doenet` and `lines.doenet` constrain (written as attributes
-    // before the unread-attribute check, which the point ignored) add two
-    // projections, both live.
-    assert!(golden[0] <= 179 && golden[1] == 277, "{golden:?}");
+    // the viewer's reads; the marks find the same, plus the three of
+    // `symbolic`'s function and derivative since their curves are drawn
+    // (ADR 0020), and the two projections of the points `circles.doenet`
+    // and `lines.doenet` constrain (written as attributes before the
+    // unread-attribute check, which the point ignored), both live. A
+    // `fixed` costs no instruction since it holds cells (ADR 0022,
+    // amended): `fixed.doenet`'s three holds are gone.
+    assert!(golden[0] <= 179 && golden[1] == 274, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record
-/// holds everything each build's own walk finds live; what it keeps beyond
-/// that is printed.
+/// holds everything each build's own walk finds live, and the relations a
+/// cell's dependencies are defined by hold (`relations_hold`); what the
+/// record keeps beyond the walk is printed.
 #[test]
 fn the_record_holds_every_build() {
+    let mut held = 0;
     for (name, src) in documents() {
         let mut extra = 0;
         for seed in [0, 1, 2, 3] {
             let mut doc = load_seeded(&src, seed, true);
             extra += check(&doc, &format!("{name}, seed {seed}"));
+            held += relations_hold(&mut doc, &format!("{name}, seed {seed}"));
             for k in 0..=4 {
                 let requests: Vec<Request> = count_cells(&doc)
                     .into_iter()
@@ -160,11 +212,16 @@ fn the_record_holds_every_build() {
                     break;
                 }
                 request_unchecked(&mut doc, &requests);
-                extra += check(&doc, &format!("{name}, seed {seed}, count {k}"));
+                let at = format!("{name}, seed {seed}, count {k}");
+                extra += check(&doc, &at);
+                held += relations_hold(&mut doc, &at);
             }
         }
         eprintln!("{name:>10}: the record keeps {extra} cells the builds' walks do not");
     }
+    // `fixed.doenet` holds cells by a literal `fixed`, so the second half
+    // is not vacuous.
+    assert!(held > 0, "no build held a cell by a constant flag");
 }
 
 fn cells(doc: &Document, name: &str, prop: &str) -> Vec<CellIdx> {

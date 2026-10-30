@@ -2,7 +2,7 @@
 //! independent oracle for the scheduled program, helpers that turn
 //! DoenetML source into a document, DASTs built in Rust for tests that
 //! need no parser (`dast`), component specs (`spec!`), and the round trip
-//! of every interactive cell (`round_trip`, ADR 0024).
+//! of every interactive cell (`round_trip`, ADR 0026).
 
 pub mod dast;
 pub mod reference;
@@ -10,7 +10,6 @@ pub mod round_trip;
 pub mod spec;
 pub mod test_utils;
 
-#[cfg(feature = "testing")]
 pub use crate::build::coverage::{ProbeEdges, probe_edges, uncovered};
 
 /// The compile of `dast`, checked as a load checks it. It depends on the
@@ -24,7 +23,6 @@ pub fn compile(
 
 /// `compile`, with every value slot essential, as before ADR 0018
 /// (`LoadOptions::classify` off): what the classing is checked against.
-#[cfg(feature = "testing")]
 pub fn compile_unclassified(
     dast: &crate::dast::Dast,
 ) -> crate::Result<std::sync::Arc<crate::compile::Compiled>> {
@@ -48,7 +46,6 @@ pub fn prop_value(doc: &crate::Document, path: &str) -> f64 {
 /// test of the language's rules over test-only components: a test of the
 /// machinery, so the request is unchecked (`request_unchecked`). Panics
 /// as `prop_value` does.
-#[cfg(any(test, feature = "testing"))]
 pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate::TickOutcome {
     let cell = match spec::cells(doc, path)
         .unwrap_or_else(|e| panic!("{e}"))
@@ -66,7 +63,6 @@ pub fn request_prop(doc: &mut crate::Document, path: &str, value: f64) -> crate:
 /// `<number>`), not of a component, whose spec reaches a prop through an
 /// input. It still writes only essential cells, so it cannot change a
 /// fixed value.
-#[cfg(feature = "testing")]
 pub fn request_unchecked(
     doc: &mut crate::Document,
     requests: &[crate::Request],
@@ -75,7 +71,6 @@ pub fn request_unchecked(
 }
 
 /// A point group on any cells (`request_unchecked`).
-#[cfg(feature = "testing")]
 pub fn request_points_unchecked(
     doc: &mut crate::Document,
     points: &[crate::PointRequest],

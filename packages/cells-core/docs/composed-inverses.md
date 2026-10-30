@@ -14,7 +14,7 @@ three questions:
 - Does composition give the right answer on real documents?
 - Where it does not, what does the JavaScript core do instead?
 
-The plan that follows from the answers is ADR 0024.
+The plan that follows from the answers is ADR 0026.
 
 **In short.**
 
@@ -86,9 +86,10 @@ input, until an essential cell is written (`tick/invert.rs`):
   so the first leads back to its state (`components/inputs/mod.rs`).
   Math lowering folds literals so the cell stays first (`k + x` becomes
   `Offset{k}(x)`).
-- **`fixed`, `fixLocation` and `fixAxes` are `Hold` gates** wrapped
-  around the writable sources (`compile/fix.rs`), not code in any
-  component.
+- **`fixed`, `fixLocation` and `fixAxes` are hold flags** beside each
+  element's plans (`compile/fix.rs`, `Program::holds`): every cell of a
+  held element refuses requests while its flag is set. They are not code
+  in any component.
 - **Moves of several inputs together are vector operators with
   handwritten inverses.** There are about a dozen (`program/vector.rs`):
   - a circle's center and radius against its points;
@@ -154,7 +155,7 @@ radius against its through points already is (`CircleCenterPoint`,
 `CirclePoints`). The rest are vector operators the remaining ports will
 need, unless a chain of existing ones expresses them. Scaling about a
 midpoint, for example, could be `Offset`s and `Scale`s from the
-midpoint, inverted by a point group; step 2 of ADR 0024 decides each.
+midpoint, inverted by a point group; step 2 of ADR 0026 decides each.
 
 **Run-time context, the 22.** They depend on:
 
@@ -164,10 +165,10 @@ midpoint, inverted by a point group; step 2 of ADR 0024 decides each.
 - whether the author gave an attribute (`usedDefault`, 2);
 - whether the current and desired radius are numbers (1).
 
-`fixAxes` and `fixed` are `Hold` gates here. `canBeModified` is the
+`fixAxes` and `fixed` are hold flags here. `canBeModified` is the
 JavaScript `<math>` rule, below. `initialChange` and the display modes
 come from how the JavaScript core applies changes, not from how an
-inverse is written; ADR 0024 leaves them out.
+inverse is written; ADR 0026 leaves them out.
 
 **What writing them by hand cost.**
 
@@ -237,7 +238,7 @@ polylines, rectangles and segments keep their shape.
 |---|---|
 | C1 composable | what operators and build-time lowering already do: a pass-through, routing by structure, arithmetic, a projection, or these entry by entry |
 | C2 existing vector operator | what one of `program/vector.rs`'s operators does |
-| C3 engine mechanism | a point group with lookahead (ADR 0006), sticky snapping (ADR 0007), a `Hold`, or gathering every request on an instruction |
+| C3 engine mechanism | a point group with lookahead (ADR 0006), sticky snapping (ADR 0007), a hold flag, or gathering every request on an instruction |
 | C4 new vector operator | a joint move that is a pure function of the requested and current values, not yet among the vector operators |
 | C5 beyond composition | depends on history, on the cause of a request, or on the order of separate requests, with no mechanism here for it |
 | C6 symbolic | rewrites a math expression or matches text |
@@ -451,13 +452,13 @@ program.
 | What the build knows | every inverse's writes, statically (ADR 0018's writable walk) | nothing until it runs |
 | A value that feeds both sides of an operator | writes a wrong value, and asking again moves it | the `<math>` inverse refuses; the Rust core refuses any math with two inputs |
 | Which operand is written | always the first | the `<math>` inverse writes the one that can be modified |
-| Run-time policy (`initialChange`, the request's source) | none; build-time choices and `Hold` gates | anywhere |
+| Run-time policy (`initialChange`, the request's source) | none; build-time choices and hold flags | anywhere |
 
 Composition does more with less code, and the build can see it. Its two
 defects are the rules it lacks: it writes the wrong operand when the
 first is not the state, and it gives a wrong answer instead of refusing
 when a value feeds both sides. Both are decidable when the document is
-built. ADR 0024 plans the fixes, and the sweep above as a standing test.
+built. ADR 0026 plans the fixes, and the sweep above as a standing test.
 
 ## What was not covered
 
@@ -485,5 +486,5 @@ ROUND_TRIP_SHOW=ops cargo run --release -p cells-bench --example round_trip
 
 The first sweeps every golden document and `sir`, the second named
 documents. The sweep itself is `cells_core::testing::round_trip`, which
-`tests/round_trip.rs` and the spec harness also run (ADR 0024, step 3). With `ROUND_TRIP_SHOW`, the program also prints each unstable
+`tests/round_trip.rs` and the spec harness also run (ADR 0026, step 3). With `ROUND_TRIP_SHOW`, the program also prints each unstable
 request on a row containing the text.

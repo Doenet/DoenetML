@@ -55,6 +55,15 @@ fn nan_max(a: f64, b: f64) -> f64 {
     }
 }
 
+#[inline(always)]
+fn choice_index(a: f64, n: f64) -> f64 {
+    if a.fract() == 0.0 && a >= 1.0 && a <= n {
+        a
+    } else {
+        0.0
+    }
+}
+
 /// The input an inverse writes: every scalar operator writes its first.
 const A: usize = 0;
 
@@ -84,13 +93,13 @@ scalar_ops! {
     }
     /// `b - a`: `Sub` with its inputs reversed, so that a request writes
     /// what is subtracted. The build makes one from a `Sub` whose second
-    /// input leads to state and whose first does not (ADR 0024).
+    /// input leads to state and whose first does not (ADR 0026).
     RSub(a, b) {
         eval: b - a,
         exact |d| b.is_finite().then_some((A, b - d)),
     }
     /// `b / a`: `Div` with its inputs reversed, so that a request writes the
-    /// divisor (ADR 0024). `k / $a` lowers to it: `a = k / d`.
+    /// divisor (ADR 0026). `k / $a` lowers to it: `a = k / d`.
     RDiv(a, b) {
         eval: b / a,
         exact |d| (d != 0.0 && d.is_finite() && b != 0.0 && b.is_finite())
@@ -136,6 +145,14 @@ scalar_ops! {
         eval: a.clamp(lo, hi),
         projection |d| Some((A, d.clamp(lo, hi))),
     }
+    /// `a` when it is a whole number from 1 to `n`, else 0: a choice
+    /// index, 0 meaning none is chosen. A request outside that set
+    /// (NaN, a fraction, out of range) chooses none, as the current
+    /// core's `selectedIndices` inverse does.
+    ChoiceIndex(a; n) samples [{ n: 3.0 }, { n: 0.0 }] {
+        eval: choice_index(a, n),
+        projection |d| Some((A, choice_index(d, n))),
+    }
     /// `a` unless it is NaN, then the literal: `valueOnNaN` with a
     /// constant. A NaN ask has no inverse: it would be asking for the
     /// fallback.
@@ -148,13 +165,12 @@ scalar_ops! {
         eval: a.powf(b),
         drops,
     }
-    /// `a`, whatever the flag. The flag is read only by the inverse, which
-    /// drops a request unless the flag is exactly 0 (a NaN flag, a missing
-    /// referent, holds): a dynamic `fixed` or `fixAxes`. The flag is still
-    /// an input, so the hold is an edge in the graph, like `Shape`'s pivot.
-    Hold(a, b) {
+    /// `a`: a held element's own cell for a value it reads from another
+    /// element's, so the hold (`Program::holds`) is on its cell and not on
+    /// the other's.
+    Copy(a) {
         eval: a,
-        exact |d| (b == 0.0).then_some((A, d)),
+        exact |d| Some((A, d)),
     }
     /// Comparisons for conditions (ADR 0009): 1 or 0, and 0 when either
     /// side is NaN. A request cannot change a condition.

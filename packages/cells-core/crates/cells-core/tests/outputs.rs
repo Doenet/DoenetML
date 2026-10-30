@@ -8,6 +8,7 @@ mod common;
 
 use cells_core::Document;
 use cells_core::components::ComponentType;
+use cells_core::program::SAMPLES;
 use cells_core::testing::test_utils::load;
 use cells_core::{CellIdx, CompIdx};
 
@@ -34,6 +35,8 @@ fn what_a_renderer_reads_is_an_output() {
   <lineSegment name="s" endpoints="(0,0) (1,0)"/>
   <circle name="c" through="(0,0) (2,0) (0,2)"/>
   <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
+  <function name="f">x^2</function>
+  <derivative name="df">$f</derivative>
 </graph>
 <number name="n">3</number>
 <clampNumber name="cn">5</clampNumber>
@@ -60,6 +63,8 @@ fn what_a_renderer_reads_is_an_output() {
         ("s", &["x1", "y1", "x2", "y2"]),
         ("c", &["cx", "cy", "radius"]),
         ("pg", &["numVertices", "vertices"]),
+        ("f", &["xmin", "xmax", "samples"]),
+        ("df", &["xmin", "xmax", "samples"]),
         ("n", &["value"]),
         ("cn", &["value"]),
         ("m", &["value", "expr"]),
@@ -83,20 +88,28 @@ fn what_a_renderer_reads_is_an_output() {
             }
         }
     }
+    // A curve's samples are read together: the whole run is output.
+    for name in ["f", "df"] {
+        let head = cells(&doc, name, "samples")[0];
+        for k in 0..SAMPLES {
+            let cell = CellIdx::from_index(head.index() + k);
+            assert!(is_output(&doc, cell), "{name}.samples[{k}] (cell {cell})");
+        }
+    }
 }
 
 /// What no renderer reads, and what is not rendered: a prop no renderer
-/// draws, a shape outside a graph, a `<setup>`'s content, an award, a
-/// function no renderer draws yet.
+/// draws, a shape or a function outside a graph, a `<setup>`'s content, an
+/// award.
 #[test]
 fn what_nothing_reads_is_not_an_output() {
     let doc = load(
         r#"
 <graph>
   <circle name="c" center="(0,0)" radius="2"/>
-  <function name="f">x^2</function>
 </graph>
 <line name="outside" through="(0,0) (1,1)"/>
+<function name="f">x^2</function>
 <setup><number name="hidden">$sl + 1</number></setup>
 <slider name="sl" from="0" to="10"/>
 <answer name="a"><award name="aw">2x</award></answer>

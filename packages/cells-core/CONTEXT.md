@@ -88,9 +88,11 @@ text), which is the kind of value a cell or prop holds.
 _Avoid_: kind (the current core and DoenetML's docs say component type)
 
 **Reference** — A `$name` or `$name.prop` in the document. A component-level
-reference (`$p1`) produces a copy sharing every cell with the referent; a
-prop-level reference (`$p1.x`) aliases that one prop. A bare `$name` resolves
-to the referent's default prop (`value` for numbers and inputs).
+reference (`$p1`) produces a copy sharing every cell with the referent,
+except to an input, which it *reads as* a value of the input's declared
+type (`$mi` is a `<math>`, ADR 0025); a prop-level reference (`$p1.x`)
+aliases that one prop. A bare `$name` where a value is read resolves to
+the referent's default prop (`value` for numbers and inputs).
 
 **Copy** — The component produced by a component-level reference. A copy may
 override individual props with attributes (`<point extend="$p1" y="3"/>`);
@@ -277,13 +279,16 @@ Fixed cells have no producer and no essential key; a request that reaches
 one is dropped. A fixed value nothing live reads gets no cell when the load
 is pruned (ADR 0019); the dead cell is itself a fixed cell.
 
-**Hold** — The instruction that puts a dynamic `fixed` (or `fixAxes`) on a
-cell: forward it is the identity, and its inverse drops the request while the
-flag is nonzero. A literal `fixed` holds, by a constant flag, the cells it
-cannot make fixed: references and a copy's referent. Not to be confused with
-a gate. An element's `fixed` is its own or the nearest container's (ADR
-0022); `fixLocation` holds a *located* type (one whose every value is a
-location: the geometry types) the same way.
+**Hold** — What `fixed` (or `fixAxes`) puts on an element: every cell of
+it refuses a request while one of its flags is nonzero (`Program::holds`);
+forward, nothing changes. A literal `fixed` holds by a constant flag, so the
+classing makes the element's values fixed cells. A held element's slot that
+would share another element's cell gets one of its own (`OpSpec::Copy`), so
+the hold is on it and not on the other; a reference to a held element shares
+its cell and is held with it. Not to be confused with a gate. An element's
+`fixed` is its own or the nearest container's (ADR 0022); `fixLocation`
+holds a *located* type (one whose every value is a location: the geometry
+types) the same way.
 
 **Slot** — At build time, one prop of one component instance (or a hidden
 value a component type's planner needs), before aliases merge slots into cells. A
@@ -340,8 +345,8 @@ instruction in schedule order, or only the downstream closure of the cells
 that changed. Both give the same values.
 
 **Component table** — The columnar description of components (component
-type, name, parent, children, prop cell indices) that the bridge reads
-directly, the same way it reads cells. It replaces an earlier serialized render manifest.
+type, name, parent, children, the referent of a reference, prop cell
+indices) that the bridge reads directly, the same way it reads cells. It replaces an earlier serialized render manifest.
 
 **Bridge** — What stands between the core and the renderer: it turns the
 component table and the changed cells of each tick into the components'

@@ -77,10 +77,6 @@ pub struct Document {
     /// Names and text: the DAST's table, then the strings the build added
     /// (`Compiled::extra_strings`), then those interned since load.
     pub strings: StringTable,
-    /// How many of `strings` every build of this document produces (the
-    /// DAST's and the build's): ids from here on were interned at runtime
-    /// and are carried across rebuilds (`Session::runtime_strings`).
-    pub n_static_strings: usize,
     /// Each string's canonical id, built on first `intern`.
     interned: Option<HashMap<String, StrId>>,
     /// Index of the root `<document>` component.
@@ -91,7 +87,7 @@ pub struct Document {
     /// One bit per cell a renderer may request (`interactive.rs`).
     interactive: Vec<u64>,
     /// One bit per interactive cell whose requests are refused: the value
-    /// its inverse writes reaches it along more than one path (ADR 0024,
+    /// its inverse writes reaches it along more than one path (ADR 0026,
     /// `program::refuse`).
     refused: Vec<u64>,
     /// Which cells the document computes (ADR 0019, `outputs.rs`).
@@ -123,17 +119,15 @@ pub struct Loaded {
     /// The elements' stable keys (ADR 0017), what saved state names cells
     /// by: kept by every document, with its compile or without.
     pub(crate) keys: Arc<crate::compile::keys::Keys>,
-    /// The compile's diagnostics (ADR 0013): the lint findings, the errors
-    /// of the elements it boxed and the warnings of the rest, in node
-    /// order, which depend on the source alone (ADR 0014). Kept by every
-    /// document, with its compile or without.
-    pub(crate) diagnostics: Arc<[crate::Diagnostic]>,
     /// The document's structural depth (`CONTEXT.md`), which the compile's
     /// check found: zero without repeats.
     pub structural_depth: u32,
     /// The source's `Dast::version_hash`: the version saved state was made
     /// in.
     pub(crate) version: u64,
+    /// The compile's diagnostics (ADR 0013), the document's list: fixed at
+    /// load and a fact about the source alone (ADR 0014).
+    pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
 }
 
 impl Document {
@@ -153,7 +147,6 @@ impl Document {
         live: crate::build::Live,
     ) -> Self {
         let mut strings = strings;
-        let n_static_strings = strings.len();
         // Strings interned before this build keep their ids.
         for s in &session.runtime_strings {
             strings.push(s);
@@ -168,7 +161,6 @@ impl Document {
             dirty: None,
             components,
             strings,
-            n_static_strings,
             interned: None,
             root,
             structure,
@@ -180,10 +172,10 @@ impl Document {
             loaded: Loaded {
                 literal_attrs: Arc::default(),
                 keys: compiled.keys.clone(),
-                diagnostics: compiled.diagnostics.clone().into(),
                 structural_depth: compiled.structural_depth,
                 version: compiled.version,
-                compiled: compiled.rebuilds().then_some(compiled),
+                diagnostics: compiled.diagnostics.clone(),
+                compiled: compiled.has_repeats().then_some(compiled),
             },
             recompute: Recompute::default(),
         };

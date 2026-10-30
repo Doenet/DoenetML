@@ -18,9 +18,19 @@ impl<'a> Compiler<'a> {
         let display = self.compiled.refs[p.index()].display.clone();
         let props = match component_type {
             ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
-            ComponentType::Number | ComponentType::NumberInput | ComponentType::MathInput => {
-                vec![Source::reference(p)]
+            // A mathInput bound to a cell is a numeric input: no expression
+            // of its own (`components/inputs/math_input.rs`).
+            ComponentType::MathInput => prop::math_input::Props {
+                value: Source::reference(p),
+                expr: Source::absent(),
             }
+            .into_vec(),
+            ComponentType::Number
+            | ComponentType::NumberInput
+            | ComponentType::Text
+            | ComponentType::TextInput
+            | ComponentType::Boolean
+            | ComponentType::BooleanInput => vec![Source::reference(p)],
             ComponentType::Math => {
                 let id = self.compiled.arena.push(Expr::Cell(p));
                 self.compiled
@@ -40,7 +50,9 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
-    /// original's and its children are clones, named under the copy.
+    /// original's and its children are clones, named under the copy,
+    /// followed by the children written inside the copy (REF-4 of the
+    /// principles: added after the referent's).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
         t: TemplateId,
@@ -52,7 +64,9 @@ impl<'a> Compiler<'a> {
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         self.plan_attrs(t, e, Some(p))?;
         let scope = self.child_scope(t, e);
-        let kids = self.clone_children(t, r, scope, e)?;
+        let mut kids = self.clone_children(t, r, scope, e)?;
+        let own = std::mem::take(&mut self.compiled.templates[t.index()].elems[e.index()].children);
+        kids.extend(own);
         self.compiled.templates[t.index()].elems[e.index()].children = kids;
         Ok(())
     }
@@ -118,6 +132,21 @@ impl<'a> Compiler<'a> {
         Ok(out)
     }
 
+    /// Plan a bare copy (an `extend` with no attribute or child of its own,
+    /// or a cloned child of one): every public prop aliases the referent's,
+    /// its deferred props planned as every element's are, and a list is as
+    /// long as the referent's, which only the build knows.
+    pub(in crate::compile) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let mut props = vec![Source::Inherit; component_type.prop_defs().len()];
+        Deferred::mark(component_type, &mut props);
+        let el = &mut self.compiled.templates[t.index()].elems[e.index()];
+        el.props = props;
+        if component_type.given_coords().is_some() {
+            el.n_public = NPublic::AsReferent;
+        }
+    }
+
     /// Runs a `Plan` type's planner (`plan`, from `planner`) with the copy
     /// rules around it: a bare copy aliases every prop, and a copy with its
     /// own attributes merges them over the referent's.
@@ -141,15 +170,9 @@ impl<'a> Compiler<'a> {
             .map(|a| d.attr_name(a).to_string())
             .filter(|n| n != "name" && n != "extend")
             .collect();
-        let has_children = !d.children(el).iter().all(|&n| self.is_blank(n));
+        let has_children = !d.children(el).iter().all(|&n| self.is_not_content(n));
         if extend.is_some() && own_attrs.is_empty() && !has_children {
-            let n = component_type.prop_defs().len();
-            let el = &mut self.compiled.templates[t.index()].elems[e.index()];
-            el.props = vec![Source::Inherit; n];
-            // A list is as long as the referent's, which the build knows.
-            if component_type.given_coords().is_some() {
-                el.n_public = NPublic::AsReferent;
-            }
+            self.plan_bare_copy(t, e);
             return Ok(());
         }
         // Merged attributes: the referent's node supplies what the copy
@@ -195,8 +218,6 @@ impl<'a> Compiler<'a> {
                 }
             }
         }
-        let held = self.plan_fix(t, e)?.apply(&mut wiring.props);
-        self.record_held(t, e, held);
         if !wiring.shared_state.is_empty() {
             self.shared_state
                 .insert((t.get(), e.get()), wiring.shared_state.clone());
@@ -249,7 +270,7 @@ impl<'a> Compiler<'a> {
                 })
             }
             None if base.is_some() => Source::Inherit,
-            None => Source::Default(if default { 1.0 } else { 0.0 }),
+            None => Source::Literal(if default { 1.0 } else { 0.0 }),
         })
     }
 

@@ -60,7 +60,8 @@ pub struct Inversion {
 /// request on an instruction's outputs is known before it is inverted
 /// once; the input requests an inverse produces join the queue. Cells
 /// below `n_essential` are essential; a request landing on another
-/// producer-less cell (a fixed cell) is dropped.
+/// producer-less cell (a fixed cell), or on a cell a `fixed` holds
+/// (`Program::holds`), is dropped.
 ///
 /// `groups` are points requested together (ADR 0006): before such a
 /// group is queued the engine asks what each point would actually
@@ -115,10 +116,12 @@ pub fn invert_requests(
 /// What `cells` would hold for each requested cell if the requests were
 /// applied: invert, overlay the essential writes on a copy, and evaluate
 /// forward the instructions that read a changed value, up to the last
-/// requested cell. Nothing is written: not the cells, not a symbolic
-/// instruction's memo, not the session's engine (`Program::lookahead`).
-/// The requested cells are a point's coordinates, numbers, so nothing
-/// returned is a handle the lookahead forgets.
+/// requested cell. The cells are not written. A symbolic instruction's
+/// memo and the session's engine are, as any step writes them, and may
+/// keep what the lookahead found: the memo is keyed by the values it last
+/// ran on, so it answers the next real step right whatever it holds, and
+/// the engine only grows and finds an expression it already has (ADR
+/// 0006, amended).
 pub fn realize(
     program: &Program,
     sym: &mut SymRun,
@@ -142,13 +145,11 @@ pub fn realize(
         .filter(|&p| p != u32::MAX)
         .max();
     if let Some(hi) = hi {
-        Program::lookahead(sym, |sym| {
-            for ins in &program.instrs[..=hi as usize] {
-                if program.any_input_differs(ins, &scratch, cells) {
-                    program.step_lookahead(ins, sym, &mut scratch);
-                }
+        for ins in &program.instrs[..=hi as usize] {
+            if program.any_input_differs(ins, &scratch, cells) {
+                program.step(ins, sym, &mut scratch, None);
             }
-        });
+        }
     }
     out.extend(requests.iter().map(|&(c, _)| scratch[c.index()]));
 }
@@ -174,6 +175,10 @@ struct RequestEngine<'a> {
 
 impl RequestEngine<'_> {
     fn push(&mut self, cell: CellIdx, value: f64, origin: Request) {
+        if self.program.holds.holds(cell, self.cells) {
+            self.inversion.dropped.push(origin);
+            return;
+        }
         let p = self.program.producer[cell.index()];
         if p == u32::MAX {
             if cell.index() < self.n_essential {
@@ -204,7 +209,7 @@ impl RequestEngine<'_> {
     fn walk(&mut self, mut cell: CellIdx, mut value: f64, origin: Request) {
         loop {
             let p = self.program.producer[cell.index()];
-            if p == u32::MAX {
+            if p == u32::MAX || self.program.holds.holds(cell, self.cells) {
                 self.push(cell, value, origin);
                 return;
             }

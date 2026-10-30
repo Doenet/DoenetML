@@ -42,7 +42,7 @@ export async function loadCellsDocument(
     const start = performance.now();
     const bytes = new TextEncoder().encode(JSON.stringify(dast));
     const encoded = performance.now();
-    const core = Core.with_seed(bytes, seed);
+    const core = new Core(bytes, seed);
     const loaded = performance.now();
     const bridge = new CellsBridge(core, memory);
     bridge.loadTiming.encode = encoded - start;

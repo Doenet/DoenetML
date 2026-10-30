@@ -25,7 +25,7 @@ fn credit(doc: &Document, name: &str) -> f64 {
 }
 
 fn number(doc: &Document, name: &str) -> String {
-    doc.section_number(doc.component(name).unwrap()).unwrap()
+    doc.section_number(doc.resolve_path(name).unwrap()).unwrap()
 }
 
 macro_rules! assert_credit {
@@ -242,7 +242,7 @@ fn nested_sections_number_through_their_parents() {
     assert_eq!(number(&doc, "s22"), "2");
     assert_eq!(number(&doc, "s23"), "2.3");
     assert_eq!(
-        doc.section_title(doc.component("s21").unwrap()).unwrap(),
+        doc.section_title(doc.resolve_path("s21").unwrap()).unwrap(),
         "Section 2.1"
     );
 }
@@ -256,7 +256,7 @@ fn problems_exercises_and_examples_share_one_counter() {
     .unwrap();
     let titles: Vec<String> = ["a", "b", "c", "d", "e", "f"]
         .iter()
-        .map(|n| doc.section_title(doc.component(n).unwrap()).unwrap())
+        .map(|n| doc.section_title(doc.resolve_path(n).unwrap()).unwrap())
         .collect();
     assert_eq!(
         titles,

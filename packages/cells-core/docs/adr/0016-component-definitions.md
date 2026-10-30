@@ -240,7 +240,7 @@ case), carry every piece before other components follow:
    slider started at the grid point nearest 0, not at `from`; fixed
    since.
 2. Typed plans and roles; the circle's NaN cases become diagnostics.
-   **Done for the circle**: `typed_props!` (`components/define.rs`) gives
+   **Done for the circle**: `component!` (`components/define.rs`) gives
    a table its `Props<T>`, and the circle's planner gives its props as a
    `Props<Wire>` (`compile/plan.rs`), a plan with its role, as a struct
    literal; roles are `SharedState` constants everywhere; a planner warns
@@ -280,7 +280,7 @@ case), carry every piece before other components follow:
    `compile/plan.rs` declares none of a component's; `shared_point_state`
    names a list's points. Every plan is typed: a planner, or the machinery a
    thin planner names, builds its element's props as its type's
-   `typed_props!` struct, so a prop left unplanned does not compile, and
+   `Props` struct `component!` makes, so a prop left unplanned does not compile, and
    no code sets a slot by position (`ElemWiring::set` is gone). A
    `PropsThen` planner, which adjusts the table's plan, reaches it
    through `Props::AT`. How a point, math or tuple is made from parts is

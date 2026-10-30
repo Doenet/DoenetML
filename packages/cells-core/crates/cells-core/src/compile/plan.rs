@@ -96,16 +96,13 @@ impl Warned {
 /// Where a prop's value comes from, before any iteration exists.
 #[derive(Debug, Clone)]
 pub(crate) enum Source {
-    /// An essential cell with this initial value.
+    /// An essential cell with this initial value: the attribute's, or
+    /// the type's default without one.
     Literal(f64),
     /// An essential text cell: a string id, or NaN for none.
     TextLiteral(f64),
-    /// An essential cell with the type's default value.
-    Default(f64),
     /// The matching slot of the `extend` referent.
     Inherit,
-    /// Slot `k` of the `extend` referent: an `Inherit` a gate moved.
-    InheritFrom(u8),
     /// A constant that is not state.
     Fixed(f64),
     Alias(Arg),
@@ -287,6 +284,21 @@ pub(crate) struct Elem {
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
     pub(crate) body: Body,
+    /// What holds it (`fixed`, `compile/fix.rs`).
+    pub(crate) hold: Hold,
+}
+
+/// What holds an element (`compile/fix.rs`): a fact beside its plans,
+/// never a change to them. The build makes each of the element's cells
+/// refuse requests as it says (`Program::holds`).
+#[derive(Debug, Clone, Default)]
+pub(crate) enum Hold {
+    #[default]
+    Off,
+    /// A literal `fixed`.
+    Always,
+    /// While any of these flags is set.
+    While(Vec<RefId>),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -358,13 +370,13 @@ pub(crate) struct SharedState(&'static str, u32);
 
 impl SharedState {
     /// Shared state a component declares (`shared_state { .. }`); only
-    /// `typed_props!` calls this.
+    /// `component!` calls this.
     #[doc(hidden)]
     pub(crate) const fn declared(name: &'static str) -> SharedState {
         SharedState(name, 0)
     }
 
-    /// Its name, for `typed_props!`'s check that no declared name is the
+    /// Its name, for `component!`'s check that no declared name is the
     /// one `shared_point_state` uses.
     #[doc(hidden)]
     pub(crate) const fn name(self) -> &'static str {
@@ -431,7 +443,7 @@ pub(crate) type DefaultPoint = ([SharedState; 2], [f64; 2]);
 
 /// One prop's source and, when it is essential state that a copy shares,
 /// which shared state it is and where its value was given: what a typed
-/// plan's fields hold (`typed_props!`), so shared state is always named on
+/// plan's fields hold (`component!`'s `Props`), so shared state is always named on
 /// the slot that holds it.
 #[derive(Debug, Clone)]
 pub(crate) struct Wire {
@@ -597,23 +609,23 @@ impl ElemWiring {
     /// Wiring for an element of `component_type`, one public slot per prop
     /// in its table, each set by its name's position (`components::prop`).
     pub(crate) fn of(component_type: ComponentType) -> Self {
-        Self::new(component_type.prop_defs().len())
-    }
-
-    /// Wiring for an element of `component_type` whose list holds
-    /// `n_points` points, after the table's props.
-    pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
-        debug_assert!(component_type.given_coords().is_some());
-        Self::new(component_type.prop_defs().len() + 2 * n_points)
-    }
-
-    pub(crate) fn new(n_public: usize) -> Self {
+        let n_public = component_type.prop_defs().len();
         ElemWiring {
             n_public,
             props: vec![None; n_public],
             shared_state: HashMap::new(),
             shared_state_given: HashMap::new(),
         }
+    }
+
+    /// Wiring for an element of `component_type` whose list holds
+    /// `n_points` points, after the table's props.
+    pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
+        debug_assert!(component_type.given_coords().is_some());
+        let mut wiring = Self::of(component_type);
+        wiring.n_public += 2 * n_points;
+        wiring.props.resize(wiring.n_public, None);
+        wiring
     }
     pub(crate) fn hidden(&mut self, source: Source) -> usize {
         self.props.push(Some(source));
@@ -787,12 +799,11 @@ pub struct Compiled {
     /// `prefill`, the literal side of a text comparison), appended after
     /// the DAST's table in every build, so their ids are the same each time.
     pub(crate) extra_strings: Vec<String>,
-    /// The source's diagnostics (ADR 0015): the lint findings and the
-    /// errors of the boxed elements, in node order. Set by `compile::compile`.
-    pub(crate) diagnostics: Vec<crate::diagnostics::Diagnostic>,
-    /// Whether the document has a repeat, so its structure can change and
-    /// a later build will stamp this compile.
-    pub(crate) rebuilds: bool,
+    /// The source's diagnostics (ADR 0013, ADR 0015): the lint findings,
+    /// the errors of the boxed elements and the planners' and the probe's
+    /// warnings, in node order, which every document built from this
+    /// compile reports. Set by `compile::compile`.
+    pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
     /// The document's structural depth (`CONTEXT.md`) as the probe found
     /// it, which bounds every build's, since each build's chains of
     /// repeats map onto the probe's: 0 without a repeat, and 0 when a test
@@ -862,17 +873,13 @@ impl Compiled {
     }
 
     /// Whether any template is a repeat body: without one the structure
-    /// never changes and the schedule's own check is complete.
+    /// never changes, the schedule's own check is complete, and no later
+    /// build stamps the compile.
     pub(crate) fn has_repeats(&self) -> bool {
         self.templates.iter().any(|t| {
             t.elems
                 .iter()
                 .any(|e| matches!(e.body, Body::Repeat { .. }))
         })
-    }
-
-    /// Whether a later build can stamp it: the document has a repeat.
-    pub fn rebuilds(&self) -> bool {
-        self.rebuilds
     }
 }

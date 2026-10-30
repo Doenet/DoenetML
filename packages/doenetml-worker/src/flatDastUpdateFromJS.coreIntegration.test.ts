@@ -189,6 +189,8 @@ async function createCapturingCore(doenetML: string) {
 
     function drainAndConvertUpdates() {
         const batches = drainBatches();
+        // As `CoreWorker` does: what the viewer held before the action.
+        const known = new Set(Object.keys(componentIdxToName).map(Number));
         collectInstructionMaps(
             batches,
             componentIdxToName,
@@ -198,6 +200,7 @@ async function createCapturingCore(doenetML: string) {
             batches,
             componentIdxToName,
             doenetIdToComponentIdx,
+            known,
         );
         return { batches, updates };
     }
@@ -247,6 +250,28 @@ describe.skipIf(!wasmAvailable)(
             // what the prototype's `processElementUpdates` reducer consumes.
             expect(updates[tiIdx]).toBeDefined();
             expect(updates[tiIdx].changedState?.immediateValue).toBe("world");
+        });
+
+        it("ships a solution's content, created on reveal, as whole new elements", async () => {
+            const { core, resolvePathToNodeIdx, drainAndConvertUpdates } =
+                await createCapturingCore(
+                    `<solution name="s"><p>the answer</p></solution>`,
+                );
+            const sIdx = await resolvePathToNodeIdx("s");
+            await core.requestAction({
+                componentIdx: sIdx,
+                actionName: "revealSolution",
+                args: {},
+            });
+            const { batches, updates } = drainAndConvertUpdates();
+            expect(updates[sIdx].changedState?.open).toBe(true);
+            const [child] = updates[sIdx].newChildren ?? [];
+            expect(child).toMatchObject({ annotation: "original" });
+            const pIdx = (child as { id: number }).id;
+            expect(updates[pIdx].newFlatDastElement).toMatchObject({
+                name: "p",
+                children: ["the answer"],
+            });
         });
 
         it("translates the prototype `move` action to the JS core's `movePoint` and updates referencing components", async () => {

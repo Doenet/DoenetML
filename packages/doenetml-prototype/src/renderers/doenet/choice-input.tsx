@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import { coreActions } from "../../state/redux-slices/core";
 import { Element } from "../element";
-import { processLabelWithMath } from "./text-input";
+import { processLabelWithMath } from "./_labeled-input";
 import "./choice-input.css";
 
 type ChoiceInputData = {

@@ -1,4 +1,4 @@
-//! Orientation (ADR 0024, `build/orient.rs`): a binary operator writes the
+//! Orientation (ADR 0026, `build/orient.rs`): a binary operator writes the
 //! input that leads to state, wherever it stands. Each of these requests
 //! dropped while every binary operator wrote its first input, because the
 //! first was a fixed value; now it lands, exactly.
@@ -106,20 +106,8 @@ fn a_components_own_table_keeps_its_order() {
     )
     .unwrap();
     let before = doc.cells.clone();
-    let p = doc.cell("r[2].p", "x").or_else(|| {
-        // Address the second iteration's point by its children.
-        let r = doc.component("r")?;
-        let second = doc.children(r).nth(1)?;
-        let cells_core::Child::Component(it) = second else {
-            return None;
-        };
-        let point = doc.children(it).find_map(|c| match c {
-            cells_core::Child::Component(k) => Some(k),
-            _ => None,
-        })?;
-        doc.prop_cells(point, "x").map(|v| v[0])
-    });
-    let p = p.expect("the second point");
+    let point = doc.resolve_path("r[2].p").expect("the second point");
+    let p = doc.prop_cells(point, "x").unwrap()[0];
     let tick = cells_core::testing::request_unchecked(
         &mut doc,
         &[cells_core::Request {

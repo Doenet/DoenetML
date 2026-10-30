@@ -13,6 +13,7 @@ component! {
     /// evaluates it; a request on `value` writes a constant expression.
     tags: ["mathInput"],
     flags: [copyable],
+    reads_as: Math,
     default_prop: value,
     props {
         // A mathInput's value is bound by a child reference or `bindValueTo`,
@@ -39,7 +40,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>, props: &mut [Option<Source>]) -> R
     let at = Props::AT;
     let el = ctx.node();
     if d.attr(el, "bindValueTo").is_none()
-        && d.children(el).iter().all(|&n| ctx.is_blank(n))
+        && d.children(el).iter().all(|&n| ctx.is_not_content(n))
         && let Some(a) = d.attr(el, "prefill")
         && ctx.single_macro(a).is_some()
         && let Some(Source::Alias(Arg::Ref(p, Sel::Whole))) = props[at.value]

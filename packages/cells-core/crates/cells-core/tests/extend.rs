@@ -101,7 +101,169 @@ fn overrides_on_an_extend_across_a_scope_are_refused() {
         "{}",
         errors[0].message
     );
-    assert!(doc.component("Q").is_none());
+    assert!(doc.resolve_path("Q").is_none());
     // The bare extend aliases the iteration's point.
     assert_eq!(v(&doc, "S", "x"), 2.0);
+}
+
+// Children written inside a container extend are appended after the
+// referent's (REF-4), and a `<label>` child is a component of its element,
+// which a reference presents through its referent (ADR 0024).
+
+#[test]
+fn children_written_inside_a_container_extend_are_appended() {
+    let doc = load(
+        r#"<p name="p">a<text name="t">x</text></p>
+           <p name="pe" extend="$p">b<text name="u">y</text></p>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    let pe = doc.resolve_path("pe").unwrap();
+    assert_eq!(doc.rendered_text(pe), "axby");
+    // The clone of `t` is reached through the copy's name, and so is the
+    // copy's own child.
+    assert!(doc.resolve_path("pe.t").is_some());
+    assert!(doc.resolve_path("pe.u").is_some());
+    assert_eq!(doc.rendered_text(doc.resolve_path("p").unwrap()), "ax");
+}
+
+#[test]
+fn a_label_child_is_kept_and_a_reference_knows_its_referent() {
+    let doc = load(
+        r#"<graph><point name="P">(1,2)<label>A</label></point></graph>
+           <graph><point name="Q" extend="$P"/>$P</graph>
+           <mathInput name="mi"><label>x</label></mathInput>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    let p = doc.resolve_path("P").unwrap();
+    assert_eq!(v(&doc, "P", "x"), 1.0);
+    // The label is a child component of the point, with its text.
+    let kids: Vec<_> = doc
+        .children(p)
+        .filter_map(|c| match c {
+            cells_core::Child::Component(k) => Some(k),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(kids.len(), 1);
+    assert_eq!(doc.rendered_text(kids[0]), "A");
+    // References record what they refer to; the original refers to nothing.
+    let q = doc.resolve_path("Q").unwrap();
+    assert_eq!(doc.components.referent(q), Some(p));
+    assert_eq!(doc.components.referent(p), None);
+    let mi = doc.resolve_path("mi").unwrap();
+    assert_eq!(doc.children(mi).count(), 1);
+}
+
+// A bare reference to an input is its value (REF-1a, ADR 0025), and an
+// extend across related types is the referent's value as the element's
+// type; any other pair is refused (REF-5, D26).
+
+fn child_types(doc: &cells_core::Document, path: &str) -> Vec<&'static str> {
+    let c = doc.resolve_path(path).unwrap();
+    doc.children(c)
+        .filter_map(|ch| match ch {
+            cells_core::Child::Component(k) => Some(doc.component_type(k).tag()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn a_bare_reference_to_an_input_is_its_value() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="2"/><textInput name="ti" prefill="hi"/>
+           <booleanInput name="bi" value="true"/><numberInput name="ni" value="4"/>
+           <p name="out">$mi $ti $bi $ni</p>
+           <repeatForSequence name="r" from="1" to="1"><mathInput name="in" prefill="7"/></repeatForSequence>
+           <p name="iter">$r[1]</p>
+           <p name="second"><mathInput extend="$mi"/></p>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(
+        child_types(&doc, "out"),
+        ["math", "text", "boolean", "number"]
+    );
+    // Through an iteration, and written out, it is the input.
+    assert_eq!(child_types(&doc, "iter"), ["mathInput"]);
+    assert_eq!(child_types(&doc, "second"), ["mathInput"]);
+    // The value follows the input, and the math knows its referent.
+    let out = doc.resolve_path("out").unwrap();
+    let m = doc
+        .children(out)
+        .find_map(|ch| match ch {
+            cells_core::Child::Component(k) => Some(k),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(doc.components.referent(m), doc.resolve_path("mi"));
+    assert_eq!(doc.rendered_text(m), "2");
+    set(&mut doc, "mi", "value", 5.0);
+    assert_eq!(doc.rendered_text(m), "5");
+}
+
+#[test]
+fn an_extend_across_related_types_is_the_value_as_that_type() {
+    let mut doc = load(
+        r#"<number name="n">3</number>
+           <math name="m" extend="$n"/>
+           <math name="sym">x</math><number name="k" extend="$sym"/>
+           <mathInput name="mi" extend="$n"/>
+           <textInput name="ti" prefill="hi"/><text name="t" extend="$ti"/>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(v(&doc, "m", "value"), 3.0);
+    assert!(
+        v(&doc, "k", "value").is_nan(),
+        "a symbolic math has no number"
+    );
+    assert_eq!(doc.rendered_text(doc.resolve_path("t").unwrap()), "hi");
+    // The input is bound to n: typing changes n, and m follows.
+    assert!(set(&mut doc, "mi", "value", 8.0).dropped.is_empty());
+    assert_eq!((v(&doc, "n", "value"), v(&doc, "m", "value")), (8.0, 8.0));
+}
+
+#[test]
+fn an_extend_across_unrelated_types_is_refused() {
+    let doc = load(r#"<section name="s"><p>x</p></section><math name="m" extend="$s"/><number name="ok">1</number>"#).unwrap();
+    let errors: Vec<_> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.kind == DiagnosticKind::Error)
+        .collect();
+    assert_eq!(errors.len(), 1, "{:?}", doc.diagnostics());
+    assert_eq!(errors[0].code, "cells-extend-type-mismatch");
+    assert!(
+        errors[0].message.contains("<section>") && errors[0].message.contains("<math>"),
+        "{}",
+        errors[0].message
+    );
+    assert_eq!(v(&doc, "ok", "value"), 1.0);
 }

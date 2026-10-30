@@ -46,12 +46,15 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
     let b = boxes[0];
     assert_eq!(
         doc.components.parent[b.index()],
-        doc.component("p").unwrap()
+        doc.resolve_path("p").unwrap()
     );
     // Its node names its diagnostic; it has no cells of its own.
     assert_eq!(doc.components.dast_node[b.index()], errs[0].node.unwrap());
     assert!(doc.comp_cells(b).is_empty());
-    assert!(doc.component("q").is_none(), "a boxed element has no name");
+    assert!(
+        doc.resolve_path("q").is_none(),
+        "a boxed element has no name"
+    );
 }
 
 #[test]
@@ -107,7 +110,7 @@ fn an_attribute_nothing_reads_is_refused_on_its_element() {
     let src = r#"<point name="p" x="1" draggable="false"/><number name="n">3</number>"#;
     let doc = load(src).unwrap();
     assert_eq!(doc.value("n", "value"), Some(3.0));
-    assert!(doc.component("p").is_none(), "the point is boxed");
+    assert!(doc.resolve_path("p").is_none(), "the point is boxed");
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
     assert_eq!(errs[0].code, "cells-unsupported-attribute");

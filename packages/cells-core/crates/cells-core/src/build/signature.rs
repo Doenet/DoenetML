@@ -22,7 +22,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use super::*;
 use crate::components::prop::{case, conditional_content};
-use crate::program::Op;
+use crate::program::{Needs, Op};
 
 /// A document's inputs, by their element's stable key.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -148,12 +148,7 @@ impl<'a> Signer<'a> {
         let n = out.cells.len();
         let mut producer = vec![(u32::MAX, 0u8); n];
         for (i, instr) in out.instrs.iter().enumerate() {
-            let n_out = match instr.op {
-                Op::Vec(_, _, _, n_out) => n_out as usize,
-                Op::Sym(kind, ..) => kind.n_out(),
-                _ => 1,
-            };
-            for k in 0..n_out {
+            for k in 0..instr.op.n_out() {
                 producer[instr.out.index() + k] = (i as u32, k as u8);
             }
         }
@@ -182,7 +177,7 @@ impl<'a> Signer<'a> {
         let mut found: Vec<Found> = Vec::new();
         for c in CompIdx::below(t.component_type.len()) {
             let ty = t.component_type[c.index()];
-            let cells = comp_cells(t, c);
+            let cells = t.comp_cells(c);
             let interactive: Vec<usize> = (0..cells.len())
                 .filter(|&pi| ty.is_input_prop(cells.len(), pi))
                 .collect();
@@ -212,7 +207,7 @@ impl<'a> Signer<'a> {
             let mut a = c;
             loop {
                 let aty = t.component_type[a.index()];
-                let acells = comp_cells(t, a);
+                let acells = t.comp_cells(a);
                 let label = |p: &str| format!("{p}@{}", self.ancestor_label(a));
                 if let Some(h) = aty.prop_index("hide") {
                     seeds.push((label("hide"), acells[h]));
@@ -260,7 +255,7 @@ impl<'a> Signer<'a> {
             let mixed = self.read_by_ops(seeds.iter().map(|s| s.1));
             let starting = |l: CellIdx| reached[&l] == 1 && own.contains(&l) && !mixed.contains(&l);
             let ty = t.component_type[c.index()];
-            let cells = comp_cells(t, c);
+            let cells = t.comp_cells(c);
             let mut h = DefaultHasher::new();
             for (label, cell) in seeds {
                 label.hash(&mut h);
@@ -319,9 +314,8 @@ impl<'a> Signer<'a> {
             }
             if cell.index() < self.out.n_essential {
                 leaves.insert(cell);
-            } else if let Some(instr) = self.instr_of(cell) {
-                stack.extend(instr.op.inputs(&self.out.operands.cells));
             }
+            stack.extend(self.needs(cell).all());
         }
         leaves
     }
@@ -333,27 +327,29 @@ impl<'a> Signer<'a> {
         let mut seen: std::collections::HashSet<CellIdx> = std::collections::HashSet::new();
         let mut stack: Vec<CellIdx> = seeds.collect();
         while let Some(cell) = stack.pop() {
-            if !seen.insert(cell) || cell.index() < self.out.n_essential {
+            if !seen.insert(cell) {
                 continue;
             }
-            if let Some(instr) = self.instr_of(cell) {
-                for i in instr.op.inputs(&self.out.operands.cells) {
-                    if i.index() < self.out.n_essential {
-                        read.insert(i);
-                    }
-                    stack.push(i);
+            for i in self.needs(cell).all() {
+                if i.index() < self.out.n_essential {
+                    read.insert(i);
                 }
+                stack.push(i);
             }
         }
         read
     }
 
-    fn instr_of(&self, cell: CellIdx) -> Option<&Instr> {
+    /// What `cell` needs (`program::Needs`): the one relation the closure
+    /// and the hash follow.
+    fn needs(&self, cell: CellIdx) -> Needs<'a> {
         let (i, _) = self.producer[cell.index()];
-        (i != u32::MAX).then(|| &self.out.instrs[i as usize])
+        let instr = (i != u32::MAX).then(|| &self.out.instrs[i as usize]);
+        Needs::new(instr, &self.out.operands.cells, &self.out.holds, cell)
     }
 
-    /// A cell's hash: what it is, never where it is.
+    /// A cell's hash: what it is, never where it is, and what holds it
+    /// (`Program::holds`).
     fn hash(&mut self, cell: CellIdx) -> u64 {
         // Post-order without recursion: a chain of cells may be long.
         let mut stack = vec![(cell, false)];
@@ -363,30 +359,35 @@ impl<'a> Signer<'a> {
             }
             let ci = c.index();
             let out = self.out;
-            let h = if ci < out.n_essential {
+            let needs = self.needs(c);
+            let instr = needs.instr();
+            let reads: Vec<CellIdx> = needs.all().collect();
+            let n_inputs = needs.inputs().count();
+            if !ready {
+                stack.push((c, true));
+                stack.extend(reads.iter().map(|&i| (i, false)));
+                continue;
+            }
+            let hashes: Vec<u64> = reads
+                .iter()
+                .map(|&i| self.hashes[i.index()].unwrap())
+                .collect();
+            let (ins, holds) = hashes.split_at(n_inputs);
+            let what = if ci < out.n_essential {
                 hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
             } else if ci < out.n_essential + out.n_fixed {
                 hash_of(("f", self.value_hash(c, out.cells[ci])))
-            } else {
-                let Some(instr) = self.instr_of(c) else {
-                    self.hashes[ci] = Some(hash_of("unwritten"));
-                    continue;
-                };
-                let inputs: Vec<CellIdx> = instr.op.inputs(&out.operands.cells).collect();
-                if !ready {
-                    stack.push((c, true));
-                    stack.extend(inputs.iter().map(|&i| (i, false)));
-                    continue;
-                }
+            } else if let Some(instr) = instr {
                 let k = self.producer[ci].1;
-                let op = self.op_hash(instr, &inputs);
-                let ins: Vec<u64> = inputs
-                    .iter()
-                    .map(|&i| self.hashes[i.index()].unwrap())
-                    .collect();
-                hash_of(("d", op, k, ins))
+                hash_of(("d", self.op_hash(instr, &reads[..n_inputs]), k, ins))
+            } else {
+                hash_of("unwritten")
             };
-            self.hashes[ci] = Some(h);
+            self.hashes[ci] = Some(if holds.is_empty() {
+                what
+            } else {
+                hash_of((what, "held", holds))
+            });
         }
         self.hashes[cell.index()].unwrap()
     }
@@ -402,6 +403,10 @@ impl<'a> Signer<'a> {
             Op::Sym(SymKind::SampleTape { tape }, ..) => {
                 hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
             }
+            // Its count of choices is the input's domain, which condition 1
+            // compares: appending a choice keeps every index a student
+            // could have chosen.
+            Op::ChoiceIndex(..) => hash_of("choiceIndex"),
             op => hash_of(format!("{:?}", op.unbound())),
         }
     }
@@ -482,7 +487,7 @@ impl<'a> Signer<'a> {
         if a == CompIdx::NONE {
             return Domain::Any;
         }
-        let gcells = comp_cells(t, a);
+        let gcells = t.comp_cells(a);
         let bounds: Vec<CellIdx> = ["xmin", "xmax", "ymin", "ymax"]
             .iter()
             .map(|p| {
@@ -522,15 +527,6 @@ impl<'a> Signer<'a> {
 }
 
 /// The cells of component `c`'s props.
-fn comp_cells(t: &ComponentTable, c: CompIdx) -> &[CellIdx] {
-    let base = t.prop_base[c.index()] as usize;
-    let end = t
-        .prop_base
-        .get(c.index() + 1)
-        .map_or(t.prop_cells.len(), |&e| e as usize);
-    &t.prop_cells[base..end]
-}
-
 /// Component `c`'s component children.
 fn children(t: &ComponentTable, c: CompIdx) -> Vec<CompIdx> {
     let (s, n) = (

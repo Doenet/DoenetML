@@ -20,7 +20,8 @@ pub struct Session {
     /// The document seed load-time choices draw from (ADR 0009).
     pub seed: u64,
     /// Curves sample through the engine, not compiled tapes (see
-    /// `LoadOptions`).
+    /// `LoadOptions`). Only with the `testing` feature.
+    #[cfg(feature = "testing")]
     pub sample_with_engine: bool,
     /// Every scope any build has made; ids are stable for the session.
     pub scopes: ScopeTable,
@@ -60,10 +61,9 @@ pub struct Session {
 
 impl Session {
     /// The session of a document about to load.
-    pub fn new(seed: u64, sample_with_engine: bool) -> Session {
+    pub fn new(seed: u64) -> Session {
         Session {
             seed,
-            sample_with_engine,
             ..Session::default()
         }
     }

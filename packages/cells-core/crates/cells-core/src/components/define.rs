@@ -1,27 +1,19 @@
 //! How a component type is defined: `component!`, one block per type, and
 //! what it is built on (the prop sources `attr`, `computed`, ... resolved
-//! by `props`, the definition's builders, `typed_props!` for the struct
-//! with one field per prop, and `at` for a prop's position by name).
+//! by `props`, the definition's builders, and `at` for a prop's position
+//! by name).
 
 use super::{Args, ComponentDef, Flags, MAX_ARGS, PropDef, PropFrom};
 pub(super) use crate::compile::api::NO_VALUE;
 pub(super) use crate::program::OpSpec;
 
-/// A prop as a table writes it: like a [`PropDef`], but naming the props a
-/// computed prop reads. [`props`] resolves the names to positions.
+/// A prop as a table writes it: a [`PropDef`] whose source still names
+/// the props a computed prop reads. [`props`] resolves the names to
+/// positions.
 #[derive(Clone, Copy)]
 pub(super) struct Prop {
-    name: &'static str,
-    default: f64,
+    def: PropDef,
     source: DeclaredSource,
-    attr: Option<&'static str>,
-    bind: Option<&'static str>,
-    ref_prop: Option<&'static str>,
-    interactive: bool,
-    written_by_action: bool,
-    rendered: bool,
-    score: bool,
-    read_by_action: bool,
 }
 
 /// [`PropFrom`] with props named rather than numbered.
@@ -34,19 +26,30 @@ enum DeclaredSource {
     ByPlanner,
 }
 
+/// A prop with nothing set: what every prop starts from.
+const BLANK: PropDef = PropDef {
+    name: "",
+    default: f64::NAN,
+    from: PropFrom::ByPlanner,
+    attr: None,
+    bind: None,
+    ref_prop: None,
+    interactive: false,
+    written_by_action: false,
+    rendered: false,
+    score: false,
+    read_by_action: false,
+    span: 1,
+};
+
 const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> Prop {
     Prop {
-        name,
-        default,
+        def: PropDef {
+            name,
+            default,
+            ..BLANK
+        },
         source,
-        attr: None,
-        bind: None,
-        ref_prop: None,
-        interactive: false,
-        written_by_action: false,
-        rendered: false,
-        score: false,
-        read_by_action: false,
     }
 }
 
@@ -89,49 +92,55 @@ pub(super) const fn by_planner(name: &'static str) -> Prop {
 impl Prop {
     /// Read the attribute `attr` instead of the prop's name.
     pub(super) const fn attribute(mut self, attr: &'static str) -> Self {
-        self.attr = Some(attr);
+        self.def.attr = Some(attr);
         self
     }
     /// When the attribute `attr` is present, alias the component it
     /// references (a slider's `bindValueTo`).
     pub(super) const fn bind(mut self, attr: &'static str) -> Self {
-        self.bind = Some(attr);
+        self.def.bind = Some(attr);
         self
     }
     /// When the attribute is a bare reference, alias this prop of the
     /// referent instead of its default prop.
     pub(super) const fn ref_prop(mut self, prop: &'static str) -> Self {
-        self.ref_prop = Some(prop);
+        self.def.ref_prop = Some(prop);
         self
     }
     /// A renderer may request this prop: a student's action writes it
     /// (ADR 0017's inputs).
     pub(super) const fn interactive(mut self) -> Self {
-        self.interactive = true;
+        self.def.interactive = true;
         self
     }
     /// An action writes this prop (`Document::submit`, `trigger`), so it
     /// is student state though no renderer requests it (ADR 0018).
     pub(super) const fn written_by_action(mut self) -> Self {
-        self.written_by_action = true;
+        self.def.written_by_action = true;
         self
     }
     /// A renderer reads this prop: an output when its component is
     /// rendered (ADR 0019).
     pub(super) const fn rendered(mut self) -> Self {
-        self.rendered = true;
+        self.def.rendered = true;
         self
     }
     /// A grader reads this prop: an output wherever its component is
     /// (ADR 0019).
     pub(super) const fn score(mut self) -> Self {
-        self.score = true;
+        self.def.score = true;
         self
     }
     /// An action reads this prop (`Document::submit`, `trigger`), so the
     /// core needs its value though no renderer may read it (ADR 0019).
     pub(super) const fn read_by_action(mut self) -> Self {
-        self.read_by_action = true;
+        self.def.read_by_action = true;
+        self
+    }
+    /// The first of `SAMPLES` consecutive cells (a curve's samples), which
+    /// a renderer reads together: when it is an output, all of them are.
+    pub(super) const fn sampled(mut self) -> Self {
+        self.def.span = crate::program::SAMPLES;
         self
     }
 }
@@ -139,74 +148,42 @@ impl Prop {
 /// A table's [`PropDef`]s, with each prop name a computed prop reads
 /// resolved to its position. A name not in the table fails to compile.
 pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
-    let blank = PropDef {
-        name: "",
-        default: f64::NAN,
-        from: PropFrom::ByPlanner,
-        attr: None,
-        bind: None,
-        ref_prop: None,
-        interactive: false,
-        written_by_action: false,
-        rendered: false,
-        score: false,
-        read_by_action: false,
-    };
-    let mut out = [blank; N];
+    let mut out = [BLANK; N];
     let mut i = 0;
     while i < N {
-        let p = table[i];
-        let from = match p.source {
+        out[i] = table[i].def;
+        i += 1;
+    }
+    // With every name in place, the sources' names resolve.
+    let mut i = 0;
+    while i < N {
+        out[i].from = match table[i].source {
             DeclaredSource::Attribute => PropFrom::Attribute,
             DeclaredSource::Children => PropFrom::Children,
             DeclaredSource::ByPlanner => PropFrom::ByPlanner,
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
-                alias: position(&table, or),
+                alias: at(&out, or) as u8,
             },
             DeclaredSource::Computed(op, names) => {
                 assert!(names.len() <= MAX_ARGS, "too many args");
-                let mut at = [0; MAX_ARGS];
+                let mut positions = [0; MAX_ARGS];
                 let mut j = 0;
                 while j < names.len() {
-                    at[j] = position(&table, names[j]);
+                    positions[j] = at(&out, names[j]) as u8;
                     j += 1;
                 }
                 PropFrom::Computed {
                     op,
                     args: Args {
-                        at,
+                        at: positions,
                         len: names.len() as u8,
                     },
                 }
             }
         };
-        out[i] = PropDef {
-            name: p.name,
-            default: p.default,
-            from,
-            attr: p.attr,
-            bind: p.bind,
-            ref_prop: p.ref_prop,
-            interactive: p.interactive,
-            written_by_action: p.written_by_action,
-            rendered: p.rendered,
-            score: p.score,
-            read_by_action: p.read_by_action,
-        };
         i += 1;
     }
     out
-}
-
-const fn position(table: &[Prop], name: &str) -> u8 {
-    let mut i = 0;
-    while i < table.len() {
-        if str_eq(table[i].name, name) {
-            return i as u8;
-        }
-        i += 1;
-    }
-    panic!("no such prop")
 }
 
 /// A type's definition before its builders (`.copyable()`, ...) are
@@ -233,6 +210,7 @@ pub(super) const fn definition(
         sticky: None,
         planner: crate::compile::api::Planner::Props,
         presentation: &[],
+        reads_as: None,
     }
 }
 
@@ -303,46 +281,76 @@ impl ComponentDef {
         self.presentation = presentation;
         self
     }
-    /// A sticky member with `n` points from the table's prop `first`.
-    pub(super) const fn sticky(
-        mut self,
-        shape: crate::tick::snap::Shape,
-        first: usize,
-        n: usize,
-    ) -> Self {
-        self.sticky = Some((shape, super::StickyPoints::Props { first, n }));
+    /// See [`super::ComponentDef::reads_as`].
+    pub(super) const fn reads_as(mut self, component_type: super::ComponentType) -> Self {
+        self.reads_as = Some(component_type);
         self
     }
-    /// A sticky member whose points are its list.
-    pub(super) const fn sticky_list(mut self, shape: crate::tick::snap::Shape) -> Self {
-        self.sticky = Some((shape, super::StickyPoints::List));
+    /// A sticky group member of `shape`, its points where the type already
+    /// says they are: its list's points (a polygon's vertices, or a
+    /// segment's two endpoints among the table's props), or, with no list,
+    /// the coordinates of its default prop, a combined prop (a point's
+    /// `coords`).
+    pub(super) const fn sticky(mut self, shape: crate::tick::snap::Shape) -> Self {
+        let points = match &self.list {
+            Some(list) => match list.points {
+                super::ListPoints::Table(pairs) => super::StickyPoints::Props {
+                    first: at(self.props, pairs[0][0]),
+                    n: pairs.len(),
+                },
+                super::ListPoints::Given { .. } => super::StickyPoints::List,
+            },
+            None => {
+                let Some(default) = self.default_prop else {
+                    panic!("a sticky type without a list needs a default prop of coordinates");
+                };
+                let mut i = 0;
+                let mut parts: Option<&[&str]> = None;
+                while i < self.combined_props.len() {
+                    if str_eq(self.combined_props[i].0, default) {
+                        parts = Some(self.combined_props[i].1);
+                    }
+                    i += 1;
+                }
+                let Some(parts) = parts else {
+                    panic!("a sticky type's default prop must be a combined prop of coordinates");
+                };
+                super::StickyPoints::Props {
+                    first: at(self.props, parts[0]),
+                    n: parts.len() / 2,
+                }
+            }
+        };
+        self.sticky = Some((shape, points));
         self
     }
+}
+
+/// The position of the prop `name` in `defs`, if it has one: the one
+/// lookup by name, usable in `const`.
+pub(crate) const fn find(defs: &[PropDef], name: &str) -> Option<usize> {
+    let mut i = 0;
+    while i < defs.len() {
+        if str_eq(defs[i].name, name) {
+            return Some(i);
+        }
+        i += 1;
+    }
+    None
 }
 
 /// The position of the prop `name` in `defs`, for a type's named
 /// positions. A name not in the table fails to compile.
 pub(crate) const fn at(defs: &[PropDef], name: &str) -> usize {
-    let mut i = 0;
-    while i < defs.len() {
-        if str_eq(defs[i].name, name) {
-            return i;
-        }
-        i += 1;
+    match find(defs, name) {
+        Some(i) => i,
+        None => panic!("no such prop"),
     }
-    panic!("no such prop")
 }
 
-/// Whether `name` is one of `names`, usable in `const`.
-pub(crate) const fn has(names: &[&str], name: &str) -> bool {
-    let mut i = 0;
-    while i < names.len() {
-        if str_eq(names[i], name) {
-            return true;
-        }
-        i += 1;
-    }
-    false
+/// Whether `name` is a prop of `defs`, usable in `const`.
+pub(crate) const fn has(defs: &[PropDef], name: &str) -> bool {
+    find(defs, name).is_some()
 }
 
 /// `a == b`, usable in `const`.
@@ -361,111 +369,30 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
     true
 }
 
-/// What `component!` makes a type's typed plan with: a struct with one
-/// field per prop of a table, named as the props are, in table order, and
-/// generic over what each field holds: a planner fills
-/// `Props<Wire>` (`compile::plan::Wire`) as a struct literal, so a
-/// prop left unplanned does not compile, and `Props::<usize>::AT` holds
-/// every prop's position. A list that names a prop the table lacks, or
-/// misses or reorders one, fails to compile.
+/// A component type's whole definition in one block: its tags, flags,
+/// props, combined props, list, alternate names, attributes, shared state
+/// and planner. It makes the row `DEFINITION`, which `component_types!`
+/// registers, the table `PROPS`, and the typed plan `Props` with its
+/// `shared_state`. Each prop is named once, as an identifier, so a
+/// combined prop or a computed prop naming one the table lacks fails to
+/// compile. The sections come in the order below; only `tags`, `props`
+/// and `planner` are required.
+///
+/// `reads_as: T` says a bare reference to a component of this type is a
+/// `T` holding its value, not a copy (`$mi` of a `<mathInput>` is a
+/// `<math>`; ADR 0025); its props alias the referent's of the same name.
+///
+/// `Props<T>` is a struct with one field per prop of the table, named as
+/// the props are, in table order, and generic over what each field holds:
+/// a planner fills `Props<Wire>` (`compile::plan::Wire`) as a struct
+/// literal, so a prop left unplanned does not compile, and
+/// `Props::<usize>::AT` holds every prop's position.
 ///
 /// `shared_state { .. }` names the pieces of essential state a copy with
 /// overrides shares with its original unless it overrides them
 /// (`compile::plan::SharedState`), as constants of a `shared_state` module
 /// beside the props. A copy extends only its own type, so a type's names
 /// need differ only from one another, as constants of one module must.
-///
-/// ```ignore
-/// typed_props!(PROPS { cx, cy, radius, ... } shared_state { CX, CY, R });
-/// ```
-macro_rules! typed_props {
-    ($table:ident { $($field:ident),* $(,)? } $(shared_state { $($state:ident),* $(,)? })?) => {
-        $(
-            /// The essential state a copy of this type shares with its
-            /// original unless it overrides it.
-            pub(crate) mod shared_state {
-                $(
-                    pub(crate) const $state: $crate::compile::api::SharedState =
-                        $crate::compile::api::SharedState::declared(stringify!($state));
-                )*
-            }
-
-            // `shared_point_state` names a list's points `pt`; a declared
-            // name is the constant's own, so two always differ.
-            const _: () = {
-                $(
-                    assert!(
-                        !$crate::components::define::str_eq(shared_state::$state.name(), "pt"),
-                        "shared state must not be named pt"
-                    );
-                )*
-            };
-        )?
-
-        /// One field per prop of the table, in its order. A type may use
-        /// only its positions (`AT`), or only its plan.
-        #[allow(non_snake_case, dead_code)]
-        #[derive(Debug, Clone)]
-        pub(crate) struct Props<T> {
-            $(pub(crate) $field: T,)*
-        }
-
-        #[allow(dead_code)]
-        impl<T> Props<T> {
-            /// The props in table order.
-            pub(crate) fn into_vec(self) -> Vec<T> {
-                vec![$(self.$field),*]
-            }
-        }
-
-        #[allow(dead_code)]
-        const PROPS_LEN: usize = $table.len();
-
-        /// The props in table order, with no allocation: what
-        /// `ElemWiring::set_public` takes.
-        impl<T> IntoIterator for Props<T> {
-            type Item = T;
-            type IntoIter = std::array::IntoIter<T, PROPS_LEN>;
-            fn into_iter(self) -> Self::IntoIter {
-                [$(self.$field),*].into_iter()
-            }
-        }
-
-        #[allow(dead_code)]
-        impl Props<usize> {
-            /// Each prop's position in the table.
-            pub(crate) const AT: Props<usize> = Props {
-                $($field: $crate::components::define::at($table, stringify!($field)),)*
-            };
-        }
-
-        const _: () = {
-            let names: &[&str] = &[$(stringify!($field)),*];
-            assert!(
-                names.len() == $table.len(),
-                "typed_props! must name every prop of its table"
-            );
-            let mut i = 0;
-            while i < names.len() {
-                assert!(
-                    $crate::components::define::str_eq(names[i], $table[i].name),
-                    "typed_props! must list the props in table order"
-                );
-                i += 1;
-            }
-        };
-    };
-}
-pub(crate) use typed_props;
-
-/// A component type's whole definition in one block: its tags, flags,
-/// props, combined props, list, alternate names, attributes, shared state
-/// and planner. It makes the row `DEFINITION`, which `component_types!`
-/// registers, the table `PROPS`, and through `typed_props!` the typed plan
-/// `Props` and its `shared_state`. Each prop is named once, as an
-/// identifier, so a combined prop or a computed prop naming one the table
-/// lacks fails to compile. The sections come in the
-/// order below; only `tags`, `props` and `planner` are required.
 ///
 /// `presentation { .. }` names the attributes of this type that a renderer
 /// reads from the document's literal attributes (a `<ref>`'s `to`), which
@@ -496,7 +423,9 @@ pub(crate) use typed_props;
 ///
 /// `renders: Never` or `renders: InGraph`, after `flags`, says where a
 /// component of the type is drawn ([`super::Renders`]); by default it is
-/// drawn wherever it is.
+/// drawn wherever it is. `sticky: shape` makes the type a sticky group
+/// member (ADR 0007) whose points are its list's, or its default prop's
+/// coordinates.
 ///
 /// ```ignore
 /// component! {
@@ -521,6 +450,7 @@ macro_rules! component {
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
+        $(reads_as: $ras:ident,)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
     ) => {
@@ -529,6 +459,7 @@ macro_rules! component {
             $crate::components::define::definition(&[$($tag),+], &[])
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
+                $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
     };
@@ -537,6 +468,7 @@ macro_rules! component {
         tags: [$($tag:literal),+ $(,)?],
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
+        $(reads_as: $ras:ident,)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -555,8 +487,7 @@ macro_rules! component {
         })?
         $(alternate_names { $($afrom:ident : $ato:ident),* $(,)? })?
         $(presentation { $($prname:ident),* $(,)? })?
-        $(sticky_points: ($($sp:expr),+ $(,)?),)?
-        $(sticky_list: $sl:expr,)?
+        $(sticky: $sticky:expr,)?
         $(attributes { $($aname:ident),* $(,)? })?
         $(shared_state { $($state:ident),* $(,)? })?
         $(planner: $pkind:ident $(($pfn:path))? $(,)?)?
@@ -566,6 +497,7 @@ macro_rules! component {
             $crate::components::define::definition(&[$($tag),+], PROPS)
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
+                $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -580,12 +512,8 @@ macro_rules! component {
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
-                $(.sticky($($sp),+))?
-                $(.sticky_list($sl))?
+                $(.sticky($sticky))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
-
-        #[allow(dead_code)]
-        const PROP_NAMES: &[&str] = &[$(stringify!($pname)),+];
 
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
             $(
@@ -594,7 +522,64 @@ macro_rules! component {
             ),+
         ]);
 
-        $crate::components::define::typed_props!(PROPS { $($pname),+ } $(shared_state { $($state),* })?);
+        $(
+            /// The essential state a copy of this type shares with its
+            /// original unless it overrides it.
+            pub(crate) mod shared_state {
+                $(
+                    pub(crate) const $state: $crate::compile::api::SharedState =
+                        $crate::compile::api::SharedState::declared(stringify!($state));
+                )*
+            }
+
+            // `shared_point_state` names a list's points `pt`; a declared
+            // name is the constant's own, so two always differ.
+            const _: () = {
+                $(
+                    assert!(
+                        !$crate::components::define::str_eq(shared_state::$state.name(), "pt"),
+                        "shared state must not be named pt"
+                    );
+                )*
+            };
+        )?
+
+        /// One field per prop of the table, in its order. A type may use
+        /// only its positions (`AT`), or only its plan.
+        #[allow(non_snake_case, dead_code)]
+        #[derive(Debug, Clone)]
+        pub(crate) struct Props<T> {
+            $(pub(crate) $pname: T,)+
+        }
+
+        #[allow(dead_code)]
+        impl<T> Props<T> {
+            /// The props in table order.
+            pub(crate) fn into_vec(self) -> Vec<T> {
+                vec![$(self.$pname),+]
+            }
+        }
+
+        #[allow(dead_code)]
+        const PROPS_LEN: usize = PROPS.len();
+
+        /// The props in table order, with no allocation: what
+        /// `ElemWiring::set_public` takes.
+        impl<T> IntoIterator for Props<T> {
+            type Item = T;
+            type IntoIter = std::array::IntoIter<T, PROPS_LEN>;
+            fn into_iter(self) -> Self::IntoIter {
+                [$(self.$pname),+].into_iter()
+            }
+        }
+
+        #[allow(dead_code)]
+        impl Props<usize> {
+            /// Each prop's position in the table.
+            pub(crate) const AT: Props<usize> = Props {
+                $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)+
+            };
+        }
 
         $(
             /// The attributes this type's planner reads itself
@@ -610,8 +595,8 @@ macro_rules! component {
 
         $($($(
             const _: () = assert!(
-                $crate::components::define::has(PROP_NAMES, stringify!($px))
-                    && $crate::components::define::has(PROP_NAMES, stringify!($py)),
+                $crate::components::define::has(PROPS, stringify!($px))
+                    && $crate::components::define::has(PROPS, stringify!($py)),
                 concat!(
                     "component!: list point (", stringify!($px), ", ", stringify!($py),
                     ") names a prop the table lacks"
@@ -620,7 +605,7 @@ macro_rules! component {
         )+)?)?
         $($($(
             const _: () = assert!(
-                $crate::components::define::has(PROP_NAMES, stringify!($cpart)),
+                $crate::components::define::has(PROPS, stringify!($cpart)),
                 concat!(
                     "component!: combined prop `", stringify!($cname), "` names `",
                     stringify!($cpart), "`, which is not a prop"
@@ -668,7 +653,7 @@ macro_rules! component {
     (@prop computed $name:ident ($op:expr, [$($arg:ident),+ $(,)?])) => {{
         $(
             const _: () = assert!(
-                $crate::components::define::has(PROP_NAMES, stringify!($arg)),
+                $crate::components::define::has(PROPS, stringify!($arg)),
                 concat!(
                     "component!: computed prop `", stringify!($name), "` reads `",
                     stringify!($arg), "`, which is not a prop"

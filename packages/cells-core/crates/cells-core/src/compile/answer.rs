@@ -169,14 +169,8 @@ impl<'a> Compiler<'a> {
         for form in &forms {
             self.plan_award(t, e, el, form, &mut responses)?;
         }
-        let mut best = wiring.hidden(Source::Alias(Arg::Elem(
-            forms[0].e,
-            own_slot(award::AWARDED),
-        )));
-        for form in &forms[1..] {
-            let next = wiring.hidden(Source::Alias(Arg::Elem(form.e, own_slot(award::AWARDED))));
-            best = wiring.hidden(Source::computed(OpSpec::Max, vec![best, next]));
-        }
+        let awards: Vec<ElemId> = forms.iter().map(|f| f.e).collect();
+        let best = best_award(&mut wiring, &awards);
         if !needs_input && let Some(&(_, r)) = responses.first() {
             response = Source::Alias(Arg::Elem(r, own_slot(response::RESPONSE)));
             submitted = Source::Alias(Arg::Elem(r, own_slot(response::SUBMITTED)));
@@ -286,7 +280,7 @@ impl<'a> Compiler<'a> {
         }
         let mut wiring = ElemWiring::of(ComponentType::Answer);
         let weight = self.plan_weight(t, e, el)?;
-        let mut best = None;
+        let mut planned: Vec<ElemId> = Vec::new();
         for &a in awards {
             let form = self.award_form(t, a)?;
             if form.when.is_some() {
@@ -305,13 +299,7 @@ impl<'a> Compiler<'a> {
             }
             let id = self.intern_literal(text.trim()).to_value();
             let mut award_wiring = ElemWiring::of(ComponentType::Award);
-            let credit = match d.attr(form.el, "credit") {
-                Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
-                    Source::Literal(v) => Source::Fixed(v),
-                    p => p,
-                },
-                None => Source::Fixed(1.0),
-            };
+            let credit = self.award_credit(t, a, form.el)?;
             let correct = award_wiring.hidden(Source::Fixed(id));
             let holds = award_wiring.hidden(Source::Op(
                 OpSpec::Eq,
@@ -325,17 +313,14 @@ impl<'a> Compiler<'a> {
                 awarded: Source::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
             });
             self.compiled.templates[t.index()].elems[a.index()].props = award_wiring.finish();
-            let awarded = wiring.hidden(Source::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
-            best = Some(match best {
-                None => awarded,
-                Some(b) => wiring.hidden(Source::computed(OpSpec::Max, vec![b, awarded])),
-            });
+            planned.push(a);
         }
+        let best = best_award(&mut wiring, &planned);
         wiring.set_public_sources(answer::Props {
             response: Source::Alias(Arg::Elem(ti, own_slot(text_input::VALUE))),
             correct: Source::absent(),
             submitted: Source::TextLiteral(NO_VALUE),
-            credit: Source::own(best.expect("an award")),
+            credit: Source::own(best),
             weight,
             numSubmissions: Source::Literal(0.0),
         });
@@ -481,14 +466,7 @@ impl<'a> Compiler<'a> {
     ) -> Result<()> {
         let d = self.dast;
         let mut wiring = ElemWiring::of(ComponentType::Award);
-        let credit = match d.attr(form.el, "credit") {
-            Some(a) => match self.plan_value(t, form.e, "credit", d.attr_children(a), None)? {
-                // How much an award gives is not state.
-                Source::Literal(v) => Source::Fixed(v),
-                p => p,
-            },
-            None => Source::Fixed(1.0),
-        };
+        let credit = self.award_credit(t, form.e, form.el)?;
         let compare = self.compare_attrs(&[form.el, answer_el]);
         let holds = match form.when {
             Some((w, w_el)) => {
@@ -537,13 +515,8 @@ impl<'a> Compiler<'a> {
             None => {
                 let id = self.plan_sym_math(t, form.e, &form.nodes)?;
                 let correct = wiring.hidden(Source::SymExpr(id, Post::None));
-                let eq = if compare.syntactic {
-                    SymKind::EqualsSyntax
-                } else {
-                    SymKind::Equals
-                };
                 wiring.hidden(Source::Op(
-                    OpSpec::Sym(eq),
+                    OpSpec::Sym(compare.equals()),
                     vec![
                         Arg::Elem(answer_e, own_slot(answer::SUBMITTED)),
                         Arg::Own(own_slot(correct)),
@@ -566,24 +539,26 @@ impl<'a> Compiler<'a> {
         if !matches!(r.prop.as_deref(), None | Some("value")) {
             return None;
         }
-        let mut x = None;
-        for step in &r.steps {
-            match step {
-                Step::Elem(e) => x = Some(*e),
-                _ => return None,
-            }
-        }
-        let x = x?;
-        let mut cur_t = t;
-        for _ in 0..r.hops {
-            cur_t = self.compiled.templates[cur_t.index()].parent?.0;
-        }
+        let (cur_t, x) = self.static_target(t, p)?;
         let input_type = self.compiled.templates[cur_t.index()].elems[x.index()].component_type;
         matches!(
             input_type,
             ComponentType::MathInput | ComponentType::BooleanInput
         )
         .then_some(((r.hops, x), input_type))
+    }
+
+    /// An award's `credit`: what the attribute says (1 without one), which
+    /// is not state, so a literal is fixed.
+    fn award_credit(&mut self, t: TemplateId, a: ElemId, el: NodeId) -> Result<Source> {
+        let d = self.dast;
+        Ok(match d.attr(el, "credit") {
+            Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
+                Source::Literal(v) => Source::Fixed(v),
+                p => p,
+            },
+            None => Source::Fixed(1.0),
+        })
     }
 
     /// A `response` child of answer `e` for the input plan `p` names: its
@@ -643,10 +618,20 @@ impl<'a> Compiler<'a> {
 
     /// The equality an answer or award compares with.
     fn equals_op(&self, els: &[NodeId]) -> SymKind {
-        if self.compare_attrs(els).syntactic {
-            SymKind::EqualsSyntax
-        } else {
-            SymKind::Equals
-        }
+        self.compare_attrs(els).equals()
     }
+}
+
+/// The best of an answer's awards: the largest `awarded` among them, as a
+/// hidden slot of `wiring`, folded pairwise.
+fn best_award(wiring: &mut ElemWiring, awards: &[ElemId]) -> usize {
+    let mut best = None;
+    for &a in awards {
+        let awarded = wiring.hidden(Source::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
+        best = Some(match best {
+            None => awarded,
+            Some(b) => wiring.hidden(Source::computed(OpSpec::Max, vec![b, awarded])),
+        });
+    }
+    best.expect("an award")
 }

@@ -254,7 +254,7 @@ fn stamp(
     for free in [false, true] {
         let mut settled = false;
         for _ in 0..MAX_PASSES {
-            let session = Session::new(seed, false);
+            let session = Session::new(seed);
             let mut stamped = Counts::default();
             for (&(scope, node), &n) in &counts {
                 stamped.set(scope, node, n);
@@ -375,7 +375,7 @@ fn the_probe_covers_every_build_of_a_document_without_repeats() {
         }
         let probe = probe_edges(&compiled).unwrap_or_else(|e| panic!("{name}: the probe: {e}"));
         for seed in SEEDS {
-            let session = Session::new(seed, false);
+            let session = Session::new(seed);
             covered(
                 &format!("{name}, seed {seed}"),
                 &probe,
@@ -463,7 +463,7 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
 fn settle_at(compiled: &Arc<Compiled>, seed: u64, c: Option<u32>) -> (Session, Counts) {
     let mut counts: HashMap<(ScopeId, NodeId), u32> = HashMap::new();
     for _ in 0..MAX_PASSES {
-        let session = Session::new(seed, false);
+        let session = Session::new(seed);
         let mut stamped = Counts::default();
         for (&(scope, node), &n) in &counts {
             stamped.set(scope, node, n);
@@ -481,7 +481,7 @@ fn settle_at(compiled: &Arc<Compiled>, seed: u64, c: Option<u32>) -> (Session, C
             }
         }
         if settled {
-            return (Session::new(seed, false), stamped);
+            return (Session::new(seed), stamped);
         }
     }
     panic!("the counts did not settle within {MAX_PASSES} builds");

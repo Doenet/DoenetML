@@ -13,8 +13,8 @@
 //! (scope, template slot).
 //!
 //! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (essential, then fixed, then derived); operators are bound; and
-//! structural depth is measured. [`BuildOutput::schedule`] then orders the
+//! (essential, then fixed, then derived); and operators are bound.
+//! [`BuildOutput::schedule`] then orders the
 //! instructions, with a fast path when creation order is already a valid
 //! evaluation order.
 //!
@@ -60,11 +60,13 @@ mod live;
 mod orient;
 mod probe;
 pub mod signature;
+mod slot_cells;
 mod structure;
 mod view;
 mod writable;
 
 pub(crate) use probe::probe;
+use slot_cells::SlotCells;
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
 crate::index::index_type! {
@@ -85,7 +87,7 @@ impl crate::sym::Leaf for SlotId {
 
 use expand::*;
 use probe::Coord;
-use view::{CollectCount, Options, Plans, Stamped, View};
+use view::{CollectCount, Options, Plans, View};
 
 /// Expand, resolve, optionally run the probe's count and loop checks, and
 /// emit, through `view`. The failure names the element to box.
@@ -94,22 +96,13 @@ pub(in crate::build) fn build_with(
     session: &Session,
     reseed: bool,
     engine: &mut Engine,
-    view: &dyn View,
+    view: &View,
     probe_checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
-    let profile = crate::profile::enabled();
-    let clock = web_time::Instant::now();
-    let lap = |what: &str| {
-        if profile {
-            eprintln!("  build/{what}: {:.2?}", clock.elapsed());
-        }
-    };
     let mut b = Builder::new(compiled, session, reseed, engine, view);
     let staged = (|| {
         crate::trace::span("expand").run(|| b.expand_all())?;
-        lap("expand");
         crate::trace::span("resolve").run(|| b.resolve_all())?;
-        lap("resolve");
         if probe_checks {
             let _s = crate::trace::span("loop check");
             b.check_counts()?;
@@ -131,8 +124,51 @@ pub(in crate::build) fn build_with(
         crate::trace::count("components", u.components.len());
         u
     };
-    lap("cells, program");
     Ok(u)
+}
+
+impl<'c> Builder<'c> {
+    /// The backward walk over the cells the slots will make that the
+    /// writable walk (`writable.rs`, ADR 0018) and the live walk
+    /// (`live.rs`, ADR 0019) share: from the cells on `stack`, each cell
+    /// `enter` admits is given to `edge` as its definition
+    /// (`slot_cells::Def`), then as each other source its slots have (its
+    /// later sources when the view folds iterations, and `extra`), and
+    /// `edge` pushes the cells to go on to, by one of the definition's
+    /// relations. A cell `enter` refuses is neither followed nor seen.
+    pub(in crate::build) fn walk_cells(
+        &self,
+        slot_cells: &SlotCells,
+        mut stack: Vec<SlotId>,
+        extra: &[(SlotId, BuiltSource)],
+        mut enter: impl FnMut(SlotId) -> bool,
+        mut edge: impl FnMut(slot_cells::Def<'_>, &mut Vec<SlotId>),
+    ) {
+        let mut seen = vec![false; self.sources.len()];
+        // The other sources of each cell.
+        let mut besides: HashMap<SlotId, Vec<&(SlotId, BuiltSource)>> = HashMap::new();
+        for entry in self.later_sources.iter().chain(extra) {
+            besides
+                .entry(slot_cells.cell_of(entry.0))
+                .or_default()
+                .push(entry);
+        }
+        while let Some(cell) = stack.pop() {
+            if std::mem::replace(&mut seen[cell.index()], true) || !enter(cell) {
+                continue;
+            }
+            let def = slot_cells.def(cell);
+            edge(
+                slot_cells.def_of(self, def, &self.sources[def.index()]),
+                &mut stack,
+            );
+            if let Some(entries) = besides.get(&cell) {
+                for (slot, src) in entries {
+                    edge(slot_cells.def_of(self, *slot, src), &mut stack);
+                }
+            }
+        }
+    }
 }
 
 /// What can go wrong in a build (ADR 0014, ADR 0015): only that the
@@ -170,7 +206,7 @@ pub fn build(
     counts: &Counts,
     reseed: bool,
 ) -> std::result::Result<BuildOutput, BuildError> {
-    let view = Stamped { session, counts };
+    let view = View::Stamped { counts };
     let mut engine = session.engine.borrow_mut();
     build_with(compiled, session, reseed, &mut engine, &view, false)
         .map_err(|f| BuildError::Unchecked(f.error.to_string()))
@@ -191,6 +227,8 @@ pub struct BuildOutput {
     operands: Operands,
     value_types: Vec<ValueType>,
     tapes: Vec<crate::sym::tape::Tape>,
+    /// The cells a `fixed` holds (`Program::holds`).
+    holds: crate::program::Holds,
     /// Each component's element's stable key, `NONE` for one no element
     /// makes (a case): what the input signature names components by.
     comp_keys: Vec<ElemKey>,
@@ -242,6 +280,7 @@ impl BuildOutput {
         let program = match Program::schedule(self.instrs, n, self.operands) {
             Ok(mut p) => {
                 p.tapes = self.tapes;
+                p.holds = self.holds;
                 p
             }
             Err(cell) => {

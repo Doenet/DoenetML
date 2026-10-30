@@ -46,12 +46,16 @@ in every instance of an element when it is live in one:
 | golden set | 177 / 275 | 197 / 696 | 54 / 234 | 225 / 242 |
 | `sir.doenet` | 2829 / 2829 | 2829 / 2829 | 1823 / 2649 | 1910 / 4952 |
 
+Since a function's curve is drawn (ADR 0020, 2026-10-29) `symbolic` is
+all live, 13 of 13 instructions and 411 of 411 derived cells, and the
+golden set 180 of 275 and 598 of 696; `tests/live.rs` counts it.
+
 What it shows:
 
 - On the golden set about a third of the instructions are dead: geometry
   computed for props nothing draws (`lines`, `circles`), a repeat's
-  unrendered values (`repeats`), and in `symbolic` a function's samples,
-  401 of its 411 derived cells.
+  unrendered values (`repeats`), and, before its curve was drawn, in
+  `symbolic` a function's samples, 401 of its 411 derived cells.
 - On `sir.doenet` every instruction is live: three fifths of its
   components are not rendered, but what is rendered reads all of them.
   What it gains is 1823 of its 2649 fixed cells, author values in
@@ -136,8 +140,10 @@ viewer's test fails when a renderer reads, through the store's `get` or
 `subscribe` (which `useCell` and the board's elements read through), a
 cell the core does not report as an output, as it fails on a request to
 a cell that is not interactive. A renderer added for a
-type marks what it reads in the same change: the viewer draws no
-`<function>` today, so a function's samples are dead until one does.
+type marks what it reads in the same change: a function's samples were
+dead until the prototype's renderers drew a curve through them (ADR
+0020), when `<function>` became rendered in a graph and `samples` marked
+`rendered, sampled`, the run of cells it heads being outputs with it.
 
 ### 4. The compile decides, per template slot, once
 
@@ -251,7 +257,7 @@ Each phase leaves the tree green.
 2. **The record, measured** (steps 2 and 4). `build/live.rs`, beside
    `build/writable.rs`; `Compiled` gains a live record beside the
    writable one (`Classes`), set by the probe in `compile/check.rs` where
-   `writable_record` is, and off (every slot live) where the classing is
+   the writable record is, and off (every slot live) where the classing is
    off for want of a probe. A census test,
    `tests/live.rs`, prints per document what each build's own walk finds
    live and what the record finds, at counts 0 to 4, and asserts every
@@ -313,9 +319,9 @@ Settled while implementing phase 2:
   record: a class is live when one of its slots has a template slot the
   record marks, or when none has a template slot to be named by. Each
   build keeps a bit per cell, `Document::is_live` and `live_cells`, which
-  phase 3 prunes by; nothing reads them yet. With the `testing` feature
-  each build also runs its own walk (`live_cells_walked`), which
-  `tests/live.rs` checks the record against.
+  phase 3 prunes by; nothing reads them yet. `tests/live.rs` checks the
+  record against a build of the same compile that finds what is live by
+  its own walk (`testing::with_own_live_walk`).
 - A component is rendered when the children lists reach it from the
   document (`ComponentTable::placement`, which `rendered_components` and
   the walk share), as a renderer finds it, not when its chain of parents
@@ -365,9 +371,9 @@ Settled while implementing phase 3:
   check read the source's cell index; it reads the source's kind now, so
   a seed nothing reads, which has no cell, is checked all the same, and
   the load's errors do not depend on pruning.
-- `cells-wasm` loads pruned by `with_seed`, and either way by
-  `with_options` and `with_options_and_state`; the JavaScript worker's
-  parity harness (`test-core-cells.ts`) loads unpruned. Phase 4 runs it.
+- `cells-wasm` loads pruned unless its constructor's `prune` is false;
+  the JavaScript worker's parity harness (`test-core-cells.ts`) loads
+  unpruned. Phase 4 runs it.
 - The golden dump (`cells-bench/examples/golden.rs`) loads unpruned, and
   `golden-diff.sh` against phase 2 is identical, values and programs
   (`GOLDEN_OWN=1`: phase 2's harness has no `prune` to set).

@@ -670,7 +670,7 @@ fn project_line(x: f64, y: f64, x1: f64, y1: f64, x2: f64, y2: f64) -> (f64, f64
 /// Every input a vector inverse writes, as a scalar write or a point of a
 /// group, is one `VecOp::writes` declares (ADR 0018); and every inverse
 /// round-trips: what it writes, evaluated again, gives the requested
-/// outputs, or a projection that asking again leaves where it is (ADR 0024).
+/// outputs, or a projection that asking again leaves where it is (ADR 0026).
 #[cfg(test)]
 mod writes {
     use super::*;

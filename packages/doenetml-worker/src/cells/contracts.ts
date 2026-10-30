@@ -47,6 +47,14 @@ export class Reads {
         return this.table.value(cell);
     }
 
+    /** The `n` consecutive cells from the prop `name` of `c` on (a curve's
+     * samples), recorded. */
+    run(c: number, name: string, n: number): number[] {
+        const first = this.table.cell(c, name);
+        if (first === undefined) return [];
+        return Array.from({ length: n }, (_, i) => this.cell(first + i));
+    }
+
     /** The number prop `name` of `c`; NaN when its type has none. */
     num(c: number, name: string): number {
         const cell = this.table.cell(c, name);
@@ -94,7 +102,7 @@ export type Role =
 
 export type Contract = {
     /** The element's name; the component's tag by default. */
-    name?: (table: CellsTable, c: number) => string;
+    name?: (table: CellsTable, c: number, inGraph: boolean) => string;
     props?: (r: Reads, c: number, inGraph: boolean) => Record<string, unknown>;
     /** Leave this child component out of the element's children (a title
      * drawn from a prop instead). */
@@ -137,12 +145,19 @@ function labelChildren(table: CellsTable, c: number): number[] {
     return childrenOfType(table, c, "group");
 }
 
-/** A label: the text of the `<label>` child, else the `label` attribute. */
-function label(table: CellsTable, c: number) {
-    const [child] = labelChildren(table, c);
-    return child === undefined
-        ? (table.attr(c, "label") ?? "")
-        : table.core.component_text(child);
+/** A label: the text of the last `<label>` child (of several, the last
+ * one written is used, so one added inside an extend replaces the
+ * referent's), else the `label` attribute, else the referent's label when
+ * `c` is a reference (ADR 0024). */
+function label(table: CellsTable, c: number): string {
+    const children = labelChildren(table, c);
+    if (children.length) {
+        return table.core.component_text(children[children.length - 1]);
+    }
+    const attr = table.attr(c, "label");
+    if (attr !== null) return attr;
+    const referent = table.referent(c);
+    return referent === null ? "" : label(table, referent);
 }
 
 /** The fields every input renderer declares from its literal attributes:
@@ -195,16 +210,11 @@ function sectionDepth(table: CellsTable, c: number): number {
     return depth;
 }
 
+/** The last `<title>` child: of several, the last one written is used,
+ * so one added inside an extend replaces the referent's. */
 function titleChild(table: CellsTable, c: number): number | null {
-    for (const child of table.children(c)) {
-        if (
-            "component" in child &&
-            table.componentType(child.component) === "title"
-        ) {
-            return child.component;
-        }
-    }
-    return null;
+    const titles = childrenOfType(table, c, "title");
+    return titles.length ? titles[titles.length - 1] : null;
 }
 
 function listDepth(table: CellsTable, c: number, kind: "Ol" | "Ul") {
@@ -294,6 +304,30 @@ const MATH_VALUE: Contract = {
     props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
 };
 
+/** A function's or a derivative's curve: in a graph, a polyline through
+ * its samples, which the core takes over the graph's x-range. A function
+ * of several variables has no samples (its `samples` is a fixed absent
+ * value) and no curve. In text it has no view yet. */
+const CURVE: Contract = {
+    name: (table, c, inGraph) => (inGraph ? "polyline" : table.tag(c)),
+    props: (r, c, inGraph) => {
+        if (!inGraph) return {};
+        const samples = r.table.cell(c, "samples")!;
+        if (r.table.core.cell_class(samples) !== "derived") {
+            return { numericalVertices: [] };
+        }
+        const n = r.table.core.n_samples();
+        const xmin = r.num(c, "xmin");
+        const step = (r.num(c, "xmax") - xmin) / (n - 1);
+        return {
+            numericalVertices: r
+                .run(c, "samples", n)
+                .map((y, i) => [xmin + step * i, y]),
+        };
+    },
+    noChildren: true,
+};
+
 export const CONTRACTS: Record<string, Contract> = {
     document: {},
     p: {},
@@ -305,7 +339,7 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({
             text: formatNumber(
                 r.num(c, "value"),
-                r.table.attr(c, "displayDecimals"),
+                r.table.attrThrough(c, "displayDecimals"),
             ),
         }),
     },
@@ -338,12 +372,14 @@ export const CONTRACTS: Record<string, Contract> = {
     },
     clampNumber: MATH_VALUE,
     evaluate: MATH_VALUE,
+    function: CURVE,
+    derivative: CURVE,
     sequenceValue: {
         name: () => "number",
         props: (r, c) => ({
             text: formatNumber(
                 r.num(c, "value"),
-                r.table.attr(c, "displayDecimals"),
+                r.table.attrThrough(c, "displayDecimals"),
             ),
         }),
     },
@@ -647,6 +683,37 @@ export const TRANSPARENT = new Set([
     "conditionalContent",
     "select",
     "case",
+]);
+
+/** Component types that show what they produce as a list, items
+ * separated by commas, unless `asList="false"` (COMP-2 of the
+ * principles); a `group` is a list only with `asList`. */
+export const LIST_LIKE = new Set([
+    "repeat",
+    "repeatForSequence",
+    "collect",
+    "select",
+]);
+
+/** List-like types whose items are the children of one scope (an
+ * iteration, a pick) rather than single children. */
+export const PER_SCOPE = new Set(["repeat", "repeatForSequence", "select"]);
+
+/** Component types that cannot sit in a list: one of them among a list's
+ * items turns the commas off (COMP-2). */
+export const BLOCKS = new Set([
+    "p",
+    "section",
+    "graph",
+    "ul",
+    "ol",
+    "tabular",
+    "spreadsheet",
+    "sideBySide",
+    "stack",
+    "aside",
+    "hint",
+    "md",
 ]);
 
 /** Component types with no view of their own. */

@@ -11,28 +11,6 @@ fn tuple_prop(i: usize) -> &'static str {
 }
 
 impl<'a> Compiler<'a> {
-    /// The element a plan names, wherever it is up the template nesting,
-    /// when the path is names only (no index, no interface).
-    pub(in crate::compile) fn static_target(
-        &self,
-        t: TemplateId,
-        p: RefId,
-    ) -> Option<(TemplateId, ElemId)> {
-        let plan = &self.compiled.refs[p.index()];
-        let mut tt = t;
-        for _ in 0..plan.hops {
-            tt = self.compiled.templates[tt.index()].parent?.0;
-        }
-        let mut last = None;
-        for step in &plan.steps {
-            match step {
-                Step::Elem(e) => last = Some(*e),
-                Step::Index(_) | Step::Iface(..) => return None,
-            }
-        }
-        last.map(|e| (tt, e))
-    }
-
     fn attr_macro(&self, el: NodeId, tag: &str, attr: &str) -> Result<NodeId> {
         self.compiled
             .dast

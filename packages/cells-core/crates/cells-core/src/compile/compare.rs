@@ -1,9 +1,9 @@
 //! Whether an edit is safe for every student (ADR 0017, step 4): the two
 //! versions' input signatures compared, from the sources alone.
 
+use super::check::signature_renamed;
 use super::*;
 use crate::build::signature::{Domain, Input, Signature};
-use crate::build::{self};
 
 /// What `compare_versions` finds.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -31,24 +31,6 @@ pub struct EditFailure {
     /// Its element in the published version, if it had one.
     pub old_node: Option<NodeId>,
     pub reason: String,
-}
-
-/// The input signature of `dast` (ADR 0017, step 3), from the check's
-/// build. Every key goes through `rename`.
-pub(crate) fn signature_renamed(dast: &Dast, rename: &dyn Fn(&str) -> String) -> Result<Signature> {
-    let dast = Arc::new(dast.clone());
-    let mut boxed: HashSet<NodeId> = HashSet::new();
-    loop {
-        let attempt = Compiler::compile(&dast, &boxed)
-            .and_then(|compiled| Ok((build::probe(&compiled, true)?, compiled)));
-        match attempt {
-            Ok((u, compiled)) => return Ok(u.signature(&compiled, rename)),
-            Err(f) => match f.node.filter(|n| boxed.insert(*n)) {
-                Some(_) => {}
-                None => return Err(f.error),
-            },
-        }
-    }
 }
 
 /// The input signature of `dast` (ADR 0017, step 3).

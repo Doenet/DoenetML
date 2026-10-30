@@ -109,9 +109,10 @@ pub(in crate::compile) struct Compiler<'a> {
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
-    /// By (template, element), the slots a `fixed` holds and the hidden
-    /// slot each one's source moved to (`Fix::apply`).
-    held: HashMap<(u32, u32), Vec<(u8, u8)>>,
+    /// By (template, element), the elements `plan_elem` has planned: one
+    /// planned ahead of its turn (a `<math>` another element's math
+    /// inlines) is not planned twice.
+    planned: HashSet<(u32, u32)>,
 }
 
 /// A name-table entry naming more than one element.
@@ -154,8 +155,7 @@ impl<'a> Compiler<'a> {
                 keys: Arc::default(),
                 version: dast.version_hash(),
                 extra_strings: Vec::new(),
-                diagnostics: Vec::new(),
-                rebuilds: false,
+                diagnostics: Arc::default(),
                 structural_depth: 0,
                 classes: None,
                 live: Arc::default(),
@@ -171,14 +171,13 @@ impl<'a> Compiler<'a> {
             name_ids: HashMap::new(),
             sibling_names: HashSet::new(),
             shared_state: HashMap::new(),
-            held: HashMap::new(),
+            planned: HashSet::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
                 let c = &mut cp.compiled;
                 c.shrink_to_fit();
-                c.rebuilds = c.has_repeats();
-                if c.rebuilds {
+                if c.has_repeats() {
                     c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
                 }
                 Ok(cp.compiled)
@@ -200,13 +199,9 @@ impl<'a> Compiler<'a> {
         code: &'static str,
         message: &str,
     ) -> Warned {
-        self.compiled
-            .diagnostics
-            .push(crate::diagnostics::Diagnostic::warning(
-                code,
-                Some(node),
-                message.into(),
-            ));
+        Arc::make_mut(&mut self.compiled.diagnostics).push(
+            crate::diagnostics::Diagnostic::warning(code, Some(node), message.into()),
+        );
         Warned::raised()
     }
 
@@ -317,18 +312,6 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Record the slots a `fixed` on element `e` holds (`Fix::apply`).
-    pub(in crate::compile) fn record_held(
-        &mut self,
-        t: TemplateId,
-        e: ElemId,
-        held: Vec<(u8, u8)>,
-    ) {
-        if !held.is_empty() {
-            self.held.insert((t.get(), e.get()), held);
-        }
-    }
-
     /// Record `node` as the element to box if the compile fails: the
     /// innermost one wins, so a failure inside a child boxes the child.
     pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
@@ -399,6 +382,7 @@ impl<'a> Compiler<'a> {
             extend: None,
             cloned: false,
             body: Body::Plain,
+            hold: Hold::Off,
         });
         if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
@@ -574,12 +558,26 @@ impl<'a> Compiler<'a> {
             ComponentType::When => {}
             // A number's children are its value, not rendered children; a
             // `Plan` type's planner reads its children itself (a line's
-            // equation, a point's constraints).
+            // equation, a point's constraints). Its presentational
+            // children (`<label>`) are components all the same, for the
+            // renderer to read (ADR 0024).
             _ if matches!(Self::planner(component_type), Planner::Plan(_))
                 || component_type
                     .prop_defs()
                     .iter()
-                    .any(|p| p.from == PropFrom::Children) => {}
+                    .any(|p| p.from == PropFrom::Children) =>
+            {
+                let presentational: Vec<NodeId> = d
+                    .children(el)
+                    .iter()
+                    .copied()
+                    .filter(|&n| self.is_presentation_child(n))
+                    .collect();
+                if !presentational.is_empty() {
+                    let kids = self.add_children(t, Some(e), child_scope, &presentational)?;
+                    self.compiled.templates[t.index()].elems[e.index()].children = kids;
+                }
+            }
             _ => {
                 let kids = self.add_children(t, Some(e), child_scope, d.children(el))?;
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
@@ -642,10 +640,24 @@ impl<'a> Compiler<'a> {
         Ok(kids)
     }
 
+    /// Plans element `e`, and records what holds it (`plan_hold`, ADR
+    /// 0022) beside its plans. Every element is planned here and nowhere
+    /// else, so `fixed` holds whatever planned it: no planner applies it,
+    /// and none can leave it out.
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let r = self.plan_elem_inner(t, e);
-        if r.is_err() {
-            self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node);
+        if self.planned.contains(&(t.get(), e.get())) {
+            return Ok(());
+        }
+        let r = self.plan_elem_inner(t, e).and_then(|()| {
+            let hold = self.plan_hold(t, e)?;
+            self.compiled.templates[t.index()].elems[e.index()].hold = hold;
+            Ok(())
+        });
+        match r {
+            Ok(()) => {
+                self.planned.insert((t.get(), e.get()));
+            }
+            Err(_) => self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node),
         }
         r
     }
@@ -654,25 +666,9 @@ impl<'a> Compiler<'a> {
         let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
-            // plan, except a `fixed` the copy or its containers give (ADR
-            // 0022), which holds the aliases. A clone of a type with a
-            // list of points takes its points from the original at build
-            // (`place_list_copy`), which no hold reaches yet.
+            // plan.
             ElemShape::Cloned => {
-                let n = component_type.prop_defs().len();
-                let mut props: Vec<Option<Source>> = vec![Some(Source::Inherit); n];
-                if component_type.given_coords().is_none() {
-                    let held = self.plan_fix(t, e)?.apply(&mut props);
-                    self.record_held(t, e, held);
-                }
-                let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
-                Deferred::mark(component_type, &mut props);
-                let el = &mut self.compiled.templates[t.index()].elems[e.index()];
-                el.props = props;
-                // A list is as long as the original's.
-                if component_type.given_coords().is_some() {
-                    el.n_public = NPublic::AsReferent;
-                }
+                self.plan_bare_copy(t, e);
                 Ok(())
             }
             // Synthesized elements (iteration values) come planned.
@@ -718,6 +714,21 @@ impl<'a> Compiler<'a> {
                 if self.compiled.refs[p.index()].prop.is_some() {
                     return Ok(ElemShape::ExtendProp(p));
                 }
+                // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an
+                // extend across related types is the referent's value as
+                // the element's type (REF-5, ADR 0025), so it is the
+                // extend of its default prop. An unrelated pair is left to
+                // the build, which refuses it once both types are known.
+                if let Some(rt) = self.ref_target_type(t, p)
+                    && rt != component_type
+                    && ComponentType::extends_as(rt, component_type)
+                    && let Some(dp) = rt.default_prop()
+                {
+                    let r = &mut self.compiled.refs[p.index()];
+                    r.prop = Some(dp.to_string());
+                    r.display = format!("{}.{dp}", r.display);
+                    return Ok(ElemShape::ExtendProp(p));
+                }
                 Some(p)
             }
             None => None,
@@ -727,6 +738,22 @@ impl<'a> Compiler<'a> {
             Some(p) if component_type.container() => ElemShape::ContainerCopy(p),
             _ => ElemShape::ByType(extend),
         })
+    }
+
+    /// Whether a child node is presentation a renderer reads rather than
+    /// content a planner does: a `<label>` or `<shortDescription>` element.
+    /// Every type keeps such a child as a component (ADR 0024); a planner
+    /// reading its element children passes over them.
+    pub(in crate::compile) fn is_presentation_child(&self, n: NodeId) -> bool {
+        self.dast.kind(n) == NodeKind::Element
+            && matches!(self.dast.str(n), "label" | "shortDescription")
+    }
+
+    /// Whether a child node is no content of its element: layout
+    /// (`is_blank`) or presentation (`is_presentation_child`). What
+    /// decides an element's value from its children looks past these.
+    pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
+        self.is_blank(n) || self.is_presentation_child(n)
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {

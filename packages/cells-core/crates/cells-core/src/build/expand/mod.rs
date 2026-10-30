@@ -51,7 +51,6 @@ impl PlannedOp {
 pub(in crate::build) enum BuiltSource {
     Unset,
     Literal(f64),
-    Default(f64),
     /// A constant that is not essential: an iteration index, a collect's
     /// count, a math handle, the shared missing-referent cell.
     Fixed(f64),
@@ -168,6 +167,11 @@ pub(in crate::build) struct Builder<'c> {
     /// Per select (in the probe): the stand-in for its whole pick.
     pub(in crate::build) pick_stand_ins: HashMap<CompIdx, CompIdx>,
     pub(in crate::build) missing: Option<SlotId>,
+    /// The shared flag that holds an element always (a literal `fixed`).
+    pub(in crate::build) always: Option<SlotId>,
+    /// The slots a `fixed` holds, each with a flag slot (`hold_all`): a
+    /// slot held by several flags is listed once per flag.
+    pub(in crate::build) holds: Vec<(SlotId, SlotId)>,
     /// Essential math slots seeded from another slot's value when first
     /// built (`Source::MathEssentialFrom`): (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
@@ -175,7 +179,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) root: CompIdx,
     /// Where the build learns counts, indexed referents, a collect's count
     /// and a select's options (`build/view.rs`).
-    pub(in crate::build) view: &'c dyn View,
+    pub(in crate::build) view: &'c View<'c>,
     /// The scope each slot was made in.
     pub(in crate::build) slot_scope: Vec<ScopeId>,
     /// Per scope, the repeat component whose iteration it is, or NONE.
@@ -187,7 +191,7 @@ pub(in crate::build) struct Builder<'c> {
     /// folds iterations (`Plans::Both`): edges the graph carries as well.
     pub(in crate::build) later_sources: Vec<(SlotId, BuiltSource)>,
     /// The binary operators lowered from the author's math (`Builder::lower`),
-    /// which orientation may turn round (ADR 0024).
+    /// which orientation may turn round (ADR 0026).
     pub(in crate::build) author_ops: HashSet<SlotId>,
     /// When the view folds iterations: the label of the last reference
     /// resolved, and those of reference edges (from slot, to slot) that are
@@ -209,7 +213,7 @@ impl<'c> Builder<'c> {
         session: &'c Session,
         reseed: bool,
         engine: &'c mut Engine,
-        view: &'c dyn View,
+        view: &'c View<'c>,
     ) -> Self {
         // Size the columns by what every template stamped once makes (all
         // of a document without repeats), or by the previous build with an
@@ -241,6 +245,7 @@ impl<'c> Builder<'c> {
                 child_list: Vec::with_capacity(guess),
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
+                referent: Vec::with_capacity(guess),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
@@ -262,6 +267,8 @@ impl<'c> Builder<'c> {
             stand_ins: HashMap::new(),
             pick_stand_ins: HashMap::new(),
             missing: None,
+            always: None,
+            holds: Vec::new(),
             seeds: Vec::new(),
             arena: Arena::default(),
             root: CompIdx::new(0),
@@ -300,6 +307,7 @@ impl<'c> Builder<'c> {
         self.components.child_count.push(0);
         self.components.dast_node.push(node);
         self.components.scope.push(scope);
+        self.components.referent.push(CompIdx::NONE);
         self.comp_instance.push(NONE);
         self.comp_repeat.push(NONE);
         self.slot_base.push(SlotId::NONE);
@@ -385,6 +393,16 @@ impl<'c> Builder<'c> {
         s
     }
 
+    /// The flag that holds an element always: a constant 1.
+    fn always_slot(&mut self) -> SlotId {
+        if let Some(s) = self.always {
+            return s;
+        }
+        let s = self.anon_slot(BuiltSource::Fixed(1.0), ScopeId::DOCUMENT);
+        self.always = Some(s);
+        s
+    }
+
     pub(in crate::build) fn missing_slot(&mut self) -> SlotId {
         if let Some(s) = self.missing {
             return s;
@@ -449,21 +467,6 @@ impl<'c> Builder<'c> {
             scope = self.scopes[scope].0;
         }
         out
-    }
-
-    /// Whether `scope` lies inside some repeat's iteration.
-    pub(in crate::build) fn in_iteration(&self, mut scope: ScopeId) -> bool {
-        while scope != ScopeId::DOCUMENT {
-            if self
-                .scope_repeat
-                .get(scope.index())
-                .is_some_and(|&r| r != CompIdx::NONE)
-            {
-                return true;
-            }
-            scope = self.scopes[scope].0;
-        }
-        false
     }
 
     /// Record `node` as the element to box if the build fails; the first
@@ -700,6 +703,70 @@ impl<'c> Builder<'c> {
             }
         }
         self.scoring_sources();
+        self.hold_all()
+    }
+
+    /// Hold every slot of every element the compile says is held
+    /// (`Elem::hold`, `compile/fix.rs`), each by its flags: whatever planned
+    /// the element, and whatever its slots turned out to be, once each has
+    /// its source. A slot is held as its cell, so a reference to the
+    /// element is held with it. A slot that aliases another element's gets
+    /// a cell of its own first (`OpSpec::Copy`), so the hold is on this
+    /// element and not on the other.
+    fn hold_all(&mut self) -> Result<()> {
+        let mut flags_of: HashMap<CompIdx, Vec<SlotId>> = HashMap::new();
+        for i in 0..self.instances.len() {
+            let inst = self.instances[i];
+            let c: &'c Compiled = self.compiled;
+            let flags = match &c.templates[inst.template.index()].elems[inst.elem.index()].hold {
+                Hold::Off => continue,
+                Hold::Always => vec![self.always_slot()],
+                Hold::While(refs) => {
+                    let mut flags = Vec::with_capacity(refs.len());
+                    for &p in refs {
+                        match self.resolve_one(p, inst.scope) {
+                            Ok(s) => flags.push(s),
+                            Err(e) => {
+                                self.fail_at_comp(inst.comp);
+                                return Err(e);
+                            }
+                        }
+                    }
+                    flags
+                }
+            };
+            flags_of.insert(inst.comp, flags);
+        }
+        if flags_of.is_empty() {
+            return Ok(());
+        }
+        let own = |b: &Self, comp: CompIdx, t: SlotId| {
+            let owner = b.slot_comp[t.index()];
+            owner == comp || owner == CompIdx::NONE
+        };
+        for s in SlotId::below(self.sources.len()) {
+            let comp = self.slot_comp[s.index()];
+            let Some(flags) = flags_of.get(&comp) else {
+                continue;
+            };
+            if let BuiltSource::Alias(t) = self.sources[s.index()]
+                && !own(self, comp, t)
+            {
+                self.sources[s.index()] = self.op_source(OpSpec::Copy, &[t]);
+            }
+            for &f in flags {
+                self.holds.push((s, f));
+            }
+        }
+        for i in 0..self.later_sources.len() {
+            let (s, BuiltSource::Alias(t)) = self.later_sources[i] else {
+                continue;
+            };
+            let comp = self.slot_comp[s.index()];
+            if flags_of.contains_key(&comp) && !own(self, comp, t) {
+                self.later_sources[i].1 = self.op_source(OpSpec::Copy, &[t]);
+            }
+        }
         Ok(())
     }
 
@@ -749,6 +816,14 @@ impl<'c> Builder<'c> {
                 if !component_type.copyable() {
                     return Err(Error::UncopyableType(component_type.tag().into()));
                 }
+                // A bare reference to an input is its value (ADR 0025):
+                // `$mi` is a math, not a second input. Through an
+                // iteration (`$r[1]`) it is the input, as the current
+                // core has it (REF-1a).
+                if let (Resolved::Comp(_), Some(as_type)) = (target, component_type.reads_as()) {
+                    self.value_copy_into(idx, referent, as_type);
+                    return Ok(());
+                }
                 self.copy_into(idx, referent);
                 for pi in 0..self.n_public(referent) {
                     self.record_label(self.slot(idx, pi), self.slot(referent, pi));
@@ -758,10 +833,35 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
+    /// Make `idx` an `as_type` holding `referent`'s value (ADR 0025): each
+    /// of its props aliases the referent's prop of the same name (a math's
+    /// `value` and `expr` from a mathInput's), and one the referent lacks
+    /// is the missing value.
+    fn value_copy_into(&mut self, idx: CompIdx, referent: CompIdx, as_type: ComponentType) {
+        self.components.component_type[idx.index()] = as_type;
+        self.components.referent[idx.index()] = referent;
+        let defs = as_type.prop_defs();
+        let rt = self.components.component_type[referent.index()];
+        self.n_public[idx.index()] = defs.len() as u32;
+        self.allocate_slots(idx, defs.len());
+        for (pi, def) in defs.iter().enumerate() {
+            let s = self.slot(idx, pi);
+            self.sources[s.index()] = match rt.prop_index(def.name) {
+                Some(rp) if rp < self.n_public(referent) => {
+                    let target = self.slot(referent, rp);
+                    self.record_label(s, target);
+                    BuiltSource::Alias(target)
+                }
+                _ => BuiltSource::Alias(self.missing_slot()),
+            };
+        }
+    }
+
     /// Make `idx` a copy of `referent`: same type, every slot aliased.
     pub(in crate::build) fn copy_into(&mut self, idx: CompIdx, referent: CompIdx) {
         let component_type = self.components.component_type[referent.index()];
         self.components.component_type[idx.index()] = component_type;
+        self.components.referent[idx.index()] = referent;
         let n = self.n_public(referent);
         self.n_public[idx.index()] = self.n_public[referent.index()];
         self.allocate_slots(idx, n);
@@ -1037,26 +1137,15 @@ impl<'c> Builder<'c> {
             return Err(Error::Cycle(self.comp_label(inst.comp)));
         }
         let referent = match extend_plan {
-            Some(p) => match self.resolve(p, inst.scope)? {
-                (Resolved::Missing, _) => None,
-                (target, _) => Some((p, self.single_component(target, p)?)),
-            },
+            Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
         let label = self.label.clone();
-        let Some((p, referent)) = referent else {
+        let Some(referent) = referent else {
             self.n_public[inst.comp.index()] = component_type.prop_defs().len() as u32;
             self.allocate_slots(inst.comp, n_props);
             return Ok(());
         };
-        let rk = self.components.component_type[referent.index()];
-        if rk != component_type {
-            return Err(Error::ExtendTypeMismatch {
-                referent: self.compiled.refs[p.index()].display.clone(),
-                referent_type: rk.tag().into(),
-                component_type: component_type.tag().into(),
-            });
-        }
         let ri = self.comp_instance[referent.index()];
         if ri != NONE {
             visiting.push(inst.comp);
@@ -1074,6 +1163,31 @@ impl<'c> Builder<'c> {
         Ok(())
     }
 
+    /// The component an `extend` plan names from `scope`, of the copy's
+    /// own type: None for an index past the count, when the copy holds the
+    /// missing value wherever it would inherit, as `$r[k].x` does (ADR
+    /// 0014).
+    fn extend_referent(
+        &mut self,
+        p: RefId,
+        scope: ScopeId,
+        component_type: ComponentType,
+    ) -> Result<Option<CompIdx>> {
+        let referent = match self.resolve(p, scope)?.0 {
+            Resolved::Missing => return Ok(None),
+            target => self.single_component(target, p)?,
+        };
+        let rk = self.components.component_type[referent.index()];
+        if rk != component_type {
+            return Err(Error::ExtendTypeMismatch {
+                referent: self.compiled.refs[p.index()].display.clone(),
+                referent_type: rk.tag().into(),
+                component_type: component_type.tag().into(),
+            });
+        }
+        Ok(Some(referent))
+    }
+
     /// Sources for every prop of one instantiated element.
     pub(in crate::build) fn instance_sources(&mut self, inst: Instance) -> Result<()> {
         let comp = inst.comp;
@@ -1082,24 +1196,13 @@ impl<'c> Builder<'c> {
             (el.component_type, el.extend)
         };
         let extend = match extend_plan {
-            // An index past the count: the copy holds the missing value
-            // wherever it would inherit, as `$r[k].x` does (ADR 0014).
-            Some(p) if matches!(self.resolve(p, inst.scope)?.0, Resolved::Missing) => None,
-            Some(p) => {
-                let (target, _) = self.resolve(p, inst.scope)?;
-                let referent = self.single_component(target, p)?;
-                let rk = self.components.component_type[referent.index()];
-                if rk != component_type {
-                    return Err(Error::ExtendTypeMismatch {
-                        referent: self.compiled.refs[p.index()].display.clone(),
-                        referent_type: rk.tag().into(),
-                        component_type: component_type.tag().into(),
-                    });
-                }
-                Some(referent)
-            }
+            Some(p) => self.extend_referent(p, inst.scope, component_type)?,
             None => None,
         };
+        // What a renderer reads through the reference (ADR 0024).
+        if let Some(referent) = extend {
+            self.components.referent[comp.index()] = referent;
+        }
         // A copy of a type with a list was made whole by `place_list_copy`.
         if extend.is_some()
             && self.compiled.templates[inst.template.index()].elems[inst.elem.index()].n_public
@@ -1176,16 +1279,11 @@ impl<'c> Builder<'c> {
                 self.typed_slots.push((s, ValueType::Text));
                 BuiltSource::Literal(*v)
             }
-            Source::Default(v) => BuiltSource::Default(*v),
-            Source::Inherit | Source::InheritFrom(_) => {
+            Source::Inherit => {
                 let Some(referent) = extend else {
                     return Ok(BuiltSource::Alias(self.missing_slot()));
                 };
-                let k = match plan {
-                    Source::InheritFrom(k) => *k as usize,
-                    _ => pi,
-                };
-                let t = self.slot(referent, k);
+                let t = self.slot(referent, pi);
                 self.record_label_as(s, t, extend_label);
                 BuiltSource::Alias(t)
             }
@@ -1344,7 +1442,7 @@ impl<'c> Builder<'c> {
 /// Inheritance as the build makes it (ADR 0016, Migration step 8), against
 /// the test-only components: an `Inherit` prop aliases its referent's slot
 /// in every instance, a copy of a list holds as many points as its
-/// referent, and a gated `InheritFrom` reads the referent through a hold.
+/// referent, and a held copy reads its referent through a cell of its own.
 #[cfg(test)]
 mod tests {
     use crate::Document;
@@ -1354,7 +1452,9 @@ mod tests {
     /// The cells of `name.prop`, which may be several.
     fn cells(doc: &Document, path: &str) -> Vec<f64> {
         let (name, prop) = path.rsplit_once('.').unwrap();
-        let comp = doc.component(name).unwrap_or_else(|| panic!("no {name}"));
+        let comp = doc
+            .resolve_path(name)
+            .unwrap_or_else(|| panic!("no {name}"));
         doc.prop_cells(comp, prop)
             .unwrap_or_else(|| panic!("{name} has no {prop}"))
             .iter()
@@ -1426,8 +1526,8 @@ mod tests {
 
     #[test]
     fn a_gated_copy_reads_its_referent_through_the_hold() {
-        // `fixed="$f"` gates the copy: its inherited `value` moves to a
-        // hidden `InheritFrom` slot read through a `Hold` (`compile/fix.rs`).
+        // `fixed="$f"` holds the copy: its inherited `value` is a cell of its
+        // own (`OpSpec::Copy`), held, and its referent's is not.
         let mut doc = load(document([
             el("testValue").name("f").attr("value", "1"),
             el("testValue").name("v").attr("value", "3"),

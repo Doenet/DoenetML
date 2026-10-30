@@ -1030,8 +1030,12 @@ export class CoreWorker {
             const batches = this._javascriptUpdateBuffer;
             this._javascriptUpdateBuffer = [];
 
-            // Keep the lookup maps current in case the action introduced new
-            // components, then convert the drained batches into the update map.
+            // The components the viewer holds before this action; one the
+            // action introduced is shipped whole. Then keep the lookup maps
+            // current and convert the drained batches into the update map.
+            const known = new Set(
+                Object.keys(this._componentIdxToName).map(Number),
+            );
             collectInstructionMaps(
                 batches,
                 this._componentIdxToName,
@@ -1042,6 +1046,7 @@ export class CoreWorker {
                 batches,
                 this._componentIdxToName,
                 this._doenetIdToComponentIdx,
+                known,
             );
         } catch (err) {
             console.error(err);

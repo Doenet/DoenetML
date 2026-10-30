@@ -21,6 +21,12 @@
 import me from "math-expressions";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "../../CoreWorker";
+// The bridge's view of the core's component table and cells (ADR 0001,
+// ADR 0020): what the core holds in columns is read from them here too,
+// so the core answers by name only what it resolves itself. A relative
+// path, as `test-core.ts` reads `doenetml/src/flags`: the worker's
+// package exports only its `dist/`.
+import { CellsTable, NONE } from "../../../../doenetml-worker/src/cells/table";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -50,9 +56,22 @@ type Get = (prop: string) => number;
 /** What a reader may ask beyond numeric props: text and expressions. */
 type Ctx = {
     idx: number;
-    cells: any;
+    cells: Cells;
     /** The cell of a prop, or undefined. */
     cell: (prop: string) => number | undefined;
+};
+/** The core behind the harness: the wasm `Core`, and the table over its
+ * memory, with what the readers ask of them. */
+type Cells = {
+    core: any;
+    table: CellsTable;
+    /** A cell's value. */
+    value: (cell: number) => number;
+    /** The string a text cell holds; empty for none. */
+    text: (cell: number) => string;
+    /** The cells of a prop by name, as the core resolves it (combined and
+     * list props, alternate names); empty for no such prop. */
+    propCells: (idx: number, prop: string) => Uint32Array;
 };
 type Reader = (get: Get, x: Ctx) => unknown;
 
@@ -82,10 +101,10 @@ const valueReaders: Record<string, Reader> = {
 const BLANK = "\uff3f";
 
 /** The expression a math cell holds; blank when the handle is NaN. */
-const exprOf = (cells: any, cell: number) =>
-    Number.isNaN(cells.cell_value(cell))
+const exprOf = (cells: Cells, cell: number) =>
+    Number.isNaN(cells.value(cell))
         ? me.fromAst(BLANK)
-        : me.fromText(cells.expr_text(cell));
+        : me.fromText(cells.core.expr_text(cell));
 
 /** A math's value: its expression when it is a math cell (plan 5), else
  * the number its lowered chain computes. An unbound mathInput's blank
@@ -93,26 +112,31 @@ const exprOf = (cells: any, cell: number) =>
 const mathValue: Reader = (g, x) => {
     const e = x.cell("expr");
     if (e !== undefined) {
-        if (!Number.isNaN(x.cells.cell_value(e))) {
-            return me.fromText(x.cells.expr_text(e));
+        if (!Number.isNaN(x.cells.value(e))) {
+            return me.fromText(x.cells.core.expr_text(e));
         }
-        if (x.cells.cell_class(e) === "essential") return me.fromAst(BLANK);
+        if (x.cells.core.cell_class(e) === "essential")
+            return me.fromAst(BLANK);
     }
     return M(g("value"));
 };
 
 /** The live response one input holds: its expression, or a boolean. */
-function responseOf(cells: any, input: number): unknown {
-    if (cells.component_tag(input) === "booleanInput") {
-        return cells.cell_value(cells.prop_cells(input, "value")[0]) !== 0;
+function responseOf(cells: Cells, input: number): unknown {
+    if (cells.table.tag(input) === "booleanInput") {
+        return cells.value(cells.propCells(input, "value")[0]) !== 0;
     }
-    return exprOf(cells, cells.prop_cells(input, "expr")[0]);
+    return exprOf(cells, cells.propCells(input, "expr")[0]);
 }
 
 /** An attribute read as a flag: present and not `false`. */
-function attrFlag(cells: any, idx: number, name: string): boolean | undefined {
-    const text = cells.attr_text(idx, name);
-    if (text === undefined || text === null) return undefined;
+function attrFlag(
+    cells: Cells,
+    idx: number,
+    name: string,
+): boolean | undefined {
+    const text = cells.table.attr(idx, name);
+    if (text === null) return undefined;
     return text.trim().toLowerCase() !== "false";
 }
 
@@ -128,32 +152,39 @@ const answerReaders: Record<string, Reader> = {
     numSubmissions: (g) => g("numSubmissions"),
     justSubmitted: (_g, x) => justSubmitted.has(x.idx),
     inputChildren: (_g, x) =>
-        Array.from(x.cells.answer_inputs(x.idx) as Uint32Array)
-            .filter((i) => x.cells.component_parent(i) === x.idx)
+        Array.from(x.cells.core.answer_inputs(x.idx) as Uint32Array)
+            .filter((i) => x.cells.table.parent(i) === x.idx)
             .map((i) => ({
                 componentIdx: i,
-                componentType: x.cells.component_tag(i),
+                componentType: x.cells.table.tag(i),
             })),
     currentResponses: (_g, x) =>
-        Array.from(x.cells.answer_inputs(x.idx) as Uint32Array).map((i) =>
+        Array.from(x.cells.core.answer_inputs(x.idx) as Uint32Array).map((i) =>
             responseOf(x.cells, i),
         ),
-    numResponses: (_g, x) => x.cells.answer_inputs(x.idx).length,
+    numResponses: (_g, x) => x.cells.core.answer_inputs(x.idx).length,
     submittedResponses: (g, x) => {
         if (g("numSubmissions") === 0) return [];
-        const inputs = Array.from(x.cells.answer_inputs(x.idx) as Uint32Array);
-        return Array.from(x.cells.answer_submitted(x.idx) as Uint32Array).map(
-            (cell, k) =>
-                x.cells.component_tag(inputs[k]) === "booleanInput"
-                    ? x.cells.cell_value(cell) !== 0
-                    : exprOf(x.cells, cell),
+        const inputs = Array.from(
+            x.cells.core.answer_inputs(x.idx) as Uint32Array,
+        );
+        return Array.from(
+            x.cells.core.answer_submitted(x.idx) as Uint32Array,
+        ).map((cell, k) =>
+            x.cells.table.tag(inputs[k]) === "booleanInput"
+                ? x.cells.value(cell) !== 0
+                : exprOf(x.cells, cell),
         );
     },
     // The `showCorrectness` flag is not modelled: the attribute on the
     // answer or its nearest ancestor giving one, else true unless the
     // answer is hand graded.
     showCorrectness: (_g, x) => {
-        for (let c = x.idx; c !== 0xffffffff; c = x.cells.component_parent(c)) {
+        for (
+            let c: number | null = x.idx;
+            c !== null;
+            c = x.cells.table.parent(c)
+        ) {
             const v = attrFlag(x.cells, c, "showCorrectness");
             if (v !== undefined) return v;
         }
@@ -173,11 +204,11 @@ const mathReaders: Record<string, Reader> = {
     value: mathValue,
     immediateValue: mathValue,
     valueForDisplay: mathValue,
-    text: (_g, x) => x.cells.component_text(x.idx),
+    text: (_g, x) => x.cells.core.component_text(x.idx),
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */
-const textOf: Reader = (_g, x) => x.cells.component_text(x.idx);
+const textOf: Reader = (_g, x) => x.cells.core.component_text(x.idx);
 const containerReaders: Record<string, Reader> = { text: textOf };
 
 /**
@@ -263,16 +294,16 @@ const STATE: Record<string, Record<string, Reader>> = {
         text: textOf,
     },
     text: {
-        value: (_g, x) => x.cells.text_value(x.cell("value")!).trim(),
-        text: (_g, x) => x.cells.text_value(x.cell("value")!).trim(),
+        value: (_g, x) => x.cells.text(x.cell("value")!).trim(),
+        text: (_g, x) => x.cells.text(x.cell("value")!).trim(),
     },
     // `immediateValue` is the same cell as `value` in the cells core: a
     // typed-but-uncommitted text is kept here (`rawValues`) until
     // `updateValue`, so the two never differ.
     textInput: {
-        value: (_g, x) => x.cells.text_value(x.cell("value")!),
-        immediateValue: (_g, x) => x.cells.text_value(x.cell("value")!),
-        text: (_g, x) => x.cells.text_value(x.cell("value")!),
+        value: (_g, x) => x.cells.text(x.cell("value")!),
+        immediateValue: (_g, x) => x.cells.text(x.cell("value")!),
+        text: (_g, x) => x.cells.text(x.cell("value")!),
     },
     p: containerReaders,
     group: containerReaders,
@@ -357,33 +388,30 @@ export async function createTestCoreCells({
     const dast = stripPositions(
         normalizeDocumentDast(lezerToDast(doenetML), true),
     );
-    let cells: any;
+    let core: any;
     try {
         const bytes = new TextEncoder().encode(JSON.stringify(dast));
         // Unpruned (ADR 0019): the tests read any state variable, not only
         // what a renderer reads. `CELLS_PRUNE=1` loads as a browser does,
-        // for timing (`packages/benchmark/scripts/perf-diff.sh`); a core
-        // older than the option always loads every prop.
+        // for timing (`packages/benchmark/scripts/perf-diff.sh`).
         const prune = process.env.CELLS_PRUNE === "1";
-        cells = !mod.Core.with_options
-            ? initialState === undefined
-                ? mod.Core.with_seed(bytes, requestedVariantIndex)
-                : mod.Core.with_seed_and_state(
-                      bytes,
-                      requestedVariantIndex,
-                      initialState,
-                  )
-            : initialState === undefined
-              ? mod.Core.with_options(bytes, requestedVariantIndex, prune)
-              : mod.Core.with_options_and_state(
-                    bytes,
-                    requestedVariantIndex,
-                    prune,
-                    initialState,
-                );
+        core = new mod.Core(bytes, requestedVariantIndex, prune, initialState);
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
+    const table = new CellsTable(core, wasm.memory);
+    const cells: Cells = {
+        core,
+        table,
+        value: (cell) => table.value(cell),
+        text: (cell) => {
+            const id = table.value(cell);
+            return Number.isNaN(id) || id < 0 || id >= core.n_strings()
+                ? ""
+                : table.string(id);
+        },
+        propCells: (idx, prop) => core.prop_cells(idx, prop) as Uint32Array,
+    };
 
     let actionCount = 0;
     const rawValues = new Map<number, string>();
@@ -396,16 +424,14 @@ export async function createTestCoreCells({
         }
     }
 
-    function propCells(idx: number, prop: string): Uint32Array {
-        return cells.prop_cells(idx, prop) as Uint32Array;
-    }
+    const propCells = cells.propCells;
 
     function getter(idx: number, componentType: string): Get {
         return (prop: string) => {
             const c = propCells(idx, prop);
             if (c.length === 0)
                 throw new CellsCoreGap(`prop \`${componentType}.${prop}\``);
-            return cells.cell_value(c[0]);
+            return cells.value(c[0]);
         };
     }
 
@@ -484,17 +510,17 @@ export async function createTestCoreCells({
     function request(reqs: [number, number][], points = false) {
         const idx = new Uint32Array(reqs.map((r) => r[0]));
         const vals = new Float64Array(reqs.map((r) => r[1]));
-        if (points && reqs.length % 2 === 0) cells.request_points(idx, vals);
-        else cells.request(idx, vals);
+        if (points && reqs.length % 2 === 0) core.request_points(idx, vals);
+        else core.request(idx, vals);
+        // A tick may move the cells (a rebuild makes every array anew).
+        table.reload();
         // Any change ends an answer's `justSubmitted`, as an input's
         // value change does in the current core.
         justSubmitted.clear();
         if (process.env.CELLS_TRACE) {
-            const after = reqs
-                .map(([c]) => `${c}=${cells.cell_value(c)}`)
-                .join(" ");
+            const after = reqs.map(([c]) => `${c}=${cells.value(c)}`).join(" ");
             console.log(
-                `[cells]   requests ${JSON.stringify(reqs)} -> ${after}; dropped ${cells.last_dropped()}`,
+                `[cells]   requests ${JSON.stringify(reqs)} -> ${after}${core.last_rebuilt() ? "; rebuilt" : ""}`,
             );
         }
     }
@@ -521,7 +547,7 @@ export async function createTestCoreCells({
         return out;
     }
 
-    const core = {
+    const adapter = {
         async returnAllStateVariables(
             _consoleLog?: boolean,
             _dontRemoveFunctionsMath?: boolean,
@@ -534,8 +560,8 @@ export async function createTestCoreCells({
                     assertCurrent(takenAt, `component ${key}`);
                     const componentIdx = Number(key);
                     const componentType =
-                        componentIdx >= 0
-                            ? cells.component_tag(componentIdx)
+                        componentIdx >= 0 && componentIdx < table.length
+                            ? table.tag(componentIdx)
                             : undefined;
                     return componentType === undefined
                         ? undefined
@@ -561,7 +587,10 @@ export async function createTestCoreCells({
                     `action \`${actionName}\` on an unresolved component`,
                 );
             }
-            const componentType = cells.component_tag(componentIdx) ?? "(none)";
+            const componentType =
+                componentIdx < table.length
+                    ? table.tag(componentIdx)
+                    : "(none)";
             actionCount++;
             if (process.env.CELLS_TRACE) {
                 console.log(
@@ -600,7 +629,7 @@ export async function createTestCoreCells({
                 case "moveLine": {
                     // As the JavaScript core's action: a line based on a slope
                     // or direction translates with its first point only.
-                    const based = cells.cell_value(
+                    const based = cells.value(
                         propCells(componentIdx, "basedOnDirection")[0],
                     );
                     let reqs = pointRequests(
@@ -689,12 +718,8 @@ export async function createTestCoreCells({
                         // The text is interned in the core's string table
                         // and its id requested on the value cell.
                         const text = rawValues.get(componentIdx) ?? "";
-                        request([
-                            [
-                                propCells(componentIdx, "value")[0],
-                                cells.intern(text),
-                            ],
-                        ]);
+                        const cell = propCells(componentIdx, "value")[0];
+                        request([[cell, core.intern(text)]]);
                         return;
                     }
                     const latex = rawValues.get(componentIdx) ?? "";
@@ -705,13 +730,13 @@ export async function createTestCoreCells({
                     const expr = propCells(componentIdx, "expr")[0];
                     if (
                         expr !== undefined &&
-                        cells.cell_class(expr) === "essential" &&
+                        core.cell_class(expr) === "essential" &&
                         Number.isNaN(latexToNumber(latex)) &&
                         latex.trim() !== ""
                     ) {
                         let handle = NaN;
                         try {
-                            handle = cells.parse_math(
+                            handle = core.parse_math(
                                 me.fromLatex(latex).toString(),
                             );
                         } catch {
@@ -741,7 +766,8 @@ export async function createTestCoreCells({
                         throw new CellsCoreGap(
                             `action \`${componentType}.submitAnswer\``,
                         );
-                    cells.submit(componentIdx);
+                    core.submit(componentIdx);
+                    table.reload();
                     justSubmitted.add(componentIdx);
                     return;
                 default:
@@ -753,18 +779,18 @@ export async function createTestCoreCells({
     };
 
     async function resolvePathToNodeIdx(name: string, _origin = 0) {
-        const idx = cells.resolve_path(name);
-        return idx === 0xffffffff ? -1 : idx;
+        const idx = core.resolve_path(name);
+        return idx === NONE ? -1 : idx;
     }
 
     return {
-        core: withJavascriptOnlyGaps(core),
-        cells,
+        core: withJavascriptOnlyGaps(adapter),
+        cells: core,
         resolvePathToNodeIdx,
         /** Bytes of wasm linear memory; the benchmark's memory column. */
         wasmMemoryBytes: () => wasm.memory.buffer.byteLength as number,
         /** The session's state as JSON, for `initialState` of a later load. */
-        saveState: () => cells.save_state() as string,
+        saveState: () => core.save_state() as string,
         scoreState: unreported("scoreState"),
         pendingReports: unreported("pendingReports"),
         lastStateReport: unreported("lastStateReport"),

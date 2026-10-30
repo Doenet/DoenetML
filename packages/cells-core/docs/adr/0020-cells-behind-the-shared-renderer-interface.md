@@ -9,18 +9,51 @@ The prototype's renderer interface is the one DoenetML keeps, so the
 cells core uses it as it was: the shared parts of the prototype (the
 store, the point and graph renderers' redraw) are not changed for it.
 Step 2's batched redraw was reverted, and so was the second of the four
-fixes below (the store's draft-free update). Step 3's renderers stay, but
-each is written as the prototype's existing renderers are: its props as a
-typed `…Data`, its own JSXGraph objects made in an effect by a `create…`
-function from the same style fields as the point's and kept in step with
-its props on render, followed by `board.updateRenderer()`, and an input's
-label, Aria fields and server rendering as `textInput`'s. Shared helpers
-of their own (a graph-object hook, a common look, a commit field, a
-`withProps` guard) are gone; a renderer whose element arrives without the
-props it needs draws nothing, as the line renderer already did. The
-benchmark's bench page times the board's own `updateRenderer` as the
-redraw. The measurements below were taken with step 2 and the store fix in
-place and are kept as a record of that path.
+fixes below (the store's draft-free update). The benchmark's bench page
+times the board's own `updateRenderer` as the redraw. The measurements
+below were taken with step 2 and the store fix in place and are kept as a
+record of that path.
+
+Step 3's renderers stay, and what they have in common is shared, inside
+the renderers only (2026-10-29): every graph element is drawn through one
+hook (`jsxgraph/use-graph-objects.ts`), which makes its JSXGraph objects
+once the board exists, brings them in step with its props on every render
+and then calls `board.updateRenderer()`, removes them with the element,
+and after a drag draws the latest props again, so a move the core refused
+or snapped is put back where the props say; the one look they are drawn
+in is `jsxgraph/look.ts`. Every input is a control beside its label
+(`_labeled-input.tsx`), with the Aria fields and server rendering
+`textInput` had; a `numberInput` and a `mathInput` are a field committed
+on Enter or blur. A renderer whose element arrives without the props it
+needs draws nothing, as an element with no renderer does.
+
+A `<function>` or `<derivative>` in a graph is its curve: the core samples
+it over the graph's x-range (ADR 0019 marks the samples outputs), and the
+bridge sends it as a `polyline` through the samples, which the polyline
+renderer draws. A `<math>`, `<number>` or `<text>` placed in a graph is a
+label at an anchor no core sends yet, so the graph renderers leave it out
+rather than warn.
+
+The JavaScript core's `vector` and `ray` are drawn on the same hook, with
+that core's props and actions (`numericalEndpoints`, `moveVector`;
+`numericalEndpoint`, `numericalThroughpoint`, `moveRay`), and its
+`triangle`, `rectangle` and `regularPolygon` by the polygon renderer, which
+their props already fit. The cells core has no vector or ray yet; its
+`<triangle>` is a polygon, sent under its tag. The benchmark's prototype
+page runs the JavaScript core with `?core=javascript`, which is how these
+were checked.
+
+In text, the JavaScript core's sectioning components (`subsection`,
+`exercise`, `example`, `theorem`, `note`, `proof`, `question`, `activity`,
+`paragraphs`) are drawn as divisions under their own names, as `aside` and
+`problem` were, its `figure` with its `<caption>` child drawn in the
+caption, `feedback`, `solution` (revealed through the core), `footnote`,
+`pre`, `div`, `span`, `introduction`, `conclusion` and `statement`. A
+component the JavaScript core creates during an action (a solution's
+content on reveal) reaches the renderer as a whole new element, as the
+Rust core's do. Still undrawn: `image` and `video`, whose sources the
+production renderer resolves itself, `spreadsheet`, `matrixInput`,
+`fractionInput` and `codeEditor`.
 
 Both remain possible later, for all three cores, if large documents need
 them: a board redrawn once per update batch rather than by each element

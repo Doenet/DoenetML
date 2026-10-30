@@ -6,4 +6,4 @@ an endpoint from math over a point: cells 11 · essential 7 · fixed 3 · instrs
 a bare copy shares both endpoints: cells 10 · essential 8 · fixed 2 · instrs 0 · components 4
 a copy that overrides the endpoints has its own: cells 14 · essential 12 · fixed 2 · instrs 0 · components 4
 a copy that overrides another attribute shares the endpoints: cells 10 · essential 8 · fixed 2 · instrs 0 · components 4
-fixed: drags are refused: cells 10 · essential 4 · fixed 6 · instrs 0 · components 3
+fixed: drags are refused: cells 11 · essential 4 · fixed 7 · instrs 0 · components 3

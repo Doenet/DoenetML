@@ -24,8 +24,9 @@ pub(crate) enum Planner {
     /// From the prop table, then adjusted by the function.
     PropsThen(PropsFn),
     /// By the function, which returns the plan; `plan_with_extend` applies
-    /// the copy rules, `fixed` and the list's length around it, and the
-    /// function reads the element's children itself.
+    /// the copy rules and the list's length around it, and the function
+    /// reads the element's children itself. (`fixed`, for every kind, is
+    /// `plan_elem`'s: `compile/fix.rs`.)
     Plan(PlanFn),
     /// By the function alone, which writes the plan itself.
     Whole(WholeFn),

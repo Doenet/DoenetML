@@ -71,7 +71,7 @@ fn a_request_cannot_flip_a_branch() {
 #[test]
 fn built_cases_report_which_is_active() {
     let doc = load(SIGN).unwrap();
-    let cc = doc.component("cc").unwrap();
+    let cc = doc.resolve_path("cc").unwrap();
     let active: Vec<f64> = doc
         .children(cc)
         .filter_map(|ch| match ch {
@@ -286,7 +286,7 @@ fn a_select_draws_from_the_seed_without_replacement() {
         assert_ne!(a, b, "seed {seed}");
         assert!((1.0..=4.0).contains(&a) && (1.0..=4.0).contains(&b));
         // Unchosen options are never built.
-        assert_eq!(doc.children(doc.component("s").unwrap()).count(), 2);
+        assert_eq!(doc.children(doc.resolve_path("s").unwrap()).count(), 2);
         // The same seed draws the same way.
         let again = load_seeded(SELECT, seed);
         assert_eq!((num(&again, "a"), num(&again, "b")), (a, b));

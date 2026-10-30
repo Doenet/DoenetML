@@ -1,4 +1,4 @@
-//! What composed inverses do on real documents (ADR 0024): the round trip
+//! What composed inverses do on real documents (ADR 0026): the round trip
 //! of `cells_core::testing::round_trip` on every document of the golden
 //! set, `fixtures/sir.doenet` and the smallest fixture of each shape
 //! (`cells_bench::script::sources`), or on the documents named on the

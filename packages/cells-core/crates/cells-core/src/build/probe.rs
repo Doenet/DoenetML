@@ -42,53 +42,6 @@ pub(in crate::build) enum Coord {
     Reset,
 }
 
-/// The probe's structure view: one iteration per repeat, standing for
-/// every iteration, and every option of every select, standing for every
-/// draw.
-pub(super) struct Probe;
-
-impl View for Probe {
-    /// Nothing is drawn (`options`), so no seed is read.
-    fn seed(&self) -> u64 {
-        0
-    }
-
-    /// Every template is stamped once.
-    fn iterations(&self, _scope: ScopeId, _node: NodeId) -> u32 {
-        1
-    }
-
-    /// An index past the stamped entries lands in them when they stand for
-    /// entries at other counts; the edge's label says which it named.
-    fn index(&self, len: usize, k: i64, varies: bool) -> Option<usize> {
-        if varies && len > 0 {
-            Some((k.max(1) as usize - 1).min(len - 1))
-        } else {
-            view::in_range(len, k)
-        }
-    }
-
-    /// A count reading the collect's count reaches the gathered repeats.
-    fn collect_count(&self) -> CollectCount {
-        CollectCount::RepeatCounts
-    }
-
-    /// Every option, whatever a seed or an iteration would draw, so what
-    /// the probe finds depends on the source alone (ADR 0014).
-    fn options(&self, _in_iteration: bool) -> Options {
-        Options::Every
-    }
-
-    /// The one iteration carries both plans' edges.
-    fn plans(&self, _k: u32) -> Plans {
-        Plans::Both
-    }
-
-    fn folds_iterations(&self) -> bool {
-        true
-    }
-}
-
 /// The probe build (ADR 0012, ADR 0014): the compile built once through
 /// the probe view, its graph tested for loops at any count, and emitted so
 /// emit's rules run on the referents of every count and every option. It
@@ -99,11 +52,11 @@ pub(crate) fn probe(
     compiled: &Compiled,
     checks: bool,
 ) -> std::result::Result<BuildOutput, Failure> {
-    let session = Session::new(0, false);
+    let session = Session::new(0);
     // The session's own engine, which the output keeps, so what the build
     // made can be read (the input signature reads expressions).
     let mut engine = session.engine.borrow_mut();
-    build_with(compiled, &session, false, &mut engine, &Probe, checks)
+    build_with(compiled, &session, false, &mut engine, &View::Probe, checks)
 }
 
 /// The coordinate an index step contributes: a shift of the referencing
@@ -134,22 +87,11 @@ pub(in crate::build) fn index_coord(ip: &IndexPlan, src_depth: u32, entered: u32
 impl<'c> Builder<'c> {
     /// The slots a slot's source reads, plus its later sources.
     pub(in crate::build) fn push_inputs(&self, s: SlotId, out: &mut Vec<SlotId>) {
-        self.source_inputs(&self.sources[s.index()], out);
+        out.extend(self.sources[s.index()].eval_inputs(&self.op_inputs));
         for (slot, src) in &self.later_sources {
             if *slot == s {
-                self.source_inputs(src, out);
+                out.extend(src.eval_inputs(&self.op_inputs));
             }
-        }
-    }
-
-    /// The slots a source reads.
-    fn source_inputs(&self, src: &BuiltSource, out: &mut Vec<SlotId>) {
-        match src {
-            BuiltSource::Alias(t) => out.push(*t),
-            BuiltSource::Op(_, start, n) => out
-                .extend_from_slice(&self.op_inputs[*start as usize..*start as usize + *n as usize]),
-            BuiltSource::VecOut(head, _) => out.push(*head),
-            _ => {}
         }
     }
 
@@ -157,20 +99,16 @@ impl<'c> Builder<'c> {
     /// can do: the common case, decided in one pass before any component
     /// is searched.
     fn reads_only_earlier_slots(&self) -> bool {
-        let mut inputs = Vec::new();
-        let earlier = |s: usize, src: &BuiltSource, inputs: &mut Vec<SlotId>| {
-            inputs.clear();
-            self.source_inputs(src, inputs);
-            inputs.iter().all(|&w| w.index() < s)
-        };
+        let earlier =
+            |s: usize, src: &BuiltSource| src.eval_inputs(&self.op_inputs).all(|w| w.index() < s);
         self.sources
             .iter()
             .enumerate()
-            .all(|(s, src)| earlier(s, src, &mut inputs))
+            .all(|(s, src)| earlier(s, src))
             && self
                 .later_sources
                 .iter()
-                .all(|(s, src)| earlier(s.index(), src, &mut inputs))
+                .all(|(s, src)| earlier(s.index(), src))
     }
 
     fn scope_within(&self, mut s: ScopeId, of: ScopeId) -> bool {

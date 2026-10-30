@@ -109,7 +109,7 @@ fn rendered_text_shows_the_input_and_its_references() {
         <p name="p">You typed $ti and $ti.value.</p>"#,
     )
     .unwrap();
-    let p = doc.component("p").unwrap();
+    let p = doc.resolve_path("p").unwrap();
     assert_eq!(doc.rendered_text(p), "You typed rain and rain.");
     type_text(&mut doc, "ti", "snow");
     assert_eq!(doc.rendered_text(p), "You typed snow and snow.");
@@ -190,7 +190,7 @@ fn text_in_an_award_when() {
     match doc {
         Ok(ref mut doc) => {
             type_text(doc, "ti", "rain");
-            doc.submit(doc.component("a").unwrap());
+            doc.submit(doc.resolve_path("a").unwrap());
             assert_eq!(v(doc, "a", "credit"), 1.0);
         }
         Err(Error::Unsupported(_)) => {}
@@ -248,7 +248,7 @@ fn a_text_interface_names_value_is_text() {
 <p name="p1">$cc.t.value</p>"#,
     )
     .unwrap();
-    let shown = |doc: &Document| doc.rendered_text(doc.component("p1").unwrap());
+    let shown = |doc: &Document| doc.rendered_text(doc.resolve_path("p1").unwrap());
     assert_eq!(shown(&doc), "no");
     set(&mut doc, "g", "value", 1.0);
     assert_eq!(shown(&doc), "yes");
@@ -262,7 +262,7 @@ fn a_text_picked_by_a_select_is_text() {
 <p name="p1">$s[1].t.value</p>"#,
     )
     .unwrap();
-    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hi");
+    assert_eq!(doc.rendered_text(doc.resolve_path("p1").unwrap()), "hi");
 }
 
 // A text extending another inherits its value, which is text when placed.
@@ -272,5 +272,5 @@ fn a_text_extending_a_text_places_as_text() {
         r#"<p name="p1">$t2.value</p><text name="t1">hello</text><text name="t2" extend="$t1"/>"#,
     )
     .unwrap();
-    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hello");
+    assert_eq!(doc.rendered_text(doc.resolve_path("p1").unwrap()), "hello");
 }

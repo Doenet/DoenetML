@@ -198,6 +198,7 @@ impl Document {
     }
 
     /// `scope_path` as text, for a test naming a cell across versions.
+    #[cfg(feature = "testing")]
     pub(crate) fn scope_path_text(&self, scope: ScopeId) -> String {
         match self.scope_path(scope) {
             Value::Array(levels) if levels.is_empty() => String::new(),

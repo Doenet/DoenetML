@@ -120,27 +120,33 @@ draw for every select.
   union-find, numbers the cells (essential, then fixed, then derived) and
   binds operators to them as instructions. A value slot (a literal or a
   default) is essential only when a student's action can write it (ADR
-  0018): `build/writable.rs` walks back from every input prop through the
-  inputs each inverse may write. The probe runs the walk and records the
-  writable template slots in `Compiled` (a `Record`), and every build
+  0018): `build/writable.rs` walks back from every input prop to where a
+  request on each cell goes. Both walks read the cells the slots will make
+  (`SlotCells`, `build/slot_cells.rs`) only through a cell's definition
+  (`Def`), which defines its two relations once: what it needs (what its
+  source reads, and the flags that hold it) and where a request on it goes
+  (what its inverse may write, nowhere past a constant hold).
+  `Program::needs` is the first over the cells a build made. The probe
+  runs the walk and records the writable template slots in `Compiled` (a `Record`), and every build
   classes by that record, so a slot's class is the same in every build. A
   class is computed only when it is live (ADR 0019): `build/live.rs`
   walks back from every root (the rendered props of rendered components,
   scores, inputs, what an action or snapping reads, repeat counts)
-  through every input of every instruction. The probe records the live
+  through what each cell needs. The probe records the live
   template slots in `Compiled::live` as it records the writable ones; a
   class the record cannot name (a synthesized component's, such as a
   choice's interface) is live when something live reads it. A dead class
   gets no cell: its props name the one dead cell, a fixed NaN, and its
-  instruction is never bound. A live instruction that would read the dead
-  cell fails the build (`Error::Unchecked`). `LoadOptions::prune` off
+  instruction is never bound. A live class that needs the dead cell, an
+  instruction's input or a hold's flag, fails the build
+  (`Error::Unchecked`). `LoadOptions::prune` off
   computes every class.
 
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
 index names, a collect's count, a select's options. A real build uses the
 `Stamped` view, which answers from the counts it was asked for; the check
-uses the probe. Because the cycle check reasons about the probe, any
+uses the `Probe` view. Because the cycle check reasons about the probe, any
 structural read that bypasses the view is one the cycle check cannot see.
 
 A build reads the `Session` (`session.rs`) and returns the next one. The
@@ -201,10 +207,11 @@ downstream, and report a `TickOutcome`. See
    inverses of the instructions that produced its cell, until it lands on
    essential cells. Dragged point groups are kept together (ADR 0003,
    ADR 0006).
-4. The essential writes are applied and the document's `Evaluator`
-   (`tick/eval.rs`) recomputes. By default this is `DirtyClosure`, which runs
-   only the instructions downstream of a changed cell; `FullRecompute` runs
-   all of them and can be selected with `set_evaluator`.
+4. The essential writes are applied and the document recomputes as its
+   `Recompute` setting says (`tick/eval.rs`). By default this is the
+   `DirtyClosure`, which runs only the instructions downstream of a
+   changed cell; `Recompute::Full` runs all of them and can be selected
+   with `set_evaluator`.
 5. The `TickOutcome` lists the cells that changed and the requests that
    were dropped.
 
@@ -273,7 +280,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Dast` | `dast/mod.rs` | The parsed source in parallel arrays indexed by `NodeId`. |
 | `ComponentType`, `ComponentDef`, `PropDef` | `components/` | The tag vocabulary: each type's props, where each prop's value comes from (an attribute, its children, an operator over its own props, or its planner), its flags and its planner. |
 | `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
-| `View`, `Stamped` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options. The probe (`build/probe.rs`) is the other implementation. |
+| `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Probe`, which folds every iteration into one (`build/probe.rs`). |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
 | `Session`, `Counts` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine; and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
@@ -281,9 +288,9 @@ the other action: it sets each `<updateValue>`'s target.
 | `Document` | `document/mod.rs` | A loaded document and the API to it. `output_cells` and `is_live` (`document/outputs.rs`) say what leaves it and what it computes. |
 | `Renders`, `Live` | `components/mod.rs`, `build/mod.rs` | Where a component type is drawn (always, never, only in a graph), which decides whether its `rendered` props are outputs; and a build's bit per cell of what it computes (ADR 0019). |
 | `CellIdx`, `CompIdx`, `NodeId`, `StrId`, `ScopeId`, `OperandIdx`, `MemoIdx`, and the compile's and build's ids (`TemplateId`, `ElemId`, `RefId`, `ChoiceId`, `ElemKey`, `ExprId`, `SlotId`, `Handle`) | `index.rs` | Positions in the cells, the component table, the DAST, a string table, the session's scopes, a program's operands and its symbolic memo, and the like, each its own type over a `u32` made by `index_type!` (`index()` reads the position), so one cannot be passed for another. A text cell holds a `StrId` as its value (`StrId::to_value`). Two lists mix kinds of entry and say so in their types: a child list's `ChildEntry` (`document/table.rs`) is a component or a text child's string, and a literal attribute's `AttrValue` (`dast/attrs.rs`) is a string or text the attributes keep. A math's leaves say what they are by type: `Expr<L>` and `sym::Tree<L>` hold `RefId`s in the compile, `SlotId`s in a build, `CellIdx`s once emit rebinds them. |
-| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
+| `ComponentTable` | `document/table.rs` | Components in columns: type, name, parent, children, the component each reference refers to (`referent`, ADR 0024), and the cell index of each prop. `prop_cells` lists those indices one component after another, starting at `prop_base[c]` (ADR 0016); the cells they name are not contiguous, since emit orders cells by kind and aliased props share a cell. What references and renderers read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
-| `Evaluator`, `Recompute` | `tick/eval.rs` | A recompute strategy: `DirtyClosure` or `FullRecompute`; `Recompute` is the document's setting of which one a tick uses. |
+| `Recompute`, `DirtyClosure` | `tick/eval.rs` | The document's setting of how a tick recomputes: every instruction, or the dirty closure of what changed, whose tables are `DirtyClosure`. |
 | `Diagnostic` | `diagnostics.rs` | An error, warning or lint finding, tied to a DAST node (ADR 0013). |
 | `Engine`, `Tree`, `Tape` | `sym/` | The symbolic engine behind math cells: math-expressions-rs called directly (ADR 0008, ADR 0011). A math cell holds a handle into it. `Tape` compiles a curve of fixed shape to numeric steps. |
 
@@ -361,16 +368,26 @@ literal (`ElemWiring::set_public`, ADR 0016). Rules for planners:
   a piece of shared state, which a copy giving the same attribute keeps
   as its own. State from the element's own children is `Given::Children`,
   from its referent's `Given::Referent`.
+- A `<label>` or `<shortDescription>` child is a component of the element
+  on every type, for the renderer to read (ADR 0024); a planner reading
+  its element children passes over them (`ctx.is_presentation_child`).
 - What an extend omits comes from its referent, planned where the
   referent sits (ADR 0023): `ctx.attr`, `ctx.scalar`, `ctx.flag`,
   `ctx.tuple` and the rest pick the referent's scope for the referent's
   attributes and children, so a planner reading `ctx.base()`'s children
   need not think about it.
-- `fixed` is applied around the planner, not by it (`plan_with_extend`,
-  `plan_attrs`): the element's own, else the nearest container's (ADR
-  0022), as `Hold`s on every slot a request could write through. A type
-  whose every value is a location says `located` among its flags, and
-  `fixLocation` then holds it the same way.
+- A type a bare reference reads as a value says so in its block
+  (`reads_as: Math` on `<mathInput>`, ADR 0025); the build then makes a
+  `<math>` aliasing the input's props for `$mi`, and `<math
+  extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
+  referent's default prop (`ComponentType::extends_as`).
+- `fixed` is not the planner's: `plan_elem` records, beside the plans,
+  what holds the element (`Elem::hold`, from the table `HOLD_ATTRS`): the
+  element's own setting, else the nearest container's (ADR 0022). The
+  build holds every cell of a held element (`Program::holds`), and the
+  inversion refuses a request on a held cell; the plans are never
+  rewritten. A type whose every value is a location says `located` among
+  its flags, and `fixLocation` then holds it the same way.
 - A combination of attributes the planner cannot honor is a warning
   (`PlanCtx::warn`), never a silent NaN: what it cannot define is
   `Wire::undefined` (or `Source::undefined`) of what `warn` returns. A
@@ -493,7 +510,8 @@ the core does not compute it, and the viewer's test, which checks every
 - `tests/live.rs` checks the live record (ADR 0019) at every golden
   document and `sir.doenet`, four seeds and counts 0 to 4: nothing a
   build's own walk finds live is missing from it, every output and every
-  essential cell is live, and a pruned load and an unpruned one, given
+  essential cell is live, every live cell's `Program::needs` is live, a
+  cell a constant flag holds takes no request, and a pruned load and an unpruned one, given
   the same requests, submits and triggers, hold the same value in every
   live cell. `tests/outputs.rs` checks the marks and which components are
   rendered.

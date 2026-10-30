@@ -13,8 +13,6 @@ use crate::diagnostics::Diagnostic;
 pub(crate) struct CompileOutput {
     /// The compile, which every build of the document stamps.
     pub(crate) compiled: Arc<Compiled>,
-    /// How long the probe took.
-    pub(crate) check_time: std::time::Duration,
 }
 
 /// Compile `dast` (ADR 0015): plan it, check it through the probe (ADR
@@ -35,11 +33,77 @@ pub(crate) fn compile(
     classify: bool,
     prune: bool,
 ) -> Result<CompileOutput> {
-    let profile = crate::profile::enabled();
     let mut list = Vec::new();
+    let (mut compiled, ()) = plan_and_check(dast, &mut list, |compiled| {
+        compiled.prune = prune;
+        let _s = crate::trace::span("probe");
+        let probed = build::probe(compiled, check_cycles)?.probed();
+        compiled.structural_depth = probed.structural_depth;
+        compiled.classes = classify.then(|| Arc::new(probed.writable));
+        compiled.live = Arc::new(probed.live);
+        // The probe's warnings are the document's: no build finds one
+        // the probe did not (ADR 0014).
+        Arc::make_mut(&mut compiled.diagnostics).extend(probed.warnings);
+        Ok(())
+    })?;
+    {
+        let _s = crate::trace::span("lint");
+        list.extend(lint::lint(dast));
+    }
+    // The planners' and the probe's warnings, from the compile that built.
+    list.append(Arc::make_mut(&mut compiled.diagnostics));
+    crate::diagnostics::sort(&mut list);
+    compiled.diagnostics = Arc::new(list);
+    Ok(CompileOutput {
+        compiled: Arc::new(compiled),
+    })
+}
+
+/// Every diagnostic of the document, from one build through the probe
+/// (ADR 0013): one iteration per repeat, every option of every select,
+/// every branch of every choice. The list is a function of the DAST alone,
+/// and the same list a load reports, at any seed, count or state. For the
+/// language server, which has no document to load.
+pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
+    let dast = Arc::new(dast.clone());
+    let mut list = Vec::new();
+    // The build is not wanted, but its warnings are, with the planners'.
+    // A failure with no element to box is in the list already.
+    if let Ok((compiled, probed)) =
+        plan_and_check(&dast, &mut list, |c| Ok(build::probe(c, true)?.probed()))
+    {
+        list.extend(compiled.diagnostics.iter().cloned());
+        list.extend(probed.warnings);
+    }
+    list.extend(lint::lint(&dast));
+    crate::diagnostics::sort(&mut list);
+    list
+}
+
+/// The input signature of `dast` (ADR 0017, step 3), from the check's
+/// build. Every key goes through `rename`.
+pub(crate) fn signature_renamed(
+    dast: &Dast,
+    rename: &dyn Fn(&str) -> String,
+) -> Result<crate::build::signature::Signature> {
+    let dast = Arc::new(dast.clone());
+    let (compiled, u) = plan_and_check(&dast, &mut Vec::new(), |c| build::probe(c, true))?;
+    Ok(u.signature(&compiled, rename))
+}
+
+/// The compile's loop (ADR 0013): plan `dast`, run `check` on the plan,
+/// and box until it holds. The element `check` fails on, or every element
+/// with an attribute nothing read while planning and checking (ADR 0021),
+/// is boxed and the plan made again, each box an error in `errors`. Only
+/// a failure with no element to box, a cycle, fails it, after its error
+/// joins `errors` too.
+fn plan_and_check<T>(
+    dast: &Arc<Dast>,
+    errors: &mut Vec<Diagnostic>,
+    mut check: impl FnMut(&mut Compiled) -> std::result::Result<T, Failure>,
+) -> Result<(Compiled, T)> {
     let mut boxed: HashSet<NodeId> = HashSet::new();
-    let (mut compiled, check_time) = loop {
-        let clock = web_time::Instant::now();
+    loop {
         let planned = {
             let _s = crate::trace::span("plan");
             let planned = Compiler::compile(dast, &boxed);
@@ -53,104 +117,31 @@ pub(crate) fn compile(
             planned
         };
         let attempt = planned.and_then(|mut compiled| {
-            if profile {
-                eprintln!("  compile/plan: {:.2?}", clock.elapsed());
-            }
-            compiled.prune = prune;
-            let clock = web_time::Instant::now();
-            let _s = crate::trace::span("probe");
-            let probed = build::probe(&compiled, check_cycles)?.probed();
-            compiled.structural_depth = probed.structural_depth;
-            compiled.classes = classify.then(|| Arc::new(probed.writable));
-            compiled.live = Arc::new(probed.live);
-            // The probe's warnings are the document's: no build finds one
-            // the probe did not (ADR 0014).
-            compiled.diagnostics.extend(probed.warnings);
-            let checked = clock.elapsed();
-            if profile {
-                eprintln!("  compile/check: {checked:.2?}");
-            }
+            let checked = check(&mut compiled)?;
             Ok((compiled, checked))
         });
         match attempt {
             Ok(done) => {
                 let unread = unread_attributes(dast, &boxed);
                 if unread.is_empty() {
-                    break done;
+                    return Ok(done);
                 }
                 for (node, error) in unread {
                     crate::trace::count("boxed", 1);
                     boxed.insert(node);
-                    list.push(Diagnostic::error(Some(node), &error));
+                    errors.push(Diagnostic::error(Some(node), &error));
                 }
             }
             Err(f) => {
                 crate::trace::count("boxed", 1);
                 let node = f.node.filter(|n| boxed.insert(*n));
-                list.push(Diagnostic::error(node, &f.error));
+                errors.push(Diagnostic::error(node, &f.error));
                 if node.is_none() {
                     return Err(f.error);
                 }
             }
         }
-    };
-    {
-        let _s = crate::trace::span("lint");
-        list.extend(lint::lint(dast));
     }
-    // The planners' and the probe's warnings, from the compile that built.
-    list.append(&mut compiled.diagnostics);
-    crate::diagnostics::sort(&mut list);
-    compiled.diagnostics = list;
-    Ok(CompileOutput {
-        compiled: Arc::new(compiled),
-        check_time,
-    })
-}
-
-/// Every diagnostic of the document, from one build through the probe
-/// (ADR 0013): one iteration per repeat, every option of every select,
-/// every branch of every choice. The list is a function of the DAST alone,
-/// and the same list a load reports, at any seed, count or state. For the
-/// language server, which has no document to load.
-pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
-    let dast = Arc::new(dast.clone());
-    let mut list = Vec::new();
-    let mut boxed: HashSet<NodeId> = HashSet::new();
-    loop {
-        let attempt = Compiler::compile(&dast, &boxed).and_then(|compiled| {
-            Ok((
-                build::probe(&compiled, true)?.probed(),
-                compiled.diagnostics,
-            ))
-        });
-        match attempt {
-            // The build is not wanted, but its warnings are, with the
-            // planners'.
-            Ok((u, planner_warnings)) => {
-                let unread = unread_attributes(&dast, &boxed);
-                if unread.is_empty() {
-                    list.extend(planner_warnings);
-                    list.extend(u.warnings);
-                    break;
-                }
-                for (node, error) in unread {
-                    boxed.insert(node);
-                    list.push(Diagnostic::error(Some(node), &error));
-                }
-            }
-            Err(f) => {
-                let node = f.node.filter(|n| boxed.insert(*n));
-                list.push(Diagnostic::error(node, &f.error));
-                if node.is_none() {
-                    break;
-                }
-            }
-        }
-    }
-    list.extend(lint::lint(&dast));
-    crate::diagnostics::sort(&mut list);
-    list
 }
 
 /// The elements, outside every boxed element, with an attribute nothing

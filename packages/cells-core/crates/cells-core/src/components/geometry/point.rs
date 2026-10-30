@@ -24,7 +24,7 @@ component! {
     combined_props {
         coords: [x, y],
     }
-    sticky_points: (Shape::Point, X, 1),
+    sticky: Shape::Point,
     attributes {
         coords,
         x,
@@ -53,7 +53,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
     wiring.set_public(Props {
         x: x.into(),
         y: y.into(),
-        hide: Source::Default(hide).into(),
+        hide: Source::Literal(hide).into(),
     });
     wiring.finish()
 }
@@ -114,7 +114,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let mut constraints: Vec<NodeId> = Vec::new();
     for node in std::iter::once(el).chain(base) {
         for &n in d.children(node) {
-            if d.kind(n) == NodeKind::Element {
+            if d.kind(n) == NodeKind::Element && !ctx.is_presentation_child(n) {
                 if d.str(n) == "constraints" {
                     constraints.extend(
                         d.children(n)

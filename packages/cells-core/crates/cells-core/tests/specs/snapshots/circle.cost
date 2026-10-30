@@ -12,7 +12,7 @@ three through points: dragged rigidly, scaled about the center: cells 19 · esse
 three through points, one on a grid: the shape moves with the snap: cells 24 · essential 10 · fixed 5 · instrs 7 · components 6
 a center on a grid carries the through point: cells 21 · essential 8 · fixed 4 · instrs 7 · components 5
 through a triangle's vertices: cells 16 · essential 10 · fixed 3 · instrs 1 · components 4
-a point on a fixed number: half its drag is refused: cells 18 · essential 10 · fixed 5 · instrs 1 · components 6
+a point on a fixed number: half its drag is refused: cells 19 · essential 10 · fixed 6 · instrs 1 · components 6
 a copy that overrides the radius shares the center: cells 12 · essential 6 · fixed 4 · instrs 2 · components 4
 a through point by name, in the current core's spellings, and past the end: cells 17 · essential 8 · fixed 6 · instrs 1 · components 8
 a bare copy holds its referent's through points: cells 13 · essential 8 · fixed 2 · instrs 1 · components 4

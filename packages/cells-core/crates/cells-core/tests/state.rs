@@ -146,7 +146,7 @@ fn a_submitted_text_response_is_saved_as_text() {
     let mut doc = load(src).unwrap();
     type_text(&mut doc, "ti", "first");
     type_text(&mut doc, "ti", "nope");
-    doc.submit(doc.component("a").unwrap());
+    doc.submit(doc.resolve_path("a").unwrap());
     let saved = doc.save_state();
     let mut fresh = load(src).unwrap();
     fresh.restore_state(&saved).unwrap();

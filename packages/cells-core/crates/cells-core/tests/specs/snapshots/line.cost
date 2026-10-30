@@ -22,4 +22,4 @@ a copy of an equation line takes its equation: cells 22 · essential 10 · fixed
 a copy given points is a two-point line: cells 19 · essential 11 · fixed 4 · instrs 1 · components 4
 a copy overriding the slope shares the point: cells 17 · essential 9 · fixed 4 · instrs 2 · components 4
 a copy of a defaulted line shares both points: cells 12 · essential 8 · fixed 4 · instrs 0 · components 4
-fixed: drags are refused: cells 11 · essential 4 · fixed 7 · instrs 0 · components 3
+fixed: drags are refused: cells 12 · essential 4 · fixed 8 · instrs 0 · components 3

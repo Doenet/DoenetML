@@ -69,7 +69,7 @@ mechanism count as expected failures rather than gaps.
 |---|---|
 | REF-2 a reference is linked both ways; REF-6 an extend keeps the source's bindings, however deep | A bare `extend` aliases every prop to the referent's cells (`plan_with_extend`, `Source::Inherit`). There is no second state to drift, and no "re-resolve, fall back on failure" path (#1805) |
 | SAVE-2 a shadow's state is saved once | Aliased props share one essential cell with one key |
-| CTX-7 a reference is fixed when its source is | A `Hold` on the source's slot is upstream of every alias (`tests/fixed.rs` `a_copy_of_a_dynamically_fixed_point_is_fixed`) |
+| CTX-7 a reference is fixed when its source is | The hold is on the source's cells (`Program::holds`), which every alias shares (`tests/fixed.rs` `a_copy_of_a_dynamically_fixed_point_is_fixed`) |
 | CTX-1 `fixed` still follows its definition; nothing pushes into it | `Fix::Literal` turns essential literals into fixed cells and holds references and math; forward evaluation is untouched, inverses drop (`compile/fix.rs`) |
 | VAL-6 to VAL-8 three attribute forms | `plan_value`: literal, exactly one reference (an alias, so two-way), else math (an operator chain with inverses) |
 | VAL-5 and D10 one representation of a missing value | The shared fixed NaN cell (`missing_slot`); `$r[32]` and an index past a list both land there |
@@ -323,7 +323,7 @@ clones of the referent's. The element's own children were planned by
 
 **[probe]** `pe` renders `ax`, no diagnostic.
 
-**Fix.** Append the planned own children after the clones. REF-4a (of a
+**Fix (done 2026-10-29, ADR 0024).** Append the planned own children after the clones. REF-4a (of a
 single-use child the last one wins, so a `<label>` or `<title>` added
 inside an extend replaces the source's) then follows if the bridge's
 `label()` and the section-title contract take the *last* such child;
@@ -346,7 +346,7 @@ bridge reads a label from the component's own `<label>` children or
 `label` attribute, so a reference to a labelled point (the common `$P`
 in a second graph) has none, against CTX-11 rule 5.
 
-**Fix.** Planners skip presentational children (`<label>`,
+**Fix (done 2026-10-29, ADR 0024).** Planners skip presentational children (`<label>`,
 `<shortDescription>`) by one shared predicate, as `is_blank` skips
 whitespace. For CTX-11 and for VAL-4/CTX-10 (display settings travel
 with a value), add one column to the `ComponentTable`: the component a
@@ -364,7 +364,7 @@ the paragraph **[probe]**; REF-1a says `$mi` is the math the reader
 entered, and `<mathInput extend="$mi"/>` is how to ask for a second box.
 Authors rely on this everywhere feedback shows "you entered $mi".
 
-**Fix.** D21 asks that the rule be "a declared, schema-visible property
+**Fix (done 2026-10-29, ADR 0025).** D21 asks that the rule be "a declared, schema-visible property
 of the class". The cells core already keys behavior on declarations:
 add `implicit_prop: value` to the input types' `component!` blocks (and
 `answer`, `award`, `choice` if D21 keeps them), and let a macro child
@@ -380,7 +380,7 @@ type differs from the element's: `<math extend="$n"/>` of a number,
 **[probe]**. For an *unrelated* pair that is exactly D26's rule, and
 better than main's silent default. For the related pairs it is a gap.
 
-**Fix.** Declare D26's table once (math, number, text and boolean among
+**Fix (done 2026-10-29, ADR 0025, for the pairs the core expresses).** Declare D26's table once (math, number, text and boolean among
 each other; point, vector and coords; an input from its value type and
 back; a list from the matching scalar or list) and let `plan_extend_prop`
 read it: the element's value props alias the referent's default prop,
@@ -397,7 +397,7 @@ items of a repeat, select, collect or list are comma-separated in text,
 on screen and inside `<math>`, and `<group>` is not a list unless
 `asList`.
 
-**Fix.** The prototype's FlatDast already uses `compositeLists.ts` in
+**Fix (done 2026-10-29 in the bridge, ADR 0025).** The prototype's FlatDast already uses `compositeLists.ts` in
 `@doenet/utils` for this; the bridge should call the same helper where
 it splices, so that the sub-rules (innermost decides, an inner list is
 one item, hidden items skipped) are one implementation across cores.
@@ -520,11 +520,17 @@ Tier 1 first, smallest reversible step first:
    override-extends across a scope refused. **Open:** the alias-based
    inheritance that removes `base`, `shared_state` and `Given` from the
    `Plan` types' planners.
-5. Own children appended on a container extend; presentational
-   children skipped by planners; the `referent` column, and labels and
-   display settings read through it (§3.5, §3.6).
-6. `implicit_prop` on inputs (§3.7); the D26 conversion table (§3.8);
-   commas in the bridge (§3.9).
+5. **Done (ADR 0024).** Own children appended on a container extend;
+   `<label>` and `<shortDescription>` children kept as components and
+   skipped by planners; the `referent` column, with labels and
+   `displayDecimals` read through it in the bridge, the last `<label>`
+   or `<title>` winning. The prototype's point renderer does not draw a
+   label yet.
+6. **Done (ADR 0025).** `reads_as` on the inputs (§3.7); the D26 table
+   for the pairs the core expresses, number and math and an input with
+   its value types (§3.8), number and text waiting on a format operator;
+   commas in the bridge for repeats, selects, collects and `asList`
+   groups (§3.9), not yet inside `<math>` or in the core's text.
 7. `copy` as paste-at-compile with seeds (§3.1), after D1 is decided.
 8. Dynamic indices as `Choose` (§3.10); credit as a record once D16 is
    decided (§3.11).

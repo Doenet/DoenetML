@@ -1,40 +1,12 @@
-//! Recompute strategies. All take the changed essential cells as seeds and
-//! append the derived cells whose value changed. They must agree on results;
-//! they differ only in how much work they do.
+//! Recompute strategies (`Recompute`): how a tick, given the essential
+//! cells it wrote, computes the derived cells and finds which changed.
+//! Both take the changed cells as seeds and append the derived cells whose
+//! value changed, and both give the same values; they differ only in how
+//! much work they do. Running every instruction is
+//! `Program::run_all_tracking`; the dirty closure is here.
 
 use crate::document::CellIdx;
 use crate::program::{Program, SymRun};
-
-pub trait Evaluator {
-    fn name(&self) -> &'static str;
-    /// `changed` holds the essential cells written this tick on entry.
-    fn recompute(
-        &mut self,
-        program: &Program,
-        sym: &mut SymRun,
-        cells: &mut [f64],
-        changed: &mut Vec<CellIdx>,
-    );
-}
-
-/// Run every instruction in schedule order, ignoring the seeds.
-#[derive(Default)]
-pub struct FullRecompute;
-
-impl Evaluator for FullRecompute {
-    fn name(&self) -> &'static str {
-        "full"
-    }
-    fn recompute(
-        &mut self,
-        program: &Program,
-        sym: &mut SymRun,
-        cells: &mut [f64],
-        changed: &mut Vec<CellIdx>,
-    ) {
-        program.run_all_tracking(sym, cells, changed);
-    }
-}
 
 /// Walk only the downstream closure of the seeds, in schedule order. The
 /// schedule is topological, so every instruction a step queues lies after
@@ -105,7 +77,8 @@ impl DirtyClosure {
 /// program and live beside it in the document.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Recompute {
-    /// Every instruction (`FullRecompute`).
+    /// Every instruction in schedule order, ignoring the seeds
+    /// (`Program::run_all_tracking`).
     Full,
     /// The closure of what changed (`DirtyClosure`), what the browser runs.
     #[default]
@@ -130,11 +103,11 @@ impl Recompute {
     }
 }
 
-impl Evaluator for DirtyClosure {
-    fn name(&self) -> &'static str {
-        "dirty-closure"
-    }
-    fn recompute(
+impl DirtyClosure {
+    /// Recompute what is downstream of the cells in `changed`, the
+    /// essential cells written this tick, appending the derived cells whose
+    /// value changed.
+    pub fn recompute(
         &mut self,
         program: &Program,
         sym: &mut SymRun,

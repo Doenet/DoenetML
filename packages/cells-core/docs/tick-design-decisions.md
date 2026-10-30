@@ -132,7 +132,7 @@ core in full; paths here are relative to `crates/cells-core/src/`.
     of each changed cell in a bitset over schedule positions and scans it
     forward, running each marked instruction, so it runs only what is
     downstream of the change.
-  - **Full recompute** (`FullRecompute`) runs every instruction in
+  - **Full recompute** (`Recompute::Full`) runs every instruction in
     schedule order.
   - **Early cutoff:** an instruction whose output did not change marks
     no readers, so a change that stops partway stops the closure there.
@@ -584,7 +584,7 @@ table.
 
 **The alternatives.**
 
-- **Full recompute** (`FullRecompute`, already in the core, selected
+- **Full recompute** (`Recompute::Full`, already in the core, selected
   with `set_evaluator("full")`): run every instruction.
 - **A priority queue** (`docs/tick-alternatives/10-priority-queue.patch`):
   the same closure, with the instructions waiting to run in a min-heap
@@ -929,6 +929,8 @@ To measure a patch, at that tag: `git apply` it (the cell-type
 patches on top of `4-6-cells-type.patch`), commit it locally, and run
 `scripts/tick-diff.sh` with the commit before it as the base. To measure
 an evaluator, at that tag: `CELLS_EVALUATORS=dirty,full,<name> cargo
-run --release -p cells-bench --example tick_cost`. To measure a change
+run --release -p cells-bench --example tick_cost` (the example as kept
+names the core's two `dirty-closure` and `full`, as `set_evaluator`
+does). To measure a change
 to the core now, make it in the working tree and run
 `scripts/tick-diff.sh`.

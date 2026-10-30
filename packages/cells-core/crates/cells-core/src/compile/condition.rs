@@ -28,6 +28,17 @@ impl Default for Compare {
     }
 }
 
+impl Compare {
+    /// The equality in the engine: as written, or by value.
+    pub(in crate::compile) fn equals(&self) -> SymKind {
+        if self.syntactic {
+            SymKind::EqualsSyntax
+        } else {
+            SymKind::Equals
+        }
+    }
+}
+
 impl<'a> Compiler<'a> {
     /// A condition as hidden slots of element `e`; returns the slot holding
     /// 1 or 0. Comparisons (`< <= > >= = !=`), `and`/`&&`, `or`/`||`,
@@ -165,12 +176,7 @@ impl<'a> Compiler<'a> {
                 };
                 let a = self.sym_operand(wiring, lhs, compare.post);
                 let b = self.sym_operand(wiring, rhs, compare.post);
-                let eq = OpSpec::Sym(if compare.syntactic {
-                    SymKind::EqualsSyntax
-                } else {
-                    SymKind::Equals
-                });
-                let eq = wiring.hidden(Source::computed(eq, vec![a, b]));
+                let eq = wiring.hidden(Source::computed(OpSpec::Sym(compare.equals()), vec![a, b]));
                 Ok(if negate {
                     wiring.hidden(Source::computed(OpSpec::Not, vec![eq]))
                 } else {
@@ -364,12 +370,10 @@ impl CondParser<'_> {
         } else {
             (self.number(cp, wiring, &a), self.number(cp, wiring, &b))
         };
-        let eq = if !in_engine {
-            OpSpec::Eq
-        } else if self.compare.syntactic {
-            OpSpec::Sym(SymKind::EqualsSyntax)
+        let eq = if in_engine {
+            OpSpec::Sym(self.compare.equals())
         } else {
-            OpSpec::Sym(SymKind::Equals)
+            OpSpec::Eq
         };
         Ok(match rel {
             "<" => wiring.hidden(Source::computed(OpSpec::Lt, vec![a, b])),

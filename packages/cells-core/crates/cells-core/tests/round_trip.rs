@@ -1,4 +1,4 @@
-//! The standing round trip of ADR 0024: every interactive number cell of
+//! The standing round trip of ADR 0026: every interactive number cell of
 //! the golden set (`crates/cells-bench/golden`) and `fixtures/sir.doenet`
 //! is requested at several values, an x/y pair as a point group
 //! (`testing::round_trip`). Each request must come out exact, projected,

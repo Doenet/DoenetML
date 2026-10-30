@@ -214,7 +214,7 @@ impl<'c> Builder<'c> {
             Some(Source::TextLiteral(_)) => return ValueType::Text,
             Some(Source::Alias(Arg::Own(k))) => self.slot(comp, *k as usize),
             // The extend referent's slot, as `instance_sources` resolves it.
-            Some(plan @ (Source::Inherit | Source::InheritFrom(_))) => {
+            Some(Source::Inherit) => {
                 let Some(p) = c.templates[i.template.index()].elems[i.elem.index()].extend else {
                     return ValueType::Number;
                 };
@@ -225,11 +225,7 @@ impl<'c> Builder<'c> {
                     },
                     Err(_) => return ValueType::Number,
                 };
-                let k = match plan {
-                    Source::InheritFrom(k) => *k as usize,
-                    _ => pi,
-                };
-                self.slot(referent, k)
+                self.slot(referent, pi)
             }
             Some(Source::Alias(Arg::Elem(e, k))) => {
                 let other = self.scope_comps[i.scope.index()][e.index()];
@@ -241,11 +237,6 @@ impl<'c> Builder<'c> {
             Some(Source::Alias(Arg::Ref(p, Sel::Whole))) => match self.resolve_one(*p, i.scope) {
                 Ok(t) => t,
                 Err(_) => return ValueType::Number,
-            },
-            // A dynamic `fixed` holds the moved plan behind a `Hold`.
-            Some(Source::Op(OpSpec::Hold, args)) => match args.first() {
-                Some(Arg::Own(h)) => self.slot(comp, *h as usize),
-                _ => return ValueType::Number,
             },
             _ => return ValueType::Number,
         };
@@ -465,7 +456,7 @@ impl<'c> Builder<'c> {
     }
 
     /// `op_slot` for an operator lowered from the author's math: a binary
-    /// one is recorded for orientation (`build/orient.rs`, ADR 0024), which
+    /// one is recorded for orientation (`build/orient.rs`, ADR 0026), which
     /// leaves the operators of components' own tables as written.
     fn math_op(&mut self, spec: OpSpec, inputs: &[SlotId], scope: ScopeId) -> SlotId {
         let slot = self.op_slot(spec, inputs, scope);

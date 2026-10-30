@@ -109,12 +109,14 @@ It cannot run during lowering, because the walk follows the operators'
 `writes` masks, which orientation decides.
 
 1. **Find which inputs lead to state.** An input *leads to state* when
-   the writable walk from it reaches a value slot (a literal or a
-   default): to an alias's class, through an operator to the inputs its
-   inverse writes, from a vector output to its head. A fixed value does
-   not count, nor a `Hold`'s flag. Operators are oriented from their
-   inputs up, since an input's answer depends on how the operators below
-   it are oriented.
+   the writable walk from it reaches a value slot (a literal), following
+   where a request on each cell goes (`slot_cells::Def::request_targets`):
+   to an alias's target, through an operator to the inputs its inverse
+   writes, from a vector output to its head. A fixed value does not
+   count, nor a cell a constant flag holds (`Def::held_always`, ADR
+   0022): no request passes it. A flag is never a target. Operators are
+   oriented from their inputs up, since an input's answer depends on how
+   the operators below it are oriented.
 2. **Exactly one input leads to state:** that input becomes the first.
    - `Add`, `Mul`, `Min` and `Max` swap their inputs.
    - `Sub` and `Div` become new entries that keep the "writes its first
@@ -144,7 +146,9 @@ as in the current core (`tests/repeat.rs` found this).
 One analysis over the program (`program/refuse.rs`) finds each
 interactive cell's *written cells*: the essential cells its inverse can
 reach, following each operator's `writes` mask (`Op::writes`), as the
-writable walk does.
+writable walk does. A cell a set `fixed` flag holds (`Program::holds`)
+takes no request, so the walk stops there, as the writable walk stops at
+`Def::held_always`.
 
 - It counts the paths from each written cell to the cell over every
   input of every instruction, saturating at 2.

@@ -1,4 +1,4 @@
-//! Requests whose inverse cannot land (ADR 0024, fix 2). A binary operator
+//! Requests whose inverse cannot land (ADR 0026, fix 2). A binary operator
 //! writes one input and holds the others at their current values. When an
 //! essential cell the request would write also reaches the requested cell
 //! along another path, the held inputs move with the write and the request
@@ -36,7 +36,9 @@ pub enum Finding {
 }
 
 /// For each cell of `asked`, what its inverse runs into, if anything; in
-/// the order of `asked`, at most one finding each (`Twice` first).
+/// the order of `asked`, at most one finding each (`Twice` first). A cell
+/// `held_always` says a constant flag holds (`Program::holds`, ADR 0022)
+/// takes no request, so its inverse writes nothing.
 ///
 /// Each cell's written cells come from one walk down the program, shared
 /// between cells. Paths are counted once per written cell, over the
@@ -50,6 +52,7 @@ pub fn analyze(
     n_cells: usize,
     n_essential: usize,
     asked: &[CellIdx],
+    held_always: &dyn Fn(CellIdx) -> bool,
 ) -> Vec<(CellIdx, Finding)> {
     let mut producer = vec![u32::MAX; n_cells];
     for (i, ins) in instrs.iter().enumerate() {
@@ -82,6 +85,7 @@ pub fn analyze(
         start: &start,
         readers: &readers,
         n_essential,
+        held_always,
     };
 
     // What each asked cell's inverse writes, and the asked cells by what
@@ -193,6 +197,7 @@ struct Graph<'a> {
     start: &'a [u32],
     readers: &'a [u32],
     n_essential: usize,
+    held_always: &'a dyn Fn(CellIdx) -> bool,
 }
 
 impl Graph<'_> {
@@ -225,6 +230,10 @@ impl Graph<'_> {
         while let Some((c, expanded)) = stack.pop() {
             let i = c.index();
             if memo[i].is_some() && !expanded {
+                continue;
+            }
+            if (self.held_always)(c) {
+                memo[i] = Some(Walked::default());
                 continue;
             }
             if i < self.n_essential {

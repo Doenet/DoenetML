@@ -18,11 +18,11 @@ fn empty_boolean_is_false_and_state_an_input_writes() {
     let mut doc = load(r#"<boolean name="b"/><booleanInput name="bi" bindValueTo="$b"/>"#).unwrap();
     assert_eq!(b(&doc, "b"), 0.0);
     assert!(doc.is_essential(doc.cell("b", "value").unwrap()));
-    assert_eq!(doc.rendered_text(doc.component("b").unwrap()), "false");
+    assert_eq!(doc.rendered_text(doc.resolve_path("b").unwrap()), "false");
     let t = set(&mut doc, "bi", "value", 1.0);
     assert!(t.dropped.is_empty());
     assert_eq!(b(&doc, "b"), 1.0);
-    assert_eq!(doc.rendered_text(doc.component("b").unwrap()), "true");
+    assert_eq!(doc.rendered_text(doc.resolve_path("b").unwrap()), "true");
 }
 
 #[test]
@@ -33,7 +33,7 @@ fn update_value_writes_an_empty_boolean() {
     )
     .unwrap();
     assert_eq!(b(&doc, "b"), 0.0);
-    doc.trigger(doc.component("uv").unwrap());
+    doc.trigger(doc.resolve_path("uv").unwrap());
     assert_eq!(b(&doc, "b"), 1.0);
     assert_eq!(reference::check(&doc), None);
 }
@@ -198,9 +198,9 @@ fn a_boolean_drives_a_choice_and_an_answer_does_not_change() {
         <conditionalContent name="cc" condition="$big"><number name="x">7</number></conditionalContent>"#,
     )
     .unwrap();
-    assert_eq!(doc.rendered_text(doc.component("cc").unwrap()), "");
+    assert_eq!(doc.rendered_text(doc.resolve_path("cc").unwrap()), "");
     doc.request(&[req(&doc, "n", "value", 3.0)]);
-    assert_eq!(doc.rendered_text(doc.component("cc").unwrap()), "7");
+    assert_eq!(doc.rendered_text(doc.resolve_path("cc").unwrap()), "7");
 }
 
 #[test]

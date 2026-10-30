@@ -318,7 +318,7 @@ fn a_placed_text_response_renders_its_text() {
 <p name="p1">$a.response</p>"#,
     )
     .unwrap();
-    assert_eq!(doc.rendered_text(doc.component("p1").unwrap()), "hello");
+    assert_eq!(doc.rendered_text(doc.resolve_path("p1").unwrap()), "hello");
 }
 
 // Every form of answer reads a referenced `weight` the same way.
