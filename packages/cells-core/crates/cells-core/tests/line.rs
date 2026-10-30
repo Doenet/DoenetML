@@ -193,3 +193,17 @@ fn a_whole_line_drag_against_a_grid_keeps_the_line_parallel() {
     assert_eq!((v(&doc, "a", "x"), v(&doc, "a", "y")), (4.0, 6.0));
     assert_close!(v(&doc, "b", "x"), 8.1);
 }
+
+/// A line's equation inlines a `<math>` it names whose own text has free
+/// symbols, and a math that math names in turn, wherever the maths are
+/// written: the line reads their source, not their plans (ADR 0029).
+#[test]
+fn line_from_equation_inlines_the_maths_it_names() {
+    let maths = r#"<number name="k">1</number><math name="a">x</math><math name="b">2$a + x - x + $k</math>"#;
+    let line = r#"<graph><line name="l">y = $b</line></graph>"#;
+    for source in [format!("{maths}{line}"), format!("{line}{maths}")] {
+        let doc = load_unpruned(&source).unwrap();
+        assert_close!(v(&doc, "l", "slope"), 2.0);
+        assert_close!(v(&doc, "l", "yintercept"), 1.0);
+    }
+}

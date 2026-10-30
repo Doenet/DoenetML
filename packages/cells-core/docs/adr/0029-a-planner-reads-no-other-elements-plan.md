@@ -1,6 +1,6 @@
 # A planner reads no other element's plan
 
-Status: proposed 2026-10-30. Migration steps 1 and 2 are done. Amends ADR 0027:
+Status: proposed 2026-10-30. Migration steps 1 to 3 are done. Amends ADR 0027:
 its rule for pass 3 (each element planned after the plans it reads)
 gives way to this one (no element reads another's plan).
 
@@ -92,7 +92,8 @@ Each step lands alone, with the golden diff unchanged.
    `Share`, linked by `Compiler::link_shared_state`. A loop of extends
    with attributes is a dependency cycle again, which fails the load.
 3. **Inlining reads the source.** `inline_symbolic_maths` parses the
-   inlined math's children instead of reading its plan.
+   inlined math's children instead of reading its plan. Done; the
+   golden diff is unchanged.
 4. **Plan independently.** Remove the accessors and the `planning` set;
    box an extend of a box in pass 4; drop `box_in_place`'s restart for a
    planned subtree. Test: every test document's siblings shuffled plan

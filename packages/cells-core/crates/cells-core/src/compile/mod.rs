@@ -116,9 +116,6 @@ pub(in crate::compile) struct Compiler<'a> {
     /// failure cannot be boxed in place (`box_in_place`); every failure
     /// after it passes through to the end of the compile.
     pub(in crate::compile) failed_node: Option<NodeId>,
-    /// The error of that failure, when what met it could not pass it on
-    /// (the math inliner).
-    restart: Option<Error>,
     /// Elements boxed where they failed, with their errors (ADR 0027).
     errors: Vec<Diagnostic>,
     boxed_here: HashSet<NodeId>,
@@ -271,7 +268,6 @@ impl<'a> Compiler<'a> {
             string_ids: None,
             boxed,
             failed_node: None,
-            restart: None,
             errors: Vec::new(),
             boxed_here: HashSet::new(),
             cloned_sources: HashSet::new(),
@@ -393,9 +389,6 @@ impl<'a> Compiler<'a> {
                 Some(e) => cp.compiled.templates[t.index()].elems[e.index()].children[i] = child,
                 None => cp.compiled.templates[t.index()].children[i] = child,
             }
-        }
-        if let Some(error) = cp.restart.take() {
-            return Err(error);
         }
         // What needs every plan (pass 4): the links between plans, then
         // what reads the plans, the source and the name table alone.
@@ -925,16 +918,6 @@ impl<'a> Compiler<'a> {
             // Boxed where it fails, and what reads it reads the box.
             Err(error) => self.box_in_place(t, e, error),
         }
-    }
-
-    /// Element `e` as planned: the one way a planner reads what another
-    /// element's planning made (its shared state, the inlined expression
-    /// of a `<math>`, a container copy's clones), so the order elements
-    /// are planned in is that of what reads what, never the document's
-    /// (ADR 0027). One not yet planned is planned first.
-    pub(in crate::compile) fn planned_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
-        self.plan_elem(t, e)?;
-        Ok(&self.compiled.templates[t.index()].elems[e.index()])
     }
 
     /// Element `e` with its type, body and children as planning settles

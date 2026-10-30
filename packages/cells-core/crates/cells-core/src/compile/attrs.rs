@@ -522,12 +522,21 @@ impl<'a> Compiler<'a> {
     }
 
     /// Replace cell leaves that name a `<math>` element of this template
-    /// with that math's own expression when it has free symbols.
+    /// with that math's own expression when it has free symbols. The
+    /// expression is parsed from the math's source, its `$ref`s planned
+    /// where the math sits, as its planner would: no other element's plan
+    /// is read (ADR 0029).
     pub(in crate::compile) fn inline_symbolic_maths(
         &mut self,
         t: TemplateId,
         id: ExprId,
     ) -> ExprId {
+        self.inline_maths(t, id, &mut Vec::new())
+    }
+
+    /// `inline_symbolic_maths`, with the maths being inlined around `id`:
+    /// one reached again (two maths naming each other) is left a cell.
+    fn inline_maths(&mut self, t: TemplateId, id: ExprId, inlining: &mut Vec<ElemId>) -> ExprId {
         let e = self.compiled.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
@@ -536,45 +545,46 @@ impl<'a> Compiler<'a> {
                 let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
                 };
-                if self.compiled.templates[t.index()].elems[target.index()].component_type
-                    != ComponentType::Math
+                let Elem {
+                    node,
+                    name_scope,
+                    component_type,
+                    ..
+                } = self.compiled.templates[t.index()].elems[target.index()];
+                if component_type != ComponentType::Math
+                    || node == NodeId::NONE
+                    || inlining.contains(&target)
                 {
                     return id;
                 }
-                // A math already being planned (two maths naming each
-                // other, a cycle the build reports) is left a cell, and so
-                // is one that failed, now a box.
-                if let Err(error) = self.planned_elem(t, target) {
-                    if self.failed_node.is_some() {
-                        self.restart.get_or_insert(error);
-                    }
+                // A math that does not parse is left a cell: its error is
+                // its own, reported when it is planned.
+                let nodes = self.dast.children(node).to_vec();
+                let Ok(inner) = self
+                    .math_tokens(t, name_scope, &nodes)
+                    .and_then(|(toks, text)| self.parse_tokens(&toks, &text))
+                else {
+                    return id;
+                };
+                let mut syms = Vec::new();
+                self.compiled.arena.symbols(inner, &mut syms);
+                if syms.is_empty() {
                     return id;
                 }
-                match self.compiled.templates[t.index()].elems[target.index()]
-                    .props
-                    .get(prop::math::EXPR)
-                {
-                    Some(Source::MathHandle(inner, _)) => {
-                        let inner = *inner;
-                        let mut syms = Vec::new();
-                        self.compiled.arena.symbols(inner, &mut syms);
-                        if syms.is_empty() {
-                            return id;
-                        }
-                        self.inline_symbolic_maths(t, inner)
-                    }
-                    _ => id,
-                }
+                inlining.push(target);
+                let inlined = self.inline_maths(t, inner, inlining);
+                inlining.pop();
+                inlined
             }
             Expr::Num(_) | Expr::Sym(_) => id,
             Expr::Neg(a) => {
-                let a = self.inline_symbolic_maths(t, a);
+                let a = self.inline_maths(t, a, inlining);
                 self.compiled.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.inline_symbolic_maths(t, a))
+                    .map(|a| self.inline_maths(t, a, inlining))
                     .collect();
                 self.compiled.arena.push(Expr::Call(f, args))
             }
@@ -584,8 +594,8 @@ impl<'a> Compiler<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.inline_symbolic_maths(t, a),
-                    self.inline_symbolic_maths(t, b),
+                    self.inline_maths(t, a, inlining),
+                    self.inline_maths(t, b, inlining),
                 );
                 self.compiled.arena.push(e.with_operands(na, nb))
             }
