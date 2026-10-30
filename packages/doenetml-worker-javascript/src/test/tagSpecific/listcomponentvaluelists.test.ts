@@ -992,6 +992,51 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("a named child of a list written with extend or copy is reached through an extend of the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <math name="m">$mi</math>
+    <p name="before">$e.h $e.k $E.pl.h</p>
+    <mathList name="l"><math name="h" extend="$m" /><math name="k" copy="$m" /> 2</mathList>
+    <mathList name="e" extend="$l" />
+    <p name="P"><mathList name="pl"><math name="h" extend="$m" /></mathList></p>
+    <p name="E" extend="$P" />
+    <p name="after">$e.h $e.k $E.pl.h</p>
+    <p name="lists">$e | $E.pl</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "before",
+                "after",
+                "lists",
+            ]),
+        ).eqls({
+            before: "x x x",
+            after: "x x x",
+            lists: "x, x, 2 | x",
+        });
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "before",
+                "after",
+                "lists",
+            ]),
+        ).eqls({
+            before: "y y y",
+            after: "y y y",
+            lists: "y, y, 2 | y",
+        });
+    });
+
     it("a list that copies itself loads and reports the cycle", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

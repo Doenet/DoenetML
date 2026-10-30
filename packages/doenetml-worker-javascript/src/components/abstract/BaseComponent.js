@@ -1433,7 +1433,9 @@ export default class BaseComponent {
 
     /**
      * Whether a name is given to one of this component's defining children
-     * or anything beneath them. The `_copy` that fills a list written with
+     * or anything beneath them, also to a child written with `extend` or
+     * `copy` (`<math name="h" extend="$m"/>`), whose `_copy` passes its name
+     * on (`_createComponentName`). The `_copy` that fills a list written with
      * `extend` or `copy` (`forList`) counts as holding one, as the copy of
      * the list it makes may hold the names of that list's children
      * (`$E.e.h` for an `<mathList name="e" extend="$l"/>` in `E`'s source).
@@ -1447,6 +1449,7 @@ export default class BaseComponent {
             typeof component === "object" &&
             component !== null &&
             (component.attributes?.name !== undefined ||
+                component.attributes?._createComponentName !== undefined ||
                 (component.componentType === "_copy" &&
                     component.doenetAttributes?.forList !== undefined) ||
                 component.definingChildren?.some(holdsAName));
