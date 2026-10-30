@@ -76,7 +76,7 @@ fn check(doc: &Document, at: &str) -> usize {
 }
 
 /// What a cell depends on is defined once (`Program::needs`, and in the
-/// build `classes::Def`), and every build holds to it: what is live is
+/// build `slot_cells::Def`), and every build holds to it: what is live is
 /// closed under what it needs, a cell's hold flags included, and a cell a
 /// constant flag holds takes no request. Returns how many requests it
 /// tried on such cells.

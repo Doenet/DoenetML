@@ -121,17 +121,18 @@ draw for every select.
   binds operators to them as instructions. A value slot (a literal or a
   default) is essential only when a student's action can write it (ADR
   0018): `build/writable.rs` walks back from every input prop to where a
-  request on each class goes. Both walks read a class only through its
-  definition (`build/classes.rs`), which defines a class's two relations
-  once: what it needs (what its source reads, and the flags that hold it)
-  and where a request on it goes (what its inverse may write, nowhere past
-  a constant hold). `Program::needs` is the first over cells. The probe runs the walk and records the
-  writable template slots in `Compiled` (a `Record`), and every build
+  request on each cell goes. Both walks read the cells the slots will make
+  (`SlotCells`, `build/slot_cells.rs`) only through a cell's definition
+  (`Def`), which defines its two relations once: what it needs (what its
+  source reads, and the flags that hold it) and where a request on it goes
+  (what its inverse may write, nowhere past a constant hold).
+  `Program::needs` is the first over the cells a build made. The probe
+  runs the walk and records the writable template slots in `Compiled` (a `Record`), and every build
   classes by that record, so a slot's class is the same in every build. A
   class is computed only when it is live (ADR 0019): `build/live.rs`
   walks back from every root (the rendered props of rendered components,
   scores, inputs, what an action or snapping reads, repeat counts)
-  through what each class needs. The probe records the live
+  through what each cell needs. The probe records the live
   template slots in `Compiled::live` as it records the writable ones; a
   class the record cannot name (a synthesized component's, such as a
   choice's interface) is live when something live reads it. A dead class

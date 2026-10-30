@@ -12,8 +12,9 @@ impl<'c> Builder<'c> {
                 uf.union(SlotId::from_index(s), *t);
             }
         }
-        // The one non-alias slot in each class defines its cell.
-        let mut class_def: Vec<SlotId> = vec![SlotId::NONE; n];
+        // The one non-alias slot of each cell's slots defines it; a cell
+        // is named here by its slots' root.
+        let mut def: Vec<SlotId> = vec![SlotId::NONE; n];
         for (s, src) in self.sources.iter().enumerate() {
             match src {
                 BuiltSource::Alias(_) => {}
@@ -23,21 +24,19 @@ impl<'c> Builder<'c> {
                 ),
                 _ => {
                     let root = uf.find(SlotId::from_index(s)).index();
-                    debug_assert!(class_def[root].is_none(), "two sources in one alias class");
-                    class_def[root] = SlotId::from_index(s);
+                    debug_assert!(def[root].is_none(), "two sources in one cell");
+                    def[root] = SlotId::from_index(s);
                 }
             }
         }
 
-        // Number cells: essential classes first, then fixed, then derived.
-        // Essential values come from the previous build when the slot existed.
-        let roots: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
-        // A class of aliases with no definer is a loop of aliases. When the
+        let cell_of: Vec<SlotId> = SlotId::below(n).map(|s| uf.find(s)).collect();
+        // A cell of aliases with no definer is a loop of aliases. When the
         // view folds iterations it may be a recurrence folded onto itself,
         // which the cycle check has judged; it becomes a constant here.
-        for (s, &root) in roots.iter().enumerate() {
+        for (s, &root) in cell_of.iter().enumerate() {
             let root = root.index();
-            if class_def[root] == SlotId::NONE {
+            if def[root] == SlotId::NONE {
                 if !self.view.folds_iterations() {
                     return Err(Failure {
                         error: Error::Cycle(self.slot_label(SlotId::from_index(s))),
@@ -45,10 +44,12 @@ impl<'c> Builder<'c> {
                     });
                 }
                 self.sources[s] = BuiltSource::Fixed(f64::NAN);
-                class_def[root] = SlotId::from_index(s);
+                def[root] = SlotId::from_index(s);
             }
         }
-        let classes = Classes::new(&self, &roots, &class_def);
+        let slot_cells = SlotCells::new(&self, cell_of, def);
+        // Number cells: essential first, then fixed, then derived.
+        // Essential values come from the previous build when the slot existed.
         // A value slot is essential when a student's action can write it,
         // and fixed otherwise (ADR 0018): the probe finds them by its walk
         // and records them by template slot, and every other build reads
@@ -56,7 +57,7 @@ impl<'c> Builder<'c> {
         // the classing off (no record), every value slot is essential.
         let folds = self.view.folds_iterations();
         let (essential, record): (Vec<bool>, Record) = if folds {
-            let writable = self.writable_slots(&classes);
+            let writable = self.writable_slots(&slot_cells);
             let record = self.record_of(&writable);
             (writable, record)
         } else {
@@ -68,22 +69,22 @@ impl<'c> Builder<'c> {
             };
             (essential, Record::default())
         };
-        // Which classes the document computes (ADR 0019), the same way:
+        // Which cells the document computes (ADR 0019), the same way:
         // the probe walks and records, every other build reads the record.
         let (live_slot, live_record): (Vec<bool>, Record) = if folds {
-            let live = self.live_slots(&classes);
+            let live = self.live_slots(&slot_cells);
             let record = self.record_of(&live);
             (live, record)
         } else {
-            let live = self.live_by_record(&self.compiled.live, &classes);
+            let live = self.live_by_record(&self.compiled.live, &slot_cells);
             (live, Record::default())
         };
         // What this build's own walks find, whatever the record says: what
         // the record is checked against (`tests/live.rs`, `every_count.rs`).
         #[cfg(feature = "testing")]
-        let walked_slot = self.live_slots(&classes);
+        let walked_slot = self.live_slots(&slot_cells);
         #[cfg(feature = "testing")]
-        let walked_writable = self.writable_slots(&classes);
+        let walked_writable = self.writable_slots(&slot_cells);
         // A dead class gets no cell (ADR 0019): its slots name the one dead
         // cell. Not in the probe, whose build is not kept, nor where the
         // load asked for every cell (`LoadOptions::prune`). An essential
@@ -105,10 +106,12 @@ impl<'c> Builder<'c> {
         let mut counts = [0usize; 4];
         let mut n_cells = 0;
         let mut any_dead = false;
-        for (s, &root) in roots.iter().enumerate() {
-            if class_def[root.index()].index() == s && pruned(s) {
+        for slot in SlotId::below(n) {
+            let s = slot.index();
+            let defines = slot_cells.defines(slot);
+            if defines && pruned(s) {
                 any_dead = true;
-            } else if class_def[root.index()].index() == s {
+            } else if defines {
                 let (kind, n_out) = match &self.sources[s] {
                     BuiltSource::Literal(_) if essential[s] => (0, 1),
                     BuiltSource::Literal(_) => (1, 1),
@@ -138,11 +141,12 @@ impl<'c> Builder<'c> {
         let mut dead_defs = Vec::new();
         #[cfg(feature = "testing")]
         let mut walked_essential_slots = Vec::new();
-        for (s, &root) in roots.iter().enumerate() {
-            let root = root.index();
-            if class_def[root].index() != s {
-                continue; // not the defining slot of its class
+        for slot in SlotId::below(n) {
+            let s = slot.index();
+            if !slot_cells.defines(slot) {
+                continue; // not the defining slot of its cell
             }
+            let root = slot_cells.cell_of(slot).index();
             if pruned(s) {
                 dead_defs.push(s);
                 continue;
@@ -184,7 +188,7 @@ impl<'c> Builder<'c> {
             cells.push(f64::NAN);
             cell_def_slot.push(SlotId::from_index(dead_defs[0]));
             for &s in &dead_defs {
-                slot_cell[roots[s].index()] = dead;
+                slot_cell[slot_cells.cell_of(SlotId::from_index(s)).index()] = dead;
             }
             dead
         });
@@ -193,7 +197,7 @@ impl<'c> Builder<'c> {
             let (BuiltSource::Fixed(v) | BuiltSource::Literal(v)) = self.sources[s] else {
                 unreachable!()
             };
-            let root = roots[s].index();
+            let root = slot_cells.cell_of(SlotId::from_index(s)).index();
             slot_cell[root] = CellIdx::from_index(cells.len());
             cells.push(v);
             cell_def_slot.push(SlotId::from_index(s));
@@ -201,7 +205,7 @@ impl<'c> Builder<'c> {
         let n_fixed = fixed_defs.len() + dead_cell.is_some() as usize;
         // A vector instruction's outputs are consecutive cells after its head.
         for &s in &derived_defs {
-            let root = roots[s].index();
+            let root = slot_cells.cell_of(SlotId::from_index(s)).index();
             slot_cell[root] = CellIdx::from_index(cells.len());
             let n_out = match self.sources[s] {
                 BuiltSource::Op(spec, ..) => spec.n_out(),
@@ -216,9 +220,10 @@ impl<'c> Builder<'c> {
             let BuiltSource::VecOut(head, k) = self.sources[s] else {
                 unreachable!()
             };
-            let head_cell = slot_cell[roots[head.index()].index()];
+            let head_cell = slot_cell[slot_cells.cell_of(head).index()];
             debug_assert!(head_cell != CellIdx::NONE, "vector output before its head");
-            slot_cell[roots[s].index()] = head_cell.offset(k as usize);
+            slot_cell[slot_cells.cell_of(SlotId::from_index(s)).index()] =
+                head_cell.offset(k as usize);
             cell_def_slot[(head_cell.offset(k as usize)).index()] = SlotId::from_index(s);
         }
         debug_assert_eq!(cells.len(), n_cells);
@@ -236,18 +241,20 @@ impl<'c> Builder<'c> {
             #[cfg(feature = "testing")]
             walked: live_bits(&walked_slot),
         };
-        let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r.index()]).collect();
-        // The live walk follows what a class needs, so a live class needs
-        // no dead one; the record, made from the probe's walk, keeps that
+        let slot_to_cell: Vec<CellIdx> = SlotId::below(n)
+            .map(|s| slot_cell[slot_cells.cell_of(s).index()])
+            .collect();
+        // The live walk follows what a cell needs, so a live cell needs no
+        // dead one; the record, made from the probe's walk, keeps that
         // in every build (`tests/live.rs`). A build that breaks it would
         // compute from NaN, or hold a cell by a flag never computed, so it
         // fails instead.
         if let Some(dead) = dead_cell {
             for s in SlotId::below(n) {
-                if classes.def[roots[s.index()].index()] != s || pruned(s.index()) {
+                if !slot_cells.defines(s) || pruned(s.index()) {
                     continue;
                 }
-                let def = classes.def_of(&self, s, &self.sources[s.index()]);
+                let def = slot_cells.def_of(&self, s, &self.sources[s.index()]);
                 if let Some(needed) = def.needs().find(|n| slot_to_cell[n.index()] == dead) {
                     return Err(Failure {
                         error: Error::Unchecked(format!(
@@ -273,7 +280,7 @@ impl<'c> Builder<'c> {
             &mut cells,
             &mut essential_defaults,
             &slot_to_cell,
-            |s| class_def[roots[s.index()].index()],
+            |s| slot_cells.def(slot_cells.cell_of(s)),
             dead_cell,
         )
         .map_err(|error| Failure {
@@ -704,7 +711,7 @@ fn cell_leaves(t: &Tree<CellIdx>, out: &mut Vec<CellIdx>) {
     });
 }
 
-/// Alias classes of slots.
+/// The union-find that merges aliased slots into the cells they share.
 struct UnionFind {
     parent: Vec<SlotId>,
 }
