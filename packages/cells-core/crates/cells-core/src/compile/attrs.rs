@@ -115,6 +115,7 @@ impl<'a> Compiler<'a> {
                         ComponentType::Document
                             | ComponentType::Section
                             | ComponentType::MathInput
+                            | ComponentType::ChoiceInput
                             | ComponentType::FunctionIterates
                             | ComponentType::SelectFromSequence
                     ) =>

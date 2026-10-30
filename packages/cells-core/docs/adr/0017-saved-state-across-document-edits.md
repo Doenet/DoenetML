@@ -429,7 +429,8 @@ session generator can start after 3.
    `xmax`, `ymin` and `ymax`, for pan and zoom; the `value` of a
    `numberInput`, `booleanInput`, `textInput` and `slider` (computed,
    inverting onto `preliminaryValue`); a `mathInput`'s `expr` and, when
-   bound to a number, `value`; a `choiceInput`'s `selectedIndex`; a
+   bound to a number, `value`; a `choiceInput`'s `selectedIndex`
+   (computed, inverting onto `preliminaryIndex`); a
    `hint`'s `open`; an `updateValue`'s `target`, which a `triggerSet`
    requests; and what a submit writes (`Document::submit_requests`): an
    answer's `submitted` and `numSubmissions` and a response's

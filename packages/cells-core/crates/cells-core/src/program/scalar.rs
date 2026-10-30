@@ -55,6 +55,15 @@ fn nan_max(a: f64, b: f64) -> f64 {
     }
 }
 
+#[inline(always)]
+fn choice_index(a: f64, n: f64) -> f64 {
+    if a.fract() == 0.0 && a >= 1.0 && a <= n {
+        a
+    } else {
+        0.0
+    }
+}
+
 /// The input an inverse writes: every scalar operator writes its first.
 const A: usize = 0;
 
@@ -121,6 +130,14 @@ scalar_ops! {
     Clamp(a; lo, hi) samples [{ lo: 0.0, hi: 1.0 }, { lo: -2.5, hi: 4.0 }] {
         eval: a.clamp(lo, hi),
         projection |d| Some((A, d.clamp(lo, hi))),
+    }
+    /// `a` when it is a whole number from 1 to `n`, else 0: a choice
+    /// index, 0 meaning none is chosen. A request outside that set
+    /// (NaN, a fraction, out of range) chooses none, as the current
+    /// core's `selectedIndices` inverse does.
+    ChoiceIndex(a; n) samples [{ n: 3.0 }, { n: 0.0 }] {
+        eval: choice_index(a, n),
+        projection |d| Some((A, choice_index(d, n))),
     }
     /// `a` unless it is NaN, then the literal: `valueOnNaN` with a
     /// constant. A NaN ask has no inverse: it would be asking for the

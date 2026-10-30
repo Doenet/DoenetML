@@ -397,6 +397,10 @@ impl<'a> Signer<'a> {
             Op::Sym(SymKind::SampleTape { tape }, ..) => {
                 hash_of(("tape", format!("{:?}", self.out.tapes[tape as usize])))
             }
+            // Its count of choices is the input's domain, which condition 1
+            // compares: appending a choice keeps every index a student
+            // could have chosen.
+            Op::ChoiceIndex(..) => hash_of("choiceIndex"),
             op => hash_of(format!("{:?}", op.unbound())),
         }
     }
