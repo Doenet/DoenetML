@@ -1037,6 +1037,41 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
+    it("a name beneath an unnamed child, in a repeat or in a nested list is reached through an extend of the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <mathList name="l">
+      <group><math name="h">$mi</math></group>
+      <repeat name="r" for="1 2" valueName="v"><math name="k">$v$mi</math></repeat>
+      <mathList name="inner"><math name="j">2$mi</math> 3</mathList>
+    </mathList>
+    <mathList name="e" extend="$l" />
+    <p name="p">$e.h | $e.r[2].k | $e.inner.j | $e</p>
+    `,
+        });
+
+        for (const path of ["e.h", "e.r[2].k", "e.inner.j"]) {
+            const idx = await resolvePathToNodeIdx(path);
+            expect(idx, path).not.eq(-1);
+            expect(idx, path).not.eq(
+                await resolvePathToNodeIdx(path.replace(/^e/, "l")),
+            );
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "x | 2 x | 2 x | x, 1 x, 2 x, 2 x, 3",
+        });
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "y | 2 y | 2 y | y, 1 y, 2 y, 2 y, 3",
+        });
+    });
+
     it("a list that copies itself loads and reports the cycle", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

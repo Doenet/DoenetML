@@ -1438,10 +1438,10 @@ export default class BaseComponent {
      * on (`_createComponentName`). The `_copy` that fills a list written with
      * `extend` or `copy` (`forList`) counts as holding one, as the copy of
      * the list it makes may hold the names of that list's children
-     * (`$E.e.h` for an `<mathList name="e" extend="$l"/>` in `E`'s source).
+     * (`$E.e.h` for a `<mathList name="e" extend="$l"/>` in `E`'s source).
      * Whether it does is not read from what it made, as it may not have
      * expanded yet, and the answer must not depend on when it is asked: a
-     * shadow is made with the children that the copy holding it was
+     * shadow must be made with the same children as the copy holding it
      * (`namesReachedThroughCopy`, `utils/copy.js`).
      */
     childrenHoldAName() {
