@@ -94,7 +94,15 @@ Runs once per load and depends on the source alone.
   plan names an
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
-  (see [Add a component type](#add-a-component-type)).
+  (see [Add a component type](#add-a-component-type)). Planning runs in
+  passes (ADR 0027): the walk makes every element and the name table and
+  settles what a reference reads of each (a `<math>`'s type, a
+  `<collect>`'s), container copies get their clones, every element is
+  planned, and the plans are linked and finished. A planner reads the
+  source and what the walk made, never another element's plan (ADR
+  0029), so elements are planned in any order: what one shares with
+  another (an extend's essential state) is a link made once all are
+  planned.
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
   can have. It builds the plans once through the **probe**
   (`build/probe.rs`), which folds every iteration into one and builds

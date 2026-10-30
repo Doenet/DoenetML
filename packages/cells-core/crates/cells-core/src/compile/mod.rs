@@ -24,10 +24,13 @@
 //! lists. What compile produces is in `plan.rs`.
 //!
 //! The planning runs in passes (ADR 0027): pass 1 walks the DAST into
-//! elements and the name table, then expands container copies; pass 3
-//! plans every element after the plans it reads (`planned_elem`), and
-//! references as planners ask for them; pass 4 (`finish.rs`) needs every
-//! plan. An element that fails in pass 1 or 3 is boxed where it fails.
+//! elements and the name table, settles what references read of each
+//! (a math's type, a collect's), then expands container copies; pass 3
+//! plans every element from those and the source alone, never from
+//! another element's plan (ADR 0029), and references as planners ask
+//! for them; pass 4 links the plans (an extend of a box is boxed, shared
+//! state is linked), then `finish.rs` needs every plan. An element that
+//! fails is boxed where it fails.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
@@ -131,22 +134,14 @@ pub(in crate::compile) struct Compiler<'a> {
     /// those done: one reached again while it expands is a cycle.
     expanding: HashSet<(u32, u32)>,
     expanded: HashSet<(u32, u32)>,
-    /// Whether pass 1 is still running: nothing is planned then, and what
-    /// reads a container copy's children expands it.
-    in_pass1: bool,
     /// The name table, pass 1's.
     names: NameTable,
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
-    /// By (template, element), the elements `plan_elem` has planned: one
-    /// planned ahead of its turn, because another element's planning read
-    /// its plan (`planned_elem`), is not planned twice.
-    planned: HashSet<(u32, u32)>,
-    /// By (template, element), the elements `plan_elem` is planning now:
-    /// one reached again while it plans is a cycle in what reads whose
-    /// plan (ADR 0027), an error on the element.
-    planning: HashSet<(u32, u32)>,
+    /// Every extend pass 3 planned, with its reference: pass 4 boxes one
+    /// whose referent is a box (`box_extends_of_boxes`).
+    extends: Vec<(TemplateId, ElemId, RefId)>,
 }
 
 /// A piece of essential state copy `e` shares with its referent (ADR
@@ -275,11 +270,9 @@ impl<'a> Compiler<'a> {
             container_copies: Vec::new(),
             expanding: HashSet::new(),
             expanded: HashSet::new(),
-            in_pass1: true,
             names: NameTable::default(),
             shared_state: HashMap::new(),
-            planned: HashSet::new(),
-            planning: HashSet::new(),
+            extends: Vec::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -354,7 +347,6 @@ impl<'a> Compiler<'a> {
         // Every name is in the table now: container copies get their
         // clones, which completes the element set (pass 1).
         cp.expand_container_copies()?;
-        cp.in_pass1 = false;
         // Plan every element and macro child (pass 3).
         for (t, e) in std::mem::take(&mut cp.pending_elems) {
             cp.plan_elem(t, e)?;
@@ -392,6 +384,7 @@ impl<'a> Compiler<'a> {
         }
         // What needs every plan (pass 4): the links between plans, then
         // what reads the plans, the source and the name table alone.
+        cp.box_extends_of_boxes()?;
         cp.link_shared_state();
         let finished = finish::Finish {
             compiled: &mut cp.compiled,
@@ -422,29 +415,27 @@ impl<'a> Compiler<'a> {
     /// Box element `e` where it failed (ADR 0027): it becomes an `_error`
     /// element keeping its name, everything under it (its children, the
     /// templates of its repeats and choices) is dead, and the compile goes
-    /// on. When something already read what is under it (planned it, or
-    /// cloned it into a container copy), or `e` has no node to carry the
-    /// error, it cannot be boxed here: the error passes on, `e`'s node to
-    /// be boxed before compiling again.
+    /// on. No plan reads another's (ADR 0029), so whatever was planned
+    /// under it is dropped unread. But a container copy that cloned what
+    /// is under it took its type, and an element with no node has nowhere
+    /// to carry the error: then it cannot be boxed here, and the error
+    /// passes on, `e`'s node to be boxed before compiling again.
     fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) -> Result<()> {
         let node = self.compiled.templates[t.index()].elems[e.index()].node;
         if node == NodeId::NONE {
             return Err(error);
         }
         let doomed = self.subtree(t, e);
-        let read = doomed.iter().any(|&(dt, de)| {
-            let k = (dt.get(), de.get());
-            self.cloned_sources.contains(&k)
-                || ((dt, de) != (t, e) && (self.planned.contains(&k) || self.planning.contains(&k)))
-        });
-        if read {
+        let cloned = doomed
+            .iter()
+            .any(|&(dt, de)| self.cloned_sources.contains(&(dt.get(), de.get())));
+        if cloned {
             self.fail_at(node);
             return Err(error);
         }
         self.errors.push(Diagnostic::error(Some(node), &error));
         self.boxed_here.insert(node);
         for (dt, de) in doomed {
-            self.planned.insert((dt.get(), de.get()));
             let el = &mut self.compiled.templates[dt.index()].elems[de.index()];
             el.component_type = ComponentType::Error;
             el.props = Vec::new();
@@ -884,74 +875,64 @@ impl<'a> Compiler<'a> {
         Ok(kids)
     }
 
-    /// Plans element `e`, and records what holds it (`plan_hold`, ADR
-    /// 0022) beside its plans. Every element is planned here and nowhere
-    /// else, so `fixed` holds whatever planned it: no planner applies it,
-    /// and none can leave it out. An element already planned is left as
-    /// it is; one reached again while it is being planned (an extend of
-    /// itself, two maths each reading the other's type) is a cycle.
+    /// Plans element `e` (pass 3), and records what holds it (`plan_hold`,
+    /// ADR 0022) beside its plans. Every element is planned here and
+    /// nowhere else, so `fixed` holds whatever planned it: no planner
+    /// applies it, and none can leave it out. A planner reads the source,
+    /// the name table and what pass 1 made, never another element's plan
+    /// (ADR 0029), so elements are planned in any order, each once.
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let key = (t.get(), e.get());
-        if self.planned.contains(&key) {
-            return Ok(());
-        }
-        // A box from pass 1 is planned as it is.
+        // A box, from pass 1 or boxed in place, is planned as it is.
         if self.is_box(t, e) {
-            self.planned.insert(key);
             return Ok(());
-        }
-        if !self.planning.insert(key) {
-            return Err(Error::Cycle(self.elem_label(t, e)));
         }
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             let hold = self.plan_hold(t, e)?;
             self.compiled.templates[t.index()].elems[e.index()].hold = hold;
             Ok(())
         });
-        self.planning.remove(&key);
         match r {
-            Ok(()) => {
-                self.planned.insert(key);
-                Ok(())
-            }
+            Ok(()) => Ok(()),
             Err(error) if self.failed_node.is_some() => Err(error),
-            // Boxed where it fails, and what reads it reads the box.
+            // Boxed where it fails; what reads it reads the box.
             Err(error) => self.box_in_place(t, e, error),
         }
     }
 
-    /// Element `e` with its type, body and children as planning settles
-    /// them, for what reads only those (a reference's path, an extend's
-    /// referent type): `planned_elem` for an element whose planning
-    /// changes them (`settles_in_planning`), else the element as it is.
-    /// Reading another element's values is no read of its plan, so a
-    /// cycle of values (`$a.x` in `b`, `$b.x` in `a`) plans in any order
-    /// and is the build's to report.
-    pub(in crate::compile) fn settled_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
+    /// Element `e` as pass 1 shapes it: a container copy with its clones,
+    /// which a copy of it, or a path through it, reads while pass 1
+    /// expands copies. After pass 1, the element as it is.
+    pub(in crate::compile) fn shaped_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
         if self.is_container_copy(t, e) {
             self.expand_container_copy(t, e)?;
-        } else if !self.in_pass1 && self.settles_in_planning(t, e) {
-            self.plan_elem(t, e)?;
         }
         Ok(&self.compiled.templates[t.index()].elems[e.index()])
     }
 
-    /// Whether planning `e` changes what a reference to it reads: a
-    /// `<math>` may become a point or a tuple (`PlanCtx::set_type`), and
-    /// so may a clone of one; a `<collect>` or a `<polyline>` becomes a
-    /// collect, and a `<pointList>` may become an extend of a list. A
-    /// container copy has its clones from pass 1 (`expand_container_copy`).
-    fn settles_in_planning(&self, t: TemplateId, e: ElemId) -> bool {
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
-        if el.node == NodeId::NONE && !el.cloned {
-            return false;
-        }
-        match el.component_type {
-            ComponentType::Math => true,
-            ComponentType::Collect | ComponentType::Polyline | ComponentType::PointList => {
-                !el.cloned
+    /// Pass 4's first step (ADR 0029): an extend whose referent is a box
+    /// is planned from nothing, so it is boxed in turn, its referent's
+    /// box the cause, whether the referent was boxed before the extend
+    /// was planned or after. A copy of a copy of a box is boxed too.
+    fn box_extends_of_boxes(&mut self) -> Result<()> {
+        loop {
+            let mut boxed_one = false;
+            for i in 0..self.extends.len() {
+                let (t, e, p) = self.extends[i];
+                if self.is_box(t, e) {
+                    continue;
+                }
+                let Some((rt, r)) = self.static_target(t, p) else {
+                    continue;
+                };
+                if self.is_box(rt, r) {
+                    let display = self.compiled.refs[p.index()].display.clone();
+                    self.box_in_place(t, e, Error::BoxedReferent(display))?;
+                    boxed_one = true;
+                }
             }
-            _ => false,
+            if !boxed_one {
+                return Ok(());
+            }
         }
     }
 
@@ -971,15 +952,6 @@ impl<'a> Compiler<'a> {
             // Every public prop aliases the original's; nothing else to
             // plan.
             ElemShape::Cloned => {
-                // Of its original's type as planning settles it (a clone
-                // of a `<math>` that is a point is a point).
-                let p = self.compiled.templates[t.index()].elems[e.index()]
-                    .extend
-                    .expect("a clone extends its original");
-                if let Some(o) = self.plan_elem_target(t, p) {
-                    let k = self.settled_elem(t, o)?.component_type;
-                    self.compiled.templates[t.index()].elems[e.index()].component_type = k;
-                }
                 self.plan_bare_copy(t, e);
                 Ok(())
             }
@@ -1026,8 +998,10 @@ impl<'a> Compiler<'a> {
                     text: self.attr_text(a).unwrap_or_default(),
                 })?;
                 let p = self.plan_ref(t, scope, m)?;
+                self.extends.push((t, e, p));
                 // An extend of a box is planned from nothing: it is boxed
-                // in turn, its referent's box the cause (ADR 0027).
+                // in turn, its referent's box the cause (ADR 0027). One
+                // boxed after this is planned, pass 4 boxes.
                 if self.ref_target_type(t, p)? == Some(ComponentType::Error) {
                     return Err(Error::BoxedReferent(
                         self.compiled.refs[p.index()].display.clone(),

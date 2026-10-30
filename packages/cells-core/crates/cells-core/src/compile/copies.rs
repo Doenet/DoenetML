@@ -130,7 +130,7 @@ impl<'a> Compiler<'a> {
             .plan_elem_target(t, p)
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
         // A referent that is itself a copy has its clones first.
-        self.settled_elem(t, r)?;
+        self.shaped_elem(t, r)?;
         if self.is_box(t, r) {
             return Err(Error::BoxedReferent(
                 self.compiled.refs[p.index()].display.clone(),
@@ -159,11 +159,9 @@ impl<'a> Compiler<'a> {
         for ch in kids {
             match ch {
                 Child::Elem(c) => {
-                    // A copy among the children has its clones first. What
-                    // planning settles is not known yet: a clone of a
-                    // `<math>` takes its type when planned, and a
-                    // `<collect>` or `<polyline>` is refused by its type.
-                    let el = self.settled_elem(t, c)?;
+                    // A copy among the children has its clones first; a
+                    // clone takes the type pass 1 settled for its original.
+                    let el = self.shaped_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
                     self.cloned_sources.insert((t.get(), c.get()));

@@ -440,3 +440,31 @@ fn a_maths_settled_type_agrees_with_its_plan() {
         );
     }
 }
+
+/// An extend of an element that fails while planning is boxed in pass 4
+/// with the referent as its cause, whichever is written first: planning
+/// needs no order (ADR 0029).
+#[test]
+fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
+    let p = r#"<point name="P" x="$nope" y="1"/>"#;
+    let q = r#"<point name="Q" extend="$P" x="2"/>"#;
+    let r = r#"<point name="R" extend="$Q"/>"#;
+    for src in [
+        format!("<graph>{p}{q}{r}</graph>"),
+        format!("<graph>{r}{q}{p}</graph>"),
+    ] {
+        let doc = load(&src).unwrap();
+        let mut codes: Vec<_> = errors(doc.diagnostics()).iter().map(|d| d.code).collect();
+        codes.sort();
+        assert_eq!(
+            codes,
+            [
+                "cells-boxed-referent",
+                "cells-boxed-referent",
+                "doenet-w0104"
+            ],
+            "{src}"
+        );
+        assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()), "{src}");
+    }
+}

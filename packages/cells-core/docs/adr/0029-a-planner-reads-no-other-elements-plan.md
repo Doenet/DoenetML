@@ -1,6 +1,6 @@
 # A planner reads no other element's plan
 
-Status: proposed 2026-10-30. Migration steps 1 to 3 are done. Amends ADR 0027:
+Status: proposed 2026-10-30. Every migration step is done. Amends ADR 0027:
 its rule for pass 3 (each element planned after the plans it reads)
 gives way to this one (no element reads another's plan).
 
@@ -98,4 +98,7 @@ Each step lands alone, with the golden diff unchanged.
    box an extend of a box in pass 4; drop `box_in_place`'s restart for a
    planned subtree. Test: every test document's siblings shuffled plan
    to the same values (`tests/plan_order.rs`), with no accessor left to
-   make it so.
+   make it so. Done: `shaped_elem` is pass 1's own (a container copy
+   expanded before what reads it), `box_extends_of_boxes` runs first in
+   pass 4, and `tests/diagnostics.rs` checks that an extend of an element
+   boxed while planning is boxed whichever comes first.

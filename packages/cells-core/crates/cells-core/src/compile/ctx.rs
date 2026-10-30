@@ -329,12 +329,12 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The component type of the element a reference names, when it
-    /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as
-    /// planning settles it (a `<math>` may be a point).
+    /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as pass
+    /// 1 settled it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
         match self.c.plan_elem_target(self.t, p) {
             // What needs the referent's type cannot be planned from a box.
-            Some(e) => match self.c.settled_elem(self.t, e)?.component_type {
+            Some(e) => match self.c.shaped_elem(self.t, e)?.component_type {
                 ComponentType::Error => Err(Error::BoxedReferent(
                     self.c.compiled.refs[p.index()].display.clone(),
                 )),
