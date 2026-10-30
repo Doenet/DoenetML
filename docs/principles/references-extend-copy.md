@@ -109,6 +109,11 @@ ambiguous. Reach the copy's `h` as `$S2.h`.
   - `$c.h` works when written before the copy.
 
 ### NAME-4: references in the attributes written on a `copy`, `extend` or `<module>` resolve outside it (Tier 1)
+**D6 proposes replacing this rule** with one that holds everywhere: a reference's first name
+resolves only to components written in the DoenetML, and an attribute resolves as if written in
+a child of its component. The copied content is not written there, so the result below is kept.
+Children written inside the copy tag would become visible to its attributes.
+
 `<section copy="$orig" hide="$h"/>` finds the `h` beside the copy, not one inside the copied
 content. Use `$copyName.h` to reach inside.
 
@@ -133,7 +138,9 @@ content. Use `$copyName.h` to reach inside.
   first (**[probe]**: `$h` in a child added to `<section copy="$S">` gives the copied `h`).
 
 NAME-4 and NAME-5 together give three different starting points for a reference written in or
-on a copy tag. That is an inconsistency ([decisions.md](decisions.md), D6).
+on a copy tag. That is an inconsistency ([decisions.md](decisions.md), D6). D6 proposes one rule: a child added inside a
+copy does not see the copied content either. It reaches it through the copy's name, as anything
+else does.
 
 ### NAME-6: external content is sealed (Tier 1)
 - Names inside content loaded with `copy="doenet:…"` are invisible to the document, and the

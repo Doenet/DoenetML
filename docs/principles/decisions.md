@@ -48,7 +48,7 @@ what it meant in the source:
 The rule goes by referent, not by how the reference is spelled. `$P.h` inside a copy of `P` has
 its referent inside the copied part, so it names the copy's `h`. That reverses CPY-3's
 "through the source's own name" case, and #2367's `$l.h` in a copy of a list. References in
-attributes written on the copy tag itself still resolve where the copy is written (NAME-4). The
+attributes written on the copy tag itself resolve where the copy is written (NAME-4, D6). The
 same rule covers D33's fresh form. #376 asks for the same for an `extend`.
 
 Nothing decided since changes this. It removes one of the ways D33 found a copy's nested choices
@@ -192,25 +192,90 @@ then be restored.
 
 ## D6. Where does a reference written in or on a copy tag resolve?
 
-**Today:**
+**Today** (**[probe]** on main), a reference written in or on a `copy` or `extend` has its own
+starting point:
 
-| Written | Resolves from |
-|---|---|
-| an attribute on `copy`, `extend` or `<module copy>` | the element's parent, skipping the copied content (#2039) |
-| a child added inside the copy | inside the copy, so it sees the copied content |
-| an attribute on an ordinary element | the element itself, so it sees its own descendants |
-| an attribute on a module's *own definition* | the module's parent, giving an "ambiguous" warning (`module.test.ts:1857`) |
+| Written | Resolves from | Sees |
+|---|---|---|
+| an attribute on an ordinary element | the element | its written descendants, then outward |
+| an attribute on `copy`, `extend` or `<module copy>` | the element's parent, skipping the copy (#2039) | **not** the children written inside the copy tag, nor the copied content |
+| a child added inside a copy | inside the copy | the copied content first |
+| an attribute on a module's own definition | the module's parent | "ambiguous" warning (`module.test.ts:1857`) |
 
-**Recommendation.** Keep the ordinary-element rule. For copy tags, use one rule:
-- "attributes written on a copy tag see outside the copy";
-- "children added inside it see the copied content".
+Examples:
+- `<section name="w" hide="$h"><boolean name="h">true</boolean></section>` is hidden: `$h` is its
+  own child.
+- `<section copy="$orig" hide="$h"><boolean name="h">true</boolean></section>`, with an outer
+  `<boolean name="h">false</boolean>`, is shown: `$h` skips the child written inside the copy tag,
+  and finds the outer `h`. An `extend` does the same.
+- `$h` in a `<p>` added inside `<section copy="$S">` finds the copied `h` (NAME-5).
 
-Both follow from where the text sits relative to the copied content: attributes are about the
-copy as a whole, while added children sit inside it. Give the module-definition case a dedicated
-diagnostic ("an attribute of a module cannot refer to its own `moduleAttributes`") instead of
-"Multiple referents".
+A name in an attribute that names the component itself already resolves to that component, ahead
+of a sibling with the same name. That holds for an ordinary element and for a copy:
+`<point name="Q" copy="$S" styleNumber="$Q.x"/>` beside another `<point name="Q">` uses its own
+`x`.
 
-**Tests:** `module.test.ts:1857` changes its message only.
+**Proposed principle (Tier 1): a reference resolves where it is written, among what is written.**
+- **The first name in a path resolves only to a component written in the DoenetML.** Content a
+  copy, extend, repeat iteration or external document makes is never found by a bare name. It is
+  reached through the name of the component that made it: `$c.h`, `$r[2].h`, `$s.s1`.
+- **That holds wherever the reference is:** beside the copy, in an attribute on it, or in a child
+  written inside it. A reference inside a copy or extend follows no special rule.
+- **An attribute resolves as if it were written in a child of its component.** It sees the
+  component's own name first, ahead of siblings, then the component's written descendants, then
+  outward. An attribute on a copy or extend is no different from any other attribute:
+  - it sees the children written inside the copy tag, because they are written;
+  - it does not see the copied content, because that is not written there.
+- **The existing privacy rules still apply** to written content. Children of `repeat`, `option`,
+  `case` and `else` are reached only through their container (NAME-1, D22).
+- **References inside the copied content** resolve where they were written, in the source. D1
+  settles what they point to in the copy.
+
+With D1, every reference resolves among the components written around it in the DoenetML. An
+author who knows the resolution rules (nearest wins, a tie is ambiguous, paths walk down) can
+tell where any reference lands by reading the DoenetML, with no rules specific to copies.
+
+**What it changes:**
+- **NAME-4** stops being a rule of its own. Its purpose is kept: `xmin="$xmin"` on
+  `<module copy="$m">` does not find the copied `<moduleAttributes>`' `xmin`, which is not written
+  there. So it resolves outside the copy.
+- **An attribute on a copy or extend sees the children written inside the tag.** In the second
+  example above, `$h` becomes the inner `h`, and the section is hidden, as `w` is.
+- **A child added inside a copy no longer sees the copied content.** `$h` in a `<p>` added inside
+  `<section copy="$S" name="S2">` resolves outward, as it would beside the copy. To reach the
+  copied `h`, write `$S2.h`. An unnamed copy's content can't be reached from a child added inside
+  it: give the copy a name.
+- **An attribute on a module's own definition** that names one of its own `<moduleAttributes>`
+  refers to it, as `<p hide="$h"><boolean name="h"/></p>` does. `<module name="m" xmin="$xmin">`
+  is then a cycle, reported as one (NAME-7, D14) instead of "Multiple referents". The diagnostic
+  should say that the attribute refers to the module's own `xmin`.
+- **The self-name rule is stated:** an attribute naming its own component resolves to it, ahead
+  of siblings and descendants. Today it holds, but no principle or test states it.
+
+**Code:**
+- The special origins for attributes on copies go: `W/utils/dast/convertToCopy.ts:204-215` and
+  `W/components/ModuleAttributes.js:178-183` (#2039, #2038).
+- The resolver must never index names in content a copy or extend adds for bare-name search,
+  only for path steps through the copy's name. `add_nodes_does_not_make_previous_resolution_ambiguous`
+  (`RS/build_resolver.test.rs:89`) already covers part of this.
+
+**Tests that change:**
+- `module.test.ts:1857` "attribute written on the module's own definition is ambiguous" becomes a
+  cycle diagnostic;
+- any test where a child added inside a copy finds copied content by a bare name (to find; NAME-5's
+  **[probe]**);
+- any test of an attribute on a copy or extend where the tag also has a written child with that
+  name (none known).
+
+The NAME-4 tests (`T/copying/extend_references.test.ts:7631-7833`, `T/tagSpecific/module.test.ts:1606-1912`)
+should all still pass, since none of their copies has a written child with the referenced name.
+That needs checking.
+
+**Tests to add:**
+- the self-name rule, on an ordinary element and on a copy, with a same-named sibling;
+- an attribute on a copy and on an extend that names a child written inside the tag;
+- a child added inside a copy: a bare name, and the path through the copy's name;
+- the module-definition cycle diagnostic.
 
 ## D7. `fixed` through linked references
 
