@@ -22,6 +22,12 @@
 //! (`plan_with_extend`),
 //! `fix.rs` `fixed`, `answer.rs` answers and `iterates.rs` repeats over
 //! lists. What compile produces is in `plan.rs`.
+//!
+//! The planning runs in passes (ADR 0027): pass 1 walks the DAST into
+//! elements and the name table, then expands container copies; pass 3
+//! plans every element after the plans it reads (`planned_elem`), and
+//! references as planners ask for them; pass 4 (`finish.rs`) needs every
+//! plan. An element that fails in pass 1 or 3 is boxed where it fails.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
@@ -46,6 +52,7 @@ mod condition;
 mod copies;
 mod ctx;
 pub(crate) mod expr;
+mod finish;
 mod fix;
 mod iterates;
 pub(crate) mod keys;
@@ -128,15 +135,8 @@ pub(in crate::compile) struct Compiler<'a> {
     /// Whether pass 1 is still running: nothing is planned then, and what
     /// reads a container copy's children expands it.
     in_pass1: bool,
-    /// The name table: by (template, scope, name), the one descendant of
-    /// the scope (or `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when
-    /// several do. A name is registered at every ancestor of its element.
-    names: HashMap<(u32, u32, u32), u32>,
-    /// Each element name, trimmed, by its id in `names`.
-    name_ids: HashMap<Box<str>, u32>,
-    /// (template, name scope, name) of every named element: two siblings
-    /// with one name can never be told apart.
-    sibling_names: HashSet<(u32, u32, u32)>,
+    /// The name table, pass 1's.
+    names: NameTable,
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
@@ -152,6 +152,58 @@ pub(in crate::compile) struct Compiler<'a> {
 
 /// A name-table entry naming more than one element.
 const AMBIGUOUS: u32 = u32::MAX;
+
+/// The name table (ADR 0027): made in pass 1, read by every later pass.
+#[derive(Default)]
+pub(in crate::compile) struct NameTable {
+    /// By (template, scope, name), the one descendant of the scope (or
+    /// `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when several do. A
+    /// name is registered at every ancestor of its element.
+    by_scope: HashMap<(u32, u32, u32), u32>,
+    /// Each element name, trimmed, by its id in `by_scope`.
+    ids: HashMap<Box<str>, u32>,
+    /// (template, name scope, name) of every named element: two siblings
+    /// with one name can never be told apart.
+    siblings: HashSet<(u32, u32, u32)>,
+}
+
+impl NameTable {
+    /// The id of `name`, when some element carries it.
+    fn id(&self, name: &str) -> Option<u32> {
+        self.ids.get(name.trim()).copied()
+    }
+
+    /// The entry for name `id` at `scope` of template `t`: an element, or
+    /// `AMBIGUOUS`.
+    fn entry(&self, t: TemplateId, scope: ElemId, id: u32) -> Option<u32> {
+        self.by_scope.get(&(t.get(), scope.get(), id)).copied()
+    }
+
+    /// What `name` names from `scope` of template `t`: the one descendant
+    /// carrying it, or that several do.
+    pub(in crate::compile) fn at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {
+        match self.id(name).and_then(|id| self.entry(t, scope, id)) {
+            None => NameHit::None,
+            Some(AMBIGUOUS) => NameHit::Ambiguous,
+            Some(e) => NameHit::One(ElemId::new(e)),
+        }
+    }
+}
+
+/// How an element is named in a diagnostic: its name, else its tag.
+pub(in crate::compile) fn elem_label(
+    dast: &Dast,
+    compiled: &Compiled,
+    t: TemplateId,
+    e: ElemId,
+) -> String {
+    let el = &compiled.templates[t.index()].elems[e.index()];
+    if el.name != StrId::NONE {
+        dast.strings.get(el.name).trim().to_string()
+    } else {
+        format!("<{}>", el.component_type.tag())
+    }
+}
 
 /// What a name names from a scope.
 pub(in crate::compile) enum NameHit {
@@ -214,9 +266,7 @@ impl<'a> Compiler<'a> {
             expanding: HashSet::new(),
             expanded: HashSet::new(),
             in_pass1: true,
-            names: HashMap::new(),
-            name_ids: HashMap::new(),
-            sibling_names: HashSet::new(),
+            names: NameTable::default(),
             shared_state: HashMap::new(),
             planned: HashSet::new(),
             planning: HashSet::new(),
@@ -255,34 +305,6 @@ impl<'a> Compiler<'a> {
             crate::diagnostics::Diagnostic::warning(code, Some(node), message.into()),
         );
         Warned::raised()
-    }
-
-    /// Every operator a plan names reads as many inputs as it takes. One
-    /// that does not is a core bug, reported on its element here rather
-    /// than when a build binds it (`OpSpec::bind`).
-    fn check_arity(&mut self) -> Result<()> {
-        fn misbound(p: &Source) -> Option<(OpSpec, usize)> {
-            match p {
-                Source::Op(op, args) if !op.accepts(args.len()) => Some((*op, args.len())),
-                Source::FirstIteration(a, b) => misbound(a).or_else(|| misbound(b)),
-                _ => None,
-            }
-        }
-        for tpl in &self.compiled.templates {
-            for el in &tpl.elems {
-                if let Some((op, n)) = el.props.iter().find_map(misbound) {
-                    let tag = el.component_type.tag();
-                    let error = Error::Internal(format!(
-                        "<{tag}> plans {op:?} over {n} inputs, which takes {}",
-                        op.arity()
-                    ));
-                    let node = el.node;
-                    self.fail_at(node);
-                    return Err(error);
-                }
-            }
-        }
-        Ok(())
     }
 
     fn compile_all(&mut self) -> Result<()> {
@@ -361,24 +383,22 @@ impl<'a> Compiler<'a> {
         if let Some(error) = cp.restart.take() {
             return Err(error);
         }
-        cp.finish_choices()?;
-        cp.check_arity()?;
-        cp.assign_keys();
-        // Slot offsets, now that planned types know their hidden slot count.
-        for tpl in &mut cp.compiled.templates {
-            let mut off = 0;
-            for el in &mut tpl.elems {
-                el.slot_off = off;
-                off += el.props.len().max(el.component_type.prop_defs().len()) as u32;
-            }
-            tpl.n_slots = off;
+        // What needs every plan (pass 4), from the plans, the source and
+        // the name table alone.
+        let finished = finish::Finish {
+            compiled: &mut cp.compiled,
+            dast,
+            names: &cp.names,
+            shared_state: &cp.shared_state,
         }
-        Ok(())
+        .run();
+        finished.map_err(|f| {
+            cp.failed_node = f.node;
+            f.error
+        })
     }
 
-    /// Record `node` as the element to box before compiling again: what
-    /// fails after planning (pass 4) is not boxed in place, since what
-    /// other elements planned may read it.
+    /// Record `node` as the element to box before compiling again.
     pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
         if node != NodeId::NONE {
             self.failed_node.get_or_insert(node);
@@ -431,11 +451,11 @@ impl<'a> Compiler<'a> {
         // the box's.
         let el = &self.compiled.templates[t.index()].elems[e.index()];
         if el.name != StrId::NONE {
-            let id = self.name_ids.get(self.dast.strings.get(el.name).trim());
-            let registered = id.is_some_and(|&id| {
-                self.names.get(&(t.get(), el.name_scope.get(), id)) == Some(&e.get())
-                    || self.names.get(&(t.get(), el.name_scope.get(), id)) == Some(&AMBIGUOUS)
-            });
+            let registered = self
+                .names
+                .id(self.dast.strings.get(el.name))
+                .and_then(|id| self.names.entry(t, el.name_scope, id))
+                .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
             if !registered {
                 self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
             }
@@ -488,10 +508,11 @@ impl<'a> Compiler<'a> {
         };
         let taken = name != StrId::NONE
             && self
-                .name_ids
-                .get(self.dast.strings.get(name).trim())
-                .is_some_and(|&id| {
-                    self.sibling_names
+                .names
+                .id(self.dast.strings.get(name))
+                .is_some_and(|id| {
+                    self.names
+                        .siblings
                         .contains(&(t.get(), name_scope.get(), id))
                 });
         let name = if taken { StrId::NONE } else { name };
@@ -529,11 +550,11 @@ impl<'a> Compiler<'a> {
     ) -> Result<ElemId> {
         let name_id = (name != StrId::NONE).then(|| {
             let s = self.dast.strings.get(name).trim();
-            match self.name_ids.get(s) {
+            match self.names.ids.get(s) {
                 Some(&id) => id,
                 None => {
-                    let id = self.name_ids.len() as u32;
-                    self.name_ids.insert(s.into(), id);
+                    let id = self.names.ids.len() as u32;
+                    self.names.ids.insert(s.into(), id);
                     id
                 }
             }
@@ -559,7 +580,7 @@ impl<'a> Compiler<'a> {
         });
         if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
-            if !self.sibling_names.insert((t.get(), name_scope.get(), id)) {
+            if !self.names.siblings.insert((t.get(), name_scope.get(), id)) {
                 let s = self.dast.strings.get(name).trim().to_string();
                 return Err(Error::DuplicateName(s));
             }
@@ -567,6 +588,7 @@ impl<'a> Compiler<'a> {
             let mut a = name_scope;
             loop {
                 self.names
+                    .by_scope
                     .entry((t.get(), a.get(), id))
                     .and_modify(|o| *o = AMBIGUOUS)
                     .or_insert(e as u32);
@@ -582,14 +604,7 @@ impl<'a> Compiler<'a> {
     /// What `name` names from `scope` of template `t`: the one descendant
     /// carrying it, or that several do.
     pub(in crate::compile) fn name_at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {
-        let Some(&id) = self.name_ids.get(name.trim()) else {
-            return NameHit::None;
-        };
-        match self.names.get(&(t.get(), scope.get(), id)) {
-            None => NameHit::None,
-            Some(&AMBIGUOUS) => NameHit::Ambiguous,
-            Some(&e) => NameHit::One(ElemId::new(e)),
-        }
+        self.names.at(t, scope, name)
     }
 
     pub(in crate::compile) fn add_synthetic(
@@ -1036,11 +1051,6 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
-        if el.name != StrId::NONE {
-            self.dast.strings.get(el.name).trim().to_string()
-        } else {
-            format!("<{}>", el.component_type.tag())
-        }
+        elem_label(self.dast, &self.compiled, t, e)
     }
 }

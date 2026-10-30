@@ -1,8 +1,8 @@
 # The compile runs in passes, each reading only what earlier passes finished
 
-Status: proposed 2026-10-30. Migration steps 1 to 5 are done. Amended
+Status: proposed 2026-10-30. Every migration step is done. Amended
 2026-10-30: pass 3 plans on demand rather than from a graph made first
-(see "The rule for pass 3").
+(see "The rule for pass 3"), and pass 2 is part of pass 3 (see "Pass 2").
 
 The compile (ADR 0015) becomes five passes over the source, run once
 each, in a fixed order. A pass reads only what earlier passes finished,
@@ -13,7 +13,7 @@ it where it arises rather than restarting the compile.
 | Pass | Reads | Makes | Errors it finds |
 |---|---|---|---|
 | **1. Shape** | the DAST | element types, templates, the name table, container copies expanded | unknown tags, duplicate names, extends that name nothing, lint findings |
-| **2. References** | shape | a `RefPlan` for every `$ref` and every `extend` | unknown or ambiguous names, bad paths |
+| **2. References** | shape | a `RefPlan` for every `$ref` and every `extend` (planned within pass 3: see "Pass 2") | unknown or ambiguous names, bad paths |
 | **3. Plans** | shape, references | every element's `Source`s and hold, each after the plans it reads | every planner's errors and warnings, then unread attributes (ADR 0021) |
 | **4. Finish** | every plan | choice interfaces, arity, keys, slot offsets | a choice interface a reference misuses, a misbound operator |
 | **5. Probe** | the whole `Compiled` | cycles, writable and live records, structural depth | dependency and structural cycles, what only a build sees |
@@ -105,6 +105,20 @@ assertion, too many and a cycle of values becomes a false loop of plans.
 Planning on demand through the accessor reaches the same order with
 nothing to predict, and the accessor is still the one place a read of
 another element's plan happens.
+
+## Pass 2
+
+References are planned within pass 3, each when the planner that needs
+it asks (`Compiler::plan_ref`), not in a pass of their own before it. A
+path's plan reads the planned types of what it passes through: `$m.x`
+names a coordinate only once `<math name="m">(3, 4)</math>` is planned
+as a point, and a math's type can depend on what it references. And a
+planner chooses where a reference is bound: the referent's scope for an
+inherited attribute (ADR 0023), an ancestor's for `fixed` (ADR 0022), a
+submitted response for `$mi` under an answer. A pass made before pass 3
+could plan only part of the references and would leave the rest to
+pass 3 anyway. The extends of container copies, which pass 1 needs, are
+planned there, from the name table alone.
 
 ## Considered options
 
@@ -212,4 +226,7 @@ says otherwise.
    type when the clone is planned, and a `<collect>` or `<polyline>`
    under a copied container is refused by its type.
 6. **Split passes 2 and 4 out of `compile_all`** into functions of their
-   inputs, so each pass's reads are the arguments it is given.
+   inputs, so each pass's reads are the arguments it is given. Done for
+   pass 4: `compile/finish.rs` runs it over the plans, the source, the
+   name table (`NameTable`, pass 1's) and the shared state. Pass 2 stays
+   within pass 3 (see "Pass 2").
