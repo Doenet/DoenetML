@@ -1899,6 +1899,20 @@ export default class Copy extends CompositeComponent {
                 }
             }
 
+            if (
+                !link &&
+                copyChangesChoices({
+                    replacement: repl,
+                    attributesFromComposite,
+                    children: copyInChildren
+                        ? component.serializedChildren
+                        : [],
+                    componentInfoObjects,
+                })
+            ) {
+                delete repl.variants.desiredVariant;
+            }
+
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -4608,6 +4622,124 @@ function extendIgnoresAttributesAndChildren({
     }
 
     return { attributeNames: ignoredAttributeNames, diagnostics };
+}
+
+/**
+ * Whether an unlinked copy changes what its random `replacement` chooses, so
+ * that the choices of its source (the variant it was given, `copyVariants`)
+ * no longer apply. A copy keeps its source's random choices when it chooses
+ * from the same options in the same number. When it writes a different value
+ * of an attribute that decides what is chosen
+ * (`attributesDeterminingChoices`), such as `numToSelect`, or adds options as
+ * children (`childrenDetermineChoices`), it makes its own choices instead.
+ * Those are drawn from the variant's generator, as a random child added to a
+ * copy draws its own, so they are the same for a given variant.
+ *
+ * An attribute counts as unchanged only when the copy writes it as its source
+ * did (`sameWrittenValue`). Anything else, a reference included, counts as
+ * changed: its value is not known yet, and choosing anew never fails where
+ * keeping choices that do not fit does.
+ */
+function copyChangesChoices({
+    replacement,
+    attributesFromComposite,
+    children,
+    componentInfoObjects,
+}) {
+    if (replacement.variants?.desiredVariant === undefined) {
+        return false;
+    }
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacement.componentType];
+    if (!replacementClass) {
+        return false;
+    }
+
+    if (
+        replacementClass.childrenDetermineChoices &&
+        children.some((x) => typeof x !== "string" || x.trim() !== "")
+    ) {
+        return true;
+    }
+
+    const choiceAttributes = replacementClass.attributesDeterminingChoices;
+    if (!choiceAttributes) {
+        return false;
+    }
+
+    return choiceAttributes.some((attrName) => {
+        const written = attributesFromComposite[attrName];
+        if (written === undefined) {
+            return false;
+        }
+        return !sameWrittenValue(written, replacement.attributes?.[attrName]);
+    });
+}
+
+/**
+ * Whether two serialized attributes were written the same: the same
+ * primitive, the same literal, or components of the same types with the same
+ * text, whatever their indices and positions. A component holding a
+ * reference (`extending`) or a value of its own (`state`) is never the same
+ * as another, as what it stands for is not in what was written.
+ */
+function sameWrittenValue(a, b) {
+    const writtenA = writtenAttributeValue(a);
+    return writtenA !== null && writtenA === writtenAttributeValue(b);
+}
+
+/**
+ * What was written for the serialized attribute `attribute`, as a string, or
+ * `null` when it cannot be told from what was written.
+ */
+function writtenAttributeValue(attribute) {
+    if (attribute?.type === "primitive") {
+        return JSON.stringify({ primitive: attribute.primitive });
+    }
+    if (attribute?.type === "literal") {
+        return JSON.stringify({
+            componentType: attribute.componentType,
+            text: attribute.text?.trim(),
+            value: attribute.value,
+        });
+    }
+    if (attribute?.type === "component") {
+        const written = writtenComponent(attribute.component);
+        return written === null ? null : JSON.stringify(written);
+    }
+    return null;
+}
+
+function writtenComponent(component) {
+    if (typeof component === "string") {
+        return component.trim();
+    }
+    if (
+        typeof component !== "object" ||
+        component.extending !== undefined ||
+        Object.keys(component.state ?? {}).length > 0
+    ) {
+        return null;
+    }
+    const children = [];
+    for (const child of component.children ?? []) {
+        const written = writtenComponent(child);
+        if (written === null) {
+            return null;
+        }
+        if (written !== "") {
+            children.push(written);
+        }
+    }
+    const attributes = {};
+    for (const attrName of Object.keys(component.attributes ?? {}).sort()) {
+        const written = writtenAttributeValue(component.attributes[attrName]);
+        if (written === null) {
+            return null;
+        }
+        attributes[attrName] = written;
+    }
+    return { componentType: component.componentType, children, attributes };
 }
 
 export function addChildrenFromComposite({

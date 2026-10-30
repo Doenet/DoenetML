@@ -47,6 +47,21 @@ export default class SelectFromSequence extends Sequence {
 
     static createsVariants = true;
 
+    // An unlinked copy that writes one of these makes its own choices rather
+    // than its source's (`copyChangesChoices` in `Copy.js`).
+    static attributesDeterminingChoices = [
+        "type",
+        "from",
+        "to",
+        "step",
+        "length",
+        "exclude",
+        "numToSelect",
+        "withReplacement",
+        "excludeCombinations",
+        "coprime",
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.numToSelect = {
