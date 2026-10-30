@@ -30,7 +30,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 
-use cells_core::build::{BuildError, Repeat, ScopeId, build};
+use cells_core::build::{BuildError, Repeat, ScopeId, SlotClass, build};
 use cells_core::components::ComponentType;
 use cells_core::dast::{Dast, NodeId, NodeKind};
 use cells_core::session::{Counts, Session};
@@ -123,6 +123,41 @@ const HOLES: &[(&str, &str)] = &[
     ),
 ];
 
+/// Documents with a value that follows the counts (ADR 0026): a collect's
+/// count, a section's number after a repeat, and the credit of a section
+/// whose answers are all in a repeat.
+const STRUCTURE_VALUES: &[(&str, &str)] = &[
+    (
+        "collect-count",
+        r#"<numberInput name="n" value="2"/>
+        <graph><repeatForSequence name="r" length="$n"><point name="p">(1,2)</point></repeatForSequence></graph>
+        <collect name="c" from="$r" componentType="point"/>
+        <number name="k">$c.count</number>"#,
+    ),
+    (
+        "section-after-repeat",
+        r#"<numberInput name="n" value="2"/>
+        <repeatForSequence name="r" length="$n"><section name="s"/></repeatForSequence>
+        <section name="after"/>"#,
+    ),
+    (
+        "credit-of-repeated-answers",
+        r#"<numberInput name="n" value="2"/>
+        <section name="s" aggregateScores>
+          <repeatForSequence name="r" length="$n"><mathInput name="m"/><answer name="a" response="$m">1</answer></repeatForSequence>
+        </section>"#,
+    ),
+];
+
+/// The documents of `STRUCTURE_VALUES` whose value is still a constant
+/// that changes with the counts, until ADR 0026's phase 2 makes it
+/// derived. A list that only shrinks: a document that passes must leave it.
+const STILL_CONSTANT: &[&str] = &[
+    "collect-count",
+    "section-after-repeat",
+    "credit-of-repeated-answers",
+];
+
 #[test]
 fn no_count_closes_a_loop_the_load_did_not_reject() {
     let docs = documents();
@@ -149,6 +184,7 @@ fn documents() -> Vec<(String, Vec<u8>)> {
         .chain(
             HOLES
                 .iter()
+                .chain(STRUCTURE_VALUES)
                 .map(|(name, src)| (name.to_string(), dast_json(src).into_bytes())),
         )
         .collect();
@@ -521,6 +557,116 @@ fn writes(doc: &Document) -> Vec<(String, (ScopeId, u32))> {
                 })
             }
             _ => {}
+        }
+    }
+    out
+}
+
+/// ADR 0026: a constant depends on the source, the seed and its scope
+/// alone. For every document with a repeat, at every seed it draws with,
+/// every template slot that is a constant in one build of a scope is a
+/// constant in every build that stamps the scope, with the same value,
+/// whatever the counts: a rebuild changes no constant.
+#[test]
+fn a_constant_is_the_same_in_every_build() {
+    let docs = documents();
+    assert!(docs.len() >= 12, "the golden set is missing");
+    let mut failures = Vec::new();
+    for (name, bytes) in &docs {
+        let dast = cells_core::dast::load(bytes).unwrap();
+        if !has_repeats(&dast) {
+            continue; // one structure, one build
+        }
+        let types = element_types(&dast);
+        let draws = types
+            .iter()
+            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
+        for &seed in seeds {
+            let options = LoadOptions {
+                seed,
+                ..Default::default()
+            };
+            let Ok((doc, _)) = Document::load(bytes, options) else {
+                continue;
+            };
+            let compiled = doc
+                .loaded
+                .compiled
+                .clone()
+                .expect("a document with a repeat");
+            // (scope, template slot) -> (counts it was first seen at, class).
+            let mut seen: HashMap<(ScopeId, u32), (u32, SlotClass)> = HashMap::new();
+            // One session throughout: scope ids are stable within it.
+            let mut session = Session::new(seed);
+            for c in COUNTS.chain(COUNTS.rev()) {
+                for built in builds_at(&compiled, &mut session, c) {
+                    for &(key, class) in &built.structure.slot_classes {
+                        let (at, first) = *seen.entry(key).or_insert((c, class));
+                        if !same_class(first, class) {
+                            failures.push(format!(
+                                "{name}, seed {seed}: scope {} slot {} is {first:?} at count {at} and {class:?} at count {c}",
+                                key.0, key.1
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    failures.dedup_by(|a, b| a.split(" is ").next() == b.split(" is ").next());
+    let failing = |name: &str| failures.iter().any(|f| f.starts_with(&format!("{name}, ")));
+    for name in STILL_CONSTANT {
+        assert!(
+            failing(name),
+            "{name} passes now: take it off `STILL_CONSTANT`"
+        );
+    }
+    failures.retain(|f| {
+        !STILL_CONSTANT
+            .iter()
+            .any(|n| f.starts_with(&format!("{n}, ")))
+    });
+    assert!(
+        failures.is_empty(),
+        "{} constants change with the counts:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
+/// Two classes of one template slot agree: the same class, and for a
+/// constant the same value (NaN equal to NaN).
+fn same_class(a: SlotClass, b: SlotClass) -> bool {
+    match (a, b) {
+        (SlotClass::Constant(x), SlotClass::Constant(y)) => {
+            x.to_bits() == y.to_bits() || (x.is_nan() && y.is_nan())
+        }
+        (SlotClass::Constant(_), _) | (_, SlotClass::Constant(_)) => false,
+        _ => true,
+    }
+}
+
+/// Every build, settled or not, on the way to stamping every repeat with
+/// `c` iterations, each reading the session the one before returned.
+fn builds_at(compiled: &Arc<Compiled>, session: &mut Session, c: u32) -> Vec<Document> {
+    let mut out = Vec::new();
+    let mut counts = Counts::default();
+    for _ in 0..MAX_PASSES {
+        let doc = build(compiled, session, &counts, false)
+            .and_then(|built| built.schedule(compiled.clone()))
+            .expect("a build of a document that loaded");
+        *session = doc.session.clone();
+        let mut settled = true;
+        for r in &doc.structure.repeats {
+            if r.iterations != c {
+                counts.set(r.scope, r.node, c);
+                settled = false;
+            }
+        }
+        out.push(doc);
+        if settled {
+            break;
         }
     }
     out

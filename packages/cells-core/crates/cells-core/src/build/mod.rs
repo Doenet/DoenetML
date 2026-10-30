@@ -66,6 +66,8 @@ mod writable;
 
 pub(crate) use probe::probe;
 use slot_cells::SlotCells;
+#[cfg(feature = "testing")]
+pub use structure::SlotClass;
 pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
 
 crate::index::index_type! {

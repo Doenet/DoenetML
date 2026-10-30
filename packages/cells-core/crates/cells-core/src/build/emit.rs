@@ -267,6 +267,27 @@ impl<'c> Builder<'c> {
                 }
             }
         }
+        #[cfg(feature = "testing")]
+        // What each template slot's cell is (`Structure::slot_classes`).
+        let slot_classes: Vec<_> = {
+            use crate::build::structure::SlotClass;
+            SlotId::below(n)
+                .filter(|&s| Some(slot_to_cell[s.index()]) != dead_cell)
+                .filter(|&s| self.template_slot(s).is_some())
+                .map(|s| {
+                    let (scope, tslot, _) = self.essential_key(s);
+                    let class = match self.sources[s.index()] {
+                        BuiltSource::Alias(_) => SlotClass::Alias,
+                        BuiltSource::Literal(_) if essential[s.index()] => SlotClass::Essential,
+                        BuiltSource::Literal(_) | BuiltSource::Fixed(_) => {
+                            SlotClass::Constant(cells[slot_to_cell[s.index()].index()])
+                        }
+                        _ => SlotClass::Derived,
+                    };
+                    ((scope, tslot), class)
+                })
+                .collect()
+        };
         // The cells a `fixed` holds, by their flags' cells; a dead cell
         // takes no request.
         let mut holds = crate::program::Holds::default();
@@ -443,6 +464,8 @@ impl<'c> Builder<'c> {
             repeats: self.repeats,
             #[cfg(feature = "testing")]
             walked_essential_slots,
+            #[cfg(feature = "testing")]
+            slot_classes,
         };
 
         // Lazy labels for cycle errors.
