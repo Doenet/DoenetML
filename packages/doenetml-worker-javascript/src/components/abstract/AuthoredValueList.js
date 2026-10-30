@@ -149,6 +149,10 @@ export default class AuthoredValueList extends ValueListComponent {
         // its source inside the list, or with the list, as it leaves out a
         // hidden composite's replacements (#2375).
         variables.hiddenIgnoreParent = "entryHiddenIgnoreParents";
+        // Hidden by its source's own `hide` or a hidden container inside the
+        // list, not by the list itself, which a list made by a `copy=` or
+        // `extend=` of this one reads in place of `hiddenIgnoreParent`.
+        variables.hiddenWithinList = "entryHiddensWithinList";
         if (this.listEntriesShownAsSources) {
             // the component an entry stands for, which a list reading the
             // entry stands it for in turn
@@ -170,7 +174,10 @@ export default class AuthoredValueList extends ValueListComponent {
             variables.push(
                 ...Object.values(this.listEntryPresentationVariables),
             );
-            variables.push("entryHiddenIgnoreParents");
+            variables.push(
+                "entryHiddenIgnoreParents",
+                "entryHiddensWithinList",
+            );
             if (this.listEntriesShownAsSources) {
                 variables.push("entrySourceComponents");
             }
@@ -1116,24 +1123,12 @@ export default class AuthoredValueList extends ValueListComponent {
                 // The children a `copy=` or `extend=` of the list makes
                 // (`<mathList copy="$P.xs" displayDigits="3" />`) are what
                 // the list references, so its own settings win over theirs.
-                const referenceComposites = [
-                    dependencyValues.copyListViaComposite,
-                    dependencyValues.extendListViaComposite,
-                ].filter((idx) => idx != null);
-                const ranges = (
-                    dependencyValues.children.compositeReplacementRange ?? []
-                ).filter((range) =>
-                    referenceComposites.includes(range.compositeIdx),
-                );
+                const fromReference = childrenFromReference(dependencyValues);
                 const settingsByChild = dependencyValues.children.map(
                     (child, componentInd) =>
                         childDisplaySettings({
                             child,
-                            fromReference: ranges.some(
-                                (range) =>
-                                    range.firstInd <= componentInd &&
-                                    range.lastInd >= componentInd,
-                            ),
+                            fromReference: fromReference[componentInd],
                             childUsedDefault:
                                 usedDefault.children?.[componentInd],
                             displayNames,
@@ -1999,6 +1994,27 @@ export function sourcePresentation(stateValues = {}) {
 }
 
 /**
+ * Whether each child of a list is made by the list's own `copy=` or
+ * `extend=` (`copyListViaComposite`, `extendListViaComposite`): what the list
+ * references, whose settings and hiding the list's own decide over.
+ */
+function childrenFromReference(dependencyValues) {
+    const referenceComposites = [
+        dependencyValues.copyListViaComposite,
+        dependencyValues.extendListViaComposite,
+    ].filter((idx) => idx != null);
+    const ranges = (
+        dependencyValues.children.compositeReplacementRange ?? []
+    ).filter((range) => referenceComposites.includes(range.compositeIdx));
+    return dependencyValues.children.map((_child, componentInd) =>
+        ranges.some(
+            (range) =>
+                range.firstInd <= componentInd && range.lastInd >= componentInd,
+        ),
+    );
+}
+
+/**
  * The definitions of how each entry's source shows itself
  * (`entryPresentation`; a piece of text as the list), and from that, an
  * array of a value per entry for each presentation variable of the list
@@ -2026,39 +2042,78 @@ function returnEntryPresentationDefinitions(listClass) {
                 variableNames: [
                     ...ENTRY_PRESENTATION_SOURCE_VARIABLES,
                     "hiddenIgnoreParent",
+                    "hiddenWithinList",
                 ],
                 variablesOptional: true,
+            },
+            copyListViaComposite: {
+                dependencyType: "stateVariable",
+                variableName: "copyListViaComposite",
+            },
+            extendListViaComposite: {
+                dependencyType: "stateVariable",
+                variableName: "extendListViaComposite",
+            },
+        }),
+        definition({ dependencyValues }) {
+            const fromReference = childrenFromReference(dependencyValues);
+            return {
+                setValue: {
+                    entryPresentation: dependencyValues.entryStructure.map(
+                        (source) => {
+                            const ind = source.componentInd;
+                            if (ind === undefined) {
+                                return {};
+                            }
+                            const stateValues =
+                                dependencyValues.children[ind]?.stateValues;
+                            // A child hidden by a container of its source
+                            // between it and the list, such as an inner
+                            // `<textList hide>` or a `<group hide>` it is a
+                            // replacement of, hides the entry as the list's
+                            // own `hide` does: not drawn and `hidden`, but its
+                            // `hide` is still the source's own (D29, #2390).
+                            // The list a `copy=` or `extend=` of this one is
+                            // made of is not such a container: this list's
+                            // own `hide` decides in its place.
+                            return {
+                                ...sourcePresentation(stateValues),
+                                hiddenByContainer: Boolean(
+                                    fromReference[ind]
+                                        ? stateValues?.hiddenWithinList
+                                        : stateValues?.hiddenIgnoreParent,
+                                ),
+                            };
+                        },
+                    ),
+                },
+            };
+        },
+    };
+
+    Object.assign(definitions, returnEntryPresentationArrays(listClass));
+
+    // Whether each entry is hidden by its source's own `hide` or by a hidden
+    // container of its source inside the list, leaving out the list's own
+    // hiding (`hiddenWithinList`).
+    definitions.entryHiddensWithinList = {
+        returnDependencies: () => ({
+            entryPresentation: {
+                dependencyType: "stateVariable",
+                variableName: "entryPresentation",
             },
         }),
         definition: ({ dependencyValues }) => ({
             setValue: {
-                entryPresentation: dependencyValues.entryStructure.map(
-                    (source) => {
-                        if (source.componentInd === undefined) {
-                            return {};
-                        }
-                        const stateValues =
-                            dependencyValues.children[source.componentInd]
-                                ?.stateValues;
-                        // A child hidden by a container of its source between
-                        // it and the list, such as an inner `<textList hide>`
-                        // or a `<group hide>` it is a replacement of, hides
-                        // the entry as the list's own `hide` does: not drawn
-                        // and `hidden`, but its `hide` is still the source's
-                        // own (D29, #2390).
-                        return {
-                            ...sourcePresentation(stateValues),
-                            hiddenByContainer: Boolean(
-                                stateValues?.hiddenIgnoreParent,
-                            ),
-                        };
-                    },
+                entryHiddensWithinList: dependencyValues.entryPresentation.map(
+                    (presentation) =>
+                        Boolean(
+                            presentation.hide || presentation.hiddenByContainer,
+                        ),
                 ),
             },
         }),
     };
-
-    Object.assign(definitions, returnEntryPresentationArrays(listClass));
 
     // Whether each entry is hidden for a parent that ignores its own hiding
     // (a `<choice>`'s text, an `<li>`'s lead): by its source's own `hide`, by

@@ -626,6 +626,42 @@ describe("Hidden content nested inside a list @group4", async () => {
         });
     }
 
+    it("a copy or extend of a list keeps the hidden content inside it hidden, while its own `hide` decides for the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="hl" hide>1 2</mathList>
+    <mathList name="l"><mathList hide>1</mathList> 2</mathList>
+    <p name="copyShown"><mathList copy="$hl" hide="false" /></p>
+    <p name="extendShown"><mathList extend="$hl" hide="false" /></p>
+    <p name="copyHidden"><mathList copy="$hl" /></p>
+    <p name="copyNested"><mathList copy="$l" /></p>
+    <p name="extendNested"><mathList extend="$l" /></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: Record<string, string> = {};
+        for (const name of [
+            "copyShown",
+            "extendShown",
+            "copyHidden",
+            "copyNested",
+            "extendNested",
+        ]) {
+            texts[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        expect(texts).eqls({
+            copyShown: "1, 2",
+            extendShown: "1, 2",
+            copyHidden: "",
+            copyNested: "2",
+            extendNested: "2",
+        });
+    });
+
     it("a hidden group around children of a sort is still sorted with them, and shows as its `hide` changes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
