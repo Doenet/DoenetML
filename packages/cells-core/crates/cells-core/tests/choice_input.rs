@@ -39,7 +39,9 @@ fn a_request_naming_no_choice_chooses_none() {
 }
 
 /// An infinite ask is dropped before inverting, as for every cell
-/// (`Document::request`), so the selection stays.
+/// (`Document::request`), so the selection stays. The current core would
+/// clear it, as for any non-integer; recorded as a benign deviation, since
+/// no renderer asks for an infinite index.
 #[test]
 fn an_infinite_request_is_dropped() {
     let mut doc = load(THREE).unwrap();
