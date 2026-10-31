@@ -23,6 +23,32 @@ export function namesReachedThroughCopy(composite) {
     );
 }
 
+/**
+ * The list form a `<collect>`, `<sort>` or `<shuffle>` of values is made as
+ * (`utils/dast/listForms.ts`), mapped to the tag it is written as.
+ */
+export const TAGS_OF_LIST_FORMS = {
+    _collectList: "collect",
+    _sortList: "sort",
+    _shuffleList: "shuffle",
+};
+
+/**
+ * Whether a replacement of type `replacementType` is a component of
+ * `requiredType`, the type a copy is written as. The list form of a tag
+ * (`TAGS_OF_LIST_FORMS`) is a component of that tag: `<collect
+ * copy="$B.gB.x"/>` of a `<collect>` made a list form is the list form,
+ * even when the document pass (`utils/dast/listForms.ts`) could not see that
+ * `x` is one, as when `x` is made by an `extend` (`gB`).
+ */
+export function replacementIsOfType(replacementType, requiredType) {
+    return (
+        replacementType === requiredType ||
+        (Object.hasOwn(TAGS_OF_LIST_FORMS, replacementType) &&
+            TAGS_OF_LIST_FORMS[replacementType] === requiredType)
+    );
+}
+
 export function postProcessCopy({
     serializedComponents,
     componentIdx,
@@ -337,7 +363,9 @@ export async function verifyReplacementsMatchSpecifiedType({
 
     if (
         replacementTypes.length !== requiredLength ||
-        !replacementTypes.every((x) => x === requiredComponentType)
+        !replacementTypes.every((x) =>
+            replacementIsOfType(x, requiredComponentType),
+        )
     ) {
         // console.warn(
         //     `Replacements from ${component.componentType} ${component.componentIdx} do not match the specified createComponentOfType`,
