@@ -10,7 +10,8 @@ A copy of an `extend` keeps the referents of the extend's source. A reference
 in the copy to a component outside what was extended now points at the
 component the original points at, instead of at a component of the same name
 next to the `extend`. This holds along any chain of copies and extends, and
-also for the content of a `<repeat>`, `<conditionalContent>` or `<select>`
+also for the content of a `<repeat>`, `<conditionalContent>`, `<select>` or
+`<collect>` that is extended (with no change to its content) or that sits
 inside what was extended. A copy of part of an `extend`, such as
 `<p copy="$gB.p"/>` where `gB` extends a `<group>`, keeps a referent elsewhere
 in the `extend` too, instead of finding a component of the same name next to
