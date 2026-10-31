@@ -736,7 +736,9 @@ export default class Copy extends CompositeComponent {
         };
 
         // A copy given a valid type always makes exactly one component of
-        // that type. `verifyReplacementsMatchSpecifiedType` makes sure of it:
+        // that type, or of its list form (`replacementIsOfType`), as a
+        // `<collect>` of values is made as a `_collectList`.
+        // `verifyReplacementsMatchSpecifiedType` makes sure of it:
         // it passes the type on to a lone `group`/`_copy` replacement, or else
         // makes one new component of that type (wrapping a lone replacement
         // in it when it can). Without a type, or with an invalid one, the
