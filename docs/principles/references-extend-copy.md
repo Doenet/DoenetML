@@ -69,7 +69,7 @@ the end is silent while the length can change (#1499). An index that cannot appl
 `$n.value[1]`, gives `doenet-w0100` and names nothing. Not yet: entries of a list component
 (B18, #2413), function references (B19, #2419), and an index on a plain component. **[probe]** on
 main at `7c2bb1f`: `$m[0]`, `$n[0]` and `$t[0]` give an uncoded warning quoting only `$m`; `$n[1]`
-and `$t[1]` show nothing with info `doenet-i0018`; `$m[1]` shows the math. D27 decides what such
+and `$t[1]` show nothing with info `doenet-i0018`; `$m[1]` shows the math. D27 recommends what such
 an index means.
 
 Evidence:
@@ -85,7 +85,7 @@ Code: `RS/resolve.rs:310-330` (`unresolvedPath`); `W/core/dependencies/refResolu
 finishes the path after composites expand.
 
 What an index may select is itself open. Today it can be an entry, an iteration, a pick, or a
-child of a group, iteration or picked option. D27 proposes instances only.
+child of a group, iteration or picked option. D27 decides instances only, plus the entries of a value.
 
 Limits:
 - **Deep property chains** (`$l.points[1].coords`, `$l.points[1].xs[1]`) are not supported
@@ -468,7 +468,7 @@ Known bugs, open: #2219 (`styleNumber` on an extend of `<intersection>` may not 
 
   Evidence: `T/copying/extend_references.test.ts:6549` "reference inside composite adds to index
   resolution but not names". That test also asserts that `$sec2.g[1].t` reaches `t` by its
-  position in the group. That part changes under D27, which proposes that an index never selects
+  position in the group. That part changes under D27, which decides that an index never selects
   a child of a group.
 
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.

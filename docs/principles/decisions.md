@@ -762,6 +762,13 @@ allowed pair works, and one that an unrelated pair gives the error.
 
 ## D27. What may an index select?
 
+**Decided: an index never selects among a container's children.** It selects among the
+instances a tag produces, as proposed below, with consequences 1–4. Nested repeats then take one
+index per level: `$r[1][2]` is iteration 2 of the inner repeat in iteration 1 of the outer.
+
+**Proposed with it: an index selects the entries of a value that has entries** (see "Values with
+entries" at the end of this entry).
+
 **Today** an index can select several different things, and which one depends on what the
 current core makes a composite (**[probe]**):
 
@@ -839,6 +846,64 @@ to be counted. It is also fragile under edits, and it would make (3) ambiguous a
 
 The list examples keep working, since entries are instances. Before any cut-over, add a warning
 on main for child indexing, so that documents can migrate.
+
+### Values with entries (proposed)
+
+An index also selects among the entries of a value: the coordinates of a point, the entries of
+a tuple or vector, the rows and entries of a matrix. These are not a container's children, so
+the decision above does not touch them. They are what the value is made of.
+
+**Today** (**[probe]** on main at `7c2bb1f`), each kind works a different way:
+
+| Written | Shows |
+|---|---|
+| `$P[1]` of `<point>(3,4)</point>` | `3` (`variableForIndexAsProp = "xs"`) |
+| `$v[1]` of `<vector>(5,6)</vector>` | `5` (`variableForIndexAsProp = "displacement"`) |
+| `$c[1]` of `<coords>(1,2)</coords>` | `1` |
+| `$mt[1]` of `<math>(8,9)</math>`, and `$x[1]` of `<mathInput prefill="(1,2)"/>` | `8`, `1` |
+| `$mt.value[1]` | nothing, `doenet-w0100` |
+| `$mv[1]` of a `<math>` holding `⟨8,9⟩` | `＿` |
+| `$M[1]` and `$M[1][2]` of a `<matrix>`, or of a `<math>` holding a matrix | the whole matrix: the index is ignored |
+| `$M[2][1]` | nothing |
+| `$M.matrix[2][1]`, `$M.matrix[1]` | `3`; the first row as a 1×2 matrix |
+| `$ms[1]` of `<math>5</math>` | `5`: a scalar indexed as itself |
+| `$n[1]`, `$t[1]` of a `<number>`, a `<text>` | nothing, info `doenet-i0018` |
+| `$mi[1]`, `$mi[2][1]` of a `<matrixInput>` | nothing, info `doenet-i0018`; `$mi.matrix[2][1]` works |
+| `$ss[1]` of a `<spreadsheet>` | nothing, info `doenet-i0018`; `$ss.cells[1][2]` works |
+
+**Recommendation.** An index on a component whose value has entries selects them, the same way
+for every such component. The value decides, not the tag:
+- **a point, vector or coords, or a math whose value is a tuple or vector:** `[i]` is entry i.
+  The `⟨8,9⟩` case is a defect.
+- **a math whose value is a matrix, including `<matrix>`:** `[i]` is row i, `[i][j]` is the
+  entry. `$M[i]` is the same as `$M.matrix[i]` today.
+- **an input** follows the type of its value: `<mathInput>` as `<math>`, `<matrixInput>` as
+  `<matrix>`.
+- **`$x.value[i]` is the same as `$x[i]`**, since the index applies to the value either way.
+  Today it names nothing.
+- **a scalar has no entries.** `$ms[1]` names nothing, as `$n[1]` and `$t[1]` already do, rather
+  than showing the scalar. This is reported once, the same way for every type: `doenet-w0100`,
+  "this value has no entries", not an info naming an internal prop.
+- **out of range** follows NAME-2 and #2410: below 1, `doenet-w0104`; past the end, silent while
+  the value can change size (#1499).
+- **the pass-through rule (3)** applies: `$pl[2][1]` is the first coordinate of a point list's
+  second entry, and `$r[1][2]` is coordinate 2 of iteration 1's one point. #2413's list-entry
+  cases follow from it.
+
+**A `<spreadsheet>` keeps `.cells`.** It is a component with several arrays (`cells`, and
+whatever rows or columns it exposes), not a value with entries. `$ss[1]` should give a
+diagnostic that says to write `$ss.cells[1][2]`, not an info naming an internal prop.
+
+**Open:**
+- **What a row of a matrix is.** Today `$M.matrix[1]` is a 1×n matrix. A tuple or a row vector
+  would also be reasonable. Whichever is chosen, `$M[1]` and `$M.matrix[1]` agree.
+- **A value whose shape changes.** `<math>$a</math>` can be a scalar at one moment and a tuple
+  the next. `$m[2]` then names an entry or nothing as it changes. That is consistent with an
+  index past the end, and needs no special rule.
+
+**Tests to add:** each row of the table, under the rule. Also `.value[i]` equal to `[i]`, a
+`<matrixInput>` and a `<mathInput>` holding a tuple and a matrix, `$ss[1]` giving its diagnostic,
+and pass-through into a list of points.
 
 ## D28. Can "start from a passed-in value" work without `.value`?
 
