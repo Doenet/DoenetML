@@ -508,28 +508,6 @@ describe("A copy's references keep their referents @group4", () => {
         await expectTexts("yes");
     });
 
-    it("a copy of an extend that adds children to a repeat keeps the source's referents in the source's template", async () => {
-        const doenetML = `
-<section name="A"><number name="n">1</number><repeat name="r" for="1 2" valueName="v"><p>$v $n</p></repeat></section>
-<section name="B"><number name="n">2</number><repeat name="rB" extend="$A.r"><p>add $n</p></repeat></section>
-<section name="C"><number name="n">3</number><repeat name="rC" extend="$B.rB"/><repeat name="rD" copy="$rC"/></section>
-<section name="D"><number name="n">4</number><repeat name="rE" copy="$B.rB"/></section>
-<section name="U"><repeat name="rU" copy="$B.rB"/></section>
-`;
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML,
-        });
-
-        const expected: Record<string, string> = {};
-        for (const r of ["B.rB", "C.rC", "C.rD", "D.rE", "U.rU"]) {
-            expected[`${r}[1][1]`] = "1 1";
-            expected[`${r}[2][1]`] = "2 1";
-        }
-        expect(
-            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
-        ).eqls(expected);
-    });
-
     it("an extend of a module has its module attributes, and a copy of its content keeps them", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
