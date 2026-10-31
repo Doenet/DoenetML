@@ -277,7 +277,7 @@ does not count them. The common shapes are:
 ## 4. Suggested order of work
 
 1. Fix B1 and B2 in [decisions.md](decisions.md). They break a Tier 1 guarantee today.
-2. Settle D2, D7, D8, D9, D13, D22 and D23. (D3 and D29 are done: #2367, #2368. D1 is decided: #2396.) D30 (identity in events) is checked against
+2. Settle D2, D7, D8, D9, D13, D22 and D23. (D3 and D29 are done: #2367, #2368. D1 is done: #2397.) D30 (identity in events) is checked against
    doenet.org; its fix is #2365. These decide what the Tier 1 author model says.
 3. Add `registry.ts`, the tags and the `principle()` helper. Tag the principle-stating files.
    Change the parity scripts to report by principle.
