@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateSelectedIndices } from "../utils/actions";
+import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -335,6 +335,68 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
                 (child: any) => child.componentType,
             ),
         ).eqls(["_error"]);
+    });
+
+    it("an extend stays an error as its source's content or its index changes", async () => {
+        // The source's content changing remakes the extend's replacements,
+        // which must still be the error alone, not made into the tag the
+        // extend is written as.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="n" prefill="2" />
+<p name="p0"><repeatForSequence name="x" length="$n" valueName="v"><text>a$v</text></repeatForSequence></p>
+<p name="p1"><repeatForSequence extend="$x" length="3" /></p>
+<p name="p2"><repeatForSequence extend="$x"><text>z</text></repeatForSequence></p>
+<repeat name="r" for="1 2" valueName="v"><sequence from="1" to="$v" /></repeat>
+<p name="p3"><sequence extend="$r[$n]" to="5" /></p>
+<p name="after">after</p>`,
+        });
+
+        async function check(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["p1", "p2", "p3"]) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].activeChildren.map((child: any) => child.componentType),
+                    name,
+                ).eqls(["_error"]);
+            }
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, ["p0", "after"]),
+            ).eqls([text, "after"]);
+        }
+
+        await check("a1, a2");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check("a1");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check("a1, a2");
+
+        // `$r[$n]` is reported for each index it has been expanded with
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => [
+                error.code,
+                error.args?.source,
+            ]),
+        ).eqls([
+            ["doenet-e0056", "$x"],
+            ["doenet-e0057", "$x"],
+            ["doenet-e0056", "$r[2]"],
+            ["doenet-e0056", "$r[1]"],
+        ]);
     });
 
     it("an attribute given by a reference on an extend is reported once, with nothing about its value", async () => {

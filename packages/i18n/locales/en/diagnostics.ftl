@@ -484,6 +484,9 @@ pretzel-problem-needs-statement-and-answer = Invalid pretzel: each `<problem>` m
 
 pretzel-problem-copy-not-supported = A `<problem>` that copies or extends another problem is not supported in a `<pretzel>` and is ignored. Write the problem out inside the `<pretzel>`.
 
+# Translators: retired. A `<pretzel extend>` given problems or a `mode` is an
+# error now, as any extend that would change what its source makes. Kept
+# because diagnostic codes are never reused.
 pretzel-extend-changes-ignored = A `<pretzel>` that extends another shows the same problems in the same mode, so the problems or `mode` given to it are ignored. To add problems or change the mode, use `copy` instead of `extend`.
 
 pretzel-circuit-first-problem-distractor = Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.
