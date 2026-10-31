@@ -1266,9 +1266,10 @@ meant.
 - **REF-1** stays as it is, with no exception.
 - **REF-7** becomes a consequence of this principle: an extend of such a tag shows the same
   content, can be named and restyled, and cannot change the content.
-- **w0168 and w0169** on these tags become errors. Before the switch they are reworded as a
-  deprecation warning that says the form will become an error. That also fixes B12, the silent
-  cases.
+- **w0168 and w0169** on these tags become errors directly, and so does w0178 on a pretzel. No
+  deprecation step is needed: all three were added on `main` for 0.8 (#2213, #2341), and none is
+  on the `0.7` branch. On 0.7 these forms were ignored with no warning, or failed. A 0.7 document
+  meets the error only when it is moved to 0.8. Making the silent cases errors also fixes B12.
 - **Appearance attributes on these extends must take effect.** #2219 (`styleNumber` on an extend
   of `<intersection>` is ignored) becomes a defect under this principle. Other tags were not
   checked.
