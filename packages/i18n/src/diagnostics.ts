@@ -322,6 +322,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0052": "select-random-combination-fluke",
     "doenet-e0053": "select-random-value-fluke",
     "doenet-e0054": "attribute-name-invalid-start",
+    "doenet-e0055": "module-attribute-refers-to-itself",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

@@ -143,11 +143,14 @@ lets you reach each `n` unambiguously with `$s1.n` and `$s2.n`.
 
 ### References in a copy's attributes
 
-A reference in an attribute of a copy resolves as it would outside the copy,
-even when the copied content has a component with the same name. Below,
+A reference in an attribute of a copy resolves as if it were written in a child
+of the copy, as for any other component. It sees the children written inside
+the copy tag, but not the copied content, which is not written there. Below,
 `$h` on `copy1` finds the `h` in the "Copies" section, so `copy1` is hidden.
-To reach a component inside the copy, reference it through the copy's name, as
-`copy2` does with `$copy2.h`.
+In the "Another copy" section, `$h` on `copy3` finds the `h` written inside its
+own tag, so `copy3` is shown.
+To reach a component inside the copied content, reference it through the copy's
+name, as `copy2` does with `$copy2.h`.
 
 ```doenet-editor-horiz
 <section name="orig">
@@ -160,6 +163,34 @@ To reach a component inside the copy, reference it through the copy's name, as
   <setup><boolean name="h">true</boolean></setup>
   <section copy="$orig" hide="$h" name="copy1" />
   <section copy="$orig" hide="$copy2.h" name="copy2" />
+</section>
+<section>
+  <title>Another copy</title>
+  <section copy="$orig" hide="$h" name="copy3">
+    <setup><boolean name="h">false</boolean></setup>
+    <p>Content written inside the copy.</p>
+  </section>
+</section>
+```
+
+The same holds for a child written inside a copy tag. A name on its own never
+finds the copied content; it resolves as it would next to the copy. Below, the
+first paragraph added to `copy4` shows the "Copy" section's `t`, and the second
+reaches the copied `t` through the copy's name. (Content of a copy without a
+name can't be reached from inside it, so give the copy a name.)
+
+```doenet-editor-horiz
+<section name="orig">
+  <title>Original</title>
+  <text name="t">copied text</text>
+</section>
+<section>
+  <title>Copy</title>
+  <text name="t">nearby text</text>
+  <section copy="$orig" name="copy4">
+    <p>$t</p>
+    <p>$copy4.t</p>
+  </section>
 </section>
 ```
 

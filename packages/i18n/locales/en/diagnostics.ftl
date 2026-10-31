@@ -474,6 +474,8 @@ module-attribute-child-needs-name = Since the component `<{ $component }>` does 
 
 module-attribute-name-already-defined = The component `<{ $component } name="{ $name }">` cannot be used as an attribute for a module because the `<module>` component type already has a "{ $name }" attribute defined.
 
+module-attribute-refers-to-itself = The `{ $name }` attribute of this `<module>` refers to the module's own `{ $name }`, so its value would depend on itself. The attribute is ignored. To use a component outside the module, give that component a different name.
+
 conditional-content-condition-ignored = Attribute `condition` is ignored on a `<conditionalContent>` component with case or else children.
 
 slider-markers-type-mismatch = Markers type doesn't match slider type.

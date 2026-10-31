@@ -7783,4 +7783,251 @@ describe("Extend and references tests @group2", async () => {
             );
         });
     });
+
+    describe("a reference resolves where it is written, among what is written", () => {
+        async function stateOf(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            path: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(path)].stateValues;
+        }
+
+        it("an attribute on a copy or extend sees the children written inside the tag", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="orig"><title>o</title></section>
+<module name="m"><p name="q">x</p></module>
+<boolean name="h">false</boolean>
+<section name="c" copy="$orig" hide="$h"><boolean name="h">true</boolean></section>
+<section name="e" extend="$orig" hide="$h"><boolean name="h">true</boolean></section>
+<module name="mc" copy="$m" hide="$h"><boolean name="h">true</boolean></module>
+<section name="w" hide="$h"><boolean name="h">true</boolean></section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            for (const name of ["c", "e", "mc", "w"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, name)).hidden,
+                    name,
+                ).eq(true);
+            }
+        });
+
+        it("an attribute on a module copy sees a module attribute written inside the tag, not the copied one", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<setup>
+    <module name="g">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+            <number name="xmax">10</number>
+        </moduleAttributes>
+        <p name="p">$xmin, $xmax</p>
+    </module>
+</setup>
+<section name="T">
+    <module copy="$g" xmin="$xmin" name="m2"><number name="xmin">7</number></module>
+</section>
+<section name="U">
+    <setup><number name="xmin">-3</number></setup>
+    <module copy="$g" xmin="$xmin" name="m3" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.m2.p")).text,
+            ).eq("7, 10");
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "U.m3.p")).text,
+            ).eq("-3, 10");
+        });
+
+        it("a child added inside a copy or extend reaches the copied content only through the copy's name", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><text name="h">inner</text></section>
+<section name="T">
+    <text name="h">outer</text>
+    <section copy="$S" name="S2"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+    <section extend="$S" name="S3"><p name="q">$h</p><p name="q2">$S3.h</p></section>
+    <section copy="$S"><p name="q4">$h</p></section>
+</section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+            // A bare name resolves outward, as it would beside the copy
+            for (const path of ["T.S2.q", "T.S3.q", "T.q4"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, path)).text,
+                    path,
+                ).eq("outer");
+            }
+            for (const path of ["T.S2.q2", "T.S3.q2"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, path)).text,
+                    path,
+                ).eq("inner");
+            }
+        });
+
+        it("a bare name in a child added inside a copy is ambiguous where it would be beside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><text name="h">inner</text></section>
+<text name="h">outer</text>
+<section copy="$S" name="S2"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+`,
+            });
+
+            // `$h` is ambiguous between `S.h` and the outer `h`, as it would be beside the copy
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings.map((w) => w.message)).eqls([
+                "Multiple referents found for reference: `$h`",
+            ]);
+            expect((await stateOf(core, resolvePathToNodeIdx, "S2.q")).text).eq(
+                "",
+            );
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,
+            ).eq("inner");
+        });
+
+        it("a bare name in a child added inside a copy finds the written component, not the copied one", async () => {
+            // Without an outer `h`, `$h` finds the original `S.h`, not the copy of it inside `S2`.
+            // The copy is not linked, so changing the original tells the two apart.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><textInput name="h" prefill="original" /></section>
+<section copy="$S" name="S2" link="false"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            await updateTextInputValue({
+                text: "changed",
+                componentIdx: await resolvePathToNodeIdx("S.h"),
+                core,
+            });
+
+            expect((await stateOf(core, resolvePathToNodeIdx, "S2.q")).text).eq(
+                "changed",
+            );
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,
+            ).eq("original");
+        });
+
+        it("a child added inside a copy or extend of a list reaches the list's children only through the copy's name", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<mathList name="L"><math name="h">1</math><math>2</math></mathList>
+<section name="T">
+    <setup><math name="h">5</math></setup>
+    <mathList copy="$L" name="L2"><math name="q">$h</math><math name="q2">$L2.h</math></mathList>
+    <mathList extend="$L" name="L3"><math name="q">$h</math><math name="q2">$L3.h</math></mathList>
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            for (const list of ["L2", "L3"]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `T.${list}.q`))
+                        .value.tree,
+                    list,
+                ).eq(5);
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `T.${list}.q2`))
+                        .value.tree,
+                    list,
+                ).eq(1);
+            }
+        });
+
+        it("an attribute searches the component's written descendants, then the component, ahead of a same-named sibling", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="orig"><title>o</title></section>
+<group name="G">
+    <section name="h" hide="$h"><boolean name="h">true</boolean></section>
+    <section name="h2" copy="$orig" hide="$h2"><boolean name="h2">true</boolean></section>
+    <section name="a" hide="$a.hb"><boolean name="hb">true</boolean></section>
+    <section name="a" hide="$a.hb"><boolean name="hb">false</boolean></section>
+    <section name="b" copy="$orig" hide="$b.hb"><boolean name="hb">true</boolean></section>
+    <section name="b" copy="$orig" hide="$b.hb"><boolean name="hb">false</boolean></section>
+</group>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            // A same-named descendant comes first, on an ordinary element and on a copy
+            for (const index of [1, 2]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}]`))
+                        .hidden,
+                    `G[${index}]`,
+                ).eq(true);
+            }
+            // Then the component itself, ahead of a same-named sibling
+            for (const [index, hidden] of [
+                [3, true],
+                [4, false],
+                [5, true],
+                [6, false],
+            ] as [number, boolean][]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}]`))
+                        .hidden,
+                    `G[${index}]`,
+                ).eq(hidden);
+            }
+        });
+
+        it("a child searches its component's written descendants, then the component, ahead of a same-named sibling", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="orig"><title>o</title></section>
+<group name="G">
+    <section name="k"><text name="k">inner</text><p name="q">$k</p></section>
+    <section name="k2" copy="$orig"><text name="k2">inner</text><p name="q">$k2</p></section>
+    <section name="m"><text name="v">first</text><p name="q">$m.v</p></section>
+    <section name="m"><text name="v">second</text><p name="q">$m.v</p></section>
+    <section name="n" copy="$orig"><text name="v">first</text><p name="q">$n.v</p></section>
+    <section name="n" copy="$orig"><text name="v">second</text><p name="q">$n.v</p></section>
+</group>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            for (const [index, text] of [
+                [1, "inner"],
+                [2, "inner"],
+                [3, "first"],
+                [4, "second"],
+                [5, "first"],
+                [6, "second"],
+            ] as [number, string][]) {
+                expect(
+                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}].q`))
+                        .text,
+                    `G[${index}].q`,
+                ).eq(text);
+            }
+        });
+    });
 });
