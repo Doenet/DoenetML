@@ -171,7 +171,7 @@ The value-copy path is removed.
 **Recommendation.**
 - **An extend of a composite:** it shows the source's content, and both content attributes and
   children are ignored with a warning (REF-7, as today). Group and module stay as they are,
-  because their "content" is their children. D32 proposes making a content change an error, while
+  because their "content" is their children. D32 (decided, #2404) makes a content change an error, while
   a bare, named or restyled extend stays allowed.
 - **A copy of a composite:** the source's DoenetML is pasted, and the copy's attributes override
   it. Children written inside are appended after the whole composite, not to each iteration.
