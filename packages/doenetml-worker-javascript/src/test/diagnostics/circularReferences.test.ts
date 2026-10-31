@@ -1043,12 +1043,12 @@ describe("Circular references created after load @group2", async () => {
 /**
  * Doenet/DoenetML#2405: a reference inside the component it names (`$S` in
  * `S`) is replaced by the circular-dependency error, or, where the source's
- * value can stand in (a `<label>`, a `<title>`), by that value. Neither
- * shadows the source, and a copy of `S` holds a counterpart of the reference
- * that names the copy. Updating that reference remade it on every pass, as
- * its replacement did not shadow its source, and remaking it changed the
- * copy it is in, which marked it to be updated again, until the document
- * stopped with an internal error. It should load as `S` alone does.
+ * value can stand in (a point's coordinates in a `<label>`), by that value.
+ * Neither shadows the source, and a copy of `S` holds a counterpart of the
+ * reference that names the copy. Updating that reference remade it on every
+ * pass, as its replacement did not shadow its source, and remaking it
+ * changed the copy it is in, which marked it to be updated again, until the
+ * document stopped with an internal error. It should load as `S` alone does.
  */
 describe("A copy of a component that references itself @group2", async () => {
     async function textsAndErrors(doenetML: string, paths: string[]) {
