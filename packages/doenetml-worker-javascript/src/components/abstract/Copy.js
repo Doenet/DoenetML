@@ -1742,10 +1742,14 @@ export default class Copy extends CompositeComponent {
                 prefix: `${stateIdInfo.prefix}${await stateIdSegmentForCopyOf(replacementSourceComponent)}`,
                 num: stateIdInfo.num,
             };
+            // An unlinked copy is its source's DoenetML pasted, whose
+            // references keep the referents they have in the source (D1).
             let res = createNewComponentIndices(
                 serializedReplacements,
                 nComponents,
                 sourceStateIdInfo,
+                undefined,
+                { keepReferents: !link },
             );
             stateIdInfo.num = sourceStateIdInfo.num;
             serializedReplacements = res.components;
@@ -3292,6 +3296,10 @@ export async function replacementFromProp({
                                             [serializedComponent],
                                             nComponents,
                                             stateIdInfo,
+                                            undefined,
+                                            // pasted from the source, its references keep the
+                                            // referents they have there (D1)
+                                            { keepReferents: true },
                                         );
                                         nComponents = res.nComponents;
 
@@ -3378,6 +3386,10 @@ export async function replacementFromProp({
                                 ],
                                 nComponents,
                                 stateIdInfo,
+                                undefined,
+                                // pasted from the list, its references keep
+                                // the referents they have there (D1)
+                                { keepReferents: true },
                             );
                             nComponents = res.nComponents;
                             attributesForReplacement[attrName] = {
@@ -3731,6 +3743,10 @@ export async function replacementFromProp({
                                                 [serializedComponent],
                                                 nComponents,
                                                 stateIdInfo,
+                                                undefined,
+                                                // pasted from the source, its references keep the
+                                                // referents they have there (D1)
+                                                { keepReferents: true },
                                             );
                                             nComponents = res.nComponents;
 
@@ -4393,6 +4409,10 @@ export async function replacementFromProp({
                                     [serializedComponent],
                                     nComponents,
                                     stateIdInfo,
+                                    undefined,
+                                    // pasted from the source, its references keep the
+                                    // referents they have there (D1)
+                                    { keepReferents: true },
                                 );
                                 nComponents = res.nComponents;
 

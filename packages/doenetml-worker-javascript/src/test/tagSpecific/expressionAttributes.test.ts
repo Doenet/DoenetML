@@ -921,7 +921,7 @@ describe("Lists held by what searches for them @group4", () => {
         ).toEqual([]);
     });
 
-    it("copies of what holds the list resolve it from where they are", async () => {
+    it("copies of what holds the list keep the list it names", async () => {
         const [values] = await compare({
             doenetML: `
 <numberList name="l">3 1</numberList>
@@ -938,9 +938,10 @@ describe("Lists held by what searches for them @group4", () => {
         });
         expect(values.linked.targets).toEqual(["3", "1"]);
         expect(values.unlinked.targets).toEqual(["3", "1"]);
-        // pasted in an iteration, `$l` names the iteration's list
-        expect(values["rp[1].copied"].targets).toEqual(["1", "5"]);
-        expect(values["rp[2].copied"].targets).toEqual(["2", "5"]);
+        // pasted in an iteration, `$l` still names the `l` it names in
+        // `io`, not the iteration's list (D1)
+        expect(values["rp[1].copied"].targets).toEqual(["3", "1"]);
+        expect(values["rp[2].copied"].targets).toEqual(["3", "1"]);
     });
 
     it("keeps the attribute component of a target that is not one whole value list", async () => {
@@ -1216,7 +1217,7 @@ describe("Lists of points held by a polyline @group4", () => {
         ]);
     });
 
-    it("copies of what holds the list resolve it from where they are", async () => {
+    it("copies of what holds the list keep the list it names", async () => {
         const [values] = await compare({
             doenetML: `
 <graph>
@@ -1239,10 +1240,11 @@ describe("Lists of points held by a polyline @group4", () => {
             [1, 2],
             [3, 4],
         ]);
-        // pasted in an iteration, `$L` names the iteration's list
+        // pasted in an iteration, `$L` still names the `L` it names in
+        // `pg`, not the iteration's list (D1)
         expect(values["rp[2].copied"]).toEqual([
-            [2, 0],
-            [0, 2],
+            [1, 2],
+            [3, 4],
         ]);
     });
 
