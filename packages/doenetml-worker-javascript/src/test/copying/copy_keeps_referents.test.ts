@@ -294,4 +294,392 @@ describe("A copy's references keep their referents @group4", () => {
             await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
         ).eqls(expected);
     });
+    it("a copy of an extend keeps the referents of the extend's source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><group name="g"><p name="p">$n</p></group><p name="q">$n</p></section>
+<section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/><p name="pB" extend="$A.q"/></section>
+<section name="D"><number name="n">4</number><group name="gD" copy="$B.gB"/><p name="pD" copy="$B.pB"/></section>
+<section name="U"><group name="gU" copy="$B.gB"/></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "B.gB.p",
+                "B.pB",
+                "D.gD.p",
+                "D.pD",
+                "U.gU.p",
+            ]),
+        ).eqls({
+            "B.gB.p": "1",
+            "B.pB": "1",
+            "D.gD.p": "1",
+            "D.pD": "1",
+            "U.gU.p": "1",
+        });
+    });
+
+    it("a chain of extends and copies keeps the referent of the first, at each depth", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><group name="g"><p name="p">$n</p></group></section>
+<section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/></section>
+<section name="C"><number name="n">3</number><group name="gC" extend="$B.gB"/></section>
+<section name="D"><number name="n">4</number><group name="gD" copy="$C.gC"/></section>
+<section name="E"><number name="n">5</number><group name="gE" copy="$D.gD"/></section>
+<section name="F"><number name="n">6</number><group name="gF" copy="$E.gE"/></section>
+<section name="G"><number name="n">7</number><group name="gG" extend="$E.gE"/></section>
+<section name="H"><number name="n">8</number><group name="gH" copy="$B.gB"/></section>
+<section name="I"><number name="n">9</number><group name="gI" copy="$H.gH"/><group name="gJ" extend="$gI"/></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const paths = [
+            "B.gB.p",
+            "C.gC.p",
+            "D.gD.p",
+            "E.gE.p",
+            "F.gF.p",
+            "G.gG.p",
+            "H.gH.p",
+            "I.gI.p",
+            "I.gJ.p",
+        ];
+        expect(await textsOf(core, resolvePathToNodeIdx, paths)).eqls(
+            Object.fromEntries(paths.map((path) => [path, "1"])),
+        );
+    });
+
+    it("a copy of an extend keeps the referent of an attribute of the extend's source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="m">-3</number><graph name="G1" decorative/><graph name="G2" copy="$G1" xMin="$m"/></section>
+<section name="B"><number name="m">-5</number><graph name="G3" extend="$A.G2"/></section>
+<section name="C"><number name="m">-7</number><graph name="G4" copy="$B.G3"/></section>
+<section name="D"><graph name="G5" copy="$B.G3"/></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const path of ["A.G2", "B.G3", "C.G4", "D.G5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                    .xMin,
+            ).eq(-3);
+        }
+    });
+
+    it("a copy of part of an extend keeps a referent elsewhere in the extend", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><group name="g"><mathInput name="x" prefill="7"/><p name="p">$x $n</p></group></section>
+<section name="B"><number name="n">2</number><number name="x">8</number><group name="gB" extend="$A.g"/></section>
+<section name="C"><number name="n">3</number><number name="x">9</number><p name="pc" copy="$B.gB.p"/><p name="pc2" copy="$pc"/></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        // `B.gB.x` shadows `A.g.x`, which a copy of `B.gB.p` keeps through it
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("B.gB.x"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "A.g.p",
+                "B.gB.p",
+                "C.pc",
+                "C.pc2",
+            ]),
+        ).eqls({
+            "A.g.p": "5 1",
+            "B.gB.p": "5 1",
+            "C.pc": "5 1",
+            "C.pc2": "5 1",
+        });
+    });
+
+    it("in a copy of an extend, a reference through the source's own name refers to the copy", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><group name="g"><mathInput name="x" prefill="5"/><p name="p">$g.x $n</p></group></section>
+<section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/></section>
+<section name="D"><number name="n">4</number><group name="gD" copy="$B.gB"/></section>
+<section name="E"><number name="n">6</number><group name="gE" copy="$D.gD"/></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("D.gD.x"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("E.gE.x"),
+            core,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "A.g.p",
+                "B.gB.p",
+                "D.gD.p",
+                "E.gE.p",
+            ]),
+        ).eqls({
+            "A.g.p": "5 1",
+            "B.gB.p": "5 1",
+            "D.gD.p": "7 1",
+            "E.gE.p": "8 1",
+        });
+    });
+
+    it("a copy of an extend made after interaction keeps its referents, through a save and reload", async () => {
+        const doenetML = `
+<section name="A"><mathInput name="n" prefill="1" /><group name="g"><p name="p">$n</p></group></section>
+<section name="B"><mathInput name="n" prefill="2" /><group name="gB" extend="$A.g"/></section>
+<section name="T">
+    <mathInput name="n" prefill="4" />
+    <booleanInput name="show" />
+    <conditionalContent name="cc">
+        <case condition="$show"><group name="gc" copy="$B.gB"/></case>
+    </conditionalContent>
+</section>
+`;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("T.show"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("A.n"),
+            core,
+        });
+
+        expectNoDiagnostics(core);
+        const expected = { "B.gB.p": "3", "T.cc.gc.p": "3" };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+
+        expectNoDiagnostics(core);
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+    });
+
+    it("a copy of an extend keeps the source's referents in the content of a repeat, a conditionalContent and a select", async () => {
+        const doenetML = `
+<section name="A">
+    <number name="n">1</number>
+    <booleanInput name="b" />
+    <group name="g">
+        <repeat name="r" for="1 2" valueName="v"><p>$v $n</p></repeat>
+        <conditionalContent name="cc">
+            <case condition="$b"><p name="p">yes $n</p></case>
+            <else><p name="p">no $n</p></else>
+        </conditionalContent>
+        <select name="s"><option><p name="p">a $n</p></option></select>
+    </group>
+</section>
+<section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/></section>
+<section name="C"><number name="n">3</number><group name="gC" extend="$B.gB"/></section>
+<section name="D"><number name="n">4</number><group name="gD" copy="$C.gC"/></section>
+<section name="E"><number name="n">5</number><group name="gE" copy="$D.gD"/><group name="gF" extend="$gE"/><group name="gG" copy="$gF"/></section>
+<section name="U"><group name="gU" copy="$B.gB"/></section>
+`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const groups = ["B.gB", "C.gC", "D.gD", "E.gE", "E.gF", "E.gG", "U.gU"];
+        async function expectTexts(cc: string) {
+            const expected: Record<string, string> = {};
+            for (const g of groups) {
+                expected[`${g}.r[2][1]`] = "2 1";
+                expected[`${g}.cc.p`] = `${cc} 1`;
+                expected[`${g}.s[1].p`] = "a 1";
+            }
+            expect(
+                await textsOf(
+                    core,
+                    resolvePathToNodeIdx,
+                    Object.keys(expected),
+                ),
+            ).eqls(expected);
+        }
+
+        expectNoDiagnostics(core);
+        await expectTexts("no");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("A.b"),
+            core,
+        });
+        await expectTexts("yes");
+    });
+
+    /**
+     * Section A holds `source`, a tag that makes its own content, which shows
+     * A's `n`. Section B, with another `n`, extends it twice, each inside a
+     * `<p>`: with a name, and with a name and an appearance attribute.
+     * Sections D, with another `n`, and U, with none, copy both extends, and D
+     * copies the `<p>` that holds the first.
+     */
+    function directExtendsDoenetML(tag: string, source: string) {
+        return `
+<section name="A"><number name="n">1</number>${source}</section>
+<section name="B">
+    <number name="n">2</number>
+    <p name="pe"><${tag} name="e" extend="$A.x"/></p>
+    <p name="pa"><${tag} name="ea" extend="$A.x" styleNumber="2"/></p>
+</section>
+<section name="D">
+    <number name="n">4</number>
+    <p name="c"><${tag} copy="$B.e"/></p>
+    <p name="ca"><${tag} copy="$B.ea"/></p>
+    <p name="cp" copy="$B.pe"/>
+</section>
+<section name="U">
+    <p name="c"><${tag} copy="$B.e"/></p>
+    <p name="ca"><${tag} copy="$B.ea"/></p>
+</section>
+`;
+    }
+
+    const directExtendPaths = [
+        "B.pe",
+        "B.pa",
+        "D.c",
+        "D.ca",
+        "D.cp",
+        "U.c",
+        "U.ca",
+    ];
+
+    async function expectDirectExtendTexts(
+        core: PublicDoenetMLCore,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        text: string,
+    ) {
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, directExtendPaths),
+        ).eqls(
+            Object.fromEntries(directExtendPaths.map((path) => [path, text])),
+        );
+    }
+
+    it("a copy of an extend of a repeat keeps the source's referents", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: directExtendsDoenetML(
+                "repeat",
+                `<repeat name="x" for="5 6" valueName="v"><text>$v $n</text></repeat>`,
+            ),
+        });
+
+        expectNoDiagnostics(core);
+        await expectDirectExtendTexts(core, resolvePathToNodeIdx, "5 1, 6 1");
+    });
+
+    it("a copy of an extend of a select keeps the source's referents", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: directExtendsDoenetML(
+                "select",
+                `<select name="x"><option><text>a $n</text></option></select>`,
+            ),
+        });
+
+        expectNoDiagnostics(core);
+        await expectDirectExtendTexts(core, resolvePathToNodeIdx, "a 1");
+    });
+
+    it("a copy of an extend of a conditionalContent keeps the source's referents as its case switches", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: directExtendsDoenetML(
+                "conditionalContent",
+                `<booleanInput name="b" /><conditionalContent name="x">
+    <case condition="$b"><text>yes $n</text></case>
+    <else><text>no $n</text></else>
+</conditionalContent>`,
+            ),
+        });
+
+        // Each `<conditionalContent extend>` warns that children written in it
+        // are ignored, though none are (B12 in the design principles).
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(diagnosticsByType.warnings.map((warning) => warning.code)).eqls([
+            "doenet-w0169",
+            "doenet-w0169",
+        ]);
+        await expectDirectExtendTexts(core, resolvePathToNodeIdx, "no 1");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("A.b"),
+            core,
+        });
+        await expectDirectExtendTexts(core, resolvePathToNodeIdx, "yes 1");
+    });
+
+    it("a copy of an extend of a collect keeps the source's referents", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: directExtendsDoenetML(
+                "collect",
+                `<group name="g"><text>c $n</text></group><collect name="x" componentType="text" from="$g"/>`,
+            ),
+        });
+
+        expectNoDiagnostics(core);
+        await expectDirectExtendTexts(core, resolvePathToNodeIdx, "c 1");
+    });
+
+    it("an extend of a module has its module attributes, and a copy of its content keeps them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><module name="m"><moduleAttributes><number name="a">10</number></moduleAttributes><p name="p">$a $n</p></module></section>
+<section name="B"><number name="n">2</number><number name="a">20</number><module name="mc" copy="$A.m" a="30"/><module name="me" extend="$mc"/><module name="me2" extend="$A.m"/></section>
+<section name="C">
+    <number name="n">3</number><number name="a">21</number>
+    <p name="pc" copy="$B.me.p"/><p name="pc2" copy="$B.me2.p"/>
+    <p name="pa">$B.me.a $B.me2.a</p><number name="na" extend="$B.me.a"/>
+    <module name="mce" copy="$B.me" a="40"/>
+</section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const expected = {
+            "B.me.p": "30 1",
+            "B.me2.p": "10 1",
+            "C.pc": "30 1",
+            "C.pc2": "10 1",
+            "C.pa": "30 10",
+            "C.na": "30",
+            "C.mce.p": "40 1",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+    });
 });

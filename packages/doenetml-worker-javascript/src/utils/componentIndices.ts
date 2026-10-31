@@ -532,17 +532,21 @@ function remapRefResolutions(
  * Its referent is the component its path was resolved to (`nodeIdx`), with
  * what is left of the path (`unresolvedPath`) still to resolve from there.
  *
- * - A referent outside what is copied is kept. The reference is resolved
- *   again from its origin in the source, not from where the copy lands, so
- *   that a component of the same name there neither captures it nor makes it
- *   ambiguous.
- * - A referent inside what is copied becomes its counterpart in the copy.
- *   The reference is resolved from that counterpart, with what was left of
- *   its path, rather than by name: `$P.h` written inside `<p name="P">` names
- *   the `h` of a copy of `P`, which has another name. If what is left of the
- *   path cannot be taken from the referent (`pathFromReferent`), or the path
- *   starts with no name, its whole path is resolved again from the
- *   counterpart of its origin instead, as without `keepReferents`.
+ * A referent outside what is copied is kept, and a referent inside it
+ * becomes its counterpart in the copy. Either way the reference is resolved
+ * from that component, with what was left of its path, rather than by name:
+ * - outside, a component of the same name where the copy lands neither
+ *   captures it nor makes it ambiguous, and a referent that a bare name
+ *   cannot reach from the reference's origin, such as one made by an
+ *   `extend` the origin is in, is still kept;
+ * - inside, `$P.h` written inside `<p name="P">` names the `h` of a copy of
+ *   `P`, which has another name.
+ *
+ * If what is left of the path cannot be taken from the referent
+ * (`pathFromReferent`), or the path starts with no name, the whole path is
+ * resolved again instead: from the reference's origin in the source for a
+ * referent outside what is copied, and from the counterpart of its origin
+ * for one inside, as without `keepReferents`.
  *
  * References written on the copy tag itself are not among these: they are
  * written where the copy is, and resolve from there (`convertToCopy.ts`).
@@ -551,24 +555,20 @@ function remapCopiedRefResolution(
     refResolution: SerializedRefResolution | UnflattenedRefResolution,
     idxMap: Record<number, number>,
 ) {
-    const referent = idxMap[refResolution.nodeIdx];
-    if (referent === undefined) {
-        const origin = refResolution.nodesInResolvedPath[0];
-        remapRefResolution(refResolution, idxMap);
-        if (origin !== undefined) {
-            refResolution.nodesInResolvedPath[0] = origin;
-        }
-        return;
-    }
+    const counterpart = idxMap[refResolution.nodeIdx];
+    const referent = counterpart ?? refResolution.nodeIdx;
 
-    // A path that starts with no name resolves from its origin itself, which
-    // is copied along with the referent it reaches.
+    // A path that starts with no name resolves from its origin itself.
     const path =
         refResolution.originalPath[0]?.name === ""
             ? undefined
             : pathFromReferent(refResolution);
     if (path === undefined) {
+        const origin = refResolution.nodesInResolvedPath[0];
         remapRefResolution(refResolution, idxMap);
+        if (counterpart === undefined && origin !== undefined) {
+            refResolution.nodesInResolvedPath[0] = origin;
+        }
         return;
     }
 
@@ -766,6 +766,61 @@ export function setUnflattenedReferenceOrigins(
             );
         }
     }
+}
+
+/**
+ * Give new component indices to `serializedReplacements`, the serialized
+ * replacements of the composite that `shadowingComponent` shadows, which
+ * become its own replacements. A composite whose replacement `i` is its
+ * serialized child `i` (`useSerializedChildrenComponentIndices`, such as
+ * `<group>`) takes the indices of those children; any other takes new ones,
+ * starting with `nComponents`, except those given in `idxMapOverride`.
+ *
+ * The replacements are renumbered together, so that a reference in one to
+ * another (`$g.x` in a `<p>` beside `x` in `<group name="g">`) names that
+ * one's counterpart, as a reference to a component in the same replacement
+ * does: a copy of the shadowing composite then names its own counterpart,
+ * not the shadowed composite's.
+ *
+ * Returns:
+ * - `components`: the replacements with new indices
+ * - `nComponents`: the new value of `nComponents`, one greater than the last component index assigned
+ */
+export function createComponentIndicesForShadowedReplacements({
+    serializedReplacements,
+    shadowingComponent,
+    nComponents,
+    stateIdInfo,
+    idxMapOverride,
+}: {
+    serializedReplacements: (SerializedComponent | string)[];
+    shadowingComponent: {
+        constructor: Function & {
+            useSerializedChildrenComponentIndices?: boolean;
+        };
+        serializedChildren: (SerializedComponent | string)[];
+    };
+    nComponents: number;
+    stateIdInfo: {
+        prefix: string;
+        num: number;
+    };
+    idxMapOverride?: Record<number, number>;
+}) {
+    if (shadowingComponent.constructor.useSerializedChildrenComponentIndices) {
+        return createComponentIndicesFromSerializedChildren(
+            serializedReplacements,
+            shadowingComponent.serializedChildren,
+            nComponents,
+            stateIdInfo,
+        );
+    }
+    return createNewComponentIndices(
+        serializedReplacements,
+        nComponents,
+        stateIdInfo,
+        idxMapOverride,
+    );
 }
 
 /**
