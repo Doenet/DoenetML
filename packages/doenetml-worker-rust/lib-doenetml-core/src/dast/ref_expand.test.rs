@@ -1,6 +1,7 @@
 use assert_json_diff::assert_json_eq;
 
 use super::*;
+use crate::dast::{Position, flat_dast::FlatPathPart};
 use crate::test_utils::*;
 
 #[test]
@@ -631,66 +632,143 @@ fn initial_ref_skips_unqualified_option_children() {
     );
 }
 
+/// The text of `source` that `position` spans.
+fn spanned<'a>(source: &'a str, position: &Option<Position>) -> &'a str {
+    let position = position.as_ref().expect("a position");
+    &source[position.start.offset.unwrap()..position.end.offset.unwrap()]
+}
+
+/// The text of `source` that `path` spans, with the `$` in front of it: what
+/// the worker quotes as the reference (`convertNormalizedDast.ts`).
+fn spanned_path(source: &str, path: &[FlatPathPart]) -> String {
+    let start = path[0].position.as_ref().unwrap().start.offset.unwrap();
+    let end = path
+        .last()
+        .unwrap()
+        .position
+        .as_ref()
+        .unwrap()
+        .end
+        .offset
+        .unwrap();
+    format!("${}", &source[start..end])
+}
+
+/// The error nodes of `flat_root`.
+fn errors_of(flat_root: &FlatRoot) -> Vec<&FlatError> {
+    flat_root
+        .nodes
+        .iter()
+        .filter_map(|node| match node {
+            FlatNode::Error(e) => Some(e),
+            _ => None,
+        })
+        .collect()
+}
+
 /// An index that names nothing whatever the length (`0`, or one that is not a
 /// count, such as `-1`) fails to resolve, and is reported with the same code as
 /// a name that names nothing, `doenet-w0104`. The worker raises that code for
 /// the same index written dynamically (`$l[$i]` with `i` = 0), so the two read
-/// alike (#2407).
+/// alike (#2407). The resolver leaves the code's argument to the worker, which
+/// quotes the reference from the path's positions, so the path has to span the
+/// whole reference, and the node has to be marked where it was written.
 #[test]
 fn an_index_that_names_nothing_is_coded_as_no_referent() {
-    for written in ["$l[0]", "$l[-1]", "$l[0].x"] {
+    for written in ["$l[0]", "$l[-1]", "$l[0].x", "$nothing.x[2]"] {
         let source = format!(r#"<mathList name="l">1 2</mathList>{written}"#);
-        let dast_root = dast_root_no_position(&source);
+        let dast_root = dast_root(&source);
         let mut flat_root = FlatRoot::from_dast(&dast_root);
         Expander::expand(&mut flat_root);
 
-        let errors: Vec<&FlatError> = flat_root
-            .nodes
-            .iter()
-            .filter_map(|node| match node {
-                FlatNode::Error(e) => Some(e),
-                _ => None,
-            })
-            .collect();
+        let errors = errors_of(&flat_root);
         assert_eq!(errors.len(), 1, "{written}");
-        assert_eq!(errors[0].code.as_deref(), Some("doenet-w0104"), "{written}");
-        assert!(
-            matches!(errors[0].error_type, ErrorType::Warning),
-            "{written}"
-        );
+        let error = errors[0];
+        assert_eq!(error.code.as_deref(), Some("doenet-w0104"), "{written}");
+        assert!(error.args.is_none(), "{written}");
+        assert!(matches!(error.error_type, ErrorType::Warning), "{written}");
+        assert_eq!(spanned(&source, &error.position), written);
+        let path = error.unresolved_path.as_ref().expect(written);
+        assert_eq!(spanned_path(&source, path), written);
     }
 }
 
-/// The same index in an `extend` attribute keeps the code, and the path the
-/// worker quotes the reference from (#2407).
+/// A name that names more than one thing is coded `doenet-w0105`. It carries no
+/// path, so the worker quotes the reference from the node's position.
 #[test]
-fn an_index_that_names_nothing_in_an_extend_attribute_is_coded() {
-    let source = r#"<mathList name="l">1 2</mathList><math extend="$l[0]" />"#;
-    let dast_root = dast_root_no_position(source);
+fn a_reference_with_more_than_one_referent_is_coded() {
+    let source = r#"<text name="t" /><text name="t" />$t"#;
+    let dast_root = dast_root(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
 
-    let math = flat_root
-        .nodes
-        .iter()
-        .find_map(|node| match node {
-            FlatNode::Element(e) if e.name == "math" => Some(e),
-            _ => None,
-        })
-        .unwrap();
-    let error = math
-        .children
-        .iter()
-        .find_map(|child| match child {
-            UntaggedContent::Ref(idx) => match &flat_root.nodes[*idx] {
-                FlatNode::Error(e) => Some(e),
+    let errors = errors_of(&flat_root);
+    assert_eq!(errors.len(), 1);
+    assert_eq!(errors[0].code.as_deref(), Some("doenet-w0105"));
+    assert!(errors[0].args.is_none());
+    assert!(errors[0].unresolved_path.is_none());
+    assert_eq!(spanned(source, &errors[0].position), "$t");
+}
+
+/// The same index in an `extend` or `copy` attribute keeps the code and the
+/// path, and is marked at the reference inside the attribute rather than at the
+/// whole attribute, as the same reference written as text is (#2407).
+#[test]
+fn an_index_that_names_nothing_in_an_extend_attribute_is_coded() {
+    for attribute in ["extend", "copy"] {
+        let source = format!(r#"<mathList name="l">1 2</mathList><math {attribute}="$l[0]" />"#);
+        let dast_root = dast_root(&source);
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+
+        let math = flat_root
+            .nodes
+            .iter()
+            .find_map(|node| match node {
+                FlatNode::Element(e) if e.name == "math" => Some(e),
                 _ => None,
-            },
-            _ => None,
-        })
-        .expect("the attribute's failure is a child of the element");
-    assert_eq!(error.code.as_deref(), Some("doenet-w0104"));
-    let path = error.unresolved_path.as_ref().unwrap();
-    assert_eq!(path.len(), 1);
-    assert_eq!(path[0].name, "l");
+            })
+            .unwrap();
+        assert!(math.attributes.is_empty(), "{attribute}");
+        assert!(math.extending.is_none(), "{attribute}");
+        let [UntaggedContent::Ref(error_idx)] = math.children[..] else {
+            panic!("{attribute}: the attribute's failure is the element's only child");
+        };
+        let FlatNode::Error(error) = &flat_root.nodes[error_idx] else {
+            panic!("{attribute}: expected an error");
+        };
+        assert_eq!(error.parent, Some(math.idx), "{attribute}");
+        assert_eq!(error.code.as_deref(), Some("doenet-w0104"), "{attribute}");
+        assert!(error.args.is_none(), "{attribute}");
+        assert!(
+            matches!(error.error_type, ErrorType::Warning),
+            "{attribute}"
+        );
+        assert_eq!(
+            error.message,
+            format!("In '{attribute}' attribute: No referent found for reference: `$l`")
+        );
+        assert_eq!(spanned(&source, &error.position), "$l[0]", "{attribute}");
+        assert_eq!(error.source_doc, math.source_doc, "{attribute}");
+        let path = error.unresolved_path.as_ref().expect(attribute);
+        assert_eq!(spanned_path(&source, path), "$l[0]", "{attribute}");
+    }
+}
+
+/// An `extend` attribute that is invalid for another reason than a reference
+/// that failed to resolve is still an uncoded error marked at the attribute.
+#[test]
+fn an_invalid_extend_attribute_is_still_uncoded() {
+    let source = r#"<math extend="x" />"#;
+    let dast_root = dast_root(source);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+
+    let errors = errors_of(&flat_root);
+    assert_eq!(errors.len(), 1);
+    assert_eq!(errors[0].code, None);
+    assert!(errors[0].unresolved_path.is_none());
+    assert!(matches!(errors[0].error_type, ErrorType::Error));
+    assert_eq!(errors[0].message, "Invalid 'extend' attribute");
+    assert_eq!(spanned(source, &errors[0].position), r#"extend="x""#);
 }
