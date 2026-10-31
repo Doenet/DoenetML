@@ -353,7 +353,8 @@ No test pins the "last one wins" rule, for any component, either written directl
 component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
 ### REF-5: a different tag is allowed only between related types; any other pair is an error (Tier 2)
-`<T extend="$x"/>` with T different from x's type asks for a T that behaves like x. That has a
+The same rule holds for `copy` and for D33's fresh form (D26, decided). `<T extend="$x"/>` with T
+different from x's type asks for a T that behaves like x. That has a
 meaning only for related types:
 - math, number, text and boolean, among each other;
 - point, vector and coords;
