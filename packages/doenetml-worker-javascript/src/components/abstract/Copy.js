@@ -1763,7 +1763,10 @@ export default class Copy extends CompositeComponent {
             // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
             // In recognized rendering contexts, fall back to the source's public `value`
             // state variable rather than showing an error.
-            if (e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX)) {
+            const copyIsInsideSource = Boolean(
+                e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX),
+            );
+            if (copyIsInsideSource) {
                 // Walk up the ancestor chain to determine if we're in a recognized context.
                 // ancestor.componentClass gives the class of each ancestor (closest first).
                 // We walk through transparent composites (treatAsComponentForRecursiveReplacements,
@@ -1839,7 +1842,9 @@ export default class Copy extends CompositeComponent {
                 serializedReplacements,
                 diagnostics,
                 nComponents,
-                sourceContainsCopy: true,
+                // Only a copy inside its source would be made the same way
+                // again; another error may not recur, so the copy is remade.
+                sourceContainsCopy: copyIsInsideSource,
             };
         }
 
