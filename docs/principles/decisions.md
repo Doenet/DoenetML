@@ -22,7 +22,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B1 | `<math extend="$m" fixed="false"/>` of a fixed `m` lets a bound input change `m` (also for `<number>` and `<text>`). For points and inputs the same write is refused. | `m` becomes 5. Confirmed twice | The check "a shadow source is fixed" exists only on the `setEssentialValue` path (`W/core/EssentialValueWriter.ts:1200-1222`). A literal child is written through `setDependency`, which does not re-check |
 | B2 | A write to `$Q.fixed`, where Q extends a point inside `<graph fixed>`, unfixes the source, which can then be dragged (#2197, open) | reproduces | `W/utils/contextAttribute.js:206-258` forwards the write |
 | B3 | One-input math operators report `canBeModified` from the wrong variable. `<sign>$n</sign>` claims it can be changed, but a bound input snaps back | yes | `W/components/abstract/MathBaseOperatorOneInput.js:94-97` reads `mathOperator` rather than `inverseMathOperator` |
-| B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works. Fixed by D1's decision, under #2396 | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
+| B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works. **Fixed by #2397** (D1): it shows the iteration's value | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
 | B5 | Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
 | B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
@@ -32,6 +32,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
 | B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
+| B14 | A copy of an `extend` resolves references to outside names from where the extend is written, not from the source, breaking D1. With `n` = 1 in A and 2 in B, `<group name="gB" extend="$A.g"/>` in B shows 1 (REF-6), but `<group copy="$B.gB"/>` anywhere shows 2. The same holds for a copied `<p extend>`. Before #2397 it showed the `n` where the copy was written | **[probe]** on main at `ef87be6` | the extend's shadows seem to carry references whose origin is the extend; `keepReferents` keeps that origin. Not traced |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -40,7 +41,7 @@ interaction". They should be fixed on main whatever happens to the rewrite.
 
 ## D1. Should a copy re-bind names outside the copied part where it lands? (affects the author model)
 
-**Decided: (b), by referent (#2396 implements it).** A reference in copied content keeps meaning
+**Decided: (b), by referent. Done by #2397 (closing #2396), except B14.** A reference in copied content keeps meaning
 what it meant in the source:
 - a referent inside the copied part becomes the copy's counterpart;
 - a referent outside keeps that referent.
@@ -53,6 +54,18 @@ same rule covers D33's fresh form. #376 asks for the same for an `extend`.
 
 Nothing decided since changes this. It removes one of the ways D33 found a copy's nested choices
 can change without anything written on the copy saying so.
+
+**What #2397 does and leaves:**
+- `createNewComponentIndices` takes `keepReferents` (`W/utils/componentIndices.ts`), which
+  `Copy.js` passes wherever an unlinked copy pastes its source, including the attributes a copy
+  of a property or list entry takes from its source (`displayDigits="$dd"` on the list).
+- A repeat's template, and other composites' content, still resolve where each instance lands.
+  That is how `$i` finds each iteration's value. A template is not a copy.
+- A copy pasted into a repeat iteration now names what its source named (`<indexOf copy="$io">`
+  keeps `io`'s `target="$l"`, not the iteration's own `l`).
+- **Left:** a copy of an `extend` resolves outside references from where the extend is written,
+  not from the source (B14). #376, the same rule for `extend`, is open. The `_id_` and
+  shadow-origin fallbacks in `refResolutionDependencies.ts` are still in place.
 
 **Today.** A copy is pasted DoenetML, so a `$n` inside it that pointed *outside* the copied part
 is resolved again where the copy lands. A nearer `n` there captures it, and two equally near `n`s
@@ -1273,8 +1286,8 @@ the author cannot tell which one they wrote. Two variants were considered:
 ```
 
 Neither (A) nor (B), checking only the tag the copy is written on, sees this. Today the same
-happens when a reference inside a copy is looked up again where the copy lands (CPY-6). D1's
-decision removes that case (#2396).
+happened when a reference inside a copy was looked up again where the copy landed. D1, done by
+#2397, removes that case.
 
 **Two intents behind `copy`.**
 1. **Duplicate it, as it is now.** A review section repeating a problem with the reader's
