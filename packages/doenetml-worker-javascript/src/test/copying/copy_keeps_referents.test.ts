@@ -455,4 +455,56 @@ describe("A copy's references keep their referents @group4", () => {
             await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
         ).eqls(expected);
     });
+
+    it("a copy of an extend keeps the source's referents in the content of a repeat, a conditionalContent and a select", async () => {
+        const doenetML = `
+<section name="A">
+    <number name="n">1</number>
+    <booleanInput name="b" />
+    <group name="g">
+        <repeat name="r" for="1 2" valueName="v"><p>$v $n</p></repeat>
+        <conditionalContent name="cc">
+            <case condition="$b"><p name="p">yes $n</p></case>
+            <else><p name="p">no $n</p></else>
+        </conditionalContent>
+        <select name="s"><option><p name="p">a $n</p></option></select>
+    </group>
+</section>
+<section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/></section>
+<section name="C"><number name="n">3</number><group name="gC" extend="$B.gB"/></section>
+<section name="D"><number name="n">4</number><group name="gD" copy="$C.gC"/></section>
+<section name="E"><number name="n">5</number><group name="gE" copy="$D.gD"/><group name="gF" extend="$gE"/><group name="gG" copy="$gF"/></section>
+<section name="U"><group name="gU" copy="$B.gB"/></section>
+`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const groups = ["B.gB", "C.gC", "D.gD", "E.gE", "E.gF", "E.gG", "U.gU"];
+        async function expectTexts(cc: string) {
+            const expected: Record<string, string> = {};
+            for (const g of groups) {
+                expected[`${g}.r[2][1]`] = "2 1";
+                expected[`${g}.cc.p`] = `${cc} 1`;
+                expected[`${g}.s[1].p`] = "a 1";
+            }
+            expect(
+                await textsOf(
+                    core,
+                    resolvePathToNodeIdx,
+                    Object.keys(expected),
+                ),
+            ).eqls(expected);
+        }
+
+        expectNoDiagnostics(core);
+        await expectTexts("no");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("A.b"),
+            core,
+        });
+        await expectTexts("yes");
+    });
 });
