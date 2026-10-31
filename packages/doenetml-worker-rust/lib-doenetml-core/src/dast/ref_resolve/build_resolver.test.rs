@@ -147,7 +147,7 @@ fn copied_content_is_found_only_through_the_copy() {
     let d_idx = find(&flat_root, "d").unwrap();
 
     let mut flat_fragment =
-        flat_fragment_from_str(r#"<c name="h" />"<e name="z" />"#, d_idx + 1, Some(a_idx));
+        flat_fragment_from_str(r#"<c name="h" /><e name="z" />"#, d_idx + 1, Some(a_idx));
     flat_fragment.copied_content = true;
 
     let c_idx = d_idx + 1;
