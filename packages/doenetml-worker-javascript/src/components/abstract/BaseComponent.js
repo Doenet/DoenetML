@@ -1546,22 +1546,15 @@ export default class BaseComponent {
                     // so they should be shadowed.
                     let shadowComponents =
                         this.attributes._copyInChildren?.primitive?.value;
-                    const copiedChildren = this.serializedChildren.map(
-                        (child) =>
+                    for (let child of this.serializedChildren) {
+                        serializedChildren.push(
                             this.copySerializedComponent(
                                 child,
                                 shadowComponents,
                                 parameters.copyVariants,
                             ),
-                    );
-                    if (parameters.copyAll) {
-                        keepShadowSourceOrigins(
-                            copiedChildren,
-                            this,
-                            parameters.components,
                         );
                     }
-                    serializedChildren.push(...copiedChildren);
                 }
             }
 
@@ -1829,16 +1822,6 @@ export default class BaseComponent {
                     ),
                 },
             };
-            if (parameters.copyAll) {
-                const origin = originInShadowSource(
-                    this,
-                    parameters.components,
-                );
-                if (origin !== undefined) {
-                    serializedComponent.extending.Ref.nodesInResolvedPath[0] =
-                        origin;
-                }
-            }
         }
 
         // delete serializedComponent.attributes.name;
@@ -2396,151 +2379,6 @@ async function serializeShadowedAttributes({
             };
         }
     }
-}
-
-/**
- * For an unlinked copy (`copyAll`) of `component`, a reference inside an
- * `extend` (a shadow, not of a prop): the origin (`nodesInResolvedPath[0]`)
- * of the reference in the source it shadows, at the end of the chain of
- * shadows that keep its referent, or `undefined` if it shadows none.
- *
- * Making the extend moves the origin of each reference in it to the
- * extend's counterpart, while a referent outside what is extended is kept.
- * The extend itself shows what its source shows, as a shadow, but its copy
- * resolves a reference to such a referent again from the origin
- * (`remapCopiedRefResolution` in `utils/componentIndices.ts`), so from the
- * extend's counterpart a component of the same name near the extend would
- * capture it. From the source's origin, the copy keeps the source's referent
- * (D1). A referent inside what is extended is the extend's counterpart, not
- * the source's, which is where the walk stops.
- */
-function originInShadowSource(component, components) {
-    const nodeIdx = component.refResolution.nodeIdx;
-    let origin;
-    const visited = new Set([component]);
-    let comp = component;
-    while (comp.shadows && comp.shadows.propVariable === undefined) {
-        const source = components?.[comp.shadows.componentIdx];
-        if (
-            !source ||
-            visited.has(source) ||
-            source.refResolution?.nodeIdx !== nodeIdx
-        ) {
-            break;
-        }
-        visited.add(source);
-        origin = source.refResolution.nodesInResolvedPath[0] ?? origin;
-        comp = source;
-    }
-    return origin;
-}
-
-/**
- * In an unlinked copy (`copyAll`) of `component`, a shadow (not of a prop),
- * such as a `<repeat>` inside an extend of a `<group>`: make each reference
- * in `serializedChildren`, the copy of `component`'s serialized children
- * (the template of a `<repeat>`, the cases of a `<conditionalContent>`),
- * resolve from its origin in the source, as `originInShadowSource` does for
- * a reference that is a component.
- *
- * The serialized children of a shadow are its source's, renumbered, so the
- * origin (`nodesInResolvedPath[0]`) of each reference in them is its
- * counterpart in the shadow, while a referent outside them is kept. Each
- * reference takes instead the origin of its counterpart in the source, at
- * the end of the chain of shadows that keep its referent. A referent inside
- * the serialized children is the shadow's counterpart, not the source's,
- * which is where the walk stops for that reference. A source whose
- * serialized children hold a different number of references stops it for
- * all: an extend that adds children to a tag that makes its own content
- * gives that, and such an extend is to be an error (D32). A path that starts
- * with no name resolves from its origin itself, so keeps it.
- */
-function keepShadowSourceOrigins(serializedChildren, component, components) {
-    const refs = refResolutionsIn(serializedChildren);
-    if (refs.length === 0) {
-        return;
-    }
-    const origins = refs.map(() => undefined);
-    const followed = refs.map((ref) => ref.originalPath?.[0]?.name !== "");
-
-    const visited = new Set([component]);
-    let comp = component;
-    while (comp.shadows && comp.shadows.propVariable === undefined) {
-        const source = components?.[comp.shadows.componentIdx];
-        if (
-            !source ||
-            visited.has(source) ||
-            source.serializedChildren === undefined
-        ) {
-            break;
-        }
-        visited.add(source);
-        const sourceRefs = refResolutionsIn(source.serializedChildren);
-        if (sourceRefs.length !== refs.length) {
-            break;
-        }
-        for (const [i, sourceRef] of sourceRefs.entries()) {
-            if (followed[i] && sourceRef.nodeIdx === refs[i].nodeIdx) {
-                origins[i] = sourceRef.nodesInResolvedPath[0] ?? origins[i];
-            } else {
-                followed[i] = false;
-            }
-        }
-        comp = source;
-    }
-
-    for (const [i, ref] of refs.entries()) {
-        if (origins[i] !== undefined) {
-            ref.nodesInResolvedPath[0] = origins[i];
-        }
-    }
-}
-
-/**
- * The references in the serialized components `serializedComponents`, in a
- * fixed order: for each component, those in the indices of its path, the
- * component itself if it is a reference, then those in its children and in
- * its attributes.
- */
-function refResolutionsIn(serializedComponents, refs = []) {
-    for (const component of serializedComponents ?? []) {
-        if (typeof component !== "object" || component === null) {
-            continue;
-        }
-
-        if (component.extending) {
-            const refResolution =
-                component.extending.Ref ??
-                component.extending.ExtendAttribute ??
-                component.extending.CopyAttribute;
-            for (const pathPart of [
-                ...(refResolution.unresolvedPath ?? []),
-                ...(refResolution.originalPath ?? []),
-            ]) {
-                for (const indexPart of pathPart.index ?? []) {
-                    refResolutionsIn(indexPart.value, refs);
-                }
-            }
-            refs.push(refResolution);
-        }
-
-        refResolutionsIn(component.children, refs);
-
-        for (const attribute of Object.values(component.attributes ?? {})) {
-            if (attribute.type === "component") {
-                refResolutionsIn([attribute.component], refs);
-            } else if (attribute.type === "references") {
-                refResolutionsIn(attribute.references, refs);
-            } else if (attribute.type === "expression") {
-                for (const slot of attribute.slots ?? []) {
-                    refs.push(slot.refResolution);
-                }
-            } else {
-                refResolutionsIn(attribute.children, refs);
-            }
-        }
-    }
-    return refs;
 }
 
 /**

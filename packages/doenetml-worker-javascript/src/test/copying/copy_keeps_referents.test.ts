@@ -374,6 +374,37 @@ describe("A copy's references keep their referents @group4", () => {
         }
     });
 
+    it("a copy of part of an extend keeps a referent elsewhere in the extend", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><group name="g"><mathInput name="x" prefill="7"/><p name="p">$x $n</p></group></section>
+<section name="B"><number name="n">2</number><number name="x">8</number><group name="gB" extend="$A.g"/></section>
+<section name="C"><number name="n">3</number><number name="x">9</number><p name="pc" copy="$B.gB.p"/><p name="pc2" copy="$pc"/></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        // `B.gB.x` shadows `A.g.x`, which a copy of `B.gB.p` keeps through it
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("B.gB.x"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "A.g.p",
+                "B.gB.p",
+                "C.pc",
+                "C.pc2",
+            ]),
+        ).eqls({
+            "A.g.p": "5 1",
+            "B.gB.p": "5 1",
+            "C.pc": "5 1",
+            "C.pc2": "5 1",
+        });
+    });
+
     it("in a copy of an extend, a reference through the source's own name refers to the copy", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

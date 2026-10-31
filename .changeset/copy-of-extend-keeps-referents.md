@@ -11,7 +11,10 @@ in the copy to a component outside what was extended now points at the
 component the original points at, instead of at a component of the same name
 next to the `extend`. This holds along any chain of copies and extends, and
 also for the content of a `<repeat>`, `<conditionalContent>` or `<select>`
-inside what was extended. In a copy of an `extend` of a `<group>`, a
+inside what was extended. A copy of part of an `extend`, such as
+`<p copy="$gB.p"/>` where `gB` extends a `<group>`, keeps a referent elsewhere
+in the `extend` too, instead of finding a component of the same name next to
+the `extend` or next to the copy. In a copy of an `extend` of a `<group>`, a
 reference to another component inside the group, such as `$g.x` inside
 `<group name="g">`, now points at the copy's own `x` instead of the
 original's.
