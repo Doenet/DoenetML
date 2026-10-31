@@ -7881,7 +7881,7 @@ describe("Extend and references tests @group2", async () => {
             }
         });
 
-        it("a bare name in a child added inside a copy does not prefer the copied content", async () => {
+        it("a bare name in a child added inside a copy is ambiguous where it would be beside the copy", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
 <section name="S"><text name="h">inner</text></section>
@@ -7902,6 +7902,34 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,
             ).eq("inner");
+        });
+
+        it("a bare name in a child added inside a copy finds the written component, not the copied one", async () => {
+            // Without an outer `h`, `$h` finds the original `S.h`, not the copy of it inside `S2`.
+            // The copy is not linked, so changing the original tells the two apart.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><textInput name="h" prefill="original" /></section>
+<section copy="$S" name="S2" link="false"><p name="q">$h</p><p name="q2">$S2.h</p></section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            await updateTextInputValue({
+                text: "changed",
+                componentIdx: await resolvePathToNodeIdx("S.h"),
+                core,
+            });
+
+            expect((await stateOf(core, resolvePathToNodeIdx, "S2.q")).text).eq(
+                "changed",
+            );
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "S2.q2")).text,
+            ).eq("original");
         });
 
         it("a child added inside a copy or extend of a list reaches the list's children only through the copy's name", async () => {
