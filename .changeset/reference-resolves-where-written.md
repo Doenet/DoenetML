@@ -19,6 +19,6 @@ module, ahead of a same-named component outside it. One that names one of the
 module's own attributes, such as `<module xmin="$xmin">` with a
 `<number name="xmin">` in its `<moduleAttributes>`, refers to that attribute.
 Since that would make it depend on itself, it is now reported with an error and
-the module attribute keeps its own value. Before, it gave a "Multiple referents"
-warning when a same-named component was outside the module, and otherwise
-stopped the document with a circular dependency.
+the module attribute keeps its own value. Before, `xmin="$xmin"` gave a
+"Multiple referents" warning when a same-named component was outside the
+module, and otherwise stopped the document with a circular dependency.
