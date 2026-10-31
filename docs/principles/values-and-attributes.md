@@ -90,6 +90,10 @@ Code:
 - `W/utils/dast/valueReferences.ts:81`;
 - `W/components/abstract/Copy.js:2646`.
 
+A text read as math is parsed in its own notation when that is known (`isLatex` written, or a
+`.latex` property), and otherwise, as proposed in D34, in the reader's: today `<math format="latex">`
+does not reach a `<text>` (#2408).
+
 Whether a reference becomes a value reference or a full copy is decided by hard-coded lists:
 - only number, math, text and boolean values become value references;
 - `<graph>`, inputs, `slider`, `matrixInput` and `fractionInput` keep copies;
