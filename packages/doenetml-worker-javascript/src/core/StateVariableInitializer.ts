@@ -2126,13 +2126,23 @@ async function createArraySizeStateVariable({
     });
 }
 
+/**
+ * What {@link arrayEntryNamesFromPropIndex} gives for a variable the index
+ * names nothing in. No state variable has this name, so a dependency that
+ * asks for it optionally (`variablesOptional`) gets nothing, and a reference
+ * to it shows nothing (VAL-5), rather than the whole variable the index was
+ * written on (#2407).
+ */
+export const INDEX_NAMES_NOTHING = "__index_names_nothing";
+
 // arrayEntryNamesFromPropIndex is essentially a wrapper around
 // stateVarObj.arrayVarNameFromPropIndex.
 // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
 // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
 // first creating any missing array entry state variables,
 // reports the ones it cannot map,
-// and returns an array of the resulting state variables.
+// and returns an array of the resulting state variables,
+// with `INDEX_NAMES_NOTHING` in place of each one it cannot map.
 export async function arrayEntryNamesFromPropIndex({
     core,
     stateVariables,
@@ -2188,6 +2198,11 @@ export async function arrayEntryNamesFromPropIndex({
         }
     }
 
+    // An index below 1 names nothing, whatever the variable and its length:
+    // indices count from 1.
+    const indexBelowOne = propIndex.some((index) => index < 1);
+    let reportBelowOne = false;
+
     let newVarNames = [];
     for (let varName of stateVariables) {
         let stateVarObj = component.state[varName];
@@ -2209,6 +2224,19 @@ export async function arrayEntryNamesFromPropIndex({
             stateVarObj = component.state[varName];
         }
 
+        // An index below 1 on a variable that exists is reported as a
+        // reference with no referent, as `$l[0]` and `$l[$i]` with `i` = 0
+        // are (#2407). It is checked before asking whether the variable takes
+        // an index at all, so `$n.value[0]` reads as `$l[0]` does rather than
+        // as `$n.value[1]` (`doenet-w0100`, below). A variable that does not
+        // exist was skipped above, so `$n.nonexistent[0]` stays as silent as
+        // `$n.nonexistent` and `$n.nonexistent[1]`.
+        if (indexBelowOne) {
+            reportBelowOne = true;
+            newVarNames.push(INDEX_NAMES_NOTHING);
+            continue;
+        }
+
         let newName;
         if (stateVarObj.isArray) {
             newName = stateVarObj.arrayVarNameFromPropIndex(propIndex, varName);
@@ -2224,14 +2252,31 @@ export async function arrayEntryNamesFromPropIndex({
                 varName,
                 " as it is not an array or array entry state variable",
             );
-            newName = varName;
+            newName = INDEX_NAMES_NOTHING;
         }
         if (newName) {
             newVarNames.push(newName);
         } else {
+            // The index cannot be applied, so the reference names nothing.
+            // It used to fall back to the whole variable, which showed `5`
+            // for `$n.value[1]` while warning that the index could not be
+            // used (#2407).
             reportPropIndexFailure(varName, "");
-            newVarNames.push(varName);
+            newVarNames.push(INDEX_NAMES_NOTHING);
         }
+    }
+
+    // Once, however many of the variables the index was applied to.
+    if (reportBelowOne && reference) {
+        core.addDiagnostic(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0104",
+                args: { reference: reference.text },
+                position: reference.position,
+                sourceDoc: reference.sourceDoc,
+            }),
+        );
     }
 
     return newVarNames;
