@@ -121,8 +121,14 @@ function entryPropertyOf(
  * (`xs[2]`), reads: for an array property with the index written as a
  * number, the entry of that array as an entry of the entries' type names it
  * (`x2`), when the list provides it; for a property that is not an array
- * (`coords[1]`), the property, as an index into it is ignored for a
- * component of the entries' type. `undefined` otherwise.
+ * (`coords[1]`), the property, ignoring the index. `undefined` otherwise.
+ *
+ * That last case no longer matches a component of the entries' type: since
+ * #2407 an index into a property of a component that is not an array names
+ * nothing (`$P.coords[1]` shows nothing and warns `doenet-w0100`), while
+ * `$l[2].coords[1]` still reads `coords`. Likewise an index below 1 here
+ * (`$l[2].xs[0]`, `$l[2][0]`) is not reported as `doenet-w0104` the way
+ * `$P.xs[0]` is.
  */
 function indexedEntryProperty(
     listClass: any,

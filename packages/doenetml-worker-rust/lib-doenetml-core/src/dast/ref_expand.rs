@@ -7,7 +7,9 @@ use super::{
     flat_dast::{
         ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent,
     },
-    ref_resolve::{RefResolution, ResolutionError, Resolver, format_error_message},
+    ref_resolve::{
+        RefResolution, ResolutionError, Resolver, format_error_message, resolution_error_code,
+    },
 };
 
 /// An `Expander` replaces all refs with their `DastElement`-equivalent forms. For example
@@ -94,7 +96,16 @@ impl Expander {
                             parent: ref_.parent,
                             message: format_error_message(err, &ref_.path),
                             error_type: ErrorType::Warning,
-                            code: None,
+                            // Coded, so that the worker reports it as it
+                            // reports a reference it fails to resolve itself
+                            // (`refResolutionDependencies.ts`): the same code
+                            // for `$l[0]` as for `$l[$i]` with `i` = 0. The
+                            // code's argument is the whole reference as
+                            // written, which needs the source text the
+                            // resolver does not have, so the worker fills it
+                            // in from this node's position
+                            // (`convertNormalizedDast.ts`).
+                            code: Some(resolution_error_code(err).into()),
                             args: None,
                             unresolved_path: if let ResolutionError::NoReferent = err {
                                 Some(ref_.path.clone())
@@ -335,17 +346,51 @@ impl Expander {
                     format!("Invalid '{}' attribute", extend_or_copy.name)
                 };
 
-                element.children.push(flat_root.merge_content(
+                // A reference in the attribute that failed to resolve keeps
+                // its code, path and position, so that it is reported as the
+                // same reference written as text is (`expand_refs`), and as
+                // the worker reports it when an index is dynamic: `extend="$l[0]"`
+                // as `extend="$l[$i]"` with `i` = 0 (#2407). Its position is
+                // the reference's, inside the attribute, which is also what
+                // the worker reads the reference's text from.
+                let coded_failure = error_found.filter(|err| err.code.is_some()).map(|err| {
+                    (
+                        err.code.clone(),
+                        err.unresolved_path.clone(),
+                        err.position.clone(),
+                        err.source_doc,
+                    )
+                });
+
+                let (code, unresolved_path, position, source_doc) = match coded_failure {
+                    Some(failure) => failure,
+                    None => (
+                        None,
+                        None,
+                        extend_or_copy.position.clone(),
+                        extend_or_copy.source_doc,
+                    ),
+                };
+
+                let error = flat_root.merge_content(
                     &DastElementContent::Error(DastError {
                         message,
                         error_type: Some(error_type),
-                        code: None,
+                        code,
                         args: None,
-                        position: extend_or_copy.position.clone(),
-                        source_doc: extend_or_copy.source_doc,
+                        position,
+                        source_doc,
                     }),
                     extend_or_copy.parent,
-                ));
+                );
+                // A `DastError` has no unresolved path, so it is set on the
+                // flat error `merge_content` made of it.
+                if let (UntaggedContent::Ref(error_idx), Some(_)) = (&error, &unresolved_path)
+                    && let FlatNode::Error(flat_error) = &mut flat_root.nodes[*error_idx]
+                {
+                    flat_error.unresolved_path = unresolved_path;
+                }
+                element.children.push(error);
 
                 // Remove the `extend` or `copy` attribute since it has been replaced with an error
                 element.attributes.retain(|attr| {

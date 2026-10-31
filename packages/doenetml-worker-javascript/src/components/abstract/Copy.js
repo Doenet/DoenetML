@@ -6,6 +6,7 @@ import {
     namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
+    TAGS_OF_LIST_FORMS,
     addAttributesToSingleReplacement,
     addAttributesToSingleReplacementChange,
     getSelfReferentialFallbackPropName,
@@ -735,7 +736,9 @@ export default class Copy extends CompositeComponent {
         };
 
         // A copy given a valid type always makes exactly one component of
-        // that type. `verifyReplacementsMatchSpecifiedType` makes sure of it:
+        // that type, or of its list form (`replacementIsOfType`), as a
+        // `<collect>` of values is made as a `_collectList`.
+        // `verifyReplacementsMatchSpecifiedType` makes sure of it:
         // it passes the type on to a lone `group`/`_copy` replacement, or else
         // makes one new component of that type (wrapping a lone replacement
         // in it when it can). Without a type, or with an invalid one, the
@@ -4653,16 +4656,6 @@ const TAGS_MAKING_THEIR_CONTENT = new Set([
     // Its arrangement of its problems is made by an internal composite.
     "pretzel",
 ]);
-
-/**
- * The list form a `<collect>`, `<sort>` or `<shuffle>` of values is made as
- * (`utils/dast/listForms.ts`), mapped to the tag it is written as.
- */
-const TAGS_OF_LIST_FORMS = {
-    _collectList: "collect",
-    _sortList: "sort",
-    _shuffleList: "shuffle",
-};
 
 /**
  * What children written inside the extend of a tag would be, which picks the

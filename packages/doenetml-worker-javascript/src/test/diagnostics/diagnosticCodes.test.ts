@@ -277,9 +277,14 @@ describe("coded diagnostics reach the record @group4", () => {
             core,
         });
 
+        // The index names nothing, so the action has no target, which it
+        // reports itself (`doenet-w0044`) after the index warning. It used to
+        // fall back to the whole variable and change it (#2407).
         const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0100",
+            "doenet-w0044",
+        ]);
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
@@ -300,9 +305,14 @@ describe("coded diagnostics reach the record @group4", () => {
 <animateFromSequence name="a" target="$p.styleDescription[1]" from="1" to="3" animationOn />`,
         });
 
+        // The index names nothing, so the action has no target, which it
+        // reports itself (`doenet-w0044`) after the index warning. It used to
+        // fall back to the whole variable and change it (#2407).
         const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0100",
+            "doenet-w0044",
+        ]);
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
@@ -326,9 +336,12 @@ describe("coded diagnostics reach the record @group4", () => {
             core,
         });
 
+        // As above, the action also reports that it has no target.
         const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0100",
+            "doenet-w0044",
+        ]);
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
