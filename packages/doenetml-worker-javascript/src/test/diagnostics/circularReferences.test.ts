@@ -4,7 +4,7 @@ import { Dependency } from "../../core/dependencies/Dependency";
 import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { movePoint } from "../utils/actions";
+import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1130,6 +1130,46 @@ describe("A copy of a component that references itself @group2", async () => {
         expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
             "doenet-e0005",
         ]);
+    });
+
+    // The same reference names the section, then another component, then
+    // the section again: a change of source remakes the copy's counterpart
+    // of the reference each time.
+    it("a copy of a group whose reference switches between the group and another component loads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="n" prefill="1"/>
+<group name="g"><text>one</text><p name="q">hi [$g[$n]]</p></group>
+<group name="g2" copy="$g"/>
+<p name="after">after</p>`,
+        });
+        const nIdx = await resolvePathToNodeIdx("n");
+
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: string[] = [];
+            for (const path of ["g.q", "g2.q", "after"]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                        .text,
+                );
+            }
+            return result;
+        }
+
+        expect(await texts()).eqls(["hi [one]", "hi [one]", "after"]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        await updateMathInputValue({ latex: "2", componentIdx: nIdx, core });
+        expect(await texts()).eqls(["hi []", "hi []", "after"]);
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0005",
+        ]);
+
+        await updateMathInputValue({ latex: "1", componentIdx: nIdx, core });
+        expect(await texts()).eqls(["hi [one]", "hi [one]", "after"]);
     });
 
     // In a label, the reference falls back to the point's value, which is

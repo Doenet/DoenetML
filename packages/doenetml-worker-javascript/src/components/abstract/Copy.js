@@ -2355,10 +2355,10 @@ export default class Copy extends CompositeComponent {
                 replacementSource.componentIdx !== prevSourceIdx ||
                 recreateRemaining;
 
-            // A copy inside its own source (`$S` in `S`, or in a copy of
-            // `S`) is replaced by the circular-dependency error, or by the
-            // source's value (`replacementForSource`), neither of which
-            // shadows the source. The copy stays inside the source while the
+            // A copy inside its own source (`$S` in `S`, or its counterpart
+            // in a copy `S2` of `S`, which names `S2`) is replaced by the
+            // circular-dependency error, or by the source's value
+            // (`replacementForSource`), neither of which shadows the source. The copy stays inside the source while the
             // source is the same component, so it would be made the same
             // way again. Remaking it would change the source's descendants,
             // which would mark the copy to be updated again, without end
