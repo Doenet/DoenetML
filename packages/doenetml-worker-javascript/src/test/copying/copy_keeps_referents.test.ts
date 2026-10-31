@@ -114,6 +114,21 @@ describe("A copy's references keep their referents @group4", () => {
         expect(await x("C.q")).eq(5);
     });
 
+    it("a property of the copied component, through its own name, is the copy's", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="P"><title>t</title><p name="q">$P.sectionNumber $P.title</p></section>
+<section name="C" copy="$P"><title>u</title></section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["P.q", "C.q"])).eqls({
+            "P.q": "1 t",
+            "C.q": "2 u",
+        });
+    });
+
     it("a reference in repeat content keeps its iteration's value in a copy", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -150,6 +165,27 @@ describe("A copy's references keep their referents @group4", () => {
                 .displayDigits;
         expect(await displayDigits("S.r")).eq(3);
         expect(await displayDigits("T.c")).eq(3);
+    });
+
+    it("a copy of a list entry keeps the referent of the list's fixed attribute", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A">
+    <boolean name="b">true</boolean>
+    <mathList name="l" fixed="$b">1 2 3</mathList>
+</section>
+<section name="T">
+    <boolean name="b">false</boolean>
+    <math name="c" copy="$A.l[2]" />
+</section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const c = stateVariables[await resolvePathToNodeIdx("T.c")];
+        expect(c.stateValues.value.tree).eq(2);
+        expect(c.stateValues.fixed).eq(true);
     });
 
     it("a copy made after interaction keeps its referents, through a save and reload", async () => {

@@ -3382,6 +3382,10 @@ export async function replacementFromProp({
                                 ],
                                 nComponents,
                                 stateIdInfo,
+                                undefined,
+                                // pasted from the list, its references keep
+                                // the referents they have there (D1)
+                                { keepReferents: true },
                             );
                             nComponents = res.nComponents;
                             attributesForReplacement[attrName] = {
