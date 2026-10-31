@@ -163,7 +163,7 @@ Evidence: `repeatForSequence.test.ts:156`, `:2800`; `repeatValueLists.test.ts:39
 
 Positional double indexing, `$a[2][1][3]`, reaches the j-th component of an iteration. That
 exposes the internal iteration group. It is Tier 3. It is why `$r[1][2]` does not reach into a
-nested repeat today. D27 proposes that an index selects only instances (entries, iterations,
+nested repeat today. D27 decides that an index selects only instances (entries, iterations,
 picks), and that an iteration holding one repeat passes the next index through to it.
 
 ### COMP-7: a shorter repeat hides iterations; a longer one brings them back as they were (Tier 1)
