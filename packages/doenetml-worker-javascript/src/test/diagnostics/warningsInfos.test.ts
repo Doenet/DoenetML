@@ -1174,7 +1174,7 @@ describe("Warning Tests @group4", async () => {
         }
     });
 
-    it("warns about attributes and children an extend of a composite or list ignores", async () => {
+    it("an extend that would change what a tag makes is an error, located on it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <sequence name="s" from="1" to="3" />
@@ -1185,53 +1185,52 @@ describe("Warning Tests @group4", async () => {
 <p name="p3"><repeat extend="$r2" for="c d e"><text>y</text></repeat></p>
 <select name="sel"><option><text>c</text></option></select>
 <p name="p4"><select extend="$sel" numToSelect="1" /></p>
+<p name="p5">after</p>
             `,
         });
 
+        // Each extend shows an error in place of the content; the rest of
+        // the document, its sources among it, renders.
         const stateVariables = await core.returnAllStateVariables(false, true);
         const texts: string[] = [];
-        for (const name of ["p1", "p2", "p3", "p4"]) {
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
             texts.push(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .text,
             );
         }
-        expect(texts).eqls(["1, 2, 3", "1, 2", "a, b", "c"]);
+        expect(texts).eqls(["", "", "", "", "after"]);
 
         const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.warnings.map((warning) => warning.message),
-        ).eqls([
-            "The `to` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
-            "The `step` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
-            "The `to` attribute is ignored: a `<repeatForSequence>` with `extend` shows the same content as the component it extends.",
-            "Children written inside a `<repeatForSequence>` with `extend` are ignored: it shows the same content as the component it extends.",
-            "The `for` attribute is ignored: a `<repeat>` with `extend` shows the same content as the component it extends.",
-            "Children written inside a `<repeat>` with `extend` are ignored: it shows the same content as the component it extends.",
-            "The `numToSelect` attribute is ignored: a `<select>` with `extend` shows the same content as the component it extends.",
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<sequence>` makes its content from `to`. An `extend` shows the same content as `$s`, so it can't change `to`. To show the content of `$s` again, remove `to`. To make a new `<sequence>` with a different `to`, use `copy`.",
+            "A `<sequence>` makes its content from `step`. An `extend` shows the same content as `$s`, so it can't change `step`. To show the content of `$s` again, remove `step`. To make a new `<sequence>` with a different `step`, use `copy`.",
+            "A `<repeatForSequence>` makes its content from `to`. An `extend` shows the same content as `$r`, so it can't change `to`. To show the content of `$r` again, remove `to`. To make a new `<repeatForSequence>` with a different `to`, use `copy`.",
+            "Children written inside an `extend` of a `<repeatForSequence>` would be a new template, but an extend shows the same content as `$r`. To repeat a different template, use `copy`.",
+            "A `<repeat>` makes its content from `for`. An `extend` shows the same content as `$r2`, so it can't change `for`. To show the content of `$r2` again, remove `for`. To make a new `<repeat>` with a different `for`, use `copy`.",
+            "Children written inside an `extend` of a `<repeat>` would be a new template, but an extend shows the same content as `$r2`. To repeat a different template, use `copy`.",
+            "A `<select>` makes its content from `numToSelect`. An `extend` shows the same content as `$sel`, so it can't change `numToSelect`. To show the content of `$sel` again, remove `numToSelect`. To make a new `<select>` with a different `numToSelect`, use `copy`.",
         ]);
-        expect(diagnosticsByType.warnings.map((warning) => warning.code)).eqls([
-            "doenet-w0168",
-            "doenet-w0168",
-            "doenet-w0168",
-            "doenet-w0169",
-            "doenet-w0168",
-            "doenet-w0169",
-            "doenet-w0168",
+        expect(diagnosticsByType.errors.map((error) => error.code)).eqls([
+            "doenet-e0056",
+            "doenet-e0056",
+            "doenet-e0056",
+            "doenet-e0057",
+            "doenet-e0056",
+            "doenet-e0057",
+            "doenet-e0056",
         ]);
         // Each points at the extend it is about.
         expect(
-            diagnosticsByType.warnings.map(
-                (warning) => warning.position?.start.line,
-            ),
+            diagnosticsByType.errors.map((error) => error.position?.start.line),
         ).eqls([3, 3, 5, 5, 7, 7, 9]);
     });
 
-    it("an extend keeps its source's type when another is written on it", async () => {
-        // `type` picks the class a list's values are made for, so it is
-        // left off the extend, which shows its source's values.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
+    it("an extend cannot be given a type other than its source's", async () => {
+        // `type` picks the class a list's values are made for, so it decides
+        // what the sequence makes.
+        const { core } = await createTestCore({
             doenetML: `
 <sequence name="s" from="1" to="3"/>
 <p name="p1"><sequence extend="$s" type="letters"/></p>
@@ -1240,23 +1239,11 @@ describe("Warning Tests @group4", async () => {
             `,
         });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const texts: string[] = [];
-        for (const name of ["p1", "p2"]) {
-            texts.push(
-                stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                    .text,
-            );
-        }
-        expect(texts).eqls(["1, 2, 3", "a, b, c"]);
-
         const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.warnings.map((warning) => warning.message),
-        ).eqls([
-            "The `type` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
-            "The `type` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<sequence>` makes its content from `type`. An `extend` shows the same content as `$s`, so it can't change `type`. To show the content of `$s` again, remove `type`. To make a new `<sequence>` with a different `type`, use `copy`.",
+            "A `<sequence>` makes its content from `type`. An `extend` shows the same content as `$t`, so it can't change `type`. To show the content of `$t` again, remove `type`. To make a new `<sequence>` with a different `type`, use `copy`.",
         ]);
     });
 
@@ -1326,9 +1313,10 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(0);
     });
 
-    it("warns about a module parameter named as a number-display attribute on an extend", async () => {
+    it("a module parameter named as a number-display attribute on an extend is an error", async () => {
         // A `<module>` does not declare `displayDigits`, so here it is a
-        // parameter of the module, which its extend ignores as any other.
+        // parameter of the module, which its extend cannot change, as any
+        // other.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <module name="m"><moduleAttributes><text name="displayDigits">hi</text></moduleAttributes><text>$displayDigits</text></module>
@@ -1345,23 +1333,19 @@ describe("Warning Tests @group4", async () => {
                     .text,
             );
         }
-        expect(texts).eqls(["hi", "bye"]);
+        expect(texts).eqls(["", "bye"]);
 
         const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.warnings.map((warning) => warning.message),
-        ).eqls([
-            "The `displayDigits` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `displayDigits`. To make the module with a different `displayDigits`, use `copy`.",
         ]);
         expect(
-            diagnosticsByType.warnings.map(
-                (warning) => warning.position?.start.line,
-            ),
+            diagnosticsByType.errors.map((error) => error.position?.start.line),
         ).eqls([3]);
     });
 
-    it("warns about only the attributes an author wrote on an extend of a module", async () => {
+    it("reports only the attributes an author wrote on an extend of a module", async () => {
         // A `<module>` accepts any attribute, but is not handed the `_copy`'s
         // own (`createComponentIdx`, `copyInChildren`, …), so only `a` is
         // reported.
@@ -1382,23 +1366,19 @@ describe("Warning Tests @group4", async () => {
                     .text,
             );
         }
-        expect(texts).eqls(["hi", "hi", "bye"]);
+        expect(texts).eqls(["hi", "", "bye"]);
 
         const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.warnings.map((warning) => warning.message),
-        ).eqls([
-            "The `a` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.map((error) => error.message)).eqls([
+            "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `a`. To make the module with a different `a`, use `copy`.",
         ]);
         expect(
-            diagnosticsByType.warnings.map(
-                (warning) => warning.position?.start.line,
-            ),
+            diagnosticsByType.errors.map((error) => error.position?.start.line),
         ).eqls([4]);
     });
 
-    it("warns once about an extend's ignored attribute, wherever it is and however it updates", async () => {
+    it("reports an extend's error once, wherever it is and however its source updates", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="n" prefill="3" />
@@ -1406,6 +1386,7 @@ describe("Warning Tests @group4", async () => {
 <sequence name="e" extend="$s" />
 <p name="p1"><sequence extend="$e" to="5" /></p>
 <repeatForSequence from="1" to="2" name="outer"><p><sequence extend="$s" to="6" /></p></repeatForSequence>
+<p name="p2">$e</p>
             `,
         });
 
@@ -1417,14 +1398,28 @@ describe("Warning Tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
+            ).eq("");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .text,
             ).eq(text);
 
             const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings.length).eq(0);
             expect(
-                diagnosticsByType.warnings.map((warning) => warning.message),
+                diagnosticsByType.errors.map((error) => [
+                    error.message,
+                    error.position?.start.line,
+                ]),
             ).eqls([
-                "The `to` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
-                "The `to` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+                [
+                    "A `<sequence>` makes its content from `to`. An `extend` shows the same content as `$e`, so it can't change `to`. To show the content of `$e` again, remove `to`. To make a new `<sequence>` with a different `to`, use `copy`.",
+                    5,
+                ],
+                [
+                    "A `<sequence>` makes its content from `to`. An `extend` shows the same content as `$s`, so it can't change `to`. To show the content of `$s` again, remove `to`. To make a new `<sequence>` with a different `to`, use `copy`.",
+                    6,
+                ],
             ]);
         }
 

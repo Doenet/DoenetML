@@ -1,0 +1,539 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateSelectedIndices } from "../utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * An `extend` is the same component again: it shares its source's content
+ * and state. It can have its own name and look different, but it cannot
+ * change what the component makes or what its state can hold. Trying to is
+ * an error, located on the extend, which shows the error in place of the
+ * content while the rest of the document renders (D32, #2404).
+ */
+describe("An extend cannot change what a tag makes @group4", () => {
+    /**
+     * Each tag whose content is made rather than written, with a source named
+     * `x` and the text it shows. A `<p name="after">` follows, so that each
+     * test can check that the rest of the document renders.
+     */
+    const SOURCES: Record<string, { doenetML: string; text: string }> = {
+        repeat: {
+            doenetML: `<repeat name="x" for="1 2" valueName="v"><text name="y">a$v</text></repeat>`,
+            text: "a1, a2",
+        },
+        repeatForSequence: {
+            doenetML: `<repeatForSequence name="x" from="1" to="2" valueName="v"><text name="y">a$v</text></repeatForSequence>`,
+            text: "a1, a2",
+        },
+        select: {
+            doenetML: `<select name="x"><option><text name="y">a</text></option></select>`,
+            text: "a",
+        },
+        selectFromSequence: {
+            doenetML: `<selectFromSequence name="x" from="4" to="4" />`,
+            text: "4",
+        },
+        shuffle: {
+            doenetML: `<shuffle name="x"><text>a</text></shuffle>`,
+            text: "a",
+        },
+        conditionalContent: {
+            doenetML: `<conditionalContent name="x"><case condition="false"><text>b</text></case><else><text>a</text></else></conditionalContent>`,
+            text: "a",
+        },
+        collect: {
+            doenetML: `<group name="g" hide><text>a</text></group><collect name="x" componentType="text" from="$g" />`,
+            text: "a",
+        },
+        sort: {
+            doenetML: `<sort name="x"><number>2</number><number>1</number></sort>`,
+            text: "1, 2",
+        },
+        sequence: {
+            doenetML: `<sequence name="x" from="1" to="3" />`,
+            text: "1, 2, 3",
+        },
+        substitute: {
+            doenetML: `<substitute name="x" type="text" match="b" replacement="a">b</substitute>`,
+            text: "a",
+        },
+        split: {
+            doenetML: `<split name="x" splitBy="comma">a,b</split>`,
+            text: "a, b",
+        },
+    };
+
+    async function textsOf(
+        core: any,
+        resolvePathToNodeIdx: any,
+        names: string[],
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of names) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        return texts;
+    }
+
+    for (const [tag, { doenetML, text }] of Object.entries(SOURCES)) {
+        it(`a bare, named and appearance-only extend of a <${tag}> show its content, as does a copy of the named one`, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="p0">${doenetML}</p>
+<p name="p1">$x</p>
+<p name="p2"><${tag} extend="$x" /></p>
+<p name="p3"><${tag} extend="$x" name="e" /></p>
+<p name="p4"><${tag} extend="$x" hide="false" styleNumber="2" /></p>
+<p name="p5"><${tag} copy="$e" /></p>
+<p name="after">after</p>`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, [
+                    "p0",
+                    "p1",
+                    "p2",
+                    "p3",
+                    "p4",
+                    "p5",
+                    "after",
+                ]),
+            ).eqls([text, text, text, text, text, text, "after"]);
+        });
+    }
+
+    it("a named extend reaches what is inside it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `${SOURCES.repeat.doenetML.replace('name="x"', 'name="r"')}
+${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
+<repeat extend="$r" name="er" />
+<select extend="$s" name="es" />
+<p name="p1">$er[2].y</p>
+<p name="p2">$es.y</p>`,
+        });
+
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls([
+            "a2",
+            "a",
+        ]);
+    });
+
+    /**
+     * Each attribute that decides what its tag makes, written on an extend.
+     * The value is checked only for the error it gives.
+     */
+    const CONTENT_ATTRIBUTES: [string, string, string][] = [
+        // repeating
+        ["repeat", "for", "3 4"],
+        ["repeat", "valueName", "w"],
+        ["repeat", "indexName", "i"],
+        ["repeatForSequence", "length", "3"],
+        ["repeatForSequence", "from", "3"],
+        ["repeatForSequence", "to", "3"],
+        ["repeatForSequence", "step", "2"],
+        // choosing at random
+        ["select", "numToSelect", "2"],
+        ["select", "withReplacement", "true"],
+        ["selectFromSequence", "from", "1"],
+        ["selectFromSequence", "exclude", "4"],
+        // choosing by condition
+        ["conditionalContent", "condition", "true"],
+        // gathering
+        ["collect", "componentType", "number"],
+        ["collect", "from", "$x"],
+        ["collect", "maxNumber", "1"],
+        // generating
+        ["sequence", "from", "2"],
+        ["sequence", "to", "5"],
+        ["sequence", "step", "2"],
+        ["sequence", "length", "2"],
+        ["sequence", "exclude", "2"],
+        ["sequence", "type", "letters"],
+        // computing
+        ["substitute", "match", "c"],
+        ["substitute", "replacement", "c"],
+        ["substitute", "type", "math"],
+        ["split", "splitBy", "character"],
+        ["shuffle", "type", "math"],
+    ];
+
+    for (const [tag, attribute, value] of CONTENT_ATTRIBUTES) {
+        it(`\`${attribute}\` on an extend of a <${tag}> is an error`, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="p0">${SOURCES[tag].doenetML}</p>
+<p name="p1"><${tag} extend="$x" ${attribute}="${value}" /></p>
+<p name="after">after</p>`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings).eqls([]);
+            expect(
+                diagnosticsByType.errors.map((error) => [
+                    error.code,
+                    error.message,
+                    error.position?.start.line,
+                ]),
+            ).eqls([
+                [
+                    "doenet-e0056",
+                    `A \`<${tag}>\` makes its content from \`${attribute}\`. An \`extend\` shows the same content as \`$x\`, so it can't change \`${attribute}\`. To show the content of \`$x\` again, remove \`${attribute}\`. To make a new \`<${tag}>\` with a different \`${attribute}\`, use \`copy\`.`,
+                    2,
+                ],
+            ]);
+
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, [
+                    "p0",
+                    "p1",
+                    "after",
+                ]),
+            ).eqls([SOURCES[tag].text, "", "after"]);
+        });
+    }
+
+    it("a distribution parameter or a number of samples on an extend of a <sampleRandomNumbers> is an error", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="x" numSamples="2" mean="0" />
+<p><sampleRandomNumbers extend="$x" numSamples="3" mean="5" /></p>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(
+            diagnosticsByType.errors.map((error) => error.args?.attribute),
+        ).eqls(["numSamples", "mean"]);
+    });
+
+    const CHILDREN: [string, string, string][] = [
+        [
+            "repeat",
+            "<text>b</text>",
+            "Children written inside an `extend` of a `<repeat>` would be a new template, but an extend shows the same content as `$x`. To repeat a different template, use `copy`.",
+        ],
+        [
+            "select",
+            "<option><text>b</text></option>",
+            "Children written inside an `extend` of a `<select>` would be new options, but an extend shows the same choice as `$x`. To choose from more options, use `copy`.",
+        ],
+        [
+            "conditionalContent",
+            "<case condition='true'><text>b</text></case>",
+            "Children written inside an `extend` of a `<conditionalContent>` would be new cases, but an extend shows the same content as `$x`. To choose from other cases, use `copy`.",
+        ],
+        [
+            "conditionalContent",
+            "<text>b</text>",
+            "Children written inside an `extend` of a `<conditionalContent>` would be new cases, but an extend shows the same content as `$x`. To choose from other cases, use `copy`.",
+        ],
+        [
+            "shuffle",
+            "<text>b</text>",
+            "Children written inside an `extend` of a `<shuffle>` would be new inputs to what it makes, but an extend shows the same content as `$x`. To make a `<shuffle>` from different children, use `copy`.",
+        ],
+        [
+            "sort",
+            "<number>0</number>",
+            "Children written inside an `extend` of a `<sort>` would be new inputs to what it makes, but an extend shows the same content as `$x`. To make a `<sort>` from different children, use `copy`.",
+        ],
+        [
+            "substitute",
+            "c",
+            "Children written inside an `extend` of a `<substitute>` would be new inputs to what it makes, but an extend shows the same content as `$x`. To make a `<substitute>` from different children, use `copy`.",
+        ],
+    ];
+
+    for (const [tag, children, message] of CHILDREN) {
+        it(`children ${children} written inside an extend of a <${tag}> are an error`, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="p0">${SOURCES[tag].doenetML}</p>
+<p name="p1"><${tag} extend="$x">${children}</${tag}></p>
+<p name="after">after</p>`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings).eqls([]);
+            expect(
+                diagnosticsByType.errors.map((error) => [
+                    error.code,
+                    error.message,
+                    error.position?.start.line,
+                ]),
+            ).eqls([["doenet-e0057", message, 2]]);
+
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, [
+                    "p0",
+                    "p1",
+                    "after",
+                ]),
+            ).eqls([SOURCES[tag].text, "", "after"]);
+        });
+    }
+
+    it("children written inside an extend of an <intersection> are an error", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<graph>
+  <intersection name="x"><line through="(0,0) (1,1)" /><line through="(0,1) (1,0)" /></intersection>
+  <intersection extend="$x"><line through="(0,0) (1,2)" /></intersection>
+</graph>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(diagnosticsByType.errors.map((error) => error.code)).eqls([
+            "doenet-e0057",
+        ]);
+    });
+
+    it("a written attribute and children are each reported, with one error shown", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<p name="p0">${SOURCES.repeat.doenetML}</p>
+<p name="p1"><repeat extend="$x" for="3" valueName="w"><text>$w</text></repeat></p>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.map((error) => error.code)).eqls([
+            "doenet-e0056",
+            "doenet-e0056",
+            "doenet-e0057",
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].activeChildren.map(
+                (child: any) => child.componentType,
+            ),
+        ).eqls(["_error"]);
+    });
+
+    it("an attribute given by a reference on an extend is reported once, with nothing about its value", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<booleanInput name="b" /><mathInput name="n" prefill="2" />
+${SOURCES.select.doenetML}
+<p><select extend="$x" withReplacement="$b" numToSelect="$n" /></p>
+${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
+<p><conditionalContent extend="$cc" condition="$b" /></p>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(
+            diagnosticsByType.warnings.filter(
+                (warning) => warning.type !== "accessibility",
+            ),
+        ).eqls([]);
+        expect(
+            diagnosticsByType.errors.map((error) => error.args?.attribute),
+        ).eqls(["withReplacement", "numToSelect", "condition"]);
+    });
+
+    it("a module attribute on an extend of a <module> is an error, while the extend itself is not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<module name="m"><moduleAttributes><text name="item">a</text></moduleAttributes><p name="p">$item</p></module>
+<module extend="$m" name="e" />
+<module extend="$m" item="b" name="f" />
+<p name="after">after</p>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(
+            diagnosticsByType.errors.map((error) => [
+                error.code,
+                error.message,
+                error.position?.start.line,
+            ]),
+        ).eqls([
+            [
+                "doenet-e0060",
+                "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `item`. To make the module with a different `item`, use `copy`.",
+                3,
+            ],
+        ]);
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["m.p", "e.p", "after"]),
+        ).eqls(["a", "a", "after"]);
+    });
+
+    it("a <group> or <module> extend can be given children, and a repeat inside an extended group is shown", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<group name="g"><repeat for="1 2" valueName="v"><text>a$v</text></repeat></group>
+<p name="p1"><group extend="$g" /></p>
+<p name="p2"><group extend="$g"><text>b</text></group></p>
+<module name="m"><text>c</text></module>
+<p name="p3"><module extend="$m"><text>d</text></module></p>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["p1", "p2", "p3"]),
+        ).eqls(["a1, a2", "a1, a2b", "cd"]);
+    });
+
+    describe("a <choiceInput>", () => {
+        const choiceInput = `<choiceInput name="ci"><shortDescription>pick</shortDescription><choice>a</choice><choice>b</choice></choiceInput>`;
+
+        it("a bare, named and disabled extend share its selection", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${choiceInput}
+<p>$ci</p>
+<choiceInput extend="$ci" name="e" />
+<choiceInput extend="$ci" name="d" disabled />`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            await updateSelectedIndices({
+                componentIdx: await resolvePathToNodeIdx("e"),
+                selectedIndices: [2],
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["ci", "e", "d"]) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(stateValues.selectedIndices, name).eqls([2]);
+                expect(stateValues.selectedValues, name).eqls(["b"]);
+            }
+            expect(
+                stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                    .disabled,
+            ).eq(true);
+        });
+
+        it("choices written inside an extend are an error", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${choiceInput}
+<choiceInput extend="$ci" name="e"><choice>c</choice></choiceInput>
+<p name="after">after</p>`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings).eqls([]);
+            expect(
+                diagnosticsByType.errors.map((error) => [
+                    error.code,
+                    error.message,
+                    error.position?.start.line,
+                ]),
+            ).eqls([
+                [
+                    "doenet-e0058",
+                    "Choices written inside an `extend` of a `<choiceInput>` would be new choices, but an extend shares its selection with `$ci`, which has no such choice. To offer more choices, use `copy`.",
+                    2,
+                ],
+            ]);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("e")].componentType,
+            ).eq("_error");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                    .numChoices,
+            ).eq(2);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                    .text,
+            ).eq("after");
+        });
+
+        it("shuffleOrder on an extend is an error", async () => {
+            const { core } = await createTestCore({
+                doenetML: `${choiceInput}
+<choiceInput extend="$ci" shuffleOrder />`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.warnings).eqls([]);
+            expect(
+                diagnosticsByType.errors.map((error) => [
+                    error.code,
+                    error.message,
+                ]),
+            ).eqls([
+                [
+                    "doenet-e0059",
+                    "An `extend` of a `<choiceInput>` shares its selection with `$ci`, which counts the choices in the order `$ci` shows them, so it can't change `shuffleOrder`. To show the choices in a different order, use `copy`.",
+                ],
+            ]);
+        });
+    });
+
+    describe("the parts of a choosing tag can't be extended", () => {
+        for (const [doenetML, extend, componentType, parentType] of [
+            [
+                `<conditionalContent><case name="c" condition="true"><text>a</text></case></conditionalContent>`,
+                `<case extend="$c" />`,
+                "case",
+                "conditionalContent",
+            ],
+            [
+                `<conditionalContent><case condition="false"><text>a</text></case><else name="c"><text>b</text></else></conditionalContent>`,
+                `<else extend="$c" />`,
+                "else",
+                "conditionalContent",
+            ],
+            [
+                `<select><option name="c"><text>a</text></option></select>`,
+                `<option extend="$c" />`,
+                "option",
+                "select",
+            ],
+            [
+                `<select><option name="c"><text>a</text></option></select>`,
+                `$c`,
+                "option",
+                "select",
+            ],
+        ]) {
+            it(`${extend}`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${doenetML}
+<section>${extend}</section>
+<p name="after">after</p>`,
+                });
+
+                const diagnosticsByType = getDiagnosticsByType(core);
+                expect(
+                    diagnosticsByType.errors.map((error) => [
+                        error.code,
+                        error.message,
+                        error.position?.start.line,
+                    ]),
+                ).eqls([
+                    [
+                        "doenet-e0061",
+                        `\`<${componentType}>\` is part of a \`<${parentType}>\`, and means something only there, so it can't be extended.`,
+                        2,
+                    ],
+                ]);
+                expect(
+                    await textsOf(core, resolvePathToNodeIdx, ["after"]),
+                ).eqls(["after"]);
+            });
+        }
+    });
+});

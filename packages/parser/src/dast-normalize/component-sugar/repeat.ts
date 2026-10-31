@@ -1,5 +1,6 @@
 import { DastElement, DastElementContent } from "../../types";
 import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
+import { isWrittenWithExtend } from "./utils/extend";
 
 /**
  * Two transformations to the repeat children are made
@@ -23,6 +24,10 @@ import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
  *   </_repeatSetup>
  * </repeat>
  * ```
+ *
+ * A `<repeat extend>` is left as written, so that a `valueName` or
+ * `indexName` written on it is reported as an attribute it cannot change,
+ * not also as a child (`isWrittenWithExtend`).
  */
 export function repeatSugar(node: DastElement) {
     if (node.name !== "repeat" && node.name !== "repeatForSequence") {
@@ -30,6 +35,10 @@ export function repeatSugar(node: DastElement) {
         throw Error(
             "Repeat sugar can only be applied to a `<repeat>` or a `<repeatForSequence>`",
         );
+    }
+
+    if (isWrittenWithExtend(node)) {
+        return;
     }
 
     let setupChildren: DastElementContent[] = [];

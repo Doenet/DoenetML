@@ -476,6 +476,12 @@ export type MessageKey =
     | "reference-index-not-a-number"
     | "extend-attribute-ignored"
     | "extend-children-ignored"
+    | "extend-attribute-changes-content"
+    | "extend-children-change-content"
+    | "extend-choice-input-choices"
+    | "extend-choice-input-shuffle-order"
+    | "extend-module-attribute"
+    | "extend-part-of-choosing-tag"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -1126,6 +1132,12 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-index-not-a-number",
     "extend-attribute-ignored",
     "extend-children-ignored",
+    "extend-attribute-changes-content",
+    "extend-children-change-content",
+    "extend-choice-input-choices",
+    "extend-choice-input-shuffle-order",
+    "extend-module-attribute",
+    "extend-part-of-choosing-tag",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",

@@ -323,6 +323,12 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0053": "select-random-value-fluke",
     "doenet-e0054": "attribute-name-invalid-start",
     "doenet-e0055": "module-attribute-refers-to-itself",
+    "doenet-e0056": "extend-attribute-changes-content",
+    "doenet-e0057": "extend-children-change-content",
+    "doenet-e0058": "extend-choice-input-choices",
+    "doenet-e0059": "extend-choice-input-shuffle-order",
+    "doenet-e0060": "extend-module-attribute",
+    "doenet-e0061": "extend-part-of-choosing-tag",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -366,6 +372,10 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // (`w0014`, replaced by `w0145`, which says the value was ignored).
         "doenet-w0013",
         "doenet-w0014",
+        // A `<pretzel extend>` given problems or a `mode` is an error now
+        // (`e0056`, `e0057`), as any extend that would change what its
+        // source makes (#2404).
+        "doenet-w0178",
     ]);
 
 /**

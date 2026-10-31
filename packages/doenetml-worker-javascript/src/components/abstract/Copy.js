@@ -1889,6 +1889,53 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
             });
 
+            if (link) {
+                const errors = extendChangesContentErrors({
+                    replacementType: repl.componentType,
+                    writtenType:
+                        component.attributes._createComponentOfType?.primitive
+                            ?.value,
+                    copyInChildren,
+                    attributeNames: Object.keys(attributesFromComposite),
+                    copyAttributeNames: Object.keys(compositeAttributesObj),
+                    children: component.serializedChildren,
+                    source: referenceAsWritten(
+                        await component.stateValues.originalPath,
+                        replacementSourceComponent,
+                    ),
+                    componentInfoObjects,
+                });
+                if (errors.length > 0) {
+                    // What the extend would change is what it shares with its
+                    // source, so it shows an error in place of the content.
+                    // One, as an extend makes one replacement, which takes its
+                    // place (`adjustForCreateComponentIdxName`); each error
+                    // is still reported.
+                    diagnostics.push(...errors);
+                    return {
+                        serializedReplacements: [
+                            {
+                                type: "serialized",
+                                componentType: "_error",
+                                componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                                state: errorComponentState(
+                                    errors[0].message,
+                                    errors[0],
+                                ),
+                                attributes: {},
+                                // Not given the type the extend is written
+                                // as (`verifyReplacementsMatchSpecifiedType`)
+                                doenetAttributes: { inPlaceOfExtend: true },
+                                children: [],
+                            },
+                        ],
+                        diagnostics,
+                        nComponents,
+                    };
+                }
+            }
+
             if (link && copyInChildren) {
                 const ignored = extendIgnoresAttributesAndChildren({
                     replacementType: repl.componentType,
@@ -4528,8 +4575,269 @@ export async function replacementFromProp({
 }
 
 /**
+ * The tags whose content an `extend` cannot change (D32, #2404): those whose
+ * content is made rather than written. Their extend is the same component
+ * again, sharing its source's content, so an attribute that decides the
+ * content, or children that would be its content or its inputs, are errors.
+ * A `<group>` and a `<module>` are left out: their children are written, and
+ * children added to their extend are added after their own.
+ */
+const TAGS_MAKING_THEIR_CONTENT = new Set([
+    "repeat",
+    "repeatForSequence",
+    "select",
+    "selectFromSequence",
+    "selectPrimeNumbers",
+    "selectRandomNumbers",
+    "sampleRandomNumbers",
+    "samplePrimeNumbers",
+    "sampleMultivariateRandomNumber",
+    "shuffle",
+    "conditionalContent",
+    "collect",
+    "sort",
+    "sequence",
+    "intersection",
+    "substitute",
+    "split",
+    "lorem",
+    "idx",
+    // Its arrangement of its problems is made by an internal composite.
+    "pretzel",
+]);
+
+/**
+ * The list form a `<collect>`, `<sort>` or `<shuffle>` of values is made as
+ * (`utils/dast/listForms.ts`), mapped to the tag it is written as.
+ */
+const TAGS_OF_LIST_FORMS = {
+    _collectList: "collect",
+    _sortList: "sort",
+    _shuffleList: "shuffle",
+};
+
+/**
+ * What children written inside the extend of a tag would be, which picks the
+ * wording of the error. Any other tag's children are the inputs it makes its
+ * content from.
+ */
+const KIND_OF_CHILDREN = {
+    repeat: "template",
+    repeatForSequence: "template",
+    select: "options",
+    conditionalContent: "cases",
+    pretzel: "problems",
+};
+
+/**
+ * The parts of a choosing tag, each mapped to the tag it is part of. They
+ * mean something only there, so they cannot be extended at all. An `<else>`
+ * is a `<case>` by the time it is extended (`conditionalContentSugar`), so it
+ * is named as written.
+ */
+const PARTS_OF_CHOOSING_TAGS = {
+    case: "conditionalContent",
+    else: "conditionalContent",
+    option: "select",
+};
+
+/**
+ * The errors for an `extend` that would change what its source makes (D32,
+ * #2404). An extend is the same component again: it shares its source's
+ * content and state. It can have its own name and look different, but it
+ * cannot change what the component makes or what its state can hold.
+ *
+ * `$x` is the same as a bare `<T extend="$x"/>`, so a bare extend is never an
+ * error, except of a part of a choosing tag, which cannot be extended at all.
+ * Otherwise only what the author wrote on the extend (`copyInChildren`) is
+ * checked:
+ * - on a tag that makes its content (`TAGS_MAKING_THEIR_CONTENT`), an
+ *   attribute its class declares beyond those an extend applies
+ *   (`attributesAnExtendApplies`), which are those that only change how it
+ *   looks, and any children;
+ * - on a `<pretzel>`, `mode` and any problems;
+ * - on a `<module>`, any module attribute;
+ * - on a `<choiceInput>`, `shuffleOrder` and any choices, as an extend shares
+ *   its selection, which indexes its source's choices in its source's order.
+ *
+ * `source` is the reference the extend is of, as written (`$r`).
+ */
+function extendChangesContentErrors({
+    replacementType,
+    writtenType,
+    copyInChildren,
+    attributeNames,
+    copyAttributeNames,
+    children,
+    source,
+    componentInfoObjects,
+}) {
+    const partType = Object.hasOwn(PARTS_OF_CHOOSING_TAGS, writtenType)
+        ? writtenType
+        : Object.hasOwn(PARTS_OF_CHOOSING_TAGS, replacementType)
+          ? replacementType
+          : null;
+    if (partType) {
+        return [
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0061",
+                args: {
+                    componentType: partType,
+                    parentType: PARTS_OF_CHOOSING_TAGS[partType],
+                },
+            }),
+        ];
+    }
+
+    if (!copyInChildren) {
+        return [];
+    }
+
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacementType];
+    if (!replacementClass) {
+        return [];
+    }
+
+    const errors = [];
+
+    if (replacementType === "choiceInput") {
+        if (attributeNames.includes("shuffleOrder")) {
+            errors.push(
+                codedDiagnostic({
+                    type: "error",
+                    code: "doenet-e0059",
+                    args: { source },
+                }),
+            );
+        }
+        if (
+            children.some(
+                (child) =>
+                    child?.componentType === "choice" ||
+                    child?.attributes?._createComponentOfType?.primitive
+                        ?.value === "choice",
+            )
+        ) {
+            errors.push(
+                codedDiagnostic({
+                    type: "error",
+                    code: "doenet-e0058",
+                    args: { source },
+                }),
+            );
+        }
+        return errors;
+    }
+
+    const isModule =
+        replacementType === "module" ||
+        replacementClass.prototype instanceof
+            componentInfoObjects.allComponentClasses.module;
+    const tag = TAGS_OF_LIST_FORMS[replacementType] ?? replacementType;
+    if (!isModule && !TAGS_MAKING_THEIR_CONTENT.has(tag)) {
+        return [];
+    }
+
+    let changingAttributes;
+    if (replacementType === "pretzel") {
+        changingAttributes = attributeNames.filter(
+            (attrName) => attrName === "mode",
+        );
+    } else {
+        const appliedAttributes = attributesAnExtendApplies({
+            replacementType,
+            replacementClass,
+            isComposite: componentInfoObjects.isCompositeComponent({
+                componentType: replacementType,
+            }),
+            copyAttributeNames,
+        });
+        changingAttributes = attributeNames.filter(
+            (attrName) => !appliedAttributes.has(attrName),
+        );
+    }
+
+    for (const attribute of changingAttributes) {
+        errors.push(
+            isModule
+                ? codedDiagnostic({
+                      type: "error",
+                      code: "doenet-e0060",
+                      args: { attribute, source },
+                  })
+                : codedDiagnostic({
+                      type: "error",
+                      code: "doenet-e0056",
+                      args: { attribute, componentType: tag, source },
+                  }),
+        );
+    }
+
+    if (isModule) {
+        return errors;
+    }
+
+    // A pretzel's problems are wrapped in an arranger of its own
+    // (`pretzelSugar`), made whether or not any are written.
+    const writtenChildren =
+        replacementType === "pretzel"
+            ? children.flatMap((child) =>
+                  child?.componentType === "_pretzelArranger"
+                      ? (child.children ?? [])
+                      : [child],
+              )
+            : children;
+    if (
+        writtenChildren.some(
+            (child) => typeof child !== "string" || child.trim() !== "",
+        )
+    ) {
+        errors.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0057",
+                args: {
+                    componentType: tag,
+                    kind: KIND_OF_CHILDREN[tag] ?? "inputs",
+                    source,
+                },
+            }),
+        );
+    }
+
+    return errors;
+}
+
+/**
+ * The reference an extend is of, as written: `$r`, `$g.r`, `$s[2]`. An index
+ * that is not a literal is shown as `[…]`.
+ */
+function referenceAsWritten(originalPath, sourceComponent) {
+    const parts = (originalPath ?? []).map(
+        (part) =>
+            part.name +
+            part.index
+                .map((indexPart) =>
+                    indexPart.value.every((x) => typeof x === "string")
+                        ? `[${indexPart.value.join("").trim()}]`
+                        : "[…]",
+                )
+                .join(""),
+    );
+    if (parts.length > 0 && parts[0] !== "") {
+        return `$${parts.join(".")}`;
+    }
+    const name = sourceComponent?.attributes?.name?.primitive?.value;
+    return name ? `$${name}` : `<${sourceComponent?.componentType}>`;
+}
+
+/**
  * Warnings for what an `extend` of a composite or a list cannot apply
- * (#2041). `_copyInChildren` marks a `_copy` an author wrote as `extend=` or
+ * (#2041), where it is not an error (`extendChangesContentErrors`): on a
+ * list whose content is written (`<mathList>`), or on a composite that does
+ * not make its content. `_copyInChildren` marks a `_copy` an author wrote as `extend=` or
  * `copy=`, and a linked one is an `extend`.
  *
  * Such an extend is a shadow of what it extends: a composite copies the
@@ -4570,33 +4878,12 @@ function extendIgnoresAttributesAndChildren({
         return { attributeNames: [], diagnostics: [] };
     }
 
-    const declaredAttributes = replacementClass.createAttributesObject();
-    const sharedAttributes = new Set([
-        ...Object.keys(
-            (isComposite
-                ? CompositeComponent
-                : ValueListComponent
-            ).createAttributesObject(),
-        ),
-        // The number-display attributes, where they apply: a class that
-        // declares them, and a `<collect>`, which passes them on to the
-        // copies it makes. A `<module>` reads one only as a parameter of
-        // its own, which its extend ignores as any other.
-        ...Object.keys(returnNumberDisplayAttributes()).filter(
-            (attrName) =>
-                replacementType === "collect" || attrName in declaredAttributes,
-        ),
-        // A `<group>`, and a `<module>`, shadows by making its replacements
-        // again (`addExtraSerializedChildrenWhenShadowing`), so it reads the
-        // attributes a group declares, such as `rendered`, on its extend.
-        ...(replacementClass === Group ||
-        replacementClass.prototype instanceof Group
-            ? Object.keys(Group.createAttributesObject())
-            : []),
-        // The `_copy`'s own attributes. Of these, only `asList` is handed on
-        // to what it makes (`dontSkipAttributes`), and the parent reads it.
-        ...copyAttributeNames,
-    ]);
+    const sharedAttributes = attributesAnExtendApplies({
+        replacementType,
+        replacementClass,
+        isComposite,
+        copyAttributeNames,
+    });
 
     const diagnostics = [];
     const ignoredAttributeNames = attributeNames.filter(
@@ -4631,6 +4918,48 @@ function extendIgnoresAttributesAndChildren({
     }
 
     return { attributeNames: ignoredAttributeNames, diagnostics };
+}
+
+/**
+ * The attributes an extend of a composite or a list applies: those every
+ * composite or list has, the number-display attributes where they apply, a
+ * group's own on a `<group>` or a class built on it, and the `_copy`'s own.
+ * Any other attribute its class declares would change what it shows, which
+ * it shares with its source.
+ */
+function attributesAnExtendApplies({
+    replacementType,
+    replacementClass,
+    isComposite,
+    copyAttributeNames,
+}) {
+    const declaredAttributes = replacementClass.createAttributesObject();
+    return new Set([
+        ...Object.keys(
+            (isComposite
+                ? CompositeComponent
+                : ValueListComponent
+            ).createAttributesObject(),
+        ),
+        // The number-display attributes, where they apply: a class that
+        // declares them, and a `<collect>`, which passes them on to the
+        // copies it makes. A `<module>` reads one only as a parameter of
+        // its own, which its extend can't change, as any other.
+        ...Object.keys(returnNumberDisplayAttributes()).filter(
+            (attrName) =>
+                replacementType === "collect" || attrName in declaredAttributes,
+        ),
+        // A `<group>`, and a `<module>`, shadows by making its replacements
+        // again (`addExtraSerializedChildrenWhenShadowing`), so it reads the
+        // attributes a group declares, such as `rendered`, on its extend.
+        ...(replacementClass === Group ||
+        replacementClass.prototype instanceof Group
+            ? Object.keys(Group.createAttributesObject())
+            : []),
+        // The `_copy`'s own attributes. Of these, only `asList` is handed on
+        // to what it makes (`dontSkipAttributes`), and the parent reads it.
+        ...copyAttributeNames,
+    ]);
 }
 
 export function addChildrenFromComposite({

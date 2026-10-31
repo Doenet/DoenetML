@@ -1062,6 +1062,8 @@ describe("Conditional content tag tests @group2", async () => {
     });
 
     it("copy case", async () => {
+        // A `<case>` can't be extended (#2404), but it can be copied into
+        // another `<conditionalContent>`, keeping what its condition refers to.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
@@ -1072,7 +1074,7 @@ describe("Conditional content tag tests @group2", async () => {
     </conditionalContent></p>
     
     <p name="p2"><conditionalContent name="cc2">
-      <case extend="$positiveCase" />
+      <case copy="$positiveCase" />
       <case condition="$n<0" ><text>negative</text></case>
       <else><text>neither</text></else>
     </conditionalContent></p>
@@ -1137,6 +1139,8 @@ describe("Conditional content tag tests @group2", async () => {
     });
 
     it("copy else", async () => {
+        // An `<else>` can't be extended (#2404), but it can be copied into
+        // another `<conditionalContent>`.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
@@ -1149,7 +1153,7 @@ describe("Conditional content tag tests @group2", async () => {
     <p name="p2"><conditionalContent name="cc2">
       <case condition="$n<0" ><text>hello</text></case>
       <case condition="$n>0" ><text>oops</text></case>
-      <else extend="$bye" />
+      <else copy="$bye" />
     </conditionalContent></p>
     
     <p name="p3">$cc1</p>

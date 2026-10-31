@@ -1,5 +1,4 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
-import { codedDiagnostic } from "../utils/diagnostics";
 
 /**
  * Parse a text response as a finite integer.
@@ -176,15 +175,6 @@ export default class Pretzel extends BlockScoredComponent {
             ],
         };
 
-        // Set by `preprocessSerializedChildren` when a `<pretzel extend>` is
-        // given problems or a `mode`, which it ignores
-        attributes._ignoredChangesToExtendedPretzel = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "ignoredChangesToExtendedPretzel",
-            defaultValue: false,
-            excludeFromSchema: true,
-        };
-
         return attributes;
     }
 
@@ -207,8 +197,10 @@ export default class Pretzel extends BlockScoredComponent {
      *   random choices are those the document chose for the copy's own
      *   arranger, drawn from a new seed rather than the source's.
      *   A `<problem copy>` is not arranged, so it does not count as added.
-     * - A `<pretzel extend>` shows its source's arrangement, so it ignores
-     *   any problems or `mode` written on it, with a warning, and takes its
+     * - A `<pretzel extend>` shows its source's arrangement, so problems or a
+     *   `mode` written on it are an error, reported where it is expanded
+     *   (`extendChangesContentErrors` in `Copy.js`), which shows the error
+     *   in its place. Its own arranger is then empty, and it takes its
      *   source's `mode`, which decides how it is graded.
      */
     static preprocessSerializedChildren({ serializedChildren, attributes }) {
@@ -243,20 +235,6 @@ export default class Pretzel extends BlockScoredComponent {
         // A linked copy has downstream dependencies on its source
         // (`postProcessCopy`); it shows its source's replacements.
         const linked = Boolean(copiedArranger.downstreamDependencies);
-
-        // Set even when false: a copy is given its source's attributes, and a
-        // copy of a `<pretzel extend>` that warned has nothing to warn about.
-        attributes._ignoredChangesToExtendedPretzel = {
-            type: "primitive",
-            name: "_ignoredChangesToExtendedPretzel",
-            primitive: {
-                type: "boolean",
-                value:
-                    linked &&
-                    (ownChildren.some((child) => typeof child === "object") ||
-                        Boolean(ownMode)),
-            },
-        };
 
         if (linked) {
             if (copiedArranger.attributes.mode) {
@@ -433,26 +411,12 @@ export default class Pretzel extends BlockScoredComponent {
                     dependencyType: "child",
                     childGroups: ["problems"],
                 },
-                ignoredChangesToExtendedPretzel: {
-                    dependencyType: "stateVariable",
-                    variableName: "ignoredChangesToExtendedPretzel",
-                },
             }),
             definition({ dependencyValues }) {
-                const diagnostics = [];
-                if (dependencyValues.ignoredChangesToExtendedPretzel) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0178",
-                        }),
-                    );
-                }
                 return {
                     setValue: {
                         numProblems: dependencyValues.problemChildren.length,
                     },
-                    sendDiagnostics: diagnostics,
                 };
             },
         };
