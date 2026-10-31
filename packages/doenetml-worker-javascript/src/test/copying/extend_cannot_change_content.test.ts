@@ -61,6 +61,26 @@ describe("An extend cannot change what a tag makes @group4", () => {
             doenetML: `<substitute name="x" type="text" match="b" replacement="a">b</substitute>`,
             text: "a",
         },
+        selectRandomNumbers: {
+            doenetML: `<selectRandomNumbers name="x" type="discreteUniform" from="4" to="4" />`,
+            text: "4",
+        },
+        selectPrimeNumbers: {
+            doenetML: `<selectPrimeNumbers name="x" from="5" to="5" />`,
+            text: "5",
+        },
+        sampleRandomNumbers: {
+            doenetML: `<sampleRandomNumbers name="x" type="discreteUniform" from="4" to="4" numSamples="2" />`,
+            text: "4, 4",
+        },
+        samplePrimeNumbers: {
+            doenetML: `<samplePrimeNumbers name="x" from="5" to="5" numSamples="2" />`,
+            text: "5, 5",
+        },
+        sampleMultivariateRandomNumber: {
+            doenetML: `<sampleMultivariateRandomNumber name="x" type="hypergeometric" numInCategories="5 3 2" numDraws="10" />`,
+            text: "5, 3, 2",
+        },
         sortIndices: {
             doenetML: `<sortIndices name="x"><number>3</number><number>1</number><number>2</number></sortIndices>`,
             text: "2, 3, 1",
@@ -126,15 +146,37 @@ describe("An extend cannot change what a tag makes @group4", () => {
             doenetML: `<p name="p0"><sequence name="x" from="1.2345" to="2.2345" /></p>
 <p name="p1"><sequence extend="$x" displayDigits="2" /></p>
 <p name="p2"><selectFromSequence name="y" from="1.2345" to="1.2345" /></p>
-<p name="p3"><selectFromSequence extend="$y" displayDecimals="1" /></p>`,
+<p name="p3"><selectFromSequence extend="$y" displayDecimals="1" /></p>
+<p name="p4"><sampleRandomNumbers name="z" type="discreteUniform" from="1.2345" to="1.2345" numSamples="2" /></p>
+<p name="p5"><sampleRandomNumbers extend="$z" displayDigits="2" /></p>
+<p name="p6"><sortIndices name="w"><number>3</number><number>1</number><number>2</number></sortIndices></p>
+<p name="p7"><sortIndices extend="$w" padZeros displayDecimals="1" /></p>`,
         });
 
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.errors).eqls([]);
         expect(diagnosticsByType.warnings).eqls([]);
         expect(
-            await textsOf(core, resolvePathToNodeIdx, ["p0", "p1", "p2", "p3"]),
-        ).eqls(["1.23, 2.23", "1.2, 2.2", "1.23", "1.2"]);
+            await textsOf(core, resolvePathToNodeIdx, [
+                "p0",
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5",
+                "p6",
+                "p7",
+            ]),
+        ).eqls([
+            "1.23, 2.23",
+            "1.2, 2.2",
+            "1.23",
+            "1.2",
+            "1.23, 1.23",
+            "1.2, 1.2",
+            "2, 3, 1",
+            "2.0, 3.0, 1.0",
+        ]);
     });
 
     it("a named extend reaches what is inside it", async () => {
@@ -191,7 +233,29 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         ["substitute", "type", "math"],
         ["split", "splitBy", "character"],
         ["shuffle", "type", "math"],
+        ["selectRandomNumbers", "numToSelect", "2"],
+        ["selectRandomNumbers", "from", "1"],
+        ["selectRandomNumbers", "type", "uniform"],
+        ["selectPrimeNumbers", "numToSelect", "2"],
+        ["selectPrimeNumbers", "to", "7"],
+        ["selectPrimeNumbers", "withReplacement", "true"],
+        ["sampleRandomNumbers", "numSamples", "3"],
+        ["sampleRandomNumbers", "type", "gaussian"],
+        ["sampleRandomNumbers", "to", "5"],
+        ["sampleRandomNumbers", "variantDeterminesSeed", "true"],
+        ["samplePrimeNumbers", "numSamples", "3"],
+        ["samplePrimeNumbers", "from", "2"],
+        ["samplePrimeNumbers", "exclude", "5"],
+        ["sampleMultivariateRandomNumber", "numInCategories", "1 1"],
+        ["sampleMultivariateRandomNumber", "numDraws", "2"],
+        ["sampleMultivariateRandomNumber", "type", "hypergeometric"],
+        // sorting
+        ["sort", "sortByProp", "text"],
+        ["sort", "type", "text"],
         ["sortIndices", "sortByProp", "text"],
+        ["sortIndices", "sortByComponent", "1"],
+        ["sortIndices", "sortVectorsBy", "magnitude"],
+        ["sortIndices", "type", "text"],
     ];
 
     for (const [tag, attribute, value] of CONTENT_ATTRIBUTES) {
