@@ -211,6 +211,8 @@ Code: `packages/doenetml-worker-rust/lib-doenetml-core/src/dast/ref_expand.rs:43
 into extend. `W/utils/dast/valueReferences.ts:780` `unadornedExtendType` plans both the same way.
 
 Exceptions:
+- An extend of a `case`, `else` or `option` is an error, bare `$c` included (D32, REF-7). Such a
+  part means something only inside the tag that chooses it.
 - An extend stops being bare-equivalent as soon as it has a name, an attribute, children or a
   different type.
 - A name alone already changes the click identity (REF-9).
@@ -394,27 +396,48 @@ replacements without resolving them again. When a linked shadow does have to re-
 fails, it falls back to the source's binding (#1805,
 `W/core/dependencies/refResolutionDependencies.ts:278`).
 
-### REF-7: an extend of a composite shows the same content (Tier 2; D32 decides the Tier 1 rule, #2404)
-`<repeat extend="$r"/>`, `<select extend="$s"/>` and similar show exactly what the source shows.
-- **Ignored, with a warning:** attributes that would change that content (`for`, `to`,
-  `numToSelect`) give `doenet-w0168`, and children written inside give `doenet-w0169` (#2213).
-- **Still applied:** shared attributes (`hide`, `asList`, display settings).
-- **Exceptions:** `<group>` and `<module>`, which do add children and apply `rendered`. A
-  module's own `<moduleAttributes>` are not applied on an extend: they are ignored with a warning,
-  as content-setting attributes are. Only a copy applies them (COMP-13).
+### REF-7: an extend is the same component again; it cannot change what a tag makes (Tier 1; D32, done by #2409)
+An `extend` shares its source's content and state. It can have its own name and can look
+different, but it cannot change what the component makes or what its state can hold. Trying to
+is an error located on the extend, which shows the error in place of its content. The rest of
+the document renders.
 
-D32 decides a Tier 1 rule in its place (#2404): an extend is the same component again, which can be
-named and can look different, but cannot change what a tag makes. A change to the content is an
-error whose message explains why. `$x` stays equivalent to a bare extend for every tag (REF-1).
+- **Allowed on any extend:** a bare extend (the same as `$x`, REF-1), a name, and attributes that
+  only change appearance (`hide`, `styleNumber`, display settings, `asList`, `disabled`,
+  `fixed`). A `<group>` or `<module>` extend can also be given children, which are appended.
+- **Errors** (Tier 2, the list authors are not given):
+  - on a tag whose content is made rather than written, an attribute its class declares beyond
+    those an extend applies, `doenet-e0056` (on a `pretzel`, only `mode`), and children written
+    inside, `doenet-e0057`. The tags are `repeat`, `repeatForSequence`, the `select…` and
+    `sample…` tags, `shuffle`, `conditionalContent`, `collect`, `sort`, `sortIndices`,
+    `sequence`, `intersection`, `substitute`, `split`, `lorem`, `idx` and `pretzel`;
+  - on a `<module>`, a module attribute declared in its `<moduleAttributes>`, `doenet-e0060`;
+  - on a `<choiceInput>`, choices written inside, `doenet-e0058`, and `shuffleOrder`,
+    `doenet-e0059`;
+  - any extend of `case`, `else` or `option`, `doenet-e0061`, including a bare `$c` (REF-1's one
+    exception). `<case copy="$c"/>` still works.
+- **The message** names the tag, what it makes, why an extend can't change it, and what to write
+  instead, citing the reference: "A `<repeat>` makes its content from `for`. An `extend` shows
+  the same content as `$r2`, so it can't change `for`. To show the content of `$r2` again, remove
+  `for`. To make a new `<repeat>` with a different `for`, use `copy`."
+- **Still warnings:** `doenet-w0168` and `doenet-w0169` remain for composites and lists outside
+  the list above, and for an attribute a module does not declare, such as `displayDigits` on a
+  `<module extend>`, which is ignored. Under the Tier 1 rule an appearance attribute should take
+  effect there instead.
+- **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
+  reports it again at its own location.
 
-Evidence:
-- `T/diagnostics/warningsInfos.test.ts:1144-1406`;
-- `T/copying/extend_references.test.ts:3153`, `:3177`;
-- `T/tagSpecific/module.test.ts:1441`;
-- `T/tagSpecific/group.test.ts:202`.
+Evidence: `T/copying/extend_cannot_change_content.test.ts` (91 tests, #2409): bare, named and
+appearance-only extends of 18 tags, display settings taking effect, a named extend reaching
+inside, one error test per banned attribute and kind of child, `module`, `choiceInput`,
+`case`/`else`/`option`, an extended `group` holding a repeat.
 
-Known bugs, open: #2215, #2216, #2217, #2218, #2219, #2211. See D4 for the rule they should
-follow.
+Code: `extendChangesContentErrors` and `attributesAnExtendApplies` in
+`W/components/abstract/Copy.js`. The parser's `conditionalContent` and `repeat` sugar skips an
+element written with `extend`, which fixed B12.
+
+Known bugs, open: #2219 (`styleNumber` on an extend of `<intersection>` may not take effect);
+#2217, #2218, #2211, and the copy halves of #2215 and #2216 (D4, B5).
 
 ### REF-8: an extend's descendants are reached through the extend's own name, and an unnamed reference creates no names (Tier 1)
 - **Through a name.** With `<p name="e" extend="$p"/>`, `$e.t` reaches e's own counterpart of
