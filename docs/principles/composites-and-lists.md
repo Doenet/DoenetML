@@ -268,7 +268,8 @@ ADR 0009 makes the following a rule, and it is easy to state:
 
 ADR 0009 also bans several forms that main's tests use (D13):
 - `extend` of a `select`, `conditionalContent` or `case`. D32 proposes a principle in its place:
-  no tag that makes its own content can be extended;
+  an extend can be bare, named or restyled, but cannot change what a tag makes. Extending a
+  `case` stays banned;
 - references into a branch from outside, other than interface names;
 - positional references into options (`$s[2][1]`), which D27 generalizes;
 - a branch-dependent type fed to a typed parent;

@@ -171,8 +171,8 @@ The value-copy path is removed.
 **Recommendation.**
 - **An extend of a composite:** it shows the source's content, and both content attributes and
   children are ignored with a warning (REF-7, as today). Group and module stay as they are,
-  because their "content" is their children. D32 proposes replacing this with an error for every
-  tag that makes its own content.
+  because their "content" is their children. D32 proposes making a content change an error, while
+  a bare, named or restyled extend stays allowed.
 - **A copy of a composite:** the source's DoenetML is pasted, and the copy's attributes override
   it. Children written inside are appended after the whole composite, not to each iteration.
   Adding to each iteration surprises authors, and a repeat's template is not a list of children.
@@ -452,8 +452,9 @@ branch declares it, with the same type."
 
 It bans, in order of how often documents use them:
 - `extend` of a select, conditionalContent or case. ADR 0009 gives no reason for these three in
-  particular. D32 replaces this item with a principle that covers every tag that makes its own
-  content;
+  particular. D32 replaces this item for select and conditionalContent: a bare, named or restyled
+  extend stays allowed, and an extend that changes the content is an error. Extending a case
+  stays banned;
 - names present in only some branches;
 - type-varying names;
 - positional references into options (`$s[2][1]`), which D27 generalizes.
@@ -1158,104 +1159,134 @@ Rejected shapes:
 **Until then:** document the repeat-of-extends form as the way to restyle a set of components, on
 the `<collect>` and list reference pages.
 
-## D32. Tags that make their own content cannot be extended (proposed Tier 1)
+## D32. An extend cannot change what a tag makes (proposed)
 
-**Today** ADR 0009 bans `extend` of `<select>`, `<conditionalContent>` and `<case>`, with no stated
-reason for those three. In the current core an `extend` of *any* tag that makes its own content
-does nothing that `$x` does not (**[probe]**, current main):
+**Today** an `extend` of a tag that makes its own content shows the same content, and changes
+written on it are ignored, sometimes with a warning (w0168, w0169) and sometimes silently (B12).
+ADR 0009 bans `extend` of `<select>`, `<conditionalContent>` and `<case>` outright, with no stated
+reason for those three.
 
-| Tag | Bare `extend` | `extend` with an attribute or child |
-|---|---|---|
-| `select` | same picks | `numToSelect` ignored, with warning w0168 |
-| `selectFromSequence` | same | ignored, w0168 |
-| `sampleRandomNumbers` | same | `numSamples` ignored, w0168 |
-| `shuffle` | same order | child ignored, **no warning** (B12) |
-| `sort`, `collect`, `sequence` | same | ignored, w0168/w0169 |
-| `repeat` | same | `for` and the child ignored |
-| `conditionalContent` | same, with a **spurious** w0169 (B12) | ignored |
-| `case`, `option` | invalid outside their parent | invalid |
-| `group`, `module` | same | the child is added, `rendered` applies |
+**[probe]** on main at `64954c6`, for `repeat`, `repeatForSequence`, `select`,
+`selectFromSequence`, `shuffle`, `conditionalContent`, `collect`, `sort`, `sequence`,
+`intersection`, `substitute` and `pretzel`:
+- a bare `<T extend="$x"/>`, a named one, and one with `hide` all load and show the source's
+  content;
+- a named extend is reached through its name, as REF-8 says: `$e[2].y` through an extend of a
+  repeat, `$e.y` through an extend of a select;
+- a copy of a named extend loads and shows the same content.
 
-**Why.** An `extend` is the same component, with your changes (REF-2, REF-3). For a tag that makes
-its own content, the content *is* the component: the iterations of a repeat, the picks of a
-select, the items a collect gathers. Such an extend is one of two things:
-- **written with nothing added**, it shows the same content, which `$x` already does;
-- **written with changes,** such as `<repeat extend="$r" for="7 8 9">` or
-  `<select extend="$s" numToSelect="4">`, it needs different content. That cannot be the same
-  component: it would be new iterations, or new picks. So it is a new tag. Today the change is
-  silently dropped, with only a warning.
+What fails is an extend that would change the content, which is why #2400 had to revert
+attempts to make it work. Examples:
+- `<repeat extend="$r" for="7 8 9">`;
+- `<select extend="$s" numToSelect="4">`;
+- a child added inside `<shuffle extend>`, which is never shown but can be reached by name
+  (#2366);
+- `replacement` on an extend of `<substitute>`, which fails to load (#2216).
 
-Children added to such an extend show the same problem from another side. #2366 (closed as not
-planned) found that a child added to `<shuffle extend="$sh">` is never shown, yet can be reached
-by name, and its random value changes when the page is loaded again. Under this rule the extend
-is an error, so the case cannot arise.
+An earlier version of this entry proposed banning every `extend` of these tags. That broke
+REF-1's equivalence of `$x` and a bare extend, and removed extends that only change appearance.
+Neither was worth it: nobody has reported the failures above, while REF-1 is a shortcut authors
+use all the time.
 
-**Proposed principle (Tier 1):**
+### Principle
 
-> A tag that makes its own content, by repeating it, choosing it or gathering it, cannot be
-> extended. To show the same content again, reference it: `$x`. To make a new instance, `copy` it
-> or write the tag again (D33 proposes a separate form for this). The parts of a choosing tag (`<case>`, `<else>`, `<option>`) cannot be
-> extended either: a branch means something only inside the tag that chooses it.
+**Tier 1, what authors are told:**
 
-It covers these tags:
-- **repeating:** `repeat`, `repeatForSequence`;
-- **choosing:** `select`, `selectFromSequence`, `selectPrimeNumbers`, `selectRandomNumbers`, the
-  `sample…` tags, `shuffle`, `conditionalContent`;
-- **gathering:** `collect`, `sort`;
-- **generating:** `sequence`;
-- **parts of a choosing tag:** `case`, `else`, `option`.
+> An `extend` is the same component again. It can have its own name, and it can look different.
+> Some tags make their own content: they repeat it, choose it, gather it or compute it. An extend
+> of such a tag shows the same content, so it cannot change what the tag makes. Trying to is an
+> error, and the error says why and what to write instead.
 
-It does not cover `group` and `module`. They do not make their content; they hold what is
-written in them. Their extends show the same content, linked, and can add children, `hide` or a
-name (REF-4, COMP-12, COMP-13).
+- `$x` is always the same as `<T extend="$x"/>` (REF-1), for every tag.
+- A name, and any attribute that only changes how the content looks (`hide`, `styleNumber`,
+  display settings such as `displayDigits`, `asList`, `disabled`, `fixed`), are allowed on any
+  extend, with no list to learn. Authors expect them to work, so they must. On a tag that makes
+  its own content they act as a container's attributes do on its content (CTX-5): they fill in
+  what the content does not set itself.
+- Authors are not given a list of banned forms. The error message carries the explanation, so it
+  is part of the rule.
 
-**Module attributes on an extend of a module: an error.** A module's attributes are what make
-its content, as `for` is for a repeat, so the same reasoning applies to them.
-- They can feed any part of the module, including its structure, such as a `<repeat
-  for="$n">` inside it. An extend that changed `n` would need different iterations while staying
-  linked to the source's, which cannot be done coherently.
-- Today such an attribute is ignored with a warning (**[probe]**:
-  `<module extend="$m" item="banana"/>` still shows "apple", and typing into its input changes
-  `m`'s). Make it an error that says to use `copy`, which does apply module attributes.
-- The extend itself stays allowed, as a group's does. It is the same content again, linked,
-  with appended children, `hide` or a name. `$m` and `$m.t` cover most uses, and no use case for
-  appended children has come up. There is also no reason it fails, so it is not banned.
+**Tier 2, what the implementation enforces:** the banned forms.
+- **Attributes that decide the content,** on a tag that makes its own content:
+  - repeating: `for`, `valueName`, `indexName` on `repeat`; `length`, `from`, `to`, `step` on
+    `repeatForSequence`;
+  - choosing at random: `numToSelect`, `withReplacement`, ranges, `exclude`, distribution
+    parameters, `numSamples`; the per-class lists from #2392 (`attributesDeterminingChoices`);
+  - choosing by condition: `condition` on `conditionalContent` and `case`;
+  - gathering: `componentType`, `from`, `maxNumber` on `collect`; sort keys on `sort`;
+  - generating: the sequence attributes on `sequence`;
+  - computing: `match`, `replacement` and `type` on `substitute`; the inputs of `intersection`;
+  - arranging: `mode` on `pretzel`;
+  - a module attribute on an extend of a `<module>` (it decides the module's content, as `for`
+    decides a repeat's).
+- **Children written inside the extend,** when the tag's children are its content or its inputs:
+  the template of a repeat, the options of a select, the children of `shuffle`, `sort`,
+  `conditionalContent`, `substitute` and `intersection`, and the problems of a `pretzel`.
+  Children added to an extend of a `<group>` or `<module>` stay allowed: those tags hold what is
+  written in them (REF-4, COMP-12, COMP-13).
+- **The parts of a choosing tag** (`case`, `else`, `option`) cannot be extended at all. A branch
+  means something only inside the tag that chooses it.
 
-**What it means in practice:**
-- **`$x` stays.** A bare reference to any of these tags shows its content, as now (REF-1). Only an
-  `extend` written out is an error. That includes a named one: `$x` already reaches the content
-  (`$r[2].y`), so a name adds nothing.
-- **A list type stays allowed** when the tags are related types (D26). `<numberList
-  extend="$seq">` is a list made from the sequence's values, not an extend of the sequence.
-- **`copy` is not part of this rule.** It stays the way to make a new instance (D33 proposes
-  splitting it into a duplicating form and a fresh form). What a copy of
-  these tags does is governed by the copy principles:
-  - CPY-1: a copy is the source's DoenetML pasted;
-  - D4: a copy of a composite takes the attributes written on it, and appends its children;
-  - CPY-8: a copy keeps its source's random choices.
-- **The error says what to write:** "A `<repeat>` makes its own content, so it cannot be
-  extended. Use `$r` to show the same content, or `copy` to make a new repeat."
+Which tags make their own content: those whose content is produced rather than written, that is,
+the composites other than `group` and `module`, plus `pretzel`, whose arrangement is made by an
+internal composite. An ordinary component that picks or arranges, such as
+`<choiceInput shuffleOrder>`, stays fully extendable. For an input, `$x` is its value (REF-1a), so
+an extend is the only way to show the same input twice.
 
-**Recommendation: adopt it.**
-- It replaces ADR 0009's list of three with a rule an author can be told.
-- It removes the special handling that decides which attributes an extend of these tags ignores
-  (w0168, w0169, `extendIgnoresAttributesAndChildren`). With it go B12 and REF-7's list of
-  exceptions.
-- Before the cut-over, turn w0168 and w0169 on these tags into a deprecation warning that says
-  the extend will become an error, so documents can migrate.
+**The error message is the rule's communication.** It must make an author think "of course".
+Each one names the tag, what it makes, why an extend cannot change it, and what to write
+instead. For example:
+
+> A `<repeat>` makes its content from `for`. An `extend` shows the same content as `$r`, so it
+> can't change `for`. To show `$r`'s content again, remove `for`. To make a new repeat with
+> different values, use `copy`.
+
+> Children written inside an `extend` of a `<select>` would be new options, but an extend shows
+> the same choice as `$s`. To choose from more options, use `copy`.
+
+Once D33 names the fresh form, the messages name it instead of `copy` where a new instance is
+meant.
+
+### What it changes
+
+- **REF-1** stays as it is, with no exception.
+- **REF-7** becomes a consequence of this principle: an extend of such a tag shows the same
+  content, can be named and restyled, and cannot change the content.
+- **w0168 and w0169** on these tags become errors. Before the switch they are reworded as a
+  deprecation warning that says the form will become an error. That also fixes B12, the silent
+  cases.
+- **Appearance attributes on these extends must take effect.** #2219 (`styleNumber` on an extend
+  of `<intersection>` is ignored) becomes a defect under this principle. Other tags were not
+  checked.
+- **#2216, #2215, the extend halves:** `replacement` on an extend of `<substitute>`, and `maxNumber`
+  on an extend of `<collect>`, become errors rather than bugs to fix.
+- **Pretzel:** `<pretzel extend="$p"/>` stays, sharing responses. Problems or a `mode` written on
+  it become an error, replacing warning w0178.
+- **Module attributes on an extend of a `<module>`** become an error that says to use `copy`.
+  The extend itself stays allowed.
+- **#2400** relies on this: it stops pairing references in a composite's template when an extend
+  adds children, because those become an error.
+- **ADR 0009's ban** on `extend` of `select`, `conditionalContent` and `case` is replaced by this
+  principle for `select` and `conditionalContent`. For `case`, the ban stands, as a part of a
+  choosing tag.
+
+The extends a tag makes internally are not covered. A `<repeat>` inside an extended `<group>` is
+shown again inside the extend (#2400). The principle is about what an author writes.
 
 **Tests that change:**
 - `T/diagnostics/warningsInfos.test.ts:1144-1406`: the w0168 and w0169 tests on these tags become
-  error tests;
-- `T/copying/extend_references.test.ts:3153` "extend repeat" and `:3177` "extend
-  repeatForSequence";
-- the extend-of-select and extend-of-conditionalContent tests listed under D13 and in
-  `composites-and-lists.md` §6;
-- `T/tagSpecific/repeatIterationValues.test.ts:234`, its extend case;
-- tests that extend a `sort`, `collect`, `shuffle` or `sequence`, for example in
-  `listcomponentcollections.test.ts`.
+  error tests, except those for appearance attributes;
+- the pretzel tests that check warning w0178 (`T/tagSpecific/pretzel.test.ts`);
+- `T/tagSpecific/module.test.ts:1441`, a module attribute on an extend;
+- extend tests that check that a content-changing attribute or child is ignored.
 
-Each of these should be rewritten to use `$x` where it checks that the content is shown again.
+Tests that check that an extend shows the same content keep passing. Unlike the earlier proposal,
+they need no rewriting to `$x`.
+
+**Tests to add:**
+- for each tag in scope: a bare, a named and an appearance-only extend show the content, with the
+  appearance applied; a copy of a named extend;
+- one error test for each banned attribute and for added children, checking the message.
 
 ## D33. Two kinds of copy: written again here, or duplicated with its state (proposed Tier 1; names open)
 
@@ -1276,7 +1307,8 @@ the author cannot tell which one they wrote. Two variants were considered:
 - **(B) keep the choices only if nothing at all is written.** Easy to state, but it removes the
   frozen copy (`<mathInput copy="$mi" disabled/>` keeps the reader's 5 today, **[probe]**). It
   either resets everything nested in a `<section copy boxed>`, or misses the case below. Its
-  workaround, a plain copy then an extend, is an error under D32 for the tags concerned.
+  workaround, a plain copy then an extend that changes only appearance, is allowed under D32,
+  but it is a second step authors have to know about.
 
 **Changes reach nested content.** **[probe]** on main and on #2392's branch, variants 1–3:
 
