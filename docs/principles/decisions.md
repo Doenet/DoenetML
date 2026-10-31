@@ -762,12 +762,12 @@ allowed pair works, and one that an unrelated pair gives the error.
 
 ## D27. What may an index select?
 
-**Decided: an index never selects among a container's children.** It selects among the
+**Decided: an index never selects among a container's children** (#2420). It selects among the
 instances a tag produces, as proposed below, with consequences 1–4. Nested repeats then take one
 index per level: `$r[1][2]` is iteration 2 of the inner repeat in iteration 1 of the outer.
 
-**Proposed with it: an index selects the entries of a value that has entries** (see "Values with
-entries" at the end of this entry).
+**Also decided: an index selects the entries of a value that has entries** (see "Values with
+entries" at the end of this entry; #2421). A row of a matrix is a 1×n matrix.
 
 **Today** an index can select several different things, and which one depends on what the
 current core makes a composite (**[probe]**):
@@ -844,10 +844,12 @@ to be counted. It is also fragile under edits, and it would make (3) ambiguous a
 - the select docs examples: the dice example `$roll[1][1]` and `$groupSelect[2][2]` in
   `reference/select.mdx`, plus `option.mdx`, `vectorList.mdx` and `tupleList.mdx`.
 
-The list examples keep working, since entries are instances. Before any cut-over, add a warning
-on main for child indexing, so that documents can migrate.
+The list examples keep working, since entries are instances. Child indexing is on 0.7, and its
+select docs teach it (`$roll[1][1]`, `$groupSelect[2][2]`), so 0.8 gives a deprecation warning
+first. One change cannot be made compatible: an index after an instance with one indexable child
+now passes through to it, so `$a[2][1][3]` on nested repeats changes meaning (#2420).
 
-### Values with entries (proposed)
+### Values with entries (decided)
 
 An index also selects among the entries of a value: the coordinates of a point, the entries of
 a tuple or vector, the rows and entries of a matrix. These are not a container's children, so
@@ -871,8 +873,8 @@ the decision above does not touch them. They are what the value is made of.
 | `$mi[1]`, `$mi[2][1]` of a `<matrixInput>` | nothing, info `doenet-i0018`; `$mi.matrix[2][1]` works |
 | `$ss[1]` of a `<spreadsheet>` | nothing, info `doenet-i0018`; `$ss.cells[1][2]` works |
 
-**Recommendation.** An index on a component whose value has entries selects them, the same way
-for every such component. The value decides, not the tag:
+**Decided.** An index on a component whose value has entries selects them, the same way for
+every such component. The value decides, not the tag:
 - **a point, vector or coords, or a math whose value is a tuple or vector:** `[i]` is entry i.
   The `⟨8,9⟩` case is a defect.
 - **a math whose value is a matrix, including `<matrix>`:** `[i]` is row i, `[i][j]` is the
@@ -894,10 +896,10 @@ for every such component. The value decides, not the tag:
 whatever rows or columns it exposes), not a value with entries. `$ss[1]` should give a
 diagnostic that says to write `$ss.cells[1][2]`, not an info naming an internal prop.
 
-**Open:**
-- **What a row of a matrix is.** Today `$M.matrix[1]` is a 1×n matrix. A tuple or a row vector
-  would also be reasonable. Whichever is chosen, `$M[1]` and `$M.matrix[1]` agree.
-- **A value whose shape changes.** `<math>$a</math>` can be a scalar at one moment and a tuple
+**A row of a matrix is a 1×n matrix,** as `$M.matrix[1]` is today. `$M[1]` and `$M.matrix[1]`
+agree.
+
+**A value whose shape changes.** `<math>$a</math>` can be a scalar at one moment and a tuple
   the next. `$m[2]` then names an entry or nothing as it changes. That is consistent with an
   index past the end, and needs no special rule.
 
