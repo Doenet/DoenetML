@@ -33,9 +33,13 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B12 | **Fixed by #2409** (D32). Warnings on an extend of a tag that makes its own content were inconsistent: a child written inside `<shuffle extend>` was ignored with no warning, and a bare `<conditionalContent extend="$x"/>` warned that its children are ignored, though none were written (the parser's sugar gave it a `<case>`). Content changes are now errors, and the sugar skips an element written with `extend` | fixed on main | `extendChangesContentErrors` in `W/components/abstract/Copy.js`; the `conditionalContent` and `repeat` sugar |
 | B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
 | B14 | **Fixed by #2400** (closing #2398). A copy of an `extend` resolved references to outside names from where the extend is written, not from the source, breaking D1: `<group copy="$B.gB"/>` of `<group name="gB" extend="$A.g"/>` showed B's `n`. #2400 keeps an outside referent as a referent in every unlinked copy, and also fixed references between sibling replacements of an extend (`$g.x` in a copy of an extend of `g`) and `$me.a` through an extend of a `<module>` | fixed on main at `a53fbb9` | `remapCopiedRefResolution` (`W/utils/componentIndices.ts`), `createComponentIndicesForShadowedReplacements` |
-| B15 | (#2405) A copy of a section whose content references the section, `<section name="S2" copy="$S"/>` of `<section name="S"><p>hi [$S]</p></section>`, stops the document from loading ("infinite loop while calculating replacement changes"). Without the copy, the self-reference is reported as `doenet-e0005` and the rest renders. Breaks NAME-7 | reported in the issue | the copy's replacements hold a copy of `$S`, a replacement loop not caught as a circular dependency |
-| B16 | (#2406) A copy or extend of a `<collect>` inside an extended group finds no source (`doenet-w0072`): `<collect copy="$B.gB.x"/>` and `<collect extend="$B.gB.x"/>`, where `gB` extends a group holding `<collect name="x" from="$h"/>`, show nothing, while `$B.gB.x` and a copy of the original collect work. Breaks D1, REF-6, and REF-1 under D32 | reported in the issue | `from` (a `references` attribute) may be looked up again by name, and since #2401 a name cannot reach content an extend made. Not traced |
-| B17 | (#2407) An index that names nothing is reported inconsistently: past the end, silent; 0 or negative, an uncoded warning quoting only `$l`; a dynamic 0, `doenet-w0104`; `$n.value[1]` shows `5` and warns `doenet-w0100`. Breaks VAL-5 for `$n.value[1]` | reported in the issue | the Rust resolver's `format_error_message` (`RS/errors.rs`) versus `refResolutionDependencies.ts`. #1499 covers whether to warn for a list whose length can change |
+| B15 | **Fixed by #2412** (closing #2405). A copy of a section whose content references the section (`<section copy="$S"/>` of `<section name="S"><p>hi [$S]</p></section>`) stopped the document with "infinite loop while calculating replacement changes": the copy remade its counterpart of `$S` on every pass. Now both report `doenet-e0005` and render; a copy of a point whose label holds `$P` shows its own coordinates. The guard that stopped the document is still there for any other such loop (B21, #2418) | fixed on main | `sourceContainsCopy` in `Copy.replacementForSource` |
+| B16 | **Fixed by #2411** (closing #2406). A copy or extend of a `<collect>` inside an extended group showed nothing (`doenet-w0072`). The cause was not `from`, which kept its referent, but the type check: the copy, written as `<collect>`, got a `_collectList` and wrapped it in a new, empty `<collect>`. The same affected `<sort>` and `<shuffle>`, where a copy could show another order | fixed on main | `replacementIsOfType` in `verifyReplacementsMatchSpecifiedType` (`W/utils/copy.js`) |
+| B17 | **Fixed by #2410** (closing #2407). An index that names nothing was reported inconsistently. Now an index below 1 on something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic; past the end is silent (#1499); an index that cannot apply (`$n.value[1]`) gives `doenet-w0100` and shows nothing, so `bindValueTo="$n.value[1]"` no longer binds to `n`. Left: entries of a list component (B18, #2413) and function references (B19, #2419) | fixed on main | the Rust resolver codes the failure (`ref_expand.rs`); `arrayEntryNamesFromPropIndex` |
+| B18 | (#2413) An index on an entry of a list component is not reported like other indices: `$pl[2].coords[1]` shows the whole coordinates with no diagnostic (`$P.coords[1]` shows nothing, `doenet-w0100`); `$pl[1].xs[0]` gives info `doenet-i0018` (`$P.xs[0]`: `doenet-w0104`); `$l[1][0]` is silent. Breaks VAL-5 | reported in the issue | `W/utils/listEntryReference.ts` (#2157) |
+| B19 | (#2419) A function reference that names nothing (`$$f(2)` with no `f`, or two) gives an uncoded "Ref resolution error" that doesn't quote the reference, and in a `<math>` shows nothing where `$f` shows `＿` | reported in the issue | the `FunctionRef` branch of `Expander::expand_refs` (`RS/ref_expand.rs`) |
+| B20 | (#2414) `type` on a copy of a `<sort>` is ignored: `<sort copy="$s" type="text"/>` of `<sort name="s">10 3 1</sort>` sorts as numbers (`1, 3, 10`), while the same sort written with `type="text"` gives `1, 10, 3`. Breaks CPY-1 | reported in the issue | not traced; `LIST_FORM_COPY_ATTRIBUTES` in `W/utils/dast/listForms.ts` already counts `type` as changing what the list holds |
+| B21 | (#2418) A replacement loop that is not caught as a cycle stops the document after 100 passes with an internal error that names no component. Breaks NAME-7 and D14. B15 was one such loop | reported in the issue; the guard is `replacementChangesFromCompositesToUpdate` | `W/core/EssentialValueWriter.ts` |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -68,8 +72,8 @@ can change without anything written on the copy saying so.
   keeps `io`'s `target="$l"`, not the iteration's own `l`).
 - **Fixed by #2400:** a copy of an `extend` resolved outside references from where the extend is
   written (B14). #2400 keeps an outside referent as a referent for every unlinked copy.
-- **Left:** #376, the same rule for `extend`, is open. B16 (#2406), a copy or extend of a
-  `<collect>` inside an extended group, finds no source. The `_id_` and
+- **Left:** #376, the same rule for `extend`, is open. (B16, a copy or extend of a `<collect>`
+  inside an extended group, was a type check, fixed by #2411.) The `_id_` and
   shadow-origin fallbacks in `refResolutionDependencies.ts` are still in place.
 
 **Today.** A copy is pasted DoenetML, so a `$n` inside it that pointed *outside* the copied part
@@ -423,6 +427,12 @@ Keep the answer semantics (Tier 1). Accept changes to the display assertions:
 - `extend_references.test.ts:4790-4830`, `:7507-7616`;
 - `expressionAttributes.test.ts:400`.
 
+**A property with no value.** #2416: `$c.maxNumber` of a `<collect>` with no `maxNumber`
+shows `NaN`. The state variable is `null`, meaning "no limit", and a `<number>` made from it
+shows `NaN`. Under VAL-5 and this recommendation it is missing, so it draws nothing, is `＿` in a
+`<math>`, and is blank in comparisons. A property is never left out of the schema because it is
+unset.
+
 ## D11. When is a reference its value, and when is it the referent?
 
 **Today.** Hard-coded lists decide (VAL-3):
@@ -735,6 +745,16 @@ x", which is what the syntax suggests. This behavior does not need to be reprodu
 - Container tags (`<p extend="$m"/>`) are not an allowed pair. Authors write `<p>$m</p>`.
 
 A new core then needs only the table.
+
+**Open: does this apply to a copy?** #2415: `<collect copy="$G.cc"/>` of a `<conditionalContent>`
+shows nothing and warns "No source found for collect", while `<text copy="$G.cc"/>` shows the
+case's text. A copy written as another tag is wrapped in a new component of that tag
+(`verifyReplacementsMatchSpecifiedType`), which for `<collect>` has no `from`. The same table
+should decide copies:
+- what a composite stands for is its content, so `<text copy="$cc"/>` of a case holding a text
+  is a related pair;
+- `<collect>` is not related to a text, so it is an error that names the mismatch, not a
+  missing source.
 
 **Tests.** `extend_references.test.ts:6495` "handle extending or copying with invalid component
 type" changes to expect the error. The related-pair tests keep passing. Add a test that each

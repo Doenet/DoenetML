@@ -63,7 +63,11 @@ Code: Rust resolver, `RS/resolve.rs:170` and `search_parents` at `:462`.
 - Whatever part of the path does not match a name is read as a property.
 
 An index is read live and rounded like an integer: `$l[$i]` follows `i`. An index of 0, a
-negative index, or one past the end names nothing. How that is reported is inconsistent today (B17, #2407).
+negative index, or one past the end names nothing. Since #2410 (B17), an index below 1 on
+something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic. Past
+the end is silent while the length can change (#1499). An index that cannot apply, such as
+`$n.value[1]`, gives `doenet-w0100` and names nothing. Not yet: entries of a list component
+(B18, #2413) and function references (B19, #2419).
 
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
@@ -182,10 +186,12 @@ Today there are two failure modes ([decisions.md](decisions.md), D14):
 - State-variable cycles throw. The whole document fails to load, and
   `<p name="p" copy="$p"/>` reports an internal `<_copy>` (**[probe]**).
 
-**Known violation (B15, #2405):** a copy of a section whose content references the section
-(`<section copy="$S"/>` of `<section name="S"><p>[$S]</p></section>`) fails to load with an internal
-"infinite loop" error. Without the copy, the self-reference is reported as `doenet-e0005` and
-the rest renders.
+A copy of a component that references itself loads too (#2412, closing #2405, B15):
+`<section copy="$S"/>` of `<section name="S"><p>[$S]</p></section>` reports `doenet-e0005` and
+renders, and a copy of a point whose label holds `$P` shows its own coordinates.
+
+**Known violation (B21, #2418):** a replacement loop that is not caught as a cycle still stops
+the document after 100 passes, with an internal error that names no component.
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
 `:755`. A reference to a point inside its own label is allowed and means "my value" (#1384).
@@ -702,8 +708,7 @@ reference, attributes a copy of a list entry or property takes from its source, 
 #2400 (closing #2398, B14) extends this to a copy of an `extend`, and to a copy of part of one:
 an outside referent is kept as a referent, not looked up again by name.
 
-**Known violation (B16, #2406):** a copy or extend of a `<collect>` inside an extended group finds
-no source.
+**Known violation (B20, #2414):** `type` on a copy of a `<sort>` is ignored.
 
 ### CPY-7: to start from another component's current value, copy its value, not the component (Tier 1)
 A copy is independent of the component it copied, but **not of what that component refers
