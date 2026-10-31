@@ -108,39 +108,52 @@ ambiguous. Reach the copy's `h` as `$S2.h`.
   - `$c2.h` works for a copy of a copy;
   - `$c.h` works when written before the copy.
 
-### NAME-4: references in the attributes written on a `copy`, `extend` or `<module>` resolve outside it (Tier 1)
-**D6 replaces this rule (decided; #2399)** with one that holds everywhere: a reference's first name
-resolves only to components written in the DoenetML, and an attribute resolves as if written in
-a child of its component. The copied content is not written there, so the result below is kept.
-Children written inside the copy tag would become visible to its attributes.
+### NAME-4: a reference resolves where it is written, among what is written (Tier 1; D6, done by #2401)
+A reference's first name resolves only to components written in the DoenetML. Content a copy,
+extend, repeat iteration or external document makes is reached only through the name of the
+component that made it. This holds wherever the reference is, with no rule specific to copies:
+- **beside a copy:** a bare `$h` next to `<section copy="$S" name="S2"/>` means `S.h` (NAME-3);
+- **in an attribute on a copy, extend or `<module copy>`:** the attribute resolves as any
+  attribute does. It sees the children written inside the tag, but not the copied content. In
+  `<section copy="$orig" hide="$h"><boolean name="h">true</boolean></section>`, `$h` is the inner
+  `h`. `xmin="$xmin"` on `<module copy="$m">` resolves outside the copy, because the copied
+  `<moduleAttributes>` are not written there;
+- **in a child added inside a copy:** it does not see the copied content. `$h` resolves as it
+  would beside the copy, and `$S2.h` reaches the copied `h`.
 
-`<section copy="$orig" hide="$h"/>` finds the `h` beside the copy, not one inside the copied
-content. Use `$copyName.h` to reach inside.
+Before #2401, attributes on a copy resolved from the copy's parent, skipping even the children
+written inside the tag, and a child added inside a copy saw the copied content first.
+
+**An attribute on a module's own definition** sees what is written inside the module.
+`<module name="g" xmin="$a">` with a `<number name="a">` inside it finds that `a`. When the attribute
+names the module's own attribute (`xmin="$xmin"`), it would depend on itself, and gives error
+`doenet-e0055`. The module attribute keeps its own value, and the rest of the document renders.
+Two forms are still a circular dependency that stops the document (D14): a self-reference
+through another component (`xmin="$p"` with `<number name="p">$xmin</number>` inside), and
+`xmin="$m4.xmin"` on `<module copy="$g" name="m4">`.
 
 - **Docs:** `concepts/references.mdx` "References in a copy's attributes".
 - **Tests:**
-  - `T/copying/extend_references.test.ts:7583-7790`, seven tests: copy and extend, section,
-    group, module, list, a copy inside a repeat, a copy of a copy;
-  - `T/tagSpecific/module.test.ts:1715-1930`, eight tests: repeats, nested modules, an index
-    `$xmin[$i]`, a copy of a module copy.
-- **Code:** `W/utils/dast/convertToCopy.ts:195-229` and `W/components/ModuleAttributes.js:178-185`
-  (#2039, #2038).
-- **Why:** without it, `xmin="$xmin"` on a module copy would refer to itself.
-- **Lists.** A copy of a list is built as a wrapping list holding a `_copy`. References in
-  attributes written on such a copy were not given the copy as their origin, unlike any other
-  copy. That mattered only once the pasted list had children, as in `<mathList copy="$L"
-  hide="$h"/>` with a `<math name="h">` in `L`. #2367 fixes it.
+  - `T/copying/extend_references.test.ts`, "a reference resolves where it is written, among what
+    is written" (#2401), and "references in a copy's attributes resolve where the copy is
+    written";
+  - `T/tagSpecific/module.test.ts`, "sees what is written inside the module", "refers to the
+    module's own attribute", and the NAME-4 tests before them;
+  - Rust: `copied_content_is_found_only_through_the_copy` (`RS/build_resolver.test.rs`).
+- **Code:** the resolver records names that reach copied content (`copied_names`) and skips them
+  in `search_parents`, so they are reached only by a path step through the copy's name.
+  `ModuleAttributes.js` gives a module attribute's reference the `<moduleAttributes>` as its
+  origin.
 
-### NAME-5: everything else resolves from where it sits in the tree (Tier 2)
-- An ordinary element's attribute sees that element's own descendants. In
-  `<p hide="$h"><boolean name="h"/></p>`, `$h` is the inner `h` (**[probe]**).
-- A child written inside a `copy` or `extend` sits inside the copy. It sees the copied content
-  first (**[probe]**: `$h` in a child added to `<section copy="$S">` gives the copied `h`).
+### NAME-5: an attribute resolves as if it were written in a child of its component (Tier 2)
+The search order is NAME-1's nearest scope, from a child and from an attribute alike:
+1. the component's written descendants;
+2. the component's own name, ahead of a same-named sibling;
+3. outward.
 
-NAME-4 and NAME-5 together give three different starting points for a reference written in or
-on a copy tag. That is an inconsistency ([decisions.md](decisions.md), D6). D6 decides one rule (#2399): a child added inside a
-copy does not see the copied content either. It reaches it through the copy's name, as anything
-else does.
+In `<p hide="$h"><boolean name="h"/></p>`, `$h` is the inner `h`. In
+`<point name="P" styleNumber="$P.x">(2, <number name="P">3</number>)</point>`, `$P` is the inner
+number. Tested on ordinary elements and on copies by #2401.
 
 ### NAME-6: external content is sealed (Tier 1)
 - Names inside content loaded with `copy="doenet:…"` are invisible to the document, and the
@@ -784,7 +797,6 @@ through extend and copy at depths 1–3.
 | `module.test.ts:1474`, `:1505` (module attributes named `constructor`, `toString`, `link`) | Robustness against prototype maps and `_copy` attribute collisions |
 | `utils/copy.test.ts` (whole file) | Unit test of an internal fallback. Keep one integration test of "a reference to a point in its own label shows its value" |
 | `warningsInfos.test.ts` w0168/w0169 exemptions for `_copy`'s own attributes | Artifacts of the `_copy` encoding |
-| `module.test.ts:1930` "attribute written on the module's own definition is ambiguous" | An accidental outcome of NAME-4 (D6) |
 | `circularReferences.test.ts:27-67` `rejects.toThrow` | Pins "the document fails to load" as the failure mode (D14) |
 
 ## 6. The critical tests for this area

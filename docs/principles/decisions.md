@@ -205,10 +205,13 @@ then be restored.
 
 ## D6. Where does a reference written in or on a copy tag resolve?
 
-**Decided: a reference resolves where it is written, among what is written** (the principle
-below; #2399 implements it).
+**Decided: a reference resolves where it is written, among what is written. Done by #2401**
+(closing #2399). See NAME-4 and NAME-5. What #2401 leaves: a module attribute that refers to
+itself through another component, or through a copy's name, is still a circular dependency that
+stops the document (D14). `doenet-e0055` is reported at the `<moduleAttributes>`, not at the
+attribute.
 
-**Today** (**[probe]** on main), a reference written in or on a `copy` or `extend` has its own
+**Before #2401** (**[probe]**), a reference written in or on a `copy` or `extend` had its own
 starting point:
 
 | Written | Resolves from | Sees |
@@ -263,7 +266,7 @@ author who knows the resolution rules (nearest wins, a tie is ambiguous, paths w
 tell where any reference lands by reading the DoenetML, with no rules specific to copies.
 
 **What it changes:**
-- **NAME-4** stops being a rule of its own. Its purpose is kept: `xmin="$xmin"` on
+- **NAME-4** is restated as this rule (done). Its old purpose is kept: `xmin="$xmin"` on
   `<module copy="$m">` does not find the copied `<moduleAttributes>`' `xmin`, which is not written
   there. So it resolves outside the copy.
 - **An attribute on a copy or extend sees the children written inside the tag.** In the second
