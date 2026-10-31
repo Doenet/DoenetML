@@ -116,7 +116,11 @@ export async function addReplacementsToResolver({
         fragmentChildren.push(...serializedReplacements);
     }
 
-    // We add all the parent's descendants to the resolver
+    // We add all the parent's descendants to the resolver.
+    // What a copy or an extend made is reached only through the name of the
+    // component that made it (`$S2.h`), never by a bare name (`$h`), not even
+    // from a child written inside the copy: a reference resolves where it is
+    // written, among what is written.
     const flatFragment: FlatFragment = {
         type: "flatFragment",
         children: fragmentChildren.map((child) =>
@@ -125,6 +129,7 @@ export async function addReplacementsToResolver({
         nodes: [],
         parentIdx,
         parentSourceSequence,
+        copiedContent: component.componentType === "_copy",
         idxMap: {},
     };
 

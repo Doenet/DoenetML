@@ -1,3 +1,4 @@
+use rustc_hash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
@@ -104,6 +105,14 @@ pub struct NodeResolverData {
     /// Map of all the names that are accessible (as descendants) from the node.
     /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
     pub(super) name_map: NameMap,
+    /// The names in `name_map` that reach content a copy or an extend made inside the node
+    /// (added by [`Resolver::add_nodes`] from a fragment with `copied_content`).
+    /// A path step through the node reaches them, as `$s2.t` does in
+    /// `<section name="s2" copy="$s" />`, but a search for a bare name skips them,
+    /// so that `$t` never finds the copied `t`, not even from a child written inside the copy.
+    /// A reference resolves where it is written, among what is written.
+    #[serde(skip_serializing_if = "FxHashSet::is_empty")]
+    pub(super) copied_names: FxHashSet<NameWithSource>,
     /// Map of resolutions of indices that follow a match to the node.
     /// If `index_resolutions[i] = Some(j)` and the reference `$node_reference` matches the node,
     /// then the reference `$node_reference[i+1]` resolves to node `k`
@@ -459,6 +468,10 @@ impl Resolver {
 
     /// Search up the chain of parents to find the first node that has `name` accessible.
     /// Return the referent of `name`.
+    ///
+    /// A name is accessible from a node when it is in the node's `name_map`
+    /// and does not reach content a copy or an extend made there (`copied_names`):
+    /// the first name in a path resolves only to a component written in the DoenetML.
     pub(super) fn search_parents(
         &self,
         name_with_source_doc: &NameWithSource,
@@ -467,20 +480,12 @@ impl Resolver {
         let mut node_data = &self.node_resolver_data[origin + 1];
 
         // if passed in a node without a parent, then search from that node itself
-        // TODO: don't duplicate code with case where have parent, below
         if matches!(node_data.node_parent, NodeParent::None) {
-            if let Some(resolved) = node_data.name_map.get(name_with_source_doc) {
-                match resolved {
-                    Ref::Unique(idx) => {
-                        return Ok(*idx);
-                    }
-                    Ref::Ambiguous(_) => {
-                        return Err(ResolutionError::NonUniqueReferent);
-                    }
-                }
-            }
-
-            return Err(ResolutionError::NoReferent);
+            return match node_data.written_name(name_with_source_doc) {
+                Some(Ref::Unique(idx)) => Ok(*idx),
+                Some(Ref::Ambiguous(_)) => Err(ResolutionError::NonUniqueReferent),
+                None => Err(ResolutionError::NoReferent),
+            };
         }
 
         let mut child_idx = origin;
@@ -492,9 +497,8 @@ impl Resolver {
                 NodeParent::Node(idx) => idx + 1,
             };
 
-            if let Some(resolved) = self.node_resolver_data[parent_plus_1]
-                .name_map
-                .get(name_with_source_doc)
+            if let Some(resolved) =
+                self.node_resolver_data[parent_plus_1].written_name(name_with_source_doc)
             {
                 match resolved {
                     Ref::Unique(idx) => {
@@ -529,6 +533,18 @@ impl Resolver {
             }
         }
         Err(ResolutionError::NoReferent)
+    }
+}
+
+impl NodeResolverData {
+    /// The referent of `name_with_source_doc` among the descendants written in the node,
+    /// i.e., in its `name_map` but not reaching content a copy or an extend made there.
+    fn written_name(&self, name_with_source_doc: &NameWithSource) -> Option<&Ref> {
+        if self.copied_names.contains(name_with_source_doc) {
+            None
+        } else {
+            self.name_map.get(name_with_source_doc)
+        }
     }
 }
 

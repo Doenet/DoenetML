@@ -43,6 +43,7 @@ impl Resolver {
                     NodeResolverData {
                         node_parent: NodeParent::None,
                         name_map,
+                        copied_names: node_data.copied_names.clone(),
                         index_resolutions,
                         source_sequence: node_data.source_sequence.clone(),
                     }
@@ -53,6 +54,7 @@ impl Resolver {
                             NodeParent::Node(idx) => NodeParent::Node(old_to_new_indices[idx]),
                         },
                         name_map,
+                        copied_names: node_data.copied_names.clone(),
                         index_resolutions,
                         source_sequence: node_data.source_sequence.clone(),
                     }

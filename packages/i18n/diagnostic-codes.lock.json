@@ -62,6 +62,7 @@
     "doenet-e0052": "select-random-combination-fluke",
     "doenet-e0053": "select-random-value-fluke",
     "doenet-e0054": "attribute-name-invalid-start",
+    "doenet-e0055": "module-attribute-refers-to-itself",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",

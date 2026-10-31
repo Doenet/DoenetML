@@ -1,5 +1,5 @@
-use rustc_hash::FxHashMap;
-use std::{iter, mem, ops::Range};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::{collections::hash_map::Entry, iter, mem, ops::Range};
 
 use crate::dast::flat_dast::{
     FlatAttribute, FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, SourceDoc,
@@ -27,6 +27,7 @@ impl Resolver {
                     NodeResolverData {
                         node_parent: NodeParent::None,
                         name_map: NameMap(name_map.remove(&0).unwrap_or_default()),
+                        copied_names: FxHashSet::default(),
                         index_resolutions: Vec::new(),
                         source_sequence: None,
                     }
@@ -38,6 +39,7 @@ impl Resolver {
                             .map(NodeParent::Node)
                             .unwrap_or(NodeParent::FlatRoot),
                         name_map: NameMap(name_map.remove(&idx_plus_1).unwrap_or_default()),
+                        copied_names: FxHashSet::default(),
                         index_resolutions: Vec::new(),
                         source_sequence: extract_source_sequence(node),
                     }
@@ -101,6 +103,7 @@ impl Resolver {
                 NodeResolverData {
                     node_parent: NodeParent::None,
                     name_map: NameMap::default(),
+                    copied_names: FxHashSet::default(),
                     index_resolutions: Vec::new(),
                     source_sequence: None,
                 },
@@ -137,10 +140,18 @@ impl Resolver {
             // We will add items to the resolver for parent only if the parent does not already have items with that name,
             // i.e., the resolver will continue to resolve to descendants of parent as before,
             // and now will fall back to new items if there wasn't already a ref resolution.
-            let parent_map = &mut self.node_resolver_data[parent_idx + 1].name_map;
+            //
+            // If the new items are content a copy or an extend made, they are reached only through the parent's name,
+            // so we record them in `copied_names`, which a search for a bare name skips.
+            let parent_data = &mut self.node_resolver_data[parent_idx + 1];
 
             for (key, ref_) in new_parent_map.into_iter() {
-                parent_map.entry(key).or_insert(ref_);
+                if let Entry::Vacant(entry) = parent_data.name_map.entry(key) {
+                    if flat_fragment.copied_content {
+                        parent_data.copied_names.insert(entry.key().clone());
+                    }
+                    entry.insert(ref_);
+                }
             }
         }
 
@@ -184,7 +195,8 @@ impl Resolver {
 
                 prev_parent_idx_plus_1 = parent_idx_plus_1;
 
-                let name_map = &mut self.node_resolver_data[parent_idx_plus_1].name_map;
+                let parent_data = &mut self.node_resolver_data[parent_idx_plus_1];
+                let name_map = &mut parent_data.name_map;
 
                 let references = name_map.remove(&name_with_source_doc);
 
@@ -198,7 +210,10 @@ impl Resolver {
                         // so we add the name back to the name map
                         name_map.insert(name_with_source_doc.clone(), Ref::Unique(idx));
                     }
-                    Some(Ref::Unique(_)) => {}
+                    Some(Ref::Unique(_)) => {
+                        // The name no longer reaches anything, so it no longer reaches copied content
+                        parent_data.copied_names.remove(&name_with_source_doc);
+                    }
                     Some(Ref::Ambiguous(indices)) => {
                         // remove the deleted node `node_idx` from the ambiguous list, setting the result to unique if there is only one reference left
                         let new_indices = indices

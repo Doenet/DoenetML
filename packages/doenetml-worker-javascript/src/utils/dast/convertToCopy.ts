@@ -12,7 +12,6 @@ import {
     UnflattenedRefResolution,
 } from "./intermediateTypes";
 import { addSource, unwrapSource } from "./convertNormalizedDast";
-import { setUnflattenedReferenceOrigins } from "../componentIndices";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -193,16 +192,6 @@ export function convertRefsToCopies({
                     }
                 }
 
-                // As for any other copy (below), references in the
-                // attributes the author wrote on the list resolve as they
-                // would outside it, not to the list's copied children.
-                for (const attrName in wrappingComponent.attributes) {
-                    setUnflattenedReferenceOrigins(
-                        wrappingComponent.attributes[attrName].children,
-                        wrappingComponent.componentIdx,
-                    );
-                }
-
                 delete wrappingComponent.extending;
             } else {
                 outerAttributes._createComponentOfType = {
@@ -215,18 +204,6 @@ export function convertRefsToCopies({
                 };
                 const originalIdx = newComponent.componentIdx;
                 newComponent.componentIdx = nComponents++;
-
-                // The author wrote these attributes on the copy, and can't see the copied content inside it,
-                // so references in them resolve as they would outside the copy.
-                // Left to resolve from their own position, they would find the copied content first
-                // once the copy expands, e.g., `$h` in `<section copy="$S" hide="$h" name="S2" />`
-                // would find the `h` inside `S2`. An author reaches that one with `$S2.h`.
-                for (const attrName in outerAttributes) {
-                    setUnflattenedReferenceOrigins(
-                        outerAttributes[attrName].children,
-                        originalIdx,
-                    );
-                }
 
                 if (addNodesToResolver) {
                     const flatFragment: FlatFragment = {
