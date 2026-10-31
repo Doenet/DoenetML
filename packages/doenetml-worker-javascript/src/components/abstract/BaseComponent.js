@@ -2496,8 +2496,9 @@ function keepShadowSourceOrigins(serializedChildren, component, components) {
 
 /**
  * The references in the serialized components `serializedComponents`, in a
- * fixed order: those that are components, and those in their attributes,
- * their descendants, and the indices of their paths.
+ * fixed order: for each component, those in the indices of its path, the
+ * component itself if it is a reference, then those in its children and in
+ * its attributes.
  */
 function refResolutionsIn(serializedComponents, refs = []) {
     for (const component of serializedComponents ?? []) {
