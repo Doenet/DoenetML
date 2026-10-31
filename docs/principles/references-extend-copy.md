@@ -109,7 +109,7 @@ ambiguous. Reach the copy's `h` as `$S2.h`.
   - `$c.h` works when written before the copy.
 
 ### NAME-4: references in the attributes written on a `copy`, `extend` or `<module>` resolve outside it (Tier 1)
-**D6 proposes replacing this rule** with one that holds everywhere: a reference's first name
+**D6 replaces this rule (decided; #2399)** with one that holds everywhere: a reference's first name
 resolves only to components written in the DoenetML, and an attribute resolves as if written in
 a child of its component. The copied content is not written there, so the result below is kept.
 Children written inside the copy tag would become visible to its attributes.
@@ -119,11 +119,11 @@ content. Use `$copyName.h` to reach inside.
 
 - **Docs:** `concepts/references.mdx` "References in a copy's attributes".
 - **Tests:**
-  - `T/copying/extend_references.test.ts:7631-7833`, seven tests: copy and extend, section,
+  - `T/copying/extend_references.test.ts:7583-7790`, seven tests: copy and extend, section,
     group, module, list, a copy inside a repeat, a copy of a copy;
-  - `T/tagSpecific/module.test.ts:1606-1912`, eight tests: repeats, nested modules, an index
+  - `T/tagSpecific/module.test.ts:1715-1930`, eight tests: repeats, nested modules, an index
     `$xmin[$i]`, a copy of a module copy.
-- **Code:** `W/utils/dast/convertToCopy.ts:204-215` and `W/components/ModuleAttributes.js:178-183`
+- **Code:** `W/utils/dast/convertToCopy.ts:195-229` and `W/components/ModuleAttributes.js:178-185`
   (#2039, #2038).
 - **Why:** without it, `xmin="$xmin"` on a module copy would refer to itself.
 - **Lists.** A copy of a list is built as a wrapping list holding a `_copy`. References in
@@ -138,7 +138,7 @@ content. Use `$copyName.h` to reach inside.
   first (**[probe]**: `$h` in a child added to `<section copy="$S">` gives the copied `h`).
 
 NAME-4 and NAME-5 together give three different starting points for a reference written in or
-on a copy tag. That is an inconsistency ([decisions.md](decisions.md), D6). D6 proposes one rule: a child added inside a
+on a copy tag. That is an inconsistency ([decisions.md](decisions.md), D6). D6 decides one rule (#2399): a child added inside a
 copy does not see the copied content either. It reaches it through the copy's name, as anything
 else does.
 
@@ -784,7 +784,7 @@ through extend and copy at depths 1–3.
 | `module.test.ts:1474`, `:1505` (module attributes named `constructor`, `toString`, `link`) | Robustness against prototype maps and `_copy` attribute collisions |
 | `utils/copy.test.ts` (whole file) | Unit test of an internal fallback. Keep one integration test of "a reference to a point in its own label shows its value" |
 | `warningsInfos.test.ts` w0168/w0169 exemptions for `_copy`'s own attributes | Artifacts of the `_copy` encoding |
-| `module.test.ts:1857` "attribute written on the module's own definition is ambiguous" | An accidental outcome of NAME-4 (D6) |
+| `module.test.ts:1930` "attribute written on the module's own definition is ambiguous" | An accidental outcome of NAME-4 (D6) |
 | `circularReferences.test.ts:27-67` `rejects.toThrow` | Pins "the document fails to load" as the failure mode (D14) |
 
 ## 6. The critical tests for this area
@@ -796,7 +796,7 @@ A new core should pass these before anything else in this area:
   - `:3200` (REF-5);
   - `:3266-4609`, the added-children tests (REF-4);
   - `:2401`, `:6408` (REF-6, NAME-2);
-  - `:7631-7833` (NAME-4).
+  - `:7583-7790` (NAME-4).
 - `T/copying/unlinked copy.test.ts`:
   - `:285`, `:981`, `:1056`, `:1118` (CPY-1, CPY-3);
   - `:2112-2312` (CPY-2);
@@ -805,5 +805,5 @@ A new core should pass these before anything else in this area:
 - `T/copying/copy_of_extend.test.ts` (CPY-4), minus the Tier 3 items above
 - `T/copying/unlinked_copy_reload.test.ts:20` (CPY-2 through reload)
 - `T/copying/external_references.test.ts` (NAME-6)
-- `T/tagSpecific/module.test.ts:68`, `:539`, `:1606-1912` (modules)
+- `T/tagSpecific/module.test.ts:68`, `:539`, `:1715-1930` (modules)
 - `RS/resolve.test.rs`, `RS/build_resolver.test.rs` (NAME-1, NAME-3)

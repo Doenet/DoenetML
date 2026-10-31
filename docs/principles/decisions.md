@@ -205,6 +205,9 @@ then be restored.
 
 ## D6. Where does a reference written in or on a copy tag resolve?
 
+**Decided: a reference resolves where it is written, among what is written** (the principle
+below; #2399 implements it).
+
 **Today** (**[probe]** on main), a reference written in or on a `copy` or `extend` has its own
 starting point:
 
@@ -213,7 +216,7 @@ starting point:
 | an attribute on an ordinary element | the element | its written descendants, then outward |
 | an attribute on `copy`, `extend` or `<module copy>` | the element's parent, skipping the copy (#2039) | **not** the children written inside the copy tag, nor the copied content |
 | a child added inside a copy | inside the copy | the copied content first |
-| an attribute on a module's own definition | the module's parent | "ambiguous" warning (`module.test.ts:1857`) |
+| an attribute on a module's own definition | the module's parent | "ambiguous" warning (`module.test.ts:1930`) |
 
 Examples:
 - `<section name="w" hide="$h"><boolean name="h">true</boolean></section>` is hidden: `$h` is its
@@ -239,7 +242,7 @@ component's own name belongs to its parent's scope, where it beats a same-named 
 reference can always name its own ancestor. So an attribute on an ordinary element already acts as
 if written in a child.
 
-**Proposed principle (Tier 1): a reference resolves where it is written, among what is written.**
+**Principle (Tier 1, decided): a reference resolves where it is written, among what is written.**
 - **The first name in a path resolves only to a component written in the DoenetML.** Content a
   copy, extend, repeat iteration or external document makes is never found by a bare name. It is
   reached through the name of the component that made it: `$c.h`, `$r[2].h`, `$s.s1`.
@@ -280,21 +283,21 @@ tell where any reference lands by reading the DoenetML, with no rules specific t
   children and in attributes. It is not proposed.
 
 **Code:**
-- The special origins for attributes on copies go: `W/utils/dast/convertToCopy.ts:204-215` and
-  `W/components/ModuleAttributes.js:178-183` (#2039, #2038).
+- The special origins for attributes on copies go: `W/utils/dast/convertToCopy.ts:195-229` and
+  `W/components/ModuleAttributes.js:178-185` (#2039, #2038).
 - The resolver must never index names in content a copy or extend adds for bare-name search,
   only for path steps through the copy's name. `add_nodes_does_not_make_previous_resolution_ambiguous`
   (`RS/build_resolver.test.rs:89`) already covers part of this.
 
 **Tests that change:**
-- `module.test.ts:1857` "attribute written on the module's own definition is ambiguous" becomes a
+- `module.test.ts:1930` "attribute written on the module's own definition is ambiguous" becomes a
   cycle diagnostic;
 - any test where a child added inside a copy finds copied content by a bare name (to find; NAME-5's
   **[probe]**);
 - any test of an attribute on a copy or extend where the tag also has a written child with that
   name (none known).
 
-The NAME-4 tests (`T/copying/extend_references.test.ts:7631-7833`, `T/tagSpecific/module.test.ts:1606-1912`)
+The NAME-4 tests (`T/copying/extend_references.test.ts:7583-7790`, `T/tagSpecific/module.test.ts:1715-1930`)
 should all still pass, since none of their copies has a written child with the referenced name.
 That needs checking.
 
