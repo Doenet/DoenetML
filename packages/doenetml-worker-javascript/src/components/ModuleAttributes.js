@@ -22,6 +22,12 @@ export default class ModuleAttributes extends CompositeComponent {
     // since don't have child groups, tell schema about children here
     static additionalSchemaChildren = ["_base"];
 
+    // The components in the `<setup>` this makes are its serialized children,
+    // with their indices, which is how `$a` finds the `a` it makes. An extend
+    // of a `<module>` renumbers the serialized children of its
+    // `<moduleAttributes>`, so its `<setup>` gives them the same indices.
+    static mapShadowedReplacementIndicesThroughSerializedChildren = true;
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 

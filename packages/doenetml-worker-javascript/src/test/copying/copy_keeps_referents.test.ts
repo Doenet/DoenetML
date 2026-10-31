@@ -507,4 +507,33 @@ describe("A copy's references keep their referents @group4", () => {
         });
         await expectTexts("yes");
     });
+
+    it("an extend of a module has its module attributes, and a copy of its content keeps them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number><module name="m"><moduleAttributes><number name="a">10</number></moduleAttributes><p name="p">$a $n</p></module></section>
+<section name="B"><number name="n">2</number><number name="a">20</number><module name="mc" copy="$A.m" a="30"/><module name="me" extend="$mc"/><module name="me2" extend="$A.m"/></section>
+<section name="C">
+    <number name="n">3</number><number name="a">21</number>
+    <p name="pc" copy="$B.me.p"/><p name="pc2" copy="$B.me2.p"/>
+    <p name="pa">$B.me.a $B.me2.a</p><number name="na" extend="$B.me.a"/>
+    <module name="mce" copy="$B.me" a="40"/>
+</section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const expected = {
+            "B.me.p": "30 1",
+            "B.me2.p": "10 1",
+            "C.pc": "30 1",
+            "C.pc2": "10 1",
+            "C.pa": "30 10",
+            "C.na": "30",
+            "C.mce.p": "40 1",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+    });
 });

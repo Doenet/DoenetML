@@ -15,3 +15,8 @@ inside what was extended. In a copy of an `extend` of a `<group>`, a
 reference to another component inside the group, such as `$g.x` inside
 `<group name="g">`, now points at the copy's own `x` instead of the
 original's.
+
+A reference to a module attribute through an `extend` of a `<module>`, such
+as `$me.a` where `<module name="me" extend="$m"/>` and `m` declares `a` in its
+`<moduleAttributes>`, now finds that attribute instead of showing nothing (or
+`NaN`). A copy of content inside such an `extend` keeps it too.
