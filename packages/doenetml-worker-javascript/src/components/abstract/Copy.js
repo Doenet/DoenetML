@@ -1278,6 +1278,9 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource = [];
         workspace.propVariablesCopiedBySource = [];
         workspace.sourceIndices = [];
+        // Whether this copy is inside source `sourceNum` (see
+        // `calculateReplacementChanges`).
+        workspace.sourceContainsCopyBySource = [];
 
         let compositeAttributesObj = this.createAttributesObject();
 
@@ -1470,6 +1473,9 @@ export default class Copy extends CompositeComponent {
 
             workspace.propVariablesCopiedBySource[sourceNum] =
                 results.propVariablesCopiedByReplacement;
+            workspace.sourceContainsCopyBySource[sourceNum] = Boolean(
+                results.sourceContainsCopy,
+            );
 
             let sourceReplacements = results.serializedReplacements;
             numReplacementsBySource[sourceNum] = sourceReplacements.length;
@@ -1762,7 +1768,10 @@ export default class Copy extends CompositeComponent {
             // own source component (a self-referential copy, e.g., `$a` inside `a`'s label).
             // In recognized rendering contexts, fall back to the source's public `value`
             // state variable rather than showing an error.
-            if (e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX)) {
+            const copyIsInsideSource = Boolean(
+                e.message?.startsWith(SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX),
+            );
+            if (copyIsInsideSource) {
                 // Walk up the ancestor chain to determine if we're in a recognized context.
                 // ancestor.componentClass gives the class of each ancestor (closest first).
                 // We walk through transparent composites (treatAsComponentForRecursiveReplacements,
@@ -1801,6 +1810,7 @@ export default class Copy extends CompositeComponent {
                                 fallbackResults.propVariablesCopiedByReplacement,
                             diagnostics,
                             nComponents,
+                            sourceContainsCopy: true,
                         };
                     } catch (innerError) {
                         // Fall through to the circular dependency handler below
@@ -1833,7 +1843,14 @@ export default class Copy extends CompositeComponent {
                 },
             ];
             diagnostics.push(circular);
-            return { serializedReplacements, diagnostics, nComponents };
+            return {
+                serializedReplacements,
+                diagnostics,
+                nComponents,
+                // Only a copy inside its source would be made the same way
+                // again; another error may not recur, so the copy is remade.
+                sourceContainsCopy: copyIsInsideSource,
+            };
         }
 
         // An unlinked copy (`copy`, not `extend`) is the DoenetML of its
@@ -2037,6 +2054,7 @@ export default class Copy extends CompositeComponent {
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
+            workspace.sourceContainsCopyBySource = [];
 
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
@@ -2185,6 +2203,7 @@ export default class Copy extends CompositeComponent {
         let numReplacementsBySource = [];
         let numNonStringReplacementsBySource = [];
         let propVariablesCopiedBySource = [];
+        let sourceContainsCopyBySource = [];
 
         let maxSourceLength = Math.max(
             replacementSourceIdentities.length,
@@ -2271,6 +2290,10 @@ export default class Copy extends CompositeComponent {
                             workspace.propVariablesCopiedBySource[
                                 otherSourceNum
                             ];
+                        sourceContainsCopyBySource[otherSourceNum] =
+                            workspace.sourceContainsCopyBySource[
+                                otherSourceNum
+                            ];
                     }
 
                     break;
@@ -2328,6 +2351,7 @@ export default class Copy extends CompositeComponent {
                 numReplacementsBySource[sourceNum] = 0;
                 numNonStringReplacementsBySource[sourceNum] = 0;
                 propVariablesCopiedBySource.push([]);
+                sourceContainsCopyBySource[sourceNum] = false;
 
                 continue;
             }
@@ -2340,7 +2364,18 @@ export default class Copy extends CompositeComponent {
                 replacementSource.componentIdx !== prevSourceIdx ||
                 recreateRemaining;
 
-            if (!needToRecreate) {
+            // A copy inside its own source (`$S` in `S`, or its counterpart
+            // in a copy `S2` of `S`, which names `S2`) is replaced by the
+            // circular-dependency error, or by the source's value
+            // (`replacementForSource`), neither of which shadows the source.
+            // The copy stays inside the source while the source is the same
+            // component, so it would be made the same way again. Remaking it
+            // would change the source's descendants, which would mark the
+            // copy to be updated again, without end (Doenet/DoenetML#2405).
+            if (
+                !needToRecreate &&
+                !workspace.sourceContainsCopyBySource[sourceNum]
+            ) {
                 // make sure the current replacements still shadow the replacement source
                 for (
                     let ind = 0;
@@ -2405,6 +2440,8 @@ export default class Copy extends CompositeComponent {
 
                 propVariablesCopiedBySource[sourceNum] =
                     results.propVariablesCopiedByReplacement;
+                sourceContainsCopyBySource[sourceNum] =
+                    results.sourceContainsCopy;
 
                 let replacementInstruction = results.replacementInstruction;
 
@@ -2464,6 +2501,8 @@ export default class Copy extends CompositeComponent {
                     workspace.numReplacementsBySource[sourceNum];
                 numNonStringReplacementsBySource[sourceNum] =
                     workspace.numNonStringReplacementsBySource[sourceNum];
+                sourceContainsCopyBySource[sourceNum] =
+                    workspace.sourceContainsCopyBySource[sourceNum];
                 continue;
             }
 
@@ -2490,6 +2529,9 @@ export default class Copy extends CompositeComponent {
             });
             diagnostics.push(...results.diagnostics);
             const nComponentsForNew = results.nComponents;
+            sourceContainsCopyBySource[sourceNum] = Boolean(
+                results.sourceContainsCopy,
+            );
 
             let propVariablesCopiedByReplacement =
                 results.propVariablesCopiedByReplacement;
@@ -2638,6 +2680,7 @@ export default class Copy extends CompositeComponent {
             (x) => x.componentIdx,
         );
         workspace.propVariablesCopiedBySource = propVariablesCopiedBySource;
+        workspace.sourceContainsCopyBySource = sourceContainsCopyBySource;
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
@@ -2740,6 +2783,7 @@ export default class Copy extends CompositeComponent {
                 replacementInstruction,
                 diagnostics,
                 nComponents,
+                sourceContainsCopy: Boolean(results.sourceContainsCopy),
             };
         } else {
             return {
@@ -2749,6 +2793,7 @@ export default class Copy extends CompositeComponent {
                 replacementInstruction: null,
                 diagnostics,
                 nComponents,
+                sourceContainsCopy: Boolean(results.sourceContainsCopy),
             };
         }
     }
