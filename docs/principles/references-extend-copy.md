@@ -361,6 +361,10 @@ meaning only for related types:
 - an input from its value type, and a value type from an input;
 - a list from the matching scalar or list (#2231).
 
+D26 settles the full table. It drops "an input from its value type", and adds two things: a
+composite whose content is one component counts as that component, and a list can be made
+from a composite whose components all match.
+
 For these pairs the result is x's value as a T. It is linked both ways where the conversion can
 be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
 moves `v`.
