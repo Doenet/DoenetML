@@ -737,20 +737,61 @@ sometimes with an "Invalid children" warning that confuses authors, and sometime
 example `<boolean extend="$m"/>` of a math is `false`. None of these is "a T that behaves like
 x", which is what the syntax suggests. This behavior does not need to be reproduced.
 
-**Rule.**
-- Declare the allowed conversions in one table, the way adapters are declared:
-  - math, number, text and boolean among each other;
-  - point, vector and coords;
-  - an input from its value type, and a value type from an input;
+**Rule (decided).** One table, declared the way adapters are. A type change is allowed only in
+these cases:
+- **between value types:**
+  - math, number, text and boolean, among each other;
+  - point, vector and coords, among each other;
+  - math from a point, vector or coords, as the tuple of its coordinates (`<math extend="$P"/>`
+    gives `(1, 2)`, tested in `extend_references.test.ts`, "extend wraps to match specified
+    type");
+  - a point, vector or coords from a math whose value is a tuple. A math whose value is not a
+    tuple is a run-time mismatch (below);
+  - a value type from an input: `<math extend="$mi"/>` is mi's value, as `$mi` is (REF-1a);
   - a list from the matching scalar or list (#2231).
-- Report any other pair as an error on the extend, copy or fresh form, such as "cannot extend a
-  `<section>` as a `<math>`" or "a `<collect>` can't be made from a `<conditionalContent>`'s
-  content". Do not render it.
-- When the referent's type is known only at run time, such as the content of a
-  `<conditionalContent>` whose cases differ in type, a mismatch is a warning, not an error, and
-  nothing is rendered while it lasts. This follows the rule used for D33: what is not known until
-  the document runs, and may change with interaction, is a warning.
-- Container tags (`<p extend="$m"/>`) are not an allowed pair. Authors write `<p>$m</p>`.
+- **from a composite that stands for one component.** A composite, or an instance of one, whose
+  content is exactly one component counts as that component. This is D27's pass-through rule
+  applied to type changes. Authors think of a one-pick select as its value, and write `$s`
+  before they learn `$s[1]`:
+  - `<math extend="$s"/>` of a select that picked one option holding one math;
+  - `<text extend="$cc"/>` while the active case holds one text;
+  - `<math extend="$r[1]"/>` of an iteration holding one math;
+  - `<math extend="$g"/>` of a group holding one math;
+  - `<number extend="$s"/>` of a one-value `selectFromSequence`, `selectRandomNumbers` or
+    `sample…` tag;
+  - `<math extend="$sub"/>` of a `<substitute>`, and `<point extend="$i"/>` of an
+    `<intersection>` that makes one point;
+  - and the same for a `<collect>`, `<sort>` or `<shuffle>` that holds one component.
+- **a list from a composite whose components all match the entry type:** `<mathList
+  extend="$g"/>`, `<mathList extend="$cc"/>`, `<numberList extend="$c"/>` of a `<collect>` of
+  numbers, `<mathList extend="$s"/>` of a select with several picks (#2231).
+
+**Not allowed, an error whose message gives the clearer form:**
+- **an input from a value type.** `<mathInput extend="$m1"/>` acts as
+  `<mathInput bindValueTo="$m1"/>` today. An input is not the same thing as its value, and under
+  `copy` it would be ambiguous between binding and starting from the value. The message offers
+  both: "To edit `$m1`, write `<mathInput bindValueTo="$m1"/>`. To start from its value, write
+  `<mathInput prefill="$m1"/>`." One test changes: `context_attributes.test.ts:249`
+  `<booleanInput extend="$m.fixed"/>` becomes `bindValueTo`, after checking that this reaches
+  `fixed` the same way.
+- **a container** (`<p>`, `<section>`, `<div>`, …) as another tag. A container is a component in
+  its own right, not a stand-in for its content. "Use `$p.text`." Today `<text extend="$p"/>`
+  warns "Invalid children" and shows nothing.
+- **a composite that does not stand for one component,** as a value tag: a group of two maths, a
+  repeat as a `<math>`. The message points to `$s[1]`, a name inside (`$cc.t`), or reading it
+  as a value (`<text>$cc</text>`).
+- **any other pair,** such as a section as a math.
+
+**Known at load or at run time.** An error is reported on the extend, copy or fresh form and not
+rendered. When the mismatch depends on what the document makes at run time, it is a warning, and
+nothing is shown while it lasts. Examples:
+- which case is active, or which option was picked;
+- how many components a collect holds;
+- whether a math's value is a tuple.
+
+This follows the rule used for D33: what is not known until the document runs, and may change
+with interaction, is a warning. Today such a mismatch is a silent blank: a group of two maths as
+a `<math>` gives `＿`, and a case holding a text as a `<math>` gives `＿`.
 
 A new core then needs only the table.
 
