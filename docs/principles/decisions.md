@@ -30,7 +30,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B9 | **Partly fixed on main** (**[probe]** at `a90ac9b`, after #2393): `$r[1].d.h` and `$cc.d.h` in #2371's repeat and conditionalContent examples now resolve; its reload example is not rechecked. A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
 | B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
-| B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
+| B12 | **Fixed by #2409** (D32). Warnings on an extend of a tag that makes its own content were inconsistent: a child written inside `<shuffle extend>` was ignored with no warning, and a bare `<conditionalContent extend="$x"/>` warned that its children are ignored, though none were written (the parser's sugar gave it a `<case>`). Content changes are now errors, and the sugar skips an element written with `extend` | fixed on main | `extendChangesContentErrors` in `W/components/abstract/Copy.js`; the `conditionalContent` and `repeat` sugar |
 | B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
 | B14 | **Fixed by #2400** (closing #2398). A copy of an `extend` resolved references to outside names from where the extend is written, not from the source, breaking D1: `<group copy="$B.gB"/>` of `<group name="gB" extend="$A.g"/>` showed B's `n`. #2400 keeps an outside referent as a referent in every unlinked copy, and also fixed references between sibling replacements of an extend (`$g.x` in a copy of an extend of `g`) and `$me.a` through an extend of a `<module>` | fixed on main at `a53fbb9` | `remapCopiedRefResolution` (`W/utils/componentIndices.ts`), `createComponentIndicesForShadowedReplacements` |
 | B15 | (#2405) A copy of a section whose content references the section, `<section name="S2" copy="$S"/>` of `<section name="S"><p>hi [$S]</p></section>`, stops the document from loading ("infinite loop while calculating replacement changes"). Without the copy, the self-reference is reported as `doenet-e0005` and the rest renders. Breaks NAME-7 | reported in the issue | the copy's replacements hold a copy of `$S`, a replacement loop not caught as a circular dependency |
@@ -176,7 +176,7 @@ The value-copy path is removed.
 **Recommendation.**
 - **An extend of a composite:** it shows the source's content, and both content attributes and
   children are ignored with a warning (REF-7, as today). Group and module stay as they are,
-  because their "content" is their children. D32 (decided, #2404) makes a content change an error, while
+  because their "content" is their children. D32 (done, #2409) makes a content change an error, while
   a bare, named or restyled extend stays allowed.
 - **A copy of a composite:** the source's DoenetML is pasted, and the copy's attributes override
   it. Children written inside are appended after the whole composite, not to each iteration.
@@ -1166,7 +1166,17 @@ the `<collect>` and list reference pages.
 
 ## D32. An extend cannot change what a tag makes
 
-**Decided** (#2404 implements it).
+**Decided. Done by #2409** (closing #2404). REF-7 states the rule as it now stands, with the
+error codes `doenet-e0056`–`e0061`. What #2409 adds or leaves:
+- `sortIndices` is in scope too, and `collect`, `sort` and `shuffle` are recognized in their list
+  forms;
+- extending a `<case>` or `<else>` inside another `<conditionalContent>`, which used to work, is
+  now an error. `copy` replaces it;
+- `doenet-w0178` is retired;
+- `w0168` and `w0169` stay for composites and lists outside the list, and for an attribute a
+  module does not declare. That leaves `displayDigits` on a `<module extend>` ignored, where the
+  Tier 1 rule says an appearance attribute takes effect;
+- #2219, `styleNumber` on an extend of `<intersection>`, is still open.
 
 **Today** an `extend` of a tag that makes its own content shows the same content, and changes
 written on it are ignored, sometimes with a warning (w0168, w0169) and sometimes silently (B12).
@@ -1227,10 +1237,9 @@ use all the time.
   - a module attribute on an extend of a `<module>` (it decides the module's content, as `for`
     decides a repeat's).
 - **Children written inside the extend,** when the tag's children are its content or its inputs.
-  Only children the author actually wrote count. Today w0169 fires on every
-  `<conditionalContent extend>`, even a bare one, apparently counting the source's
-  `<case>`/`<else>` (#2404, comment). Turned into an error as is, it would make a bare extend an
-  error, against REF-1. The tags:
+  Only children the author actually wrote count. Before #2409, w0169 fired on every
+  `<conditionalContent extend>`, even a bare one, because the parser's sugar gave it a `<case>`
+  (#2404, comment). #2409 makes the sugar skip an element written with `extend`. The tags:
   the template of a repeat, the options of a select, the children of `shuffle`, `sort`,
   `conditionalContent`, `substitute` and `intersection`, the problems of a `pretzel`, and the
   choices of a `choiceInput`;
