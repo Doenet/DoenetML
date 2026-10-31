@@ -188,6 +188,30 @@ describe("A copy's references keep their referents @group4", () => {
         expect(c.stateValues.fixed).eq(true);
     });
 
+    it("a copy of a list entry keeps the referent of the list's display attributes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A">
+    <number name="dd">2</number>
+    <mathList name="l" displayDigits="$dd">1.23456 2.3456789</mathList>
+</section>
+<section name="T">
+    <number name="dd">5</number>
+    <math name="c" copy="$A.l[2]" />
+</section>
+<section name="U">
+    <math name="c" copy="$A.l[2]" />
+</section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["T.c", "U.c"])).eqls({
+            "T.c": "2.3",
+            "U.c": "2.3",
+        });
+    });
+
     it("a copy made after interaction keeps its referents, through a save and reload", async () => {
         const doenetML = `
 <section name="A"><mathInput name="n" prefill="1" /><group name="g"><p name="p">$n</p></group></section>

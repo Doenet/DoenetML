@@ -11,8 +11,9 @@ A copy's references keep their referents. A reference inside content made by
 again by name where the copy lands. A reference to a component outside the
 copied content keeps that component, so a component of the same name near the
 copy no longer captures it or makes it ambiguous. This also applies to an
-attribute pasted by a copy of a copy, and to the `fixed` or `fixLocation` that a
-copy of a list entry (`copy="$l[2]"`) takes from the list. A reference to a
+attribute pasted by a copy of a copy, and to the attributes a copy of a property
+or of a list entry takes from its source, such as the `fixed`, `fixLocation` or
+`displayDigits` that `copy="$l[2]"` takes from the list. A reference to a
 component inside the copied content points at the copy's counterpart, including
 one written through the copied component's own name
 (`$P.h` inside `<p name="P">`, `$l.h` inside a list `l`). In a copy of repeat content, a reference

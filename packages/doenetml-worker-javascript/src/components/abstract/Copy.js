@@ -3296,6 +3296,10 @@ export async function replacementFromProp({
                                             [serializedComponent],
                                             nComponents,
                                             stateIdInfo,
+                                            undefined,
+                                            // pasted from the source, its references keep the
+                                            // referents they have there (D1)
+                                            { keepReferents: true },
                                         );
                                         nComponents = res.nComponents;
 
@@ -3739,6 +3743,10 @@ export async function replacementFromProp({
                                                 [serializedComponent],
                                                 nComponents,
                                                 stateIdInfo,
+                                                undefined,
+                                                // pasted from the source, its references keep the
+                                                // referents they have there (D1)
+                                                { keepReferents: true },
                                             );
                                             nComponents = res.nComponents;
 
@@ -4401,6 +4409,10 @@ export async function replacementFromProp({
                                     [serializedComponent],
                                     nComponents,
                                     stateIdInfo,
+                                    undefined,
+                                    // pasted from the source, its references keep the
+                                    // referents they have there (D1)
+                                    { keepReferents: true },
                                 );
                                 nComponents = res.nComponents;
 

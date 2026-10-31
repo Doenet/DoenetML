@@ -67,8 +67,10 @@ export async function stateIdSegmentForCopyOf(component: any): Promise<string> {
  *
  * If `idxMapOverride` is supplied, then use that map to create any matching indices rather than creating new indices.
  *
- * With `keepReferents`, the components are what an unlinked copy (`copy=`)
- * pastes, and each reference in them keeps the referent it had in the source
+ * With `keepReferents`, the components are pasted from a source: what an
+ * unlinked copy (`copy=`) pastes, or an attribute that a copy of a property or
+ * list entry takes from its source (`replacementFromProp` in `Copy.js`). Each
+ * reference in them keeps the referent it had in the source
  * (`remapCopiedRefResolution`). Otherwise a reference is resolved again from
  * where its copy lands, which is what lets the copy of `$i` in each iteration
  * of a `<repeat>` find that iteration's `i`.
@@ -505,8 +507,8 @@ function remapRefResolutions(
                 // (`utils/dast/expressionAttributes.ts`). Each is resolved
                 // from the copy, which the resolver is given with the rest
                 // of what is copied, also when the original resolved them
-                // from where they were written; an unlinked copy's keep
-                // their referents instead.
+                // from where they were written; with `keepReferents`, they
+                // keep their referents instead.
                 for (const slot of (attribute as any).slots) {
                     if (keepReferents) {
                         remapCopiedRefResolution(slot.refResolution, idxMap);
@@ -522,8 +524,9 @@ function remapRefResolutions(
 }
 
 /**
- * Renumber `refResolution`, a reference in what an unlinked copy (`copy=`)
- * pastes, so that it keeps meaning what it meant in the source: the copy is
+ * Renumber `refResolution`, a reference in what is pasted from a source
+ * (`keepReferents` of `createNewComponentIndices`), so that it keeps meaning
+ * what it meant in the source: an unlinked copy (`copy=`) is
  * the source's DoenetML pasted, with its names still naming what they named
  * there. It goes by the referent, not by how the reference is spelled.
  *
@@ -537,7 +540,10 @@ function remapRefResolutions(
  * - A referent inside what is copied becomes its counterpart in the copy.
  *   The reference is resolved from that counterpart, with what was left of
  *   its path, rather than by name: `$P.h` written inside `<p name="P">` names
- *   the `h` of a copy of `P`, which has another name.
+ *   the `h` of a copy of `P`, which has another name. If what is left of the
+ *   path cannot be taken from the referent (`pathFromReferent`), or the path
+ *   starts with no name, its whole path is resolved again from the
+ *   counterpart of its origin instead, as without `keepReferents`.
  *
  * References written on the copy tag itself are not among these: they are
  * written where the copy is, and resolve from there (`convertToCopy.ts`).
