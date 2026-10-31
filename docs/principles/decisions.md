@@ -725,9 +725,12 @@ single-use child. No test pins the current behavior. Add a sweep: for every comp
 single-use child group, writing two of them uses the second, and adding one in an `extend` or
 `copy` replaces the source's.
 
-## D26. Which type changes may an `extend` make?
+## D26. Which type changes may an `extend`, a `copy` or the fresh form make?
 
-**Agreed direction:** related types are allowed, and any other pair is an error.
+**Decided:** related types are allowed, and any other pair is an error. The same table decides
+all three forms: `extend`, `copy`, and D33's fresh form, whose name is still open. Each asks
+for "a T made from x", and only the conversion differs: linked for an extend, a snapshot for a
+copy, a fresh start for the fresh form.
 
 **Today** (REF-5) an unrelated pair gives a default component of the written type. It comes
 sometimes with an "Invalid children" warning that confuses authors, and sometimes silently: for
@@ -740,17 +743,22 @@ x", which is what the syntax suggests. This behavior does not need to be reprodu
   - point, vector and coords;
   - an input from its value type, and a value type from an input;
   - a list from the matching scalar or list (#2231).
-- Report any other pair as a load-time error on the extend, such as "cannot extend a
-  `<section>` as a `<math>`". Do not render it.
+- Report any other pair as an error on the extend, copy or fresh form, such as "cannot extend a
+  `<section>` as a `<math>`" or "a `<collect>` can't be made from a `<conditionalContent>`'s
+  content". Do not render it.
+- When the referent's type is known only at run time, such as the content of a
+  `<conditionalContent>` whose cases differ in type, a mismatch is a warning, not an error, and
+  nothing is rendered while it lasts. This follows the rule used for D33: what is not known until
+  the document runs, and may change with interaction, is a warning.
 - Container tags (`<p extend="$m"/>`) are not an allowed pair. Authors write `<p>$m</p>`.
 
 A new core then needs only the table.
 
-**Open: does this apply to a copy?** #2415: `<collect copy="$G.cc"/>` of a `<conditionalContent>`
+**A copy (decided):** #2415: `<collect copy="$G.cc"/>` of a `<conditionalContent>`
 shows nothing and warns "No source found for collect", while `<text copy="$G.cc"/>` shows the
 case's text. A copy written as another tag is wrapped in a new component of that tag
 (`verifyReplacementsMatchSpecifiedType`), which for `<collect>` has no `from`. The same table
-should decide copies:
+decides copies:
 - what a composite stands for is its content, so `<text copy="$cc"/>` of a case holding a text
   is a related pair;
 - `<collect>` is not related to a text, so it is an error that names the mismatch, not a
