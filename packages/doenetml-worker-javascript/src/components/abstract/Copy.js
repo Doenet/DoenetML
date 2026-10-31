@@ -4834,7 +4834,8 @@ function extendChangesContentErrors({
 
 /**
  * The reference an extend is of, as written: `$r`, `$g.r`, `$s[2]`. An index
- * that is not a literal is shown as `[…]`.
+ * is shown with the value it has when the extend is expanded, so `$s[$n]` is
+ * shown as `$s[2]` while `$n` is 2, and as `[…]` when that value is not text.
  */
 function referenceAsWritten(originalPath, sourceComponent) {
     const parts = (originalPath ?? []).map(
