@@ -1760,60 +1760,71 @@ describe("Pretzel tag tests @group1", async () => {
             }
         });
 
-        for (const { description, given } of [
+        for (const { description, given, code, message } of [
             {
                 description: "problems",
                 given: `>
         <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
     </pretzel>`,
+                code: "doenet-e0057",
+                message:
+                    "Children written inside an `extend` of a `<pretzel>` would be new problems, but an extend shows the same problems as `$p`, arranged the same way. To arrange more problems, use `copy`.",
             },
-            { description: "a mode", given: ` mode="circuit"/>` },
+            {
+                description: "a mode",
+                given: ` mode="circuit"/>`,
+                code: "doenet-e0056",
+                message:
+                    "A `<pretzel>` makes its content from `mode`. An `extend` shows the same content as `$p`, so it can't change `mode`. To show the content of `$p` again, remove `mode`. To make a new `<pretzel>` with a different `mode`, use `copy`.",
+            },
         ]) {
-            it(`a <pretzel extend> ignores ${description} given to it, with a warning`, async () => {
-                // A linked copy shows its source's arrangement, which is
-                // graded in its source's mode.
+            it(`a <pretzel extend> given ${description} is an error`, async () => {
+                // A linked copy shows its source's arrangement, so it cannot
+                // be given problems or a mode of its own (#2404).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `${pretzelDoenetML}
-    <pretzel extend="$p" name="p2"${given}`,
+    <pretzel extend="$p" name="p2"${given}
+    <p name="after">after</p>`,
                     requestedVariantIndex: 2,
                 });
 
                 const diagnosticsByType = getDiagnosticsByType(core);
-                expect(diagnosticsByType.errors.length).eq(0);
-                expect(diagnosticsByType.warnings.length).eq(1);
-                expect(diagnosticsByType.warnings[0].message).contain(
-                    "A `<pretzel>` that extends another shows the same problems in the same mode, so the problems or `mode` given to it are ignored.",
-                );
+                expect(diagnosticsByType.warnings.length).eq(0);
+                expect(
+                    diagnosticsByType.errors.map((error) => [
+                        error.code,
+                        error.message,
+                    ]),
+                ).eqls([[code, message]]);
 
-                const shown = await shownProblems({
-                    core,
-                    resolvePathToNodeIdx,
-                    paths: ["p", "p2"],
-                });
-                expect(shown.p2).eqls(shown.p);
-
+                // The error takes the extend's place, and the rest of the
+                // document, the source among it, renders as before.
                 const stateVariables = await core.returnAllStateVariables(
                     false,
                     true,
                 );
                 expect(
-                    stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                        .mode,
-                ).eq("pretzel");
+                    stateVariables[await resolvePathToNodeIdx("p2")]
+                        .componentType,
+                ).eq("_error");
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("after")]
+                        .stateValues.text,
+                ).eq("after");
                 expect(
                     await answerInOrder({
                         core,
                         resolvePathToNodeIdx,
-                        path: "p2",
+                        path: "p",
                     }),
                 ).eq(1);
             });
         }
 
-        it("only the <pretzel extend> given a mode warns, not copies of it", async () => {
+        it("a <pretzel extend> with no problems or mode shows its source's, as do copies of it", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `<section name="s">${pretzelDoenetML}
-    <pretzel extend="$p" name="p2" mode="circuit"/></section>
+    <pretzel extend="$p" name="p2" showCorrectness="false"/></section>
     <pretzel extend="$s.p2" name="p3"/>
     <pretzel copy="$s.p2" name="p4"/>
     <section extend="$s" name="t"/>
@@ -1823,10 +1834,7 @@ describe("Pretzel tag tests @group1", async () => {
 
             const diagnosticsByType = getDiagnosticsByType(core);
             expect(diagnosticsByType.errors.length).eq(0);
-            expect(diagnosticsByType.warnings.length).eq(1);
-            expect(diagnosticsByType.warnings[0].message).contain(
-                "A `<pretzel>` that extends another shows the same problems in the same mode",
-            );
+            expect(diagnosticsByType.warnings.length).eq(0);
 
             const paths = ["s.p", "s.p2", "p3", "p4", "t.p2", "u.p2"];
             const shown = await shownProblems({

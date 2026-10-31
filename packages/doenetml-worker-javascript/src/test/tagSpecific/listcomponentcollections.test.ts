@@ -1275,7 +1275,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     <p name="p0">$s</p>
     <p name="p1"><sort copy="$s" sortByProp="text" /></p>
     <shuffle name="sh"><number>1</number><number>2</number></shuffle>
-    <p name="p2"><shuffle extend="$sh" type="text" /></p>
+    <p name="p2"><shuffle copy="$sh" type="text" /></p>
     `,
         });
 

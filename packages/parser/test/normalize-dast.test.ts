@@ -680,6 +680,44 @@ describe("Normalize dast", async () => {
         );
     });
 
+    it("Leaves a conditionalContent or repeat written with extend as written", () => {
+        // An extend takes no content of its own, so the sugar is skipped,
+        // so that what is written on it is reported as written, and a bare
+        // one has no generated child (#2404).
+        for (const [source, expected] of [
+            [
+                '<conditionalContent extend="$c" />',
+                '<document><conditionalContent extend="$c" /></document>',
+            ],
+            [
+                '<conditionalContent extend="$c" condition="a">b</conditionalContent>',
+                '<document><conditionalContent extend="$c" condition="a">b</conditionalContent></document>',
+            ],
+            [
+                '<conditionalContent Extend="$c"><else>b</else></conditionalContent>',
+                '<document><conditionalContent Extend="$c"><else>b</else></conditionalContent></document>',
+            ],
+            [
+                "<repeat extend='$r' valueName='v' indexName='i' />",
+                '<document><repeat extend="$r" valueName="v" indexName="i" /></document>',
+            ],
+            [
+                "<repeatForSequence extend='$r' valueName='v' />",
+                '<document><repeatForSequence extend="$r" valueName="v" /></document>',
+            ],
+            // a copy is sugared as before
+            [
+                '<conditionalContent copy="$c" condition="a">b</conditionalContent>',
+                '<document><conditionalContent copy="$c"><case condition="a"><group>b</group></case></conditionalContent></document>',
+            ],
+        ]) {
+            const dast = lezerToDast(source);
+            expect(toXml(normalizeDocumentDast(dast)), source).toEqual(
+                expected,
+            );
+        }
+    });
+
     it("Sugars in options and component wrapper of select", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;

@@ -1488,7 +1488,16 @@ describe("Module tag tests @group1", async () => {
     `,
         });
 
-        expect(getDiagnosticsByType(core).errors).eqls([]);
+        // An extend shows its source's content, so it cannot be given
+        // module attributes (#2404); each is named in an error.
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls(
+            ["constructor", "toString"].map(
+                (attribute) =>
+                    `A \`<module>\` makes its content from its attributes. An \`extend\` shows the same content as \`$m\`, so it can't change \`${attribute}\`. To make the module with a different \`${attribute}\`, use \`copy\`.`,
+            ),
+        );
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
@@ -1498,8 +1507,8 @@ describe("Module tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("c.p")].stateValues.text,
         ).eq("c1 t1");
         expect(
-            stateVariables[await resolvePathToNodeIdx("e.p")].stateValues.text,
-        ).eq("c0 t0");
+            stateVariables[await resolvePathToNodeIdx("e")].componentType,
+        ).eq("_error");
     });
 
     it("module attribute named like a camel-cased attribute of a module", async () => {
@@ -1571,8 +1580,8 @@ describe("Module tag tests @group1", async () => {
     it("module attribute named like an attribute the copy used to set", async () => {
         // `link` is not an attribute of `copy` or `extend`, whose own settings
         // start with `_`, so it is a module attribute like any other: a copy
-        // takes it, and an extend ignores it with a warning, as it would any
-        // module attribute. A copy used to take it for itself (#2326).
+        // takes it, and an extend cannot be given it, as any module
+        // attribute (#2404). A copy used to take it for itself (#2326).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <module name="m"><moduleAttributes><text name="link">default</text></moduleAttributes><text name="t">$link</text></module>
@@ -1582,11 +1591,19 @@ describe("Module tag tests @group1", async () => {
         });
 
         const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors).eqls([]);
+        expect(diagnosticsByType.warnings).eqls([]);
         expect(
-            diagnosticsByType.warnings.map((warning) => warning.message),
+            diagnosticsByType.errors.map((error) => [
+                error.code,
+                error.message,
+                error.position?.start.line,
+            ]),
         ).eqls([
-            "The `link` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+            [
+                "doenet-e0060",
+                "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$m`, so it can't change `link`. To make the module with a different `link`, use `copy`.",
+                4,
+            ],
         ]);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -1595,7 +1612,7 @@ describe("Module tag tests @group1", async () => {
         ).eq("custom");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("default");
+        ).eq("");
     });
 
     it("module state inside repeat loaded correctly", async () => {

@@ -35,6 +35,11 @@ Try dragging the point on the graph: the coordinates shown above update to
 match, because `$p` is the same point as `p` — a reference, not a separate
 copy.
 
+Writing `$p` is the same as writing `<point extend="$p"/>{:dn}`, and an
+`extend` is always the same component again: it can have its own name and look
+different, but it can't change what the component makes or what its state can
+hold, and trying to is an error that says what to write instead.
+
 <Callout type="info">
 **DoenetML naming convention:**
 * Can only contain numbers, letters, and underscores

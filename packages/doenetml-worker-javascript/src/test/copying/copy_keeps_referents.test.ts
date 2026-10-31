@@ -624,14 +624,7 @@ describe("A copy's references keep their referents @group4", () => {
             ),
         });
 
-        // Each `<conditionalContent extend>` warns that children written in it
-        // are ignored, though none are (B12 in the design principles).
-        const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors).eqls([]);
-        expect(diagnosticsByType.warnings.map((warning) => warning.code)).eqls([
-            "doenet-w0169",
-            "doenet-w0169",
-        ]);
+        expectNoDiagnostics(core);
         await expectDirectExtendTexts(core, resolvePathToNodeIdx, "no 1");
 
         await updateBooleanInputValue({

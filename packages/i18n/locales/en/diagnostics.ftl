@@ -484,6 +484,9 @@ pretzel-problem-needs-statement-and-answer = Invalid pretzel: each `<problem>` m
 
 pretzel-problem-copy-not-supported = A `<problem>` that copies or extends another problem is not supported in a `<pretzel>` and is ignored. Write the problem out inside the `<pretzel>`.
 
+# Translators: retired. A `<pretzel extend>` given problems or a `mode` is an
+# error now, as any extend that would change what its source makes. Kept
+# because diagnostic codes are never reused.
 pretzel-extend-changes-ignored = A `<pretzel>` that extends another shows the same problems in the same mode, so the problems or `mode` given to it are ignored. To add problems or change the mode, use `copy` instead of `extend`.
 
 pretzel-circuit-first-problem-distractor = Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.
@@ -681,14 +684,46 @@ reference-multiple-referents = Multiple referents found for reference: `{ $refer
 # failing silently.
 reference-index-not-a-number = The index of `{ $reference }` did not work out to a number, so the reference found nothing.
 
-# An `extend` of a composite or a list (a `<sequence>`, a `<repeat>`) shows the
-# same content as the component it extends, so an attribute that would set
-# that content, and children written inside it, are not used. $attribute and
-# $componentType are an attribute name and an element name, part of the
-# DoenetML language, so they stay in English, as does `extend`.
+# An `extend` of a composite or a list whose content is written rather than
+# made (an authored `<mathList>`) shows the same content as the component it
+# extends, so an attribute that would set that content, and children written
+# inside it, are not used. $attribute and $componentType are an attribute name
+# and an element name, part of the DoenetML language, so they stay in English,
+# as does `extend`.
 extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` with `extend` shows the same content as the component it extends.
 
 extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
+
+# An `extend` is the same component again: it shares its source's content and
+# state, so it can't change what the component makes or what its state can
+# hold (#2404). Each message names the tag, what it makes, why an extend can't
+# change it, and what to write instead. $componentType and $attribute are an
+# element name and an attribute name, and $source is the reference the extend
+# is of, as written (`$r`); all three are DoenetML, so they stay in English,
+# as do `extend` and `copy`.
+extend-attribute-changes-content = A `<{ $componentType }>` makes its content from `{ $attribute }`. An `extend` shows the same content as `{ $source }`, so it can't change `{ $attribute }`. To show the content of `{ $source }` again, remove `{ $attribute }`. To make a new `<{ $componentType }>` with a different `{ $attribute }`, use `copy`.
+
+# $kind says what the children would be: the template of a repeat, the options
+# of a select, the cases of a conditionalContent, the problems of a pretzel, or
+# else the inputs the tag makes its content from.
+extend-children-change-content =
+    { $kind ->
+        [template] Children written inside an `extend` of a `<{ $componentType }>` would be a new template, but an extend shows the same content as `{ $source }`. To repeat a different template, use `copy`.
+        [options] Children written inside an `extend` of a `<{ $componentType }>` would be new options, but an extend shows the same choice as `{ $source }`. To choose from more options, use `copy`.
+        [cases] Children written inside an `extend` of a `<{ $componentType }>` would be new cases, but an extend shows the same content as `{ $source }`. To choose from other cases, use `copy`.
+        [problems] Children written inside an `extend` of a `<{ $componentType }>` would be new problems, but an extend shows the same problems as `{ $source }`, arranged the same way. To arrange more problems, use `copy`.
+       *[other] Children written inside an `extend` of a `<{ $componentType }>` would be new inputs to what it makes, but an extend shows the same content as `{ $source }`. To make a `<{ $componentType }>` from different children, use `copy`.
+    }
+
+extend-choice-input-choices = Choices written inside an `extend` of a `<choiceInput>` would be new choices, but an extend shares its selection with `{ $source }`, which has no such choice. To offer more choices, use `copy`.
+
+extend-choice-input-shuffle-order = An `extend` of a `<choiceInput>` shares its selection with `{ $source }`, which counts the choices in the order `{ $source }` shows them, so it can't change `shuffleOrder`. To show the choices in a different order, use `copy`.
+
+extend-module-attribute = A `<module>` makes its content from its attributes. An `extend` shows the same content as `{ $source }`, so it can't change `{ $attribute }`. To make the module with a different `{ $attribute }`, use `copy`.
+
+# $componentType is `case`, `else` or `option`, and $parentType the tag it is
+# part of: `conditionalContent` or `select`.
+extend-part-of-choosing-tag = `<{ $componentType }>` is part of a `<{ $parentType }>`, and means something only there, so it can't be extended.
 
 ## Children that do not match
 

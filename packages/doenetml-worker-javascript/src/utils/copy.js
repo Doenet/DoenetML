@@ -233,6 +233,29 @@ export async function verifyReplacementsMatchSpecifiedType({
         };
     }
 
+    // An extend that would change what its source makes shows one error in
+    // its place (`extendChangesContentErrors` in `Copy.js`). It is left as
+    // it is, not made into the type the extend was written as, which would
+    // wrap it in a component of that type given the attributes that are the
+    // error.
+    const newReplacements = replacementChanges
+        ? replacementChanges.length === 1 &&
+          replacementChanges[0].changeType === "add"
+            ? replacementChanges[0].serializedReplacements
+            : undefined
+        : replacements;
+    if (
+        newReplacements?.length === 1 &&
+        newReplacements[0]?.doenetAttributes?.inPlaceOfExtend
+    ) {
+        return {
+            replacements,
+            replacementChanges,
+            diagnostics,
+            nComponents,
+        };
+    }
+
     let replacementsToWithhold = component.replacementsToWithhold;
     let replacementTypes;
     const originalReplacements = replacements;
