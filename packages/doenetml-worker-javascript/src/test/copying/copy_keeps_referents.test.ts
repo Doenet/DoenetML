@@ -708,6 +708,53 @@ describe("A copy's references keep their referents @group4", () => {
         ).eqls(expected);
     });
 
+    it("a copy of a list-form collect inside an extend follows what it collects as that changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="2"/>
+<section name="A"><group name="g">
+  <group name="h"><repeatForSequence length="$mi" valueName="v"><text>t$v</text></repeatForSequence></group>
+  <collect name="x" componentType="text" from="$h"/>
+</group></section>
+<section name="B"><group name="gB" extend="$A.g"/></section>
+<p name="p1"><collect copy="$B.gB.x"/></p>
+<p name="p2"><collect copy="$B.gB.x" maxNumber="1"/></p>
+<p name="p3"><collect extend="$B.gB.x"/></p>
+`,
+        });
+
+        const paths = ["p1", "p2", "p3"];
+        expectNoDiagnostics(core);
+        expect(await textsOf(core, resolvePathToNodeIdx, paths)).eqls({
+            p1: "t1, t2",
+            p2: "t1",
+            p3: "t1, t2",
+        });
+
+        const mi = await resolvePathToNodeIdx("mi");
+        await updateMathInputValue({ latex: "3", componentIdx: mi, core });
+        expect(await textsOf(core, resolvePathToNodeIdx, paths)).eqls({
+            p1: "t1, t2, t3",
+            p2: "t1",
+            p3: "t1, t2, t3",
+        });
+
+        // collecting nothing, and then something again
+        await updateMathInputValue({ latex: "0", componentIdx: mi, core });
+        expect(await textsOf(core, resolvePathToNodeIdx, paths)).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+        });
+        await updateMathInputValue({ latex: "1", componentIdx: mi, core });
+        expect(await textsOf(core, resolvePathToNodeIdx, paths)).eqls({
+            p1: "t1",
+            p2: "t1",
+            p3: "t1",
+        });
+        expectNoDiagnostics(core);
+    });
+
     it("an extend of a module has its module attributes, and a copy of its content keeps them", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
