@@ -389,7 +389,7 @@ replacements without resolving them again. When a linked shadow does have to re-
 fails, it falls back to the source's binding (#1805,
 `W/core/dependencies/refResolutionDependencies.ts:278`).
 
-### REF-7: an extend of a composite shows the same content (Tier 2; D32 proposes the Tier 1 rule)
+### REF-7: an extend of a composite shows the same content (Tier 2; D32 decides the Tier 1 rule, #2404)
 `<repeat extend="$r"/>`, `<select extend="$s"/>` and similar show exactly what the source shows.
 - **Ignored, with a warning:** attributes that would change that content (`for`, `to`,
   `numToSelect`) give `doenet-w0168`, and children written inside give `doenet-w0169` (#2213).
@@ -398,7 +398,7 @@ fails, it falls back to the source's binding (#1805,
   module's own `<moduleAttributes>` are not applied on an extend: they are ignored with a warning,
   as content-setting attributes are. Only a copy applies them (COMP-13).
 
-D32 proposes a Tier 1 rule in its place: an extend is the same component again, which can be
+D32 decides a Tier 1 rule in its place (#2404): an extend is the same component again, which can be
 named and can look different, but cannot change what a tag makes. A change to the content is an
 error whose message explains why. `$x` stays equivalent to a bare extend for every tag (REF-1).
 

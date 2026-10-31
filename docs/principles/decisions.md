@@ -1159,7 +1159,9 @@ Rejected shapes:
 **Until then:** document the repeat-of-extends form as the way to restyle a set of components, on
 the `<collect>` and list reference pages.
 
-## D32. An extend cannot change what a tag makes (proposed)
+## D32. An extend cannot change what a tag makes
+
+**Decided** (#2404 implements it).
 
 **Today** an `extend` of a tag that makes its own content shows the same content, and changes
 written on it are ignored, sometimes with a warning (w0168, w0169) and sometimes silently (B12).
@@ -1190,7 +1192,7 @@ use all the time.
 
 ### Principle
 
-**Tier 1, what authors are told:**
+**Tier 1, what authors are told (decided):**
 
 > An `extend` is the same component again: it shares its source's content and state. It can
 > have its own name, and it can look different, but it cannot change what the component makes
