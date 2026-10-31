@@ -120,7 +120,9 @@ inherited attribute (ADR 0023), an ancestor's for `fixed` (ADR 0022), a
 submitted response for `$mi` under an answer. A pass made before pass 3
 could plan only part of the references and would leave the rest to
 pass 3 anyway. The extends of container copies, which pass 1 needs, are
-planned there, from the name table alone.
+planned there, from the name table alone. ADR 0029 adds a pass 2 for the references
+inside `<math>` text: each math is parsed once, after pass 1, its type
+being pass 1's.
 
 ## Considered options
 

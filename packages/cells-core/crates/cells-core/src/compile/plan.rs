@@ -278,6 +278,36 @@ pub(crate) struct ChoiceDef {
     pub(crate) used: Vec<String>,
 }
 
+/// Math text tokenized once (`Compiler::math_text`): its `$ref`s are
+/// placeholders, `Token::Cell(RefId::NONE)`, until `resolve_math` plans
+/// them.
+pub(crate) struct MathText {
+    pub(in crate::compile) toks: Vec<Token>,
+    /// The `$ref` nodes, one per placeholder, in order.
+    pub(in crate::compile) macros: Vec<NodeId>,
+    /// The text, each `$ref` as written, for errors.
+    pub(in crate::compile) text: String,
+    /// The text around the `$ref`s, one piece more than `macros`: the
+    /// symbolic engine's text is these with each `$ref`'s leaf between.
+    pub(in crate::compile) between: Vec<String>,
+}
+
+impl MathText {
+    pub(crate) fn tokens(&self) -> &[Token] {
+        &self.toks
+    }
+}
+
+/// A `<math>`'s text parsed once, in pass 2 (ADR 0029), as the type pass
+/// 1 settled: what its planner plans from and a line's equation inlines.
+#[derive(Debug, Clone)]
+pub(crate) enum ParsedMath {
+    /// A math: one expression.
+    Expr(ExprId),
+    /// A point or a tuple: an expression per entry.
+    Entries(Vec<ExprId>),
+}
+
 /// How many public props an element has.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum NPublic {

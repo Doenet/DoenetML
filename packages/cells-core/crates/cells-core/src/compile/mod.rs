@@ -139,6 +139,11 @@ pub(in crate::compile) struct Compiler<'a> {
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
+    /// Each `<math>`'s text, tokenized in pass 1 where its type is
+    /// settled, in the order the walk made them; pass 2 parses them.
+    math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
+    /// By (template, element), each `<math>`'s text as pass 2 parsed it.
+    pub(in crate::compile) parsed_maths: HashMap<(u32, u32), Result<ParsedMath>>,
     /// Every extend pass 3 planned, with its reference: pass 4 boxes one
     /// whose referent is a box (`box_extends_of_boxes`).
     extends: Vec<(TemplateId, ElemId, RefId)>,
@@ -273,6 +278,8 @@ impl<'a> Compiler<'a> {
             names: NameTable::default(),
             shared_state: HashMap::new(),
             extends: Vec::new(),
+            math_texts: Vec::new(),
+            parsed_maths: HashMap::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -347,6 +354,9 @@ impl<'a> Compiler<'a> {
         // Every name is in the table now: container copies get their
         // clones, which completes the element set (pass 1).
         cp.expand_container_copies()?;
+        // Every `<math>`'s text parsed once, for its planner and for what
+        // inlines it (pass 2).
+        cp.parse_maths();
         // Plan every element and macro child (pass 3).
         for (t, e) in std::mem::take(&mut cp.pending_elems) {
             cp.plan_elem(t, e)?;
@@ -790,19 +800,24 @@ impl<'a> Compiler<'a> {
         Ok(e)
     }
 
-    /// What planning `e` would settle that a reference to it reads, read
-    /// here from its own source so no planner reads another's plan (ADR
-    /// 0029): a `<math>` whose text is `(a, b)` is a point and one with
-    /// more entries a tuple (`math_shape`); a `<collect>` collects its
-    /// `componentType` and a `<polyline>` points. Its planner checks what
-    /// it plans against this, and adds a collect's `from`.
+    /// What a reference to `e` reads that its own source settles, read here
+    /// so no planner reads another's plan (ADR 0029): a `<math>`'s type,
+    /// from its text, tokenized here once (`math::settled_type`); what a
+    /// `<collect>` (its `componentType`) or a `<polyline>` (points)
+    /// collects. Its planner plans as this says, and adds a collect's
+    /// `from`.
     fn settle_shape(&mut self, t: TemplateId, e: ElemId, el: NodeId) {
         let d = self.dast;
         let elem = &self.compiled.templates[t.index()].elems[e.index()];
         let collected = match elem.component_type {
             ComponentType::Math => {
-                let k = self.math_shape(el);
+                let mt = self.math_text(d.children(el));
+                let k = match &mt {
+                    Ok(mt) => crate::components::values::math::settled_type(mt.tokens()),
+                    Err(_) => ComponentType::Math,
+                };
                 self.compiled.templates[t.index()].elems[e.index()].component_type = k;
+                self.math_texts.push(((t, e), mt));
                 return;
             }
             ComponentType::Collect => d
@@ -907,6 +922,25 @@ impl<'a> Compiler<'a> {
             self.expand_container_copy(t, e)?;
         }
         Ok(&self.compiled.templates[t.index()].elems[e.index()])
+    }
+
+    /// Pass 2 (ADR 0029): every `<math>`'s text, tokenized in pass 1,
+    /// parsed once as the type pass 1 settled, its `$ref`s planned where
+    /// the math sits; what its planner plans from, and what a line's
+    /// equation inlines.
+    fn parse_maths(&mut self) {
+        for ((t, e), mt) in std::mem::take(&mut self.math_texts) {
+            if self.is_box(t, e) {
+                continue;
+            }
+            let Elem {
+                name_scope,
+                component_type,
+                ..
+            } = self.compiled.templates[t.index()].elems[e.index()];
+            let parsed = mt.and_then(|mt| self.parse_math(t, name_scope, component_type, &mt));
+            self.parsed_maths.insert((t.get(), e.get()), parsed);
+        }
     }
 
     /// Pass 4's first step (ADR 0029): an extend whose referent is a box

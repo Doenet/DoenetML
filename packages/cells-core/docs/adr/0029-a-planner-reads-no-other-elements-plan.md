@@ -20,14 +20,24 @@ earlier passes finished, holds for pass 3 as written.
 
 | A planner read | of another element | Now |
 |---|---|---|
-| its type | a `<math>`, which is a point when its text is `(a, b)` and a tuple when it has more entries | pass 1 sets it, from the math's own tokens with each `$ref` an opaque atom: `math.rs` decides it from nothing else |
+| its type | a `<math>`, which is a point when its text is `(a, b)` and a tuple when it has more entries | pass 1 tokenizes the math's text, its `$ref`s placeholders, and decides the type from the tokens (`math::settled_type`), once |
 | its body | a `<collect>` or `<polyline>`, which is indexable (`$c[1]`) and collects one type | pass 1 sets the collected type, from the tag and `componentType`; the planner adds the `from` reference |
 | its shared state | an extend's referent, whose essential state a copy with attributes shares (ADR 0023) | the copy names the state (`x` of `$P`), and pass 4 links the name to the referent's slot |
-| its expression | a `<math>` a line's equation inlines (`$m = y` with `$m` standing for `2x`) | the line reads the math's *source* and parses it, as the math's planner would; a math reached twice while inlining is left a cell |
+| its expression | a `<math>` a line's equation inlines (`$m = y` with `$m` standing for `2x`) | pass 2 parses every math's tokens once, its `$ref`s planned where it sits; the math's planner plans from that parse, and the line inlines it; a math reached twice while inlining is left a cell |
 | its clones | a container copy | pass 1, already (ADR 0027, step 5) |
 
 A read of another element's source needs no order, since the source is
 pass 1's, and ADR 0027 already allowed it.
+
+Each of these is decided or parsed once. A math's text is tokenized
+once, in pass 1, by the one tokenizer of math text (`math_text`), which
+leaves `$ref`s as placeholders since names are not all known yet; its
+type is decided once, from those tokens; its tokens are parsed once, in
+pass 2, after pass 1 and before any element is planned, as that type
+(an expression, or a tuple's entries). The planner branches on the
+type; it does not decide it again. Pass 2 is ADR 0027's pass 2 for the
+references inside maths; references elsewhere are still planned as
+planners ask (ADR 0027, "Pass 2").
 
 ## What changes
 
@@ -63,17 +73,19 @@ pass 1's, and ADR 0027 already allowed it.
   the type follows the text alone, and pass 1 can read it.
 - **Inline in pass 4, over finished plans.** Whether a line's equation is
   linear decides the line's plan, so the line would have to be planned
-  again once inlining is done. Reading the source is cheaper and needs
-  no second plan.
+  again once inlining is done.
+- **Inline by parsing the inlined math's source again.** It reads no
+  plan, but a math is then parsed twice, by its planner and by each line
+  that inlines it, and the two parses must agree. Pass 2 parses once.
 
 ## Consequences
 
 - The type of a `<math>` is known from pass 1 on: keys, references and
   clones all see the settled type, so no reader can see a math that is
-  later a point. The math's planner checks that what it parses agrees,
-  and a disagreement is a core bug, reported on the element.
-- A line's equation that inlines a math plans that math's `$ref`s again
-  at the math's scope: the same values, through plans of its own.
+  later a point.
+- A math's `$ref`s are planned in pass 2, before pass 3; an error among
+  them is kept with the parse, and the math's planner reports it, so
+  the math is boxed in pass 3 as before.
 - Planning in parallel needs only the compiler's shared tables split, as
   ADR 0027 noted; no order between elements is left to keep.
 
@@ -102,3 +114,9 @@ Each step lands alone, with the golden diff unchanged.
    expanded before what reads it), `box_extends_of_boxes` runs first in
    pass 4, and `tests/diagnostics.rs` checks that an extend of an element
    boxed while planning is boxed whichever comes first.
+5. **Decide and parse once.** Steps 1 and 3 decided a math's type twice
+   (pass 1, then the planner, checking) and parsed an inlined math twice
+   (its planner, then the line). One tokenizer (`math_text`) feeds both
+   the type (`math::settled_type`) and pass 2's parse (`parse_maths`);
+   the planner and the inliner read pass 2's `ParsedMath`. One reading
+   of math text as a tuple (`expr::tuple_entries`) serves every caller.

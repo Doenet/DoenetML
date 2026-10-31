@@ -52,8 +52,8 @@ impl<'a> Compiler<'a> {
                             break;
                         }
                     }
-                    let inner = super::expr::unwrap_parens(&toks[start..i]).unwrap();
-                    out.push(GivenPoint::Tuple(self.tuple_from_tokens(inner, &text)?));
+                    let entries = super::expr::tuple_entries(&toks[start..i]).unwrap();
+                    out.push(GivenPoint::Tuple(self.point_from_entries(&entries, &text)?));
                 }
                 Token::Comma => i += 1,
                 // A symbol (`through="A"`) is not a point here: undefined,

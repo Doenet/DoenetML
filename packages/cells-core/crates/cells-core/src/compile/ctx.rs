@@ -350,22 +350,23 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.math_tokens(self.t, scope, nodes)
     }
 
-    /// Tokens as an expression; `text` is their source, for errors.
-    pub(crate) fn parse(&mut self, toks: &[Token], text: &str) -> Result<ExprId> {
-        self.c.parse_tokens(toks, text)
-    }
-
     /// An expression as a source: lowered to numeric operators when it is
     /// numeric, else symbolic.
     pub(crate) fn plan_expr(&mut self, id: ExprId) -> Source {
         self.c.plan_from_expr(id)
     }
 
-    /// Math text as an expression that may be symbolic, its text kept for
-    /// the symbolic engine.
-    pub(crate) fn sym_math(&mut self, nodes: &[NodeId]) -> Result<ExprId> {
+    /// Math text tokenized, its `$ref`s not yet planned: to read its
+    /// shape before parsing it once (`sym_math`).
+    pub(crate) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
+        self.c.math_text(nodes)
+    }
+
+    /// Math text `mt` of `nodes` as an expression that may be symbolic,
+    /// its text kept for the symbolic engine.
+    pub(crate) fn sym_math(&mut self, nodes: &[NodeId], mt: &MathText) -> Result<ExprId> {
         let scope = self.scope_for(nodes);
-        self.c.plan_sym_math(self.t, scope, nodes)
+        self.c.parse_math_text(self.t, scope, mt)
     }
 
     /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
@@ -455,20 +456,15 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.compiled.templates[self.t.index()].elems[self.e.index()].props = props;
     }
 
-    /// Checks that what the planner plans is of the type pass 1 settled
-    /// for the element (a `<math>` that is a point, ADR 0029): one that
-    /// disagrees is a core bug, reported on the element.
-    pub(crate) fn expect_type(&self, component_type: ComponentType) -> Result<()> {
-        let settled = self.elem().component_type;
-        if settled == component_type {
-            return Ok(());
+    /// The element's `<math>` text as pass 2 parsed it (ADR 0029), or the
+    /// error parsing it met.
+    pub(crate) fn parsed_math(&mut self) -> Result<ParsedMath> {
+        let key = (self.t.get(), self.e.get());
+        match self.c.parsed_maths.get(&key) {
+            Some(Ok(parsed)) => Ok(parsed.clone()),
+            Some(Err(_)) => Err(self.c.parsed_maths.remove(&key).unwrap().unwrap_err()),
+            None => Err(Error::Internal("a <math> pass 2 did not parse".into())),
         }
-        Err(Error::Internal(format!(
-            "<{}> planned as a <{}> where pass 1 settled a <{}>",
-            self.elem().planned_as.tag(),
-            component_type.tag(),
-            settled.tag()
-        )))
     }
 
     /// Makes the element an alias of the value its `extend` names, which

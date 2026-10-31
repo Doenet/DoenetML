@@ -38,15 +38,11 @@ pub const XMIN: usize = Props::AT.xmin;
 pub const XMAX: usize = Props::AT.xmax;
 pub const SAMPLES: usize = Props::AT.samples;
 
-/// Whether a `<function>` takes several variables or returns a tuple.
-fn is_vector_function(ctx: &mut PlanCtx<'_, '_>) -> Result<bool> {
-    let el = ctx.node();
-    if ctx.function_variables(el).len() > 1 {
-        return Ok(true);
-    }
-    let nodes: Vec<NodeId> = ctx.dast().children(el).to_vec();
-    let (toks, _) = ctx.math_tokens(&nodes)?;
-    Ok(unwrap_parens(&toks).is_some_and(|inner| split_top(inner, &Token::Comma).len() > 1))
+/// Whether a `<function>` with text `mt` takes several variables or
+/// returns a tuple.
+fn is_vector_function(ctx: &PlanCtx<'_, '_>, mt: &MathText) -> bool {
+    ctx.function_variables(ctx.node()).len() > 1
+        || tuple_entries(mt.tokens()).is_some_and(|entries| entries.len() > 1)
 }
 
 /// A math cell `expr` and, as a curve, its samples over the x-range of
@@ -56,7 +52,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let nodes: Vec<NodeId> = ctx.dast().children(ctx.node()).to_vec();
     let at = Props::AT;
     let mut wiring = ElemWiring::of(component_type);
-    if component_type == ComponentType::Function && is_vector_function(ctx)? {
+    let mt = ctx.math_text(&nodes)?;
+    if component_type == ComponentType::Function && is_vector_function(ctx, &mt) {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
@@ -69,7 +66,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         ctx.set_wiring(wiring);
         return Ok(());
     }
-    let id = ctx.sym_math(&nodes)?;
+    let id = ctx.sym_math(&nodes, &mt)?;
     let expr = if component_type == ComponentType::Function {
         Source::SymExpr(id, Post::None).into()
     } else {

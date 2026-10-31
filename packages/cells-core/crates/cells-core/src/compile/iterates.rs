@@ -87,10 +87,8 @@ impl<'a> Compiler<'a> {
                 *tok = Token::Cell(prev[j]);
             }
         }
-        let parts = match expr::unwrap_parens(&toks) {
-            Some(inner) if expr::split_top(inner, &Token::Comma).len() > 1 => {
-                expr::split_top(inner, &Token::Comma)
-            }
+        let parts = match expr::tuple_entries(&toks) {
+            Some(entries) if entries.len() > 1 => entries,
             _ => vec![toks.clone()],
         };
         let n = parts.len();
@@ -147,8 +145,8 @@ impl<'a> Compiler<'a> {
         }
         let nodes: Vec<NodeId> = d.attr_children(a).to_vec();
         let (toks, text) = self.math_tokens(sub, ROOT_SCOPE, &nodes)?;
-        let parts = match expr::unwrap_parens(&toks) {
-            Some(inner) if n > 1 => expr::split_top(inner, &Token::Comma),
+        let parts = match expr::tuple_entries(&toks) {
+            Some(entries) if n > 1 => entries,
             _ => vec![toks.clone()],
         };
         if parts.len() != n {
