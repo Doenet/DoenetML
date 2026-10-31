@@ -39,10 +39,67 @@ import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../sourceLocation";
+import {
     codedDiagnostic,
     diagnosticCodeFrom,
     DiagnosticError,
 } from "../diagnostics";
+
+/**
+ * The warning for a reference the resolver could not resolve: `doenet-w0104`
+ * when it names nothing, `doenet-w0105` when it names more than one thing. The
+ * resolver marks the error node with the code, and its English message quotes
+ * the path only up to the first index (`$l` for `$l[0]`); the code's argument
+ * is the whole reference, read from the source here, in the same form the
+ * worker quotes a reference it fails to resolve itself
+ * (`refResolutionDependencies.ts`).
+ */
+function unresolvedReferenceDiagnostic(
+    node: {
+        code?: string;
+        unresolvedPath?: any[] | null;
+        position?: any;
+        sourceDoc?: number;
+    },
+    sources: readonly string[],
+): DiagnosticRecord {
+    // The path has a position for each of its parts, so it spans just the
+    // reference even in the parenthesized form `$(l[0])`. The resolver gives
+    // the path only when the reference names nothing; otherwise the node's own
+    // position spans the reference.
+    let reference = "";
+    if (node.unresolvedPath && node.unresolvedPath.length > 0) {
+        const path = node.unresolvedPath;
+        const text = doenetMLStringForReference(path, sources);
+        if (text) {
+            reference = `${doenetMLDollarsForReference(path, sources)}${text}`;
+        }
+    }
+    if (!reference) {
+        const start = node.position?.start?.offset;
+        const end = node.position?.end?.offset;
+        if (start != undefined && end != undefined) {
+            reference =
+                sources[node.sourceDoc ?? 0]?.substring(start, end) ?? "";
+        }
+    }
+
+    return codedDiagnostic({
+        type: "warning",
+        // Spread rather than a ternary on the value: the code has to sit
+        // next to `code:` as a literal, or `lint:i18n` reads it as a code
+        // nothing raises.
+        ...(node.code === "doenet-w0105"
+            ? { code: "doenet-w0105" as const }
+            : { code: "doenet-w0104" as const }),
+        args: { reference },
+        position: node.position,
+        sourceDoc: node.sourceDoc,
+    });
+}
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -144,17 +201,32 @@ export async function normalizedDastToSerializedComponents(
                         // burn-down never counted it, and a visible spread
                         // would be credit against nothing.
                         const codeAndArgs = diagnosticCodeFrom(node);
-                        diagnostics.push({
-                            type: node.errorType,
-                            message: node.message,
-                            ...codeAndArgs,
-                            position: node.position,
-                            sourceDoc: node.sourceDoc,
-                        });
-                        if (
-                            node.message.includes("No referent") ||
-                            node.message.includes("Multiple referents")
-                        ) {
+                        const isUnresolvedReference =
+                            codeAndArgs.code === "doenet-w0104" ||
+                            codeAndArgs.code === "doenet-w0105";
+                        if (isUnresolvedReference) {
+                            // A reference the resolver could not resolve. It
+                            // names the code but cannot quote the reference,
+                            // as it does not have the source; quote all of it
+                            // here, as the worker does for a reference it
+                            // resolves itself, so `$l[0]` and `$l[$i]` with
+                            // `i` = 0 read the same (#2407).
+                            diagnostics.push(
+                                unresolvedReferenceDiagnostic(
+                                    node,
+                                    normalized_root.sources,
+                                ),
+                            );
+                        } else {
+                            diagnostics.push({
+                                type: node.errorType,
+                                message: node.message,
+                                ...codeAndArgs,
+                                position: node.position,
+                                sourceDoc: node.sourceDoc,
+                            });
+                        }
+                        if (isUnresolvedReference) {
                             // Depending on the parent, we still want something to show up for these invalid reference.
                             // Since we already have that logic implemented for copy, we'll just make a copy
                             // with no referent

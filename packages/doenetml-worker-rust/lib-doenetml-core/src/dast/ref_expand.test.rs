@@ -539,6 +539,7 @@ fn initial_ref_skips_unqualified_option_children() {
                     "type": "error",
                     "message": "No referent found for reference: `$n2`",
                     "errorType": "warning",
+                    "code": "doenet-w0104",
                     "parent": 0,
                     "idx": 3,
                     "unresolvedPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }]
@@ -628,4 +629,68 @@ fn initial_ref_skips_unqualified_option_children() {
               }
         )
     );
+}
+
+/// An index that names nothing whatever the length (`0`, or one that is not a
+/// count, such as `-1`) fails to resolve, and is reported with the same code as
+/// a name that names nothing, `doenet-w0104`. The worker raises that code for
+/// the same index written dynamically (`$l[$i]` with `i` = 0), so the two read
+/// alike (#2407).
+#[test]
+fn an_index_that_names_nothing_is_coded_as_no_referent() {
+    for written in ["$l[0]", "$l[-1]", "$l[0].x"] {
+        let source = format!(r#"<mathList name="l">1 2</mathList>{written}"#);
+        let dast_root = dast_root_no_position(&source);
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+
+        let errors: Vec<&FlatError> = flat_root
+            .nodes
+            .iter()
+            .filter_map(|node| match node {
+                FlatNode::Error(e) => Some(e),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(errors.len(), 1, "{written}");
+        assert_eq!(errors[0].code.as_deref(), Some("doenet-w0104"), "{written}");
+        assert!(
+            matches!(errors[0].error_type, ErrorType::Warning),
+            "{written}"
+        );
+    }
+}
+
+/// The same index in an `extend` attribute keeps the code, and the path the
+/// worker quotes the reference from (#2407).
+#[test]
+fn an_index_that_names_nothing_in_an_extend_attribute_is_coded() {
+    let source = r#"<mathList name="l">1 2</mathList><math extend="$l[0]" />"#;
+    let dast_root = dast_root_no_position(source);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+
+    let math = flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(e) if e.name == "math" => Some(e),
+            _ => None,
+        })
+        .unwrap();
+    let error = math
+        .children
+        .iter()
+        .find_map(|child| match child {
+            UntaggedContent::Ref(idx) => match &flat_root.nodes[*idx] {
+                FlatNode::Error(e) => Some(e),
+                _ => None,
+            },
+            _ => None,
+        })
+        .expect("the attribute's failure is a child of the element");
+    assert_eq!(error.code.as_deref(), Some("doenet-w0104"));
+    let path = error.unresolved_path.as_ref().unwrap();
+    assert_eq!(path.len(), 1);
+    assert_eq!(path[0].name, "l");
 }
