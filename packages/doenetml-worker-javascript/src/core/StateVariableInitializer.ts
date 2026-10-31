@@ -2198,10 +2198,11 @@ export async function arrayEntryNamesFromPropIndex({
         }
     }
 
-    // An index below 1 names nothing, whatever the array and its length:
+    // An index below 1 names nothing, whatever the variable and its length:
     // indices count from 1. It is reported as a reference with no referent,
-    // as `$l[0]` and `$l[$i]` with `i` = 0 are (#2407), and not as an index
-    // that cannot be applied, since the same index past 0 can be.
+    // as `$l[0]` and `$l[$i]` with `i` = 0 are (#2407), before asking whether
+    // the variable takes an index at all, so `$n.value[0]` reads as `$l[0]`
+    // does rather than as `$n.value[1]` (`doenet-w0100`, below).
     if (propIndex.some((index) => index < 1)) {
         if (reference) {
             core.addDiagnostic(

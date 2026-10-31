@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue } from "../utils/actions";
+import { updateMathInputValue, updateValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -169,6 +169,62 @@ describe("An index that names nothing @group4", async () => {
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0100");
         expect(warnings[0].args).eqls({ reference: "$n.value[1]" });
+    });
+
+    it("binds an input to nothing through an index on a property that is not an array", async () => {
+        // It used to bind to the whole value, so typing changed `n`.
+        const doenetML = `${preamble}<mathInput name="mi" bindValueTo="$n.value[1]" /><p name="p">$mi, $n</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+
+        expect(await text()).eq("＿, 5");
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("7, 5");
+        expect(getDiagnosticsByType(core).warnings.map((w) => w.code)).eqls([
+            "doenet-w0100",
+        ]);
+    });
+
+    it("gives an action a target with an index below 1 nothing to change", async () => {
+        const doenetML = `${preamble}<updateValue name="u" target="$P.xs[0]" newValue="9" /><p name="p">$P</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("u"),
+            core,
+        });
+
+        // Read before anything else is evaluated: asking for every state
+        // variable resolves the target again, which repeats the index
+        // warning, as it repeats `doenet-w0100` for an index that cannot be
+        // applied.
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0104",
+            "doenet-w0044",
+        ]);
+        expect(warnings[0].args).eqls({ reference: "$P.xs[0]" });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("(1, 2)");
     });
 
     it("codes a name that names nothing, quoting the whole reference", async () => {

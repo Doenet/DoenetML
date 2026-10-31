@@ -188,10 +188,11 @@ export async function normalizedDastToSerializedComponents(
                         node.errorType === "warning" ||
                         node.errorType === "info"
                     ) {
-                        // Empty unless the parser named this diagnostic by
-                        // code; the code and its arguments have ridden
-                        // through the Rust flattening on the DAST error node
-                        // (#1549). The English stays the parser's —
+                        // Empty unless the parser, or the Rust resolver for
+                        // a reference it could not resolve, named this
+                        // diagnostic by code; the code and its arguments have
+                        // ridden through the Rust flattening on the DAST
+                        // error node (#1549). The English stays the parser's —
                         // `DocViewer` re-renders it in the reader's language
                         // on the way out.
                         //
@@ -204,7 +205,15 @@ export async function normalizedDastToSerializedComponents(
                         const isUnresolvedReference =
                             codeAndArgs.code === "doenet-w0104" ||
                             codeAndArgs.code === "doenet-w0105";
-                        if (isUnresolvedReference) {
+                        if (!isUnresolvedReference) {
+                            diagnostics.push({
+                                type: node.errorType,
+                                message: node.message,
+                                ...codeAndArgs,
+                                position: node.position,
+                                sourceDoc: node.sourceDoc,
+                            });
+                        } else {
                             // A reference the resolver could not resolve. It
                             // names the code but cannot quote the reference,
                             // as it does not have the source; quote all of it
@@ -217,16 +226,7 @@ export async function normalizedDastToSerializedComponents(
                                     normalized_root.sources,
                                 ),
                             );
-                        } else {
-                            diagnostics.push({
-                                type: node.errorType,
-                                message: node.message,
-                                ...codeAndArgs,
-                                position: node.position,
-                                sourceDoc: node.sourceDoc,
-                            });
-                        }
-                        if (isUnresolvedReference) {
+
                             // Depending on the parent, we still want something to show up for these invalid reference.
                             // Since we already have that logic implemented for copy, we'll just make a copy
                             // with no referent
