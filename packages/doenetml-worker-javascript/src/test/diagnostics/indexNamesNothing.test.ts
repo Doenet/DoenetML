@@ -121,6 +121,24 @@ describe("An index that names nothing @group4", async () => {
         }
     });
 
+    it("leaves a property that does not exist as silent with an index as without", async () => {
+        // The index is applied only to a property that exists, so an index
+        // below 1 does not make `$n.nonexistent[0]` warn where
+        // `$n.nonexistent` and `$n.nonexistent[1]` do not.
+        for (const body of [
+            `[$n.nonexistent]`,
+            `[$n.nonexistent[1]]`,
+            `[$n.nonexistent[0]]`,
+            `[$P.nonexistent[0]]`,
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                inParagraph(body),
+            );
+            expect(text, body).eq("[]");
+            expect([...warnings, ...errors, ...infos], body).eqls([]);
+        }
+    });
+
     it("warns when a dynamic index becomes 0, as the literal index does", async () => {
         const doenetML = `${preamble}<mathInput name="i" prefill="2" /><p name="p">[$l[$i]]</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({

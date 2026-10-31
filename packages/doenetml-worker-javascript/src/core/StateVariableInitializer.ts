@@ -2199,24 +2199,9 @@ export async function arrayEntryNamesFromPropIndex({
     }
 
     // An index below 1 names nothing, whatever the variable and its length:
-    // indices count from 1. It is reported as a reference with no referent,
-    // as `$l[0]` and `$l[$i]` with `i` = 0 are (#2407), before asking whether
-    // the variable takes an index at all, so `$n.value[0]` reads as `$l[0]`
-    // does rather than as `$n.value[1]` (`doenet-w0100`, below).
-    if (propIndex.some((index) => index < 1)) {
-        if (reference) {
-            core.addDiagnostic(
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0104",
-                    args: { reference: reference.text },
-                    position: reference.position,
-                    sourceDoc: reference.sourceDoc,
-                }),
-            );
-        }
-        return stateVariables.map(() => INDEX_NAMES_NOTHING);
-    }
+    // indices count from 1.
+    const indexBelowOne = propIndex.some((index) => index < 1);
+    let reportBelowOne = false;
 
     let newVarNames = [];
     for (let varName of stateVariables) {
@@ -2237,6 +2222,19 @@ export async function arrayEntryNamesFromPropIndex({
                 component,
             });
             stateVarObj = component.state[varName];
+        }
+
+        // An index below 1 on a variable that exists is reported as a
+        // reference with no referent, as `$l[0]` and `$l[$i]` with `i` = 0
+        // are (#2407). It is checked before asking whether the variable takes
+        // an index at all, so `$n.value[0]` reads as `$l[0]` does rather than
+        // as `$n.value[1]` (`doenet-w0100`, below). A variable that does not
+        // exist was skipped above, so `$n.nonexistent[0]` stays as silent as
+        // `$n.nonexistent` and `$n.nonexistent[1]`.
+        if (indexBelowOne) {
+            reportBelowOne = true;
+            newVarNames.push(INDEX_NAMES_NOTHING);
+            continue;
         }
 
         let newName;
@@ -2266,6 +2264,19 @@ export async function arrayEntryNamesFromPropIndex({
             reportPropIndexFailure(varName, "");
             newVarNames.push(INDEX_NAMES_NOTHING);
         }
+    }
+
+    // Once, however many of the variables the index was applied to.
+    if (reportBelowOne && reference) {
+        core.addDiagnostic(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0104",
+                args: { reference: reference.text },
+                position: reference.position,
+                sourceDoc: reference.sourceDoc,
+            }),
+        );
     }
 
     return newVarNames;
