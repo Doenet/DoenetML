@@ -3,6 +3,8 @@ import { createTestCore } from "../utils/test-core";
 import { Dependency } from "../../core/dependencies/Dependency";
 import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { movePoint } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1035,5 +1037,134 @@ describe("Circular references created after load @group2", async () => {
         });
         expect(result.success).not.toBe(false);
         expect(stopped).toHaveLength(0);
+    });
+});
+
+/**
+ * Doenet/DoenetML#2405: a reference inside the component it names (`$S` in
+ * `S`) is replaced by the circular-dependency error, or, where the source's
+ * value can stand in (a `<label>`, a `<title>`), by that value. Neither
+ * shadows the source, and a copy of `S` holds a counterpart of the reference
+ * that names the copy. Updating that reference remade it on every pass, as
+ * its replacement did not shadow its source, and remaking it changed the
+ * copy it is in, which marked it to be updated again, until the document
+ * stopped with an internal error. It should load as `S` alone does.
+ */
+describe("A copy of a component that references itself @group2", async () => {
+    async function textsAndErrors(doenetML: string, paths: string[]) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: Record<string, string> = {};
+        for (const path of paths) {
+            texts[path] =
+                stateVariables[
+                    await resolvePathToNodeIdx(path)
+                ].stateValues.text;
+        }
+        const errorCodes = getDiagnosticsByType(core).errors.map((e) => e.code);
+        return { texts, errorCodes };
+    }
+
+    const section = `<section name="S"><title>T</title><p name="q">hi [$S]</p></section>`;
+
+    it("the section alone reports the reference as circular", async () => {
+        const { texts, errorCodes } = await textsAndErrors(section, ["S.q"]);
+        expect(texts).eqls({ "S.q": "hi []" });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("a copy of the section loads and shows what the section shows", async () => {
+        const { texts, errorCodes } = await textsAndErrors(
+            `${section}
+<section name="S2" copy="$S"/>
+<p name="after">after</p>`,
+            ["S.q", "S2.q", "after"],
+        );
+        expect(texts).eqls({
+            "S.q": "hi []",
+            "S2.q": "hi []",
+            after: "after",
+        });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("a copy of a copy of the section loads", async () => {
+        const { texts, errorCodes } = await textsAndErrors(
+            `${section}
+<section name="S2" copy="$S"/>
+<section name="S3" copy="$S2"/>`,
+            ["S.q", "S2.q", "S3.q"],
+        );
+        expect(texts).eqls({
+            "S.q": "hi []",
+            "S2.q": "hi []",
+            "S3.q": "hi []",
+        });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("an extend of the section loads", async () => {
+        const { texts, errorCodes } = await textsAndErrors(
+            `${section}
+<section name="S2" extend="$S"/>`,
+            ["S.q", "S2.q"],
+        );
+        expect(texts).eqls({ "S.q": "hi []", "S2.q": "hi []" });
+        expect(errorCodes).eqls(["doenet-e0005"]);
+    });
+
+    it("a copy of a section whose title references it loads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<section name="S"><title>T $S</title><p>hi</p></section>
+<section name="S2" copy="$S"/>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S")].stateValues.title,
+        ).eq("T ");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S2")].stateValues.title,
+        ).eq("T ");
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0005",
+        ]);
+    });
+
+    // In a label, the reference falls back to the point's value, which is
+    // not circular. The copy's label names the copy, so it follows the copy
+    // when it moves, and not the point it was copied from.
+    it("a copy of a point whose label references it loads, and its label follows it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph><point name="P"><label>a $P</label></point>
+<point name="P2" copy="$P"/></graph>`,
+        });
+        const PIdx = await resolvePathToNodeIdx("P");
+        const P2Idx = await resolvePathToNodeIdx("P2");
+
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[PIdx].stateValues.label,
+                stateVariables[P2Idx].stateValues.label,
+            ];
+        }
+
+        const origin = "a \\(\\left( 0, 0 \\right)\\)";
+        expect(await labels()).eqls([origin, origin]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        await movePoint({ componentIdx: P2Idx, x: 3, y: 4, core });
+        expect(await labels()).eqls([origin, "a \\(\\left( 3, 4 \\right)\\)"]);
+
+        await movePoint({ componentIdx: PIdx, x: -1, y: 2, core });
+        expect(await labels()).eqls([
+            "a \\(\\left( -1, 2 \\right)\\)",
+            "a \\(\\left( 3, 4 \\right)\\)",
+        ]);
     });
 });
