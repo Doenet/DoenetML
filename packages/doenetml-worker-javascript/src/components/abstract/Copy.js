@@ -6,6 +6,7 @@ import {
     namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
+    TAGS_OF_LIST_FORMS,
     addAttributesToSingleReplacement,
     addAttributesToSingleReplacementChange,
     getSelfReferentialFallbackPropName,
@@ -4608,16 +4609,6 @@ const TAGS_MAKING_THEIR_CONTENT = new Set([
     // Its arrangement of its problems is made by an internal composite.
     "pretzel",
 ]);
-
-/**
- * The list form a `<collect>`, `<sort>` or `<shuffle>` of values is made as
- * (`utils/dast/listForms.ts`), mapped to the tag it is written as.
- */
-const TAGS_OF_LIST_FORMS = {
-    _collectList: "collect",
-    _sortList: "sort",
-    _shuffleList: "shuffle",
-};
 
 /**
  * What children written inside the extend of a tag would be, which picks the

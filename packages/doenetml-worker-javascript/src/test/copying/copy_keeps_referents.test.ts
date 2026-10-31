@@ -647,6 +647,59 @@ describe("A copy's references keep their referents @group4", () => {
         await expectDirectExtendTexts(core, resolvePathToNodeIdx, "c 1");
     });
 
+    it("a copy or extend of a list-form collect, sort or shuffle inside an extend is that list", async () => {
+        // The document pass makes `x`, `s` and `sh` list forms
+        // (`utils/dast/listForms.ts`), but cannot see that `$B.gB.x` is one,
+        // as `gB.x` is made by the `extend`. The copies are written as
+        // `<collect>`, `<sort>` and `<shuffle>`, of which the list form is
+        // one, so it is not wrapped in an empty composite of that type.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A"><number name="n">1</number>
+  <group name="g">
+    <group name="h"><text>c $n</text><text>d</text></group>
+    <collect name="x" componentType="text" from="$h"/>
+    <sort name="s"><number>3</number><number>$n</number></sort>
+    <shuffle name="sh"><number>5</number></shuffle>
+  </group>
+</section>
+<section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/></section>
+<section name="D">
+  <number name="n">4</number>
+  <p name="p1"><collect copy="$B.gB.x"/></p>
+  <p name="p2"><collect copy="$A.g.x"/></p>
+  <p name="p3">$B.gB.x</p>
+  <p name="p4"><collect extend="$B.gB.x"/></p>
+  <p name="p5"><collect name="y" copy="$B.gB.x"/>; <collect copy="$y"/></p>
+  <p name="p6"><collect copy="$B.gB.x" maxNumber="1"/></p>
+  <p name="p7"><sort copy="$B.gB.s"/>; <sort extend="$B.gB.s"/></p>
+  <p name="p8"><shuffle copy="$B.gB.sh"/>; <shuffle extend="$B.gB.sh"/></p>
+</section>
+<section name="U">
+  <p name="p1"><collect copy="$B.gB.x"/></p>
+  <p name="p4"><collect extend="$B.gB.x"/></p>
+</section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const expected = {
+            "D.p1": "c 1, d",
+            "D.p2": "c 1, d",
+            "D.p3": "c 1, d",
+            "D.p4": "c 1, d",
+            "D.p5": "c 1, d; c 1, d",
+            "D.p6": "c 1",
+            "D.p7": "1, 3; 1, 3",
+            "D.p8": "5; 5",
+            "U.p1": "c 1, d",
+            "U.p4": "c 1, d",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, Object.keys(expected)),
+        ).eqls(expected);
+    });
+
     it("an extend of a module has its module attributes, and a copy of its content keeps them", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
