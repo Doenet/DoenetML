@@ -267,7 +267,7 @@ ADR 0009 makes the following a rule, and it is easy to state:
 > A name is visible outside a choice only if every branch declares it, with the same type.
 
 ADR 0009 also bans several forms that main's tests use (D13):
-- `extend` of a `select`, `conditionalContent` or `case`. D32 decides a principle in its place (#2404):
+- `extend` of a `select`, `conditionalContent` or `case`. D32 decides a principle in its place (#2409):
   an extend can be bare, named or restyled, but cannot change what a tag makes. Extending a
   `case` stays banned;
 - references into a branch from outside, other than interface names;
@@ -287,10 +287,9 @@ ADR 0009 also bans several forms that main's tests use (D13):
 - **COMP-13: `<module>` (Tier 1).**
   - A module is a group whose `<moduleAttributes>` are parameters.
   - A **copy** can override them: `<module copy="$m" item="banana"/>`.
-  - An **extend** cannot. It shows the same content, linked to the source, and ignores module
-    attributes written on it, with a warning (`module.test.ts:1474`, `:1571`; **[probe]**). Like
-    a group's extend, it can add children, `hide` or a name. D32 makes a module attribute
-    on an extend an error (#2404).
+  - An **extend** cannot. It shows the same content, linked to the source, and a module
+    attribute written on it is an error, `doenet-e0060` (D32, #2409; `module.test.ts:1474`,
+    `:1571`). Like a group's extend, it can add children, `hide` or a name.
   - References in a supplied attribute resolve where the copy is written (NAME-4).
   - A copy repeats the source's random choices (CPY-8), so every `<module copy>` of one module
     shows the same draws, and an attribute that changes a nested choice shows nothing
