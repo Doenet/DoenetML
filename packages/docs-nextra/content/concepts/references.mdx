@@ -221,9 +221,10 @@ version of that component. This holds even when the reference goes through the
 name of the component being copied: `$orig.h` written inside `orig` names the
 copy's `h` in a copy of `orig`.
 
-The same holds for a copy of an `extend`: the references the `extend` takes from
-its original mean what they mean in that original, not what the same names mean
-where the `extend` is written.
+The same holds for a copy of an `extend`, or of part of one. A reference the
+`extend` takes from its original to a component outside what was extended keeps
+pointing at that component, not at a component with the same name where the
+`extend` or the copy is written.
 
 ### When a name doesn't exist
 

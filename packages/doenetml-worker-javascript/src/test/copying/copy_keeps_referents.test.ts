@@ -541,9 +541,10 @@ describe("A copy's references keep their referents @group4", () => {
 
     /**
      * Section A holds `source`, a tag that makes its own content, which shows
-     * A's `n`. Section B, with another `n`, extends it with a name (inside a
-     * `<p>`) and with only an appearance attribute. Sections D, with another
-     * `n`, and U, with none, copy both extends, and D copies the `<p>`.
+     * A's `n`. Section B, with another `n`, extends it twice, each inside a
+     * `<p>`: with a name, and with a name and an appearance attribute.
+     * Sections D, with another `n`, and U, with none, copy both extends, and D
+     * copies the `<p>` that holds the first.
      */
     function directExtendsDoenetML(tag: string, source: string) {
         return `
@@ -623,7 +624,7 @@ describe("A copy's references keep their referents @group4", () => {
             ),
         });
 
-        // A bare `<conditionalContent extend>` warns that children written in it
+        // Each `<conditionalContent extend>` warns that children written in it
         // are ignored, though none are (B12 in the design principles).
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.errors).eqls([]);
