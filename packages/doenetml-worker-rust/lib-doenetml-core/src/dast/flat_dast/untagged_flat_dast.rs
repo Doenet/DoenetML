@@ -447,6 +447,14 @@ pub struct FlatFragment {
     /// If `source:sequence` attribute of the fragment parent, if it exist.
     /// Used to create the `NodeResolverData::source_sequence` of the parent.
     pub parent_source_sequence: Option<FlatAttribute>,
+    /// Whether the fragment is content that a copy or an extend made inside `parent_idx`,
+    /// e.g., what `<section name="s2" copy="$s" />` copies from `s`.
+    /// Its names are then reached only by a path step through `parent_idx` (`$s2.t`),
+    /// never by a bare name (`$t`), even from a child written inside the copy.
+    /// See `NodeResolverData::copied_names`.
+    #[serde(default)]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub copied_content: bool,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -523,6 +531,7 @@ impl FlatFragment {
             nodes: flat_root.nodes,
             parent_idx,
             parent_source_sequence: None,
+            copied_content: false,
             idx_map,
         }
     }

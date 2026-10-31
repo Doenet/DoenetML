@@ -1,5 +1,8 @@
 import { deepClone } from "@doenet/utils";
-import { expandUnflattenedToSerializedComponents } from "../utils/dast/convertNormalizedDast";
+import {
+    expandUnflattenedToSerializedComponents,
+    unwrapSource,
+} from "../utils/dast/convertNormalizedDast";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { applySugar } from "../utils/dast/sugar";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -177,12 +180,39 @@ export default class ModuleAttributes extends CompositeComponent {
                 );
             }
 
+            // `xmin="$xmin"` on a module whose own `xmin` it names would make that `xmin`
+            // depend on itself. Report that, rather than the circular dependency it would become,
+            // and keep the module attribute's own value.
+            if (
+                referencesComponent(
+                    attributeFromModule.children,
+                    child.componentIdx,
+                )
+            ) {
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "error",
+                        code: "doenet-e0055",
+                        args: { name: childName },
+                        position: attributeFromModule.position,
+                    }),
+                );
+                componentsForModuleAttributes.push(child);
+                continue;
+            }
+
             // The attribute's content was written on the `<module>`, so its references must resolve
-            // where the `<module>` sits. Left to resolve from their new position inside the module,
-            // they would find the module's own components by those names first, such as
-            // this very `child` for an attribute like `xmin="$xmin"`.
+            // as an attribute's do: as if written in a child of the `<module>`. Left to resolve
+            // from their new position inside `child`, they would find `child` itself first.
+            // This `<moduleAttributes>` is such a child, so they resolve from it.
+            // They see what is written inside the module, so `xmin="$xmin"` on a module that
+            // defines `xmin` refers to the module's own `xmin`. They don't see what a copy made,
+            // so on `<module copy="$m">` the copied module attributes are out of their reach.
             const attributeChildren = deepClone(attributeFromModule.children);
-            setUnflattenedReferenceOrigins(attributeChildren, moduleIdx);
+            setUnflattenedReferenceOrigins(
+                attributeChildren,
+                component.componentIdx,
+            );
 
             // Use the children from the attribute to replace the child's children
             const expandResult = expandUnflattenedToSerializedComponents({
@@ -238,4 +268,36 @@ export default class ModuleAttributes extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * Whether a reference among `unflattenedComponents`, or among their descendants and attributes,
+ * resolved to the component with index `componentIdx`.
+ */
+function referencesComponent(unflattenedComponents, componentIdx) {
+    for (const component of unflattenedComponents) {
+        if (typeof component !== "object" || component === null) {
+            continue;
+        }
+        if (
+            component.extending &&
+            unwrapSource(component.extending).nodeIdx === componentIdx
+        ) {
+            return true;
+        }
+        if (referencesComponent(component.children ?? [], componentIdx)) {
+            return true;
+        }
+        for (const attrName in component.attributes) {
+            if (
+                referencesComponent(
+                    component.attributes[attrName].children ?? [],
+                    componentIdx,
+                )
+            ) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

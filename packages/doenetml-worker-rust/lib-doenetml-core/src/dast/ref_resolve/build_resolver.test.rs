@@ -132,6 +132,67 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
 }
 
 #[test]
+fn copied_content_is_found_only_through_the_copy() {
+    // `<a>` is a copy, such as `<section name="s2" copy="$s">`, with a child `<b>` written inside it.
+    // The fragment is the content it copied.
+    let dast_root = dast_root_no_position(
+        r#"<a name="s2">
+            <b name="y" />
+        </a>
+        <d name="h" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    let mut flat_fragment =
+        flat_fragment_from_str(r#"<c name="h" />"<e name="z" />"#, d_idx + 1, Some(a_idx));
+    flat_fragment.copied_content = true;
+
+    let c_idx = d_idx + 1;
+    let e_idx = d_idx + 2;
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    // From the child written inside the copy, a bare name skips the copied content
+    // and resolves outward, as it would next to the copy.
+    let referent = resolver.resolve(make_path(["h"], None), b_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["h"], None),
+            nodes_in_resolved_path: vec![b_idx, d_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["z"], None), b_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // It still sees the children written next to it
+    let referent = resolver.resolve(make_path(["y"], None), b_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(b_idx));
+
+    // A path step through the copy's name reaches the copied content, from inside the copy or next to it
+    for origin in [b_idx, d_idx] {
+        let referent = resolver.resolve(make_path(["s2", "h"], None), origin, false);
+        assert_eq!(referent.map(|r| r.node_idx), Ok(c_idx));
+        let referent = resolver.resolve(make_path(["s2", "z"], None), origin, false);
+        assert_eq!(referent.map(|r| r.node_idx), Ok(e_idx));
+    }
+
+    // Once the copied content is deleted and the same names are added as content that isn't copied,
+    // a bare name from inside `<a>` finds them again.
+    resolver.delete_nodes(&flat_fragment.nodes);
+    flat_fragment.copied_content = false;
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let referent = resolver.resolve(make_path(["h"], None), b_idx, false);
+    assert_eq!(referent.map(|r| r.node_idx), Ok(c_idx));
+}
+
+#[test]
 fn add_nodes_with_no_parent() {
     let dast_root = dast_root_no_position(
         r#"<e><a name="x">

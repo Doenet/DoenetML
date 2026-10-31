@@ -1927,8 +1927,10 @@ ${moduleDefinition}
             });
         });
 
-        it("attribute written on the module's own definition is ambiguous with the module's attribute", async () => {
-            const { core } = await createTestCore({
+        it("attribute written on the module's own definition refers to the module's own attribute", async () => {
+            // As `<p hide="$h"><boolean name="h"/></p>` names its own `h`, `xmin="$xmin"`
+            // names the module's own `xmin`, which would then depend on itself.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
 <problem name="prob">
     <setup>
@@ -1940,15 +1942,33 @@ ${moduleDefinition}
         </moduleAttributes>
         <p name="p">$xmin</p>
     </module>
+    <p name="after">rendered</p>
 </problem>
 `,
             });
 
             const diagnosticsByType = getDiagnosticsByType(core);
-            expect(diagnosticsByType.errors).eqls([]);
-            expect(
-                diagnosticsByType.warnings.map((w: any) => w.message),
-            ).toContain("Multiple referents found for reference: `$xmin`");
+            expect(diagnosticsByType.errors.map((e: any) => e.code)).eqls([
+                "doenet-e0055",
+            ]);
+            expect(diagnosticsByType.errors[0].message).toContain(
+                "The `xmin` attribute of this `<module>` refers to the module's own `xmin`",
+            );
+            expect(diagnosticsByType.warnings).eqls([]);
+
+            // The module attribute keeps its own value, and the rest of the document renders.
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.g.p",
+                text: "-10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.after",
+                text: "rendered",
+            });
         });
 
         it("copy of a module attribute keeps resolving where the module is written", async () => {

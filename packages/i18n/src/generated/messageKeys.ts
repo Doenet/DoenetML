@@ -418,6 +418,7 @@ export type MessageKey =
     | "answer-invalid-type"
     | "module-attribute-child-needs-name"
     | "module-attribute-name-already-defined"
+    | "module-attribute-refers-to-itself"
     | "conditional-content-condition-ignored"
     | "slider-markers-type-mismatch"
     | "pretzel-problem-needs-statement-and-answer"
@@ -1067,6 +1068,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "answer-invalid-type",
     "module-attribute-child-needs-name",
     "module-attribute-name-already-defined",
+    "module-attribute-refers-to-itself",
     "conditional-content-condition-ignored",
     "slider-markers-type-mismatch",
     "pretzel-problem-needs-statement-and-answer",
