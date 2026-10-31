@@ -161,9 +161,10 @@ What it *looks like* depends on the parent and on the spelling (**[probe]**):
 | `<p>[$pl.xs[3]]</p>` | `[＿, ＿]` |
 | `<sum>$l[5] 3</sum>` | `3` |
 
-Whether a missing reference warns is inconsistent too (B17, #2407): an index past the end is
-silent, 0 or a negative index gives an uncoded warning, and `$n.value[1]` shows `5` while
-warning that the index can't be used, which breaks this principle.
+How a missing reference is reported follows NAME-2 since #2410 (B17): `$n.value[1]` now shows
+nothing, where it showed `5`. A list component's entries still differ: `$pl[2].coords[1]` shows
+the whole coordinates (B18, #2413). A property with no value, such as `$c.maxNumber` with no
+limit, shows `NaN` (#2416, D10).
 
 That table is an accident of which internal form was built. A rewrite should choose one
 representation: "the empty value of the type it presents as, drawn as nothing". See D10.
