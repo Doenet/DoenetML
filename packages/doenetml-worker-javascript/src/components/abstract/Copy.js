@@ -1899,6 +1899,7 @@ export default class Copy extends CompositeComponent {
                     attributeNames: Object.keys(attributesFromComposite),
                     copyAttributeNames: Object.keys(compositeAttributesObj),
                     children: component.serializedChildren,
+                    sourceChildren: repl.children,
                     source: referenceAsWritten(
                         await component.stateValues.originalPath,
                         replacementSourceComponent,
@@ -4656,7 +4657,10 @@ const PARTS_OF_CHOOSING_TAGS = {
  *   (`attributesAnExtendApplies`), which are those that only change how it
  *   looks, and any children;
  * - on a `<pretzel>`, `mode` and any problems;
- * - on a `<module>`, any module attribute;
+ * - on a `<module>`, any module attribute: one its `<moduleAttributes>`
+ *   declares, read from its serialized children (`sourceChildren`). Another
+ *   attribute is no parameter of the module, so it is only ignored
+ *   (`extendIgnoresAttributesAndChildren`);
  * - on a `<choiceInput>`, `shuffleOrder` and any choices, as an extend shares
  *   its selection, which indexes its source's choices in its source's order.
  *
@@ -4669,6 +4673,7 @@ function extendChangesContentErrors({
     attributeNames,
     copyAttributeNames,
     children,
+    sourceChildren,
     source,
     componentInfoObjects,
 }) {
@@ -4756,6 +4761,23 @@ function extendChangesContentErrors({
         });
         changingAttributes = attributeNames.filter(
             (attrName) => !appliedAttributes.has(attrName),
+        );
+    }
+
+    if (isModule) {
+        // Only an attribute its `<moduleAttributes>` declares is a module
+        // attribute, matched ignoring case, as `<moduleAttributes>` does.
+        const declared = new Set(
+            (sourceChildren ?? [])
+                .filter((child) => child?.componentType === "moduleAttributes")
+                .flatMap((child) => child.children ?? [])
+                .map((child) =>
+                    child?.attributes?.name?.primitive?.value?.toLowerCase(),
+                )
+                .filter(Boolean),
+        );
+        changingAttributes = changingAttributes.filter((attrName) =>
+            declared.has(attrName.toLowerCase()),
         );
     }
 

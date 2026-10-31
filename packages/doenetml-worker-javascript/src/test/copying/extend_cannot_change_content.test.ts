@@ -65,6 +65,10 @@ describe("An extend cannot change what a tag makes @group4", () => {
             doenetML: `<split name="x" splitBy="comma">a,b</split>`,
             text: "a, b",
         },
+        intersection: {
+            doenetML: `<intersection name="x"><line through="(0,0) (1,1)" /><line through="(0,1) (1,0)" /></intersection>`,
+            text: "(0.5, 0.5)",
+        },
     };
 
     async function textsOf(
@@ -112,6 +116,22 @@ describe("An extend cannot change what a tag makes @group4", () => {
             ).eqls([text, text, text, text, text, text, "after"]);
         });
     }
+
+    it("a display setting on an extend takes effect", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<p name="p0"><sequence name="x" from="1.2345" to="2.2345" /></p>
+<p name="p1"><sequence extend="$x" displayDigits="2" /></p>
+<p name="p2"><selectFromSequence name="y" from="1.2345" to="1.2345" /></p>
+<p name="p3"><selectFromSequence extend="$y" displayDecimals="1" /></p>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors).eqls([]);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["p0", "p1", "p2", "p3"]),
+        ).eqls(["1.23, 2.23", "1.2, 2.2", "1.23", "1.2"]);
+    });
 
     it("a named extend reaches what is inside it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -363,6 +383,31 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
         expect(
             await textsOf(core, resolvePathToNodeIdx, ["m.p", "e.p", "after"]),
         ).eqls(["a", "a", "after"]);
+    });
+
+    it("an attribute a <module> does not declare is ignored on its extend, as it is not a module attribute", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<module name="m"><moduleAttributes><text name="item">a</text></moduleAttributes><p name="p">$item</p></module>
+<module extend="$m" name="e" displayDigits="3" />
+<module extend="$m" name="f" Item="b" />`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(
+            diagnosticsByType.warnings.map((warning) => [
+                warning.code,
+                warning.position?.start.line,
+            ]),
+        ).eqls([["doenet-w0168", 2]]);
+        // A module attribute is matched ignoring case, as a copy matches it
+        expect(
+            diagnosticsByType.errors.map((error) => [
+                error.code,
+                error.args?.attribute,
+                error.position?.start.line,
+            ]),
+        ).eqls([["doenet-e0060", "Item", 3]]);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["e.p"])).eqls(["a"]);
     });
 
     it("a <group> or <module> extend can be given children, and a repeat inside an extended group is shown", async () => {
