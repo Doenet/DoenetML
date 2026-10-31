@@ -32,7 +32,10 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
 | B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
-| B14 | (#2398) A copy of an `extend` resolves references to outside names from where the extend is written, not from the source, breaking D1. With `n` = 1 in A and 2 in B, `<group name="gB" extend="$A.g"/>` in B shows 1 (REF-6), but `<group copy="$B.gB"/>` anywhere shows 2. The same holds for a copied `<p extend>`. Before #2397 it showed the `n` where the copy was written | **[probe]** on main at `ef87be6` | the extend's shadows seem to carry references whose origin is the extend; `keepReferents` keeps that origin. Not traced |
+| B14 | **Fixed by #2400** (closing #2398). A copy of an `extend` resolved references to outside names from where the extend is written, not from the source, breaking D1: `<group copy="$B.gB"/>` of `<group name="gB" extend="$A.g"/>` showed B's `n`. #2400 keeps an outside referent as a referent in every unlinked copy, and also fixed references between sibling replacements of an extend (`$g.x` in a copy of an extend of `g`) and `$me.a` through an extend of a `<module>` | fixed on main at `a53fbb9` | `remapCopiedRefResolution` (`W/utils/componentIndices.ts`), `createComponentIndicesForShadowedReplacements` |
+| B15 | (#2405) A copy of a section whose content references the section, `<section name="S2" copy="$S"/>` of `<section name="S"><p>hi [$S]</p></section>`, stops the document from loading ("infinite loop while calculating replacement changes"). Without the copy, the self-reference is reported as `doenet-e0005` and the rest renders. Breaks NAME-7 | reported in the issue | the copy's replacements hold a copy of `$S`, a replacement loop not caught as a circular dependency |
+| B16 | (#2406) A copy or extend of a `<collect>` inside an extended group finds no source (`doenet-w0072`): `<collect copy="$B.gB.x"/>` and `<collect extend="$B.gB.x"/>`, where `gB` extends a group holding `<collect name="x" from="$h"/>`, show nothing, while `$B.gB.x` and a copy of the original collect work. Breaks D1, REF-6, and REF-1 under D32 | reported in the issue | `from` (a `references` attribute) may be looked up again by name, and since #2401 a name cannot reach content an extend made. Not traced |
+| B17 | (#2407) An index that names nothing is reported inconsistently: past the end, silent; 0 or negative, an uncoded warning quoting only `$l`; a dynamic 0, `doenet-w0104`; `$n.value[1]` shows `5` and warns `doenet-w0100`. Breaks VAL-5 for `$n.value[1]` | reported in the issue | the Rust resolver's `format_error_message` (`RS/errors.rs`) versus `refResolutionDependencies.ts`. #1499 covers whether to warn for a list whose length can change |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -41,7 +44,7 @@ interaction". They should be fixed on main whatever happens to the rewrite.
 
 ## D1. Should a copy re-bind names outside the copied part where it lands? (affects the author model)
 
-**Decided: (b), by referent. Done by #2397 (closing #2396), except B14.** A reference in copied content keeps meaning
+**Decided: (b), by referent. Done by #2397 (closing #2396) and #2400 (closing #2398, B14).** A reference in copied content keeps meaning
 what it meant in the source:
 - a referent inside the copied part becomes the copy's counterpart;
 - a referent outside keeps that referent.
@@ -63,8 +66,10 @@ can change without anything written on the copy saying so.
   That is how `$i` finds each iteration's value. A template is not a copy.
 - A copy pasted into a repeat iteration now names what its source named (`<indexOf copy="$io">`
   keeps `io`'s `target="$l"`, not the iteration's own `l`).
-- **Left:** a copy of an `extend` resolves outside references from where the extend is written,
-  not from the source (B14, #2398). #376, the same rule for `extend`, is open. The `_id_` and
+- **Fixed by #2400:** a copy of an `extend` resolved outside references from where the extend is
+  written (B14). #2400 keeps an outside referent as a referent for every unlinked copy.
+- **Left:** #376, the same rule for `extend`, is open. B16 (#2406), a copy or extend of a
+  `<collect>` inside an extended group, finds no source. The `_id_` and
   shadow-origin fallbacks in `refResolutionDependencies.ts` are still in place.
 
 **Today.** A copy is pasted DoenetML, so a `$n` inside it that pointed *outside* the copied part
@@ -1221,7 +1226,11 @@ use all the time.
   - arranging: `mode` on `pretzel`;
   - a module attribute on an extend of a `<module>` (it decides the module's content, as `for`
     decides a repeat's).
-- **Children written inside the extend,** when the tag's children are its content or its inputs:
+- **Children written inside the extend,** when the tag's children are its content or its inputs.
+  Only children the author actually wrote count. Today w0169 fires on every
+  `<conditionalContent extend>`, even a bare one, apparently counting the source's
+  `<case>`/`<else>` (#2404, comment). Turned into an error as is, it would make a bare extend an
+  error, against REF-1. The tags:
   the template of a repeat, the options of a select, the children of `shuffle`, `sort`,
   `conditionalContent`, `substitute` and `intersection`, the problems of a `pretzel`, and the
   choices of a `choiceInput`;
