@@ -659,7 +659,7 @@ Evidence: `T/copying/copy_keeps_referents.test.ts` (#2397): capture, ambiguity, 
 reference, attributes a copy of a list entry or property takes from its source, and a reload.
 
 **Known violation (B14):** a copy of an `extend` resolves outside references from where the
-extend is written. See the nesting table in §4.
+extend is written (#2398). See the nesting table in §4.
 
 ### CPY-7: to start from another component's current value, copy its value, not the component (Tier 1)
 A copy is independent of the component it copied, but **not of what that component refers
