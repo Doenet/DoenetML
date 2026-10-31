@@ -796,7 +796,7 @@ impl<'a> Compiler<'a> {
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
             }
         }
-        self.settle_shape(t, e, el);
+        self.settle_shape(t, e, el)?;
         Ok(e)
     }
 
@@ -806,10 +806,10 @@ impl<'a> Compiler<'a> {
     /// `<collect>` (its `componentType`) or a `<polyline>` (points)
     /// collects. Its planner plans as this says, and adds a collect's
     /// `from`.
-    fn settle_shape(&mut self, t: TemplateId, e: ElemId, el: NodeId) {
+    fn settle_shape(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
         let d = self.dast;
         let elem = &self.compiled.templates[t.index()].elems[e.index()];
-        let collected = match elem.component_type {
+        let component_type = match elem.component_type {
             ComponentType::Math => {
                 let mt = self.math_text(d.children(el));
                 let k = match &mt {
@@ -818,22 +818,19 @@ impl<'a> Compiler<'a> {
                 };
                 self.compiled.templates[t.index()].elems[e.index()].component_type = k;
                 self.math_texts.push(((t, e), mt));
-                return;
+                return Ok(());
             }
-            ComponentType::Collect => d
-                .attr_peek(el, "componentType")
-                .and_then(|a| self.attr_text(a))
-                .and_then(|text| ComponentType::from_tag(text.trim()))
-                .filter(|k| k.copyable()),
-            ComponentType::Polyline => Some(ComponentType::Point),
-            _ => None,
+            ComponentType::Collect => crate::components::structure::collect::collected_type(
+                d.attr(el, "componentType").and_then(|a| self.attr_text(a)),
+            )?,
+            ComponentType::Polyline => crate::components::geometry::polyline::COLLECTED,
+            _ => return Ok(()),
         };
-        if let Some(component_type) = collected {
-            self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect {
-                from: RefId::NONE,
-                component_type,
-            };
-        }
+        self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect {
+            from: RefId::NONE,
+            component_type,
+        };
+        Ok(())
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as

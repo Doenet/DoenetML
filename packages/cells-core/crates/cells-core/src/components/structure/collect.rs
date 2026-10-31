@@ -17,8 +17,19 @@ component! {
 
 pub const COUNT: usize = Props::AT.count;
 
-/// What it collects is resolved when it expands: the components of type
-/// `componentType` under what `from` names.
+/// The type a `<collect>` collects, from the text of its `componentType`
+/// (none when it has no literal one). Pass 1 reads it, once, so a
+/// reference indexing the collect knows what it names before anything is
+/// planned (ADR 0029).
+pub(crate) fn collected_type(type_text: Option<String>) -> Result<ComponentType> {
+    let type_text = type_text.ok_or(Error::BadCollect)?;
+    ComponentType::from_tag(type_text.trim())
+        .filter(|k| k.copyable())
+        .ok_or_else(|| Error::BadCollectType(type_text.trim().into()))
+}
+
+/// What it collects is resolved when it expands: the components of the
+/// type pass 1 read (`collected_type`) under what `from` names.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();
@@ -26,17 +37,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         .attr(el, "from")
         .and_then(|a| ctx.single_macro(a))
         .ok_or(Error::BadCollect)?;
-    let type_text = d
-        .attr(el, "componentType")
-        .and_then(|a| ctx.attr_text(a))
-        .ok_or(Error::BadCollect)?;
-    let collected_type = ComponentType::from_tag(type_text.trim())
-        .filter(|k| k.copyable())
-        .ok_or_else(|| Error::BadCollectType(type_text.trim().into()))?;
     let p = ctx.reference(from)?;
     if ctx.names_prop(p) {
         return Err(Error::BadCollect);
     }
-    ctx.collect(p, collected_type);
+    ctx.collect(p);
     Ok(())
 }

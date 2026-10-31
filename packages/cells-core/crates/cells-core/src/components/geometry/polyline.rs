@@ -24,6 +24,9 @@ pub const NUM_VERTICES: usize = Props::AT.numVertices;
 /// Gathers the points under what `vertices` names, as
 /// `<collect componentType="point">` would; `numVertices` is set when it
 /// expands.
+/// What a `<polyline>` collects, which pass 1 records (ADR 0029).
+pub(crate) const COLLECTED: ComponentType = ComponentType::Point;
+
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let m = ctx
         .dast()
@@ -36,6 +39,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             "<polyline vertices> must name a component holding points".into(),
         ));
     }
-    ctx.collect(p, ComponentType::Point);
+    ctx.collect(p);
     Ok(())
 }

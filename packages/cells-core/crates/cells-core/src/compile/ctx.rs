@@ -478,16 +478,16 @@ impl<'a> PlanCtx<'_, 'a> {
         Ok(())
     }
 
-    /// Makes the element's children copies of the components of type
-    /// `component_type` under what `from` names, found when it expands;
-    /// its props are set then too.
-    pub(crate) fn collect(&mut self, from: RefId, component_type: ComponentType) {
+    /// Makes the element's children copies of the components under what
+    /// `from` names of the type pass 1 recorded it collects (ADR 0029),
+    /// found when it expands; its props are set then too.
+    pub(crate) fn collect(&mut self, from: RefId) {
         let own_type = self.elem().component_type;
         let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
-        el.body = Body::Collect {
-            from,
-            component_type,
+        let Body::Collect { from: f, .. } = &mut el.body else {
+            unreachable!("pass 1 made a collecting element a collect")
         };
+        *f = from;
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];
         Deferred::mark(own_type, &mut props);
         el.props = props;

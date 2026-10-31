@@ -21,7 +21,7 @@ earlier passes finished, holds for pass 3 as written.
 | A planner read | of another element | Now |
 |---|---|---|
 | its type | a `<math>`, which is a point when its text is `(a, b)` and a tuple when it has more entries | pass 1 tokenizes the math's text, its `$ref`s placeholders, and decides the type from the tokens (`math::settled_type`), once |
-| its body | a `<collect>` or `<polyline>`, which is indexable (`$c[1]`) and collects one type | pass 1 sets the collected type, from the tag and `componentType`; the planner adds the `from` reference |
+| its body | a `<collect>` or `<polyline>`, which is indexable (`$c[1]`) and collects one type | pass 1 sets the collected type, parsing `componentType` once (`collect::collected_type`; a polyline's is `polyline::COLLECTED`); the planner adds only the `from` reference |
 | its shared state | an extend's referent, whose essential state a copy with attributes shares (ADR 0023) | the copy names the state (`x` of `$P`), and pass 4 links the name to the referent's slot |
 | its expression | a `<math>` a line's equation inlines (`$m = y` with `$m` standing for `2x`) | pass 2 parses every math's tokens once, its `$ref`s planned where it sits; the math's planner plans from that parse, and the line inlines it; a math reached twice while inlining is left a cell |
 | its clones | a container copy | pass 1, already (ADR 0027, step 5) |
@@ -120,3 +120,5 @@ Each step lands alone, with the golden diff unchanged.
    the type (`math::settled_type`) and pass 2's parse (`parse_maths`);
    the planner and the inliner read pass 2's `ParsedMath`. One reading
    of math text as a tuple (`expr::tuple_entries`) serves every caller.
+   A `<collect>`'s `componentType` is parsed once, in pass 1, and an
+   error in it boxes the collect there.
