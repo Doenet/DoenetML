@@ -652,7 +652,9 @@ describe("A copy's references keep their referents @group4", () => {
         // (`utils/dast/listForms.ts`), but cannot see that `$B.gB.x` is one,
         // as `gB.x` is made by the `extend`. The copies are written as
         // `<collect>`, `<sort>` and `<shuffle>`, of which the list form is
-        // one, so it is not wrapped in an empty composite of that type.
+        // one, so it is not wrapped in a new composite of that type: an
+        // empty `<collect>` showed nothing, and a `<shuffle>` around the
+        // list shuffled it again.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <section name="A"><number name="n">1</number>
@@ -660,7 +662,7 @@ describe("A copy's references keep their referents @group4", () => {
     <group name="h"><text>c $n</text><text>d</text></group>
     <collect name="x" componentType="text" from="$h"/>
     <sort name="s"><number>3</number><number>$n</number></sort>
-    <shuffle name="sh"><number>5</number></shuffle>
+    <shuffle name="sh"><number>5</number><number>6</number><number>7</number><number>8</number><number>9</number></shuffle>
   </group>
 </section>
 <section name="B"><number name="n">2</number><group name="gB" extend="$A.g"/></section>
@@ -674,6 +676,7 @@ describe("A copy's references keep their referents @group4", () => {
   <p name="p6"><collect copy="$B.gB.x" maxNumber="1"/></p>
   <p name="p7"><sort copy="$B.gB.s"/>; <sort extend="$B.gB.s"/></p>
   <p name="p8"><shuffle copy="$B.gB.sh"/>; <shuffle extend="$B.gB.sh"/></p>
+  <p name="p9">$B.gB.sh</p>
 </section>
 <section name="U">
   <p name="p1"><collect copy="$B.gB.x"/></p>
@@ -683,6 +686,11 @@ describe("A copy's references keep their referents @group4", () => {
         });
 
         expectNoDiagnostics(core);
+        // in the order `$B.gB.sh` shows, not shuffled again
+        const shuffled = (await textsOf(core, resolvePathToNodeIdx, ["D.p9"]))[
+            "D.p9"
+        ];
+        expect(shuffled.split(", ").sort()).eqls(["5", "6", "7", "8", "9"]);
         const expected = {
             "D.p1": "c 1, d",
             "D.p2": "c 1, d",
@@ -691,7 +699,7 @@ describe("A copy's references keep their referents @group4", () => {
             "D.p5": "c 1, d; c 1, d",
             "D.p6": "c 1",
             "D.p7": "1, 3; 1, 3",
-            "D.p8": "5; 5",
+            "D.p8": `${shuffled}; ${shuffled}`,
             "U.p1": "c 1, d",
             "U.p4": "c 1, d",
         };
