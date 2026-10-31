@@ -42,6 +42,17 @@ export default class SelectPrimeNumbers extends ValueListComponent {
 
     static createsVariants = true;
 
+    // An unlinked copy that writes one of these makes its own choices rather
+    // than its source's (`copyChangesChoices` in `Copy.js`).
+    static attributesDeterminingChoices = [
+        "from",
+        "to",
+        "exclude",
+        "numToSelect",
+        "withReplacement",
+        "excludeCombinations",
+    ];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

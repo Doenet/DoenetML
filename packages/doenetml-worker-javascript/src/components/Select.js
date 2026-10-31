@@ -49,6 +49,12 @@ export default class Select extends CompositeComponent {
 
     static createsVariants = true;
 
+    // An unlinked copy that writes one of these, or adds options, makes its
+    // own choices rather than its source's (`copyChangesChoices` in
+    // `Copy.js`).
+    static attributesDeterminingChoices = ["numToSelect", "withReplacement"];
+    static childrenDetermineChoices = true;
+
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
@@ -361,15 +367,21 @@ export default class Select extends CompositeComponent {
                             desiredIndices.length !==
                             dependencyValues.numToSelect
                         ) {
-                            throw Error(
-                                "Number of indices specified for select must match number to select",
-                            );
+                            const error = selectError({
+                                code: "doenet-e0037",
+                            });
+                            return selectionResult(error, {
+                                selectedIndices: [],
+                            });
                         }
                         desiredIndices = desiredIndices.map(Number);
                         if (!desiredIndices.every(Number.isInteger)) {
-                            throw Error(
-                                "All indices specified for select must be integers",
-                            );
+                            const error = selectError({
+                                code: "doenet-e0038",
+                            });
+                            return selectionResult(error, {
+                                selectedIndices: [],
+                            });
                         }
                         let n = dependencyValues.nOptions;
                         desiredIndices = desiredIndices.map(

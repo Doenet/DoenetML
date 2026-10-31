@@ -1906,6 +1906,20 @@ export default class Copy extends CompositeComponent {
                 }
             }
 
+            if (
+                !link &&
+                copyChangesChoices({
+                    replacement: repl,
+                    attributesFromComposite,
+                    children: copyInChildren
+                        ? component.serializedChildren
+                        : [],
+                    componentInfoObjects,
+                })
+            ) {
+                delete repl.variants.desiredVariant;
+            }
+
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -4631,6 +4645,174 @@ function extendIgnoresAttributesAndChildren({
     }
 
     return { attributeNames: ignoredAttributeNames, diagnostics };
+}
+
+/**
+ * Whether an unlinked copy changes what its random `replacement` chooses, so
+ * that the choices of its source (the variant it was given, `copyVariants`)
+ * no longer apply. A copy keeps its source's random choices when it chooses
+ * from the same options in the same number. When it writes a different value
+ * of an attribute that decides what is chosen
+ * (`attributesDeterminingChoices`), such as `numToSelect`, or adds options as
+ * children (`childrenDetermineChoices`), it makes its own choices instead.
+ * Those are drawn from the variant's generator, as a random child added to a
+ * copy draws its own, so they are the same for a given variant.
+ *
+ * An attribute counts as unchanged only when the copy writes it as its source
+ * did, or, where its source wrote neither it nor an attribute setting the
+ * same parameter (`alternativeChoiceAttributes`), as its default, as
+ * `numToSelect="1"` (`writtenValue`). Anything else, a reference included,
+ * counts as changed: its value is not known yet, and choosing anew never
+ * fails where keeping choices that do not fit does.
+ */
+function copyChangesChoices({
+    replacement,
+    attributesFromComposite,
+    children,
+    componentInfoObjects,
+}) {
+    if (replacement.variants?.desiredVariant === undefined) {
+        return false;
+    }
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacement.componentType];
+    if (!replacementClass) {
+        return false;
+    }
+
+    if (
+        replacementClass.childrenDetermineChoices &&
+        children.some((x) => typeof x !== "string" || x.trim() !== "")
+    ) {
+        return true;
+    }
+
+    const choiceAttributes = replacementClass.attributesDeterminingChoices;
+    if (!choiceAttributes) {
+        return false;
+    }
+
+    const attributesObject = replacementClass.createAttributesObject();
+    const sourceAttributes = replacement.attributes ?? {};
+    const alternatives = replacementClass.alternativeChoiceAttributes ?? [];
+
+    return choiceAttributes.some((attrName) => {
+        const written = attributesFromComposite[attrName];
+        if (written === undefined) {
+            return false;
+        }
+        const spec = attributesObject[attrName];
+        const source = sourceAttributes[attrName];
+        const copyValue = writtenValue(written, spec);
+        let sourceValue;
+        if (source !== undefined) {
+            sourceValue = writtenValue(source, spec);
+        } else if (
+            alternatives.some(
+                (group) =>
+                    group.includes(attrName) &&
+                    group.some((name) => sourceAttributes[name] !== undefined),
+            )
+        ) {
+            // The source set this parameter through another attribute, so
+            // the default does not apply to it.
+            sourceValue = null;
+        } else {
+            sourceValue = writtenDefault(spec);
+        }
+        return copyValue === null || copyValue !== sourceValue;
+    });
+}
+
+/**
+ * What was written for the serialized attribute `attribute`, as a string, or
+ * `null` when that cannot be told from what was written. Text is taken
+ * without the spaces around it, and, where the attribute specification `spec`
+ * lower-cases it or has a boolean default, in lower case, so
+ * `type=" Letters "` matches `type="letters"`. A component holding only text
+ * is taken as that text, so `numToSelect="2"` matches whether it is held as a
+ * literal or as a component.
+ */
+function writtenValue(attribute, spec) {
+    let written;
+    if (attribute?.type === "primitive") {
+        written = attribute.primitive?.value;
+    } else if (attribute?.type === "literal") {
+        written = attribute.text ?? attribute.value;
+    } else if (attribute?.type === "component") {
+        written = writtenComponent(attribute.component);
+        if (
+            written?.children?.length === 1 &&
+            typeof written.children[0] === "string" &&
+            Object.keys(written.attributes).length === 0
+        ) {
+            written = written.children[0];
+        }
+    }
+    if (written === undefined || written === null) {
+        return null;
+    }
+    return normalizedText(
+        typeof written === "object" ? JSON.stringify(written) : written,
+        spec,
+    );
+}
+
+/**
+ * The default of the attribute specification `spec` as `writtenValue` would
+ * give it written out, or `null` if it has no default that can be written.
+ */
+function writtenDefault(spec) {
+    const defaultValue = spec?.defaultValue;
+    return ["number", "boolean", "string"].includes(typeof defaultValue)
+        ? normalizedText(defaultValue, spec)
+        : null;
+}
+
+/** `value` as text without spaces around it, and in lower case where `spec` ignores case. */
+function normalizedText(value, spec) {
+    const text = String(value).trim();
+    return spec?.toLowerCase || typeof spec?.defaultValue === "boolean"
+        ? text.toLowerCase()
+        : text;
+}
+
+/**
+ * What was written for the serialized `component`: its type, its non-blank
+ * children and its attributes, each as written, or `null` when that cannot be
+ * told from what was written: a component holding a reference (`extending`)
+ * or a value of its own (`state`) stands for what is not in what was written.
+ */
+function writtenComponent(component) {
+    if (typeof component === "string") {
+        return component.trim();
+    }
+    if (
+        typeof component !== "object" ||
+        component.extending !== undefined ||
+        Object.keys(component.state ?? {}).length > 0
+    ) {
+        return null;
+    }
+    const children = [];
+    for (const child of component.children ?? []) {
+        const written = writtenComponent(child);
+        if (written === null) {
+            return null;
+        }
+        if (written !== "") {
+            children.push(written);
+        }
+    }
+    const attributes = {};
+    for (const attrName of Object.keys(component.attributes ?? {}).sort()) {
+        const written = writtenValue(component.attributes[attrName]);
+        if (written === null) {
+            return null;
+        }
+        attributes[attrName] = written;
+    }
+    return { componentType: component.componentType, children, attributes };
 }
 
 export function addChildrenFromComposite({

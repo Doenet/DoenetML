@@ -1,5 +1,6 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
+import { codedDiagnostic } from "../utils/diagnostics";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     // `<sampleRandomNumbers>` offers a `resample` action, and this component
     // has no use for it: it draws once from the variant's generator, and
@@ -38,6 +39,41 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
     static allowInSchemaAsComponent = ["number"];
 
     static createsVariants = true;
+
+    // An unlinked copy that writes one of these makes its own choices rather
+    // than its source's (`copyChangesChoices` in `Copy.js`).
+    static attributesDeterminingChoices = [
+        "numToSelect",
+        "type",
+        "mean",
+        "standardDeviation",
+        "variance",
+        "logMean",
+        "logStandardDeviation",
+        "logVariance",
+        "means",
+        "standardDeviations",
+        "variances",
+        "weights",
+        "from",
+        "to",
+        "step",
+        "exclude",
+        "numTotal",
+        "numSuccesses",
+        "numDraws",
+        "numTrials",
+        "probability",
+    ];
+
+    // Attributes that set the same parameter, so that the default of one
+    // does not apply where its source wrote the other: a copy of
+    // `standardDeviation="3"` that writes `variance="1"` changes what is
+    // chosen (`copyChangesChoices` in `Copy.js`).
+    static alternativeChoiceAttributes = [
+        ["standardDeviation", "variance"],
+        ["logStandardDeviation", "logVariance"],
+    ];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -235,9 +271,19 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                         if (
                             desiredValues.length !== dependencyValues.numSamples
                         ) {
-                            throw Error(
-                                "Number of values specified for selectRandomNumber must match number to select",
-                            );
+                            // Reported, as the other `select…` tags report
+                            // it, rather than thrown, which would stop the
+                            // whole document from loading.
+                            return {
+                                setEssentialValue: { selectedValues: [] },
+                                setValue: { selectedValues: [] },
+                                sendDiagnostics: [
+                                    codedDiagnostic({
+                                        type: "error",
+                                        code: "doenet-e0048",
+                                    }),
+                                ],
+                            };
                         }
 
                         // Take the values as given, but still check the parameters
