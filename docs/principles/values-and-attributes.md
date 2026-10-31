@@ -157,6 +157,10 @@ What it *looks like* depends on the parent and on the spelling (**[probe]**):
 | `<p>[$pl.xs[3]]</p>` | `[＿, ＿]` |
 | `<sum>$l[5] 3</sum>` | `3` |
 
+Whether a missing reference warns is inconsistent too (B17, #2407): an index past the end is
+silent, 0 or a negative index gives an uncoded warning, and `$n.value[1]` shows `5` while
+warning that the index can't be used, which breaks this principle.
+
 That table is an accident of which internal form was built. A rewrite should choose one
 representation: "the empty value of the type it presents as, drawn as nothing". See D10.
 Tests that lock the current table:
