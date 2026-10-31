@@ -504,11 +504,11 @@ function remapRefResolutions(
                 );
             } else if (attribute.type === "expression") {
                 // The references the component resolves itself
-                // (`utils/dast/expressionAttributes.ts`). Each is resolved
-                // from the copy, which the resolver is given with the rest
-                // of what is copied, also when the original resolved them
-                // from where they were written; with `keepReferents`, they
-                // keep their referents instead.
+                // (`utils/dast/expressionAttributes.ts`). With
+                // `keepReferents`, they keep their referents. Otherwise each
+                // is resolved from the copy, which the resolver is given with
+                // the rest of what is copied, also when the original resolved
+                // them from where they were written.
                 for (const slot of (attribute as any).slots) {
                     if (keepReferents) {
                         remapCopiedRefResolution(slot.refResolution, idxMap);
@@ -526,9 +526,8 @@ function remapRefResolutions(
 /**
  * Renumber `refResolution`, a reference in what is pasted from a source
  * (`keepReferents` of `createNewComponentIndices`), so that it keeps meaning
- * what it meant in the source: an unlinked copy (`copy=`) is
- * the source's DoenetML pasted, with its names still naming what they named
- * there. It goes by the referent, not by how the reference is spelled.
+ * what it meant in the source. It goes by the referent, not by how the
+ * reference is spelled.
  *
  * Its referent is the component its path was resolved to (`nodeIdx`), with
  * what is left of the path (`unresolvedPath`) still to resolve from there.

@@ -212,6 +212,33 @@ describe("A copy's references keep their referents @group4", () => {
         });
     });
 
+    it("a copy of a property keeps the referent of the attributes it takes from its source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="A">
+    <text name="s">full</text>
+    <math name="m" simplify="$s">x+x</math>
+</section>
+<section name="T">
+    <text name="s">none</text>
+    <math name="c" copy="$A.m.value" />
+</section>
+<section name="U">
+    <math name="c" copy="$A.m.value" />
+</section>
+`,
+        });
+
+        expectNoDiagnostics(core);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const path of ["T.c", "U.c"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                    .simplify,
+            ).eq("full");
+        }
+    });
+
     it("a copy made after interaction keeps its referents, through a save and reload", async () => {
         const doenetML = `
 <section name="A"><mathInput name="n" prefill="1" /><group name="g"><p name="p">$n</p></group></section>
