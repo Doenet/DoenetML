@@ -32,7 +32,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B11 | (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
 | B12 | Warnings on an extend of a tag that makes its own content are inconsistent. A child written inside `<shuffle extend>` is ignored with no warning. A bare `<conditionalContent extend="$x"/>` warns that its children are ignored, though none are written | yes | `W/components/abstract/Copy.js:4364-4446` (D32 makes both an error). Related: a child added to `<shuffle extend>` is never shown, yet can be reached by name, and its random value changes on a reload (#2366, closed as not planned) |
 | B13 | (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
-| B14 | A copy of an `extend` resolves references to outside names from where the extend is written, not from the source, breaking D1. With `n` = 1 in A and 2 in B, `<group name="gB" extend="$A.g"/>` in B shows 1 (REF-6), but `<group copy="$B.gB"/>` anywhere shows 2. The same holds for a copied `<p extend>`. Before #2397 it showed the `n` where the copy was written | **[probe]** on main at `ef87be6` | the extend's shadows seem to carry references whose origin is the extend; `keepReferents` keeps that origin. Not traced |
+| B14 | (#2398) A copy of an `extend` resolves references to outside names from where the extend is written, not from the source, breaking D1. With `n` = 1 in A and 2 in B, `<group name="gB" extend="$A.g"/>` in B shows 1 (REF-6), but `<group copy="$B.gB"/>` anywhere shows 2. The same holds for a copied `<p extend>`. Before #2397 it showed the `n` where the copy was written | **[probe]** on main at `ef87be6` | the extend's shadows seem to carry references whose origin is the extend; `keepReferents` keeps that origin. Not traced |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -64,7 +64,7 @@ can change without anything written on the copy saying so.
 - A copy pasted into a repeat iteration now names what its source named (`<indexOf copy="$io">`
   keeps `io`'s `target="$l"`, not the iteration's own `l`).
 - **Left:** a copy of an `extend` resolves outside references from where the extend is written,
-  not from the source (B14). #376, the same rule for `extend`, is open. The `_id_` and
+  not from the source (B14, #2398). #376, the same rule for `extend`, is open. The `_id_` and
   shadow-origin fallbacks in `refResolutionDependencies.ts` are still in place.
 
 **Today.** A copy is pasted DoenetML, so a `$n` inside it that pointed *outside* the copied part
