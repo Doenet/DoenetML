@@ -24,10 +24,7 @@ import {
 import { namesReachedThroughCopy, postProcessCopy } from "../utils/copy";
 import { preprocessAttributesObject } from "../utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import {
-    createComponentIndicesFromSerializedChildren,
-    createNewComponentIndices,
-} from "../utils/componentIndices";
+import { createComponentIndicesForShadowedReplacements } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
 import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
@@ -969,44 +966,29 @@ export class CompositeReplacementUpdater {
                         shadowingComponent.shadows.compositeIdx
                     ],
                 );
-                for (let [idx, repl] of replacementsToShadow.entries()) {
+                const serializedReplacementsToShadow = [];
+                for (const repl of replacementsToShadow) {
                     if (typeof repl === "object") {
-                        const serializedComponent = await repl.serialize({
-                            namesReachedThroughCopy: namesReached,
-                        });
-
-                        if (
-                            shadowingComponent.constructor
-                                .useSerializedChildrenComponentIndices
-                        ) {
-                            const res =
-                                createComponentIndicesFromSerializedChildren(
-                                    [serializedComponent],
-                                    [
-                                        shadowingComponent.serializedChildren[
-                                            idx
-                                        ],
-                                    ],
-                                    newNComponents,
-                                    stateIdInfo,
-                                );
-                            newNComponents = res.nComponents;
-
-                            newSerializedReplacements.push(...res.components);
-                        } else {
-                            const res = createNewComponentIndices(
-                                [serializedComponent],
-                                newNComponents,
-                                stateIdInfo,
-                            );
-                            newNComponents = res.nComponents;
-
-                            newSerializedReplacements.push(...res.components);
-                        }
+                        serializedReplacementsToShadow.push(
+                            await repl.serialize({
+                                namesReachedThroughCopy: namesReached,
+                            }),
+                        );
                     } else {
-                        newSerializedReplacements.push(repl);
+                        serializedReplacementsToShadow.push(repl);
                     }
                 }
+                const replacementsResult =
+                    createComponentIndicesForShadowedReplacements({
+                        serializedReplacements: serializedReplacementsToShadow,
+                        shadowingComponent,
+                        nComponents: newNComponents,
+                        stateIdInfo,
+                    });
+                newNComponents = replacementsResult.nComponents;
+                newSerializedReplacements.push(
+                    ...replacementsResult.components,
+                );
 
                 shadowingComponent.replacementsWorkspace.replacementsCreated =
                     stateIdInfo.num;

@@ -769,6 +769,61 @@ export function setUnflattenedReferenceOrigins(
 }
 
 /**
+ * Give new component indices to `serializedReplacements`, the serialized
+ * replacements of the composite that `shadowingComponent` shadows, which
+ * become its own replacements. A composite whose replacement `i` is its
+ * serialized child `i` (`useSerializedChildrenComponentIndices`, such as
+ * `<group>`) takes the indices of those children; any other takes new ones,
+ * starting with `nComponents`, except those given in `idxMapOverride`.
+ *
+ * The replacements are renumbered together, so that a reference in one to
+ * another (`$g.x` in a `<p>` beside `x` in `<group name="g">`) names that
+ * one's counterpart, as a reference to a component in the same replacement
+ * does: a copy of the shadowing composite then names its own counterpart,
+ * not the shadowed composite's.
+ *
+ * Returns:
+ * - `components`: the replacements with new indices
+ * - `nComponents`: the new value of `nComponents`, one greater than the last component index assigned
+ */
+export function createComponentIndicesForShadowedReplacements({
+    serializedReplacements,
+    shadowingComponent,
+    nComponents,
+    stateIdInfo,
+    idxMapOverride,
+}: {
+    serializedReplacements: (SerializedComponent | string)[];
+    shadowingComponent: {
+        constructor: Function & {
+            useSerializedChildrenComponentIndices?: boolean;
+        };
+        serializedChildren: (SerializedComponent | string)[];
+    };
+    nComponents: number;
+    stateIdInfo: {
+        prefix: string;
+        num: number;
+    };
+    idxMapOverride?: Record<number, number>;
+}) {
+    if (shadowingComponent.constructor.useSerializedChildrenComponentIndices) {
+        return createComponentIndicesFromSerializedChildren(
+            serializedReplacements,
+            shadowingComponent.serializedChildren,
+            nComponents,
+            stateIdInfo,
+        );
+    }
+    return createNewComponentIndices(
+        serializedReplacements,
+        nComponents,
+        stateIdInfo,
+        idxMapOverride,
+    );
+}
+
+/**
  * Recurse through all serialized components and update their component indices.
  * For components and their descendants use the `componentIdx` of the corresponding component in `componentIdxSources`.
  * (An error will be thrown if `serializedComponents` and `componentIdxSources` don't have the exact same structure.)

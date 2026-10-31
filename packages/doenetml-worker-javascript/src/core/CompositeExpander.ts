@@ -22,7 +22,7 @@ import {
 import { preprocessAttributesObject } from "../utils/attributes";
 import {
     createComponentIndicesFromSerializedChildren,
-    createNewComponentIndices,
+    createComponentIndicesForShadowedReplacements,
 } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
 import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
@@ -540,38 +540,28 @@ async function expandShadowingComposite({
     const namesReached = namesReachedThroughCopy(
         core._components[component.shadows.compositeIdx],
     );
-    for (let [idx, repl] of shadowedComposite.replacements.entries()) {
+    const serializedShadowedReplacements = [];
+    for (const repl of shadowedComposite.replacements) {
         if (typeof repl === "object") {
-            const serializedComponent = await repl.serialize({
-                valueReferenceAsComponent,
-                namesReachedThroughCopy: namesReached,
-            });
-
-            if (component.constructor.useSerializedChildrenComponentIndices) {
-                const res = createComponentIndicesFromSerializedChildren(
-                    [serializedComponent],
-                    [component.serializedChildren[idx]],
-                    newNComponents,
-                    stateIdInfo,
-                );
-                newNComponents = res.nComponents;
-
-                serializedReplacements.push(...res.components);
-            } else {
-                const res = createNewComponentIndices(
-                    [serializedComponent],
-                    newNComponents,
-                    stateIdInfo,
-                    idxMapOverride,
-                );
-                newNComponents = res.nComponents;
-
-                serializedReplacements.push(...res.components);
-            }
+            serializedShadowedReplacements.push(
+                await repl.serialize({
+                    valueReferenceAsComponent,
+                    namesReachedThroughCopy: namesReached,
+                }),
+            );
         } else {
-            serializedReplacements.push(repl);
+            serializedShadowedReplacements.push(repl);
         }
     }
+    const replacementsResult = createComponentIndicesForShadowedReplacements({
+        serializedReplacements: serializedShadowedReplacements,
+        shadowingComponent: component,
+        nComponents: newNComponents,
+        stateIdInfo,
+        idxMapOverride,
+    });
+    newNComponents = replacementsResult.nComponents;
+    serializedReplacements.push(...replacementsResult.components);
 
     if (component.constructor.addExtraSerializedChildrenWhenShadowing) {
         let rendered = true;

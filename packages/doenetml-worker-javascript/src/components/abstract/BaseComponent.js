@@ -1822,6 +1822,16 @@ export default class BaseComponent {
                     ),
                 },
             };
+            if (parameters.copyAll) {
+                const origin = originInShadowSource(
+                    this,
+                    parameters.components,
+                );
+                if (origin !== undefined) {
+                    serializedComponent.extending.Ref.nodesInResolvedPath[0] =
+                        origin;
+                }
+            }
         }
 
         // delete serializedComponent.attributes.name;
@@ -2379,6 +2389,43 @@ async function serializeShadowedAttributes({
             };
         }
     }
+}
+
+/**
+ * For an unlinked copy (`copyAll`) of `component`, a reference inside an
+ * `extend` (a shadow, not of a prop): the origin (`nodesInResolvedPath[0]`)
+ * of the reference in the source it shadows, at the end of the chain of
+ * shadows that keep its referent, or `undefined` if it shadows none.
+ *
+ * Making the extend moves the origin of each reference in it to the
+ * extend's counterpart, while a referent outside what is extended is kept.
+ * The extend itself shows what its source shows, as a shadow, but its copy
+ * resolves a reference to such a referent again from the origin
+ * (`remapCopiedRefResolution` in `utils/componentIndices.ts`), so from the
+ * extend's counterpart a component of the same name near the extend would
+ * capture it. From the source's origin, the copy keeps the source's referent
+ * (D1). A referent inside what is extended is the extend's counterpart, not
+ * the source's, which is where the walk stops.
+ */
+function originInShadowSource(component, components) {
+    const nodeIdx = component.refResolution.nodeIdx;
+    let origin;
+    const visited = new Set([component]);
+    let comp = component;
+    while (comp.shadows && comp.shadows.propVariable === undefined) {
+        const source = components?.[comp.shadows.componentIdx];
+        if (
+            !source ||
+            visited.has(source) ||
+            source.refResolution?.nodeIdx !== nodeIdx
+        ) {
+            break;
+        }
+        visited.add(source);
+        origin = source.refResolution.nodesInResolvedPath[0] ?? origin;
+        comp = source;
+    }
+    return origin;
 }
 
 /**
