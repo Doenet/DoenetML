@@ -1192,10 +1192,10 @@ use all the time.
 
 **Tier 1, what authors are told:**
 
-> An `extend` is the same component again. It can have its own name, and it can look different.
-> Some tags make their own content: they repeat it, choose it, gather it or compute it. An extend
-> of such a tag shows the same content, so it cannot change what the tag makes. Trying to is an
-> error, and the error says why and what to write instead.
+> An `extend` is the same component again: it shares its source's content and state. It can
+> have its own name, and it can look different, but it cannot change what the component makes
+> or what its state can hold. Trying to is an error, and the error says why and what to write
+> instead.
 
 - `$x` is always the same as `<T extend="$x"/>` (REF-1), for every tag.
 - A name, and any attribute that only changes how the content looks (`hide`, `styleNumber`,
@@ -1221,7 +1221,9 @@ use all the time.
     decides a repeat's).
 - **Children written inside the extend,** when the tag's children are its content or its inputs:
   the template of a repeat, the options of a select, the children of `shuffle`, `sort`,
-  `conditionalContent`, `substitute` and `intersection`, and the problems of a `pretzel`.
+  `conditionalContent`, `substitute` and `intersection`, the problems of a `pretzel`, and the
+  choices of a `choiceInput`;
+- **`shuffleOrder` on an extend of a `choiceInput`;**
   Children added to an extend of a `<group>` or `<module>` stay allowed: those tags hold what is
   written in them (REF-4, COMP-12, COMP-13).
 - **The parts of a choosing tag** (`case`, `else`, `option`) cannot be extended at all. A branch
@@ -1229,9 +1231,21 @@ use all the time.
 
 Which tags make their own content: those whose content is produced rather than written, that is,
 the composites other than `group` and `module`, plus `pretzel`, whose arrangement is made by an
-internal composite. An ordinary component that picks or arranges, such as
-`<choiceInput shuffleOrder>`, stays fully extendable. For an input, `$x` is its value (REF-1a), so
-an extend is the only way to show the same input twice.
+internal composite.
+
+**Inputs whose children decide what can be selected.** An extend of an input shares its state,
+and for an input `$x` is its value (REF-1a), so an extend is the only way to show the same input
+twice. It stays allowed, bare, named or restyled. What it cannot do is change what the shared
+state can hold:
+- **choices added inside an extend of a `<choiceInput>`** are an error. **[probe]** on main at
+  `64954c6`: `<choiceInput extend="$ci"><choice>c</choice></choiceInput>` lists `a`, `b` and an
+  empty third choice. Selecting it sets the source's selected index to 3, a choice the source
+  does not have, with value `null`. The source has nothing it could show;
+- **`shuffleOrder` on an extend** is an error too. It would make a new random arrangement, and
+  an extend shares its source's. Today it is ignored with no warning.
+
+Other components whose children decide their state, such as an `<answer>` given more `<award>`s
+inside an extend, follow the same rule. They are not surveyed yet.
 
 **The error message is the rule's communication.** It must make an author think "of course".
 Each one names the tag, what it makes, why an extend cannot change it, and what to write
@@ -1260,6 +1274,8 @@ meant.
   checked.
 - **#2216, #2215, the extend halves:** `replacement` on an extend of `<substitute>`, and `maxNumber`
   on an extend of `<collect>`, become errors rather than bugs to fix.
+- **choiceInput:** choices added inside an extend, and `shuffleOrder` on one, become errors.
+  The extend itself stays.
 - **Pretzel:** `<pretzel extend="$p"/>` stays, sharing responses. Problems or a `mode` written on
   it become an error, replacing warning w0178.
 - **Module attributes on an extend of a `<module>`** become an error that says to use `copy`.
@@ -1286,7 +1302,8 @@ they need no rewriting to `$x`.
 **Tests to add:**
 - for each tag in scope: a bare, a named and an appearance-only extend show the content, with the
   appearance applied; a copy of a named extend;
-- one error test for each banned attribute and for added children, checking the message.
+- one error test for each banned attribute and for added children, checking the message;
+- a `<choiceInput>` extend with an added choice, and with `shuffleOrder`, giving the error.
 
 ## D33. Two kinds of copy: written again here, or duplicated with its state (proposed Tier 1; names open)
 
