@@ -1500,3 +1500,77 @@ New tests:
   through a reload;
 - the error for each attribute that decides a choice, with literal and computed values;
 - the run-time warning for the module case above.
+
+## D34. A text's notation when it is read as math: `isLatex` and `format` (proposed Tier 2)
+
+**Today** (#2408 and its comment; **[probe]** on main at `a53fbb9`). `tl` is
+`<text isLatex>\frac{x+1}{2}</text>`, `tt` is `<text>x+1</text>`, and `mm` is `<math>y/3</math>`.
+
+| Written | Shows |
+|---|---|
+| `<math format="text">$tl</math>` | `(x + 1)/2`: the text's `isLatex` wins |
+| `<math format="latex">$t</math>`, `t` = `<text>\frac{x}{2}</text>` | `＿`: parsed as plain text (#2408) |
+| `<math format="latex">1 + $t</math>` | `1 + ＿` |
+| `<math>2$tt</math>` | `2 (x + 1)`: the text is parsed on its own, as one operand |
+| `<math>$mm.latex</math>` | `y/3`: a `.latex` property is read as LaTeX with no `isLatex` |
+| a write of `\sqrt{y}` through `<math>$tl</math>` | `tl` holds `\sqrt{y}`: written back in its own notation |
+
+A `<text>` child of a `<math>` goes through the text's math adapter, `textToMath({ value, isLatex })`
+(`W/utils/valueFunctions/text.js`), before the `<math>` sees it, so the `<math>`'s `format` is
+never consulted. `<math format="latex">$tt</math>` with `tt` = `x+1` shows `x + 1` only because
+`x+1` parses the same way in both notations.
+
+**Proposed rule (Tier 2): a text whose notation is known keeps it. A text whose notation is not
+known is read in the notation of the place that reads it.**
+- **Known notation:**
+  - `isLatex` written on the `<text>`, true or false;
+  - a value that is LaTeX by where it comes from, such as a `.latex` property. Main already reads
+    `$mm.latex` this way.
+
+  The reader's `format` does not override it.
+- **Unknown notation:** `isLatex` not written. The string is just characters, read as if
+  written at that place (VAL-3). Inside `<math format="latex">`, that is LaTeX.
+- **Defaults don't count.** "Written" means the author wrote the attribute, as for the reader's
+  own display settings in VAL-4. `format` defaults to `"text"` and `isLatex` to `false`. If
+  defaults counted, neither could ever give way.
+
+**Why the source's notation wins, unlike display settings in VAL-4.** In VAL-4 a reader's own
+setting overrides the referent's, but display settings only change how a value looks. Notation
+decides the value itself. A write through the reference lands on the text (VAL-11) and must be
+stored in the notation it is read in.
+- If `format="text"` overrode `isLatex`, a write would store LaTeX in `tl` that the reader then
+  parses as plain text, and the round trip would show `＿`.
+- When the known notation wins, reading and writing always use the same notation.
+
+**What follows:**
+- **One text reference is one operand,** as today. In `<math format="latex">1 + $tt</math>`, the
+  `1 + ` and `$tt` are each read as LaTeX, separately.
+- **Every place that reads a text as math** follows the rule: `<number>`, `<point>`, math-typed
+  attributes, `bindValueTo`. Only `<math>` has `format`, so it is the only place whose behavior
+  changes. Elsewhere an unknown-notation text is read as plain text, as today.
+- **A write through `<math format="latex">` into an unknown-notation text stores LaTeX
+  characters.** The text does not declare `isLatex`, consistent with "just characters". But
+  the stored string is now LaTeX:
+  - another reader of the same text with plain-text notation then shows `＿`;
+  - the text itself, drawn in a `<p>`, shows the LaTeX source.
+
+  This only happens when one text is read in two notations and written through one of them,
+  which is rare. An author who reads a text as LaTeX in several places should declare
+  `isLatex`.
+- **Text operators.** The motivating case in #2408 is a `<substitute type="text">` of
+  `$fp.latex`, which has no `isLatex`. Under the rule, `<math format="latex">` reads it as LaTeX,
+  which fixes it. Whether a text operator should keep its input's known notation is left open.
+  Without that, `<math>` with the default format still reads such a substitute as plain text.
+
+**Tests to add:**
+- `format="latex"` with an unknown-notation text parses it as LaTeX, using a string that parses
+  differently in the two notations (`\frac{x}{2}`);
+- `isLatex` written as true, and as false, wins over either `format`;
+- a `.latex` property is read as LaTeX under either `format`;
+- a write round-trips in each case;
+- `1 + $t` under `format="latex"` reads both parts as LaTeX.
+
+No test pins the #2408 case today.
+
+A candidate addition to VAL-3: "a reference to a text, read as math, is parsed in its known
+notation, or else in the reader's".
