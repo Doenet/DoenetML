@@ -141,6 +141,11 @@ Recent fixes show where the current representation is fragile:
 
 A rewrite should save only true sources, and recompute everything else.
 
+The diagnostics should match too. Today they can differ (#1499, comment): with
+`$r[2].r2[1].q` into a `<repeatForSequence length="$k">`, setting `k` to 1 shows nothing with no
+warning, but after a save and reload the same document adds `doenet-w0104`. Loaded with one
+iteration, the index is judged past the end for good, though `k` can grow (COMP-7).
+
 The guarantee covers what the reader sees and the values that were stored. It does not cover
 the core's internal identity for components: a component can come back with a different index
 (SAVE-5, #2349).

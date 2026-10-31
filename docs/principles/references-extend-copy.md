@@ -63,7 +63,7 @@ Code: Rust resolver, `RS/resolve.rs:170` and `search_parents` at `:462`.
 - Whatever part of the path does not match a name is read as a property.
 
 An index is read live and rounded like an integer: `$l[$i]` follows `i`. An index of 0, a
-negative index, or one past the end names nothing.
+negative index, or one past the end names nothing. How that is reported is inconsistent today (B17, #2407).
 
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
@@ -181,6 +181,11 @@ Today there are two failure modes ([decisions.md](decisions.md), D14):
 - Composite cycles report a diagnostic, and the rest of the document loads.
 - State-variable cycles throw. The whole document fails to load, and
   `<p name="p" copy="$p"/>` reports an internal `<_copy>` (**[probe]**).
+
+**Known violation (B15, #2405):** a copy of a section whose content references the section
+(`<section copy="$S"/>` of `<section name="S"><p>[$S]</p></section>`) fails to load with an internal
+"infinite loop" error. Without the copy, the self-reference is reported as `doenet-e0005` and
+the rest renders.
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
 `:755`. A reference to a point inside its own label is allowed and means "my value" (#1384).
@@ -671,8 +676,11 @@ Evidence: `T/copying/copy_keeps_referents.test.ts` (#2397): capture, ambiguity, 
 1–3, references through the copied root's own name, repeat content, an attribute of a copied
 reference, attributes a copy of a list entry or property takes from its source, and a reload.
 
-**Known violation (B14):** a copy of an `extend` resolves outside references from where the
-extend is written (#2398). See the nesting table in §4.
+#2400 (closing #2398, B14) extends this to a copy of an `extend`, and to a copy of part of one:
+an outside referent is kept as a referent, not looked up again by name.
+
+**Known violation (B16, #2406):** a copy or extend of a `<collect>` inside an extended group finds
+no source.
 
 ### CPY-7: to start from another component's current value, copy its value, not the component (Tier 1)
 A copy is independent of the component it copied, but **not of what that component refers
@@ -741,17 +749,17 @@ shows `$n`, and every section except F has its own number named `n`.
 <section name="G"><number name="n">6</number> <group name="gG" extend="$E.gE"/></section>
 ```
 
-Each group's paragraph shows (**[probe]** on main at `ef87be6`, after #2397):
+Each group's paragraph shows (**[probe]** on main at `a53fbb9`, after #2400):
 
 | Paragraph | Shows | Why |
 |---|---|---|
 | `A.g.p` | n is 1 | the original; its `$n` is A's `n` |
 | `B.gB.p` | n is 1 | `gB` extends `g`, so its `$n` still means A's `n`, though B has its own `n` |
 | `C.gC.p` | n is 1 | an extend of an extend: still A's `n` |
-| `D.gD.p` | n is 3 (should be 1: B14) | `gD` copies `gC`, which stands for `g` (CPY-4). Under D1 its `$n` should keep A's `n`. It finds C's `n`, where the extend `gC` is written. Before #2397 it found D's `n` (4) |
-| `E.gE.p` | n is 3 (should be 1: B14) | a copy of a copy keeps what `$n` meant in `gD`. Before #2397, 5 |
-| `F.gF.p` | n is 3 (should be 1: B14) | the same. Before #2397 it was empty: from F, which has no `n`, the `n`s in A to E and G were equally near |
-| `G.gG.p` | n is 3 (should be 1: B14) | `gG` extends the copy `gE`, so it keeps what `$n` means in `gE`. Before #2397, 5 |
+| `D.gD.p` | n is 1 | `gD` copies `gC`, which stands for `g` (CPY-4). Its `$n` keeps A's `n` (D1). Before #2397 it found D's `n` (4), and between #2397 and #2400 C's (3), where the extend `gC` is written (B14) |
+| `E.gE.p` | n is 1 | a copy of a copy keeps what `$n` meant in `gD`. Before #2397, 5 |
+| `F.gF.p` | n is 1 | the same. Before #2397 it was empty: from F, which has no `n`, the `n`s in A to E and G were equally near |
+| `G.gG.p` | n is 1 | `gG` extends the copy `gE`, so it keeps what `$n` means in `gE`. Before #2397, 5 |
 
 The same holds for a reference in an attribute written on a copy (NAME-4):
 
@@ -771,10 +779,10 @@ The same holds for a reference in an attribute written on a copy (NAME-4):
 **[probe]** confirms the three values. The test is `extend_references.test.ts:7759`, updated by
 #2397.
 
-Coverage of nesting is thin. `copy_keeps_referents.test.ts` (#2397) now covers copy chains at
-depths 1–3, capture inside copied content, and a copy of repeat-iteration content
-(`copy="$r[2].p"`). These cases still have no tests:
-- chains that mix extends and copies, such as the one above (B14);
+Coverage of nesting is thin. `copy_keeps_referents.test.ts` (#2397, #2400) now covers copy
+chains at depths 1–3, capture inside copied content, a copy of repeat-iteration content
+(`copy="$r[2].p"`), chains that mix extends and copies such as the one above, and copies of
+direct extends of content-making tags. These cases still have no tests:
 - live references at depth 3 through extends;
 - modules nested three deep.
 
