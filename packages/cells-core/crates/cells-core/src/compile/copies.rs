@@ -96,10 +96,8 @@ impl<'a> Compiler<'a> {
             Ok(()) => Ok(()),
             Err(error) if self.failed_node.is_some() => Err(error),
             Err(error) => {
-                let tpl = &mut self.compiled.templates[t.index()];
-                for el in &mut tpl.elems[n..] {
-                    el.component_type = ComponentType::Error;
-                    el.dead = true;
+                for x in n..self.compiled.templates[t.index()].elems.len() {
+                    self.make_box(t, ElemId::from_index(x), true);
                 }
                 self.box_in_place(t, e, error)
             }
@@ -107,20 +105,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let Elem {
-            node: el,
-            name_scope: scope,
-            ..
-        } = self.compiled.templates[t.index()].elems[e.index()];
-        let a = self
-            .dast
-            .attr(el, "extend")
-            .expect("a container copy extends");
-        let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
-            attr: "extend".into(),
-            text: self.attr_text(a).unwrap_or_default(),
-        })?;
-        let p = self.plan_ref(t, scope, m)?;
+        let p = self.plan_extend(t, e)?.expect("a container copy extends");
         // `<graph extend="$x.prop"/>` is no container copy: pass 3 refuses
         // it as an extend of a prop.
         if self.compiled.refs[p.index()].prop.is_some() {
@@ -129,13 +114,9 @@ impl<'a> Compiler<'a> {
         let r = self
             .plan_elem_target(t, p)
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
-        // A referent that is itself a copy has its clones first.
-        self.shaped_elem(t, r)?;
-        if self.is_box(t, r) {
-            return Err(Error::BoxedReferent(
-                self.compiled.refs[p.index()].display.clone(),
-            ));
-        }
+        // A referent that is itself a copy has its clones first; one that
+        // is a box has none to clone.
+        self.referent_type(t, e, p)?;
         self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(t, r, scope, e)?;

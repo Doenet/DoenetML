@@ -48,18 +48,18 @@ planners ask (ADR 0027, "Pass 2").
   Each element plans from its own source, and the links pass 4 makes
   are values: a loop among them is a dependency cycle, the build's to
   report, as before ADR 0027.
-- An extend of a box is boxed in pass 4, for every extend at once,
-  whichever was planned first: an extend's referent may be boxed in
-  pass 3 after the extend was planned. Pass 4 boxes in place, since no
-  plan read the extend's. Pass 4 links shared state only between
+- Whatever reads a referent's type to plan (an extend, a container copy,
+  `<constrainTo>`, a line's direction, `<functionIterates function>`)
+  reads it through one function (`referent_type`), which reads the type
+  pass 1 settled and records the read. A box has no type to plan from: a
+  reader of one is boxed in turn, its referent's box the cause, at once
+  if the referent is already a box, and otherwise in pass 4, which boxes
+  every recorded reader of a box in place whichever was planned first
+  (`box_readers_of_boxes`). Pass 4 then links shared state only between
   elements that are not boxes.
 - `box_in_place` no longer needs to restart when something under the box
   was planned: nothing read it. It still restarts when a container copy
   cloned something under the box, since a clone took its type.
-- What reads a referent's type to plan (`<constrainTo>`, a line's
-  direction, `<functionIterates function>`) reads the type pass 1 gave
-  it. When the referent is boxed in pass 3, it reads undefined values,
-  as any reference to a box does.
 
 ## Considered options
 
@@ -121,4 +121,7 @@ Each step lands alone, with the golden diff unchanged.
    the planner and the inliner read pass 2's `ParsedMath`. One reading
    of math text as a tuple (`expr::tuple_entries`) serves every caller.
    A `<collect>`'s `componentType` is parsed once, in pass 1, and an
-   error in it boxes the collect there.
+   error in it boxes the collect there. An element's `extend` is planned once
+   (`plan_extend`), whichever pass needs it first; a referent's type is
+   read, and a box among referents decided, in one place
+   (`referent_type`).

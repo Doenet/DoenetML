@@ -43,11 +43,7 @@ impl<'a> Compiler<'a> {
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
         let fp = self.plan_ref(t, scope, fm)?;
-        if self.ref_target_type(t, fp)? == Some(ComponentType::Error) {
-            return Err(Error::BoxedReferent(
-                self.compiled.refs[fp.index()].display.clone(),
-            ));
-        }
+        self.referent_type(t, e, fp)?;
         let (ft, fe) = self
             .static_target(t, fp)
             .filter(|&(ft, fe)| {

@@ -144,9 +144,13 @@ pub(in crate::compile) struct Compiler<'a> {
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
     /// By (template, element), each `<math>`'s text as pass 2 parsed it.
     pub(in crate::compile) parsed_maths: HashMap<(u32, u32), Result<ParsedMath>>,
-    /// Every extend pass 3 planned, with its reference: pass 4 boxes one
-    /// whose referent is a box (`box_extends_of_boxes`).
-    extends: Vec<(TemplateId, ElemId, RefId)>,
+    /// Every element whose plan reads the type of what a reference names
+    /// (`referent_type`), with the reference: pass 4 boxes one whose
+    /// referent is a box (`box_readers_of_boxes`).
+    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
+    /// By (template, element), the reference in the element's `extend`,
+    /// planned once (`plan_extend`).
+    extend_refs: HashMap<(u32, u32), RefId>,
 }
 
 /// A piece of essential state copy `e` shares with its referent (ADR
@@ -277,7 +281,8 @@ impl<'a> Compiler<'a> {
             expanded: HashSet::new(),
             names: NameTable::default(),
             shared_state: HashMap::new(),
-            extends: Vec::new(),
+            referent_readers: Vec::new(),
+            extend_refs: HashMap::new(),
             math_texts: Vec::new(),
             parsed_maths: HashMap::new(),
         };
@@ -394,7 +399,7 @@ impl<'a> Compiler<'a> {
         }
         // What needs every plan (pass 4): the links between plans, then
         // what reads the plans, the source and the name table alone.
-        cp.box_extends_of_boxes()?;
+        cp.box_readers_of_boxes()?;
         cp.link_shared_state();
         let finished = finish::Finish {
             compiled: &mut cp.compiled,
@@ -446,29 +451,9 @@ impl<'a> Compiler<'a> {
         self.errors.push(Diagnostic::error(Some(node), &error));
         self.boxed_here.insert(node);
         for (dt, de) in doomed {
-            let el = &mut self.compiled.templates[dt.index()].elems[de.index()];
-            el.component_type = ComponentType::Error;
-            el.props = Vec::new();
-            el.children = Vec::new();
-            el.body = Body::Plain;
-            el.extend = None;
-            el.n_public = NPublic::Table;
-            el.hold = Hold::Off;
-            el.dead = (dt, de) != (t, e);
+            self.make_box(dt, de, (dt, de) != (t, e));
         }
-        // A name that never made it into the table (a duplicate) is not
-        // the box's.
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
-        if el.name != StrId::NONE {
-            let registered = self
-                .names
-                .id(self.dast.strings.get(el.name))
-                .and_then(|id| self.names.entry(t, el.name_scope, id))
-                .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
-            if !registered {
-                self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
-            }
-        }
+        self.drop_unregistered_name(t, e);
         Ok(())
     }
 
@@ -515,18 +500,44 @@ impl<'a> Compiler<'a> {
             NodeKind::Element => self.attr_name_str(node, "name").unwrap_or(StrId::NONE),
             _ => StrId::NONE,
         };
-        let taken = name != StrId::NONE
-            && self
-                .names
-                .id(self.dast.strings.get(name))
-                .is_some_and(|id| {
-                    self.names
-                        .siblings
-                        .contains(&(t.get(), name_scope.get(), id))
-                });
-        let name = if taken { StrId::NONE } else { name };
-        self.push_elem(t, node, ComponentType::Error, name, name_scope)
-            .expect("a box's name is free among its siblings")
+        // A name a sibling holds fails to register, but the element is
+        // pushed all the same.
+        let e = ElemId::from_index(self.compiled.templates[t.index()].elems.len());
+        let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
+        self.drop_unregistered_name(t, e);
+        e
+    }
+
+    /// Leaves `e` its name only when the name table holds the name for it:
+    /// a box made for a duplicate name never registered it, and carries
+    /// none.
+    fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        if el.name == StrId::NONE {
+            return;
+        }
+        let registered = self
+            .names
+            .id(self.dast.strings.get(el.name))
+            .and_then(|id| self.names.entry(t, el.name_scope, id))
+            .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
+        if !registered {
+            self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
+        }
+    }
+
+    /// Makes `e` a box: an `_error` element with no props, children or
+    /// body, or, `dead`, one under a box, which no build makes.
+    pub(in crate::compile) fn make_box(&mut self, t: TemplateId, e: ElemId, dead: bool) {
+        let el = &mut self.compiled.templates[t.index()].elems[e.index()];
+        el.component_type = ComponentType::Error;
+        el.props = Vec::new();
+        el.children = Vec::new();
+        el.body = Body::Plain;
+        el.extend = None;
+        el.n_public = NPublic::Table;
+        el.hold = Hold::Off;
+        el.dead = dead;
     }
 
     /// Children of element `e` have `e` as their parent.
@@ -940,25 +951,77 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    /// Pass 4's first step (ADR 0029): an extend whose referent is a box
-    /// is planned from nothing, so it is boxed in turn, its referent's
-    /// box the cause, whether the referent was boxed before the extend
-    /// was planned or after. A copy of a copy of a box is boxed too.
-    fn box_extends_of_boxes(&mut self) -> Result<()> {
+    /// The reference in `e`'s `extend`, planned once from where `e` sits:
+    /// by pass 1 for a container copy, by pass 3 for the rest.
+    pub(in crate::compile) fn plan_extend(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Option<RefId>> {
+        let key = (t.get(), e.get());
+        if let Some(&p) = self.extend_refs.get(&key) {
+            return Ok(Some(p));
+        }
+        let Elem {
+            node, name_scope, ..
+        } = self.compiled.templates[t.index()].elems[e.index()];
+        let Some(a) = self.dast.attr(node, "extend") else {
+            return Ok(None);
+        };
+        let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+            attr: "extend".into(),
+            text: self.attr_text(a).unwrap_or_default(),
+        })?;
+        let p = self.plan_ref(t, name_scope, m)?;
+        self.extend_refs.insert(key, p);
+        Ok(Some(p))
+    }
+
+    /// The type of what `p` names, as pass 1 settled it, for `e`'s planner
+    /// to decide its plan by (an extend, `<constrainTo>`, ...). A box has
+    /// no type to plan from, so `e` is boxed in turn, its referent's box
+    /// the cause: here for a referent already boxed, in pass 4 for one
+    /// boxed after `e` is planned (`box_readers_of_boxes`).
+    pub(in crate::compile) fn referent_type(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+    ) -> Result<Option<ComponentType>> {
+        self.referent_readers.push((t, e, p));
+        self.read_referent(t, p)
+    }
+
+    /// The type of what `p` names, or, when it is a box, the error that
+    /// boxes what reads it.
+    fn read_referent(&mut self, t: TemplateId, p: RefId) -> Result<Option<ComponentType>> {
+        match self.ref_target_type(t, p)? {
+            Some(ComponentType::Error) => Err(Error::BoxedReferent(
+                self.compiled.refs[p.index()].display.clone(),
+            )),
+            k => Ok(k),
+        }
+    }
+
+    /// Pass 4's first step (ADR 0029): every element that read a
+    /// referent's type (`referent_type`) and whose referent is now a box
+    /// is boxed in place, whichever was planned first; a copy of a copy of
+    /// a box is boxed too.
+    fn box_readers_of_boxes(&mut self) -> Result<()> {
         loop {
             let mut boxed_one = false;
-            for i in 0..self.extends.len() {
-                let (t, e, p) = self.extends[i];
+            for i in 0..self.referent_readers.len() {
+                let (t, e, p) = self.referent_readers[i];
                 if self.is_box(t, e) {
                     continue;
                 }
-                let Some((rt, r)) = self.static_target(t, p) else {
-                    continue;
-                };
-                if self.is_box(rt, r) {
-                    let display = self.compiled.refs[p.index()].display.clone();
-                    self.box_in_place(t, e, Error::BoxedReferent(display))?;
-                    boxed_one = true;
+                match self.read_referent(t, p) {
+                    Err(error @ Error::BoxedReferent(_)) => {
+                        self.box_in_place(t, e, error)?;
+                        boxed_one = true;
+                    }
+                    Err(error) => return Err(error),
+                    Ok(_) => {}
                 }
             }
             if !boxed_one {
@@ -1002,11 +1065,9 @@ impl<'a> Compiler<'a> {
     /// (and whether its type is a container) before any prop is looked at.
     /// Records the extend plan on the element.
     fn elem_shape(&mut self, t: TemplateId, e: ElemId) -> Result<ElemShape> {
-        let d = self.dast;
         let Elem {
             node: el,
             component_type,
-            name_scope: scope,
             cloned,
             ..
         } = self.compiled.templates[t.index()].elems[e.index()];
@@ -1022,22 +1083,10 @@ impl<'a> Compiler<'a> {
         {
             return Ok(ElemShape::ContainerCopy(p));
         }
-        let extend = match d.attr(el, "extend") {
-            Some(a) => {
-                let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
-                    attr: "extend".into(),
-                    text: self.attr_text(a).unwrap_or_default(),
-                })?;
-                let p = self.plan_ref(t, scope, m)?;
-                self.extends.push((t, e, p));
-                // An extend of a box is planned from nothing: it is boxed
-                // in turn, its referent's box the cause (ADR 0027). One
-                // boxed after this is planned, pass 4 boxes.
-                if self.ref_target_type(t, p)? == Some(ComponentType::Error) {
-                    return Err(Error::BoxedReferent(
-                        self.compiled.refs[p.index()].display.clone(),
-                    ));
-                }
+        let extend = match self.plan_extend(t, e)? {
+            Some(p) => {
+                // An extend of a box is planned from nothing (ADR 0027).
+                let referent_type = self.referent_type(t, e, p)?;
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
                 // props alias the named prop.
@@ -1049,7 +1098,7 @@ impl<'a> Compiler<'a> {
                 // the element's type (REF-5, ADR 0025), so it is the
                 // extend of its default prop. An unrelated pair is left to
                 // the build, which refuses it once both types are known.
-                if let Some(rt) = self.ref_target_type(t, p)?
+                if let Some(rt) = referent_type
                     && rt != component_type
                     && ComponentType::extends_as(rt, component_type)
                     && let Some(dp) = rt.default_prop()
@@ -1064,10 +1113,7 @@ impl<'a> Compiler<'a> {
             None => None,
         };
         self.compiled.templates[t.index()].elems[e.index()].extend = extend;
-        Ok(match extend {
-            Some(p) if component_type.container() => ElemShape::ContainerCopy(p),
-            _ => ElemShape::ByType(extend),
-        })
+        Ok(ElemShape::ByType(extend))
     }
 
     /// Whether a child node is presentation a renderer reads rather than
