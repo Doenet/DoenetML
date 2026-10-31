@@ -14,8 +14,11 @@ to the copy, instead of finding the copied `h`. An attribute on a `copy`,
 `extend` or `<module copy>` now resolves like any other attribute: it sees the
 children written inside the tag, so `<section copy="$S" hide="$h"><boolean
 name="h">true</boolean></section>` is hidden, but still not the copied content.
-An attribute on a module's own definition that names one of its own module
-attributes, such as `<module xmin="$xmin">` with a `<number name="xmin">` in its
-`<moduleAttributes>`, refers to that attribute. Since that would make it depend
-on itself, it is now reported as such with an error, and the module attribute
-keeps its own value, instead of a "Multiple referents" warning.
+An attribute on a module's own definition also sees what is written inside the
+module, ahead of a same-named component outside it. One that names one of the
+module's own attributes, such as `<module xmin="$xmin">` with a
+`<number name="xmin">` in its `<moduleAttributes>`, refers to that attribute.
+Since that would make it depend on itself, it is now reported with an error and
+the module attribute keeps its own value. Before, it gave a "Multiple referents"
+warning when a same-named component was outside the module, and otherwise
+stopped the document with a circular dependency.

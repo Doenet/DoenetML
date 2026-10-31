@@ -1971,6 +1971,50 @@ ${moduleDefinition}
             });
         });
 
+        it("attribute written on the module's own definition sees what is written inside the module", async () => {
+            // `$a` finds the `a` written inside the module ahead of the one beside it,
+            // as for an attribute on any other component.
+            // With no `xmin` outside the module, `xmin="$xmin"` still names the module's own `xmin`.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<problem name="prob">
+    <number name="a">1</number>
+    <module name="g" xmin="$a">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <number name="a">5</number>
+        <p name="p">$xmin</p>
+    </module>
+    <module name="h" xmin="$xmin">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <p name="p">$xmin</p>
+    </module>
+</problem>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.map((e: any) => e.code)).eqls([
+                "doenet-e0055",
+            ]);
+            expect(diagnosticsByType.warnings).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.g.p",
+                text: "5",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.h.p",
+                text: "-10",
+            });
+        });
+
         it("copy of a module attribute keeps resolving where the module is written", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
