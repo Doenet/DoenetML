@@ -846,8 +846,9 @@ to be counted. It is also fragile under edits, and it would make (3) ambiguous a
 
 The list examples keep working, since entries are instances. Child indexing is on 0.7, and its
 select docs teach it (`$roll[1][1]`, `$groupSelect[2][2]`), so 0.8 gives a deprecation warning
-first. One change cannot be made compatible: an index after an instance with one indexable child
-now passes through to it, so `$a[2][1][3]` on nested repeats changes meaning (#2420).
+first. Pass-through takes its new meaning directly, with no compatibility mode: the old reading
+of nested repeats was confusing and little used. `$a[2][1][3]` becomes `$a[2][3]`, and the old
+form now reads differently (#2420).
 
 ### Values with entries (decided)
 
