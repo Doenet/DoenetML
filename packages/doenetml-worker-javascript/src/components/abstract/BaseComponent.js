@@ -2448,10 +2448,12 @@ function originInShadowSource(component, components) {
  * reference takes instead the origin of its counterpart in the source, at
  * the end of the chain of shadows that keep its referent. A referent inside
  * the serialized children is the shadow's counterpart, not the source's,
- * which is where the walk stops for that reference; a source whose
- * serialized children hold a different number of references stops it for
- * all. A path that starts with no name resolves from its origin itself, so
- * keeps it.
+ * which is where the walk stops for that reference. Children an extend adds
+ * come after its source's, so their references, which have no counterpart
+ * in the source, come last and keep their origins; a source whose serialized
+ * children hold more references than the shadow's stops the walk for all. A
+ * path that starts with no name resolves from its origin itself, so keeps
+ * it.
  */
 function keepShadowSourceOrigins(serializedChildren, component, components) {
     const refs = refResolutionsIn(serializedChildren);
@@ -2474,11 +2476,14 @@ function keepShadowSourceOrigins(serializedChildren, component, components) {
         }
         visited.add(source);
         const sourceRefs = refResolutionsIn(source.serializedChildren);
-        if (sourceRefs.length !== refs.length) {
+        // Children an extend adds follow its source's
+        // (`addChildrenFromComposite` in `Copy.js`).
+        if (sourceRefs.length > refs.length) {
             break;
         }
-        for (const [i, sourceRef] of sourceRefs.entries()) {
-            if (followed[i] && sourceRef.nodeIdx === refs[i].nodeIdx) {
+        for (const [i, ref] of refs.entries()) {
+            const sourceRef = sourceRefs[i];
+            if (followed[i] && sourceRef?.nodeIdx === ref.nodeIdx) {
                 origins[i] = sourceRef.nodesInResolvedPath[0] ?? origins[i];
             } else {
                 followed[i] = false;
