@@ -4597,6 +4597,8 @@ const TAGS_MAKING_THEIR_CONTENT = new Set([
     "conditionalContent",
     "collect",
     "sort",
+    // The indices that sort its children.
+    "sortIndices",
     "sequence",
     "intersection",
     "substitute",

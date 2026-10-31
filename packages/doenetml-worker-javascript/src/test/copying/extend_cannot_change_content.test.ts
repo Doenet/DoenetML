@@ -61,6 +61,10 @@ describe("An extend cannot change what a tag makes @group4", () => {
             doenetML: `<substitute name="x" type="text" match="b" replacement="a">b</substitute>`,
             text: "a",
         },
+        sortIndices: {
+            doenetML: `<sortIndices name="x"><number>3</number><number>1</number><number>2</number></sortIndices>`,
+            text: "2, 3, 1",
+        },
         split: {
             doenetML: `<split name="x" splitBy="comma">a,b</split>`,
             text: "a, b",
@@ -187,6 +191,7 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         ["substitute", "type", "math"],
         ["split", "splitBy", "character"],
         ["shuffle", "type", "math"],
+        ["sortIndices", "sortByProp", "text"],
     ];
 
     for (const [tag, attribute, value] of CONTENT_ATTRIBUTES) {
@@ -266,6 +271,11 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
             "sort",
             "<number>0</number>",
             "Children written inside an `extend` of a `<sort>` would be new inputs to what it makes, but an extend shows the same content as `$x`. To make a `<sort>` from different children, use `copy`.",
+        ],
+        [
+            "sortIndices",
+            "<number>0</number>",
+            "Children written inside an `extend` of a `<sortIndices>` would be new inputs to what it makes, but an extend shows the same content as `$x`. To make a `<sortIndices>` from different children, use `copy`.",
         ],
         [
             "substitute",
