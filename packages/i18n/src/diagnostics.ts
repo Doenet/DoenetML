@@ -90,6 +90,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0050": "tally-values-outside-categories",
     "doenet-i0051": "attribute-value-invalid-ignoring",
     "doenet-i0052": "chart-histogram-values-outside-bins",
+    "doenet-i0053": "type-change-value-not-convertible",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -329,6 +330,10 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0059": "extend-choice-input-shuffle-order",
     "doenet-e0060": "extend-module-attribute",
     "doenet-e0061": "extend-part-of-choosing-tag",
+    "doenet-e0062": "type-change-input-from-value",
+    "doenet-e0063": "type-change-from-container",
+    "doenet-e0064": "type-change-composite-not-one",
+    "doenet-e0065": "type-change-unrelated",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

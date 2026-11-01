@@ -81,6 +81,52 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 <p>$(a)b is the value of a followed by the letter b.</p>
 ```
 
+### Writing a reference as a different tag
+
+`<math extend="$t"/>{:dn}` or `<math copy="$t"/>{:dn}`, where `t` is not a
+`<math>`, asks for a math made from `t`. That works only between related
+types:
+
+* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another;
+* `<point>`, `<vector>` and `<coords>`, from one another;
+* a `<math>` from a point, vector or coords, as the tuple of its coordinates,
+  and a point, vector or coords from a math whose value is a tuple;
+* a `<math>`, `<number>`, `<text>` or `<boolean>` from an input, as its value:
+  `<math extend="$mi"/>{:dn}` of a `<mathInput>`;
+* a component as what it stands for wherever its own tag can't go, such as an
+  `<angle>` as a `<math>`, or an `<ion>` as the `<text>` of its name.
+
+A `<group>` can be made from anything, and holds it.
+
+A composite or a list that holds exactly one component counts as that
+component: `<number extend="$s"/>{:dn}` of a select that picked one number,
+`<text extend="$cc"/>{:dn}` while the active case of a `<conditionalContent>`
+holds one text, `<math extend="$c"/>{:dn}` of a `<collect>` that holds one math.
+
+```doenet-editor-horiz
+<point name="P">(3,4)</point>
+<select name="s"><option><number>7</number></option></select>
+
+<p>As a math: <math extend="$P"/></p>
+<p>As a number: <number extend="$s"/></p>
+```
+
+Any other pair is an error, shown in place of the reference, whose message says
+what to write instead:
+
+* to use the text of a `<p>`, `<section>` or other container, write `$p.text`;
+* an input is not the same thing as its value: to edit `$m` with an input, write
+  `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
+  `<mathInput prefill="$m"/>{:dn}`;
+* to use one component of a group, repeat or select that holds several, write
+  `$g[1]` or name it, and to read them all as one value, write
+  `<math>$g</math>{:dn}`.
+
+When the mismatch depends on what the document makes as it runs, such as which
+case is active, how many components a `<collect>` holds, or whether a math's
+value is a tuple, nothing is shown while it lasts, with an info saying why. It
+is shown again when the content matches.
+
 ## How references are resolved
 
 How DoenetML decides which component a reference points at — and what happens

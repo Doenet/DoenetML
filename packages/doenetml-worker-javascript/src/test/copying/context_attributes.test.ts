@@ -246,7 +246,7 @@ describe("Fixed and fixLocation of references @group4", () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m" fixed>y</math>
-    <booleanInput name="bi" extend="$m.fixed" />
+    <booleanInput name="bi" bindValueTo="$m.fixed" />
     `,
         });
         const biIdx = await resolvePathToNodeIdx("bi");

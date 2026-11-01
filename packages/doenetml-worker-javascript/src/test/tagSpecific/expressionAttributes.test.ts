@@ -890,7 +890,7 @@ describe("Lists held by what searches for them @group4", () => {
   <numberList name="q">$v 9</numberList>
   <indexOf name="io" target="$q">9 1 2</indexOf>
 </repeatForSequence>
-<number name="x" extend="$r[2].io" />
+<number name="x" extend="$r[2].io[1]" />
 `;
         const setTo =
             (latex: string) => async (core: any, resolvePathToNodeIdx: any) =>

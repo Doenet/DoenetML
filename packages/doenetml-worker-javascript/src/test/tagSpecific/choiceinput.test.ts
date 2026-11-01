@@ -1704,7 +1704,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       </choiceInput>
     </group>
     
-    <graph copy="$g" name="g2" />
+    <group copy="$g" name="g2" />
     `,
         });
 

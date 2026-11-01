@@ -482,6 +482,11 @@ export type MessageKey =
     | "extend-choice-input-shuffle-order"
     | "extend-module-attribute"
     | "extend-part-of-choosing-tag"
+    | "type-change-unrelated"
+    | "type-change-input-from-value"
+    | "type-change-from-container"
+    | "type-change-composite-not-one"
+    | "type-change-value-not-convertible"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -1138,6 +1143,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-choice-input-shuffle-order",
     "extend-module-attribute",
     "extend-part-of-choosing-tag",
+    "type-change-unrelated",
+    "type-change-input-from-value",
+    "type-change-from-container",
+    "type-change-composite-not-one",
+    "type-change-value-not-convertible",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",

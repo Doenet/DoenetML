@@ -10,6 +10,7 @@ import {
     addAttributesToSingleReplacement,
     addAttributesToSingleReplacementChange,
     getSelfReferentialFallbackPropName,
+    replacementIsOfType,
 } from "../../utils/copy";
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import {
@@ -23,6 +24,9 @@ import {
 } from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { applySugar } from "../../utils/dast/sugar";
+import AuthoredValueList from "./AuthoredValueList";
+import { typeChangeRule, valueAllowsTypeChange } from "../../utils/typeChange";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import {
@@ -1100,6 +1104,67 @@ export default class Copy extends CompositeComponent {
             },
         };
 
+        // The state variable of what an `extend` or `copy` is of that decides
+        // whether the type it is written as can be made from it
+        // (`typeChangeStatus`): the `value` of a math for `<point
+        // extend="$m"/>` (`utils/typeChange.js`), or `numEntries` of a list,
+        // which stands for its one entry.
+        stateVariableDefinitions.typeChangeValueCheck = {
+            returnDependencies: () => ({
+                extendedComponent: {
+                    dependencyType: "stateVariable",
+                    variableName: "extendedComponent",
+                },
+                writtenType: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "_createComponentOfType",
+                },
+                copyInChildren: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "_copyInChildren",
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                const sourceType =
+                    dependencyValues.extendedComponent?.componentType;
+                const writtenType =
+                    dependencyValues.writtenType &&
+                    componentInfoObjects.componentTypeLowerCaseMapping[
+                        dependencyValues.writtenType.toLowerCase()
+                    ];
+                const writtenClass =
+                    componentInfoObjects.allComponentClasses[writtenType];
+                if (
+                    !dependencyValues.copyInChildren ||
+                    !sourceType ||
+                    !writtenClass ||
+                    writtenClass.listEntryComponentType !== undefined ||
+                    replacementIsOfType(sourceType, writtenType)
+                ) {
+                    return { setValue: { typeChangeValueCheck: null } };
+                }
+                if (
+                    componentInfoObjects.allComponentClasses[sourceType]
+                        ?.listEntryComponentType !== undefined
+                ) {
+                    return {
+                        setValue: { typeChangeValueCheck: "numEntries" },
+                    };
+                }
+                return {
+                    setValue: {
+                        typeChangeValueCheck: typeChangeRule({
+                            writtenType,
+                            sourceType,
+                            componentInfoObjects,
+                        }).valueCheck
+                            ? "value"
+                            : null,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.needsReplacementsUpdatedWhenStale = {
             stateVariablesDeterminingDependencies: [
                 "extendedComponent",
@@ -1108,6 +1173,7 @@ export default class Copy extends CompositeComponent {
                 "unresolvedPath",
                 "link",
                 "removeEmptyArrayEntries",
+                "typeChangeValueCheck",
             ],
             returnDependencies: function ({
                 stateValues,
@@ -1189,6 +1255,21 @@ export default class Copy extends CompositeComponent {
                             stateValues.extendedComponent.componentIdx,
                         recursive: true,
                         variableNames: ["isInactiveCompositeReplacement"],
+                    };
+                }
+
+                if (
+                    stateValues.typeChangeValueCheck &&
+                    !stateValues.effectivePropNameBySource?.[0]
+                ) {
+                    // whether the type the extend is written as can be made
+                    // from its source (`typeChangeStatus`)
+                    dependencies.typeChangeSourceValue = {
+                        dependencyType: "stateVariable",
+                        componentIdx:
+                            stateValues.extendedComponent.componentIdx,
+                        variableName: stateValues.typeChangeValueCheck,
+                        variablesOptional: true,
                     };
                 }
 
@@ -1278,6 +1359,7 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource = [];
         workspace.propVariablesCopiedBySource = [];
         workspace.sourceIndices = [];
+        workspace.typeChangeKey = undefined;
         // Whether this copy is inside source `sourceNum` (see
         // `calculateReplacementChanges`).
         workspace.sourceContainsCopyBySource = [];
@@ -1493,6 +1575,55 @@ export default class Copy extends CompositeComponent {
         workspace.sourceIndices = replacementSourceIdentities.map(
             (x) => x.componentIdx,
         );
+
+        // A copy written as a different tag than what it copies makes one
+        // only between related types (D26, `typeChangeStatus`).
+        // An extend that would change what its source makes is that error
+        // instead (`extendChangesContentErrors`).
+        const typeChange = replacements.some(
+            (x) => x?.doenetAttributes?.inPlaceOfExtend,
+        )
+            ? undefined
+            : await typeChangeStatus({
+                  component,
+                  components,
+                  componentInfoObjects,
+                  propReplacements: replacements,
+              });
+        workspace.typeChangeKey = typeChangeKey(typeChange);
+        if (typeChange) {
+            diagnostics.push(typeChange.diagnostic);
+            replacements =
+                typeChange.level === "error"
+                    ? [
+                          {
+                              type: "serialized",
+                              componentType: "_error",
+                              componentIdx: nComponents++,
+                              stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                              state: errorComponentState(
+                                  typeChange.diagnostic.message,
+                                  typeChange.diagnostic,
+                              ),
+                              attributes: {},
+                              // Not given the type the copy is written as
+                              // (`verifyReplacementsMatchSpecifiedType`)
+                              doenetAttributes: { inPlaceOfExtend: true },
+                              children: [],
+                          },
+                      ]
+                    : [];
+            addAttributesToSingleReplacement(
+                replacements,
+                component,
+                componentInfoObjects,
+            );
+            workspace.numReplacementsBySource = [replacements.length];
+            workspace.numNonStringReplacementsBySource = [replacements.length];
+            workspace.propVariablesCopiedBySource = [];
+            workspace.replacementsCreated = stateIdInfo.num;
+            return { replacements, diagnostics, nComponents };
+        }
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
             component,
@@ -1975,6 +2106,16 @@ export default class Copy extends CompositeComponent {
             }
 
             Object.assign(repl.attributes, attributesFromComposite);
+
+            if (!link && attributesFromComposite.type) {
+                nComponents = retypeTextPieces({
+                    replacement: repl,
+                    componentInfoObjects,
+                    nComponents,
+                    stateIdInfo,
+                    diagnostics,
+                });
+            }
         }
 
         // if have copy target, then add additional children from the composite itself
@@ -2051,6 +2192,7 @@ export default class Copy extends CompositeComponent {
                 workspace.sourceIndices.length === 0;
 
             workspace.sourceIndices = [];
+            workspace.typeChangeKey = undefined;
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
@@ -2180,6 +2322,65 @@ export default class Copy extends CompositeComponent {
                         `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentIdx}`,
                     );
                 }
+            }
+        }
+
+        // A type change that was not allowed, or is no longer, makes its
+        // replacements again (`typeChangeStatus`). A copy of a prop is decided
+        // only when made.
+        if (effectivePropNameBySource[0]) {
+            if (workspace.typeChangeKey?.startsWith("mismatch")) {
+                return {
+                    replacementChanges: unwithheldChanges(component),
+                    diagnostics,
+                    nComponents,
+                };
+            }
+        } else {
+            const typeChange = await typeChangeStatus({
+                component,
+                components,
+                componentInfoObjects,
+            });
+            const key = typeChangeKey(typeChange);
+            if (key !== workspace.typeChangeKey) {
+                if (
+                    key?.startsWith("mismatch") ||
+                    workspace.typeChangeKey?.startsWith("mismatch")
+                ) {
+                    const result = await this.createReplacementsFromSources({
+                        component,
+                        components,
+                        nComponents,
+                        workspace,
+                        componentInfoObjects,
+                        resolveItem,
+                        publicCaseInsensitiveAliasSubstitutions,
+                    });
+                    diagnostics.push(...result.diagnostics);
+                    return {
+                        replacementChanges: [
+                            ...unwithheldChanges(component),
+                            {
+                                changeType: "add",
+                                changeTopLevelReplacements: true,
+                                firstReplacementInd: 0,
+                                numberReplacementsToReplace:
+                                    component.replacements.length,
+                                serializedReplacements: result.replacements,
+                            },
+                        ],
+                        diagnostics,
+                        nComponents: result.nComponents,
+                    };
+                }
+                workspace.typeChangeKey = key;
+            } else if (key?.startsWith("mismatch")) {
+                return {
+                    replacementChanges: unwithheldChanges(component),
+                    diagnostics,
+                    nComponents,
+                };
             }
         }
 
@@ -4621,6 +4822,425 @@ export async function replacementFromProp({
         diagnostics,
         nComponents,
     };
+}
+
+/**
+ * A copy is its source's DoenetML pasted (CPY-1), so `type` on a copy of a
+ * `<sort>` or `<shuffle>` decides how the text written in it is read, as it
+ * does on the source (`<sort copy="$s" type="text"/>` sorts `10 3 1` as
+ * text, #2414). The source has already read that text as its own `type`
+ * (`returnBreakStringsIntoTypeSugarInstruction`), so each component it made
+ * from a piece of text (`textPiece`) is given back as the text, and the
+ * replacement's sugar is applied again with the copy's `type`.
+ *
+ * Returns the new `nComponents`.
+ */
+function retypeTextPieces({
+    replacement,
+    componentInfoObjects,
+    nComponents,
+    stateIdInfo,
+    diagnostics,
+}) {
+    if (
+        !replacement.children?.some(
+            (child) => typeof child?.doenetAttributes?.textPiece === "string",
+        )
+    ) {
+        return nComponents;
+    }
+    const children = [];
+    for (const child of replacement.children) {
+        const item =
+            typeof child?.doenetAttributes?.textPiece === "string"
+                ? child.doenetAttributes.textPiece
+                : child;
+        const last = children[children.length - 1];
+        if (typeof item === "string" && typeof last === "string") {
+            children[children.length - 1] = `${last} ${item}`;
+        } else {
+            children.push(item);
+        }
+    }
+    const res = applySugar({
+        serializedComponents: [{ ...replacement, children }],
+        componentInfoObjects,
+        nComponents,
+        stateIdInfo,
+    });
+    replacement.children = res.components[0].children;
+    diagnostics.push(...res.diagnostics);
+    return res.nComponents;
+}
+
+/**
+ * What `typeChangeStatus` decided, as a string to compare with what it
+ * decided before: `undefined` when there was nothing to decide, `"allowed"`,
+ * or `"mismatch:"` and the diagnostic.
+ */
+function typeChangeKey(typeChange) {
+    if (typeChange === undefined) {
+        return undefined;
+    }
+    if (typeChange === null) {
+        return "allowed";
+    }
+    return `mismatch:${typeChange.level}:${typeChange.diagnostic.message}`;
+}
+
+/** The change that shows any replacements `component` withholds. */
+function unwithheldChanges(component) {
+    return component.replacementsToWithhold > 0
+        ? [
+              {
+                  changeType: "changeReplacementsToWithhold",
+                  replacementsToWithhold: 0,
+              },
+          ]
+        : [];
+}
+
+/**
+ * The type `component` stands for: its own, or, for a value reference
+ * (`$x` in a case, `$g[1]` of a group holding `$n.value`), the type it
+ * presents its referent's value as (`ValueRef`).
+ */
+function typeStoodFor(component) {
+    return component.componentType === "_ref"
+        ? (component.doenetAttributes?.presentedComponentType ?? "_ref")
+        : component.componentType;
+}
+
+/**
+ * The composites whose content is fixed by the document, so that a type
+ * change of one that does not match is a mistake in what the author wrote
+ * (an error), not a state the document is in for now (an info).
+ */
+const COMPOSITES_WITH_WRITTEN_CONTENT = new Set(["group", "_copy"]);
+
+/**
+ * Whether the `extend` or `copy` `component`, written as a different tag than
+ * what it is of, makes something allowed (D26, REF-5, `utils/typeChange.js`):
+ * - `undefined` when there is nothing to decide: the copy is not one an
+ *   author wrote as a tag (`_copyInChildren`), it is written as a list or a
+ *   `<group>`, or what it copies is not known yet (a reference that names
+ *   nothing yet, content not yet expanded, a prop that makes several
+ *   components);
+ * - `null` when the type change is allowed;
+ * - otherwise `{ level, diagnostic }`, the mismatch: `level` is `"error"`
+ *   when it follows from what the author wrote, and `"info"` when from what
+ *   the document makes at run time (the active case, the pick, how many
+ *   components a collect holds, a math's value), during which nothing is
+ *   shown (DIAG-2).
+ *
+ * A composite stands for its content when that is exactly one component
+ * (D27): `<text extend="$cc"/>` while the active case holds one text. Its
+ * content is read from the components it has made, so the composite must be
+ * expanded, as an `extend` or `copy` of it waits for
+ * (`needsReplacementsUpdatedWhenStale`, `unlinkedTargetsExpanded`).
+ *
+ * `propReplacements` are the replacements made of a prop (`$P.coords`),
+ * whose type is the source's; without them, a copy of a prop is not decided.
+ */
+async function typeChangeStatus({
+    component,
+    components,
+    componentInfoObjects,
+    propReplacements,
+}) {
+    if (!component.attributes._copyInChildren?.primitive?.value) {
+        return undefined;
+    }
+    const writtenValue =
+        component.attributes._createComponentOfType?.primitive?.value;
+    const writtenType =
+        writtenValue &&
+        componentInfoObjects.componentTypeLowerCaseMapping[
+            writtenValue.toLowerCase()
+        ];
+    const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
+    if (
+        !writtenClass ||
+        writtenClass.listEntryComponentType !== undefined ||
+        writtenType === "group"
+    ) {
+        // A list is made from what it copies by its own rules (#2231), and a
+        // `<group>` holds whatever it is made from.
+        return undefined;
+    }
+
+    // What the reference names: a composite is its own source here, not
+    // the components it made (`replacementSourceIdentities`).
+    const extendedComponent = await component.stateValues.extendedComponent;
+    const sourceComponent = components[extendedComponent?.componentIdx];
+    if (!sourceComponent) {
+        return undefined;
+    }
+
+    const propName = (
+        await component.stateValues.effectivePropNameBySource
+    )?.[0];
+    if (
+        propName?.startsWith("__") ||
+        (!propName && (await component.stateValues.unresolvedPath)?.length > 0)
+    ) {
+        // A reference that names nothing yet, such as `$r[1].A` of a repeat
+        // with no iterations, which makes nothing (`doenet-w0072`).
+        return undefined;
+    }
+    const source = referenceAsWritten(
+        await component.stateValues.originalPath,
+        sourceComponent,
+    );
+
+    /** The mismatch, reported with code `code`. */
+    function mismatch({ level, code, args }) {
+        return {
+            level,
+            diagnostic: codedDiagnostic({
+                type: level,
+                code,
+                args: {
+                    componentType: writtenType,
+                    source,
+                    ...args,
+                    ...(args.sourceType && {
+                        sourceType:
+                            TAGS_OF_LIST_FORMS[args.sourceType] ??
+                            args.sourceType,
+                    }),
+                },
+            }),
+        };
+    }
+
+    /**
+     * Whether `writtenType` can be made from a component of `sourceType`,
+     * whose value, if one must be checked, is read by `readValue`.
+     */
+    async function decide({ sourceType, readValue, level }) {
+        if (replacementIsOfType(sourceType, writtenType)) {
+            return null;
+        }
+        const rule = typeChangeRule({
+            writtenType,
+            sourceType,
+            componentInfoObjects,
+        });
+        if (rule.kind === "inputFromValue") {
+            return mismatch({
+                level,
+                code: "doenet-e0062",
+                args: {
+                    sourceType,
+                    hasPrefill:
+                        "prefill" in writtenClass.createAttributesObject()
+                            ? "true"
+                            : "false",
+                },
+            });
+        }
+        if (rule.kind === "container") {
+            return mismatch({
+                level,
+                code: "doenet-e0063",
+                args: { sourceType },
+            });
+        }
+        if (!rule.allowed) {
+            return mismatch({
+                level,
+                code: "doenet-e0065",
+                args: { sourceType },
+            });
+        }
+        if (rule.valueCheck && readValue) {
+            const value = await readValue();
+            if (!valueAllowsTypeChange(rule.valueCheck, value)) {
+                return mismatch({
+                    level: "info",
+                    code: "doenet-i0053",
+                    args: {
+                        sourceType,
+                        valueCheck: rule.valueCheck,
+                        value: value?.toString?.() ?? String(value),
+                    },
+                });
+            }
+        }
+        return null;
+    }
+
+    if (propName) {
+        if (!propReplacements) {
+            return undefined;
+        }
+        const nonStrings = propReplacements.filter(
+            (x) => typeof x === "object",
+        );
+        if (
+            nonStrings.length !== 1 ||
+            nonStrings[0].doenetAttributes?.inPlaceOfExtend ||
+            componentInfoObjects.isCompositeComponent({
+                componentType: nonStrings[0].componentType,
+            })
+        ) {
+            return undefined;
+        }
+        return decide({
+            sourceType: typeStoodFor(nonStrings[0]),
+            level: "error",
+        });
+    }
+
+    /** The value of `comp`, or of the value of an input. */
+    function valueReader(comp) {
+        return async () => comp.stateValues.value;
+    }
+
+    const sourceType = typeStoodFor(sourceComponent);
+    const sourceClass = componentInfoObjects.allComponentClasses[sourceType];
+
+    if (
+        componentInfoObjects.isCompositeComponent({
+            componentType: writtenType,
+        })
+    ) {
+        // A composite is made from its own kind only: what a `<collect>`
+        // shows is what it collects, not what it is given.
+        if (
+            replacementIsOfType(sourceType, writtenType) ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: sourceType,
+                baseComponentType: writtenType,
+            })
+        ) {
+            return null;
+        }
+        return mismatch({
+            level: "error",
+            code: "doenet-e0065",
+            args: { sourceType },
+        });
+    }
+
+    if (sourceClass?.listEntryComponentType !== undefined) {
+        // A list stands for its entries, as a composite for its content. A
+        // list whose entries are written (`<mathList>`) has as many as the
+        // author wrote; any other is made at run time (a `<collect>` or
+        // `<sort>` of values, a `<selectFromSequence>`).
+        if (replacementIsOfType(sourceType, writtenType)) {
+            return null;
+        }
+        const level =
+            sourceClass.prototype instanceof AuthoredValueList &&
+            !Object.hasOwn(TAGS_OF_LIST_FORMS, sourceType)
+                ? "error"
+                : "info";
+        const count = await sourceComponent.stateValues.numEntries;
+        if (count !== 1) {
+            return mismatch({
+                level,
+                code: "doenet-e0064",
+                args: {
+                    sourceType,
+                    count,
+                    holdsNothing: count === 0 ? "true" : "false",
+                },
+            });
+        }
+        return decide({
+            sourceType: sourceClass.listEntryComponentType,
+            level,
+        });
+    }
+
+    if (
+        !componentInfoObjects.isCompositeComponent({
+            componentType: sourceType,
+        })
+    ) {
+        return decide({
+            sourceType,
+            readValue: valueReader(sourceComponent),
+            level: "error",
+        });
+    }
+
+    if (!sourceComponent.isExpanded) {
+        return undefined;
+    }
+
+    // The components the composite stands for, through any composites it
+    // made, and whether any of those can change what they hold.
+    const content = [];
+    let changes = !COMPOSITES_WITH_WRITTEN_CONTENT.has(sourceType);
+    let allExpanded = true;
+    async function gather(composite) {
+        let replacements = composite.replacements ?? [];
+        if (composite.replacementsToWithhold > 0) {
+            replacements = replacements.slice(
+                0,
+                -composite.replacementsToWithhold,
+            );
+        }
+        for (const replacement of replacements) {
+            if (typeof replacement === "string") {
+                if (replacement.trim() !== "") {
+                    content.push({ componentType: "text" });
+                }
+                continue;
+            }
+            const comp = components[replacement.componentIdx];
+            if (
+                !comp ||
+                (await comp.stateValues.isInactiveCompositeReplacement)
+            ) {
+                continue;
+            }
+            if (
+                componentInfoObjects.isCompositeComponent({
+                    componentType: comp.componentType,
+                })
+            ) {
+                if (!COMPOSITES_WITH_WRITTEN_CONTENT.has(comp.componentType)) {
+                    changes = true;
+                }
+                if (comp.isExpanded) {
+                    await gather(comp);
+                } else {
+                    allExpanded = false;
+                }
+            } else {
+                content.push(comp);
+            }
+        }
+    }
+    await gather(sourceComponent);
+    if (!allExpanded && content.length < 2) {
+        // Decided when it is expanded, which updates an `extend` of it
+        // (`needsReplacementsUpdatedWhenStale`). Two components already found
+        // are more than one, whatever the rest makes.
+        return undefined;
+    }
+
+    const level = changes ? "info" : "error";
+    if (content.length !== 1) {
+        return mismatch({
+            level,
+            code: "doenet-e0064",
+            args: {
+                sourceType,
+                count: content.length,
+                holdsNothing: content.length === 0 ? "true" : "false",
+            },
+        });
+    }
+    return decide({
+        sourceType: typeStoodFor(content[0]),
+        readValue: content[0].stateValues ? valueReader(content[0]) : undefined,
+        level,
+    });
 }
 
 /**
