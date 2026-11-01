@@ -89,13 +89,8 @@ editor to see different variants of the document.
 
 <p>The selected array = $groupSelect</p>
 <p>The second selected number: 
-  <c>groupSelect[2][2]</c> = $groupSelect[2][2]</p>
-<p>Another way to reference this: 
-  <c>groupSelect[2].num</c> = $groupSelect[2].num</p><hr/>
-
+  <c>groupSelect[2].num</c> = $groupSelect[2].num</p>
 <p>The first selected animal:
-  <c>groupSelect[1][1]</c> = $groupSelect[1][1]</p>
-<p>Another way to reference this:
   <c>groupSelect[1].animal</c> = $groupSelect[1].animal</p>
 ```
 
@@ -103,9 +98,12 @@ editor to see different variants of the document.
 
 Multiple component types can be selected together within a single option, as a group. In order to reference
 a child of an `<option>{:dn}` that has been selected, first use the index of the selection desired (in the
-case of muliple selections), then either (1) the desired child can be referenced by index or (2) the
-desired child can be given a name (make sure to create the same names for that particular child over
-the range of all possible options) and then referenced by name.
+case of multiple selections), then the name of the child. Give that child the same name in every option,
+so that the name refers to it whichever option is selected.
+
+An index selects among the selections, not among the children of an option: `$groupSelect[2][2]` does not
+mean the second child of the second selection. (Earlier versions read it that way. That reading still
+works for now but gives a deprecation warning that shows the name to use instead.)
 
 
 Select a new page variant from the pulldown menu at the top of the 
@@ -126,14 +124,14 @@ editor to see different variants of the document.
 </select>
 
 <p>A pair of dice are rolled two times, and the goal is for the sum of the dice to equal 6 at least once. Did you succeed?</p>
-<p>Roll 1: ($roll[1][1], $roll[1][2]) 
+<p>Roll 1: ($roll[1].firstDie, $roll[1].secondDie) 
   <boolean name="b1">
-    $roll[1][1] + $roll[1][2] = 6
+    $roll[1].firstDie + $roll[1].secondDie = 6
   </boolean>
 </p>
-<p>Roll 2: ($roll[2][1], $roll[2][2]) 
+<p>Roll 2: ($roll[2].firstDie, $roll[2].secondDie) 
   <boolean name="b2">
-    $roll[2][1] + $roll[2][2] = 6
+    $roll[2].firstDie + $roll[2].secondDie = 6
   </boolean>
 </p>
 
@@ -144,8 +142,8 @@ editor to see different variants of the document.
 
 
 In this example, two pairs of values are assigned to each `<option>{:dn}` within 
-the `<select>{:dn}` component. In the references shown in this example, the first index
-refers to the selection made from the `<select>{:dn}` component, and the second index
+the `<select>{:dn}` component. In the references shown in this example, the index
+refers to the selection made from the `<select>{:dn}` component, and the name after it
 refers to the child component within the `<option>{:dn}` that was selected.
 
 Select a new page variant from the pulldown menu at the top of the 

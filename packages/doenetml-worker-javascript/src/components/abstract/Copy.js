@@ -23,6 +23,10 @@ import {
 } from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../../utils/sourceLocation";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import {
@@ -2763,6 +2767,54 @@ export default class Copy extends CompositeComponent {
     }
 }
 
+/**
+ * The warning for a reference that reached `replacementSource` with an index
+ * left over that names nothing there (D27), or `undefined` when it has already
+ * been reported.
+ *
+ * An index left over on a composite (`$s[3]` on a `<select>` that made two
+ * picks) was reported where the reference was resolved
+ * (`refResolutionDependencies.ts`), and the composite's replacements are
+ * what is left to try it on, so it is not reported again. On any other
+ * component, the index names nothing because the component produces nothing an
+ * index selects: `$sec[2]` does not select a child of a `<section>`, nor `$n[1]`
+ * anything of a `<number>` (`doenet-w0180`). A component that does produce
+ * something an index selects, as a list does its entries, took the index
+ * already, and an index past what it produces is silent (#1499).
+ */
+async function diagnosticForUnusedIndex({
+    component,
+    replacementSource,
+    allDoenetMLs,
+    componentInfoObjects,
+}) {
+    const extendedComponent = await component.stateValues.extendedComponent;
+    if (
+        !extendedComponent ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: extendedComponent.componentType,
+            includeNonStandard: true,
+        }) ||
+        replacementSource.componentIdx !== extendedComponent.componentIdx
+    ) {
+        return undefined;
+    }
+
+    const originalPath = await component.stateValues.originalPath;
+
+    return codedDiagnostic({
+        type: "warning",
+        code: "doenet-w0180",
+        args: {
+            reference: `${doenetMLDollarsForReference(
+                originalPath,
+                allDoenetMLs,
+            )}${doenetMLStringForReference(originalPath, allDoenetMLs)}`,
+            component: replacementSource.componentType,
+        },
+    });
+}
+
 export async function replacementFromProp({
     component,
     components,
@@ -2811,6 +2863,28 @@ export async function replacementFromProp({
         if (propName === "__no_target_found") {
             // find name of prop from unresolvedPath position and doenetML
             const unresolvedPath = await component.stateValues.unresolvedPath;
+
+            if (unresolvedPath[0].name === "") {
+                // An index was left over: what the reference reached produces
+                // nothing an index selects, or a composite has no instance at
+                // that index.
+                const indexDiagnostic = await diagnosticForUnusedIndex({
+                    component,
+                    replacementSource,
+                    allDoenetMLs,
+                    componentInfoObjects,
+                });
+                if (indexDiagnostic) {
+                    diagnostics.push(indexDiagnostic);
+                }
+                return {
+                    serializedReplacements: [],
+                    propVariablesCopiedByReplacement: [],
+                    diagnostics,
+                    nComponents,
+                };
+            }
+
             const startOffset = unresolvedPath[0].position?.start.offset;
             const endOffset =
                 unresolvedPath[unresolvedPath.length - 1].position?.end.offset;

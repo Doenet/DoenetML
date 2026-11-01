@@ -1643,7 +1643,7 @@ describe("Select tag tests @group2", async () => {
                 core,
                 stateVariables,
                 resolvePathToNodeIdx,
-                `repeat1[${ind + 1}][1][1][1]`,
+                `repeat1[${ind + 1}][1][1]`,
             );
             let x = theText.stateValues.value;
             if (x === "z") {
@@ -1731,7 +1731,7 @@ describe("Select tag tests @group2", async () => {
                 core,
                 stateVariables,
                 resolvePathToNodeIdx,
-                `repeat1[${ind + 1}][1][1][1]`,
+                `repeat1[${ind + 1}][1][1]`,
             );
 
             let x = theText1.stateValues.value;
@@ -1749,7 +1749,7 @@ describe("Select tag tests @group2", async () => {
                 core,
                 stateVariables,
                 resolvePathToNodeIdx,
-                `repeat1[${ind + 1}][1][2][1]`,
+                `repeat1[${ind + 1}][2][1]`,
             );
 
             let y = theText2.stateValues.value;
@@ -1966,11 +1966,10 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        console.log("o[1][1] idx", await resolvePathToNodeIdx("o[1][1]"));
         let qs = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[1][1]"),
+            await resolvePathToNodeIdx("o[1].s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -1981,7 +1980,7 @@ describe("Select tag tests @group2", async () => {
         let rs = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[2][1]"),
+            await resolvePathToNodeIdx("o[2].s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -1991,7 +1990,7 @@ describe("Select tag tests @group2", async () => {
         let ss = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[3][1]"),
+            await resolvePathToNodeIdx("o[3].s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2001,7 +2000,7 @@ describe("Select tag tests @group2", async () => {
         let ts = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[4][1]"),
+            await resolvePathToNodeIdx("o[4].s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2011,7 +2010,7 @@ describe("Select tag tests @group2", async () => {
         let us = entriesOrReplacements(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[5][1]"),
+            await resolvePathToNodeIdx("o[5].s"),
         ).map((x) =>
             x.replacements
                 ? stateVariables[x.replacements[0].componentIdx].stateValues
@@ -2901,12 +2900,12 @@ describe("Select tag tests @group2", async () => {
       <option>
     
         <p>q,r = <select name="s">
-          <option><text>a</text><text>b</text></option>
+          <option><text name="q">a</text><text name="r">b</text></option>
         </select></p>
     
     
-        <p>q2 = $s[1][1]</p>
-        <p>r2 = $s[1][2]</p>
+        <p>q2 = $s[1].q</p>
+        <p>r2 = $s[1].r</p>
       </option>
     </select>
     
@@ -2928,6 +2927,66 @@ describe("Select tag tests @group2", async () => {
         expect(stateVariables[p1].stateValues.text).eq(`q,r = ab`);
         expect(stateVariables[p2].stateValues.text).eq(`q2 = a`);
         expect(stateVariables[p3].stateValues.text).eq(`r2 = b`);
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("an index into the option of a select inside another select is deprecated", async () => {
+        // The positional form of the test above still selects the children of
+        // the picked option, but warns that the index should be a name (D27).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <select name="select1">
+      <option>
+        <p>q,r = <select name="s">
+          <option><text name="q">a</text><text>b</text></option>
+        </select></p>
+        <p>q2 = $s[1][1]</p>
+        <p>r2 = $s[1][2]</p>
+      </option>
+    </select>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let replacements =
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("select1")]
+                    .replacements![0].componentIdx
+            ].replacements!;
+
+        expect(
+            stateVariables[replacements[3].componentIdx].stateValues.text,
+        ).eq(`q2 = a`);
+        expect(
+            stateVariables[replacements[5].componentIdx].stateValues.text,
+        ).eq(`r2 = b`);
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0179",
+            "doenet-w0179",
+        ]);
+        // The named child is named in the form to write instead; the other
+        // is to be given a name
+        expect(warnings.map((w) => w.args)).toEqual(
+            expect.arrayContaining([
+                {
+                    reference: "$s[1][1]",
+                    suggestion: "$s[1].q",
+                    named: "yes",
+                    container: "pick",
+                    component: "select",
+                },
+                {
+                    reference: "$s[1][2]",
+                    suggestion: "$s[1].x",
+                    named: "no",
+                    container: "pick",
+                    component: "select",
+                },
+            ]),
+        );
     });
 
     it("display error when miss a name in selectForVariants, inside text", async () => {

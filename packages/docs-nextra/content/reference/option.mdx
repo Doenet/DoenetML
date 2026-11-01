@@ -131,33 +131,34 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <select name="s" numToSelect="3">
   <option>
-    <number>1</number>
-    <number>2</number>
+    <number name="x">1</number>
+    <number name="y">2</number>
   </option>
   <option>
-    <number>3</number>
-    <number>4</number>
+    <number name="x">3</number>
+    <number name="y">4</number>
   </option>
   <option>
-    <number>5</number>
-    <number>6</number>
+    <number name="x">5</number>
+    <number name="y">6</number>
   </option>
   <option>
-    <number>7</number>
-    <number>8</number>
+    <number name="x">7</number>
+    <number name="y">8</number>
   </option>
 </select>
-<p><m>(x1, y1) = ($s[1][1], $s[1][2])</m></p>
-<p><m>(x2, y2) = ($s[2][1], $s[2][2])</m></p>
-<p><m>(x3, y3) = ($s[3][1], $s[3][2])</m></p>
+<p><m>(x1, y1) = ($s[1].x, $s[1].y)</m></p>
+<p><m>(x2, y2) = ($s[2].x, $s[2].y)</m></p>
+<p><m>(x3, y3) = ($s[3].x, $s[3].y)</m></p>
 
 <p>Click page variants to see other randomized values assigned.</p>  
 ```
 
 It is possible to group several components for selection within a single `<option>{:dn}` component.
-In order to reference a specific component within a selected `<option>{:dn}`, use array notation. 
-The first index of the array notation refers to the selected `<option>{:dn}` component, and the
-second index refers to the specific component within the `<option>{:dn}` component.
+In order to reference a specific component within a selected `<option>{:dn}`, give it a name, the
+same name in every option, and write the name after the index of the selection: `$s[2].x` is the
+component named `x` in the second selection. The index selects among the selections, not among
+the children of an option.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.

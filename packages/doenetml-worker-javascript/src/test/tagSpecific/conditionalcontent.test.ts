@@ -1404,6 +1404,79 @@ describe("Conditional content tag tests @group2", async () => {
             core,
         });
         await check_items("elephant", "trumpets");
+
+        // Selecting a child of what the conditionalContent shows by its
+        // position still works, but is deprecated (D27). The pieces that are
+        // strings are nothing to select, and give no warning of their own.
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0179",
+            "doenet-w0179",
+        ]);
+        expect(warnings.map((w) => w.args?.reference).sort()).eqls([
+            "$cc[1][2]",
+            "$cc[1][3]",
+        ]);
+    });
+
+    it("names reach the pieces of what is shown in case and else", async () => {
+        // The named form of the test above: an index selects what the
+        // conditionalContent shows, and a name inside it reaches a piece of
+        // it, whichever case is shown (D27).
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <setup>
+    <text name="animal1">fox</text><text name="verb1">jumps</text>
+    <text name="animal2">elephant</text><text name="verb2">trumpets</text>
+  </setup>
+
+  <mathInput name="n" />
+  <p name="pa">a: <conditionalContent name="cc" >
+    <case condition="$n > 0">The <text name="animal" extend="$animal1" /> <text name="verb" extend="$verb1" />.</case>
+    <else>The <text name="animal" extend="$animal2" /> <text name="verb" extend="$verb2" />.</else>
+  </conditionalContent></p>
+
+  <p name="pc1">c1: <text extend="$cc[1].animal" name="c1" /></p>
+  <p name="pd1">d1: <text extend="$cc[1].verb" name="d1" /></p>
+  `,
+        });
+
+        async function check_items(animal: string, verb: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pa")].stateValues
+                    .text,
+            ).eq(`a: The ${animal} ${verb}.`);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pc1")].stateValues
+                    .text,
+            ).eq(`c1: ${animal}`);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pd1")].stateValues
+                    .text,
+            ).eq(`d1: ${verb}`);
+        }
+
+        await check_items("elephant", "trumpets");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items("fox", "jumps");
+
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items("elephant", "trumpets");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 
     it("copy with invalid source gets expanded", async () => {

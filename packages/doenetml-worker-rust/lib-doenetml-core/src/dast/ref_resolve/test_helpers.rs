@@ -5,10 +5,40 @@ use crate::{
             FlatAttribute, FlatFragment, FlatIndex, FlatNode, FlatPathPart, FlatRoot, Index,
             SourceDoc, UntaggedContent,
         },
-        ref_resolve::RefResolution,
+        ref_resolve::{ChildIndex, RefResolution},
     },
     test_utils::*,
 };
+
+/// The record of an index that selected child `child_idx` of the `<group>` `container_idx`,
+/// written with no position.
+pub fn child_index(container_idx: Index, child_idx: Index) -> ChildIndex {
+    ChildIndex {
+        container_idx,
+        child_idx,
+        position: None,
+    }
+}
+
+/// Mark the `<group>`s `groups` of `flat_fragment` as the worker marks an iteration whose content
+/// it found to be one indexable component, taking that component to be the group's first child.
+/// (The parser does not keep an attribute starting with `_`.)
+pub fn mark_index_pass_through(flat_fragment: &mut FlatFragment, groups: &[Index]) {
+    for node in flat_fragment.nodes.iter_mut() {
+        if let FlatNode::Element(element) = node
+            && element.name == "group"
+            && groups.contains(&element.idx)
+        {
+            element.attributes.push(FlatAttribute {
+                name: super::INDEX_PASS_THROUGH_ATTRIBUTE.into(),
+                parent: Some(element.idx),
+                children: vec![UntaggedContent::Text("1".into())],
+                position: None,
+                source_doc: None,
+            });
+        }
+    }
+}
 
 pub struct TestPathPart {
     pub name: &'static str,
