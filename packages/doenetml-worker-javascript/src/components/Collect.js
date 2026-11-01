@@ -531,6 +531,23 @@ export default class Collect extends CompositeComponent {
             componentIdx: component.componentIdx,
         });
 
+        // The `<collect>`'s `styleNumber` fills in for a component that
+        // sets none; it does not override one the component sets
+        // (D29's container model, CTX-5).
+        const collectedAttributes =
+            component.attributes.styleNumber &&
+            (await collectedSetsStyle(
+                collectedComponent,
+                collectedObj,
+                components,
+            ))
+                ? Object.fromEntries(
+                      Object.entries(component.attributes).filter(
+                          ([name]) => name !== "styleNumber",
+                      ),
+                  )
+                : component.attributes;
+
         for (let repl of serializedReplacements) {
             // add attributes
             if (!repl.attributes) {
@@ -542,12 +559,12 @@ export default class Collect extends CompositeComponent {
             const attributes =
                 repl.componentType === "_copy"
                     ? Object.fromEntries(
-                          Object.entries(component.attributes).filter(
+                          Object.entries(collectedAttributes).filter(
                               ([, attribute]) =>
                                   attribute.type === "unresolved",
                           ),
                       )
-                    : component.attributes;
+                    : collectedAttributes;
             const res = convertUnresolvedAttributesForComponentType({
                 attributes,
                 componentType: repl.componentType,
@@ -846,4 +863,107 @@ export default class Collect extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * Whether what a `<collect>` collects sets its own style, which the
+ * collect's `styleNumber` then does not override (D29's container model,
+ * CTX-5).
+ *
+ * An entry of a list (`listInd`) sets one when its source or its list does
+ * (`entryPresentation`, the list's `styleNumber`). Its source's style counts
+ * even when the source has it from where it sits, since the entry carries
+ * it wherever it is copied (`$pl[1]`). Any other component sets one when
+ * it, or the component it shadows (`$A`, `<point extend="$A"/>`),
+ * has a `styleNumber` attribute whose value is not a default: that is the
+ * style its copy takes. A style it has only from where it sits
+ * (`<graph styleNumber="4">`) is not one: its copy, made elsewhere, would not
+ * have it, so the collect's fills in. It is read when the replacement is
+ * made.
+ */
+async function collectedSetsStyle(
+    collectedComponent,
+    collectedObj,
+    components,
+) {
+    if (collectedObj.listInd !== undefined) {
+        const entryPresentation =
+            await collectedComponent.stateValues.entryPresentation;
+        if (
+            entryPresentation?.[collectedObj.listInd]?.styleNumber !== undefined
+        ) {
+            return true;
+        }
+    }
+    const visited = new Set();
+    let comp = collectedComponent;
+    while (comp && !visited.has(comp.componentIdx)) {
+        visited.add(comp.componentIdx);
+        const attribute = comp.attributes?.styleNumber;
+        // The attribute's value is read from its component, or from the
+        // variable it references (`variableRef`), as the style of an entry
+        // of a list does (`<point extend="$l[1]"/>`). A default there, as
+        // for an entry neither the list nor its source sets a style for,
+        // sets none.
+        if (attribute?.component) {
+            const variable =
+                attribute.component.state[
+                    attribute.component.constructor.stateVariableToBeShadowed ??
+                        "value"
+                ];
+            return !(variable && (await variableUsedDefault(variable)));
+        }
+        if (attribute?.type === "variableRef") {
+            return !(await referencedVariableUsedDefault(
+                components[attribute.componentIdx],
+                attribute.stateVariable,
+            ));
+        }
+        if (attribute && attribute.type !== "unresolved") {
+            return true;
+        }
+        if (!comp.shadows || comp.shadows.propVariable) {
+            return false;
+        }
+        comp = components[comp.shadows.componentIdx];
+    }
+    return false;
+}
+
+async function variableUsedDefault(variable) {
+    await variable.value;
+    return Boolean(variable.usedDefault);
+}
+
+/**
+ * Whether `stateVariable` of `component` holds a default. An entry of an
+ * array not read yet (`entryStyleNumber2`) has no variable of its own, so
+ * it is read from the array (`usedDefaultByArrayKey`).
+ */
+async function referencedVariableUsedDefault(component, stateVariable) {
+    if (!component) {
+        return false;
+    }
+    const variable = component.state[stateVariable];
+    if (variable) {
+        return variableUsedDefault(variable);
+    }
+    const arrayEntryPrefix = Object.keys(component.arrayEntryPrefixes ?? {})
+        .sort((a, b) => b.length - a.length)
+        .find((prefix) => stateVariable.startsWith(prefix));
+    if (arrayEntryPrefix === undefined) {
+        return false;
+    }
+    const array =
+        component.state[component.arrayEntryPrefixes[arrayEntryPrefix]];
+    await array.value;
+    const arrayKeys = array.getArrayKeysFromVarName({
+        arrayEntryPrefix,
+        varEnding: stateVariable.slice(arrayEntryPrefix.length),
+        numDimensions: array.numDimensions,
+    });
+    return (
+        arrayKeys.length > 0 &&
+        arrayKeys.every((arrayKey) => array.usedDefaultByArrayKey?.[arrayKey])
+    );
 }
