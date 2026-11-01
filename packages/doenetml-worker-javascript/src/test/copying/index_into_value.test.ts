@@ -407,6 +407,8 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$pl[2][1]", "1"],
                 ["$pl[2][2]", "2"],
                 ["$tl[2][1]", "3"],
+                // an index into an entry's value is an index into the entry
+                ["$tl[2].value[1]", "3"],
                 ["$ml[1][2]", "[[3, 4]]"],
                 // a repeat that became a list of points (#2163)
                 ["$r[2]", "(2, 20)"],

@@ -332,6 +332,17 @@ export function listEntryPropertyPath({
             second.name,
             componentInfoObjects,
         );
+        // An index into the entry's value is an index into the entry, as
+        // `$m.value[2]` is `$m[2]` (D27): `$l[1].value[2]` is `$l[1][2]`.
+        if (property === "value") {
+            return listEntryPropertyPath({
+                listClass,
+                unresolvedPath: [
+                    { ...first, index: [...first.index, ...second.index] },
+                ],
+                componentInfoObjects,
+            });
+        }
         if (property !== undefined) {
             // An index below 1 into a property of the entry names nothing,
             // and is reported as `$P.xs[0]` is.

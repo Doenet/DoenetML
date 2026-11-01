@@ -916,14 +916,19 @@ export class RefResolutionDependency extends Dependency {
                 continue;
             }
             const child = this.dependencyHandler._components[childIdx];
-            if (this.referencedIndexable(containerIdx)) {
+            if (
+                child?.componentType !== "setup" &&
+                this.referencedIndexable(containerIdx)
+            ) {
                 // The whole content is a reference to a list or to a
                 // composite whose instances an index selects
                 // (`<option>$l</option>`), so the reference's replacements
                 // are what the index selects among, as in
                 // `<option><mathList extend="$l"/></option>`, where the
                 // index passes through (`_indexPassThrough`, D27): the form
-                // D27 recommends, not a child index (#2428).
+                // D27 recommends, not a child index (#2428). An index that
+                // selects a `<setup>` beside the reference selects that
+                // child, and is reported below like any other.
                 continue;
             }
             if (child?.doenetAttributes?.iterationAliases) {

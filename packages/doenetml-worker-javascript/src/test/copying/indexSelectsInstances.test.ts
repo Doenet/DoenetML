@@ -227,6 +227,14 @@ describe("An index selects instances, not children @group4", async () => {
         ]);
     });
 
+    it("still warns of an index that selects a setup written beside a reference to a list", async () => {
+        const { text, warnings } = await shownAndReported(
+            `<setup><mathList name="nl">a b c</mathList></setup><select name="s"><option><setup><number name="n">5</number></setup>$nl</option></select><p name="p">[$s[1][1].n]</p>`,
+        );
+        expect(text).eq("[5]");
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0179"]);
+    });
+
     it("still warns of an index into a pick holding only a reference to one component", async () => {
         const { text, warnings } = await shownAndReported(
             `<setup><math name="m">x</math></setup><select name="s"><option>$m</option></select><p name="p">[$s[1][1]]</p>`,
