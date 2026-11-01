@@ -272,16 +272,31 @@ the scope it is in alone (ADR 0028): no tick changes it, and no rebuild changes
 it for a scope that still exists. Every given value no student's action can
 write (ADR 0018), such as a point's default `hide` or the values of an element
 under a literal `fixed`; an operator's constant (a factor, clamp bounds, an
-exponent; operators carry no literals, so each is an input like any other, one
-per distinct value in a build, `Builder::const_slot`, named in a plan as
-`Arg::Const` and in a type's table as `(value)`); an expression written in the
-document (a math handle); an iteration's index; the shared missing-referent
-NaN. A **document constant** is the same in every instance of its template
-slot; a **scope constant** (an iteration's index, a `<selectFromSequence>`
-pick) depends on its scope too. Constants have no producer and no essential
-key; a request that reaches one is dropped. A constant nothing live reads gets
-no cell when the load is pruned (ADR 0019); the dead cell is itself a constant.
+exponent; operators carry no literals, so each is an input like any other,
+named in a plan as `Arg::Const` and in a type's table as `(value)`); an
+expression written in the document (a math handle); an iteration's index; the
+shared missing-referent NaN; a fold's outputs. A **document constant** is the
+same in every instance of its template slot, and has a cell in the constant
+pool; a **scope constant** (an iteration's index, a `<selectFromSequence>`
+pick) depends on its scope too, and each build makes its cell. The constants
+are the first cells, `..n_const`, the pool's first. Constants have no producer
+and no essential key; a request that reaches one is dropped. A constant nothing
+live reads gets no cell when the load is pruned (ADR 0019); the dead cell is
+itself a constant, outside the pool.
 _Avoid_: fixed cell (*fixed* is the attribute, whose effect is a hold)
+
+**Constant pool** — The session's cells for its document constants, an
+operator's constant and the missing-referent cell (ADR 0028): one per distinct
+value, keyed by value type and bits, at the front of every build's cells
+(`Session::pool`, `Document::n_pool`). A build names a pooled cell where it
+would have made one, and appends a value the pool lacks, so the pool only grows
+and a document constant keeps its cell index across rebuilds.
+
+**Fold** — An instruction whose every input, and every flag that holds it,
+is a constant made in its own scope or one around it, evaluated once as the
+build ends (ADR 0028): its outputs are constants and the program keeps no
+instruction for it. Each build decides its own folds; a counted value never
+folds. `LoadOptions::fold` off, in tests, keeps every instruction.
 
 **Given value** — A value the source gives a prop, by an attribute or the
 type's default (`Source::Given`): essential when a student's action can write
@@ -342,8 +357,9 @@ is builds until it settles again.
 **Session** — What survives every build of a document (ADR 0015): the scope
 table, every essential value by key, which of them a student touched,
 values parked for scopes not yet stamped, strings interned at runtime, the
-seed. A build reads it and returns the next; saved state is the touched
-part of the session written out.
+seed, the symbolic engine with each constant expression's handle, and the
+constant pool (ADR 0028). A build reads it and returns the next; saved state
+is the touched part of the session written out.
 
 **Template** — The body of a repeat (or the document itself) as compiled
 once from the DAST: its elements, their props' sources, and their references
@@ -392,7 +408,9 @@ form described in ADR 0002.
 from the document when its structure changes (the iteration count of a repeat
 moves). A rebuild happens inside the tick that changed the count and must fit
 the same interactive budget as any other tick. Values of essential cells
-survive a rebuild through their essential keys. See ADR 0004.
+survive a rebuild through their essential keys; document constants keep
+their pooled cells, so a rebuild makes again only scope constants, folds,
+essential and derived cells (ADR 0028). See ADR 0004.
 
 **Essential key** — The identity of an essential cell independently of its
 index: the scope it lives in and its slot within that scope's template (which

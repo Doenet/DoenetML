@@ -1,6 +1,6 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. Migration phases 1 to 6 are done; see
+Status: proposed 2026-10-30. Every migration step is done; see
 Migration. Drafted as 0026, and renumbered as `cells` took 0026 (composed
 inverses) and 0027 (the compile runs in passes) first.
 
@@ -310,12 +310,14 @@ holds is *held*.
   constant range.
 - `tests/every_count.rs` checks the definition: at every count and seed,
   every constant of a (scope, template slot) has the same value in every
-  build that stamps it, and the pool is identical across them.
+  build that stamps it; `tests/constants.rs` checks that the pool keeps its
+  cells across rebuilds.
 - `CONTEXT.md` merges *Fixed cell* and *Constant* into *Constant* (with
-  *document constant* and *scope constant*), adds *Given value* and *Constant pool*, and
-  uses *held* where it said a `fixed` element. `ARCHITECTURE.md`'s emit,
-  "A document loads" and "A repeat's count changes" describe the pool and
-  the fold.
+  *document constant* and *scope constant*), adds *Given value*, *Counted
+  value*, *Constant pool* and *Fold*, and uses *held* where it said a
+  `fixed` element. `ARCHITECTURE.md`'s idea, emit, the session, "A
+  document loads" and "A repeat's count changes" describe the pool and the
+  fold.
 
 ## Migration
 
@@ -347,7 +349,7 @@ after each.
    `cells-bench` against the commit before phase 1. *Done
    2026-11-01*; see below.
 7. **Docs.** `CONTEXT.md` and `ARCHITECTURE.md` as above; this ADR's
-   status.
+   status. *Done 2026-11-01*.
 
 Settled while implementing phase 1:
 

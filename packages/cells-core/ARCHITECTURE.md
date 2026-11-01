@@ -19,7 +19,9 @@ variables. This one is organized around data:
   write, the only thing a write can land on), a *constant* (a value no
   tick changes, which depends on the source and its scope alone, an
   author's value no student can change among them; ADR 0028), or *derived*
-  (computed from other cells).
+  (computed from other cells). A constant the same in every instance of
+  its template slot is a *document constant*, kept once per session in a
+  pool at the front of the cells, so a rebuild makes no cell for one again.
 - **Instructions.** The dependency graph is a list of instructions, each an
   operator bound to its input cells and the cell(s) it writes. Operators may
   carry an inverse, so a request to change a derived cell can be pushed back
@@ -158,6 +160,21 @@ draw for every select.
   (`Error::Unchecked`). `LoadOptions::prune` off
   computes every class.
 
+  Emit also makes the constants (ADR 0028). A document constant, by the
+  probe's record (`Compiled::document_constants`), an operator's constant
+  and the missing-referent cell name a cell of the session's **constant
+  pool**, one per distinct value, which every build starts its cells from
+  and appends to; a document constant's cell index is the same in every
+  build of the session. Every other constant, a scope constant, gets a
+  cell of its own. An instruction whose inputs are all constants made in
+  its scope or one around it is **folded** (`Builder::folded_slots`): its
+  outputs are numbered among the constants, it is run once as emit ends,
+  and the program keeps no instruction for it. A *counted value*, which a
+  build counts from the structure it stamped (a collect's count from a
+  repeat, a section's number after one), is a derived cell in every
+  build, never a constant; the probe records which slots hold one
+  (`Compiled::counted`).
+
 A build learns the document's structure only through the **structure view**
 (`View`, `build/view.rs`): iteration counts, which iteration or item an
 index names, a collect's count, a select's options. A real build uses the
@@ -168,8 +185,9 @@ structural read that bypasses the view is one the cycle check cannot see.
 A build reads the `Session` (`session.rs`) and returns the next one. The
 session is everything that survives across builds: the scope table, every
 essential value keyed by (scope, template slot), runtime strings, the
-random seed and the math engine. Since the old session is untouched until
-a build succeeds, a failed rebuild leaves the document as it was.
+random seed, the math engine with each constant expression's handle, and
+the constant pool. Since the old session is untouched until a build
+succeeds, a failed rebuild leaves the document as it was.
 
 ### Schedule (`program/`)
 
@@ -200,8 +218,9 @@ downstream, and report a `TickOutcome`. See
 
 1. The bytes become a `Dast`.
 2. The compile runs once: lint, plan, check. The check's probe also
-   records which template slots are writable (ADR 0018) and which are
-   live (ADR 0019), which every build reads, and the structural depth,
+   records which template slots are writable (ADR 0018), which are
+   live (ADR 0019), which are document constants and which hold counted
+   values (ADR 0028), which every build reads, and the structural depth,
    which bounds the passes below.
 3. Builds run from the compile, each at the counts it is asked for, until
    the structure settles. After each build the document computes every
@@ -236,7 +255,9 @@ downstream, and report a `TickOutcome`. See
 When a tick leaves a structural cell, such as a repeat's count, out of step
 with the structure, it calls `Document::rebuild` (ADR 0004). This builds the
 whole document again from the `Compiled` kept at load, at the counts the
-count cells now hold. No lint, plan or check runs again.
+count cells now hold. No lint, plan or check runs again, and no document
+constant is made again: the build starts its cells from the session's
+constant pool, whose cells keep their indices (ADR 0028).
 
 Because scope ids are stable, an iteration that comes back gets its old
 essential values, and its nested repeats get the counts they last asked for
@@ -303,7 +324,7 @@ the other action: it sets each `<updateValue>`'s target.
 | `Compiled`, `Template` | `compile/plan.rs` | The compile's output: one template per document, repeat body and choice branch, with a plan for every prop and reference. Made once per load. |
 | `View` | `build/view.rs` | The structure view through which a build reads counts, indexed referents and select options: `Stamped`, from the counts a build is asked for, or `Probe`, which folds every iteration into one (`build/probe.rs`). |
 | `BuildOutput` | `build/mod.rs` | Cells, instructions and the component table of one build, before scheduling. |
-| `Session`, `Counts` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine; and the counts a build stamps. |
+| `Session`, `Counts`, `Pool` | `session.rs` | What survives every build: scopes, essential values, strings, seed, math engine, the constant pool (ADR 0028); and the counts a build stamps. |
 | `Structure` | `build/structure.rs` | What one build made: its repeats and its essential cells' keys. |
 | `Program`, `Instr`, `Op`, `VecOp` | `program/` | The instruction set. `Op` (`scalar.rs`) is a scalar operator with its evaluation and inverse; `VecOp` (`vector.rs`) reads and writes several cells; symbolic operators call the math engine. A `Program` is read-only while a tick runs; what its symbolic instructions keep between runs is a `SymState` beside it in the document. |
 | `Document` | `document/mod.rs` | A loaded document and the API to it. `output_cells` and `is_live` (`document/outputs.rs`) say what leaves it and what it computes. |
@@ -519,7 +540,15 @@ the core does not compute it, and the viewer's test, which checks every
   own walk finds writable is missing from the probe's record, and every
   request on an interactive cell, submit and trigger, made with every value
   essential (`LoadOptions::classify` off), writes only cells the record
-  makes essential.
+  makes essential. And for the constants (ADR 0028): a slot that is a
+  constant in one build of a scope is the same constant in every build of
+  it, at every count, and a document constant the same in every scope of
+  its template.
+- `tests/constants.rs` counts each document's constants and pool, and
+  checks that a full recompute changes no constant, that a folded curve is
+  still drawn, and that a document constant keeps its pooled cell through
+  rebuilds; `tests/live.rs` checks that folding, like pruning, changes no
+  live value (`LoadOptions::fold` off against on).
 - A test of a component requests only what a renderer would, through an
   input where none does. A test of the core's machinery (an inversion
   through a `<number>`, a forced count) uses `testing::request_unchecked`,
