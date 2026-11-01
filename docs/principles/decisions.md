@@ -727,6 +727,8 @@ single-use child group, writing two of them uses the second, and adding one in a
 
 ## D26. Which type changes may an `extend`, a `copy` or the fresh form make?
 
+**Decided** (#2423 implements it; REF-5 states it).
+
 **Decided:** related types are allowed, and any other pair is an error. The same table decides
 all three forms: `extend`, `copy`, and D33's fresh form, whose name is still open. Each asks
 for "a T made from x", and only the conversion differs: linked for an extend, a snapshot for a
@@ -806,9 +808,11 @@ decides copies:
 - `<collect>` is not related to a text, so it is an error that names the mismatch, not a
   missing source.
 
-**Tests.** `extend_references.test.ts:6495` "handle extending or copying with invalid component
-type" changes to expect the error. The related-pair tests keep passing. Add a test that each
-allowed pair works, and one that an unrelated pair gives the error.
+**Implementation: #2423** (includes #2415). One test changes:
+`context_attributes.test.ts` "a reference to fixed itself can change it" moves from
+`<booleanInput extend="$m.fixed"/>` to `bindValueTo`. The related-pair and composite tests keep
+passing. `extend_references.test.ts` "handle extending or copying with invalid component type" is
+about an unrecognized tag name, not an unrelated pair, and is unaffected.
 
 ## D27. What may an index select?
 
