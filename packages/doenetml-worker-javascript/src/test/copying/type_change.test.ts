@@ -974,6 +974,30 @@ describe("A reference written as a different tag is allowed only between related
         ).eqls([["doenet-i0053", "info", 11]]);
     });
 
+    it("a boolean is not made from a math whose value is not a finite number", async () => {
+        // Simplified, `1/0` is a tree that is the number Infinity, which is
+        // no more true or false than `1/0` written without `simplify`.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<math name="inf" simplify>1/0</math>
+<math name="raw">1/0</math>
+<p name="p1"><boolean extend="$inf"/></p>
+<p name="p2"><boolean copy="$inf"/></p>
+<p name="p3"><boolean extend="$raw"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3"])).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+        });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-i0053", "info", 4],
+            ["doenet-i0053", "info", 5],
+            ["doenet-i0053", "info", 6],
+        ]);
+    });
+
     it("a container without a text is an unrelated pair, not one whose text is suggested", async () => {
         // `$g.text` of a graph, a section or a div shows nothing.
         const { texts, typeChangeDiagnostics } = await setup(`

@@ -277,7 +277,12 @@ export function valueAllowsTypeChange(valueCheck, value) {
         return Array.isArray(tree) && vectorOperators.includes(tree[0]);
     }
     if (valueCheck === "boolean") {
-        if (typeof tree === "number" || typeof tree === "boolean") {
+        // A number is true or false only when finite: a simplified `1/0` is
+        // the number Infinity, as an unsimplified one evaluates to.
+        if (typeof tree === "number") {
+            return Number.isFinite(tree);
+        }
+        if (typeof tree === "boolean") {
             return true;
         }
         if (tree === "true" || tree === "false") {
