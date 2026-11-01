@@ -1312,6 +1312,10 @@ export default class Copy extends CompositeComponent {
                             stateValues.extendedComponent.componentIdx,
                         recursive: true,
                         recurseNonStandardComposites: true,
+                        // Without waiting for a copy in it to be expanded:
+                        // this copy, or another that waits for it, may be
+                        // in that content.
+                        doNotWaitForCopies: true,
                         variableNames: [
                             "isInactiveCompositeReplacement",
                             ...(stateValues.typeChangeValueCheck ===
@@ -2393,9 +2397,11 @@ export default class Copy extends CompositeComponent {
             }
         }
 
-        // A type change that was not allowed, or is no longer, makes its
-        // replacements again (`typeChangeStatus`). A copy of a prop is decided
-        // only when made.
+        // A type change that was not allowed, or is no longer, or that is
+        // decided only now, makes its replacements again (`typeChangeStatus`):
+        // one made before what its source holds was expanded
+        // (`doNotWaitForCopies`) is made as decided. A copy of a prop is
+        // decided only when made.
         if (effectivePropNameBySource[0]) {
             if (workspace.typeChangeKey?.startsWith("mismatch")) {
                 return {
@@ -2418,7 +2424,8 @@ export default class Copy extends CompositeComponent {
             if (key !== workspace.typeChangeKey) {
                 if (
                     key?.startsWith("mismatch") ||
-                    workspace.typeChangeKey?.startsWith("mismatch")
+                    workspace.typeChangeKey?.startsWith("mismatch") ||
+                    workspace.typeChangeKey === undefined
                 ) {
                     const result = await this.createReplacementsFromSources({
                         component,

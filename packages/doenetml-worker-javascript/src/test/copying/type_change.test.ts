@@ -718,6 +718,32 @@ describe("A reference written as a different tag is allowed only between related
         expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "b" });
     });
 
+    it("an extend in the content it is of is a circular dependency, not a document that fails to load", async () => {
+        // What the composite holds is depended on without waiting for a copy
+        // in it to be expanded: this extend, or another that waits for it.
+        const { core, texts } = await setup(`
+<p name="p1"><group name="g"><text>a</text><math extend="$g"/></group></p>
+<mathInput name="n" prefill="(1,2)"/>
+<p name="p2"><group name="h"><conditionalContent><case condition="$n=(1,2)"><point extend="$h"/></case></conditionalContent></group></p>
+<p name="p3"><group name="k"><math extend="$l"/></group><group name="l"><math extend="$k"/></group></p>
+<p name="p4"><repeat name="r" for="1 2" valueName="v"><math extend="$r"/></repeat></p>
+<p name="p5"><select name="s"><option><math extend="$s"/></option></select></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
+            p1: "a＿",
+            p2: "",
+            p3: "",
+            p4: "＿, ＿",
+            p5: "",
+        });
+        const circular = getDiagnosticsByType(core).errors.filter(
+            (d: any) => d.code === "doenet-e0005",
+        );
+        expect(circular.map((d: any) => d.position?.start.line)).eqls([
+            2, 4, 5, 5, 6, 7,
+        ]);
+    });
+
     it("a setup reached by the index of a child is not decided", async () => {
         const { texts, typeChangeDiagnostics } = await setup(`
 <group name="g"><setup><number name="n">3</number></setup><math>x</math></group>

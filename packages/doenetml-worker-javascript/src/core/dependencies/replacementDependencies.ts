@@ -55,6 +55,16 @@ export class ReplacementDependency extends Dependency {
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
 
+        // With `recursive`: do not wait for a `_copy` among the replacements
+        // to be expanded, and leave out the upstream component itself. A copy
+        // that depends on what its source holds would otherwise wait for its
+        // own expansion, or another's that waits for it, when it is in that
+        // content (`<group name="g"><math extend="$g"/></group>`). A copy
+        // not yet expanded is not followed when it expands either: one that
+        // holds a copy of the upstream component would remake it without
+        // end.
+        this.doNotWaitForCopies = this.definition.doNotWaitForCopies;
+
         this.expandReplacements = true;
     }
 
@@ -196,6 +206,10 @@ export class ReplacementDependency extends Dependency {
                 stopAtListComposites: this.stopAtListComposites,
                 includeWithheldReplacements: this.includeWithheldReplacements,
                 stopIfHaveProp: this.stopIfHaveProp,
+                doNotWaitForCopies: this.doNotWaitForCopies,
+                skipComponentIdx: this.doNotWaitForCopies
+                    ? this.upstreamComponentIdx
+                    : undefined,
             });
 
             if (
