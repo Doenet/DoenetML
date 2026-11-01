@@ -999,6 +999,8 @@ and adds a special case that users of modules would have to know about.
 
 ## D29. Hidden entries in lists
 
+The rules are stated in VAL-9a ([values-and-attributes.md](values-and-attributes.md)).
+
 **Status: done for `hide` (#2368, closing #2265), on top of D3 (#2367).** Rules 1–6 below hold for
 every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
 the sweep: 19 list forms, each with its first entry's source hidden. Still open:

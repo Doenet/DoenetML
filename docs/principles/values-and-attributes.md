@@ -310,10 +310,7 @@ Evidence:
 - `listcomponentpointlists.test.ts` and `listcomponentcollections.test.ts` (#2187, #2193, #2195);
 - **[probe]** `<point extend="$pl[1]">` and `<point copy="$pl[1]">` both carry the authored label.
 
-`hide` holds for every list since #2368 (D29):
-- a hidden entry is not drawn, and `$l[k].hide` is true;
-- `$l[k]` and `$l` placed elsewhere keep it hidden;
-- it still counts for indices and values.
+`hide` holds for every list since #2368. VAL-9a gives the full rule.
 
 `styleNumber` does not hold yet. Collect and sort let the list's override each source's, and
 authored lists and `<pointList>` ignore a child's (#2374).
@@ -327,6 +324,51 @@ Known rough edges:
 - an action naming both a child and its entry (`$A $pl[1]`) fires twice;
 - lists that are not authored (`<sequence>`, samplers, operators) take no entry click actions
   (#2203, "Not covered").
+
+### VAL-9a: a hidden entry is not drawn but still counts; a list's own attributes act as a container's (Tier 1 for what is drawn, Tier 2 for `.hide`/`.hidden`)
+The rules, for every list (D29, done by #2367, #2368, #2388, #2391):
+1. **An entry carries its source's own `hide`.** `$l[k].hide` is the source's attribute, and false
+   for a generated entry, such as a sequence's. A list's own `hide` never becomes its entries'
+   `hide`, including for `<collect hide>`.
+2. **`$l[k].hidden`** is true when the entry's `hide` is true, or when anything holding it is
+   hidden: the list, or a hidden list or group between the entry and the list.
+3. **A hidden entry is not drawn,** so it is not in the displayed text of what holds it, such as
+   a `<p>`. It still counts for indices (`$l[k]` keeps its meaning), and wherever the list is read
+   as a value: `<math>$l</math>` and `<text>$l</text>` include it (VAL-10).
+4. **A reference follows the entry's own `hide`, not `.hidden`.**
+   - `$l[k]` placed elsewhere is hidden when its source has a `hide` of its own, unless the
+     reference sets `hide` itself.
+   - It is shown when only something holding it is hidden: the list, or a hidden inner list or
+     group between the entry and the list (#2390). This is how `$n` of a number inside a hidden
+     section is shown (CTX-8).
+   - `$l` placed elsewhere keeps an entry hidden when that entry's source is hidden. Whether `$l`
+     of a hidden list is hidden is D9.
+5. **Properties are values and include hidden entries.** `$l.text`, `$l.maths`, the number of
+   entries and indices all include them, and `$l.text[k]` is `$l[k].text`. A property has no
+   `hide` (VAL-1).
+6. **A copy hides the same entries as its source** (CPY-1).
+7. **A list's own attributes act on its entries as a container's do** (CTX-5). They fill in what an
+   entry's source does not set, and never override or clear it.
+   - `hide="false"` on a list does not reveal entries whose sources are hidden.
+   - The entry's own `styleNumber` and display settings win, and the list's apply where the
+     source sets none.
+   - To override many entries, write an extend of each: D31.
+8. **A parent that ignores its own hiding counts a child exactly when the child would be drawn if
+   the parent were shown.** This covers a `<choice>`'s text, the child an `<li>` leads with, and a
+   `<chart>`'s series. Everything between the child and the parent counts toward it, including
+   the list whose entry it is.
+
+Evidence: `T/tagSpecific/listEntryHide.test.ts`. It is the sweep:
+- 19 list forms with a hidden first entry;
+- 22 contents where a choice's text must equal what a `<p>` draws;
+- the rows of #2390, including a `<sort>` and a `<shuffle>` over a hidden inner list.
+
+Known violations:
+- **`styleNumber`:** collect and sort let the list's override each source's, and authored lists
+  and `<pointList>` ignore a child's (#2374);
+- **a `<sort>` or `<shuffle>` that stays a composite** still draws an entry hidden only by a
+  container (#2394);
+- **a write through `$l[k].hide`** does nothing (above).
 
 ---
 
