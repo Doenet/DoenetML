@@ -233,6 +233,25 @@ export function postProcessCopy({
     return serializedComponents;
 }
 
+/**
+ * Whether `component`, or the copy it is the shadow of (as when the content
+ * holding that copy is copied), shows nothing because the value of the math
+ * it is made from does not allow the type it is written as
+ * (`typeChangeStatus` in `Copy.js`, which records that in
+ * `typeChangeKey`).
+ */
+function showsNothingForTypeChange(component, components) {
+    let original = component;
+    while (original?.shadows) {
+        original = components?.[original.shadows.componentIdx];
+    }
+    return Boolean(
+        original?.replacementsWorkspace?.typeChangeKey?.startsWith(
+            "mismatch:info",
+        ),
+    );
+}
+
 export async function verifyReplacementsMatchSpecifiedType({
     component,
     replacements,
@@ -250,6 +269,25 @@ export async function verifyReplacementsMatchSpecifiedType({
     if (
         !component.attributes._createComponentOfType?.primitive &&
         !component.sharedParameters.compositesMustHaveAReplacement
+    ) {
+        return {
+            replacements,
+            replacementChanges,
+            diagnostics,
+            nComponents,
+        };
+    }
+
+    // A copy that shows nothing while the value of the math it is made from
+    // does not allow the type it is written as (`doenet-i0053`,
+    // `typeChangeStatus` in `Copy.js`) shows nothing where its content is
+    // copied, too (`<p extend="$p"/>` of a `<p>` holding it). It is not made
+    // an empty component of that type, which would also hold the index of
+    // the one it is given once the value allows it.
+    if (
+        !replacementChanges &&
+        replacements.length === 0 &&
+        showsNothingForTypeChange(component, components)
     ) {
         return {
             replacements,

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
+    moveText,
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
@@ -510,5 +511,62 @@ describe("An unlinked copy through a reload @group4", () => {
             initialState: scoreState.state,
         }));
         expect(await hidden()).eqls([true, false, true, false]);
+    });
+
+    it("keeps a reader's change to what a copy given a type read from its text", async () => {
+        // `type` on a copy of a `<sort>` reads its text again (#2414). What
+        // it makes of the text is given the copy's ids, which do not move
+        // when more is made ahead of it, as the repeat does after `n`
+        // changes.
+        const doenetML = `
+    <mathInput name="n" prefill="1" />
+    <repeatForSequence length="$n"><math>1</math><math>2</math></repeatForSequence>
+    <graph><sort name="s" type="number">3 1 2</sort></graph>
+    <graph><sort copy="$s" type="text" name="c" /></graph>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        /** The text and anchor of each component the copy shows. */
+        async function shown() {
+            const c = (core as any).core._components[
+                await resolvePathToNodeIdx("c")
+            ];
+            const result = [];
+            for (const r of c.replacements) {
+                result.push([
+                    await r.stateValues.text,
+                    (await r.stateValues.anchor).toString(),
+                ]);
+            }
+            return result;
+        }
+        const c = (core as any).core._components[
+            await resolvePathToNodeIdx("c")
+        ];
+        await moveText({
+            componentIdx: c.replacements[0].componentIdx,
+            x: 5,
+            y: 7,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        const moved = [
+            ["1", "(5, 7)"],
+            ["2", "(0, 0)"],
+            ["3", "(0, 0)"],
+        ];
+        expect(await shown()).eqls(moved);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await shown()).eqls(moved);
     });
 });

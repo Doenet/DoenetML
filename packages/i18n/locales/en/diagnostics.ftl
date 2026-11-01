@@ -770,6 +770,49 @@ extend-module-attribute = A `<module>` makes its content from its attributes. An
 # part of: `conditionalContent` or `select`.
 extend-part-of-choosing-tag = `<{ $componentType }>` is part of a `<{ $parentType }>`, and means something only there, so it can't be extended.
 
+## A reference written as a different tag
+
+# An `extend` or `copy` written as a different tag than what it is of (D26):
+# `<math extend="$t"/>` asks for a math made from `$t`. That is allowed only
+# between related types, such as math, number, text and boolean, or point,
+# vector and coords. $componentType is the tag the extend or copy is written
+# as, $sourceType the type of what it is made from, and $source the reference,
+# as written (`$t`); all three are DoenetML, so they stay in English, as do
+# `extend`, `copy`, `bindValueTo`, `prefill` and `.text`.
+type-change-unrelated = A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+
+# $hasPrefill is "true" when the input has a `prefill` attribute.
+type-change-input-from-value =
+    { $hasPrefill ->
+        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`.
+    }
+
+type-change-from-container = A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` holding other content. To use its text, write `{ $source }.text`.
+
+# $count is the number of components `$source` holds, which is not one, and
+# $holdsNothing is "true" when that number is zero. $indexSelectsOne is "true"
+# when `$source[1]` selects one of those components (an entry of a list); an
+# index does not select a child of a `<group>`, so the author names the one
+# they want instead.
+type-change-composite-not-one =
+    { $holdsNothing ->
+        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
+       *[other] { $indexSelectsOne ->
+            [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+           *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        }
+    }
+
+# $value is the value of `$source` now. $valueCheck says what it would have
+# to be: a tuple, such as (1, 2), for a point, vector or coords, or true or
+# false, a number or a relation, for a boolean.
+type-change-value-not-convertible =
+    { $valueCheck ->
+        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so nothing is shown for it.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so nothing is shown for it.
+    }
+
 ## Children that do not match
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
