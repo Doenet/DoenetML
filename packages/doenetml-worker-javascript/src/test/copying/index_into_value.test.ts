@@ -426,8 +426,10 @@ describe("An index into an entry of a list @group4", async () => {
         const doenetML = `${lists}
 <mathInput name="wtl" bindValueTo="$tl[1][2]"><label>wtl</label></mathInput>
 <mathInput name="wscalar" bindValueTo="$ml[2][1]"><label>wscalar</label></mathInput>
-<mathInput name="wrow" bindValueTo="$ml[1][2]"><label>wrow</label></mathInput>
-<p name="ptl">$tl</p><p name="pml">$ml</p>`;
+<mathList name="lm"><math format="latex">\\begin{bmatrix}1 & 2\\\\3 & 4\\end{bmatrix}</math> 5</mathList>
+<mathInput name="wrow" bindValueTo="$lm[1][2]"><label>wrow</label></mathInput>
+<mathInput name="wrow1" bindValueTo="$lm[1][1]"><label>wrow1</label></mathInput>
+<p name="ptl">$tl</p><p name="pml">$ml</p><p name="plm">$lm</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
@@ -457,14 +459,23 @@ describe("An index into an entry of a list @group4", async () => {
         });
         expect(await textOf("pml")).eq("[[1, 2], [3, 4]], 7");
 
-        // A row of a matrix entry is not written through an index.
-        await updateMathInputValue({
-            latex: "(7,8)",
-            componentIdx: await resolvePathToNodeIdx("wrow"),
-            core,
-        });
-        expect(await textOf("pml")).eq("[[1, 2], [3, 4]], 7");
+        // A row of a matrix entry is not written through an index, whether
+        // given as a tuple, a 1×n matrix or a scalar: it would otherwise be
+        // written as a coordinate, replacing the matrix or making it a tuple.
+        for (const [input, latex] of [
+            ["wrow", "(7,8)"],
+            ["wrow", "\\begin{bmatrix}7 & 8\\end{bmatrix}"],
+            ["wrow1", "9"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+            expect(await textOf("plm"), latex).eq("[[1, 2], [3, 4]], 5");
+        }
         expect(await textOf("wrow")).eq("[[3, 4]]");
+        expect(await textOf("wrow1")).eq("[[1, 2]]");
     });
 
     it("reports an index into an entry as on a component (#2413)", async () => {

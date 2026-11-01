@@ -869,7 +869,10 @@ function valueShape(tree: Tree): ValueShape {
                     rebuild: (rows) => [
                         "matrix",
                         size,
-                        ["tuple", ...rows.map((row) => ["tuple", ...row])],
+                        [
+                            "tuple",
+                            ...rows.map((row): Tree => ["tuple", ...row]),
+                        ],
                     ],
                 };
             }
@@ -930,6 +933,14 @@ export function valueEntryOf(value: Expression, index: number): any {
         return me.fromAst(rowAsMatrix(shape.rows[index - 1]));
     }
     return undefined;
+}
+
+/**
+ * Whether the entries of a math value, as `$m[index]` reads them, are the
+ * rows of a matrix.
+ */
+export function hasMatrixRows(value: Expression): boolean {
+    return valueShape(value.tree).kind === "matrix";
 }
 
 interface ValueEntriesWorkspace {

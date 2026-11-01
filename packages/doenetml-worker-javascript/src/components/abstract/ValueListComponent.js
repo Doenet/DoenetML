@@ -27,6 +27,7 @@ import {
     returnMathVectorMatrixStateVariableDefinitions,
     VALUE_ENTRY_PREFIX,
     valueEntryOf,
+    hasMatrixRows,
 } from "../../utils/mathVectorMatrixStateVariables";
 import { booleanFromWord, booleanWord } from "../../utils/booleanWords";
 import {
@@ -874,9 +875,31 @@ export default class ValueListComponent extends BaseComponent {
                         workspace.coordinates = {};
                     }
                     const desiredValue = {};
-                    for (const [entryKey, coordinates] of Object.entries(
+                    for (const [entryKey, written] of Object.entries(
                         desiredStateVariableValues.entryCoordinateWrites,
                     )) {
+                        // An index into an entry (`entryValueEntryProperty`)
+                        // writes a coordinate, except of a matrix entry,
+                        // whose index reads a row: that takes no write.
+                        const coordinates = {};
+                        let throughRow = false;
+                        for (const [key, coordinate] of Object.entries(
+                            written,
+                        )) {
+                            if (key.startsWith(VALUE_ENTRY_PREFIX)) {
+                                const value = dependencyValues.values[entryKey];
+                                throughRow ||=
+                                    value != null && hasMatrixRows(value);
+                                coordinates[
+                                    key.slice(VALUE_ENTRY_PREFIX.length)
+                                ] = coordinate;
+                            } else {
+                                coordinates[key] = coordinate;
+                            }
+                        }
+                        if (throughRow) {
+                            continue;
+                        }
                         workspace.coordinates[entryKey] = {
                             ...workspace.coordinates[entryKey],
                             ...coordinates,
@@ -885,6 +908,9 @@ export default class ValueListComponent extends BaseComponent {
                             dependencyValues.values[entryKey],
                             workspace.coordinates[entryKey],
                         );
+                    }
+                    if (Object.keys(desiredValue).length === 0) {
+                        return { success: false };
                     }
                     return {
                         success: true,
@@ -1574,7 +1600,8 @@ const valueEntryPropertiesByIndex = new Map();
  * coordinate (`entryCoordinateWrites`), also where it reads a blank, as a
  * coordinate past an entry's dimensions is written: past the end it
  * lengthens the entry, and a scalar entry is taken as coordinate 1, so
- * `[1]` replaces it. A matrix entry takes no write through it.
+ * `[1]` replaces it. A matrix entry, whose rows it reads, takes no write
+ * through it.
  */
 function entryValueEntryProperty(n) {
     if (!valueEntryPropertiesByIndex.has(n)) {
@@ -1583,7 +1610,11 @@ function entryValueEntryProperty(n) {
             componentType: "math",
             companionsOf: "vector",
             writeThrough: "entryCoordinateWrites",
-            writeThroughValue: (coordinate) => ({ [n]: coordinate }),
+            // marked as written through an index, which a matrix entry
+            // refuses (`entryCoordinateWrites`)
+            writeThroughValue: (coordinate) => ({
+                [`${VALUE_ENTRY_PREFIX}${n}`]: coordinate,
+            }),
             compute: (value) => valueEntryOf(value, n) ?? me.fromAst("\uff3f"),
         });
     }
