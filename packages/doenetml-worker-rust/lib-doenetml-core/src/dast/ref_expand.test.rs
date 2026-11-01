@@ -772,3 +772,35 @@ fn an_invalid_extend_attribute_is_still_uncoded() {
     assert_eq!(errors[0].message, "Invalid 'extend' attribute");
     assert_eq!(spanned(source, &errors[0].position), r#"extend="x""#);
 }
+
+/// A function reference whose name names nothing, or more than one thing, is
+/// coded as a plain reference's failure is (#2419), and is marked at the whole
+/// function reference, arguments included, which the worker quotes.
+#[test]
+fn a_function_reference_that_fails_to_resolve_is_coded() {
+    for (source, code, message) in [
+        (
+            "$$f(2)",
+            "doenet-w0104",
+            "No referent found for reference: `$f`",
+        ),
+        (
+            r#"<group><function name="f">x</function><function name="f">x</function></group>$$f(2)"#,
+            "doenet-w0105",
+            "Multiple referents found for reference: `$f`",
+        ),
+    ] {
+        let dast_root = dast_root(source);
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+
+        let errors = errors_of(&flat_root);
+        assert_eq!(errors.len(), 1, "{source}");
+        let error = errors[0];
+        assert_eq!(error.code.as_deref(), Some(code), "{source}");
+        assert!(error.args.is_none(), "{source}");
+        assert!(matches!(error.error_type, ErrorType::Warning), "{source}");
+        assert_eq!(error.message, message, "{source}");
+        assert_eq!(spanned(source, &error.position), "$$f(2)", "{source}");
+    }
+}

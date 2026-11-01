@@ -69,13 +69,16 @@ function unresolvedReferenceDiagnostic(
     // The path has a position for each of its parts, so it spans just the
     // reference even in the parenthesized form `$(l[0])`. The resolver gives
     // the path only when the reference names nothing; otherwise the node's own
-    // position spans the reference.
+    // position spans the reference. A function reference (`$$f(2)`) is quoted
+    // from the node's position, which spans its arguments too, as the path
+    // does not (#2419).
     let reference = "";
     if (node.unresolvedPath && node.unresolvedPath.length > 0) {
         const path = node.unresolvedPath;
+        const dollars = doenetMLDollarsForReference(path, sources);
         const text = doenetMLStringForReference(path, sources);
-        if (text) {
-            reference = `${doenetMLDollarsForReference(path, sources)}${text}`;
+        if (text && dollars !== "$$") {
+            reference = `${dollars}${text}`;
         }
     }
     if (!reference) {
