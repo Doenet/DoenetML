@@ -640,6 +640,93 @@ describe("A reference written as a different tag is allowed only between related
         expect((await after.stateValues.coords).toString()).eq("(3, 4)");
     });
 
+    it("a point or boolean made from a math in a group follows its value", async () => {
+        // The value of the math the group holds decides it, as for
+        // `<point extend="$m"/>` of the math itself.
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="x"/>
+<group name="g"><math>$mi</math></group>
+<p name="p1"><point extend="$g"/></p>
+<p name="p2"><boolean extend="$g"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(typeChangeDiagnostics().map((d) => [d.code, d.line])).eqls([
+            ["doenet-i0053", 4],
+            ["doenet-i0053", 5],
+        ]);
+
+        const mi = await resolvePathToNodeIdx("mi");
+        await updateMathInputValue({ latex: "(1,2)", componentIdx: mi, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "(1, 2)", p2: "" });
+
+        await updateMathInputValue({ latex: "1", componentIdx: mi, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "true" });
+
+        await updateMathInputValue({ latex: "(3,4)", componentIdx: mi, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "(3, 4)", p2: "" });
+    });
+
+    it("a point made from a math in a group is kept, not made again, while its value stays a tuple", async () => {
+        const { core, resolvePathToNodeIdx } = await setup(`
+<mathInput name="mi" prefill="(1,2)"/>
+<group name="g"><math>$mi</math></group>
+<graph><point extend="$g" name="P"/></graph>
+`);
+        /** The point the extend shows. */
+        async function pointShown() {
+            return (core as any).core._components[
+                await resolvePathToNodeIdx("P")
+            ];
+        }
+        const before = await pointShown();
+        expect(before.componentType).eq("point");
+
+        await updateMathInputValue({
+            latex: "(3,4)",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const after = await pointShown();
+        expect(after === before).eq(true);
+        expect((await after.stateValues.coords).toString()).eq("(3, 4)");
+    });
+
+    it("content that changes inside an iteration or a pick is decided again", async () => {
+        // Each new iteration of the `<repeatForSequence>` is a `<group>`,
+        // expanded after the composites holding it change.
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="1"/>
+<select name="s"><option><repeatForSequence length="$mi"><text>a</text></repeatForSequence></option></select>
+<group name="g"><repeatForSequence length="$mi"><text>b</text></repeatForSequence></group>
+<p name="p1"><text extend="$s[1]"/></p>
+<p name="p2"><text extend="$g"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "b" });
+        expect(typeChangeDiagnostics()).eqls([]);
+
+        const mi = await resolvePathToNodeIdx("mi");
+        await updateMathInputValue({ latex: "2", componentIdx: mi, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(typeChangeDiagnostics().map((d) => d.message)).eqls([
+            "A `<text>` can be made from what a `<select>` picked only when it holds one component, and `$s[1]` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<text>$s[1]</text>`.",
+            "A `<text>` can be made from a `<group>` only when it holds one component, and `$g` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<text>$g</text>`.",
+        ]);
+
+        await updateMathInputValue({ latex: "1", componentIdx: mi, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "b" });
+    });
+
+    it("a setup reached by the index of a child is not decided", async () => {
+        const { texts, typeChangeDiagnostics } = await setup(`
+<group name="g"><setup><number name="n">3</number></setup><math>x</math></group>
+<p name="p1"><math extend="$g[1]"/></p>
+`);
+        expect(await texts(["p1"])).eqls({ p1: "＿" });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
     it("the active case decides whether a conditionalContent stands for the written type", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
