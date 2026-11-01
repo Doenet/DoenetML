@@ -16,6 +16,10 @@ export default class Matrix extends MathComponent {
     };
     static rendererType = "math";
 
+    // An index selects a row, as a 1×n matrix, and a second index an entry:
+    // `$M[i]` is `$M.matrix[i]` (D27).
+    static variableForIndexAsProp = "matrix";
+
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["row", "column"];
 

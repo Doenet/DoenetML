@@ -18,7 +18,11 @@ import {
     roundForDisplay,
     stripLatex,
 } from "../utils/math";
-import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
+import {
+    returnMathVectorMatrixStateVariableDefinitions,
+    returnValueEntriesStateVariableDefinitions,
+    VALUE_ENTRIES,
+} from "../utils/mathVectorMatrixStateVariables";
 import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
@@ -48,7 +52,8 @@ export default class MathInput extends Input {
         summary: "An interactive math input",
     };
     static variableForImplicitProp = "value";
-    static variableForIndexAsProp = "vector";
+    // An index selects the entries of the value, as for a `<math>` (D27).
+    static variableForIndexAsProp = VALUE_ENTRIES;
 
     // A math input changes width *and* height on nearly every keystroke, while
     // the caret is inside it, so unlike the other inputs its box cannot simply
@@ -1212,6 +1217,7 @@ export default class MathInput extends Input {
         Object.assign(
             stateVariableDefinitions,
             returnMathVectorMatrixStateVariableDefinitions(),
+            returnValueEntriesStateVariableDefinitions(),
         );
 
         return stateVariableDefinitions;

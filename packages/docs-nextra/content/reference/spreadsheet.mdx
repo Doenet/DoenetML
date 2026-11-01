@@ -11,6 +11,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<spreadsheet>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) 
 component that renders a basic embedded spreadsheet tool.
 
+Its cells are selected through `cells`: `$ss.cells[1][2]{:dn}` is the cell in row 1 and column 2. An index on the spreadsheet itself, such as `$ss[1]{:dn}`, names nothing.
+
 <AttrPropDisplay name='spreadsheet'/>
 
 

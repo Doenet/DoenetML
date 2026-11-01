@@ -437,6 +437,15 @@ reference-index-unavailable = Cannot reference index `{ $reference }`
 
 reference-index-selects-nothing = `{ $reference }`: an index cannot select anything in this `<{ $component }>`. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat, not among the children of a component. To refer to a child, give it a name and write that name after a `.`.
 
+# An index on a component whose values are reached through one of its
+# properties rather than by indexing the component itself: `$ss[1]` on a
+# `<spreadsheet>`, whose cells are `$ss.cells[1][2]`. $reference is the
+# reference as the author wrote it, with its `$`; $component the tag name of
+# what it reached; $suggestion the same reference with the property put in
+# front of the index; $property that property. All stay as written.
+
+reference-index-use-property = `{ $reference }`: an index does not select anything in a `<{ $component }>` itself. Write `{ $suggestion }` to select among its `{ $property }`.
+
 # An index past what a repeat, a select or a collect made: `$s[3]` on a
 # `<select>` that picked two options. $reference is the reference as the author
 # wrote it, with its `$`, and $component the tag name of the repeat, select or

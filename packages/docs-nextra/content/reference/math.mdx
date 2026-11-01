@@ -10,6 +10,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<math>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that defines a symbolic or numerical math expression that can be rendered and used in computations.
 
+An index selects an entry of the value: `$m[2]{:dn}` is the second entry of a tuple or vector such as `(8, 9){:dn}`, and of a matrix it is the second row, as a 1×n matrix, with `$m[2][1]{:dn}` the entry in row 2 and column 1. A value that is a single expression, such as `5{:dn}`, has no entries, so an index into it names nothing.
+
 <AttrPropDisplay name='math'/>
 
 ## Examples Page 1

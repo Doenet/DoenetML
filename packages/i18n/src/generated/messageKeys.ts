@@ -407,6 +407,7 @@ export type MessageKey =
     | "collect-invalid-component-type"
     | "reference-index-unavailable"
     | "reference-index-selects-nothing"
+    | "reference-index-use-property"
     | "reference-index-past-instances"
     | "component-action-unavailable"
     | "data-frame-inconsistent-row-lengths"
@@ -1066,6 +1067,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "collect-invalid-component-type",
     "reference-index-unavailable",
     "reference-index-selects-nothing",
+    "reference-index-use-property",
     "reference-index-past-instances",
     "component-action-unavailable",
     "data-frame-inconsistent-row-lengths",

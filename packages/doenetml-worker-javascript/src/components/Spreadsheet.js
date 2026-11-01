@@ -20,6 +20,11 @@ export default class Spreadsheet extends BlockComponent {
     static componentDocs = {
         summary: "An interactive spreadsheet",
     };
+
+    // A spreadsheet is not a value with entries (D27): its cells are
+    // selected through `cells` (`$ss.cells[1][2]`), and an index on the
+    // spreadsheet itself (`$ss[1]`) is reported as such (`doenet-w0182`).
+    static indexThroughProperty = "cells";
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
