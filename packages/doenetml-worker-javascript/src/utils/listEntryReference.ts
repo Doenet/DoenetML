@@ -290,10 +290,15 @@ export function listEntryPropertyPath({
         if (index < 1) {
             return indexNamingNothing(listClass, first, componentInfoObjects);
         }
-        const entryProperty = [
-            `${VALUE_ENTRY_PREFIX}${index}`,
-            `x${index}`,
-        ].find(
+        // A `<math>` entry is indexed by its value's entries (a tuple's
+        // entries, a matrix's rows); a point or vector entry by its
+        // coordinates, which it has also in one dimension, where its value is
+        // a single number.
+        const candidates =
+            listClass.listEntryComponentType === "math"
+                ? [`${VALUE_ENTRY_PREFIX}${index}`]
+                : [`x${index}`];
+        const entryProperty = candidates.find(
             (property) =>
                 listClass.derivedEntryProperty(property) !== undefined ||
                 entryPropertyOf(listClass, property, componentInfoObjects) !==

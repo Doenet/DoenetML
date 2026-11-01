@@ -402,6 +402,8 @@ describe("An index into an entry of a list @group4", async () => {
 <pointList name="pl">(3,4) (1,2)</pointList>
 <mathList name="l">1 2</mathList>
 <numberList name="nl">5 6</numberList>
+<vectorList name="vl1">(1) (2)</vectorList>
+<pointList name="pl1">(1) (2)</pointList>
 <mathList name="tl">(1,2) (3,4)</mathList>
 <mathList name="ml">$M.value 5</mathList>
 <matrix name="M"><row>1 2</row><row>3 4</row></matrix>
@@ -414,6 +416,11 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$pl[2][1]", "1"],
                 ["$pl[2][2]", "2"],
                 ["$pl[2].value[2]", "2"],
+                // a coordinate of a point or vector entry, also in one
+                // dimension, where its value is a single number
+                ["$vl1[2][1]", "2"],
+                ["$vl1[2].value[1]", "2"],
+                ["$pl1[1][1]", "1"],
                 ["$tl[2][1]", "3"],
                 // an index into an entry's value is an index into the entry
                 ["$tl[2].value[1]", "3"],
