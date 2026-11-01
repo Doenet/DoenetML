@@ -1118,13 +1118,23 @@ export default class Copy extends CompositeComponent {
         // whether the type it is written as can be made from it
         // (`typeChangeStatus`): the `value` of a math for `<point
         // extend="$m"/>` (`utils/typeChange.js`), or `numEntries` of a list
-        // whose entries are written, which stands for its one entry.
+        // whose entries are written, which stands for its one entry. A value
+        // reference (`_ref`) is of the type it presents (`typeStoodFor`).
         stateVariableDefinitions.typeChangeValueCheck = {
-            returnDependencies: () => ({
+            stateVariablesDeterminingDependencies: ["extendedComponent"],
+            returnDependencies: ({ stateValues }) => ({
                 extendedComponent: {
                     dependencyType: "stateVariable",
                     variableName: "extendedComponent",
                 },
+                ...(stateValues.extendedComponent?.componentType === "_ref" && {
+                    presentedComponentType: {
+                        dependencyType: "doenetAttribute",
+                        componentIdx:
+                            stateValues.extendedComponent.componentIdx,
+                        attributeName: "presentedComponentType",
+                    },
+                }),
                 writtenType: {
                     dependencyType: "attributePrimitive",
                     attributeName: "_createComponentOfType",
@@ -1136,6 +1146,7 @@ export default class Copy extends CompositeComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const sourceType =
+                    dependencyValues.presentedComponentType ??
                     dependencyValues.extendedComponent?.componentType;
                 const writtenType =
                     dependencyValues.writtenType &&

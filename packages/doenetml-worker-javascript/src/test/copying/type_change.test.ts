@@ -607,6 +607,35 @@ describe("A reference written as a different tag is allowed only between related
         expect(await texts(["p1"])).eqls({ p1: "" });
     });
 
+    it("a point or boolean made from a value reference follows its value both ways", async () => {
+        // `$g[1]` is the value reference `$m.value` (`_ref`), which presents
+        // a math: its value is depended on as a math's is.
+        for (const [start, point, boolean] of [
+            ["x", "", ""],
+            ["(1,2)", "(1, 2)", ""],
+        ]) {
+            const { core, resolvePathToNodeIdx, texts } = await setup(`
+<mathInput name="mi" prefill="${start}"/>
+<math name="m">$mi</math>
+<p><group name="g">$m.value</group></p>
+<p name="p1"><point extend="$g[1]"/></p>
+<p name="p2"><boolean extend="$g[1]"/></p>
+`);
+            expect(await texts(["p1", "p2"])).eqls({ p1: point, p2: boolean });
+            const mi = await resolvePathToNodeIdx("mi");
+            for (const [latex, p1, p2] of [
+                ["(3,4)", "(3, 4)", ""],
+                ["y", "", ""],
+                ["(5,6)", "(5, 6)", ""],
+                ["1", "", "true"],
+                ["z", "", ""],
+            ]) {
+                await updateMathInputValue({ latex, componentIdx: mi, core });
+                expect(await texts(["p1", "p2"])).eqls({ p1, p2 });
+            }
+        }
+    });
+
     it("a point made from a math is kept, not made again, while its value stays a tuple", async () => {
         const { core, resolvePathToNodeIdx } = await setup(`
 <mathInput name="mi" prefill="(1,2)"/>

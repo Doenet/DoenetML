@@ -155,7 +155,9 @@ what to write instead:
 When the value of a math or an input, referenced directly, doesn't allow the
 tag, such as `<point extend="$m"/>{:dn}` while `m` is not a tuple, nothing is
 shown while it lasts, with an info saying why. An `extend` is shown again when the value matches. A `copy` does not
-follow its source, so it stays as it was made.
+follow its source, so it stays as it was made. A property, such as
+`<point extend="$P.x"/>{:dn}`, and the selected value of a `<choiceInput>` are not
+checked against their value.
 
 ## How references are resolved
 
