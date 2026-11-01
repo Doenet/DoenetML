@@ -1624,28 +1624,29 @@ function _buildAttributeDerivedDefinitions({
     definition: (args: any) => any;
     inverseDefinition: (args: any) => Promise<any>;
 } {
+    // An attribute component whose value is a default, such as one
+    // shadowing an entry of a list that neither the list nor the entry's
+    // source sets a style for (`<point extend="$l[2]"/>`), sets nothing: a
+    // fall-back (where the component is) is read in its place, when there is
+    // one to read. Both `definition` and `inverseDefinition` use this, so a
+    // desired value goes back to the source that was read.
+    const readsAttributeComponent = (dependencyValues: any, usedDefault: any) =>
+        Boolean(dependencyValues.attributeComponent) &&
+        !(
+            usedDefault.attributeComponent?.[stateVariableForAttributeValue!] &&
+            ((dependencyValues.sourceCompositeValue != null &&
+                !usedDefault.sourceCompositeValue) ||
+                (dependencyValues.parentValue != null &&
+                    !usedDefault.parentValue))
+        );
+
     const definition = function ({
         dependencyValues,
         usedDefault,
         essentialValues,
     }: any) {
         let attributeValue;
-        // An attribute component whose value is a default, such as one
-        // shadowing an entry of a list that neither the list nor the entry's
-        // source sets a style for (`<point extend="$l[2]"/>`), sets nothing:
-        // a fall-back (where the component is) is read in its place, when
-        // there is one to read.
-        const attributeComponentIsDefault =
-            dependencyValues.attributeComponent &&
-            usedDefault.attributeComponent?.[stateVariableForAttributeValue!] &&
-            ((dependencyValues.sourceCompositeValue != null &&
-                !usedDefault.sourceCompositeValue) ||
-                (dependencyValues.parentValue != null &&
-                    !usedDefault.parentValue));
-        if (
-            dependencyValues.attributeComponent &&
-            !attributeComponentIsDefault
-        ) {
+        if (readsAttributeComponent(dependencyValues, usedDefault)) {
             // The `attributeComponent` dependency is wired only when
             // `createComponentOfType` is set (see the call sites'
             // `returnDependencies`), which is exactly when
@@ -1728,7 +1729,7 @@ function _buildAttributeDerivedDefinitions({
         usedDefault,
         essentialValues,
     }: any) {
-        if (!dependencyValues.attributeComponent) {
+        if (!readsAttributeComponent(dependencyValues, usedDefault)) {
             if (dependencyValues.attributePrimitive != null) {
                 // can't invert if have primitive
                 return { success: false };

@@ -531,6 +531,23 @@ export default class Collect extends CompositeComponent {
             componentIdx: component.componentIdx,
         });
 
+        // The `<collect>`'s `styleNumber` fills in for a component that
+        // sets none; it does not override one the component sets
+        // (D29's container model, CTX-5).
+        const collectedAttributes =
+            component.attributes.styleNumber &&
+            (await collectedSetsStyle(
+                collectedComponent,
+                collectedObj,
+                components,
+            ))
+                ? Object.fromEntries(
+                      Object.entries(component.attributes).filter(
+                          ([name]) => name !== "styleNumber",
+                      ),
+                  )
+                : component.attributes;
+
         for (let repl of serializedReplacements) {
             // add attributes
             if (!repl.attributes) {
@@ -542,12 +559,12 @@ export default class Collect extends CompositeComponent {
             const attributes =
                 repl.componentType === "_copy"
                     ? Object.fromEntries(
-                          Object.entries(component.attributes).filter(
+                          Object.entries(collectedAttributes).filter(
                               ([, attribute]) =>
                                   attribute.type === "unresolved",
                           ),
                       )
-                    : component.attributes;
+                    : collectedAttributes;
             const res = convertUnresolvedAttributesForComponentType({
                 attributes,
                 componentType: repl.componentType,
@@ -559,19 +576,6 @@ export default class Collect extends CompositeComponent {
 
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
-            // The `<collect>`'s `styleNumber` fills in for a component that
-            // sets none; it does not override one the component sets
-            // (D29's container model, CTX-5).
-            if (
-                attributesFromComposite.styleNumber &&
-                (await collectedSetsStyle(
-                    collectedComponent,
-                    collectedObj,
-                    components,
-                ))
-            ) {
-                delete attributesFromComposite.styleNumber;
-            }
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
