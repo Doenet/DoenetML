@@ -26,14 +26,17 @@ describe("A copy of several sources @group1", async () => {
         });
     });
 
-    // `$r.coords` has a source for each point. When `n` changes, the
-    // sources from the first new or removed point on are remade, after the
-    // ones before it are kept.
-    it("keeps its replacements in order as later sources come and go", async () => {
+    // `$g.coords` has three sources: the first point, the repeat and the
+    // last point. When `n` changes, the copy remakes the repeat's
+    // replacements and the last point's, clearing the counts from the middle
+    // source on. The old indexing cleared the first two sources' counts
+    // instead. What is rendered is the same either way, so this checks that
+    // the replacements stay in order, not that the old code failed.
+    it("keeps its replacements in order as a middle source grows and shrinks", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<mathInput name="n" prefill="2"/>
-<repeatForSequence name="r" length="$n" valueName="v"><point>($v,1)</point><point>($v,2)</point></repeatForSequence>
-<p name="coords">$r.coords</p>`,
+            doenetML: `<mathInput name="n" prefill="1"/>
+<group name="g"><point>(0,0)</point><repeatForSequence length="$n" valueName="v"><point>($v,1)</point></repeatForSequence><point>(9,9)</point></group>
+<p name="coords">$g.coords</p>`,
         });
         const nIdx = await resolvePathToNodeIdx("n");
         const coordsIdx = await resolvePathToNodeIdx("coords");
@@ -47,16 +50,19 @@ describe("A copy of several sources @group1", async () => {
         }
 
         function expected(n: number) {
-            const points: string[] = [];
+            const points = ["(0, 0)"];
             for (let v = 1; v <= n; v++) {
-                points.push(`(${v}, 1)`, `(${v}, 2)`);
+                points.push(`(${v}, 1)`);
             }
-            return points.join(", ");
+            points.push("(9, 9)");
+            // The copy's replacements are separate maths, with nothing
+            // between them in the paragraph.
+            return points.join("");
         }
 
-        expect(await coords()).eq(expected(2));
+        expect(await coords()).eq(expected(1));
 
-        for (const n of [3, 0, 1, 4, 2]) {
+        for (const n of [3, 0, 2, 4, 1]) {
             await updateMathInputValue({
                 latex: `${n}`,
                 componentIdx: nIdx,
