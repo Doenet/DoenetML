@@ -246,13 +246,15 @@ function authoredName(component: any): string | undefined {
  * type of the component that made it (`_instanceOf`, see
  * `utils/indexInstances.ts`): an `iteration` of a repeat, a `pick` of a
  * select, the `case` a `<conditionalContent>` shows, or a `group` written as
- * one.
+ * one. (Only a repeat, a select and a `<conditionalContent>` make such a
+ * group.)
  */
 function containerKind(instanceOf: string | undefined): string {
     if (instanceOf === "conditionalContent") {
         return "case";
     }
-    return instanceKindOf(instanceOf) ?? "group";
+    const kind = instanceKindOf(instanceOf);
+    return kind === "iteration" || kind === "pick" ? kind : "group";
 }
 
 /**
@@ -897,11 +899,17 @@ export class RefResolutionDependency extends Dependency {
             if (indexStart == undefined || indexEnd == undefined) {
                 continue;
             }
+            const child = this.dependencyHandler._components[childIdx];
+            if (child?.componentType === "setup") {
+                // The `<setup>` a repeat adds to an iteration for its
+                // `valueName` and `indexName`, after the content: the author
+                // wrote no such child, so there is none to name, and it shows
+                // nothing (D27)
+                continue;
+            }
             const before = `${dollars}${source.substring(start, indexStart)}`;
 
-            const childName = authoredName(
-                this.dependencyHandler._components[childIdx],
-            );
+            const childName = authoredName(child);
             const instanceOf =
                 this.dependencyHandler._components[containerIdx]?.attributes
                     ?._instanceOf?.primitive?.value;

@@ -440,17 +440,25 @@ reference-index-selects-nothing = `{ $reference }`: an index cannot select anyth
 # An index past what a repeat or a select made: `$s[3]` on a `<select>` that
 # picked two options. $reference is the reference as the author wrote it, with
 # its `$`, and $component the tag name of the repeat or select; both stay as
-# written. $kind is `iteration` for a repeat and `pick` for a select (and the
-# other components that pick or arrange: `<selectFromSequence>`, `<shuffle>`,
-# `<sort>`, `<collect>`), and $count how many it made.
+# written. $kind is `iteration` for a repeat, `pick` for a select (or a
+# `<selectFromSequence>`), and `item` for a component that arranges or gathers
+# what it is given (`<shuffle>`, `<sort>`, `<collect>`). $count is how many it
+# made, which can be 0.
 
 reference-index-past-instances =
     { $kind ->
         [iteration] { $count ->
+            [0] `{ $reference }`: the `<{ $component }>` made no iterations.
             [one] `{ $reference }`: the `<{ $component }>` made only { $count } iteration.
            *[other] `{ $reference }`: the `<{ $component }>` made only { $count } iterations.
         }
+        [item] { $count ->
+            [0] `{ $reference }`: the `<{ $component }>` has no items.
+            [one] `{ $reference }`: the `<{ $component }>` has only { $count } item.
+           *[other] `{ $reference }`: the `<{ $component }>` has only { $count } items.
+        }
        *[pick] { $count ->
+            [0] `{ $reference }`: the `<{ $component }>` made no picks.
             [one] `{ $reference }`: the `<{ $component }>` made only { $count } pick.
            *[other] `{ $reference }`: the `<{ $component }>` made only { $count } picks.
         }

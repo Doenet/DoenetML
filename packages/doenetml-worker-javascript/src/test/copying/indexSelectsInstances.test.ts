@@ -261,6 +261,20 @@ describe("An index selects instances, not children @group4", async () => {
         }
     });
 
+    it("does not warn of the setup a repeat adds after an iteration's content", async () => {
+        // An index after the content of an iteration reaches the `<setup>` that
+        // holds `valueName`, which shows nothing, as before. There is no child
+        // the author wrote to name, so there is no deprecation warning.
+        const { text, warnings, errors, infos } = await shownAndReported(`
+    <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+    <p name="p">[$r[1][2]]</p>
+    `);
+        expect(text).eq("[]");
+        expect(warnings).eqls([]);
+        expect(errors).eqls([]);
+        expect(infos).eqls([]);
+    });
+
     it("words the deprecation warning with what the author wrote", async () => {
         const { warnings } = await shownAndReported(
             `<select name="s"><option><math>a</math><math name="m">b</math></option></select><p name="p">$s[1][1] $s[1][2]</p>`,
@@ -352,6 +366,24 @@ describe("An index selects instances, not children @group4", async () => {
                 count: 3,
                 message:
                     "`$r[1][4]`: the `<repeatForSequence>` made only 3 iterations.",
+            },
+            {
+                body: `<repeatForSequence name="r" length="0"><math>x</math><math>y</math></repeatForSequence><p name="p">[$r[1]]</p>`,
+                reference: "$r[1]",
+                component: "repeatForSequence",
+                kind: "iteration",
+                count: 0,
+                message:
+                    "`$r[1]`: the `<repeatForSequence>` made no iterations.",
+            },
+            {
+                // A collect gathers rather than picks
+                body: `<section name="sec"><p>a</p><p>b</p></section><collect name="c" from="$sec" componentType="p" /><p name="p">[$c[3]]</p>`,
+                reference: "$c[3]",
+                component: "collect",
+                kind: "item",
+                count: 2,
+                message: "`$c[3]`: the `<collect>` has only 2 items.",
             },
         ];
 

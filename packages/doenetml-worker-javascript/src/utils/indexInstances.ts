@@ -17,28 +17,35 @@
 import type { ComponentInfoObjects } from "./componentInfoObjects";
 
 /**
+ * What a warning calls the instances of a composite: the `iteration`s of a
+ * repeat, the `pick`s of a select, or the `item`s of a component that
+ * arranges or gathers what it is given rather than picking among it.
+ */
+export type InstanceKind = "iteration" | "pick" | "item";
+
+/**
  * The composites whose index selects among the instances they produce, as
  * opposed to a list (`listEntryComponentType`), whose entries are its
  * instances, with what a warning calls those instances.
  */
-const INSTANCE_KINDS = new Map<string, "iteration" | "pick">([
+const INSTANCE_KINDS = new Map<string, InstanceKind>([
     ["repeat", "iteration"],
     ["repeatForSequence", "iteration"],
     ["select", "pick"],
     ["selectFromSequence", "pick"],
-    ["shuffle", "pick"],
-    ["sort", "pick"],
-    ["collect", "pick"],
+    ["shuffle", "item"],
+    ["sort", "item"],
+    ["collect", "item"],
 ]);
 
 /**
- * What a warning calls the instances of a composite of type `componentType`:
- * the `iteration`s of a repeat or the `pick`s of a select, or `undefined` for
- * any other type.
+ * What a warning calls the instances of a composite of type `componentType`
+ * (see `InstanceKind`), or `undefined` for a type that is not one of
+ * `INSTANCE_KINDS`.
  */
 export function instanceKindOf(
     componentType: string | undefined,
-): "iteration" | "pick" | undefined {
+): InstanceKind | undefined {
     return componentType === undefined
         ? undefined
         : INSTANCE_KINDS.get(componentType);
