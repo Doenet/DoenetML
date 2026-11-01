@@ -1,6 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import me from "math-expressions";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { codedDiagnostic } from "../utils/diagnostics";
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
@@ -15,12 +14,6 @@ export default class Intersection extends CompositeComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        attributes.styleNumber = {
-            leaveRaw: true,
-            description:
-                "Style number applied to the resulting intersection components.",
-        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -223,31 +216,6 @@ export default class Intersection extends CompositeComponent {
             doenetAttributes: {},
             children: [],
         }));
-
-        let attributesToConvert = {};
-        if (component.attributes.styleNumber) {
-            attributesToConvert.styleNumber = component.attributes.styleNumber;
-        }
-
-        if (Object.keys(attributesToConvert).length > 0) {
-            for (let repl of serializedReplacements) {
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: repl.componentType,
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                });
-
-                const attributesFromComposite = res.attributes;
-                nComponents = res.nComponents;
-
-                if (!repl.attributes) {
-                    repl.attributes = {};
-                }
-                Object.assign(repl.attributes, attributesFromComposite);
-            }
-        }
 
         workspace.replacementsCreated = stateIdInfo.num;
 

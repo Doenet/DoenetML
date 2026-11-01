@@ -110768,7 +110768,9 @@
                 },
                 {
                     "name": "styleNumber",
-                    "description": "Style number applied to the resulting intersection components."
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
                 },
                 {
                     "name": "isResponse",
@@ -110807,6 +110809,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
                     "fromAttribute": true
                 },
                 {

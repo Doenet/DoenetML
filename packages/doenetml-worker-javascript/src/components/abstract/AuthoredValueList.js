@@ -214,16 +214,31 @@ export default class AuthoredValueList extends ValueListComponent {
     }
 
     // The entry variables shown as the source shows them, with the array of
-    // the list that holds them: `hide` and `hidden` for every list, and the
-    // style and `renderMode` for a list shown as its sources.
+    // the list that holds them: `hide`, `hidden` and the style for every
+    // list, and `renderMode` for a list shown as its sources. An authored
+    // child's own `styleNumber` beats the list's, which fills in for a child
+    // that sets none (D29's container model). An entry of a list of
+    // graphical objects is drawn in its child's style already
+    // (`listEntryChildRendererVariables`), so that list holds only its
+    // `styleNumber`, which a component made from one entry takes.
     static get listEntryPresentationVariables() {
         if (!Object.hasOwn(this, "builtListEntryPresentationVariables")) {
             const { renderMode, ...arrays } = ENTRY_PRESENTATION_ARRAYS;
-            const { hide, hidden } = ENTRY_PRESENTATION_ARRAYS;
+            const { hide, hidden, selectedStyle, styleNumber } =
+                ENTRY_PRESENTATION_ARRAYS;
             // a `renderMode` for the entries that are drawn as maths
             this.builtListEntryPresentationVariables = !this
                 .listEntriesShownAsSources
-                ? Object.freeze({ hide, hidden })
+                ? this.listEntryChildRendererVariables?.includes(
+                      "selectedStyle",
+                  )
+                    ? Object.freeze({ hide, hidden, styleNumber })
+                    : Object.freeze({
+                          hide,
+                          hidden,
+                          selectedStyle,
+                          styleNumber,
+                      })
                 : "renderMode" in this.listEntryRendererDefaults
                   ? ENTRY_PRESENTATION_ARRAYS
                   : Object.freeze(arrays);
@@ -1980,18 +1995,28 @@ export const ENTRY_PRESENTATION_SOURCE_VARIABLES = [
  * How the entry of `source`, a child or a component a list reads an entry
  * from, is shown, from its variables (`ENTRY_PRESENTATION_SOURCE_VARIABLES`):
  * `hide`, `selectedStyle`, `styleNumber` and `renderMode`, each `undefined`
- * when the source
- * does not say, so that the list's own is used. A reference that stands for a
- * copy of its referent gives the referent's.
+ * when the source does not say, so that the list's own is used. A reference
+ * that stands for a copy of its referent gives the referent's.
+ *
+ * A source whose `styleNumber` is its default (`usedDefault`, the
+ * dependency's record of which of those variables are) sets no style, so
+ * its entry takes the list's: a list's style fills in what the source leaves
+ * unset, and never overrides one it sets (D29's container model, CTX-5).
+ * A style the source has from where it sits (`<graph styleNumber="2">`) is
+ * one it sets, as it is drawn with it.
  */
-export function sourcePresentation(stateValues = {}) {
-    const read = (name) =>
-        stateValues[copiedReferentVariableName(name)] ?? stateValues[name];
+export function sourcePresentation(stateValues = {}, usedDefault) {
+    const nameOf = (name) =>
+        stateValues[copiedReferentVariableName(name)] != null
+            ? copiedReferentVariableName(name)
+            : name;
+    const read = (name) => stateValues[nameOf(name)] ?? undefined;
+    const setsStyle = !usedDefault?.[nameOf("styleNumber")];
     return {
-        hide: read("hide") ?? undefined,
-        selectedStyle: read("selectedStyle") ?? undefined,
-        styleNumber: read("styleNumber") ?? undefined,
-        renderMode: read("renderMode") ?? undefined,
+        hide: read("hide"),
+        selectedStyle: setsStyle ? read("selectedStyle") : undefined,
+        styleNumber: setsStyle ? read("styleNumber") : undefined,
+        renderMode: read("renderMode"),
     };
 }
 
@@ -2057,7 +2082,7 @@ function returnEntryPresentationDefinitions(listClass) {
                 variableName: "extendListViaComposite",
             },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, usedDefault }) {
             const fromReference = childrenFromReference(dependencyValues);
             return {
                 setValue: {
@@ -2079,7 +2104,10 @@ function returnEntryPresentationDefinitions(listClass) {
                             // made of is not such a container: this list's
                             // own `hide` decides in its place.
                             return {
-                                ...sourcePresentation(stateValues),
+                                ...sourcePresentation(
+                                    stateValues,
+                                    usedDefault.children?.[ind],
+                                ),
                                 hiddenByContainer: Boolean(
                                     fromReference[ind]
                                         ? stateValues?.hiddenWithinList
@@ -2191,23 +2219,13 @@ function returnEntryPresentationDefinitions(listClass) {
 }
 
 /**
- * The attribute of the list that, when the list sets it, decides an entry
- * presentation variable for every entry over what each source says, as a
- * `<collect>`'s own `styleNumber` was given to every copy it made. The
- * list's `hide` is not one: it hides the list, which hides its entries
- * (`hidden`), but an entry's `hide` stays its source's, and the list's
- * `hide="false"` does not show an entry whose source is hidden (D29).
- */
-const LIST_SETTING_OF_PRESENTATION = {
-    selectedStyle: "styleNumber",
-    styleNumber: "styleNumber",
-};
-
-/**
  * The arrays of a value per entry of a list
  * (`listEntryPresentationVariables`), computed from its `entryPresentation`
- * and the list's own variable of the same name, or the list's
- * `styleNumber` where it sets one (`LIST_SETTING_OF_PRESENTATION`). Those an
+ * and the list's own variable of the same name: the source's where it sets
+ * one, else the list's. The list's `hide` is not taken for an entry's: it
+ * hides the list, which hides its entries (`hidden`), but an entry's `hide`
+ * stays its source's, and the list's `hide="false"` does not show an entry
+ * whose source is hidden (D29). Those an
  * entry read by itself takes as attributes (`ENTRY_ATTRIBUTE_TYPES`) are
  * arrays with an entry per entry (`entryAttributeArrayDefinition`). Changing
  * which entries are hidden changes the children the parent draws.
@@ -2223,7 +2241,6 @@ export function returnEntryPresentationArrays(listClass) {
             );
             continue;
         }
-        const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
         definitions[arrayName] = {
             forRenderer: true,
             returnDependencies: () => ({
@@ -2235,21 +2252,11 @@ export function returnEntryPresentationArrays(listClass) {
                     dependencyType: "stateVariable",
                     variableName: entryVariable,
                 },
-                ...(listSetting
-                    ? {
-                          listSetting: {
-                              dependencyType: "stateVariable",
-                              variableName: listSetting,
-                          },
-                      }
-                    : {}),
             }),
             ...(entryVariable === "hidden"
                 ? { markStale: () => ({ updateParentRenderedChildren: true }) }
                 : {}),
-            definition({ dependencyValues, usedDefault }) {
-                const listSets =
-                    Boolean(listSetting) && !usedDefault.listSetting;
+            definition({ dependencyValues }) {
                 const values = dependencyValues.entryPresentation.map(
                     (presentation) => {
                         if (entryVariable === "hidden") {
@@ -2264,9 +2271,6 @@ export function returnEntryPresentationArrays(listClass) {
                                 presentation.hide ||
                                 presentation.hiddenByContainer,
                             );
-                        }
-                        if (listSets) {
-                            return dependencyValues.listValue;
                         }
                         return (
                             presentation[entryVariable] ??
@@ -2295,16 +2299,15 @@ export const ENTRY_ATTRIBUTE_TYPES = Object.freeze({
 
 /**
  * The array `arrayName` of `entryVariable` (one of `ENTRY_ATTRIBUTE_TYPES`)
- * of each entry of a list: the list's, if it sets one
- * (`LIST_SETTING_OF_PRESENTATION`), else the source's, else the list's
- * default. It has an entry per entry
- * (`entryStyleNumber2`), which the component made from one entry takes as
- * its own attribute (`companionOfEachEntry`); a value neither the list nor
- * the source sets is a default, which leaves that attribute to where the
+ * of each entry of a list: the source's, if it sets one, else the list's
+ * `styleNumber` (or `renderMode`) where the list sets one, else the list's
+ * default. A list's `hide` is never an entry's (D29). It has an entry per
+ * entry (`entryStyleNumber2`), which the component made from one entry takes
+ * as its own attribute (`companionOfEachEntry`); a value neither the list
+ * nor the source sets is a default, which leaves that attribute to where the
  * component is.
  */
 function entryAttributeArrayDefinition(entryVariable, arrayName) {
-    const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
     return {
         isArray: true,
         entryPrefixes: [arrayName.slice(0, -1)],
@@ -2341,7 +2344,7 @@ function entryAttributeArrayDefinition(entryVariable, arrayName) {
             arrayKeys,
         }) {
             const listSets =
-                Boolean(listSetting) && !globalUsedDefault.listValue;
+                entryVariable !== "hide" && !globalUsedDefault.listValue;
             const values = {};
             const defaults = {};
             for (const arrayKey of arrayKeys) {
@@ -2349,7 +2352,7 @@ function entryAttributeArrayDefinition(entryVariable, arrayName) {
                     globalDependencyValues.entryPresentation[arrayKey]?.[
                         entryVariable
                     ];
-                if (listSets) {
+                if (fromSource === undefined && listSets) {
                     values[arrayKey] = globalDependencyValues.listValue;
                 } else if (
                     fromSource === undefined ||
