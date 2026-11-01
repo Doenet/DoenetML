@@ -850,9 +850,10 @@ export default class ValueListComponent extends BaseComponent {
         };
 
         // Where a write to the coordinates of math entries (`x1`, `x2` of an
-        // entry read as a point) is gathered: one write can set several
-        // coordinates of an entry, each through an array of its own
-        // (`entryCoordinateProperty`), and the entry takes them together.
+        // entry read as a point, and an index into an entry, `$l[2][1]`) is
+        // gathered: one write can set several coordinates of an entry, each
+        // through an array of its own (`entryCoordinateProperty`,
+        // `entryValueEntryProperty`), and the entry takes them together.
         if (kind === "math") {
             stateVariableDefinitions.entryCoordinateWrites = {
                 returnDependencies: () => ({
@@ -1569,8 +1570,11 @@ const valueEntryPropertiesByIndex = new Map();
  * is a blank, as a coordinate past an entry's dimensions is
  * (`entryCoordinateProperty`): an entry's property has a value for every
  * entry, and a repeat that became a list reads it in its template as the
- * repeat it was made from does. An entry of a tuple is written as that
- * coordinate.
+ * repeat it was made from does. A write through it is a write of that
+ * coordinate (`entryCoordinateWrites`), also where it reads a blank, as a
+ * coordinate past an entry's dimensions is written: past the end it
+ * lengthens the entry, and a scalar entry is taken as coordinate 1, so
+ * `[1]` replaces it. A matrix entry takes no write through it.
  */
 function entryValueEntryProperty(n) {
     if (!valueEntryPropertiesByIndex.has(n)) {

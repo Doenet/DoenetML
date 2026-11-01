@@ -422,6 +422,51 @@ describe("An index into an entry of a list @group4", async () => {
         );
     });
 
+    it("writes through an index into an entry as through its coordinate", async () => {
+        const doenetML = `${lists}
+<mathInput name="wtl" bindValueTo="$tl[1][2]"><label>wtl</label></mathInput>
+<mathInput name="wscalar" bindValueTo="$ml[2][1]"><label>wscalar</label></mathInput>
+<mathInput name="wrow" bindValueTo="$ml[1][2]"><label>wrow</label></mathInput>
+<p name="ptl">$tl</p><p name="pml">$ml</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function textOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("wtl"),
+            core,
+        });
+        expect(await textOf("ptl")).eq("(1, 9), (3, 4)");
+
+        // A scalar entry reads a blank, but is written as coordinate 1, as a
+        // coordinate past an entry's dimensions is (repeatPointLists).
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("wscalar"),
+            core,
+        });
+        expect(await textOf("pml")).eq("[[1, 2], [3, 4]], 7");
+
+        // A row of a matrix entry is not written through an index.
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolvePathToNodeIdx("wrow"),
+            core,
+        });
+        expect(await textOf("pml")).eq("[[1, 2], [3, 4]], 7");
+        expect(await textOf("wrow")).eq("[[3, 4]]");
+    });
+
     it("reports an index into an entry as on a component (#2413)", async () => {
         for (const [reference, code] of [
             ["$pl[2].coords[1]", "doenet-w0100"],

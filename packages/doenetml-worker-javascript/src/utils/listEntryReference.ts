@@ -225,7 +225,8 @@ export function listEntryDefaultValue(
  * The path that reads, on a list of class `listClass`, what `unresolvedPath`
  * reads of its entries: `[i]` becomes entry `i` of the array of values,
  * `[i].prop` entry `i` of the array for `prop`, `[i][j]` entry `i` of the
- * array for coordinate `xj` of math entries, and `.prop` the whole
+ * array for what index `j` reads of the entries (`__valueEntryj` of math
+ * entries, coordinate `xj` of point entries), and `.prop` the whole
  * array. `undefined` when `listClass` is not a
  * list component or the path names no entry property, so that the path is
  * resolved as it is.
