@@ -796,7 +796,9 @@ async function addAndLinkAliasComponents(
         componentIdx: nComponents++,
         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
         attributes: {},
-        doenetAttributes: {},
+        // Not written by the author, so an index that reaches it is not
+        // reported as selecting a child (`reportChildIndexes`, D27)
+        doenetAttributes: { iterationAliases: true },
         state: {},
         children: [],
     };

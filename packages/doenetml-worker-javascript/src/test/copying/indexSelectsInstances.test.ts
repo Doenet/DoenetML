@@ -267,12 +267,42 @@ describe("An index selects instances, not children @group4", async () => {
         // the author wrote to name, so there is no deprecation warning.
         const { text, warnings, errors, infos } = await shownAndReported(`
     <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
-    <p name="p">[$r[1][2]]</p>
+    <repeat name="r2" extend="$r" />
+    <group name="g" extend="$r[1]" />
+    <p name="p">[$r[1][2]] [$r2[1][2]] [$g[2]]</p>
     `);
-        expect(text).eq("[]");
+        expect(text).eq("[] [] []");
         expect(warnings).eqls([]);
         expect(errors).eqls([]);
         expect(infos).eqls([]);
+    });
+
+    it("warns of a setup the author wrote, as of any other child", async () => {
+        // Only the `<setup>` a repeat adds is skipped: one the author wrote is
+        // a child the index selects, even last in a repeat with no
+        // `valueName`, or in a copy of the repeat
+        const cases: { body: string; references: string[] }[] = [
+            {
+                body: `<select name="s"><option><setup><number name="n">5</number></setup><math name="m">$n</math></option></select><p name="p">[$s[1][1].n]</p>`,
+                references: ["$s[1][1]"],
+            },
+            {
+                body: `<repeat name="r" for="a b"><text>x</text><setup><number name="n">5</number></setup></repeat><p name="p">[$r[1][2].n]</p>`,
+                references: ["$r[1][2]"],
+            },
+            {
+                body: `<repeat name="r" for="a b" valueName="v"><setup><number name="n">5</number></setup><text>$v</text></repeat><repeat name="r2" extend="$r" /><p name="p">[$r2[1][1].n] [$r2[1][3]]</p>`,
+                references: ["$r2[1][1]"],
+            },
+        ];
+
+        for (const { body, references } of cases) {
+            const { warnings } = await shownAndReported(body);
+            expect(
+                warnings.map((w) => [w.code, w.args.reference]),
+                body,
+            ).eqls(references.map((r) => ["doenet-w0179", r]));
+        }
     });
 
     it("words the deprecation warning with what the author wrote", async () => {

@@ -437,10 +437,10 @@ reference-index-unavailable = Cannot reference index `{ $reference }`
 
 reference-index-selects-nothing = `{ $reference }`: an index cannot select anything in this `<{ $component }>`. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat, not among the children of a component. To refer to a child, give it a name and write that name after a `.`.
 
-# An index past what a repeat or a select made: `$s[3]` on a `<select>` that
-# picked two options. $reference is the reference as the author wrote it, with
-# its `$`, and $component the tag name of the repeat or select; both stay as
-# written. $kind is `iteration` for a repeat, `pick` for a select (or a
+# An index past what a repeat, a select or a collect made: `$s[3]` on a
+# `<select>` that picked two options. $reference is the reference as the author
+# wrote it, with its `$`, and $component the tag name of the repeat, select or
+# collect; both stay as written. $kind is `iteration` for a repeat, `pick` for a select (or a
 # `<selectFromSequence>`), and `item` for a component that arranges or gathers
 # what it is given (`<shuffle>`, `<sort>`, `<collect>`). $count is how many it
 # made, which can be 0.

@@ -900,11 +900,12 @@ export class RefResolutionDependency extends Dependency {
                 continue;
             }
             const child = this.dependencyHandler._components[childIdx];
-            if (child?.componentType === "setup") {
+            if (child?.doenetAttributes?.iterationAliases) {
                 // The `<setup>` a repeat adds to an iteration for its
                 // `valueName` and `indexName`, after the content: the author
                 // wrote no such child, so there is none to name, and it shows
-                // nothing (D27)
+                // nothing (D27). A `<setup>` the author wrote is a child like
+                // any other.
                 continue;
             }
             const before = `${dollars}${source.substring(start, indexStart)}`;
