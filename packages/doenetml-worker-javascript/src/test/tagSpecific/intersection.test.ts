@@ -1418,4 +1418,68 @@ describe("Intersection tag tests @group1", async () => {
                 .text,
         ).eq("(0, 1)(1, 0)");
     });
+
+    it("styleNumber on an extend or copy reaches the intersection points, and follows a change", async () => {
+        // #2219
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <line name="l1" through="(0,0) (1,1)"/><line name="l2" through="(0,1) (1,0)"/>
+    <intersection name="i">$l1 $l2</intersection>
+  </graph>
+  <graph>
+    <intersection extend="$i" styleNumber="2" name="i2"/>
+    <intersection copy="$i" styleNumber="2" name="i3"/>
+    <intersection extend="$i" styleNumber="$n" name="i4"/>
+  </graph>
+  <graph styleNumber="3">
+    <intersection extend="$i" name="i5"/>
+    <intersection extend="$i2" name="i6"/>
+  </graph>
+  <graph><group name="gi"><point name="gp">(1,1)</point></group></graph>
+  <graph><group extend="$gi" styleNumber="2" name="gi2"/></graph>
+  <mathInput name="n" prefill="4" />
+  `,
+        });
+
+        async function styleNumbers() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, number> = {};
+            for (const name of [
+                "i[1]",
+                "i2[1]",
+                "i3[1]",
+                "i4[1]",
+                "i5[1]",
+                "i6[1]",
+                "gi2.gp",
+            ]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.styleNumber;
+            }
+            return result;
+        }
+
+        expect(await styleNumbers()).eqls({
+            "i[1]": 1,
+            "i2[1]": 2,
+            "i3[1]": 2,
+            "i4[1]": 4,
+            "i5[1]": 3,
+            "i6[1]": 2,
+            "gi2.gp": 2,
+        });
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect((await styleNumbers())["i4[1]"]).eq(5);
+    });
 });

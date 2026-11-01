@@ -549,7 +549,7 @@ function collectListClass(Base) {
                     }
                     return dependencies;
                 },
-                definition({ dependencyValues }) {
+                definition({ dependencyValues, usedDefault }) {
                     const { entryStructure, collectedSources } =
                         dependencyValues;
                     const entryPresentation = entryStructure.map(
@@ -560,31 +560,42 @@ function collectListClass(Base) {
                             if (!stateValues) {
                                 return {};
                             }
+                            const sourceUsedDefault =
+                                usedDefault[`source${collectedInd}`];
                             const listInd =
                                 collectedSources[collectedInd].listInd;
                             if (listInd === undefined) {
-                                return sourcePresentation(stateValues);
+                                return sourcePresentation(
+                                    stateValues,
+                                    sourceUsedDefault,
+                                );
                             }
-                            // A list shown as its sources shows the entry
-                            // as its arrays say (`ENTRY_PRESENTATION_ARRAYS`):
-                            // the `hide` of the entry's source (D29), and
-                            // the list's style where it sets one.
+                            // An entry of a list is shown as that list shows
+                            // it (`ENTRY_PRESENTATION_ARRAYS`): the `hide` of
+                            // the entry's source (D29), and the style of the
+                            // entry's source where it sets one, else the
+                            // list's where the list sets one. Neither setting
+                            // a style leaves it to this list.
                             const ofEntry =
                                 stateValues.entryPresentation?.[listInd] ?? {};
                             const ofList = (name) =>
                                 stateValues[ENTRY_PRESENTATION_ARRAYS[name]]?.[
                                     listInd
                                 ];
+                            const listSetsStyle =
+                                !sourceUsedDefault?.styleNumber;
                             return {
                                 hide: ofList("hide") ?? ofEntry.hide,
                                 selectedStyle:
-                                    ofList("selectedStyle") ??
                                     ofEntry.selectedStyle ??
-                                    stateValues.selectedStyle,
+                                    (listSetsStyle
+                                        ? stateValues.selectedStyle
+                                        : undefined),
                                 styleNumber:
-                                    ofList("styleNumber") ??
                                     ofEntry.styleNumber ??
-                                    stateValues.styleNumber,
+                                    (listSetsStyle
+                                        ? stateValues.styleNumber
+                                        : undefined),
                                 renderMode:
                                     ofList("renderMode") ?? ofEntry.renderMode,
                             };

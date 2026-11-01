@@ -559,6 +559,15 @@ export default class Collect extends CompositeComponent {
 
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
+            // The `<collect>`'s `styleNumber` fills in for a component that
+            // sets none; it does not override one the component sets
+            // (D29's container model, CTX-5).
+            if (
+                attributesFromComposite.styleNumber &&
+                (await collectedSetsStyle(collectedComponent, collectedObj))
+            ) {
+                delete attributesFromComposite.styleNumber;
+            }
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -846,4 +855,30 @@ export default class Collect extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * Whether what a `<collect>` collects sets its own style, which the
+ * collect's `styleNumber` then does not override: a component, or a
+ * reference standing for a copy of one, whose `styleNumber` is not a default
+ * (as `sourcePresentation` decides for a list), or an entry of a list
+ * (`listInd`) whose source or list sets one (`entryPresentation`, the list's
+ * `styleNumber`). It is read when the replacement is made.
+ */
+async function collectedSetsStyle(collectedComponent, collectedObj) {
+    if (collectedObj.listInd !== undefined) {
+        const entryPresentation =
+            await collectedComponent.stateValues.entryPresentation;
+        if (
+            entryPresentation?.[collectedObj.listInd]?.styleNumber !== undefined
+        ) {
+            return true;
+        }
+    }
+    const styleNumber = collectedComponent.state.styleNumber;
+    if (!styleNumber) {
+        return false;
+    }
+    await styleNumber.value;
+    return !styleNumber.usedDefault;
 }
