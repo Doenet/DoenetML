@@ -11,7 +11,9 @@ vi.mock("hyperformula");
  * (#2419), is reported as the same failure of a plain reference is:
  * `doenet-w0104` or `doenet-w0105`, quoting the whole function reference as
  * written, arguments included, and marked there. The missing value shows as
- * the plain reference's does: nothing in text, `＿` in a `<math>`.
+ * the plain reference's does: nothing in text, `＿` in a `<math>`. The
+ * parenthesized form `$$(f)(2)` and a function reference in an attribute are
+ * reported the same way.
  */
 async function shownAndReported(doenetML: string) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -62,6 +64,27 @@ describe("A function reference that names nothing @group4", async () => {
                 code: "doenet-w0104",
                 reference: "$f",
                 message: "No referent found for reference: `$f`",
+            },
+            {
+                doenetML: `<p name="p">[$$(f)(2)]</p>`,
+                text: "[]",
+                code: "doenet-w0104",
+                reference: "$$(f)(2)",
+                message: "No referent found for reference: `$$(f)(2)`",
+            },
+            {
+                doenetML: `<p name="p"><math>$$(f)(2)+1</math></p>`,
+                text: "＿ + 1",
+                code: "doenet-w0104",
+                reference: "$$(f)(2)",
+                message: "No referent found for reference: `$$(f)(2)`",
+            },
+            {
+                doenetML: `<point name="P" x="$$f(2)" y="3" /><p name="p">$P</p>`,
+                text: "(＿, 3)",
+                code: "doenet-w0104",
+                reference: "$$f(2)",
+                message: "No referent found for reference: `$$f(2)`",
             },
             {
                 doenetML: `<p name="p">[$$f(2, 3)]</p>`,
