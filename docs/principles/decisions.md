@@ -790,7 +790,7 @@ and nothing is shown while it lasts. Examples:
 - whether a math's value is a tuple.
 
 Such a document can be valid: it may be meant to show nothing until the reader changes
-something. So the diagnostic only explains why nothing shows (D35). Today such a mismatch is a
+something. So the diagnostic only explains why nothing shows (D35, DIAG-1). Today such a mismatch is a
 silent blank: a group of two maths as
 a `<math>` gives `＿`, and a case holding a text as a `<math>` gives `＿`.
 
@@ -1722,7 +1722,10 @@ No test pins the #2408 case today.
 A candidate addition to VAL-3: "a reference to a text, read as math, is parsed in its known
 notation, or else in the reader's".
 
-## D35. What error, warning and info mean (proposed Tier 2)
+## D35. What error, warning and info mean (decided, Tier 2)
+
+**Decided.** The principles are DIAG-1 and DIAG-2 in [diagnostics.md](diagnostics.md). The audit of
+every warning call site is #2422.
 
 **Today** no principle says which level a diagnostic should have. The code's letter (`e`, `w`, `i`)
 records what it was first raised as, and each call site picks the level it reports
@@ -1740,7 +1743,7 @@ give nothing to show. **[probe]** on main, built from `7c2bb1f`:
 
 Each of these is a document waiting for the reader. None needs to be fixed.
 
-**Proposed principle.** A diagnostic's level says what the author should do about it:
+**Principle.** A diagnostic's level says what the author should do about it:
 - **error:** the DoenetML is invalid or cannot be honored as written. Something is not rendered,
   or is replaced by the error. The author must change it. Examples: D32's extend errors, an
   unrelated type change (D26), a cycle (NAME-7).
