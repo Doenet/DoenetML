@@ -101,6 +101,10 @@ describe("An index into a value with entries @group4", async () => {
             ["$M.value[1][2]", "2"],
             ["$mi.value[1]", "[[1, 2]]"],
             ["$mi.value[2][1]", "3"],
+            // `value` is an alias of a point's `coords` and a vector's
+            // `displacementCoords`, which take no index of their own
+            ["$P.value[2]", "4"],
+            ["$v.value[2]", "6"],
         ]);
     });
 
@@ -132,6 +136,8 @@ describe("An index into a value with entries @group4", async () => {
             "$ms.value[1]",
             "$n[1]",
             "$n.value[1]",
+            // an index into a point's coordinates, which are not an array
+            "$P.coords[2]",
             "$t[1]",
             "$mt[1][1]",
         ]) {
@@ -407,6 +413,7 @@ describe("An index into an entry of a list @group4", async () => {
             [
                 ["$pl[2][1]", "1"],
                 ["$pl[2][2]", "2"],
+                ["$pl[2].value[2]", "2"],
                 ["$tl[2][1]", "3"],
                 // an index into an entry's value is an index into the entry
                 ["$tl[2].value[1]", "3"],

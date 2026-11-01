@@ -337,8 +337,10 @@ export function listEntryPropertyPath({
         // or points is `$l[1][2]`. Where an index selects nothing in an
         // entry (a list of numbers), the value is not an array, and the
         // index is reported as on one below, as `$n.value[1]` is.
+        // Recognized by the name written as well as the property it names,
+        // since a point's `value` is an alias of its `coords`.
         const asIndex =
-            property === "value"
+            property === "value" || second.name.toLowerCase() === "value"
                 ? listEntryPropertyPath({
                       listClass,
                       unresolvedPath: [

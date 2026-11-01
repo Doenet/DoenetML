@@ -9,7 +9,10 @@
 import { Dependency, cloneChangeMetadataIfNeeded } from "./Dependency";
 import { listEntryPropertyPath } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
-import { isValueEntriesVariable } from "../../utils/mathVectorMatrixStateVariables";
+import {
+    isIndexIntoValue,
+    isValueEntriesVariable,
+} from "../../utils/mathVectorMatrixStateVariables";
 
 export class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
@@ -162,6 +165,16 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         let nextPart = unresolvedPath.shift();
 
         let variableName = nextPart.name;
+        if (
+            isIndexIntoValue(
+                variableName,
+                nextPart.index,
+                component.constructor,
+                listEntryPath !== undefined,
+            )
+        ) {
+            variableName = "";
+        }
         const indexAsProp = variableName === "";
 
         if (indexAsProp) {

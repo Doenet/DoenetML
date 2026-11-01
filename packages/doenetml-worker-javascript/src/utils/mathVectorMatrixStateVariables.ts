@@ -826,6 +826,29 @@ export function isValueEntriesVariable(name: string | undefined): boolean {
     );
 }
 
+/**
+ * Whether a path part written `name[index]` is an index into the value
+ * (`$P.value[2]`, in any case), which reads what the bare index (`$P[2]`)
+ * reads (D27): the component has a `variableForIndexAsProp`, and the part is
+ * not already resolved as a property of a list's entries (`fromListEntry`).
+ * Recognized by the name the author wrote, before aliases are substituted,
+ * since `value` is an alias of another property on some components (a
+ * point's `coords`), which takes no index of its own.
+ */
+export function isIndexIntoValue(
+    name: string | undefined,
+    index: unknown[],
+    componentClass: any,
+    fromListEntry: boolean,
+): boolean {
+    return (
+        !fromListEntry &&
+        index.length > 0 &&
+        name?.toLowerCase() === "value" &&
+        Boolean(componentClass?.variableForIndexAsProp)
+    );
+}
+
 /** The blank a math shows before anything is entered. */
 const BLANK = "＿";
 
@@ -894,7 +917,8 @@ function shapeKind(tree: Tree): ValueShape["kind"] {
  * The shape of a math value for an index into it: a tuple of entries, a
  * matrix of rows, or a scalar, with a function that puts changed entries (or
  * rows) back into a value of the same form. It copies the entries or rows,
- * so a check that needs only the kind uses {@link shapeKind}.
+ * so it is used only to write them (the inverse); a read takes what it needs
+ * from the value as it is.
  */
 function valueShape(tree: Tree): ValueShape {
     const tuple = tupleOf(tree);
@@ -1105,17 +1129,24 @@ export function returnValueEntriesStateVariableDefinitions() {
             globalDependencyValues: { value: any };
             arrayKeys: string[];
         }) {
-            const shape = valueShape(globalDependencyValues.value.tree);
+            // Each requested entry is read from the value as it is, without
+            // copying the rest: `$mm[1][1]` copies nothing of the matrix, and
+            // a whole row copies only that row.
+            const tree = globalDependencyValues.value.tree;
+            const tuple = tupleOf(tree);
+            const rows = isMatrixWithRows(tree)
+                ? ((tree as Tree[])[2] as Tree[][])
+                : undefined;
             const entries: Record<string, any> = {};
             for (const arrayKey of arrayKeys) {
                 const [row, column] = arrayKey.split(",").map(Number);
-                if (shape.kind === "tuple") {
-                    entries[arrayKey] = me.fromAst(shape.entries[row]);
-                } else if (shape.kind === "matrix") {
+                if (tuple) {
+                    entries[arrayKey] = me.fromAst(tuple[row + 1]);
+                } else if (rows) {
                     entries[arrayKey] = me.fromAst(
                         column === 0
-                            ? rowAsMatrix(shape.rows[row])
-                            : shape.rows[row][column - 1],
+                            ? rowAsMatrix(rows[row + 1].slice(1))
+                            : rows[row + 1][column],
                     );
                 }
             }

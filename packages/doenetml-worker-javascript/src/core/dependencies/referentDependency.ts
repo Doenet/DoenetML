@@ -14,7 +14,10 @@ import {
 } from "../../utils/referentDescription";
 import { listEntryPropertyPath } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
-import { isValueEntriesVariable } from "../../utils/mathVectorMatrixStateVariables";
+import {
+    isIndexIntoValue,
+    isValueEntriesVariable,
+} from "../../utils/mathVectorMatrixStateVariables";
 
 /**
  * A dependency that resolves one part of an unresolved path on a component
@@ -114,6 +117,16 @@ export class ReferentDependency extends Dependency {
                 return undefined;
             }
             ({ name, index } = unresolvedPath[0]);
+            if (
+                isIndexIntoValue(
+                    name,
+                    index,
+                    component.constructor,
+                    listEntryPath !== undefined,
+                )
+            ) {
+                name = "";
+            }
             if (name === "") {
                 name = component.constructor.variableForIndexAsProp;
                 indexAsProp = true;
