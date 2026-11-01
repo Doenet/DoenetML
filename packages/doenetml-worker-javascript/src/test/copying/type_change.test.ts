@@ -498,6 +498,23 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
+    it("an index is not suggested when the instances hold as many components as there are instances, but not one each", async () => {
+        // Iteration 1 holds nothing and iteration 2 holds two maths, so
+        // `$rep[1]` selects nothing; the first pick holds two maths and the
+        // second nothing.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<repeat name="rep" for="1 2" valueName="v"><conditionalContent><case condition="$v=2"><math>1</math><math>2</math></case></conditionalContent></repeat>
+<select name="s" numToSelect="2"><option><math>1</math><math>2</math></option><option></option></select>
+<p name="p1"><math extend="$rep"/></p>
+<p name="p2"><math extend="$s"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(typeChangeDiagnostics().map((d) => d.message)).eqls([
+            "A `<math>` can be made from a `<repeat>` only when it holds one component, and `$rep` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$rep</math>`.",
+            "A `<math>` can be made from a `<select>` only when it holds one component, and `$s` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$s</math>`.",
+        ]);
+    });
+
     it("a point made from a math is shown while its value is a tuple", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`

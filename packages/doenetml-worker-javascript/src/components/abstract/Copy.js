@@ -5250,9 +5250,10 @@ async function typeChangeStatus({
     const content = [];
     let changes = !COMPOSITES_WITH_WRITTEN_CONTENT.has(sourceType);
     let allExpanded = true;
-    // How many instances of the source (its iterations, picks or items) the
-    // content is in, and so whether `$x[1]` would select one component.
-    let numInstances = 0;
+    // How many components each instance of the source (its iterations,
+    // picks or items) holds, and so whether `$x[1]` would select one
+    // component.
+    const instanceSizes = [];
     async function gather(composite, depth = 0) {
         let replacements = composite.replacements ?? [];
         if (composite.replacementsToWithhold > 0) {
@@ -5262,42 +5263,45 @@ async function typeChangeStatus({
             );
         }
         for (const replacement of replacements) {
-            if (typeof replacement === "string") {
-                if (replacement.trim() !== "") {
-                    content.push({ componentType: "text" });
-                    if (depth === 0) {
-                        numInstances++;
-                    }
-                }
-                continue;
-            }
-            const comp = components[replacement.componentIdx];
-            if (
-                !comp ||
-                (await comp.stateValues.isInactiveCompositeReplacement)
-            ) {
-                continue;
-            }
-            if (depth === 0) {
-                numInstances++;
-            }
-            if (
-                componentInfoObjects.isCompositeComponent({
-                    componentType: comp.componentType,
-                })
-            ) {
-                if (!COMPOSITES_WITH_WRITTEN_CONTENT.has(comp.componentType)) {
-                    changes = true;
-                }
-                if (comp.isExpanded) {
-                    await gather(comp, depth + 1);
-                } else {
-                    allExpanded = false;
-                }
-            } else {
-                content.push(comp);
+            const before = content.length;
+            if ((await gatherOne(replacement, depth)) && depth === 0) {
+                instanceSizes.push(content.length - before);
             }
         }
+    }
+    /**
+     * Adds what `replacement` stands for to `content`; returns whether it is
+     * content at all (not a blank string or an inactive replacement).
+     */
+    async function gatherOne(replacement, depth) {
+        if (typeof replacement === "string") {
+            if (replacement.trim() === "") {
+                return false;
+            }
+            content.push({ componentType: "text" });
+            return true;
+        }
+        const comp = components[replacement.componentIdx];
+        if (!comp || (await comp.stateValues.isInactiveCompositeReplacement)) {
+            return false;
+        }
+        if (
+            componentInfoObjects.isCompositeComponent({
+                componentType: comp.componentType,
+            })
+        ) {
+            if (!COMPOSITES_WITH_WRITTEN_CONTENT.has(comp.componentType)) {
+                changes = true;
+            }
+            if (comp.isExpanded) {
+                await gather(comp, depth + 1);
+            } else {
+                allExpanded = false;
+            }
+        } else {
+            content.push(comp);
+        }
+        return true;
     }
     await gather(sourceComponent);
     if (!allExpanded && content.length < 2) {
@@ -5321,7 +5325,7 @@ async function typeChangeStatus({
                 // (D27), and one component only if each instance is one.
                 indexSelectsOne:
                     indexSelectsInstances(sourceType, componentInfoObjects) &&
-                    numInstances === content.length
+                    instanceSizes.every((size) => size === 1)
                         ? "true"
                         : "false",
             },
