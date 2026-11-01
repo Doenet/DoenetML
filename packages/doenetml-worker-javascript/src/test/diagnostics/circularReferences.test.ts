@@ -1336,3 +1336,56 @@ describe("A composite that queues itself on every pass @group2", async () => {
         expect(stateVariables[echoIdx].stateValues.text).eq("3");
     });
 });
+
+describe("Composites in a loop that none can be singled out of @group2", async () => {
+    it("stop the update with an error that names them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" prefill="1"/>
+<conditionalContent name="cc" condition="$mi > 1"><p>big</p></conditionalContent>`,
+        });
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        const ConditionalContent = (
+            await import("../../components/ConditionalContent")
+        ).default;
+        const original = ConditionalContent.calculateReplacementChanges;
+        const queueSpy = vi
+            .spyOn(ConditionalContent, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                core.core!.updateInfo.compositesToUpdateReplacements.add(
+                    args.component.componentIdx,
+                );
+                return original.call(this, args);
+            });
+        // As if no composite had been queued in every recent pass, which is
+        // what happens when the components looping are not composites.
+        const loopingSpy = vi
+            .spyOn(core.core!.essentialValueWriter, "loopingComposites")
+            .mockReturnValue([]);
+        // The update that hits the loop is stopped, and the error is
+        // logged rather than returned to the action.
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        let nLoopingCalls: number;
+        let logged: string[];
+        try {
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: miIdx,
+                core,
+            }).catch(() => {});
+        } finally {
+            nLoopingCalls = loopingSpy.mock.calls.length;
+            logged = errorSpy.mock.calls.map((args) => String(args[0]));
+            queueSpy.mockRestore();
+            loopingSpy.mockRestore();
+            errorSpy.mockRestore();
+        }
+
+        expect(nLoopingCalls).eq(1);
+        expect(logged).toContain(
+            "Error: Seem to have an infinite loop while calculating replacement changes. Circular dependency involving these components: <conditionalContent> (line 2).",
+        );
+    });
+});
