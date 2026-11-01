@@ -8,7 +8,7 @@ describe("SubsetOfRealsInput Tag Tests", { tags: ["@group3"] }, function () {
         const doenetML = `
   <p><subsetOfRealsInput name="sori" /></p>
   <p>Value: <subsetOfReals extend="$sori" name="sor" /></p>
-  <p>Value: <mathInput extend="$sori.subsetValue" name="sormi" /></p>
+  <p>Value: <mathInput bindValueTo="$sor" name="sormi" /></p>
   `;
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_allowLocalState").click();
