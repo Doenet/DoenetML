@@ -29,6 +29,7 @@ impl Resolver {
                         name_map: NameMap(name_map.remove(&0).unwrap_or_default()),
                         copied_names: FxHashSet::default(),
                         index_resolutions: Vec::new(),
+                        index_kind: IndexKind::Instances,
                         source_sequence: None,
                     }
                 } else {
@@ -41,6 +42,7 @@ impl Resolver {
                         name_map: NameMap(name_map.remove(&idx_plus_1).unwrap_or_default()),
                         copied_names: FxHashSet::default(),
                         index_resolutions: Vec::new(),
+                        index_kind: IndexKind::of_node(node),
                         source_sequence: extract_source_sequence(node),
                     }
                 }
@@ -105,6 +107,7 @@ impl Resolver {
                     name_map: NameMap::default(),
                     copied_names: FxHashSet::default(),
                     index_resolutions: Vec::new(),
+                    index_kind: IndexKind::Instances,
                     source_sequence: None,
                 },
                 padding,
@@ -116,6 +119,7 @@ impl Resolver {
             self.node_resolver_data[node.idx() + 1].node_parent =
                 node.parent().map(NodeParent::Node).unwrap_or(parent_node);
             self.node_resolver_data[node.idx() + 1].source_sequence = extract_source_sequence(node);
+            self.node_resolver_data[node.idx() + 1].index_kind = IndexKind::of_node(node);
         }
 
         let mut subtree_name_map =

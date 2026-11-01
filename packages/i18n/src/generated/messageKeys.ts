@@ -406,6 +406,8 @@ export type MessageKey =
     | "collect-no-source"
     | "collect-invalid-component-type"
     | "reference-index-unavailable"
+    | "reference-index-selects-nothing"
+    | "reference-index-past-instances"
     | "component-action-unavailable"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
@@ -520,6 +522,7 @@ export type MessageKey =
     | "deprecated-attribute-to-child"
     | "deprecated-attribute-value-renamed"
     | "deprecated-attribute-modify-indirectly"
+    | "deprecated-index-selects-child"
     | "pluralize-english-only"
     | "schema-element-unrecognized"
     | "schema-element-not-allowed-at-root"
@@ -1062,6 +1065,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "collect-no-source",
     "collect-invalid-component-type",
     "reference-index-unavailable",
+    "reference-index-selects-nothing",
+    "reference-index-past-instances",
     "component-action-unavailable",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",
@@ -1176,6 +1181,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "deprecated-attribute-to-child",
     "deprecated-attribute-value-renamed",
     "deprecated-attribute-modify-indirectly",
+    "deprecated-index-selects-child",
     "pluralize-english-only",
     "schema-element-unrecognized",
     "schema-element-not-allowed-at-root",

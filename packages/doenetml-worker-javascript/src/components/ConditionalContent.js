@@ -257,6 +257,18 @@ export default class ConditionalContent extends CompositeComponent {
                 {},
                 components[selectedChildComponentIdx].doenetAttributes,
             );
+            // Names the group in the warning for an index that selects one
+            // of its children (D27)
+            serializedChild.attributes = {
+                ...serializedChild.attributes,
+                _instanceOf: {
+                    type: "primitive",
+                    primitive: {
+                        type: "string",
+                        value: component.componentType,
+                    },
+                },
+            };
             const seed =
                 component.sharedParameters.variantSeed +
                 "|" +

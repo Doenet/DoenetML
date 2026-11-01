@@ -13,6 +13,7 @@ import {
 import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 import { listEntryTargetOfResolution } from "../listEntryTargets";
 import { refResolutionAt } from "../../utils/referenceSlot";
+import { instanceKindOf } from "../../utils/indexInstances";
 
 /**
  * The same path with every index emptied.
@@ -214,6 +215,44 @@ export class RefResolutionIndexDependencies extends Dependency {
             this.compositeReplacementDependencies,
         );
     }
+}
+
+/**
+ * The number of instances an expanded `composite` has, i.e., of its
+ * replacements an index counts (all but blank strings) that it has not
+ * withheld.
+ */
+function numInstances(composite: any): number {
+    const counted = (composite.replacements ?? []).filter(
+        (replacement: any) =>
+            typeof replacement !== "string" || replacement.trim() !== "",
+    ).length;
+    return Math.max(0, counted - (composite.replacementsToWithhold ?? 0));
+}
+
+/**
+ * The name an author gave `component`, or `undefined` if it has none. The
+ * names the parser makes up for compatibility start with `_`.
+ */
+function authoredName(component: any): string | undefined {
+    const name = component?.attributes?.name?.primitive?.value;
+    return typeof name === "string" && name !== "" && !name.startsWith("_")
+        ? name
+        : undefined;
+}
+
+/**
+ * What the `<group>` an index selected a child of was written as, given the
+ * type of the component that made it (`_instanceOf`, see
+ * `utils/indexInstances.ts`): an `iteration` of a repeat, a `pick` of a
+ * select, the `case` a `<conditionalContent>` shows, or a `group` written as
+ * one.
+ */
+function containerKind(instanceOf: string | undefined): string {
+    if (instanceOf === "conditionalContent") {
+        return "case";
+    }
+    return instanceKindOf(instanceOf) ?? "group";
 }
 
 /**
@@ -664,6 +703,8 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
+        this.reportChildIndexes(composite, refResolution.childIndexes);
+
         // An entry of a list component that a composite is indexed by is a
         // node of the resolver with no component
         // (`listEntryResolverNodes.ts`); it is read as an index into the
@@ -784,18 +825,32 @@ export class RefResolutionDependency extends Dependency {
 
             // If the composite is expanded and yet the index did not match one of the composite's replacements,
             // then there is no replacement at that index, and we obtained no referent for the reference.
-            const referenceText = getDoenetMLStringForReference();
+            const reference = `${getDollarsForReference()}${getDoenetMLStringForReference()}`;
+            const instanceKind = instanceKindOf(newRefComponent.componentType);
 
+            // A composite that produces instances says how many it made
+            // (`doenet-w0181`), naming what the author wrote (D27).
             this.dependencyHandler.core.addDiagnostic(
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0104",
-                    args: {
-                        reference: `${getDollarsForReference()}${referenceText}`,
-                    },
-                    position: composite.position,
-                    sourceDoc: composite.sourceDoc,
-                }),
+                instanceKind
+                    ? codedDiagnostic({
+                          type: "warning",
+                          code: "doenet-w0181",
+                          args: {
+                              reference,
+                              component: newRefComponent.componentType,
+                              kind: instanceKind,
+                              count: numInstances(newRefComponent),
+                          },
+                          position: composite.position,
+                          sourceDoc: composite.sourceDoc,
+                      })
+                    : codedDiagnostic({
+                          type: "warning",
+                          code: "doenet-w0104",
+                          args: { reference },
+                          position: composite.position,
+                          sourceDoc: composite.sourceDoc,
+                      }),
             );
 
             this.compositeReplacementDependencies.push(
@@ -807,6 +862,66 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
+    }
+
+    /**
+     * Warn of each index of the reference that selected a child of a
+     * `<group>` (`childIndexes` of the resolution), which still resolves but is
+     * deprecated (D27): an index selects among the instances a component
+     * produces, not among the children of a container. The warning quotes the
+     * reference up to that index and shows the form to write instead, which
+     * names the child.
+     *
+     * A reference resolved again, or in a copy of the component holding it,
+     * raises the same warning at the same place, which is kept only once.
+     */
+    reportChildIndexes(composite: any, childIndexes: any[] | undefined) {
+        if (!childIndexes?.length) {
+            return;
+        }
+        const core = this.dependencyHandler.core;
+        const originalPath = this.refResolutionOf(composite).originalPath;
+        const start = originalPath?.[0]?.position?.start.offset;
+        const source = core.allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0];
+        if (start == undefined || source == undefined) {
+            return;
+        }
+        const dollars = doenetMLDollarsForReference(
+            originalPath,
+            core.allDoenetMLs,
+        );
+
+        for (const { containerIdx, childIdx, position } of childIndexes) {
+            const indexStart = position?.start.offset;
+            const indexEnd = position?.end.offset;
+            if (indexStart == undefined || indexEnd == undefined) {
+                continue;
+            }
+            const before = `${dollars}${source.substring(start, indexStart)}`;
+
+            const childName = authoredName(
+                this.dependencyHandler._components[childIdx],
+            );
+            const instanceOf =
+                this.dependencyHandler._components[containerIdx]?.attributes
+                    ?._instanceOf?.primitive?.value;
+
+            core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0179",
+                    args: {
+                        reference: `${dollars}${source.substring(start, indexEnd)}`,
+                        suggestion: `${before}.${childName ?? "x"}`,
+                        named: childName === undefined ? "no" : "yes",
+                        container: containerKind(instanceOf),
+                        component: instanceOf ?? "group",
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+        }
     }
 
     /**

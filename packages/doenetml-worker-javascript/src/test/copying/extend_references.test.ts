@@ -6526,6 +6526,18 @@ describe("Extend and references tests @group2", async () => {
     `,
         });
 
+        // Selecting the child of a group by index still works but is
+        // deprecated (D27): an index selects among what a component makes.
+        expect(
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.reference,
+            ]),
+        ).eqls([
+            ["doenet-w0179", "$sec2.g[1]"],
+            ["doenet-w0179", "$sec2.g[1]"],
+        ]);
+
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
@@ -7050,7 +7062,10 @@ describe("Extend and references tests @group2", async () => {
             `);
             expect(text).eq("27");
             expect(diagnostics.errors.length).eq(0);
-            expect(diagnostics.warnings.length).eq(0);
+            // Selecting a child of a `<group>` by index is deprecated (D27)
+            expect(diagnostics.warnings.map((w) => w.code)).eqls([
+                "doenet-w0179",
+            ]);
 
             // Which is the point of #1909: the position can be worked out rather
             // than written down.

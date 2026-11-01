@@ -428,6 +428,34 @@ collect-invalid-component-type = Cannot collect components of type `<{ $componen
 # and go to the console instead.
 reference-index-unavailable = Cannot reference index `{ $reference }`
 
+# An index on a component that makes nothing an index selects: `$sec[2]` on a
+# `<section>`, `$n[1]` on a `<number>`. $reference is the reference as the
+# author wrote it, with its `$`, and $component the tag name of what it
+# reached; both stay as written. An index selects among what a component makes
+# (the entries of a list, the iterations of a repeat), never among the children
+# of a component, which are reached by name.
+
+reference-index-selects-nothing = `{ $reference }`: an index cannot select anything in this `<{ $component }>`. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat, not among the children of a component. To refer to a child, give it a name and write that name after a `.`.
+
+# An index past what a repeat or a select made: `$s[3]` on a `<select>` that
+# picked two options. $reference is the reference as the author wrote it, with
+# its `$`, and $component the tag name of the repeat or select; both stay as
+# written. $kind is `iteration` for a repeat and `pick` for a select (and the
+# other components that pick or arrange: `<selectFromSequence>`, `<shuffle>`,
+# `<sort>`, `<collect>`), and $count how many it made.
+
+reference-index-past-instances =
+    { $kind ->
+        [iteration] { $count ->
+            [one] `{ $reference }`: the `<{ $component }>` made only { $count } iteration.
+           *[other] `{ $reference }`: the `<{ $component }>` made only { $count } iterations.
+        }
+       *[pick] { $count ->
+            [one] `{ $reference }`: the `<{ $component }>` made only { $count } pick.
+           *[other] `{ $reference }`: the `<{ $component }>` made only { $count } picks.
+        }
+    }
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML
@@ -942,6 +970,31 @@ deprecated-attribute-value-renamed = [deprecation] Value `{ $value }` of attribu
 # on those, not on the component the warning names.
 
 deprecated-attribute-modify-indirectly = [deprecation] Attribute `modifyIndirectly` on `<{ $component }>` is deprecated and ignored. To keep the components that use this value from changing it, add `fixed` to them. To keep users from changing an input, use `disabled`.
+
+# An index that selects a child of a container, rather than one of the items a
+# component makes, which an index is for: `$g[2]` on a `<group>`, or `$r[2][1]`
+# on an iteration of a `<repeat>` that holds several components. It still
+# selects the child, for now.
+#
+# $reference is what the author wrote, up to and including that index, with its
+# `$`; $suggestion is the reference to write instead, which names the child.
+# Both stay as written. $container is what the index was applied to:
+# `iteration` for an iteration of $component, `pick` for what $component picked,
+# `case` for what $component shows, and `group` for a `<group>` itself (for which
+# $component is `group`). $component is a tag name and stays as written.
+# $named is `yes` when the child has a name, and $suggestion then uses it;
+# otherwise the suggestion uses `x` as an example of a name to give it.
+
+deprecated-index-selects-child =
+    { $container ->
+        [iteration] [deprecation] `{ $reference }` selects a child of an iteration of a `<{ $component }>` by its position, which is deprecated: an index selects among what a component makes, not among the children of one.
+        [pick] [deprecation] `{ $reference }` selects a child of what a `<{ $component }>` picked by its position, which is deprecated: an index selects among what a component makes, not among the children of one.
+        [case] [deprecation] `{ $reference }` selects a child of what a `<{ $component }>` shows by its position, which is deprecated: an index selects among what a component makes, not among the children of one.
+       *[group] [deprecation] `{ $reference }` selects a child of a `<group>` by its position, which is deprecated: an index selects among what a component makes, not among the children of one.
+    } { $named ->
+        [yes] Write `{ $suggestion }` instead.
+       *[no] Give the child a name, such as `name="x"`, and write `{ $suggestion }` instead.
+    }
 
 
 ## Language coverage

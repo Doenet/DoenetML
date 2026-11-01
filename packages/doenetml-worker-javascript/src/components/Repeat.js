@@ -1,4 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
+import { instanceGroupAttributes } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
 import {
     gatherVariantComponents,
@@ -421,6 +422,17 @@ export default class Repeat extends CompositeComponent {
         );
 
         replacements[0] = aliasResult.replacement;
+
+        // An index after the iteration passes to its content when that is one
+        // indexable component, and otherwise selects one of its children (D27)
+        Object.assign(
+            replacements[0].attributes,
+            instanceGroupAttributes({
+                children: replacements[0].children,
+                instanceOf: component.componentType,
+                componentInfoObjects,
+            }),
+        );
         nComponents = aliasResult.nComponents;
 
         if (component.unlinkedCopySource && !isUpdate) {

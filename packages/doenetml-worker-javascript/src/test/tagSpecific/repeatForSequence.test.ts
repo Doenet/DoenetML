@@ -172,15 +172,15 @@ describe("RepeatForSequence tag tests @group3", async () => {
       </repeatForSequence>
     </repeatForSequence></p>
 
-    <number name="n1" extend="$a[2][1][3]" />
+    <number name="n1" extend="$a[2][3]" />
     <number name="n2" extend="$a[2].b[3]" />
-    <number name="n3" extend="$a[2][1][3].c" />
+    <number name="n3" extend="$a[2][3].c" />
     <number name="n4" extend="$a[2].b[3].c" />
-    <number name="n5">$a[2][1][3]</number>
+    <number name="n5">$a[2][3]</number>
     <number name="n6">$a[2].b[3]</number>
-    <number name="n7">$a[2][1][3].c</number>
+    <number name="n7">$a[2][3].c</number>
     <number name="n8">$a[2].b[3].c</number>
-    <p name="p1">$a[2][1][3]</p>
+    <p name="p1">$a[2][3]</p>
     <p name="p2">$a[2].b[3]</p>
     `,
         });
