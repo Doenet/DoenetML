@@ -1208,3 +1208,131 @@ describe("A copy of a component that references itself @group2", async () => {
         ]);
     });
 });
+
+/**
+ * Doenet/DoenetML#2418: composites that keep queuing each other to be
+ * updated, through a cycle the dependency graph does not see, stopped the
+ * whole document with an internal error after 100 passes. The copy in
+ * Doenet/DoenetML#2405 was one before Doenet/DoenetML#2412; the stub below
+ * undoes that fix, so the copy inside `S2` is remade on every pass again.
+ * The copy should be reported as circular and stopped, and the rest of the
+ * document should load.
+ */
+describe("Composites whose replacements never settle @group2", async () => {
+    async function withLoopingCopy<T>(run: () => Promise<T>) {
+        const Copy = (await import("../../components/abstract/Copy")).default;
+        const original = Copy.calculateReplacementChanges;
+        const spy = vi
+            .spyOn(Copy, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                // Forget that the copy is inside its source, so it is
+                // remade, as it was before Doenet/DoenetML#2412.
+                args.workspace.sourceContainsCopyBySource = [];
+                return original.call(this, args);
+            });
+        try {
+            return await run();
+        } finally {
+            spy.mockRestore();
+        }
+    }
+
+    it("are reported as circular and stopped, and the rest of the document loads", async () => {
+        await withLoopingCopy(async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<section name="S"><title>T</title><p name="q">hi [$S]</p></section>
+<section name="S2" copy="$S"/>
+<p name="after">after</p>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: string[] = [];
+            for (const path of ["S.q", "S2.q", "after"]) {
+                texts.push(
+                    stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                        .text,
+                );
+            }
+            expect(texts).eqls(["hi []", "hi []", "after"]);
+
+            // The copy of `$S` inside `S2`, which kept being remade.
+            const stopped = Object.values(core.core!._components)
+                .filter((c: any) => c?.isInErrorState)
+                .map((c: any) => [c.componentType, c.position?.start.line]);
+            expect(stopped).eqls([["_copy", 1]]);
+
+            // Reported with the same code, at the same place, as `$S` in `S`
+            // is, so the two records are one.
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => [
+                    e.code,
+                    e.message,
+                    e.position?.start.line,
+                ]),
+            ).eqls([["doenet-e0005", "Circular dependency detected.", 1]]);
+        });
+    });
+});
+
+describe("A composite that queues itself on every pass @group2", async () => {
+    it("is reported as circular at its own position and stopped, and the document keeps working", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" prefill="1"/>
+<conditionalContent name="cc" condition="$mi > 1"><p>big</p></conditionalContent>
+<p name="echo">$mi</p>`,
+        });
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const ccIdx = await resolvePathToNodeIdx("cc");
+        const echoIdx = await resolvePathToNodeIdx("echo");
+
+        const ConditionalContent = (
+            await import("../../components/ConditionalContent")
+        ).default;
+        const original = ConditionalContent.calculateReplacementChanges;
+        let nCalls = 0;
+        const spy = vi
+            .spyOn(ConditionalContent, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                nCalls++;
+                // Ask to be updated again, without end.
+                core.core!.updateInfo.compositesToUpdateReplacements.add(
+                    args.component.componentIdx,
+                );
+                return original.call(this, args);
+            });
+        try {
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: miIdx,
+                core,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+
+        // Stopped after 100 passes, not made to run without end.
+        expect(nCalls).greaterThan(100);
+        expect(nCalls).lessThan(200);
+        expect(core.core!._components[ccIdx].isInErrorState).eq(true);
+        expect(
+            getDiagnosticsByType(core).errors.map((e) => [
+                e.code,
+                e.message,
+                e.position?.start.line,
+            ]),
+        ).eqls([
+            [
+                "doenet-e0005",
+                "Circular dependency detected involving `<conditionalContent>` component.",
+                2,
+            ],
+        ]);
+
+        // The rest of the document still responds.
+        await updateMathInputValue({ latex: "3", componentIdx: miIdx, core });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[echoIdx].stateValues.text).eq("3");
+    });
+});

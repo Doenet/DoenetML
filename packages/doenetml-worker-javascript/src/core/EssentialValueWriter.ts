@@ -14,6 +14,25 @@ import {
 } from "../utils/math";
 import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 import { isReferenceShadow } from "../utils/referenceShadow";
+import { codedDiagnostic } from "../utils/diagnostics";
+
+/**
+ * Passes of `replacementChangesFromCompositesToUpdate` after which composites
+ * still being queued are taken to be looping. A composite may legitimately
+ * need updating more than once, so this is far above what a document needs.
+ */
+const MAX_PASSES = 100;
+/**
+ * A composite queued in each of this many consecutive passes, at the end of
+ * `MAX_PASSES` passes, is taken to be one of those looping.
+ */
+const LOOP_WINDOW = 10;
+/**
+ * How many times composites are stopped for looping, in one call, before
+ * giving up and stopping the document. Each time stops at least one
+ * composite for good, so this only bounds a pathological case.
+ */
+const MAX_LOOP_REPORTS = 10;
 
 /**
  * Loose-typed bag of `componentIdx → varName → newValue` entries that the
@@ -202,6 +221,33 @@ export class EssentialValueWriter {
         }
     }
 
+    /**
+     * The composites queued in every one of `recentQueues`, which are the
+     * ones that keep queuing themselves or each other. Components that are
+     * not composites (a list whose entry count is updated here) are left out:
+     * there is nothing to stop for them.
+     */
+    loopingComposites(recentQueues: Set<ComponentIdx>[]): ComponentInstance[] {
+        if (recentQueues.length < LOOP_WINDOW) {
+            return [];
+        }
+        const [first, ...rest] = recentQueues;
+        const looping: ComponentInstance[] = [];
+        for (const cIdx of first) {
+            const composite = this.core._components[cIdx];
+            if (
+                rest.every((queue) => queue.has(cIdx)) &&
+                composite instanceof
+                    this.core.componentInfoObjects.allComponentClasses
+                        ._composite &&
+                !composite.isInErrorState
+            ) {
+                looping.push(composite);
+            }
+        }
+        return looping;
+    }
+
     async replacementChangesFromCompositesToUpdate() {
         let compositesToUpdateReplacements = [
             ...this.core.updateInfo.compositesToUpdateReplacements,
@@ -211,6 +257,9 @@ export class EssentialValueWriter {
         let compositesNotReady = new Set<ComponentIdx>();
 
         let nPasses = 0;
+        // The queue of each of the last `LOOP_WINDOW` passes.
+        let recentQueues: Set<ComponentIdx>[] = [];
+        let nLoopReports = 0;
 
         let updatedComposites = false;
 
@@ -263,9 +312,6 @@ export class EssentialValueWriter {
                     await this.updateListEntryCount(composite);
                 }
             }
-            // Is it possible that could ever get an infinite loop here?
-            // I.e., is there some type of circular dependency among composites
-            // that could happen and we aren't detecting?
             // Note: have encountered cases where a composite must be updated twice
             // in this loop
             // Note 2: if we don't update a composite here, the state variable indicating
@@ -273,15 +319,62 @@ export class EssentialValueWriter {
             // prevent futher changes from being triggered
             compositesToUpdateReplacements = [
                 ...this.core.updateInfo.compositesToUpdateReplacements,
-            ];
+            ].filter((cIdx) => !this.core._components[cIdx]?.isInErrorState);
             this.core.updateInfo.compositesToUpdateReplacements.clear();
 
-            // just in case have infinite loop, throw error after 100 passes
+            // Composites can keep queuing each other without end, through a
+            // cycle the dependency graph does not see (Doenet/DoenetML#2405
+            // was one). After `MAX_PASSES` passes, the composites queued in
+            // every one of the last `LOOP_WINDOW` passes are the ones
+            // looping: report them as circular and stop updating them, so
+            // the rest of the document still loads.
+            recentQueues.push(new Set(compositesToUpdateReplacements));
+            if (recentQueues.length > LOOP_WINDOW) {
+                recentQueues.shift();
+            }
             nPasses++;
-            if (nPasses > 100) {
-                throw Error(
-                    `Seem to have an infinite loop while calculating replacement changes`,
-                );
+            if (nPasses > MAX_PASSES && compositesToUpdateReplacements.length) {
+                const looping = this.loopingComposites(recentQueues);
+                nLoopReports++;
+                if (looping.length === 0 || nLoopReports > MAX_LOOP_REPORTS) {
+                    // Nothing can be singled out, or stopping the ones that
+                    // were did not end the loop: stop, naming what is left.
+                    const stillQueued = compositesToUpdateReplacements
+                        .map((cIdx) => this.core._components[cIdx])
+                        .filter(Boolean);
+                    const involved = stillQueued.length
+                        ? ` ${this.core.dependencies.getCircularDependencyMessage(stillQueued)}`
+                        : "";
+                    throw Error(
+                        `Seem to have an infinite loop while calculating replacement changes.${involved}`,
+                    );
+                }
+                for (const composite of looping) {
+                    // The same code a copy inside its own source reports.
+                    const circular = codedDiagnostic({
+                        type: "error",
+                        code: "doenet-e0005",
+                        args: {
+                            componentType:
+                                composite.attributes?._createComponentOfType
+                                    ?.primitive?.value ??
+                                (composite.componentType.startsWith("_")
+                                    ? "none"
+                                    : composite.componentType),
+                        },
+                    });
+                    this.core.compositeReplacementUpdater.markCompositeInError({
+                        composite,
+                        message: circular.message,
+                        source: circular,
+                    });
+                }
+                compositesToUpdateReplacements =
+                    compositesToUpdateReplacements.filter(
+                        (cIdx) => !this.core._components[cIdx]?.isInErrorState,
+                    );
+                nPasses = 0;
+                recentQueues = [];
             }
         }
 
