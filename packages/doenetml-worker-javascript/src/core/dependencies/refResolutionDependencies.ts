@@ -972,9 +972,20 @@ export class RefResolutionDependency extends Dependency {
      * the group is made, but an index into the group selects among the
      * reference's replacements, which are the referent's instances, all the
      * same (#2428).
+     *
+     * Only an iteration or a pick, which would pass an index through to the
+     * list written in place: a `<group>` the author wrote, or what a
+     * `<conditionalContent>` shows, would not (`<group><mathList/></group>`
+     * still selects a child), so neither does it for a reference.
      */
     referencedIndexable(containerIdx: number): any {
         const components = this.dependencyHandler._components;
+        const instanceKind = instanceKindOf(
+            components[containerIdx]?.attributes?._instanceOf?.primitive?.value,
+        );
+        if (instanceKind !== "iteration" && instanceKind !== "pick") {
+            return undefined;
+        }
         const content = (
             components[containerIdx]?.serializedChildren ?? []
         ).filter((child: any) =>

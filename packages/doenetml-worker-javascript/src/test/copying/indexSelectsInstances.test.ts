@@ -235,6 +235,30 @@ describe("An index selects instances, not children @group4", async () => {
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0179"]);
     });
 
+    it("still warns of an index into a group or a case holding only a reference to a list", async () => {
+        // Neither passes an index through to a list written in place
+        // (`<group><mathList/></group>`), so neither does it for a reference.
+        const setup = `<setup><mathList name="nl">a b c</mathList><repeat name="rp" for="1 2" valueName="w"><math>$w</math></repeat></setup>`;
+        for (const [body, name, past] of [
+            [`<group name="g">$nl</group>`, "g", "$g[5]"],
+            [`<group name="g">$rp</group>`, "g", "$g[5]"],
+            [
+                `<conditionalContent name="g"><case condition="true">$nl</case></conditionalContent>`,
+                "g[1]",
+                "$g[1][5]",
+            ],
+        ]) {
+            const { text, warnings } = await shownAndReported(
+                `${setup}${body}<p name="p">[$${name}[2]] [${past}]</p>`,
+            );
+            expect(text, body).eq(body.includes("$rp") ? "[2] []" : "[b] []");
+            expect(
+                warnings.map((w) => w.code),
+                body,
+            ).eqls(["doenet-w0179", "doenet-w0104"]);
+        }
+    });
+
     it("passes an index through a pick holding a reference to a list whose length changes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
