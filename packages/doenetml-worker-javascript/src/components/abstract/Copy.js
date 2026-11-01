@@ -2331,20 +2331,7 @@ export default class Copy extends CompositeComponent {
 
                         // since deleted remaining, change in workspace
                         // so that don't attempt to delete again
-                        workspace.numReplacementsBySource
-                            .slice(sourceNum)
-                            .forEach(
-                                (v, i) =>
-                                    (workspace.numReplacementsBySource[i] = 0),
-                            );
-                        workspace.numNonStringReplacementsBySource
-                            .slice(sourceNum)
-                            .forEach(
-                                (v, i) =>
-                                    (workspace.numNonStringReplacementsBySource[
-                                        i
-                                    ] = 0),
-                            );
+                        clearReplacementCountsFrom(workspace, sourceNum);
                     }
                 }
 
@@ -2463,20 +2450,7 @@ export default class Copy extends CompositeComponent {
 
                         // since deleted remaining, change in workspace
                         // so that don't attempt to delete again
-                        workspace.numReplacementsBySource
-                            .slice(sourceNum)
-                            .forEach(
-                                (v, i) =>
-                                    (workspace.numReplacementsBySource[i] = 0),
-                            );
-                        workspace.numNonStringReplacementsBySource
-                            .slice(sourceNum)
-                            .forEach(
-                                (v, i) =>
-                                    (workspace.numNonStringReplacementsBySource[
-                                        i
-                                    ] = 0),
-                            );
+                        clearReplacementCountsFrom(workspace, sourceNum);
                     }
                 }
 
@@ -2566,17 +2540,7 @@ export default class Copy extends CompositeComponent {
 
                 // since deleted remaining, change in workspace
                 // so that don't attempt to delete again
-                workspace.numReplacementsBySource
-                    .slice(sourceNum)
-                    .forEach(
-                        (v, i) => (workspace.numReplacementsBySource[i] = 0),
-                    );
-                workspace.numNonStringReplacementsBySource
-                    .slice(sourceNum)
-                    .forEach(
-                        (v, i) =>
-                            (workspace.numNonStringReplacementsBySource[i] = 0),
-                    );
+                clearReplacementCountsFrom(workspace, sourceNum);
             } else {
                 let nonStringInd = 0;
                 for (let ind = 0; ind < nNewReplacements; ind++) {
@@ -5370,4 +5334,15 @@ function deleteReplacedAttributes({
             delete attributes[replaced];
         }
     }
+}
+
+/**
+ * Zero the replacement counts in `workspace` for sources `sourceNum` and
+ * later, once `calculateReplacementChanges` has deleted their replacements
+ * to remake them. Doenet/DoenetML#2417: this cleared the counts for the
+ * first sources instead, indexing by position in a slice.
+ */
+export function clearReplacementCountsFrom(workspace, sourceNum) {
+    workspace.numReplacementsBySource.fill(0, sourceNum);
+    workspace.numNonStringReplacementsBySource.fill(0, sourceNum);
 }
