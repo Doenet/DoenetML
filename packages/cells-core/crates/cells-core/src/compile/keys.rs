@@ -83,10 +83,10 @@ fn push_number(out: &mut String, k: u32) {
     let _ = write!(out, "{k}");
 }
 
-impl Compiler<'_> {
+impl super::seal::Seal<'_> {
     /// Give every element its key, once every element is planned.
     pub(in crate::compile) fn assign_keys(&mut self) {
-        let c = &mut self.compiled;
+        let c = &mut *self.compiled;
         let mut keys = Keys::default();
         // The branch each choice template is: (choice, branch).
         let mut branch_of: HashMap<TemplateId, (ChoiceId, usize)> = HashMap::new();
@@ -160,9 +160,10 @@ impl Compiler<'_> {
                     let name = (el.name != StrId::NONE)
                         .then(|| self.dast.strings.get(el.name).trim())
                         .filter(|s| {
-                            self.name_ids.get(*s).is_some_and(|&id| {
-                                self.names.get(&(t.get(), anchor.get(), id)) == Some(&(e as u32))
-                            })
+                            self.names
+                                .id(s)
+                                .and_then(|id| self.names.entry(t, anchor, id))
+                                == Some(e as u32)
                         });
                     named.push(name.is_some());
                     match name {
@@ -206,7 +207,7 @@ impl Compiler<'_> {
         );
         // A hidden slot holding shared state is saved by its name; a
         // public one by the prop's.
-        for (&(t, e), state) in &self.shared_state {
+        for (&(t, e), state) in self.shared_state {
             let id = elem_keys[t as usize][e as usize];
             let n_public = n_public(&c.templates[t as usize].elems[e as usize]);
             for (s, &slot) in state {

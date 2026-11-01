@@ -50,22 +50,74 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
-    /// original's and its children are clones, named under the copy,
-    /// followed by the children written inside the copy (REF-4 of the
-    /// principles: added after the referent's).
+    /// original's. Its children, clones, it has from outlining
+    /// (`expand_container_copy`).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
         t: TemplateId,
         e: ElemId,
         p: RefId,
     ) -> Result<()> {
+        self.plan_attrs(t, e, Some(p))
+    }
+
+    /// The end of outlining (ADR 0027): every container copy gets its
+    /// clones, now that every name is in the table, so the element set is
+    /// complete before anything is planned. A copy of a copy is expanded
+    /// after its referent, whatever the document's order.
+    pub(in crate::compile) fn expand_container_copies(&mut self) -> Result<()> {
+        for (t, e) in std::mem::take(&mut self.container_copies) {
+            self.expand_container_copy(t, e)?;
+        }
+        Ok(())
+    }
+
+    /// Give container copy `e` its children: clones of its referent's,
+    /// named under the copy, followed by the children written inside the
+    /// copy (REF-4 of the principles: added after the referent's). A copy
+    /// that fails is boxed, and the clones it made die with it.
+    pub(in crate::compile) fn expand_container_copy(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<()> {
+        let key = (t.get(), e.get());
+        if self.expanded.contains(&key) || self.is_box(t, e) {
+            return Ok(());
+        }
+        if !self.expanding.insert(key) {
+            return Err(Error::Cycle(self.elem_label(t, e)));
+        }
+        let n = self.compiled.templates[t.index()].elems.len();
+        let r = self.expand_container_copy_inner(t, e);
+        self.expanding.remove(&key);
+        self.expanded.insert(key);
+        match r {
+            Ok(()) => Ok(()),
+            Err(error) if self.failed_node.is_some() => Err(error),
+            Err(error) => {
+                for x in n..self.compiled.templates[t.index()].elems.len() {
+                    self.make_box(t, ElemId::from_index(x), true);
+                }
+                self.box_in_place(t, e, error)
+            }
+        }
+    }
+
+    fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let p = self.plan_extend(t, e)?.expect("a container copy extends");
+        // `<graph extend="$x.prop"/>` is no container copy: planning refuses
+        // it as an extend of a prop.
+        if self.compiled.refs[p.index()].prop.is_some() {
+            return Ok(());
+        }
         let r = self
             .plan_elem_target(t, p)
             .ok_or_else(|| Error::UncopyableType("graph from another scope".into()))?;
-        // A referent later in the document that is itself a copy has its
-        // cloned children once it is planned.
-        self.plan_elem(t, r)?;
-        self.plan_attrs(t, e, Some(p))?;
+        // A referent that is itself a copy has its clones first; one that
+        // is a box has none to clone.
+        self.referent_type(t, e, p)?;
+        self.compiled.templates[t.index()].elems[e.index()].extend = Some(p);
         let scope = self.child_scope(t, e);
         let mut kids = self.clone_children(t, r, scope, e)?;
         let own = std::mem::take(&mut self.compiled.templates[t.index()].elems[e.index()].children);
@@ -88,16 +140,18 @@ impl<'a> Compiler<'a> {
         for ch in kids {
             match ch {
                 Child::Elem(c) => {
-                    let (component_type, name) = {
-                        let el = &self.compiled.templates[t.index()].elems[c.index()];
-                        (el.component_type, el.name)
-                    };
-                    // A `<collect>` is one once planned.
-                    self.plan_elem(t, c)?;
-                    if matches!(
-                        self.compiled.templates[t.index()].elems[c.index()].body,
-                        Body::Repeat { .. } | Body::Collect { .. }
-                    ) {
+                    // A copy among the children has its clones first; a
+                    // clone takes the type outlining settled for its original.
+                    let el = self.outlined_elem(t, c)?;
+                    let (component_type, name) = (el.component_type, el.name);
+                    let repeat = matches!(el.body, Body::Repeat { .. });
+                    self.cloned_sources.insert((t.get(), c.get()));
+                    if repeat
+                        || matches!(
+                            component_type,
+                            ComponentType::Collect | ComponentType::Polyline
+                        )
+                    {
                         return Err(Error::UncopyableType(format!(
                             "{} inside a copied container",
                             component_type.tag()
@@ -195,20 +249,12 @@ impl<'a> Compiler<'a> {
                 self.compiled.refs[p.index()].display
             )));
         }
-        // The referent's shared state is known once it is planned, which
-        // a referent later in the document is not yet.
-        if let Some(r) = base_elem {
-            self.plan_elem(t, r)?;
-        }
-        let mut wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
+        let wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
         // Essential state the copy did not override is the original's: the
-        // current core's copies share their essential state variables.
+        // current core's copies share their essential state variables. The
+        // copy names what it shares, and linking ties it to the slot the
+        // referent's planning gives it (`link_shared_state`, ADR 0029).
         if let Some(r) = base_elem {
-            let base_shared_state = self
-                .shared_state
-                .get(&(t.get(), r.get()))
-                .cloned()
-                .unwrap_or_default();
             for (state, &slot) in &wiring.shared_state {
                 // Shared state the copy gave itself is its own.
                 let own = match wiring.shared_state_given.get(state) {
@@ -218,14 +264,16 @@ impl<'a> Compiler<'a> {
                     Some(Given::Children) => true,
                     Some(Given::Referent) | None => false,
                 };
-                if own {
+                if own || !matches!(wiring.props[slot as usize], Some(Source::Given(_))) {
                     continue;
                 }
-                if let Some(&bs) = base_shared_state.get(state)
-                    && matches!(wiring.props[slot as usize], Some(Source::Given(_)))
-                {
-                    wiring.props[slot as usize] = Some(Source::Alias(Arg::Elem(r, bs)));
-                }
+                self.shares.push(Share {
+                    t,
+                    e,
+                    slot,
+                    referent: r,
+                    state: *state,
+                });
             }
         }
         if !wiring.shared_state.is_empty() {
@@ -238,6 +286,26 @@ impl<'a> Compiler<'a> {
         }
         self.compiled.templates[t.index()].elems[e.index()].props = wiring.finish();
         Ok(())
+    }
+
+    /// Linking (ADR 0029): each piece of state a copy shares
+    /// aliases the referent's slot for it, now that every element is
+    /// planned. A copy or referent that is a box shares nothing, and a
+    /// copy keeps its own given value for state its referent has none of.
+    pub(in crate::compile) fn link_shared_state(&mut self) {
+        for s in std::mem::take(&mut self.shares) {
+            if self.is_box(s.t, s.e) || self.is_box(s.t, s.referent) {
+                continue;
+            }
+            if let Some(&bs) = self
+                .shared_state
+                .get(&(s.t.get(), s.referent.get()))
+                .and_then(|m| m.get(&s.state))
+            {
+                self.compiled.templates[s.t.index()].elems[s.e.index()].props[s.slot as usize] =
+                    Source::Alias(Arg::Elem(s.referent, bs));
+            }
+        }
     }
 
     /// A 0/1 flag attribute of a `Plan` type (`hide`), as a copy inherits

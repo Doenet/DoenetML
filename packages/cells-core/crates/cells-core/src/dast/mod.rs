@@ -252,11 +252,18 @@ impl Dast {
     /// An attribute by name; DoenetML attribute names ignore case. A hit
     /// is recorded as read (`attr_read`).
     pub fn attr(&self, n: NodeId, name: &str) -> Option<AttrId> {
-        let a = self
-            .attrs(n)
-            .find(|&a| self.attr_name(a).eq_ignore_ascii_case(name))?;
+        let a = self.attr_peek(n, name)?;
         self.attr_read.mark(a as usize);
         Some(a)
+    }
+
+    /// `attr` that records no read: for what looks at the source without
+    /// giving the attribute a meaning (lint, ADR 0027), so it may run
+    /// before or after the compile without changing which attributes
+    /// ADR 0021 refuses.
+    pub fn attr_peek(&self, n: NodeId, name: &str) -> Option<AttrId> {
+        self.attrs(n)
+            .find(|&a| self.attr_name(a).eq_ignore_ascii_case(name))
     }
 
     /// Whether `attr` has looked attribute `a` up since the tree was made:

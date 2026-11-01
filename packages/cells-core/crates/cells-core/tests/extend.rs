@@ -101,7 +101,7 @@ fn overrides_on_an_extend_across_a_scope_are_refused() {
         "{}",
         errors[0].message
     );
-    assert!(doc.resolve_path("Q").is_none());
+    assert_eq!(doc.value("Q", "x"), None, "Q is boxed");
     // The bare extend aliases the iteration's point.
     assert_eq!(v(&doc, "S", "x"), 2.0);
 }
@@ -356,14 +356,15 @@ fn a_copy_of_a_later_container_copy_has_its_clones() {
     }
 }
 
-/// A cycle of extends with attributes of their own is a dependency cycle,
-/// not a compile that never ends.
+/// A cycle of extends with attributes of their own is no cycle of plans
+/// (ADR 0029): each plans from its own source, and the state they share
+/// is a cycle of values, which the build reports. A cycle of container
+/// copies has no clones to make, an error on a copy in it (ADR 0027).
 #[test]
 fn a_cycle_of_extends_is_reported() {
     for source in [
         r#"<graph><point name="A" extend="$B" x="1"/><point name="B" extend="$A" y="2"/></graph>"#,
         r#"<graph><point name="A" extend="$A" x="1"/></graph>"#,
-        r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#,
     ] {
         let err = load(source)
             .err()
@@ -373,4 +374,105 @@ fn a_cycle_of_extends_is_reported() {
             "{source}: {err}"
         );
     }
+    let source = r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#;
+    let doc = load(source).unwrap_or_else(|e| panic!("{source}: {e}"));
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.kind == DiagnosticKind::Error
+                && d.node.is_some()
+                && d.message.contains("dependency cycle")),
+        "{source}: {:?}",
+        doc.diagnostics()
+    );
+}
+
+/// A reference into a `<math>` reads the type planning gives it (a tuple
+/// of two is a point) whichever comes first in the document.
+#[test]
+fn a_reference_into_a_later_math_reads_its_planned_type() {
+    let m = r#"<math name="m">(3, 4)</math>"#;
+    let reads =
+        r#"<graph><point name="P" x="$m.x" y="$m[2]"/><point name="Q" extend="$m"/></graph>"#;
+    for source in [format!("{m}{reads}"), format!("{reads}{m}")] {
+        let doc = load(&source).unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .all(|d| d.kind != DiagnosticKind::Error),
+            "{source}: {:?}",
+            doc.diagnostics()
+        );
+        assert_eq!(
+            (v(&doc, "P", "x"), v(&doc, "P", "y"), v(&doc, "Q", "x")),
+            (3.0, 4.0, 3.0),
+            "{source}"
+        );
+    }
+}
+
+/// A cycle of values between elements is no cycle of plans: each is
+/// planned without the other's, and the build reports the cycle.
+#[test]
+fn a_cycle_of_values_is_the_builds() {
+    for source in [
+        r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#,
+        r#"<math name="a">$b + 1</math><math name="b">$a + 1</math>"#,
+    ] {
+        let err = load(source)
+            .err()
+            .unwrap_or_else(|| panic!("{source}: loaded"));
+        assert!(
+            err.to_string().contains("dependency cycle"),
+            "{source}: {err}"
+        );
+    }
+}
+
+/// A container copy is expanded before anything is planned (ADR 0027):
+/// a clone of a `<math>` takes the type planning gives it, and a name
+/// under the copy resolves from any element, wherever it is written.
+#[test]
+fn a_container_copys_clones_exist_before_planning() {
+    let g = r#"<graph name="g"><math name="m">(3, 4)</math><point name="A" x="$g2.m.x" y="1"/></graph>"#;
+    let g2 = r#"<graph name="g2" extend="$g"/>"#;
+    let reads = r#"<number name="n">$g2.A.x</number>"#;
+    for source in [format!("{g}{g2}{reads}"), format!("{reads}{g2}{g}")] {
+        let doc = load(&source).unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .all(|d| d.kind != DiagnosticKind::Error),
+            "{source}: {:?}",
+            doc.diagnostics()
+        );
+        assert_eq!(
+            (
+                v(&doc, "g2.m", "y"),
+                v(&doc, "A", "x"),
+                v(&doc, "n", "value")
+            ),
+            (4.0, 3.0, 3.0),
+            "{source}"
+        );
+    }
+}
+
+/// A container copy inside its own referent would hold itself: a cycle,
+/// boxed, and the rest loads.
+#[test]
+fn a_container_copy_inside_its_referent_is_a_cycle() {
+    let doc = load(
+        r#"<graph name="g"><point name="A" x="1" y="2"/><graph name="h" extend="$g"/></graph><number name="n">5</number>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.kind == DiagnosticKind::Error && d.message.contains("dependency cycle")),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(v(&doc, "n", "value"), 5.0);
+    assert_eq!(v(&doc, "A", "x"), 1.0);
 }

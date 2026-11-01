@@ -329,11 +329,13 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The component type of the element a reference names, when it
-    /// names one in this template (`$l`, not `$l.x` or `$r[2]`).
-    pub(crate) fn reference_type(&self, p: RefId) -> Option<ComponentType> {
-        self.c
-            .plan_elem_target(self.t, p)
-            .map(|e| self.c.compiled.templates[self.t.index()].elems[e.index()].component_type)
+    /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as
+    /// outlining settled it (a `<math>` may be a point).
+    pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
+        match self.c.plan_elem_target(self.t, p) {
+            Some(_) => self.c.referent_type(self.t, self.e, p),
+            None => Ok(None),
+        }
     }
 
     /// Math text as tokens, `$ref`s as cell leaves, and its text.
@@ -342,22 +344,23 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.math_tokens(self.t, scope, nodes)
     }
 
-    /// Tokens as an expression; `text` is their source, for errors.
-    pub(crate) fn parse(&mut self, toks: &[Token], text: &str) -> Result<ExprId> {
-        self.c.parse_tokens(toks, text)
-    }
-
     /// An expression as a source: lowered to numeric operators when it is
     /// numeric, else symbolic.
     pub(crate) fn plan_expr(&mut self, id: ExprId) -> Source {
         self.c.plan_from_expr(id)
     }
 
-    /// Math text as an expression that may be symbolic, its text kept for
-    /// the symbolic engine.
-    pub(crate) fn sym_math(&mut self, nodes: &[NodeId]) -> Result<ExprId> {
+    /// Math text tokenized, its `$ref`s not yet planned: to read its
+    /// shape before parsing it once (`sym_math`).
+    pub(crate) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
+        self.c.math_text(nodes)
+    }
+
+    /// Math text `mt` of `nodes` as an expression that may be symbolic,
+    /// its text kept for the symbolic engine.
+    pub(crate) fn sym_math(&mut self, nodes: &[NodeId], mt: &MathText) -> Result<ExprId> {
         let scope = self.scope_for(nodes);
-        self.c.plan_sym_math(self.t, scope, nodes)
+        self.c.parse_math_text(self.t, scope, mt)
     }
 
     /// An equation linear in `vx` and `vy`, `a vx + b vy + c = 0`, as sources
@@ -447,10 +450,15 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.compiled.templates[self.t.index()].elems[self.e.index()].props = props;
     }
 
-    /// Makes the element another type (a `<math>` that is a point).
-    pub(crate) fn set_type(&mut self, component_type: ComponentType) {
-        self.c.compiled.templates[self.t.index()].elems[self.e.index()].component_type =
-            component_type;
+    /// The element's `<math>` text as it was parsed (ADR 0029), or the
+    /// error parsing it met.
+    pub(crate) fn parsed_math(&mut self) -> Result<ParsedMath> {
+        let key = (self.t.get(), self.e.get());
+        match self.c.parsed_maths.get(&key) {
+            Some(Ok(parsed)) => Ok(parsed.clone()),
+            Some(Err(_)) => Err(self.c.parsed_maths.remove(&key).unwrap().unwrap_err()),
+            None => Err(Error::Internal("a <math> that was never parsed".into())),
+        }
     }
 
     /// Makes the element an alias of the value its `extend` names, which
@@ -464,16 +472,16 @@ impl<'a> PlanCtx<'_, 'a> {
         Ok(())
     }
 
-    /// Makes the element's children copies of the components of type
-    /// `component_type` under what `from` names, found when it expands;
-    /// its props are set then too.
-    pub(crate) fn collect(&mut self, from: RefId, component_type: ComponentType) {
+    /// Makes the element's children copies of the components under what
+    /// `from` names of the type outlining recorded it collects (ADR 0029),
+    /// found when it expands; its props are set then too.
+    pub(crate) fn collect(&mut self, from: RefId) {
         let own_type = self.elem().component_type;
         let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
-        el.body = Body::Collect {
-            from,
-            component_type,
+        let Body::Collect { from: f, .. } = &mut el.body else {
+            unreachable!("outlining made a collecting element a collect")
         };
+        *f = from;
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];
         Deferred::mark(own_type, &mut props);
         el.props = props;

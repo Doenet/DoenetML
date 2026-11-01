@@ -203,7 +203,7 @@ fn constrain(
                 .find(|&n| d.kind(n) == NodeKind::Macro)
                 .ok_or_else(|| Error::Unsupported("<constrainTo> without a reference".into()))?;
             let p = ctx.reference(m)?;
-            let target = ctx.reference_type(p).ok_or_else(|| {
+            let target = ctx.reference_type(p)?.ok_or_else(|| {
                 Error::Unsupported("<constrainTo> must name a component in the same scope".into())
             })?;
             let mut refs = |wiring: &mut ElemWiring, props: &[&str]| -> Vec<usize> {

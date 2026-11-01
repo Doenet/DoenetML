@@ -242,12 +242,53 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
+    /// The step for interface name `name` of choice `cid`, and the element
+    /// of the first branch that has it, which stands for every branch while
+    /// the rest of the path is planned (the interface check makes their
+    /// types equal).
+    pub(in crate::compile) fn iface_step(
+        &mut self,
+        cid: ChoiceId,
+        name: &str,
+        display: &str,
+    ) -> Result<(Step, TemplateId, ElemId)> {
+        let name = name.trim();
+        let def = &self.compiled.choices[cid.index()];
+        let found = def
+            .branches
+            .iter()
+            .find_map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
+                NameHit::One(x) => Some((b, x)),
+                _ => None,
+            });
+        let Some((tpl, elem)) = found else {
+            return Err(Error::UnknownName(display.to_string()));
+        };
+        let def = &mut self.compiled.choices[cid.index()];
+        let u = match def.used.iter().position(|n| n == name) {
+            Some(u) => u,
+            None => {
+                def.used.push(name.to_string());
+                def.used.len() - 1
+            }
+        };
+        Ok((Step::Iface(cid, u as u32), tpl, elem))
+    }
+}
+
+impl super::seal::Seal<'_> {
     /// The branch interface of every choice, once every element is planned
     /// (a tuple-valued `<math>` only becomes a point when planned), then the
     /// check that every interface name a reference uses is in it.
-    pub(in crate::compile) fn finish_choices(&mut self) -> Result<()> {
+    pub(in crate::compile) fn finish_choices(&mut self) -> std::result::Result<(), Failure> {
         for cid in 0..self.compiled.choices.len() {
             let def = &self.compiled.choices[cid];
+            // A boxed choice has no branches to read.
+            if self.compiled.templates[def.at.0.index()].elems[def.at.1.index()].component_type
+                == ComponentType::Error
+            {
+                continue;
+            }
             // A conditional content without an else has an implicit empty
             // branch, so nothing in it is reachable from outside.
             let empty_branch = def.reactive && def.conditions.last().is_some_and(|c| c.is_some());
@@ -262,7 +303,7 @@ impl<'a> Compiler<'a> {
                         continue;
                     }
                     let name = self.dast.strings.get(el.name).trim();
-                    if !matches!(self.name_at(b0, ROOT_SCOPE, name), NameHit::One(e) if e == ElemId::from_index(e0))
+                    if !matches!(self.names.at(b0, ROOT_SCOPE, name), NameHit::One(e) if e == ElemId::from_index(e0))
                     {
                         continue;
                     }
@@ -270,7 +311,7 @@ impl<'a> Compiler<'a> {
                     let per_branch: Option<Vec<ElemId>> = def
                         .branches
                         .iter()
-                        .map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
+                        .map(|&b| match self.names.at(b, ROOT_SCOPE, name) {
                             NameHit::One(x)
                                 if self.compiled.templates[b.index()].elems[x.index()]
                                     .component_type
@@ -309,25 +350,24 @@ impl<'a> Compiler<'a> {
                     }
                 }
             }
-            if let Some(e) = failure {
-                self.fail_at_choice(ChoiceId::from_index(cid));
-                return Err(e);
+            if let Some(error) = failure {
+                // Reported on the choice element.
+                let (t, e) = self.compiled.choices[cid].at;
+                let node = self.compiled.templates[t.index()].elems[e.index()].node;
+                return Err(Failure {
+                    error,
+                    node: (node != NodeId::NONE).then_some(node),
+                });
             }
             self.compiled.choices[cid].iface = iface;
         }
         Ok(())
     }
 
-    /// A failure of the interface check is reported on the choice element.
-    fn fail_at_choice(&mut self, cid: ChoiceId) {
-        let (t, e) = self.compiled.choices[cid.index()].at;
-        self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node);
-    }
-
     /// Why `name` is not in a choice's branch interface.
     fn not_in_interface(&self, cid: ChoiceId, name: &str, empty_branch: bool) -> Error {
         let def = &self.compiled.choices[cid.index()];
-        let choice = self.elem_label(def.at.0, def.at.1);
+        let choice = elem_label(self.dast, self.compiled, def.at.0, def.at.1);
         let what = if def.reactive { "case" } else { "option" };
         let reason = if empty_branch {
             "it has no <else>, so no branch is active when every condition fails".to_string()
@@ -335,7 +375,7 @@ impl<'a> Compiler<'a> {
             let mut first: Option<(usize, ComponentType)> = None;
             let mut reason = String::new();
             for (b, &tpl) in def.branches.iter().enumerate() {
-                match self.name_at(tpl, ROOT_SCOPE, name) {
+                match self.names.at(tpl, ROOT_SCOPE, name) {
                     NameHit::One(x) => {
                         let component_type =
                             self.compiled.templates[tpl.index()].elems[x.index()].component_type;
@@ -371,38 +411,5 @@ impl<'a> Compiler<'a> {
             name: name.to_string(),
             reason,
         }
-    }
-
-    /// The step for interface name `name` of choice `cid`, and the element
-    /// of the first branch that has it, which stands for every branch while
-    /// the rest of the path is planned (the interface check makes their
-    /// types equal).
-    pub(in crate::compile) fn iface_step(
-        &mut self,
-        cid: ChoiceId,
-        name: &str,
-        display: &str,
-    ) -> Result<(Step, TemplateId, ElemId)> {
-        let name = name.trim();
-        let def = &self.compiled.choices[cid.index()];
-        let found = def
-            .branches
-            .iter()
-            .find_map(|&b| match self.name_at(b, ROOT_SCOPE, name) {
-                NameHit::One(x) => Some((b, x)),
-                _ => None,
-            });
-        let Some((tpl, elem)) = found else {
-            return Err(Error::UnknownName(display.to_string()));
-        };
-        let def = &mut self.compiled.choices[cid.index()];
-        let u = match def.used.iter().position(|n| n == name) {
-            Some(u) => u,
-            None => {
-                def.used.push(name.to_string());
-                def.used.len() - 1
-            }
-        };
-        Ok((Step::Iface(cid, u as u32), tpl, elem))
     }
 }

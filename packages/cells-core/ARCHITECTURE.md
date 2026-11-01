@@ -84,7 +84,9 @@ loads it as JSON (`dast/json.rs`) or in a binary wire format
 Runs once per load and depends on the source alone.
 
 - **Lint** (`lint.rs`) is one walk over the DAST for the rules that need
-  nothing else, such as the accessibility rules.
+  nothing else, such as the accessibility rules. It looks attributes up
+  with `Dast::attr_peek`, which records no read (ADR 0021), so it runs
+  first without changing which attributes are refused (ADR 0027).
 - **Plan** walks the DAST and produces a `Template` for the document, each
   repeat body and each choice branch. Every prop in a template has a
   `Source` (a literal, a default, an operator over references, a math
@@ -92,7 +94,19 @@ Runs once per load and depends on the source alone.
   plan names an
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
-  (see [Add a component type](#add-a-component-type)).
+  (see [Add a component type](#add-a-component-type)). The compile runs
+  in stages (ADR 0027, ADR 0029; `Compiler::compile_all`): **outline**
+  makes every element, template and name, settles what a reference reads
+  of each (a `<math>`'s type, a `<collect>`'s collected type) and gives
+  container copies their clones; **parse** parses every `<math>`'s text
+  once; **plan** plans every element; **link** boxes what read a boxed
+  referent and ties shared state between plans; **seal** (`seal.rs`)
+  makes choice interfaces, checks arity, and assigns keys and slot
+  offsets; the **probe** (below) comes last. A planner reads the source
+  and what outlining and parsing made, never another element's plan
+  (ADR 0029), so elements are planned in any order: what one shares
+  with another (an extend's essential state) is linked once all are
+  planned.
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
   can have. It builds the plans once through the **probe**
   (`build/probe.rs`), which folds every iteration into one and builds
@@ -233,23 +247,28 @@ document is unchanged and `rebuild_error` says why.
 
 ### An element cannot be built
 
-Errors are a build product, not a failure (ADR 0013). When the compiler or
-builder raises an error, it records the innermost element it concerns. The
-check *boxes* that element: it recompiles as an `_error` element with no
-name, children or props, and the check builds again until every element
-builds. Only an error with no element to box, a dependency cycle, fails the
-load.
+Errors are a build product, not a failure (ADR 0013). An element that
+fails to plan is *boxed* where it fails (ADR 0027): it becomes an `_error`
+element with no children or props, what is under it is never built, and
+planning goes on, so one compile finds every planning error. An error the
+probe raises records the innermost element it concerns, which is boxed
+from the start of a new compile, and the check builds again until every
+element builds.
+A box keeps its name (ADR 0027): a reference to it resolves and reads as
+undefined, with no diagnostic of its own, and an extend of it is boxed in
+turn (`cells-boxed-referent`). Only an error with no element to box, a
+dependency cycle, fails the load.
 
 `Document::diagnostics` lists, in node order, the lint findings plus the
 errors and warnings of the elements that built.
 
 An element is also boxed for an attribute nothing read while the document
-was planned and checked (ADR 0021): the core ignores no attribute
-silently. `Dast::attr` records every lookup; after a compile and its
-check succeed, every element outside the boxes with an attribute never
-looked up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
-`presentation`), is boxed, all of them at once, and the compile runs
-again.
+was planned (ADR 0021): the core ignores no attribute silently.
+`Dast::attr` records every lookup, and a build makes none; once planning
+is done, every element outside the boxes with an attribute never looked
+up, and not one a renderer reads (`PRESENTATION_ATTRS`, a type's
+`presentation`), is boxed, all of them at once, and the plan is made
+again before the probe runs.
 
 Every error depends on the source alone (ADR 0014), and the probe stands
 for every count and every pick, so the check finds every error at load.

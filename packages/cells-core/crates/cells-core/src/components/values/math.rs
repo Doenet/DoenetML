@@ -3,7 +3,6 @@
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::dast::NodeId;
 use crate::error::{Error, Result};
 use crate::program::Post;
 
@@ -37,51 +36,53 @@ pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
     wiring.finish()
 }
 
-/// A tuple-valued math (`<math>(a, b)</math>`) is a point for the cells
-/// core: two cells, draggable as a direction source. With three or more
-/// entries it is a tuple, one cell per entry. Otherwise it is a math cell,
-/// simplified or expanded as its attributes say.
+/// The type a `<math>` is, from its text alone: a tuple of two,
+/// `(a, b)`, is a point for the cells core (two cells, draggable as a
+/// direction source); a tuple of more entries is a tuple, one cell per
+/// entry; anything else is a math cell. Outlining settles it, once, before
+/// anything is planned (ADR 0029); each `$ref` is one token.
+pub(crate) fn settled_type(toks: &[Token]) -> ComponentType {
+    match tuple_entries(toks).map(|entries| entries.len()) {
+        Some(2) => ComponentType::Point,
+        Some(n) if n > 2 => ComponentType::Tuple,
+        _ => ComponentType::Math,
+    }
+}
+
+/// Plans a `<math>` as the type outlining settled, from the text parsing
+/// parsed: a point's or a tuple's entries, or a math cell, simplified or
+/// expanded as its attributes say.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
-    let d = ctx.dast();
-    let el = ctx.node();
-    let nodes: Vec<NodeId> = d.children(el).to_vec();
-    let (toks, text) = ctx.math_tokens(&nodes)?;
-    if let Some(inner) = unwrap_parens(&toks)
-        && split_top(inner, &Token::Comma).len() == 2
-    {
-        let [x, y] = ctx.tuple(&nodes)?;
-        ctx.set_type(ComponentType::Point);
-        ctx.set_props(super::super::geometry::point::props_of(x, y));
-        return Ok(());
-    }
-    if let Some(inner) = unwrap_parens(&toks)
-        && split_top(inner, &Token::Comma).len() > 2
-    {
-        let parts = split_top(inner, &Token::Comma);
-        if parts.len() > super::MAX_TUPLE {
-            return Err(Error::Unsupported(format!(
-                "a tuple of {} entries (at most {})",
-                parts.len(),
-                super::MAX_TUPLE
-            )));
+    match ctx.parsed_math()? {
+        ParsedMath::Entries(entries) if ctx.component_type() == ComponentType::Point => {
+            let [x, y] = entries[..] else {
+                unreachable!("a point is a tuple of two")
+            };
+            let (x, y) = (ctx.plan_expr(x), ctx.plan_expr(y));
+            ctx.set_props(super::super::geometry::point::props_of(x, y));
         }
-        let mut entries = Vec::with_capacity(parts.len());
-        for part in &parts {
-            let id = ctx.parse(part, &text)?;
-            entries.push(ctx.plan_expr(id));
+        ParsedMath::Entries(entries) => {
+            if entries.len() > super::MAX_TUPLE {
+                return Err(Error::Unsupported(format!(
+                    "a tuple of {} entries (at most {})",
+                    entries.len(),
+                    super::MAX_TUPLE
+                )));
+            }
+            let entries = entries.into_iter().map(|id| ctx.plan_expr(id)).collect();
+            ctx.set_props(super::tuple::props_of(entries));
         }
-        ctx.set_type(ComponentType::Tuple);
-        ctx.set_props(super::tuple::props_of(entries));
-        return Ok(());
+        ParsedMath::Expr(id) => {
+            let el = ctx.node();
+            let post = if ctx.attr_on(el, "expand") {
+                Post::Expand
+            } else if ctx.attr_on(el, "simplify") {
+                Post::Simplify
+            } else {
+                Post::None
+            };
+            ctx.set_props(props_of(id, post));
+        }
     }
-    let id = ctx.sym_math(&nodes)?;
-    let post = if ctx.attr_on(el, "expand") {
-        Post::Expand
-    } else if ctx.attr_on(el, "simplify") {
-        Post::Simplify
-    } else {
-        Post::None
-    };
-    ctx.set_props(props_of(id, post));
     Ok(())
 }

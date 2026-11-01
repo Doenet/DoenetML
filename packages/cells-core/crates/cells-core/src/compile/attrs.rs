@@ -273,10 +273,8 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<ExprId> {
-        let (toks, text, sym) = self.math_tokens_sym(t, scope, nodes)?;
-        let id = self.parse_tokens(&toks, &text)?;
-        self.compiled.sym_text.insert(id, sym);
-        Ok(id)
+        let mt = self.math_text(nodes)?;
+        self.parse_math_text(t, scope, &mt)
     }
 
     /// Tokenize math text with `$ref` children as cell leaves holding plan ids.
@@ -298,18 +296,29 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<(Vec<Token>, String, String)> {
+        let mt = self.math_text(nodes)?;
+        self.resolve_math(t, scope, &mt)
+    }
+
+    /// Math text tokenized: the one tokenizer of math text. Its `$ref`s
+    /// are placeholders, planned by `resolve_math`, so tokenizing reads no
+    /// other element and may run while outlining (a `<math>`'s, ADR 0029).
+    pub(in crate::compile) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
         let d = self.dast;
-        let mut toks: Vec<Token> = Vec::new();
-        let mut text = String::new();
-        let mut sym = String::new();
+        let mut mt = MathText {
+            toks: Vec::new(),
+            macros: Vec::new(),
+            text: String::new(),
+            between: vec![String::new()],
+        };
         for &n in nodes {
             match d.kind(n) {
                 NodeKind::Text => {
-                    text.push_str(d.str(n));
-                    sym.push_str(d.str(n));
-                    super::expr::tokenize(d.str(n), &mut toks).map_err(|reason| {
+                    mt.text.push_str(d.str(n));
+                    mt.between.last_mut().unwrap().push_str(d.str(n));
+                    super::expr::tokenize(d.str(n), &mut mt.toks).map_err(|reason| {
                         Error::BadMath {
-                            text: text.clone(),
+                            text: mt.text.clone(),
                             reason,
                         }
                     })?;
@@ -321,27 +330,94 @@ impl<'a> Compiler<'a> {
                     )));
                 }
                 NodeKind::Macro => {
-                    text.push('$');
-                    text.push_str(&d.macro_display(n));
-                    // A text cell holds a string id, which is not a number.
-                    if self.macro_is_text(t, scope, n) {
-                        return Err(Error::Unsupported(format!(
-                            "a text value (${}) inside math",
-                            d.macro_display(n)
-                        )));
-                    }
-                    let p = self.plan_ref(t, scope, n)?;
-                    // Spaces keep `2$a` from reading as one token.
-                    sym.push_str(&format!(
-                        " {} ",
-                        crate::sym::engine::leaf_name(p.get(), false)
-                    ));
-                    toks.push(Token::Cell(p));
+                    mt.text.push('$');
+                    mt.text.push_str(&d.macro_display(n));
+                    mt.macros.push(n);
+                    mt.toks.push(Token::Cell(RefId::NONE));
+                    mt.between.push(String::new());
                 }
                 _ => {}
             }
         }
-        Ok((toks, text.trim().to_string(), sym))
+        mt.text = mt.text.trim().to_string();
+        Ok(mt)
+    }
+
+    /// The tokens of `mt` with its `$ref`s planned from `scope`, its text,
+    /// and the symbolic engine's text (each `$ref` its leaf name).
+    pub(in crate::compile) fn resolve_math(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        mt: &MathText,
+    ) -> Result<(Vec<Token>, String, String)> {
+        let d = self.dast;
+        let mut sym = mt.between[0].clone();
+        let mut plans = Vec::with_capacity(mt.macros.len());
+        for (k, &m) in mt.macros.iter().enumerate() {
+            // A text cell holds a string id, which is not a number.
+            if self.macro_is_text(t, scope, m) {
+                return Err(Error::Unsupported(format!(
+                    "a text value (${}) inside math",
+                    d.macro_display(m)
+                )));
+            }
+            let p = self.plan_ref(t, scope, m)?;
+            // Spaces keep `2$a` from reading as one token.
+            sym.push_str(&format!(
+                " {} ",
+                crate::sym::engine::leaf_name(p.get(), false)
+            ));
+            sym.push_str(&mt.between[k + 1]);
+            plans.push(p);
+        }
+        let mut plans = plans.into_iter();
+        let toks = mt
+            .toks
+            .iter()
+            .map(|tok| match tok {
+                Token::Cell(p) if *p == RefId::NONE => {
+                    Token::Cell(plans.next().expect("a plan per placeholder"))
+                }
+                other => other.clone(),
+            })
+            .collect();
+        Ok((toks, mt.text.clone(), sym))
+    }
+
+    /// `mt` parsed as one expression, its `$ref`s planned from `scope`,
+    /// its text kept for the symbolic engine in case it is symbolic.
+    pub(in crate::compile) fn parse_math_text(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        mt: &MathText,
+    ) -> Result<ExprId> {
+        let (toks, text, sym) = self.resolve_math(t, scope, mt)?;
+        let id = self.parse_tokens(&toks, &text)?;
+        self.compiled.sym_text.insert(id, sym);
+        Ok(id)
+    }
+
+    /// A `<math>`'s text parsed (when parsing, ADR 0029) as the type outlining
+    /// settled for it: one expression, or a tuple's entries.
+    pub(in crate::compile) fn parse_math(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        component_type: ComponentType,
+        mt: &MathText,
+    ) -> Result<ParsedMath> {
+        if component_type == ComponentType::Math {
+            return Ok(ParsedMath::Expr(self.parse_math_text(t, scope, mt)?));
+        }
+        let (toks, text, _) = self.resolve_math(t, scope, mt)?;
+        let parts = super::expr::tuple_entries(&toks).expect("outlining settled a tuple");
+        let entries = parts
+            .iter()
+            .map(|part| self.parse_tokens(part, &text))
+            .collect::<Result<_>>()?;
+        Ok(ParsedMath::Entries(entries))
     }
 
     /// A boolean attribute: present and empty, or `true`.
@@ -406,21 +482,20 @@ impl<'a> Compiler<'a> {
             return Ok([Source::coord(p, 0), Source::coord(p, 1)]);
         }
         let (toks, text) = self.math_tokens(t, scope, nodes)?;
-        let inner = super::expr::unwrap_parens(&toks).ok_or_else(|| Error::BadMath {
+        let entries = super::expr::tuple_entries(&toks).ok_or_else(|| Error::BadMath {
             text: text.clone(),
             reason: "expected a tuple like (x, y)".into(),
         })?;
-        self.tuple_from_tokens(inner, &text)
+        self.point_from_entries(&entries, &text)
     }
 
-    /// The inside of `(a, b)`, as two scalar sources.
-    pub(in crate::compile) fn tuple_from_tokens(
+    /// The entries of `(a, b)` (`tuple_entries`), as two scalar sources.
+    pub(in crate::compile) fn point_from_entries(
         &mut self,
-        inner: &[Token],
+        parts: &[Vec<Token>],
         text: &str,
     ) -> Result<[Source; 2]> {
-        let parts = super::expr::split_top(inner, &Token::Comma);
-        let [x, y] = parts.as_slice() else {
+        let [x, y] = parts else {
             return Err(Error::BadMath {
                 text: text.to_string(),
                 reason: format!("expected 2 coordinates, got {}", parts.len()),
@@ -495,12 +570,20 @@ impl<'a> Compiler<'a> {
     }
 
     /// Replace cell leaves that name a `<math>` element of this template
-    /// with that math's own expression when it has free symbols.
+    /// with that math's own expression when it has free symbols: the
+    /// expression parsed when parsing, which its planner plans from too, not its
+    /// plan (ADR 0029).
     pub(in crate::compile) fn inline_symbolic_maths(
         &mut self,
         t: TemplateId,
         id: ExprId,
     ) -> ExprId {
+        self.inline_maths(t, id, &mut Vec::new())
+    }
+
+    /// `inline_symbolic_maths`, with the maths being inlined around `id`:
+    /// one reached again (two maths naming each other) is left a cell.
+    fn inline_maths(&mut self, t: TemplateId, id: ExprId, inlining: &mut Vec<ElemId>) -> ExprId {
         let e = self.compiled.arena.get(id).clone();
         match e {
             Expr::Cell(p) => {
@@ -509,41 +592,36 @@ impl<'a> Compiler<'a> {
                 let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
                 };
-                // The math may come later in the document and not be planned yet.
-                if self.compiled.templates[t.index()].elems[target.index()].component_type
-                    == ComponentType::Math
-                    && self.compiled.templates[t.index()].elems[target.index()]
-                        .props
-                        .is_empty()
-                    && self.plan_elem(t, target).is_err()
-                {
+                // Every `<math>` is parsed before planning; one that did not parse is
+                // left a cell, its error its own.
+                let Some(Ok(ParsedMath::Expr(inner))) =
+                    self.parsed_maths.get(&(t.get(), target.get()))
+                else {
+                    return id;
+                };
+                let inner = *inner;
+                if inlining.contains(&target) {
                     return id;
                 }
-                match self.compiled.templates[t.index()].elems[target.index()]
-                    .props
-                    .get(prop::math::EXPR)
-                {
-                    Some(Source::MathHandle(inner, _)) => {
-                        let inner = *inner;
-                        let mut syms = Vec::new();
-                        self.compiled.arena.symbols(inner, &mut syms);
-                        if syms.is_empty() {
-                            return id;
-                        }
-                        self.inline_symbolic_maths(t, inner)
-                    }
-                    _ => id,
+                let mut syms = Vec::new();
+                self.compiled.arena.symbols(inner, &mut syms);
+                if syms.is_empty() {
+                    return id;
                 }
+                inlining.push(target);
+                let inlined = self.inline_maths(t, inner, inlining);
+                inlining.pop();
+                inlined
             }
             Expr::Num(_) | Expr::Sym(_) => id,
             Expr::Neg(a) => {
-                let a = self.inline_symbolic_maths(t, a);
+                let a = self.inline_maths(t, a, inlining);
                 self.compiled.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.inline_symbolic_maths(t, a))
+                    .map(|a| self.inline_maths(t, a, inlining))
                     .collect();
                 self.compiled.arena.push(Expr::Call(f, args))
             }
@@ -553,8 +631,8 @@ impl<'a> Compiler<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.inline_symbolic_maths(t, a),
-                    self.inline_symbolic_maths(t, b),
+                    self.inline_maths(t, a, inlining),
+                    self.inline_maths(t, b, inlining),
                 );
                 self.compiled.arena.push(e.with_operands(na, nb))
             }

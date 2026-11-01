@@ -98,6 +98,15 @@ impl<'c> Builder<'c> {
                             Resolved::Comp(self.scope_comps[sc.index()][e.index()])
                         }
                     };
+                    // A box, and what is under one and never built, read
+                    // as undefined: the box's error is the explanation
+                    // (ADR 0027).
+                    if let Resolved::Comp(c) = cur
+                        && (c == CompIdx::NONE
+                            || self.components.component_type[c.index()] == ComponentType::Error)
+                    {
+                        cur = Resolved::Missing;
+                    }
                 }
                 Step::Iface(cid, u) => {
                     let (next, s) = self.resolve_iface(*cid, *u, cur);

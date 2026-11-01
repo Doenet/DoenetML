@@ -56,41 +56,47 @@ impl<'a> Compiler<'a> {
     }
 
     /// The component type a plan names, when it can be told from the
-    /// templates alone: the element its path ends at, through the
-    /// repeats and collects an index steps into. `None` past an interface
-    /// name (settled after planning) or where the path cannot be followed.
+    /// templates alone: the element its path ends at, as outlining made
+    /// it (`outlined_elem`), through the repeats and collects an index
+    /// steps into. `None` past an interface name (settled after planning)
+    /// or where the path cannot be followed.
     pub(in crate::compile) fn ref_target_type(
-        &self,
+        &mut self,
         t: TemplateId,
         p: RefId,
-    ) -> Option<ComponentType> {
-        let plan = &self.compiled.refs[p.index()];
+    ) -> Result<Option<ComponentType>> {
+        let hops = self.compiled.refs[p.index()].hops;
         let mut t = t;
-        for _ in 0..plan.hops {
-            t = self.compiled.templates[t.index()].parent?.0;
+        for _ in 0..hops {
+            let Some((pt, _)) = self.compiled.templates[t.index()].parent else {
+                return Ok(None);
+            };
+            t = pt;
         }
         let mut cur: Option<ElemId> = None;
         let mut ty = None;
-        for step in &plan.steps {
-            match step {
+        for i in 0..self.compiled.refs[p.index()].steps.len() {
+            match self.compiled.refs[p.index()].steps[i] {
                 Step::Elem(e) => {
-                    cur = Some(*e);
-                    ty = Some(self.compiled.templates[t.index()].elems[e.index()].component_type);
+                    cur = Some(e);
+                    ty = Some(self.outlined_elem(t, e)?.component_type);
                 }
-                Step::Index(_) => match self.compiled.templates[t.index()].elems[cur?.index()].body
-                {
-                    Body::Repeat { template } => {
-                        t = template;
-                        cur = None;
-                        ty = None;
+                Step::Index(_) => {
+                    let Some(c) = cur else { return Ok(None) };
+                    match self.compiled.templates[t.index()].elems[c.index()].body {
+                        Body::Repeat { template } => {
+                            t = template;
+                            cur = None;
+                            ty = None;
+                        }
+                        Body::Collect { component_type, .. } => ty = Some(component_type),
+                        _ => return Ok(None),
                     }
-                    Body::Collect { component_type, .. } => ty = Some(component_type),
-                    _ => return None,
-                },
-                Step::Iface(..) => return None,
+                }
+                Step::Iface(..) => return Ok(None),
             }
         }
-        ty
+        Ok(ty)
     }
 
     /// Find a name as the current core's resolver does: from the
@@ -174,8 +180,23 @@ impl<'a> Compiler<'a> {
         // Past an interface name only props may follow.
         let mut after_iface = false;
         for (i, &part) in parts.iter().enumerate() {
+            // A box has no props, children or items: a path through it
+            // ends at it, and reads as undefined when built (ADR 0027).
+            if let At::Elem(e) = at
+                && self.compiled.templates[cur_t.index()].elems[e.index()].component_type
+                    == ComponentType::Error
+            {
+                break;
+            }
             if i > 0 {
                 let name = d.strings.get(names[i]);
+                // What follows an element's name is read from its type,
+                // body or children, as outlining made them.
+                if let At::Elem(e) = at
+                    && !after_iface
+                {
+                    self.outlined_elem(cur_t, e)?;
+                }
                 let choice_here = match at {
                     At::Elem(e) if !after_iface => {
                         match self.compiled.templates[cur_t.index()].elems[e.index()].body {
@@ -368,8 +389,8 @@ impl<'a> Compiler<'a> {
                     }
                     return Err(Error::NotIndexable(display));
                 };
-                // `$p[2]`: a coordinate of a point.
-                let ek = self.compiled.templates[cur_t.index()].elems[e.index()].component_type;
+                // `$p[2]`: a coordinate of a point (a `<math>` may be one).
+                let ek = self.outlined_elem(cur_t, e)?.component_type;
                 if let Some(parts_of) = ek.default_prop().and_then(|dp| ek.combined_prop(dp)) {
                     if prop.is_some() || i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display));
@@ -380,14 +401,6 @@ impl<'a> Compiler<'a> {
                     }
                     prop = Some(parts_of[k as usize - 1].to_string());
                     continue;
-                }
-                // A `<collect>` (or a polyline) is indexable once planned,
-                // which one later in the document is not yet.
-                if matches!(
-                    self.compiled.templates[cur_t.index()].elems[e.index()].body,
-                    Body::Plain
-                ) {
-                    self.plan_elem(cur_t, e)?;
                 }
                 match self.compiled.templates[cur_t.index()].elems[e.index()].body {
                     Body::Repeat { template } => {

@@ -51,22 +51,46 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
     // Its node names its diagnostic; it has no cells of its own.
     assert_eq!(doc.components.dast_node[b.index()], errs[0].node.unwrap());
     assert!(doc.comp_cells(b).is_empty());
-    assert!(
-        doc.resolve_path("q").is_none(),
-        "a boxed element has no name"
-    );
+    // A box keeps its name (ADR 0027).
+    assert_eq!(doc.resolve_path("q"), Some(b));
 }
 
+/// A reference to a box resolves, and reads as undefined with no
+/// diagnostic of its own: the box's error is its explanation (ADR 0027).
 #[test]
-fn a_reference_to_a_boxed_element_is_boxed_in_turn() {
+fn a_reference_to_a_boxed_element_reads_undefined() {
     let doc = load(r#"<number name="a">$nope</number><number name="b">$a + 1</number><number name="c">2</number>"#).unwrap();
     assert_eq!(doc.value("c", "value"), Some(2.0));
+    assert!(doc.value("b", "value").unwrap().is_nan());
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 1, "{errs:?}");
+    assert!(errs[0].message.contains("nope"), "{}", errs[0].message);
+}
+
+/// One wrong element is one error: what names it, through a prop or
+/// through another element, is not reported unknown (ADR 0027).
+#[test]
+fn a_box_does_not_cascade() {
+    let src = r#"<point name="P" bogus="1"/><number name="n">$P.x</number><p name="t">$n</p>"#;
+    let doc = load(src).unwrap();
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 1, "{errs:?}");
+    assert_eq!(errs[0].code, "cells-unsupported-attribute");
+    assert!(doc.value("n", "value").unwrap().is_nan());
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}
+
+/// An extend of a box is planned from nothing, so it is boxed in turn,
+/// its error naming the referent as the cause.
+#[test]
+fn an_extend_of_a_box_is_boxed_with_its_cause() {
+    let doc =
+        load(r#"<graph><point name="P" bogus="1"/><point name="Q" extend="$P" x="2"/></graph>"#)
+            .unwrap();
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 2, "{errs:?}");
-    // In document order.
-    assert!(errs[0].node < errs[1].node);
-    assert!(errs[0].message.contains("nope"), "{}", errs[0].message);
-    assert!(errs[1].message.contains("$a"), "{}", errs[1].message);
+    assert_eq!(errs[1].code, "cells-boxed-referent");
+    assert!(errs[1].message.contains("$P"), "{}", errs[1].message);
 }
 
 #[test]
@@ -110,7 +134,12 @@ fn an_attribute_nothing_reads_is_refused_on_its_element() {
     let src = r#"<point name="p" x="1" draggable="false"/><number name="n">3</number>"#;
     let doc = load(src).unwrap();
     assert_eq!(doc.value("n", "value"), Some(3.0));
-    assert!(doc.resolve_path("p").is_none(), "the point is boxed");
+    let p = doc.resolve_path("p").unwrap();
+    assert_eq!(
+        doc.component_type(p),
+        ComponentType::Error,
+        "the point is boxed"
+    );
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
     assert_eq!(errs[0].code, "cells-unsupported-attribute");
@@ -204,6 +233,27 @@ fn accessibility_findings_are_structural() {
     let doc = load(r#"<graph name="g1"/>"#).unwrap();
     assert_eq!(doc.diagnostics().len(), 1);
     assert_eq!(doc.diagnostics()[0].code, "doenet-a0001");
+}
+
+/// Lint looks at attributes without reading them (ADR 0027), so it may
+/// run before the compile: an attribute only lint looks up is still
+/// unread, and still refused where nothing else reads it (ADR 0021).
+#[test]
+fn lint_records_no_read() {
+    let dast = cells_core::dast::load(
+        dast_json(r#"<graph decorative/><mathInput label="x" labelIsName/>"#).as_bytes(),
+    )
+    .unwrap();
+    assert!(cells_core::lint(&dast).is_empty());
+    let n_attrs: u32 = NodeId::below(dast.len())
+        .map(|n| dast.attrs(n).len() as u32)
+        .sum();
+    assert!(n_attrs >= 3);
+    for n in NodeId::below(dast.len()) {
+        for a in dast.attrs(n) {
+            assert!(!dast.attr_read(a), "{} read", dast.attr_name(a));
+        }
+    }
 }
 
 #[test]
@@ -322,4 +372,108 @@ fn documents() -> Vec<(String, Vec<u8>)> {
 
 fn stem(p: &Path) -> String {
     p.file_stem().unwrap().to_string_lossy().into_owned()
+}
+
+/// Errors planning finds are boxed where they arise, so a document with
+/// several independent ones plans once, not once per error (ADR 0027).
+#[test]
+fn independent_errors_plan_once() {
+    let dast = cells_core::dast::load(
+        dast_json(
+            r#"<point name="a" x="$nope1"/><number name="b">$nope2</number>
+               <bogusTag name="c"/><p>$nope3 and $b</p><number name="d">4</number>"#,
+        )
+        .as_bytes(),
+    )
+    .unwrap();
+    cells_core::trace::start();
+    let list = diagnose(&dast);
+    let plans = cells_core::trace::finish()
+        .iter()
+        .filter(|s| s.name == "plan")
+        .count();
+    assert_eq!(errors(&list).len(), 4, "{list:?}");
+    assert_eq!(plans, 1);
+}
+
+/// An element boxed where it fails takes what is under it along: its
+/// children and its repeat's body are not built or diagnosed, and a
+/// reference to them reads as undefined (ADR 0027).
+#[test]
+fn what_is_under_a_box_is_not_built() {
+    let src = r#"<graph name="g" xmin="$nope"><point name="A" x="$nope2"/></graph>
+        <repeatForSequence name="r" length="$nope3"><number name="x">$nope4</number></repeatForSequence>
+        <number name="n">$A.x</number><number name="m">$r[1].x</number><number name="k">5</number>"#;
+    let doc = load(src).unwrap();
+    let errs = errors(doc.diagnostics());
+    assert_eq!(errs.len(), 2, "{errs:?}");
+    assert!(
+        errs.iter()
+            .all(|e| e.message.contains("$nope'") || e.message.contains("$nope3'")),
+        "{errs:?}"
+    );
+    assert!(doc.value("n", "value").unwrap().is_nan());
+    assert!(doc.value("m", "value").unwrap().is_nan());
+    assert_eq!(doc.value("k", "value"), Some(5.0));
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}
+
+/// Outlining settles a `<math>`'s type from its own text (ADR 0029), each
+/// `$ref` one token, and its planner plans it as that type.
+#[test]
+fn a_maths_type_is_settled_from_its_text() {
+    let src = r#"<number name="n">2</number>
+        <math name="a">($n, 2)</math><math name="b">(1, $n, 3)</math>
+        <math name="d">($n)</math><math name="e">x + $n</math><math name="g"/>"#;
+    let doc = load(src).unwrap();
+    assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+    let type_of = |name: &str| doc.component_type(doc.resolve_path(name).unwrap());
+    assert_eq!(
+        [
+            type_of("a"),
+            type_of("b"),
+            type_of("d"),
+            type_of("e"),
+            type_of("g")
+        ],
+        [
+            ComponentType::Point,
+            ComponentType::Tuple,
+            ComponentType::Math,
+            ComponentType::Math,
+            ComponentType::Math
+        ]
+    );
+    assert_eq!(
+        (doc.value("a", "x"), doc.value("d", "value")),
+        (Some(2.0), Some(2.0))
+    );
+}
+
+/// An extend of an element that fails while planning is boxed when linking
+/// with the referent as its cause, whichever is written first: planning
+/// needs no order (ADR 0029).
+#[test]
+fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
+    let p = r#"<point name="P" x="$nope" y="1"/>"#;
+    let q = r#"<point name="Q" extend="$P" x="2"/>"#;
+    let r = r#"<point name="R" extend="$Q"/>"#;
+    for src in [
+        format!("<graph>{p}{q}{r}</graph>"),
+        format!("<graph>{r}{q}{p}</graph>"),
+    ] {
+        let doc = load(&src).unwrap();
+        let mut codes: Vec<_> = errors(doc.diagnostics()).iter().map(|d| d.code).collect();
+        codes.sort();
+        assert_eq!(
+            codes,
+            [
+                "cells-boxed-referent",
+                "cells-boxed-referent",
+                "doenet-w0104"
+            ],
+            "{src}"
+        );
+        assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()), "{src}");
+    }
 }

@@ -560,6 +560,10 @@ impl<'c> Builder<'c> {
         // Create every element's component first so children can refer to them.
         for e in 0..n_elems {
             let el = &self.compiled.templates[t.index()].elems[e];
+            // What is under a box is not built (ADR 0027).
+            if el.dead {
+                continue;
+            }
             // A copy of a type with a list takes its slots, as many as its
             // referent has, when its referent is known (`place_list_copies`).
             let n_slots = match el.n_public {
@@ -584,6 +588,9 @@ impl<'c> Builder<'c> {
         // Then child lists, expanding repeats as they come.
         for e in 0..n_elems {
             let comp = self.scope_comps[scope.index()][e];
+            if comp == CompIdx::NONE {
+                continue;
+            }
             let kids = match self.compiled.templates[t.index()].elems[e].body {
                 Body::Repeat { template } => {
                     let node = self.compiled.templates[t.index()].elems[e].node;

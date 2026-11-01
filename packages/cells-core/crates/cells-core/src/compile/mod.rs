@@ -22,12 +22,22 @@
 //! (`plan_with_extend`),
 //! `fix.rs` `fixed`, `answer.rs` answers and `iterates.rs` repeats over
 //! lists. What compile produces is in `plan.rs`.
+//!
+//! The compile runs in stages (ADR 0027, ADR 0029), each reading only
+//! what earlier stages made (`compile_all`): **outline** (elements, the
+//! name table, what a reference reads of each, container copies' clones),
+//! **parse** (every `<math>`'s text), **plan** (every element on its own,
+//! references as planners ask for them), **link** (readers of boxed
+//! referents boxed, shared state tied), **seal** (`seal.rs`: choice
+//! interfaces, arity, keys, slot offsets), then the **probe** (`check.rs`).
+//! An element that fails is boxed where it fails.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
 use crate::components::{ComponentType, PropAt, PropFrom, prop};
 use crate::dast::{Dast, NodeId, NodeKind, StrId};
+use crate::diagnostics::Diagnostic;
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
@@ -53,6 +63,7 @@ pub(crate) mod plan;
 mod planner;
 mod points;
 mod refs;
+mod seal;
 
 pub use check::diagnose;
 pub(crate) use check::{CompileOutput, compile};
@@ -61,7 +72,8 @@ pub use plan::Compiled;
 /// A failed compile, check or first build: the error, and the node of the
 /// element it is about when there is one. `compile` boxes that element (it
 /// becomes an `_error` component, the error its diagnostic) and compiles
-/// again; an error with no element fails it (ADR 0013).
+/// again; an error with no element fails it (ADR 0013). Planning fails
+/// this way only where boxing in place cannot (`Compiler::box_in_place`).
 pub(crate) struct Failure {
     pub(crate) error: Error,
     pub(crate) node: Option<NodeId>,
@@ -75,6 +87,14 @@ impl From<Failure> for Error {
 
 use ctx::PlanCtx;
 use planner::Planner;
+
+/// A compile that planned: what it planned, and the elements it boxed
+/// where they failed (ADR 0027), each with its error.
+pub(in crate::compile) struct Planned {
+    pub(in crate::compile) compiled: Compiled,
+    pub(in crate::compile) errors: Vec<Diagnostic>,
+    pub(in crate::compile) boxed: HashSet<NodeId>,
+}
 
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too.
@@ -92,35 +112,113 @@ pub(in crate::compile) struct Compiler<'a> {
     /// needed) and then `extra_strings`: see `intern_literal`.
     pub(in crate::compile) string_ids: Option<HashMap<String, StrId>>,
     /// Nodes an earlier attempt could not build: compiled as `_error`
-    /// elements with no name, no children and no props (ADR 0013).
+    /// elements with their names but no children and no props (ADR 0013,
+    /// ADR 0027).
     pub(in crate::compile) boxed: &'a HashSet<NodeId>,
-    /// The node of the innermost element whose planning failed, set on
-    /// the way out of a failed compile; `build` boxes it and tries again.
+    /// The node of the element to box before compiling again, set when a
+    /// failure cannot be boxed in place (`box_in_place`); every failure
+    /// after it passes through to the end of the compile.
     pub(in crate::compile) failed_node: Option<NodeId>,
-    /// The name table: by (template, scope, name), the one descendant of
-    /// the scope (or `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when
-    /// several do. A name is registered at every ancestor of its element.
-    names: HashMap<(u32, u32, u32), u32>,
-    /// Each element name, trimmed, by its id in `names`.
-    name_ids: HashMap<Box<str>, u32>,
-    /// (template, name scope, name) of every named element: two siblings
-    /// with one name can never be told apart.
-    sibling_names: HashSet<(u32, u32, u32)>,
+    /// Elements boxed where they failed, with their errors (ADR 0027).
+    errors: Vec<Diagnostic>,
+    boxed_here: HashSet<NodeId>,
+    /// What copies share of their referents' state, tied when linking.
+    shares: Vec<Share>,
+    /// By (template, element), the elements a container copy has cloned:
+    /// a clone took its type, so one boxed later cannot be boxed in place.
+    cloned_sources: HashSet<(u32, u32)>,
+    /// The container copies (`<graph extend="$g"/>`) outlining found, which
+    /// get their clones once every name is in the table.
+    container_copies: Vec<(TemplateId, ElemId)>,
+    /// By (template, element), the container copies expanding now and
+    /// those done: one reached again while it expands is a cycle.
+    expanding: HashSet<(u32, u32)>,
+    expanded: HashSet<(u32, u32)>,
+    /// The name table, outlining's.
+    names: NameTable,
     /// By (template, element), a geometry element's shared state: which slot holds
     /// each piece of essential state, which a copy shares with its original.
     pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
-    /// By (template, element), the elements `plan_elem` has planned: one
-    /// planned ahead of its turn (a `<math>` another element's math
-    /// inlines) is not planned twice.
-    planned: HashSet<(u32, u32)>,
-    /// By (template, element), the elements `plan_elem` is planning now:
-    /// one reached again while it plans (a cycle of extends) is left to
-    /// its first call, and the build reports the cycle.
-    planning: HashSet<(u32, u32)>,
+    /// Each `<math>`'s text, tokenized when outlining, where its type is
+    /// settled, in the order the walk made them; parsing parses them.
+    math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
+    /// By (template, element), each `<math>`'s text as parsing parsed it.
+    pub(in crate::compile) parsed_maths: HashMap<(u32, u32), Result<ParsedMath>>,
+    /// Every element whose plan reads the type of what a reference names
+    /// (`referent_type`), with the reference: linking boxes one whose
+    /// referent is a box (`box_readers_of_boxes`).
+    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
+    /// By (template, element), the reference in the element's `extend`,
+    /// planned once (`plan_extend`).
+    extend_refs: HashMap<(u32, u32), RefId>,
+}
+
+/// A piece of essential state copy `e` shares with its referent (ADR
+/// 0023): slot `slot` of the copy is to alias the referent's slot for
+/// `state`, which only the referent's planning knows.
+pub(in crate::compile) struct Share {
+    t: TemplateId,
+    e: ElemId,
+    slot: u8,
+    referent: ElemId,
+    state: SharedState,
 }
 
 /// A name-table entry naming more than one element.
 const AMBIGUOUS: u32 = u32::MAX;
+
+/// The name table (ADR 0027): made when outlining, read by every later
+/// stage.
+#[derive(Default)]
+pub(in crate::compile) struct NameTable {
+    /// By (template, scope, name), the one descendant of the scope (or
+    /// `ROOT_SCOPE`) carrying the name, or `AMBIGUOUS` when several do. A
+    /// name is registered at every ancestor of its element.
+    by_scope: HashMap<(u32, u32, u32), u32>,
+    /// Each element name, trimmed, by its id in `by_scope`.
+    ids: HashMap<Box<str>, u32>,
+    /// (template, name scope, name) of every named element: two siblings
+    /// with one name can never be told apart.
+    siblings: HashSet<(u32, u32, u32)>,
+}
+
+impl NameTable {
+    /// The id of `name`, when some element carries it.
+    fn id(&self, name: &str) -> Option<u32> {
+        self.ids.get(name.trim()).copied()
+    }
+
+    /// The entry for name `id` at `scope` of template `t`: an element, or
+    /// `AMBIGUOUS`.
+    fn entry(&self, t: TemplateId, scope: ElemId, id: u32) -> Option<u32> {
+        self.by_scope.get(&(t.get(), scope.get(), id)).copied()
+    }
+
+    /// What `name` names from `scope` of template `t`: the one descendant
+    /// carrying it, or that several do.
+    pub(in crate::compile) fn at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {
+        match self.id(name).and_then(|id| self.entry(t, scope, id)) {
+            None => NameHit::None,
+            Some(AMBIGUOUS) => NameHit::Ambiguous,
+            Some(e) => NameHit::One(ElemId::new(e)),
+        }
+    }
+}
+
+/// How an element is named in a diagnostic: its name, else its tag.
+pub(in crate::compile) fn elem_label(
+    dast: &Dast,
+    compiled: &Compiled,
+    t: TemplateId,
+    e: ElemId,
+) -> String {
+    let el = &compiled.templates[t.index()].elems[e.index()];
+    if el.name != StrId::NONE {
+        dast.strings.get(el.name).trim().to_string()
+    } else {
+        format!("<{}>", el.component_type.tag())
+    }
+}
 
 /// What a name names from a scope.
 pub(in crate::compile) enum NameHit {
@@ -140,12 +238,13 @@ enum ElemShape {
 }
 
 impl<'a> Compiler<'a> {
-    /// Compile `dast`, with the nodes in `boxed` as `_error` elements. A
-    /// failure names the node to box next, when the failing element has one.
+    /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
+    /// every element that fails to plan boxed where it fails. A failure
+    /// names the node to box before compiling again, when there is one.
     pub(in crate::compile) fn compile(
         dast: &'a Arc<Dast>,
         boxed: &'a HashSet<NodeId>,
-    ) -> std::result::Result<Compiled, Failure> {
+    ) -> std::result::Result<Planned, Failure> {
         let mut cp = Compiler {
             dast,
             compiled: Compiled {
@@ -174,12 +273,19 @@ impl<'a> Compiler<'a> {
             string_ids: None,
             boxed,
             failed_node: None,
-            names: HashMap::new(),
-            name_ids: HashMap::new(),
-            sibling_names: HashSet::new(),
+            errors: Vec::new(),
+            boxed_here: HashSet::new(),
+            cloned_sources: HashSet::new(),
+            shares: Vec::new(),
+            container_copies: Vec::new(),
+            expanding: HashSet::new(),
+            expanded: HashSet::new(),
+            names: NameTable::default(),
             shared_state: HashMap::new(),
-            planned: HashSet::new(),
-            planning: HashSet::new(),
+            referent_readers: Vec::new(),
+            extend_refs: HashMap::new(),
+            math_texts: Vec::new(),
+            parsed_maths: HashMap::new(),
         };
         match cp.compile_all() {
             Ok(()) => {
@@ -188,7 +294,11 @@ impl<'a> Compiler<'a> {
                 if c.has_repeats() {
                     c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
                 }
-                Ok(cp.compiled)
+                Ok(Planned {
+                    compiled: cp.compiled,
+                    errors: cp.errors,
+                    boxed: cp.boxed_here,
+                })
             }
             Err(error) => Err(Failure {
                 error,
@@ -213,37 +323,21 @@ impl<'a> Compiler<'a> {
         Warned::raised()
     }
 
-    /// Every operator a plan names reads as many inputs as it takes. One
-    /// that does not is a core bug, reported on its element here rather
-    /// than when a build binds it (`OpSpec::bind`).
-    fn check_arity(&mut self) -> Result<()> {
-        fn misbound(p: &Source) -> Option<(OpSpec, usize)> {
-            match p {
-                Source::Op(op, args) if !op.accepts(args.len()) => Some((*op, args.len())),
-                Source::FirstIteration(a, b) => misbound(a).or_else(|| misbound(b)),
-                _ => None,
-            }
-        }
-        for tpl in &self.compiled.templates {
-            for el in &tpl.elems {
-                if let Some((op, n)) = el.props.iter().find_map(misbound) {
-                    let tag = el.component_type.tag();
-                    let error = Error::Internal(format!(
-                        "<{tag}> plans {op:?} over {n} inputs, which takes {}",
-                        op.arity()
-                    ));
-                    let node = el.node;
-                    self.fail_at(node);
-                    return Err(error);
-                }
-            }
-        }
-        Ok(())
+    /// The compile's stages, in order (ADR 0027, ADR 0029).
+    fn compile_all(&mut self) -> Result<()> {
+        self.outline()?;
+        self.parse_maths();
+        self.plan_all()?;
+        self.link()?;
+        self.seal()
     }
 
-    fn compile_all(&mut self) -> Result<()> {
-        let cp = self;
-        let dast = cp.dast;
+    /// Outlining: every element, template and name, and what a reference
+    /// reads of each that its own source settles (`settle_outline`); once
+    /// every name is in the table, container copies get their clones,
+    /// which completes the element set. Nothing is planned.
+    fn outline(&mut self) -> Result<()> {
+        let dast = self.dast;
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
             .children(Dast::ROOT)
@@ -251,88 +345,226 @@ impl<'a> Compiler<'a> {
             .copied()
             .find(|&n| dast.kind(n) == NodeKind::Element && dast.str(n) == "document");
         let children = match doc_el {
-            Some(el) => vec![Child::Elem(cp.add_elem(
+            Some(el) => vec![Child::Elem(self.add_elem(
                 TemplateId::new(0),
                 el,
                 ROOT_SCOPE,
             )?)],
             None => {
                 // Synthesize a root when the DAST was not normalized.
-                let e = cp.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
-                cp.compiled.templates[0].elems[e.index()].props = prop::document::Props {
+                let e =
+                    self.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
+                self.compiled.templates[0].elems[e.index()].props = prop::document::Props {
                     creditAchieved: Source::Deferred(Deferred::Credit),
                     percentCreditAchieved: Source::Deferred(Deferred::PercentCredit),
                 }
                 .into_vec();
-                let kids = cp.add_children(
+                let kids = self.add_children(
                     TemplateId::new(0),
                     Some(e),
                     ROOT_SCOPE,
                     dast.children(Dast::ROOT),
                 )?;
-                cp.compiled.templates[0].elems[e.index()].children = kids;
+                self.compiled.templates[0].elems[e.index()].children = kids;
                 vec![Child::Elem(e)]
             }
         };
-        cp.compiled.templates[0].children = children;
-        // Every name exists now: plan attributes and macro children. Planning
-        // a container copy adds elements, so loop until nothing is pending.
-        while !cp.pending_elems.is_empty() || !cp.pending_macros.is_empty() {
-            for (t, e) in std::mem::take(&mut cp.pending_elems) {
-                cp.plan_elem(t, e)?;
-            }
-            for (t, owner, i, m) in std::mem::take(&mut cp.pending_macros) {
-                let scope = match owner {
-                    Some(e) => cp.child_scope(t, e),
-                    None => ROOT_SCOPE,
-                };
-                let plan = match cp.plan_ref(t, scope, m) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        cp.fail_at(m);
-                        return Err(e);
-                    }
-                };
-                let has_index = dast.macro_has_index(m);
-                match owner {
-                    Some(e) => {
-                        cp.compiled.templates[t.index()].elems[e.index()].children[i] =
-                            Child::Macro(plan, has_index)
-                    }
-                    None => {
-                        cp.compiled.templates[t.index()].children[i] = Child::Macro(plan, has_index)
-                    }
-                }
-            }
+        self.compiled.templates[0].children = children;
+        self.expand_container_copies()
+    }
+
+    /// Planning: every element and every `$ref` child, each from the
+    /// source and what outlining and parsing made alone, never from
+    /// another element's plan (ADR 0029). What fails is boxed in place.
+    fn plan_all(&mut self) -> Result<()> {
+        let dast = self.dast;
+        for (t, e) in std::mem::take(&mut self.pending_elems) {
+            self.plan_elem(t, e)?;
         }
-        cp.finish_choices()?;
-        cp.check_arity()?;
-        cp.assign_keys();
-        // Slot offsets, now that planned types know their hidden slot count.
-        for tpl in &mut cp.compiled.templates {
-            let mut off = 0;
-            for el in &mut tpl.elems {
-                el.slot_off = off;
-                off += el.props.len().max(el.component_type.prop_defs().len()) as u32;
+        for (t, owner, i, m) in std::mem::take(&mut self.pending_macros) {
+            // Content of a box is not planned.
+            let dead = match owner {
+                Some(e) => self.is_box(t, e),
+                None => self.compiled.templates[t.index()]
+                    .parent
+                    .is_some_and(|(pt, pe)| self.is_box(pt, pe)),
+            };
+            if dead {
+                continue;
             }
-            tpl.n_slots = off;
+            let scope = match owner {
+                Some(e) => self.child_scope(t, e),
+                None => ROOT_SCOPE,
+            };
+            let child = match self.plan_ref(t, scope, m) {
+                Ok(plan) => Child::Macro(plan, dast.macro_has_index(m)),
+                Err(e) if self.failed_node.is_some() => return Err(e),
+                // A reference that cannot be planned is boxed where it
+                // stands (ADR 0027).
+                Err(error) => {
+                    self.errors.push(Diagnostic::error(Some(m), &error));
+                    self.boxed_here.insert(m);
+                    Child::Elem(self.push_error_elem(t, m, scope))
+                }
+            };
+            match owner {
+                Some(e) => self.compiled.templates[t.index()].elems[e.index()].children[i] = child,
+                None => self.compiled.templates[t.index()].children[i] = child,
+            }
         }
         Ok(())
     }
 
-    /// Record `node` as the element to box if the compile fails: the
-    /// innermost one wins, so a failure inside a child boxes the child.
+    /// Linking: what planning left for once every element is planned. A
+    /// reader of a boxed referent is boxed (`box_readers_of_boxes`), then
+    /// shared state is tied between the elements left
+    /// (`link_shared_state`).
+    fn link(&mut self) -> Result<()> {
+        self.box_readers_of_boxes()?;
+        self.link_shared_state();
+        Ok(())
+    }
+
+    /// Sealing (`seal.rs`): what reads every plan, the source and the name
+    /// table, and changes no plan; what fails is boxed by compiling again.
+    fn seal(&mut self) -> Result<()> {
+        let sealed = seal::Seal {
+            compiled: &mut self.compiled,
+            dast: self.dast,
+            names: &self.names,
+            shared_state: &self.shared_state,
+        }
+        .run();
+        sealed.map_err(|f| {
+            self.failed_node = f.node;
+            f.error
+        })
+    }
+
+    /// Record `node` as the element to box before compiling again.
     pub(in crate::compile) fn fail_at(&mut self, node: NodeId) {
         if node != NodeId::NONE {
             self.failed_node.get_or_insert(node);
         }
     }
 
-    /// The `_error` element standing for boxed node `node`: no name, no
-    /// children, no props.
-    fn push_error_elem(&mut self, t: TemplateId, node: NodeId) -> ElemId {
-        self.push_elem(t, node, ComponentType::Error, StrId::NONE, ROOT_SCOPE)
-            .expect("an unnamed element never collides")
+    /// Whether element `e` is a box: boxed when outlining, boxed in place, or
+    /// under one.
+    pub(in crate::compile) fn is_box(&self, t: TemplateId, e: ElemId) -> bool {
+        self.compiled.templates[t.index()].elems[e.index()].component_type == ComponentType::Error
+    }
+
+    /// Box element `e` where it failed (ADR 0027): it becomes an `_error`
+    /// element keeping its name, everything under it (its children, the
+    /// templates of its repeats and choices) is dead, and the compile goes
+    /// on. No plan reads another's (ADR 0029), so whatever was planned
+    /// under it is dropped unread. But a container copy that cloned what
+    /// is under it took its type, and an element with no node has nowhere
+    /// to carry the error: then it cannot be boxed here, and the error
+    /// passes on, `e`'s node to be boxed before compiling again.
+    fn box_in_place(&mut self, t: TemplateId, e: ElemId, error: Error) -> Result<()> {
+        let node = self.compiled.templates[t.index()].elems[e.index()].node;
+        if node == NodeId::NONE {
+            return Err(error);
+        }
+        let doomed = self.subtree(t, e);
+        let cloned = doomed
+            .iter()
+            .any(|&(dt, de)| self.cloned_sources.contains(&(dt.get(), de.get())));
+        if cloned {
+            self.fail_at(node);
+            return Err(error);
+        }
+        self.errors.push(Diagnostic::error(Some(node), &error));
+        self.boxed_here.insert(node);
+        for (dt, de) in doomed {
+            self.make_box(dt, de, (dt, de) != (t, e));
+        }
+        self.drop_unregistered_name(t, e);
+        Ok(())
+    }
+
+    /// Element `e` and everything under it: its children, theirs, and
+    /// the elements of every template a repeat or choice among them owns.
+    fn subtree(&self, t: TemplateId, e: ElemId) -> Vec<(TemplateId, ElemId)> {
+        let mut seen: HashSet<(u32, u32)> = HashSet::from([(t.get(), e.get())]);
+        let mut out = vec![(t, e)];
+        let mut i = 0;
+        while i < out.len() {
+            let (ct, ce) = out[i];
+            i += 1;
+            let el = &self.compiled.templates[ct.index()].elems[ce.index()];
+            let mut under: Vec<(TemplateId, ElemId)> = el
+                .children
+                .iter()
+                .filter_map(|c| match c {
+                    Child::Elem(x) => Some((ct, *x)),
+                    _ => None,
+                })
+                .collect();
+            for (ti, tpl) in self.compiled.templates.iter().enumerate() {
+                if tpl.parent == Some((ct, ce)) {
+                    let sub = TemplateId::from_index(ti);
+                    under.extend((0..tpl.elems.len()).map(|x| (sub, ElemId::from_index(x))));
+                }
+            }
+            for k in under {
+                if seen.insert((k.0.get(), k.1.get())) {
+                    out.push(k);
+                }
+            }
+        }
+        out
+    }
+
+    /// The `_error` element standing for boxed node `node`: no children,
+    /// no props, and the element's name, so a reference to it resolves and
+    /// reads as undefined rather than being an unknown reference of its
+    /// own (ADR 0027). A name a sibling already holds (the box of a
+    /// duplicate name) is left off.
+    fn push_error_elem(&mut self, t: TemplateId, node: NodeId, name_scope: ElemId) -> ElemId {
+        let name = match self.dast.kind(node) {
+            NodeKind::Element => self.attr_name_str(node, "name").unwrap_or(StrId::NONE),
+            _ => StrId::NONE,
+        };
+        // A name a sibling holds fails to register, but the element is
+        // pushed all the same.
+        let e = ElemId::from_index(self.compiled.templates[t.index()].elems.len());
+        let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
+        self.drop_unregistered_name(t, e);
+        e
+    }
+
+    /// Leaves `e` its name only when the name table holds the name for it:
+    /// a box made for a duplicate name never registered it, and carries
+    /// none.
+    fn drop_unregistered_name(&mut self, t: TemplateId, e: ElemId) {
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        if el.name == StrId::NONE {
+            return;
+        }
+        let registered = self
+            .names
+            .id(self.dast.strings.get(el.name))
+            .and_then(|id| self.names.entry(t, el.name_scope, id))
+            .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
+        if !registered {
+            self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
+        }
+    }
+
+    /// Makes `e` a box: an `_error` element with no props, children or
+    /// body, or, `dead`, one under a box, which no build makes.
+    pub(in crate::compile) fn make_box(&mut self, t: TemplateId, e: ElemId, dead: bool) {
+        let el = &mut self.compiled.templates[t.index()].elems[e.index()];
+        el.component_type = ComponentType::Error;
+        el.props = Vec::new();
+        el.children = Vec::new();
+        el.body = Body::Plain;
+        el.extend = None;
+        el.n_public = NPublic::Table;
+        el.hold = Hold::Off;
+        el.dead = dead;
     }
 
     /// Children of element `e` have `e` as their parent.
@@ -365,11 +597,11 @@ impl<'a> Compiler<'a> {
     ) -> Result<ElemId> {
         let name_id = (name != StrId::NONE).then(|| {
             let s = self.dast.strings.get(name).trim();
-            match self.name_ids.get(s) {
+            match self.names.ids.get(s) {
                 Some(&id) => id,
                 None => {
-                    let id = self.name_ids.len() as u32;
-                    self.name_ids.insert(s.into(), id);
+                    let id = self.names.ids.len() as u32;
+                    self.names.ids.insert(s.into(), id);
                     id
                 }
             }
@@ -389,12 +621,14 @@ impl<'a> Compiler<'a> {
             children: Vec::new(),
             extend: None,
             cloned: false,
+            planned_as: component_type,
             body: Body::Plain,
             hold: Hold::Off,
+            dead: false,
         });
         if let Some(id) = name_id {
             // Two siblings with one name can never be told apart.
-            if !self.sibling_names.insert((t.get(), name_scope.get(), id)) {
+            if !self.names.siblings.insert((t.get(), name_scope.get(), id)) {
                 let s = self.dast.strings.get(name).trim().to_string();
                 return Err(Error::DuplicateName(s));
             }
@@ -402,6 +636,7 @@ impl<'a> Compiler<'a> {
             let mut a = name_scope;
             loop {
                 self.names
+                    .by_scope
                     .entry((t.get(), a.get(), id))
                     .and_modify(|o| *o = AMBIGUOUS)
                     .or_insert(e as u32);
@@ -417,14 +652,7 @@ impl<'a> Compiler<'a> {
     /// What `name` names from `scope` of template `t`: the one descendant
     /// carrying it, or that several do.
     pub(in crate::compile) fn name_at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {
-        let Some(&id) = self.name_ids.get(name.trim()) else {
-            return NameHit::None;
-        };
-        match self.names.get(&(t.get(), scope.get(), id)) {
-            None => NameHit::None,
-            Some(&AMBIGUOUS) => NameHit::Ambiguous,
-            Some(&e) => NameHit::One(ElemId::new(e)),
-        }
+        self.names.at(t, scope, name)
     }
 
     pub(in crate::compile) fn add_synthetic(
@@ -456,13 +684,25 @@ impl<'a> Compiler<'a> {
         name_scope: ElemId,
     ) -> Result<ElemId> {
         if self.boxed.contains(&el) {
-            return Ok(self.push_error_elem(t, el));
+            return Ok(self.push_error_elem(t, el, name_scope));
         }
-        let r = self.add_elem_inner(t, el, name_scope);
-        if r.is_err() {
-            self.fail_at(el);
+        let n = self.compiled.templates[t.index()].elems.len();
+        match self.add_elem_inner(t, el, name_scope) {
+            Ok(e) => Ok(e),
+            Err(error) if self.failed_node.is_some() => Err(error),
+            // The element is boxed where it fails (ADR 0027): the one
+            // made for it, when it got that far, else a new one.
+            Err(error) if self.compiled.templates[t.index()].elems.len() > n => {
+                let e = ElemId::from_index(n);
+                self.box_in_place(t, e, error)?;
+                Ok(e)
+            }
+            Err(error) => {
+                self.errors.push(Diagnostic::error(Some(el), &error));
+                self.boxed_here.insert(el);
+                Ok(self.push_error_elem(t, el, name_scope))
+            }
         }
-        r
     }
 
     fn add_elem_inner(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> Result<ElemId> {
@@ -485,6 +725,9 @@ impl<'a> Compiler<'a> {
         let name = self.attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.pending_elems.push((t, e));
+        if self.is_container_copy(t, e) {
+            self.container_copies.push((t, e));
+        }
         let child_scope = e;
         match component_type {
             ComponentType::FunctionIterates => {
@@ -591,7 +834,41 @@ impl<'a> Compiler<'a> {
                 self.compiled.templates[t.index()].elems[e.index()].children = kids;
             }
         }
+        self.settle_outline(t, e, el)?;
         Ok(e)
+    }
+
+    /// What a reference to `e` reads that its own source settles, read here
+    /// so no planner reads another's plan (ADR 0029): a `<math>`'s type,
+    /// from its text, tokenized here once (`math::settled_type`); what a
+    /// `<collect>` (its `componentType`) or a `<polyline>` (points)
+    /// collects. Its planner plans as this says, and adds a collect's
+    /// `from`.
+    fn settle_outline(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
+        let d = self.dast;
+        let elem = &self.compiled.templates[t.index()].elems[e.index()];
+        let component_type = match elem.component_type {
+            ComponentType::Math => {
+                let mt = self.math_text(d.children(el));
+                let k = match &mt {
+                    Ok(mt) => crate::components::values::math::settled_type(mt.tokens()),
+                    Err(_) => ComponentType::Math,
+                };
+                self.compiled.templates[t.index()].elems[e.index()].component_type = k;
+                self.math_texts.push(((t, e), mt));
+                return Ok(());
+            }
+            ComponentType::Collect => crate::components::structure::collect::collected_type(
+                d.attr(el, "componentType").and_then(|a| self.attr_text(a)),
+            )?,
+            ComponentType::Polyline => crate::components::geometry::polyline::COLLECTED,
+            _ => return Ok(()),
+        };
+        self.compiled.templates[t.index()].elems[e.index()].body = Body::Collect {
+            from: RefId::NONE,
+            component_type,
+        };
+        Ok(())
     }
 
     /// A plan naming prop `prop` of element `e` in the parent template, as
@@ -636,7 +913,7 @@ impl<'a> Compiler<'a> {
                 NodeKind::Text => kids.push(Child::Text(d.str_id(n))),
                 NodeKind::Macro => {
                     if self.boxed.contains(&n) {
-                        kids.push(Child::Elem(self.push_error_elem(t, n)));
+                        kids.push(Child::Elem(self.push_error_elem(t, n, name_scope)));
                         continue;
                     }
                     self.pending_macros.push((t, owner, kids.len(), n));
@@ -648,13 +925,15 @@ impl<'a> Compiler<'a> {
         Ok(kids)
     }
 
-    /// Plans element `e`, and records what holds it (`plan_hold`, ADR
-    /// 0022) beside its plans. Every element is planned here and nowhere
-    /// else, so `fixed` holds whatever planned it: no planner applies it,
-    /// and none can leave it out.
+    /// Plans element `e`, and records what holds it (`plan_hold`,
+    /// ADR 0022) beside its plans. Every element is planned here and
+    /// nowhere else, so `fixed` holds whatever planned it: no planner
+    /// applies it, and none can leave it out. A planner reads the source,
+    /// the name table and what outlining made, never another element's plan
+    /// (ADR 0029), so elements are planned in any order, each once.
     pub(in crate::compile) fn plan_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let key = (t.get(), e.get());
-        if self.planned.contains(&key) || !self.planning.insert(key) {
+        // A box, made when outlining or boxed in place, is planned as it is.
+        if self.is_box(t, e) {
             return Ok(());
         }
         let r = self.plan_elem_inner(t, e).and_then(|()| {
@@ -662,18 +941,134 @@ impl<'a> Compiler<'a> {
             self.compiled.templates[t.index()].elems[e.index()].hold = hold;
             Ok(())
         });
-        self.planning.remove(&key);
         match r {
-            Ok(()) => {
-                self.planned.insert((t.get(), e.get()));
-            }
-            Err(_) => self.fail_at(self.compiled.templates[t.index()].elems[e.index()].node),
+            Ok(()) => Ok(()),
+            Err(error) if self.failed_node.is_some() => Err(error),
+            // Boxed where it fails; what reads it reads the box.
+            Err(error) => self.box_in_place(t, e, error),
         }
-        r
+    }
+
+    /// Element `e` as outlining makes it: a container copy with its
+    /// clones, which a copy of it, or a path through it, reads while
+    /// outlining expands copies. After outlining, the element as it is.
+    pub(in crate::compile) fn outlined_elem(&mut self, t: TemplateId, e: ElemId) -> Result<&Elem> {
+        if self.is_container_copy(t, e) {
+            self.expand_container_copy(t, e)?;
+        }
+        Ok(&self.compiled.templates[t.index()].elems[e.index()])
+    }
+
+    /// Parsing (ADR 0029): every `<math>`'s text, tokenized when outlining,
+    /// parsed once as the type outlining settled, its `$ref`s planned where
+    /// the math sits; what its planner plans from, and what a line's
+    /// equation inlines.
+    fn parse_maths(&mut self) {
+        for ((t, e), mt) in std::mem::take(&mut self.math_texts) {
+            if self.is_box(t, e) {
+                continue;
+            }
+            let Elem {
+                name_scope,
+                component_type,
+                ..
+            } = self.compiled.templates[t.index()].elems[e.index()];
+            let parsed = mt.and_then(|mt| self.parse_math(t, name_scope, component_type, &mt));
+            self.parsed_maths.insert((t.get(), e.get()), parsed);
+        }
+    }
+
+    /// The reference in `e`'s `extend`, planned once from where `e` sits:
+    /// by outlining for a container copy, by planning for the rest.
+    pub(in crate::compile) fn plan_extend(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Result<Option<RefId>> {
+        let key = (t.get(), e.get());
+        if let Some(&p) = self.extend_refs.get(&key) {
+            return Ok(Some(p));
+        }
+        let Elem {
+            node, name_scope, ..
+        } = self.compiled.templates[t.index()].elems[e.index()];
+        let Some(a) = self.dast.attr(node, "extend") else {
+            return Ok(None);
+        };
+        let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+            attr: "extend".into(),
+            text: self.attr_text(a).unwrap_or_default(),
+        })?;
+        let p = self.plan_ref(t, name_scope, m)?;
+        self.extend_refs.insert(key, p);
+        Ok(Some(p))
+    }
+
+    /// The type of what `p` names, as outlining settled it, for `e`'s planner
+    /// to decide its plan by (an extend, `<constrainTo>`, ...). A box has
+    /// no type to plan from, so `e` is boxed in turn, its referent's box
+    /// the cause: here for a referent already boxed, when linking for one
+    /// boxed after `e` is planned (`box_readers_of_boxes`).
+    pub(in crate::compile) fn referent_type(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+    ) -> Result<Option<ComponentType>> {
+        self.referent_readers.push((t, e, p));
+        self.read_referent(t, p)
+    }
+
+    /// The type of what `p` names, or, when it is a box, the error that
+    /// boxes what reads it.
+    fn read_referent(&mut self, t: TemplateId, p: RefId) -> Result<Option<ComponentType>> {
+        match self.ref_target_type(t, p)? {
+            Some(ComponentType::Error) => Err(Error::BoxedReferent(
+                self.compiled.refs[p.index()].display.clone(),
+            )),
+            k => Ok(k),
+        }
+    }
+
+    /// Linking's first step (ADR 0029): every element that read a
+    /// referent's type (`referent_type`) and whose referent is now a box
+    /// is boxed in place, whichever was planned first; a copy of a copy of
+    /// a box is boxed too.
+    fn box_readers_of_boxes(&mut self) -> Result<()> {
+        loop {
+            let mut boxed_one = false;
+            for i in 0..self.referent_readers.len() {
+                let (t, e, p) = self.referent_readers[i];
+                if self.is_box(t, e) {
+                    continue;
+                }
+                match self.read_referent(t, p) {
+                    Err(error @ Error::BoxedReferent(_)) => {
+                        self.box_in_place(t, e, error)?;
+                        boxed_one = true;
+                    }
+                    Err(error) => return Err(error),
+                    Ok(_) => {}
+                }
+            }
+            if !boxed_one {
+                return Ok(());
+            }
+        }
+    }
+
+    /// Whether `e` is a container copy (`<graph extend="$g"/>`), which
+    /// outlining gives its clones.
+    pub(in crate::compile) fn is_container_copy(&self, t: TemplateId, e: ElemId) -> bool {
+        let el = &self.compiled.templates[t.index()].elems[e.index()];
+        el.node != NodeId::NONE
+            && !el.cloned
+            && el.component_type.container()
+            && self.dast.attr_peek(el.node, "extend").is_some()
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let component_type = self.compiled.templates[t.index()].elems[e.index()].component_type;
+        let component_type = self.compiled.templates[t.index()].elems[e.index()].planned_as;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
             // plan.
@@ -697,11 +1092,9 @@ impl<'a> Compiler<'a> {
     /// (and whether its type is a container) before any prop is looked at.
     /// Records the extend plan on the element.
     fn elem_shape(&mut self, t: TemplateId, e: ElemId) -> Result<ElemShape> {
-        let d = self.dast;
         let Elem {
             node: el,
             component_type,
-            name_scope: scope,
             cloned,
             ..
         } = self.compiled.templates[t.index()].elems[e.index()];
@@ -711,13 +1104,17 @@ impl<'a> Compiler<'a> {
         if el == NodeId::NONE {
             return Ok(ElemShape::Synthetic);
         }
-        let extend = match d.attr(el, "extend") {
-            Some(a) => {
-                let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
-                    attr: "extend".into(),
-                    text: self.attr_text(a).unwrap_or_default(),
-                })?;
-                let p = self.plan_ref(t, scope, m)?;
+        // A container copy's extend was planned when outlining, with its
+        // clones.
+        if let Some(p) = self.compiled.templates[t.index()].elems[e.index()].extend
+            && component_type.container()
+        {
+            return Ok(ElemShape::ContainerCopy(p));
+        }
+        let extend = match self.plan_extend(t, e)? {
+            Some(p) => {
+                // An extend of a box is planned from nothing (ADR 0027).
+                let referent_type = self.referent_type(t, e, p)?;
                 // `<point extend="$c.center"/>`, `<math extend="$c.radius"/>`,
                 // `<pointList extend="$l.points"/>`: the element's value
                 // props alias the named prop.
@@ -729,7 +1126,7 @@ impl<'a> Compiler<'a> {
                 // the element's type (REF-5, ADR 0025), so it is the
                 // extend of its default prop. An unrelated pair is left to
                 // the build, which refuses it once both types are known.
-                if let Some(rt) = self.ref_target_type(t, p)
+                if let Some(rt) = referent_type
                     && rt != component_type
                     && ComponentType::extends_as(rt, component_type)
                     && let Some(dp) = rt.default_prop()
@@ -744,10 +1141,7 @@ impl<'a> Compiler<'a> {
             None => None,
         };
         self.compiled.templates[t.index()].elems[e.index()].extend = extend;
-        Ok(match extend {
-            Some(p) if component_type.container() => ElemShape::ContainerCopy(p),
-            _ => ElemShape::ByType(extend),
-        })
+        Ok(ElemShape::ByType(extend))
     }
 
     /// Whether a child node is presentation a renderer reads rather than
@@ -767,11 +1161,6 @@ impl<'a> Compiler<'a> {
     }
 
     pub(in crate::compile) fn elem_label(&self, t: TemplateId, e: ElemId) -> String {
-        let el = &self.compiled.templates[t.index()].elems[e.index()];
-        if el.name != StrId::NONE {
-            self.dast.strings.get(el.name).trim().to_string()
-        } else {
-            format!("<{}>", el.component_type.tag())
-        }
+        elem_label(self.dast, &self.compiled, t, e)
     }
 }

@@ -462,6 +462,12 @@ pub fn split_top(toks: &[Token], sep: &Token) -> Vec<Vec<Token>> {
     out
 }
 
+/// The entries of a parenthesized tuple, `(a, b, ...)`, when the whole
+/// token run is one: the one reading of math text as a tuple.
+pub fn tuple_entries(toks: &[Token]) -> Option<Vec<Vec<Token>>> {
+    unwrap_parens(toks).map(|inner| split_top(inner, &Token::Comma))
+}
+
 /// Strip one pair of enclosing parentheses, if the whole token run is
 /// wrapped in them.
 pub fn unwrap_parens(toks: &[Token]) -> Option<&[Token]> {
