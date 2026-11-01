@@ -98,17 +98,21 @@ types:
 
 A `<group>` can be made from anything, and holds it.
 
-A composite or a list that holds exactly one component counts as that
-component: `<number extend="$s"/>{:dn}` of a select that picked one number,
-`<text extend="$cc"/>{:dn}` while the active case of a `<conditionalContent>`
-holds one text, `<math extend="$c"/>{:dn}` of a `<collect>` that holds one math.
+A `<group>` that holds exactly one component counts as that component, and so
+does a list whose entries are written, such as a `<mathList>` with one entry:
+`<math extend="$g"/>{:dn}` of a group that holds one number. This is checked
+only for content that is fixed when the document loads: a group holding
+components written in it, other such groups, and references to components.
+What the document makes as it runs, such as what a `<conditionalContent>`,
+`<select>`, `<repeat>` or `<collect>` holds, an iteration of a repeat, or a
+list made by a `<sequence>`, is not checked against these rules.
 
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
-<select name="s"><option><number>7</number></option></select>
+<group name="g"><number>7</number></group>
 
 <p>As a math: <math extend="$P"/></p>
-<p>As a number: <number extend="$s"/></p>
+<p>As a math: <math extend="$g"/></p>
 ```
 
 Any other pair is an error, shown in place of the reference, whose message says
@@ -119,17 +123,15 @@ what to write instead:
   `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
   `<mathInput prefill="$m"/>{:dn}`;
 * to use one component of a group that holds several, give it a name and refer
-  to it by that name. An index selects one of the iterations of a repeat, the
-  picks of a select or the entries of a list, so where each of those is one
-  component, `$r[1]` works too;
-* to read all the components a group, repeat or select holds as one value,
-  write `<math>$g</math>{:dn}`.
+  to it by that name. An index selects one of the entries of a list, so for a
+  list `$ml[1]` works too;
+* to read all the components a group or a list holds as one value, write
+  `<math>$g</math>{:dn}`.
 
-When the mismatch depends on what the document makes as it runs, such as which
-case is active, how many components a `<collect>` holds, or whether a math's
-value is a tuple, nothing is shown while it lasts, with an info saying why. An
-`extend` is shown again when the content matches. A `copy` does not follow its
-source, so it stays as it was made.
+When the value of a math or an input, referenced directly, doesn't allow the
+tag, such as `<point extend="$m"/>{:dn}` while `m` is not a tuple, nothing is
+shown while it lasts, with an info saying why. An `extend` is shown again when the value matches. A `copy` does not
+follow its source, so it stays as it was made.
 
 ## How references are resolved
 

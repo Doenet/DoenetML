@@ -1308,11 +1308,6 @@ export async function changeInactiveComponentAndDescendants({
  * recursed into. `stopAtListComposites` does the same for a composite
  * that can be shown as a list (its state has `asList`), so that a copy
  * of the replacements keeps the list, commas and all.
- * `doNotWaitForCopies` keeps a `_copy` that is not yet expanded in place,
- * neither recorded as unexpanded nor among `compositesFound`, so that
- * nothing waits for it or is recalculated when it expands, and leaves out
- * `skipComponentIdx` (the component depending on the replacements)
- * altogether.
  */
 export function recursivelyReplaceCompositesWithReplacements({
     core,
@@ -1321,8 +1316,6 @@ export function recursivelyReplaceCompositesWithReplacements({
     includeWithheldReplacements = false,
     stopIfHaveProp,
     stopAtListComposites = false,
-    doNotWaitForCopies = false,
-    skipComponentIdx,
 }: {
     core: Core;
     replacements: any[];
@@ -1330,8 +1323,6 @@ export function recursivelyReplaceCompositesWithReplacements({
     includeWithheldReplacements?: boolean;
     stopIfHaveProp?: string;
     stopAtListComposites?: boolean;
-    doNotWaitForCopies?: boolean;
-    skipComponentIdx?: number;
 }): {
     compositesFound: number[];
     newReplacements: any[];
@@ -1344,12 +1335,6 @@ export function recursivelyReplaceCompositesWithReplacements({
     let unexpandedCompositesNotReady: number[] = [];
 
     for (let replacement of replacements) {
-        if (
-            skipComponentIdx !== undefined &&
-            replacement?.componentIdx === skipComponentIdx
-        ) {
-            continue;
-        }
         const isComposite = core.componentInfoObjects.isCompositeComponent({
             componentType: replacement.componentType,
             includeNonStandard: recurseNonStandardComposites,
@@ -1375,15 +1360,6 @@ export function recursivelyReplaceCompositesWithReplacements({
         }
 
         if (stopAtListComposites && "asList" in replacement.state) {
-            newReplacements.push(replacement);
-            continue;
-        }
-
-        if (
-            doNotWaitForCopies &&
-            !replacement.isExpanded &&
-            replacement.componentType === "_copy"
-        ) {
             newReplacements.push(replacement);
             continue;
         }
@@ -1417,8 +1393,6 @@ export function recursivelyReplaceCompositesWithReplacements({
             includeWithheldReplacements,
             stopIfHaveProp,
             stopAtListComposites,
-            doNotWaitForCopies,
-            skipComponentIdx,
         });
         compositesFound.push(...recursionResult.compositesFound);
         newReplacements.push(...recursionResult.newReplacements);
