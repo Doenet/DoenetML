@@ -23,7 +23,11 @@ import {
     numberDisplayString,
     numberValueForDisplay,
 } from "../../utils/valueFunctions/number";
-import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/mathVectorMatrixStateVariables";
+import {
+    returnMathVectorMatrixStateVariableDefinitions,
+    VALUE_ENTRY_PREFIX,
+    valueEntryOf,
+} from "../../utils/mathVectorMatrixStateVariables";
 import { booleanFromWord, booleanWord } from "../../utils/booleanWords";
 import {
     contentTranslator,
@@ -299,10 +303,21 @@ export default class ValueListComponent extends BaseComponent {
         if (derived !== undefined) {
             return derived;
         }
+        if (entryKind(this.listEntryComponentType) !== "math") {
+            return undefined;
+        }
         // `x1`, `x2`, … are made here, one for each index asked for.
         const match = /^x([1-9]\d*)$/.exec(name);
-        if (match && entryKind(this.listEntryComponentType) === "math") {
+        if (match) {
             return entryCoordinateProperty(Number(match[1]));
+        }
+        // What an index into the entry reads (`$l[2][1]`), as `$m[1]` reads
+        // of a `<math>` (D27).
+        if (name.startsWith(VALUE_ENTRY_PREFIX)) {
+            const index = Number(name.slice(VALUE_ENTRY_PREFIX.length));
+            if (Number.isInteger(index) && index > 0) {
+                return entryValueEntryProperty(index);
+            }
         }
         return undefined;
     }
@@ -1543,6 +1558,28 @@ function entryCoordinateProperty(n) {
         });
     }
     return coordinatePropertiesByIndex.get(n);
+}
+
+const valueEntryPropertiesByIndex = new Map();
+
+/**
+ * Entry `n` (from 1) of the value of a `<math>` entry, which `$l[i][n]` reads,
+ * as `$m[n]` reads of a `<math>`: an entry of a tuple, or a row of a matrix
+ * as a 1×n matrix; nothing past the end or for a scalar, which has no
+ * entries. An entry of a tuple is written as that coordinate.
+ */
+function entryValueEntryProperty(n) {
+    if (!valueEntryPropertiesByIndex.has(n)) {
+        valueEntryPropertiesByIndex.set(n, {
+            from: "value",
+            componentType: "math",
+            companionsOf: "vector",
+            writeThrough: "entryCoordinateWrites",
+            writeThroughValue: (coordinate) => ({ [n]: coordinate }),
+            compute: (value) => valueEntryOf(value, n),
+        });
+    }
+    return valueEntryPropertiesByIndex.get(n);
 }
 
 /**

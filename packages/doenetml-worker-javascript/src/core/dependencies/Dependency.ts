@@ -584,6 +584,7 @@ export class Dependency {
                     stateVariables: mappedVarNames,
                     component: downComponent,
                     propIndex: this.propIndex,
+                    reportIndexIntoScalar: !this.definition.indexPastComposite,
                     reference: referenceText
                         ? {
                               text: `$${referenceText}`,

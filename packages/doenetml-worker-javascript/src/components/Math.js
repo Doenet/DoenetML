@@ -36,7 +36,11 @@ import {
     mathValueForDisplay,
     mathValueFromCodes,
 } from "../utils/valueFunctions/math";
-import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
+import {
+    returnMathVectorMatrixStateVariableDefinitions,
+    returnValueEntriesStateVariableDefinitions,
+    VALUE_ENTRIES,
+} from "../utils/mathVectorMatrixStateVariables";
 
 export default class MathComponent extends InlineComponent {
     constructor(args) {
@@ -62,7 +66,9 @@ export default class MathComponent extends InlineComponent {
 
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
-    static variableForIndexAsProp = "vector";
+    // An index selects the entries of the value: a tuple's entries or a
+    // matrix's rows (D27).
+    static variableForIndexAsProp = VALUE_ENTRIES;
 
     static descendantCompositesMustHaveAReplacement = true;
     static descendantCompositesDefaultReplacementType = "math";
@@ -1123,6 +1129,7 @@ export default class MathComponent extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnMathVectorMatrixStateVariableDefinitions(),
+            returnValueEntriesStateVariableDefinitions(),
         );
 
         return stateVariableDefinitions;

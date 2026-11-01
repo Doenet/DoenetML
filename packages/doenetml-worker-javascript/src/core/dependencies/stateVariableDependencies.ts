@@ -9,6 +9,7 @@
 import { Dependency, cloneChangeMetadataIfNeeded } from "./Dependency";
 import { listEntryPropertyPath } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
+import { isValueEntriesVariable } from "../../utils/mathVectorMatrixStateVariables";
 
 export class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
@@ -176,6 +177,13 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
 
         this.originalDownstreamVariableNames = [variableName];
+
+        // The entries of a math value are read by an index although they
+        // are not public (`isValueEntriesVariable`).
+        if (isValueEntriesVariable(variableName)) {
+            this.publicStateVariablesOnly = false;
+            this.caseInsensitiveVariableMatch = false;
+        }
 
         let propIndex = [];
         let foundBadIndex = false;

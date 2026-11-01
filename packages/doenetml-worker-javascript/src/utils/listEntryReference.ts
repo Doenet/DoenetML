@@ -27,6 +27,7 @@
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
 import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
+import { VALUE_ENTRY_PREFIX } from "./mathVectorMatrixStateVariables";
 
 type PathPart = { name: string; index: any[]; [key: string]: any };
 
@@ -123,12 +124,13 @@ function entryPropertyOf(
  * (`x2`), when the list provides it; for a property that is not an array
  * (`coords[1]`), the property, ignoring the index. `undefined` otherwise.
  *
- * That last case no longer matches a component of the entries' type: since
- * #2407 an index into a property of a component that is not an array names
- * nothing (`$P.coords[1]` shows nothing and warns `doenet-w0100`), while
- * `$l[2].coords[1]` still reads `coords`. Likewise an index below 1 here
- * (`$l[2].xs[0]`, `$l[2][0]`) is not reported as `doenet-w0104` the way
- * `$P.xs[0]` is.
+ * That last case is left only for the property of every entry
+ * (`$l.coords[1]`), which still reads `coords`. For one entry it does not
+ * match a component of the entries' type, where since #2407 an index into a
+ * property that is not an array names nothing (`$P.coords[1]` shows nothing
+ * and warns `doenet-w0100`), so `listEntryPropertyPath` resolves
+ * `$l[2].coords[1]`, and an index below 1 (`$l[2].xs[0]`), before asking
+ * this.
  */
 function indexedEntryProperty(
     listClass: any,
@@ -272,19 +274,31 @@ export function listEntryPropertyPath({
         };
     }
 
-    // A second index (`$l[2][3]`) reads a coordinate of a math entry, as
-    // `$m[3]` reads one of a `<math>`.
+    // A second index (`$l[2][3]`) reads what an index reads of the entry
+    // (D27, "Values with entries"): an entry of the value of a math entry,
+    // as `$m[3]` reads of a `<math>`, and a coordinate of a point entry, as
+    // `$P[3]` reads of a `<point>`, also of a list that a repeat of points
+    // became (`$r[2][1]`). An index below 1 names nothing, and is reported
+    // as `$m[0]` is.
     if (
         unresolvedPath.length === 1 &&
         first.name === "" &&
         first.index.length === 2
     ) {
-        const coordinate = Math.round(Number(first.index[1].value?.[0]));
-        const entryProperty = `x${coordinate}`;
-        if (
-            Number.isFinite(coordinate) &&
-            listClass.derivedEntryProperty(entryProperty) !== undefined
-        ) {
+        const index = Math.round(Number(first.index[1].value?.[0]));
+        if (index < 1) {
+            return indexNamingNothing(listClass, first, componentInfoObjects);
+        }
+        const entryProperty = [
+            `${VALUE_ENTRY_PREFIX}${index}`,
+            `x${index}`,
+        ].find(
+            (property) =>
+                listClass.derivedEntryProperty(property) !== undefined ||
+                entryPropertyOf(listClass, property, componentInfoObjects) !==
+                    undefined,
+        );
+        if (Number.isFinite(index) && entryProperty !== undefined) {
             return {
                 path: [
                     {
@@ -312,6 +326,43 @@ export function listEntryPropertyPath({
         first.index.length === 1 &&
         second.index.length === 1
     ) {
+        const property = entryPropertyOf(
+            listClass,
+            second.name,
+            componentInfoObjects,
+        );
+        if (property !== undefined) {
+            // An index below 1 into a property of the entry names nothing,
+            // and is reported as `$P.xs[0]` is.
+            if (Math.round(Number(second.index[0].value?.[0])) < 1) {
+                return indexNamingNothing(
+                    listClass,
+                    { ...second, index: [...first.index, ...second.index] },
+                    componentInfoObjects,
+                );
+            }
+            // An index into a property that is not an array names nothing,
+            // and is reported as `$P.coords[1]` is: the entry's array for
+            // the property is given an index too many
+            // (`arrayEntryNamesFromPropIndex`).
+            if (!isArrayProperty(listClass, property, componentInfoObjects)) {
+                return {
+                    path: [
+                        {
+                            ...second,
+                            name: arrayForEntryProperty(
+                                listClass,
+                                property,
+                                componentInfoObjects,
+                            ),
+                            index: [...first.index, ...second.index],
+                        },
+                    ],
+                    entryProperty: property,
+                    isEntry: true,
+                };
+            }
+        }
         const entryProperty = indexedEntryProperty(
             listClass,
             second,
@@ -431,6 +482,51 @@ export function listEntryPropertyPath({
     }
 
     return undefined;
+}
+
+/**
+ * The path for an index into an entry that names nothing because part of it
+ * is below 1 (`$l[1][0]`, `$l[1].xs[0]`): the list's array of values with
+ * every index of `part`, which `arrayEntryNamesFromPropIndex` reports as it
+ * reports `$m[0]` (`doenet-w0104`).
+ */
+function indexNamingNothing(
+    listClass: any,
+    part: PathPart,
+    componentInfoObjects: ComponentInfoObjects,
+): { path: [PathPart]; entryProperty: string; isEntry: boolean } {
+    return {
+        path: [
+            {
+                ...part,
+                name: arrayForEntryProperty(
+                    listClass,
+                    "value",
+                    componentInfoObjects,
+                ),
+            },
+        ],
+        entryProperty: "value",
+        isEntry: true,
+    };
+}
+
+/**
+ * Whether `property` of the entries of a list of class `listClass` is an
+ * array, so that an index into it selects one of its entries.
+ */
+function isArrayProperty(
+    listClass: any,
+    property: string,
+    componentInfoObjects: ComponentInfoObjects,
+): boolean {
+    return Boolean(
+        (
+            componentInfoObjects.stateVariableInfo[
+                listClass.listEntryComponentType
+            ]?.stateVariableDescriptions[property] as any
+        )?.isArray,
+    );
 }
 
 /**

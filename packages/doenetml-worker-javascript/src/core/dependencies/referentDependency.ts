@@ -14,6 +14,7 @@ import {
 } from "../../utils/referentDescription";
 import { listEntryPropertyPath } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
+import { isValueEntriesVariable } from "../../utils/mathVectorMatrixStateVariables";
 
 /**
  * A dependency that resolves one part of an unresolved path on a component
@@ -122,7 +123,7 @@ export class ReferentDependency extends Dependency {
         }
 
         let variableName = name;
-        if (!listEntryPath) {
+        if (!listEntryPath && !isValueEntriesVariable(name)) {
             [variableName] = core.publicCaseInsensitiveAliasSubstitutions({
                 stateVariables: [name],
                 componentClass: component.constructor,

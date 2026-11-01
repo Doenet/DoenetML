@@ -173,6 +173,109 @@ describe("An index selects instances, not children @group4", async () => {
         expect(warnings).eqls([]);
     });
 
+    it("passes an index through a pick or iteration holding only a reference to a list (#2428)", async () => {
+        const setup = `<setup><mathList name="nl">a b c</mathList><repeat name="rp" for="1 2" valueName="w"><math>$w</math></repeat></setup>`;
+        for (const [body, name] of [
+            [
+                `<select name="s"><option><mathList extend="$nl"/></option></select>`,
+                "s",
+            ],
+            [`<select name="s"><option>$nl</option></select>`, "s"],
+            [
+                `<repeatForSequence name="s" length="2">$nl</repeatForSequence>`,
+                "s",
+            ],
+            [`<repeat name="s" for="1 2" valueName="v">$nl</repeat>`, "s"],
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                `${setup}${body}<p name="p">[$${name}[1][1]] [$${name}[1][2]]</p>`,
+            );
+            expect(text, body).eq("[a] [b]");
+            expect([...warnings, ...errors, ...infos], body).eqls([]);
+        }
+
+        // a reference to a repeat, whose iterations an index selects
+        const { text, warnings } = await shownAndReported(
+            `${setup}<select name="s"><option>$rp</option></select><p name="p">[$s[1][1]] [$s[1][2]]</p>`,
+        );
+        expect(text).eq("[1] [2]");
+        expect(warnings).eqls([]);
+
+        // Past the end, as with the list or repeat written in place: silent
+        // past a list's entries (#1499), and saying how many iterations a
+        // repeat made.
+        const pastList = await shownAndReported(
+            `${setup}<select name="s"><option>$nl</option></select><p name="p">[$s[1][4]]</p>`,
+        );
+        expect(pastList.text).eq("[]");
+        expect(pastList.warnings).eqls([]);
+
+        const pastRepeat = await shownAndReported(
+            `${setup}<select name="s"><option>$rp</option></select><p name="p">[$s[1][3]]</p>`,
+        );
+        expect(pastRepeat.text).eq("[]");
+        expect(pastRepeat.warnings.map((w) => [w.code, w.args])).eqls([
+            [
+                "doenet-w0181",
+                {
+                    reference: "$s[1][3]",
+                    component: "repeat",
+                    kind: "iteration",
+                    count: 2,
+                },
+            ],
+        ]);
+    });
+
+    it("still warns of an index into a pick holding only a reference to one component", async () => {
+        const { text, warnings } = await shownAndReported(
+            `<setup><math name="m">x</math></setup><select name="s"><option>$m</option></select><p name="p">[$s[1][1]]</p>`,
+        );
+        expect(text).eq("[x]");
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0179"]);
+    });
+
+    it("passes an index through a pick holding a reference to a list whose length changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="k" prefill="2" />
+    <sequence name="seq" length="$k" />
+    <select name="s"><option>$seq</option></select>
+    <p name="p">[$s[1][2]] [$s[1][3]]</p>
+    `,
+        });
+
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+
+        expect(await text()).eq("[2] []");
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        expect(await text()).eq("[2] [3]");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        expect(await text()).eq("[] []");
+
+        const { warnings, errors } = getDiagnosticsByType(core);
+        expect([...warnings, ...errors].map((d) => [d.code, d.message])).eqls(
+            [],
+        );
+    });
+
     it("keeps selecting a child by index, with a deprecation warning", async () => {
         const cases: {
             body: string;
@@ -383,11 +486,6 @@ describe("An index selects instances, not children @group4", async () => {
                     body: `<select name="s"><option name="o"><math>a</math></option></select><p name="p">[$o[1]]</p>`,
                     reference: "$o[1]",
                     component: "option",
-                },
-                {
-                    body: `<number name="n">5</number><p name="p">[$n[1]]</p>`,
-                    reference: "$n[1]",
-                    component: "number",
                 },
             ];
 

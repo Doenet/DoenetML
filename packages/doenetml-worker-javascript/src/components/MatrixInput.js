@@ -48,6 +48,9 @@ export class MatrixInput extends Input {
             "An interactive matrix input where each cell accepts a math value",
     };
     static variableForImplicitProp = "value";
+    // An index selects a row, as a 1×n matrix, and a second index an entry,
+    // as for a `<matrix>` (D27).
+    static variableForIndexAsProp = "matrix";
 
     static processWhenJustUpdatedForNewComponent = true;
 

@@ -13,7 +13,10 @@ import {
 import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 import { listEntryTargetOfResolution } from "../listEntryTargets";
 import { refResolutionAt } from "../../utils/referenceSlot";
-import { instanceKindOf } from "../../utils/indexInstances";
+import {
+    indexSelectsInstances,
+    instanceKindOf,
+} from "../../utils/indexInstances";
 
 /**
  * The same path with every index emptied.
@@ -828,32 +831,45 @@ export class RefResolutionDependency extends Dependency {
             // If the composite is expanded and yet the index did not match one of the composite's replacements,
             // then there is no replacement at that index, and we obtained no referent for the reference.
             const reference = `${getDollarsForReference()}${getDoenetMLStringForReference()}`;
-            const instanceKind = instanceKindOf(newRefComponent.componentType);
+
+            // An iteration or pick holding only a reference to a list or to a
+            // composite with instances is indexed as that list or composite
+            // (`referencedIndexable`): past a list's entries is silent
+            // (#1499), and past a composite's instances says how many it made.
+            const referenced = this.referencedIndexable(
+                newRefComponent.componentIdx,
+            );
+            const indexedComponent = referenced ?? newRefComponent;
+            const instanceKind = instanceKindOf(indexedComponent.componentType);
 
             // A composite that produces instances says how many it made
             // (`doenet-w0181`), naming what the author wrote (D27).
-            this.dependencyHandler.core.addDiagnostic(
-                instanceKind
-                    ? codedDiagnostic({
-                          type: "warning",
-                          code: "doenet-w0181",
-                          args: {
-                              reference,
-                              component: newRefComponent.componentType,
-                              kind: instanceKind,
-                              count: numInstances(newRefComponent),
-                          },
-                          position: composite.position,
-                          sourceDoc: composite.sourceDoc,
-                      })
-                    : codedDiagnostic({
-                          type: "warning",
-                          code: "doenet-w0104",
-                          args: { reference },
-                          position: composite.position,
-                          sourceDoc: composite.sourceDoc,
-                      }),
-            );
+            if (instanceKind) {
+                this.dependencyHandler.core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0181",
+                        args: {
+                            reference,
+                            component: indexedComponent.componentType,
+                            kind: instanceKind,
+                            count: numInstances(indexedComponent),
+                        },
+                        position: composite.position,
+                        sourceDoc: composite.sourceDoc,
+                    }),
+                );
+            } else if (!referenced) {
+                this.dependencyHandler.core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0104",
+                        args: { reference },
+                        position: composite.position,
+                        sourceDoc: composite.sourceDoc,
+                    }),
+                );
+            }
 
             this.compositeReplacementDependencies.push(
                 newRefComponent.componentIdx,
@@ -900,6 +916,16 @@ export class RefResolutionDependency extends Dependency {
                 continue;
             }
             const child = this.dependencyHandler._components[childIdx];
+            if (this.referencedIndexable(containerIdx)) {
+                // The whole content is a reference to a list or to a
+                // composite whose instances an index selects
+                // (`<option>$l</option>`), so the reference's replacements
+                // are what the index selects among, as in
+                // `<option><mathList extend="$l"/></option>`, where the
+                // index passes through (`_indexPassThrough`, D27): the form
+                // D27 recommends, not a child index (#2428).
+                continue;
+            }
             if (child?.doenetAttributes?.iterationAliases) {
                 // The `<setup>` a repeat adds to an iteration for its
                 // `valueName` and `indexName`, after the content: the author
@@ -931,6 +957,46 @@ export class RefResolutionDependency extends Dependency {
                 }),
             );
         }
+    }
+
+    /**
+     * The component that the whole content of the `<group>` `containerIdx`
+     * (an iteration or a pick) refers to, when that content is one reference
+     * (a `_copy`) to a whole component whose instances an index selects
+     * (`indexSelectsInstances`): a list, or a repeat, select or other
+     * composite of `INSTANCE_KINDS`; `undefined` otherwise. A `<setup>` is not
+     * content, as in `instanceGroupAttributes`.
+     *
+     * Such a group is not marked to pass an index through
+     * (`_indexPassThrough`), since what the reference makes is not known when
+     * the group is made, but an index into the group selects among the
+     * reference's replacements, which are the referent's instances, all the
+     * same (#2428).
+     */
+    referencedIndexable(containerIdx: number): any {
+        const components = this.dependencyHandler._components;
+        const content = (
+            components[containerIdx]?.serializedChildren ?? []
+        ).filter((child: any) =>
+            typeof child === "string"
+                ? child.trim() !== ""
+                : child.componentType !== "setup",
+        );
+        if (content.length !== 1 || content[0].componentType !== "_copy") {
+            return undefined;
+        }
+        const resolution = refResolutionAt(components[content[0].componentIdx]);
+        if (!resolution || resolution.unresolvedPath !== null) {
+            return undefined;
+        }
+        const referent = components[resolution.nodeIdx];
+        return referent &&
+            indexSelectsInstances(
+                referent.componentType,
+                this.dependencyHandler.componentInfoObjects,
+            )
+            ? referent
+            : undefined;
     }
 
     /**
