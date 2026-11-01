@@ -53,27 +53,46 @@ import {
  * path: `$(f)` is quoted as `$f`, and `$$(f)(2)` as `$$f(2)`. That is the
  * spelling that does not need them, the one a path is quoted in
  * (`doenetMLDollarsForReference`). A reference without them, or whose
- * parentheses do not close, is returned as it is.
+ * parentheses cannot be matched up, is returned as it is.
+ *
+ * The path's closing parenthesis is found from the end, not by matching the
+ * opening one, because the path's indices are text that can hold a parenthesis
+ * of its own (`$(f[)])`). A plain reference ends with it, `{…}` included
+ * (`$(f{simplify})`). A function reference can have arguments after it, whose
+ * parentheses balance (`$$(f)((x), 2)`), so it is the one just before them.
  */
 function withoutPathParentheses(reference: string): string {
-    const open = /^\$\$?\(/.exec(reference)?.[0].length;
-    if (open === undefined) {
+    const dollars = /^\$\$?(?=\()/.exec(reference)?.[0];
+    if (dollars === undefined || !reference.endsWith(")")) {
         return reference;
     }
-    // The path can hold parentheses of its own, as in `$$(f[$(i)])(2)`.
-    let depth = 1;
-    for (let i = open; i < reference.length; i++) {
-        if (reference[i] === "(") {
-            depth++;
-        } else if (reference[i] === ")" && --depth === 0) {
-            return (
-                reference.slice(0, open - 1) +
-                reference.slice(open, i) +
-                reference.slice(i + 1)
-            );
+    let close = reference.length - 1;
+    if (dollars === "$$") {
+        // Step back over the arguments, if there are any.
+        let depth = 0;
+        let i = close;
+        for (; i >= 0; i--) {
+            if (reference[i] === ")") {
+                depth++;
+            } else if (reference[i] === "(" && --depth === 0) {
+                break;
+            }
+        }
+        if (i < 0) {
+            return reference;
+        }
+        if (i > dollars.length) {
+            close = i - 1;
         }
     }
-    return reference;
+    if (reference[close] !== ")") {
+        return reference;
+    }
+    return (
+        dollars +
+        reference.slice(dollars.length + 1, close) +
+        reference.slice(close + 1)
+    );
 }
 
 /**

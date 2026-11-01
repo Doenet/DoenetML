@@ -110,6 +110,24 @@ describe("A function reference that names nothing @group4", async () => {
                 marked: "$(f)",
             },
             {
+                // A parenthesis in an index is not the one closing the path.
+                doenetML: `${twoFs}<p name="p">[$(f[)])]</p>`,
+                text: "[]",
+                code: "doenet-w0105",
+                reference: "$f[)]",
+                message: "Multiple referents found for reference: `$f[)]`",
+                marked: "$(f[)])",
+            },
+            {
+                doenetML: `${twoFs}<p name="p">[$$(f)((x), 3)]</p>`,
+                text: "[]",
+                code: "doenet-w0105",
+                reference: "$$f((x), 3)",
+                message:
+                    "Multiple referents found for reference: `$$f((x), 3)`",
+                marked: "$$(f)((x), 3)",
+            },
+            {
                 doenetML: `<point name="P" x="$$f(2)" y="3" /><p name="p">$P</p>`,
                 text: "(＿, 3)",
                 code: "doenet-w0104",
