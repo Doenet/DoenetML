@@ -147,6 +147,29 @@ describe("An index into a value with entries @group4", async () => {
         }
     });
 
+    it("reports an index past a composite's items once, not again as an index into a scalar", async () => {
+        // `$g[2]` is past the one item of the group; it is tried on the
+        // `<math>5</math>` the group holds, which is not reported again as
+        // an index into a scalar.
+        const { text, warnings, errors, infos } = await shownAndReported(
+            "$g[2]",
+            `<group name="g"><math>5</math></group>`,
+        );
+        expect(text).eq("[]");
+        expect([...errors, ...infos]).eqls([]);
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
+    });
+
+    it("does not read the entries by a name of their own", async () => {
+        // The entries are reached only by an index, as for any property
+        // that is not public.
+        await expectShownSilently([
+            ["$mt.__valueEntries", ""],
+            ["$mt.__valueEntry1", ""],
+            ["$mm.__valueEntry2_1", ""],
+        ]);
+    });
+
     it("names nothing below 1, quoting the whole reference", async () => {
         for (const reference of [
             "$mt[0]",
@@ -171,6 +194,7 @@ describe("An index into a value with entries @group4", async () => {
         for (const [reference, suggestion] of [
             ["$ss[1]", "$ss.cells[1]"],
             ["$ss[1][2]", "$ss.cells[1][2]"],
+            ["$$ss[1]", "$$ss.cells[1]"],
         ]) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(reference);
@@ -320,6 +344,50 @@ describe("An index into a value with entries @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("wmi")].stateValues.value
                 .tree,
         ).eq(9);
+    });
+
+    it("writes a whole row of a matrix through an index, keeping its length", async () => {
+        const doenetML = `${setup}
+<mathInput name="wmm" bindValueTo="$mm[1]"><label>wmm</label></mathInput>
+<mathInput name="wxm" bindValueTo="$xm[2]"><label>wxm</label></mathInput>
+<p name="pmm">$mm</p><p name="pxm">$xm</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function textOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+
+        // A tuple is accepted for a row of a `<math>` or `<mathInput>`
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolvePathToNodeIdx("wmm"),
+            core,
+        });
+        expect(await textOf("pmm")).eq("[[7, 8], [3, 4]]");
+        expect(await textOf("wmm")).eq("[[7, 8]]");
+
+        await updateMathInputValue({
+            latex: "(5,6)",
+            componentIdx: await resolvePathToNodeIdx("wxm"),
+            core,
+        });
+        expect(await textOf("pxm")).eq("[[1, 2], [5, 6]]");
+
+        // A row of another length is rejected
+        await updateMathInputValue({
+            latex: "(1,2,3)",
+            componentIdx: await resolvePathToNodeIdx("wmm"),
+            core,
+        });
+        expect(await textOf("pmm")).eq("[[7, 8], [3, 4]]");
+        expect(await textOf("wmm")).eq("[[7, 8]]");
     });
 });
 

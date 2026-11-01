@@ -167,7 +167,8 @@ describe("Repeats whose template is one value @group4", () => {
 `,
             names: ["p", "p2", "p3", "p4"],
         });
-        // An index into a scalar (`5`, `x`) names nothing (D27): a blank.
+        // An index into a scalar entry (`5`, `x`), which has no entries
+        // (D27), is a blank, as an index past an entry's end is.
         // (`p2` reads only tuples: a blank operand is written `＿ + 2` by the
         // list and `+2` by the repeat, as past an entry's end it already was.)
         expect(texts).toEqual({
@@ -330,7 +331,7 @@ describe("Repeats whose template is one value @group4", () => {
         });
         expect(texts).toEqual({
             p: "0.12, (1.2, 0.0012)",
-            // an index into a scalar names nothing (D27)
+            // an index into a scalar entry is a blank (D27)
             p2: "＿, 1.2",
             p3: "0.12, (1.2, 0.0012)",
             p4: "0.1, 2.0",

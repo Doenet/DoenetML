@@ -1400,7 +1400,8 @@ describe("Value lists as list components @group4", async () => {
     });
 
     it("a second index reads a coordinate of a math entry", async () => {
-        // `$ml[2][1]` indexes the scalar `c`, which has no entries (D27).
+        // `$ml[2][1]` indexes the scalar `c`, which has no entries (D27): a
+        // blank, as an index past an entry's end is.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <tupleList name="tl">(1, 2, 3) (4, 5, 6)</tupleList>

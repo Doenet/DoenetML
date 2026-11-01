@@ -104,6 +104,7 @@ export class ReferentDependency extends Dependency {
 
         let name: string | undefined;
         let index: any[] = [];
+        let indexAsProp = false;
 
         if (unresolvedPath == null) {
             name = component.constructor.variableForImplicitProp;
@@ -115,6 +116,7 @@ export class ReferentDependency extends Dependency {
             ({ name, index } = unresolvedPath[0]);
             if (name === "") {
                 name = component.constructor.variableForIndexAsProp;
+                indexAsProp = true;
             }
         }
 
@@ -123,7 +125,10 @@ export class ReferentDependency extends Dependency {
         }
 
         let variableName = name;
-        if (!listEntryPath && !isValueEntriesVariable(name)) {
+        // The entries of a math value are read by an index although they
+        // are not public (`isValueEntriesVariable`), but not by name
+        // (`$m.__valueEntries`).
+        if (!listEntryPath && !(indexAsProp && isValueEntriesVariable(name))) {
             [variableName] = core.publicCaseInsensitiveAliasSubstitutions({
                 stateVariables: [name],
                 componentClass: component.constructor,

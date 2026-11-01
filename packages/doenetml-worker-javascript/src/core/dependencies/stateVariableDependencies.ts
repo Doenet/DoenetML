@@ -162,8 +162,9 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         let nextPart = unresolvedPath.shift();
 
         let variableName = nextPart.name;
+        const indexAsProp = variableName === "";
 
-        if (variableName === "") {
+        if (indexAsProp) {
             variableName = component.constructor.variableForIndexAsProp;
             if (!variableName) {
                 // if refer to index on a component that doesn't have variableForIndexAsProp,
@@ -179,8 +180,9 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         this.originalDownstreamVariableNames = [variableName];
 
         // The entries of a math value are read by an index although they
-        // are not public (`isValueEntriesVariable`).
-        if (isValueEntriesVariable(variableName)) {
+        // are not public (`isValueEntriesVariable`), but not by name
+        // (`$m.__valueEntries`).
+        if (indexAsProp && isValueEntriesVariable(variableName)) {
             this.publicStateVariablesOnly = false;
             this.caseInsensitiveVariableMatch = false;
         }

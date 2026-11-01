@@ -917,8 +917,9 @@ function rowFromValue(desired: Tree): Tree[] | undefined {
 /**
  * Entry `index` (from 1) of a math value, as `$m[index]` reads it: an entry
  * of a tuple, or a row of a matrix as a 1×n matrix. `undefined` for an index
- * past the end, and for a scalar, which has no entries, so that a reference
- * to it has nothing to read.
+ * past the end, and for a scalar, which has no entries; a list entry's
+ * property (`entryValueEntryProperty` in `ValueListComponent.js`) shows a
+ * blank for it.
  */
 export function valueEntryOf(value: Expression, index: number): any {
     const shape = valueShape(value.tree);
