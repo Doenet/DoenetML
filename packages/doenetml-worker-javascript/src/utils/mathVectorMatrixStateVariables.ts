@@ -843,56 +843,89 @@ type ValueShape =
     | { kind: "scalar" };
 
 /**
+ * The tuple that holds the entries of `tree` when it is a tuple, vector or
+ * list (`tree` itself) or a transposed or primed one (the tuple inside it),
+ * or `undefined`. Its entries are its elements after the operator.
+ */
+function tupleOf(tree: Tree): Tree[] | undefined {
+    if (!Array.isArray(tree)) {
+        return undefined;
+    }
+    const operator = tree[0] as string;
+    if (vectorAndListOperators.includes(operator)) {
+        return tree;
+    }
+    const inner = tree[1];
+    if (
+        Array.isArray(inner) &&
+        vectorOperators.includes(inner[0] as string) &&
+        ((operator === "^" && tree[2] === "T") || operator === "prime")
+    ) {
+        return inner;
+    }
+    return undefined;
+}
+
+/**
+ * Whether `tree` is a matrix whose rows all have the same length, which an
+ * index reads by row.
+ */
+function isMatrixWithRows(tree: Tree): boolean {
+    if (!Array.isArray(tree) || tree[0] !== "matrix") {
+        return false;
+    }
+    const rows = (tree[2] as Tree[]).slice(1) as Tree[][];
+    return rows.every((row) => row.length === rows[0].length);
+}
+
+/**
+ * What an index into a math value reads it as: a tuple of entries, a matrix
+ * of rows, or a scalar. Classified without copying the value, for
+ * {@link valueShape} and for checks that need only the kind.
+ */
+function shapeKind(tree: Tree): ValueShape["kind"] {
+    if (tupleOf(tree)) {
+        return "tuple";
+    }
+    return isMatrixWithRows(tree) ? "matrix" : "scalar";
+}
+
+/**
  * The shape of a math value for an index into it: a tuple of entries, a
  * matrix of rows, or a scalar, with a function that puts changed entries (or
- * rows) back into a value of the same form.
+ * rows) back into a value of the same form. It copies the entries or rows,
+ * so a check that needs only the kind uses {@link shapeKind}.
  */
 function valueShape(tree: Tree): ValueShape {
-    if (Array.isArray(tree)) {
-        const operator = tree[0] as string;
-        if (vectorAndListOperators.includes(operator)) {
-            return {
-                kind: "tuple",
-                entries: tree.slice(1),
-                rebuild: (entries) => [operator, ...entries],
-            };
-        }
-        if (operator === "matrix") {
-            const size = tree[1];
-            const rows = (tree[2] as Tree[])
-                .slice(1)
-                .map((row) => (row as Tree[]).slice(1));
-            if (rows.every((row) => row.length === rows[0]?.length)) {
-                return {
-                    kind: "matrix",
-                    rows,
-                    rebuild: (rows) => [
-                        "matrix",
-                        size,
-                        [
-                            "tuple",
-                            ...rows.map((row): Tree => ["tuple", ...row]),
-                        ],
-                    ],
-                };
-            }
-        }
-        const inner = tree[1];
-        if (
-            Array.isArray(inner) &&
-            vectorOperators.includes(inner[0] as string) &&
-            ((operator === "^" && tree[2] === "T") || operator === "prime")
-        ) {
-            return {
-                kind: "tuple",
-                entries: inner.slice(1),
-                rebuild: (entries) => [
-                    operator,
-                    [inner[0], ...entries],
-                    ...tree.slice(2),
-                ],
-            };
-        }
+    const tuple = tupleOf(tree);
+    if (tuple) {
+        return {
+            kind: "tuple",
+            entries: tuple.slice(1),
+            rebuild: (entries): Tree =>
+                tuple === tree
+                    ? [tuple[0] as string, ...entries]
+                    : [
+                          (tree as Tree[])[0] as string,
+                          [tuple[0] as string, ...entries],
+                          ...(tree as Tree[]).slice(2),
+                      ],
+        };
+    }
+    if (isMatrixWithRows(tree)) {
+        const size = (tree as Tree[])[1];
+        const rows = ((tree as Tree[])[2] as Tree[])
+            .slice(1)
+            .map((row) => (row as Tree[]).slice(1));
+        return {
+            kind: "matrix",
+            rows,
+            rebuild: (rows) => [
+                "matrix",
+                size,
+                ["tuple", ...rows.map((row): Tree => ["tuple", ...row])],
+            ],
+        };
     }
     return { kind: "scalar" };
 }
@@ -925,12 +958,16 @@ function rowFromValue(desired: Tree): Tree[] | undefined {
  * blank for it.
  */
 export function valueEntryOf(value: Expression, index: number): any {
-    const shape = valueShape(value.tree);
-    if (shape.kind === "tuple" && index <= shape.entries.length) {
-        return me.fromAst(shape.entries[index - 1]);
+    const tree = value.tree;
+    const tuple = tupleOf(tree);
+    if (tuple) {
+        return index < tuple.length ? me.fromAst(tuple[index]) : undefined;
     }
-    if (shape.kind === "matrix" && index <= shape.rows.length) {
-        return me.fromAst(rowAsMatrix(shape.rows[index - 1]));
+    if (isMatrixWithRows(tree)) {
+        const row = ((tree as Tree[])[2] as Tree[][])[index];
+        return row === undefined
+            ? undefined
+            : me.fromAst(rowAsMatrix(row.slice(1)));
     }
     return undefined;
 }
@@ -940,7 +977,7 @@ export function valueEntryOf(value: Expression, index: number): any {
  * rows of a matrix.
  */
 export function hasMatrixRows(value: Expression): boolean {
-    return valueShape(value.tree).kind === "matrix";
+    return isMatrixWithRows(value.tree);
 }
 
 interface ValueEntriesWorkspace {
@@ -978,17 +1015,17 @@ export function returnValueEntriesStateVariableDefinitions() {
             if (tree === BLANK) {
                 return false;
             }
-            const shape = valueShape(tree);
-            if (shape.kind === "scalar") {
-                return true;
+            // Only the kind is needed, so nothing is copied: this runs for
+            // every reference with an index.
+            const tuple = tupleOf(tree);
+            if (tuple) {
+                if (propIndex.length < 2) {
+                    return false;
+                }
+                const entry = tuple[propIndex[0]];
+                return entry !== undefined && shapeKind(entry) === "scalar";
             }
-            if (shape.kind === "tuple" && propIndex.length > 1) {
-                const entry = shape.entries[propIndex[0] - 1];
-                return (
-                    entry !== undefined && valueShape(entry).kind === "scalar"
-                );
-            }
-            return false;
+            return !isMatrixWithRows(tree);
         },
         getArrayKeysFromVarName({
             varEnding,
@@ -1035,12 +1072,16 @@ export function returnValueEntriesStateVariableDefinitions() {
         }: {
             dependencyValues: { value: any };
         }) {
-            const shape = valueShape(dependencyValues.value.tree);
-            if (shape.kind === "tuple") {
-                return [shape.entries.length, 1];
+            const tree = dependencyValues.value.tree;
+            const tuple = tupleOf(tree);
+            if (tuple) {
+                return [tuple.length - 1, 1];
             }
-            if (shape.kind === "matrix") {
-                return [shape.rows.length, (shape.rows[0]?.length ?? 0) + 1];
+            if (isMatrixWithRows(tree)) {
+                // `["tuple", row, …]`, each row `["tuple", entry, …]`: m rows
+                // of n entries, and a column for each row as a whole.
+                const rows = (tree as Tree[])[2] as Tree[][];
+                return [rows.length - 1, rows[1]?.length ?? 1];
             }
             return [0, 1];
         },
