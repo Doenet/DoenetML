@@ -22,6 +22,7 @@ that commit. Line numbers drift, so each citation also gives the test's name.
 | [inherited-attributes.md](inherited-attributes.md) | `fixed`, `fixLocation`, `draggable`, `disabled`, `hide`, `styleNumber`, display settings, labels |
 | [composites-and-lists.md](composites-and-lists.md) | `group`, `repeat`, `select`, `conditionalContent`, `collect`, `module`, value lists, commas |
 | [interaction-and-state.md](interaction-and-state.md) | inverse updates and `bindValueTo`, saved state and reload, actions, answers, variants |
+| [diagnostics.md](diagnostics.md) | what errors, warnings and infos mean, what a diagnostic says, and where it is reported |
 | [decisions.md](decisions.md) | the inconsistencies found, each with a proposed rule and the tests it would change, in priority order |
 | [testing-principles.md](testing-principles.md) | how the suite is organized today, and how to tag, sweep and encode principles so they keep holding |
 
