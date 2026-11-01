@@ -234,6 +234,7 @@ fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
         ];
         let mut realized = Vec::new();
         let engine = doc.session.engine.clone();
+        let essentials = doc.essentials();
         realize(
             &doc.program,
             &mut SymRun {
@@ -241,7 +242,7 @@ fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
                 engine: &mut engine.borrow_mut(),
             },
             &doc.cells,
-            doc.n_essential,
+            essentials,
             &asked,
             &mut realized,
         );

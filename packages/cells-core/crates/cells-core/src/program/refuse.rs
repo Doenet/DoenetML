@@ -53,7 +53,7 @@ pub fn analyze(
     operands: &[CellIdx],
     vecs: &[VecOp],
     syms: &[SymEntry],
-    n_essential: usize,
+    essentials: std::ops::Range<usize>,
     asked: &[CellIdx],
     held_always: &[bool],
 ) -> Vec<(CellIdx, Finding)> {
@@ -72,7 +72,7 @@ pub fn analyze(
         producer: &producer,
         start: Vec::new(),
         readers: Vec::new(),
-        n_essential,
+        essentials,
         held_always,
     };
 
@@ -254,7 +254,7 @@ struct Graph<'a> {
     /// are `readers[start[c]..start[c + 1]]`. Made only for a count.
     start: Vec<u32>,
     readers: Vec<u32>,
-    n_essential: usize,
+    essentials: std::ops::Range<usize>,
     held_always: &'a [bool],
 }
 
@@ -317,7 +317,7 @@ impl Graph<'_> {
                 memo.set(i, Walked::default());
                 continue;
             }
-            if i < self.n_essential {
+            if self.essentials.contains(&i) {
                 memo.set(
                     i,
                     Walked {

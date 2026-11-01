@@ -157,7 +157,10 @@ impl<'a> Signer<'a> {
             let prop = keys
                 .prop_key(key, prop)
                 .unwrap_or_else(|| format!("(hidden {})", prop & !HIDDEN));
-            named.insert(CellIdx::from_index(i), (rename(keys.key_text(key)), prop));
+            named.insert(
+                CellIdx::from_index(out.n_const + i),
+                (rename(keys.key_text(key)), prop),
+            );
         }
         Signer {
             out,
@@ -311,7 +314,7 @@ impl<'a> Signer<'a> {
             if !seen.insert(cell) {
                 continue;
             }
-            if cell.index() < self.out.n_essential {
+            if self.out.is_essential(cell.index()) {
                 leaves.insert(cell);
             }
             stack.extend(self.needs(cell).all());
@@ -330,7 +333,7 @@ impl<'a> Signer<'a> {
                 continue;
             }
             for i in self.needs(cell).all() {
-                if i.index() < self.out.n_essential {
+                if self.out.is_essential(i.index()) {
                     read.insert(i);
                 }
                 stack.push(i);
@@ -372,9 +375,9 @@ impl<'a> Signer<'a> {
                 .map(|&i| self.hashes[i.index()].unwrap())
                 .collect();
             let (ins, holds) = hashes.split_at(n_inputs);
-            let what = if ci < out.n_essential {
+            let what = if out.is_essential(ci) {
                 hash_of(("e", &self.named[&c], out.value_types[ci] as u8))
-            } else if ci < out.n_essential + out.n_const {
+            } else if out.is_const(ci) {
                 hash_of(("f", self.value_hash(c, out.cells[ci])))
             } else if let Some(instr) = instr {
                 let k = self.producer[ci].1;
@@ -435,7 +438,8 @@ impl<'a> Signer<'a> {
     }
 
     fn default_hash(&self, cell: CellIdx) -> u64 {
-        self.value_hash(cell, self.out.structure.essential_defaults[cell.index()])
+        let i = cell.index() - self.out.n_const;
+        self.value_hash(cell, self.out.structure.essential_defaults[i])
     }
 
     /// The values a request on input `c` can take.
@@ -509,9 +513,9 @@ impl<'a> Signer<'a> {
             .iter()
             .map(|&b| {
                 let bi = b.index();
-                if bi < out.n_essential && self.named[&b].0 == self.key(out.comp_keys[a.index()]) {
-                    Some(out.structure.essential_defaults[bi])
-                } else if bi >= out.n_essential && bi < out.n_essential + out.n_const {
+                if out.is_essential(bi) && self.named[&b].0 == self.key(out.comp_keys[a.index()]) {
+                    Some(out.structure.essential_defaults[bi - out.n_const])
+                } else if out.is_const(bi) {
                     Some(out.cells[bi])
                 } else {
                     None

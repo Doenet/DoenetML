@@ -107,8 +107,9 @@ rest of the report uses. `ARCHITECTURE.md` and `CONTEXT.md` describe the
 core in full; paths here are relative to `crates/cells-core/src/`.
 
 - **Cells.** `Document::cells` is a `Vec<f64>`. Cells are numbered
-  essential first, then fixed, then derived, so whether a cell is
-  essential is one comparison. A cell holding text or a math expression
+  essential first, then fixed, then derived (since ADR 0028, the
+  constants first, then essential, then derived), so whether a cell is
+  essential is one range check. A cell holding text or a math expression
   holds an id or a handle into a store outside the array; its type is in
   a side table (`Document::value_types`).
 - **Components are only names.** A component's props name cells; a

@@ -62,7 +62,7 @@ fn check(doc: &Document, at: &str) -> usize {
     for c in doc.output_cells() {
         assert!(doc.is_live(c), "{at}: output cell {c} is not live");
     }
-    for c in CellIdx::below(doc.n_essential) {
+    for c in doc.essentials().map(CellIdx::from_index) {
         assert!(doc.is_live(c), "{at}: essential cell {c} is not live");
     }
     // Emit sizes the cells for what it keeps, the dead cell included: an
@@ -154,7 +154,7 @@ fn census() {
             .clone()
             .filter(|&c| is_walked(CellIdx::from_index(c)))
             .count();
-        let constants = doc.n_essential..doc.n_essential + doc.n_const;
+        let constants = 0..doc.n_const;
         let dead_constants = constants
             .filter(|&c| !doc.is_live(CellIdx::from_index(c)))
             .count();

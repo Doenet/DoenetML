@@ -1,5 +1,6 @@
 //! Emit: merge aliases into cells with a union-find, number cells
-//! (essential, constant, derived) and bind operators to instructions.
+//! (constants, the pooled ones first, then essential, then derived) and
+//! bind operators to instructions.
 
 use super::*;
 
@@ -52,7 +53,8 @@ impl<'c> Builder<'c> {
         // leads to state (ADR 0026), before the walks read which inputs it
         // writes.
         self.orient(&slot_cells);
-        // Number cells: essential first, then constants, then derived.
+        // Number cells: the constants, the pool's first (ADR 0028), then
+        // the essential cells, then the derived ones.
         // Essential values come from the previous build when the slot existed.
         // A value slot is essential when a student's action can write it,
         // and a constant otherwise (ADR 0018): the probe finds them by its walk
@@ -132,33 +134,42 @@ impl<'c> Builder<'c> {
         let fold = self.folded_slots(&slot_cells, &essential, &pruned);
         let mut slot_cell: Vec<CellIdx> = vec![CellIdx::NONE; n];
         // Count each kind of defining slot first: the essential tables are
-        // kept, and none of these should reserve more than it fills.
+        // kept, and none of these should reserve more than it fills. The
+        // cells are counted once the pool is known.
         let mut counts = [0usize; 4];
-        let mut n_cells = 0;
-        let mut any_dead = false;
         for slot in SlotId::below(n) {
             let s = slot.index();
-            let defines = slot_cells.defines(slot);
-            if defines && pruned(s) {
-                any_dead = true;
-            } else if defines {
-                let (kind, n_out) = match &self.sources[s] {
-                    BuiltSource::Given(_) if essential[s] => (0, 1),
-                    BuiltSource::Given(_) => (1, 1),
-                    BuiltSource::Const(_) => (1, 1),
-                    BuiltSource::Op(spec, ..) if fold[s] => (1, spec.n_out()),
-                    BuiltSource::Op(spec, ..) => (2, spec.n_out()),
-                    _ => (3, 0),
+            if slot_cells.defines(slot) && !pruned(s) {
+                let kind = match &self.sources[s] {
+                    BuiltSource::Given(_) if essential[s] => 0,
+                    BuiltSource::Given(_) | BuiltSource::Const(_) => 1,
+                    BuiltSource::Op(..) if fold[s] => 1,
+                    BuiltSource::Op(..) => 2,
+                    _ => 3,
                 };
                 counts[kind] += 1;
-                n_cells += n_out;
             }
         }
-        // The dead cell, when there is one: counted here, so the arrays
-        // below hold it without growing.
-        n_cells += any_dead as usize;
-        let mut cells = Vec::with_capacity(n_cells);
-        let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n_cells);
+        // The document constants go to the pool (ADR 0028): a template
+        // slot the compile's record makes one, an operator's constant, the
+        // missing-referent cell. Not in the probe, whose build is not kept.
+        let pooled = |s: usize| {
+            !folds
+                && match self.sources[s] {
+                    BuiltSource::Const(_) => true,
+                    BuiltSource::Given(_) => !essential[s],
+                    _ => false,
+                }
+                && (Some(SlotId::from_index(s)) == self.missing
+                    || self.consts.values().any(|&k| k.index() == s)
+                    || self
+                        .template_slot(SlotId::from_index(s))
+                        .is_some_and(|(t, ts)| {
+                            !self.compiled.document_constants.0.is_empty()
+                                && self.compiled.document_constants.marks(t, ts)
+                        }))
+        };
+        let mut pool = self.session.pool.clone();
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::with_capacity(counts[0]);
         let mut essential_keys: Vec<(ElemKey, u32)> = Vec::with_capacity(counts[0]);
         let mut parked = self.session.parked.clone();
@@ -166,6 +177,10 @@ impl<'c> Builder<'c> {
         // parked, its key).
         let mut unparked: Vec<(CellIdx, crate::session::Parked, (ScopeId, u32))> = Vec::new();
         let mut essential_defaults: Vec<f64> = Vec::with_capacity(counts[0]);
+        // Each essential slot, with the value it starts at and what it took
+        // from `parked`.
+        let mut essential_defs = Vec::with_capacity(counts[0]);
+        let mut pool_defs = Vec::new();
         let mut const_defs = Vec::with_capacity(counts[1]);
         let mut derived_defs = Vec::with_capacity(counts[2]);
         let mut fold_defs = Vec::new();
@@ -178,7 +193,6 @@ impl<'c> Builder<'c> {
             if !slot_cells.defines(slot) {
                 continue; // not the defining slot of its cell
             }
-            let root = slot_cells.cell_of(slot).index();
             if pruned(s) {
                 dead_defs.push(s);
                 continue;
@@ -189,19 +203,19 @@ impl<'c> Builder<'c> {
                 walked_essential_slots.push((scope, tslot));
             }
             match &self.sources[s] {
+                _ if pooled(s) => pool_defs.push(s),
                 BuiltSource::Given(_) if !essential[s] => const_defs.push(s),
                 BuiltSource::Given(v) => {
                     let (scope, tslot, key) = self.essential_key(SlotId::from_index(s));
                     let mut value = self.session.carried(scope, tslot).unwrap_or(*v);
+                    let mut restored = None;
                     if !parked.is_empty()
                         && let Some(p) = parked.remove(&(scope, key.0, key.1))
                     {
                         value = p.value;
-                        unparked.push((CellIdx::from_index(cells.len()), p, (scope, tslot)));
+                        restored = Some(p);
                     }
-                    slot_cell[root] = CellIdx::from_index(cells.len());
-                    cells.push(value);
-                    cell_def_slot.push(SlotId::from_index(s));
+                    essential_defs.push((s, value, restored));
                     essential_slots.push((scope, tslot));
                     essential_keys.push(key);
                     essential_defaults.push(*v);
@@ -213,9 +227,54 @@ impl<'c> Builder<'c> {
                 _ => unreachable!(),
             }
         }
-        let n_essential = cells.len();
-        // The dead cell, first of the constants: NaN, never computed,
-        // and what every dead slot names.
+        // Each pooled slot's position in the pool, appending the document
+        // constants no build of this session has made yet.
+        let mut pooled_at = Vec::with_capacity(pool_defs.len());
+        if !pool_defs.is_empty() {
+            let types: HashMap<SlotId, ValueType> = self.typed_slots.iter().copied().collect();
+            for &s in &pool_defs {
+                let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.sources[s] else {
+                    unreachable!()
+                };
+                let slot = SlotId::from_index(s);
+                let ty = types.get(&slot).copied().unwrap_or(ValueType::Number);
+                let at = match pool.find(v, ty) {
+                    Some(at) => at,
+                    None => std::sync::Arc::make_mut(&mut pool).insert(v, ty),
+                };
+                pooled_at.push((slot, at));
+            }
+        }
+        let n_out = |s: usize| match self.sources[s] {
+            BuiltSource::Op(spec, ..) => spec.n_out(),
+            _ => 1,
+        };
+        let n_cells = pool.len()
+            + !dead_defs.is_empty() as usize
+            + const_defs.len()
+            + fold_defs.iter().map(|&s| n_out(s)).sum::<usize>()
+            + essential_defs.len()
+            + derived_defs.iter().map(|&s| n_out(s)).sum::<usize>();
+        let mut cells = Vec::with_capacity(n_cells);
+        let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n_cells);
+        // The pool first: every document constant a build of this session
+        // has made, at the cell it has had since (ADR 0028). A pooled cell
+        // this build does not use has no defining slot here.
+        for &(v, _) in pool.values() {
+            cells.push(v);
+            cell_def_slot.push(SlotId::NONE);
+        }
+        // A pooled cell's defining slot is one of the slots that share it,
+        // a live one if any is (its liveness is all of theirs, below).
+        for &(slot, at) in &pooled_at {
+            slot_cell[slot_cells.cell_of(slot).index()] = CellIdx::from_index(at);
+            let rep = cell_def_slot[at];
+            if rep == SlotId::NONE || (!live_slot[rep.index()] && live_slot[slot.index()]) {
+                cell_def_slot[at] = slot;
+            }
+        }
+        // The dead cell: NaN, never computed, and what every dead slot
+        // names. Not pooled, since it is not live and a pooled NaN is.
         let dead_cell = (!dead_defs.is_empty()).then(|| {
             let dead = CellIdx::from_index(cells.len());
             cells.push(f64::NAN);
@@ -226,7 +285,7 @@ impl<'c> Builder<'c> {
             dead
         });
         for &s in &const_defs {
-            // A constant, or an author's value no student can change.
+            // A scope constant, or a constant the record cannot name.
             let (BuiltSource::Const(v) | BuiltSource::Given(v)) = self.sources[s] else {
                 unreachable!()
             };
@@ -238,13 +297,28 @@ impl<'c> Builder<'c> {
         // A folded instruction's outputs are constants, computed once the
         // instructions are bound; a vector instruction's outputs are
         // consecutive cells after its head.
-        let n_out = |s: usize| match self.sources[s] {
-            BuiltSource::Op(spec, ..) => spec.n_out(),
-            _ => 1,
-        };
-        let n_const =
-            cells.len() - n_essential + fold_defs.iter().map(|&s| n_out(s)).sum::<usize>();
-        for &s in fold_defs.iter().chain(&derived_defs) {
+        for &s in &fold_defs {
+            let root = slot_cells.cell_of(SlotId::from_index(s)).index();
+            slot_cell[root] = CellIdx::from_index(cells.len());
+            for _ in 0..n_out(s) {
+                cells.push(f64::NAN);
+                cell_def_slot.push(SlotId::from_index(s));
+            }
+        }
+        let n_const = cells.len();
+        // The essential cells follow the constants.
+        for (s, value, restored) in essential_defs {
+            let cell = CellIdx::from_index(cells.len());
+            if let Some(p) = restored {
+                let (scope, tslot, _) = self.essential_key(SlotId::from_index(s));
+                unparked.push((cell, p, (scope, tslot)));
+            }
+            slot_cell[slot_cells.cell_of(SlotId::from_index(s)).index()] = cell;
+            cells.push(value);
+            cell_def_slot.push(SlotId::from_index(s));
+        }
+        let n_essential = cells.len() - n_const;
+        for &s in &derived_defs {
             let root = slot_cells.cell_of(SlotId::from_index(s)).index();
             slot_cell[root] = CellIdx::from_index(cells.len());
             for _ in 0..n_out(s) {
@@ -262,10 +336,16 @@ impl<'c> Builder<'c> {
                 head_cell.offset(k as usize);
             cell_def_slot[(head_cell.offset(k as usize)).index()] = SlotId::from_index(s);
         }
-        debug_assert_eq!(cells.len(), n_cells);
         let live_bits = |live: &[bool]| {
             let mut bits = vec![0u64; cells.len().div_ceil(64)];
             for (cell, &s) in cell_def_slot.iter().enumerate() {
+                // A pooled cell this build does not use is not live.
+                if s != SlotId::NONE && live[s.index()] {
+                    bits[cell / 64] |= 1 << (cell % 64);
+                }
+            }
+            // A pooled cell is live when any slot that shares it is.
+            for &(s, cell) in &pooled_at {
                 if live[s.index()] {
                     bits[cell / 64] |= 1 << (cell % 64);
                 }
@@ -315,6 +395,7 @@ impl<'c> Builder<'c> {
         self.seed_cells(
             &mut cells,
             &mut essential_defaults,
+            n_const,
             &slot_to_cell,
             |s| slot_cells.def(slot_cells.cell_of(s)),
             dead_cell,
@@ -340,11 +421,12 @@ impl<'c> Builder<'c> {
         let mut touched = self.session.touched.clone();
         for &(cell, p, at) in &unparked {
             let c = cell.index();
-            cells[c] = if p.fits(value_types[c], essential_defaults[c]) {
+            let default = essential_defaults[c - n_const];
+            cells[c] = if p.fits(value_types[c], default) {
                 std::sync::Arc::make_mut(&mut touched).insert(at);
                 p.value
             } else {
-                essential_defaults[c]
+                default
             };
         }
         let mut tapes = Vec::new();
@@ -521,6 +603,7 @@ impl<'c> Builder<'c> {
             runtime_strings: self.session.runtime_strings.clone(),
             engine: self.session.engine.clone(),
             math_constants: self.session.math_constants.clone(),
+            pool,
             last_build: (self.components.component_type.len(), self.sources.len()),
         };
         let comp_keys: Vec<ElemKey> = self
@@ -553,6 +636,9 @@ impl<'c> Builder<'c> {
         let dast = self.compiled.dast.clone();
         let cell_label = Box::new(move |cell: CellIdx| {
             let slot = cell_def_slot[cell.index()];
+            if slot == SlotId::NONE {
+                return "(a pooled constant)".to_string();
+            }
             let comp = slot_comp[slot.index()];
             if comp == CompIdx::NONE {
                 return "(anonymous cell)".to_string();
@@ -616,9 +702,9 @@ impl<'c> Builder<'c> {
                 &operands.cells,
                 &operands.vecs,
                 &operands.syms,
-                n_essential,
+                n_const..n_const + n_essential,
                 &asked,
-                &holds.held_always(&cells, n_essential..n_essential + n_const),
+                &holds.held_always(&cells, 0..n_const),
             );
             // The findings come in the order of `asked`.
             let mut at = 0;
@@ -733,6 +819,7 @@ impl<'c> Builder<'c> {
         &mut self,
         cells: &mut [f64],
         defaults: &mut [f64],
+        n_const: usize,
         slot_to_cell: &[CellIdx],
         def: impl Fn(SlotId) -> SlotId,
         dead_cell: Option<CellIdx>,
@@ -791,10 +878,12 @@ impl<'c> Builder<'c> {
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);
             // a seeded cell no student can write (ADR 0018) is a constant, at it.
+            // `defaults` holds the essential cells', which follow the
+            // `n_const` constants.
             let cell = slot_to_cell[s.index()].index();
-            let essential = cell < defaults.len();
+            let essential = (n_const..n_const + defaults.len()).contains(&cell);
             if essential {
-                defaults[cell] = seed;
+                defaults[cell - n_const] = seed;
             }
             if !carried || !essential {
                 cells[cell] = seed;

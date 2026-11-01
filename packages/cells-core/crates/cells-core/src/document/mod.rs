@@ -56,15 +56,21 @@ pub const TEXT_BIT: u32 = 1 << 31;
 #[derive(Debug, Clone)]
 pub struct Document {
     // What one build made.
-    /// All cells. Essential cells come first, then constants, then derived.
+    /// All cells: the constants, then the essential cells, then the
+    /// derived ones (ADR 0028).
     pub cells: Vec<f64>,
-    /// Number of essential cells; `cells[..n_essential]` are essential.
+    /// Number of essential cells, which follow the constants
+    /// (`Document::essentials`).
     pub n_essential: usize,
-    /// Constants follow the essential ones: values no tick changes, which
-    /// depend on the source and their scope alone (ADR 0028), such as
-    /// an author's value no student can write, an iteration's index or the
-    /// missing-referent NaN.
+    /// Number of constants, `cells[..n_const]`: values no tick changes,
+    /// which depend on the source and their scope alone (ADR 0028), such
+    /// as an author's value no student can write, an iteration's index or
+    /// the missing-referent NaN. The first `n_pool` are the session's
+    /// constant pool, the document constants, whose cells are the same in
+    /// every build.
     pub n_const: usize,
+    /// Number of pooled constants, `cells[..n_pool]` (ADR 0028).
+    pub n_pool: usize,
     /// What each cell's value means: read when a request arrives and when
     /// state is saved, never while recomputing.
     pub value_types: Vec<ValueType>,
@@ -157,6 +163,8 @@ impl Document {
             cells,
             n_essential,
             n_const,
+            // The pool the build returned is the front of its cells.
+            n_pool: session.pool.len(),
             value_types,
             sym: SymState::new(&program),
             program,
@@ -259,15 +267,20 @@ impl Document {
         }
     }
 
+    /// The essential cells' indices: after the constants.
+    pub fn essentials(&self) -> std::ops::Range<usize> {
+        self.n_const..self.n_const + self.n_essential
+    }
+
     pub fn is_essential(&self, cell: CellIdx) -> bool {
-        cell.index() < self.n_essential
+        self.essentials().contains(&cell.index())
     }
 
     /// A constant (ADR 0028): a value no tick changes, such as an
-    /// iteration index, a math handle or a `fixed` value. Constants follow
-    /// the essential cells.
+    /// iteration index, a math handle or a `fixed` value. The constants
+    /// come first, the pooled ones before the rest.
     pub fn is_const(&self, cell: CellIdx) -> bool {
-        (self.n_essential..self.n_essential + self.n_const).contains(&cell.index())
+        cell.index() < self.n_const
     }
 
     /// Recompute all derived cells from the essential cells.

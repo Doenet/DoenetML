@@ -233,7 +233,7 @@ fn classify(
             Class::Unstable
         }
     };
-    let multipath = (0..doc.n_essential).any(|e| {
+    let multipath = doc.essentials().any(|e| {
         doc.cells[e].to_bits() != base.cells[e].to_bits() && {
             let p = paths.from(base, e);
             target.iter().any(|c| p[c.index()] > 1)

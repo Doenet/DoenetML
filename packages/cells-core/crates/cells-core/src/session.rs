@@ -62,6 +62,12 @@ pub struct Session {
     /// instances stamp it and however many builds run (ADR 0028). A handle
     /// into `engine`, so it goes where the engine goes.
     pub(crate) math_constants: Rc<RefCell<HashMap<(ExprId, Post), Handle>>>,
+    /// The constant pool (ADR 0028): the document constants every build
+    /// has made, one cell per distinct value, at the front of every
+    /// build's cells in the order they were first made. It only grows, so
+    /// a document constant's cell is the same in every build of the
+    /// session. Shared with the builds that read it.
+    pub(crate) pool: Arc<Pool>,
     /// How many components and slots the last build made: what the next
     /// sizes its tables by, so a rebuild neither over-reserves nor regrows.
     pub(crate) last_build: (usize, usize),
@@ -110,6 +116,46 @@ impl Session {
                 .sum::<usize>()
             + self.counts.0.capacity() * 24
             + self.touched.capacity() * 8
+    }
+}
+
+/// The constant pool (`Session::pool`): each document constant's value and
+/// type, by its position, which is its cell in every build.
+#[derive(Debug, Clone, Default)]
+pub struct Pool {
+    values: Vec<(f64, crate::ValueType)>,
+    /// The position of each (type, bits).
+    at: HashMap<(crate::ValueType, u64), u32>,
+}
+
+impl Pool {
+    /// How many cells the pool holds.
+    pub fn len(&self) -> usize {
+        self.values.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.values.is_empty()
+    }
+
+    /// Each pooled value and its type, by its position.
+    pub(crate) fn values(&self) -> &[(f64, crate::ValueType)] {
+        &self.values
+    }
+
+    /// The position of `v`, a value of type `ty`, if the pool holds it.
+    pub(crate) fn find(&self, v: f64, ty: crate::ValueType) -> Option<usize> {
+        self.at.get(&(ty, v.to_bits())).map(|&i| i as usize)
+    }
+
+    /// The position of `v`, appended when the pool lacks it.
+    pub(crate) fn insert(&mut self, v: f64, ty: crate::ValueType) -> usize {
+        let next = self.values.len() as u32;
+        let i = *self.at.entry((ty, v.to_bits())).or_insert(next);
+        if i == next {
+            self.values.push((v, ty));
+        }
+        i as usize
     }
 }
 

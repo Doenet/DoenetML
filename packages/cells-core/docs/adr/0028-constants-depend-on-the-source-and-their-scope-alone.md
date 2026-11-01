@@ -1,6 +1,6 @@
 # Constants depend on the source and their scope alone
 
-Status: proposed 2026-10-30. Migration phases 1 to 5 are done; see
+Status: proposed 2026-10-30. Migration phases 1 to 6 are done; see
 Migration. Drafted as 0026, and renumbered as `cells` took 0026 (composed
 inverses) and 0027 (the compile runs in passes) first.
 
@@ -12,7 +12,7 @@ the counts is derived, computed from the count cells like any other
 derived cell. A constant that depends on the document alone, the same
 in every instance of its template slot, is a **document constant**; one
 that depends on its scope too is a **scope constant**. Document constants
-are made once per load, in a pool at the front of the cells that every
+are made once per session, in a pool at the front of the cells that every
 build reuses, so a rebuild makes none of them again. An instruction
 whose every input is a constant is evaluated once and becomes a constant
 itself.
@@ -171,33 +171,32 @@ only a cell per instance; the reverse would give scopes one value that
 differs between them, so the rule names what qualifies. A folded
 instruction (step 4) is a document constant when every input is.
 
-### 3. Document constants are made once per load
+### 3. Document constants are made once per session
 
-The load makes the **constant pool** after the compile: one cell per
-distinct document constant, keyed by its value type and its bits, as
-`const_slot` keys operator constants today. A math handle is imported,
-and simplified or expanded as its source asks, once. The pool holds the
-document constants of every template slot the live record keeps, stamped
-in the first build or not, so a later rebuild never needs one it lacks;
-its size is bounded by the distinct constants in the source.
-
-The pool is the front of the cells, and it is kept with what the load
-fixed (`Loaded`):
+The **constant pool** holds one cell per distinct document constant,
+keyed by its value type and its bits, as `const_slot` keys operator
+constants: the document constants of the compile's record (step 2), the
+operators' constants and the missing-referent cell. It is the front of
+every build's cells, and it belongs to the session (`Session::pool`):
 
 ```
- [ document constants | essential | scope constants | derived ]
-   made by the load,  ── made by every build, in this order ──
-   reused by every build
+ [ document constants | scope constants | essential | derived ]
+   the session's pool,  ── made by every build, in this order ──
+   in the order first made
 ```
 
-A build starts its cells from the pool and does not resolve or emit a
-slot whose template slot is a document constant: its prop names the pool's
-cell directly. Since the pool's length is fixed for the load, a
-document constant's index is the same in every build. Scope constants are
-made by each build, as fixed cells are today; they are cheap and the
-same in every build that stamps the scope, so nothing caches them.
+A build starts its cells from the pool and gives a document-constant
+slot no cell of its own: its prop names the pool's cell. A document
+constant the pool lacks, one a template stamped for the first time
+needs, is appended, so the pool only grows and no pooled cell moves: a
+document constant's index is the same in every build of the session,
+and a cell this build does not use stays, holding its value, with
+nothing naming it. Scope constants are made by each build; they are
+cheap and the same in every build that stamps the scope, so nothing
+caches them.
 
-The dead cell and the missing-referent cell are the pool's first cells.
+The dead cell is not pooled: it is not live, and a pooled NaN, the
+missing-referent cell, is.
 
 ### 4. An instruction over constants is a constant
 
@@ -345,7 +344,8 @@ after each.
 6. **The pool** (step 3): the load makes it, builds start from it, and
    document-constant slots name it without a source. `is_essential` and `is_const`
    become range checks after the pool. Measured with `perf-diff.sh` and
-   `cells-bench` against the commit before phase 1.
+   `cells-bench` against the commit before phase 1. *Done
+   2026-11-01*; see below.
 7. **Docs.** `CONTEXT.md` and `ARCHITECTURE.md` as above; this ADR's
    status.
 
@@ -471,3 +471,42 @@ Settled while implementing phase 5:
 - The spec cost snapshots move only by instructions becoming constants:
   in every changed case, cells, essential cells and components are the
   same, and the constants grow by what the folded instructions wrote.
+
+Settled while implementing phase 6:
+
+- The pool belongs to the session, not to the load, and grows when a
+  build needs a document constant it lacks, as step 3 now says. Made by
+  the load, it would have to give every template's document constants
+  their values without building them; appended to, it gets the value the
+  build already has, and keeps every pooled cell where it was.
+- The pool holds the operators' constants and the missing-referent cell
+  beside the record's document constants. The dead cell stays out (step
+  3). Folds stay per build: a fold of document constants is evaluated by
+  every build and is a scope constant here, where step 4 said the pool
+  would hold it.
+- The essential cells follow the constants, where step 3 put them between
+  the pool and the scope constants: so the constants are one range,
+  `..n_const`, with the pool its first `n_pool`. Whatever read an
+  essential cell's index as its position among the essential cells reads
+  `Document::essentials` now: inversion and refusal take that range,
+  saved state, the session's record and the input signature subtract
+  `n_const`.
+- A pooled cell is live when any slot that shares it is. Taken from one
+  slot, as an unpooled cell's liveness is, it was dead in `sir.doenet`
+  loaded unpruned while an output read it (`tests/live.rs`'s census).
+- A build still reads each document-constant slot's planned value to
+  find its pooled cell; it makes no cell for it and imports no math for
+  it (phase 1).
+- `a_document_constant_keeps_its_cell_across_rebuilds`
+  (`tests/constants.rs`) checks that a repeat's literals share one pooled
+  cell in every iteration, and that the pool's cells keep their values and
+  indices through rebuilds to five, zero and two iterations. The census
+  reports the pool: over the golden set 70 of 163 constants are pooled,
+  where 131 document-constant slots each had a cell; in `sir.doenet` 624
+  document-constant slots share 12 pooled cells.
+- In the benchmark of Context at 5000 iterations, cells go from 75,033 to
+  40,027; the rebuild is unchanged within noise (44 ms to 43 ms), since a
+  build still visits every slot. The spec cost snapshots move only by
+  constants shared: in every changed case, essential cells,
+  instructions and components are the same, and cells and constants fall
+  together.

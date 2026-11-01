@@ -234,7 +234,7 @@ impl Document {
         let mut session = std::mem::take(&mut self.session);
         session.record(
             &self.structure.essential_slots,
-            &self.cells[..self.n_essential],
+            &self.cells[self.essentials()],
         );
         session
     }
@@ -311,9 +311,9 @@ impl Document {
             return Ok(0);
         };
         // The values as they are now are what the build carries.
-        let n = self.n_essential;
+        let essentials = self.essentials();
         self.session
-            .record(&self.structure.essential_slots, &self.cells[..n]);
+            .record(&self.structure.essential_slots, &self.cells[essentials]);
         let counts = Counts::of(self);
         // What every repeat asks for now, kept for an iteration this
         // rebuild drops and a later one brings back.

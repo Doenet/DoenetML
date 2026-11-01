@@ -59,7 +59,7 @@ pub struct Inversion {
 /// producing instruction, highest schedule position first, so every
 /// request on an instruction's outputs is known before it is inverted
 /// once; the input requests an inverse produces join the queue. Cells
-/// below `n_essential` are essential; a request landing on another
+/// in `essentials` are essential; a request landing on another
 /// producer-less cell (a constant), or on a cell a `fixed` holds
 /// (`Program::holds`), is dropped.
 ///
@@ -73,7 +73,7 @@ pub fn invert_requests(
     program: &Program,
     sym: &mut SymRun,
     cells: &[f64],
-    n_essential: usize,
+    essentials: std::ops::Range<usize>,
     requests: &[Request],
     groups: &[Vec<PointRequest>],
 ) -> Inversion {
@@ -81,7 +81,7 @@ pub fn invert_requests(
         program,
         sym: sym.reborrow(),
         cells,
-        n_essential,
+        essentials,
         pending: HashMap::default(),
         heap: BinaryHeap::new(),
         queued: HashSet::default(),
@@ -126,7 +126,7 @@ pub fn realize(
     program: &Program,
     sym: &mut SymRun,
     cells: &[f64],
-    n_essential: usize,
+    essentials: std::ops::Range<usize>,
     requests: &[(CellIdx, f64)],
     out: &mut Vec<f64>,
 ) {
@@ -134,7 +134,7 @@ pub fn realize(
         .iter()
         .map(|&(cell, value)| Request { cell, value })
         .collect();
-    let inv = invert_requests(program, sym, cells, n_essential, &reqs, &[]);
+    let inv = invert_requests(program, sym, cells, essentials, &reqs, &[]);
     let mut scratch = cells.to_vec();
     for &(c, v) in &inv.writes {
         scratch[c.index()] = v;
@@ -159,7 +159,7 @@ struct RequestEngine<'a> {
     program: &'a Program,
     sym: SymRun<'a>,
     cells: &'a [f64],
-    n_essential: usize,
+    essentials: std::ops::Range<usize>,
     /// Requested value per derived cell awaiting its producer's inverse.
     pending: HashMap<CellIdx, f64>,
     /// Producers with pending requests, highest schedule position first.
@@ -181,7 +181,7 @@ impl RequestEngine<'_> {
         }
         let p = self.program.producer[cell.index()];
         if p == u32::MAX {
-            if cell.index() < self.n_essential {
+            if self.essentials.contains(&cell.index()) {
                 match self.write_index.get(&cell) {
                     Some(&i) => self.inversion.writes[i].1 = value,
                     None => {
@@ -240,7 +240,7 @@ impl RequestEngine<'_> {
                 self.program,
                 &mut self.sym,
                 self.cells,
-                self.n_essential,
+                self.essentials.clone(),
                 &reqs,
                 &mut realized,
             );

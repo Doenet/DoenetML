@@ -24,7 +24,7 @@ pub use vector::{MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp};
 /// string table, or an expression handle in the symbolic engine. Recorded
 /// by the build for every cell, from the source that defines the cell; the
 /// tick only reads it when a request arrives, never while recomputing.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[repr(u8)]
 pub enum ValueType {
     #[default]

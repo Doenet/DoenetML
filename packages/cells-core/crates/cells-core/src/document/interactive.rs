@@ -42,12 +42,9 @@ impl Document {
             &self.program.operands,
             &self.program.vecs,
             &self.program.syms,
-            self.n_essential,
+            self.essentials(),
             &self.interactive_cells(),
-            &self.program.holds.held_always(
-                &self.cells,
-                self.n_essential..self.n_essential + self.n_const,
-            ),
+            &self.program.holds.held_always(&self.cells, 0..self.n_const),
         );
         for (cell, finding) in found {
             if let crate::program::refuse::Finding::Twice { .. } = finding {

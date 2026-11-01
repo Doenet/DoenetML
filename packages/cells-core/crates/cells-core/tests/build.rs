@@ -30,11 +30,13 @@ fn three_cells_for_three_coordinates_plus_one_hide_per_point() {
     // Every count here includes the document's `creditAchieved` and
     // `percentCreditAchieved`: two constants when nothing is scored.
     let doc = load_ok(r#"<point name="p1" x="1" y="2"/><point name="p2" x="5" y="$p1.y"/>"#);
-    assert_eq!(doc.cells.len(), 7);
+    assert_eq!(doc.cells.len(), 6);
     // The coordinates a drag writes; each point's `hide` is a constant, since
-    // nothing a student does writes it (ADR 0018).
+    // nothing a student does writes it (ADR 0018), and a document constant,
+    // so both points' share one pooled cell (ADR 0028).
     assert_eq!(doc.n_essential, 3);
     assert!(doc.is_const(doc.cell("p1", "hide").unwrap()));
+    assert_eq!(doc.cell("p1", "hide"), doc.cell("p2", "hide"));
     assert_eq!(doc.cell("p1", "y"), doc.cell("p2", "y"));
     assert_ne!(doc.cell("p1", "x"), doc.cell("p2", "x"));
     assert_eq!(doc.value("p2", "y"), Some(2.0));
@@ -81,7 +83,9 @@ fn coords_attribute_aliases_both_cells() {
     let doc = load_ok(
         r#"<point name="p1" x="1" y="2"/><point name="q" coords="$p1"/><point name="r" coords="$p1.coords"/>"#,
     );
-    assert_eq!(doc.cells.len(), 7);
+    // Two coordinates, the credit's two constants, and one pooled `hide`
+    // for the three points (ADR 0028).
+    assert_eq!(doc.cells.len(), 5);
     assert_eq!(doc.cell("q", "x"), doc.cell("p1", "x"));
     assert_eq!(doc.cell("r", "y"), doc.cell("p1", "y"));
 }
@@ -135,9 +139,10 @@ fn operators_compute_and_propagate() {
            <point name="p" x="$t" y="$u"/>"#,
     );
     // The two inputs; the point's `hide` is a constant (ADR 0018), as are the
-    // literals 10, 0, 50 and 1, one cell each.
+    // literals 10, 0, 50 and 1, one pooled cell per value, so the `hide`
+    // and the 0 share one (ADR 0028).
     assert_eq!(doc.n_essential, 2);
-    assert_eq!(doc.cells.len(), 17);
+    assert_eq!(doc.cells.len(), 16);
     assert_eq!(doc.value("s", "value"), Some(7.0));
     assert_eq!(doc.value("t", "value"), Some(70.0));
     assert_eq!(doc.value("u", "value"), Some(50.0));

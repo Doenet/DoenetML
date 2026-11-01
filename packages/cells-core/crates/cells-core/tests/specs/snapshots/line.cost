@@ -1,7 +1,7 @@
 no attributes: through (1, 0) and (0, 0), both free: cells 11 · essential 8 · constant 3 · instrs 0 · components 3
 two points: slope, intercepts and coefficients follow: cells 11 · essential 8 · constant 3 · instrs 0 · components 3
 one point: the other at the origin: cells 11 · essential 8 · constant 3 · instrs 0 · components 3
-points from points: a drag moves them: cells 13 · essential 8 · constant 5 · instrs 0 · components 5
+points from points: a drag moves them: cells 11 · essential 8 · constant 3 · instrs 0 · components 5
 a point and a slope: the second point a unit along it: cells 13 · essential 8 · constant 3 · instrs 1 · components 3
 a slope alone: through the origin: cells 13 · essential 8 · constant 3 · instrs 1 · components 3
 a slope from a number: cells 13 · essential 8 · constant 3 · instrs 1 · components 4
@@ -14,12 +14,12 @@ an equation as the line's text: cells 14 · essential 7 · constant 3 · instrs 
 an equation in other variables: cells 14 · essential 7 · constant 3 · instrs 1 · components 3
 variables that are not two are x and y: cells 14 · essential 7 · constant 3 · instrs 1 · components 3
 an equation over a number: cells 15 · essential 7 · constant 3 · instrs 2 · components 4
-a nonlinear equation is not a line: cells 14 · essential 4 · constant 10 · instrs 0 · components 3
+a nonlinear equation is not a line: cells 12 · essential 4 · constant 8 · instrs 0 · components 3
 an equation without one '=' is refused: cells 6 · essential 4 · constant 2 · instrs 0 · components 3
 more than two points are refused: cells 6 · essential 4 · constant 2 · instrs 0 · components 3
 a bare copy shares the line: cells 11 · essential 8 · constant 3 · instrs 0 · components 4
-a copy of an equation line takes its equation: cells 22 · essential 10 · constant 4 · instrs 2 · components 4
-a copy given points is a two-point line: cells 19 · essential 11 · constant 4 · instrs 1 · components 4
-a copy overriding the slope shares the point: cells 17 · essential 9 · constant 4 · instrs 2 · components 4
-a copy of a defaulted line shares both points: cells 12 · essential 8 · constant 4 · instrs 0 · components 4
-fixed: drags are refused: cells 12 · essential 4 · constant 8 · instrs 0 · components 3
+a copy of an equation line takes its equation: cells 21 · essential 10 · constant 3 · instrs 2 · components 4
+a copy given points is a two-point line: cells 18 · essential 11 · constant 3 · instrs 1 · components 4
+a copy overriding the slope shares the point: cells 16 · essential 9 · constant 3 · instrs 2 · components 4
+a copy of a defaulted line shares both points: cells 11 · essential 8 · constant 3 · instrs 0 · components 4
+fixed: drags are refused: cells 11 · essential 4 · constant 7 · instrs 0 · components 3

@@ -13,7 +13,8 @@
 //! (scope, template slot).
 //!
 //! **Emit**: union-find over aliases makes cells; cells are numbered
-//! (essential, then constants, then derived); and operators are bound.
+//! (the constants, the session's pool first, then essential, then
+//! derived); and operators are bound.
 //! [`BuildOutput::schedule`] then orders the
 //! instructions, with a fast path when creation order is already a valid
 //! evaluation order.
@@ -275,6 +276,17 @@ pub(crate) struct Live {
 }
 
 impl BuildOutput {
+    /// Whether cell `i` is essential: the essential cells follow the
+    /// constants (ADR 0028).
+    pub(crate) fn is_essential(&self, i: usize) -> bool {
+        (self.n_const..self.n_const + self.n_essential).contains(&i)
+    }
+
+    /// Whether cell `i` is a constant: the constants come first.
+    pub(crate) fn is_const(&self, i: usize) -> bool {
+        i < self.n_const
+    }
+
     /// What the probe found, which the compile keeps.
     pub(crate) fn probed(self) -> Probed {
         self.probed

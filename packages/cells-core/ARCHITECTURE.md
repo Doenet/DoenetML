@@ -118,8 +118,9 @@ draw for every select.
   *scope* (the document, and each iteration of each repeat) and resolves
   references to slots.
 - **Emit** (`build/emit.rs`) merges aliased slots into cells with a
-  union-find, numbers the cells (essential, then constants, then derived)
-  and binds operators to them as instructions. A given value (an
+  union-find, numbers the cells (the constants, with the session's pool of
+  document constants first, ADR 0028; then essential; then derived) and
+  binds operators to them as instructions. A given value (an
   attribute's or a default) is essential only when a student's action can write it (ADR
   0018): `build/writable.rs` walks back from every input prop to where a
   request on each cell goes. Both walks read the cells the slots will make

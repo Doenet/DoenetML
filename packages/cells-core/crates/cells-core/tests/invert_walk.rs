@@ -21,6 +21,7 @@ fn the_walk_matches_the_queue() {
     for src in DOCS {
         let mut doc = load(src).unwrap();
         let engine = doc.session.engine.clone();
+        let essentials = doc.essentials();
         for cell in CellIdx::below(doc.cells.len()) {
             for value in [0.5, -3.0, 7.25] {
                 let r = Request { cell, value };
@@ -31,7 +32,7 @@ fn the_walk_matches_the_queue() {
                         engine: &mut engine.borrow_mut(),
                     },
                     &doc.cells,
-                    doc.n_essential,
+                    essentials.clone(),
                     &[r],
                     &[],
                 );
@@ -42,7 +43,7 @@ fn the_walk_matches_the_queue() {
                         engine: &mut engine.borrow_mut(),
                     },
                     &doc.cells,
-                    doc.n_essential,
+                    essentials.clone(),
                     &[r, r],
                     &[],
                 );

@@ -105,6 +105,7 @@ impl Document {
         self.snap_sticky(&mut accepted, &mut finite_groups);
         let engine = self.session.engine.clone();
         let mut engine = engine.borrow_mut();
+        let essentials = self.essentials();
         let mut sym = SymRun {
             state: &mut self.sym,
             engine: &mut engine,
@@ -113,7 +114,7 @@ impl Document {
             &self.program,
             &mut sym,
             &self.cells,
-            self.n_essential,
+            essentials.clone(),
             &accepted,
             &finite_groups,
         );
@@ -125,8 +126,8 @@ impl Document {
         // started put it there.
         let mut newly_touched = Vec::new();
         for &(cell, _) in &inv.writes {
-            if cell.index() < self.n_essential {
-                let at = self.structure.essential_slots[cell.index()];
+            if essentials.contains(&cell.index()) {
+                let at = self.structure.essential_slots[cell.index() - essentials.start];
                 if Arc::make_mut(&mut self.session.touched).insert(at) {
                     newly_touched.push(at);
                 }

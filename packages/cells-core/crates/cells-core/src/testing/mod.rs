@@ -177,8 +177,8 @@ pub fn inputs(
             let g = doc.comp_cells(a);
             let author = |p: &str| {
                 let cell = g[ComponentType::Graph.prop_index(p).unwrap()].index();
-                if cell < doc.n_essential {
-                    doc.structure.essential_defaults[cell]
+                if doc.essentials().contains(&cell) {
+                    doc.structure.essential_defaults[cell - doc.n_const]
                 } else {
                     doc.cells[cell]
                 }
