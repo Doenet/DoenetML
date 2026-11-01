@@ -367,8 +367,14 @@ export class EssentialValueWriter {
             // Note 2: if we don't update a composite here, the state variable indicating
             // its replacements need processing may remain stale, which will
             // prevent futher changes from being triggered
+            // A component deleted later in the pass was taken off the shared
+            // queue (see `DeletionEngine`), but not off `queuedThisPass`, so
+            // leave out components that are gone.
             compositesToUpdateReplacements = [...queuedThisPass].filter(
-                (cIdx) => !this.core._components[cIdx]?.isInErrorState,
+                (cIdx) => {
+                    const component = this.core._components[cIdx];
+                    return component && !component.isInErrorState;
+                },
             );
 
             // Composites can keep queuing each other without end, through a
