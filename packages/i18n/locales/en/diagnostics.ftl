@@ -786,12 +786,25 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # when `$source[1]` selects one of those components (an entry of a list, an
 # iteration or a pick that holds one component); an index does not select a
 # child of a `<group>`, so the author names the one they want instead.
+# $container is `iteration` when `$source` is an iteration of $sourceType,
+# `pick` when it is what $sourceType picked, `case` when it is what
+# $sourceType shows, and `other` when it is a $sourceType itself.
 type-change-composite-not-one =
     { $holdsNothing ->
-        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing now, so nothing is shown for it.
+        [true] A `<{ $componentType }>` can't be made from `{ $source }`, { $container ->
+            [iteration] an iteration of a `<{ $sourceType }>`
+            [pick] what a `<{ $sourceType }>` picked
+            [case] what a `<{ $sourceType }>` shows
+           *[other] a `<{ $sourceType }>`
+        } that holds nothing now, so nothing is shown for it.
        *[other] { $indexSelectsOne ->
             [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-           *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+           *[other] A `<{ $componentType }>` can be made from { $container ->
+                [iteration] an iteration of a `<{ $sourceType }>`
+                [pick] what a `<{ $sourceType }>` picked
+                [case] what a `<{ $sourceType }>` shows
+               *[other] a `<{ $sourceType }>`
+            } only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
         }
     }
 

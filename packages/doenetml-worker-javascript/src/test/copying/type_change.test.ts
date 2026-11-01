@@ -515,6 +515,78 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
+    it("an iteration, a pick or a case is named by what made it, not as a group", async () => {
+        // A `<setup>` shows nothing, so the iteration's content is written
+        // (an error), while what a pick or a case holds is decided at run
+        // time (an info).
+        const { texts, typeChangeDiagnostics } = await setup(`
+<repeat name="rep" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
+<repeat name="rep2" for="1 2" valueName="v"><conditionalContent><case condition="$v=2"><math>1</math></case></conditionalContent></repeat>
+<select name="s" numToSelect="2"><option><math>1</math><math>3</math></option><option><math>2</math><math>4</math></option></select>
+<conditionalContent name="cc"><case condition="true"><math>1</math><math>2</math></case></conditionalContent>
+<group name="g"><setup><math name="h">5</math></setup><math>1</math><math>2</math></group>
+<p name="p1"><math extend="$rep[1]"/></p>
+<p name="p2"><math extend="$rep2[1]"/></p>
+<p name="p3"><math extend="$s[1]"/></p>
+<p name="p4"><math extend="$cc[1]"/></p>
+<p name="p5"><math extend="$g"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+            p4: "",
+            p5: "",
+        });
+        expect(
+            typeChangeDiagnostics().map(({ type, message }) => ({
+                type,
+                message,
+            })),
+        ).eqls([
+            {
+                type: "error",
+                message:
+                    "A `<math>` can be made from an iteration of a `<repeat>` only when it holds one component, and `$rep[1]` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$rep[1]</math>`.",
+            },
+            {
+                type: "error",
+                message:
+                    "A `<math>` can be made from a `<group>` only when it holds one component, and `$g` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$g</math>`.",
+            },
+            {
+                type: "info",
+                message:
+                    "A `<math>` can't be made from `$rep2[1]`, an iteration of a `<repeat>` that holds nothing now, so nothing is shown for it.",
+            },
+            {
+                type: "info",
+                message:
+                    "A `<math>` can be made from what a `<select>` picked only when it holds one component, and `$s[1]` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$s[1]</math>`.",
+            },
+            {
+                type: "info",
+                message:
+                    "A `<math>` can be made from what a `<conditionalContent>` shows only when it holds one component, and `$cc[1]` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$cc[1]</math>`.",
+            },
+        ]);
+    });
+
+    it("content that holds a list is not decided", async () => {
+        // What a list stands for can change without the composite holding
+        // it making new replacements, so it is left as it was: here each
+        // shows its one entry. The inner `<repeatForSequence>`s are made
+        // lists, whose type is not one the author wrote.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<group name="g"><mathList>7</mathList></group>
+<repeat name="rep" for="1 2" valueName="v"><repeatForSequence length="$v"><math>1</math></repeatForSequence></repeat>
+<p name="p1"><math extend="$g"/></p>
+<p name="p2"><math extend="$rep[1]"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "7", p2: "1" });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
     it("a point made from a math is shown while its value is a tuple", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`

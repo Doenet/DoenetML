@@ -27,7 +27,10 @@ import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import AuthoredValueList from "./AuthoredValueList";
 import { typeChangeRule, valueAllowsTypeChange } from "../../utils/typeChange";
-import { indexSelectsInstances } from "../../utils/indexInstances";
+import {
+    indexSelectsInstances,
+    instanceKindOf,
+} from "../../utils/indexInstances";
 import {
     doenetMLDollarsForReference,
     doenetMLStringForReference,
@@ -4975,6 +4978,19 @@ function typeStoodFor(component) {
 }
 
 /**
+ * What the `<group>` an iteration, a pick or a case is made as is, by
+ * `instanceOf`, the type of the component that made it (`_instanceOf`):
+ * `iteration`, `pick` or `case`, or `other` for any other `<group>`.
+ */
+function containerKind(instanceOf) {
+    if (instanceOf === "conditionalContent") {
+        return "case";
+    }
+    const kind = instanceKindOf(instanceOf);
+    return kind === "iteration" || kind === "pick" ? kind : "other";
+}
+
+/**
  * The composites whose content is fixed by the document, so that a type
  * change of one that does not match is a mistake in what the author wrote
  * (an error), not a state the document is in for now (an info).
@@ -4987,8 +5003,8 @@ const COMPOSITES_WITH_WRITTEN_CONTENT = new Set(["group", "_copy"]);
  * - `undefined` when there is nothing to decide: the copy is not one an
  *   author wrote as a tag (`_copyInChildren`), it is written as a list or a
  *   `<group>`, or what it copies is not known yet (a reference that names
- *   nothing yet, content not yet expanded, a prop that makes several
- *   components);
+ *   nothing yet, content not yet expanded or holding a list, a prop that
+ *   makes several components);
  * - `null` when the type change is allowed;
  * - otherwise `{ level, diagnostic }`, the mismatch: `level` is `"error"`
  *   when it follows from what the author wrote, and `"info"` when from what
@@ -5216,6 +5232,7 @@ async function typeChangeStatus({
                 code: "doenet-e0064",
                 args: {
                     sourceType,
+                    container: "other",
                     count,
                     holdsNothing: count === 0 ? "true" : "false",
                     // An index selects an entry of a list.
@@ -5250,6 +5267,10 @@ async function typeChangeStatus({
     const content = [];
     let changes = !COMPOSITES_WITH_WRITTEN_CONTENT.has(sourceType);
     let allExpanded = true;
+    // Whether the content holds a list, which is not decided: what a list
+    // stands for, its entries, can change without the composite making new
+    // replacements, which is all an `extend` of it is updated for.
+    let holdsList = false;
     // How many components each instance of the source (its iterations,
     // picks or items) holds, and so whether `$x[1]` would select one
     // component.
@@ -5282,8 +5303,20 @@ async function typeChangeStatus({
             return true;
         }
         const comp = components[replacement.componentIdx];
-        if (!comp || (await comp.stateValues.isInactiveCompositeReplacement)) {
+        if (
+            !comp ||
+            comp.componentType === "setup" ||
+            (await comp.stateValues.isInactiveCompositeReplacement)
+        ) {
+            // A `<setup>`, the author's or the one a repeat adds to an
+            // iteration for its `valueName`, shows nothing.
             return false;
+        }
+        if (
+            componentInfoObjects.allComponentClasses[comp.componentType]
+                ?.listEntryComponentType !== undefined
+        ) {
+            holdsList = true;
         }
         if (
             componentInfoObjects.isCompositeComponent({
@@ -5304,6 +5337,9 @@ async function typeChangeStatus({
         return true;
     }
     await gather(sourceComponent);
+    if (holdsList) {
+        return undefined;
+    }
     if (!allExpanded && content.length < 2) {
         // Decided when it is expanded, which updates an `extend` of it
         // (`needsReplacementsUpdatedWhenStale`). Two components already found
@@ -5311,13 +5347,24 @@ async function typeChangeStatus({
         return undefined;
     }
 
-    const level = changes ? "info" : "error";
+    // An iteration, a pick or a case is made as a `<group>`, which the
+    // author did not write; it is named by what made it. What a pick or a
+    // case holds is decided at run time, as what a `<select>` or a
+    // `<conditionalContent>` holds is.
+    const instanceOf =
+        sourceComponent.attributes?._instanceOf?.primitive?.value;
+    const container = containerKind(instanceOf);
+    const level =
+        changes || container === "pick" || container === "case"
+            ? "info"
+            : "error";
     if (content.length !== 1) {
         return mismatch({
             level,
             code: "doenet-e0064",
             args: {
-                sourceType,
+                sourceType: container === "other" ? sourceType : instanceOf,
+                container,
                 count: content.length,
                 holdsNothing: content.length === 0 ? "true" : "false",
                 // An index selects an instance, never a child of a
