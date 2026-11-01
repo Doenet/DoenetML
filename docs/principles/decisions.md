@@ -783,14 +783,15 @@ these cases:
 - **any other pair,** such as a section as a math.
 
 **Known at load or at run time.** An error is reported on the extend, copy or fresh form and not
-rendered. When the mismatch depends on what the document makes at run time, it is a warning, and
-nothing is shown while it lasts. Examples:
+rendered. When the mismatch depends on what the document makes at run time, it is an **info**,
+and nothing is shown while it lasts. Examples:
 - which case is active, or which option was picked;
 - how many components a collect holds;
 - whether a math's value is a tuple.
 
-This follows the rule used for D33: what is not known until the document runs, and may change
-with interaction, is a warning. Today such a mismatch is a silent blank: a group of two maths as
+Such a document can be valid: it may be meant to show nothing until the reader changes
+something. So the diagnostic only explains why nothing shows (D35). Today such a mismatch is a
+silent blank: a group of two maths as
 a `<math>` gives `＿`, and a case holding a text as a `<math>` gives `＿`.
 
 A new core then needs only the table.
@@ -1720,3 +1721,60 @@ No test pins the #2408 case today.
 
 A candidate addition to VAL-3: "a reference to a text, read as math, is parsed in its known
 notation, or else in the reader's".
+
+## D35. What error, warning and info mean (proposed Tier 2)
+
+**Today** no principle says which level a diagnostic should have. The code's letter (`e`, `w`, `i`)
+records what it was first raised as, and each call site picks the level it reports
+(`packages/i18n/README.md`). Many warnings fire for valid DoenetML whose values, at that moment,
+give nothing to show. **[probe]** on main, built from `7c2bb1f`:
+
+| Document | Diagnostic |
+|---|---|
+| `$l[$i]` while `<mathInput name="i">` is blank or 0 | warning `doenet-w0104` |
+| `<circle through="($a,1) (2,3) (4,1)"/>` while `a` is blank | warning `doenet-w0027` |
+| `<function through="($a,1) (2,3)"/>` while `a` is blank | warning `doenet-w0040` |
+| `<sampleRandomNumbers type="gaussian" standardDeviation="$s"/>` while `s` is blank | warning `doenet-w0126` |
+| `<collect from="$cc.S"/>` while the case holding `S` is not active | warning `doenet-w0072` |
+| `$r[2].q` after a reload with one iteration (#1499) | warning `doenet-w0104`, not shown before the reload |
+
+Each of these is a document waiting for the reader. None needs to be fixed.
+
+**Proposed principle.** A diagnostic's level says what the author should do about it:
+- **error:** the DoenetML is invalid or cannot be honored as written. Something is not rendered,
+  or is replaced by the error. The author must change it. Examples: D32's extend errors, an
+  unrelated type change (D26), a cycle (NAME-7).
+- **warning:** the DoenetML is valid but almost certainly not what was meant, or does nothing.
+  The author should change it. Examples: an attribute that is ignored, a deprecated form, an
+  ambiguous name (`doenet-w0105`), a literal `$l[0]`, and D33's warning that a copy's nested
+  choices kept the source's.
+- **info:** the DoenetML is valid, and with the values it has now, part of it shows nothing or
+  something degenerate. The diagnostic only explains why, so that the author is not confused.
+  Nothing needs to change. Examples: an index that names nothing at the moment, a construction
+  from a blank input, a collect from content not shown, a type change that does not match the
+  active case (D26).
+
+**The same code can have different levels.** The level depends on where the condition comes
+from, not on the code:
+- **from what the author wrote** (literals, the structure of the document), the condition is a
+  mistake: a warning, or an error. `$l[0]` is a warning.
+- **from values that can change** (inputs, references, which case or option is active, a random
+  choice), it is an info. `$l[$i]` with `i` = 0 is an info.
+
+Run-time detection alone does not make a diagnostic an info. D33's nested choice stays a warning,
+although it is found only at run time, because the author should write the fresh form instead.
+
+**What follows:**
+- **#1499** becomes simpler. An index past the end that can change is an info, reported the same
+  way before and after a reload (SAVE-1). Whether the length can change no longer decides
+  between a warning and silence.
+- **Infos should not crowd the editor.** An info belongs where the author looks for it, such as
+  next to the component that shows nothing, not as a count in the warning tally. That is a
+  question for the editor's display, not for the core.
+- **An audit:** go through the warning codes and mark each call site as authored or value-driven.
+  The geometry, sampling, function and chart warnings (`w0027`–`w0037`, `w0040`–`w0042`,
+  `w0126`–`w0136`, `w0144`–`w0159` and others) are the likely value-driven ones.
+
+**Tests that change:** tests that assert these warnings for value-driven conditions. They expect
+an info instead. The codes stay the same.
+

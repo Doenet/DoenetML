@@ -67,10 +67,9 @@ negative index, or one past the end names nothing. Since #2410 (B17), an index b
 something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic. Past
 the end is silent while the length can change (#1499). An index that cannot apply, such as
 `$n.value[1]`, gives `doenet-w0100` and names nothing. Not yet: entries of a list component
-(B18, #2413), function references (B19, #2419), and an index on a plain component. **[probe]** on
-main at `7c2bb1f`: `$m[0]`, `$n[0]` and `$t[0]` give an uncoded warning quoting only `$m`; `$n[1]`
-and `$t[1]` show nothing with info `doenet-i0018`; `$m[1]` shows the math. D27 recommends what such
-an index means.
+(B18, #2413), function references (B19, #2419), and an index of 1 on a scalar. **[probe]** on
+main at `7c2bb1f`: `$m[0]`, `$n[0]` and `$t[0]` give `doenet-w0104`, but `$n[1]` and `$t[1]` show
+nothing with info `doenet-i0018`, while `$m[1]` shows the math. D27 decides it (#2421).
 
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
