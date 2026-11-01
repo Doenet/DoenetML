@@ -5035,7 +5035,9 @@ function isInRunTimeContent(comp, components) {
  * Whether what `composite` holds, itself, is fixed when the document loads
  * (`typeChangeStatus`): it is a `<group>` the author wrote
  * (`isWrittenComposite`), or a reference that names a whole component
- * outside content made at run time (`isInRunTimeContent`), with no index in
+ * outside content made at run time (`isInRunTimeContent`), and not itself a
+ * composite whose content is made at run time (`$cc` of a
+ * `<conditionalContent>`), with no index in
  * its path (`$r[1]`, `$ml[$n]`), and that is not itself written as a type
  * checked against a value (`<point extend="$m"/>`, which shows nothing while
  * `$m` is not a tuple).
@@ -5052,6 +5054,8 @@ async function holdsWrittenContent(composite, components) {
             ];
         if (
             !target ||
+            (target instanceof CompositeComponent &&
+                !isWrittenComposite(target)) ||
             (await composite.stateValues.unresolvedPath)?.length > 0 ||
             path?.some((part) => part.index.length > 0) ||
             (await composite.stateValues.typeChangeValueCheck) ||
