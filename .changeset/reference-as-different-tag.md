@@ -19,6 +19,6 @@ The errors say what to write instead:
 
 When the mismatch depends on what the document makes at run time (which case is active, which option was picked, how many components a collect holds, whether a math's value is a tuple or true or false), it is an info instead, and nothing is shown until the content matches again. For example, `<point extend="$m"/>` of a math `x+1` shows nothing, and shows the point once `m` is `(1, 2)`.
 
-`type` on a copy of a `<sort>` or `<shuffle>`, such as `<sort copy="$s" type="text"/>`, now decides how the text written in the source is read, as it does on the source. It was ignored.
+`type` on a copy of a `<sort>`, `<shuffle>` or `<sortIndices>`, such as `<sort copy="$s" type="text"/>`, now decides how the text written in the source is read, as it does on the source. It was ignored.
 
 Closes #2414, #2415 and #2423.
