@@ -83,8 +83,22 @@ Evidence:
 Code: `RS/resolve.rs:310-330` (`unresolvedPath`); `W/core/dependencies/refResolutionDependencies.ts`
 finishes the path after composites expand.
 
-What an index may select is itself open. Today it can be an entry, an iteration, a pick, or a
-child of a group, iteration or picked option. D27 decides instances only, plus the entries of a value.
+**What an index selects (D27, decided; #2420, #2421).**
+- **Instances a tag produces:** entries of a list or array property, iterations of a repeat, and
+  picks of a select, `selectFromSequence`, `shuffle`, `sort` or `collect`.
+- **Entries of a value:** the coordinates of a point, vector or coords; the entries of a math
+  whose value is a tuple or vector; and the rows (as 1×n matrices) and entries of a matrix. An
+  input follows its value's type, and `$x.value[i]` is the same as `$x[i]`. A scalar has no
+  entries. A `<spreadsheet>` is indexed through `.cells`.
+- **Never a container's children.** `$g[2]` on a group, or `$s[1][2]` into an option with
+  several children, is reached by naming the child instead: `$s[1].x`.
+- **Pass-through.** An instance whose whole content is one indexable thing passes the next index
+  to it. Nested repeats take one index per level: `$r[1][2]` is iteration 2 of the inner repeat
+  in iteration 1.
+
+Today an index can also select a child of a group, an iteration or a picked option, and nested
+repeats need `$r[1][1][2]`. Child indexing gives a deprecation warning in 0.8, since 0.7's select
+docs teach it. Pass-through takes its new meaning directly.
 
 Limits:
 - **Deep property chains** (`$l.points[1].coords`, `$l.points[1].xs[1]`) are not supported
@@ -352,24 +366,42 @@ No test pins the "last one wins" rule, for any component, either written directl
 component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
 ### REF-5: a different tag is allowed only between related types; any other pair is an error (Tier 2)
-The same rule holds for `copy` and for D33's fresh form (D26, decided). `<T extend="$x"/>` with T
-different from x's type asks for a T that behaves like x. That has a
-meaning only for related types:
-- math, number, text and boolean, among each other;
-- point, vector and coords;
-- an input from its value type, and a value type from an input;
-- a list from the matching scalar or list (#2231).
+`<T extend="$x"/>` with T different from x's type asks for a T made from x. The same table decides
+`copy` and D33's fresh form (D26). The allowed cases:
+- **between value types:**
+  - math, number, text and boolean, among each other;
+  - point, vector and coords, among each other;
+  - math from a point, vector or coords, as the tuple of its coordinates;
+  - a point, vector or coords from a math whose value is a tuple;
+  - a value type from an input: `<math extend="$mi"/>` is mi's value, as `$mi` is (REF-1a);
+  - a list from the matching scalar or list (#2231).
+- **from a composite that stands for one component:** a composite, or an instance of one, whose
+  content is exactly one component counts as that component. Authors write `<math extend="$s"/>`
+  for a one-pick select, `<text extend="$cc"/>`, `<math extend="$r[1]"/>`, `<math extend="$g"/>`,
+  `<number extend="$s"/>` of a one-value `selectFromSequence`, `<point extend="$i"/>` of an
+  `<intersection>`. This is NAME-2's pass-through applied to type changes.
+- **a list from a composite whose components all match its entry type:** `<mathList
+  extend="$g"/>`, `<numberList extend="$c"/>` of a `<collect>`.
 
-D26 settles the full table. It drops "an input from its value type", and adds two things: a
-composite whose content is one component counts as that component, and a list can be made
-from a composite whose components all match.
+Not allowed, each an error whose message gives the clearer form (DIAG-3):
+- **an input from a value type.** An input is not the same thing as its value. "To edit `$m1`,
+  write `<mathInput bindValueTo="$m1"/>`; to start from its value, `prefill="$m1"`."
+- **a container** (`<p>`, `<section>`, `<div>`) as another tag: "use `$p.text`".
+- **a composite that does not stand for one component**, as a value tag: "use `$s[1]`, name what
+  is inside, or read it as a value, `<text>$cc</text>`".
+- **any other pair.**
 
-For these pairs the result is x's value as a T. It is linked both ways where the conversion can
-be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
+A mismatch that depends on what the document makes at run time (the active case, the pick, how
+many components a collect holds, whether a math is a tuple) is an info, and nothing is shown
+while it lasts (DIAG-2).
+
+For the allowed pairs the result is x's value as a T. It is linked both ways where the conversion
+can be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
 moves `v`.
 
-Any other pair should be a load-time error on the extend, such as "cannot extend a `<section>`
-as a `<math>`" (D26).
+**Today** the composite case works only when the content is one component, and is a silent blank
+otherwise. An input from a value type acts as `bindValueTo`. A container gives "Invalid children"
+and nothing. The implementation issue is to come (D26).
 
 Evidence for the related pairs:
 - `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
