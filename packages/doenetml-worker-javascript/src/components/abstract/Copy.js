@@ -2421,11 +2421,24 @@ export default class Copy extends CompositeComponent {
             const key = typeChangeKey(typeChange);
             const previousContent = workspace.typeChangeContent;
             workspace.typeChangeContent = contentFound.identity;
-            if (key !== workspace.typeChangeKey) {
+            // What a composite holds changed while it still stands for the
+            // written type. Made again as when first made: the update below
+            // would make it as a bare `<point>` or `<math>`, without the value,
+            // when it holds an extend that was itself just made again
+            // (`<point extend="$g1"/>` of `<group name="g1"><point
+            // extend="$g0"/></group>`).
+            const contentChanged =
+                key === "allowed" &&
+                ["content", "contentValue"].includes(
+                    await component.stateValues.typeChangeValueCheck,
+                ) &&
+                contentFound.identity !== previousContent;
+            if (key !== workspace.typeChangeKey || contentChanged) {
                 if (
                     key?.startsWith("mismatch") ||
                     workspace.typeChangeKey?.startsWith("mismatch") ||
-                    workspace.typeChangeKey === undefined
+                    workspace.typeChangeKey === undefined ||
+                    contentChanged
                 ) {
                     const result = await this.createReplacementsFromSources({
                         component,

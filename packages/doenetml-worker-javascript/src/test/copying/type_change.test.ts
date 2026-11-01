@@ -692,6 +692,37 @@ describe("A reference written as a different tag is allowed only between related
         expect((await after.stateValues.coords).toString()).eq("(3, 4)");
     });
 
+    it("an extend of a group holding an extend follows it when what it holds changes", async () => {
+        // The extend in `g1` is made again when the case changes, and the
+        // extend of `g1` with it, as when first made.
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<booleanInput name="b"/>
+<group name="g0"><conditionalContent><case condition="$b"><math>1</math></case><else><text>a</text></else></conditionalContent></group>
+<group name="g1"><math extend="$g0"/></group>
+<p name="p1"><math extend="$g1"/></p>
+<group name="h0"><conditionalContent><case condition="$b"><point>(1,2)</point></case><else><point>(3,4)</point></else></conditionalContent></group>
+<group name="h1"><point extend="$h0"/></group>
+<p name="p2"><point extend="$h1"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "(3, 4)" });
+
+        const b = await resolvePathToNodeIdx("b");
+        await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "(1, 2)" });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: b,
+            core,
+        });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "(3, 4)" });
+
+        await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "(1, 2)" });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
     it("content that changes inside an iteration or a pick is decided again", async () => {
         // Each new iteration of the `<repeatForSequence>` is a `<group>`,
         // expanded after the composites holding it change.
