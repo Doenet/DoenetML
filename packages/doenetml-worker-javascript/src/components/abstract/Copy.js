@@ -4849,15 +4849,19 @@ function retypeTextPieces({
     ) {
         return nComponents;
     }
+    // A piece of text was separated by white space from what is beside it
+    // (`groupIntoComponentTypeSeparatedBySpacesOutsideParens`), so it is
+    // given back with spaces around it, or it would join a reference next to
+    // it: `10 $x 3` would be read as the one text `10$x3`.
     const children = [];
     for (const child of replacement.children) {
         const item =
             typeof child?.doenetAttributes?.textPiece === "string"
-                ? child.doenetAttributes.textPiece
+                ? ` ${child.doenetAttributes.textPiece} `
                 : child;
         const last = children[children.length - 1];
         if (typeof item === "string" && typeof last === "string") {
-            children[children.length - 1] = `${last} ${item}`;
+            children[children.length - 1] = `${last}${item}`;
         } else {
             children.push(item);
         }

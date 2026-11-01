@@ -82,6 +82,23 @@ describe("A copy of a <sort> reads the text written in it as its own type (#2414
         expect(await texts(["p1"])).eqls({ p1: "1, 10, 3" });
     });
 
+    it("references beside the text keep their place", async () => {
+        const { texts } = await setup(`
+<number name="x">5</number>
+<number name="y">20</number>
+<p name="ps"><sort name="s">10 $x 3 1</sort></p>
+<p name="p1"><sort copy="$s" type="text"/></p>
+<p name="pt"><sort name="t" type="text">$x 10 3 $y</sort></p>
+<p name="p2"><sort copy="$t" type="number"/></p>
+`);
+        expect(await texts(["ps", "p1", "pt", "p2"])).eqls({
+            ps: "1, 3, 5, 10",
+            p1: "1, 10, 3, 5",
+            pt: "10, 20, 3, 5",
+            p2: "3, 5, 10, 20",
+        });
+    });
+
     it("a sort of text read as numbers by a copy", async () => {
         const { texts } = await setup(`
 <p name="ps"><sort name="s" type="text">10 3 1</sort></p>
