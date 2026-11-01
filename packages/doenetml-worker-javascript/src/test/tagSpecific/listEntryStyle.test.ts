@@ -225,6 +225,57 @@ describe("The style of an entry of a list @group4", async () => {
         });
     });
 
+    it("a sort or shuffle with a styleNumber fills in the style of each entry that sets none", async () => {
+        // A `<sort>` or `<shuffle>` with a `styleNumber` is a composite, whose
+        // replacements take its style where their source sets none. That
+        // holds for the entries of a list it sorts or shuffles too.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl"><point styleNumber="3">(1,2)</point><point>(3,4)</point></pointList>
+    <graph styleNumber="4">
+      <sort name="s" sortVectorsBy="x" styleNumber="2"><point styleNumber="3">(5,2)</point><point>(3,4)</point></sort>
+      <sort name="sl" sortVectorsBy="x" styleNumber="2">$pl</sort>
+      <shuffle name="h" styleNumber="2"><point styleNumber="3">(5,2)</point><point>(3,4)</point></shuffle>
+      <shuffle name="hl" styleNumber="2">$pl</shuffle>
+    </graph>
+    <graph>
+      <point extend="$sl[1]" name="e1"/>
+      <point extend="$sl[2]" name="e2"/>
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["s", "sl", "h", "hl"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).eq(name[0] === "s" ? "sort" : "shuffle");
+        }
+
+        // The style of each entry, keyed by its x-coordinate, so that the
+        // order a shuffle picks does not matter.
+        async function styleByX(name: string) {
+            const result: Record<number, number> = {};
+            for (const ind of [1, 2]) {
+                const stateValues =
+                    stateVariables[
+                        await resolvePathToNodeIdx(`${name}[${ind}]`)
+                    ].stateValues;
+                result[stateValues.xs[0].tree] = stateValues.styleNumber;
+            }
+            return result;
+        }
+
+        expect(await styleByX("s")).eqls({ 3: 2, 5: 3 });
+        expect(await styleByX("h")).eqls({ 3: 2, 5: 3 });
+        expect(await styleByX("sl")).eqls({ 1: 3, 3: 2 });
+        expect(await styleByX("hl")).eqls({ 1: 3, 3: 2 });
+        expect(
+            await styleNumbersOf(core, resolvePathToNodeIdx, ["e1", "e2"]),
+        ).eqls({ e1: 3, e2: 2 });
+    });
+
     it("a list form takes a style it has from where it sits only for an entry whose source sets none", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `${styleDefinitions}
