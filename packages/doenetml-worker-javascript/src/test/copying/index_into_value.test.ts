@@ -344,9 +344,11 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$r[2]", "(2, 20)"],
                 ["$r[2][1]", "2"],
                 ["$r[2][2]", "20"],
-                // past the end of the entry, or a scalar entry
-                ["$tl[2][3]", ""],
-                ["$ml[2][1]", ""],
+                // Past the end of an entry, or into a scalar entry, is a
+                // blank, as a coordinate past an entry's dimensions was: an
+                // entry's property has a value for every entry.
+                ["$tl[2][3]", "＿"],
+                ["$ml[2][1]", "＿"],
             ],
             lists,
         );

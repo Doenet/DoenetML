@@ -1565,8 +1565,12 @@ const valueEntryPropertiesByIndex = new Map();
 /**
  * Entry `n` (from 1) of the value of a `<math>` entry, which `$l[i][n]` reads,
  * as `$m[n]` reads of a `<math>`: an entry of a tuple, or a row of a matrix
- * as a 1×n matrix; nothing past the end or for a scalar, which has no
- * entries. An entry of a tuple is written as that coordinate.
+ * as a 1×n matrix. Past the end, or for a scalar, which has no entries, it
+ * is a blank, as a coordinate past an entry's dimensions is
+ * (`entryCoordinateProperty`): an entry's property has a value for every
+ * entry, and a repeat that became a list reads it in its template as the
+ * repeat it was made from does. An entry of a tuple is written as that
+ * coordinate.
  */
 function entryValueEntryProperty(n) {
     if (!valueEntryPropertiesByIndex.has(n)) {
@@ -1576,7 +1580,7 @@ function entryValueEntryProperty(n) {
             companionsOf: "vector",
             writeThrough: "entryCoordinateWrites",
             writeThroughValue: (coordinate) => ({ [n]: coordinate }),
-            compute: (value) => valueEntryOf(value, n),
+            compute: (value) => valueEntryOf(value, n) ?? me.fromAst("\uff3f"),
         });
     }
     return valueEntryPropertiesByIndex.get(n);

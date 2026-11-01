@@ -1400,6 +1400,7 @@ describe("Value lists as list components @group4", async () => {
     });
 
     it("a second index reads a coordinate of a math entry", async () => {
+        // `$ml[2][1]` indexes the scalar `c`, which has no entries (D27).
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <tupleList name="tl">(1, 2, 3) (4, 5, 6)</tupleList>
@@ -1414,7 +1415,7 @@ describe("Value lists as list components @group4", async () => {
 
         const names = ["p1", "p2", "p3", "p4"];
         expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
-            p1: "2 6 a c",
+            p1: "2 6 a ＿",
             p2: "b + 1 6 4",
             p3: "3, 6 2",
             p4: "5 (1, 2, 3), (4, 5, 6)",
@@ -1431,7 +1432,7 @@ describe("Value lists as list components @group4", async () => {
             core,
         });
         expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
-            p1: "2 6 a c",
+            p1: "2 6 a ＿",
             p2: "b + 1 6 6",
             p3: "3, 6 2",
             p4: "9 (1, 2, 3), (4, 9, 6)",
