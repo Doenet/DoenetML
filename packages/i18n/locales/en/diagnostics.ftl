@@ -440,10 +440,10 @@ reference-index-selects-nothing = `{ $reference }`: an index cannot select anyth
 # An index past what a repeat, a select or a collect made: `$s[3]` on a
 # `<select>` that picked two options. $reference is the reference as the author
 # wrote it, with its `$`, and $component the tag name of the repeat, select or
-# collect; both stay as written. $kind is `iteration` for a repeat, `pick` for a select (or a
-# `<selectFromSequence>`), and `item` for a component that arranges or gathers
-# what it is given (`<shuffle>`, `<sort>`, `<collect>`). $count is how many it
-# made, which can be 0.
+# collect; both stay as written. $kind is `iteration` for a repeat, `pick` for
+# a select (or a `<selectFromSequence>`), and `item` for a component that
+# arranges or gathers what it is given (`<shuffle>`, `<sort>`, `<collect>`).
+# $count is how many it made, which can be 0.
 
 reference-index-past-instances =
     { $kind ->

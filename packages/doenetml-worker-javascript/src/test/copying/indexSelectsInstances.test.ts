@@ -277,6 +277,57 @@ describe("An index selects instances, not children @group4", async () => {
         expect(infos).eqls([]);
     });
 
+    it("does not warn of the setup in an iteration made later, in an unlinked copy, or after a reload", async () => {
+        // The setup is recognized by a mark the repeat gives it, which an
+        // iteration added when the repeat updates, an unlinked copy of the
+        // repeat or of an iteration, and a document restored from a save
+        // also carry
+        const doenetML = `
+    <mathInput name="n" prefill="1" />
+    <sequence name="seq" length="$n" />
+    <repeat name="r" for="$seq" valueName="v"><text>$v</text></repeat>
+    <repeat name="r2" copy="$r" />
+    <group name="g" copy="$r[1]" />
+    <p name="p">[$r[2]] [$r[2][2]] [$r2[1][2]] [$g[2]]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(text);
+            // The index reached the setup, which names nothing to warn of
+            expect(
+                getDiagnosticsByType(core).warnings.filter((w) =>
+                    ["doenet-w0179", "doenet-w0104"].includes(w.code),
+                ),
+            ).eqls([]);
+        }
+
+        // `r` has no iteration 2 yet
+        await check("[] [] [] []");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check("[2] [] [] []");
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check("[2] [] [] []");
+    });
+
     it("warns of a setup the author wrote, as of any other child", async () => {
         // Only the `<setup>` a repeat adds is skipped: one the author wrote is
         // a child the index selects, even last in a repeat with no
