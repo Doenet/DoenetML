@@ -49,6 +49,34 @@ import {
 } from "../diagnostics";
 
 /**
+ * `reference`, as written in the source, without the parentheses around its
+ * path: `$(f)` is quoted as `$f`, and `$$(f)(2)` as `$$f(2)`. That is the
+ * spelling that does not need them, the one a path is quoted in
+ * (`doenetMLDollarsForReference`). A reference without them, or whose
+ * parentheses do not close, is returned as it is.
+ */
+function withoutPathParentheses(reference: string): string {
+    const open = /^\$\$?\(/.exec(reference)?.[0].length;
+    if (open === undefined) {
+        return reference;
+    }
+    // The path can hold parentheses of its own, as in `$$(f[$(i)])(2)`.
+    let depth = 1;
+    for (let i = open; i < reference.length; i++) {
+        if (reference[i] === "(") {
+            depth++;
+        } else if (reference[i] === ")" && --depth === 0) {
+            return (
+                reference.slice(0, open - 1) +
+                reference.slice(open, i) +
+                reference.slice(i + 1)
+            );
+        }
+    }
+    return reference;
+}
+
+/**
  * The warning for a reference the resolver could not resolve: `doenet-w0104`
  * when it names nothing, `doenet-w0105` when it names more than one thing. The
  * resolver marks the error node with the code, and its English message quotes
@@ -71,7 +99,9 @@ function unresolvedReferenceDiagnostic(
     // the path only when the reference names nothing; otherwise the node's own
     // position spans the reference. A function reference (`$$f(2)`), told
     // apart by the `$$` before its path, is quoted from the node's position,
-    // which spans its arguments too, as the path does not (#2419).
+    // which spans its arguments too, as the path does not (#2419). The
+    // position spans any parentheses around the path as well, which are
+    // dropped, as they are from a path.
     let reference = "";
     if (node.unresolvedPath && node.unresolvedPath.length > 0) {
         const path = node.unresolvedPath;
@@ -85,8 +115,9 @@ function unresolvedReferenceDiagnostic(
         const start = node.position?.start?.offset;
         const end = node.position?.end?.offset;
         if (start != undefined && end != undefined) {
-            reference =
-                sources[node.sourceDoc ?? 0]?.substring(start, end) ?? "";
+            reference = withoutPathParentheses(
+                sources[node.sourceDoc ?? 0]?.substring(start, end) ?? "",
+            );
         }
     }
 
