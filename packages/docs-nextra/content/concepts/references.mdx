@@ -313,3 +313,24 @@ chosen iteration.
 Here `$rep[2]` references the second iteration of the repeat and
 `$rep[2].squared` the `<math name="squared">` defined inside it, while
 `$rep[1].v` references the `valueName` binding `v` from the first iteration.
+
+An index selects an iteration, not one of the components inside it: to reach a
+component in an iteration, give it a name and write the name after the index, as
+`$rep[2].squared` does. When the whole content of a repeat is another repeat, an
+index after an iteration passes on to the inner repeat, so nested repeats take
+one index for each level.
+
+```doenet-editor-horiz
+<repeatForSequence name="table" from="1" to="3" valueName="row">
+  <repeatForSequence from="1" to="4" valueName="col">
+    <number name="product">$row * $col</number>
+  </repeatForSequence>
+</repeatForSequence>
+
+<p>Row 2, column 3: $table[2][3].</p>
+<p>Row 3, column 4: $table[3][4].product.</p>
+```
+
+Here `$table[2][3]` is the third iteration of the inner repeat in the second
+iteration of `table`, and `$table[3][4].product` the `<number name="product">`
+in the fourth iteration of the inner repeat in the third iteration.

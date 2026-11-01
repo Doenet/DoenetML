@@ -3,8 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
 
-use super::{NameMap, ResolutionError, root_names::RootNameCache};
+use super::{IndexKind, NameMap, ResolutionError, root_names::RootNameCache};
 use crate::dast::{
+    Position,
     flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, SourceDoc, UntaggedContent},
     ref_resolve::NameWithSource,
 };
@@ -23,6 +24,26 @@ pub struct RefResolution {
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
     pub original_path: Vec<FlatPathPart>,
+    /// Each index in the path that selected a child of a `<group>` (see [`IndexKind::Children`]),
+    /// a deprecated form that still resolves, so that it can be reported.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub child_indexes: Vec<ChildIndex>,
+}
+
+/// An index of a path that selected a child of a `<group>`,
+/// rather than one of the instances a component produces (D27).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
+pub struct ChildIndex {
+    /// The `<group>` whose child was selected
+    pub container_idx: Index,
+    /// The child that was selected
+    pub child_idx: Index,
+    /// Where the index was written
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -120,6 +141,9 @@ pub struct NodeResolverData {
     /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
     /// which is not a valid ref resolution.
     pub(super) index_resolutions: Vec<Option<Index>>,
+    /// What an index after the node selects among. See [`IndexKind`].
+    #[serde(skip_serializing_if = "IndexKind::is_instances")]
+    pub(super) index_kind: IndexKind,
     /// If a node extends an external document, then `source_sequence` is a list of the node's original source doc
     /// and the source doc from which it extended.
     ///
@@ -202,6 +226,9 @@ impl Resolver {
 
         // A list of all the nodes involved in resolving
         let mut nodes_in_resolved_path = vec![origin];
+
+        // The indices that selected a child of a `<group>`
+        let mut child_indexes: Vec<ChildIndex> = Vec::new();
 
         // Note: `remaining_path` is declared outside the following `if` statement
         // as it needs to live as long as the `path` iterator does.
@@ -363,6 +390,7 @@ impl Resolver {
                         unresolved_path: Some(remaining_path),
                         original_path,
                         nodes_in_resolved_path,
+                        child_indexes,
                     });
                 }
             }
@@ -377,11 +405,28 @@ impl Resolver {
                                     return Err(ResolutionError::NoReferent);
                                 }
 
+                                // An index after an iteration or a pick whose whole content
+                                // is one indexable component passes to that component.
+                                while let Some(child_idx) = self.pass_through_child(current_idx) {
+                                    current_idx = child_idx;
+                                    if !nodes_in_resolved_path.contains(&current_idx) {
+                                        nodes_in_resolved_path.push(current_idx);
+                                    }
+                                    node_data = &self.node_resolver_data[current_idx + 1];
+                                }
+
                                 if let Some(node_match) =
                                     node_data.index_resolutions.get(index_num - 1)
                                 {
                                     match node_match {
                                         Some(new_node_idx) => {
+                                            if !node_data.index_kind.is_instances() {
+                                                child_indexes.push(ChildIndex {
+                                                    container_idx: current_idx,
+                                                    child_idx: *new_node_idx,
+                                                    position: index.position.clone(),
+                                                });
+                                            }
                                             current_idx = *new_node_idx;
                                             if !nodes_in_resolved_path.contains(&current_idx) {
                                                 nodes_in_resolved_path.push(current_idx);
@@ -418,6 +463,7 @@ impl Resolver {
                                                 unresolved_path: Some(remaining_path),
                                                 original_path,
                                                 nodes_in_resolved_path,
+                                                child_indexes,
                                             });
                                         }
                                     }
@@ -453,6 +499,7 @@ impl Resolver {
                     unresolved_path: Some(remaining_path),
                     original_path,
                     nodes_in_resolved_path,
+                    child_indexes,
                 });
             }
         }
@@ -463,6 +510,7 @@ impl Resolver {
             unresolved_path: None,
             original_path,
             nodes_in_resolved_path,
+            child_indexes,
         })
     }
 
