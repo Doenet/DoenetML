@@ -970,7 +970,8 @@ export class RefResolutionDependency extends Dependency {
      * (a `_copy`) to a whole component whose instances an index selects
      * (`indexSelectsInstances`): a list, or a repeat, select or other
      * composite of `INSTANCE_KINDS`; `undefined` otherwise. A `<setup>` is not
-     * content, as in `instanceGroupAttributes`.
+     * content, as in `instanceGroupAttributes`, but one written before the
+     * reference shifts what an index counts, so it is not passed over.
      *
      * Such a group is not marked to pass an index through
      * (`_indexPassThrough`), since what the reference makes is not known when
@@ -991,14 +992,23 @@ export class RefResolutionDependency extends Dependency {
         if (instanceKind !== "iteration" && instanceKind !== "pick") {
             return undefined;
         }
-        const content = (
+        const children = (
             components[containerIdx]?.serializedChildren ?? []
-        ).filter((child: any) =>
-            typeof child === "string"
-                ? child.trim() !== ""
-                : child.componentType !== "setup",
+        ).filter(
+            (child: any) => typeof child !== "string" || child.trim() !== "",
+        );
+        const content = children.filter(
+            (child: any) =>
+                typeof child === "string" || child.componentType !== "setup",
         );
         if (content.length !== 1 || content[0].componentType !== "_copy") {
+            return undefined;
+        }
+        // A `<setup>` the author wrote before the reference takes the first
+        // position an index into the group counts, so the reference's
+        // replacements are not what `[1]`, `[2]`, … select: each index is
+        // then a child index, reported as one.
+        if (children.indexOf(content[0]) > 0) {
             return undefined;
         }
         const resolution = refResolutionAt(components[content[0].componentIdx]);

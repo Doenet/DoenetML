@@ -233,6 +233,22 @@ describe("An index selects instances, not children @group4", async () => {
         );
         expect(text).eq("[5]");
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0179"]);
+
+        // The setup takes position 1, so `[2]` selects the first entry as a
+        // child of the pick, which is reported too, rather than read
+        // silently as entry 2 would be in the form that passes through.
+        const shifted = await shownAndReported(
+            `<setup><mathList name="nl">a b c</mathList></setup><select name="s"><option><setup><number name="n">5</number></setup>$nl</option></select><p name="p">[$s[1][2]]</p>`,
+        );
+        expect(shifted.text).eq("[a]");
+        expect(shifted.warnings.map((w) => w.code)).eqls(["doenet-w0179"]);
+
+        // A setup after the reference shifts nothing.
+        const after = await shownAndReported(
+            `<setup><mathList name="nl">a b c</mathList></setup><select name="s"><option>$nl<setup><number name="n">5</number></setup></option></select><p name="p">[$s[1][2]]</p>`,
+        );
+        expect(after.text).eq("[b]");
+        expect(after.warnings).eqls([]);
     });
 
     it("still warns of an index into a pick holding only a reference to one component", async () => {

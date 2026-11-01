@@ -395,6 +395,7 @@ describe("An index into an entry of a list @group4", async () => {
     const lists = `<setup>
 <pointList name="pl">(3,4) (1,2)</pointList>
 <mathList name="l">1 2</mathList>
+<numberList name="nl">5 6</numberList>
 <mathList name="tl">(1,2) (3,4)</mathList>
 <mathList name="ml">$M.value 5</mathList>
 <matrix name="M"><row>1 2</row><row>3 4</row></matrix>
@@ -483,6 +484,8 @@ describe("An index into an entry of a list @group4", async () => {
     it("reports an index into an entry as on a component (#2413)", async () => {
         for (const [reference, code] of [
             ["$pl[2].coords[1]", "doenet-w0100"],
+            // the value of an entry with no entries, as `$n.value[1]`
+            ["$nl[1].value[1]", "doenet-w0100"],
             ["$pl[1].xs[0]", "doenet-w0104"],
             ["$l[1][0]", "doenet-w0104"],
         ]) {

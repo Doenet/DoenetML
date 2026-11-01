@@ -333,15 +333,25 @@ export function listEntryPropertyPath({
             componentInfoObjects,
         );
         // An index into the entry's value is an index into the entry, as
-        // `$m.value[2]` is `$m[2]` (D27): `$l[1].value[2]` is `$l[1][2]`.
-        if (property === "value") {
-            return listEntryPropertyPath({
-                listClass,
-                unresolvedPath: [
-                    { ...first, index: [...first.index, ...second.index] },
-                ],
-                componentInfoObjects,
-            });
+        // `$m.value[2]` is `$m[2]` (D27): `$l[1].value[2]` of a list of maths
+        // or points is `$l[1][2]`. Where an index selects nothing in an
+        // entry (a list of numbers), the value is not an array, and the
+        // index is reported as on one below, as `$n.value[1]` is.
+        const asIndex =
+            property === "value"
+                ? listEntryPropertyPath({
+                      listClass,
+                      unresolvedPath: [
+                          {
+                              ...first,
+                              index: [...first.index, ...second.index],
+                          },
+                      ],
+                      componentInfoObjects,
+                  })
+                : undefined;
+        if (asIndex) {
+            return asIndex;
         }
         if (property !== undefined) {
             // An index below 1 into a property of the entry names nothing,

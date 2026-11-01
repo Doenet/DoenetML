@@ -880,8 +880,8 @@ function isMatrixWithRows(tree: Tree): boolean {
 
 /**
  * What an index into a math value reads it as: a tuple of entries, a matrix
- * of rows, or a scalar. Classified without copying the value, for
- * {@link valueShape} and for checks that need only the kind.
+ * of rows, or a scalar, classified without copying the value, for a check
+ * that needs only the kind (`indexIntoScalar`).
  */
 function shapeKind(tree: Tree): ValueShape["kind"] {
     if (tupleOf(tree)) {
@@ -958,6 +958,9 @@ function rowFromValue(desired: Tree): Tree[] | undefined {
  * blank for it.
  */
 export function valueEntryOf(value: Expression, index: number): any {
+    if (!(Number.isInteger(index) && index > 0)) {
+        return undefined;
+    }
     const tree = value.tree;
     const tuple = tupleOf(tree);
     if (tuple) {
