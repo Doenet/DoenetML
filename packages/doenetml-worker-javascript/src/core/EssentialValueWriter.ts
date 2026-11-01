@@ -24,7 +24,7 @@ import { codedDiagnostic } from "../utils/diagnostics";
 const MAX_PASSES = 100;
 /**
  * A composite queued in each of this many consecutive passes, at the end of
- * `MAX_PASSES` passes, is taken to be one of those looping.
+ * `MAX_PASSES` passes, may be one of those looping (see `loopingComposites`).
  */
 const LOOP_WINDOW = 10;
 /**
@@ -222,17 +222,30 @@ export class EssentialValueWriter {
     }
 
     /**
-     * The composites queued in every one of `recentQueues`, which are the
-     * ones that keep queuing themselves or each other. Components that are
-     * not composites (a list whose entry count is updated here) are left out:
-     * there is nothing to stop for them.
+     * The composites that keep queuing themselves or each other, judged from
+     * the last `LOOP_WINDOW` passes: each one was queued in every pass, and
+     * lies on a cycle of `queuedBy`, so it is among the causes of the loop.
+     * A composite queued in every pass only because it copies one that loops
+     * is downstream of the cycle, not on it, and is left out. If the cycle
+     * cannot be traced (something outside these updates queued a member),
+     * every composite queued in every pass is taken instead.
+     *
+     * Components that are not composites (a list whose entry count is
+     * updated here) are left out: there is nothing to stop for them.
+     *
+     * @param recentQueues the queue of each of the last `LOOP_WINDOW` passes
+     * @param queuedBy for each component updated in those passes, the
+     * components its update queued
      */
-    loopingComposites(recentQueues: Set<ComponentIdx>[]): ComponentInstance[] {
+    loopingComposites(
+        recentQueues: Set<ComponentIdx>[],
+        queuedBy: Map<ComponentIdx, Set<ComponentIdx>>,
+    ): ComponentInstance[] {
         if (recentQueues.length < LOOP_WINDOW) {
             return [];
         }
         const [first, ...rest] = recentQueues;
-        const looping: ComponentInstance[] = [];
+        const queuedEveryPass: ComponentInstance[] = [];
         for (const cIdx of first) {
             const composite = this.core._components[cIdx];
             if (
@@ -242,10 +255,30 @@ export class EssentialValueWriter {
                         ._composite &&
                 !composite.isInErrorState
             ) {
-                looping.push(composite);
+                queuedEveryPass.push(composite);
             }
         }
-        return looping;
+
+        // Whether `start`, by being updated, eventually queues itself again.
+        const queuesItself = (start: ComponentIdx) => {
+            const seen = new Set<ComponentIdx>();
+            const toVisit = [...(queuedBy.get(start) ?? [])];
+            while (toVisit.length > 0) {
+                const cIdx = toVisit.pop()!;
+                if (cIdx === start) {
+                    return true;
+                }
+                if (!seen.has(cIdx)) {
+                    seen.add(cIdx);
+                    toVisit.push(...(queuedBy.get(cIdx) ?? []));
+                }
+            }
+            return false;
+        };
+        const onCycle = queuedEveryPass.filter((composite) =>
+            queuesItself(composite.componentIdx),
+        );
+        return onCycle.length > 0 ? onCycle : queuedEveryPass;
     }
 
     async replacementChangesFromCompositesToUpdate() {
@@ -257,14 +290,21 @@ export class EssentialValueWriter {
         let compositesNotReady = new Set<ComponentIdx>();
 
         let nPasses = 0;
-        // The queue of each of the last `LOOP_WINDOW` passes.
+        // The queue of each of the last `LOOP_WINDOW` passes, and for each,
+        // which components each update queued.
         let recentQueues: Set<ComponentIdx>[] = [];
+        let recentQueuedBy: Map<ComponentIdx, Set<ComponentIdx>>[] = [];
         let nLoopReports = 0;
 
         let updatedComposites = false;
 
         let componentChanges: any[] = []; // TODO: what to do with componentChanges?
         while (compositesToUpdateReplacements.length > 0) {
+            // Each update starts with an empty queue, so that what it queues
+            // can be told apart from what was queued before it; this pass's
+            // queue is gathered here instead, in the same order.
+            const queuedThisPass = new Set<ComponentIdx>();
+            const queuedByThisPass = new Map<ComponentIdx, Set<ComponentIdx>>();
             for (let cIdx of compositesToUpdateReplacements) {
                 let composite = this.core._components[cIdx];
                 if (
@@ -311,30 +351,49 @@ export class EssentialValueWriter {
                 ) {
                     await this.updateListEntryCount(composite);
                 }
+
+                const queued =
+                    this.core.updateInfo.compositesToUpdateReplacements;
+                if (queued.size > 0) {
+                    queuedByThisPass.set(cIdx, new Set(queued));
+                    for (const queuedIdx of queued) {
+                        queuedThisPass.add(queuedIdx);
+                    }
+                    queued.clear();
+                }
             }
             // Note: have encountered cases where a composite must be updated twice
             // in this loop
             // Note 2: if we don't update a composite here, the state variable indicating
             // its replacements need processing may remain stale, which will
             // prevent futher changes from being triggered
-            compositesToUpdateReplacements = [
-                ...this.core.updateInfo.compositesToUpdateReplacements,
-            ].filter((cIdx) => !this.core._components[cIdx]?.isInErrorState);
-            this.core.updateInfo.compositesToUpdateReplacements.clear();
+            compositesToUpdateReplacements = [...queuedThisPass].filter(
+                (cIdx) => !this.core._components[cIdx]?.isInErrorState,
+            );
 
             // Composites can keep queuing each other without end, through a
             // cycle the dependency graph does not see (Doenet/DoenetML#2405
-            // was one). After `MAX_PASSES` passes, the composites queued in
-            // every one of the last `LOOP_WINDOW` passes are the ones
-            // looping: report them as circular and stop updating them, so
-            // the rest of the document still loads.
+            // was one). After `MAX_PASSES` passes, the composites that
+            // `loopingComposites` finds in the last `LOOP_WINDOW` passes are
+            // the ones looping: report them as circular and stop updating
+            // them, so the rest of the document still loads.
             recentQueues.push(new Set(compositesToUpdateReplacements));
+            recentQueuedBy.push(queuedByThisPass);
             if (recentQueues.length > LOOP_WINDOW) {
                 recentQueues.shift();
+                recentQueuedBy.shift();
             }
             nPasses++;
             if (nPasses > MAX_PASSES && compositesToUpdateReplacements.length) {
-                const looping = this.loopingComposites(recentQueues);
+                const queuedBy = new Map<ComponentIdx, Set<ComponentIdx>>();
+                for (const passQueuedBy of recentQueuedBy) {
+                    for (const [cIdx, queued] of passQueuedBy) {
+                        const all = queuedBy.get(cIdx) ?? new Set();
+                        queued.forEach((queuedIdx) => all.add(queuedIdx));
+                        queuedBy.set(cIdx, all);
+                    }
+                }
+                const looping = this.loopingComposites(recentQueues, queuedBy);
                 nLoopReports++;
                 if (looping.length === 0 || nLoopReports > MAX_LOOP_REPORTS) {
                     // Nothing can be singled out, or stopping the ones that
@@ -375,6 +434,7 @@ export class EssentialValueWriter {
                     );
                 nPasses = 0;
                 recentQueues = [];
+                recentQueuedBy = [];
             }
         }
 

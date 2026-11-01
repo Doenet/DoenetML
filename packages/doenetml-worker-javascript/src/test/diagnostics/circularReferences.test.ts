@@ -1274,6 +1274,93 @@ describe("Composites whose replacements never settle @group2", async () => {
             ).eqls([["doenet-e0005", "Circular dependency detected.", 1]]);
         });
     });
+
+    // `S3` copies `S2`, so its copy is remade on every pass too, but only
+    // because the copy inside `S2` is; it queues nothing that comes back to
+    // it. It should be left running, and not reported as circular.
+    it("leaves out a composite that is only downstream of the loop", async () => {
+        await withLoopingCopy(async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<section name="S"><title>T</title><p name="q">hi [$S]</p></section>
+<section name="S2" copy="$S"/>
+<section name="S3" copy="$S2"/>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("S3.q")].stateValues
+                    .text,
+            ).eq("hi []");
+
+            // Only the copies of `$S` inside `S2` and inside `S3`, which
+            // keep remaking themselves, not the copy that makes `S3`.
+            const stopped = Object.values(core.core!._components)
+                .filter((c: any) => c?.isInErrorState)
+                .map((c: any) => [c.componentType, c.position?.start.line]);
+            expect(stopped).eqls([
+                ["_copy", 1],
+                ["_copy", 1],
+            ]);
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => [
+                    e.code,
+                    e.position?.start.line,
+                ]),
+            ).eqls([["doenet-e0005", 1]]);
+        });
+    });
+});
+
+describe("Composites that queue each other in turn @group2", async () => {
+    it("are both reported and stopped", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="mi" prefill="1"/>
+<conditionalContent name="a" condition="$mi > 1"><p>big</p></conditionalContent>
+<conditionalContent name="b" condition="$mi > 1"><p>big</p></conditionalContent>`,
+        });
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const aIdx = await resolvePathToNodeIdx("a");
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        const ConditionalContent = (
+            await import("../../components/ConditionalContent")
+        ).default;
+        const original = ConditionalContent.calculateReplacementChanges;
+        const spy = vi
+            .spyOn(ConditionalContent, "calculateReplacementChanges")
+            .mockImplementation(async function (this: any, args: any) {
+                // Each asks for the other to be updated.
+                core.core!.updateInfo.compositesToUpdateReplacements.add(
+                    args.component.componentIdx === aIdx ? bIdx : aIdx,
+                );
+                return original.call(this, args);
+            });
+        try {
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: miIdx,
+                core,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+
+        expect([
+            core.core!._components[aIdx].isInErrorState,
+            core.core!._components[bIdx].isInErrorState,
+        ]).eqls([true, true]);
+        expect(
+            getDiagnosticsByType(core).errors.map((e) => [
+                e.code,
+                e.position?.start.line,
+            ]),
+        ).eqls([
+            ["doenet-e0005", 2],
+            ["doenet-e0005", 3],
+        ]);
+    });
 });
 
 describe("A composite that queues itself on every pass @group2", async () => {
