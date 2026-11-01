@@ -401,7 +401,7 @@ moves `v`.
 
 **Today** the composite case works only when the content is one component, and is a silent blank
 otherwise. An input from a value type acts as `bindValueTo`. A container gives "Invalid children"
-and nothing. The implementation issue is to come (D26).
+and nothing. The implementation is #2423.
 
 Evidence for the related pairs:
 - `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
@@ -412,8 +412,8 @@ Evidence for the related pairs:
 gives a default T, sometimes with a confusing "Invalid children" warning and sometimes with no
 warning at all. For example, `<boolean extend="$m"/>` of a math is silently `false`. A
 container tag (`<p extend="$m"/>`) just holds the referent. A new core should give the error
-instead, and no test should pin today's results. The one existing test of an invalid pair,
-`extend_references.test.ts:6495`, should change to expect the error.
+instead, and no test should pin today's results. The test named "handle extending or copying
+with invalid component type" covers an unrecognized tag name, not an unrelated pair.
 
 Inconsistency within the related pairs: across a type change, a list extend takes the source's
 same-named attributes (`hide`, `fixed`, display settings, #2231), but a scalar extend does not
