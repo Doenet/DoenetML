@@ -15,6 +15,12 @@ that commit. Line numbers drift, so each citation also gives the test's name.
 
 ## The documents
 
+The principle files are the reference for reviewing a change: what a PR must keep or move
+toward. `decisions.md` is a working log. It records why each rule was chosen and the work in
+progress. Once a decision is settled, its rule is stated in a principle file, so a review never
+has to read the log.
+
+
 | Document | What it covers |
 |---|---|
 | [references-extend-copy.md](references-extend-copy.md) | `$x`, `extend`, `copy`, and what happens when they nest. Name resolution and scope. **Start here.** |
