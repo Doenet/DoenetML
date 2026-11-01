@@ -27,6 +27,7 @@ import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import AuthoredValueList from "./AuthoredValueList";
 import { typeChangeRule, valueAllowsTypeChange } from "../../utils/typeChange";
+import { indexSelectsInstances } from "../../utils/indexInstances";
 import {
     doenetMLDollarsForReference,
     doenetMLStringForReference,
@@ -4882,8 +4883,10 @@ export async function replacementFromProp({
 
 /**
  * A copy is its source's DoenetML pasted (CPY-1), so `type` on a copy of a
- * `<sort>` or `<shuffle>` decides how the text written in it is read, as it
- * does on the source (`<sort copy="$s" type="text"/>` sorts `10 3 1` as
+ * tag that reads its text as its `type` (`<sort>`, `<shuffle>`,
+ * `<sortIndices>`, `<tally>`, `<indexOf>` and the other list index
+ * operators) decides how the text written in it is read, as it does on the
+ * source (`<sort copy="$s" type="text"/>` sorts `10 3 1` as
  * text, #2414). The source has already read that text as its own `type`
  * (`returnBreakStringsIntoTypeSugarInstruction`), so each component it made
  * from a piece of text (`textPiece`) is given back as the text, and the
@@ -5079,7 +5082,12 @@ async function typeChangeStatus({
      * whose value, if one must be checked, is read by `readValue`.
      */
     async function decide({ sourceType, readValue, level }) {
-        if (replacementIsOfType(sourceType, writtenType)) {
+        if (
+            replacementIsOfType(sourceType, writtenType) ||
+            sourceType === "_error"
+        ) {
+            // An error in place of what is referenced has been reported
+            // already, and is not a type the author wrote.
             return null;
         }
         const rule = typeChangeRule({
@@ -5159,6 +5167,10 @@ async function typeChangeStatus({
     }
 
     const sourceType = typeStoodFor(sourceComponent);
+    if (sourceType === "_error") {
+        // reported already, where the error was made
+        return undefined;
+    }
     const sourceClass = componentInfoObjects.allComponentClasses[sourceType];
 
     if (
@@ -5206,6 +5218,8 @@ async function typeChangeStatus({
                     sourceType,
                     count,
                     holdsNothing: count === 0 ? "true" : "false",
+                    // An index selects an entry of a list.
+                    indexSelectsOne: "true",
                 },
             });
         }
@@ -5236,7 +5250,10 @@ async function typeChangeStatus({
     const content = [];
     let changes = !COMPOSITES_WITH_WRITTEN_CONTENT.has(sourceType);
     let allExpanded = true;
-    async function gather(composite) {
+    // How many instances of the source (its iterations, picks or items) the
+    // content is in, and so whether `$x[1]` would select one component.
+    let numInstances = 0;
+    async function gather(composite, depth = 0) {
         let replacements = composite.replacements ?? [];
         if (composite.replacementsToWithhold > 0) {
             replacements = replacements.slice(
@@ -5248,6 +5265,9 @@ async function typeChangeStatus({
             if (typeof replacement === "string") {
                 if (replacement.trim() !== "") {
                     content.push({ componentType: "text" });
+                    if (depth === 0) {
+                        numInstances++;
+                    }
                 }
                 continue;
             }
@@ -5258,6 +5278,9 @@ async function typeChangeStatus({
             ) {
                 continue;
             }
+            if (depth === 0) {
+                numInstances++;
+            }
             if (
                 componentInfoObjects.isCompositeComponent({
                     componentType: comp.componentType,
@@ -5267,7 +5290,7 @@ async function typeChangeStatus({
                     changes = true;
                 }
                 if (comp.isExpanded) {
-                    await gather(comp);
+                    await gather(comp, depth + 1);
                 } else {
                     allExpanded = false;
                 }
@@ -5293,6 +5316,14 @@ async function typeChangeStatus({
                 sourceType,
                 count: content.length,
                 holdsNothing: content.length === 0 ? "true" : "false",
+                // An index selects an instance, never a child of a
+                // `<group>` or of what a `<conditionalContent>` shows
+                // (D27), and one component only if each instance is one.
+                indexSelectsOne:
+                    indexSelectsInstances(sourceType, componentInfoObjects) &&
+                    numInstances === content.length
+                        ? "true"
+                        : "false",
             },
         });
     }

@@ -109,6 +109,25 @@ describe("A copy of a <sort> reads the text written in it as its own type (#2414
             p1: "1, 3, 10",
         });
     });
+
+    it("type on a copy of another tag that reads its text as its type", async () => {
+        const { texts } = await setup(`
+<p name="pi"><indexOf name="io" target="1">01 1</indexOf></p>
+<p name="pi1"><indexOf copy="$io" type="text"/></p>
+<p name="pt"><tally name="t">1 01 1</tally></p>
+<p name="pt1"><tally copy="$t" type="text"/></p>
+<p name="psi"><sortIndices name="si">10 3 1</sortIndices></p>
+<p name="psi1"><sortIndices copy="$si" type="text"/></p>
+`);
+        expect(await texts(["pi", "pi1", "pt", "pt1", "psi", "psi1"])).eqls({
+            pi: "1",
+            pi1: "2",
+            pt: "3",
+            pt1: "1, 2",
+            psi: "3, 2, 1",
+            psi1: "3, 1, 2",
+        });
+    });
 });
 
 describe("A reference written as a different tag is allowed only between related types (D26) @group4", () => {
@@ -136,6 +155,9 @@ describe("A reference written as a different tag is allowed only between related
   <sort name="srt"><math>3</math></sort>
   <conditionalContent name="cc"><case condition="false"><math>1</math></case><else><text>no</text></else></conditionalContent>
   <mathList name="ml">1 2</mathList>
+  <angle name="ang">pi/2</angle>
+  <label name="lab">hello</label>
+  <ion name="ion" symbol="Na" charge="1"/>
 </setup>
 <p name="sp">hello <math>x</math></p>
 <section name="sec"><p>hi</p></section>
@@ -171,6 +193,10 @@ describe("A reference written as a different tag is allowed only between related
             mathCopyFromPoint: [`<math copy="$P"/>`, "(3, 4)"],
             textCopyFromConditionalContent: [`<text copy="$cc"/>`, "no"],
             pointCopyFromTuple: [`<point copy="$tup"/>`, "(5, 6)"],
+            // what a component stands for elsewhere (its adapters)
+            mathFromAngle: [`<math extend="$ang"/>`, "π/2"],
+            textFromLabel: [`<text extend="$lab"/>`, "hello"],
+            textFromIon: [`<text extend="$ion"/>`, "Sodium"],
         };
         const { texts, typeChangeDiagnostics } = await setup(
             SOURCES +
@@ -196,6 +222,7 @@ describe("A reference written as a different tag is allowed only between related
 <point name="P">(3,4)</point>
 <group name="g2"><math>a</math><math>b</math></group>
 <mathList name="ml">1 2</mathList>
+<group name="g0"> </group>
 <p name="textFromP"><text extend="$sp"/></p>
 <p name="textCopyFromP"><text copy="$sp"/></p>
 <p name="mathFromSection"><math extend="$sec"/></p>
@@ -206,6 +233,7 @@ describe("A reference written as a different tag is allowed only between related
 <p name="textFromPoint"><text extend="$P"/></p>
 <p name="pointFromText"><point copy="$t"/></p>
 <p name="mathFromList"><math extend="$ml"/></p>
+<p name="mathFromEmptyGroup"><math extend="$g0"/></p>
 <p name="after">after</p>
 `;
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
@@ -222,6 +250,7 @@ describe("A reference written as a different tag is allowed only between related
             "textFromPoint",
             "pointFromText",
             "mathFromList",
+            "mathFromEmptyGroup",
         ];
         const shown = await texts(["before", "after", ...names]);
         expect(shown.before).eq("before");
@@ -289,14 +318,14 @@ describe("A reference written as a different tag is allowed only between related
                 type: "error",
                 line: lineOf("mathFromGroupOfTwo"),
                 message:
-                    "A `<math>` can be made from a `<group>` only when it holds one component, and `$g2` holds 2. To use one of them, write `$g2[1]` or name it. To read them all as one value, write `<math>$g2</math>`.",
+                    "A `<math>` can be made from a `<group>` only when it holds one component, and `$g2` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$g2</math>`.",
             },
             {
                 code: "doenet-e0064",
                 type: "error",
                 line: lineOf("textFromGroupOfTwo"),
                 message:
-                    "A `<text>` can be made from a `<group>` only when it holds one component, and `$g2` holds 2. To use one of them, write `$g2[1]` or name it. To read them all as one value, write `<text>$g2</text>`.",
+                    "A `<text>` can be made from a `<group>` only when it holds one component, and `$g2` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<text>$g2</text>`.",
             },
             {
                 code: "doenet-e0065",
@@ -319,7 +348,32 @@ describe("A reference written as a different tag is allowed only between related
                 message:
                     "A `<math>` can be made from a `<mathList>` only when it holds one component, and `$ml` holds 2. To use one of them, write `$ml[1]` or name it. To read them all as one value, write `<math>$ml</math>`.",
             },
+            {
+                code: "doenet-e0064",
+                type: "error",
+                line: lineOf("mathFromEmptyGroup"),
+                message:
+                    "A `<math>` can't be made from `$g0`, a `<group>` that holds nothing now, so nothing is shown for it.",
+            },
         ]);
+    });
+
+    it("an error in place of what is referenced is not reported again as a type change", async () => {
+        const { texts, typeChangeDiagnostics } = await setup(`
+<p name="p0"><count name="bad" value="1">1</count></p>
+<group name="g"><count value="1">1</count></group>
+<p name="p1"><count copy="$bad"/></p>
+<p name="p2"><text extend="$bad"/></p>
+<p name="p3"><text extend="$g"/></p>
+<p name="p4"><collect copy="$bad"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4"])).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+            p4: "",
+        });
+        expect(typeChangeDiagnostics()).eqls([]);
     });
 
     it("a collect copied from a conditionalContent is an error (#2415)", async () => {
@@ -382,12 +436,18 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p2"><point extend="$m"/></p>
 <p name="p3"><math extend="$rep"/></p>
 <p name="p4"><point copy="$m"/></p>
+<repeat name="rep2" for="1 2" valueName="i"><math>$i</math><math>2$i</math></repeat>
+<conditionalContent name="cc"><case condition="true"><math>a</math><math>b</math></case></conditionalContent>
+<p name="p5"><math extend="$rep2"/></p>
+<p name="p6"><math extend="$cc"/></p>
 `);
-        expect(await texts(["p1", "p2", "p3", "p4"])).eqls({
+        expect(await texts(["p1", "p2", "p3", "p4", "p5", "p6"])).eqls({
             p1: "",
             p2: "",
             p3: "",
             p4: "",
+            p5: "",
+            p6: "",
         });
         expect(typeChangeDiagnostics()).eqls([
             {
@@ -395,14 +455,14 @@ describe("A reference written as a different tag is allowed only between related
                 type: "info",
                 line: 4,
                 message:
-                    "A `<boolean>` can't be made from `$m` while its value, x + 1, isn't true or false. Nothing is shown for it until it is.",
+                    "A `<boolean>` can't be made from `$m` while its value, x + 1, isn't true or false, so nothing is shown for it.",
             },
             {
                 code: "doenet-i0053",
                 type: "info",
                 line: 5,
                 message:
-                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates. Nothing is shown for it until it is.",
+                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates, so nothing is shown for it.",
             },
             {
                 code: "doenet-e0064",
@@ -416,7 +476,24 @@ describe("A reference written as a different tag is allowed only between related
                 type: "info",
                 line: 7,
                 message:
-                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates. Nothing is shown for it until it is.",
+                    "A `<point>` can't be made from `$m` while its value, x + 1, isn't a tuple of coordinates, so nothing is shown for it.",
+            },
+            // An index is suggested only where it selects one component: not
+            // an iteration that holds two, nor what a conditionalContent
+            // shows (D27).
+            {
+                code: "doenet-e0064",
+                type: "info",
+                line: 10,
+                message:
+                    "A `<math>` can be made from a `<repeat>` only when it holds one component, and `$rep2` holds 4. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$rep2</math>`.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "info",
+                line: 11,
+                message:
+                    "A `<math>` can be made from a `<conditionalContent>` only when it holds one component, and `$cc` holds 2. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$cc</math>`.",
             },
         ]);
     });

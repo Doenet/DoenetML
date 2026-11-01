@@ -782,11 +782,17 @@ type-change-input-from-value =
 type-change-from-container = A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` holding other content. To use its text, write `{ $source }.text`.
 
 # $count is the number of components `$source` holds, which is not one, and
-# $holdsNothing is "true" when that number is zero.
+# $holdsNothing is "true" when that number is zero. $indexSelectsOne is "true"
+# when `$source[1]` selects one of those components (an entry of a list, an
+# iteration or a pick that holds one component); an index does not select a
+# child of a `<group>`, so the author names the one they want instead.
 type-change-composite-not-one =
     { $holdsNothing ->
-        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing now. Nothing is shown for it while it holds nothing.
-       *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing now, so nothing is shown for it.
+       *[other] { $indexSelectsOne ->
+            [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+           *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        }
     }
 
 # $value is the value of `$source` now. $valueCheck says what it would have
@@ -794,8 +800,8 @@ type-change-composite-not-one =
 # false, a number or a relation, for a boolean.
 type-change-value-not-convertible =
     { $valueCheck ->
-        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates. Nothing is shown for it until it is.
-       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false. Nothing is shown for it until it is.
+        [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so nothing is shown for it.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so nothing is shown for it.
     }
 
 ## Children that do not match

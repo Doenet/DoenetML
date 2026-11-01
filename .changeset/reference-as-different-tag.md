@@ -14,11 +14,11 @@ The errors say what to write instead:
 
 - a `<p>`, `<section>` or other container as a value tag: use `$p.text`;
 - an input made from a value, such as `<mathInput extend="$m"/>`, which used to act as `bindValueTo`: write `<mathInput bindValueTo="$m"/>` to edit `$m`, or `<mathInput prefill="$m"/>` to start from its value;
-- a composite or list holding several components as a value tag, such as `<math extend="$g"/>` of a group of two maths: use `$g[1]`, name what's inside, or write `<math>$g</math>`;
+- a composite or list holding several components as a value tag, such as `<math extend="$g"/>` of a group of two maths: name the one you want, or write `<math>$g</math>` to read them all as one value. Where an index selects one of them (an entry of a list, or an iteration or a pick that holds one component), `$r[1]` is suggested too;
 - any other pair, such as a point as a `<text>`, or a `<collect copy="$cc"/>` of a `<conditionalContent>`, which used to show nothing with the warning "No source found for collect".
 
-When the mismatch depends on what the document makes at run time (which case is active, which option was picked, how many components a collect holds, whether a math's value is a tuple or true or false), it is an info instead, and nothing is shown until the content matches again. For example, `<point extend="$m"/>` of a math `x+1` shows nothing, and shows the point once `m` is `(1, 2)`.
+When the mismatch depends on what the document makes at run time (which case is active, which option was picked, how many components a collect holds, whether a math's value is a tuple or true or false), it is an info instead, and nothing is shown while it lasts. An `extend` is shown again when the content matches: `<point extend="$m"/>` of a math `x+1` shows nothing, and shows the point once `m` is `(1, 2)`. A `copy` stays as it was made.
 
-`type` on a copy of a `<sort>`, `<shuffle>` or `<sortIndices>`, such as `<sort copy="$s" type="text"/>`, now decides how the text written in the source is read, as it does on the source. It was ignored.
+`type` on a copy of a tag that reads the text written in it as its `type` (`<sort>`, `<shuffle>`, `<sortIndices>`, `<tally>`, `<indexOf>`, `<searchSorted>`, `<argMin>` and `<argMax>`), such as `<sort copy="$s" type="text"/>`, now decides how the text written in the source is read, as it does on the source. It was ignored.
 
 Closes #2414, #2415 and #2423.
