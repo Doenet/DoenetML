@@ -322,6 +322,18 @@ templates and plans (*plan*), checked through the probe (*check*), with every
 element that fails boxed. Its product, `Compiled`, is what every build stamps,
 and depends on the source alone, not the seed (ADR 0014).
 
+**Compile stages** — The compile's steps, in order, each reading only what
+earlier ones made (ADR 0027, ADR 0029). *Outline*: every element,
+template and name, what a reference reads of each that its own source
+settles (a `<math>`'s type, what a `<collect>` collects), and container
+copies' clones. *Parse*: every `<math>`'s text parsed once. *Plan*: every
+element's plan, from the source and what outlining and parsing made,
+never from another element's plan. *Link*: what ties plans together once
+all are made (shared state; boxing what read a boxed referent). *Seal*:
+what reads every plan and changes none (choice interfaces, arity, keys,
+slot offsets). *Probe*: one build through the probe view. They are not
+called passes: a *pass* is one build while the repeat counts settle.
+
 **Build** — One pass from the compile, the session and iteration counts to
 cells, program and component table: expand, resolve, emit, schedule. A
 *load* is a compile, then builds until the structure *settles*; a *rebuild*

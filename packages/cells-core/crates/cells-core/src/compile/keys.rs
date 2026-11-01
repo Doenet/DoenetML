@@ -83,7 +83,7 @@ fn push_number(out: &mut String, k: u32) {
     let _ = write!(out, "{k}");
 }
 
-impl super::finish::Finish<'_> {
+impl super::seal::Seal<'_> {
     /// Give every element its key, once every element is planned.
     pub(in crate::compile) fn assign_keys(&mut self) {
         let c = &mut *self.compiled;

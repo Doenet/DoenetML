@@ -418,7 +418,7 @@ fn what_is_under_a_box_is_not_built() {
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
 
-/// Pass 1 settles a `<math>`'s type from its own text (ADR 0029), each
+/// Outlining settles a `<math>`'s type from its own text (ADR 0029), each
 /// `$ref` one token, and its planner plans it as that type.
 #[test]
 fn a_maths_type_is_settled_from_its_text() {
@@ -450,7 +450,7 @@ fn a_maths_type_is_settled_from_its_text() {
     );
 }
 
-/// An extend of an element that fails while planning is boxed in pass 4
+/// An extend of an element that fails while planning is boxed when linking
 /// with the referent as its cause, whichever is written first: planning
 /// needs no order (ADR 0029).
 #[test]

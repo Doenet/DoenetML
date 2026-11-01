@@ -136,7 +136,7 @@ fn plan_and_check<T>(
                 continue;
             }
         };
-        // Every attribute the compile reads has been read once pass 3 is
+        // Every attribute the compile reads has been read once planning is
         // done: a build reads none (ADR 0027).
         let mut outside: HashSet<NodeId> = boxed.clone();
         outside.extend(planned.boxed.iter().copied());

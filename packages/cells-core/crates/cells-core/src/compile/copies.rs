@@ -50,7 +50,7 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<graph extend="$g" name="g2"/>`: the copy's props alias the
-    /// original's. Its children, clones, it has from pass 1
+    /// original's. Its children, clones, it has from outlining
     /// (`expand_container_copy`).
     pub(in crate::compile) fn plan_container_copy(
         &mut self,
@@ -61,7 +61,7 @@ impl<'a> Compiler<'a> {
         self.plan_attrs(t, e, Some(p))
     }
 
-    /// The last of pass 1 (ADR 0027): every container copy gets its
+    /// The end of outlining (ADR 0027): every container copy gets its
     /// clones, now that every name is in the table, so the element set is
     /// complete before anything is planned. A copy of a copy is expanded
     /// after its referent, whatever the document's order.
@@ -106,7 +106,7 @@ impl<'a> Compiler<'a> {
 
     fn expand_container_copy_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let p = self.plan_extend(t, e)?.expect("a container copy extends");
-        // `<graph extend="$x.prop"/>` is no container copy: pass 3 refuses
+        // `<graph extend="$x.prop"/>` is no container copy: planning refuses
         // it as an extend of a prop.
         if self.compiled.refs[p.index()].prop.is_some() {
             return Ok(());
@@ -141,8 +141,8 @@ impl<'a> Compiler<'a> {
             match ch {
                 Child::Elem(c) => {
                     // A copy among the children has its clones first; a
-                    // clone takes the type pass 1 settled for its original.
-                    let el = self.shaped_elem(t, c)?;
+                    // clone takes the type outlining settled for its original.
+                    let el = self.outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
                     self.cloned_sources.insert((t.get(), c.get()));
@@ -252,7 +252,7 @@ impl<'a> Compiler<'a> {
         let wiring = plan(&mut PlanCtx::new(self, t, e, base_elem))?;
         // Essential state the copy did not override is the original's: the
         // current core's copies share their essential state variables. The
-        // copy names what it shares, and pass 4 links it to the slot the
+        // copy names what it shares, and linking ties it to the slot the
         // referent's planning gives it (`link_shared_state`, ADR 0029).
         if let Some(r) = base_elem {
             for (state, &slot) in &wiring.shared_state {
@@ -288,7 +288,7 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// Pass 4's first link (ADR 0029): each piece of state a copy shares
+    /// Linking (ADR 0029): each piece of state a copy shares
     /// aliases the referent's slot for it, now that every element is
     /// planned. A copy or referent that is a box shares nothing, and a
     /// copy keeps its own given value for state its referent has none of.

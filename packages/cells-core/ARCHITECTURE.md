@@ -94,14 +94,18 @@ Runs once per load and depends on the source alone.
   plan names an
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
-  (see [Add a component type](#add-a-component-type)). Planning runs in
-  passes (ADR 0027): the walk makes every element and the name table and
-  settles what a reference reads of each (a `<math>`'s type, a
-  `<collect>`'s), container copies get their clones, every element is
-  planned, and the plans are linked and finished. A planner reads the
-  source and what the walk made, never another element's plan (ADR
-  0029), so elements are planned in any order: what one shares with
-  another (an extend's essential state) is a link made once all are
+  (see [Add a component type](#add-a-component-type)). The compile runs
+  in stages (ADR 0027, ADR 0029; `Compiler::compile_all`): **outline**
+  makes every element, template and name, settles what a reference reads
+  of each (a `<math>`'s type, a `<collect>`'s collected type) and gives
+  container copies their clones; **parse** parses every `<math>`'s text
+  once; **plan** plans every element; **link** boxes what read a boxed
+  referent and ties shared state between plans; **seal** (`seal.rs`)
+  makes choice interfaces, checks arity, and assigns keys and slot
+  offsets; the **probe** (below) comes last. A planner reads the source
+  and what outlining and parsing made, never another element's plan
+  (ADR 0029), so elements are planned in any order: what one shares
+  with another (an extend's essential state) is linked once all are
   planned.
 - **Check** (`check.rs`, ADR 0012, ADR 0014) finds every error the document
   can have. It builds the plans once through the **probe**

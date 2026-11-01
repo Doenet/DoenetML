@@ -329,8 +329,8 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The component type of the element a reference names, when it
-    /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as pass
-    /// 1 settled it (a `<math>` may be a point).
+    /// names one in this template (`$l`, not `$l.x` or `$r[2]`), as
+    /// outlining settled it (a `<math>` may be a point).
     pub(crate) fn reference_type(&mut self, p: RefId) -> Result<Option<ComponentType>> {
         match self.c.plan_elem_target(self.t, p) {
             Some(_) => self.c.referent_type(self.t, self.e, p),
@@ -450,14 +450,14 @@ impl<'a> PlanCtx<'_, 'a> {
         self.c.compiled.templates[self.t.index()].elems[self.e.index()].props = props;
     }
 
-    /// The element's `<math>` text as pass 2 parsed it (ADR 0029), or the
+    /// The element's `<math>` text as it was parsed (ADR 0029), or the
     /// error parsing it met.
     pub(crate) fn parsed_math(&mut self) -> Result<ParsedMath> {
         let key = (self.t.get(), self.e.get());
         match self.c.parsed_maths.get(&key) {
             Some(Ok(parsed)) => Ok(parsed.clone()),
             Some(Err(_)) => Err(self.c.parsed_maths.remove(&key).unwrap().unwrap_err()),
-            None => Err(Error::Internal("a <math> pass 2 did not parse".into())),
+            None => Err(Error::Internal("a <math> that was never parsed".into())),
         }
     }
 
@@ -473,13 +473,13 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Makes the element's children copies of the components under what
-    /// `from` names of the type pass 1 recorded it collects (ADR 0029),
+    /// `from` names of the type outlining recorded it collects (ADR 0029),
     /// found when it expands; its props are set then too.
     pub(crate) fn collect(&mut self, from: RefId) {
         let own_type = self.elem().component_type;
         let el = &mut self.c.compiled.templates[self.t.index()].elems[self.e.index()];
         let Body::Collect { from: f, .. } = &mut el.body else {
-            unreachable!("pass 1 made a collecting element a collect")
+            unreachable!("outlining made a collecting element a collect")
         };
         *f = from;
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];

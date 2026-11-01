@@ -302,7 +302,7 @@ impl<'a> Compiler<'a> {
 
     /// Math text tokenized: the one tokenizer of math text. Its `$ref`s
     /// are placeholders, planned by `resolve_math`, so tokenizing reads no
-    /// other element and may run in pass 1 (a `<math>`'s, ADR 0029).
+    /// other element and may run while outlining (a `<math>`'s, ADR 0029).
     pub(in crate::compile) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
         let d = self.dast;
         let mut mt = MathText {
@@ -399,7 +399,7 @@ impl<'a> Compiler<'a> {
         Ok(id)
     }
 
-    /// A `<math>`'s text parsed (pass 2, ADR 0029) as the type pass 1
+    /// A `<math>`'s text parsed (when parsing, ADR 0029) as the type outlining
     /// settled for it: one expression, or a tuple's entries.
     pub(in crate::compile) fn parse_math(
         &mut self,
@@ -412,7 +412,7 @@ impl<'a> Compiler<'a> {
             return Ok(ParsedMath::Expr(self.parse_math_text(t, scope, mt)?));
         }
         let (toks, text, _) = self.resolve_math(t, scope, mt)?;
-        let parts = super::expr::tuple_entries(&toks).expect("pass 1 settled a tuple");
+        let parts = super::expr::tuple_entries(&toks).expect("outlining settled a tuple");
         let entries = parts
             .iter()
             .map(|part| self.parse_tokens(part, &text))
@@ -571,7 +571,7 @@ impl<'a> Compiler<'a> {
 
     /// Replace cell leaves that name a `<math>` element of this template
     /// with that math's own expression when it has free symbols: the
-    /// expression pass 2 parsed, which its planner plans from too, not its
+    /// expression parsed when parsing, which its planner plans from too, not its
     /// plan (ADR 0029).
     pub(in crate::compile) fn inline_symbolic_maths(
         &mut self,
@@ -592,7 +592,7 @@ impl<'a> Compiler<'a> {
                 let Some(target) = (is_value).then(|| self.plan_elem_target(t, p)).flatten() else {
                     return id;
                 };
-                // Pass 2 parsed every `<math>`; one that did not parse is
+                // Every `<math>` is parsed before planning; one that did not parse is
                 // left a cell, its error its own.
                 let Some(Ok(ParsedMath::Expr(inner))) =
                     self.parsed_maths.get(&(t.get(), target.get()))

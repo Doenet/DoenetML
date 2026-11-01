@@ -18,7 +18,7 @@ component! {
 pub const COUNT: usize = Props::AT.count;
 
 /// The type a `<collect>` collects, from the text of its `componentType`
-/// (none when it has no literal one). Pass 1 reads it, once, so a
+/// (none when it has no literal one). Outlining reads it, once, so a
 /// reference indexing the collect knows what it names before anything is
 /// planned (ADR 0029).
 pub(crate) fn collected_type(type_text: Option<String>) -> Result<ComponentType> {
@@ -29,7 +29,7 @@ pub(crate) fn collected_type(type_text: Option<String>) -> Result<ComponentType>
 }
 
 /// What it collects is resolved when it expands: the components of the
-/// type pass 1 read (`collected_type`) under what `from` names.
+/// type outlining read (`collected_type`) under what `from` names.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
     let d = ctx.dast();
     let el = ctx.node();

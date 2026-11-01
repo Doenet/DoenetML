@@ -1,5 +1,6 @@
-//! Pass 4 of the compile (ADR 0027): what needs every element planned,
-//! from the plans, the source and the name table alone. The branch
+//! Sealing, the compile's last stage before the probe (ADR 0027): what
+//! needs every element planned and linked, from the plans, the source
+//! and the name table alone, changing no plan. The branch
 //! interface of every choice (`choice.rs`), the arity of every operator a
 //! plan names, every element's key (`keys.rs`) and the slot offsets. What
 //! fails here is boxed by compiling again, not in place: other elements'
@@ -7,7 +8,7 @@
 
 use super::*;
 
-pub(in crate::compile) struct Finish<'a> {
+pub(in crate::compile) struct Seal<'a> {
     pub(in crate::compile) compiled: &'a mut Compiled,
     pub(in crate::compile) dast: &'a Dast,
     pub(in crate::compile) names: &'a NameTable,
@@ -16,7 +17,7 @@ pub(in crate::compile) struct Finish<'a> {
     pub(in crate::compile) shared_state: &'a HashMap<(u32, u32), HashMap<SharedState, u8>>,
 }
 
-impl Finish<'_> {
+impl Seal<'_> {
     pub(in crate::compile) fn run(mut self) -> std::result::Result<(), Failure> {
         self.finish_choices()?;
         self.check_arity()?;

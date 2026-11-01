@@ -276,7 +276,7 @@ impl<'a> Compiler<'a> {
     }
 }
 
-impl super::finish::Finish<'_> {
+impl super::seal::Seal<'_> {
     /// The branch interface of every choice, once every element is planned
     /// (a tuple-valued `<math>` only becomes a point when planned), then the
     /// check that every interface name a reference uses is in it.

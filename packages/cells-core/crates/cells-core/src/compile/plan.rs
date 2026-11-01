@@ -298,8 +298,9 @@ impl MathText {
     }
 }
 
-/// A `<math>`'s text parsed once, in pass 2 (ADR 0029), as the type pass
-/// 1 settled: what its planner plans from and a line's equation inlines.
+/// A `<math>`'s text parsed once, when parsing (ADR 0029), as the type
+/// outlining settled: what its planner plans from and a line's equation
+/// inlines.
 #[derive(Debug, Clone)]
 pub(crate) enum ParsedMath {
     /// A math: one expression.
@@ -348,7 +349,7 @@ pub(crate) struct Elem {
     /// aliases the original's, and the children are clones too.
     pub(crate) cloned: bool,
     /// The type whose planner plans it: its tag's, where `component_type`
-    /// is the type pass 1 settled (a `<math>` that is a point, ADR 0029).
+    /// is the type outlining settled (a `<math>` that is a point, ADR 0029).
     pub(crate) planned_as: ComponentType,
     pub(crate) body: Body,
     /// What holds it (`fixed`, `compile/fix.rs`).

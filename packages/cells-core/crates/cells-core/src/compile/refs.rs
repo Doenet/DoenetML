@@ -56,8 +56,8 @@ impl<'a> Compiler<'a> {
     }
 
     /// The component type a plan names, when it can be told from the
-    /// templates alone: the element its path ends at, as pass 1 shaped
-    /// it (`shaped_elem`), through the repeats and collects an index
+    /// templates alone: the element its path ends at, as outlining made
+    /// it (`outlined_elem`), through the repeats and collects an index
     /// steps into. `None` past an interface name (settled after planning)
     /// or where the path cannot be followed.
     pub(in crate::compile) fn ref_target_type(
@@ -79,7 +79,7 @@ impl<'a> Compiler<'a> {
             match self.compiled.refs[p.index()].steps[i] {
                 Step::Elem(e) => {
                     cur = Some(e);
-                    ty = Some(self.shaped_elem(t, e)?.component_type);
+                    ty = Some(self.outlined_elem(t, e)?.component_type);
                 }
                 Step::Index(_) => {
                     let Some(c) = cur else { return Ok(None) };
@@ -191,11 +191,11 @@ impl<'a> Compiler<'a> {
             if i > 0 {
                 let name = d.strings.get(names[i]);
                 // What follows an element's name is read from its type,
-                // body or children, as pass 1 shaped them.
+                // body or children, as outlining made them.
                 if let At::Elem(e) = at
                     && !after_iface
                 {
-                    self.shaped_elem(cur_t, e)?;
+                    self.outlined_elem(cur_t, e)?;
                 }
                 let choice_here = match at {
                     At::Elem(e) if !after_iface => {
@@ -390,7 +390,7 @@ impl<'a> Compiler<'a> {
                     return Err(Error::NotIndexable(display));
                 };
                 // `$p[2]`: a coordinate of a point (a `<math>` may be one).
-                let ek = self.shaped_elem(cur_t, e)?.component_type;
+                let ek = self.outlined_elem(cur_t, e)?.component_type;
                 if let Some(parts_of) = ek.default_prop().and_then(|dp| ek.combined_prop(dp)) {
                     if prop.is_some() || i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display));

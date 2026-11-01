@@ -39,7 +39,7 @@ pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
 /// The type a `<math>` is, from its text alone: a tuple of two,
 /// `(a, b)`, is a point for the cells core (two cells, draggable as a
 /// direction source); a tuple of more entries is a tuple, one cell per
-/// entry; anything else is a math cell. Pass 1 settles it, once, before
+/// entry; anything else is a math cell. Outlining settles it, once, before
 /// anything is planned (ADR 0029); each `$ref` is one token.
 pub(crate) fn settled_type(toks: &[Token]) -> ComponentType {
     match tuple_entries(toks).map(|entries| entries.len()) {
@@ -49,7 +49,7 @@ pub(crate) fn settled_type(toks: &[Token]) -> ComponentType {
     }
 }
 
-/// Plans a `<math>` as the type pass 1 settled, from the text pass 2
+/// Plans a `<math>` as the type outlining settled, from the text parsing
 /// parsed: a point's or a tuple's entries, or a math cell, simplified or
 /// expanded as its attributes say.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
