@@ -2381,6 +2381,24 @@ export default class Copy extends CompositeComponent {
                     diagnostics,
                     nComponents,
                 };
+            } else if (
+                (await component.stateValues.typeChangeValueCheck) &&
+                !(component.replacementsToWithhold > 0) &&
+                !(await component.stateValues.removeEmptyArrayEntries) &&
+                workspace.sourceIndices.length ===
+                    replacementSourceIdentities.length &&
+                replacementSourceIdentities.every(
+                    (source, ind) =>
+                        source.componentIdx === workspace.sourceIndices[ind],
+                )
+            ) {
+                // Made from the same source, as the same type: only what
+                // the type change checks (`typeChangeValueCheck`), such as
+                // the value of a math, changed, which the replacements
+                // follow through their own dependencies. Made again, a
+                // replacement wrapped in the type the copy is written as
+                // would be remade on every change of that value.
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 

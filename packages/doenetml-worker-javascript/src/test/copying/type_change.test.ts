@@ -448,6 +448,32 @@ describe("A reference written as a different tag is allowed only between related
         expect(await texts(["p1"])).eqls({ p1: "" });
     });
 
+    it("a point made from a math is kept, not made again, while its value stays a tuple", async () => {
+        const { core, resolvePathToNodeIdx } = await setup(`
+<mathInput name="mi" prefill="(1,2)"/>
+<math name="m">$mi</math>
+<graph><point extend="$m" name="P"/></graph>
+`);
+        /** The point the extend shows. */
+        async function pointShown() {
+            return (core as any).core._components[
+                await resolvePathToNodeIdx("P")
+            ];
+        }
+        const before = await pointShown();
+        expect(before.componentType).eq("point");
+        expect((await before.stateValues.coords).toString()).eq("(1, 2)");
+
+        await updateMathInputValue({
+            latex: "(3,4)",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const after = await pointShown();
+        expect(after === before).eq(true);
+        expect((await after.stateValues.coords).toString()).eq("(3, 4)");
+    });
+
     it("the active case decides whether a conditionalContent stands for the written type", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
