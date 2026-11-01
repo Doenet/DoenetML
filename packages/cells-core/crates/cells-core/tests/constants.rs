@@ -10,6 +10,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 use cells_core::build::SlotClass;
+use cells_core::program::SAMPLES;
 use cells_core::testing::test_utils::{dast_json, repo_root};
 use cells_core::{Document, LoadOptions};
 
@@ -106,20 +107,53 @@ fn a_full_recompute_changes_no_constant() {
     }
 }
 
-/// A curve's samples are never folded, even over constants (a graph whose
-/// axes `fixAxes` holds): the bridge draws a function's curve only when
-/// its samples are derived, and a function of several variables, whose
-/// `samples` is one absent constant, has none (`CURVE` in
-/// `doenetml-worker/src/cells/contracts.ts`).
+/// A curve's samples fold like any instruction over constants (a graph
+/// whose axes `fixAxes` holds), and the curve is still drawn: the bridge
+/// tells a function with a curve from one without by its `curve` prop, a
+/// fact about the source, not by its samples being derived (`CURVE` in
+/// `doenetml-worker/src/cells/contracts.ts`), and the whole run of samples
+/// is output either way.
 #[test]
-fn a_curve_is_never_folded() {
-    for src in [
-        r#"<graph><function name="f">x^2</function></graph>"#,
-        r#"<graph fixAxes><function name="f">x^2</function></graph>"#,
+fn a_folded_curve_is_still_drawn() {
+    for (src, folds) in [
+        (
+            r#"<graph xmin="-1" xmax="1"><function name="f">x^2</function></graph>"#,
+            false,
+        ),
+        (
+            r#"<graph xmin="-1" xmax="1" fixAxes><function name="f">x^2</function></graph>"#,
+            true,
+        ),
     ] {
         let (doc, _) = Document::load(dast_json(src).as_bytes(), LoadOptions::default()).unwrap();
+        assert_eq!(doc.value("f", "curve"), Some(1.0), "{src}");
         let samples = doc.cell("f", "samples").unwrap();
-        assert!(!doc.is_const(samples), "{src}: the samples are constants");
+        assert_eq!(
+            doc.is_const(samples),
+            folds,
+            "{src}: the samples are constants"
+        );
         assert!(!doc.is_essential(samples), "{src}");
+        let outputs = doc.output_cells();
+        for k in 0..SAMPLES {
+            let cell = samples.offset(k);
+            assert!(
+                outputs.binary_search(&cell).is_ok(),
+                "{src}: samples[{k}] is not an output"
+            );
+            assert_eq!(doc.is_const(cell), folds, "{src}: samples[{k}]");
+            let x = -1.0 + 2.0 * k as f64 / (SAMPLES - 1) as f64;
+            let y = doc.cells[cell.index()];
+            assert!(
+                (y - x * x).abs() < 1e-9,
+                "{src}: samples[{k}] is {y}, not {}",
+                x * x
+            );
+        }
     }
+    // A function of several variables has no curve: one absent constant.
+    let src = r#"<graph fixAxes><function name="g" variables="x y">x+y</function></graph>"#;
+    let (doc, _) = Document::load(dast_json(src).as_bytes(), LoadOptions::default()).unwrap();
+    assert_eq!(doc.value("g", "curve"), Some(0.0));
+    assert!(doc.is_const(doc.cell("g", "samples").unwrap()));
 }

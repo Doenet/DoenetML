@@ -446,15 +446,28 @@ Settled while implementing phase 5:
   ones). In the benchmark of Context at 5000 iterations, 30,000 of 30,003;
   its rebuild goes from 41 ms to 37 ms, since the folds run once in
   emit in place of the load's first compute.
-- A curve's `Sample` never folds. The bridge draws a function's curve
-  only when its `samples` cell is derived, since a function of several
-  variables has one absent constant there and no curve (`CURVE` in
+- A curve's `Sample` folds like any other instruction. It first did
+  not: the bridge drew a function's curve only when its `samples` cell
+  was derived, since a function of several variables has one absent
+  constant there and no curve (`CURVE` in
   `doenetml-worker/src/cells/contracts.ts`); in a graph whose `fixAxes`
   holds its bounds, a function's samples read only constants and would
-  fold, and its curve would vanish (`a_curve_is_never_folded`). The
-  bridge reading a cell's class for a fact about the source is the flaw;
-  a signal of its own for a function with no curve would let the
-  exception go.
+  fold, and its curve would vanish. The bridge reading a cell's class
+  for a fact about the source was the flaw, and the core's own
+  `output_bits` made the same one, spanning the run of samples only when
+  its head was derived. Now `<function>` and `<derivative>` have a
+  `curve` prop, rendered, a constant the planner sets to 1, or to 0 for a
+  function `is_vector_function` finds of several variables or returning
+  a tuple; `samples` is `sampled: curve`, so its run is output when
+  `curve` is nonzero, whatever class its cells have; the bridge draws a
+  curve when `curve` is 1; and `folded_slots` has no exception.
+  `a_folded_curve_is_still_drawn` (`tests/constants.rs`) loads a curve
+  with and without `fixAxes`, finds its samples folded only with it, and
+  every sample an output holding x² either way; the bridge test
+  `draws a curve whose samples are folded into constants` draws it. No
+  golden document has a curve under `fixAxes`, so the golden values are
+  the same; the dump lists the new `curve` prop, and the four documents
+  with curves fingerprint differently by its constant cell.
 - The spec cost snapshots move only by instructions becoming constants:
   in every changed case, cells, essential cells and components are the
   same, and the constants grow by what the folded instructions wrote.

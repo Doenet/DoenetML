@@ -143,6 +143,7 @@ const EXPECTED_READS = [
     "text.value",
     "evaluate.value",
     "function.xmin",
+    "function.curve",
     "function.samples",
     "numberInput.value",
     "booleanInput.value",

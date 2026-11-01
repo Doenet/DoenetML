@@ -497,6 +497,12 @@ impl ComponentType {
         self.prop_defs().get(pi).map_or(1, |d| d.span)
     }
 
+    /// The prop whose nonzero value says prop `pi`'s run of `prop_span`
+    /// cells is there (a function's `curve`).
+    pub fn prop_span_when(self, pi: usize) -> Option<usize> {
+        self.prop_defs().get(pi)?.span_when.map(usize::from)
+    }
+
     /// Whether prop `pi` is a score a grader reads (ADR 0019).
     pub fn is_score_prop(self, pi: usize) -> bool {
         self.prop_defs().get(pi).is_some_and(|d| d.score)
@@ -696,6 +702,9 @@ pub struct PropDef {
     /// How many consecutive cells the prop is the first of: 1, or
     /// `SAMPLES` for a curve's samples, which a renderer reads together.
     pub span: usize,
+    /// For a span over 1, the prop whose nonzero value says the run is
+    /// there (a function's `curve`); when it is 0, the prop is one cell.
+    pub span_when: Option<u8>,
 }
 
 impl PropDef {

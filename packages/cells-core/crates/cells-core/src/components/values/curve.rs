@@ -13,7 +13,7 @@ component! {
     /// `<function>`: a math cell `expr` (variable `x`) and, as a curve, the
     /// `SAMPLES` cells from `samples` on, filled by a `Sample` instruction over
     /// the enclosing graph's x-range. Drawn in a graph, as its curve through
-    /// the samples; in text it has no view yet.
+    /// the samples when `curve` is 1; in text it has no view yet.
     tags: ["function"],
     flags: [copyable, symbolic],
     renders: InGraph,
@@ -22,9 +22,13 @@ component! {
         expr: children,
         xmin: by_planner { rendered },
         xmax: by_planner { rendered },
+        // 1 when the function has a curve, 0 when it has none (it takes
+        // several variables or returns a tuple): a fact about the source,
+        // so the bridge need not ask how `samples` is computed.
+        curve: by_planner { rendered },
         // `samples` is the first of `SAMPLES` consecutive cells, outputs
-        // with it (`sampled`).
-        samples: by_planner { rendered, sampled },
+        // with it when `curve` is 1 (`sampled`).
+        samples: by_planner { rendered, sampled: curve },
     }
     planner: Whole(plan),
 }
@@ -36,6 +40,7 @@ pub(crate) const DERIVATIVE: ComponentDef = DEFINITION.with_tags(&["derivative"]
 pub const EXPR: usize = Props::AT.expr;
 pub const XMIN: usize = Props::AT.xmin;
 pub const XMAX: usize = Props::AT.xmax;
+pub const CURVE: usize = Props::AT.curve;
 pub const SAMPLES: usize = Props::AT.samples;
 
 /// Whether a `<function>` with text `mt` takes several variables or
@@ -61,6 +66,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
             expr: Wire::absent(),
             xmin: Wire::constant(-10.0),
             xmax: Wire::constant(10.0),
+            curve: Wire::constant(0.0),
             samples: Wire::absent(),
         });
         ctx.set_wiring(wiring);
@@ -84,6 +90,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<()> {
         expr,
         xmin,
         xmax,
+        curve: Wire::constant(1.0),
         samples: Wire::computed(
             OpSpec::Sym(SymKind::Sample),
             vec![at.expr, at.xmin, at.xmax],
