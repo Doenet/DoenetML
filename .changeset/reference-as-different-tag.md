@@ -12,12 +12,12 @@ The related types are math, number, text and boolean among each other; point, ve
 
 The errors say what to write instead:
 
-- a `<p>`, `<section>` or other container as a value tag: use `$p.text`;
+- a `<p>` or other container that has a text, as a value tag: use `$p.text` (one with no text, such as a `<section>` or a `<graph>`, is any other pair);
 - an input made from a value, such as `<mathInput extend="$m"/>`, which used to act as `bindValueTo`: write `<mathInput bindValueTo="$m"/>` to edit `$m`, or `<mathInput prefill="$m"/>` to start from its value;
 - a group or a list holding several components, or none, as a value tag, such as `<math extend="$g"/>` of a group of two maths: name the one you want, or write `<math>$g</math>` to read them all as one value. For a list, `$ml[1]` is suggested too;
 - any other pair, such as a point as a `<text>`, or a `<collect copy="$cc"/>` of a `<conditionalContent>`, which used to show nothing with the warning "No source found for collect".
 
-When the value of a math or an input, referenced directly, does not allow the tag (a point, vector or coords from a math whose value is not a tuple, or a boolean from one that is not true or false), it is an info instead, and nothing is shown while it lasts. An `extend` is shown again when the value matches: `<point extend="$m"/>` of a math `x+1` shows nothing, and shows the point once `m` is `(1, 2)`. A `copy` stays as it was made.
+When the value of a math or an input, referenced directly, does not allow the tag (a point, vector or coords from a math whose value is not a tuple, or a boolean from one that is not true, false, a relation or a number), it is an info instead, and nothing is shown while it lasts. An `extend` is shown again when the value matches: `<point extend="$m"/>` of a math `x+1` shows nothing, and shows the point once `m` is `(1, 2)`. A `copy` stays as it was made.
 
 `type` on a copy of a tag that reads the text written in it as its `type` (`<sort>`, `<shuffle>`, `<sortIndices>`, `<tally>`, `<indexOf>`, `<searchSorted>`, `<argMin>` and `<argMax>`), such as `<sort copy="$s" type="text"/>`, now decides how the text written in the source is read, as it does on the source. It was ignored.
 

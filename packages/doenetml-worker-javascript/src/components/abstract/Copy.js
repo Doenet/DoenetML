@@ -1609,6 +1609,7 @@ export default class Copy extends CompositeComponent {
                   propReplacements: replacements,
               });
         workspace.typeChangeKey = typeChangeKey(typeChange);
+        workspace.typeChangeMessage = typeChange?.diagnostic.message;
         if (typeChange) {
             diagnostics.push(typeChange.diagnostic);
             replacements =
@@ -2394,6 +2395,14 @@ export default class Copy extends CompositeComponent {
                 }
                 workspace.typeChangeKey = key;
             } else if (key?.startsWith("mismatch")) {
+                if (
+                    typeChange.diagnostic.message !==
+                    workspace.typeChangeMessage
+                ) {
+                    // an info naming a new value (`typeChangeKey`)
+                    workspace.typeChangeMessage = typeChange.diagnostic.message;
+                    diagnostics.push(typeChange.diagnostic);
+                }
                 return {
                     replacementChanges: unwithheldChanges(component),
                     diagnostics,
@@ -5001,6 +5010,22 @@ function retypeTextPieces({
         stateIdInfo,
     });
     replacement.children = res.components[0].children;
+    // The sugar makes the components it wraps text in with no `stateId`
+    // (`returnBreakStringsIntoTypeSugarInstruction`), so they are given the
+    // copy's, as its other replacements are: an id from where a component
+    // was made in the build moves with what is made before it, and a
+    // reader's change to one would come back on another after a reload, or
+    // on none (`copySnapshotOf` holds only components with a `stateId`).
+    function giveStateIds(component) {
+        if (typeof component !== "object" || component === null) {
+            return;
+        }
+        if (component.stateId === undefined) {
+            component.stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
+        }
+        component.children?.forEach(giveStateIds);
+    }
+    replacement.children.forEach(giveStateIds);
     diagnostics.push(...res.diagnostics);
     return res.nComponents;
 }
@@ -5008,7 +5033,11 @@ function retypeTextPieces({
 /**
  * What `typeChangeStatus` decided, as a string to compare with what it
  * decided before: `undefined` when there was nothing to decide, `"allowed"`,
- * or `"mismatch:"` and the diagnostic.
+ * or `"mismatch:"` and the error shown, or, for an info, which shows
+ * nothing, its code. The message of an info names the source's value
+ * (`doenet-i0053`), which can change while nothing is shown either way; it
+ * is reported again without making the replacements again
+ * (`calculateReplacementChanges`).
  */
 function typeChangeKey(typeChange) {
     if (typeChange === undefined) {
@@ -5017,7 +5046,9 @@ function typeChangeKey(typeChange) {
     if (typeChange === null) {
         return "allowed";
     }
-    return `mismatch:${typeChange.level}:${typeChange.diagnostic.message}`;
+    return typeChange.level === "info"
+        ? `mismatch:info:${typeChange.diagnostic.code}`
+        : `mismatch:${typeChange.level}:${typeChange.diagnostic.message}`;
 }
 
 /** The change that shows any replacements `component` withholds. */

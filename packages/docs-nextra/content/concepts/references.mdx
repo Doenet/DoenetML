@@ -142,7 +142,7 @@ list made by a `<sequence>`, is not checked against these rules.
 Any other pair is an error, shown in place of the reference, whose message says
 what to write instead:
 
-* to use the text of a `<p>`, `<section>` or other container, write `$p.text`;
+* to use the text of a `<p>` or another container that has one, write `$p.text`;
 * an input is not the same thing as its value: to edit `$m` with an input, write
   `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
   `<mathInput prefill="$m"/>{:dn}`;

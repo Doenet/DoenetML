@@ -30,6 +30,8 @@
  * it is made from what it copies by its own rules (#2231).
  */
 
+import { vectorOperators } from "@doenet/utils";
+
 /** The value types, which are made from one another. */
 const VALUE_TYPES = ["math", "number", "text", "boolean"];
 
@@ -63,7 +65,8 @@ const VALUED_AS = {
 /**
  * The family a component type belongs to for a type change: the value or
  * geometric type it is or inherits from (`<integer>` is a number), or the
- * input it is.
+ * input it is. The geometric types are checked first: a `<coords>` inherits
+ * from `<math>` (`Coords.js`), and is geometric.
  */
 function familyOf(componentType, componentInfoObjects) {
     for (const [type, valueType] of Object.entries(VALUED_AS)) {
@@ -76,7 +79,7 @@ function familyOf(componentType, componentInfoObjects) {
             return { kind: "value", type: valueType };
         }
     }
-    for (const baseType of [...VALUE_TYPES, ...GEOMETRIC_TYPES]) {
+    for (const baseType of [...GEOMETRIC_TYPES, ...VALUE_TYPES]) {
         if (
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: componentType,
@@ -216,19 +219,25 @@ export function typeChangeRule({
         return { allowed: false, kind: "unrelated" };
     }
 
-    if (isContainer(sourceClass)) {
+    if (isContainer(sourceType, componentInfoObjects)) {
         return { allowed: false, kind: "container" };
     }
     return { allowed: false, kind: "unrelated" };
 }
 
 /**
- * Whether a component of this class holds other content, as a `<p>`,
- * `<section>` or `<div>` does: one whose children are rendered
- * (`renderChildren`) and whose `text` reads them.
+ * Whether a component of this type holds other content whose text can be
+ * read, as a `<p>` does: one whose children are rendered (`renderChildren`)
+ * and that has a public `text`, so that `$p.text`, which the error suggests,
+ * works. A `<section>`, `<div>` or `<graph>` has no `text`.
  */
-function isContainer(componentClass) {
-    return Boolean(componentClass?.renderChildren);
+function isContainer(componentType, componentInfoObjects) {
+    return Boolean(
+        componentInfoObjects.allComponentClasses[componentType]
+            ?.renderChildren &&
+        componentInfoObjects.publicStateVariableInfo[componentType]
+            ?.stateVariableDescriptions?.text,
+    );
 }
 
 /** The operators of a math whose value is true or false. */
@@ -256,15 +265,16 @@ const BOOLEAN_OPERATORS = new Set([
 
 /**
  * Whether `value`, the value of a math, passes `valueCheck`
- * (`typeChangeRule`): a tuple (or vector) for a point, vector or coords to
- * be made from it; a number, `true`, `false` or a relation for a boolean.
+ * (`typeChangeRule`): a tuple or vector (`vectorOperators`, as `Point.js`
+ * reads its coordinates, including `⟨1,2⟩`) for a point, vector or coords to
+ * be made from it; `true`, `false`, a relation, or an expression that
+ * evaluates to a number, as a `<boolean>` reads a math
+ * (`utils/booleanLogic.js`), for a boolean.
  */
 export function valueAllowsTypeChange(valueCheck, value) {
     const tree = value?.tree;
     if (valueCheck === "tuple") {
-        return (
-            Array.isArray(tree) && (tree[0] === "tuple" || tree[0] === "vector")
-        );
+        return Array.isArray(tree) && vectorOperators.includes(tree[0]);
     }
     if (valueCheck === "boolean") {
         if (typeof tree === "number" || typeof tree === "boolean") {
@@ -273,7 +283,16 @@ export function valueAllowsTypeChange(valueCheck, value) {
         if (tree === "true" || tree === "false") {
             return true;
         }
-        return Array.isArray(tree) && BOOLEAN_OPERATORS.has(tree[0]);
+        if (Array.isArray(tree) && BOOLEAN_OPERATORS.has(tree[0])) {
+            return true;
+        }
+        // `1/2`, `1+1` or `pi`: a math is not simplified by default
+        // (`simplify="none"`), so its tree need not be a number yet.
+        try {
+            return Number.isFinite(value.simplify().evaluate_to_constant());
+        } catch (e) {
+            return false;
+        }
     }
     return true;
 }

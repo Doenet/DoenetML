@@ -293,11 +293,12 @@ describe("A reference written as a different tag is allowed only between related
                     "A `<text>` can't be made from `$sp`, a `<p>` holding other content. To use its text, write `$sp.text`.",
             },
             {
-                code: "doenet-e0063",
+                // a `<section>` has no `text` to suggest
+                code: "doenet-e0065",
                 type: "error",
                 line: lineOf("mathFromSection"),
                 message:
-                    "A `<math>` can't be made from `$sec`, a `<section>` holding other content. To use its text, write `$sec.text`.",
+                    "A `<math>` can't be made from `$sec`, which gives a `<section>`. To show it as it is, write `$sec`.",
             },
             {
                 code: "doenet-e0062",
@@ -901,5 +902,121 @@ describe("A reference written as a different tag is allowed only between related
 
         await updateMathInputValue({ latex: "1", componentIdx: n, core });
         expect(await texts(["p1"])).eqls({ p1: "1" });
+    });
+
+    it("a coords follows the rules of a point and a vector, not of a math", async () => {
+        // A `<coords>` inherits from `<math>`, but is geometric.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<math name="m">x+1</math>
+<math name="tup">(1,2)</math>
+<coords name="c">(3,4)</coords>
+<point name="P">(5,6)</point>
+<p name="p1"><coords extend="$m"/></p>
+<p name="p2"><coords copy="$m"/></p>
+<p name="p3"><coords extend="$tup"/></p>
+<p name="p4"><number extend="$c"/></p>
+<p name="p5"><math extend="$c"/></p>
+<p name="p6"><point extend="$c"/></p>
+<p name="p7"><coords extend="$P"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4", "p5", "p6", "p7"])).eqls({
+            p1: "",
+            p2: "",
+            p3: "(1, 2)",
+            p4: "",
+            p5: "(3, 4)",
+            p6: "(3, 4)",
+            p7: "(5, 6)",
+        });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-e0065", "error", 9],
+            ["doenet-i0053", "info", 6],
+            ["doenet-i0053", "info", 7],
+        ]);
+    });
+
+    it("a point is made from a math written with angle brackets", async () => {
+        const { texts, typeChangeDiagnostics } = await setup(`
+<math name="m">⟨1,2⟩</math>
+<p name="p1"><point extend="$m"/></p>
+<p name="p2"><vector copy="$m"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "(1, 2)", p2: "(1, 2)" });
+        expect(typeChangeDiagnostics()).eqls([]);
+    });
+
+    it("a boolean is made from a math that evaluates to a number, as on main", async () => {
+        // A math is not simplified by default, so `1/2` is not yet a number;
+        // a `<boolean>` reads it as true, and `1-1` as false.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<math name="half">1/2</math>
+<math name="two">1+1</math>
+<math name="pi">pi</math>
+<math name="zero">1-1</math>
+<math name="x">x</math>
+<p name="p1"><boolean extend="$half"/></p>
+<p name="p2"><boolean copy="$two"/></p>
+<p name="p3"><boolean extend="$pi"/></p>
+<p name="p4"><boolean extend="$zero"/></p>
+<p name="p5"><boolean extend="$x"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
+            p1: "true",
+            p2: "true",
+            p3: "true",
+            p4: "false",
+            p5: "",
+        });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([["doenet-i0053", "info", 11]]);
+    });
+
+    it("a container without a text is an unrelated pair, not one whose text is suggested", async () => {
+        // `$g.text` of a graph, a section or a div shows nothing.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<graph name="g"><point>(1,2)</point></graph>
+<div name="d"><p>hi</p></div>
+<p name="sp">hello</p>
+<p name="p1"><text extend="$g"/></p>
+<p name="p2"><text copy="$d"/></p>
+<p name="p3"><text extend="$sp"/></p>
+`);
+        expect(await texts(["p1", "p2", "p3"])).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+        });
+        expect(typeChangeDiagnostics().map((d) => d.message)).eqls([
+            "A `<text>` can't be made from `$g`, which gives a `<graph>`. To show it as it is, write `$g`.",
+            "A `<text>` can't be made from `$d`, which gives a `<div>`. To show it as it is, write `$d`.",
+            "A `<text>` can't be made from `$sp`, a `<p>` holding other content. To use its text, write `$sp.text`.",
+        ]);
+    });
+
+    it("a value that changes while nothing is shown is reported again, without making the replacements again", async () => {
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="x"/>
+<math name="m">$mi</math>
+<p name="p1"><point extend="$m"/></p>
+`);
+        const copyClass = (core as any).core.componentInfoObjects
+            .allComponentClasses._copy;
+        const made = vi.spyOn(copyClass, "createReplacementsFromSources");
+        const mi = await resolvePathToNodeIdx("mi");
+        await updateMathInputValue({ latex: "y", componentIdx: mi, core });
+        await updateMathInputValue({ latex: "z", componentIdx: mi, core });
+        expect(await texts(["p1"])).eqls({ p1: "" });
+        expect(made).not.toHaveBeenCalled();
+        expect(
+            typeChangeDiagnostics().map((d) => d.message.split(",")[1]),
+        ).eqls([" x", " y", " z"]);
+
+        await updateMathInputValue({ latex: "(1,2)", componentIdx: mi, core });
+        expect(await texts(["p1"])).eqls({ p1: "(1, 2)" });
+        made.mockRestore();
     });
 });
