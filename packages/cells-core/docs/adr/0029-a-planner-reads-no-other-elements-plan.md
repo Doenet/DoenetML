@@ -1,7 +1,7 @@
 # A planner reads no other element's plan
 
-Status: proposed 2026-10-30. Every migration step is done; the stages
-were renamed 2026-11-01 (ADR 0027). Amends ADR 0027:
+Status: accepted 2026-11-01. Proposed 2026-10-30; every migration step
+is done; the stages were renamed 2026-11-01 (ADR 0027). Amends ADR 0027:
 its rule for planning (each element planned after the plans it reads)
 gives way to this one (no element reads another's plan).
 

@@ -1,14 +1,14 @@
 # The compile runs in stages, each reading only what earlier stages finished
 
-Status: proposed 2026-10-30. Every migration step is done. Amended
-2026-10-30: planning goes on demand rather than from a graph made first
-(see "The rule for planning"), and the references stage is part of
-planning (see "References"). ADR 0029 replaces the rule for planning: no
-planner reads another element's plan. Amended 2026-11-01: the stages
-were numbered passes 1 to 5; they are named for what each makes, since
-a build already has passes (one per settling of the repeat counts).
-Shape is now *outline*, plans *plan* and finish *seal*; ADR 0029 adds
-*parse* and *link*.
+Status: accepted 2026-11-01. Proposed 2026-10-30; every migration step
+is done. Amended 2026-10-30: planning goes on demand rather than from a
+graph made first (see "The rule for planning"), and the references stage
+is part of planning (see "References"). ADR 0029 replaces the rule for
+planning: no planner reads another element's plan. Amended 2026-11-01:
+the stages were numbered passes 1 to 5; they are named for what each
+makes, since a build already has passes (one per settling of the repeat
+counts). Shape is now *outline*, plans *plan* and finish *seal*; ADR
+0029 adds *parse* and *link*.
 
 The compile (ADR 0015) becomes stages over the source, run once each,
 in a fixed order. A stage reads only what earlier stages finished, never
