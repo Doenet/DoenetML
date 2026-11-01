@@ -174,6 +174,57 @@ describe("The style of an entry of a list @group4", async () => {
         });
     });
 
+    it("a collect of points fills in the style of a point that has one only from where it sits", async () => {
+        // A copy made elsewhere would not have a style its source takes
+        // from its graph, group or intersection, so the collect's applies,
+        // as an extend of a group's does.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl"><point>(1,2)</point></pointList>
+    <graph styleNumber="4" name="g">
+      <point name="B">(3,4)</point>
+      <group><point name="gp">(1,1)</point></group>
+      <point name="X" extend="$pl[1]"/>
+      <line name="l1" through="(0,0) (1,1)"/><line name="l2" through="(0,1) (1,0)"/>
+      <intersection styleNumber="3" name="i">$l1 $l2</intersection>
+      <point name="A" styleNumber="5">(5,6)</point>
+    </graph>
+    <graph><collect from="$g" componentType="point" styleNumber="2" name="c"/></graph>
+    <graph styleNumber="6"><collect from="$g" componentType="point" styleNumber="2" name="d"/></graph>
+    `,
+        });
+
+        expect(
+            await styleNumbersOf(core, resolvePathToNodeIdx, [
+                "B",
+                "gp",
+                "X",
+                "i[1]",
+                "A",
+                "c[1]",
+                "c[2]",
+                "c[3]",
+                "c[4]",
+                "c[5]",
+                "d[1]",
+                "d[5]",
+            ]),
+        ).eqls({
+            B: 4,
+            gp: 4,
+            X: 4,
+            "i[1]": 3,
+            A: 5,
+            "c[1]": 2,
+            "c[2]": 2,
+            "c[3]": 2,
+            "c[4]": 2,
+            "c[5]": 5,
+            "d[1]": 2,
+            "d[5]": 5,
+        });
+    });
+
     it("a list form takes a style it has from where it sits only for an entry whose source sets none", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `${styleDefinitions}
