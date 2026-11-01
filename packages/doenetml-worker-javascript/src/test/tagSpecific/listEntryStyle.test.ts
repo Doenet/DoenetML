@@ -225,6 +225,31 @@ describe("The style of an entry of a list @group4", async () => {
         });
     });
 
+    it("a collect of points keeps the style an entry of a list has from where its source sits", async () => {
+        // Unlike a point collected by itself, an entry of a list carries
+        // its source's style wherever it is copied (`$pl[2]`), so the
+        // collect's does not override it.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph styleNumber="5" name="g">
+      <pointList name="pl"><point styleNumber="3">(1,2)</point><point>(3,4)</point></pointList>
+    </graph>
+    <graph>
+      <collect from="$g" componentType="point" styleNumber="4" name="c"/>
+      <point extend="$pl[2]" name="e2"/>
+    </graph>
+    `,
+        });
+
+        expect(
+            await styleNumbersOf(core, resolvePathToNodeIdx, [
+                "c[1]",
+                "c[2]",
+                "e2",
+            ]),
+        ).eqls({ "c[1]": 3, "c[2]": 5, e2: 5 });
+    });
+
     it("a sort or shuffle with a styleNumber fills in the style of each entry that sets none", async () => {
         // A `<sort>` or `<shuffle>` with a `styleNumber` is a composite, whose
         // replacements take its style where their source sets none. That

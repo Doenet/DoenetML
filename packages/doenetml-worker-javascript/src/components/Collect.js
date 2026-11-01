@@ -871,8 +871,10 @@ export default class Collect extends CompositeComponent {
  * CTX-5).
  *
  * An entry of a list (`listInd`) sets one when its source or its list does
- * (`entryPresentation`, the list's `styleNumber`). Any other component sets
- * one when it, or the component it shadows (`$A`, `<point extend="$A"/>`),
+ * (`entryPresentation`, the list's `styleNumber`). Its source's style counts
+ * even when the source has it from where it sits, since the entry carries
+ * it wherever it is copied (`$pl[1]`). Any other component sets one when
+ * it, or the component it shadows (`$A`, `<point extend="$A"/>`),
  * has a `styleNumber` attribute whose value is not a default: that is the
  * style its copy takes. A style it has only from where it sits
  * (`<graph styleNumber="4">`) is not one: its copy, made elsewhere, would not

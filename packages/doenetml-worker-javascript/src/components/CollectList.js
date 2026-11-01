@@ -508,10 +508,9 @@ function collectListClass(Base) {
 
             // How each entry's source shows itself: a component as it does
             // (`sourcePresentation`); an entry of a list as the list shows
-            // that entry. An entry of an authored list is in the list's style
-            // and not hidden by the list's own `hide`, as a list collected by
-            // the type of its entries was not; an entry of a list form is
-            // shown as that list's arrays say, with its `hide` and style.
+            // that entry, in the style of the entry's source, else the
+            // list's, and with the `hide` and `renderMode` of the list's
+            // arrays. The list's own `hide` hides the list, not the entry.
             stateVariableDefinitions.entryPresentation = {
                 shadowVariable: true,
                 stateVariablesDeterminingDependencies: ["collectedSources"],
@@ -540,9 +539,8 @@ function collectListClass(Base) {
                                           "entryPresentation",
                                           "selectedStyle",
                                           "styleNumber",
-                                          ...Object.values(
-                                              ENTRY_PRESENTATION_ARRAYS,
-                                          ),
+                                          ENTRY_PRESENTATION_ARRAYS.hide,
+                                          ENTRY_PRESENTATION_ARRAYS.renderMode,
                                       ],
                             variablesOptional: true,
                         };

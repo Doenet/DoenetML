@@ -1599,10 +1599,11 @@ function _copyPassthroughAttributes(
  * The `definition` resolves the attribute value from one of the four
  * dependency shapes (`attributeComponent` / `attributePrimitive` /
  * `attributeRefResolutions` / fall-back), then validates it via
- * `validateAttributeValue`. The fall-back consults the source composite
- * before the parent, so a more-local setting (e.g. a `<group>` the
- * component sits in) wins over a more-distant one (e.g. the surrounding
- * `<graph>`).
+ * `validateAttributeValue`. An attribute component holding a default
+ * gives way to a fall-back that is set (`readsAttributeComponent`). The
+ * fall-back consults the source composite before the parent, so a
+ * more-local setting (e.g. a `<group>` the component sits in) wins over a
+ * more-distant one (e.g. the surrounding `<graph>`).
  *
  * The `inverseDefinition` (used unless `noInverse` is set) routes a
  * desired value back to the same source — propagating to the
