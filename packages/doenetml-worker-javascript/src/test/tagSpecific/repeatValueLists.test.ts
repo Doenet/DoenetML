@@ -160,17 +160,22 @@ describe("Repeats whose template is one value @group4", () => {
             doenetML: `
 <mathList name="l">(1,2) 5 (3,4,7) x</mathList>
 <p name="p"><repeat name="r" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
-<p name="p2"><repeat name="r2" for="$l" valueName="x" indexName="i"><math>$x[1] + $i</math></repeat></p>
+<mathList name="lt">(1,2) (3,4,7)</mathList>
+<p name="p2"><repeat name="r2" for="$lt" valueName="x" indexName="i"><math>$x[1] + $i</math></repeat></p>
 <p name="p3"><repeat name="r3" for="$l" valueName="x"><number>$x[3]</number></repeat></p>
 <p name="p4"><repeat name="r4" for="$l" valueName="x"><math>($x[1], $x)</math></repeat></p>
 `,
             names: ["p", "p2", "p3", "p4"],
         });
+        // An index into a scalar entry (`5`, `x`), which has no entries
+        // (D27), is a blank, as an index past an entry's end is.
+        // (`p2` reads only tuples: a blank operand is written `＿ + 2` by the
+        // list and `+2` by the repeat, as past an entry's end it already was.)
         expect(texts).toEqual({
-            p: "1, 5, 3, x",
-            p2: "1 + 1, 5 + 2, 3 + 3, x + 4",
+            p: "1, ＿, 3, ＿",
+            p2: "1 + 1, 3 + 2",
             p3: "NaN, NaN, 7, NaN",
-            p4: "(1, (1, 2)), (5, 5), (3, (3, 4, 7)), (x, x)",
+            p4: "(1, (1, 2)), (＿, 5), (3, (3, 4, 7)), (＿, x)",
         });
     });
 
@@ -326,7 +331,8 @@ describe("Repeats whose template is one value @group4", () => {
         });
         expect(texts).toEqual({
             p: "0.12, (1.2, 0.0012)",
-            p2: "0.12, 1.2",
+            // an index into a scalar entry is a blank (D27)
+            p2: "＿, 1.2",
             p3: "0.12, (1.2, 0.0012)",
             p4: "0.1, 2.0",
             p5: "0.99, 0.99",

@@ -3,6 +3,7 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
+import { isListEntryArrayVariable } from "../utils/listEntryReference";
 import {
     applyPendingShadowModification,
     getClassStateVariableDefinitions,
@@ -2149,11 +2150,19 @@ export async function arrayEntryNamesFromPropIndex({
     component,
     propIndex,
     reference,
+    reportIndexIntoScalar = true,
 }: {
     core: Core;
     stateVariables: string[];
     component: ComponentInstance;
     propIndex: number[];
+    /**
+     * Whether an index into a value that is a scalar is reported
+     * (`indexIntoScalar`). Not for an index left over past a composite's
+     * items, which was reported where the reference was resolved and is
+     * then tried on each of the composite's replacements.
+     */
+    reportIndexIntoScalar?: boolean;
     /**
      * The reference the author wrote and where they wrote it, so a failure
      * here can be reported in terms of the document rather than in terms of
@@ -2237,9 +2246,57 @@ export async function arrayEntryNamesFromPropIndex({
             continue;
         }
 
+        // An index into the value selects its entries, as a bare index does:
+        // `$m.value[1]` is `$m[1]` (D27).
+        const indexAsProp = component.constructor.variableForIndexAsProp;
+        if (
+            varName === "value" &&
+            !stateVarObj.isArray &&
+            !stateVarObj.isArrayEntry &&
+            indexAsProp &&
+            component.state[indexAsProp]?.isArray
+        ) {
+            varName = indexAsProp;
+            stateVarObj = component.state[indexAsProp];
+        }
+
+        // An array of a list holding one value per entry
+        // (`utils/listEntryReference.ts`) is given an index too many for an
+        // index into an entry's property that is not an array
+        // (`$l[2].coords[1]`), which names nothing, as `$P.coords[1]` does.
+        if (
+            stateVarObj.isArray &&
+            propIndex.length > stateVarObj.numDimensions &&
+            isListEntryArrayVariable(component, varName)
+        ) {
+            reportPropIndexFailure(varName, " as it has too many indices");
+            newVarNames.push(INDEX_NAMES_NOTHING);
+            continue;
+        }
+
         let newName;
         if (stateVarObj.isArray) {
             newName = stateVarObj.arrayVarNameFromPropIndex(propIndex, varName);
+            // A scalar has no entries, which is reported, unlike an index
+            // past the end of a value that has, since the length can change
+            // (#1499). The name is kept, so the reference names an entry
+            // once the value has one.
+            if (
+                newName &&
+                reference &&
+                reportIndexIntoScalar &&
+                (await stateVarObj.indexIntoScalar?.(component, propIndex))
+            ) {
+                core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0100",
+                        args: { reference: reference.text },
+                        position: reference.position,
+                        sourceDoc: reference.sourceDoc,
+                    }),
+                );
+            }
         } else if (stateVarObj.isArrayEntry) {
             let arrayStateVarObj =
                 component.state[stateVarObj.arrayStateVariable];

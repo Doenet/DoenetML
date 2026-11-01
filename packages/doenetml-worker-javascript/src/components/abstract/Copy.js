@@ -33,6 +33,7 @@ import {
 } from "../../utils/sourceLocation";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
+import { isValueEntriesVariable } from "../../utils/mathVectorMatrixStateVariables";
 import {
     attributeShadowIsReference,
     shadowAttributeReference,
@@ -667,6 +668,11 @@ export default class Copy extends CompositeComponent {
                                 caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
+                                // An index past the composite's items was
+                                // reported where the reference was resolved,
+                                // so it is not reported again as an index
+                                // into each replacement's value.
+                                indexPastComposite,
                             };
                         } else {
                             if (typeof source === "string") {
@@ -3004,10 +3010,16 @@ export default class Copy extends CompositeComponent {
  * (`refResolutionDependencies.ts`), and the composite's replacements are
  * what is left to try it on, so it is not reported again. On any other
  * component, the index names nothing because the component produces nothing an
- * index selects: `$sec[2]` does not select a child of a `<section>`, nor `$n[1]`
- * anything of a `<number>` (`doenet-w0180`). A component that does produce
- * something an index selects, as a list does its entries, took the index
- * already, and an index past what it produces is silent (#1499).
+ * index selects: `$sec[2]` does not select a child of a `<section>`
+ * (`doenet-w0180`). A component with a value (`variableForImplicitProp`) whose
+ * value has no entries, as a `<number>` or a `<text>`, is reported as an index
+ * into a value with no entries is (`doenet-w0100`), the same as `$n.value[1]`
+ * and as `$m[1]` of a `<math>` holding a scalar (D27). A component whose
+ * values an index selects through one of its properties
+ * (`indexThroughProperty`, a `<spreadsheet>`'s `cells`) is reported with that
+ * property put in (`doenet-w0182`). A component that does produce something
+ * an index selects, as a list does its entries, took the index already, and
+ * an index past what it produces is silent (#1499).
  */
 async function diagnosticForUnusedIndex({
     component,
@@ -3028,15 +3040,63 @@ async function diagnosticForUnusedIndex({
     }
 
     const originalPath = await component.stateValues.originalPath;
+    const dollars = doenetMLDollarsForReference(originalPath, allDoenetMLs);
+    const reference = `${dollars}${doenetMLStringForReference(
+        originalPath,
+        allDoenetMLs,
+    )}`;
+    const sourceClass =
+        componentInfoObjects.allComponentClasses[
+            replacementSource.componentType
+        ];
+
+    const property = sourceClass?.indexThroughProperty;
+    if (property) {
+        // The reference with the property put in front of the index left
+        // over: `$ss[1][2]` becomes `$ss.cells[1][2]`.
+        const unresolvedPath = await component.stateValues.unresolvedPath;
+        const pathStart = originalPath?.[0]?.position?.start.offset;
+        const pathEnd =
+            originalPath?.[originalPath.length - 1]?.position?.end.offset;
+        const indexStart =
+            unresolvedPath?.[0]?.index?.[0]?.position?.start.offset;
+        const source =
+            allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0] ?? undefined;
+        if (
+            source !== undefined &&
+            pathStart != undefined &&
+            pathEnd != undefined &&
+            indexStart != undefined
+        ) {
+            return codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0182",
+                args: {
+                    reference,
+                    component: replacementSource.componentType,
+                    suggestion: `${dollars}${source.substring(
+                        pathStart,
+                        indexStart,
+                    )}.${property}${source.substring(indexStart, pathEnd)}`,
+                    property,
+                },
+            });
+        }
+    }
+
+    if (sourceClass?.variableForImplicitProp) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0100",
+            args: { reference },
+        });
+    }
 
     return codedDiagnostic({
         type: "warning",
         code: "doenet-w0180",
         args: {
-            reference: `${doenetMLDollarsForReference(
-                originalPath,
-                allDoenetMLs,
-            )}${doenetMLStringForReference(originalPath, allDoenetMLs)}`,
+            reference,
             component: replacementSource.componentType,
         },
     });
@@ -3078,12 +3138,14 @@ export async function replacementFromProp({
 
         // An entry of a list component, or a property of its entries, was
         // resolved to an array of the list (`utils/listEntryReference.ts`).
-        varName = isListEntryArrayVariable(target, propName)
-            ? propName
-            : publicCaseInsensitiveAliasSubstitutions({
-                  stateVariables: [propName],
-                  componentClass: target.constructor,
-              })[0];
+        varName =
+            isListEntryArrayVariable(target, propName) ||
+            isValueEntriesVariable(propName)
+                ? propName
+                : publicCaseInsensitiveAliasSubstitutions({
+                      stateVariables: [propName],
+                      componentClass: target.constructor,
+                  })[0];
     }
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {

@@ -68,6 +68,30 @@ the full list, and the
 [Properties and Lists](../tutorials/intermediateTutorial/iT2-4-properties)
 tutorial for more worked examples.
 
+### Selecting an entry with `[...]`
+
+Write an index in brackets after a reference to select one entry of what it
+references: a coordinate of a point, an entry of a tuple, a row of a matrix, or
+an entry of a list. A second index selects within that entry, such as the entry
+in a given row and column of a matrix.
+
+```doenet-editor-horiz
+<point name="P">(3,4)</point>
+<math name="m">(8,9)</math>
+<matrix name="A"><row>1 2</row><row>3 4</row></matrix>
+<mathList name="l">10 20 30</mathList>
+
+<p>$P[2], $m[1], $A[2], $A[2][1], $l[3]</p>
+```
+
+Here `$P[2]` is `4`, `$m[1]` is `8`, `$A[2]` is the second row of `A` (as a
+1×2 matrix), `$A[2][1]` is `3`, and `$l[3]` is `30`. What an index selects
+depends on the value, not the tag: a `<math>` holding a matrix is indexed by
+row, like a `<matrix>`. A value that is a single expression, such as
+`<number name="n">5</number>`, has no entries, so `$n[1]` references nothing
+and DoenetML reports a warning. An index past the last entry also references
+nothing, without a warning, since the number of entries can change.
+
 ### Marking where a name ends with `$(...)`
 
 When a reference is followed immediately by other letters, numbers, or

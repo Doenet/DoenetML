@@ -271,6 +271,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0179": "deprecated-index-selects-child",
     "doenet-w0180": "reference-index-selects-nothing",
     "doenet-w0181": "reference-index-past-instances",
+    "doenet-w0182": "reference-index-use-property",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -10,6 +10,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<matrix>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that defines/renders a matrix for use in computations.
 
+An index selects a row of the matrix, as a 1×n matrix, and a second index an entry: `$A[2]{:dn}` is the second row and `$A[2][3]{:dn}` the entry in row 2 and column 3, the same as `$A.matrix[2]{:dn}` and `$A.matrix[2][3]{:dn}`.
+
 <AttrPropDisplay name='matrix'/>
 
 

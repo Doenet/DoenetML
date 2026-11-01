@@ -14,6 +14,10 @@ import {
 } from "../../utils/referentDescription";
 import { listEntryPropertyPath } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
+import {
+    isIndexIntoValue,
+    isValueEntriesVariable,
+} from "../../utils/mathVectorMatrixStateVariables";
 
 /**
  * A dependency that resolves one part of an unresolved path on a component
@@ -103,6 +107,7 @@ export class ReferentDependency extends Dependency {
 
         let name: string | undefined;
         let index: any[] = [];
+        let indexAsProp = false;
 
         if (unresolvedPath == null) {
             name = component.constructor.variableForImplicitProp;
@@ -112,8 +117,19 @@ export class ReferentDependency extends Dependency {
                 return undefined;
             }
             ({ name, index } = unresolvedPath[0]);
+            if (
+                isIndexIntoValue(
+                    name,
+                    index,
+                    component.constructor,
+                    listEntryPath !== undefined,
+                )
+            ) {
+                name = "";
+            }
             if (name === "") {
                 name = component.constructor.variableForIndexAsProp;
+                indexAsProp = true;
             }
         }
 
@@ -122,7 +138,10 @@ export class ReferentDependency extends Dependency {
         }
 
         let variableName = name;
-        if (!listEntryPath) {
+        // The entries of a math value are read by an index although they
+        // are not public (`isValueEntriesVariable`), but not by name
+        // (`$m.__valueEntries`).
+        if (!listEntryPath && !(indexAsProp && isValueEntriesVariable(name))) {
             [variableName] = core.publicCaseInsensitiveAliasSubstitutions({
                 stateVariables: [name],
                 componentClass: component.constructor,

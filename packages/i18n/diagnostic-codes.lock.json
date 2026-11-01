@@ -291,5 +291,6 @@
     "doenet-w0178": "pretzel-extend-changes-ignored",
     "doenet-w0179": "deprecated-index-selects-child",
     "doenet-w0180": "reference-index-selects-nothing",
-    "doenet-w0181": "reference-index-past-instances"
+    "doenet-w0181": "reference-index-past-instances",
+    "doenet-w0182": "reference-index-use-property"
 }
