@@ -49,17 +49,15 @@ import {
 } from "../diagnostics";
 
 /**
- * `reference`, as written in the source, without the parentheses around its
- * path: `$(f)` is quoted as `$f`, and `$$(f)(2)` as `$$f(2)`. That is the
- * spelling that does not need them, the one a path is quoted in
- * (`doenetMLDollarsForReference`). A reference without them, or whose
- * parentheses cannot be matched up, is returned as it is.
+ * `reference` without the parentheses around its path, as a reference quoted
+ * from its path is (`doenetMLDollarsForReference`): `$(f)` becomes `$f`, and
+ * `$$(f)(2)` becomes `$$f(2)`. A reference without them, or whose parentheses
+ * cannot be matched up, is returned unchanged.
  *
- * The path's closing parenthesis is found from the end, not by matching the
- * opening one, because the path's indices are text that can hold a parenthesis
- * of its own (`$(f[)])`). A plain reference ends with it, `{…}` included
- * (`$(f{simplify})`). A function reference can have arguments after it, whose
- * parentheses balance (`$$(f)((x), 2)`), so it is the one just before them.
+ * The path's closing parenthesis is found from the end, because an index can
+ * hold an unmatched parenthesis (`$(f[)])`). A plain reference ends with it,
+ * `{…}` included (`$(f{simplify})`); a function reference ends with it or with
+ * its arguments, which are stepped over (`$$(f)((x), 3)`).
  */
 function withoutPathParentheses(reference: string): string {
     const dollars = /^\$\$?(?=\()/.exec(reference)?.[0];
