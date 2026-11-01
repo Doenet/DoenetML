@@ -49,6 +49,51 @@ import {
 } from "../diagnostics";
 
 /**
+ * `reference` without the parentheses around its path, as a reference quoted
+ * from its path is (`doenetMLDollarsForReference`): `$(f)` becomes `$f`, and
+ * `$$(f)(2)` becomes `$$f(2)`. A reference without them, or whose parentheses
+ * cannot be matched up, is returned unchanged.
+ *
+ * The path's closing parenthesis is found from the end, because an index can
+ * hold an unmatched parenthesis (`$(f[)])`). A plain reference ends with it,
+ * `{…}` included (`$(f{simplify})`); a function reference ends with it or with
+ * its arguments, which are stepped over (`$$(f)((x), 3)`).
+ */
+function withoutPathParentheses(reference: string): string {
+    const dollars = /^\$\$?(?=\()/.exec(reference)?.[0];
+    if (dollars === undefined || !reference.endsWith(")")) {
+        return reference;
+    }
+    let close = reference.length - 1;
+    if (dollars === "$$") {
+        // Step back over the arguments, if there are any.
+        let depth = 0;
+        let i = close;
+        for (; i >= 0; i--) {
+            if (reference[i] === ")") {
+                depth++;
+            } else if (reference[i] === "(" && --depth === 0) {
+                break;
+            }
+        }
+        if (i < 0) {
+            return reference;
+        }
+        if (i > dollars.length) {
+            close = i - 1;
+        }
+    }
+    if (reference[close] !== ")") {
+        return reference;
+    }
+    return (
+        dollars +
+        reference.slice(dollars.length + 1, close) +
+        reference.slice(close + 1)
+    );
+}
+
+/**
  * The warning for a reference the resolver could not resolve: `doenet-w0104`
  * when it names nothing, `doenet-w0105` when it names more than one thing. The
  * resolver marks the error node with the code, and its English message quotes
@@ -69,21 +114,27 @@ function unresolvedReferenceDiagnostic(
     // The path has a position for each of its parts, so it spans just the
     // reference even in the parenthesized form `$(l[0])`. The resolver gives
     // the path only when the reference names nothing; otherwise the node's own
-    // position spans the reference.
+    // position spans the reference. A function reference (`$$f(2)`), told
+    // apart by the `$$` before its path, is quoted from the node's position,
+    // which spans its arguments too, as the path does not (#2419). The
+    // position spans any parentheses around the path as well, which are
+    // dropped, as they are from a path.
     let reference = "";
     if (node.unresolvedPath && node.unresolvedPath.length > 0) {
         const path = node.unresolvedPath;
+        const dollars = doenetMLDollarsForReference(path, sources);
         const text = doenetMLStringForReference(path, sources);
-        if (text) {
-            reference = `${doenetMLDollarsForReference(path, sources)}${text}`;
+        if (text && dollars !== "$$") {
+            reference = `${dollars}${text}`;
         }
     }
     if (!reference) {
         const start = node.position?.start?.offset;
         const end = node.position?.end?.offset;
         if (start != undefined && end != undefined) {
-            reference =
-                sources[node.sourceDoc ?? 0]?.substring(start, end) ?? "";
+            reference = withoutPathParentheses(
+                sources[node.sourceDoc ?? 0]?.substring(start, end) ?? "",
+            );
         }
     }
 
