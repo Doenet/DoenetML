@@ -267,6 +267,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0176": "pretzel-problem-copy-not-supported",
     "doenet-w0177": "deprecated-attribute-modify-indirectly",
     "doenet-w0178": "pretzel-extend-changes-ignored",
+    "doenet-w0179": "deprecated-index-selects-child",
+    "doenet-w0180": "reference-index-selects-nothing",
+    "doenet-w0181": "reference-index-past-instances",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

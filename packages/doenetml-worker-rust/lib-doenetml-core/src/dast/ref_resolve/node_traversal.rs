@@ -175,12 +175,18 @@ impl Resolver {
                 edges_encountered.push(edge)
             }
 
-            // Index edges are traversed after all name edges
-            for edge in current_data
-                .index_resolutions
-                .iter()
-                .enumerate()
-                .filter_map(|(index, index_resolution)| match index_resolution {
+            // Index edges are traversed after all name edges.
+            // An index after an iteration or a pick whose whole content is one indexable component
+            // passes to that component, so the index edges are that component's.
+            let mut index_data = current_data;
+            if let NodeOrRoot::Node(mut idx) = origin {
+                while let Some(child_idx) = self.pass_through_child(idx) {
+                    idx = child_idx;
+                    index_data = &self.node_resolver_data[idx + 1];
+                }
+            }
+            for edge in index_data.index_resolutions.iter().enumerate().filter_map(
+                |(index, index_resolution)| match index_resolution {
                     None => None,
                     Some(res_index) => {
                         if visited[*res_index] {
@@ -195,8 +201,8 @@ impl Resolver {
                             })
                         }
                     }
-                })
-            {
+                },
+            ) {
                 queue.push_back((NodeOrRoot::Node(edge.referent), origin_source));
                 edges_encountered.push(edge)
             }

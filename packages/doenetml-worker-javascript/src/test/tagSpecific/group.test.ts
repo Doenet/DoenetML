@@ -969,6 +969,11 @@ describe("Group tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("3 1 5");
-        expect(getDiagnosticsByType(core).warnings).toHaveLength(0);
+        // Each index selects a child of the `<group>`, which is deprecated (D27)
+        expect(getDiagnosticsByType(core).warnings.map((w) => w.code)).eqls([
+            "doenet-w0179",
+            "doenet-w0179",
+            "doenet-w0179",
+        ]);
     });
 });

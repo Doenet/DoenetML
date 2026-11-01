@@ -45,6 +45,7 @@ impl Resolver {
                         name_map,
                         copied_names: node_data.copied_names.clone(),
                         index_resolutions,
+                        index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
                     }
                 } else {
@@ -56,6 +57,7 @@ impl Resolver {
                         name_map,
                         copied_names: node_data.copied_names.clone(),
                         index_resolutions,
+                        index_kind: node_data.index_kind,
                         source_sequence: node_data.source_sequence.clone(),
                     }
                 }

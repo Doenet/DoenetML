@@ -798,3 +798,71 @@ fn re_adding_a_node_before_an_update_recalculates_root_names() {
     assert!(!update_and_check(&mut table, &mut resolver));
     assert_eq!(table.get(&e_idx), Some(&"x.t".to_string()));
 }
+
+/// An index after an iteration whose whole content is one indexable component passes to that component (D27),
+/// so the root names of what the component produces are reached through the iteration,
+/// including as the component expands and changes after the iteration was added.
+#[test]
+fn root_names_pass_through_an_iteration_holding_one_repeat() {
+    let dast_root = dast_root_no_position(r#"<document><repeat name="r"><b/></repeat></document>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let r_idx = find(&flat_root, "repeat").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+
+    // The iterations of `r`, each holding one `<repeat name="q">`
+    let mut next_idx = flat_root.nodes.len();
+    let mut flat_fragment = flat_fragment_from_str(
+        r#"<group><repeat name="q"><c/></repeat></group><group><repeat name="q"><c/></repeat></group>"#,
+        next_idx,
+        Some(r_idx),
+    );
+    let g1_idx = next_idx;
+    let q1_idx = next_idx + 1;
+    mark_index_pass_through(&mut flat_fragment, &[g1_idx, next_idx + 3]);
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: r_idx },
+    );
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&g1_idx), Some(&"r:1".to_string()));
+    assert_eq!(table.get(&q1_idx), Some(&"r:1.q".to_string()));
+
+    // The iterations of the first `q` are reached as `$r[1][1]` and `$r[1][2]`,
+    // and their children by the (deprecated) child indexing after that
+    let flat_fragment = flat_fragment_from_str(
+        r#"<group><d/></group><group><e/><f/></group>"#,
+        next_idx,
+        Some(q1_idx),
+    );
+    let g11_idx = next_idx;
+    let g12_idx = next_idx + 2;
+    let f_idx = next_idx + 4;
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: q1_idx },
+    );
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&g11_idx), Some(&"r:1:1".to_string()));
+    assert_eq!(table.get(&g12_idx), Some(&"r:1:2".to_string()));
+    assert_eq!(table.get(&f_idx), Some(&"r:1:2:2".to_string()));
+
+    // Replacing the first iteration of `q` renumbers nothing but replaces its root name
+    let flat_fragment = flat_fragment_from_str(r#"<group><h/></group>"#, next_idx, Some(q1_idx));
+    let g11_new_idx = next_idx;
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: q1_idx,
+            range: 0..1,
+        },
+    );
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&g11_new_idx), Some(&"r:1:1".to_string()));
+    assert_eq!(table.get(&g11_idx), None);
+    assert_eq!(table.get(&g12_idx), Some(&"r:1:2".to_string()));
+}

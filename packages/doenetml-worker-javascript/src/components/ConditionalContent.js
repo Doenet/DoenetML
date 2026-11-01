@@ -1,4 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
+import { instanceOfAttribute } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
 import {
     setUpVariantSeedAndRng,
@@ -257,6 +258,12 @@ export default class ConditionalContent extends CompositeComponent {
                 {},
                 components[selectedChildComponentIdx].doenetAttributes,
             );
+            // Names the group in the warning for an index that selects one
+            // of its children (D27)
+            serializedChild.attributes = {
+                ...serializedChild.attributes,
+                _instanceOf: instanceOfAttribute(component.componentType),
+            };
             const seed =
                 component.sharedParameters.variantSeed +
                 "|" +

@@ -882,13 +882,13 @@ describe("Unique variant tests @group1", async () => {
         let doenetML = `
       <select name="x">
         <option>
-          <selectFromSequence from="1" to="2" />
+          <selectFromSequence name="n" from="1" to="2" />
         </option>
         <option>
-          <selectFromSequence from="101" to="103" />
+          <selectFromSequence name="n" from="101" to="103" />
         </option>
         <option>
-          <selectFromSequence from="201" to="204" />
+          <selectFromSequence name="n" from="201" to="204" />
         </option>
       </select>
       `;
@@ -909,7 +909,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "x[1][1][1]",
+                    "x[1].n[1]",
                 )
             ).stateValues.value;
             expect(values.includes(newValue)).eq(true);
@@ -937,7 +937,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "x[1][1][1]",
+                    "x[1].n[1]",
                 )
             ).stateValues.value;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -978,7 +978,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "x[1][1][1][1]",
+                    "x[1][1][1]",
                 )
             ).stateValues.value.tree;
             expect(values.includes(newValue)).eq(true);
@@ -1006,7 +1006,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "x[1][1][1][1]",
+                    "x[1][1][1]",
                 )
             ).stateValues.value.tree;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -1149,7 +1149,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "xs[1][1][1][1]",
+                    "xs[1][1][1]",
                 )
             ).stateValues.value.tree;
             let newY = (
@@ -1157,7 +1157,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "xs[2][1][1][1]",
+                    "xs[2][1][1]",
                 )
             ).stateValues.value.tree;
             let newValue = [newX, newY].join(",");
@@ -1182,7 +1182,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "xs[1][1][1][1]",
+                    "xs[1][1][1]",
                 )
             ).stateValues.value.tree;
             let newY = (
@@ -1190,7 +1190,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "xs[2][1][1][1]",
+                    "xs[2][1][1]",
                 )
             ).stateValues.value.tree;
             let newValue = [newX, newY].join(",");
