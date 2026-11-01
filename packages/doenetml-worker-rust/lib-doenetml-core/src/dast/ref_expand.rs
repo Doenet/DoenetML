@@ -195,9 +195,15 @@ impl Expander {
                             Err(err) => FlatNode::Error(FlatError {
                                 idx: function_ref.idx,
                                 parent: function_ref.parent,
-                                message: format!("Ref resolution error: {err}"),
+                                message: format_error_message(err, &function_ref.path),
                                 error_type: ErrorType::Warning,
-                                code: None,
+                                // Coded as a plain reference's failure is, so
+                                // `$$f(2)` is reported, and shows the missing
+                                // value, as `$f` does. The worker quotes the
+                                // whole function reference, arguments
+                                // included, from this node's position
+                                // (`convertNormalizedDast.ts`).
+                                code: Some(resolution_error_code(err).into()),
                                 args: None,
                                 unresolved_path: if let ResolutionError::NoReferent = err {
                                     Some(function_ref.path.clone())
