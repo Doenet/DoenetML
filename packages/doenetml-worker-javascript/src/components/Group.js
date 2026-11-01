@@ -66,11 +66,12 @@ export default class Group extends CompositeComponent {
             createPrimitiveOfType: "string",
             excludeFromSchema: true,
         };
-        // Set by core on a group made for an iteration of a repeat or a pick
-        // of a select (`utils/indexInstances.ts`): the type of the component
-        // that made it, and, when its whole content is one indexable
-        // component, that component's position, to which an index after the
-        // group passes.
+        // Set on a group made for an iteration of a repeat, a pick of a
+        // select, or what a `<conditionalContent>` shows
+        // (`utils/indexInstances.ts`): the type of the component that made
+        // it, and, for an iteration or a pick whose whole content is one
+        // indexable component, that component's position, to which an index
+        // after the group passes.
         attributes._instanceOf = {
             createPrimitiveOfType: "string",
             excludeFromSchema: true,

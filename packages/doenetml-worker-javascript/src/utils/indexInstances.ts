@@ -21,15 +21,15 @@ import type { ComponentInfoObjects } from "./componentInfoObjects";
  * opposed to a list (`listEntryComponentType`), whose entries are its
  * instances, with what a warning calls those instances.
  */
-const INSTANCE_KINDS: Record<string, "iteration" | "pick"> = {
-    repeat: "iteration",
-    repeatForSequence: "iteration",
-    select: "pick",
-    selectFromSequence: "pick",
-    shuffle: "pick",
-    sort: "pick",
-    collect: "pick",
-};
+const INSTANCE_KINDS = new Map<string, "iteration" | "pick">([
+    ["repeat", "iteration"],
+    ["repeatForSequence", "iteration"],
+    ["select", "pick"],
+    ["selectFromSequence", "pick"],
+    ["shuffle", "pick"],
+    ["sort", "pick"],
+    ["collect", "pick"],
+]);
 
 /**
  * What a warning calls the instances of a composite of type `componentType`:
@@ -39,10 +39,9 @@ const INSTANCE_KINDS: Record<string, "iteration" | "pick"> = {
 export function instanceKindOf(
     componentType: string | undefined,
 ): "iteration" | "pick" | undefined {
-    return componentType !== undefined &&
-        Object.hasOwn(INSTANCE_KINDS, componentType)
-        ? INSTANCE_KINDS[componentType]
-        : undefined;
+    return componentType === undefined
+        ? undefined
+        : INSTANCE_KINDS.get(componentType);
 }
 
 /**
@@ -61,12 +60,25 @@ export function indexSelectsInstances(
     if ((componentClass as any).listEntryComponentType !== undefined) {
         return true;
     }
-    return Object.keys(INSTANCE_KINDS).some((baseComponentType) =>
+    return Array.from(INSTANCE_KINDS.keys()).some((baseComponentType) =>
         componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: componentType,
             baseComponentType,
         }),
     );
+}
+
+/**
+ * The `_instanceOf` attribute of a `<group>` made by a component of type
+ * `instanceOf` (an iteration, a pick, or what a `<conditionalContent>`
+ * shows), which names the group in the warning for an index that selects one
+ * of its children.
+ */
+export function instanceOfAttribute(instanceOf: string) {
+    return {
+        type: "primitive",
+        primitive: { type: "string", value: instanceOf },
+    };
 }
 
 /**
@@ -90,10 +102,7 @@ export function instanceGroupAttributes({
     componentInfoObjects: ComponentInfoObjects;
 }): Record<string, any> {
     const attributes: Record<string, any> = {
-        _instanceOf: {
-            type: "primitive",
-            primitive: { type: "string", value: instanceOf },
-        },
+        _instanceOf: instanceOfAttribute(instanceOf),
     };
 
     let position = 0;
