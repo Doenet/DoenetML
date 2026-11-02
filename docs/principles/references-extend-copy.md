@@ -523,8 +523,10 @@ Known violations:
   `<textInput>` hold the input itself as a child, show a default, and mostly warn `doenet-w0107`
   "Invalid children". So do `<math extend="$b"/>` and `<number extend="$b"/>` of a `<boolean>`,
   which should be `1` or `0`;
-- a type-changed copy can change on reload (B31, #2441);
-- infos are not cleared when the content matches again (B33, #2442).
+- a copy that made nothing can report a different info after a reload (B37).
+
+Fixed: a type-changed copy kept its decision through a reload since #2443 (B31). Infos follow
+their condition since #2444 (B33).
 
 Cost (Tier 3): a linked extend that follows run-time content is about twice as slow as before
 (#2436). Removing that path under D36 should recover it.
@@ -701,7 +703,13 @@ A copy made after the reader has interacted with x starts where x is now, not fr
 - **[probe]** `mi` was typed to 5 and `P` dragged to (7,8). A `<conditionalContent>` then
   revealed `<mathInput copy="$mi"/>` and `<point copy="$P"/>`. They show 5 and (7,8).
 - A copy made at load stays at the prefill after `mi` changes.
-- Through a reload, the copy keeps the snapshot it was made with (#2234).
+- Through a reload, the copy keeps the snapshot it was made with (#2234). Since #2443 that
+  includes what decided its shape: the type-change decision of a copy written as another tag,
+  and the case of a `<conditionalContent>` it was made from. A copy deleted and made again
+  within a session keeps them too.
+- **Known violations:** a copy of a component named inside a `<conditionalContent>`,
+  `<p copy="$cc.p"/>`, is remade on load from the case active then (B35). A `<group copy>` of a
+  `<collect>` whose collected input changed type throws on reload (B36).
 
 This is how authors freeze a reader's work, and it is why `copy` is "pasted DoenetML *plus the
 current state*", not pure paste.
