@@ -705,6 +705,26 @@ describe("A reference written as a different tag is allowed only between related
         ).eqls([["doenet-e0064", "info", 9]]);
     });
 
+    it("a group holding an extend checked against the value of a math in a group is decided as an info", async () => {
+        // Whether `a2` holds a point depends on the value of the math in
+        // `a1`, so what it holds is made at run time, as for `g3` above,
+        // even though that math is written. On main, where `<point
+        // extend="$a1"/>` was not checked, these were errors.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<group name="a1"><math>(1,2)</math></group>
+<group name="a2"><point extend="$a1"/></group>
+<p name="p1"><text extend="$a2"/></p>
+<p name="p2"><boolean extend="$a2"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-e0065", "info", 4],
+            ["doenet-e0065", "info", 5],
+        ]);
+    });
+
     it("a group holding a reference to a conditionalContent is decided as an info", async () => {
         // `$cc` names a component outside content made at run time, but
         // what it holds is the active case, made at run time.
