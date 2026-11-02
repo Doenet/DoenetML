@@ -123,13 +123,18 @@ types:
 A `<group>` can be made from anything, and holds it.
 
 A `<group>` that holds exactly one component counts as that component, and so
-does a list whose entries are written, such as a `<mathList>` with one entry:
-`<math extend="$g"/>{:dn}` of a group that holds one number. This is checked
-only for content that is fixed when the document loads: a group holding
-components written in it, other such groups, and references to components.
-What the document makes as it runs, such as what a `<conditionalContent>`,
-`<select>`, `<repeat>` or `<collect>` holds, an iteration of a repeat, or a
-list made by a `<sequence>`, is not checked against these rules.
+does a list with one entry, such as a `<mathList>`: `<math extend="$g"/>{:dn}`
+of a group that holds one number. The same goes for what the document makes
+as it runs: what a `<conditionalContent>`, `<select>`, `<repeat>` or
+`<collect>` holds, an iteration, a pick or a case (`$r[1]`, `$s[1]`,
+`$cc[1]`), and a list made by a `<sequence>` or `<selectFromSequence>`. Content
+holding a list is not checked. `<point extend="$cc"/>{:dn}` shows `(1, 2)`
+while the active case holds the math `(1, 2)`, as `<point extend="$cc[1]"/>{:dn}`
+does, and follows the case as it changes. A case, pick or iteration whose one
+component is made by a reference or a composite in it, rather than written in
+it, shows a default component of the tag written, such as `(0, 0)`; for a
+composite, `$cc[1]` shows it. So does a group holding one component beside a
+`<repeat>` or `<repeatForSequence>` that has no iterations.
 
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
@@ -152,12 +157,26 @@ what to write instead:
 * to read all the components a group or a list holds as one value, write
   `<math>$g</math>{:dn}`.
 
-When the value of a math or an input, referenced directly, doesn't allow the
-tag, such as `<point extend="$m"/>{:dn}` while `m` is not a tuple, nothing is
-shown while it lasts, with an info saying why. An `extend` is shown again when the value matches. A `copy` does not
-follow its source, so it stays as it was made. A property, such as
-`<point extend="$P.x"/>{:dn}`, and the selected value of a `<choiceInput>` are not
-checked against their value.
+When what the reference stands for is made as the document runs, a mismatch is
+not an error but an info saying why, and nothing is shown while it lasts. That
+is so when the active case of a `<conditionalContent>`, what a `<select>`
+picked, how many components a `<collect>` or a `<repeat>` holds, or the value
+of a math doesn't allow the tag: `<text extend="$cc"/>{:dn}` while the active
+case holds a point, or `<point extend="$m"/>{:dn}` while `m` is not a tuple, as
+for a math in a group of one or the one entry of a list. An `extend` is shown again when what it stands
+for matches. A `copy` does not follow its source, so it stays as it was made. A
+property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
+`<choiceInput>` are not checked against their value.
+
+```doenet-editor-horiz
+<booleanInput name="b"><label>Show a point</label></booleanInput>
+<conditionalContent name="cc">
+  <case condition="$b"><point>(1,2)</point></case>
+  <else><text>no point</text></else>
+</conditionalContent>
+
+<p>As a text: <text extend="$cc"/></p>
+```
 
 ## How references are resolved
 

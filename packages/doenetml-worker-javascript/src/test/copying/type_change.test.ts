@@ -164,7 +164,7 @@ describe("A reference written as a different tag is allowed only between related
 <mathInput name="mi" prefill="2"/>
 `;
 
-    it("between related types, from a group that holds one component, and from content made at run time as on main", async () => {
+    it("between related types, from a group that holds one component, and from content made at run time that does", async () => {
         const allowed: Record<string, [string, string]> = {
             numberFromText: [`<number extend="$t5"/>`, "5"],
             textFromMath: [`<text extend="$m"/>`, "x + 1"],
@@ -513,58 +513,6 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
-    it("content made at run time is not decided, as on main", async () => {
-        // What a repeat, select, conditionalContent or collect holds, an
-        // iteration, a pick or a case, a list the document makes, and a group
-        // holding any of these or a reference with an index, each made as on
-        // main, with no type-change diagnostic.
-        const { texts, typeChangeDiagnostics } = await setup(`
-<repeat name="rep" for="1 2" valueName="i"><math>$i</math></repeat>
-<repeat name="rep2" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
-<select name="s" numToSelect="2"><option><math>1</math><math>3</math></option><option><math>2</math><math>4</math></option></select>
-<conditionalContent name="cc"><case condition="true"><math>a</math><math>b</math></case></conditionalContent>
-<selectFromSequence name="sfs" from="1" to="9" numToSelect="2"/>
-<sequence name="seq" from="1" to="3"/>
-<sequence name="seq0" from="1" to="0"/>
-<mathList name="ml">7 8</mathList>
-<group name="g1">$rep[1]</group>
-<group name="g2">$ml[5]</group>
-<group name="g3"><text>a</text><conditionalContent><case condition="true"><text>b</text></case></conditionalContent></group>
-<p name="p1"><math extend="$rep"/></p>
-<p name="p2"><math extend="$rep2"/></p>
-<p name="p3"><math extend="$rep2[1]"/></p>
-<p name="p4"><math extend="$s"/></p>
-<p name="p5"><math extend="$s[1]"/></p>
-<p name="p6"><math extend="$cc"/></p>
-<p name="p7"><math extend="$cc[1]"/></p>
-<p name="p8"><math extend="$sfs"/></p>
-<p name="p9"><math extend="$seq"/></p>
-<p name="p10"><math extend="$seq0"/></p>
-<p name="p11"><math extend="$g1"/></p>
-<p name="p12"><math extend="$g2"/></p>
-<p name="p13"><text extend="$g3"/></p>
-`);
-        const names = Array.from({ length: 13 }, (_, i) => `p${i + 1}`);
-        const shown = await texts(names);
-        expect(shown.p8.split(", ").length).eq(2);
-        expect({ ...shown, p8: "" }).eqls({
-            p1: "＿",
-            p2: "＿",
-            p3: "＿",
-            p4: "＿",
-            p5: "＿",
-            p6: "＿",
-            p7: "＿",
-            p8: "",
-            p9: "1, 2, 3",
-            p10: "＿",
-            p11: "1",
-            p12: "＿",
-            p13: "",
-        });
-        expect(typeChangeDiagnostics()).eqls([]);
-    });
-
     it("content that holds a list is not decided", async () => {
         // What a list stands for can change without the composite holding
         // it making new replacements, so it is left as it was: here each
@@ -701,33 +649,21 @@ describe("A reference written as a different tag is allowed only between related
         await updateMathInputValue({ latex: "1", componentIdx: mi, core });
         expect(await texts(names)).eqls({ p1: "", p2: "", p3: "true" });
 
+        // `h` holds nothing while the point in it shows nothing, which is
+        // made at run time, so `p1` is an info too.
         const { errors } = getDiagnosticsByType(core);
         expect(errors).eqls([]);
         expect(
-            typeChangeDiagnostics().every((d) => d.code === "doenet-i0053"),
+            typeChangeDiagnostics().every(
+                (d) =>
+                    d.type === "info" &&
+                    (d.code === "doenet-i0053" ||
+                        (d.code === "doenet-e0064" && d.line === 5)),
+            ),
         ).eq(true);
     });
 
-    it("a math's value in a group is not decided, as on main", async () => {
-        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
-            await setup(`
-<mathInput name="mi" prefill="x"/>
-<group name="g"><math>$mi</math></group>
-<p name="p1"><point extend="$g"/></p>
-<p name="p2"><boolean extend="$g"/></p>
-`);
-        expect(await texts(["p1", "p2"])).eqls({ p1: "x", p2: "false" });
-
-        const mi = await resolvePathToNodeIdx("mi");
-        await updateMathInputValue({ latex: "(1,2)", componentIdx: mi, core });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "(1, 2)", p2: "false" });
-
-        await updateMathInputValue({ latex: "1", componentIdx: mi, core });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "true" });
-        expect(typeChangeDiagnostics()).eqls([]);
-    });
-
-    it("a group holding a reference to content made at run time, or checked against a value, is not decided", async () => {
+    it("a group holding a reference to content made at run time, or checked against a value, is decided as an info", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
 <mathInput name="n" prefill="1"/>
@@ -742,25 +678,54 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p3"><point extend="$g2"/></p>
 <p name="p4"><text extend="$g3"/></p>
 `);
+        // `g3` holds one text while the point in it shows nothing.
         expect(await texts(["p1", "p2", "p3", "p4"])).eqls({
             p1: "7",
             p2: "",
-            p3: "(0, 0)",
+            p3: "",
             p4: "",
         });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-i0053", "info", 8],
+            ["doenet-e0064", "info", 10],
+            ["doenet-e0064", "info", 11],
+        ]);
         await updateMathInputValue({
             latex: "5",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        expect(await texts(["p1"])).eqls({ p1: "＿" });
-        // Only the info of the point made from `$m`.
-        expect(typeChangeDiagnostics().map((d) => d.code)).eqls([
-            "doenet-i0053",
+        expect(await texts(["p1"])).eqls({ p1: "" });
+        expect(
+            typeChangeDiagnostics()
+                .slice(3)
+                .map((d) => [d.code, d.type, d.line]),
+        ).eqls([["doenet-e0064", "info", 9]]);
+    });
+
+    it("a group holding an extend checked against the value of a math in a group is decided as an info", async () => {
+        // Whether `a2` holds a point depends on the value of the math in
+        // `a1`, so what it holds is made at run time, as for `g3` above,
+        // even though that math is written. On main, where `<point
+        // extend="$a1"/>` was not checked, these were errors.
+        const { texts, typeChangeDiagnostics } = await setup(`
+<group name="a1"><math>(1,2)</math></group>
+<group name="a2"><point extend="$a1"/></group>
+<p name="p1"><text extend="$a2"/></p>
+<p name="p2"><boolean extend="$a2"/></p>
+`);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-e0065", "info", 4],
+            ["doenet-e0065", "info", 5],
         ]);
     });
 
-    it("a group holding a reference to a conditionalContent is not decided, as on main", async () => {
+    it("a group holding a reference to a conditionalContent is decided as an info", async () => {
         // `$cc` names a component outside content made at run time, but
         // what it holds is the active case, made at run time.
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
@@ -772,21 +737,30 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p1"><math extend="$g"/></p>
 <p name="p2"><math extend="$g1"/></p>
 `);
-        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
-        expect(typeChangeDiagnostics()).eqls([]);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-e0064", "info", 6],
+            ["doenet-e0064", "info", 7],
+        ]);
+
+        const b = await resolvePathToNodeIdx("b");
+        await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "1" });
 
         await updateBooleanInputValue({
-            boolean: true,
-            componentIdx: await resolvePathToNodeIdx("b"),
+            boolean: false,
+            componentIdx: b,
             core,
         });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
-        expect(typeChangeDiagnostics()).eqls([]);
+        expect(await texts(["p1", "p2"])).eqls({ p1: "", p2: "" });
     });
 
-    it("an extend of a group holding an extend follows it when what it holds changes, as on main", async () => {
-        // What `g0` and `h0` hold is made at run time, so none of these is
-        // decided.
+    it("an extend of a group holding an extend follows it when what it holds changes", async () => {
+        // What `g0` and `h0` hold is made at run time, and each stands for
+        // one component of a related type, so each is allowed and made from
+        // it: the math from the text `a`.
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
 <booleanInput name="b"/>
@@ -797,7 +771,7 @@ describe("A reference written as a different tag is allowed only between related
 <group name="h1"><point extend="$h0"/></group>
 <p name="p2"><point extend="$h1"/></p>
 `);
-        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "(3, 4)" });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "(3, 4)" });
 
         const b = await resolvePathToNodeIdx("b");
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
@@ -808,30 +782,10 @@ describe("A reference written as a different tag is allowed only between related
             componentIdx: b,
             core,
         });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "(3, 4)" });
+        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "(3, 4)" });
 
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
         expect(await texts(["p1", "p2"])).eqls({ p1: "1", p2: "(1, 2)" });
-        expect(typeChangeDiagnostics()).eqls([]);
-    });
-
-    it("content that changes inside an iteration or a pick is not decided, as on main", async () => {
-        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
-            await setup(`
-<mathInput name="mi" prefill="1"/>
-<select name="s"><option><repeatForSequence length="$mi"><text>a</text></repeatForSequence></option></select>
-<group name="g"><repeatForSequence length="$mi"><text>b</text></repeatForSequence></group>
-<p name="p1"><text extend="$s[1]"/></p>
-<p name="p2"><text extend="$g"/></p>
-`);
-        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "b" });
-
-        const mi = await resolvePathToNodeIdx("mi");
-        await updateMathInputValue({ latex: "2", componentIdx: mi, core });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "a, a", p2: "b, b" });
-
-        await updateMathInputValue({ latex: "1", componentIdx: mi, core });
-        expect(await texts(["p1", "p2"])).eqls({ p1: "a", p2: "b" });
         expect(typeChangeDiagnostics()).eqls([]);
     });
 
@@ -868,50 +822,6 @@ describe("A reference written as a different tag is allowed only between related
         expect(typeChangeDiagnostics()).eqls([]);
     });
 
-    it("the active case of a conditionalContent is not decided, as on main", async () => {
-        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
-            await setup(`
-<booleanInput name="b"/>
-<conditionalContent name="cc">
-  <case condition="$b"><point>(1,2)</point></case>
-  <else><text>no</text></else>
-</conditionalContent>
-<p name="p1"><text name="t" extend="$cc"/></p>
-`);
-        expect(await texts(["p1", "t"])).eqls({ p1: "no", t: "no" });
-
-        const b = await resolvePathToNodeIdx("b");
-        await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
-        expect(await texts(["p1"])).eqls({ p1: "" });
-
-        await updateBooleanInputValue({
-            boolean: false,
-            componentIdx: b,
-            core,
-        });
-        expect(await texts(["p1", "t"])).eqls({ p1: "no", t: "no" });
-        expect(typeChangeDiagnostics()).eqls([]);
-    });
-
-    it("how many components a collect holds is not decided, as on main", async () => {
-        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
-            await setup(`
-<mathInput name="n" prefill="1"/>
-<group name="g" hide><math>x</math><math>y</math></group>
-<collect name="c" componentType="math" from="$g" maxNumber="$n"/>
-<p name="p1"><math name="mc" extend="$c"/></p>
-`);
-        expect(await texts(["p1", "mc"])).eqls({ p1: "x", mc: "x" });
-
-        const n = await resolvePathToNodeIdx("n");
-        await updateMathInputValue({ latex: "2", componentIdx: n, core });
-        expect(await texts(["p1"])).eqls({ p1: "x, y" });
-
-        await updateMathInputValue({ latex: "1", componentIdx: n, core });
-        expect(await texts(["p1", "mc"])).eqls({ p1: "x", mc: "x" });
-        expect(typeChangeDiagnostics()).eqls([]);
-    });
-
     it("a list whose entries are written is decided again when how many it holds changes", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
@@ -931,6 +841,133 @@ describe("A reference written as a different tag is allowed only between related
 
         await updateMathInputValue({ latex: "1", componentIdx: n, core });
         expect(await texts(["p1"])).eqls({ p1: "1" });
+    });
+
+    it("the value of the one entry of a list whose entries are written is checked as a math's, and followed", async () => {
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="x"/>
+<mathInput name="n" prefill="1"/>
+<mathList name="ml">$mi</mathList>
+<mathList name="ml2" maxNumber="$n">$mi (7,8)</mathList>
+<p name="p1"><point name="P" extend="$ml"/></p>
+<p name="p2"><boolean extend="$ml2"/></p>
+<p name="p3"><coords extend="$ml2"/></p>
+`);
+        const names = ["p1", "p2", "p3"];
+        const reported: Record<string, number> = {};
+        /**
+         * The type change diagnostics reported since this was last called,
+         * errors first.
+         */
+        function newDiagnostics() {
+            const added = [];
+            for (const type of ["error", "info"]) {
+                const all = typeChangeDiagnostics().filter(
+                    (d) => d.type === type,
+                );
+                added.push(...all.slice(reported[type] ?? 0));
+                reported[type] = all.length;
+            }
+            return added.map((d) => [d.code, d.type, d.line]);
+        }
+        async function setMath(name: string, latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        /** The point the extend shows. */
+        async function pointShown() {
+            return (core as any).core._components[
+                await resolvePathToNodeIdx("P")
+            ];
+        }
+
+        expect(await texts(names)).eqls({ p1: "", p2: "", p3: "" });
+        expect(typeChangeDiagnostics()[0].message).eq(
+            "A `<point>` can't be made from `$ml` while its value, x, isn't a tuple of coordinates, so nothing is shown for it.",
+        );
+        expect(newDiagnostics()).eqls([
+            ["doenet-i0053", "info", 6],
+            ["doenet-i0053", "info", 7],
+            ["doenet-i0053", "info", 8],
+        ]);
+
+        await setMath("mi", "(1,2)");
+        expect(await texts(names)).eqls({ p1: "(1, 2)", p2: "", p3: "(1, 2)" });
+        expect(newDiagnostics()).eqls([["doenet-i0053", "info", 7]]);
+        const before = await pointShown();
+        expect(before.componentType).eq("point");
+
+        // a value that still passes leaves the point as it was made
+        await setMath("mi", "(3,4)");
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "(3, 4)" });
+        expect((await pointShown()) === before).eq(true);
+        expect(newDiagnostics()).eqls([["doenet-i0053", "info", 7]]);
+
+        await setMath("n", "2");
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "" });
+        expect(newDiagnostics()).eqls([
+            ["doenet-e0064", "error", 7],
+            ["doenet-e0064", "error", 8],
+        ]);
+
+        await setMath("n", "1");
+        expect(await texts(names)).eqls({ p1: "(3, 4)", p2: "", p3: "(3, 4)" });
+
+        await setMath("mi", "1");
+        expect(await texts(names)).eqls({ p1: "", p2: "true", p3: "" });
+        newDiagnostics();
+
+        // decided once the count has caught up with the values, not from
+        // the blank entry the list holds until then
+        await setMath("n", "0");
+        expect(await texts(names)).eqls({ p1: "", p2: "", p3: "" });
+        expect(newDiagnostics()).eqls([
+            ["doenet-e0064", "error", 7],
+            ["doenet-e0064", "error", 8],
+        ]);
+    });
+
+    it("the value of the one entry of a list of intervals is checked and followed, as an interval's is", async () => {
+        // An interval is a math, so its value is checked; the list holds
+        // its entries as `interval1`, ..., not `math1`.
+        const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
+            await setup(`
+<mathInput name="mi" prefill="x"/>
+<intervalList name="il"><interval>$mi</interval></intervalList>
+<interval name="i">$mi</interval>
+<p name="p1"><boolean extend="$il"/></p>
+<p name="p2"><boolean extend="$i"/></p>
+`);
+        const names = ["p1", "p2"];
+        async function setMath(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+        }
+
+        expect(await texts(names)).eqls({ p1: "", p2: "" });
+        expect(
+            typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
+        ).eqls([
+            ["doenet-i0053", "info", 5],
+            ["doenet-i0053", "info", 6],
+        ]);
+
+        await setMath("1");
+        expect(await texts(names)).eqls({ p1: "true", p2: "true" });
+        await setMath("x>1");
+        expect(await texts(names)).eqls({ p1: "false", p2: "false" });
+        await setMath("(0,1]");
+        expect(await texts(names)).eqls({ p1: "", p2: "" });
+        expect(typeChangeDiagnostics().map((d) => d.message)).toContain(
+            "A `<boolean>` can't be made from `$il` while its value, (0, 1], isn't true or false, so nothing is shown for it.",
+        );
     });
 
     it("a coords follows the rules of a point and a vector, not of a math", async () => {

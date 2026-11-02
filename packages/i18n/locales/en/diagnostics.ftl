@@ -779,7 +779,13 @@ extend-part-of-choosing-tag = `<{ $componentType }>` is part of a `<{ $parentTyp
 # as, $sourceType the type of what it is made from, and $source the reference,
 # as written (`$t`); all three are DoenetML, so they stay in English, as do
 # `extend`, `copy`, `bindValueTo`, `prefill` and `.text`.
-type-change-unrelated = A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+# $now is "true" when what `$source` gives is made at run time, such as the
+# active case of a `<conditionalContent>`: nothing is shown while it lasts.
+type-change-unrelated =
+    { $now ->
+        [true] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>` now, so nothing is shown for it. To show it as it is, write `{ $source }`.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+    }
 
 # $hasPrefill is "true" when the input has a `prefill` attribute.
 type-change-input-from-value =
@@ -792,15 +798,39 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 
 # $count is the number of components `$source` holds, which is not one, and
 # $holdsNothing is "true" when that number is zero. $indexSelectsOne is "true"
-# when `$source[1]` selects one of those components (an entry of a list); an
-# index does not select a child of a `<group>`, so the author names the one
-# they want instead.
+# when `$source[1]` selects one of those components (an entry of a list, an
+# iteration or a pick that holds one component); an index does not select a
+# child of a `<group>`, so the author names the one they want instead.
+# $container is `iteration` when `$source` is an iteration of $sourceType,
+# `pick` when it is what $sourceType picked, `case` when it is what
+# $sourceType shows, and `other` when it is a $sourceType itself. $now is
+# "true" when what `$source` holds is made at run time, such as how many
+# components a `<collect>` holds: nothing is shown while it lasts.
 type-change-composite-not-one =
-    { $holdsNothing ->
-        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
-       *[other] { $indexSelectsOne ->
-            [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-           *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+    { $now ->
+        [true] { $holdsNothing ->
+            [true] A `<{ $componentType }>` can't be made from `{ $source }`, { $container ->
+                [iteration] an iteration of a `<{ $sourceType }>`
+                [pick] what a `<{ $sourceType }>` picked
+                [case] what a `<{ $sourceType }>` shows
+               *[other] a `<{ $sourceType }>`
+            } that holds nothing now, so nothing is shown for it.
+           *[other] { $indexSelectsOne ->
+                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count } now, so nothing is shown for it. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+               *[other] A `<{ $componentType }>` can be made from { $container ->
+                    [iteration] an iteration of a `<{ $sourceType }>`
+                    [pick] what a `<{ $sourceType }>` picked
+                    [case] what a `<{ $sourceType }>` shows
+                   *[other] a `<{ $sourceType }>`
+                } only when it holds one component, and `{ $source }` holds { $count } now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            }
+        }
+       *[other] { $holdsNothing ->
+            [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
+           *[other] { $indexSelectsOne ->
+                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+               *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            }
         }
     }
 
