@@ -161,9 +161,9 @@ What it *looks like* depends on the parent and on the spelling (**[probe]**):
 | `<p>[$pl.xs[3]]</p>` | `[＿, ＿]` |
 | `<sum>$l[5] 3</sum>` | `3` |
 
-How a missing reference is reported follows NAME-2 since #2410 (B17): `$n.value[1]` now shows
-nothing, where it showed `5`. A list component's entries still differ: `$pl[2].coords[1]` shows
-the whole coordinates (B18, #2413). A property with no value, such as `$c.maxNumber` with no
+How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
+`$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` now show nothing. An index into a scalar entry of a
+list still gives `＿` (B34). A property with no value, such as `$c.maxNumber` with no
 limit, shows `NaN` (#2416, D10).
 
 That table is an accident of which internal form was built. A rewrite should choose one
@@ -312,8 +312,8 @@ Evidence:
 
 `hide` holds for every list since #2368. VAL-9a gives the full rule.
 
-`styleNumber` does not hold yet. Collect and sort let the list's override each source's, and
-authored lists and `<pointList>` ignore a child's (#2374).
+`styleNumber` holds since #2426 (closing #2374): an entry has its source's own style, and the
+list's fills in where the source sets none.
 
 Follow-up, not part of D29: a write through `$l[k].hide` does nothing in any family today
 (`<booleanInput bindValueTo="$l[k].hide"/>`), while `$n.hide` is writable (**[probe]**). An entry
@@ -363,9 +363,13 @@ Evidence: `T/tagSpecific/listEntryHide.test.ts`. It is the sweep:
 - 22 contents where a choice's text must equal what a `<p>` draws;
 - the rows of #2390, including a `<sort>` and a `<shuffle>` over a hidden inner list.
 
+Rule 7 for `styleNumber` is done by #2426 (`T/tagSpecific/listEntryStyle.test.ts`). A source
+"sets a style" when its `styleNumber` is not a default. For a list form, a style the source has
+from where it sits (`<graph styleNumber="4">`) counts as set. A composite `<collect>` decides
+when it makes each replacement, so a source that switches between setting a style and not
+setting one is not followed (#2426, Tier 3).
+
 Known violations:
-- **`styleNumber`:** collect and sort let the list's override each source's, and authored lists
-  and `<pointList>` ignore a child's (#2374);
 - **a `<sort>` or `<shuffle>` that stays a composite** still draws an entry hidden only by a
   container (#2394);
 - **a write through `$l[k].hide`** does nothing (above).
