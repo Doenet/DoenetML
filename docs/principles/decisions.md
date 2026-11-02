@@ -36,10 +36,23 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B15 | **Fixed by #2412** (closing #2405). A copy of a section whose content references the section (`<section copy="$S"/>` of `<section name="S"><p>hi [$S]</p></section>`) stopped the document with "infinite loop while calculating replacement changes": the copy remade its counterpart of `$S` on every pass. Now both report `doenet-e0005` and render; a copy of a point whose label holds `$P` shows its own coordinates. The guard that stopped the document is still there for any other such loop (B21, #2418) | fixed on main | `sourceContainsCopy` in `Copy.replacementForSource` |
 | B16 | **Fixed by #2411** (closing #2406). A copy or extend of a `<collect>` inside an extended group showed nothing (`doenet-w0072`). The cause was not `from`, which kept its referent, but the type check: the copy, written as `<collect>`, got a `_collectList` and wrapped it in a new, empty `<collect>`. The same affected `<sort>` and `<shuffle>`, where a copy could show another order | fixed on main | `replacementIsOfType` in `verifyReplacementsMatchSpecifiedType` (`W/utils/copy.js`) |
 | B17 | **Fixed by #2410** (closing #2407). An index that names nothing was reported inconsistently. Now an index below 1 on something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic; past the end is silent (#1499); an index that cannot apply (`$n.value[1]`) gives `doenet-w0100` and shows nothing, so `bindValueTo="$n.value[1]"` no longer binds to `n`. Left: entries of a list component (B18, #2413) and function references (B19, #2419) | fixed on main | the Rust resolver codes the failure (`ref_expand.rs`); `arrayEntryNamesFromPropIndex` |
-| B18 | (#2413) An index on an entry of a list component is not reported like other indices: `$pl[2].coords[1]` shows the whole coordinates with no diagnostic (`$P.coords[1]` shows nothing, `doenet-w0100`); `$pl[1].xs[0]` gives info `doenet-i0018` (`$P.xs[0]`: `doenet-w0104`); `$l[1][0]` is silent. Breaks VAL-5 | reported in the issue | `W/utils/listEntryReference.ts` (#2157) |
-| B19 | (#2419) A function reference that names nothing (`$$f(2)` with no `f`, or two) gives an uncoded "Ref resolution error" that doesn't quote the reference, and in a `<math>` shows nothing where `$f` shows `＿` | reported in the issue | the `FunctionRef` branch of `Expander::expand_refs` (`RS/ref_expand.rs`) |
-| B20 | (#2414) `type` on a copy of a `<sort>` is ignored: `<sort copy="$s" type="text"/>` of `<sort name="s">10 3 1</sort>` sorts as numbers (`1, 3, 10`), while the same sort written with `type="text"` gives `1, 10, 3`. Breaks CPY-1 | reported in the issue | not traced; `LIST_FORM_COPY_ATTRIBUTES` in `W/utils/dast/listForms.ts` already counts `type` as changing what the list holds |
-| B21 | (#2418) A replacement loop that is not caught as a cycle stops the document after 100 passes with an internal error that names no component. Breaks NAME-7 and D14. B15 was one such loop | reported in the issue; the guard is `replacementChangesFromCompositesToUpdate` | `W/core/EssentialValueWriter.ts` |
+| B18 | **Fixed by #2431** (closing #2413). An index on an entry of a list component was not reported like other indices: `$pl[2].coords[1]` showed the whole coordinates. Now `w0100`, and `$pl[1].xs[0]`, `$l[1][0]` give `w0104` | fixed on main | `W/utils/listEntryReference.ts` |
+| B19 | **Fixed by #2432** (closing #2419). A function reference that names nothing gave an uncoded warning. Now `w0104`/`w0105`, quoting `$$f(2)`, and `＿` in a `<math>`. Follow-ups: #2434 | fixed on main | `RS/ref_expand.rs`, `convertNormalizedDast.ts` |
+| B20 | **Fixed by #2427** (closing #2414). `type` on a copy of a `<sort>` was ignored. Now the copy re-reads its text with its own `type`, also for `<shuffle>`, `<sortIndices>`, `<tally>`, `<indexOf>`, `<searchSorted>`, `<argMin>`, `<argMax>` | fixed on main | `retypeTextPieces` |
+| B21 | **Fixed by #2425** (closing #2418). A replacement loop stopped the document after 100 passes with an internal error. Now the composites on the loop get `doenet-e0005` at their positions, stop updating, and the rest renders. The error is still thrown if no composite can be singled out | fixed on main | `replacementChangesFromCompositesToUpdate`, `markCompositeInError` |
+| B22 | (#2437) A related-type extend whose one component comes **through a reference** shows the default of the written tag, with no diagnostic: `<point extend="$cc"/>` with active case `<case>$m</case>` shows `(0, 0)`; also a group holding `$cc`, a group holding an extend, and a group beside an empty repeat. Breaks REF-5 | reported in the issue | `componentStoodFor` does not look into a `_copy` (`W/components/abstract/Copy.js`) |
+| B23 | (#2433) `<text extend="$cc"/>` of a `<conditionalContent>` whose cases are bare text throws "Cannot create property 'componentIdx' on string". Breaks REF-5 and DIAG-5 | reported in the issue | the case's one component is a string |
+| B24 | (#2429) `<mathInput bindValueTo="$sori"/>` or `bindValueTo="$sori.subsetValue"` of a `<subsetOfRealsInput>` throws "object is not a tree node", and so does an unnamed `<subsetOfReals extend="$S"/>`, the reference page's own example. `doenet-e0062` (D26) recommends exactly this `bindValueTo` | reported in the issue | not traced |
+| B25 | (#2430) With expression attributes disabled (a test-only setting), `<number extend="$r[2].io[1]"/>` gives `doenet-e0005` after its iteration is withheld and shown again. Since #2424 | reported in the issue | not traced |
+| B26 | An extend of an iteration, `<group name="g2" extend="$r[1]"/>`, takes child indices with `w0179` instead of passing through: `$g2[2]` names nothing where `$r[1][2]` is the inner repeat's iteration 2. Breaks REF-7 (an extend is the same component) with NAME-2's pass-through. **Not filed** | #2424, "Not covered" | the extend is a `<group>` the author wrote |
+| B27 | An index is not applied uniformly to values (NAME-2): an index beyond an array's dimensions is dropped for `<point>`, `<vector>`, `<matrix>`, `<matrixInput>` (`$P[1][1]` is `3`, `$M[1][2][3]` is `2`), while `$c[2][1]` of a `<coords>` names nothing and warns; a tuple of tuples is indexed one level (`$m[1][2]` of `((1,2),(3,4))` names nothing, silently); a list entry two levels deep (`$ml[1][1][2]` is a blank); `$l.coords[1]` ignores the index. **Not filed** | #2431, "Known gaps" | `variableForIndexAsProp` arrays (`xs`, `displacement`, `matrix`) |
+| B28 | An index past a list held by a repeat iteration reaches the `<setup>` the repeat adds for `valueName`: `$r[1][4].v` of `<repeat name="r" for="1 2" valueName="v">$l</repeat>` (3 entries) shows `1`, silently. Breaks NAME-3. **Not filed** | #2431, "Known gaps" | `doenetAttributes.iterationAliases` |
+| B29 | `<math name="m">(1, $m[2])</math>` fails with an internal error ("Cannot read properties of undefined") instead of the circular-dependency error it gave before #2431. Breaks NAME-7 and DIAG-3. **Not filed** | #2431, "Known gaps" | the scalar check evaluates the value while the reference is resolved |
+| B30 | Allowed REF-5 pairs that give a default instead of converting: `<point extend="$mi"/>` of a mathInput holding `(1,2)` shows `(0, 0)`; `<boolean extend="$t"/>` of text `true` is `false`. A property source is not checked against its value: `<point extend="$P.x"/>` makes the point `3`. **Not filed** | #2427, "Known limits" | the wrapping in `verifyReplacementsMatchSpecifiedType` |
+| B31 | A type-changed copy can change on reload. An unlinked `<point copy="$mi"/>` saved after `mi` changed whether it is a tuple, and a copy of a `<conditionalContent>` made during a mismatch or from another case, are remade from the state at reload. Breaks SAVE-1 (also on main for a same-type `<point copy="$cc"/>`). **Not filed** | #2427, #2436 | the saved snapshot does not record the decision |
+| B32 | Two `<conditionalContent>`s extending each other show "holds nothing" infos instead of `doenet-e0005` (on main before #2436 the switch threw). Breaks NAME-7. **Not filed** | #2436, "Known limits" | the re-entrancy guard |
+| B33 | A value-driven diagnostic does not track the value (DIAG-2). Diagnostics are append-only, so an info is not cleared when the content matches again, and each new mismatch adds another. An index diagnostic is decided when the reference resolves: a value that is a scalar then and a tuple later keeps its warning. **Not filed**; #2422 may cover it | #2427, #2431, #2436 | `DiagnosticsManager` is append-only |
+| B34 | An index into a scalar entry of a list, or past a list entry's end, gives a blank `＿` with no diagnostic, and a write through it lengthens or replaces the entry: `$tl[1][3]`, `$ml[2][1]`. Breaks VAL-5 and NAME-2. **Not filed** | #2431, "Known gaps"; same on main for an index past an entry's end | an entry property has a value for every entry |
 
 B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
 interaction". They should be fixed on main whatever happens to the rewrite.
@@ -727,7 +740,7 @@ single-use child group, writing two of them uses the second, and adding one in a
 
 ## D26. Which type changes may an `extend`, a `copy` or the fresh form make?
 
-**Decided** (#2423 implements it; REF-5 states it).
+**Decided. Done by #2427 and #2436** (closing #2423, #2414, #2415, #2435). REF-5 states it.
 
 **Decided:** related types are allowed, and any other pair is an error. The same table decides
 all three forms: `extend`, `copy`, and D33's fresh form, whose name is still open. Each asks
@@ -816,7 +829,7 @@ about an unrecognized tag name, not an unrelated pair, and is unaffected.
 
 ## D27. What may an index select?
 
-**Decided: an index never selects among a container's children** (#2420). It selects among the
+**Decided: an index never selects among a container's children. Done by #2424** (closing #2420; value half done by #2431, closing #2421). NAME-2 states the rule. It selects among the
 instances a tag produces, as proposed below, with consequences 1–4. Nested repeats then take one
 index per level: `$r[1][2]` is iteration 2 of the inner repeat in iteration 1 of the outer.
 
@@ -1004,7 +1017,7 @@ The rules are stated in VAL-9a ([values-and-attributes.md](values-and-attributes
 **Status: done for `hide` (#2368, closing #2265), on top of D3 (#2367).** Rules 1–6 below hold for
 every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
 the sweep: 19 list forms, each with its first entry's source hidden. Still open:
-- `styleNumber` and display settings under the container model: #2374;
+- `styleNumber` under the container model: done by #2426 (closing #2374);
 - a `<sort>` or `<shuffle>` that stays a composite still draws an entry hidden only by a
   container: #2394 (below);
 - writes through `$l[k].hide`, a follow-up under VAL-9.
@@ -1320,7 +1333,7 @@ error codes `doenet-e0056`–`e0061`. What #2409 adds or leaves:
 - `w0168` and `w0169` stay for composites and lists outside the list, and for an attribute a
   module does not declare. That leaves `displayDigits` on a `<module extend>` ignored, where the
   Tier 1 rule says an appearance attribute takes effect;
-- #2219, `styleNumber` on an extend of `<intersection>`, is still open.
+- #2219, `styleNumber` on an extend of `<intersection>`, was fixed by #2426.
 
 **Today** an `extend` of a tag that makes its own content shows the same content, and changes
 written on it are ignored, sometimes with a warning (w0168, w0169) and sometimes silently (B12).

@@ -66,10 +66,8 @@ An index is read live and rounded like an integer: `$l[$i]` follows `i`. An inde
 negative index, or one past the end names nothing. Since #2410 (B17), an index below 1 on
 something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic. Past
 the end is silent while the length can change (#1499). An index that cannot apply, such as
-`$n.value[1]`, gives `doenet-w0100` and names nothing. Not yet: entries of a list component
-(B18, #2413), function references (B19, #2419), and an index of 1 on a scalar. **[probe]** on
-main at `7c2bb1f`: `$m[0]`, `$n[0]` and `$t[0]` give `doenet-w0104`, but `$n[1]` and `$t[1]` show
-nothing with info `doenet-i0018`, while `$m[1]` shows the math. D27 decides it (#2421).
+`$n.value[1]`, and an index into a scalar (`$ms[1]`, `$n[1]`), give `doenet-w0100` and name
+nothing (#2431). List entries (#2431) and function references (#2432) follow the same rule.
 
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
@@ -96,9 +94,33 @@ finishes the path after composites expand.
   to it. Nested repeats take one index per level: `$r[1][2]` is iteration 2 of the inner repeat
   in iteration 1.
 
-Today an index can also select a child of a group, an iteration or a picked option, and nested
-repeats need `$r[1][1][2]`. Child indexing gives a deprecation warning in 0.8, since 0.7's select
-docs teach it. Pass-through takes its new meaning directly.
+Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
+- **`doenet-w0179`, deprecation:** child indexing (`$g[2]`, `$s[1][2]` into a pick that is not one
+  indexable component, `$cc[1][2]`) still gives the child, and the warning names the form to
+  write. A `<conditionalContent>`'s case keeps child indexing, deprecated;
+- **`doenet-w0180`:** an index on something that takes none (`$sec[2]`);
+- **`doenet-w0181`:** past the end of a repeat, select, `selectFromSequence`, shuffle, sort or
+  collect that stays a composite ("the `<select>` made only 2 picks"). Past the end of a list is
+  silent (#1499);
+- **`doenet-w0182`:** `$ss[1]` of a spreadsheet, pointing to `.cells`.
+
+Pass-through took its new meaning with no compatibility mode: `$a[2][1][3]` became `$a[2][3]`.
+Root names follow it (`r:1:2`).
+
+Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value.test.ts`.
+
+Known violations:
+- an extend of an iteration takes child indices instead of passing through (B26);
+- an index beyond an array's dimensions is dropped for points, vectors and matrices, a tuple of
+  tuples is indexed one level, and `$l.coords[1]` ignores its index (B27);
+- an index past a list in an iteration reaches the repeat's internal `<setup>` (B28);
+- an index into a scalar entry of a list gives `＿`, unreported, and a write through it changes
+  the entry (B34);
+- `w0181` is a warning even when the count comes from a value that can change, such as a repeat
+  of `length="$n"`, which DIAG-2 makes an info (#2422).
+
+Cost (Tier 3): `$m[i]` of a `<math>` is now a copy rather than a value reference, one more
+component per reference (#2431).
 
 Limits:
 - **Deep property chains** (`$l.points[1].coords`, `$l.points[1].xs[1]`) are not supported
@@ -206,8 +228,15 @@ A copy of a component that references itself loads too (#2412, closing #2405, B1
 `<section copy="$S"/>` of `<section name="S"><p>[$S]</p></section>` reports `doenet-e0005` and
 renders, and a copy of a point whose label holds `$P` shows its own coordinates.
 
-**Known violation (B21, #2418):** a replacement loop that is not caught as a cycle still stops
-the document after 100 passes, with an internal error that names no component.
+A loop among composites that keep re-queuing each other is reported too (#2425, B21): the
+composites on the loop get `doenet-e0005` at their positions and stop updating, and the rest
+renders.
+
+Known violations:
+- a math indexing itself, `<math name="m">(1, $m[2])</math>`, fails with an internal error
+  (B29);
+- two `<conditionalContent>`s extending each other give infos, not `doenet-e0005` (B32);
+- a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
 `:755`. A reference to a point inside its own label is allowed and means "my value" (#1384).
@@ -399,9 +428,42 @@ For the allowed pairs the result is x's value as a T. It is linked both ways whe
 can be run backward: **[probe]** `<point extend="$v"/>` of a vector is draggable, and dragging it
 moves `v`.
 
-**Today** the composite case works only when the content is one component, and is a silent blank
-otherwise. An input from a value type acts as `bindValueTo`. A container gives "Invalid children"
-and nothing. The implementation is #2423.
+Done by #2427 (content fixed at load) and #2436 (content made at run time). The table is
+`typeChangeRule` in `W/utils/typeChange.js`, applied only to author-written extends and copies.
+It also allows:
+- any pair an `adapter` gives, such as `<text extend="$ion"/>`;
+- an angle as a math, and a label as a text.
+
+`<coords>` follows the point group, though it inherits from `<math>`.
+
+Diagnostics:
+- **`doenet-e0062`:** an input from a value;
+- **`doenet-e0063`:** a container with a `text` (`<p>`, `<li>`) as another tag, suggesting
+  `$p.text`;
+- **`doenet-e0064`:** a composite or list not holding exactly one component;
+- **`doenet-e0065`:** any other pair;
+- at run time, `e0064` and `e0065` are reported at info level, and **`doenet-i0053`** is an info for
+  a value that does not allow the tag (a point from a non-tuple, a boolean from a math that is not
+  true or false).
+
+A linked extend is shown again when its content matches. A copy stays as it was made.
+
+Evidence: `T/copying/type_change.test.ts`, `T/copying/type_change_run_time.test.ts`.
+
+Not decided yet (behave as before): content holding a list, a list or `<group>` written as the
+tag, property sources, internal list forms, and unresolved paths.
+
+Known violations:
+- a related type reached through a reference shows a default (B22, #2437);
+- `<text extend="$cc"/>` of bare-text cases throws (B23, #2433);
+- the `bindValueTo` that `e0062` recommends throws for a `<subsetOfRealsInput>` (B24, #2429);
+- some allowed pairs give a default (a mathInput holding a tuple as a point, a text `true` as a
+  boolean), and a property source is not checked against its value (B30);
+- a type-changed copy can change on reload (B31);
+- infos are not cleared when the content matches again (B33).
+
+Cost (Tier 3): a linked extend that follows run-time content is about twice as slow as before
+(#2436).
 
 Evidence for the related pairs:
 - `T/copying/extend_references.test.ts:3200` "extend wraps to match specified type" (math,
@@ -481,8 +543,8 @@ Code: `extendChangesContentErrors` and `attributesAnExtendApplies` in
 `W/components/abstract/Copy.js`. The parser's `conditionalContent` and `repeat` sugar skips an
 element written with `extend`, which fixed B12.
 
-Known bugs, open: #2219 (`styleNumber` on an extend of `<intersection>` may not take effect);
-#2217, #2218, #2211, and the copy halves of #2215 and #2216 (D4, B5).
+Known bugs, open: #2217, #2218, #2211, and the copy halves of #2215 and #2216 (D4, B5). #2219
+(`styleNumber` on an extend of `<intersection>`) was fixed by #2426.
 
 ### REF-8: an extend's descendants are reached through the extend's own name, and an unnamed reference creates no names (Tier 1)
 - **Through a name.** With `<p name="e" extend="$p"/>`, `$e.t` reaches e's own counterpart of
@@ -747,7 +809,6 @@ reference, attributes a copy of a list entry or property takes from its source, 
 #2400 (closing #2398, B14) extends this to a copy of an `extend`, and to a copy of part of one:
 an outside referent is kept as a referent, not looked up again by name.
 
-**Known violation (B20, #2414):** `type` on a copy of a `<sort>` is ignored.
 
 ### CPY-7: to start from another component's current value, copy its value, not the component (Tier 1)
 A copy is independent of the component it copied, but **not of what that component refers

@@ -60,7 +60,15 @@ from `7c2bb1f`:
 | a `<sampleRandomNumbers>` whose `standardDeviation` comes from a blank input | warning `doenet-w0126` |
 | a `<collect>` from content in a case that isn't active | warning `doenet-w0072` |
 
+Also `doenet-w0181` ("the `<repeat>` made no iterations"), when the count comes from a value
+that can change, and B33: an info is not cleared when its condition ends, and an index diagnostic
+is decided once, when the reference resolves.
+
 The audit of every warning call site is #2422.
+
+**A value-driven diagnostic tracks the value.** It follows from DIAG-1 and DIAG-2: an info
+explains why nothing shows now, so it appears when the condition starts and goes away when it
+ends. Today diagnostics are append-only (B33).
 
 Decided in D35.
 
@@ -77,9 +85,9 @@ Decided in D35.
   authors learn the rule, so it is part of the rule.
 
 **Known violations:**
-- info `doenet-i0018` "Could not find prop n[1] on a component of type number", for `$n[1]`
-  (#2421);
-- the uncoded "Ref resolution error" for a function reference (B19, #2419);
+- a function reference with an index quotes only up to the index, `$$f[2]`, not `$$f[2](2)`
+  (#2434);
+- a math that indexes itself gives an internal error (B29);
 - `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7).
 
 ### DIAG-4: a diagnostic is located where the author wrote the cause (Tier 2)
@@ -93,10 +101,14 @@ renders.
 
 **Known violations:**
 - state-variable cycles throw, and the document fails to load (D14, NAME-7);
-- an undetected replacement loop stops the document after 100 passes (B21, #2418).
+- a loop where no composite can be singled out still stops the document (#2425);
+- `<text extend="$cc"/>` of bare-text cases throws (B23, #2433), and so does `bindValueTo` of a
+  `<subsetOfRealsInput>` (B24, #2429).
 
 ### DIAG-6: the diagnostics are the same after a reload (Tier 2)
 A reload restores what the reader saw (SAVE-1), and that includes the diagnostics.
 
-**Known violation:** an index past the end of a repeat that shrank adds `doenet-w0104` only after
-a reload (#1499). Under DIAG-2 it is an info, reported the same way before and after.
+**Known violations:**
+- an index past the end of a repeat that shrank adds a diagnostic only after a reload (#1499).
+  Under DIAG-2 it is an info, reported the same way before and after;
+- infos that piled up before a reload are not reproduced after it (B33).
