@@ -339,6 +339,93 @@ describe("A reference written as a different tag, of content made at run time (D
         expect(d.errors()).eqls([]);
     });
 
+    it("the messages for an iteration or a pick holding nothing, for iterations holding several, and for an input or a container in what a conditionalContent shows", async () => {
+        const d = await setup(`
+<booleanInput name="b"/>
+<repeat name="rep" for="1" valueName="v"><conditionalContent><case condition="$b"><math>$v</math></case></conditionalContent></repeat>
+<select name="s"><option><conditionalContent><case condition="$b"><math>1</math></case></conditionalContent></option></select>
+<repeat name="rep2" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
+<conditionalContent name="cc">
+  <case condition="$b"><p>hello</p></case>
+  <else><math>x</math></else>
+</conditionalContent>
+<p name="p1"><math name="m1" extend="$rep[1]"/></p>
+<p name="p2"><math name="m2" extend="$s[1]"/></p>
+<p name="p3"><math extend="$rep2"/></p>
+<p name="p4"><mathInput extend="$cc"/></p>
+<p name="p5"><text extend="$cc"/></p>
+`);
+        expect(await d.texts(["p1", "p2", "p3"])).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+        });
+        for (const p of ["p1", "p2", "p3", "p4"]) {
+            expect(await d.replacedBy(p)).eqls([]);
+        }
+        // No index is suggested for `$rep2`, whose iterations each hold two
+        // components. In what a conditionalContent shows, an input from a
+        // value and a container as a value tag are not given the forms that
+        // name the source (`doenet-e0062`, `doenet-e0063`).
+        expect(d.newDiagnostics()).eqls([
+            {
+                code: "doenet-e0064",
+                type: "info",
+                line: 10,
+                message:
+                    "A `<math>` can't be made from `$rep[1]`, an iteration of a `<repeat>` that holds nothing now, so nothing is shown for it.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "info",
+                line: 11,
+                message:
+                    "A `<math>` can't be made from `$s[1]`, what a `<select>` picked that holds nothing now, so nothing is shown for it.",
+            },
+            {
+                code: "doenet-e0064",
+                type: "info",
+                line: 12,
+                message:
+                    "A `<math>` can be made from a `<repeat>` only when it holds one component, and `$rep2` holds 4 now, so nothing is shown for it. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$rep2</math>`.",
+            },
+            {
+                code: "doenet-e0065",
+                type: "info",
+                line: 13,
+                message:
+                    "A `<mathInput>` can't be made from `$cc`, which gives a `<math>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
+            },
+        ]);
+
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p1", "m1", "p2", "m2"])).eqls({
+            p1: "1",
+            m1: "1",
+            p2: "1",
+            m2: "1",
+        });
+        expect(await d.replacedBy("p4")).eqls([]);
+        expect(await d.replacedBy("p5")).eqls([]);
+        expect(d.newDiagnostics()).eqls([
+            {
+                code: "doenet-e0065",
+                type: "info",
+                line: 13,
+                message:
+                    "A `<mathInput>` can't be made from `$cc`, which gives a `<p>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
+            },
+            {
+                code: "doenet-e0065",
+                type: "info",
+                line: 14,
+                message:
+                    "A `<text>` can't be made from `$cc`, which gives a `<p>` now, so nothing is shown for it. To show it as it is, write `$cc`.",
+            },
+        ]);
+        expect(d.errors()).eqls([]);
+    });
+
     it("a list the document makes holding several entries", async () => {
         const d = await setup(`
 <mathInput name="n" prefill="1"/>

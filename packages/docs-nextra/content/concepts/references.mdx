@@ -128,7 +128,12 @@ of a group that holds one number. The same goes for what the document makes
 as it runs: what a `<conditionalContent>`, `<select>`, `<repeat>` or
 `<collect>` holds, an iteration, a pick or a case (`$r[1]`, `$s[1]`,
 `$cc[1]`), and a list made by a `<sequence>` or `<selectFromSequence>`. Content
-holding a list is not checked.
+holding a list is not checked. A `<conditionalContent>`, `<select>` or
+`<repeat>`, or a group holding one, whose one component is of a related type
+rather than the tag written, shows a default component of that tag, such as `(0, 0)` for
+`<point extend="$cc"/>{:dn}` while the active case holds the math `(1, 2)`.
+Name the case, pick or iteration instead: `<point extend="$cc[1]"/>{:dn}`
+shows `(1, 2)`.
 
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
