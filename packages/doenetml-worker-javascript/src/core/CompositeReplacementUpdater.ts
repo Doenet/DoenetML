@@ -19,6 +19,7 @@ import {
     addReplacementsToResolver,
     determineParentAndIndexResolutionForResolver,
     gatherDiagnosticsAndAssignDoenetMLRange,
+    reportConditionDiagnostics,
     refreshRootNames,
 } from "./ResolverAdapter";
 import { namesReachedThroughCopy, postProcessCopy } from "../utils/copy";
@@ -234,6 +235,8 @@ export class CompositeReplacementUpdater {
                 sourceDoc: parent.sourceDoc,
             });
         }
+
+        reportConditionDiagnostics({ core: this.core, component });
 
         // iterate through all replacement changes
         for (let change of replacementResults.replacementChanges) {
@@ -1380,6 +1383,10 @@ export class CompositeReplacementUpdater {
         adjustResolver?: boolean;
     }) {
         let replacementsToWithhold = change.replacementsToWithhold;
+
+        // What is shown changes, and with it which conditions report
+        // (`Core.isComponentShown`).
+        this.core.diagnosticsManager.markShownChanged();
 
         let changeInReplacementsToWithhold;
         if (component.replacementsToWithhold !== undefined) {

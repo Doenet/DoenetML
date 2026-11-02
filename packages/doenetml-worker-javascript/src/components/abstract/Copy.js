@@ -1523,15 +1523,18 @@ export default class Copy extends CompositeComponent {
             }
             component.unlinkedSnapshot = copySnapshotOf(result.replacements);
             component.unlinkedMadeFrom = args.workspace.madeFrom;
-            component.freshUnlinkedSnapshot = async () =>
-                copySnapshotOf(
-                    (
-                        await this.createReplacementsFromSources({
-                            ...args,
-                            workspace: {},
-                        })
-                    ).replacements,
-                );
+            component.freshUnlinkedSnapshot = async () => {
+                const workspace = {};
+                const { replacements } =
+                    await this.createReplacementsFromSources({
+                        ...args,
+                        workspace,
+                    });
+                return {
+                    snapshot: copySnapshotOf(replacements),
+                    madeFrom: workspace.madeFrom,
+                };
+            };
         }
         return result;
     }
@@ -1564,6 +1567,7 @@ export default class Copy extends CompositeComponent {
         workspace.propVariablesCopiedBySource = [];
         workspace.sourceIndices = [];
         workspace.typeChangeKey = undefined;
+        reportTypeChange(workspace, undefined);
         // What decided what an unlinked copy made, for a save to hold
         // (`heldCopySnapshot`)
         workspace.madeFrom = {};
@@ -1826,13 +1830,13 @@ export default class Copy extends CompositeComponent {
             heldMadeFrom,
         );
         workspace.typeChangeKey = typeChangeKey(typeChange);
+        reportTypeChange(workspace, typeChange);
         if (workspace.typeChangeKey !== undefined) {
             workspace.madeFrom.typeChange = {
                 key: workspace.typeChangeKey,
                 ...(typeChange && { diagnostic: typeChange.diagnostic }),
             };
         }
-        workspace.typeChangeMessage = typeChange?.diagnostic.message;
         workspace.typeChangeRunTime = found.runTime;
         await recordTypeChangeContent({
             component,
@@ -1842,7 +1846,9 @@ export default class Copy extends CompositeComponent {
             canWatch: found.canWatch,
         });
         if (typeChange) {
-            diagnostics.push(typeChange.diagnostic);
+            if (typeChange.level !== "info") {
+                diagnostics.push(typeChange.diagnostic);
+            }
             replacements =
                 typeChange.level === "error"
                     ? [
@@ -2476,6 +2482,7 @@ export default class Copy extends CompositeComponent {
 
             workspace.sourceIndices = [];
             workspace.typeChangeKey = undefined;
+            reportTypeChange(workspace, undefined);
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
             workspace.propVariablesCopiedBySource = [];
@@ -2644,6 +2651,7 @@ export default class Copy extends CompositeComponent {
                 // values (the dependency on its first entry fires first).
                 return { replacementChanges: [], diagnostics, nComponents };
             }
+            reportTypeChange(workspace, typeChange);
             // What a composite holds: whether it changed where the
             // dependency `allReplacementIdentities` sees it, which would
             // update the extend whatever was decided
@@ -2713,14 +2721,8 @@ export default class Copy extends CompositeComponent {
                 }
                 workspace.typeChangeKey = key;
             } else if (key?.startsWith("mismatch")) {
-                if (
-                    typeChange.diagnostic.message !==
-                    workspace.typeChangeMessage
-                ) {
-                    // an info naming a new value (`typeChangeKey`)
-                    workspace.typeChangeMessage = typeChange.diagnostic.message;
-                    diagnostics.push(typeChange.diagnostic);
-                }
+                // An info naming a new value (`typeChangeKey`) replaces the
+                // one before it (`reportTypeChange`).
                 return {
                     replacementChanges: unwithheldChanges(component),
                     diagnostics,
@@ -5349,8 +5351,8 @@ function retypeTextPieces({
  * or `"mismatch:"` and the error shown, or, for an info, which shows
  * nothing, its code. The message of an info names the source's value
  * (`doenet-i0053`), which can change while nothing is shown either way; it
- * is reported again without making the replacements again
- * (`calculateReplacementChanges`).
+ * replaces the info before it without making the replacements again
+ * (`calculateReplacementChanges`, `reportTypeChange`).
  */
 function typeChangeKey(typeChange) {
     if (typeChange === undefined) {
@@ -5362,6 +5364,26 @@ function typeChangeKey(typeChange) {
     return typeChange.level === "info"
         ? `mismatch:info:${typeChange.diagnostic.code}`
         : `mismatch:${typeChange.level}:${typeChange.diagnostic.message}`;
+}
+
+/**
+ * Report what `typeChangeStatus` decided now as the `"typeChange"` condition
+ * of the copy (`reportConditionDiagnostics`): an info while a type change of
+ * content made at run time does not match, nothing once it does or once
+ * there is nothing to decide. Each decision replaces the one before, so one
+ * info is shown while the mismatch lasts, naming the value as it is now
+ * (`doenet-i0053`), and none after it ends (B33). Called wherever it is
+ * decided again; a path that does not decide it leaves it as it was.
+ *
+ * An error is not reported here: it is decided by what the author wrote
+ * (`fixed` in `typeChangeStatus`), so it does not come and go, and it is
+ * returned with the replacements, as the `_error` it is shown as is.
+ */
+function reportTypeChange(workspace, typeChange) {
+    workspace.conditionDiagnostics = {
+        ...workspace.conditionDiagnostics,
+        typeChange: typeChange?.level === "info" ? [typeChange.diagnostic] : [],
+    };
 }
 
 /** The change that shows any replacements `component` withholds. */

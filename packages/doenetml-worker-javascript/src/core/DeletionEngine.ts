@@ -255,6 +255,9 @@ export async function deleteComponents({
 
         core.updateInfo.deletedComponents[component.componentIdx] = true;
         delete core.unmatchedChildren[component.componentIdx];
+        core.diagnosticsManager.withdrawConditionDiagnostics(
+            component.componentIdx,
+        );
 
         delete core.stateVariableChangeTriggers[component.componentIdx];
     }

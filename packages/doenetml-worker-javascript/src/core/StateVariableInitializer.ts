@@ -4,6 +4,7 @@ import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { isListEntryArrayVariable } from "../utils/listEntryReference";
+import { readHeldCopySnapshot } from "../utils/copySnapshot";
 import {
     applyPendingShadowModification,
     getClassStateVariableDefinitions,
@@ -2136,6 +2137,156 @@ async function createArraySizeStateVariable({
  */
 export const INDEX_NAMES_NOTHING = "__index_names_nothing";
 
+/**
+ * Report that `reference`, an index into the value of `component`, names
+ * nothing because the value is a scalar (`doenet-w0100`, from
+ * `stateVarObj.indexIntoScalar`).
+ *
+ * The value can change, from a scalar to a tuple and back, and nothing about
+ * the reference is resolved again when it does, so with `watch` this is a
+ * watched condition of the component the reference belongs to
+ * (`DiagnosticsManager.watchCondition`): reported while the value is a
+ * scalar, withdrawn when it has entries, and reported again if it becomes a
+ * scalar later, as a reload would decide it (B33, DIAG-6). It is withdrawn
+ * for good once the reference no longer reads `component`
+ * (`watch.isCurrent`) or `component` is gone.
+ *
+ * A `copy` (an unlinked copy, `link` false) does not follow its source, so
+ * its warning is the one decided when it was made (`reportIndexIntoScalarAsMade`).
+ */
+async function reportIndexIntoScalarOf({
+    core,
+    component,
+    stateVarObj,
+    propIndex,
+    reference,
+    watch,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVarObj: any;
+    propIndex: number[];
+    reference: { text: string; position?: Position; sourceDoc?: number };
+    watch?: { owner: number; isCurrent: () => boolean };
+}) {
+    const diagnostic = codedDiagnostic({
+        type: "warning",
+        code: "doenet-w0100",
+        args: { reference: reference.text },
+        position: reference.position,
+        sourceDoc: reference.sourceDoc,
+    });
+    if (!watch) {
+        if (await stateVarObj.indexIntoScalar(component, propIndex)) {
+            core.addDiagnostic(diagnostic);
+        }
+        return;
+    }
+
+    const componentIdx = component.componentIdx;
+    const owner: any = core._components[watch.owner];
+    if (owner?.attributes?._link?.primitive?.value === false) {
+        await reportIndexIntoScalarAsMade({
+            core,
+            owner,
+            component,
+            stateVarObj,
+            propIndex,
+            reference,
+            diagnostic,
+        });
+        return;
+    }
+    let first = true;
+    async function decide() {
+        // Decided while the reference is being resolved, before it is
+        // registered as reading `component`.
+        if (
+            !first &&
+            (!watch!.isCurrent() || !core._components[componentIdx])
+        ) {
+            return null;
+        }
+        first = false;
+        return (await stateVarObj.indexIntoScalar(
+            core._components[componentIdx],
+            propIndex,
+        ))
+            ? [diagnostic]
+            : [];
+    }
+    await core.diagnosticsManager.watchCondition(
+        watch.owner,
+        `indexIntoScalar:${componentIdx}:${reference.text}`,
+        decide,
+    );
+}
+
+/**
+ * Report the warning that `reference` of the unlinked copy `owner` indexes
+ * into a scalar as it was decided when the copy was made: a `copy` does not
+ * follow its source, so the warning, like what it shows and like the info of
+ * a type change (`heldTypeChange` in `Copy.js`), stays as it was, which is
+ * what explains what the copy shows.
+ *
+ * It is decided once per reference and recorded on the copy
+ * (`unlinkedIndexWarnings`), as a condition of the copy, so it is withdrawn
+ * when the copy is deleted. When a warning decided now would differ
+ * (`freshIndexWarnings`), a save holds the copy
+ * (`StatePersistence.recordCopySnapshots`) with the decision
+ * (`heldCopySnapshot`), and a reload reads it back: the warning after a
+ * reload is the one before it (DIAG-6).
+ */
+async function reportIndexIntoScalarAsMade({
+    core,
+    owner,
+    component,
+    stateVarObj,
+    propIndex,
+    reference,
+    diagnostic,
+}: {
+    core: Core;
+    owner: any;
+    component: ComponentInstance;
+    stateVarObj: any;
+    propIndex: number[];
+    reference: { text: string };
+    diagnostic: any;
+}) {
+    const componentIdx = component.componentIdx;
+    owner.unlinkedIndexWarnings ??= {};
+    let holds = owner.unlinkedIndexWarnings[reference.text];
+    if (holds === undefined) {
+        const held = readHeldCopySnapshot(
+            owner.coreFunctions?.savedCopySnapshot?.(owner.stateId),
+        )?.madeFrom.indexIntoScalar?.[reference.text];
+        holds =
+            held ??
+            Boolean(await stateVarObj.indexIntoScalar(component, propIndex));
+        owner.unlinkedIndexWarnings[reference.text] = holds;
+    }
+    // What a copy made now would decide, which a save compares with what it
+    // was made with (`StatePersistence.recordCopySnapshots`): what the copy
+    // shows need not tell them apart (a blank value has no warning, as an
+    // entry has; `$m[2][1]` shows nothing whether `$m[2]` is a scalar or
+    // not), and a copy whose warning would be decided otherwise is held
+    // with it, so a reload reports the one it had. `undefined` once the
+    // component indexed is gone.
+    owner.freshIndexWarnings ??= {};
+    owner.freshIndexWarnings[reference.text] = async () => {
+        const indexed = core._components[componentIdx];
+        return indexed
+            ? Boolean(await stateVarObj.indexIntoScalar(indexed, propIndex))
+            : undefined;
+    };
+    core.diagnosticsManager.setConditionDiagnostics(
+        owner.componentIdx,
+        `indexIntoScalar:${reference.text}`,
+        holds ? [diagnostic] : [],
+    );
+}
+
 // arrayEntryNamesFromPropIndex is essentially a wrapper around
 // stateVarObj.arrayVarNameFromPropIndex.
 // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
@@ -2151,6 +2302,7 @@ export async function arrayEntryNamesFromPropIndex({
     propIndex,
     reference,
     reportIndexIntoScalar = true,
+    watch,
 }: {
     core: Core;
     stateVariables: string[];
@@ -2180,6 +2332,15 @@ export async function arrayEntryNamesFromPropIndex({
         position?: Position;
         sourceDoc?: number;
     };
+    /**
+     * Who the reference belongs to, so that whether an index into a value
+     * names nothing because the value is a scalar (`indexIntoScalar`) follows
+     * the value (B33): reported as a condition of component `owner`, decided
+     * again after each update while `isCurrent` says the reference still
+     * reads this component, and withdrawn once it does not. Without it, it is
+     * decided once, now.
+     */
+    watch?: { owner: number; isCurrent: () => boolean };
 }) {
     /**
      * Report that the index the author wrote cannot be applied.
@@ -2285,17 +2446,16 @@ export async function arrayEntryNamesFromPropIndex({
                 newName &&
                 reference &&
                 reportIndexIntoScalar &&
-                (await stateVarObj.indexIntoScalar?.(component, propIndex))
+                stateVarObj.indexIntoScalar
             ) {
-                core.addDiagnostic(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0100",
-                        args: { reference: reference.text },
-                        position: reference.position,
-                        sourceDoc: reference.sourceDoc,
-                    }),
-                );
+                await reportIndexIntoScalarOf({
+                    core,
+                    component,
+                    stateVarObj,
+                    propIndex,
+                    reference,
+                    watch,
+                });
             }
         } else if (stateVarObj.isArrayEntry) {
             let arrayStateVarObj =

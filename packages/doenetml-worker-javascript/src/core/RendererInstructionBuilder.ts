@@ -223,6 +223,11 @@ export class RendererInstructionBuilder {
          */
         reconcileChangedChildren?: boolean | Set<number>;
     }): Promise<void> {
+        // A diagnostic that follows a value is decided again once the
+        // update that changed the value is done, so the batch carries it
+        // (`DiagnosticsManager.refreshWatchedConditions`).
+        await this.core.diagnosticsManager.refreshWatchedConditions();
+
         let deletedRenderers: any[] = [];
 
         let updateInstructions: any[] = [];

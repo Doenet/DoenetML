@@ -9,21 +9,63 @@ type NonErrorDiagnosticRecord =
     WarningRecord | InfoRecord | AccessibilityRecord;
 
 /**
+ * A diagnostic a condition gives ({@link DiagnosticsManager.setConditionDiagnostics}),
+ * with its dedup key and its place in the order diagnostics were reported.
+ */
+type ConditionEntry = {
+    diagnostic: DiagnosticRecord;
+    key: string;
+    seq: number;
+};
+
+/**
  * Owns the diagnostics queue (errors, warnings, info, accessibility) for a Core
  * instance. Core delegates to this manager for adding and reading diagnostics.
+ *
+ * A diagnostic is reported one of two ways. One added with
+ * {@link addDiagnostic} stays. One a component gives on a condition
+ * ({@link setConditionDiagnostics}) is there while the condition holds and
+ * the component is shown ({@link isShown}), so a diagnostic caused by values
+ * that can change appears and goes away with its cause (B33).
  */
 export class DiagnosticsManager {
-    diagnostics: DiagnosticRecord[];
+    /** The diagnostics added with {@link addDiagnostic}, in order. */
+    _queue: DiagnosticRecord[];
+    /** When each entry of `_queue` was reported (`_seq`). */
+    _queueSeq: number[];
+    /** The order in which the next diagnostic is reported. */
+    _seq: number;
     hasPendingDiagnostics: boolean;
     /**
-     * The dedup key of every entry in `diagnostics`, kept alongside the queue
-     * rather than re-derived on each add. Only this class writes
-     * `diagnostics`, so the two cannot drift apart — and the alternative is
-     * quadratic in a way that shows: re-keying the queue on every add costs
-     * about 0.2 s for a thousand diagnostics and 1.5 s for three thousand,
-     * against 5 ms and 25 ms for the field-by-field comparison this replaced.
+     * The dedup key of every entry in `_queue`, kept alongside the queue
+     * rather than re-derived on each add. Only this class writes `_queue`,
+     * so the two cannot drift apart — and the alternative is quadratic in a
+     * way that shows: re-keying the queue on every add costs about 0.2 s for
+     * a thousand diagnostics and 1.5 s for three thousand, against 5 ms and
+     * 25 ms for the field-by-field comparison this replaced.
      */
     _diagnosticKeys: Set<string>;
+    /**
+     * What each condition a component reports on gives now
+     * ({@link setConditionDiagnostics}), by component and then by
+     * condition. A condition that gives nothing has no entry.
+     */
+    _conditionDiagnostics: Map<number, Map<string, ConditionEntry[]>>;
+    /**
+     * How to decide again each condition that is not decided again on its
+     * own ({@link watchCondition}), by component and then by condition.
+     */
+    _watchedConditions: Map<number, Map<string, WatchedCondition>>;
+    /** Whether {@link refreshWatchedConditions} is running. */
+    _refreshing: boolean;
+    /**
+     * Whether component `componentIdx` is shown, and so whether what it gives
+     * on its conditions is reported. Core sets it: a component inside content
+     * a composite withholds, as a `<conditionalContent>` withholds a case not
+     * chosen, explains nothing about what is shown, and a reload, which does
+     * not make it, reports none of it (DIAG-6).
+     */
+    isShown: (componentIdx: number) => boolean;
 
     constructor({
         preliminaryDiagnostics,
@@ -42,7 +84,11 @@ export class DiagnosticsManager {
         // Errors are ignored here; we'll gather those from the dast when
         // processing it.
         this._diagnosticKeys = new Set<string>();
-        this.diagnostics = preliminaryDiagnostics.filter(
+        this._conditionDiagnostics = new Map();
+        this._watchedConditions = new Map();
+        this._refreshing = false;
+        this.isShown = () => true;
+        this._queue = preliminaryDiagnostics.filter(
             (diagnostic): diagnostic is NonErrorDiagnosticRecord => {
                 if (diagnostic.type === "error") {
                     return false;
@@ -56,8 +102,43 @@ export class DiagnosticsManager {
                 return true;
             },
         );
+        this._queueSeq = this._queue.map((_, ind) => ind);
+        this._seq = this._queue.length;
 
         this.hasPendingDiagnostics = true;
+    }
+
+    /**
+     * The diagnostics reported now, in the order they were reported: those
+     * added with {@link addDiagnostic}, and those the conditions of shown
+     * components give, each once.
+     */
+    get diagnostics(): DiagnosticRecord[] {
+        if (this._conditionDiagnostics.size === 0) {
+            return this._queue;
+        }
+        const keys = new Set(this._diagnosticKeys);
+        const merged: { diagnostic: DiagnosticRecord; seq: number }[] =
+            this._queue.map((diagnostic, ind) => ({
+                diagnostic,
+                seq: this._queueSeq[ind],
+            }));
+        for (const [componentIdx, byCondition] of this._conditionDiagnostics) {
+            if (!this.isShown(componentIdx)) {
+                continue;
+            }
+            for (const entries of byCondition.values()) {
+                for (const entry of entries) {
+                    if (!keys.has(entry.key)) {
+                        keys.add(entry.key);
+                        merged.push(entry);
+                    }
+                }
+            }
+        }
+        return merged
+            .sort((a, b) => a.seq - b.seq)
+            .map((entry) => entry.diagnostic);
     }
 
     /**
@@ -70,21 +151,33 @@ export class DiagnosticsManager {
     }
 
     /**
+     * Note that which components are shown may have changed ({@link isShown}),
+     * as when a composite withholds replacements or stops withholding them,
+     * so the diagnostics their conditions give are sent again.
+     */
+    markShownChanged(): void {
+        if (this._conditionDiagnostics.size > 0) {
+            this.hasPendingDiagnostics = true;
+        }
+    }
+
+    /**
      * Get pending diagnostics and reset the pending flag.
      *
-     * Caps the diagnostics array at the most recent {@link MAX_DIAGNOSTICS}
-     * entries so a long session with many warnings can't grow it unboundedly.
+     * Caps the diagnostics added with {@link addDiagnostic} at the most
+     * recent {@link MAX_DIAGNOSTICS} entries so a long session with many
+     * warnings can't grow the queue unboundedly.
      */
     getDiagnostics(): { diagnostics: DiagnosticRecord[] } {
         const MAX_DIAGNOSTICS = 1000;
-        const kept = this.diagnostics.slice(-MAX_DIAGNOSTICS);
-        if (kept.length !== this.diagnostics.length) {
+        if (this._queue.length > MAX_DIAGNOSTICS) {
+            this._queue = this._queue.slice(-MAX_DIAGNOSTICS);
+            this._queueSeq = this._queueSeq.slice(-MAX_DIAGNOSTICS);
             // A diagnostic dropped by the cap is no longer in the queue, so it
             // must be able to be reported again — which is what the scan over
             // the capped array used to do on its own.
-            this._diagnosticKeys = new Set(kept.map(diagnosticDedupKey));
+            this._diagnosticKeys = new Set(this._queue.map(diagnosticDedupKey));
         }
-        this.diagnostics = kept;
 
         this.hasPendingDiagnostics = false;
 
@@ -114,8 +207,9 @@ export class DiagnosticsManager {
     }
 
     /**
-     * Add a diagnostic record to `this.diagnostics`, deduplicating by
-     * type + message + source location.
+     * Add a diagnostic record to the queue, deduplicating by type + message +
+     * source location. It stays, unlike one a condition gives
+     * ({@link setConditionDiagnostics}).
      *
      * Returns `true` if a new entry was added, `false` if it was deduped.
      * Core's initial-add phase inspects this so it can re-throw deduped errors
@@ -131,12 +225,180 @@ export class DiagnosticsManager {
         }
 
         this._diagnosticKeys.add(key);
-        this.diagnostics.push(diagnostic);
+        this._queue.push(diagnostic);
+        this._queueSeq.push(this._seq++);
 
         this.hasPendingDiagnostics = true;
         return true;
     }
+
+    /**
+     * Report what `condition` of component `componentIdx` gives now,
+     * replacing what it gave before: `diagnostics` while the condition holds,
+     * `[]` once it ends (B33).
+     *
+     * For a diagnostic caused by values that can change (DIAG-2), which
+     * explains why part of a document shows nothing *now* (DIAG-1): it is to
+     * appear when its condition starts and go away when it ends, and while it
+     * holds there is one of it, however many times it is decided again. A
+     * reload, which decides it once from the current state, then reports the
+     * same (DIAG-6).
+     *
+     * `condition` names what is decided, such as `"typeChange"`, and is
+     * scoped to the component. A diagnostic two components give — two
+     * iterations of a repeat made from the same markup point at the same
+     * place — is reported once, while either gives it; one also added with
+     * {@link addDiagnostic} stays. It is reported only while the component is
+     * shown ({@link isShown}), and is withdrawn when the component is deleted
+     * ({@link withdrawConditionDiagnostics}).
+     */
+    setConditionDiagnostics(
+        componentIdx: number,
+        condition: string,
+        diagnostics: DiagnosticRecord[],
+    ): void {
+        for (const diagnostic of diagnostics) {
+            this.assertDiagnosticIsValid(diagnostic);
+        }
+        let byCondition = this._conditionDiagnostics.get(componentIdx);
+        const previous = byCondition?.get(condition) ?? [];
+        const previousByKey = new Map(
+            previous.map((entry) => [entry.key, entry]),
+        );
+        const entries: ConditionEntry[] = [];
+        const keys = new Set<string>();
+        for (const diagnostic of diagnostics) {
+            const key = diagnosticDedupKey(diagnostic);
+            if (keys.has(key)) {
+                continue;
+            }
+            keys.add(key);
+            // One given before keeps its place in the order.
+            entries.push(
+                previousByKey.get(key) ?? { diagnostic, key, seq: this._seq++ },
+            );
+        }
+        if (
+            entries.length === previous.length &&
+            entries.every((entry) => previousByKey.has(entry.key))
+        ) {
+            return;
+        }
+
+        if (entries.length > 0) {
+            if (!byCondition) {
+                byCondition = new Map();
+                this._conditionDiagnostics.set(componentIdx, byCondition);
+            }
+            byCondition.set(condition, entries);
+        } else if (byCondition) {
+            byCondition.delete(condition);
+            if (byCondition.size === 0) {
+                this._conditionDiagnostics.delete(componentIdx);
+            }
+        }
+        this.hasPendingDiagnostics = true;
+    }
+
+    /**
+     * Withdraw every diagnostic component `componentIdx` gives on a
+     * condition ({@link setConditionDiagnostics}), and stop deciding its
+     * watched conditions ({@link watchCondition}), as when it is deleted: a
+     * component no longer in the document explains nothing about it.
+     */
+    withdrawConditionDiagnostics(componentIdx: number): void {
+        this._watchedConditions.delete(componentIdx);
+        if (this._conditionDiagnostics.delete(componentIdx)) {
+            this.hasPendingDiagnostics = true;
+        }
+    }
+
+    /**
+     * Report `condition` of component `componentIdx` as `decide` gives it
+     * now, and again after each update ({@link refreshWatchedConditions}),
+     * replacing any way of deciding it given before.
+     *
+     * For a condition decided where nothing runs again when it changes, as
+     * whether an index names an entry of a math's value, which is decided
+     * when the reference is resolved and changes with the value. `decide`
+     * gives the diagnostics the condition gives now (`[]` while it does not
+     * hold), or `null` once there is nothing left to decide, which withdraws
+     * them and stops watching.
+     */
+    async watchCondition(
+        componentIdx: number,
+        condition: string,
+        decide: WatchedCondition,
+    ): Promise<void> {
+        let byCondition = this._watchedConditions.get(componentIdx);
+        if (!byCondition) {
+            byCondition = new Map();
+            this._watchedConditions.set(componentIdx, byCondition);
+        }
+        byCondition.set(condition, decide);
+        await this._decideWatched(componentIdx, condition, decide);
+    }
+
+    /**
+     * Decide every watched condition ({@link watchCondition}) again, so a
+     * diagnostic that follows a value appears and goes away as the value
+     * changes. Run before each batch of renderer updates is built, after the
+     * update that changed the value; a call made while one runs, as when a
+     * value it reads is calculated, does nothing.
+     */
+    async refreshWatchedConditions(): Promise<void> {
+        if (this._refreshing || this._watchedConditions.size === 0) {
+            return;
+        }
+        this._refreshing = true;
+        try {
+            const watched = [...this._watchedConditions].flatMap(
+                ([componentIdx, byCondition]) =>
+                    [...byCondition].map(
+                        ([condition, decide]) =>
+                            [componentIdx, condition, decide] as const,
+                    ),
+            );
+            for (const [componentIdx, condition, decide] of watched) {
+                await this._decideWatched(componentIdx, condition, decide);
+            }
+        } finally {
+            this._refreshing = false;
+        }
+    }
+
+    async _decideWatched(
+        componentIdx: number,
+        condition: string,
+        decide: WatchedCondition,
+    ): Promise<void> {
+        const diagnostics = await decide();
+        if (
+            this._watchedConditions.get(componentIdx)?.get(condition) !== decide
+        ) {
+            // Replaced, or withdrawn, while it was decided.
+            return;
+        }
+        if (diagnostics === null) {
+            const byCondition = this._watchedConditions.get(componentIdx)!;
+            byCondition.delete(condition);
+            if (byCondition.size === 0) {
+                this._watchedConditions.delete(componentIdx);
+            }
+        }
+        this.setConditionDiagnostics(
+            componentIdx,
+            condition,
+            diagnostics ?? [],
+        );
+    }
 }
+
+/**
+ * How a watched condition is decided ({@link DiagnosticsManager.watchCondition}):
+ * the diagnostics it gives now, or `null` once there is nothing to decide.
+ */
+export type WatchedCondition = () => Promise<DiagnosticRecord[] | null>;
 
 /**
  * What makes two diagnostics the same one: their type, their message and where

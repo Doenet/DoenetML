@@ -89,8 +89,13 @@ Here `$P[2]` is `4`, `$m[1]` is `8`, `$A[2]` is the second row of `A` (as a
 depends on the value, not the tag: a `<math>` holding a matrix is indexed by
 row, like a `<matrix>`. A value that is a single expression, such as
 `<number name="n">5</number>`, has no entries, so `$n[1]` references nothing
-and DoenetML reports a warning. An index past the last entry also references
-nothing, without a warning, since the number of entries can change.
+and DoenetML reports a warning. The warning follows the value: for `$m[2]` of a
+`<math>` whose value comes from an input, it is there while the value is a
+single expression and goes away once it is a tuple. A `copy`, such as
+`<math copy="$m[2]"/>{:dn}`, doesn't follow its source, so it keeps the warning
+it was made with, as it keeps what it shows. An index past the last
+entry also references nothing, without a warning, since the number of entries
+can change.
 
 ### Marking where a name ends with `$(...)`
 
@@ -164,7 +169,11 @@ picked, how many components a `<collect>` or a `<repeat>` holds, or the value
 of a math doesn't allow the tag: `<text extend="$cc"/>{:dn}` while the active
 case holds a point, or `<point extend="$m"/>{:dn}` while `m` is not a tuple, as
 for a math in a group of one or the one entry of a list. An `extend` is shown again when what it stands
-for matches. A `copy` does not follow its source, so it stays as it was made. A
+for matches, and its info goes away. While the mismatch lasts there is one info,
+naming the value as it is now, and none for an `extend` in content that isn't
+there now, such as a case that isn't chosen (one hidden with `hide` still has
+it). A `copy` does not follow its source, so it stays as it was made, and so
+does its info. A
 property, such as `<point extend="$P.x"/>{:dn}`, and the selected value of a
 `<choiceInput>` are not checked against their value.
 

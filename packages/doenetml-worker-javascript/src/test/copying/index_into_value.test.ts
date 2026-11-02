@@ -245,11 +245,30 @@ describe("An index into a value with entries @group4", async () => {
             );
         }
 
+        /**
+         * The references reported now as indexing into a scalar. What is
+         * reported follows the value, as a reload would decide it (B33).
+         */
+        function reported() {
+            const { warnings, errors, infos } = getDiagnosticsByType(core);
+            expect([...errors, ...infos]).eqls([]);
+            return warnings.map((w) => [w.code, w.args?.reference]);
+        }
+
         expect(await shown()).eqls(["[2]", "[2]", "[]"]);
+        // `$m[2][1]` into the scalar entry 2 of `(1,2)`
+        expect(reported()).eqls([["doenet-w0100", "$m[2][1]"]]);
 
         // a scalar: the index names nothing
         await updateMathInputValue({ latex: "5", componentIdx: a, core });
         expect(await shown()).eqls(["[]", "[]", "[]"]);
+        expect(reported().sort()).eqls(
+            [
+                ["doenet-w0100", "$m[2][1]"],
+                ["doenet-w0100", "$m[2]"],
+                ["doenet-w0100", "$a[2]"],
+            ].sort(),
+        );
 
         // a longer tuple
         await updateMathInputValue({
@@ -258,6 +277,7 @@ describe("An index into a value with entries @group4", async () => {
             core,
         });
         expect(await shown()).eqls(["[4]", "[4]", "[]"]);
+        expect(reported()).eqls([["doenet-w0100", "$m[2][1]"]]);
 
         // a matrix: rows
         await updateMathInputValue({
@@ -266,15 +286,7 @@ describe("An index into a value with entries @group4", async () => {
             core,
         });
         expect(await shown()).eqls(["[[[3, 4]]]", "[[[3, 4]]]", "[3]"]);
-
-        // Only what the value was when the references were resolved is
-        // reported: `$m[2][1]` into the scalar entry 2 of `(1,2)`. That the
-        // value changed shape later is not, as an index past the end is not.
-        const { warnings, errors, infos } = getDiagnosticsByType(core);
-        expect([...errors, ...infos]).eqls([]);
-        expect(warnings.map((w) => [w.code, w.args])).eqls([
-            ["doenet-w0100", { reference: "$m[2][1]" }],
-        ]);
+        expect(reported()).eqls([]);
     });
 
     it("does not report an index into an input with nothing entered", async () => {

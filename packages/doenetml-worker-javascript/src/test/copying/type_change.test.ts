@@ -855,20 +855,27 @@ describe("A reference written as a different tag is allowed only between related
 <p name="p3"><coords extend="$ml2"/></p>
 `);
         const names = ["p1", "p2", "p3"];
-        const reported: Record<string, number> = {};
+        let reported = new Set<string>();
         /**
-         * The type change diagnostics reported since this was last called,
-         * errors first.
+         * The type change diagnostics reported now that were not when this
+         * was last called, errors first. One that ended is no longer
+         * reported (B33).
          */
         function newDiagnostics() {
             const added = [];
+            const now = new Set<string>();
             for (const type of ["error", "info"]) {
-                const all = typeChangeDiagnostics().filter(
+                for (const d of typeChangeDiagnostics().filter(
                     (d) => d.type === type,
-                );
-                added.push(...all.slice(reported[type] ?? 0));
-                reported[type] = all.length;
+                )) {
+                    const key = JSON.stringify([d.line, d.message]);
+                    now.add(key);
+                    if (!reported.has(key)) {
+                        added.push(d);
+                    }
+                }
             }
+            reported = now;
             return added.map((d) => [d.code, d.type, d.line]);
         }
         async function setMath(name: string, latex: string) {
@@ -1086,7 +1093,7 @@ describe("A reference written as a different tag is allowed only between related
         ]);
     });
 
-    it("a value that changes while nothing is shown is reported again, without making the replacements again", async () => {
+    it("a value that changes while nothing is shown replaces its info, without making the replacements again", async () => {
         const { core, resolvePathToNodeIdx, texts, typeChangeDiagnostics } =
             await setup(`
 <mathInput name="mi" prefill="x"/>
@@ -1101,9 +1108,10 @@ describe("A reference written as a different tag is allowed only between related
         await updateMathInputValue({ latex: "z", componentIdx: mi, core });
         expect(await texts(["p1"])).eqls({ p1: "" });
         expect(made).not.toHaveBeenCalled();
+        // One info, naming the value as it is now (B33).
         expect(
             typeChangeDiagnostics().map((d) => d.message.split(",")[1]),
-        ).eqls([" x", " y", " z"]);
+        ).eqls([" z"]);
 
         await updateMathInputValue({ latex: "(1,2)", componentIdx: mi, core });
         expect(await texts(["p1"])).eqls({ p1: "(1, 2)" });

@@ -6,7 +6,11 @@ import {
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 import type Core from "../Core";
-import { heldCopySnapshot, snapshotStillMade } from "../utils/copySnapshot";
+import {
+    heldCopySnapshot,
+    indexWarningsStillMade,
+    snapshotStillMade,
+} from "../utils/copySnapshot";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -366,7 +370,9 @@ export class StatePersistence {
 
     /**
      * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
-     * a copy made now would not match (`snapshotStillMade`): a reload makes
+     * a copy made now would not match (`snapshotStillMade`), or would match
+     * while deciding its type change otherwise (an info naming another
+     * value, while it shows nothing either way): a reload makes
      * the copy again from its source as restored, and takes the saved
      * snapshot instead (`utils/copySnapshot.js`). A copy that one made now
      * would reproduce needs nothing saved, as #1940 asks of what a reader has
@@ -377,8 +383,11 @@ export class StatePersistence {
      * made again could decide otherwise: whether a copy written as a
      * different tag was made, and the case of a `<conditionalContent>` it
      * was made from (`heldCopySnapshot`), so a reload makes the copy as it
-     * was. A copy made again with a different shape all the same (one whose
-     * shape no held case decides, as of a `<collect>` or of `$cc.p`, or one
+     * was. A copy is held too when one made now would decide otherwise
+     * whether an index of it names nothing in a scalar (the warning of
+     * `reportIndexIntoScalarAsMade`), which what it shows need not reveal,
+     * so a reload reports the warning it had. A copy made again with a
+     * different shape all the same (one whose shape no held case decides, as of a `<collect>` or of `$cc.p`, or one
      * from a save that held the snapshot alone) is made from its source as
      * restored, and keeps nothing it could not apply (`applyCopySnapshot`).
      * A save with no unlinked copies does not call this (`unlinkedCopies`).
@@ -391,13 +400,26 @@ export class StatePersistence {
         const componentOfStateId = (stateId: string) =>
             this.core._components[this.core.componentIdxByStateId?.[stateId]];
         for (const component of copies) {
-            const fresh = await component.freshUnlinkedSnapshot();
+            const { snapshot: fresh, madeFrom } =
+                await component.freshUnlinkedSnapshot();
+            const typeChange = madeFrom?.typeChange;
+            const madeTypeChange = component.unlinkedMadeFrom?.typeChange;
             if (
-                await snapshotStillMade(
+                // A copy made now that decides its type change otherwise,
+                // as an info naming another value while it still shows
+                // nothing, would report another info after a reload (DIAG-6)
+                typeChange?.key === madeTypeChange?.key &&
+                typeChange?.diagnostic?.message ===
+                    madeTypeChange?.diagnostic?.message &&
+                // nor one that would decide an index warning otherwise
+                // (`reportIndexIntoScalarAsMade`), which what it shows need
+                // not reveal, as of a blank value
+                (await indexWarningsStillMade(component)) &&
+                (await snapshotStillMade(
                     fresh,
                     component.unlinkedSnapshot,
                     componentOfStateId,
-                )
+                ))
             ) {
                 delete snapshots[component.stateId];
             } else {

@@ -203,6 +203,11 @@ export class ReferentDependency extends Dependency {
                           sourceDoc: referringComponent?.sourceDoc,
                       }
                     : undefined,
+                watch: {
+                    owner: this.upstreamComponentIdx,
+                    isCurrent: () =>
+                        this.readsComponent(component.componentIdx),
+                },
             });
         }
 

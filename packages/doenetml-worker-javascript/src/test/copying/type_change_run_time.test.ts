@@ -29,7 +29,7 @@ async function setup(doenetML: string) {
     let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
         doenetML,
     });
-    let reported = 0;
+    let reported = new Set<string>();
 
     /** The text of each named component. */
     async function texts(names: string[]) {
@@ -64,8 +64,9 @@ async function setup(doenetML: string) {
     }
 
     /**
-     * The diagnostics of a type change reported since this was last
-     * called, as code, level, line and message.
+     * The diagnostics of a type change reported now that were not when this
+     * was last called, as code, level, line and message. One that ended is
+     * no longer reported (B33).
      */
     function newDiagnostics() {
         const all = getDiagnosticsByType(core);
@@ -77,8 +78,13 @@ async function setup(doenetML: string) {
                 line: d.position?.start.line,
                 message: d.message,
             }));
-        const added = result.slice(reported);
-        reported = result.length;
+        const keys = result.map((d: any) =>
+            JSON.stringify([d.line, d.message]),
+        );
+        const added = result.filter(
+            (_: any, i: number) => !reported.has(keys[i]),
+        );
+        reported = new Set(keys);
         return added;
     }
 
@@ -100,7 +106,7 @@ async function setup(doenetML: string) {
             doenetML,
             initialState: scoreState.state,
         }));
-        reported = 0;
+        reported = new Set<string>();
     }
 
     async function setBoolean(name: string, boolean: boolean) {
