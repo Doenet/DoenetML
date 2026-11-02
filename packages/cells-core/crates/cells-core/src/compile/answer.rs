@@ -106,13 +106,16 @@ impl<'a> Compiler<'a> {
                     continue;
                 }
                 let p = self.plan_ref(t, w, m)?;
-                self.when_refs.insert(m, p);
+                self.outlining().work.settled.when_refs.insert(m, p);
                 if let Some((key, _)) = self.input_named(t, p)
                     && !keys.contains(&key)
                 {
                     keys.push(key);
                     let r = self.add_response(t, e);
-                    self.answer_responses
+                    self.outlining()
+                        .work
+                        .settled
+                        .answer_responses
                         .entry((t.get(), e.get()))
                         .or_default()
                         .push((key, r));
@@ -575,7 +578,7 @@ impl<'a> Compiler<'a> {
                 let mut subst = HashMap::new();
                 for &m in nodes.iter().filter(|&&n| d.kind(n) == NodeKind::Macro) {
                     // Planned when outlining made the responses.
-                    let p = match self.when_refs.get(&m) {
+                    let p = match self.settled().when_refs.get(&m) {
                         Some(&p) => p,
                         None => self.plan_ref(t, w, m)?,
                     };
@@ -671,7 +674,8 @@ impl<'a> Compiler<'a> {
     /// The `response` outlining made in answer `e` for the input `key`
     /// names.
     fn outlined_response(&self, t: TemplateId, e: ElemId, key: (u32, ElemId)) -> Result<ElemId> {
-        self.answer_responses
+        self.settled()
+            .answer_responses
             .get(&(t.get(), e.get()))
             .and_then(|rs| rs.iter().find(|(k, _)| *k == key))
             .map(|&(_, r)| r)

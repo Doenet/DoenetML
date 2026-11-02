@@ -149,7 +149,11 @@ impl<'a> Compiler<'a> {
                     let el = self.outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
-                    self.cloned_sources.insert((t.get(), c.get()));
+                    self.outlining()
+                        .work
+                        .settled
+                        .cloned
+                        .insert((t.get(), c.get()));
                     if repeat
                         || matches!(
                             component_type,
@@ -270,7 +274,7 @@ impl<'a> Compiler<'a> {
                 if own || !matches!(wiring.props[slot as usize], Some(Source::Given(_))) {
                     continue;
                 }
-                self.shares.push(Share {
+                self.planning().shares.push(Share {
                     t,
                     e,
                     slot,
@@ -280,7 +284,8 @@ impl<'a> Compiler<'a> {
             }
         }
         if !wiring.shared_state.is_empty() {
-            self.shared_state
+            self.planning()
+                .shared_state
                 .insert((t.get(), e.get()), wiring.shared_state.clone());
         }
         if component_type.given_coords().is_some() {
@@ -295,12 +300,12 @@ impl<'a> Compiler<'a> {
     /// aliases the referent's slot for it, now that every element is
     /// planned. A copy or referent that is a box shares nothing, and a
     /// copy keeps its own given value for state its referent has none of.
-    pub(in crate::compile) fn link_shared_state(&mut self) {
-        for s in std::mem::take(&mut self.shares) {
+    pub(in crate::compile) fn link_shared_state(&mut self, planned: &mut Planned) {
+        for s in std::mem::take(&mut planned.shares) {
             if self.is_box(s.t, s.e) || self.is_box(s.t, s.referent) {
                 continue;
             }
-            if let Some(&bs) = self
+            if let Some(&bs) = planned
                 .shared_state
                 .get(&(s.t.get(), s.referent.get()))
                 .and_then(|m| m.get(&s.state))

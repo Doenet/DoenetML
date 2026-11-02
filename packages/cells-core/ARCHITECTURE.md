@@ -97,7 +97,8 @@ Runs once per load and depends on the source alone.
   iteration, so string work happens once per template element, not once per
   stamped copy. Each element is planned by its component type's planner
   (see [Add a component type](#add-a-component-type)). The compile runs
-  in stages (ADR 0027, ADR 0029; `Compiler::compile_all`): **outline**
+  in stages (ADR 0027, ADR 0029, ADR 0030; `Compiler::compile`), each
+  returning what it makes for the later ones: **outline**
   makes every element, template and name, settles what a reference reads
   of each (a `<math>`'s type, a `<collect>`'s collected type), gives
   container copies their clones and answers their synthetic children,

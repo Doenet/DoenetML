@@ -456,7 +456,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The element's `<math>` text as it was parsed (ADR 0029), or the
     /// error parsing it met.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        match self.c.parsed.math(self.t, self.e) {
+        match self.c.parsed().math(self.t, self.e) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }

@@ -146,7 +146,8 @@ impl<'a> Compiler<'a> {
         from: ElemId,
         name: StrId,
     ) -> Result<Option<(u32, ElemId)>> {
-        let Some(id) = self.names.id_of(self.dast, name) else {
+        let names = self.names();
+        let Some(id) = names.id_of(self.dast, name) else {
             return Ok(None);
         };
         self.lookup_id(t, from, id)
@@ -160,6 +161,7 @@ impl<'a> Compiler<'a> {
         mut from: ElemId,
         id: u32,
     ) -> std::result::Result<Option<(u32, ElemId)>, ()> {
+        let names = self.names();
         let mut hops = 0;
         loop {
             let tpl = &self.compiled.templates[t.index()];
@@ -167,11 +169,11 @@ impl<'a> Compiler<'a> {
             loop {
                 if a != ROOT_SCOPE {
                     let own = tpl.elems[a.index()].name;
-                    if own != StrId::NONE && self.names.id_of(self.dast, own) == Some(id) {
+                    if own != StrId::NONE && names.id_of(self.dast, own) == Some(id) {
                         return Ok(Some((hops, a)));
                     }
                 }
-                match self.names.at_id(t, a, id) {
+                match names.at_id(t, a, id) {
                     NameHit::One(e) => return Ok(Some((hops, e))),
                     NameHit::Ambiguous => return Err(()),
                     NameHit::None => {}
@@ -197,8 +199,9 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         name: StrId,
     ) -> Result<Option<ElemId>> {
-        let hit = match self.names.id_of(self.dast, name) {
-            Some(id) => self.names.at_id(t, e, id),
+        let names = self.names();
+        let hit = match names.id_of(self.dast, name) {
+            Some(id) => names.at_id(t, e, id),
             None => NameHit::None,
         };
         match hit {

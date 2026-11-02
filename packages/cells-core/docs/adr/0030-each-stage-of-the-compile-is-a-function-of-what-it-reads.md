@@ -1,6 +1,6 @@
 # Each stage of the compile is a function of what it reads
 
-Status: proposed 2026-11-02. Steps 1 to 6 are done; see Migration. Amends ADR
+Status: proposed 2026-11-02. Steps 1 to 7 are done; see Migration. Amends ADR
 0027 and ADR 0029 in how their stages are written, not in what any stage
 does.
 
@@ -238,6 +238,24 @@ otherwise.
    held in an `Arc`. Passing `Parsed` to planning as an argument is step
    7.
 7. **`plan` returns `Planned`**, given `&Outline` and `&Parsed`; `link`
-   takes it. `Compiler` is left as planning's own state, or goes.
+   takes it. `Compiler` is left as planning's own state, or goes. Done,
+   with one difference: the planners read what outlining settled and
+   parsing made through their context (`PlanCtx` wraps `Compiler`), so
+   `Compiler` holds them as shared references (`settled: &Settled`,
+   `parsed: &Parsed`), set by `Compiler::compile` once each stage is done,
+   rather than taking them as arguments. They cannot be changed through
+   those references, which the compiler checks. `Compiler::compile` now
+   runs the stages (`compile_all` is gone), since a method cannot lend
+   `Compiler` a value it made. `Outline` carries a `Settled`: the name
+   table, the clones made, an answer's when references and responses,
+   and the referent readers outlining found. `plan_all` returns
+   `Planned` (shares, shared state, its referent readers), filled while
+   it runs as `Compiler::planning` and passed to `link` and `seal`; the
+   name table reaches sealing from `Settled`. What stays on `Compiler`:
+   the compile (`Compiled`, the reference arena in it, which every stage
+   appends to), the boxes (`errors`, `boxed_here`, `restart`) and
+   the caches (`extend_refs`, `string_ids`, `prop_sels`, `ref_subst`). The
+   earlier steps' notes name `compile_all`; its body is now
+   `Compiler::compile`'s.
 8. **Files by stage.** Move the files; `ARCHITECTURE.md` and `CONTEXT.md`
    name the new paths.

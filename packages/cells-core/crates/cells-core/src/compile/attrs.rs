@@ -640,7 +640,7 @@ impl<'a> Compiler<'a> {
                 };
                 // Every `<math>` is parsed before planning; one that did not parse is
                 // left a cell, its error its own.
-                let Some(Ok(ParsedMath::Expr(inner))) = self.parsed.math(t, target) else {
+                let Some(Ok(ParsedMath::Expr(inner))) = self.parsed().math(t, target) else {
                     return id;
                 };
                 let inner = *inner;

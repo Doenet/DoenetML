@@ -7,28 +7,30 @@
 //! which prop). Nothing in a plan depends on which iteration it will be
 //! stamped in, so all string work happens once per template element.
 //!
-//! The compile runs in stages (ADR 0027, ADR 0029), each reading only
-//! what earlier stages made (`Compiler::compile_all`):
+//! The compile runs in stages (ADR 0027, ADR 0029, ADR 0030), each
+//! reading only what earlier stages made (`Compiler::compile`):
 //!
 //! | Stage | Code | Makes |
 //! |---|---|---|
 //! | lint | `lint.rs` | findings from the DAST alone, first |
-//! | **outline** | `Compiler::outline` | every element and template, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`), answers' synthetic children (`answer.rs`); no plans |
-//! | **parse** | `Compiler::parse_maths` | every `<math>`'s text parsed, its `$ref`s planned |
-//! | **plan** | `Compiler::plan_all` | every element's plans and hold, every `$ref` child's plan |
-//! | **link** | `Compiler::link` | readers of boxed referents boxed, elements with an attribute nothing read boxed (`unread.rs`, ADR 0021), shared state tied |
-//! | **seal** | `seal.rs` | choice interfaces, arity, keys, slot offsets |
+//! | **outline** | `Compiler::outline` → `Outline` | every element and template, the name table, what a reference reads of each (`settle_outline`), container copies' clones (`copies.rs`), answers' synthetic children (`answer.rs`); no plans |
+//! | **parse** | `Compiler::parse_maths` → `Parsed` | every `<math>`'s text parsed, its `$ref`s planned |
+//! | **plan** | `Compiler::plan_all` → `Planned` | every element's plans and hold, every `$ref` child's plan |
+//! | **link** | `Compiler::link(&mut Planned)` | readers of boxed referents boxed, elements with an attribute nothing read boxed (`unread.rs`, ADR 0021), shared state tied |
+//! | **seal** | `seal.rs`, given `&Planned` | choice interfaces, arity, keys, slot offsets |
 //! | **abstract build** | `check.rs`, `build/abstract_build.rs` | cycles, writable and live records, structural depth |
 //!
 //! `check.rs` drives them (`plan_and_check`): it runs outline to seal
 //! (`Compiler::compile`), then the abstract build, which stands for every
 //! count and pick (ADR 0012, ADR 0014), and compiles again when a failure
-//! could not be boxed where it arose (ADR 0013). Every stage but sealing
-//! is a method on `Compiler`. Outlining returns the work it found for
-//! parsing and planning ([`Outline`]), which `compile_all` passes on; the
-//! rest the stages hand over through `Compiler`'s fields, whose docs say
-//! which stage writes each and which read it. ADR 0030 makes each stage a
-//! function of what it reads, step by step.
+//! could not be boxed where it arose (ADR 0013). Each stage returns what
+//! it makes for later ones, and `Compiler::compile` hands it on: work
+//! lists as arguments, and what outlining settled ([`Settled`]) and
+//! parsing made ([`Parsed`]) as shared references the `Compiler` holds,
+//! which the planners read through their context and cannot change. What
+//! a stage is still making lives on `Compiler` only while it runs
+//! (`outlining`, `planning`). All of them write the compile itself
+//! (`Compiled`), each in its own way (see the field's doc).
 //!
 //! Files: this one has the stages' entry points, outlining's walk and
 //! each element's shape;
@@ -114,15 +116,21 @@ use planner::Planner;
 
 /// A compile that planned: what it planned, and the errors of the
 /// elements it boxed where they failed (ADR 0027).
-pub(in crate::compile) struct Planned {
+pub(in crate::compile) struct Attempt {
     pub(in crate::compile) compiled: Compiled,
     pub(in crate::compile) errors: Vec<Diagnostic>,
 }
 
-/// The state of one compile, outline to seal. Each field says which stage
-/// writes it (*W*) and which read it (*R*), as the module doc names them.
-/// What outlining hands on is its result ([`Outline`]), not a field; ADR
-/// 0030 does the same for the later stages.
+/// The state of one compile, outline to seal (ADR 0030). Each stage's
+/// result is a value: outlining's `Outline` (its work lists, passed to
+/// parsing and planning, and its `Settled`), parsing's `Parsed` and
+/// planning's `Planned`, passed to linking and sealing. What a stage reads
+/// of an earlier one's result it reads through a shared reference
+/// (`settled`, `parsed`), so it cannot change it; what a stage is making
+/// lives in an `Option` that is `Some` only while that stage runs
+/// (`outlining`, `planning`). The rest is the compile itself, its boxes
+/// and planning's caches. Each field says which stage writes it (*W*) and
+/// which read it (*R*).
 pub(in crate::compile) struct Compiler<'a> {
     /// The source being compiled; `compiled` keeps it too. R: every stage.
     pub(in crate::compile) dast: &'a Dast,
@@ -140,6 +148,13 @@ pub(in crate::compile) struct Compiler<'a> {
     /// only while outlining runs (`outline`), so nothing after it can add
     /// an element or work for a later stage (ADR 0030).
     outlining: Option<Outlining>,
+    /// What outlining settled, from parsing on. R: parse, plan, link.
+    settled: Option<&'a Settled>,
+    /// What parsing made, from planning on. R: plan (the math's planner;
+    /// a line's equation, which inlines a parse).
+    parsed: Option<&'a Parsed>,
+    /// What planning is making: `Some` only while it runs (`plan_all`).
+    planning: Option<Planned>,
     /// Macro nodes whose reference is already planned: `$mi` inside an
     /// answer's `<when>` is its submitted response (`plan_answer`).
     /// W: plan (`plan_answer`, set and cleared around one `<when>`).
@@ -158,7 +173,7 @@ pub(in crate::compile) struct Compiler<'a> {
     /// (`box_in_place`): its element is boxed all the same and the stage
     /// goes on, and the compile ends with it once the stage is done, its
     /// node to be boxed before compiling again. W: outline, plan, link
-    /// (`box_in_place`). R: `compile_all`, between stages.
+    /// (`box_in_place`). R: `compile`, between stages.
     restart: Option<Failure>,
     /// Elements boxed where they failed, with their errors (ADR 0027).
     /// W: outline, plan, link (`box_in_place`, `push_error_elem`; the
@@ -167,45 +182,11 @@ pub(in crate::compile) struct Compiler<'a> {
     /// `compile`, which returns the errors.
     errors: Vec<Diagnostic>,
     boxed_here: HashSet<NodeId>,
-    /// What copies share of their referents' state. W: plan
-    /// (`plan_with_extend`). R: link (`link_shared_state`), drained.
-    shares: Vec<Share>,
-    /// By (template, element), the elements a container copy has cloned:
-    /// a clone took its type, so one boxed later cannot be boxed in place.
-    /// W: outline (`clone_children`). R: `box_in_place` (outline, plan,
-    /// link).
-    cloned_sources: HashSet<(u32, u32)>,
-    /// The name table. W: outline (`push_elem_visible_to`). R: plan
-    /// (`plan_ref`), link (`drop_unregistered_name`), seal (choices, keys).
-    names: NameTable,
-    /// By (template, element), a geometry element's shared state: which slot holds
-    /// each piece of essential state, which a copy shares with its original.
-    /// W: plan (`plan_with_extend`). R: link (`link_shared_state`), seal
-    /// (`assign_keys`).
-    pub(in crate::compile) shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
-    /// What parsing made (`parse_maths`), which `compile_all` keeps here
-    /// for the planners, who read it through their context and never
-    /// change it. R: plan (the math's planner; a line's equation, which
-    /// inlines a parse).
-    pub(in crate::compile) parsed: Parsed,
     /// By DAST string, the prop a reference spelled with it last named,
     /// with the type it named it on: a spelling is nearly always used on
-    /// one type, so this is an array read. W, R: every stage that plans a
-    /// reference (`prop_sel`).
+    /// one type, so this is an array read. A cache. W, R: every stage that
+    /// plans a reference (`prop_sel`).
     pub(in crate::compile) prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
-    /// Every element whose plan reads the type of what a reference names
-    /// (`referent_type`), with the reference. W: outline (container
-    /// copies), plan. R: link (`box_readers_of_boxes`), which boxes one
-    /// whose referent is a box.
-    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
-    /// The references in an answer's whens, planned when outlining made the
-    /// answer's responses (`add_answer_children`), by macro node.
-    /// W: outline. R: plan (`plan_award`).
-    when_refs: HashMap<NodeId, RefId>,
-    /// By (template, answer), the `response` outlining made for each input
-    /// its whens read, keyed as `input_named` keys them. W: outline
-    /// (`add_answer_children`). R: plan (`plan_award`).
-    answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
     /// By (template, element), the reference in the element's `extend`,
     /// planned once (`plan_extend`). A cache. W, R: outline (container
     /// copies), plan.
@@ -224,6 +205,50 @@ pub(in crate::compile) struct Outline {
     /// Each `<math>`'s text, tokenized where its type was settled
     /// (`parse_maths`).
     math_texts: Vec<((TemplateId, ElemId), Result<MathText>)>,
+    /// What it settled for every later stage to read.
+    settled: Settled,
+}
+
+/// What outlining settles that the stages after it read and never change
+/// (ADR 0030), beside what it settles of each element in the templates.
+#[derive(Default)]
+pub(in crate::compile) struct Settled {
+    /// The name table. R: parse and plan (`plan_ref`), link
+    /// (`drop_unregistered_name`), seal (choices, keys).
+    names: NameTable,
+    /// By (template, element), the elements a container copy has cloned:
+    /// a clone took its type, so one boxed later cannot be boxed in place
+    /// (`box_in_place`).
+    cloned: HashSet<(u32, u32)>,
+    /// The references in an answer's whens, planned when outlining made
+    /// the answer's responses (`add_answer_children`), by macro node.
+    /// R: plan (`plan_award`).
+    when_refs: HashMap<NodeId, RefId>,
+    /// By (template, answer), the `response` outlining made for each input
+    /// its whens read, keyed as `input_named` keys them. R: plan
+    /// (`plan_award`).
+    answer_responses: HashMap<(u32, u32), Vec<(InputKey, ElemId)>>,
+    /// Every container copy whose expansion read the type of its referent
+    /// (`referent_type`), with the reference. R: link
+    /// (`box_readers_of_boxes`).
+    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
+}
+
+/// What planning makes for linking and sealing (ADR 0030), beside the
+/// plans themselves in the templates.
+#[derive(Default)]
+pub(in crate::compile) struct Planned {
+    /// What copies share of their referents' state (`plan_with_extend`).
+    /// R: link (`link_shared_state`).
+    shares: Vec<Share>,
+    /// By (template, element), a geometry element's shared state: which
+    /// slot holds each piece of essential state, which a copy shares with
+    /// its original. R: link (`link_shared_state`), seal (`assign_keys`).
+    shared_state: HashMap<(u32, u32), HashMap<SharedState, u8>>,
+    /// Every element whose plan read the type of what a reference names
+    /// (`referent_type`), with the reference. R: link
+    /// (`box_readers_of_boxes`), which boxes one whose referent is a box.
+    referent_readers: Vec<(TemplateId, ElemId, RefId)>,
 }
 
 /// What parsing makes (ADR 0029, ADR 0030): each `<math>`'s text parsed
@@ -382,14 +407,20 @@ enum ElemShape {
     ByType(Option<RefId>),
 }
 
-impl<'a> Compiler<'a> {
+impl Compiler<'_> {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
     /// every element that fails to plan boxed where it fails. A failure
     /// names the node to box before compiling again, when there is one.
+    ///
+    /// The compile's stages, in order (ADR 0027, ADR 0029, ADR 0030), each
+    /// given the results of those before it. A stage boxes every failure
+    /// where it arises and goes on; one that could not be boxed there
+    /// (`box_in_place`) ends the compile once its stage is done, for
+    /// `plan_and_check` to box its node and compile again.
     pub(in crate::compile) fn compile(
-        dast: &'a Arc<Dast>,
-        boxed: &'a HashSet<NodeId>,
-    ) -> std::result::Result<Planned, Failure> {
+        dast: &Arc<Dast>,
+        boxed: &HashSet<NodeId>,
+    ) -> std::result::Result<Attempt, Failure> {
         let mut cp = Compiler {
             dast,
             compiled: Compiled {
@@ -413,37 +444,92 @@ impl<'a> Compiler<'a> {
                 fold: false,
             },
             outlining: None,
+            settled: None,
+            parsed: None,
+            planning: None,
             ref_subst: HashMap::new(),
             string_ids: None,
             boxed,
             restart: None,
             errors: Vec::new(),
             boxed_here: HashSet::new(),
-            cloned_sources: HashSet::new(),
-            shares: Vec::new(),
-            names: NameTable::default(),
-            shared_state: HashMap::new(),
-            referent_readers: Vec::new(),
             extend_refs: HashMap::new(),
-            when_refs: HashMap::new(),
-            answer_responses: HashMap::new(),
-            parsed: Parsed::default(),
             prop_sels: Vec::new(),
         };
-        match cp.compile_all() {
-            Ok(()) => {
-                let _s = crate::trace::span("finish");
-                let c = &mut cp.compiled;
-                c.shrink_to_fit();
-                if c.has_repeats() {
-                    c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
-                }
-                Ok(Planned {
-                    compiled: cp.compiled,
-                    errors: cp.errors,
-                })
-            }
-            Err(f) => Err(f),
+        let outline = crate::trace::span("outline").run(|| cp.outline());
+        cp.restart_if_needed()?;
+        let Outline {
+            to_plan,
+            macros,
+            math_texts,
+            settled,
+        } = outline;
+        // From here on, every stage reads what outlining settled and none
+        // can change it.
+        cp.settled = Some(&settled);
+        // The element set is outlining's (ADR 0030): planning and linking
+        // make none, but for the box of a `$ref` child that cannot be
+        // planned, which has no element to be boxed in place.
+        let outlined = cp.elem_count();
+        let parsed: Parsed = crate::trace::span("parse maths").run(|| cp.parse_maths(math_texts));
+        cp.parsed = Some(&parsed);
+        let (mut planned, ref_boxes) =
+            crate::trace::span("plan all").run(|| cp.plan_all(to_plan, macros));
+        cp.restart_if_needed()?;
+        crate::trace::span("link").run(|| cp.link(&mut planned))?;
+        debug_assert_eq!(
+            cp.elem_count(),
+            outlined + ref_boxes,
+            "only outlining makes elements (ADR 0030)"
+        );
+        cp.restart_if_needed()?;
+        crate::trace::span("seal").run(|| cp.seal(&planned))?;
+        let _s = crate::trace::span("finish");
+        let c = &mut cp.compiled;
+        c.shrink_to_fit();
+        if c.has_repeats() {
+            c.sym_trees = c.sym_text.keys().map(|&k| (k, OnceLock::new())).collect();
+        }
+        Ok(Attempt {
+            compiled: cp.compiled,
+            errors: cp.errors,
+        })
+    }
+}
+
+impl<'a> Compiler<'a> {
+    /// What outlining settled; after outlining only.
+    pub(in crate::compile) fn settled(&self) -> &'a Settled {
+        self.settled
+            .expect("what outlining settled is read after it (ADR 0030)")
+    }
+
+    /// What parsing made; from planning on.
+    pub(in crate::compile) fn parsed(&self) -> &'a Parsed {
+        self.parsed
+            .expect("what parsing made is read after it (ADR 0030)")
+    }
+
+    /// What planning is making; only planning reaches it.
+    pub(in crate::compile) fn planning(&mut self) -> &mut Planned {
+        self.planning
+            .as_mut()
+            .expect("only planning makes what linking reads (ADR 0030)")
+    }
+
+    /// The name table: outlining's while it is made, then what it settled.
+    pub(in crate::compile) fn names(&self) -> &NameTable {
+        match &self.outlining {
+            Some(o) => &o.work.settled.names,
+            None => &self.settled().names,
+        }
+    }
+
+    /// The elements a container copy cloned, as `names` does.
+    fn cloned(&self) -> &HashSet<(u32, u32)> {
+        match &self.outlining {
+            Some(o) => &o.work.settled.cloned,
+            None => &self.settled().cloned,
         }
     }
 
@@ -461,34 +547,6 @@ impl<'a> Compiler<'a> {
             crate::diagnostics::Diagnostic::warning(code, Some(node), message.into()),
         );
         Warned::raised()
-    }
-
-    /// The compile's stages, in order (ADR 0027, ADR 0029). A stage boxes
-    /// every failure where it arises and goes on; one that could not be
-    /// boxed there (`box_in_place`) ends the compile once its stage is
-    /// done, for `plan_and_check` to box its node and compile again.
-    fn compile_all(&mut self) -> std::result::Result<(), Failure> {
-        let Outline {
-            to_plan,
-            macros,
-            math_texts,
-        } = crate::trace::span("outline").run(|| self.outline());
-        self.restart_if_needed()?;
-        // The element set is outlining's (ADR 0030): planning and linking
-        // make none, but for the box of a `$ref` child that cannot be
-        // planned, which has no element to be boxed in place.
-        let outlined = self.elem_count();
-        self.parsed = crate::trace::span("parse maths").run(|| self.parse_maths(math_texts));
-        let ref_boxes = crate::trace::span("plan all").run(|| self.plan_all(to_plan, macros));
-        self.restart_if_needed()?;
-        crate::trace::span("link").run(|| self.link())?;
-        debug_assert_eq!(
-            self.elem_count(),
-            outlined + ref_boxes,
-            "only outlining makes elements (ADR 0030)"
-        );
-        self.restart_if_needed()?;
-        crate::trace::span("seal").run(|| self.seal())
     }
 
     /// How many elements the templates hold.
@@ -558,9 +616,14 @@ impl<'a> Compiler<'a> {
     /// source and what outlining and parsing made alone, never from
     /// another element's plan (ADR 0029). What fails is boxed in place.
     /// Returns how many `$ref` children were boxed, each a new element.
-    fn plan_all(&mut self, to_plan: Vec<(TemplateId, ElemId)>, macros: Vec<PendingMacro>) -> usize {
+    fn plan_all(
+        &mut self,
+        to_plan: Vec<(TemplateId, ElemId)>,
+        macros: Vec<PendingMacro>,
+    ) -> (Planned, usize) {
         let dast = self.dast;
         let mut ref_boxes = 0;
+        self.planning = Some(Planned::default());
         {
             let _s = crate::trace::span("elements");
             crate::trace::count("elements", to_plan.len());
@@ -607,7 +670,8 @@ impl<'a> Compiler<'a> {
                 None => self.compiled.templates[t.index()].children[i] = child,
             }
         }
-        ref_boxes
+        let planned = self.planning.take().expect("planning");
+        (planned, ref_boxes)
     }
 
     /// Linking: what planning left for once every element is planned. A
@@ -616,27 +680,32 @@ impl<'a> Compiler<'a> {
     /// having been read by now (`box_unread_attributes`), and its readers
     /// in turn; then shared state is tied between the elements left
     /// (`link_shared_state`).
-    fn link(&mut self) -> std::result::Result<(), Failure> {
+    fn link(&mut self, planned: &mut Planned) -> std::result::Result<(), Failure> {
+        let readers: Vec<(TemplateId, ElemId, RefId)> = (self.settled().referent_readers.iter())
+            .chain(&planned.referent_readers)
+            .copied()
+            .collect();
         let box_readers = |cp: &mut Self| {
             crate::trace::span("box readers")
-                .run(|| cp.box_readers_of_boxes())
+                .run(|| cp.box_readers_of_boxes(&readers))
                 .map_err(|error| Failure { error, node: None })
         };
         box_readers(self)?;
         crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
         box_readers(self)?;
-        crate::trace::span("shared state").run(|| self.link_shared_state());
+        crate::trace::span("shared state").run(|| self.link_shared_state(planned));
         Ok(())
     }
 
     /// Sealing (`seal.rs`): what reads every plan, the source and the name
     /// table, and changes no plan; what fails is boxed by compiling again.
-    fn seal(&mut self) -> std::result::Result<(), Failure> {
+    fn seal(&mut self, planned: &Planned) -> std::result::Result<(), Failure> {
+        let settled = self.settled();
         seal::Seal {
             compiled: &mut self.compiled,
             dast: self.dast,
-            names: &self.names,
-            shared_state: &self.shared_state,
+            names: &settled.names,
+            shared_state: &planned.shared_state,
         }
         .run()
     }
@@ -657,7 +726,7 @@ impl<'a> Compiler<'a> {
     /// and an element with no node has nowhere to carry the error: then
     /// this compile cannot stand. `e` is boxed all the same, so the stage
     /// runs on over a consistent compile, and the failure is recorded
-    /// (the first, when there are several) for `compile_all` to end the
+    /// (the first, when there are several) for `compile` to end the
     /// compile with once the stage is done: `e`'s node is boxed before
     /// compiling again, and with no node the load fails. Every failure is
     /// handled here the same way whatever failed before it.
@@ -666,7 +735,7 @@ impl<'a> Compiler<'a> {
         let doomed = self.subtree(t, e);
         let cloned = doomed
             .iter()
-            .any(|&(dt, de)| self.cloned_sources.contains(&(dt.get(), de.get())));
+            .any(|&(dt, de)| self.cloned().contains(&(dt.get(), de.get())));
         if node == NodeId::NONE || cloned {
             self.restart.get_or_insert(Failure {
                 error,
@@ -741,10 +810,10 @@ impl<'a> Compiler<'a> {
         if el.name == StrId::NONE {
             return;
         }
-        let registered = self
-            .names
+        let names = self.names();
+        let registered = names
             .id(self.dast.strings.get(el.name))
-            .and_then(|id| self.names.entry(t, el.name_scope, id))
+            .and_then(|id| names.entry(t, el.name_scope, id))
             .is_some_and(|x| x == e.get() || x == AMBIGUOUS);
         if !registered {
             self.compiled.templates[t.index()].elems[e.index()].name = StrId::NONE;
@@ -793,19 +862,28 @@ impl<'a> Compiler<'a> {
         name_scope: ElemId,
         stop: ElemId,
     ) -> Result<ElemId> {
-        let name_id = (name != StrId::NONE).then(|| {
-            let s = self.dast.strings.get(name).trim();
-            let id = match self.names.ids.get(s) {
+        // Only outlining names elements (ADR 0030).
+        let dast = self.dast;
+        let mut names = (name != StrId::NONE).then(|| {
+            &mut (self.outlining.as_mut())
+                .expect("only outlining names elements (ADR 0030)")
+                .work
+                .settled
+                .names
+        });
+        let name_id = names.as_mut().map(|names| {
+            let s = dast.strings.get(name).trim();
+            let id = match names.ids.get(s) {
                 Some(&id) => id,
                 None => {
-                    let id = self.names.ids.len() as u32;
-                    self.names.ids.insert(s.into(), id);
+                    let id = names.ids.len() as u32;
+                    names.ids.insert(s.into(), id);
                     id
                 }
             };
-            let by_str = &mut self.names.by_str;
+            let by_str = &mut names.by_str;
             if by_str.len() <= name.index() {
-                by_str.resize(self.dast.strings.len().max(name.index() + 1), NO_NAME);
+                by_str.resize(dast.strings.len().max(name.index() + 1), NO_NAME);
             }
             by_str[name.index()] = id;
             id
@@ -830,16 +908,16 @@ impl<'a> Compiler<'a> {
             hold: Hold::Off,
             dead: false,
         });
-        if let Some(id) = name_id {
+        if let (Some(id), Some(names)) = (name_id, names) {
             // Two siblings with one name can never be told apart.
-            if !self.names.siblings.insert((t.get(), name_scope.get(), id)) {
-                let s = self.dast.strings.get(name).trim().to_string();
+            if !names.siblings.insert((t.get(), name_scope.get(), id)) {
+                let s = dast.strings.get(name).trim().to_string();
                 return Err(Error::DuplicateName(s));
             }
             // Visible from every ancestor up to the template root (or `stop`).
             let mut a = name_scope;
             loop {
-                self.names
+                names
                     .by_scope
                     .entry((t.get(), a.get(), id))
                     .and_modify(|o| *o = AMBIGUOUS)
@@ -856,7 +934,7 @@ impl<'a> Compiler<'a> {
     /// What `name` names from `scope` of template `t`: the one descendant
     /// carrying it, or that several do.
     pub(in crate::compile) fn name_at(&self, t: TemplateId, scope: ElemId, name: &str) -> NameHit {
-        self.names.at(t, scope, name)
+        self.names().at(t, scope, name)
     }
 
     pub(in crate::compile) fn add_synthetic(
@@ -1225,7 +1303,10 @@ impl<'a> Compiler<'a> {
         e: ElemId,
         p: RefId,
     ) -> Result<Option<ComponentType>> {
-        self.referent_readers.push((t, e, p));
+        match &mut self.outlining {
+            Some(o) => o.work.settled.referent_readers.push((t, e, p)),
+            None => self.planning().referent_readers.push((t, e, p)),
+        }
         self.read_referent(t, p)
     }
 
@@ -1242,11 +1323,10 @@ impl<'a> Compiler<'a> {
     /// referent's type (`referent_type`) and whose referent is now a box
     /// is boxed in place, whichever was planned first; a copy of a copy of
     /// a box is boxed too.
-    fn box_readers_of_boxes(&mut self) -> Result<()> {
+    fn box_readers_of_boxes(&mut self, readers: &[(TemplateId, ElemId, RefId)]) -> Result<()> {
         loop {
             let mut boxed_one = false;
-            for i in 0..self.referent_readers.len() {
-                let (t, e, p) = self.referent_readers[i];
+            for &(t, e, p) in readers {
                 if self.is_box(t, e) {
                     continue;
                 }
