@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { heldCopySnapshot } from "../utils/copySnapshot";
 import {
     deregisterComponent,
     processNewDefiningChildren,
@@ -576,7 +577,7 @@ function keepSavedStateForRecreation(core: Core, component: any) {
     if (component.unlinkedSnapshot) {
         core.cumulativeStateVariableChanges.__copySnapshots = {
             ...core.cumulativeStateVariableChanges.__copySnapshots,
-            [stateId]: component.unlinkedSnapshot,
+            [stateId]: heldCopySnapshot(component),
         };
     }
     // what the current update wrote is merged only at its end

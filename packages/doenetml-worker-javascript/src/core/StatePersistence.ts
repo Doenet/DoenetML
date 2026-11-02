@@ -6,7 +6,7 @@ import {
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 import type Core from "../Core";
-import { snapshotStillMade } from "../utils/copySnapshot";
+import { heldCopySnapshot, snapshotStillMade } from "../utils/copySnapshot";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -376,8 +376,11 @@ export class StatePersistence {
      * holds only the snapshot of what it made: one made again with a
      * different shape (a copy of a `<conditionalContent>` made from another
      * case) is made from its source as restored, and keeps nothing it could
-     * not apply (`applyCopySnapshot`). A save with no unlinked copies does
-     * not call this (`unlinkedCopies`).
+     * not apply (`applyCopySnapshot`). With the snapshot it holds what
+     * decided what the copy made, where a copy made again could decide
+     * otherwise: whether a copy written as a different tag was made, and the
+     * case of a `<conditionalContent>` it was made from (`heldCopySnapshot`).
+     * A save with no unlinked copies does not call this (`unlinkedCopies`).
      */
     async recordCopySnapshots(copies: any[]): Promise<void> {
         const cumulative = this.core.cumulativeStateVariableChanges;
@@ -397,7 +400,7 @@ export class StatePersistence {
             ) {
                 delete snapshots[component.stateId];
             } else {
-                snapshots[component.stateId] = component.unlinkedSnapshot;
+                snapshots[component.stateId] = heldCopySnapshot(component);
             }
         }
         if (Object.keys(snapshots).length > 0) {

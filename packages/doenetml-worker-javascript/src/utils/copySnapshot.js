@@ -219,3 +219,49 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
     }
     return true;
 }
+
+/**
+ * What a save holds of an unlinked copy (`StatePersistence.recordCopySnapshots`):
+ * its snapshot (`copySnapshotOf`), and, when anything decided what it made
+ * that a copy made again could decide otherwise (`component.unlinkedMadeFrom`),
+ * that too, so that a reload makes what the reader saw (SAVE-1):
+ * - `typeChange`, whether a copy written as a different tag than what it
+ *   copies was made, or shows nothing, when that was decided from what the
+ *   document makes at run time (`typeChangeStatus` in `Copy.js`): the value
+ *   of a math, or what a `<conditionalContent>` holds;
+ * - `caseIndex`, the case of a `<conditionalContent>` a copy of it was made
+ *   from, or `null` when it had no active case.
+ *
+ * A copy with neither is held as its snapshot alone, as saves made before
+ * these were held are.
+ */
+export function heldCopySnapshot(component) {
+    const madeFrom = component.unlinkedMadeFrom ?? {};
+    if (madeFrom.typeChange === undefined && madeFrom.caseIndex === undefined) {
+        return component.unlinkedSnapshot;
+    }
+    return {
+        snapshot: component.unlinkedSnapshot,
+        ...(madeFrom.typeChange !== undefined && {
+            typeChange: madeFrom.typeChange,
+        }),
+        ...(madeFrom.caseIndex !== undefined && {
+            caseIndex: madeFrom.caseIndex,
+        }),
+    };
+}
+
+/**
+ * What `heldCopySnapshot` held: the snapshot, and what decided what the copy
+ * made (`madeFrom`, empty for a save that held the snapshot alone).
+ */
+export function readHeldCopySnapshot(held) {
+    if (held === undefined || held === null) {
+        return undefined;
+    }
+    if (Array.isArray(held)) {
+        return { snapshot: held, madeFrom: {} };
+    }
+    const { snapshot, ...madeFrom } = held;
+    return { snapshot: snapshot ?? [], madeFrom };
+}
