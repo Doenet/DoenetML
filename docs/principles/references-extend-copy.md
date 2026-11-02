@@ -708,8 +708,8 @@ A copy made after the reader has interacted with x starts where x is now, not fr
   and the case of a `<conditionalContent>` it was made from. A copy deleted and made again
   within a session keeps them too.
 - **Known violations:** a copy of a component named inside a `<conditionalContent>`,
-  `<p copy="$cc.p"/>`, is remade on load from the case active then (B35). A `<group copy>` of a
-  `<collect>` whose collected input changed type throws on reload (B36).
+  `<p copy="$cc.p"/>`, is remade on load from the case active then (B35, #2446). A `<group copy>` of a
+  `<collect>` whose collected input changed type throws on reload (B36, #2446).
 
 This is how authors freeze a reader's work, and it is why `copy` is "pasted DoenetML *plus the
 current state*", not pure paste.
