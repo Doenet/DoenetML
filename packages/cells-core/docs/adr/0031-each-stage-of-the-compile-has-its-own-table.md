@@ -1,6 +1,9 @@
 # Each stage of the compile has its own table
 
-Status: proposed 2026-11-02. Step 1 is done; see Migration.
+Status: proposed 2026-11-02. Step 1 is done; see Migration. Amended
+2026-11-02: the boundaries the tables draw leak in three places (boxing,
+the planner context, code more than one stage runs); see "Where the
+boundaries leak".
 
 ADR 0030 made each stage of the compile a function of what it reads, and
 its results values: outlining's `Outline` and `Settled`, parsing's
@@ -83,6 +86,97 @@ Each template holds one table per stage, each a `Vec` indexed by
 `Elem` goes. A reader that wants a stage's facts reads that stage's
 table; the build reads all four.
 
+## Where the boundaries leak
+
+Tables alone make a layout, not a wall. Three places cross them, and
+each needs its own fix for the split to hold.
+
+### Boxing
+
+Boxing cuts across outlining, planning and linking by design, so it must
+write only its own table. Today it writes four things that are not its
+own:
+
+- **Outlining's row.** `make_box` sets the type to `Error` and clears
+  children, body and extend; `box_in_place` also drops a name the name
+  table did not register (`drop_unregistered_name`). That only happens
+  to an element whose name was a duplicate, which outlining finds when it
+  pushes the element, so outlining drops the name there, and boxing
+  never touches the name.
+- **A row of outlining's table, added while planning.** A `$ref` child
+  that cannot be planned is boxed by pushing a new `_error` element
+  (`push_error_elem` in `plan_all`), the one exception to "only
+  outlining makes elements" (ADR 0030, step 4). Its box goes in the
+  table of `$ref` children's plans instead, and the build makes the
+  `_error` component from that. The exception goes.
+- **Planning's diagnostics.** The unread-attribute check removes the
+  errors and warnings planners reported under what it boxes
+  (`box_unread_attributes`). Instead, every diagnostic stays where its
+  stage reported it, and the compile leaves out those on dead elements
+  once, when it assembles the list, whichever stage boxed them.
+- **What a reference plan reads.** `plan_ref` stops a path at a box
+  (`component_type == Error`). During planning that reads boxes made so
+  far, so a path through an element boxed in place plans differently
+  depending on whether it was planned before or after the box: an
+  order dependence ADR 0029 meant to remove. `plan_ref` reads no boxes:
+  a path continues through a box's outlined row, and the build reads a
+  reference into a box or under one as undefined, as it already does
+  for an element under a box.
+
+What may read boxes is then two things: linking (`box_readers_of_boxes`),
+and `referent_type` while planning, which reads only the boxes outlining
+made (an element outlined as `Error`), so that planning, too, is
+independent of its own order. A reader of a box made while planning is
+boxed when linking, as now.
+
+### The planner context
+
+`PlanCtx` wraps the whole `Compiler`. A planner under `components/`
+reaches it only through `PlanCtx`'s methods, which is a narrow surface,
+but the machinery behind them (`compile/planning/`) is `impl Compiler`
+and can write anything: it indexes the templates directly in some 70
+places, and writes `ChoiceDef`s, which outlining made. Until planning
+runs against a view of its own, the tables are a layout.
+
+The view is a `Planning` struct, and `PlanCtx` wraps it rather than
+`Compiler`. It holds, read-only, outlining's table, `Settled` and
+`Parsed`; and, writable, planning's table, the reference arena and
+expressions (append-only), `Planned`, its caches and its warnings.
+Planning's machinery is `impl Planning`. It does not box: a planner
+returns its error, and `plan_elem`, outside the view, boxes. An owner
+planning what it owns (ADR 0029: an answer its awards, a repeat its
+iteration elements) writes those rows of planning's table, and no
+others. What a choice's planner decides moves from `ChoiceDef` to
+planning's table.
+
+### Code more than one stage runs
+
+`plan_ref` runs while outlining (a container copy's `extend`, an
+answer's whens), parsing (a math's `$ref`s) and planning. It must read
+only what every one of them has: the name table and outlining's rows
+(and a choice's branches, which outlining makes). Today it also:
+
+- **Expands container copies** (`outlined_elem`): a path through a copy
+  not yet given its clones expands it first. That is outlining's work,
+  done from inside the shared function, and a no-op afterwards. Instead
+  `plan_ref` reports the copy it needs (an error naming it), and
+  outlining's expansion expands that copy and plans the reference
+  again; a copy reached again while it expands is still a cycle.
+- **Reads planning's substitutions** (`ref_subst`: `$mi` in a `<when>`
+  is the answer's submitted response). That substitution is planning's
+  and moves to planning's view, which checks it before calling the
+  shared function.
+- **Writes outlining's `ChoiceDef`** (`iface_step` appends to `used`,
+  the interface names references use, in first-use order). Which
+  reference is planned first depends on the stage and the order, so the
+  list does too. A step into an interface names the interface name by
+  its name-table id, and sealing makes `used` from every reference plan,
+  in the order they were planned.
+- **Reads boxes**, above.
+
+What `plan_ref` writes is then the reference arena (append-only) and
+`prop_sels`, a cache of a function of the source alone.
+
 ## Considered options
 
 - **One table per stage across the whole compile, rather than per
@@ -112,20 +206,33 @@ table; the build reads all four.
 
 ## Migration
 
-Each step lands alone, with the golden diff unchanged.
+Each step lands alone, with the golden diff unchanged unless it says
+otherwise.
 
 1. **Sealing's table.** `key` and `slot_off` leave `Elem` for
    `Template::sealed`, a `Vec<Sealed>` that sealing makes, and the
    template's slot count goes with them. Done.
 2. **Boxes.** `Template::boxes`, a `Vec<BoxState>` (`Live`, `Boxed`,
-   `Dead`), replaces a box's `Error` type and `dead`; boxing stops
-   clearing outlining's and planning's rows, and readers ask whether an
-   element is a box (`Compiled::is_box`) and what type to read it as.
+   `Dead`), replaces a box's `Error` type and `dead`; boxing writes
+   nothing else of any stage's (no `make_box` clearing, no
+   `drop_unregistered_name` outside outlining); diagnostics on dead
+   elements are left out once, at the end; `plan_ref` reads no boxes,
+   and `referent_type` reads only outlining's while planning. Readers
+   ask whether an element is a box (`Compiled::is_box`) and what type to
+   read it as.
 3. **`$ref` children.** Dense ids in child lists, and a table of their
-   plans that planning fills.
-4. **Planning's table.** `props`, `n_public`, `hold` and a body's `from`
-   leave `Elem` for `Template::plans`.
-5. **Every `extend` planned when outlining.** `extend` joins outlining's
+   plans that planning fills, a box among them; planning makes no
+   element, and the debug assertion of ADR 0030 loses its exception.
+4. **`plan_ref` reads only outlining's facts.** Container copies are
+   expanded by outlining when a reference reports one it needs;
+   `ref_subst` moves out of it; an interface step names its name by id,
+   and sealing makes `used`.
+5. **Planning's table.** `props`, `n_public`, `hold`, a body's `from`
+   and what a choice's planner decides leave `Elem` and `ChoiceDef` for
+   `Template::plans`.
+6. **Every `extend` planned when outlining.** `extend` joins outlining's
    row.
-6. **Outlining's table read-only.** What is left of `Elem` is
-   outlining's row; it moves into `Settled` while the later stages run.
+7. **Planning's view.** `Planning`, holding outlining's table, `Settled`
+   and `Parsed` read-only and planning's table writable; `PlanCtx` wraps
+   it, and planning's machinery is `impl Planning`. Outlining's table
+   moves into `Settled` while the later stages run.
