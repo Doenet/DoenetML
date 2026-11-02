@@ -124,15 +124,16 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect(await h.math("cc.a")).eq(5);
     });
 
-    // An unlinked copy keeps the case it was made from until a reload makes
-    // it again, from whichever case is then active.
-    it("applies nothing saved of one case of a copy to another case", async () => {
+    // An unlinked copy keeps the case it was made from, and a reload makes
+    // it again from that case, whichever case is then active (#2441).
+    it("makes a copy again from the case it was made from", async () => {
         const h = await setup(caseElse + `<group copy="$cc" name="c" />`);
         await h.typeMath("c.a", "7");
         await h.setB(false);
         expect(await h.math("c.a")).eq(7);
         await h.reload();
-        expect(await h.math("c.t")).eq(2);
+        expect(await h.math("c.a")).eq(7);
+        expect(await h.sv("c.t")).eq(undefined);
         expect(await h.math("cc.t")).eq(2);
     });
 
@@ -146,8 +147,11 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         expect(await h.math("cc.a")).eq(1);
     });
 
-    it("applies nothing saved of a mathInput in one case of a copy to a textInput in another", async () => {
-        // #2246, different types
+    it("makes a copy again from the case it was made from, not another case's component of another type", async () => {
+        // #2246, different types. A save that holds what a copy was made
+        // from (#2441) makes it again from its case; one that does not
+        // applies nothing of the mathInput to the textInput
+        // (`unlinked_copy_reload.test.ts`).
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc">
@@ -159,9 +163,8 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
         await h.typeMath("c.a", "7");
         await h.setB(false);
         await h.reload();
-        const t = await h.sv("c.t");
-        expect(t.stateValues.value).eq("hi");
-        expect(t.stateValues.numWords).eq(1);
+        expect(await h.math("c.a")).eq(7);
+        expect(await h.sv("c.t")).eq(undefined);
     });
 
     it("applies nothing saved of a copy of a component named in one case to a copy from another", async () => {

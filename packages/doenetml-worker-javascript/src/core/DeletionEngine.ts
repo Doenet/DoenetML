@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { heldCopySnapshot } from "../utils/copySnapshot";
 import {
     deregisterComponent,
     processNewDefiningChildren,
@@ -569,7 +570,8 @@ function forgetKeptState(
 /**
  * Keep what was saved of `component`, and queue it to be applied to a
  * component made later with its `stateId`, as a reload queues what it
- * restores. An unlinked copy also keeps the snapshot of what it made: a save
+ * restores. An unlinked copy also keeps the snapshot of what it made, with
+ * what decided it (`heldCopySnapshot`), so it is made again as it was: a save
  * holds one only while a copy made again would differ, and it is not known
  * here whether a save has looked, so it is held until the next save after
  * the copy is made again (`recordCopySnapshots`).
@@ -579,7 +581,7 @@ function keepSavedStateForRecreation(core: Core, component: any) {
     if (component.unlinkedSnapshot) {
         core.cumulativeStateVariableChanges.__copySnapshots = {
             ...core.cumulativeStateVariableChanges.__copySnapshots,
-            [stateId]: component.unlinkedSnapshot,
+            [stateId]: heldCopySnapshot(component),
         };
     }
     // what the current update wrote is merged only at its end

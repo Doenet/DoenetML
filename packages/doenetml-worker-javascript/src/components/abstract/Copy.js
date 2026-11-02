@@ -47,7 +47,11 @@ import {
     CONTEXT_ATTRIBUTES,
     writtenEntryAttributeComponent,
 } from "../../utils/contextAttribute";
-import { applyCopySnapshot, copySnapshotOf } from "../../utils/copySnapshot";
+import {
+    applyCopySnapshot,
+    copySnapshotOf,
+    readHeldCopySnapshot,
+} from "../../utils/copySnapshot";
 import { gatherVariantComponents } from "../../utils/variants";
 import {
     copiesReferent,
@@ -1489,22 +1493,36 @@ export default class Copy extends CompositeComponent {
      * again, for a save to compare (`utils/copySnapshot.js`). The snapshot
      * holds state by `stateId` and `componentType`, not the replacements'
      * shape, and a copy made again need not make what it made before (a copy
-     * of a `<conditionalContent>` is made from whichever case is active). A
-     * copy made again with a different shape is made from its source as
-     * restored, and keeps nothing it cannot apply: it records only its own
-     * snapshot.
+     * of a `<conditionalContent>` is made from whichever case is active). So
+     * the save also holds what decided what the copy made
+     * (`heldCopySnapshot`), and a copy made again is made as it was: from
+     * the case it was made from (`heldCaseSource`), and shown, or not, as it
+     * was when written as a different tag (`heldTypeChange`). A copy made
+     * again with a different shape all the same (one whose shape no held
+     * case decides, as of a `<collect>` or of `$cc.p`, or one from a save
+     * that held the snapshot alone) is made from its source as restored, and
+     * keeps nothing it cannot apply: it records only its own snapshot.
      */
     static async createSerializedReplacements(args) {
-        const result = await this.createReplacementsFromSources(args);
         const { component } = args;
-        if ((await component.stateValues.link) === false) {
-            const saved = component.coreFunctions.savedCopySnapshot?.(
-                component.stateId,
-            );
-            if (saved) {
-                applyCopySnapshot(result.replacements, saved);
+        const unlinked = (await component.stateValues.link) === false;
+        const held = unlinked
+            ? readHeldCopySnapshot(
+                  component.coreFunctions.savedCopySnapshot?.(
+                      component.stateId,
+                  ),
+              )
+            : undefined;
+        const result = await this.createReplacementsFromSources({
+            ...args,
+            heldMadeFrom: held?.madeFrom,
+        });
+        if (unlinked) {
+            if (held) {
+                applyCopySnapshot(result.replacements, held.snapshot);
             }
             component.unlinkedSnapshot = copySnapshotOf(result.replacements);
+            component.unlinkedMadeFrom = args.workspace.madeFrom;
             component.freshUnlinkedSnapshot = async () =>
                 copySnapshotOf(
                     (
@@ -1527,6 +1545,7 @@ export default class Copy extends CompositeComponent {
         componentInfoObjects,
         resolveItem,
         publicCaseInsensitiveAliasSubstitutions,
+        heldMadeFrom,
     }) {
         // console.log(`create serialized replacements of ${component.componentIdx}`)
 
@@ -1546,6 +1565,9 @@ export default class Copy extends CompositeComponent {
         workspace.sourceIndices = [];
         workspace.typeChangeKey = undefined;
         reportTypeChange(workspace, undefined);
+        // What decided what an unlinked copy made, for a save to hold
+        // (`heldCopySnapshot`)
+        workspace.madeFrom = {};
         // Whether this copy is inside source `sourceNum` (see
         // `calculateReplacementChanges`).
         workspace.sourceContainsCopyBySource = [];
@@ -1699,13 +1721,37 @@ export default class Copy extends CompositeComponent {
         let numReplacementsSoFar = 0;
         let numNonStringReplacementsSoFar = 0;
 
-        for (let sourceNum in replacementSourceIdentities) {
+        // A copy of a `<conditionalContent>` is made from the case it was
+        // made from before, when a save held it or it was kept while the
+        // copy was deleted (`heldCaseSource`).
+        const caseSource = await caseSourceOf({ component, components });
+        let heldCase;
+        if (caseSource) {
+            heldCase = await heldCaseSource({
+                caseSource,
+                components,
+                heldMadeFrom,
+            });
+            workspace.madeFrom.caseIndex = heldCase
+                ? heldCase.caseIndex
+                : (caseSource.replacementsWorkspace.previousSelectedIndex ??
+                  null);
+        }
+        const sourceNums = heldCase
+            ? heldCase.group
+                ? ["0"]
+                : []
+            : Object.keys(replacementSourceIdentities);
+
+        for (let sourceNum of sourceNums) {
             let numComponentsForSource;
 
             if (component.attributes._createComponentOfType?.primitive) {
                 let numComponentsTotal =
                     await component.stateValues.numComponentsSpecified;
-                let numSources = replacementSourceIdentities.length;
+                let numSources = heldCase
+                    ? 1
+                    : replacementSourceIdentities.length;
 
                 // arbitrarily divide these components among the sources
                 numComponentsForSource = Math.floor(
@@ -1734,6 +1780,7 @@ export default class Copy extends CompositeComponent {
                 copyInChildren:
                     Number(sourceNum) === 0 &&
                     component.attributes._copyInChildren?.primitive.value,
+                heldCase,
             });
 
             diagnostics.push(...results.diagnostics);
@@ -1767,19 +1814,26 @@ export default class Copy extends CompositeComponent {
         // An extend that would change what its source makes is that error
         // instead (`extendChangesContentErrors`).
         const found = {};
-        const typeChange = replacements.some(
-            (x) => x?.doenetAttributes?.inPlaceOfExtend,
-        )
-            ? undefined
-            : await typeChangeStatus({
-                  component,
-                  components,
-                  componentInfoObjects,
-                  propReplacements: replacements,
-                  found,
-              });
+        const typeChange = heldTypeChange(
+            replacements.some((x) => x?.doenetAttributes?.inPlaceOfExtend)
+                ? undefined
+                : await typeChangeStatus({
+                      component,
+                      components,
+                      componentInfoObjects,
+                      propReplacements: replacements,
+                      found,
+                  }),
+            heldMadeFrom,
+        );
         workspace.typeChangeKey = typeChangeKey(typeChange);
         reportTypeChange(workspace, typeChange);
+        if (workspace.typeChangeKey !== undefined) {
+            workspace.madeFrom.typeChange = {
+                key: workspace.typeChangeKey,
+                ...(typeChange && { diagnostic: typeChange.diagnostic }),
+            };
+        }
         workspace.typeChangeRunTime = found.runTime;
         await recordTypeChangeContent({
             component,
@@ -1893,6 +1947,7 @@ export default class Copy extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
         copyInChildren,
+        heldCase,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -1901,10 +1956,14 @@ export default class Copy extends CompositeComponent {
 
         let diagnostics = [];
 
-        let replacementSource = (
-            await component.stateValues.replacementSourceIdentities
-        )[sourceNum];
-        if (typeof replacementSource !== "object") {
+        // Made from the case of a `<conditionalContent>` the copy was made
+        // from before, not one made now (`heldCaseSource`)
+        let replacementSource = heldCase
+            ? undefined
+            : (await component.stateValues.replacementSourceIdentities)[
+                  sourceNum
+              ];
+        if (!heldCase && typeof replacementSource !== "object") {
             if (component.stateValues.effectivePropNameBySource[sourceNum]) {
                 // Cannot get a prop off a non-object (e.g., off a string component)
                 return {
@@ -1920,13 +1979,15 @@ export default class Copy extends CompositeComponent {
                 };
             }
         }
-        const replacementSourceComponent =
-            components[replacementSource.componentIdx];
+        const replacementSourceComponent = heldCase
+            ? undefined
+            : components[replacementSource.componentIdx];
 
         // Don't create any replacement if the source is inactive
         if (
-            await replacementSourceComponent.stateValues
-                .isInactiveCompositeReplacement
+            !heldCase &&
+            (await replacementSourceComponent.stateValues
+                .isInactiveCompositeReplacement)
         ) {
             return {
                 serializedReplacements: [],
@@ -1938,13 +1999,17 @@ export default class Copy extends CompositeComponent {
         // if not linking or removing empty array entries,
         // then replacementSources is resolved,
         // which we need for state variable value
-        let propName = (await component.stateValues.effectivePropNameBySource)[
-            sourceNum
-        ];
+        let propName = heldCase
+            ? undefined
+            : (await component.stateValues.effectivePropNameBySource)[
+                  sourceNum
+              ];
         let link = await component.stateValues.link;
         if (
-            !link ||
-            (propName && (await component.stateValues.removeEmptyArrayEntries))
+            !heldCase &&
+            (!link ||
+                (propName &&
+                    (await component.stateValues.removeEmptyArrayEntries)))
         ) {
             const replacementSourceWithProp = (
                 await component.stateValues.replacementSources
@@ -2051,13 +2116,14 @@ export default class Copy extends CompositeComponent {
         // A case, a pick or an iteration that holds one component of a type
         // related to the one the copy is written as is made into that type
         // from the component, as `$cc[1]` is (`componentStoodFor`).
-        const sourceToSerialize =
-            (await componentStoodFor({
-                component,
-                source: replacementSourceComponent,
-                components,
-                componentInfoObjects,
-            })) ?? replacementSourceComponent;
+        const sourceToSerialize = heldCase
+            ? undefined
+            : ((await componentStoodFor({
+                  component,
+                  source: replacementSourceComponent,
+                  components,
+                  componentInfoObjects,
+              })) ?? replacementSourceComponent);
 
         // If we are copying without linking a source that is shadowing another source,
         // then the attributes and children of the source may not be sufficient
@@ -2068,28 +2134,38 @@ export default class Copy extends CompositeComponent {
         let serializedReplacements;
         try {
             serializedReplacements = [
-                await sourceToSerialize.serialize({
-                    // a value reference is copied as a component of its
-                    // type (`ValueRef.serialize`); unlinked, it reads the
-                    // settings it takes from its referent here
-                    valueReferenceAsComponent: true,
-                    components: link ? undefined : components,
-                    copyAll: !link,
-                    componentSourceAttributesToIgnore: ["labelIsName"],
-                    copyVariants: !link,
-                    copyPrimaryEssentialIfShadow: !link,
-                    copyEssentialStateIfShadow: !link,
-                    errorIfEncounterComponent: [component.componentIdx],
-                    namesReachedThroughCopy:
-                        link && namesReachedThroughCopy(component),
-                }),
+                heldCase
+                    ? // the case's DoenetML, which the copy's snapshot gives
+                      // the state it had (`applyCopySnapshot`)
+                      deepClone(
+                          serializedStoodFor({
+                              component,
+                              group: heldCase.group,
+                              componentInfoObjects,
+                          }) ?? heldCase.group,
+                      )
+                    : await sourceToSerialize.serialize({
+                          // a value reference is copied as a component of its
+                          // type (`ValueRef.serialize`); unlinked, it reads the
+                          // settings it takes from its referent here
+                          valueReferenceAsComponent: true,
+                          components: link ? undefined : components,
+                          copyAll: !link,
+                          componentSourceAttributesToIgnore: ["labelIsName"],
+                          copyVariants: !link,
+                          copyPrimaryEssentialIfShadow: !link,
+                          copyEssentialStateIfShadow: !link,
+                          errorIfEncounterComponent: [component.componentIdx],
+                          namesReachedThroughCopy:
+                              link && namesReachedThroughCopy(component),
+                      }),
             ];
 
             // Counted from the copy's own `stateId`, the ids would be the
             // same whichever case of a `<conditionalContent>` the copy is made
             // from, so what was saved of one case would be applied to another.
             const sourceStateIdInfo = {
-                prefix: `${stateIdInfo.prefix}${await stateIdSegmentForCopyOf(sourceToSerialize)}`,
+                prefix: `${stateIdInfo.prefix}${heldCase ? heldCase.segment : await stateIdSegmentForCopyOf(sourceToSerialize)}`,
                 num: stateIdInfo.num,
             };
             // An unlinked copy is its source's DoenetML pasted, whose
@@ -5637,24 +5713,8 @@ async function componentStoodFor({
     components,
     componentInfoObjects,
 }) {
-    const writtenValue =
-        component.attributes._createComponentOfType?.primitive?.value;
-    if (
-        !writtenValue ||
-        !component.attributes._copyInChildren?.primitive?.value
-    ) {
-        return undefined;
-    }
-    const writtenType =
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ];
-    const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
-    if (
-        !writtenClass ||
-        writtenClass.listEntryComponentType !== undefined ||
-        writtenType === "group"
-    ) {
+    const writtenType = typeStandingFor(component, { componentInfoObjects });
+    if (!writtenType) {
         return undefined;
     }
     let one = source;
@@ -5687,28 +5747,198 @@ async function componentStoodFor({
         }
         one = shown[0];
     }
-    if (one === source) {
-        return undefined;
-    }
-    const oneClass =
-        componentInfoObjects.allComponentClasses[one.componentType];
     if (
-        !oneClass ||
-        oneClass.listEntryComponentType !== undefined ||
-        componentInfoObjects.isCompositeComponent({
-            componentType: one.componentType,
-            includeNonStandard: true,
-        }) ||
-        replacementIsOfType(one.componentType, writtenType) ||
-        !typeChangeRule({
-            writtenType,
-            sourceType: one.componentType,
-            componentInfoObjects,
-        }).allowed
+        one === source ||
+        !canStandFor(one.componentType, writtenType, { componentInfoObjects })
     ) {
         return undefined;
     }
     return one;
+}
+
+/**
+ * The type `component` is written as, when a case, a pick or an iteration
+ * holding one component may stand for that component (`componentStoodFor`),
+ * otherwise `undefined`.
+ */
+function typeStandingFor(component, { componentInfoObjects }) {
+    const writtenValue =
+        component.attributes._createComponentOfType?.primitive?.value;
+    if (
+        !writtenValue ||
+        !component.attributes._copyInChildren?.primitive?.value
+    ) {
+        return undefined;
+    }
+    const writtenType =
+        componentInfoObjects.componentTypeLowerCaseMapping[
+            writtenValue.toLowerCase()
+        ];
+    const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
+    if (
+        !writtenClass ||
+        writtenClass.listEntryComponentType !== undefined ||
+        writtenType === "group"
+    ) {
+        return undefined;
+    }
+    return writtenType;
+}
+
+/**
+ * Whether a component of type `oneType`, the one component a group holds,
+ * is made into `writtenType` in place of the group (`componentStoodFor`).
+ */
+function canStandFor(oneType, writtenType, { componentInfoObjects }) {
+    const oneClass = componentInfoObjects.allComponentClasses[oneType];
+    return Boolean(
+        oneClass &&
+        oneClass.listEntryComponentType === undefined &&
+        !componentInfoObjects.isCompositeComponent({
+            componentType: oneType,
+            includeNonStandard: true,
+        }) &&
+        !replacementIsOfType(oneType, writtenType) &&
+        typeChangeRule({
+            writtenType,
+            sourceType: oneType,
+            componentInfoObjects,
+        }).allowed,
+    );
+}
+
+/**
+ * `componentStoodFor` of the serialized `<group>` a case of a
+ * `<conditionalContent>` makes (`heldCaseSource`): the one component it
+ * holds, through any groups in it, as the components made from it would
+ * have, or `undefined`.
+ */
+function serializedStoodFor({ component, group, componentInfoObjects }) {
+    const writtenType = typeStandingFor(component, { componentInfoObjects });
+    if (!writtenType) {
+        return undefined;
+    }
+    let one = group;
+    while (one?.componentType === "group") {
+        const shown = [];
+        for (const child of one.children ?? []) {
+            if (typeof child === "string") {
+                if (child.trim() !== "") {
+                    return undefined;
+                }
+                continue;
+            }
+            if (child.componentType !== "setup") {
+                shown.push(child);
+            }
+        }
+        if (shown.length !== 1) {
+            return undefined;
+        }
+        one = shown[0];
+    }
+    if (
+        one === group ||
+        !canStandFor(one.componentType, writtenType, { componentInfoObjects })
+    ) {
+        return undefined;
+    }
+    return one;
+}
+
+/**
+ * The `<conditionalContent>` an unlinked copy `component` copies the
+ * replacements of (`$cc`, not a prop or index of it), whose case it is made
+ * from: the case active when it is made, or, on load, the case it was made
+ * from before (`heldCaseSource`). Not one that shadows another, whose
+ * replacements' ids name the case of what it shadows
+ * (`stateIdSegmentForCopiesOfReplacements`).
+ */
+async function caseSourceOf({ component, components }) {
+    if ((await component.stateValues.link) !== false) {
+        return undefined;
+    }
+    const extended = await component.stateValues.extendedComponent;
+    const source = components[extended?.componentIdx];
+    if (
+        source?.componentType !== "conditionalContent" ||
+        source.replacementsWorkspace?.stateIdSegmentOfShadowed !== undefined ||
+        (await component.stateValues.effectivePropNameBySource)?.[0] ||
+        (await component.stateValues.unresolvedPath)?.length > 0 ||
+        (await component.stateValues.replacementSourceIdentities)?.length > 1
+    ) {
+        return undefined;
+    }
+    return source;
+}
+
+/**
+ * When an unlinked copy of the `<conditionalContent>` `caseSource` was made
+ * from another case than the one active now (`heldMadeFrom.caseIndex`, held
+ * by a save or kept while the copy was deleted, `heldCopySnapshot`), what
+ * to make it from again, so it shows what it showed: `{ caseIndex, group,
+ * segment }`, the serialized `<group>` that case makes, as the
+ * `<conditionalContent>` makes it (`getReplacements`), and the segment of
+ * the `stateId`s of its copy (`stateIdSegmentForCopyOf`), which are then
+ * those the copy had, so its snapshot applies. `group` is `null` when the
+ * copy was made while no case was active, and made nothing. `undefined`
+ * when it is made from the active case.
+ */
+async function heldCaseSource({ caseSource, components, heldMadeFrom }) {
+    const caseIndex = heldMadeFrom?.caseIndex;
+    if (
+        caseIndex === undefined ||
+        caseIndex === caseSource.replacementsWorkspace.previousSelectedIndex
+    ) {
+        return undefined;
+    }
+    if (caseIndex === null) {
+        return { caseIndex, group: null };
+    }
+    const caseChildren = await caseSource.stateValues.caseChildren;
+    if (!Number.isInteger(caseIndex) || !caseChildren[caseIndex]) {
+        return undefined;
+    }
+    const group = (
+        await caseSource.constructor.getReplacements(
+            caseSource,
+            components,
+            caseIndex,
+        )
+    ).replacements[0];
+    const ownSegment =
+        (await caseSource.stateValues.numCases) === 1
+            ? ""
+            : `case${caseIndex}|`;
+    return {
+        caseIndex,
+        group,
+        segment: (await stateIdSegmentForCopyOf(caseSource)) + ownSegment,
+    };
+}
+
+/**
+ * What `typeChangeStatus` decided for an unlinked copy made again
+ * (`typeChange`), given what was decided when it was made
+ * (`heldMadeFrom.typeChange`, `heldCopySnapshot`). A decision made from what
+ * the document makes at run time (allowed, or an info) is the one made
+ * before, so the copy is shown, or not, as it was: one made from a math
+ * while its value was a tuple, which is not one now, is still made. A
+ * decision that follows from what the author wrote (an error, or nothing
+ * to decide when it was made) is the same on every load, and is kept.
+ */
+function heldTypeChange(typeChange, heldMadeFrom) {
+    const held = heldMadeFrom?.typeChange;
+    if (held === undefined || typeChange?.level === "error") {
+        return typeChange;
+    }
+    if (held.key === "allowed") {
+        return null;
+    }
+    if (held.key?.startsWith("mismatch:info") && held.diagnostic) {
+        return { level: "info", diagnostic: held.diagnostic };
+    }
+    return typeChange;
 }
 
 /**

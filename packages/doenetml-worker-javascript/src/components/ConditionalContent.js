@@ -231,14 +231,22 @@ export default class ConditionalContent extends CompositeComponent {
         return { ...replacementResults, nComponents };
     }
 
-    static async getReplacements(component, components) {
+    /**
+     * The replacements of `component`: what its active case holds, or, with
+     * `caseIndex`, what that case holds, which an unlinked copy made from it
+     * is made from again on load (`heldCaseSource` in `Copy.js`).
+     */
+    static async getReplacements(component, components, caseIndex) {
         let diagnostics = [];
 
         let replacements = [];
 
         let caseChildren = await component.stateValues.caseChildren;
 
-        let selectedIndex = await component.stateValues.selectedIndex;
+        let selectedIndex =
+            caseIndex !== undefined
+                ? caseIndex
+                : await component.stateValues.selectedIndex;
 
         if (selectedIndex !== null) {
             const selectedChildComponentIdx =

@@ -976,8 +976,8 @@ describe("Deciding again as content made at run time changes @group4", () => {
             p2: "3.1",
             p3: "(5, 6)",
             p4: "true",
-            // a copy made again from what the case holds now
-            p5: "(5, 6)",
+            // a copy made again from the case it was made from (#2441)
+            p5: "(3, 4)",
             p6: "3.1",
             p7: "(5, 6)",
         });

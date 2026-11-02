@@ -16,7 +16,9 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * reloaded, as they are restored. So that it keeps what it showed, a save
  * holds its snapshot when a copy made then would not show the same
  * (`snapshotStillMade`, `StatePersistence.recordCopySnapshots`), and a copy
- * made again on load takes the saved one (`applyCopySnapshot`).
+ * made again on load takes the saved one (`applyCopySnapshot`). The save
+ * also holds what decided what the copy made, which a copy made again on
+ * load decides as it was decided before (`heldCopySnapshot`).
  */
 export function copySnapshotOf(serializedComponents) {
     const snapshot = [];
@@ -89,9 +91,11 @@ export function copySnapshotOf(serializedComponents) {
  * (an entry without one, from before it was held, applies to none), and
  * none applies within a replacement whose `stateId` has an entry only of
  * another type: that replacement and what it contains were made from other
- * DoenetML. A copy made again with a different shape is thus made from its
- * source as restored, and keeps nothing it cannot apply: the copy then
- * holds only the snapshot of what it made.
+ * DoenetML. A copy made again with a different shape (one whose shape no
+ * held case decides, as of a `<collect>` or of `$cc.p`, or one from a save
+ * that held the snapshot alone, `heldCopySnapshot`) is thus made from its
+ * source as restored, and keeps nothing it cannot apply: the copy then holds
+ * only the snapshot of what it made.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
@@ -218,4 +222,50 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
         }
     }
     return true;
+}
+
+/**
+ * What a save holds of an unlinked copy (`StatePersistence.recordCopySnapshots`):
+ * its snapshot (`copySnapshotOf`), and, when anything decided what it made
+ * that a copy made again could decide otherwise (`component.unlinkedMadeFrom`),
+ * that too, so that a reload makes what the reader saw (SAVE-1):
+ * - `typeChange`, whether a copy written as a different tag than what it
+ *   copies was made, or shows nothing, when that was decided from what the
+ *   document makes at run time (`typeChangeStatus` in `Copy.js`): the value
+ *   of a math, or what a `<conditionalContent>` holds;
+ * - `caseIndex`, the case of a `<conditionalContent>` a copy of it was made
+ *   from, or `null` when it had no active case.
+ *
+ * A copy with neither is held as its snapshot alone, as saves made before
+ * these were held are.
+ */
+export function heldCopySnapshot(component) {
+    const madeFrom = component.unlinkedMadeFrom ?? {};
+    if (madeFrom.typeChange === undefined && madeFrom.caseIndex === undefined) {
+        return component.unlinkedSnapshot;
+    }
+    return {
+        snapshot: component.unlinkedSnapshot,
+        ...(madeFrom.typeChange !== undefined && {
+            typeChange: madeFrom.typeChange,
+        }),
+        ...(madeFrom.caseIndex !== undefined && {
+            caseIndex: madeFrom.caseIndex,
+        }),
+    };
+}
+
+/**
+ * What `heldCopySnapshot` held: the snapshot, and what decided what the copy
+ * made (`madeFrom`, empty for a save that held the snapshot alone).
+ */
+export function readHeldCopySnapshot(held) {
+    if (held === undefined || held === null) {
+        return undefined;
+    }
+    if (Array.isArray(held)) {
+        return { snapshot: held, madeFrom: {} };
+    }
+    const { snapshot, ...madeFrom } = held;
+    return { snapshot: snapshot ?? [], madeFrom };
 }
