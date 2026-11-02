@@ -14,7 +14,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
 - **Error:** the DoenetML is invalid or cannot be honored as written. Something is not rendered,
   or is replaced by the error. The author must change it. Examples:
   - an extend that changes what a tag makes (REF-7, `doenet-e0056`–`e0061`);
-  - an unrelated type change (REF-5);
+  - an unrelated type change (REF-5), and a tag whose content the DoenetML doesn't guarantee
+    (REF-0, D36);
   - a cycle (NAME-7).
 - **Warning:** the DoenetML is valid, but almost certainly not what was meant, or does nothing.
   The author should change it. Examples:
@@ -29,7 +30,7 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - an index that names nothing at the moment;
   - a construction from a blank input;
   - a collect from content that is not shown;
-  - a type change that does not match the active case.
+  - a value that does not convert to the tag written (`doenet-i0053`).
 
 A warning in a document means something should be fixed. A document that is waiting for the
 reader has none.
