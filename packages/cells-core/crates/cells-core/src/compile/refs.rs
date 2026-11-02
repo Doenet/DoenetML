@@ -162,18 +162,24 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         m: NodeId,
     ) -> Result<RefId> {
+        let _s = crate::trace::tally("plan ref");
         if let Some(&p) = self.ref_subst.get(&m) {
             return Ok(p);
         }
         let d = self.dast;
+        let g = crate::trace::tally("display");
         let display = d.macro_display(m);
         let names = d.macro_path(m);
         let parts: Vec<_> = d.macro_parts(m).collect();
+        drop(g);
+        let g = crate::trace::tally("lookup");
         let first = d.strings.get(names[0]);
         let (hops, e0) = self
             .lookup(t, scope, first)?
             .ok_or_else(|| Error::UnknownName(first.into()))?;
         let mut cur_t = self.template_up(t, hops);
+        drop(g);
+        let path = crate::trace::tally("path");
         let mut steps = vec![Step::Elem(e0)];
         let mut at = At::Elem(e0);
         let mut prop = None;
@@ -446,6 +452,8 @@ impl<'a> Compiler<'a> {
                 terms: vec![IndexTerm::Const(1)],
             }));
         }
+        drop(path);
+        let _p = crate::trace::tally("push");
         self.compiled.refs.push(RefPlan {
             hops,
             steps,

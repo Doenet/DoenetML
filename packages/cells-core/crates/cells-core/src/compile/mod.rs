@@ -1009,7 +1009,7 @@ impl<'a> Compiler<'a> {
         let planned_as = self.compiled.templates[t.index()].elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
-            let hold = self.plan_hold(t, e)?;
+            let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
             self.compiled.templates[t.index()].elems[e.index()].hold = hold;
             Ok(())
         });

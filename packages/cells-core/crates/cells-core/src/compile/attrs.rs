@@ -30,6 +30,13 @@ impl<'a> Compiler<'a> {
         };
         let mut props: Vec<Option<Source>> = vec![None; component_type.prop_defs().len()];
         for (pi, def) in component_type.prop_defs().iter().enumerate() {
+            let _p = crate::trace::tally(match def.from {
+                PropFrom::Attribute => "attribute",
+                PropFrom::AttributeOr { .. } => "attribute or",
+                PropFrom::Computed { .. } => "computed",
+                PropFrom::Children => "children",
+                PropFrom::ByPlanner => "by planner",
+            });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
                     let bind = def.bind.unwrap();
@@ -127,8 +134,10 @@ impl<'a> Compiler<'a> {
             props[pi] = Some(source);
         }
         if let Planner::PropsThen(then) = Self::planner(component_type) {
+            let _s = crate::trace::tally("props then");
             then(&mut PlanCtx::new(self, t, e, None), &mut props)?;
         }
+        let _s = crate::trace::tally("mark");
         let mut props: Vec<Source> = props.into_iter().map(|p| p.unwrap()).collect();
         Deferred::mark(component_type, &mut props);
         self.compiled.templates[t.index()].elems[e.index()].props = props;
@@ -203,6 +212,7 @@ impl<'a> Compiler<'a> {
         nodes: &[NodeId],
         ref_prop: Option<&str>,
     ) -> Result<Source> {
+        let _s = crate::trace::tally("plan value");
         let d = self.dast;
         let macros: Vec<NodeId> = nodes
             .iter()
@@ -249,6 +259,7 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         nodes: &[NodeId],
     ) -> Result<ExprId> {
+        let _s = crate::trace::tally("plan math");
         let (toks, text) = self.math_tokens(t, scope, nodes)?;
         self.parse_tokens(&toks, &text)
     }
@@ -259,6 +270,7 @@ impl<'a> Compiler<'a> {
         toks: &[Token],
         text: &str,
     ) -> Result<ExprId> {
+        let _s = crate::trace::tally("parse");
         Parser::parse(toks, &mut self.compiled.arena).map_err(|reason| Error::BadMath {
             text: text.to_string(),
             reason,
@@ -304,6 +316,7 @@ impl<'a> Compiler<'a> {
     /// are placeholders, planned by `resolve_math`, so tokenizing reads no
     /// other element and may run while outlining (a `<math>`'s, ADR 0029).
     pub(in crate::compile) fn math_text(&self, nodes: &[NodeId]) -> Result<MathText> {
+        let _s = crate::trace::tally("math text");
         let d = self.dast;
         let mut mt = MathText {
             toks: Vec::new(),
@@ -351,12 +364,13 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         mt: &MathText,
     ) -> Result<(Vec<Token>, String, String)> {
+        let _s = crate::trace::tally("resolve math");
         let d = self.dast;
         let mut sym = mt.between[0].clone();
         let mut plans = Vec::with_capacity(mt.macros.len());
         for (k, &m) in mt.macros.iter().enumerate() {
             // A text cell holds a string id, which is not a number.
-            if self.macro_is_text(t, scope, m) {
+            if crate::trace::tally("is text").run(|| self.macro_is_text(t, scope, m)) {
                 return Err(Error::Unsupported(format!(
                     "a text value (${}) inside math",
                     d.macro_display(m)

@@ -19,6 +19,7 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
 use std::time::Duration;
 use web_time::Instant;
 
@@ -40,9 +41,33 @@ struct Recorder {
     spans: Vec<Span>,
     /// Indices into `spans` of the spans still open, innermost last.
     open: Vec<usize>,
+    /// The parent of each span in `spans` (`usize::MAX` for none).
+    parents: Vec<usize>,
     /// The span of each tally, by its parent's index (`usize::MAX` for
-    /// none) and its name.
-    tallies: HashMap<(usize, &'static str), usize>,
+    /// none) and its name's address: a tally opens once per element or
+    /// more, so its lookup hashes two words rather than the name.
+    tallies: HashMap<(usize, usize), usize, BuildHasherDefault<WordHasher>>,
+}
+
+/// A multiplicative hash of whole words, for the tallies' keys.
+#[derive(Default)]
+struct WordHasher(u64);
+
+impl Hasher for WordHasher {
+    fn write(&mut self, bytes: &[u8]) {
+        for &b in bytes {
+            self.write_u64(b as u64);
+        }
+    }
+    fn write_usize(&mut self, n: usize) {
+        self.write_u64(n as u64);
+    }
+    fn write_u64(&mut self, n: u64) {
+        self.0 = (self.0.rotate_left(5) ^ n).wrapping_mul(0x517c_c1b7_2722_0a95);
+    }
+    fn finish(&self) -> u64 {
+        self.0
+    }
 }
 
 thread_local! {
@@ -56,15 +81,46 @@ pub fn start() {
             origin: Instant::now(),
             spans: Vec::new(),
             open: Vec::new(),
-            tallies: HashMap::new(),
+            parents: Vec::new(),
+            tallies: HashMap::default(),
         })
     });
 }
 
-/// Stop recording and return the spans in the order they opened. Empty if
-/// recording was not started.
+/// Stop recording and return the spans in the order they opened, each
+/// before its children, siblings in the order they first opened. Empty
+/// if recording was not started.
 pub fn finish() -> Vec<Span> {
-    RECORDER.with(|r| r.borrow_mut().take().map_or_else(Vec::new, |rec| rec.spans))
+    RECORDER.with(|r| r.borrow_mut().take().map_or_else(Vec::new, tree_order))
+}
+
+/// The spans with every span's children after it and before its next
+/// sibling. Without tallies the opening order is that already; a tally's
+/// span is made when it first opens, after spans opened later under its
+/// parent's earlier siblings, so it is moved under its parent.
+fn tree_order(rec: Recorder) -> Vec<Span> {
+    if rec.tallies.is_empty() {
+        return rec.spans;
+    }
+    let mut children: Vec<Vec<usize>> = vec![Vec::new(); rec.spans.len()];
+    let mut roots = Vec::new();
+    for (i, &p) in rec.parents.iter().enumerate() {
+        match p {
+            usize::MAX => roots.push(i),
+            p => children[p].push(i),
+        }
+    }
+    let mut order = Vec::with_capacity(rec.spans.len());
+    let mut stack: Vec<usize> = roots.into_iter().rev().collect();
+    while let Some(i) = stack.pop() {
+        order.push(i);
+        stack.extend(children[i].iter().rev());
+    }
+    let mut spans: Vec<Option<Span>> = rec.spans.into_iter().map(Some).collect();
+    order
+        .into_iter()
+        .map(|i| spans[i].take().unwrap())
+        .collect()
 }
 
 /// Closes its span when dropped.
@@ -81,6 +137,8 @@ pub fn span(name: &'static str) -> Guard {
         let mut r = r.borrow_mut();
         let rec = r.as_mut()?;
         let index = rec.spans.len();
+        rec.parents
+            .push(rec.open.last().copied().unwrap_or(usize::MAX));
         rec.spans.push(Span {
             name,
             depth: rec.open.len() as u32,
@@ -121,8 +179,10 @@ fn open_tally(name: &'static str) -> Guard {
         let now = rec.origin.elapsed();
         let parent = rec.open.last().copied().unwrap_or(usize::MAX);
         let depth = rec.open.len() as u32;
-        let spans = &mut rec.spans;
-        let index = *rec.tallies.entry((parent, name)).or_insert_with(|| {
+        let (spans, parents) = (&mut rec.spans, &mut rec.parents);
+        let key = (parent, name.as_ptr() as usize);
+        let index = *rec.tallies.entry(key).or_insert_with(|| {
+            parents.push(parent);
             spans.push(Span {
                 name,
                 depth,
@@ -248,6 +308,29 @@ mod tests {
         assert_eq!(spans[1].counts, [("props", 4), ("n", 2)]);
         assert_eq!(spans[2].counts, [("props", 2), ("n", 1)]);
         assert!(spans[0].duration >= spans[1].duration + spans[2].duration);
+    }
+
+    #[test]
+    fn a_tally_first_opened_late_is_listed_under_its_parent() {
+        start();
+        {
+            let _outer = span("plan");
+            for second in [false, true] {
+                let _e = open_tally("number");
+                if second {
+                    let _m = open_tally("plan math");
+                }
+                let _h = open_tally("hold");
+            }
+        }
+        let spans = finish();
+        let names: Vec<_> = spans.iter().map(|s| (s.name, s.depth)).collect();
+        assert_eq!(
+            names,
+            [("plan", 0), ("number", 1), ("hold", 2), ("plan math", 2)]
+        );
+        assert_eq!(spans[2].counts, [("n", 2)]);
+        assert_eq!(spans[3].counts, [("n", 1)]);
     }
 
     #[test]
